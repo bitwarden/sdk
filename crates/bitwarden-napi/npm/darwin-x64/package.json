@@ -1,0 +1,31 @@
+{
+  "name": "@bitwarden/sdk-napi-darwin-x64",
+  "version": "0.1.6",
+  "homepage": "https://github.com/bitwarden/sdk#readme",
+  "bugs": {
+    "url": "https://github.com/bitwarden/sdk/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bitwarden/sdk.git"
+  },
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "Bitwarden Inc. <hello@bitwarden.com> (https://bitwarden.com)",
+  "main": "sdk-napi.darwin-x64.node",
+  "files": [
+    "sdk-napi.darwin-x64.node"
+  ],
+  "engines": {
+    "node": ">= 10"
+  },
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}

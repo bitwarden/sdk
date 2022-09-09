@@ -1,0 +1,36 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:base", "schedule:monthly"],
+  "separateMajorMinor": true,
+  "packageRules": [
+    {
+      "matchManagers": ["npm"],
+      "matchPackagePatterns": ["*"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "node non-major"
+    },
+    {
+      "matchManagers": ["cargo"],
+      "matchPackagePatterns": ["*"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "rust non-major"
+    },
+    {
+      "matchManagers": ["cargo"],
+      "matchPackagePatterns": ["pyo3*"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "pyo3 non-major"
+    },
+    {
+      "matchManagers": ["nuget"],
+      "matchPackagePatterns": ["*"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "dotnet non-major"
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "matchPackagePatterns": ["*"],
+      "groupName": "gh actions all"
+    }
+  ]
+}

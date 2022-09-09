@@ -1,0 +1,148 @@
+---
+name: Build CLI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "master"
+      - "rc"
+      - "hotfix-rc"
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-20.04
+    outputs:
+      package_version: ${{ steps.retrieve-version.outputs.package_version }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+
+      - name: Get Package Version
+        id: retrieve-version
+        run: |
+          VERSION=$(grep -o '^version = ".*"' crates/bws/Cargo.toml | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
+          echo "package_version=$VERSION" >> $GITHUB_OUTPUT
+
+  build:
+    name: Building CLI for - ${{ matrix.settings.os }} - ${{ matrix.settings.target }}
+    runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}
+    needs:
+      - setup
+    env:
+      _PACKAGE_VERSION: ${{ needs.setup.outputs.package_version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - os: macos-12
+            target: x86_64-apple-darwin
+
+          - os: macos-12
+            target: aarch64-apple-darwin
+
+          - os: windows-2022
+            target: x86_64-pc-windows-msvc
+
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+
+          # - os: ubuntu-22.04
+          #   target: aarch64-unknown-linux-gnu
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+
+      - name: Install rust
+        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
+        with:
+          profile: minimal
+          override: true
+          toolchain: stable
+          target: ${{ matrix.settings.target }}
+
+      - name: Install libssl-dev for aarch64-unknown-linux-gnu
+        if: ${{ matrix.settings.target == 'aarch64-unknown-linux-gnu' }}
+        run: |
+          sudo apt-get install gcc-aarch64-linux-gnu
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@6fd3edff6979b79f87531400ad694fb7f2c84b1f # v2.2.1
+        with:
+          key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.os }}
+
+      - name: Build
+        env:
+          TARGET: ${{ matrix.settings.target }}
+        run: cargo build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
+
+      - name: Test
+        uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
+        with:
+          command: test
+          args: -p bws -- --test-threads=1
+
+      - name: Zip Windows
+        shell: cmd
+        if: runner.os == 'Windows'
+        run: 7z a ./bws-${{ matrix.settings.target }}-%_PACKAGE_VERSION%.zip ./target/${{ matrix.settings.target }}/release/bws.exe
+
+      - name: Zip Unix
+        if: runner.os != 'Windows'
+        run: zip -j ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip ./target/${{ matrix.settings.target }}/release/bws
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip
+          path: ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip
+          if-no-files-found: error
+
+  macos-universal-binary:
+    name: Generate universal macOS binary
+    runs-on: macos-12
+    needs:
+      - setup
+      - build
+    env:
+      _PACKAGE_VERSION: ${{ needs.setup.outputs.package_version }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+
+      - name: Download x86_64-apple-darwin artifact
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: bws-x86_64-apple-darwin-${{ env._PACKAGE_VERSION }}.zip
+
+      - name: Download aarch64-apple-darwin artifact
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: bws-aarch64-apple-darwin-${{ env._PACKAGE_VERSION }}.zip
+
+      - name: Unzip artifacts
+        run: |
+          unzip bws-x86_64-apple-darwin-${{ env._PACKAGE_VERSION }}.zip -d ./bws-x86_64-apple-darwin
+          unzip bws-aarch64-apple-darwin-${{ env._PACKAGE_VERSION }}.zip -d ./bws-aarch64-apple-darwin
+
+      - name: lipo create universal package
+        run: |
+          mkdir ./bws-macos-universal
+
+          lipo -create -output ./bws-macos-universal/bws ./bws-x86_64-apple-darwin/bws ./bws-aarch64-apple-darwin/bws
+
+      - name: Zip universal artifact
+        run: zip ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip ./bws-macos-universal/bws
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip
+          path: ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip
+          if-no-files-found: error

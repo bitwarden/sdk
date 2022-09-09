@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Response_for_UserApiKeyResponse",
+  "type": "object",
+  "required": [
+    "success"
+  ],
+  "properties": {
+    "data": {
+      "description": "The response data. Populated if `success` is true.",
+      "anyOf": [
+        {
+          "$ref": "#/definitions/UserApiKeyResponse"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "errorMessage": {
+      "description": "A message for any error that may occur. Populated if `success` is false.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "success": {
+      "description": "Whether or not the SDK request succeeded.",
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "UserApiKeyResponse": {
+      "type": "object",
+      "required": [
+        "apiKey"
+      ],
+      "properties": {
+        "apiKey": {
+          "description": "The user's API key, which represents the client_secret portion of an oauth request.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

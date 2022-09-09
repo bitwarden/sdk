@@ -1,0 +1,98 @@
+---
+name: Build @bitwarden/sdk-napi
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "master"
+      - "rc"
+      - "hotfix-rc"
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+    working-directory: crates/bitwarden-napi
+
+jobs:
+  cloc:
+    name: CLOC
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+
+      - name: Set up cloc
+        run: |
+          sudo apt update
+          sudo apt -y install cloc
+
+      - name: Print lines of code
+        run: cloc --vcs git
+
+  build:
+    name: Building @bitwarden/sdk-napi for - ${{ matrix.settings.os }}
+    runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - os: macos-12
+            target: x86_64-apple-darwin
+            build: |
+              npm run build
+              strip -x *.node
+
+          - os: macos-12
+            target: aarch64-apple-darwin
+            build: |
+              npm run build-arm64
+              strip -x *.node
+
+          - os: windows-2022
+            target: x86_64-pc-windows-msvc
+            build: npm run build
+
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            build: |
+              set -e &&
+              npm run build &&
+              strip *.node
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+
+      - name: Setup Node
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+        with:
+          node-version: 18
+          cache: "npm"
+          cache-dependency-path: crates/bitwarden-napi/package-lock.json
+
+      - name: Install rust
+        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
+        with:
+          profile: minimal
+          override: true
+          toolchain: stable
+          target: ${{ matrix.settings.target }}
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@6fd3edff6979b79f87531400ad694fb7f2c84b1f # v2.2.1
+        with:
+          key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.os }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: ${{ matrix.settings.build }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: sdk-bitwarden-napi-${{ matrix.settings.target }}
+          path: ${{ github.workspace }}/crates/bitwarden-napi/sdk-napi.*.node
+          if-no-files-found: error

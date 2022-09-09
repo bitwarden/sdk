@@ -1,0 +1,51 @@
+{
+  "name": "@bitwarden/sdk-napi",
+  "version": "0.1.6",
+  "homepage": "https://github.com/bitwarden/sdk#readme",
+  "bugs": {
+    "url": "https://github.com/bitwarden/sdk/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bitwarden/sdk.git"
+  },
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "Bitwarden Inc. <hello@bitwarden.com> (https://bitwarden.com)",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "binding.js",
+    "binding.d.ts",
+    "./dist/",
+    "./dist/bitwarden_client/"
+  ],
+  "scripts": {
+    "artifacts": "napi artifacts",
+    "build": "napi build --platform --release --js binding.js --dts binding.d.ts && tsc",
+    "build-arm64": "napi build --target aarch64-apple-darwin --platform --release --js binding.js --dts binding.d.ts && tsc",
+    "build:debug": "napi build --platform",
+    "prepublishOnly": "napi prepublish --skip-gh-release",
+    "tsc": "tsc",
+    "version": "napi version"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^2.13.2",
+    "ts-node": "10.9.1",
+    "typescript": "^4.9.4"
+  },
+  "engines": {
+    "node": ">= 10"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "napi": {
+    "name": "sdk-napi",
+    "triples": {
+      "additional": [
+        "aarch64-apple-darwin"
+      ]
+    }
+  }
+}

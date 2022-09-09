@@ -1,0 +1,7 @@
+html,
+body {
+  height: 400px;
+  width: 200px;
+  margin: 0;
+  box-sizing: border-box;
+}

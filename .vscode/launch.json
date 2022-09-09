@@ -1,0 +1,44 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": ".NET Core Launch (console)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "buildCsharp",
+      "program": "${workspaceFolder}/languages/csharp/bin/Debug/net6.0/bitwardenSdk.dll",
+      "args": [],
+      "env": {
+        "RUST_LOG": "debug"
+      },
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "console": "internalConsole"
+    },
+    {
+      "name": "Python: Current File",
+      "type": "python",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "preLaunchTask": "build python"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'bitwardensdk'",
+      "cargo": {
+        "args": ["test", "--no-run", "--lib", "--package=bitwardensdk"],
+        "filter": {
+          "name": "bitwardensdk",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

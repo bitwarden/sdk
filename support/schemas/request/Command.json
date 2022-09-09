@@ -1,0 +1,409 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Command",
+  "oneOf": [
+    {
+      "description": "Login with username and password\n\nThis command is for initiating an authentication handshake with Bitwarden. Authorization may fail due to requiring 2fa or captcha challenge completion despite accurate credentials.\n\nThis command is not capable of handling authentication requiring 2fa or captcha.\n\nReturns: [PasswordLoginResponse](crate::sdk::auth::response::PasswordLoginResponse)",
+      "type": "object",
+      "required": [
+        "passwordLogin"
+      ],
+      "properties": {
+        "passwordLogin": {
+          "$ref": "#/definitions/PasswordLoginRequest"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Login with API Key\n\nThis command is for initiating an authentication handshake with Bitwarden.\n\nReturns: [ApiKeyLoginResponse](crate::sdk::auth::response::ApiKeyLoginResponse)",
+      "type": "object",
+      "required": [
+        "apiKeyLogin"
+      ],
+      "properties": {
+        "apiKeyLogin": {
+          "$ref": "#/definitions/ApiKeyLoginRequest"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Login with Secrets Manager Access Token\n\nThis command is for initiating an authentication handshake with Bitwarden.\n\nReturns: [ApiKeyLoginResponse](crate::sdk::auth::response::ApiKeyLoginResponse)",
+      "type": "object",
+      "required": [
+        "accessTokenLogin"
+      ],
+      "properties": {
+        "accessTokenLogin": {
+          "$ref": "#/definitions/AccessTokenLoginRequest"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "> Requires Authentication Get the API key of the currently authenticated user\n\nReturns: [UserApiKeyResponse](crate::sdk::response::user_api_key_response::UserApiKeyResponse)",
+      "type": "object",
+      "required": [
+        "getUserApiKey"
+      ],
+      "properties": {
+        "getUserApiKey": {
+          "$ref": "#/definitions/SecretVerificationRequest"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "> Requires Authentication Retrieve all user data, ciphers and organizations the user is a part of\n\nReturns: [SyncResponse](crate::sdk::response::sync_response::SyncResponse)",
+      "type": "object",
+      "required": [
+        "sync"
+      ],
+      "properties": {
+        "sync": {
+          "$ref": "#/definitions/SyncRequest"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "secrets"
+      ],
+      "properties": {
+        "secrets": {
+          "$ref": "#/definitions/SecretsCommand"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "projects"
+      ],
+      "properties": {
+        "projects": {
+          "$ref": "#/definitions/ProjectsCommand"
+        }
+      },
+      "additionalProperties": false
+    }
+  ],
+  "definitions": {
+    "AccessTokenLoginRequest": {
+      "description": "Login to Bitwarden with access token",
+      "type": "object",
+      "required": [
+        "accessToken"
+      ],
+      "properties": {
+        "accessToken": {
+          "description": "Bitwarden service API access token",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ApiKeyLoginRequest": {
+      "description": "Login to Bitwarden with Api Key",
+      "type": "object",
+      "required": [
+        "clientId",
+        "clientSecret",
+        "password"
+      ],
+      "properties": {
+        "clientId": {
+          "description": "Bitwarden account client_id",
+          "type": "string"
+        },
+        "clientSecret": {
+          "description": "Bitwarden account client_secret",
+          "type": "string"
+        },
+        "password": {
+          "description": "Bitwarden account master password",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "PasswordLoginRequest": {
+      "description": "Login to Bitwarden with Username and Password",
+      "type": "object",
+      "required": [
+        "email",
+        "password"
+      ],
+      "properties": {
+        "email": {
+          "description": "Bitwarden account email address",
+          "type": "string"
+        },
+        "password": {
+          "description": "Bitwarden account master password",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProjectGetRequest": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "description": "ID of the project to retrieve",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProjectsCommand": {
+      "oneOf": [
+        {
+          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Retrieve a project by the provided identifier\n\nReturns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)",
+          "type": "object",
+          "required": [
+            "get"
+          ],
+          "properties": {
+            "get": {
+              "$ref": "#/definitions/ProjectGetRequest"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Lists all projects of the given organization\n\nReturns: [ProjectsResponse](crate::sdk::response::projects_response::ProjectsResponse)",
+          "type": "object",
+          "required": [
+            "list"
+          ],
+          "properties": {
+            "list": {
+              "$ref": "#/definitions/ProjectsListRequest"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "ProjectsListRequest": {
+      "type": "object",
+      "required": [
+        "organizationId"
+      ],
+      "properties": {
+        "organizationId": {
+          "description": "Organization to retrieve all the projects from",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SecretCreateRequest": {
+      "type": "object",
+      "required": [
+        "key",
+        "note",
+        "organizationId",
+        "value"
+      ],
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        },
+        "organizationId": {
+          "description": "Organization where the secret will be created",
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SecretGetRequest": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "description": "ID of the secret to retrieve",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SecretIdentifiersRequest": {
+      "type": "object",
+      "required": [
+        "organizationId"
+      ],
+      "properties": {
+        "organizationId": {
+          "description": "Organization to retrieve all the secrets from",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SecretPutRequest": {
+      "type": "object",
+      "required": [
+        "id",
+        "key",
+        "note",
+        "organizationId",
+        "value"
+      ],
+      "properties": {
+        "id": {
+          "description": "ID of the secret to modify",
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        },
+        "organizationId": {
+          "description": "Organization ID of the secret to modify",
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SecretVerificationRequest": {
+      "type": "object",
+      "properties": {
+        "masterPassword": {
+          "description": "The user's master password to use for user verification. If supplied, this will be used for verification purposes.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "otp": {
+          "description": "Alternate user verification method through OTP. This is provided for users who have no master password due to use of Customer Managed Encryption. Must be present and valid if master_password is absent.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "SecretsCommand": {
+      "oneOf": [
+        {
+          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Retrieve a secret by the provided identifier\n\nReturns: [SecretResponse](crate::sdk::response::secrets_response::SecretResponse)",
+          "type": "object",
+          "required": [
+            "get"
+          ],
+          "properties": {
+            "get": {
+              "$ref": "#/definitions/SecretGetRequest"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Creates a new secret in the provided organization using the given data\n\nReturns: [SecretResponse](crate::sdk::response::secrets_response::SecretResponse)",
+          "type": "object",
+          "required": [
+            "create"
+          ],
+          "properties": {
+            "create": {
+              "$ref": "#/definitions/SecretCreateRequest"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Lists all secret identifiers of the given organization, to then retrieve each secret, use `CreateSecret`\n\nReturns: [SecretIdentifiersResponse](crate::sdk::response::secrets_response::SecretIdentifiersResponse)",
+          "type": "object",
+          "required": [
+            "list"
+          ],
+          "properties": {
+            "list": {
+              "$ref": "#/definitions/SecretIdentifiersRequest"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Updates an existing secret with the provided ID using the given data\n\nReturns: [SecretResponse](crate::sdk::response::secrets_response::SecretResponse)",
+          "type": "object",
+          "required": [
+            "update"
+          ],
+          "properties": {
+            "update": {
+              "$ref": "#/definitions/SecretPutRequest"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Deletes all the secrets whose IDs match the provided ones\n\nReturns: [SecretsDeleteResponse](crate::sdk::response::secrets_response::SecretsDeleteResponse)",
+          "type": "object",
+          "required": [
+            "delete"
+          ],
+          "properties": {
+            "delete": {
+              "$ref": "#/definitions/SecretsDeleteRequest"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "SecretsDeleteRequest": {
+      "type": "object",
+      "required": [
+        "ids"
+      ],
+      "properties": {
+        "ids": {
+          "description": "IDs of the secrets to delete",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "SyncRequest": {
+      "type": "object",
+      "properties": {
+        "excludeSubdomains": {
+          "description": "Exclude the subdomains from the response, defaults to false",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,163 @@
+---
+name: Publish Rust crates
+run-name: Publish Rust crates ${{ inputs.release_type }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Release Options"
+        required: true
+        default: "Initial Release"
+        type: choice
+        options:
+          - Initial Release
+          - Redeploy
+          - Dry Run
+      publish_bitwarden:
+        description: "Publish bitwarden crate"
+        required: true
+        default: true
+        type: boolean
+      publish_bitwarden-api-api:
+        description: "Publish bitwarden-api-api crate"
+        required: true
+        default: true
+        type: boolean
+      publish_bitwarden-api-identity:
+        description: "Publish bitwarden-api-identity crate"
+        required: true
+        default: true
+        type: boolean
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-22.04
+    outputs:
+      packages_list: ${{ steps.packages-list.outputs.packages_list }}
+      packages_command: ${{ steps.packages-list.outputs.packages_command }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+
+      - name: Branch check
+        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/rc" ]] && [[ "$GITHUB_REF" != "refs/heads/hotfix-rc" ]]; then
+            echo "==================================="
+            echo "[!] Can only release from the 'rc' or 'hotfix-rc' branches"
+            echo "==================================="
+            exit 1
+          fi
+
+      - name: Prepare packages list
+        id: packages-list
+        env:
+          PUBLISH_BITWARDEN: ${{ github.event.inputs.publish_bitwarden }}
+          PUBLISH_BITWARDEN_API_API: ${{ github.event.inputs.publish_bitwarden-api-api }}
+          PUBLISH_BITWARDEN_API_IDENTITY: ${{ github.event.inputs.publish_bitwarden-api-identity }}
+        run: |
+          if [[ "$PUBLISH_BITWARDEN" == "false" ]] && [[ "$PUBLISH_BITWARDEN_API_API" == "false" ]] && [[ "$PUBLISH_BITWARDEN_API_IDENTITY" == "false" ]]; then
+            echo "==================================="
+            echo "[!] You need to specify at least one crate for release!"
+            echo "==================================="
+            exit 1
+          fi
+
+          PACKAGES_COMMAND=""
+          PACKAGES_LIST=""
+
+          if [[ "$PUBLISH_BITWARDEN" == "true" ]] ; then
+            PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden"
+            PACKAGES_LIST="$PACKAGES_LIST bitwarden"
+          fi
+
+          if [[ "$PUBLISH_BITWARDEN_API_API" == "true" ]]; then
+            PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-api-api"
+            PACKAGES_LIST="$PACKAGES_LIST bitwarden-api-api"
+          fi
+
+          if [[ "$PUBLISH_BITWARDEN_API_IDENTITY" == "true" ]]; then
+            PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-api-identity"
+            PACKAGES_LIST="$PACKAGES_LIST bitwarden-api-identity"
+          fi
+
+          echo "Packages command: " $PACKAGES_COMMAND
+          echo "Packages list: " $PACKAGES_LIST
+
+          echo "packages_list=$PACKAGES_LIST" >> $GITHUB_OUTPUT
+          echo "packages_command=$PACKAGES_COMMAND" >> $GITHUB_OUTPUT
+
+  publish:
+    name: Publish ${{ needs.setup.outputs.packages_list }}
+    runs-on: ubuntu-latest
+    needs:
+      - setup
+    steps:
+      - name: Checkout
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+
+      - name: Login to Azure
+        uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
+        with:
+          creds: ${{ secrets.AZURE_PROD_KV_CREDENTIALS }}
+
+      - name: Retrieve secrets
+        id: retrieve-secrets
+        uses: bitwarden/gh-actions/get-keyvault-secrets@4f2a18ff6b521dbdc0d9079e528bf82114175520
+        with:
+          keyvault: "bitwarden-prod-kv"
+          secrets: "cratesio-api-token"
+
+      - name: Install rust
+        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
+        with:
+          toolchain: "stable"
+          profile: minimal
+          override: true
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@6fd3edff6979b79f87531400ad694fb7f2c84b1f # v2.2.1
+
+      - name: Install cargo-release
+        run: cargo install cargo-release
+
+      - name: Create GitHub deployment
+        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        uses: chrnorm/deployment-action@d42cde7132fcec920de534fffc3be83794335c00 # v2.0.5
+        id: deployment
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          initial-status: "in_progress"
+          environment: "Bitwarden SDK to crates.io: ${{ needs.setup.outputs.packages_list }}"
+          description: "Deployment from branch ${{ github.ref_name }}"
+          task: release
+
+      - name: Cargo release
+        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        env:
+          PUBLISH_GRACE_SLEEP: 10
+          PACKAGES_PUBLISH: ${{ needs.setup.outputs.packages_command }}
+          CARGO_REGISTRY_TOKEN: ${{ steps.retrieve-secrets.outputs.cratesio-api-token }}
+        run: cargo-release release publish $PACKAGES_PUBLISH --execute --no-confirm
+
+      - name: Update deployment status to Success
+        if: ${{ github.event.inputs.release_type != 'Dry Run' && success() }}
+        uses: chrnorm/deployment-status@2afb7d27101260f4a764219439564d954d10b5b0 # v2.0.1
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          state: "success"
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+
+      - name: Update deployment status to Failure
+        if: ${{ github.event.inputs.release_type != 'Dry Run' && failure() }}
+        uses: chrnorm/deployment-status@2afb7d27101260f4a764219439564d954d10b5b0 # v2.0.1
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          state: "failure"
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}

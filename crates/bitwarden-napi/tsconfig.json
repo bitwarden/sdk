@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "outDir": "./dist",
+    "rootDir": "./src-ts",
+    "strict": true,
+    "noImplicitAny": true,
+    "esModuleInterop": true,
+    "declaration": true
+  },
+  "include": ["src-ts", "src-ts/bitwarden_client", "src-ts/index.ts"]
+}

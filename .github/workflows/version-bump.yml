@@ -1,0 +1,196 @@
+---
+name: Version Bump
+
+on:
+  workflow_dispatch:
+    inputs:
+      project:
+        description: "Project"
+        required: true
+        type: choice
+        options:
+          - napi
+          - bitwarden
+          - bitwarden-api-api
+          - bitwarden-api-identity
+          - cli
+          - bitwarden-json
+      version_number:
+        description: "New Version"
+        required: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  bump_version:
+    name: "Bump ${{ github.event.inputs.project }} Version"
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Branch
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+
+      - name: Install rust
+        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
+        with:
+          toolchain: ${{ matrix.rust || 'stable' }}
+          target: ${{ matrix.settings.target }}
+          profile: minimal
+          override: true
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@6fd3edff6979b79f87531400ad694fb7f2c84b1f # v2.2.1
+
+      - name: Install cargo-release
+        run: cargo install cargo-edit
+
+      - name: Login to Azure - Prod Subscription
+        uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
+        with:
+          creds: ${{ secrets.AZURE_PROD_KV_CREDENTIALS }}
+
+      - name: Retrieve secrets
+        id: retrieve-secrets
+        uses: bitwarden/gh-actions/get-keyvault-secrets@4f2a18ff6b521dbdc0d9079e528bf82114175520
+        with:
+          keyvault: "bitwarden-prod-kv"
+          secrets: "github-gpg-private-key, github-gpg-private-key-passphrase"
+
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@111c56156bcc6918c056dbef52164cfa583dc549 # v5.2.0
+        with:
+          gpg_private_key: ${{ steps.retrieve-secrets.outputs.github-gpg-private-key }}
+          passphrase: ${{ steps.retrieve-secrets.outputs.github-gpg-private-key-passphrase }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+
+      - name: Create Version Branch
+        id: branch
+        env:
+          VERSION: ${{ github.event.inputs.version_number }}
+          PROJECT: ${{ github.event.inputs.project }}
+        run: git switch -c sdk-${PROJECT}_version_bump_${VERSION}
+
+      ########################
+      # VERSION BUMP SECTION #
+      ########################
+
+      ### napi
+      - name: Bump @bitwarden/sdk-napi Version
+        if: ${{ github.event.inputs.project == 'napi' }}
+        env:
+          VERSION: ${{ github.event.inputs.version_number }}
+        working-directory: "crates/bitwarden-napi"
+        run: |
+          npm ci
+          npm version ${VERSION}
+
+      - name: Bump napi crate Version
+        if: ${{ github.event.inputs.project == 'napi' }}
+        env:
+          VERSION: ${{ github.event.inputs.version_number }}
+        run: cargo-set-version set-version -p bitwarden-napi ${VERSION}
+
+      ### bitwarden
+
+      - name: Bump bitwarden crate Version
+        if: ${{ github.event.inputs.project == 'bitwarden' }}
+        env:
+          VERSION: ${{ github.event.inputs.version_number }}
+        run: cargo-set-version set-version -p bitwarden ${VERSION}
+
+      ### bitwarden-api-api
+
+      - name: Bump bitwarden-api-api crate Version
+        if: ${{ github.event.inputs.project == 'bitwarden-api-api' }}
+        env:
+          VERSION: ${{ github.event.inputs.version_number }}
+        run: cargo-set-version set-version -p bitwarden-api-api ${VERSION}
+
+      ### bitwarden-api-identity
+
+      - name: Bump bitwarden-api-identity crate Version
+        if: ${{ github.event.inputs.project == 'bitwarden-api-identity' }}
+        env:
+          VERSION: ${{ github.event.inputs.version_number }}
+        run: cargo-set-version set-version -p bitwarden-api-identity ${VERSION}
+
+      ### cli
+
+      - name: Bump cli Version
+        if: ${{ github.event.inputs.client == 'cli' }}
+        env:
+          VERSION: ${{ github.event.inputs.version_number }}
+        run: cargo-set-version set-version -p bws ${VERSION}
+
+      ### bitwarden-json
+
+      - name: Bump bitwarden-json crate Version
+        if: ${{ github.event.inputs.project == 'bitwarden-json' }}
+        env:
+          VERSION: ${{ github.event.inputs.version_number }}
+        run: cargo-set-version set-version -p bitwarden-json ${VERSION}
+
+      ############################
+      # VERSION BUMP SECTION END #
+      ############################
+
+      - name: Setup git
+        run: |
+          git config --local user.email "106330231+bitwarden-devops-bot@users.noreply.github.com"
+          git config --local user.name "bitwarden-devops-bot"
+
+      - name: Check if version changed
+        id: version-changed
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changes_to_commit=TRUE" >> $GITHUB_OUTPUT
+          else
+            echo "changes_to_commit=FALSE" >> $GITHUB_OUTPUT
+            echo "No changes to commit!";
+          fi
+
+      - name: Run prettier
+        if: ${{ steps.version-changed.outputs.changes_to_commit == 'TRUE' }}
+        run: |
+          npm ci
+          npm run prettier
+
+      - name: Commit files
+        if: ${{ steps.version-changed.outputs.changes_to_commit == 'TRUE' }}
+        env:
+          VERSION: ${{ github.event.inputs.version_number }}
+          PROJECT: ${{ github.event.inputs.project }}
+        run: git commit -m "Bumped sdk-${PROJECT} version to ${VERSION}" -a
+
+      - name: Push changes
+        if: ${{ steps.version-changed.outputs.changes_to_commit == 'TRUE' }}
+        env:
+          VERSION: ${{ github.event.inputs.version_number }}
+          PROJECT: ${{ github.event.inputs.project }}
+        run: git push -u origin sdk-${PROJECT}_version_bump_${VERSION}
+
+      - name: Create Bump Version PR
+        if: ${{ steps.version-changed.outputs.changes_to_commit == 'TRUE' }}
+        env:
+          PR_BRANCH: "sdk-${{ github.event.inputs.project }}_version_bump_${{ github.event.inputs.version_number }}"
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          BASE_BRANCH: master
+          TITLE: "Bump ${{ github.event.inputs.project }} version to ${{ github.event.inputs.version_number }}"
+        run: |
+          gh pr create --title "$TITLE" \
+            --base "$BASE" \
+            --head "$PR_BRANCH" \
+            --label "version update" \
+            --label "automated pr" \
+            --body "
+              ## Type of change
+              - [ ] Bug fix
+              - [ ] New feature development
+              - [ ] Tech debt (refactoring, code cleanup, dependency upgrades, etc)
+              - [ ] Build/deploy pipeline (DevOps)
+              - [X] Other
+
+              ## Objective
+              Automated ${{ github.event.inputs.project }} version bump to ${{ github.event.inputs.version_number }}"

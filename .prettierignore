@@ -1,0 +1,4 @@
+target
+languages
+schemas
+/crates/bitwarden-napi/src-ts/bitwarden_client/schemas.ts

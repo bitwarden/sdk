@@ -1,0 +1,18 @@
+[package]
+name = "bitwarden-c"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.57"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+crate-type = ["lib", "staticlib", "cdylib"]
+bench = false
+
+[target.'cfg(not(target_arch="wasm32"))'.dependencies]
+tokio = { version = "1.25.0", features = ["rt-multi-thread", "macros"] }
+
+bitwarden-json = { path = "../bitwarden-json" }
+
+[dependencies]
+env_logger = "0.10.0"

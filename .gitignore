@@ -1,0 +1,30 @@
+/target
+.DS_Store
+.pytest_cache
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+
+
+# Added by cargo
+#
+# already existing elements were commented out
+
+#/target
+node_modules/
+clients/python/env/
+
+# Node.js addon binary file, for the current running operating system.
+crates/bitwarden-napi/sdk-napi.*.node
+
+# Complied TypeScript client
+crates/bitwarden-napi/dist

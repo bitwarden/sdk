@@ -1,0 +1,30 @@
+{
+  "name": "@bitwarden/sdk-napi-linux-x64-gnu",
+  "version": "0.1.6",
+  "homepage": "https://github.com/bitwarden/sdk#readme",
+  "bugs": {
+    "url": "https://github.com/bitwarden/sdk/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bitwarden/sdk.git"
+  },
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "Bitwarden Inc. <hello@bitwarden.com> (https://bitwarden.com)",
+  "main": "sdk-napi.linux-x64-gnu.node",
+  "files": [
+    "sdk-napi.linux-x64-gnu.node"
+  ],
+  "engines": {
+    "node": ">= 10"
+  },
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "libc": [
+    "glibc"
+  ]
+}

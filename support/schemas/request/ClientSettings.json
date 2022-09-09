@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ClientSettings",
+  "description": "Basic client behavior settings. These settings specify the various targets and behavior of the Bitwarden Client. They are optional and uneditable once the client is initialized.\n\nDefaults to\n\n``` # use bitwarden::sdk::request::client_settings::{ClientSettings, DeviceType}; # use assert_matches::assert_matches; let settings = ClientSettings { identity_url: \"https://identity.bitwarden.com\".to_string(), api_url: \"https://api.bitwarden.com\".to_string(), user_agent: \"Bitwarden Rust-SDK\".to_string(), device_type: DeviceType::SDK, }; let default = ClientSettings::default(); assert_matches!(settings, default); ```\n\nTargets `localhost:8080` for debug builds.",
+  "type": "object",
+  "required": [
+    "apiUrl",
+    "deviceType",
+    "identityUrl",
+    "userAgent"
+  ],
+  "properties": {
+    "apiUrl": {
+      "description": "The api url of the targeted Bitwarden instance. Defaults to `https://api.bitwarden.com`",
+      "type": "string"
+    },
+    "deviceType": {
+      "description": "Device type to send to Bitwarden. Defaults to SDK",
+      "allOf": [
+        {
+          "$ref": "#/definitions/DeviceType"
+        }
+      ]
+    },
+    "identityUrl": {
+      "description": "The identity url of the targeted Bitwarden instance. Defaults to `https://identity.bitwarden.com`",
+      "type": "string"
+    },
+    "userAgent": {
+      "description": "The user_agent to sent to Bitwarden. Defaults to `Bitwarden Rust-SDK`",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "DeviceType": {
+      "type": "string",
+      "enum": [
+        "Android",
+        "iOS",
+        "ChromeExtension",
+        "FirefoxExtension",
+        "OperaExtension",
+        "EdgeExtension",
+        "WindowsDesktop",
+        "MacOsDesktop",
+        "LinuxDesktop",
+        "ChromeBrowser",
+        "FirefoxBrowser",
+        "OperaBrowser",
+        "EdgeBrowser",
+        "IEBrowser",
+        "UnknownBrowser",
+        "AndroidAmazon",
+        "UWP",
+        "SafariBrowser",
+        "VivaldiBrowser",
+        "VivaldiExtension",
+        "SafariExtension",
+        "SDK"
+      ]
+    }
+  }
+}

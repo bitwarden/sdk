@@ -1,0 +1,102 @@
+---
+name: Build Rust crates
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - "master"
+      - "rc"
+      - "hotfix-rc"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  cloc:
+    name: CLOC
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+
+      - name: Set up cloc
+        run: |
+          sudo apt update
+          sudo apt -y install cloc
+
+      - name: Print lines of code
+        run: cloc --vcs git
+
+  build:
+    name: Building ${{matrix.package}} for - ${{ matrix.os }}
+
+    runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+
+        package:
+          - bitwarden
+          - bitwarden-api-api
+          - bitwarden-api-identity
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+
+      - name: Install rust
+        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
+        with:
+          toolchain: ${{ matrix.rust || 'stable' }}
+          target: ${{ matrix.settings.target }}
+          profile: minimal
+          override: true
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@6fd3edff6979b79f87531400ad694fb7f2c84b1f # v2.2.1
+
+      - name: Build
+        uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
+        with:
+          command: build
+          args: ${{ matrix.features }} -p ${{ matrix.package }} --release
+
+      - name: Test
+        uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
+        with:
+          command: test
+          args: -p ${{ matrix.package }} -- --test-threads=1
+
+  release-dry-run:
+    name: Release dry-run
+    runs-on: ubuntu-latest
+    if: ${{ github.ref == 'ref/head/master' || github.ref == 'ref/head/rc' || github.ref == 'ref/head/hotfix-rc' }}
+    needs:
+      - build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+
+      - name: Install rust
+        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
+        with:
+          toolchain: ${{ matrix.rust || 'stable' }}
+          target: ${{ matrix.settings.target }}
+          profile: minimal
+          override: true
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@6fd3edff6979b79f87531400ad694fb7f2c84b1f # v2.2.1
+
+      - name: Install cargo-release
+        run: cargo install cargo-release
+
+      - name: Cargo release dry run
+        run: cargo-release release publish -p bitwarden-api-api -p bitwarden-api-identity -p bitwarden

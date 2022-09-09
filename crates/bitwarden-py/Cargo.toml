@@ -1,0 +1,23 @@
+[package]
+name = "bitwarden-py"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.57"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name="bitwarden_py"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.17.3", features = ["extension-module"] }
+pyo3-log = "0.7.0"
+
+bitwarden-json = { path = "../bitwarden-json" }
+
+[build-dependencies]
+pyo3-build-config = { version = "0.17.3"}
+
+[target.'cfg(not(target_arch="wasm32"))'.dependencies]
+tokio = { version = "1.25.0", features = ["rt-multi-thread", "macros"] }
+pyo3-asyncio = { version = "0.17.0", features = ["attributes", "tokio-runtime"] }

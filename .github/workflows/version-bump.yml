@@ -119,7 +119,7 @@ jobs:
       ### cli
 
       - name: Bump cli Version
-        if: ${{ github.event.inputs.client == 'cli' }}
+        if: ${{ github.event.inputs.project == 'cli' }}
         env:
           VERSION: ${{ github.event.inputs.version_number }}
         run: cargo-set-version set-version -p bws ${VERSION}

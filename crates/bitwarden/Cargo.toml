@@ -38,7 +38,7 @@ rand = "0.8.5"
 getrandom = { version = "0.2.8", features = ["js"] }
 
 bitwarden-api-identity = { path = "../bitwarden-api-identity", version = "0.1.0" }
-bitwarden-api-api = { path = "../bitwarden-api-api", version = "0.1.0" }
+bitwarden-api-api = { path = "../bitwarden-api-api", version = "0.2.0" }
 
 [dev-dependencies]
 tokio = { version = "1.25.0", features = ["rt", "macros"] }

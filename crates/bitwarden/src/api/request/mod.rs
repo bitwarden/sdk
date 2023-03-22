@@ -35,6 +35,11 @@ async fn send_identity_connect_request(
         .header("Accept", "application/json")
         .header("Device-Type", configurations.device_type as usize);
 
+    if let Some(ref user_agent) = configurations.identity.user_agent {
+        request = request.header(reqwest::header::USER_AGENT, user_agent.clone());
+        println!("{}", user_agent.clone());
+    }
+
     if let Some(email) = email {
         request = request.header("Auth-Email", BASE64_ENGINE.encode(email.as_bytes()));
     }

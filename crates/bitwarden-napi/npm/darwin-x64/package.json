@@ -1,6 +1,6 @@
 {
   "name": "@bitwarden/sdk-napi-darwin-x64",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "homepage": "https://github.com/bitwarden/sdk#readme",
   "bugs": {
     "url": "https://github.com/bitwarden/sdk/issues"

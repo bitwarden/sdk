@@ -37,7 +37,6 @@ async fn send_identity_connect_request(
 
     if let Some(ref user_agent) = configurations.identity.user_agent {
         request = request.header(reqwest::header::USER_AGENT, user_agent.clone());
-        println!("{}", user_agent.clone());
     }
 
     if let Some(email) = email {

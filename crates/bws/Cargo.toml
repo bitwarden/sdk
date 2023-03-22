@@ -18,7 +18,7 @@ keywords = ["bitwarden", "secrets-manager", "cli"]
 clap = { version = "4.1.4", features = ["derive", "env"] }
 tokio = { version = "1.25.0", features = ["rt-multi-thread", "macros"] }
 log = "0.4.17"
-bitwarden = { path = "../bitwarden", version = "0.2.0" }
+bitwarden = { path = "../bitwarden", version = "0.2.1" }
 env_logger = "0.10.0"
 atty = "0.2"
 thiserror = "1.0.38"

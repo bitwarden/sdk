@@ -94,7 +94,7 @@ jobs:
             packages/bws-aarch64-unknown-linux-gnu-${{ env.PKG_VERSION }}.zip,
             packages/bws-sha256-checksums-${{ env.PKG_VERSION }}.txt"
           commit: ${{ github.sha }}
-          tag: bws-cli-v${{ env.PKG_VERSION }}
+          tag: bws-v${{ env.PKG_VERSION }}
           name: bws CLI v${{ env.PKG_VERSION }}
           body: "<insert release notes here>"
           token: ${{ secrets.GITHUB_TOKEN }}

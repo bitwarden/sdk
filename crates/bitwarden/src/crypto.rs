@@ -238,7 +238,7 @@ pub(crate) fn stretch_key_password(
     iterations: NonZeroU32,
 ) -> Result<(GenericArray<u8, U32>, GenericArray<u8, U32>), hkdf::InvalidLength> {
     let mut master_key = [0u8; PBKDF_SHA256_HMAC_OUT_SIZE];
-    pbkdf2::pbkdf2::<PbkdfSha256Hmac>(secret, salt, iterations.get(), &mut master_key);
+    let _ = pbkdf2::pbkdf2::<PbkdfSha256Hmac>(secret, salt, iterations.get(), &mut master_key);
 
     let hkdf =
         hkdf::Hkdf::<sha2::Sha256>::from_prk(&master_key).map_err(|_| hkdf::InvalidLength)?;

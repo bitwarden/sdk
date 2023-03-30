@@ -33,16 +33,16 @@ impl AuthSettings {
     pub fn make_password_hash(&self, password: &str, salt: &str) -> String {
         let mut hash = [0u8; PBKDF_SHA256_HMAC_OUT_SIZE];
 
-        match self.kdf_type {
+        let _ = match self.kdf_type {
             KdfType::_0 => pbkdf2::pbkdf2::<PbkdfSha256Hmac>(
                 password.as_bytes(),
                 salt.as_bytes(),
                 self.kdf_iterations.get(),
                 &mut hash,
             ),
-        }
+        };
 
-        pbkdf2::pbkdf2::<PbkdfSha256Hmac>(&hash.clone(), password.as_bytes(), 1, &mut hash);
+        let _ = pbkdf2::pbkdf2::<PbkdfSha256Hmac>(&hash.clone(), password.as_bytes(), 1, &mut hash);
 
         BASE64_ENGINE.encode(hash)
     }

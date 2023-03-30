@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base", "schedule:monthly"],
+  "extends": ["config:base", "schedule:monthly", ":maintainLockFilesWeekly"],
   "separateMajorMinor": true,
   "packageRules": [
     {

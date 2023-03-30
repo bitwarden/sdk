@@ -1,6 +1,6 @@
-name: CLI Bug Report
-description: File a bug report for issues encountered using the Bitwarden Secrets Manager CLI
-labels: [bug, cli]
+name: Secrets Manager CLI Bug Report
+description: File a bug report for issues encountered using the Bitwarden Secrets Manager CLI (bws)
+labels: [bug, bws]
 body:
   - type: markdown
     attributes:

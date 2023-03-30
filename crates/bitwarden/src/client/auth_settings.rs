@@ -31,20 +31,24 @@ impl AuthSettings {
     }
 
     pub fn make_password_hash(&self, password: &str, salt: &str) -> String {
-        let mut hash = [0u8; PBKDF_SHA256_HMAC_OUT_SIZE];
-
-        let _ = match self.kdf_type {
-            KdfType::_0 => pbkdf2::pbkdf2::<PbkdfSha256Hmac>(
+        let hash = match self.kdf_type {
+            KdfType::_0 => pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(
                 password.as_bytes(),
                 salt.as_bytes(),
                 self.kdf_iterations.get(),
-                &mut hash,
             ),
-        };
+        }
+        .unwrap();
 
-        let _ = pbkdf2::pbkdf2::<PbkdfSha256Hmac>(&hash.clone(), password.as_bytes(), 1, &mut hash);
+        // Server expects hash + 1 iteration
+        let login_hash = pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(
+            &hash,
+            password.as_bytes(),
+            1,
+        )
+        .unwrap();
 
-        BASE64_ENGINE.encode(hash)
+        BASE64_ENGINE.encode(login_hash)
     }
 }
 

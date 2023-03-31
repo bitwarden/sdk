@@ -3,7 +3,7 @@ use log::Level;
 use std::{rc::Rc, sync::RwLock};
 
 use bitwarden_json::client::Client as JsonClient;
-use js_sys::Promise;
+use js_sys::{Function, Promise};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::future_to_promise;
 
@@ -55,5 +55,13 @@ impl BitwardenClient {
             let result = client.run_command(&js_input).await;
             Ok(result.into())
         })
+    }
+
+    #[wasm_bindgen]
+    pub fn subscribe(&mut self, f: &Function) {
+        let this = JsValue::null();
+
+        let x = JsValue::from(1);
+        let _ = f.call1(&this, &x);
     }
 }

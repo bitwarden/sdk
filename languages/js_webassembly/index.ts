@@ -8,6 +8,9 @@ import("./bitwarden_client").then(async (module) => {
     deviceType: DeviceType.SDK,
     userAgent: "Bitwarden JS SDK",
   }, LoggingLevel.Debug);
+
+  client.subscribe();
+  /*
   const result = await client.login("test@bitwarden.com", "asdfasdf");
   console.log(`auth result success: ${result.success}`);
 
@@ -23,4 +26,5 @@ import("./bitwarden_client").then(async (module) => {
   console.log("New secret: ", secret.data);
 
   await client.secrets().delete([secret.data.id]);
+  */
 });

@@ -32,6 +32,10 @@ export class BitwardenClient {
     return Convert.toResponseForPasswordLoginResponse(response);
   }
 
+  async subscribe() {
+    this.client.subscribe(console.log);
+  }
+
   async getUserApiKey(
     secret: string,
     isOtp: boolean = false

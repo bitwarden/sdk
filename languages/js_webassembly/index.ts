@@ -10,10 +10,10 @@ import("./bitwarden_client").then(async (module) => {
   }, LoggingLevel.Debug);
 
   client.subscribe();
-  /*
+
   const result = await client.login("test@bitwarden.com", "asdfasdf");
   console.log(`auth result success: ${result.success}`);
-
+/*
   const apikeyResponse = await client.getUserApiKey("asdfasdf");
   console.log(`user API key: ${apikeyResponse.data.apiKey}`);
 

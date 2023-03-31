@@ -29,7 +29,10 @@ fn convert_level(level: LogLevel) -> Level {
 // Rc<RwLock<...>> is to avoid needing to take ownership of the Client during our async run_command function
 // https://github.com/rustwasm/wasm-bindgen/issues/2195#issuecomment-799588401
 #[wasm_bindgen]
-pub struct BitwardenClient(Rc<RwLock<JsonClient>>);
+pub struct BitwardenClient {
+    client: Rc<RwLock<JsonClient>>,
+    f: Option<Rc<Function>>,
+}
 
 #[wasm_bindgen]
 impl BitwardenClient {
@@ -42,14 +45,22 @@ impl BitwardenClient {
             panic!("failed to initialize logger: {:?}", e);
         }
 
-        Self(Rc::new(RwLock::new(bitwarden_json::client::Client::new(
-            settings_input,
-        ))))
+        Self {
+            client: Rc::new(RwLock::new(bitwarden_json::client::Client::new(
+                settings_input,
+            ))),
+            f: None,
+        }
     }
 
     #[wasm_bindgen]
     pub fn run_command(&mut self, js_input: String) -> Promise {
-        let rc = self.0.clone();
+        let this = JsValue::null();
+
+        let f = self.f.as_ref().unwrap().clone();
+        f.call1(&this, &JsValue::from(js_input.clone()));
+
+        let rc = self.client.clone();
         future_to_promise(async move {
             let mut client = rc.write().unwrap();
             let result = client.run_command(&js_input).await;
@@ -60,6 +71,8 @@ impl BitwardenClient {
     #[wasm_bindgen]
     pub fn subscribe(&mut self, f: &Function) {
         let this = JsValue::null();
+
+        self.f = Some(Rc::new(f.clone()));
 
         let x = JsValue::from(1);
         let _ = f.call1(&this, &x);

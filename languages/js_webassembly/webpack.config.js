@@ -36,6 +36,22 @@ module.exports = {
   experiments: {
     syncWebAssembly: true,
   },
+  devServer: {
+    proxy: {
+      "/api": {
+        target: "http://localhost:4000",
+        pathRewrite: { "^/api": "" },
+        secure: false,
+        changeOrigin: true,
+      },
+      "/identity": {
+        target: "http://localhost:33656",
+        pathRewrite: { "^/identity": "" },
+        secure: false,
+        changeOrigin: true,
+      },
+    },
+  },
   mode: "development",
   devtool: "source-map",
 };

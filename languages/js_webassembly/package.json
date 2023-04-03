@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "wasm-pack build ../../bitwarden-wasm --out-dir ../languages/js_webassembly/pkg --dev",
+    "build": "wasm-pack build ../../crates/bitwarden-wasm --out-dir ../../languages/js_webassembly/pkg --dev",
     "build:watch": "npm run build && webpack serve"
   },
   "devDependencies": {

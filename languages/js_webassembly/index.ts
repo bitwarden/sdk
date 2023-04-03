@@ -1,12 +1,18 @@
 import { LoggingLevel } from "./bitwarden_client/logging_level";
+import { DeviceType } from "./bitwarden_client/schemas";
 
 import("./bitwarden_client").then(async (module) => {
-  const client = new module.BitwardenClient(null, LoggingLevel.Debug);
+  const client = new module.BitwardenClient({
+    apiUrl: "http://localhost:8081/api",
+    identityUrl: "http://localhost:8081/identity",
+    deviceType: DeviceType.SDK,
+    userAgent: "Bitwarden JS SDK",
+  }, LoggingLevel.Debug);
   const result = await client.login("test@bitwarden.com", "asdfasdf");
   console.log(`auth result success: ${result.success}`);
 
   const apikeyResponse = await client.getUserApiKey("asdfasdf");
-  console.log(`user API key: ${apikeyResponse.data.api_key}`);
+  console.log(`user API key: ${apikeyResponse.data.apiKey}`);
 
   const sync = await client.sync();
   console.log("Sync result", sync);

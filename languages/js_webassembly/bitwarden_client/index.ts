@@ -3,15 +3,12 @@ import { LoggingLevel } from "./logging_level";
 import {
   ClientSettings,
   Convert,
-  PasswordLoginResponse,
   ResponseForPasswordLoginResponse,
-  ResponseForSecretDeleteResponse,
   ResponseForSecretIdentifiersResponse,
   ResponseForSecretResponse,
   ResponseForSecretsDeleteResponse,
   ResponseForSyncResponse,
   ResponseForUserAPIKeyResponse,
-  UserAPIKeyResponse,
 } from "./schemas";
 
 export class BitwardenClient {
@@ -25,7 +22,7 @@ export class BitwardenClient {
   async login(email: string, password: string): Promise<ResponseForPasswordLoginResponse> {
     const response = await this.client.run_command(
       Convert.commandToJson({
-        PasswordLogin: {
+        passwordLogin: {
           email: email,
           password: password,
         },
@@ -41,8 +38,8 @@ export class BitwardenClient {
   ): Promise<ResponseForUserAPIKeyResponse> {
     const response = await this.client.run_command(
       Convert.commandToJson({
-        GetUserApiKey: {
-          master_password: isOtp ? null : secret,
+        getUserApiKey: {
+          masterPassword: isOtp ? null : secret,
           otp: isOtp ? secret : null,
         },
       })
@@ -53,12 +50,12 @@ export class BitwardenClient {
 
 
   async sync(
-    exclude_subdomains: boolean = false
+    excludeSubdomains: boolean = false
   ): Promise<ResponseForSyncResponse> {
     const response = await this.client.run_command(
       Convert.commandToJson({
-        Sync: {
-          exclude_subdomains
+        sync: {
+          excludeSubdomains
         },
       })
     );
@@ -83,8 +80,8 @@ export class SecretsClient {
   ): Promise<ResponseForSecretResponse> {
     const response = await this.client.run_command(
       Convert.commandToJson({
-        Secrets: {
-          Get: { id }
+        secrets: {
+          get: { id }
         },
       })
     );
@@ -95,13 +92,13 @@ export class SecretsClient {
   async create(
     key: string,
     note: string,
-    organization_id: string,
+    organizationId: string,
     value: string,
   ): Promise<ResponseForSecretResponse> {
     const response = await this.client.run_command(
       Convert.commandToJson({
-        Secrets: {
-          Create: { key, note, organization_id, value }
+        secrets: {
+          create: { key, note, organizationId, value }
         },
       })
     );
@@ -110,12 +107,12 @@ export class SecretsClient {
   }
 
   async list(
-    organization_id: string
+    organizationId: string
   ): Promise<ResponseForSecretIdentifiersResponse> {
     const response = await this.client.run_command(
       Convert.commandToJson({
-        Secrets: {
-          List: { organization_id }
+        secrets: {
+          list: { organizationId }
         },
       })
     );
@@ -127,13 +124,13 @@ export class SecretsClient {
     id: string,
     key: string,
     note: string,
-    organization_id: string,
+    organizationId: string,
     value: string,
   ): Promise<ResponseForSecretResponse> {
     const response = await this.client.run_command(
       Convert.commandToJson({
-        Secrets: {
-          Update: { id, key, note, organization_id, value }
+        secrets: {
+          update: { id, key, note, organizationId, value }
         },
       })
     );
@@ -146,8 +143,8 @@ export class SecretsClient {
   ): Promise<ResponseForSecretsDeleteResponse> {
     const response = await this.client.run_command(
       Convert.commandToJson({
-        Secrets: {
-          Delete: { ids }
+        secrets: {
+          delete: { ids }
         },
       })
     );

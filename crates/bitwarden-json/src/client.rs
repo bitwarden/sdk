@@ -68,4 +68,8 @@ impl Client {
         }
         None
     }
+
+    pub fn subscribe(&mut self, topic: String, sender: fn(String)) {
+        self.0.subscribe(topic, sender);
+    }
 }

@@ -54,6 +54,7 @@ pub(crate) async fn password_login(
         let private_key = CipherString::from_str(r.private_key.as_deref().unwrap()).unwrap();
 
         client.initialize_user_crypto(&input.password, user_key, private_key)?;
+        client.publish("auth".to_string(), "Authenticated".to_string());
     }
 
     PasswordLoginResponse::process_response(response)

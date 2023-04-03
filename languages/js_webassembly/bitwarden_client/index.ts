@@ -32,8 +32,8 @@ export class BitwardenClient {
     return Convert.toResponseForPasswordLoginResponse(response);
   }
 
-  async subscribe() {
-    this.client.subscribe(console.log);
+  async subscribe(topic: string, fn: Function) {
+    this.client.subscribe(topic, fn);
   }
 
   async getUserApiKey(

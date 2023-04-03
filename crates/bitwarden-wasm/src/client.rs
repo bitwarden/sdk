@@ -58,7 +58,6 @@ impl BitwardenClient {
         let this = JsValue::null();
 
         let f = self.f.as_ref().unwrap().clone();
-        f.call1(&this, &JsValue::from(js_input.clone()));
 
         let rc = self.client.clone();
         future_to_promise(async move {
@@ -69,12 +68,19 @@ impl BitwardenClient {
     }
 
     #[wasm_bindgen]
-    pub fn subscribe(&mut self, f: &Function) {
+    pub fn subscribe(&mut self, topic: String, f: &Function) {
         let this = JsValue::null();
 
         self.f = Some(Rc::new(f.clone()));
 
-        let x = JsValue::from(1);
-        let _ = f.call1(&this, &x);
+        let h = |msg: String| {
+            let f = self.f.as_ref().unwrap().clone();
+            let m = JsValue::from(msg);
+            f.call0(&m).unwrap();
+        };
+
+        self.client.write().unwrap().subscribe(topic, h);
+
+        let f2 = f.clone();
     }
 }

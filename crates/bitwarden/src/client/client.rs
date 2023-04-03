@@ -53,6 +53,12 @@ pub(crate) enum LoginMethod {
 }
 
 #[derive(Debug)]
+struct Subscription {
+    topic: String,
+    f: fn(String),
+}
+
+#[derive(Debug)]
 pub struct Client {
     token: Option<String>,
     pub(crate) refresh_token: Option<String>,
@@ -67,6 +73,8 @@ pub struct Client {
     auth_settings: Option<AuthSettings>,
 
     encryption_settings: Option<EncryptionSettings>,
+
+    subscriptions: Vec<Subscription>,
 }
 
 impl Client {
@@ -112,6 +120,7 @@ impl Client {
             },
             auth_settings: None,
             encryption_settings: None,
+            subscriptions: Vec::new(),
         }
     }
 
@@ -164,6 +173,18 @@ impl Client {
                 organization_id, ..
             }) => Some(organization_id.clone()),
             _ => None,
+        }
+    }
+
+    pub fn subscribe<F>(&mut self, topic: String, f: fn(String)) {
+        self.subscriptions.push(Subscription { topic, f });
+    }
+
+    pub(crate) fn publish(&mut self, topic: String, message: String) {
+        for sub in self.subscriptions.iter_mut() {
+            if sub.topic == topic {
+                (sub.f)(message.clone());
+            }
         }
     }
 

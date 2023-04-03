@@ -3,13 +3,13 @@ import { DeviceType } from "./bitwarden_client/schemas";
 
 import("./bitwarden_client").then(async (module) => {
   const client = new module.BitwardenClient({
-    apiUrl: "http://localhost:8081/api",
-    identityUrl: "http://localhost:8081/identity",
+    apiUrl: "http://localhost:8080/api",
+    identityUrl: "http://localhost:8080/identity",
     deviceType: DeviceType.SDK,
     userAgent: "Bitwarden JS SDK",
   }, LoggingLevel.Debug);
 
-  client.subscribe();
+  client.subscribe("auth", console.log);
 
   const result = await client.login("test@bitwarden.com", "asdfasdf");
   console.log(`auth result success: ${result.success}`);

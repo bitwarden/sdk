@@ -7,9 +7,9 @@ rust-version = "1.57"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-schemars = "0.8.11"
-serde_json = "1.0.92"
-anyhow = "1.0.69"
+schemars = "0.8.12"
+serde_json = "1.0.95"
+anyhow = "1.0.70"
 itertools = "0.10.5"
 
 bitwarden = { path = "../bitwarden" }

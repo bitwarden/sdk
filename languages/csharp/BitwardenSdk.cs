@@ -2,6 +2,8 @@ using System.Runtime.InteropServices;
 
 namespace Bit.Sdk
 {
+    public delegate void CallBack(string data);
+
     internal class BitwardenSdk : IDisposable
     {
         [DllImport("bitwarden_c", CallingConvention = CallingConvention.Cdecl)]
@@ -12,12 +14,21 @@ namespace Bit.Sdk
         [DllImport("bitwarden_c", CallingConvention = CallingConvention.Cdecl)]
         private static extern string run_command(string loginRequest, IntPtr clientPtr);
 
+        [DllImport("bitwarden_c", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void subscribe(CallBack callback, IntPtr clientPtr);
+
         private readonly IntPtr _ptr;
         private bool disposedValue;
 
         public BitwardenSdk(ClientSettings? settings = null)
         {
             _ptr = init(settings?.ToJson());
+            subscribe(Test, _ptr);
+        }
+
+        public void Test(string data)
+        {
+            Console.WriteLine(data);
         }
 
         public ResponseForPasswordLoginResponse? PasswordLogin(string email, string password) => RunCommand<ResponseForPasswordLoginResponse>(new Command

@@ -9,7 +9,7 @@ use base64::{
 use crate::error::Result;
 
 pub fn default_kdf_iterations() -> NonZeroU32 {
-    NonZeroU32::new(600_000).unwrap()
+    NonZeroU32::new(50_000).unwrap()
 }
 
 #[derive(serde::Deserialize)]

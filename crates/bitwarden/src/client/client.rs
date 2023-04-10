@@ -1,5 +1,6 @@
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
+use instant::Instant;
 use log::debug;
 use reqwest::header::{self};
 
@@ -21,12 +22,13 @@ use crate::{
             response::{ApiKeyLoginResponse, PasswordLoginResponse},
         },
         request::{
-            client_settings::{ClientSettings, DeviceType},
+            client_settings::{ClientSettings, DeviceType, KdfType},
             secret_verification_request::SecretVerificationRequest,
             sync_request::SyncRequest,
         },
         response::{sync_response::SyncResponse, user_api_key_response::UserApiKeyResponse},
     },
+    util::default_kdf_iterations,
 };
 
 #[derive(Debug)]
@@ -85,7 +87,7 @@ impl Client {
             user_agent: Some(settings.user_agent.clone()),
             client: client.clone(),
             basic_auth: None,
-            oauth_access_token: None,
+            oauth_access_token: settings.internal.as_ref().map(|s| s.access_token.clone()),
             bearer_access_token: None,
             api_key: None,
         };
@@ -95,22 +97,32 @@ impl Client {
             user_agent: Some(settings.user_agent),
             client,
             basic_auth: None,
-            oauth_access_token: None,
+            oauth_access_token: settings.internal.as_ref().map(|s| s.access_token.clone()),
             bearer_access_token: None,
             api_key: None,
         };
 
         Self {
-            token: None,
-            refresh_token: None,
-            token_expires_in: None,
+            token: settings.internal.as_ref().map(|s| s.access_token.clone()),
+            refresh_token: settings.internal.as_ref().map(|s| s.refresh_token.clone()),
+            token_expires_in: settings
+                .internal
+                .as_ref()
+                .map(|s| Instant::now() + Duration::new(s.expires_in, 0)),
             login_method: None,
             __api_configurations: ApiConfigurations {
                 identity,
                 api,
                 device_type: settings.device_type,
             },
-            auth_settings: None,
+            auth_settings: settings.internal.map(|s| AuthSettings {
+                email: s.email,
+                kdf_type: match s.kdf_type {
+                    KdfType::Pbkdf2Sha256 => bitwarden_api_identity::models::KdfType::_0,
+                    KdfType::Argon2id => bitwarden_api_identity::models::KdfType::_0,
+                },
+                kdf_iterations: s.kdf_iterations,
+            }),
             encryption_settings: None,
         }
     }

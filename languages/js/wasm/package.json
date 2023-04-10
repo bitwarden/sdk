@@ -1,0 +1,16 @@
+{
+  "name": "@bitwarden/sdk-wasm",
+  "version": "0.1.0",
+  "files": [
+    "bitwarden_wasm_bg.wasm",
+    "bitwarden_wasm.js",
+    "bitwarden_wasm_bg.js",
+    "bitwarden_wasm.d.ts"
+  ],
+  "module": "bitwarden_wasm.js",
+  "types": "bitwarden_wasm.d.ts",
+  "sideEffects": [
+    "./bitwarden_wasm.js",
+    "./snippets/*"
+  ]
+}

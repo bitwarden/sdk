@@ -12,6 +12,11 @@ def from_str(x: Any) -> str:
     return x
 
 
+def from_int(x: Any) -> int:
+    assert isinstance(x, int) and not isinstance(x, bool)
+    return x
+
+
 def to_enum(c: Type[EnumT], x: Any) -> EnumT:
     assert isinstance(x, c)
     return x.value
@@ -72,6 +77,42 @@ class DeviceType(Enum):
     WINDOWS_DESKTOP = "WindowsDesktop"
 
 
+class KdfType(Enum):
+    ARGON2_ID = "argon2id"
+    PBKDF2_SHA256 = "pbkdf2Sha256"
+
+
+@dataclass
+class ClientSettingsInternal:
+    access_token: str
+    email: str
+    expires_in: int
+    kdf_iterations: int
+    kdf_type: KdfType
+    refresh_token: str
+
+    @staticmethod
+    def from_dict(obj: Any) -> 'ClientSettingsInternal':
+        assert isinstance(obj, dict)
+        access_token = from_str(obj.get("accessToken"))
+        email = from_str(obj.get("email"))
+        expires_in = from_int(obj.get("expiresIn"))
+        kdf_iterations = from_int(obj.get("kdfIterations"))
+        kdf_type = KdfType(obj.get("kdfType"))
+        refresh_token = from_str(obj.get("refreshToken"))
+        return ClientSettingsInternal(access_token, email, expires_in, kdf_iterations, kdf_type, refresh_token)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        result["accessToken"] = from_str(self.access_token)
+        result["email"] = from_str(self.email)
+        result["expiresIn"] = from_int(self.expires_in)
+        result["kdfIterations"] = from_int(self.kdf_iterations)
+        result["kdfType"] = to_enum(KdfType, self.kdf_type)
+        result["refreshToken"] = from_str(self.refresh_token)
+        return result
+
+
 @dataclass
 class ClientSettings:
     """Basic client behavior settings. These settings specify the various targets and behavior
@@ -99,6 +140,7 @@ class ClientSettings:
     identity_url: str
     """The user_agent to sent to Bitwarden. Defaults to `Bitwarden Rust-SDK`"""
     user_agent: str
+    internal: Optional[ClientSettingsInternal] = None
 
     @staticmethod
     def from_dict(obj: Any) -> 'ClientSettings':
@@ -107,7 +149,8 @@ class ClientSettings:
         device_type = DeviceType(obj.get("deviceType"))
         identity_url = from_str(obj.get("identityUrl"))
         user_agent = from_str(obj.get("userAgent"))
-        return ClientSettings(api_url, device_type, identity_url, user_agent)
+        internal = from_union([ClientSettingsInternal.from_dict, from_none], obj.get("internal"))
+        return ClientSettings(api_url, device_type, identity_url, user_agent, internal)
 
     def to_dict(self) -> dict:
         result: dict = {}
@@ -115,6 +158,8 @@ class ClientSettings:
         result["deviceType"] = to_enum(DeviceType, self.device_type)
         result["identityUrl"] = from_str(self.identity_url)
         result["userAgent"] = from_str(self.user_agent)
+        if self.internal is not None:
+            result["internal"] = from_union([lambda x: to_class(ClientSettingsInternal, x), from_none], self.internal)
         return result
 
 

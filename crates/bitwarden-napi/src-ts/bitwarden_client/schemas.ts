@@ -47,6 +47,7 @@ export interface ClientSettings {
      * `https://identity.bitwarden.com`
      */
     identityUrl: string;
+    internal?:   ClientSettingsInternal | null;
     /**
      * The user_agent to sent to Bitwarden. Defaults to `Bitwarden Rust-SDK`
      */
@@ -79,6 +80,20 @@ export enum DeviceType {
     VivaldiBrowser = "VivaldiBrowser",
     VivaldiExtension = "VivaldiExtension",
     WindowsDesktop = "WindowsDesktop",
+}
+
+export interface ClientSettingsInternal {
+    accessToken:   string;
+    email:         string;
+    expiresIn:     number;
+    kdfIterations: number;
+    kdfType:       KdfType;
+    refreshToken:  string;
+}
+
+export enum KdfType {
+    Argon2ID = "argon2id",
+    Pbkdf2Sha256 = "pbkdf2Sha256",
 }
 
 /**
@@ -916,7 +931,16 @@ const typeMap: any = {
         { json: "apiUrl", js: "apiUrl", typ: "" },
         { json: "deviceType", js: "deviceType", typ: r("DeviceType") },
         { json: "identityUrl", js: "identityUrl", typ: "" },
+        { json: "internal", js: "internal", typ: u(undefined, u(r("ClientSettingsInternal"), null)) },
         { json: "userAgent", js: "userAgent", typ: "" },
+    ], false),
+    "ClientSettingsInternal": o([
+        { json: "accessToken", js: "accessToken", typ: "" },
+        { json: "email", js: "email", typ: "" },
+        { json: "expiresIn", js: "expiresIn", typ: 0 },
+        { json: "kdfIterations", js: "kdfIterations", typ: 0 },
+        { json: "kdfType", js: "kdfType", typ: r("KdfType") },
+        { json: "refreshToken", js: "refreshToken", typ: "" },
     ], false),
     "Command": o([
         { json: "passwordLogin", js: "passwordLogin", typ: u(undefined, r("PasswordLoginRequest")) },
@@ -1172,6 +1196,10 @@ const typeMap: any = {
         "VivaldiBrowser",
         "VivaldiExtension",
         "WindowsDesktop",
+    ],
+    "KdfType": [
+        "argon2id",
+        "pbkdf2Sha256",
     ],
 };
 

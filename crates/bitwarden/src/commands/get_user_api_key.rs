@@ -45,10 +45,7 @@ fn get_secret_verification_request(
     auth_settings: &AuthSettings,
     input: &SecretVerificationRequest,
 ) -> SecretVerificationRequestModel {
-    let master_password_hash = input
-        .master_password
-        .as_ref()
-        .map(|p| auth_settings.make_user_password_hash(p));
+    let master_password_hash = input.master_password.clone();
     SecretVerificationRequestModel {
         master_password_hash,
         otp: input.otp.as_ref().cloned(),

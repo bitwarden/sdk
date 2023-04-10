@@ -62,11 +62,35 @@ namespace Bit.Sdk
         [JsonProperty("identityUrl")]
         public string IdentityUrl { get; set; }
 
+        [JsonProperty("internal")]
+        public ClientSettingsInternal Internal { get; set; }
+
         /// <summary>
         /// The user_agent to sent to Bitwarden. Defaults to `Bitwarden Rust-SDK`
         /// </summary>
         [JsonProperty("userAgent")]
         public string UserAgent { get; set; }
+    }
+
+    public partial class ClientSettingsInternal
+    {
+        [JsonProperty("accessToken")]
+        public string AccessToken { get; set; }
+
+        [JsonProperty("email")]
+        public string Email { get; set; }
+
+        [JsonProperty("expiresIn")]
+        public long ExpiresIn { get; set; }
+
+        [JsonProperty("kdfIterations")]
+        public long KdfIterations { get; set; }
+
+        [JsonProperty("kdfType")]
+        public KdfType KdfType { get; set; }
+
+        [JsonProperty("refreshToken")]
+        public string RefreshToken { get; set; }
     }
 
     /// <summary>
@@ -917,6 +941,8 @@ namespace Bit.Sdk
     /// </summary>
     public enum DeviceType { Android, AndroidAmazon, ChromeBrowser, ChromeExtension, EdgeBrowser, EdgeExtension, FirefoxBrowser, FirefoxExtension, IOs, IeBrowser, LinuxDesktop, MacOsDesktop, OperaBrowser, OperaExtension, SafariBrowser, SafariExtension, Sdk, UnknownBrowser, Uwp, VivaldiBrowser, VivaldiExtension, WindowsDesktop };
 
+    public enum KdfType { Argon2Id, Pbkdf2Sha256 };
+
     public partial class ClientSettings
     {
         public static ClientSettings FromJson(string json) => JsonConvert.DeserializeObject<ClientSettings>(json, Bit.Sdk.Converter.Settings);
@@ -996,6 +1022,7 @@ namespace Bit.Sdk
             Converters =
             {
                 DeviceTypeConverter.Singleton,
+                KdfTypeConverter.Singleton,
                 new IsoDateTimeConverter { DateTimeStyles = DateTimeStyles.AssumeUniversal }
             },
         };
@@ -1140,6 +1167,47 @@ namespace Bit.Sdk
         }
 
         public static readonly DeviceTypeConverter Singleton = new DeviceTypeConverter();
+    }
+
+    internal class KdfTypeConverter : JsonConverter
+    {
+        public override bool CanConvert(Type t) => t == typeof(KdfType) || t == typeof(KdfType?);
+
+        public override object ReadJson(JsonReader reader, Type t, object existingValue, JsonSerializer serializer)
+        {
+            if (reader.TokenType == JsonToken.Null) return null;
+            var value = serializer.Deserialize<string>(reader);
+            switch (value)
+            {
+                case "argon2id":
+                    return KdfType.Argon2Id;
+                case "pbkdf2Sha256":
+                    return KdfType.Pbkdf2Sha256;
+            }
+            throw new Exception("Cannot unmarshal type KdfType");
+        }
+
+        public override void WriteJson(JsonWriter writer, object untypedValue, JsonSerializer serializer)
+        {
+            if (untypedValue == null)
+            {
+                serializer.Serialize(writer, null);
+                return;
+            }
+            var value = (KdfType)untypedValue;
+            switch (value)
+            {
+                case KdfType.Argon2Id:
+                    serializer.Serialize(writer, "argon2id");
+                    return;
+                case KdfType.Pbkdf2Sha256:
+                    serializer.Serialize(writer, "pbkdf2Sha256");
+                    return;
+            }
+            throw new Exception("Cannot marshal type KdfType");
+        }
+
+        public static readonly KdfTypeConverter Singleton = new KdfTypeConverter();
     }
 }
 

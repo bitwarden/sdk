@@ -1,0 +1,20 @@
+{
+  "name": "@bitwarden/sdk-client",
+  "exports": {
+    ".": {
+      "types": "./dist/src/lib.d.ts",
+      "default": "./dist/src/lib.js"
+    }
+  },
+  "main": "dist/src/lib.js",
+  "types": "dist/src/lib.d.ts",
+  "scripts": {
+    "build": "npm run clean && tsc",
+    "clean": "rimraf dist"
+  },
+  "devDependencies": {
+    "@types/node": "^18.15.11",
+    "rimraf": "^4.4.1",
+    "typescript": "^5.0.3"
+  }
+}

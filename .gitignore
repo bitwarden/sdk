@@ -13,7 +13,9 @@ build/
 bld/
 [Bb]in/
 [Oo]bj/
+*.wasm
 
+.idea
 
 # Added by cargo
 #
@@ -28,3 +30,4 @@ crates/bitwarden-napi/sdk-napi.*.node
 
 # Complied TypeScript client
 crates/bitwarden-napi/dist
+languages/js/sdk-client/dist/

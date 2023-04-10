@@ -26,6 +26,16 @@
       "description": "The identity url of the targeted Bitwarden instance. Defaults to `https://identity.bitwarden.com`",
       "type": "string"
     },
+    "internal": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/ClientSettingsInternal"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "userAgent": {
       "description": "The user_agent to sent to Bitwarden. Defaults to `Bitwarden Rust-SDK`",
       "type": "string"
@@ -33,6 +43,42 @@
   },
   "additionalProperties": false,
   "definitions": {
+    "ClientSettingsInternal": {
+      "type": "object",
+      "required": [
+        "accessToken",
+        "email",
+        "expiresIn",
+        "kdfIterations",
+        "kdfType",
+        "refreshToken"
+      ],
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "expiresIn": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "kdfIterations": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 1.0
+        },
+        "kdfType": {
+          "$ref": "#/definitions/KdfType"
+        },
+        "refreshToken": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
     "DeviceType": {
       "type": "string",
       "enum": [
@@ -58,6 +104,13 @@
         "VivaldiExtension",
         "SafariExtension",
         "SDK"
+      ]
+    },
+    "KdfType": {
+      "type": "string",
+      "enum": [
+        "pbkdf2Sha256",
+        "argon2id"
       ]
     }
   }

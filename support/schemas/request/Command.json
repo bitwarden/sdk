@@ -225,6 +225,16 @@
           "description": "Organization where the secret will be created",
           "type": "string"
         },
+        "projectIds": {
+          "description": "IDs of the projects that this secret will belong to",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
         "value": {
           "type": "string"
         }

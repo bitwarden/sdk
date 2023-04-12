@@ -37,7 +37,9 @@ pub(crate) fn serialize_response<T: Serialize + TableSerialize<N>, const N: usiz
 
     match output {
         Output::JSON => {
-            let text = serde_json::to_string_pretty(&data).unwrap();
+            let mut text = serde_json::to_string_pretty(&data).unwrap();
+            // Yaml/table/tsv serializations add a newline at the end, so we do the same here for consistency
+            text.push('\n');
             pretty_print("json", &text, color);
         }
         Output::YAML => {
@@ -75,7 +77,7 @@ fn pretty_print(language: &str, data: &str, color: bool) {
             .print()
             .unwrap();
     } else {
-        println!("{}", data);
+        print!("{}", data);
     }
 }
 

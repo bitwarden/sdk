@@ -297,6 +297,12 @@ namespace Bit.Sdk
         [JsonProperty("organizationId")]
         public string OrganizationId { get; set; }
 
+        /// <summary>
+        /// IDs of the projects that this secret will belong to
+        /// </summary>
+        [JsonProperty("projectIds")]
+        public string[] ProjectIds { get; set; }
+
         [JsonProperty("value")]
         public string Value { get; set; }
     }

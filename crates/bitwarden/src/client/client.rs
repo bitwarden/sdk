@@ -11,7 +11,8 @@ use crate::{
         encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
     },
     commands::{
-        access_token_login, api_key_login, get_user_api_key, password_login, renew_token, sync, generate_fingerprint,
+        access_token_login, api_key_login, generate_fingerprint, get_user_api_key, password_login,
+        renew_token, sync,
     },
     crypto::CipherString,
     error::{Error, Result},
@@ -22,8 +23,8 @@ use crate::{
         },
         request::{
             client_settings::{ClientSettings, DeviceType},
-            secret_verification_request::SecretVerificationRequest,
             fingerprint_request::FingerprintRequest,
+            secret_verification_request::SecretVerificationRequest,
             sync_request::SyncRequest,
         },
         response::{sync_response::SyncResponse, user_api_key_response::UserApiKeyResponse},
@@ -241,7 +242,7 @@ impl Client {
         Ok(self.encryption_settings.as_ref().unwrap())
     }
 
-    pub fn fingerprint(& mut self, input: &FingerprintRequest) -> Result<String> {
+    pub fn fingerprint(&mut self, input: &FingerprintRequest) -> Result<String> {
         generate_fingerprint(input)
     }
 }

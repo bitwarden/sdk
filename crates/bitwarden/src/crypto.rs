@@ -287,10 +287,12 @@ pub(crate) fn fingerprint(user_id: &str, public_key: &[u8]) -> Result<String> {
     h.update(public_key);
     h.finalize();
 
-    let hkdf = hkdf::Hkdf::<sha2::Sha256>::from_prk(public_key).map_err(|_| Error::Internal("hkdf::InvalidLength"))?;
+    let hkdf = hkdf::Hkdf::<sha2::Sha256>::from_prk(public_key)
+        .map_err(|_| Error::Internal("hkdf::InvalidLength"))?;
 
     let mut user_fingerprint = [0u8; 32];
-    hkdf.expand(user_id.as_bytes(), &mut user_fingerprint).map_err(|_| Error::Internal("hkdf::expand"))?;
+    hkdf.expand(user_id.as_bytes(), &mut user_fingerprint)
+        .map_err(|_| Error::Internal("hkdf::expand"))?;
 
     Ok(hash_word(user_fingerprint).unwrap())
 }
@@ -304,7 +306,9 @@ fn hash_word(hash: [u8; 32]) -> Result<String> {
     let hash_arr: Vec<u8> = hash.to_vec();
     let entropy_available = hash_arr.len() * 4;
     if num_words as f64 * entropy_per_word > entropy_available as f64 {
-        return Err(Error::Internal("Output entropy of hash function is too small"));
+        return Err(Error::Internal(
+            "Output entropy of hash function is too small",
+        ));
     }
 
     let mut phrase = Vec::new();

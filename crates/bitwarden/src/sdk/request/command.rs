@@ -55,9 +55,9 @@ pub enum Command {
     GetUserApiKey(SecretVerificationRequest),
 
     /// Get the users passphrase
-    /// 
+    ///
     /// Returns: String
-    /// 
+    ///
     Fingerprint(FingerprintRequest),
 
     /// > Requires Authentication

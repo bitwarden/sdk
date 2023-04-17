@@ -14,6 +14,8 @@ use crate::sdk::{
     },
 };
 
+use super::fingerprint_request::FingerprintRequest;
+
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum Command {
@@ -51,6 +53,12 @@ pub enum Command {
     /// Returns: [UserApiKeyResponse](crate::sdk::response::user_api_key_response::UserApiKeyResponse)
     ///
     GetUserApiKey(SecretVerificationRequest),
+
+    /// Get the users passphrase
+    /// 
+    /// Returns: String
+    /// 
+    Fingerprint(FingerprintRequest),
 
     /// > Requires Authentication
     /// Retrieve all user data, ciphers and organizations the user is a part of

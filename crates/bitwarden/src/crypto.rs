@@ -282,20 +282,20 @@ pub(crate) fn stretch_key(secret: [u8; 16], name: &str, info: Option<&str>) -> S
     SymmetricCryptoKey::try_from(key.as_slice()).unwrap()
 }
 
-pub(crate) fn fingerprint(user_id: &str, public_key: &[u8]) -> Result<String, hkdf::InvalidLength> {
+pub(crate) fn fingerprint(user_id: &str, public_key: &[u8]) -> Result<String> {
     let mut h = Sha256::new();
     h.update(public_key);
     h.finalize();
 
-    let hkdf = hkdf::Hkdf::<sha2::Sha256>::from_prk(public_key).map_err(|_| hkdf::InvalidLength)?;
+    let hkdf = hkdf::Hkdf::<sha2::Sha256>::from_prk(public_key).map_err(|_| Error::Internal("hkdf::InvalidLength"))?;
 
     let mut user_fingerprint = [0u8; 32];
-    hkdf.expand(user_id.as_bytes(), &mut user_fingerprint)?;
+    hkdf.expand(user_id.as_bytes(), &mut user_fingerprint).map_err(|_| Error::Internal("hkdf::expand"))?;
 
     Ok(hash_word(user_fingerprint).unwrap())
 }
 
-fn hash_word(hash: [u8; 32]) -> std::result::Result<String, &'static str> {
+fn hash_word(hash: [u8; 32]) -> Result<String> {
     let minimum_entropy = 64;
 
     let entropy_per_word = (EFF_LONG_WORD_LIST.len() as f64).log2();
@@ -304,7 +304,7 @@ fn hash_word(hash: [u8; 32]) -> std::result::Result<String, &'static str> {
     let hash_arr: Vec<u8> = hash.to_vec();
     let entropy_available = hash_arr.len() * 4;
     if num_words as f64 * entropy_per_word > entropy_available as f64 {
-        return Err("Output entropy of hash function is too small");
+        return Err(Error::Internal("Output entropy of hash function is too small"));
     }
 
     let mut phrase = Vec::new();

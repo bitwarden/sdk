@@ -22,7 +22,7 @@ pub struct ApiKeyLoginResponse {
 }
 
 impl ApiKeyLoginResponse {
-    pub fn process_response(response: IdentityTokenResponse) -> Result<ApiKeyLoginResponse> {
+    pub(crate) fn process_response(response: IdentityTokenResponse) -> Result<ApiKeyLoginResponse> {
         let password_response = PasswordLoginResponse::process_response(response)?;
 
         Ok(ApiKeyLoginResponse {

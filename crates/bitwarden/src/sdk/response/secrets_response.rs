@@ -27,7 +27,7 @@ pub struct SecretResponse {
 }
 
 impl SecretResponse {
-    pub fn process_response(
+    pub(crate) fn process_response(
         response: SecretResponseModel,
         enc: &EncryptionSettings,
     ) -> Result<SecretResponse> {
@@ -71,7 +71,7 @@ pub struct SecretIdentifiersResponse {
 }
 
 impl SecretIdentifiersResponse {
-    pub fn process_response(
+    pub(crate) fn process_response(
         response: SecretWithProjectsListResponseModel,
         enc: &EncryptionSettings,
     ) -> Result<SecretIdentifiersResponse> {
@@ -96,7 +96,7 @@ pub struct SecretIdentifierResponse {
 }
 
 impl SecretIdentifierResponse {
-    pub fn process_response(
+    pub(crate) fn process_response(
         response: SecretsWithProjectsInnerSecret,
         enc: &EncryptionSettings,
     ) -> Result<SecretIdentifierResponse> {
@@ -120,7 +120,7 @@ pub struct SecretsDeleteResponse {
 }
 
 impl SecretsDeleteResponse {
-    pub fn process_response(
+    pub(crate) fn process_response(
         response: BulkDeleteResponseModelListResponseModel,
     ) -> Result<SecretsDeleteResponse> {
         Ok(SecretsDeleteResponse {
@@ -142,7 +142,9 @@ pub struct SecretDeleteResponse {
 }
 
 impl SecretDeleteResponse {
-    pub fn process_response(response: BulkDeleteResponseModel) -> Result<SecretDeleteResponse> {
+    pub(crate) fn process_response(
+        response: BulkDeleteResponseModel,
+    ) -> Result<SecretDeleteResponse> {
         Ok(SecretDeleteResponse {
             id: response.id.ok_or(Error::MissingFields)?,
             error: response.error,

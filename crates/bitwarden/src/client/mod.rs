@@ -10,3 +10,5 @@ pub(crate) mod encryption_settings;
 
 pub use access_token::AccessToken;
 pub use client::Client;
+pub use client_projects::ClientProjects;
+pub use client_secrets::ClientSecrets;

@@ -20,7 +20,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
-    "@openapitools/openapi-generator-cli": "2.5.2",
+    "@openapitools/openapi-generator-cli": "2.6.0",
     "prettier": "2.8.7",
     "quicktype-core": "21.0.16",
     "rimraf": "4.4.1",

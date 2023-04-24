@@ -164,22 +164,22 @@ class APIKeyLoginRequest:
 
 @dataclass
 class FingerprintRequest:
+    """The input material, used in the fingerprint generation process."""
+    fingerprint_material: str
     """The user's public key"""
     public_key: str
-    """The user's user id, used in the fingerprint generation process."""
-    user_id: str
 
     @staticmethod
     def from_dict(obj: Any) -> 'FingerprintRequest':
         assert isinstance(obj, dict)
+        fingerprint_material = from_str(obj.get("fingerprintMaterial"))
         public_key = from_str(obj.get("publicKey"))
-        user_id = from_str(obj.get("userId"))
-        return FingerprintRequest(public_key, user_id)
+        return FingerprintRequest(fingerprint_material, public_key)
 
     def to_dict(self) -> dict:
         result: dict = {}
+        result["fingerprintMaterial"] = from_str(self.fingerprint_material)
         result["publicKey"] = from_str(self.public_key)
-        result["userId"] = from_str(self.user_id)
         return result
 
 
@@ -513,7 +513,7 @@ class Command:
     Returns:
     [UserApiKeyResponse](crate::sdk::response::user_api_key_response::UserApiKeyResponse)
     
-    Get the users passphrase
+    Get the user's passphrase
     
     Returns: String
     

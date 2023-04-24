@@ -55,7 +55,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Get the users passphrase\n\nReturns: String",
+      "description": "Get the user's passphrase\n\nReturns: String",
       "type": "object",
       "required": [
         "fingerprint"
@@ -147,16 +147,16 @@
     "FingerprintRequest": {
       "type": "object",
       "required": [
-        "publicKey",
-        "userId"
+        "fingerprintMaterial",
+        "publicKey"
       ],
       "properties": {
-        "publicKey": {
-          "description": "The user's public key",
+        "fingerprintMaterial": {
+          "description": "The input material, used in the fingerprint generation process.",
           "type": "string"
         },
-        "userId": {
-          "description": "The user's user id, used in the fingerprint generation process.",
+        "publicKey": {
+          "description": "The user's public key",
           "type": "string"
         }
       },

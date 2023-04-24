@@ -97,7 +97,7 @@ namespace Bit.Sdk
     /// Returns:
     /// [UserApiKeyResponse](crate::sdk::response::user_api_key_response::UserApiKeyResponse)
     ///
-    /// Get the users passphrase
+    /// Get the user's passphrase
     ///
     /// Returns: String
     ///
@@ -172,16 +172,16 @@ namespace Bit.Sdk
     public partial class FingerprintRequest
     {
         /// <summary>
+        /// The input material, used in the fingerprint generation process.
+        /// </summary>
+        [JsonProperty("fingerprintMaterial")]
+        public string FingerprintMaterial { get; set; }
+
+        /// <summary>
         /// The user's public key
         /// </summary>
         [JsonProperty("publicKey")]
         public string PublicKey { get; set; }
-
-        /// <summary>
-        /// The user's user id, used in the fingerprint generation process.
-        /// </summary>
-        [JsonProperty("userId")]
-        public string UserId { get; set; }
     }
 
     public partial class SecretVerificationRequest

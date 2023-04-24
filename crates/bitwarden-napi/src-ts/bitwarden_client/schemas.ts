@@ -109,7 +109,7 @@ export enum DeviceType {
  * Returns:
  * [UserApiKeyResponse](crate::sdk::response::user_api_key_response::UserApiKeyResponse)
  *
- * Get the users passphrase
+ * Get the user's passphrase
  *
  * Returns: String
  *
@@ -159,13 +159,13 @@ export interface APIKeyLoginRequest {
 
 export interface FingerprintRequest {
     /**
+     * The input material, used in the fingerprint generation process.
+     */
+    fingerprintMaterial: string;
+    /**
      * The user's public key
      */
     publicKey: string;
-    /**
-     * The user's user id, used in the fingerprint generation process.
-     */
-    userId: string;
 }
 
 export interface SecretVerificationRequest {
@@ -953,8 +953,8 @@ const typeMap: any = {
         { json: "password", js: "password", typ: "" },
     ], false),
     "FingerprintRequest": o([
+        { json: "fingerprintMaterial", js: "fingerprintMaterial", typ: "" },
         { json: "publicKey", js: "publicKey", typ: "" },
-        { json: "userId", js: "userId", typ: "" },
     ], false),
     "SecretVerificationRequest": o([
         { json: "masterPassword", js: "masterPassword", typ: u(undefined, u(null, "")) },

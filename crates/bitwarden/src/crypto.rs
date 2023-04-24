@@ -282,7 +282,7 @@ pub(crate) fn stretch_key(secret: [u8; 16], name: &str, info: Option<&str>) -> S
     SymmetricCryptoKey::try_from(key.as_slice()).unwrap()
 }
 
-pub(crate) fn fingerprint(user_id: &str, public_key: &[u8]) -> Result<String> {
+pub(crate) fn fingerprint(fingerprint_material: &str, public_key: &[u8]) -> Result<String> {
     let mut h = Sha256::new();
     h.update(public_key);
     h.finalize();
@@ -291,7 +291,7 @@ pub(crate) fn fingerprint(user_id: &str, public_key: &[u8]) -> Result<String> {
         .map_err(|_| Error::Internal("hkdf::InvalidLength"))?;
 
     let mut user_fingerprint = [0u8; 32];
-    hkdf.expand(user_id.as_bytes(), &mut user_fingerprint)
+    hkdf.expand(fingerprint_material.as_bytes(), &mut user_fingerprint)
         .map_err(|_| Error::Internal("hkdf::expand"))?;
 
     Ok(hash_word(user_fingerprint).unwrap())

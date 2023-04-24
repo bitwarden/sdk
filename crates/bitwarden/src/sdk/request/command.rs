@@ -54,7 +54,7 @@ pub enum Command {
     ///
     GetUserApiKey(SecretVerificationRequest),
 
-    /// Get the users passphrase
+    /// Get the user's passphrase
     ///
     /// Returns: String
     ///

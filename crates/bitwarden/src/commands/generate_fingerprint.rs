@@ -8,5 +8,5 @@ pub(crate) fn generate_fingerprint(input: &FingerprintRequest) -> Result<String>
     info!("Generating fingerprint");
     debug!("{:?}", input);
 
-    fingerprint(&input.user_id, input.public_key.as_bytes())
+    fingerprint(&input.fingerprint_material, input.public_key.as_bytes())
 }

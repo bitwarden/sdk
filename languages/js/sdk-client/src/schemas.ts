@@ -178,7 +178,7 @@ export interface FingerprintRequest {
      */
     fingerprintMaterial: string;
     /**
-     * The user's public key
+     * The user's public key encoded with base64.
      */
     publicKey: string;
 }

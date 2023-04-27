@@ -202,7 +202,7 @@ namespace Bit.Sdk
         public string FingerprintMaterial { get; set; }
 
         /// <summary>
-        /// The user's public key
+        /// The user's public key encoded with base64.
         /// </summary>
         [JsonProperty("publicKey")]
         public string PublicKey { get; set; }

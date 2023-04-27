@@ -211,7 +211,7 @@ class APIKeyLoginRequest:
 class FingerprintRequest:
     """The input material, used in the fingerprint generation process."""
     fingerprint_material: str
-    """The user's public key"""
+    """The user's public key encoded with base64."""
     public_key: str
 
     @staticmethod

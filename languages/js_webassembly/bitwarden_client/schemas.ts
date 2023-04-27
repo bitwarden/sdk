@@ -109,6 +109,10 @@ export enum DeviceType {
  * Returns:
  * [UserApiKeyResponse](crate::sdk::response::user_api_key_response::UserApiKeyResponse)
  *
+ * Get the user's passphrase
+ *
+ * Returns: String
+ *
  * > Requires Authentication Retrieve all user data, ciphers and organizations the user is a
  * part of
  *
@@ -119,6 +123,7 @@ export interface Command {
     apiKeyLogin?:      APIKeyLoginRequest;
     accessTokenLogin?: AccessTokenLoginRequest;
     getUserApiKey?:    SecretVerificationRequest;
+    fingerprint?:      FingerprintRequest;
     sync?:             SyncRequest;
     secrets?:          SecretsCommand;
     projects?:         ProjectsCommand;
@@ -150,6 +155,17 @@ export interface APIKeyLoginRequest {
      * Bitwarden account master password
      */
     password: string;
+}
+
+export interface FingerprintRequest {
+    /**
+     * The input material, used in the fingerprint generation process.
+     */
+    fingerprintMaterial: string;
+    /**
+     * The user's public key
+     */
+    publicKey: string;
 }
 
 export interface SecretVerificationRequest {
@@ -923,6 +939,7 @@ const typeMap: any = {
         { json: "apiKeyLogin", js: "apiKeyLogin", typ: u(undefined, r("APIKeyLoginRequest")) },
         { json: "accessTokenLogin", js: "accessTokenLogin", typ: u(undefined, r("AccessTokenLoginRequest")) },
         { json: "getUserApiKey", js: "getUserApiKey", typ: u(undefined, r("SecretVerificationRequest")) },
+        { json: "fingerprint", js: "fingerprint", typ: u(undefined, r("FingerprintRequest")) },
         { json: "sync", js: "sync", typ: u(undefined, r("SyncRequest")) },
         { json: "secrets", js: "secrets", typ: u(undefined, r("SecretsCommand")) },
         { json: "projects", js: "projects", typ: u(undefined, r("ProjectsCommand")) },
@@ -934,6 +951,10 @@ const typeMap: any = {
         { json: "clientId", js: "clientId", typ: "" },
         { json: "clientSecret", js: "clientSecret", typ: "" },
         { json: "password", js: "password", typ: "" },
+    ], false),
+    "FingerprintRequest": o([
+        { json: "fingerprintMaterial", js: "fingerprintMaterial", typ: "" },
+        { json: "publicKey", js: "publicKey", typ: "" },
     ], false),
     "SecretVerificationRequest": o([
         { json: "masterPassword", js: "masterPassword", typ: u(undefined, u(null, "")) },

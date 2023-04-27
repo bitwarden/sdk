@@ -163,6 +163,27 @@ class APIKeyLoginRequest:
 
 
 @dataclass
+class FingerprintRequest:
+    """The input material, used in the fingerprint generation process."""
+    fingerprint_material: str
+    """The user's public key"""
+    public_key: str
+
+    @staticmethod
+    def from_dict(obj: Any) -> 'FingerprintRequest':
+        assert isinstance(obj, dict)
+        fingerprint_material = from_str(obj.get("fingerprintMaterial"))
+        public_key = from_str(obj.get("publicKey"))
+        return FingerprintRequest(fingerprint_material, public_key)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        result["fingerprintMaterial"] = from_str(self.fingerprint_material)
+        result["publicKey"] = from_str(self.public_key)
+        return result
+
+
+@dataclass
 class SecretVerificationRequest:
     """The user's master password to use for user verification. If supplied, this will be used
     for verification purposes.
@@ -492,6 +513,10 @@ class Command:
     Returns:
     [UserApiKeyResponse](crate::sdk::response::user_api_key_response::UserApiKeyResponse)
     
+    Get the user's passphrase
+    
+    Returns: String
+    
     > Requires Authentication Retrieve all user data, ciphers and organizations the user is a
     part of
     
@@ -501,6 +526,7 @@ class Command:
     api_key_login: Optional[APIKeyLoginRequest] = None
     access_token_login: Optional[AccessTokenLoginRequest] = None
     get_user_api_key: Optional[SecretVerificationRequest] = None
+    fingerprint: Optional[FingerprintRequest] = None
     sync: Optional[SyncRequest] = None
     secrets: Optional[SecretsCommand] = None
     projects: Optional[ProjectsCommand] = None
@@ -512,10 +538,11 @@ class Command:
         api_key_login = from_union([APIKeyLoginRequest.from_dict, from_none], obj.get("apiKeyLogin"))
         access_token_login = from_union([AccessTokenLoginRequest.from_dict, from_none], obj.get("accessTokenLogin"))
         get_user_api_key = from_union([SecretVerificationRequest.from_dict, from_none], obj.get("getUserApiKey"))
+        fingerprint = from_union([FingerprintRequest.from_dict, from_none], obj.get("fingerprint"))
         sync = from_union([SyncRequest.from_dict, from_none], obj.get("sync"))
         secrets = from_union([SecretsCommand.from_dict, from_none], obj.get("secrets"))
         projects = from_union([ProjectsCommand.from_dict, from_none], obj.get("projects"))
-        return Command(password_login, api_key_login, access_token_login, get_user_api_key, sync, secrets, projects)
+        return Command(password_login, api_key_login, access_token_login, get_user_api_key, fingerprint, sync, secrets, projects)
 
     def to_dict(self) -> dict:
         result: dict = {}
@@ -527,6 +554,8 @@ class Command:
             result["accessTokenLogin"] = from_union([lambda x: to_class(AccessTokenLoginRequest, x), from_none], self.access_token_login)
         if self.get_user_api_key is not None:
             result["getUserApiKey"] = from_union([lambda x: to_class(SecretVerificationRequest, x), from_none], self.get_user_api_key)
+        if self.fingerprint is not None:
+            result["fingerprint"] = from_union([lambda x: to_class(FingerprintRequest, x), from_none], self.fingerprint)
         if self.sync is not None:
             result["sync"] = from_union([lambda x: to_class(SyncRequest, x), from_none], self.sync)
         if self.secrets is not None:

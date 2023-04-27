@@ -28,7 +28,7 @@ use crate::{
             secret_verification_request::SecretVerificationRequest,
             sync_request::SyncRequest,
         },
-        response::{sync_response::SyncResponse, user_api_key_response::UserApiKeyResponse},
+        response::{sync_response::SyncResponse, user_api_key_response::UserApiKeyResponse, fingerprint_response::FingerprintResponse},
     },
     util::default_kdf_iterations,
 };
@@ -254,7 +254,7 @@ impl Client {
         Ok(self.encryption_settings.as_ref().unwrap())
     }
 
-    pub fn fingerprint(&mut self, input: &FingerprintRequest) -> Result<String> {
+    pub fn fingerprint(&mut self, input: &FingerprintRequest) -> Result<FingerprintResponse> {
         generate_fingerprint(input)
     }
 }

@@ -108,15 +108,16 @@ fn main() -> Result<()> {
     );
 
     write_schema_for_response! {
-        auth::response::PasswordLoginResponse,
         auth::response::ApiKeyLoginResponse,
-        response::user_api_key_response::UserApiKeyResponse,
-        response::sync_response::SyncResponse,
-        response::secrets_response::SecretResponse,
-        response::secrets_response::SecretIdentifiersResponse,
-        response::secrets_response::SecretIdentifierResponse,
-        response::secrets_response::SecretsDeleteResponse,
+        auth::response::PasswordLoginResponse,
+        response::fingerprint_response::FingerprintResponse,
         response::secrets_response::SecretDeleteResponse,
+        response::secrets_response::SecretIdentifierResponse,
+        response::secrets_response::SecretIdentifiersResponse,
+        response::secrets_response::SecretResponse,
+        response::secrets_response::SecretsDeleteResponse,
+        response::sync_response::SyncResponse,
+        response::user_api_key_response::UserApiKeyResponse,
     };
 
     Ok(())

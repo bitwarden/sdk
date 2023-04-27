@@ -1,10 +1,11 @@
 // To parse this data:
 //
-//   import { Convert, ClientSettings, Command, ResponseForAPIKeyLoginResponse, ResponseForPasswordLoginResponse, ResponseForSecretDeleteResponse, ResponseForSecretIdentifierResponse, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsDeleteResponse, ResponseForSyncResponse, ResponseForUserAPIKeyResponse } from "./file";
+//   import { Convert, ClientSettings, Command, ResponseForAPIKeyLoginResponse, ResponseForFingerprintResponse, ResponseForPasswordLoginResponse, ResponseForSecretDeleteResponse, ResponseForSecretIdentifierResponse, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsDeleteResponse, ResponseForSyncResponse, ResponseForUserAPIKeyResponse } from "./file";
 //
 //   const clientSettings = Convert.toClientSettings(json);
 //   const command = Convert.toCommand(json);
 //   const responseForAPIKeyLoginResponse = Convert.toResponseForAPIKeyLoginResponse(json);
+//   const responseForFingerprintResponse = Convert.toResponseForFingerprintResponse(json);
 //   const responseForPasswordLoginResponse = Convert.toResponseForPasswordLoginResponse(json);
 //   const responseForSecretDeleteResponse = Convert.toResponseForSecretDeleteResponse(json);
 //   const responseForSecretIdentifierResponse = Convert.toResponseForSecretIdentifierResponse(json);
@@ -414,6 +415,25 @@ export interface PurpleYubiKey {
     nfc: boolean;
 }
 
+export interface ResponseForFingerprintResponse {
+    /**
+     * The response data. Populated if `success` is true.
+     */
+    data?: FingerprintResponse | null;
+    /**
+     * A message for any error that may occur. Populated if `success` is false.
+     */
+    errorMessage?: null | string;
+    /**
+     * Whether or not the SDK request succeeded.
+     */
+    success: boolean;
+}
+
+export interface FingerprintResponse {
+    fingerprint: string;
+}
+
 export interface ResponseForPasswordLoginResponse {
     /**
      * The response data. Populated if `success` is true.
@@ -723,6 +743,14 @@ export class Convert {
 
     public static responseForAPIKeyLoginResponseToJson(value: ResponseForAPIKeyLoginResponse): string {
         return JSON.stringify(uncast(value, r("ResponseForAPIKeyLoginResponse")), null, 2);
+    }
+
+    public static toResponseForFingerprintResponse(json: string): ResponseForFingerprintResponse {
+        return cast(JSON.parse(json), r("ResponseForFingerprintResponse"));
+    }
+
+    public static responseForFingerprintResponseToJson(value: ResponseForFingerprintResponse): string {
+        return JSON.stringify(uncast(value, r("ResponseForFingerprintResponse")), null, 2);
     }
 
     public static toResponseForPasswordLoginResponse(json: string): ResponseForPasswordLoginResponse {
@@ -1065,6 +1093,14 @@ const typeMap: any = {
     ], false),
     "PurpleYubiKey": o([
         { json: "nfc", js: "nfc", typ: true },
+    ], false),
+    "ResponseForFingerprintResponse": o([
+        { json: "data", js: "data", typ: u(undefined, u(r("FingerprintResponse"), null)) },
+        { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
+        { json: "success", js: "success", typ: true },
+    ], false),
+    "FingerprintResponse": o([
+        { json: "fingerprint", js: "fingerprint", typ: "" },
     ], false),
     "ResponseForPasswordLoginResponse": o([
         { json: "data", js: "data", typ: u(undefined, u(r("PasswordLoginResponse"), null)) },

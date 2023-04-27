@@ -808,6 +808,49 @@ class ResponseForAPIKeyLoginResponse:
 
 
 @dataclass
+class FingerprintResponse:
+    fingerprint: str
+
+    @staticmethod
+    def from_dict(obj: Any) -> 'FingerprintResponse':
+        assert isinstance(obj, dict)
+        fingerprint = from_str(obj.get("fingerprint"))
+        return FingerprintResponse(fingerprint)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        result["fingerprint"] = from_str(self.fingerprint)
+        return result
+
+
+@dataclass
+class ResponseForFingerprintResponse:
+    """Whether or not the SDK request succeeded."""
+    success: bool
+    """The response data. Populated if `success` is true."""
+    data: Optional[FingerprintResponse] = None
+    """A message for any error that may occur. Populated if `success` is false."""
+    error_message: Optional[str] = None
+
+    @staticmethod
+    def from_dict(obj: Any) -> 'ResponseForFingerprintResponse':
+        assert isinstance(obj, dict)
+        success = from_bool(obj.get("success"))
+        data = from_union([FingerprintResponse.from_dict, from_none], obj.get("data"))
+        error_message = from_union([from_none, from_str], obj.get("errorMessage"))
+        return ResponseForFingerprintResponse(success, data, error_message)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        result["success"] = from_bool(self.success)
+        if self.data is not None:
+            result["data"] = from_union([lambda x: to_class(FingerprintResponse, x), from_none], self.data)
+        if self.error_message is not None:
+            result["errorMessage"] = from_union([from_none, from_str], self.error_message)
+        return result
+
+
+@dataclass
 class CAPTCHAResponse:
     """hcaptcha site key"""
     site_key: str
@@ -1497,6 +1540,14 @@ def response_for_api_key_login_response_from_dict(s: Any) -> ResponseForAPIKeyLo
 
 def response_for_api_key_login_response_to_dict(x: ResponseForAPIKeyLoginResponse) -> Any:
     return to_class(ResponseForAPIKeyLoginResponse, x)
+
+
+def response_for_fingerprint_response_from_dict(s: Any) -> ResponseForFingerprintResponse:
+    return ResponseForFingerprintResponse.from_dict(s)
+
+
+def response_for_fingerprint_response_to_dict(x: ResponseForFingerprintResponse) -> Any:
+    return to_class(ResponseForFingerprintResponse, x)
 
 
 def response_for_password_login_response_from_dict(s: Any) -> ResponseForPasswordLoginResponse:

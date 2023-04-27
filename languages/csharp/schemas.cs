@@ -7,6 +7,7 @@
 //    var clientSettings = ClientSettings.FromJson(jsonString);
 //    var command = Command.FromJson(jsonString);
 //    var responseForApiKeyLoginResponse = ResponseForApiKeyLoginResponse.FromJson(jsonString);
+//    var responseForFingerprintResponse = ResponseForFingerprintResponse.FromJson(jsonString);
 //    var responseForPasswordLoginResponse = ResponseForPasswordLoginResponse.FromJson(jsonString);
 //    var responseForSecretDeleteResponse = ResponseForSecretDeleteResponse.FromJson(jsonString);
 //    var responseForSecretIdentifierResponse = ResponseForSecretIdentifierResponse.FromJson(jsonString);
@@ -530,6 +531,33 @@ namespace Bit.Sdk
         public bool Nfc { get; set; }
     }
 
+    public partial class ResponseForFingerprintResponse
+    {
+        /// <summary>
+        /// The response data. Populated if `success` is true.
+        /// </summary>
+        [JsonProperty("data")]
+        public FingerprintResponse Data { get; set; }
+
+        /// <summary>
+        /// A message for any error that may occur. Populated if `success` is false.
+        /// </summary>
+        [JsonProperty("errorMessage")]
+        public string ErrorMessage { get; set; }
+
+        /// <summary>
+        /// Whether or not the SDK request succeeded.
+        /// </summary>
+        [JsonProperty("success")]
+        public bool Success { get; set; }
+    }
+
+    public partial class FingerprintResponse
+    {
+        [JsonProperty("fingerprint")]
+        public string Fingerprint { get; set; }
+    }
+
     public partial class ResponseForPasswordLoginResponse
     {
         /// <summary>
@@ -980,6 +1008,11 @@ namespace Bit.Sdk
         public static ResponseForApiKeyLoginResponse FromJson(string json) => JsonConvert.DeserializeObject<ResponseForApiKeyLoginResponse>(json, Bit.Sdk.Converter.Settings);
     }
 
+    public partial class ResponseForFingerprintResponse
+    {
+        public static ResponseForFingerprintResponse FromJson(string json) => JsonConvert.DeserializeObject<ResponseForFingerprintResponse>(json, Bit.Sdk.Converter.Settings);
+    }
+
     public partial class ResponseForPasswordLoginResponse
     {
         public static ResponseForPasswordLoginResponse FromJson(string json) => JsonConvert.DeserializeObject<ResponseForPasswordLoginResponse>(json, Bit.Sdk.Converter.Settings);
@@ -1025,6 +1058,7 @@ namespace Bit.Sdk
         public static string ToJson(this ClientSettings self) => JsonConvert.SerializeObject(self, Bit.Sdk.Converter.Settings);
         public static string ToJson(this Command self) => JsonConvert.SerializeObject(self, Bit.Sdk.Converter.Settings);
         public static string ToJson(this ResponseForApiKeyLoginResponse self) => JsonConvert.SerializeObject(self, Bit.Sdk.Converter.Settings);
+        public static string ToJson(this ResponseForFingerprintResponse self) => JsonConvert.SerializeObject(self, Bit.Sdk.Converter.Settings);
         public static string ToJson(this ResponseForPasswordLoginResponse self) => JsonConvert.SerializeObject(self, Bit.Sdk.Converter.Settings);
         public static string ToJson(this ResponseForSecretDeleteResponse self) => JsonConvert.SerializeObject(self, Bit.Sdk.Converter.Settings);
         public static string ToJson(this ResponseForSecretIdentifierResponse self) => JsonConvert.SerializeObject(self, Bit.Sdk.Converter.Settings);

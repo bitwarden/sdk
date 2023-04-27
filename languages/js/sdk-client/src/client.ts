@@ -1,5 +1,6 @@
 import {
   Convert,
+  ResponseForFingerprintResponse,
   ResponseForPasswordLoginResponse,
   ResponseForSecretIdentifiersResponse,
   ResponseForSecretResponse,
@@ -70,7 +71,7 @@ export class BitwardenClient {
       })
     )
 
-    return response;
+    return Convert.toResponseForFingerprintResponse(response).data.fingerprint;
   };
 }
 

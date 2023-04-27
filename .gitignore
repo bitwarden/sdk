@@ -2,6 +2,9 @@
 .DS_Store
 .pytest_cache
 
+# IDEs
+.idea
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
@@ -15,7 +18,6 @@ bld/
 [Oo]bj/
 *.wasm
 
-.idea
 
 # Added by cargo
 #

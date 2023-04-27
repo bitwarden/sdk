@@ -8,10 +8,14 @@ import {
   ResponseForUserAPIKeyResponse,
 } from "./schemas";
 
-export class BitwardenClient {
-  client: any;
+interface BitwardenSDKClient {
+  run_command(js_input: string): Promise<any>;
+}
 
-  constructor(client: any) {
+export class BitwardenClient {
+  client: BitwardenSDKClient;
+
+  constructor(client: BitwardenSDKClient) {
     this.client = client;
   }
 
@@ -58,9 +62,9 @@ export class BitwardenClient {
 }
 
 export class SecretsClient {
-  client: any;
+  client: BitwardenSDKClient;
 
-  constructor(client: any) {
+  constructor(client: BitwardenSDKClient) {
     this.client = client;
   }
 

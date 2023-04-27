@@ -94,6 +94,12 @@ The hope going forward is that we can continue to use the generator with minimal
 
 ### WASM - WebAssembly
 
+Install `wasm32-unknown-unknown` rust target.
+
+```bash
+rustup target add wasm32-unknown-unknown
+```
+
 Install wasm-bindgen-cli
 
 ```bash
@@ -102,7 +108,7 @@ cargo install -f wasm-bindgen-cli
 
 #### Build
 
-```
+```bash
 # dev
 cargo build -p bitwarden-wasm -p bitwarden --target wasm32-unknown-unknown --features wasm-bindgen
 wasm-bindgen --target bundler --out-dir languages/js/wasm ./target/wasm32-unknown-unknown/debug/bitwarden_wasm.wasm
@@ -112,5 +118,5 @@ cargo build -p bitwarden -p bitwarden-wasm --target wasm32-unknown-unknown --fea
 wasm-bindgen --target bundler --out-dir languages/js/wasm ./target/wasm32-unknown-unknown/release/bitwarden_wasm.wasm
 
 # Optimize size
-wasm-opt  -Os ./languages/js/wasm/bitwarden_wasm_bg.wasm -o ./languages/js/wasm/bitwarden_wasm_bg.wasm
+wasm-opt -Os ./languages/js/wasm/bitwarden_wasm_bg.wasm -o ./languages/js/wasm/bitwarden_wasm_bg.wasm
 ```

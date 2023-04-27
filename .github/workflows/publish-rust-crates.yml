@@ -43,7 +43,7 @@ jobs:
       packages_command: ${{ steps.packages-list.outputs.packages_command }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
 
       - name: Branch check
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
@@ -100,7 +100,7 @@ jobs:
       - setup
     steps:
       - name: Checkout
-        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
 
       - name: Login to Azure
         uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
@@ -109,7 +109,7 @@ jobs:
 
       - name: Retrieve secrets
         id: retrieve-secrets
-        uses: bitwarden/gh-actions/get-keyvault-secrets@4f2a18ff6b521dbdc0d9079e528bf82114175520
+        uses: bitwarden/gh-actions/get-keyvault-secrets@fcff8aaa065317a24e17943e32df993fa2f5f0ec
         with:
           keyvault: "bitwarden-prod-kv"
           secrets: "cratesio-api-token"

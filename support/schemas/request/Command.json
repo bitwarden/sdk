@@ -55,6 +55,19 @@
       "additionalProperties": false
     },
     {
+      "description": "Get the user's passphrase\n\nReturns: String",
+      "type": "object",
+      "required": [
+        "fingerprint"
+      ],
+      "properties": {
+        "fingerprint": {
+          "$ref": "#/definitions/FingerprintRequest"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
       "description": "> Requires Authentication Retrieve all user data, ciphers and organizations the user is a part of\n\nReturns: [SyncResponse](crate::sdk::response::sync_response::SyncResponse)",
       "type": "object",
       "required": [
@@ -126,6 +139,24 @@
         },
         "password": {
           "description": "Bitwarden account master password",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "FingerprintRequest": {
+      "type": "object",
+      "required": [
+        "fingerprintMaterial",
+        "publicKey"
+      ],
+      "properties": {
+        "fingerprintMaterial": {
+          "description": "The input material, used in the fingerprint generation process.",
+          "type": "string"
+        },
+        "publicKey": {
+          "description": "The user's public key",
           "type": "string"
         }
       },

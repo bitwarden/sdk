@@ -19,7 +19,7 @@ pub struct ProjectResponse {
 }
 
 impl ProjectResponse {
-    pub fn process_response(
+    pub(crate) fn process_response(
         response: ProjectResponseModel,
         enc: &EncryptionSettings,
     ) -> Result<Self> {
@@ -48,7 +48,7 @@ pub struct ProjectsResponse {
 }
 
 impl ProjectsResponse {
-    pub fn process_response(
+    pub(crate) fn process_response(
         response: ProjectResponseModelListResponseModel,
         enc: &EncryptionSettings,
     ) -> Result<Self> {

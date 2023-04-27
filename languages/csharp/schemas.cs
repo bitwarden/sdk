@@ -121,6 +121,10 @@ namespace Bit.Sdk
     /// Returns:
     /// [UserApiKeyResponse](crate::sdk::response::user_api_key_response::UserApiKeyResponse)
     ///
+    /// Get the user's passphrase
+    ///
+    /// Returns: String
+    ///
     /// > Requires Authentication Retrieve all user data, ciphers and organizations the user is a
     /// part of
     ///
@@ -139,6 +143,9 @@ namespace Bit.Sdk
 
         [JsonProperty("getUserApiKey", NullValueHandling = NullValueHandling.Ignore)]
         public SecretVerificationRequest GetUserApiKey { get; set; }
+
+        [JsonProperty("fingerprint", NullValueHandling = NullValueHandling.Ignore)]
+        public FingerprintRequest Fingerprint { get; set; }
 
         [JsonProperty("sync", NullValueHandling = NullValueHandling.Ignore)]
         public SyncRequest Sync { get; set; }
@@ -184,6 +191,21 @@ namespace Bit.Sdk
         /// </summary>
         [JsonProperty("password")]
         public string Password { get; set; }
+    }
+
+    public partial class FingerprintRequest
+    {
+        /// <summary>
+        /// The input material, used in the fingerprint generation process.
+        /// </summary>
+        [JsonProperty("fingerprintMaterial")]
+        public string FingerprintMaterial { get; set; }
+
+        /// <summary>
+        /// The user's public key
+        /// </summary>
+        [JsonProperty("publicKey")]
+        public string PublicKey { get; set; }
     }
 
     public partial class SecretVerificationRequest

@@ -42,7 +42,7 @@ pub struct SyncResponse {
 }
 
 impl SyncResponse {
-    pub fn process_response(
+    pub(crate) fn process_response(
         response: SyncResponseModel,
         enc: &EncryptionSettings,
     ) -> Result<SyncResponse> {

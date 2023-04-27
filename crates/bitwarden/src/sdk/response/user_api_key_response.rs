@@ -12,7 +12,7 @@ pub struct UserApiKeyResponse {
 }
 
 impl UserApiKeyResponse {
-    pub fn process_response(response: ApiKeyResponseModel) -> Result<UserApiKeyResponse> {
+    pub(crate) fn process_response(response: ApiKeyResponseModel) -> Result<UserApiKeyResponse> {
         match response.api_key {
             Some(api_key) => Ok(UserApiKeyResponse { api_key }),
             None => Err(Error::MissingFields),

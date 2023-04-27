@@ -58,5 +58,6 @@ pub mod crypto;
 pub mod error;
 pub mod sdk;
 mod util;
+pub mod wordlist;
 
 pub use client::Client;

@@ -28,7 +28,10 @@ use crate::{
             secret_verification_request::SecretVerificationRequest,
             sync_request::SyncRequest,
         },
-        response::{sync_response::SyncResponse, user_api_key_response::UserApiKeyResponse, fingerprint_response::FingerprintResponse},
+        response::{
+            fingerprint_response::FingerprintResponse, sync_response::SyncResponse,
+            user_api_key_response::UserApiKeyResponse,
+        },
     },
     util::default_kdf_iterations,
 };

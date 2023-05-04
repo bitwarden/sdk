@@ -261,7 +261,7 @@ pub async fn organizations_org_id_collections_delete_post(
 
 pub async fn organizations_org_id_collections_details_get(
     configuration: &configuration::Configuration,
-    org_id: &str,
+    org_id: uuid::Uuid,
 ) -> Result<
     crate::models::CollectionAccessDetailsResponseModelListResponseModel,
     Error<OrganizationsOrgIdCollectionsDetailsGetError>,
@@ -308,7 +308,7 @@ pub async fn organizations_org_id_collections_details_get(
 
 pub async fn organizations_org_id_collections_get(
     configuration: &configuration::Configuration,
-    org_id: &str,
+    org_id: uuid::Uuid,
 ) -> Result<
     crate::models::CollectionResponseModelListResponseModel,
     Error<OrganizationsOrgIdCollectionsGetError>,
@@ -355,8 +355,8 @@ pub async fn organizations_org_id_collections_get(
 
 pub async fn organizations_org_id_collections_id_delete(
     configuration: &configuration::Configuration,
-    org_id: &str,
-    id: &str,
+    org_id: uuid::Uuid,
+    id: uuid::Uuid,
 ) -> Result<(), Error<OrganizationsOrgIdCollectionsIdDeleteError>> {
     let local_var_configuration = configuration;
 
@@ -401,8 +401,8 @@ pub async fn organizations_org_id_collections_id_delete(
 
 pub async fn organizations_org_id_collections_id_delete_post(
     configuration: &configuration::Configuration,
-    org_id: &str,
-    id: &str,
+    org_id: uuid::Uuid,
+    id: uuid::Uuid,
 ) -> Result<(), Error<OrganizationsOrgIdCollectionsIdDeletePostError>> {
     let local_var_configuration = configuration;
 
@@ -495,8 +495,8 @@ pub async fn organizations_org_id_collections_id_delete_user_org_user_id_post(
 
 pub async fn organizations_org_id_collections_id_details_get(
     configuration: &configuration::Configuration,
-    org_id: &str,
-    id: &str,
+    org_id: uuid::Uuid,
+    id: uuid::Uuid,
 ) -> Result<
     crate::models::CollectionAccessDetailsResponseModel,
     Error<OrganizationsOrgIdCollectionsIdDetailsGetError>,
@@ -544,8 +544,8 @@ pub async fn organizations_org_id_collections_id_details_get(
 
 pub async fn organizations_org_id_collections_id_get(
     configuration: &configuration::Configuration,
-    org_id: &str,
-    id: &str,
+    org_id: uuid::Uuid,
+    id: uuid::Uuid,
 ) -> Result<crate::models::CollectionResponseModel, Error<OrganizationsOrgIdCollectionsIdGetError>>
 {
     let local_var_configuration = configuration;
@@ -591,8 +591,8 @@ pub async fn organizations_org_id_collections_id_get(
 
 pub async fn organizations_org_id_collections_id_post(
     configuration: &configuration::Configuration,
-    org_id: &str,
-    id: &str,
+    org_id: uuid::Uuid,
+    id: uuid::Uuid,
     collection_request_model: Option<crate::models::CollectionRequestModel>,
 ) -> Result<crate::models::CollectionResponseModel, Error<OrganizationsOrgIdCollectionsIdPostError>>
 {
@@ -640,8 +640,8 @@ pub async fn organizations_org_id_collections_id_post(
 
 pub async fn organizations_org_id_collections_id_put(
     configuration: &configuration::Configuration,
-    org_id: &str,
-    id: &str,
+    org_id: uuid::Uuid,
+    id: uuid::Uuid,
     collection_request_model: Option<crate::models::CollectionRequestModel>,
 ) -> Result<crate::models::CollectionResponseModel, Error<OrganizationsOrgIdCollectionsIdPutError>>
 {
@@ -737,8 +737,8 @@ pub async fn organizations_org_id_collections_id_user_org_user_id_delete(
 
 pub async fn organizations_org_id_collections_id_users_get(
     configuration: &configuration::Configuration,
-    org_id: &str,
-    id: &str,
+    org_id: uuid::Uuid,
+    id: uuid::Uuid,
 ) -> Result<
     Vec<crate::models::SelectionReadOnlyResponseModel>,
     Error<OrganizationsOrgIdCollectionsIdUsersGetError>,
@@ -786,8 +786,8 @@ pub async fn organizations_org_id_collections_id_users_get(
 
 pub async fn organizations_org_id_collections_id_users_put(
     configuration: &configuration::Configuration,
-    org_id: &str,
-    id: &str,
+    org_id: uuid::Uuid,
+    id: uuid::Uuid,
     selection_read_only_request_model: Option<Vec<crate::models::SelectionReadOnlyRequestModel>>,
 ) -> Result<(), Error<OrganizationsOrgIdCollectionsIdUsersPutError>> {
     let local_var_configuration = configuration;
@@ -834,7 +834,7 @@ pub async fn organizations_org_id_collections_id_users_put(
 
 pub async fn organizations_org_id_collections_post(
     configuration: &configuration::Configuration,
-    org_id: &str,
+    org_id: uuid::Uuid,
     collection_request_model: Option<crate::models::CollectionRequestModel>,
 ) -> Result<crate::models::CollectionResponseModel, Error<OrganizationsOrgIdCollectionsPostError>> {
     let local_var_configuration = configuration;

@@ -11,7 +11,7 @@
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct InnerSecretExportResponseModel {
     #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
+    pub id: Option<uuid::Uuid>,
     #[serde(rename = "key", skip_serializing_if = "Option::is_none")]
     pub key: Option<String>,
     #[serde(rename = "value", skip_serializing_if = "Option::is_none")]
@@ -19,7 +19,7 @@ pub struct InnerSecretExportResponseModel {
     #[serde(rename = "note", skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
     #[serde(rename = "projectIds", skip_serializing_if = "Option::is_none")]
-    pub project_ids: Option<Vec<String>>,
+    pub project_ids: Option<Vec<uuid::Uuid>>,
 }
 
 impl InnerSecretExportResponseModel {

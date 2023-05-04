@@ -36,7 +36,7 @@ pub enum OrganizationSponsorshipSelfHostedSponsoringOrgIdFamiliesForEnterprisePo
 
 pub async fn organization_sponsorship_self_hosted_sponsoring_org_id_delete(
     configuration: &configuration::Configuration,
-    sponsoring_org_id: &str,
+    sponsoring_org_id: uuid::Uuid,
 ) -> Result<(), Error<OrganizationSponsorshipSelfHostedSponsoringOrgIdDeleteError>> {
     let local_var_configuration = configuration;
 
@@ -80,7 +80,7 @@ pub async fn organization_sponsorship_self_hosted_sponsoring_org_id_delete(
 
 pub async fn organization_sponsorship_self_hosted_sponsoring_org_id_delete_post(
     configuration: &configuration::Configuration,
-    sponsoring_org_id: &str,
+    sponsoring_org_id: uuid::Uuid,
 ) -> Result<(), Error<OrganizationSponsorshipSelfHostedSponsoringOrgIdDeletePostError>> {
     let local_var_configuration = configuration;
 
@@ -125,7 +125,7 @@ pub async fn organization_sponsorship_self_hosted_sponsoring_org_id_delete_post(
 
 pub async fn organization_sponsorship_self_hosted_sponsoring_org_id_families_for_enterprise_post(
     configuration: &configuration::Configuration,
-    sponsoring_org_id: &str,
+    sponsoring_org_id: uuid::Uuid,
     organization_sponsorship_create_request_model: Option<
         crate::models::OrganizationSponsorshipCreateRequestModel,
     >,

@@ -19,14 +19,14 @@ pub struct PushSendRequestModel {
     #[serde(rename = "identifier", skip_serializing_if = "Option::is_none")]
     pub identifier: Option<String>,
     #[serde(rename = "type")]
-    pub _type: crate::models::PushType,
+    pub r#type: crate::models::PushType,
     #[serde(rename = "payload")]
     pub payload: Option<serde_json::Value>,
 }
 
 impl PushSendRequestModel {
     pub fn new(
-        _type: crate::models::PushType,
+        r#type: crate::models::PushType,
         payload: Option<serde_json::Value>,
     ) -> PushSendRequestModel {
         PushSendRequestModel {
@@ -34,7 +34,7 @@ impl PushSendRequestModel {
             organization_id: None,
             device_id: None,
             identifier: None,
-            _type,
+            r#type,
             payload,
         }
     }

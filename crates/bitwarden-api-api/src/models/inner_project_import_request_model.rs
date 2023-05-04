@@ -11,13 +11,13 @@
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct InnerProjectImportRequestModel {
     #[serde(rename = "id")]
-    pub id: String,
+    pub id: uuid::Uuid,
     #[serde(rename = "name")]
     pub name: String,
 }
 
 impl InnerProjectImportRequestModel {
-    pub fn new(id: String, name: String) -> InnerProjectImportRequestModel {
+    pub fn new(id: uuid::Uuid, name: String) -> InnerProjectImportRequestModel {
         InnerProjectImportRequestModel { id, name }
     }
 }

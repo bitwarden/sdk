@@ -43,7 +43,7 @@ pub enum ProvidersIdSetupPostError {
 
 pub async fn providers_id_get(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
 ) -> Result<crate::models::ProviderResponseModel, Error<ProvidersIdGetError>> {
     let local_var_configuration = configuration;
 
@@ -87,7 +87,7 @@ pub async fn providers_id_get(
 
 pub async fn providers_id_post(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     provider_update_request_model: Option<crate::models::ProviderUpdateRequestModel>,
 ) -> Result<crate::models::ProviderResponseModel, Error<ProvidersIdPostError>> {
     let local_var_configuration = configuration;
@@ -133,7 +133,7 @@ pub async fn providers_id_post(
 
 pub async fn providers_id_put(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     provider_update_request_model: Option<crate::models::ProviderUpdateRequestModel>,
 ) -> Result<crate::models::ProviderResponseModel, Error<ProvidersIdPutError>> {
     let local_var_configuration = configuration;
@@ -179,7 +179,7 @@ pub async fn providers_id_put(
 
 pub async fn providers_id_setup_post(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     provider_setup_request_model: Option<crate::models::ProviderSetupRequestModel>,
 ) -> Result<crate::models::ProviderResponseModel, Error<ProvidersIdSetupPostError>> {
     let local_var_configuration = configuration;

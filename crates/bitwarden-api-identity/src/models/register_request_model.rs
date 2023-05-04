@@ -27,11 +27,15 @@ pub struct RegisterRequestModel {
     #[serde(rename = "token", skip_serializing_if = "Option::is_none")]
     pub token: Option<String>,
     #[serde(rename = "organizationUserId", skip_serializing_if = "Option::is_none")]
-    pub organization_user_id: Option<String>,
+    pub organization_user_id: Option<uuid::Uuid>,
     #[serde(rename = "kdf", skip_serializing_if = "Option::is_none")]
     pub kdf: Option<crate::models::KdfType>,
     #[serde(rename = "kdfIterations", skip_serializing_if = "Option::is_none")]
     pub kdf_iterations: Option<i32>,
+    #[serde(rename = "kdfMemory", skip_serializing_if = "Option::is_none")]
+    pub kdf_memory: Option<i32>,
+    #[serde(rename = "kdfParallelism", skip_serializing_if = "Option::is_none")]
+    pub kdf_parallelism: Option<i32>,
     #[serde(rename = "referenceData", skip_serializing_if = "Option::is_none")]
     pub reference_data: Option<::std::collections::HashMap<String, serde_json::Value>>,
 }
@@ -50,6 +54,8 @@ impl RegisterRequestModel {
             organization_user_id: None,
             kdf: None,
             kdf_iterations: None,
+            kdf_memory: None,
+            kdf_parallelism: None,
             reference_data: None,
         }
     }

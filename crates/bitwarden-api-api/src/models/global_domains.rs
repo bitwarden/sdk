@@ -11,7 +11,7 @@
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct GlobalDomains {
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-    pub _type: Option<i32>,
+    pub r#type: Option<crate::models::GlobalEquivalentDomainsType>,
     #[serde(rename = "domains", skip_serializing_if = "Option::is_none")]
     pub domains: Option<Vec<String>>,
     #[serde(rename = "excluded", skip_serializing_if = "Option::is_none")]
@@ -21,7 +21,7 @@ pub struct GlobalDomains {
 impl GlobalDomains {
     pub fn new() -> GlobalDomains {
         GlobalDomains {
-            _type: None,
+            r#type: None,
             domains: None,
             excluded: None,
         }

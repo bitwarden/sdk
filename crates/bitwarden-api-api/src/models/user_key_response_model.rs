@@ -13,7 +13,7 @@ pub struct UserKeyResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
     #[serde(rename = "userId", skip_serializing_if = "Option::is_none")]
-    pub user_id: Option<String>,
+    pub user_id: Option<uuid::Uuid>,
     #[serde(rename = "publicKey", skip_serializing_if = "Option::is_none")]
     pub public_key: Option<String>,
 }

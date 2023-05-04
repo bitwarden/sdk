@@ -212,13 +212,13 @@ pub async fn organizations_org_id_policies_token_get(
 pub async fn organizations_org_id_policies_type_get(
     configuration: &configuration::Configuration,
     org_id: &str,
-    _type: i32,
+    r#type: i32,
 ) -> Result<crate::models::PolicyResponseModel, Error<OrganizationsOrgIdPoliciesTypeGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
 
-    let local_var_uri_str = format!("{}/organizations/{orgId}/policies/{type}", local_var_configuration.base_path, orgId=crate::apis::urlencode(org_id.to_string()), type=_type.to_string());
+    let local_var_uri_str = format!("{}/organizations/{orgId}/policies/{type}", local_var_configuration.base_path, orgId=crate::apis::urlencode(org_id.to_string()), type=r#type.to_string());
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
 
@@ -253,14 +253,14 @@ pub async fn organizations_org_id_policies_type_get(
 pub async fn organizations_org_id_policies_type_put(
     configuration: &configuration::Configuration,
     org_id: &str,
-    _type: i32,
+    r#type: i32,
     policy_request_model: Option<crate::models::PolicyRequestModel>,
 ) -> Result<crate::models::PolicyResponseModel, Error<OrganizationsOrgIdPoliciesTypePutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
 
-    let local_var_uri_str = format!("{}/organizations/{orgId}/policies/{type}", local_var_configuration.base_path, orgId=crate::apis::urlencode(org_id.to_string()), type=_type.to_string());
+    let local_var_uri_str = format!("{}/organizations/{orgId}/policies/{type}", local_var_configuration.base_path, orgId=crate::apis::urlencode(org_id.to_string()), type=r#type.to_string());
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::PUT, local_var_uri_str.as_str());
 

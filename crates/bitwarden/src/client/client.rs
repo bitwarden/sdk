@@ -2,6 +2,7 @@ use std::time::{Duration, Instant};
 
 use log::debug;
 use reqwest::header::{self};
+use uuid::Uuid;
 
 use crate::{
     client::{
@@ -48,9 +49,9 @@ pub(crate) enum LoginMethod {
         client_secret: String,
     },
     AccessToken {
-        service_account_id: String,
+        service_account_id: Uuid,
         client_secret: String,
-        organization_id: String,
+        organization_id: Uuid,
     },
 }
 
@@ -160,11 +161,11 @@ impl Client {
         &self.auth_settings
     }
 
-    pub fn get_access_token_organization(&self) -> Option<String> {
+    pub fn get_access_token_organization(&self) -> Option<Uuid> {
         match &self.login_method {
             Some(LoginMethod::AccessToken {
                 organization_id, ..
-            }) => Some(organization_id.clone()),
+            }) => Some(*organization_id),
             _ => None,
         }
     }
@@ -231,7 +232,7 @@ impl Client {
 
     pub(crate) fn initialize_org_crypto(
         &mut self,
-        org_keys: Vec<(String, CipherString)>,
+        org_keys: Vec<(Uuid, CipherString)>,
     ) -> Result<&EncryptionSettings> {
         let enc = self
             .encryption_settings
@@ -325,7 +326,10 @@ mod tests {
             .unwrap();
         assert!(res.authenticated);
         let organization_id = client.get_access_token_organization().unwrap();
-        assert_eq!(organization_id, "f4e44a7f-1190-432a-9d4a-af96013127cb");
+        assert_eq!(
+            organization_id.to_string(),
+            "f4e44a7f-1190-432a-9d4a-af96013127cb"
+        );
 
         // Test that we can retrieve the list of secrets correctly
         let mut res = client

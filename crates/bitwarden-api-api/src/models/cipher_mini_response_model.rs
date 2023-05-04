@@ -13,11 +13,11 @@ pub struct CipherMiniResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
     #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
+    pub id: Option<uuid::Uuid>,
     #[serde(rename = "organizationId", skip_serializing_if = "Option::is_none")]
-    pub organization_id: Option<String>,
+    pub organization_id: Option<uuid::Uuid>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-    pub _type: Option<crate::models::CipherType>,
+    pub r#type: Option<crate::models::CipherType>,
     #[serde(rename = "data", skip_serializing_if = "Option::is_none")]
     pub data: Option<serde_json::Value>,
     #[serde(rename = "name", skip_serializing_if = "Option::is_none")]
@@ -59,7 +59,7 @@ impl CipherMiniResponseModel {
             object: None,
             id: None,
             organization_id: None,
-            _type: None,
+            r#type: None,
             data: None,
             name: None,
             notes: None,

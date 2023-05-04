@@ -14,25 +14,25 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum CipherType {
-    _1 = 1,
-    _2 = 2,
-    _3 = 3,
-    _4 = 4,
+    Variant1 = 1,
+    Variant2 = 2,
+    Variant3 = 3,
+    Variant4 = 4,
 }
 
 impl ToString for CipherType {
     fn to_string(&self) -> String {
         match self {
-            Self::_1 => String::from("1"),
-            Self::_2 => String::from("2"),
-            Self::_3 => String::from("3"),
-            Self::_4 => String::from("4"),
+            Self::Variant1 => String::from("1"),
+            Self::Variant2 => String::from("2"),
+            Self::Variant3 => String::from("3"),
+            Self::Variant4 => String::from("4"),
         }
     }
 }
 
 impl Default for CipherType {
     fn default() -> CipherType {
-        Self::_1
+        Self::Variant1
     }
 }

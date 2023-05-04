@@ -25,6 +25,11 @@ pub struct TwoFactorRecoveryRequestModel {
     pub email: String,
     #[serde(rename = "authRequestId", skip_serializing_if = "Option::is_none")]
     pub auth_request_id: Option<String>,
+    #[serde(
+        rename = "ssoEmail2FaSessionToken",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub sso_email2_fa_session_token: Option<String>,
     #[serde(rename = "recoveryCode")]
     pub recovery_code: String,
 }
@@ -38,6 +43,7 @@ impl TwoFactorRecoveryRequestModel {
             secret: None,
             email,
             auth_request_id: None,
+            sso_email2_fa_session_token: None,
             recovery_code,
         }
     }

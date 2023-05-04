@@ -13,11 +13,11 @@ pub struct OrganizationUserDetailsResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
     #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
+    pub id: Option<uuid::Uuid>,
     #[serde(rename = "userId", skip_serializing_if = "Option::is_none")]
-    pub user_id: Option<String>,
+    pub user_id: Option<uuid::Uuid>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-    pub _type: Option<crate::models::OrganizationUserType>,
+    pub r#type: Option<crate::models::OrganizationUserType>,
     #[serde(rename = "status", skip_serializing_if = "Option::is_none")]
     pub status: Option<crate::models::OrganizationUserStatusType>,
     #[serde(rename = "accessAll", skip_serializing_if = "Option::is_none")]
@@ -41,7 +41,7 @@ pub struct OrganizationUserDetailsResponseModel {
     #[serde(rename = "collections", skip_serializing_if = "Option::is_none")]
     pub collections: Option<Vec<crate::models::SelectionReadOnlyResponseModel>>,
     #[serde(rename = "groups", skip_serializing_if = "Option::is_none")]
-    pub groups: Option<Vec<String>>,
+    pub groups: Option<Vec<uuid::Uuid>>,
 }
 
 impl OrganizationUserDetailsResponseModel {
@@ -50,7 +50,7 @@ impl OrganizationUserDetailsResponseModel {
             object: None,
             id: None,
             user_id: None,
-            _type: None,
+            r#type: None,
             status: None,
             access_all: None,
             external_id: None,

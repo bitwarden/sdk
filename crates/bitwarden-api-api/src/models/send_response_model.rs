@@ -13,11 +13,11 @@ pub struct SendResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
     #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
+    pub id: Option<uuid::Uuid>,
     #[serde(rename = "accessId", skip_serializing_if = "Option::is_none")]
     pub access_id: Option<String>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-    pub _type: Option<crate::models::SendType>,
+    pub r#type: Option<crate::models::SendType>,
     #[serde(rename = "name", skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(rename = "notes", skip_serializing_if = "Option::is_none")]
@@ -52,7 +52,7 @@ impl SendResponseModel {
             object: None,
             id: None,
             access_id: None,
-            _type: None,
+            r#type: None,
             name: None,
             notes: None,
             file: None,

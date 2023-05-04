@@ -13,17 +13,19 @@ pub struct ProjectResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
     #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
+    pub id: Option<uuid::Uuid>,
     #[serde(rename = "organizationId", skip_serializing_if = "Option::is_none")]
-    pub organization_id: Option<String>,
+    pub organization_id: Option<uuid::Uuid>,
     #[serde(rename = "name", skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(rename = "creationDate", skip_serializing_if = "Option::is_none")]
     pub creation_date: Option<String>,
     #[serde(rename = "revisionDate", skip_serializing_if = "Option::is_none")]
     pub revision_date: Option<String>,
-    #[serde(rename = "secrets", skip_serializing_if = "Option::is_none")]
-    pub secrets: Option<Vec<String>>,
+    #[serde(rename = "read", skip_serializing_if = "Option::is_none")]
+    pub read: Option<bool>,
+    #[serde(rename = "write", skip_serializing_if = "Option::is_none")]
+    pub write: Option<bool>,
 }
 
 impl ProjectResponseModel {
@@ -35,7 +37,8 @@ impl ProjectResponseModel {
             name: None,
             creation_date: None,
             revision_date: None,
-            secrets: None,
+            read: None,
+            write: None,
         }
     }
 }

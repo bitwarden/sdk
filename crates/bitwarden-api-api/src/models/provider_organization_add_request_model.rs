@@ -11,13 +11,13 @@
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct ProviderOrganizationAddRequestModel {
     #[serde(rename = "organizationId")]
-    pub organization_id: String,
+    pub organization_id: uuid::Uuid,
     #[serde(rename = "key")]
     pub key: String,
 }
 
 impl ProviderOrganizationAddRequestModel {
-    pub fn new(organization_id: String, key: String) -> ProviderOrganizationAddRequestModel {
+    pub fn new(organization_id: uuid::Uuid, key: String) -> ProviderOrganizationAddRequestModel {
         ProviderOrganizationAddRequestModel {
             organization_id,
             key,

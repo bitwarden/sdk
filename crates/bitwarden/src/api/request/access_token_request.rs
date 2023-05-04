@@ -1,5 +1,6 @@
 use log::debug;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::{api::response::IdentityTokenResponse, client::ApiConfigurations, error::Result};
 
@@ -12,7 +13,7 @@ pub struct AccessTokenRequest {
 }
 
 impl AccessTokenRequest {
-    pub fn new(service_account_id: &String, client_secret: &String) -> Self {
+    pub fn new(service_account_id: Uuid, client_secret: &String) -> Self {
         let obj = Self {
             scope: "api.secrets".to_string(),
             client_id: service_account_id.to_string(),

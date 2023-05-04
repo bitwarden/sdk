@@ -13,7 +13,7 @@ pub struct GroupProjectAccessPolicyResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
     #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
+    pub id: Option<uuid::Uuid>,
     #[serde(rename = "read", skip_serializing_if = "Option::is_none")]
     pub read: Option<bool>,
     #[serde(rename = "write", skip_serializing_if = "Option::is_none")]
@@ -23,11 +23,13 @@ pub struct GroupProjectAccessPolicyResponseModel {
     #[serde(rename = "revisionDate", skip_serializing_if = "Option::is_none")]
     pub revision_date: Option<String>,
     #[serde(rename = "groupId", skip_serializing_if = "Option::is_none")]
-    pub group_id: Option<String>,
+    pub group_id: Option<uuid::Uuid>,
     #[serde(rename = "groupName", skip_serializing_if = "Option::is_none")]
     pub group_name: Option<String>,
+    #[serde(rename = "currentUserInGroup", skip_serializing_if = "Option::is_none")]
+    pub current_user_in_group: Option<bool>,
     #[serde(rename = "grantedProjectId", skip_serializing_if = "Option::is_none")]
-    pub granted_project_id: Option<String>,
+    pub granted_project_id: Option<uuid::Uuid>,
 }
 
 impl GroupProjectAccessPolicyResponseModel {
@@ -41,6 +43,7 @@ impl GroupProjectAccessPolicyResponseModel {
             revision_date: None,
             group_id: None,
             group_name: None,
+            current_user_in_group: None,
             granted_project_id: None,
         }
     }

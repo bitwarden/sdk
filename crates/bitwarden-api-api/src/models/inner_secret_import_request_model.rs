@@ -11,7 +11,7 @@
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct InnerSecretImportRequestModel {
     #[serde(rename = "id")]
-    pub id: String,
+    pub id: uuid::Uuid,
     #[serde(rename = "key")]
     pub key: String,
     #[serde(rename = "value")]
@@ -19,16 +19,16 @@ pub struct InnerSecretImportRequestModel {
     #[serde(rename = "note")]
     pub note: String,
     #[serde(rename = "projectIds")]
-    pub project_ids: Vec<String>,
+    pub project_ids: Vec<uuid::Uuid>,
 }
 
 impl InnerSecretImportRequestModel {
     pub fn new(
-        id: String,
+        id: uuid::Uuid,
         key: String,
         value: String,
         note: String,
-        project_ids: Vec<String>,
+        project_ids: Vec<uuid::Uuid>,
     ) -> InnerSecretImportRequestModel {
         InnerSecretImportRequestModel {
             id,

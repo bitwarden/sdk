@@ -22,7 +22,7 @@ pub enum OrganizationsOrganizationIdExportGetError {
 
 pub async fn organizations_organization_id_export_get(
     configuration: &configuration::Configuration,
-    organization_id: &str,
+    organization_id: uuid::Uuid,
 ) -> Result<(), Error<OrganizationsOrganizationIdExportGetError>> {
     let local_var_configuration = configuration;
 

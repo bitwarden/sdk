@@ -13,7 +13,7 @@ pub struct PlanResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-    pub _type: Option<crate::models::PlanType>,
+    pub r#type: Option<crate::models::PlanType>,
     #[serde(rename = "product", skip_serializing_if = "Option::is_none")]
     pub product: Option<crate::models::ProductType>,
     #[serde(rename = "name", skip_serializing_if = "Option::is_none")]
@@ -131,7 +131,7 @@ impl PlanResponseModel {
     pub fn new() -> PlanResponseModel {
         PlanResponseModel {
             object: None,
-            _type: None,
+            r#type: None,
             product: None,
             name: None,
             is_annual: None,

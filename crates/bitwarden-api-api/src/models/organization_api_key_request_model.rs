@@ -22,7 +22,7 @@ pub struct OrganizationApiKeyRequestModel {
     #[serde(rename = "secret", skip_serializing_if = "Option::is_none")]
     pub secret: Option<String>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-    pub _type: Option<crate::models::OrganizationApiKeyType>,
+    pub r#type: Option<crate::models::OrganizationApiKeyType>,
 }
 
 impl OrganizationApiKeyRequestModel {
@@ -32,7 +32,7 @@ impl OrganizationApiKeyRequestModel {
             otp: None,
             auth_request_access_code: None,
             secret: None,
-            _type: None,
+            r#type: None,
         }
     }
 }

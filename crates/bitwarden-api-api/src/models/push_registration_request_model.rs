@@ -17,7 +17,7 @@ pub struct PushRegistrationRequestModel {
     #[serde(rename = "userId")]
     pub user_id: String,
     #[serde(rename = "type")]
-    pub _type: crate::models::DeviceType,
+    pub r#type: crate::models::DeviceType,
     #[serde(rename = "identifier")]
     pub identifier: String,
 }
@@ -27,14 +27,14 @@ impl PushRegistrationRequestModel {
         device_id: String,
         push_token: String,
         user_id: String,
-        _type: crate::models::DeviceType,
+        r#type: crate::models::DeviceType,
         identifier: String,
     ) -> PushRegistrationRequestModel {
         PushRegistrationRequestModel {
             device_id,
             push_token,
             user_id,
-            _type,
+            r#type,
             identifier,
         }
     }

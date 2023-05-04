@@ -15,7 +15,7 @@ pub struct TwoFactorProviderResponseModel {
     #[serde(rename = "enabled", skip_serializing_if = "Option::is_none")]
     pub enabled: Option<bool>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-    pub _type: Option<crate::models::TwoFactorProviderType>,
+    pub r#type: Option<crate::models::TwoFactorProviderType>,
 }
 
 impl TwoFactorProviderResponseModel {
@@ -23,7 +23,7 @@ impl TwoFactorProviderResponseModel {
         TwoFactorProviderResponseModel {
             object: None,
             enabled: None,
-            _type: None,
+            r#type: None,
         }
     }
 }

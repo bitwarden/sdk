@@ -13,13 +13,13 @@ pub struct OrganizationSponsorshipRedeemRequestModel {
     #[serde(rename = "planSponsorshipType")]
     pub plan_sponsorship_type: crate::models::PlanSponsorshipType,
     #[serde(rename = "sponsoredOrganizationId")]
-    pub sponsored_organization_id: String,
+    pub sponsored_organization_id: uuid::Uuid,
 }
 
 impl OrganizationSponsorshipRedeemRequestModel {
     pub fn new(
         plan_sponsorship_type: crate::models::PlanSponsorshipType,
-        sponsored_organization_id: String,
+        sponsored_organization_id: uuid::Uuid,
     ) -> OrganizationSponsorshipRedeemRequestModel {
         OrganizationSponsorshipRedeemRequestModel {
             plan_sponsorship_type,

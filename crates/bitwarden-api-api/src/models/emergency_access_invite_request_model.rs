@@ -13,7 +13,7 @@ pub struct EmergencyAccessInviteRequestModel {
     #[serde(rename = "email")]
     pub email: String,
     #[serde(rename = "type")]
-    pub _type: crate::models::EmergencyAccessType,
+    pub r#type: crate::models::EmergencyAccessType,
     #[serde(rename = "waitTimeDays")]
     pub wait_time_days: i32,
 }
@@ -21,12 +21,12 @@ pub struct EmergencyAccessInviteRequestModel {
 impl EmergencyAccessInviteRequestModel {
     pub fn new(
         email: String,
-        _type: crate::models::EmergencyAccessType,
+        r#type: crate::models::EmergencyAccessType,
         wait_time_days: i32,
     ) -> EmergencyAccessInviteRequestModel {
         EmergencyAccessInviteRequestModel {
             email,
-            _type,
+            r#type,
             wait_time_days,
         }
     }

@@ -13,9 +13,9 @@ pub struct OrganizationDomainResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
     #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
+    pub id: Option<uuid::Uuid>,
     #[serde(rename = "organizationId", skip_serializing_if = "Option::is_none")]
-    pub organization_id: Option<String>,
+    pub organization_id: Option<uuid::Uuid>,
     #[serde(rename = "txt", skip_serializing_if = "Option::is_none")]
     pub txt: Option<String>,
     #[serde(rename = "domainName", skip_serializing_if = "Option::is_none")]

@@ -11,11 +11,11 @@
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct CipherSecureNoteModel {
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-    pub _type: Option<crate::models::SecureNoteType>,
+    pub r#type: Option<crate::models::SecureNoteType>,
 }
 
 impl CipherSecureNoteModel {
     pub fn new() -> CipherSecureNoteModel {
-        CipherSecureNoteModel { _type: None }
+        CipherSecureNoteModel { r#type: None }
     }
 }

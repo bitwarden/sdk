@@ -23,6 +23,7 @@ mod render;
 
 use config::ProfileKey;
 use render::{serialize_response, Color, Output};
+use uuid::Uuid;
 
 #[derive(Parser, Debug)]
 #[command(name = "Bitwarden Secrets CLI", version, about = "Bitwarden Secrets CLI", long_about = None)]
@@ -80,13 +81,13 @@ enum Commands {
 #[derive(Subcommand, Debug)]
 enum ListCommand {
     Projects,
-    Secrets { project_id: Option<String> },
+    Secrets { project_id: Option<Uuid> },
 }
 
 #[derive(Subcommand, Debug)]
 enum GetCommand {
-    Project { project_id: String },
-    Secret { secret_id: String },
+    Project { project_id: Uuid },
+    Secret { secret_id: Uuid },
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -121,7 +122,9 @@ async fn process_commands() -> Result<()> {
         let profile = if let Some(profile) = cli.profile {
             profile
         } else if let Some(access_token) = cli.access_token {
-            AccessToken::from_str(&access_token)?.service_account_id
+            AccessToken::from_str(&access_token)?
+                .service_account_id
+                .to_string()
         } else {
             String::from("default")
         };
@@ -267,7 +270,9 @@ fn get_config_profile(
         let profile_key = if let Some(profile) = profile {
             profile.to_owned()
         } else {
-            AccessToken::from_str(access_token)?.service_account_id
+            AccessToken::from_str(access_token)?
+                .service_account_id
+                .to_string()
         };
 
         let config = config::load_config(config_file.as_deref(), config_file.is_some())?;

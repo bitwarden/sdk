@@ -14,23 +14,23 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum OrganizationApiKeyType {
-    _0 = 0,
-    _1 = 1,
-    _2 = 2,
+    Variant0 = 0,
+    Variant1 = 1,
+    Variant2 = 2,
 }
 
 impl ToString for OrganizationApiKeyType {
     fn to_string(&self) -> String {
         match self {
-            Self::_0 => String::from("0"),
-            Self::_1 => String::from("1"),
-            Self::_2 => String::from("2"),
+            Self::Variant0 => String::from("0"),
+            Self::Variant1 => String::from("1"),
+            Self::Variant2 => String::from("2"),
         }
     }
 }
 
 impl Default for OrganizationApiKeyType {
     fn default() -> OrganizationApiKeyType {
-        Self::_0
+        Self::Variant0
     }
 }

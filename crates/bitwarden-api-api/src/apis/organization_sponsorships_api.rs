@@ -137,7 +137,7 @@ pub async fn organization_sponsorship_redeem_post(
 
 pub async fn organization_sponsorship_sponsored_sponsored_org_id_delete(
     configuration: &configuration::Configuration,
-    sponsored_org_id: &str,
+    sponsored_org_id: uuid::Uuid,
 ) -> Result<(), Error<OrganizationSponsorshipSponsoredSponsoredOrgIdDeleteError>> {
     let local_var_configuration = configuration;
 
@@ -181,7 +181,7 @@ pub async fn organization_sponsorship_sponsored_sponsored_org_id_delete(
 
 pub async fn organization_sponsorship_sponsored_sponsored_org_id_remove_post(
     configuration: &configuration::Configuration,
-    sponsored_org_id: &str,
+    sponsored_org_id: uuid::Uuid,
 ) -> Result<(), Error<OrganizationSponsorshipSponsoredSponsoredOrgIdRemovePostError>> {
     let local_var_configuration = configuration;
 
@@ -226,7 +226,7 @@ pub async fn organization_sponsorship_sponsored_sponsored_org_id_remove_post(
 
 pub async fn organization_sponsorship_sponsoring_org_id_families_for_enterprise_post(
     configuration: &configuration::Configuration,
-    sponsoring_org_id: &str,
+    sponsoring_org_id: uuid::Uuid,
     organization_sponsorship_create_request_model: Option<
         crate::models::OrganizationSponsorshipCreateRequestModel,
     >,
@@ -276,7 +276,7 @@ pub async fn organization_sponsorship_sponsoring_org_id_families_for_enterprise_
 
 pub async fn organization_sponsorship_sponsoring_org_id_families_for_enterprise_resend_post(
     configuration: &configuration::Configuration,
-    sponsoring_org_id: &str,
+    sponsoring_org_id: uuid::Uuid,
 ) -> Result<(), Error<OrganizationSponsorshipSponsoringOrgIdFamiliesForEnterpriseResendPostError>> {
     let local_var_configuration = configuration;
 
@@ -321,7 +321,7 @@ pub async fn organization_sponsorship_sponsoring_org_id_families_for_enterprise_
 
 pub async fn organization_sponsorship_sponsoring_org_id_sync_status_get(
     configuration: &configuration::Configuration,
-    sponsoring_org_id: &str,
+    sponsoring_org_id: uuid::Uuid,
 ) -> Result<(), Error<OrganizationSponsorshipSponsoringOrgIdSyncStatusGetError>> {
     let local_var_configuration = configuration;
 
@@ -365,7 +365,7 @@ pub async fn organization_sponsorship_sponsoring_org_id_sync_status_get(
 
 pub async fn organization_sponsorship_sponsoring_organization_id_delete(
     configuration: &configuration::Configuration,
-    sponsoring_organization_id: &str,
+    sponsoring_organization_id: uuid::Uuid,
 ) -> Result<(), Error<OrganizationSponsorshipSponsoringOrganizationIdDeleteError>> {
     let local_var_configuration = configuration;
 
@@ -409,7 +409,7 @@ pub async fn organization_sponsorship_sponsoring_organization_id_delete(
 
 pub async fn organization_sponsorship_sponsoring_organization_id_delete_post(
     configuration: &configuration::Configuration,
-    sponsoring_organization_id: &str,
+    sponsoring_organization_id: uuid::Uuid,
 ) -> Result<(), Error<OrganizationSponsorshipSponsoringOrganizationIdDeletePostError>> {
     let local_var_configuration = configuration;
 

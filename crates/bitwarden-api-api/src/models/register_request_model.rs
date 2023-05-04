@@ -27,7 +27,7 @@ pub struct RegisterRequestModel {
     #[serde(rename = "token", skip_serializing_if = "Option::is_none")]
     pub token: Option<String>,
     #[serde(rename = "organizationUserId", skip_serializing_if = "Option::is_none")]
-    pub organization_user_id: Option<String>,
+    pub organization_user_id: Option<uuid::Uuid>,
     #[serde(rename = "kdf", skip_serializing_if = "Option::is_none")]
     pub kdf: Option<crate::models::KdfType>,
     #[serde(rename = "kdfIterations", skip_serializing_if = "Option::is_none")]

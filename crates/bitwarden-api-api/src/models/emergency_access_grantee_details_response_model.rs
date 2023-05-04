@@ -13,15 +13,15 @@ pub struct EmergencyAccessGranteeDetailsResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
     #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
+    pub id: Option<uuid::Uuid>,
     #[serde(rename = "status", skip_serializing_if = "Option::is_none")]
     pub status: Option<crate::models::EmergencyAccessStatusType>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-    pub _type: Option<crate::models::EmergencyAccessType>,
+    pub r#type: Option<crate::models::EmergencyAccessType>,
     #[serde(rename = "waitTimeDays", skip_serializing_if = "Option::is_none")]
     pub wait_time_days: Option<i32>,
     #[serde(rename = "granteeId", skip_serializing_if = "Option::is_none")]
-    pub grantee_id: Option<String>,
+    pub grantee_id: Option<uuid::Uuid>,
     #[serde(rename = "name", skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(rename = "email", skip_serializing_if = "Option::is_none")]
@@ -36,7 +36,7 @@ impl EmergencyAccessGranteeDetailsResponseModel {
             object: None,
             id: None,
             status: None,
-            _type: None,
+            r#type: None,
             wait_time_days: None,
             grantee_id: None,
             name: None,

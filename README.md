@@ -121,4 +121,5 @@ wasm-bindgen --target nodejs --out-dir languages/js/wasm/node ./target/wasm32-un
 
 # Optimize size
 wasm-opt -Os ./languages/js/wasm/bitwarden_wasm_bg.wasm -o ./languages/js/wasm/bitwarden_wasm_bg.wasm
+wasm-opt -Os ./languages/js/wasm/node/bitwarden_wasm_bg.wasm -o ./languages/js/wasm/node/bitwarden_wasm_bg.wasm
 ```

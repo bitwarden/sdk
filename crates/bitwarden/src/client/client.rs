@@ -1,7 +1,8 @@
-use std::time::{Duration, Instant};
-
+use chrono::Utc;
 use log::debug;
 use reqwest::header::{self};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
@@ -13,14 +14,22 @@ use crate::{
     },
     commands::{
         access_token_login, api_key_login, generate_fingerprint, get_user_api_key, password_login,
-        renew_token, sync,
+        renew_token, session_login, sync,
     },
     crypto::CipherString,
     error::{Error, Result},
     sdk::{
         auth::{
-            request::{AccessTokenLoginRequest, ApiKeyLoginRequest, PasswordLoginRequest},
+            request::{
+                AccessTokenLoginRequest, ApiKeyLoginRequest, PasswordLoginRequest,
+                SessionLoginRequest,
+            },
             response::{ApiKeyLoginResponse, PasswordLoginResponse},
+        },
+        model::{
+            domain::{AccountData, GlobalData},
+            state::State,
+            view::AccountDataView,
         },
         request::{
             client_settings::{ClientSettings, DeviceType},
@@ -28,7 +37,7 @@ use crate::{
             secret_verification_request::SecretVerificationRequest,
             sync_request::SyncRequest,
         },
-        response::{sync_response::SyncResponse, user_api_key_response::UserApiKeyResponse},
+        response::user_api_key_response::UserApiKeyResponse,
     },
 };
 
@@ -39,8 +48,8 @@ pub(crate) struct ApiConfigurations {
     pub device_type: DeviceType,
 }
 
-#[derive(Debug, Clone)]
-pub(crate) enum LoginMethod {
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+pub enum LoginMethod {
     Username {
         client_id: String,
     },
@@ -57,19 +66,14 @@ pub(crate) enum LoginMethod {
 
 #[derive(Debug)]
 pub struct Client {
-    token: Option<String>,
-    pub(crate) refresh_token: Option<String>,
-    pub(crate) token_expires_in: Option<Instant>,
-    pub(crate) login_method: Option<LoginMethod>,
-
     /// Use Client::get_api_configurations() to access this.
     /// It should only be used directly in renew_token
     #[doc(hidden)]
     pub(crate) __api_configurations: ApiConfigurations,
 
-    auth_settings: Option<AuthSettings>,
-
     encryption_settings: Option<EncryptionSettings>,
+
+    pub(crate) state: State,
 }
 
 impl Client {
@@ -82,6 +86,8 @@ impl Client {
             .default_headers(headers)
             .build()
             .unwrap();
+
+        let state = State::load_state(&settings);
 
         let identity = bitwarden_api_identity::apis::configuration::Configuration {
             base_path: settings.identity_url,
@@ -104,17 +110,13 @@ impl Client {
         };
 
         Self {
-            token: None,
-            refresh_token: None,
-            token_expires_in: None,
-            login_method: None,
             __api_configurations: ApiConfigurations {
                 identity,
                 api,
                 device_type: settings.device_type,
             },
-            auth_settings: None,
             encryption_settings: None,
+            state,
         }
     }
 
@@ -146,7 +148,11 @@ impl Client {
         access_token_login(self, input).await
     }
 
-    pub async fn sync(&mut self, input: &SyncRequest) -> Result<SyncResponse> {
+    pub async fn session_login(&mut self, input: &SessionLoginRequest) -> Result<()> {
+        session_login(self, input).await
+    }
+
+    pub async fn sync(&mut self, input: &SyncRequest) -> Result<()> {
         sync(self, input).await
     }
 
@@ -158,14 +164,26 @@ impl Client {
     }
 
     pub(crate) fn get_auth_settings(&self) -> &Option<AuthSettings> {
-        &self.auth_settings
+        &self.state.account.get().auth.kdf
+    }
+
+    pub fn get_account_state(&mut self) -> AccountDataView {
+        crate::sdk::model::view::convert_domain_to_view(
+            self.state.account.get().to_owned(),
+            self.encryption_settings.as_ref().unwrap(),
+        )
+        .unwrap()
+    }
+
+    pub fn get_global_state(&mut self) -> GlobalData {
+        self.state.global.get().to_owned()
     }
 
     pub fn get_access_token_organization(&self) -> Option<Uuid> {
-        match &self.login_method {
+        match self.state.account.get().auth.login_method {
             Some(LoginMethod::AccessToken {
                 organization_id, ..
-            }) => Some(*organization_id),
+            }) => Some(organization_id),
             _ => None,
         }
     }
@@ -174,9 +192,12 @@ impl Client {
         &self.encryption_settings
     }
 
-    pub(crate) fn set_auth_settings(&mut self, auth_settings: AuthSettings) {
+    pub(crate) fn set_auth_settings(&mut self, auth_settings: AuthSettings) -> Result<()> {
         debug! {"setting auth settings: {:#?}", auth_settings}
-        self.auth_settings = Some(auth_settings);
+
+        let mut state = self.state.account.get().clone();
+        state.auth.kdf = Some(auth_settings);
+        self.state.account.save(state)
     }
 
     pub(crate) fn set_tokens(
@@ -185,13 +206,18 @@ impl Client {
         refresh_token: Option<String>,
         expires_in: u64,
         login_method: LoginMethod,
-    ) {
-        self.token = Some(token.clone());
-        self.refresh_token = refresh_token;
-        self.token_expires_in = Some(Instant::now() + Duration::from_secs(expires_in));
-        self.login_method = Some(login_method);
+    ) -> Result<()> {
+        let mut state = self.state.account.get().to_owned();
+        state.auth.access_token = token.clone();
+        state.auth.refresh_token = refresh_token;
+        state.auth.token_expiration =
+            Some(Utc::now() + chrono::Duration::seconds(expires_in as i64));
+        state.auth.login_method = Some(login_method);
+        self.state.account.save(state)?;
+
         self.__api_configurations.identity.oauth_access_token = Some(token.clone());
         self.__api_configurations.api.oauth_access_token = Some(token);
+        Ok(())
     }
 
     pub async fn renew_token(&mut self) -> Result<()> {
@@ -199,7 +225,7 @@ impl Client {
     }
 
     pub fn is_authed(&self) -> bool {
-        self.token.is_some() || self.auth_settings.is_some()
+        self.get_auth_settings().is_some()
     }
 
     pub(crate) fn initialize_user_crypto(
@@ -208,7 +234,7 @@ impl Client {
         user_key: CipherString,
         private_key: CipherString,
     ) -> Result<&EncryptionSettings> {
-        let auth = match &self.auth_settings {
+        let auth = match &self.get_auth_settings() {
             Some(a) => a,
             None => return Err(Error::NotAuthenticated),
         };
@@ -230,16 +256,20 @@ impl Client {
         self.encryption_settings.as_ref().unwrap()
     }
 
-    pub(crate) fn initialize_org_crypto(
-        &mut self,
-        org_keys: Vec<(Uuid, CipherString)>,
-    ) -> Result<&EncryptionSettings> {
+    pub(crate) fn initialize_org_crypto(&mut self) -> Result<&EncryptionSettings> {
         let enc = self
             .encryption_settings
             .as_mut()
             .ok_or(Error::VaultLocked)?;
 
-        enc.set_org_keys(org_keys)?;
+        let state = self.state.account.get();
+        enc.set_org_keys(
+            &state
+                .keys
+                .as_ref()
+                .ok_or(Error::VaultLocked)?
+                .organization_keys,
+        )?;
         Ok(self.encryption_settings.as_ref().unwrap())
     }
 

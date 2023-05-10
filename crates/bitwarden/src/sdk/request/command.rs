@@ -2,7 +2,9 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::sdk::{
-    auth::request::{AccessTokenLoginRequest, ApiKeyLoginRequest, PasswordLoginRequest},
+    auth::request::{
+        AccessTokenLoginRequest, ApiKeyLoginRequest, PasswordLoginRequest, SessionLoginRequest,
+    },
     request::{
         projects_request::{ProjectGetRequest, ProjectsListRequest},
         secret_verification_request::SecretVerificationRequest,
@@ -14,7 +16,7 @@ use crate::sdk::{
     },
 };
 
-use super::fingerprint_request::FingerprintRequest;
+use super::{empty_request::EmptyRequest, fingerprint_request::FingerprintRequest};
 
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -47,6 +49,9 @@ pub enum Command {
     ///
     AccessTokenLogin(AccessTokenLoginRequest),
 
+    /// Login with a previously saved session
+    SessionLogin(SessionLoginRequest),
+
     /// > Requires Authentication
     /// Get the API key of the currently authenticated user
     ///
@@ -59,6 +64,19 @@ pub enum Command {
     /// Returns: String
     ///
     Fingerprint(FingerprintRequest),
+
+    /// > Requires Authentication
+    /// Get the user's account data associated with this client
+    ///
+    /// Returns: [AccountData](crate::sdk::model::account_data::AccountData)
+    ///
+    GetAccountState(EmptyRequest),
+
+    /// Get the SDK global data
+    ///
+    /// Returns: [GlobalData](crate::sdk::model::account_data::GlobalData)
+    ///
+    GetGlobalState(EmptyRequest),
 
     /// > Requires Authentication
     /// Retrieve all user data, ciphers and organizations the user is a part of

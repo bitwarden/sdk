@@ -1,3 +1,20 @@
 [workspace]
 
 members = ["crates/*"]
+
+# Compile all dependencies on release mode even when building this crate on debug
+# The crypto crates are very slow on debug so this helps make the debug experience more performant
+[profile.dev.package."*"]
+opt-level = 3
+codegen-units = 1
+
+# Turn on a small amount of optimisation in Development mode.
+[profile.dev]
+opt-level = 1
+
+[profile.release]
+lto = true
+codegen-units = 1
+
+# If we want smaller binaries at the cost of a small performance hit
+# opt-level = "z"

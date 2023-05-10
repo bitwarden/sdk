@@ -1,5 +1,6 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 /// Login to Bitwarden with Api Key
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -20,4 +21,15 @@ pub struct ApiKeyLoginRequest {
 pub struct AccessTokenLoginRequest {
     /// Bitwarden service API access token
     pub access_token: String,
+}
+
+/// Login to Bitwarden using a saved session
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct SessionLoginRequest {
+    /// User's uuid
+    pub user_id: Uuid,
+
+    /// User's master password, used to unlock the vault
+    pub password: String,
 }

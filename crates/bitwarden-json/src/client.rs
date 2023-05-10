@@ -3,7 +3,7 @@ use bitwarden::sdk::request::{
     command::{Command, ProjectsCommand, SecretsCommand},
 };
 
-use crate::response::ResponseIntoString;
+use crate::response::{ok, ResponseIntoString};
 
 pub struct Client(bitwarden::Client);
 
@@ -41,10 +41,14 @@ impl Client {
         match cmd {
             Command::PasswordLogin(req) => self.0.password_login(&req).await.into_string(),
             Command::AccessTokenLogin(req) => self.0.access_token_login(&req).await.into_string(),
+            Command::SessionLogin(req) => self.0.session_login(&req).await.into_string(),
             Command::GetUserApiKey(req) => self.0.get_user_api_key(&req).await.into_string(),
             Command::ApiKeyLogin(req) => self.0.api_key_login(&req).await.into_string(),
             Command::Sync(req) => self.0.sync(&req).await.into_string(),
             Command::Fingerprint(req) => self.0.fingerprint(&req).into_string(),
+
+            Command::GetAccountState(_) => ok(self.0.get_account_state()).into_string(),
+            Command::GetGlobalState(_) => ok(self.0.get_global_state()).into_string(),
 
             Command::Secrets(cmd) => match cmd {
                 SecretsCommand::Get(req) => self.0.secrets().get(&req).await.into_string(),
@@ -63,8 +67,11 @@ impl Client {
 
     fn parse_settings(settings_input: Option<String>) -> Option<ClientSettings> {
         if let Some(input) = settings_input.as_ref() {
-            if let Ok(settings) = serde_json::from_str(input) {
-                return Some(settings);
+            match serde_json::from_str(input) {
+                Ok(settings) => return Some(settings),
+                Err(e) => {
+                    eprintln!("Error parsing Bitwarden client settings: {e:?}");
+                }
             }
         }
         None

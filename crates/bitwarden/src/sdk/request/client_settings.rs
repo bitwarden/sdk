@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 ///     api_url: "https://api.bitwarden.com".to_string(),
 ///     user_agent: "Bitwarden Rust-SDK".to_string(),
 ///     device_type: DeviceType::SDK,
+///     state_path: None,
 /// };
 /// let default = ClientSettings::default();
 /// assert_matches!(settings, default);
@@ -31,6 +32,9 @@ pub struct ClientSettings {
     pub user_agent: String,
     /// Device type to send to Bitwarden. Defaults to SDK
     pub device_type: DeviceType,
+    /// Path to the file that stores the SDK's internal state, when not set the state is kept in memory only
+    /// This option has no effect when compiling for WebAssembly, in that case LocalStorage is always used.
+    pub state_path: Option<String>,
 }
 
 #[cfg(debug_assertions)]
@@ -41,6 +45,7 @@ impl Default for ClientSettings {
             api_url: "https://localhost:8080/api".into(),
             user_agent: "Bitwarden Rust-SDK".into(),
             device_type: DeviceType::SDK,
+            state_path: None,
         }
     }
 }
@@ -53,6 +58,7 @@ impl Default for ClientSettings {
             api_url: "https://api.bitwarden.com".into(),
             user_agent: "Bitwarden Rust-SDK".into(),
             device_type: DeviceType::SDK,
+            state_path: None,
         }
     }
 }

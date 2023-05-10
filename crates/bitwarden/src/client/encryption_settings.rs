@@ -104,7 +104,7 @@ impl EncryptionSettings {
         let (key, mac_key) = crate::crypto::stretch_key_password(
             password.as_bytes(),
             auth.email.as_bytes(),
-            auth.kdf_iterations,
+            &auth.kdf,
         )
         .map_err(|_| CryptoError::KeyStretch)?;
 
@@ -142,12 +142,12 @@ impl EncryptionSettings {
 
     pub(crate) fn set_org_keys(
         &mut self,
-        org_enc_keys: Vec<(Uuid, CipherString)>,
+        org_enc_keys: &HashMap<Uuid, CipherString>,
     ) -> Result<&mut Self> {
         let private_key = self.private_key.as_ref().ok_or(Error::VaultLocked)?;
 
         // Decrypt the org keys with the private key
-        for (org_id, org_enc_key) in org_enc_keys {
+        for (&org_id, org_enc_key) in org_enc_keys {
             let data = match org_enc_key {
                 CipherString::Rsa2048_OaepSha1_B64 { data } => data,
                 _ => return Err(CryptoError::InvalidKey.into()),
@@ -180,15 +180,18 @@ impl EncryptionSettings {
         }
     }
 
-    pub fn decrypt(&self, cipher: &CipherString, org_id: Option<Uuid>) -> Result<Vec<u8>> {
+    pub fn decrypt_bytes(&self, cipher: &CipherString, org_id: Option<Uuid>) -> Result<Vec<u8>> {
         let key = self.get_key(org_id).ok_or(CryptoError::NoKeyForOrg)?;
         decrypt(cipher, key)
     }
 
-    pub fn decrypt_str(&self, cipher: &str, org_id: Option<Uuid>) -> Result<String> {
-        let cipher = CipherString::from_str(cipher)?;
-        let dec = self.decrypt(&cipher, org_id)?;
+    pub fn decrypt(&self, cipher: &CipherString, org_id: Option<Uuid>) -> Result<String> {
+        let dec = self.decrypt_bytes(&cipher, org_id)?;
         String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String.into())
+    }
+
+    pub fn decrypt_str(&self, cipher: &str, org_id: Option<Uuid>) -> Result<String> {
+        self.decrypt(&CipherString::from_str(cipher)?, org_id)
     }
 
     pub fn encrypt(&self, data: &[u8], org_id: Option<Uuid>) -> Result<CipherString> {

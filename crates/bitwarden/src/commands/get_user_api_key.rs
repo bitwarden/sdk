@@ -30,15 +30,10 @@ pub(crate) async fn get_user_api_key(
 }
 
 fn get_auth_settings(client: &Client) -> Result<&AuthSettings> {
-    if client.is_authed() {
-        let auth_settings = client
-            .get_auth_settings()
-            .as_ref()
-            .ok_or(Error::NotAuthenticated)?;
-        Ok(auth_settings)
-    } else {
-        Err(Error::NotAuthenticated)
-    }
+    Ok(client
+        .get_auth_settings()
+        .as_ref()
+        .ok_or(Error::NotAuthenticated)?)
 }
 
 fn get_secret_verification_request(

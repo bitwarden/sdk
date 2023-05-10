@@ -53,10 +53,10 @@ The first step is to generate the swagger documents from the server repository.
 
 ```bash
 # src/Api
-dotnet swagger tofile --output ../../api.json .\bin\Debug\net6.0\Api.dll internal
+dotnet swagger tofile --output ../../api.json ./bin/Debug/net6.0/Api.dll internal
 
 # src/Identity
-dotnet swagger tofile --output ../../identity.json .\bin\Debug\net6.0\Identity.dll v1
+ASPNETCORE_ENVIRONMENT="development" dotnet swagger tofile --output ../../identity.json ./bin/Debug/net6.0/Identity.dll v1
 ```
 
 ### OpenApi Generator
@@ -79,6 +79,9 @@ npx openapi-generator-cli generate `
     --package-name bitwarden-api-identity `
     -t ./support/openapi-template `
     --additional-properties=packageVersion=1.0.0
+
+npm run prettier
+cargo fmt
 ```
 
 OpenApi Generator works using templates, we have customized our templates to work better with our codebase.

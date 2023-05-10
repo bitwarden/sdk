@@ -40,6 +40,7 @@ async fn test() -> Result<()> {
         api_url: "https://api.bitwarden.com".to_string(),
         user_agent: "Bitwarden Rust-SDK".to_string(),
         device_type: DeviceType::SDK,
+        state_path: None,
     };
     let mut client = Client::new(Some(settings));
 

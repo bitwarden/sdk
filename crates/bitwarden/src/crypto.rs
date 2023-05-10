@@ -1,6 +1,6 @@
 //! Cryptographic primitives used in the SDK
 
-use std::{fmt::Display, num::NonZeroU32, str::FromStr};
+use std::{collections::HashMap, fmt::Display, hash::Hash, str::FromStr};
 
 use aes::cipher::{
     generic_array::GenericArray,
@@ -13,15 +13,18 @@ use num_bigint::BigUint;
 use num_traits::cast::ToPrimitive;
 use serde::{de::Visitor, Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use uuid::Uuid;
 
 pub use crate::client::encryption_settings::{decrypt, encrypt_aes256, SymmetricCryptoKey};
 use crate::{
+    client::{auth_settings::Kdf, encryption_settings::EncryptionSettings},
     error::{CSParseError, Error, Result},
     util::BASE64_ENGINE,
     wordlist::EFF_LONG_WORD_LIST,
 };
 
 #[allow(unused, non_camel_case_types)]
+#[derive(Clone)]
 pub enum CipherString {
     // 0
     AesCbc256_B64 {
@@ -64,6 +67,15 @@ pub enum CipherString {
 impl std::fmt::Debug for CipherString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("CipherString").finish()
+    }
+}
+
+impl schemars::JsonSchema for CipherString {
+    fn schema_name() -> String {
+        "CipherString".to_owned()
+    }
+    fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+        gen.subschema_for::<String>()
     }
 }
 
@@ -239,14 +251,20 @@ pub(crate) const PBKDF_SHA256_HMAC_OUT_SIZE: usize =
 pub(crate) fn stretch_key_password(
     secret: &[u8],
     salt: &[u8],
-    iterations: NonZeroU32,
+    kdf: &Kdf,
 ) -> Result<(GenericArray<u8, U32>, GenericArray<u8, U32>), hkdf::InvalidLength> {
-    let master_key = pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(
-        secret,
-        salt,
-        iterations.get(),
-    )
-    .unwrap();
+    let master_key = match kdf {
+        Kdf::PBKDF2 { iterations } => pbkdf2::pbkdf2_array::<
+            PbkdfSha256Hmac,
+            PBKDF_SHA256_HMAC_OUT_SIZE,
+        >(secret, salt, iterations.get())
+        .unwrap(),
+        Kdf::Argon2id {
+            iterations,
+            memory,
+            parallelism,
+        } => todo!("Argon2id not implemented"),
+    };
 
     let hkdf =
         hkdf::Hkdf::<sha2::Sha256>::from_prk(&master_key).map_err(|_| hkdf::InvalidLength)?;
@@ -324,11 +342,86 @@ fn hash_word(hash: [u8; 32]) -> Result<String> {
     Ok(phrase.join("-"))
 }
 
+pub trait Encryptable<Output> {
+    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Output>;
+}
+
+pub trait Decryptable<Output> {
+    fn decrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Output>;
+}
+
+impl Encryptable<CipherString> for String {
+    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<CipherString> {
+        enc.encrypt(self.as_bytes(), org_id)
+    }
+}
+
+impl Decryptable<String> for CipherString {
+    fn decrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<String> {
+        enc.decrypt(&self, org_id)
+    }
+}
+
+impl<T: Encryptable<Output>, Output> Encryptable<Option<Output>> for Option<T> {
+    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Option<Output>> {
+        self.map(|e| e.encrypt(enc, org_id)).transpose()
+    }
+}
+
+impl<T: Decryptable<Output>, Output> Decryptable<Option<Output>> for Option<T> {
+    fn decrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Option<Output>> {
+        self.map(|e| e.decrypt(enc, org_id)).transpose()
+    }
+}
+
+impl<T: Encryptable<Output>, Output> Encryptable<Vec<Output>> for Vec<T> {
+    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Vec<Output>> {
+        self.into_iter().map(|e| e.encrypt(enc, org_id)).collect()
+    }
+}
+
+impl<T: Decryptable<Output>, Output> Decryptable<Vec<Output>> for Vec<T> {
+    fn decrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Vec<Output>> {
+        self.into_iter().map(|e| e.decrypt(enc, org_id)).collect()
+    }
+}
+
+impl<T: Encryptable<Output>, Output, Id: Hash + Eq> Encryptable<HashMap<Id, Output>>
+    for HashMap<Id, T>
+{
+    fn encrypt(
+        self,
+        enc: &EncryptionSettings,
+        org_id: &Option<Uuid>,
+    ) -> Result<HashMap<Id, Output>> {
+        self.into_iter()
+            .map(|(id, e)| Ok((id, e.encrypt(enc, org_id)?)))
+            .collect::<Result<HashMap<_, _>>>()
+    }
+}
+
+impl<T: Decryptable<Output>, Output, Id: Hash + Eq> Decryptable<HashMap<Id, Output>>
+    for HashMap<Id, T>
+{
+    fn decrypt(
+        self,
+        enc: &EncryptionSettings,
+        org_id: &Option<Uuid>,
+    ) -> Result<HashMap<Id, Output>> {
+        self.into_iter()
+            .map(|(id, e)| Ok((id, e.decrypt(enc, org_id)?)))
+            .collect::<Result<HashMap<_, _>>>()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::num::NonZeroU32;
 
-    use crate::crypto::{stretch_key_password, CipherString};
+    use crate::{
+        client::auth_settings::Kdf,
+        crypto::{stretch_key_password, CipherString},
+    };
 
     use super::{fingerprint, stretch_key};
 
@@ -359,7 +452,9 @@ mod tests {
         let (key, mac) = stretch_key_password(
             &b"67t9b5g67$%Dh89n"[..],
             "test_key".as_bytes(),
-            NonZeroU32::new(10000).unwrap(),
+            &Kdf::PBKDF2 {
+                iterations: NonZeroU32::new(10000).unwrap(),
+            },
         )
         .unwrap();
 

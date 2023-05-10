@@ -21,8 +21,8 @@ pub(crate) async fn get_user_api_key(
     info!("Getting Api Key");
     debug!("{:?}", input);
 
-    let auth_settings = get_auth_settings(client)?;
-    let request = get_secret_verification_request(auth_settings, input);
+    let auth_settings = get_auth_settings(client).await?;
+    let request = get_secret_verification_request(&auth_settings, input);
 
     let config = client.get_api_configurations().await;
 
@@ -30,16 +30,11 @@ pub(crate) async fn get_user_api_key(
     UserApiKeyResponse::process_response(response)
 }
 
-fn get_auth_settings(client: &Client) -> Result<&AuthSettings> {
-    if client.is_authed() {
-        let auth_settings = client
-            .get_auth_settings()
-            .as_ref()
-            .ok_or(Error::NotAuthenticated)?;
-        Ok(auth_settings)
-    } else {
-        Err(Error::NotAuthenticated)
-    }
+async fn get_auth_settings(client: &Client) -> Result<AuthSettings> {
+    Ok(client
+        .get_auth_settings()
+        .await
+        .ok_or(Error::NotAuthenticated)?)
 }
 
 fn get_secret_verification_request(

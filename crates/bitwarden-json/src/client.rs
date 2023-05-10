@@ -3,6 +3,9 @@ use bitwarden::sdk::request::{
     command::{Command, ProjectsCommand, SecretsCommand},
 };
 
+#[cfg(feature = "internal")]
+use bitwarden::sdk::request::command::FoldersCommand;
+
 use crate::response::ResponseIntoString;
 
 pub struct Client(bitwarden::Client);
@@ -43,6 +46,8 @@ impl Client {
             Command::PasswordLogin(req) => self.0.password_login(&req).await.into_string(),
             Command::AccessTokenLogin(req) => self.0.access_token_login(&req).await.into_string(),
             #[cfg(feature = "internal")]
+            Command::SessionLogin(req) => self.0.session_login(&req).await.into_string(),
+            #[cfg(feature = "internal")]
             Command::GetUserApiKey(req) => self.0.get_user_api_key(&req).await.into_string(),
             #[cfg(feature = "internal")]
             Command::ApiKeyLogin(req) => self.0.api_key_login(&req).await.into_string(),
@@ -50,12 +55,16 @@ impl Client {
             Command::Sync(req) => self.0.sync(&req).await.into_string(),
             #[cfg(feature = "internal")]
             Command::Fingerprint(req) => self.0.fingerprint(&req).into_string(),
+            #[cfg(feature = "internal")]
+            Command::GetAccountState(_) => {
+                std::io::Result::Ok(self.0.get_account_state().await).into_string()
+            }
 
             Command::Secrets(cmd) => match cmd {
                 SecretsCommand::Get(req) => self.0.secrets().get(&req).await.into_string(),
-                SecretsCommand::Create(req) => self.0.secrets().create(&req).await.into_string(),
+                SecretsCommand::Create(req) => self.0.secrets().create(req).await.into_string(),
                 SecretsCommand::List(req) => self.0.secrets().list(&req).await.into_string(),
-                SecretsCommand::Update(req) => self.0.secrets().update(&req).await.into_string(),
+                SecretsCommand::Update(req) => self.0.secrets().update(req).await.into_string(),
                 SecretsCommand::Delete(req) => self.0.secrets().delete(req).await.into_string(),
             },
 
@@ -63,13 +72,23 @@ impl Client {
                 ProjectsCommand::Get(req) => self.0.projects().get(&req).await.into_string(),
                 ProjectsCommand::List(req) => self.0.projects().list(&req).await.into_string(),
             },
+
+            #[cfg(feature = "internal")]
+            Command::Folders(cmd) => match cmd {
+                FoldersCommand::Create(req) => self.0.folders().create(req).await.into_string(),
+                FoldersCommand::Update(req) => self.0.folders().update(req).await.into_string(),
+                FoldersCommand::Delete(req) => self.0.folders().delete(req).await.into_string(),
+            },
         }
     }
 
     fn parse_settings(settings_input: Option<String>) -> Option<ClientSettings> {
         if let Some(input) = settings_input.as_ref() {
-            if let Ok(settings) = serde_json::from_str(input) {
-                return Some(settings);
+            match serde_json::from_str(input) {
+                Ok(settings) => return Some(settings),
+                Err(e) => {
+                    eprintln!("Error parsing Bitwarden client settings: {e:?}");
+                }
             }
         }
         None

@@ -111,7 +111,6 @@ fn main() -> Result<()> {
         auth::response::PasswordLoginResponse,
         auth::response::ApiKeyLoginResponse,
         response::user_api_key_response::UserApiKeyResponse,
-        response::sync_response::SyncResponse,
         response::secrets_response::SecretResponse,
         response::secrets_response::SecretIdentifiersResponse,
         response::secrets_response::SecretIdentifierResponse,

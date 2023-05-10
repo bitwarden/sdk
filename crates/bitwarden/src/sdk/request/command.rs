@@ -3,7 +3,9 @@ use serde::{Deserialize, Serialize};
 
 #[allow(unused_imports)]
 use crate::sdk::{
-    auth::request::{AccessTokenLoginRequest, ApiKeyLoginRequest, PasswordLoginRequest},
+    auth::request::{
+        AccessTokenLoginRequest, ApiKeyLoginRequest, PasswordLoginRequest, SessionLoginRequest,
+    },
     request::{
         projects_request::{ProjectGetRequest, ProjectsListRequest},
         secret_verification_request::SecretVerificationRequest,
@@ -15,8 +17,11 @@ use crate::sdk::{
     },
 };
 
-#[cfg(feature = "internal")]
-use super::fingerprint_request::FingerprintRequest;
+use super::{
+    empty_request::EmptyRequest,
+    fingerprint_request::FingerprintRequest,
+    folders_request::{FolderCreateRequest, FolderDeleteRequest, FolderUpdateRequest},
+};
 
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -52,6 +57,10 @@ pub enum Command {
     AccessTokenLogin(AccessTokenLoginRequest),
 
     #[cfg(feature = "internal")]
+    /// Login with a previously saved session
+    SessionLogin(SessionLoginRequest),
+
+    #[cfg(feature = "internal")]
     /// > Requires Authentication
     /// Get the API key of the currently authenticated user
     ///
@@ -68,6 +77,14 @@ pub enum Command {
 
     #[cfg(feature = "internal")]
     /// > Requires Authentication
+    /// Get the user's account data associated with this client
+    ///
+    /// Returns: [AccountData](crate::sdk::model::account_data::AccountData)
+    ///
+    GetAccountState(EmptyRequest),
+
+    #[cfg(feature = "internal")]
+    /// > Requires Authentication
     /// Retrieve all user data, ciphers and organizations the user is a part of
     ///
     /// Returns: [SyncResponse](crate::sdk::response::sync_response::SyncResponse)
@@ -76,6 +93,9 @@ pub enum Command {
 
     Secrets(SecretsCommand),
     Projects(ProjectsCommand),
+
+    #[cfg(feature = "internal")]
+    Folders(FoldersCommand),
 }
 
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]
@@ -140,4 +160,15 @@ pub enum ProjectsCommand {
     /// Returns: [ProjectsResponse](crate::sdk::response::projects_response::ProjectsResponse)
     ///
     List(ProjectsListRequest),
+}
+
+#[cfg(feature = "internal")]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub enum FoldersCommand {
+    Create(FolderCreateRequest),
+
+    Update(FolderUpdateRequest),
+
+    Delete(FolderDeleteRequest),
 }

@@ -186,7 +186,7 @@ async fn process_commands() -> Result<()> {
         })
         .await?;
 
-    let organization_id = match client.get_access_token_organization() {
+    let organization_id = match client.get_access_token_organization().await {
         Some(id) => id,
         None => {
             error!("Access token isn't associated to an organization.");

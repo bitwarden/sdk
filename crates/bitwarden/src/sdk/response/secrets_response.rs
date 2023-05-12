@@ -8,6 +8,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
+    crypto::{CipherString, Decryptable},
     error::{Error, Result},
 };
 
@@ -34,9 +35,13 @@ impl SecretResponse {
     ) -> Result<SecretResponse> {
         let org_id = response.organization_id;
 
-        let key = enc.decrypt_str(&response.key.ok_or(Error::MissingFields)?, org_id)?;
-        let value = enc.decrypt_str(&response.value.ok_or(Error::MissingFields)?, org_id)?;
-        let note = enc.decrypt_str(&response.note.ok_or(Error::MissingFields)?, org_id)?;
+        let key = response.key.ok_or(Error::MissingFields)?;
+        let value = response.value.ok_or(Error::MissingFields)?;
+        let note = response.note.ok_or(Error::MissingFields)?;
+
+        let key = key.parse::<CipherString>()?.decrypt(enc, &org_id)?;
+        let value = value.parse::<CipherString>()?.decrypt(enc, &org_id)?;
+        let note = note.parse::<CipherString>()?.decrypt(enc, &org_id)?;
 
         let project = response
             .projects
@@ -96,10 +101,11 @@ impl SecretIdentifierResponse {
     ) -> Result<SecretIdentifierResponse> {
         let organization_id = response.organization_id.ok_or(Error::MissingFields)?;
 
-        let key = enc.decrypt_str(
-            &response.key.ok_or(Error::MissingFields)?,
-            Some(organization_id),
-        )?;
+        let key = response
+            .key
+            .ok_or(Error::MissingFields)?
+            .parse::<CipherString>()?
+            .decrypt(enc, &Some(organization_id))?;
 
         Ok(SecretIdentifierResponse {
             id: response.id.ok_or(Error::MissingFields)?,

@@ -8,7 +8,9 @@ use serde::Serialize;
 use uuid::Uuid;
 
 use crate::client::encryption_settings::EncryptionSettings;
-use crate::{crypto::CipherString, error::Result};
+use crate::crypto::Decryptable;
+use crate::crypto::Encryptable;
+use crate::error::Result;
 
 use super::domain;
 
@@ -52,46 +54,64 @@ pub struct FolderView {
     pub revision_date: DateTime<Utc>,
 }
 
-pub(crate) fn convert_domain_to_view(
-    data: domain::AccountData,
-    enc: &EncryptionSettings,
-) -> Result<AccountDataView> {
-    Ok(AccountDataView {
-        profile: data.profile,
-        data: DataView {
-            ciphers: data
-                .data
-                .ciphers
-                .into_iter()
-                .map(|(id, c)| Ok((id, convert_cipher(c, enc)?)))
-                .collect::<Result<_>>()?,
-            folders: data
-                .data
-                .folders
-                .into_iter()
-                .map(|(id, f)| Ok((id, convert_folder(f, enc)?)))
-                .collect::<Result<_>>()?,
-        },
-        settings: data.settings,
-        auth: data.auth,
-    })
+impl Decryptable<AccountDataView> for domain::AccountData {
+    fn decrypt(self, enc: &EncryptionSettings, _: &Option<Uuid>) -> Result<AccountDataView> {
+        Ok(AccountDataView {
+            profile: self.profile,
+            data: DataView {
+                ciphers: self.data.ciphers.decrypt(enc, &None)?,
+                folders: self.data.folders.decrypt(enc, &None)?,
+            },
+            settings: self.settings,
+            auth: self.auth,
+        })
+    }
 }
 
-fn convert_cipher(c: domain::Cipher, enc: &EncryptionSettings) -> Result<CipherView> {
-    Ok(CipherView {
-        id: c.id,
-        organization_id: c.organization_id,
-        folder_id: c.folder_id,
-        name: enc.decrypt(&c.name, c.organization_id)?,
-        creation_date: c.creation_date,
-        deleted_date: c.deleted_date,
-        revision_date: c.revision_date,
-    })
+impl Decryptable<CipherView> for domain::Cipher {
+    fn decrypt(self, enc: &EncryptionSettings, _: &Option<Uuid>) -> Result<CipherView> {
+        Ok(CipherView {
+            id: self.id,
+            organization_id: self.organization_id,
+            folder_id: self.folder_id,
+            name: self.name.decrypt(enc, &self.organization_id)?,
+            creation_date: self.creation_date,
+            deleted_date: self.deleted_date,
+            revision_date: self.revision_date,
+        })
+    }
 }
-fn convert_folder(f: domain::Folder, enc: &EncryptionSettings) -> Result<FolderView> {
-    Ok(FolderView {
-        id: f.id,
-        name: enc.decrypt(&f.name, None)?,
-        revision_date: f.revision_date,
-    })
+
+impl Encryptable<domain::Cipher> for CipherView {
+    fn encrypt(self, enc: &EncryptionSettings, _: &Option<Uuid>) -> Result<domain::Cipher> {
+        Ok(domain::Cipher {
+            id: self.id,
+            organization_id: self.organization_id,
+            folder_id: self.folder_id,
+            name: self.name.encrypt(enc, &self.organization_id)?,
+            creation_date: self.creation_date,
+            deleted_date: self.deleted_date,
+            revision_date: self.revision_date,
+        })
+    }
+}
+
+impl Decryptable<FolderView> for domain::Folder {
+    fn decrypt(self, enc: &EncryptionSettings, _: &Option<Uuid>) -> Result<FolderView> {
+        Ok(FolderView {
+            id: self.id,
+            name: self.name.decrypt(enc, &None)?,
+            revision_date: self.revision_date,
+        })
+    }
+}
+
+impl Encryptable<domain::Folder> for FolderView {
+    fn encrypt(self, enc: &EncryptionSettings, _: &Option<Uuid>) -> Result<domain::Folder> {
+        Ok(domain::Folder {
+            id: self.id,
+            name: self.name.encrypt(enc, &None)?,
+            revision_date: self.revision_date,
+        })
+    }
 }

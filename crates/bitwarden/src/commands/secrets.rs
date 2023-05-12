@@ -2,6 +2,7 @@ use bitwarden_api_api::models::{SecretCreateRequestModel, SecretUpdateRequestMod
 
 use crate::{
     client::Client,
+    crypto::Encryptable,
     error::{Error, Result},
     sdk::{
         request::secrets_request::{
@@ -31,7 +32,7 @@ pub(crate) async fn get_secret(
 
 pub(crate) async fn create_secret(
     client: &mut Client,
-    input: &SecretCreateRequest,
+    input: SecretCreateRequest,
 ) -> Result<SecretResponse> {
     let enc = client
         .get_encryption_settings()
@@ -41,9 +42,9 @@ pub(crate) async fn create_secret(
     let org_id = Some(input.organization_id);
 
     let secret = Some(SecretCreateRequestModel {
-        key: enc.encrypt(input.key.as_bytes(), org_id)?.to_string(),
-        value: enc.encrypt(input.value.as_bytes(), org_id)?.to_string(),
-        note: enc.encrypt(input.note.as_bytes(), org_id)?.to_string(),
+        key: input.key.encrypt(enc, &org_id)?.to_string(),
+        value: input.value.encrypt(enc, &org_id)?.to_string(),
+        note: input.note.encrypt(enc, &org_id)?.to_string(),
         project_ids: None,
     });
 
@@ -103,7 +104,7 @@ pub(crate) async fn list_secrets_by_project(
 
 pub(crate) async fn update_secret(
     client: &mut Client,
-    input: &SecretPutRequest,
+    input: SecretPutRequest,
 ) -> Result<SecretResponse> {
     let enc = client
         .get_encryption_settings()
@@ -113,9 +114,9 @@ pub(crate) async fn update_secret(
     let org_id = Some(input.organization_id);
 
     let secret = Some(SecretUpdateRequestModel {
-        key: enc.encrypt(input.key.as_bytes(), org_id)?.to_string(),
-        value: enc.encrypt(input.value.as_bytes(), org_id)?.to_string(),
-        note: enc.encrypt(input.note.as_bytes(), org_id)?.to_string(),
+        key: input.key.encrypt(enc, &org_id)?.to_string(),
+        value: input.value.encrypt(enc, &org_id)?.to_string(),
+        note: input.note.encrypt(enc, &org_id)?.to_string(),
         project_ids: None,
     });
 

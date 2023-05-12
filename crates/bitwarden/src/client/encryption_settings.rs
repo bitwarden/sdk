@@ -165,14 +165,14 @@ impl EncryptionSettings {
         Ok(self)
     }
 
-    fn get_key(&self, org_id: Option<Uuid>) -> Option<&SymmetricCryptoKey> {
+    fn get_key(&self, org_id: &Option<Uuid>) -> Option<&SymmetricCryptoKey> {
         // If we don't have a private key set (to decode multiple org keys), we just use the main user key
         if self.private_key.is_none() {
             return Some(&self.user_key);
         }
 
         match org_id {
-            Some(org_id) => match self.org_keys.get(&org_id) {
+            Some(org_id) => match self.org_keys.get(org_id) {
                 Some(k) => Some(k),
                 None => return None,
             },
@@ -180,21 +180,13 @@ impl EncryptionSettings {
         }
     }
 
-    pub fn decrypt_bytes(&self, cipher: &CipherString, org_id: Option<Uuid>) -> Result<Vec<u8>> {
+    pub(crate) fn decrypt(&self, cipher: &CipherString, org_id: &Option<Uuid>) -> Result<String> {
         let key = self.get_key(org_id).ok_or(CryptoError::NoKeyForOrg)?;
-        decrypt(cipher, key)
-    }
-
-    pub fn decrypt(&self, cipher: &CipherString, org_id: Option<Uuid>) -> Result<String> {
-        let dec = self.decrypt_bytes(&cipher, org_id)?;
+        let dec = decrypt(cipher, key)?;
         String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String.into())
     }
 
-    pub fn decrypt_str(&self, cipher: &str, org_id: Option<Uuid>) -> Result<String> {
-        self.decrypt(&CipherString::from_str(cipher)?, org_id)
-    }
-
-    pub fn encrypt(&self, data: &[u8], org_id: Option<Uuid>) -> Result<CipherString> {
+    pub(crate) fn encrypt(&self, data: &[u8], org_id: &Option<Uuid>) -> Result<CipherString> {
         let key = self.get_key(org_id).ok_or(CryptoError::NoKeyForOrg)?;
 
         let dec = encrypt_aes256(data, key.mac_key, key.key)?;
@@ -279,6 +271,8 @@ fn validate_mac(mac_key: &[u8], iv: &[u8], data: &[u8]) -> Result<[u8; 32]> {
 mod tests {
     use std::str::FromStr;
 
+    use crate::crypto::{Decryptable, Encryptable};
+
     use super::{EncryptionSettings, SymmetricCryptoKey};
 
     #[test]
@@ -298,10 +292,10 @@ mod tests {
         let key = SymmetricCryptoKey::generate("test");
         let settings = EncryptionSettings::new_single_key(key);
 
-        let test_string = "encrypted_test_string";
-        let cipher = settings.encrypt(test_string.as_bytes(), None).unwrap();
+        let test_string = "encrypted_test_string".to_string();
+        let cipher = test_string.clone().encrypt(&settings, &None).unwrap();
 
-        let decrypted_str = settings.decrypt_str(&cipher.to_string(), None).unwrap();
+        let decrypted_str = cipher.decrypt(&settings, &None).unwrap();
         assert_eq!(decrypted_str, test_string);
     }
 }

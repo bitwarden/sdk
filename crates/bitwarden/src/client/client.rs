@@ -16,7 +16,7 @@ use crate::{
         access_token_login, api_key_login, generate_fingerprint, get_user_api_key, password_login,
         renew_token, session_login, sync,
     },
-    crypto::CipherString,
+    crypto::{CipherString, Decryptable},
     error::{Error, Result},
     sdk::{
         auth::{
@@ -26,11 +26,7 @@ use crate::{
             },
             response::{ApiKeyLoginResponse, PasswordLoginResponse},
         },
-        model::{
-            domain::{AccountData, GlobalData},
-            state::State,
-            view::AccountDataView,
-        },
+        model::{domain::GlobalData, state::State, view::AccountDataView},
         request::{
             client_settings::{ClientSettings, DeviceType},
             fingerprint_request::FingerprintRequest,
@@ -168,11 +164,10 @@ impl Client {
     }
 
     pub fn get_account_state(&mut self) -> AccountDataView {
-        crate::sdk::model::view::convert_domain_to_view(
-            self.state.account.get().to_owned(),
-            self.encryption_settings.as_ref().unwrap(),
-        )
-        .unwrap()
+        let domain = self.state.account.get().to_owned();
+        domain
+            .decrypt(self.encryption_settings.as_ref().unwrap(), &None)
+            .unwrap()
     }
 
     pub fn get_global_state(&mut self) -> GlobalData {

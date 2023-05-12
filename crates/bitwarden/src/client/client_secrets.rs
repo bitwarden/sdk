@@ -24,7 +24,7 @@ impl<'a> ClientSecrets<'a> {
         get_secret(self.client, input).await
     }
 
-    pub async fn create(&mut self, input: &SecretCreateRequest) -> Result<SecretResponse> {
+    pub async fn create(&mut self, input: SecretCreateRequest) -> Result<SecretResponse> {
         create_secret(self.client, input).await
     }
 
@@ -42,7 +42,7 @@ impl<'a> ClientSecrets<'a> {
         list_secrets_by_project(self.client, input).await
     }
 
-    pub async fn update(&mut self, input: &SecretPutRequest) -> Result<SecretResponse> {
+    pub async fn update(&mut self, input: SecretPutRequest) -> Result<SecretResponse> {
         update_secret(self.client, input).await
     }
 

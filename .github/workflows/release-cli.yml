@@ -58,7 +58,7 @@ jobs:
 
       - name: Download all Release artifacts
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
-        uses: bitwarden/gh-actions/download-artifacts@fcff8aaa065317a24e17943e32df993fa2f5f0ec
+        uses: bitwarden/gh-actions/download-artifacts@f07c58ae6d120bcfbb01f695074aff45c41e7627
         with:
           workflow: build-cli.yml
           path: packages
@@ -67,7 +67,7 @@ jobs:
 
       - name: Dry Run - Download all artifacts
         if: ${{ github.event.inputs.release_type == 'Dry Run' }}
-        uses: bitwarden/gh-actions/download-artifacts@fcff8aaa065317a24e17943e32df993fa2f5f0ec
+        uses: bitwarden/gh-actions/download-artifacts@f07c58ae6d120bcfbb01f695074aff45c41e7627
         with:
           workflow: build-cli.yml
           path: packages
@@ -75,7 +75,7 @@ jobs:
           branch: master
 
       - name: Get checksum files
-        uses: bitwarden/gh-actions/get-checksum@fcff8aaa065317a24e17943e32df993fa2f5f0ec
+        uses: bitwarden/gh-actions/get-checksum@f07c58ae6d120bcfbb01f695074aff45c41e7627
         with:
           packages_dir: "packages"
           file_path: "packages/bws-sha256-checksums-${{ steps.version.outputs.version }}.txt"
@@ -132,7 +132,7 @@ jobs:
 
       - name: Retrieve secrets
         id: retrieve-secrets
-        uses: bitwarden/gh-actions/get-keyvault-secrets@fcff8aaa065317a24e17943e32df993fa2f5f0ec
+        uses: bitwarden/gh-actions/get-keyvault-secrets@f07c58ae6d120bcfbb01f695074aff45c41e7627
         with:
           keyvault: "bitwarden-prod-kv"
           secrets: "cratesio-api-token"
@@ -145,7 +145,7 @@ jobs:
           override: true
 
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@6fd3edff6979b79f87531400ad694fb7f2c84b1f # v2.2.1
+        uses: Swatinem/rust-cache@060bda31e0be4f453bb6ed2d7e5427b31734ad01 # v2.3.0
 
       - name: Install cargo-release
         run: cargo install cargo-release

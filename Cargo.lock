@@ -3029,16 +3029,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "test_json"
-version = "0.1.0"
-dependencies = [
- "bitwarden-json",
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
 name = "thiserror"
 version = "1.0.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"

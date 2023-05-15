@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "ClientSettings",
-  "description": "Basic client behavior settings. These settings specify the various targets and behavior of the Bitwarden Client. They are optional and uneditable once the client is initialized.\n\nDefaults to\n\n``` # use bitwarden::sdk::request::client_settings::{ClientSettings, DeviceType}; # use assert_matches::assert_matches; let settings = ClientSettings { identity_url: \"https://identity.bitwarden.com\".to_string(), api_url: \"https://api.bitwarden.com\".to_string(), user_agent: \"Bitwarden Rust-SDK\".to_string(), device_type: DeviceType::SDK, }; let default = ClientSettings::default(); assert_matches!(settings, default); ```\n\nTargets `localhost:8080` for debug builds.",
+  "description": "Basic client behavior settings. These settings specify the various targets and behavior of the Bitwarden Client. They are optional and uneditable once the client is initialized.\n\nDefaults to\n\n``` # use bitwarden::sdk::request::client_settings::{ClientSettings, DeviceType}; # use assert_matches::assert_matches; let settings = ClientSettings { identity_url: \"https://identity.bitwarden.com\".to_string(), api_url: \"https://api.bitwarden.com\".to_string(), user_agent: \"Bitwarden Rust-SDK\".to_string(), device_type: DeviceType::SDK, state_path: None, }; let default = ClientSettings::default(); assert_matches!(settings, default); ```\n\nTargets `localhost:8080` for debug builds.",
   "type": "object",
   "required": [
     "apiUrl",
@@ -25,6 +25,13 @@
     "identityUrl": {
       "description": "The identity url of the targeted Bitwarden instance. Defaults to `https://identity.bitwarden.com`",
       "type": "string"
+    },
+    "statePath": {
+      "description": "Path to the file that stores the SDK's internal state, when not set the state is kept in memory only This option has no effect when compiling for WebAssembly, in that case LocalStorage is always used.",
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "userAgent": {
       "description": "The user_agent to sent to Bitwarden. Defaults to `Bitwarden Rust-SDK`",

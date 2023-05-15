@@ -42,6 +42,19 @@
       "additionalProperties": false
     },
     {
+      "description": "Login with a previously saved session",
+      "type": "object",
+      "required": [
+        "sessionLogin"
+      ],
+      "properties": {
+        "sessionLogin": {
+          "$ref": "#/definitions/SessionLoginRequest"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
       "description": "> Requires Authentication Get the API key of the currently authenticated user\n\nReturns: [UserApiKeyResponse](crate::sdk::response::user_api_key_response::UserApiKeyResponse)",
       "type": "object",
       "required": [
@@ -63,6 +76,32 @@
       "properties": {
         "fingerprint": {
           "$ref": "#/definitions/FingerprintRequest"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "> Requires Authentication Get the user's account data associated with this client\n\nReturns: [AccountData](crate::sdk::model::account_data::AccountData)",
+      "type": "object",
+      "required": [
+        "getAccountState"
+      ],
+      "properties": {
+        "getAccountState": {
+          "$ref": "#/definitions/EmptyRequest"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Get the SDK global data\n\nReturns: [GlobalData](crate::sdk::model::account_data::GlobalData)",
+      "type": "object",
+      "required": [
+        "getGlobalState"
+      ],
+      "properties": {
+        "getGlobalState": {
+          "$ref": "#/definitions/EmptyRequest"
         }
       },
       "additionalProperties": false
@@ -144,6 +183,10 @@
       },
       "additionalProperties": false
     },
+    "EmptyRequest": {
+      "description": "An empty request that needs no parameters",
+      "type": "object"
+    },
     "FingerprintRequest": {
       "type": "object",
       "required": [
@@ -189,7 +232,8 @@
       "properties": {
         "id": {
           "description": "ID of the project to retrieve",
-          "type": "string"
+          "type": "string",
+          "format": "uuid"
         }
       },
       "additionalProperties": false
@@ -232,7 +276,8 @@
       "properties": {
         "organizationId": {
           "description": "Organization to retrieve all the projects from",
-          "type": "string"
+          "type": "string",
+          "format": "uuid"
         }
       },
       "additionalProperties": false
@@ -254,7 +299,8 @@
         },
         "organizationId": {
           "description": "Organization where the secret will be created",
-          "type": "string"
+          "type": "string",
+          "format": "uuid"
         },
         "value": {
           "type": "string"
@@ -270,7 +316,8 @@
       "properties": {
         "id": {
           "description": "ID of the secret to retrieve",
-          "type": "string"
+          "type": "string",
+          "format": "uuid"
         }
       },
       "additionalProperties": false
@@ -283,7 +330,8 @@
       "properties": {
         "organizationId": {
           "description": "Organization to retrieve all the secrets from",
-          "type": "string"
+          "type": "string",
+          "format": "uuid"
         }
       },
       "additionalProperties": false
@@ -300,7 +348,8 @@
       "properties": {
         "id": {
           "description": "ID of the secret to modify",
-          "type": "string"
+          "type": "string",
+          "format": "uuid"
         },
         "key": {
           "type": "string"
@@ -310,7 +359,8 @@
         },
         "organizationId": {
           "description": "Organization ID of the secret to modify",
-          "type": "string"
+          "type": "string",
+          "format": "uuid"
         },
         "value": {
           "type": "string"
@@ -417,8 +467,29 @@
           "description": "IDs of the secrets to delete",
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "format": "uuid"
           }
+        }
+      },
+      "additionalProperties": false
+    },
+    "SessionLoginRequest": {
+      "description": "Login to Bitwarden using a saved session",
+      "type": "object",
+      "required": [
+        "password",
+        "userId"
+      ],
+      "properties": {
+        "password": {
+          "description": "User's master password, used to unlock the vault",
+          "type": "string"
+        },
+        "userId": {
+          "description": "User's uuid",
+          "type": "string",
+          "format": "uuid"
         }
       },
       "additionalProperties": false

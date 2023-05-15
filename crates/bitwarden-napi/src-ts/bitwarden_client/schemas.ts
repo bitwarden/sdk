@@ -1,6 +1,6 @@
 // To parse this data:
 //
-//   import { Convert, ClientSettings, Command, ResponseForAPIKeyLoginResponse, ResponseForPasswordLoginResponse, ResponseForSecretDeleteResponse, ResponseForSecretIdentifierResponse, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsDeleteResponse, ResponseForSyncResponse, ResponseForUserAPIKeyResponse } from "./file";
+//   import { Convert, ClientSettings, Command, ResponseForAPIKeyLoginResponse, ResponseForPasswordLoginResponse, ResponseForSecretDeleteResponse, ResponseForSecretIdentifierResponse, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsDeleteResponse, ResponseForUserAPIKeyResponse } from "./file";
 //
 //   const clientSettings = Convert.toClientSettings(json);
 //   const command = Convert.toCommand(json);
@@ -11,7 +11,6 @@
 //   const responseForSecretIdentifiersResponse = Convert.toResponseForSecretIdentifiersResponse(json);
 //   const responseForSecretResponse = Convert.toResponseForSecretResponse(json);
 //   const responseForSecretsDeleteResponse = Convert.toResponseForSecretsDeleteResponse(json);
-//   const responseForSyncResponse = Convert.toResponseForSyncResponse(json);
 //   const responseForUserAPIKeyResponse = Convert.toResponseForUserAPIKeyResponse(json);
 //
 // These functions will throw an error if the JSON doesn't
@@ -28,8 +27,8 @@
  * assert_matches::assert_matches; let settings = ClientSettings { identity_url:
  * "https://identity.bitwarden.com".to_string(), api_url:
  * "https://api.bitwarden.com".to_string(), user_agent: "Bitwarden Rust-SDK".to_string(),
- * device_type: DeviceType::SDK, }; let default = ClientSettings::default();
- * assert_matches!(settings, default); ```
+ * device_type: DeviceType::SDK, state_path: None, }; let default =
+ * ClientSettings::default(); assert_matches!(settings, default); ```
  *
  * Targets `localhost:8080` for debug builds.
  */
@@ -47,6 +46,12 @@ export interface ClientSettings {
      * `https://identity.bitwarden.com`
      */
     identityUrl: string;
+    /**
+     * Path to the file that stores the SDK's internal state, when not set the state is kept in
+     * memory only This option has no effect when compiling for WebAssembly, in that case
+     * LocalStorage is always used.
+     */
+    statePath?: null | string;
     /**
      * The user_agent to sent to Bitwarden. Defaults to `Bitwarden Rust-SDK`
      */
@@ -104,6 +109,8 @@ export enum DeviceType {
  *
  * Returns: [ApiKeyLoginResponse](crate::sdk::auth::response::ApiKeyLoginResponse)
  *
+ * Login with a previously saved session
+ *
  * > Requires Authentication Get the API key of the currently authenticated user
  *
  * Returns:
@@ -112,6 +119,14 @@ export enum DeviceType {
  * Get the user's passphrase
  *
  * Returns: String
+ *
+ * > Requires Authentication Get the user's account data associated with this client
+ *
+ * Returns: [AccountData](crate::sdk::model::account_data::AccountData)
+ *
+ * Get the SDK global data
+ *
+ * Returns: [GlobalData](crate::sdk::model::account_data::GlobalData)
  *
  * > Requires Authentication Retrieve all user data, ciphers and organizations the user is a
  * part of
@@ -122,8 +137,11 @@ export interface Command {
     passwordLogin?:    PasswordLoginRequest;
     apiKeyLogin?:      APIKeyLoginRequest;
     accessTokenLogin?: AccessTokenLoginRequest;
+    sessionLogin?:     SessionLoginRequest;
     getUserApiKey?:    SecretVerificationRequest;
     fingerprint?:      FingerprintRequest;
+    getAccountState?:  { [key: string]: any };
+    getGlobalState?:   { [key: string]: any };
     sync?:             SyncRequest;
     secrets?:          SecretsCommand;
     projects?:         ProjectsCommand;
@@ -306,6 +324,20 @@ export interface SecretPutRequest {
      */
     organizationId: string;
     value:          string;
+}
+
+/**
+ * Login to Bitwarden using a saved session
+ */
+export interface SessionLoginRequest {
+    /**
+     * User's master password, used to unlock the vault
+     */
+    password: string;
+    /**
+     * User's uuid
+     */
+    userId: string;
 }
 
 export interface SyncRequest {
@@ -616,51 +648,6 @@ export interface DatumClass {
     id:     string;
 }
 
-export interface ResponseForSyncResponse {
-    /**
-     * The response data. Populated if `success` is true.
-     */
-    data?: SyncResponse | null;
-    /**
-     * A message for any error that may occur. Populated if `success` is false.
-     */
-    errorMessage?: null | string;
-    /**
-     * Whether or not the SDK request succeeded.
-     */
-    success: boolean;
-}
-
-export interface SyncResponse {
-    /**
-     * List of ciphers accesible by the user
-     */
-    ciphers: CipherDetailsResponse[];
-    /**
-     * Data about the user, including their encryption keys and the organizations they are a
-     * part of
-     */
-    profile: ProfileResponse;
-}
-
-export interface CipherDetailsResponse {
-}
-
-/**
- * Data about the user, including their encryption keys and the organizations they are a
- * part of
- */
-export interface ProfileResponse {
-    email:         string;
-    id:            string;
-    name:          string;
-    organizations: ProfileOrganizationResponse[];
-}
-
-export interface ProfileOrganizationResponse {
-    id: string;
-}
-
 export interface ResponseForUserAPIKeyResponse {
     /**
      * The response data. Populated if `success` is true.
@@ -756,14 +743,6 @@ export class Convert {
 
     public static responseForSecretsDeleteResponseToJson(value: ResponseForSecretsDeleteResponse): string {
         return JSON.stringify(uncast(value, r("ResponseForSecretsDeleteResponse")), null, 2);
-    }
-
-    public static toResponseForSyncResponse(json: string): ResponseForSyncResponse {
-        return cast(JSON.parse(json), r("ResponseForSyncResponse"));
-    }
-
-    public static responseForSyncResponseToJson(value: ResponseForSyncResponse): string {
-        return JSON.stringify(uncast(value, r("ResponseForSyncResponse")), null, 2);
     }
 
     public static toResponseForUserAPIKeyResponse(json: string): ResponseForUserAPIKeyResponse {
@@ -932,14 +911,18 @@ const typeMap: any = {
         { json: "apiUrl", js: "apiUrl", typ: "" },
         { json: "deviceType", js: "deviceType", typ: r("DeviceType") },
         { json: "identityUrl", js: "identityUrl", typ: "" },
+        { json: "statePath", js: "statePath", typ: u(undefined, u(null, "")) },
         { json: "userAgent", js: "userAgent", typ: "" },
     ], false),
     "Command": o([
         { json: "passwordLogin", js: "passwordLogin", typ: u(undefined, r("PasswordLoginRequest")) },
         { json: "apiKeyLogin", js: "apiKeyLogin", typ: u(undefined, r("APIKeyLoginRequest")) },
         { json: "accessTokenLogin", js: "accessTokenLogin", typ: u(undefined, r("AccessTokenLoginRequest")) },
+        { json: "sessionLogin", js: "sessionLogin", typ: u(undefined, r("SessionLoginRequest")) },
         { json: "getUserApiKey", js: "getUserApiKey", typ: u(undefined, r("SecretVerificationRequest")) },
         { json: "fingerprint", js: "fingerprint", typ: u(undefined, r("FingerprintRequest")) },
+        { json: "getAccountState", js: "getAccountState", typ: u(undefined, m("any")) },
+        { json: "getGlobalState", js: "getGlobalState", typ: u(undefined, m("any")) },
         { json: "sync", js: "sync", typ: u(undefined, r("SyncRequest")) },
         { json: "secrets", js: "secrets", typ: u(undefined, r("SecretsCommand")) },
         { json: "projects", js: "projects", typ: u(undefined, r("ProjectsCommand")) },
@@ -1002,6 +985,10 @@ const typeMap: any = {
         { json: "note", js: "note", typ: "" },
         { json: "organizationId", js: "organizationId", typ: "" },
         { json: "value", js: "value", typ: "" },
+    ], false),
+    "SessionLoginRequest": o([
+        { json: "password", js: "password", typ: "" },
+        { json: "userId", js: "userId", typ: "" },
     ], false),
     "SyncRequest": o([
         { json: "excludeSubdomains", js: "excludeSubdomains", typ: u(undefined, u(true, null)) },
@@ -1140,26 +1127,6 @@ const typeMap: any = {
     ], false),
     "DatumClass": o([
         { json: "error", js: "error", typ: u(undefined, u(null, "")) },
-        { json: "id", js: "id", typ: "" },
-    ], false),
-    "ResponseForSyncResponse": o([
-        { json: "data", js: "data", typ: u(undefined, u(r("SyncResponse"), null)) },
-        { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
-        { json: "success", js: "success", typ: true },
-    ], false),
-    "SyncResponse": o([
-        { json: "ciphers", js: "ciphers", typ: a(r("CipherDetailsResponse")) },
-        { json: "profile", js: "profile", typ: r("ProfileResponse") },
-    ], false),
-    "CipherDetailsResponse": o([
-    ], false),
-    "ProfileResponse": o([
-        { json: "email", js: "email", typ: "" },
-        { json: "id", js: "id", typ: "" },
-        { json: "name", js: "name", typ: "" },
-        { json: "organizations", js: "organizations", typ: a(r("ProfileOrganizationResponse")) },
-    ], false),
-    "ProfileOrganizationResponse": o([
         { json: "id", js: "id", typ: "" },
     ], false),
     "ResponseForUserAPIKeyResponse": o([

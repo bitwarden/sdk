@@ -1,6 +1,7 @@
 from enum import Enum
 from dataclasses import dataclass
 from typing import Any, Optional, List, TypeVar, Type, cast, Callable
+from uuid import UUID
 
 
 T = TypeVar("T")
@@ -236,34 +237,34 @@ class PasswordLoginRequest:
 @dataclass
 class ProjectGetRequest:
     """ID of the project to retrieve"""
-    id: str
+    id: UUID
 
     @staticmethod
     def from_dict(obj: Any) -> 'ProjectGetRequest':
         assert isinstance(obj, dict)
-        id = from_str(obj.get("id"))
+        id = UUID(obj.get("id"))
         return ProjectGetRequest(id)
 
     def to_dict(self) -> dict:
         result: dict = {}
-        result["id"] = from_str(self.id)
+        result["id"] = str(self.id)
         return result
 
 
 @dataclass
 class ProjectsListRequest:
     """Organization to retrieve all the projects from"""
-    organization_id: str
+    organization_id: UUID
 
     @staticmethod
     def from_dict(obj: Any) -> 'ProjectsListRequest':
         assert isinstance(obj, dict)
-        organization_id = from_str(obj.get("organizationId"))
+        organization_id = UUID(obj.get("organizationId"))
         return ProjectsListRequest(organization_id)
 
     def to_dict(self) -> dict:
         result: dict = {}
-        result["organizationId"] = from_str(self.organization_id)
+        result["organizationId"] = str(self.organization_id)
         return result
 
 
@@ -303,7 +304,7 @@ class SecretCreateRequest:
     key: str
     note: str
     """Organization where the secret will be created"""
-    organization_id: str
+    organization_id: UUID
     value: str
 
     @staticmethod
@@ -311,7 +312,7 @@ class SecretCreateRequest:
         assert isinstance(obj, dict)
         key = from_str(obj.get("key"))
         note = from_str(obj.get("note"))
-        organization_id = from_str(obj.get("organizationId"))
+        organization_id = UUID(obj.get("organizationId"))
         value = from_str(obj.get("value"))
         return SecretCreateRequest(key, note, organization_id, value)
 
@@ -319,7 +320,7 @@ class SecretCreateRequest:
         result: dict = {}
         result["key"] = from_str(self.key)
         result["note"] = from_str(self.note)
-        result["organizationId"] = from_str(self.organization_id)
+        result["organizationId"] = str(self.organization_id)
         result["value"] = from_str(self.value)
         return result
 
@@ -327,80 +328,80 @@ class SecretCreateRequest:
 @dataclass
 class SecretsDeleteRequest:
     """IDs of the secrets to delete"""
-    ids: List[str]
+    ids: List[UUID]
 
     @staticmethod
     def from_dict(obj: Any) -> 'SecretsDeleteRequest':
         assert isinstance(obj, dict)
-        ids = from_list(from_str, obj.get("ids"))
+        ids = from_list(lambda x: UUID(x), obj.get("ids"))
         return SecretsDeleteRequest(ids)
 
     def to_dict(self) -> dict:
         result: dict = {}
-        result["ids"] = from_list(from_str, self.ids)
+        result["ids"] = from_list(lambda x: str(x), self.ids)
         return result
 
 
 @dataclass
 class SecretGetRequest:
     """ID of the secret to retrieve"""
-    id: str
+    id: UUID
 
     @staticmethod
     def from_dict(obj: Any) -> 'SecretGetRequest':
         assert isinstance(obj, dict)
-        id = from_str(obj.get("id"))
+        id = UUID(obj.get("id"))
         return SecretGetRequest(id)
 
     def to_dict(self) -> dict:
         result: dict = {}
-        result["id"] = from_str(self.id)
+        result["id"] = str(self.id)
         return result
 
 
 @dataclass
 class SecretIdentifiersRequest:
     """Organization to retrieve all the secrets from"""
-    organization_id: str
+    organization_id: UUID
 
     @staticmethod
     def from_dict(obj: Any) -> 'SecretIdentifiersRequest':
         assert isinstance(obj, dict)
-        organization_id = from_str(obj.get("organizationId"))
+        organization_id = UUID(obj.get("organizationId"))
         return SecretIdentifiersRequest(organization_id)
 
     def to_dict(self) -> dict:
         result: dict = {}
-        result["organizationId"] = from_str(self.organization_id)
+        result["organizationId"] = str(self.organization_id)
         return result
 
 
 @dataclass
 class SecretPutRequest:
     """ID of the secret to modify"""
-    id: str
+    id: UUID
     key: str
     note: str
     """Organization ID of the secret to modify"""
-    organization_id: str
+    organization_id: UUID
     value: str
 
     @staticmethod
     def from_dict(obj: Any) -> 'SecretPutRequest':
         assert isinstance(obj, dict)
-        id = from_str(obj.get("id"))
+        id = UUID(obj.get("id"))
         key = from_str(obj.get("key"))
         note = from_str(obj.get("note"))
-        organization_id = from_str(obj.get("organizationId"))
+        organization_id = UUID(obj.get("organizationId"))
         value = from_str(obj.get("value"))
         return SecretPutRequest(id, key, note, organization_id, value)
 
     def to_dict(self) -> dict:
         result: dict = {}
-        result["id"] = from_str(self.id)
+        result["id"] = str(self.id)
         result["key"] = from_str(self.key)
         result["note"] = from_str(self.note)
-        result["organizationId"] = from_str(self.organization_id)
+        result["organizationId"] = str(self.organization_id)
         result["value"] = from_str(self.value)
         return result
 
@@ -988,19 +989,19 @@ class ResponseForPasswordLoginResponse:
 
 @dataclass
 class SecretDeleteResponse:
-    id: str
+    id: UUID
     error: Optional[str] = None
 
     @staticmethod
     def from_dict(obj: Any) -> 'SecretDeleteResponse':
         assert isinstance(obj, dict)
-        id = from_str(obj.get("id"))
+        id = UUID(obj.get("id"))
         error = from_union([from_none, from_str], obj.get("error"))
         return SecretDeleteResponse(id, error)
 
     def to_dict(self) -> dict:
         result: dict = {}
-        result["id"] = from_str(self.id)
+        result["id"] = str(self.id)
         if self.error is not None:
             result["error"] = from_union([from_none, from_str], self.error)
         return result
@@ -1035,23 +1036,23 @@ class ResponseForSecretDeleteResponse:
 
 @dataclass
 class SecretIdentifierResponse:
-    id: str
+    id: UUID
     key: str
-    organization_id: str
+    organization_id: UUID
 
     @staticmethod
     def from_dict(obj: Any) -> 'SecretIdentifierResponse':
         assert isinstance(obj, dict)
-        id = from_str(obj.get("id"))
+        id = UUID(obj.get("id"))
         key = from_str(obj.get("key"))
-        organization_id = from_str(obj.get("organizationId"))
+        organization_id = UUID(obj.get("organizationId"))
         return SecretIdentifierResponse(id, key, organization_id)
 
     def to_dict(self) -> dict:
         result: dict = {}
-        result["id"] = from_str(self.id)
+        result["id"] = str(self.id)
         result["key"] = from_str(self.key)
-        result["organizationId"] = from_str(self.organization_id)
+        result["organizationId"] = str(self.organization_id)
         return result
 
 
@@ -1084,23 +1085,23 @@ class ResponseForSecretIdentifierResponse:
 
 @dataclass
 class DatumElement:
-    id: str
+    id: UUID
     key: str
-    organization_id: str
+    organization_id: UUID
 
     @staticmethod
     def from_dict(obj: Any) -> 'DatumElement':
         assert isinstance(obj, dict)
-        id = from_str(obj.get("id"))
+        id = UUID(obj.get("id"))
         key = from_str(obj.get("key"))
-        organization_id = from_str(obj.get("organizationId"))
+        organization_id = UUID(obj.get("organizationId"))
         return DatumElement(id, key, organization_id)
 
     def to_dict(self) -> dict:
         result: dict = {}
-        result["id"] = from_str(self.id)
+        result["id"] = str(self.id)
         result["key"] = from_str(self.key)
-        result["organizationId"] = from_str(self.organization_id)
+        result["organizationId"] = str(self.organization_id)
         return result
 
 
@@ -1150,41 +1151,41 @@ class ResponseForSecretIdentifiersResponse:
 @dataclass
 class SecretResponse:
     creation_date: str
-    id: str
+    id: UUID
     key: str
     note: str
     object: str
-    organization_id: str
+    organization_id: UUID
     revision_date: str
     value: str
-    project_id: Optional[str] = None
+    project_id: Optional[UUID] = None
 
     @staticmethod
     def from_dict(obj: Any) -> 'SecretResponse':
         assert isinstance(obj, dict)
         creation_date = from_str(obj.get("creationDate"))
-        id = from_str(obj.get("id"))
+        id = UUID(obj.get("id"))
         key = from_str(obj.get("key"))
         note = from_str(obj.get("note"))
         object = from_str(obj.get("object"))
-        organization_id = from_str(obj.get("organizationId"))
+        organization_id = UUID(obj.get("organizationId"))
         revision_date = from_str(obj.get("revisionDate"))
         value = from_str(obj.get("value"))
-        project_id = from_union([from_none, from_str], obj.get("projectId"))
+        project_id = from_union([from_none, lambda x: UUID(x)], obj.get("projectId"))
         return SecretResponse(creation_date, id, key, note, object, organization_id, revision_date, value, project_id)
 
     def to_dict(self) -> dict:
         result: dict = {}
         result["creationDate"] = from_str(self.creation_date)
-        result["id"] = from_str(self.id)
+        result["id"] = str(self.id)
         result["key"] = from_str(self.key)
         result["note"] = from_str(self.note)
         result["object"] = from_str(self.object)
-        result["organizationId"] = from_str(self.organization_id)
+        result["organizationId"] = str(self.organization_id)
         result["revisionDate"] = from_str(self.revision_date)
         result["value"] = from_str(self.value)
         if self.project_id is not None:
-            result["projectId"] = from_union([from_none, from_str], self.project_id)
+            result["projectId"] = from_union([from_none, lambda x: str(x)], self.project_id)
         return result
 
 
@@ -1217,19 +1218,19 @@ class ResponseForSecretResponse:
 
 @dataclass
 class DatumClass:
-    id: str
+    id: UUID
     error: Optional[str] = None
 
     @staticmethod
     def from_dict(obj: Any) -> 'DatumClass':
         assert isinstance(obj, dict)
-        id = from_str(obj.get("id"))
+        id = UUID(obj.get("id"))
         error = from_union([from_none, from_str], obj.get("error"))
         return DatumClass(id, error)
 
     def to_dict(self) -> dict:
         result: dict = {}
-        result["id"] = from_str(self.id)
+        result["id"] = str(self.id)
         if self.error is not None:
             result["error"] = from_union([from_none, from_str], self.error)
         return result
@@ -1294,17 +1295,17 @@ class CipherDetailsResponse:
 
 @dataclass
 class ProfileOrganizationResponse:
-    id: str
+    id: UUID
 
     @staticmethod
     def from_dict(obj: Any) -> 'ProfileOrganizationResponse':
         assert isinstance(obj, dict)
-        id = from_str(obj.get("id"))
+        id = UUID(obj.get("id"))
         return ProfileOrganizationResponse(id)
 
     def to_dict(self) -> dict:
         result: dict = {}
-        result["id"] = from_str(self.id)
+        result["id"] = str(self.id)
         return result
 
 
@@ -1314,7 +1315,7 @@ class ProfileResponse:
     part of
     """
     email: str
-    id: str
+    id: UUID
     name: str
     organizations: List[ProfileOrganizationResponse]
 
@@ -1322,7 +1323,7 @@ class ProfileResponse:
     def from_dict(obj: Any) -> 'ProfileResponse':
         assert isinstance(obj, dict)
         email = from_str(obj.get("email"))
-        id = from_str(obj.get("id"))
+        id = UUID(obj.get("id"))
         name = from_str(obj.get("name"))
         organizations = from_list(ProfileOrganizationResponse.from_dict, obj.get("organizations"))
         return ProfileResponse(email, id, name, organizations)
@@ -1330,7 +1331,7 @@ class ProfileResponse:
     def to_dict(self) -> dict:
         result: dict = {}
         result["email"] = from_str(self.email)
-        result["id"] = from_str(self.id)
+        result["id"] = str(self.id)
         result["name"] = from_str(self.name)
         result["organizations"] = from_list(lambda x: to_class(ProfileOrganizationResponse, x), self.organizations)
         return result

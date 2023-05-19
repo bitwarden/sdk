@@ -11,8 +11,8 @@ use crate::{
         encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
     },
     commands::{
-        access_token_login, api_key_login, generate_fingerprint, get_user_api_key, password_login,
-        renew_token, sync,
+        access_token_login, api_key_login, generate_fingerprint, get_user_api_key,
+        login_with_password, renew_token, sync,
     },
     crypto::CipherString,
     error::{Error, Result},
@@ -128,7 +128,7 @@ impl Client {
         &mut self,
         input: &PasswordLoginRequest,
     ) -> Result<PasswordLoginResponse> {
-        password_login(self, input).await
+        login_with_password(self, input).await
     }
 
     pub async fn api_key_login(

@@ -30,7 +30,7 @@ use crate::{
     util::{decode_token, BASE64_ENGINE},
 };
 
-pub(crate) async fn password_login(
+pub(crate) async fn login_with_password(
     client: &mut Client,
     input: &PasswordLoginRequest,
 ) -> Result<PasswordLoginResponse> {

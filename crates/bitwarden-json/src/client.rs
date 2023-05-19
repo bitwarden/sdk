@@ -39,7 +39,7 @@ impl Client {
         };
 
         match cmd {
-            Command::PasswordLogin(req) => self.0.password_login(&req).await.into_string(),
+            Command::LoginWithPassword(req) => self.0.login_with_password(&req).await.into_string(),
             Command::AccessTokenLogin(req) => self.0.access_token_login(&req).await.into_string(),
             Command::GetUserApiKey(req) => self.0.get_user_api_key(&req).await.into_string(),
             Command::ApiKeyLogin(req) => self.0.api_key_login(&req).await.into_string(),

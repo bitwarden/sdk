@@ -124,7 +124,7 @@ impl Client {
         &self.__api_configurations
     }
 
-    pub async fn password_login(
+    pub async fn login_with_password(
         &mut self,
         input: &PasswordLoginRequest,
     ) -> Result<PasswordLoginResponse> {

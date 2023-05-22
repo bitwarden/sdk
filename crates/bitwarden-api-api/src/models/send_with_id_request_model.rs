@@ -11,7 +11,7 @@
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct SendWithIdRequestModel {
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-    pub _type: Option<crate::models::SendType>,
+    pub r#type: Option<crate::models::SendType>,
     #[serde(rename = "fileLength", skip_serializing_if = "Option::is_none")]
     pub file_length: Option<i64>,
     #[serde(rename = "name", skip_serializing_if = "Option::is_none")]
@@ -37,7 +37,7 @@ pub struct SendWithIdRequestModel {
     #[serde(rename = "hideEmail", skip_serializing_if = "Option::is_none")]
     pub hide_email: Option<bool>,
     #[serde(rename = "id")]
-    pub id: String,
+    pub id: uuid::Uuid,
 }
 
 impl SendWithIdRequestModel {
@@ -45,10 +45,10 @@ impl SendWithIdRequestModel {
         key: String,
         deletion_date: String,
         disabled: bool,
-        id: String,
+        id: uuid::Uuid,
     ) -> SendWithIdRequestModel {
         SendWithIdRequestModel {
-            _type: None,
+            r#type: None,
             file_length: None,
             name: None,
             notes: None,

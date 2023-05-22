@@ -13,11 +13,11 @@ pub struct DeviceResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
     #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
+    pub id: Option<uuid::Uuid>,
     #[serde(rename = "name", skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-    pub _type: Option<crate::models::DeviceType>,
+    pub r#type: Option<crate::models::DeviceType>,
     #[serde(rename = "identifier", skip_serializing_if = "Option::is_none")]
     pub identifier: Option<String>,
     #[serde(rename = "creationDate", skip_serializing_if = "Option::is_none")]
@@ -30,7 +30,7 @@ impl DeviceResponseModel {
             object: None,
             id: None,
             name: None,
-            _type: None,
+            r#type: None,
             identifier: None,
             creation_date: None,
         }

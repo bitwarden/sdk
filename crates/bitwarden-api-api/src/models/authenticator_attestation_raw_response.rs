@@ -15,7 +15,7 @@ pub struct AuthenticatorAttestationRawResponse {
     #[serde(rename = "rawId", skip_serializing_if = "Option::is_none")]
     pub raw_id: Option<String>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-    pub _type: Option<crate::models::PublicKeyCredentialType>,
+    pub r#type: Option<crate::models::PublicKeyCredentialType>,
     #[serde(rename = "response", skip_serializing_if = "Option::is_none")]
     pub response: Option<Box<crate::models::ResponseData>>,
     #[serde(rename = "extensions", skip_serializing_if = "Option::is_none")]
@@ -27,7 +27,7 @@ impl AuthenticatorAttestationRawResponse {
         AuthenticatorAttestationRawResponse {
             id: None,
             raw_id: None,
-            _type: None,
+            r#type: None,
             response: None,
             extensions: None,
         }

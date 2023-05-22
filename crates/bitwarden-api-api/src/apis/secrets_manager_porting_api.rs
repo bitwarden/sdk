@@ -29,7 +29,7 @@ pub enum SmOrganizationIdImportPostError {
 
 pub async fn sm_organization_id_export_get(
     configuration: &configuration::Configuration,
-    organization_id: &str,
+    organization_id: uuid::Uuid,
 ) -> Result<crate::models::SmExportResponseModel, Error<SmOrganizationIdExportGetError>> {
     let local_var_configuration = configuration;
 
@@ -73,7 +73,7 @@ pub async fn sm_organization_id_export_get(
 
 pub async fn sm_organization_id_import_post(
     configuration: &configuration::Configuration,
-    organization_id: &str,
+    organization_id: uuid::Uuid,
     sm_import_request_model: Option<crate::models::SmImportRequestModel>,
 ) -> Result<(), Error<SmOrganizationIdImportPostError>> {
     let local_var_configuration = configuration;

@@ -14,21 +14,21 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum LicenseType {
-    _0 = 0,
-    _1 = 1,
+    Variant0 = 0,
+    Variant1 = 1,
 }
 
 impl ToString for LicenseType {
     fn to_string(&self) -> String {
         match self {
-            Self::_0 => String::from("0"),
-            Self::_1 => String::from("1"),
+            Self::Variant0 => String::from("0"),
+            Self::Variant1 => String::from("1"),
         }
     }
 }
 
 impl Default for LicenseType {
     fn default() -> LicenseType {
-        Self::_0
+        Self::Variant0
     }
 }

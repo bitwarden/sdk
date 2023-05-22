@@ -114,7 +114,7 @@ impl TableSerialize<3> for ProjectResponse {
 
     fn get_values(&self) -> Vec<[String; 3]> {
         vec![[
-            self.id.clone(),
+            self.id.to_string(),
             self.name.clone(),
             format_date(&self.creation_date),
         ]]
@@ -128,7 +128,7 @@ impl TableSerialize<4> for SecretResponse {
 
     fn get_values(&self) -> Vec<[String; 4]> {
         vec![[
-            self.id.clone(),
+            self.id.to_string(),
             self.key.clone(),
             self.value.clone(),
             format_date(&self.creation_date),

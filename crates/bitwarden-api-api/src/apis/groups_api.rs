@@ -633,7 +633,7 @@ pub async fn organizations_org_id_groups_id_users_get(
     configuration: &configuration::Configuration,
     org_id: &str,
     id: &str,
-) -> Result<Vec<String>, Error<OrganizationsOrgIdGroupsIdUsersGetError>> {
+) -> Result<Vec<uuid::Uuid>, Error<OrganizationsOrgIdGroupsIdUsersGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -679,7 +679,7 @@ pub async fn organizations_org_id_groups_id_users_put(
     configuration: &configuration::Configuration,
     org_id: &str,
     id: &str,
-    request_body: Option<Vec<String>>,
+    uuid_colon_colon_uuid: Option<Vec<uuid::Uuid>>,
 ) -> Result<(), Error<OrganizationsOrgIdGroupsIdUsersPutError>> {
     let local_var_configuration = configuration;
 
@@ -701,7 +701,7 @@ pub async fn organizations_org_id_groups_id_users_put(
     if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
         local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
     };
-    local_var_req_builder = local_var_req_builder.json(&request_body);
+    local_var_req_builder = local_var_req_builder.json(&uuid_colon_colon_uuid);
 
     let local_var_req = local_var_req_builder.build()?;
     let local_var_resp = local_var_client.execute(local_var_req).await?;

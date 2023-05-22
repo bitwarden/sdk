@@ -8,6 +8,7 @@ use base64::Engine;
 use hmac::Mac;
 use rand::RngCore;
 use rsa::{pkcs8::DecodePrivateKey, Oaep, RsaPrivateKey};
+use uuid::Uuid;
 
 use crate::{
     client::auth_settings::AuthSettings,
@@ -77,7 +78,7 @@ impl TryFrom<&[u8]> for SymmetricCryptoKey {
 pub struct EncryptionSettings {
     user_key: SymmetricCryptoKey,
     private_key: Option<RsaPrivateKey>,
-    org_keys: HashMap<String, SymmetricCryptoKey>,
+    org_keys: HashMap<Uuid, SymmetricCryptoKey>,
 }
 
 // We manually implement these to make sure we don't print any sensitive data
@@ -141,7 +142,7 @@ impl EncryptionSettings {
 
     pub(crate) fn set_org_keys(
         &mut self,
-        org_enc_keys: Vec<(String, CipherString)>,
+        org_enc_keys: Vec<(Uuid, CipherString)>,
     ) -> Result<&mut Self> {
         let private_key = self.private_key.as_ref().ok_or(Error::VaultLocked)?;
 
@@ -164,14 +165,14 @@ impl EncryptionSettings {
         Ok(self)
     }
 
-    fn get_key(&self, org_id: Option<&str>) -> Option<&SymmetricCryptoKey> {
+    fn get_key(&self, org_id: Option<Uuid>) -> Option<&SymmetricCryptoKey> {
         // If we don't have a private key set (to decode multiple org keys), we just use the main user key
         if self.private_key.is_none() {
             return Some(&self.user_key);
         }
 
         match org_id {
-            Some(org_id) => match self.org_keys.get(org_id) {
+            Some(org_id) => match self.org_keys.get(&org_id) {
                 Some(k) => Some(k),
                 None => return None,
             },
@@ -179,18 +180,18 @@ impl EncryptionSettings {
         }
     }
 
-    pub fn decrypt(&self, cipher: &CipherString, org_id: Option<&str>) -> Result<Vec<u8>> {
+    pub fn decrypt(&self, cipher: &CipherString, org_id: Option<Uuid>) -> Result<Vec<u8>> {
         let key = self.get_key(org_id).ok_or(CryptoError::NoKeyForOrg)?;
         decrypt(cipher, key)
     }
 
-    pub fn decrypt_str(&self, cipher: &str, org_id: Option<&str>) -> Result<String> {
+    pub fn decrypt_str(&self, cipher: &str, org_id: Option<Uuid>) -> Result<String> {
         let cipher = CipherString::from_str(cipher)?;
         let dec = self.decrypt(&cipher, org_id)?;
         String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String.into())
     }
 
-    pub fn encrypt(&self, data: &[u8], org_id: Option<&str>) -> Result<CipherString> {
+    pub fn encrypt(&self, data: &[u8], org_id: Option<Uuid>) -> Result<CipherString> {
         let key = self.get_key(org_id).ok_or(CryptoError::NoKeyForOrg)?;
 
         let dec = encrypt_aes256(data, key.mac_key, key.key)?;

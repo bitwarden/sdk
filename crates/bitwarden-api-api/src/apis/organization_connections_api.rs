@@ -99,7 +99,7 @@ pub async fn organizations_connections_enabled_get(
 
 pub async fn organizations_connections_organization_connection_id_delete(
     configuration: &configuration::Configuration,
-    organization_connection_id: &str,
+    organization_connection_id: uuid::Uuid,
 ) -> Result<(), Error<OrganizationsConnectionsOrganizationConnectionIdDeleteError>> {
     let local_var_configuration = configuration;
 
@@ -143,7 +143,7 @@ pub async fn organizations_connections_organization_connection_id_delete(
 
 pub async fn organizations_connections_organization_connection_id_delete_post(
     configuration: &configuration::Configuration,
-    organization_connection_id: &str,
+    organization_connection_id: uuid::Uuid,
 ) -> Result<(), Error<OrganizationsConnectionsOrganizationConnectionIdDeletePostError>> {
     let local_var_configuration = configuration;
 
@@ -188,7 +188,7 @@ pub async fn organizations_connections_organization_connection_id_delete_post(
 
 pub async fn organizations_connections_organization_connection_id_put(
     configuration: &configuration::Configuration,
-    organization_connection_id: &str,
+    organization_connection_id: uuid::Uuid,
     organization_connection_request_model: Option<
         crate::models::OrganizationConnectionRequestModel,
     >,
@@ -239,8 +239,8 @@ pub async fn organizations_connections_organization_connection_id_put(
 
 pub async fn organizations_connections_organization_id_type_get(
     configuration: &configuration::Configuration,
-    organization_id: &str,
-    _type: crate::models::OrganizationConnectionType,
+    organization_id: uuid::Uuid,
+    r#type: crate::models::OrganizationConnectionType,
 ) -> Result<
     crate::models::OrganizationConnectionResponseModel,
     Error<OrganizationsConnectionsOrganizationIdTypeGetError>,
@@ -249,7 +249,7 @@ pub async fn organizations_connections_organization_id_type_get(
 
     let local_var_client = &local_var_configuration.client;
 
-    let local_var_uri_str = format!("{}/organizations/connections/{organizationId}/{type}", local_var_configuration.base_path, organizationId=crate::apis::urlencode(organization_id.to_string()), type=_type.to_string());
+    let local_var_uri_str = format!("{}/organizations/connections/{organizationId}/{type}", local_var_configuration.base_path, organizationId=crate::apis::urlencode(organization_id.to_string()), type=r#type.to_string());
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
 

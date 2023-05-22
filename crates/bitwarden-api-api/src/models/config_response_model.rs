@@ -20,6 +20,8 @@ pub struct ConfigResponseModel {
     pub server: Option<Box<crate::models::ServerConfigResponseModel>>,
     #[serde(rename = "environment", skip_serializing_if = "Option::is_none")]
     pub environment: Option<Box<crate::models::EnvironmentConfigResponseModel>>,
+    #[serde(rename = "featureStates", skip_serializing_if = "Option::is_none")]
+    pub feature_states: Option<::std::collections::HashMap<String, serde_json::Value>>,
 }
 
 impl ConfigResponseModel {
@@ -30,6 +32,7 @@ impl ConfigResponseModel {
             git_hash: None,
             server: None,
             environment: None,
+            feature_states: None,
         }
     }
 }

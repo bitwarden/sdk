@@ -11,9 +11,9 @@
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct BitPayInvoiceRequestModel {
     #[serde(rename = "userId", skip_serializing_if = "Option::is_none")]
-    pub user_id: Option<String>,
+    pub user_id: Option<uuid::Uuid>,
     #[serde(rename = "organizationId", skip_serializing_if = "Option::is_none")]
-    pub organization_id: Option<String>,
+    pub organization_id: Option<uuid::Uuid>,
     #[serde(rename = "credit", skip_serializing_if = "Option::is_none")]
     pub credit: Option<bool>,
     #[serde(rename = "amount")]

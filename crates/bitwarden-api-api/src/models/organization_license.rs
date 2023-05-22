@@ -13,9 +13,9 @@ pub struct OrganizationLicense {
     #[serde(rename = "licenseKey", skip_serializing_if = "Option::is_none")]
     pub license_key: Option<String>,
     #[serde(rename = "installationId", skip_serializing_if = "Option::is_none")]
-    pub installation_id: Option<String>,
+    pub installation_id: Option<uuid::Uuid>,
     #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
+    pub id: Option<uuid::Uuid>,
     #[serde(rename = "name", skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(rename = "billingEmail", skip_serializing_if = "Option::is_none")]

@@ -129,8 +129,8 @@ pub async fn organizations_licenses_self_hosted_id_sync_post(
 pub async fn organizations_licenses_self_hosted_post(
     configuration: &configuration::Configuration,
     key: &str,
-    keys_public_key: &str,
-    keys_encrypted_private_key: &str,
+    keys_period_public_key: &str,
+    keys_period_encrypted_private_key: &str,
     license: std::path::PathBuf,
     collection_name: Option<&str>,
 ) -> Result<crate::models::OrganizationResponseModel, Error<OrganizationsLicensesSelfHostedPostError>>
@@ -152,10 +152,10 @@ pub async fn organizations_licenses_self_hosted_post(
             local_var_req_builder.query(&[("collectionName", &local_var_str.to_string())]);
     }
     local_var_req_builder =
-        local_var_req_builder.query(&[("keys.publicKey", &keys_public_key.to_string())]);
+        local_var_req_builder.query(&[("keys.publicKey", &keys_period_public_key.to_string())]);
     local_var_req_builder = local_var_req_builder.query(&[(
         "keys.encryptedPrivateKey",
-        &keys_encrypted_private_key.to_string(),
+        &keys_period_encrypted_private_key.to_string(),
     )]);
     if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
         local_var_req_builder =

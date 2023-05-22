@@ -14,7 +14,7 @@ pub struct OrganizationSponsorshipResponseModel {
         rename = "sponsoringOrganizationUserId",
         skip_serializing_if = "Option::is_none"
     )]
-    pub sponsoring_organization_user_id: Option<String>,
+    pub sponsoring_organization_user_id: Option<uuid::Uuid>,
     #[serde(rename = "friendlyName", skip_serializing_if = "Option::is_none")]
     pub friendly_name: Option<String>,
     #[serde(rename = "offeredToEmail", skip_serializing_if = "Option::is_none")]

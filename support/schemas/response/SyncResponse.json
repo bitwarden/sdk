@@ -42,7 +42,8 @@
       ],
       "properties": {
         "id": {
-          "type": "string"
+          "type": "string",
+          "format": "uuid"
         }
       },
       "additionalProperties": false
@@ -60,7 +61,8 @@
           "type": "string"
         },
         "id": {
-          "type": "string"
+          "type": "string",
+          "format": "uuid"
         },
         "name": {
           "type": "string"

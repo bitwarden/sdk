@@ -1,8 +1,5 @@
-use std::str::FromStr;
-
 use crate::{
     client::Client,
-    crypto::CipherString,
     error::{Error, Result},
     sdk::{request::sync_request::SyncRequest, response::sync_response::SyncResponse},
 };
@@ -20,9 +17,8 @@ pub(crate) async fn sync(client: &mut Client, input: &SyncRequest) -> Result<Syn
         .as_deref()
         .unwrap_or_default()
         .iter()
-        .filter_map(|o| o.id.as_deref().zip(o.key.as_deref()))
-        .map(|(id, key)| CipherString::from_str(key).map(|k| (id.to_owned(), k)))
-        .collect::<Result<_, _>>()?;
+        .filter_map(|o| o.id.zip(o.key.as_deref().and_then(|k| k.parse().ok())))
+        .collect();
 
     let enc = client.initialize_org_crypto(org_keys)?;
 

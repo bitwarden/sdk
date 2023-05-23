@@ -29,7 +29,7 @@ pub enum Command {
     ///
     /// Returns: [PasswordLoginResponse](crate::sdk::auth::response::PasswordLoginResponse)
     ///
-    PasswordLogin(PasswordLoginRequest),
+    LoginWithPassword(PasswordLoginRequest),
 
     /// Login with API Key
     ///

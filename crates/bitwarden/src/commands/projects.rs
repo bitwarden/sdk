@@ -5,17 +5,10 @@ use crate::{
     error::{Error, Result},
     sdk::{
         request::projects_request::{
-            ProjectCreateRequest,
-            ProjectGetRequest,
+            ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
             ProjectsListRequest,
-            ProjectPutRequest,
-            ProjectsDeleteRequest
         },
-        response::projects_response::{
-            ProjectResponse,
-            ProjectsResponse,
-            ProjectsDeleteResponse
-        },
+        response::projects_response::{ProjectResponse, ProjectsDeleteResponse, ProjectsResponse},
     },
 };
 
@@ -47,7 +40,7 @@ pub(crate) async fn create_project(
     let org_id = Some(input.organization_id.as_str());
 
     let project = Some(ProjectCreateRequestModel {
-        name: enc.encrypt(input.name.as_bytes(), org_id)?.to_string()
+        name: enc.encrypt(input.name.as_bytes(), org_id)?.to_string(),
     });
 
     let config = client.get_api_configurations().await;
@@ -101,8 +94,9 @@ pub(crate) async fn update_project(
     });
 
     let config = client.get_api_configurations().await;
-    let res = bitwarden_api_api::apis::projects_api::projects_id_put(&config.api, &input.id, project)
-        .await?;
+    let res =
+        bitwarden_api_api::apis::projects_api::projects_id_put(&config.api, &input.id, project)
+            .await?;
 
     let enc = client
         .get_encryption_settings()

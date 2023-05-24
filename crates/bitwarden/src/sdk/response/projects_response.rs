@@ -1,8 +1,6 @@
 use bitwarden_api_api::models::{
-    ProjectResponseModel,
+    BulkDeleteResponseModel, BulkDeleteResponseModelListResponseModel, ProjectResponseModel,
     ProjectResponseModelListResponseModel,
-    BulkDeleteResponseModel,
-    BulkDeleteResponseModelListResponseModel,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

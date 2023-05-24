@@ -93,7 +93,7 @@ impl ProjectsDeleteResponse {
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ProjectDeleteResponse {
-    pub id: String,
+    pub id: Uuid,
     pub error: Option<String>,
 }
 

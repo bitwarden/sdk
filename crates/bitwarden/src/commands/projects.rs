@@ -37,7 +37,7 @@ pub(crate) async fn create_project(
         .as_ref()
         .ok_or(Error::VaultLocked)?;
 
-    let org_id = Some(input.organization_id.as_str());
+    let org_id = Some(input.organization_id);
 
     let project = Some(ProjectCreateRequestModel {
         name: enc.encrypt(input.name.as_bytes(), org_id)?.to_string(),
@@ -46,7 +46,7 @@ pub(crate) async fn create_project(
     let config = client.get_api_configurations().await;
     let res = bitwarden_api_api::apis::projects_api::organizations_organization_id_projects_post(
         &config.api,
-        &input.organization_id,
+        input.organization_id,
         project,
     )
     .await?;
@@ -87,7 +87,7 @@ pub(crate) async fn update_project(
         .as_ref()
         .ok_or(Error::VaultLocked)?;
 
-    let org_id = Some(input.organization_id.as_str());
+    let org_id = Some(input.organization_id);
 
     let project = Some(ProjectUpdateRequestModel {
         name: enc.encrypt(input.name.as_bytes(), org_id)?.to_string(),
@@ -95,7 +95,7 @@ pub(crate) async fn update_project(
 
     let config = client.get_api_configurations().await;
     let res =
-        bitwarden_api_api::apis::projects_api::projects_id_put(&config.api, &input.id, project)
+        bitwarden_api_api::apis::projects_api::projects_id_put(&config.api, input.id, project)
             .await?;
 
     let enc = client

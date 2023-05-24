@@ -13,7 +13,7 @@ pub struct ProjectGetRequest {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ProjectCreateRequest {
     /// Organization where the project will be created
-    pub organization_id: String,
+    pub organization_id: Uuid,
 
     pub name: String,
 }
@@ -22,9 +22,9 @@ pub struct ProjectCreateRequest {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ProjectPutRequest {
     /// ID of the project to modify
-    pub id: String,
+    pub id: Uuid,
     /// Organization ID of the project to modify
-    pub organization_id: String,
+    pub organization_id: Uuid,
 
     pub name: String,
 }
@@ -40,5 +40,5 @@ pub struct ProjectsListRequest {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ProjectsDeleteRequest {
     /// IDs of the projects to delete
-    pub ids: Vec<String>,
+    pub ids: Vec<Uuid>,
 }

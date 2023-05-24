@@ -14,21 +14,21 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum EventSystemUser {
-    _1 = 1,
-    _2 = 2,
+    Variant1 = 1,
+    Variant2 = 2,
 }
 
 impl ToString for EventSystemUser {
     fn to_string(&self) -> String {
         match self {
-            Self::_1 => String::from("1"),
-            Self::_2 => String::from("2"),
+            Self::Variant1 => String::from("1"),
+            Self::Variant2 => String::from("2"),
         }
     }
 }
 
 impl Default for EventSystemUser {
     fn default() -> EventSystemUser {
-        Self::_1
+        Self::Variant1
     }
 }

@@ -11,11 +11,11 @@
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct ProviderUserUpdateRequestModel {
     #[serde(rename = "type")]
-    pub _type: crate::models::ProviderUserType,
+    pub r#type: crate::models::ProviderUserType,
 }
 
 impl ProviderUserUpdateRequestModel {
-    pub fn new(_type: crate::models::ProviderUserType) -> ProviderUserUpdateRequestModel {
-        ProviderUserUpdateRequestModel { _type }
+    pub fn new(r#type: crate::models::ProviderUserType) -> ProviderUserUpdateRequestModel {
+        ProviderUserUpdateRequestModel { r#type }
     }
 }

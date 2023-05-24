@@ -27,6 +27,13 @@ pub enum OrganizationsOrganizationIdServiceAccountsPostError {
     UnknownValue(serde_json::Value),
 }
 
+/// struct for typed errors of method [`service_accounts_delete_post`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ServiceAccountsDeletePostError {
+    UnknownValue(serde_json::Value),
+}
+
 /// struct for typed errors of method [`service_accounts_id_access_tokens_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -48,6 +55,13 @@ pub enum ServiceAccountsIdAccessTokensRevokePostError {
     UnknownValue(serde_json::Value),
 }
 
+/// struct for typed errors of method [`service_accounts_id_get`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ServiceAccountsIdGetError {
+    UnknownValue(serde_json::Value),
+}
+
 /// struct for typed errors of method [`service_accounts_id_put`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -57,7 +71,7 @@ pub enum ServiceAccountsIdPutError {
 
 pub async fn organizations_organization_id_service_accounts_get(
     configuration: &configuration::Configuration,
-    organization_id: &str,
+    organization_id: uuid::Uuid,
 ) -> Result<
     crate::models::ServiceAccountResponseModelListResponseModel,
     Error<OrganizationsOrganizationIdServiceAccountsGetError>,
@@ -104,7 +118,7 @@ pub async fn organizations_organization_id_service_accounts_get(
 
 pub async fn organizations_organization_id_service_accounts_post(
     configuration: &configuration::Configuration,
-    organization_id: &str,
+    organization_id: uuid::Uuid,
     service_account_create_request_model: Option<crate::models::ServiceAccountCreateRequestModel>,
 ) -> Result<
     crate::models::ServiceAccountResponseModel,
@@ -151,9 +165,56 @@ pub async fn organizations_organization_id_service_accounts_post(
     }
 }
 
+pub async fn service_accounts_delete_post(
+    configuration: &configuration::Configuration,
+    uuid_colon_colon_uuid: Option<Vec<uuid::Uuid>>,
+) -> Result<
+    crate::models::BulkDeleteResponseModelListResponseModel,
+    Error<ServiceAccountsDeletePostError>,
+> {
+    let local_var_configuration = configuration;
+
+    let local_var_client = &local_var_configuration.client;
+
+    let local_var_uri_str = format!(
+        "{}/service-accounts/delete",
+        local_var_configuration.base_path
+    );
+    let mut local_var_req_builder =
+        local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
+
+    if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
+        local_var_req_builder =
+            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
+    }
+    if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
+        local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
+    };
+    local_var_req_builder = local_var_req_builder.json(&uuid_colon_colon_uuid);
+
+    let local_var_req = local_var_req_builder.build()?;
+    let local_var_resp = local_var_client.execute(local_var_req).await?;
+
+    let local_var_status = local_var_resp.status();
+    let local_var_content = local_var_resp.text().await?;
+
+    if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
+        serde_json::from_str(&local_var_content).map_err(Error::from)
+    } else {
+        let local_var_entity: Option<ServiceAccountsDeletePostError> =
+            serde_json::from_str(&local_var_content).ok();
+        let local_var_error = ResponseContent {
+            status: local_var_status,
+            content: local_var_content,
+            entity: local_var_entity,
+        };
+        Err(Error::ResponseError(local_var_error))
+    }
+}
+
 pub async fn service_accounts_id_access_tokens_get(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
 ) -> Result<
     crate::models::AccessTokenResponseModelListResponseModel,
     Error<ServiceAccountsIdAccessTokensGetError>,
@@ -200,7 +261,7 @@ pub async fn service_accounts_id_access_tokens_get(
 
 pub async fn service_accounts_id_access_tokens_post(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     access_token_create_request_model: Option<crate::models::AccessTokenCreateRequestModel>,
 ) -> Result<
     crate::models::AccessTokenCreationResponseModel,
@@ -249,7 +310,7 @@ pub async fn service_accounts_id_access_tokens_post(
 
 pub async fn service_accounts_id_access_tokens_revoke_post(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     revoke_access_tokens_request: Option<crate::models::RevokeAccessTokensRequest>,
 ) -> Result<(), Error<ServiceAccountsIdAccessTokensRevokePostError>> {
     let local_var_configuration = configuration;
@@ -293,9 +354,53 @@ pub async fn service_accounts_id_access_tokens_revoke_post(
     }
 }
 
+pub async fn service_accounts_id_get(
+    configuration: &configuration::Configuration,
+    id: uuid::Uuid,
+) -> Result<crate::models::ServiceAccountResponseModel, Error<ServiceAccountsIdGetError>> {
+    let local_var_configuration = configuration;
+
+    let local_var_client = &local_var_configuration.client;
+
+    let local_var_uri_str = format!(
+        "{}/service-accounts/{id}",
+        local_var_configuration.base_path,
+        id = crate::apis::urlencode(id.to_string())
+    );
+    let mut local_var_req_builder =
+        local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
+
+    if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
+        local_var_req_builder =
+            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
+    }
+    if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
+        local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
+    };
+
+    let local_var_req = local_var_req_builder.build()?;
+    let local_var_resp = local_var_client.execute(local_var_req).await?;
+
+    let local_var_status = local_var_resp.status();
+    let local_var_content = local_var_resp.text().await?;
+
+    if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
+        serde_json::from_str(&local_var_content).map_err(Error::from)
+    } else {
+        let local_var_entity: Option<ServiceAccountsIdGetError> =
+            serde_json::from_str(&local_var_content).ok();
+        let local_var_error = ResponseContent {
+            status: local_var_status,
+            content: local_var_content,
+            entity: local_var_entity,
+        };
+        Err(Error::ResponseError(local_var_error))
+    }
+}
+
 pub async fn service_accounts_id_put(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     service_account_update_request_model: Option<crate::models::ServiceAccountUpdateRequestModel>,
 ) -> Result<crate::models::ServiceAccountResponseModel, Error<ServiceAccountsIdPutError>> {
     let local_var_configuration = configuration;

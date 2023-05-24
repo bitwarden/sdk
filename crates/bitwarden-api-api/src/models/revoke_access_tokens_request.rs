@@ -11,11 +11,11 @@
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct RevokeAccessTokensRequest {
     #[serde(rename = "ids")]
-    pub ids: Vec<String>,
+    pub ids: Vec<uuid::Uuid>,
 }
 
 impl RevokeAccessTokensRequest {
-    pub fn new(ids: Vec<String>) -> RevokeAccessTokensRequest {
+    pub fn new(ids: Vec<uuid::Uuid>) -> RevokeAccessTokensRequest {
         RevokeAccessTokensRequest { ids }
     }
 }

@@ -13,7 +13,7 @@ pub struct ProfileProviderOrganizationResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
     #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
+    pub id: Option<uuid::Uuid>,
     #[serde(rename = "name", skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(rename = "usePolicies", skip_serializing_if = "Option::is_none")]
@@ -47,6 +47,11 @@ pub struct ProfileProviderOrganizationResponseModel {
         skip_serializing_if = "Option::is_none"
     )]
     pub use_custom_permissions: Option<bool>,
+    #[serde(
+        rename = "useActivateAutofillPolicy",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub use_activate_autofill_policy: Option<bool>,
     #[serde(rename = "selfHost", skip_serializing_if = "Option::is_none")]
     pub self_host: Option<bool>,
     #[serde(rename = "seats", skip_serializing_if = "Option::is_none")]
@@ -60,7 +65,7 @@ pub struct ProfileProviderOrganizationResponseModel {
     #[serde(rename = "status", skip_serializing_if = "Option::is_none")]
     pub status: Option<crate::models::OrganizationUserStatusType>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-    pub _type: Option<crate::models::OrganizationUserType>,
+    pub r#type: Option<crate::models::OrganizationUserType>,
     #[serde(rename = "enabled", skip_serializing_if = "Option::is_none")]
     pub enabled: Option<bool>,
     #[serde(rename = "ssoBound", skip_serializing_if = "Option::is_none")]
@@ -75,16 +80,18 @@ pub struct ProfileProviderOrganizationResponseModel {
     )]
     pub reset_password_enrolled: Option<bool>,
     #[serde(rename = "userId", skip_serializing_if = "Option::is_none")]
-    pub user_id: Option<String>,
+    pub user_id: Option<uuid::Uuid>,
     #[serde(
         rename = "hasPublicAndPrivateKeys",
         skip_serializing_if = "Option::is_none"
     )]
     pub has_public_and_private_keys: Option<bool>,
     #[serde(rename = "providerId", skip_serializing_if = "Option::is_none")]
-    pub provider_id: Option<String>,
+    pub provider_id: Option<uuid::Uuid>,
     #[serde(rename = "providerName", skip_serializing_if = "Option::is_none")]
     pub provider_name: Option<String>,
+    #[serde(rename = "providerType", skip_serializing_if = "Option::is_none")]
+    pub provider_type: Option<crate::models::ProviderType>,
     #[serde(
         rename = "familySponsorshipFriendlyName",
         skip_serializing_if = "Option::is_none"
@@ -146,13 +153,14 @@ impl ProfileProviderOrganizationResponseModel {
             use_secrets_manager: None,
             users_get_premium: None,
             use_custom_permissions: None,
+            use_activate_autofill_policy: None,
             self_host: None,
             seats: None,
             max_collections: None,
             max_storage_gb: None,
             key: None,
             status: None,
-            _type: None,
+            r#type: None,
             enabled: None,
             sso_bound: None,
             identifier: None,
@@ -162,6 +170,7 @@ impl ProfileProviderOrganizationResponseModel {
             has_public_and_private_keys: None,
             provider_id: None,
             provider_name: None,
+            provider_type: None,
             family_sponsorship_friendly_name: None,
             family_sponsorship_available: None,
             plan_product_type: None,

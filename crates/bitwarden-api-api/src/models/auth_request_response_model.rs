@@ -13,15 +13,13 @@ pub struct AuthRequestResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
     #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
+    pub id: Option<uuid::Uuid>,
     #[serde(rename = "publicKey", skip_serializing_if = "Option::is_none")]
     pub public_key: Option<String>,
     #[serde(rename = "requestDeviceType", skip_serializing_if = "Option::is_none")]
     pub request_device_type: Option<String>,
     #[serde(rename = "requestIpAddress", skip_serializing_if = "Option::is_none")]
     pub request_ip_address: Option<String>,
-    #[serde(rename = "requestFingerprint", skip_serializing_if = "Option::is_none")]
-    pub request_fingerprint: Option<String>,
     #[serde(rename = "key", skip_serializing_if = "Option::is_none")]
     pub key: Option<String>,
     #[serde(rename = "masterPasswordHash", skip_serializing_if = "Option::is_none")]
@@ -44,7 +42,6 @@ impl AuthRequestResponseModel {
             public_key: None,
             request_device_type: None,
             request_ip_address: None,
-            request_fingerprint: None,
             key: None,
             master_password_hash: None,
             creation_date: None,

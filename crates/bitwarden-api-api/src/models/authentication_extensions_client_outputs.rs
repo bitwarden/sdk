@@ -11,7 +11,7 @@
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct AuthenticationExtensionsClientOutputs {
     #[serde(rename = "example.extension", skip_serializing_if = "Option::is_none")]
-    pub example_extension: Option<serde_json::Value>,
+    pub example_period_extension: Option<serde_json::Value>,
     #[serde(rename = "appid", skip_serializing_if = "Option::is_none")]
     pub appid: Option<bool>,
     #[serde(rename = "authnSel", skip_serializing_if = "Option::is_none")]
@@ -25,7 +25,7 @@ pub struct AuthenticationExtensionsClientOutputs {
 impl AuthenticationExtensionsClientOutputs {
     pub fn new() -> AuthenticationExtensionsClientOutputs {
         AuthenticationExtensionsClientOutputs {
-            example_extension: None,
+            example_period_extension: None,
             appid: None,
             authn_sel: None,
             exts: None,

@@ -11,11 +11,11 @@
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct GroupBulkRequestModel {
     #[serde(rename = "ids")]
-    pub ids: Vec<String>,
+    pub ids: Vec<uuid::Uuid>,
 }
 
 impl GroupBulkRequestModel {
-    pub fn new(ids: Vec<String>) -> GroupBulkRequestModel {
+    pub fn new(ids: Vec<uuid::Uuid>) -> GroupBulkRequestModel {
         GroupBulkRequestModel { ids }
     }
 }

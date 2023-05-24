@@ -11,7 +11,7 @@
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct AccessPolicyRequest {
     #[serde(rename = "granteeId")]
-    pub grantee_id: String,
+    pub grantee_id: uuid::Uuid,
     #[serde(rename = "read")]
     pub read: bool,
     #[serde(rename = "write")]
@@ -19,7 +19,7 @@ pub struct AccessPolicyRequest {
 }
 
 impl AccessPolicyRequest {
-    pub fn new(grantee_id: String, read: bool, write: bool) -> AccessPolicyRequest {
+    pub fn new(grantee_id: uuid::Uuid, read: bool, write: bool) -> AccessPolicyRequest {
         AccessPolicyRequest {
             grantee_id,
             read,

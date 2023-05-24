@@ -130,7 +130,11 @@ pub(crate) async fn access_token_login(
         let access_token_obj = decode_token(&r.access_token)?;
 
         // This should always be Some() when logging in with an access token
-        let organization_id = access_token_obj.organization.ok_or(Error::MissingFields)?;
+        let organization_id = access_token_obj
+            .organization
+            .ok_or(Error::MissingFields)?
+            .parse()
+            .map_err(|_| Error::InvalidResponse)?;
 
         client.set_tokens(
             r.access_token.clone(),
@@ -194,7 +198,7 @@ async fn request_access_token(
     input: &AccessToken,
 ) -> Result<IdentityTokenResponse> {
     let config = client.get_api_configurations().await;
-    AccessTokenRequest::new(&input.service_account_id, &input.client_secret)
+    AccessTokenRequest::new(input.service_account_id, &input.client_secret)
         .send(&config)
         .await
 }
@@ -234,7 +238,7 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
                 client_secret,
                 ..
             } => {
-                AccessTokenRequest::new(&service_account_id, &client_secret)
+                AccessTokenRequest::new(*service_account_id, &client_secret)
                     .send(&client.__api_configurations)
                     .await?
             }

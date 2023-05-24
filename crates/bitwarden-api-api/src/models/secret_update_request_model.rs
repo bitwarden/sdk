@@ -17,7 +17,7 @@ pub struct SecretUpdateRequestModel {
     #[serde(rename = "note")]
     pub note: String,
     #[serde(rename = "projectIds", skip_serializing_if = "Option::is_none")]
-    pub project_ids: Option<Vec<String>>,
+    pub project_ids: Option<Vec<uuid::Uuid>>,
 }
 
 impl SecretUpdateRequestModel {

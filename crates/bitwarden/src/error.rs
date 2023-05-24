@@ -57,6 +57,8 @@ pub enum AccessTokenInvalidError {
     WrongParts,
     #[error("Is the wrong version")]
     WrongVersion,
+    #[error("Has an invalid identifier")]
+    InvalidUuid,
 
     #[error("Error decoding base64: {0}")]
     InvalidBase64(#[from] base64::DecodeError),

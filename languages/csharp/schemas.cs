@@ -246,7 +246,7 @@ namespace Bit.Sdk
         /// ID of the project to retrieve
         /// </summary>
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public Guid Id { get; set; }
     }
 
     public partial class ProjectsListRequest
@@ -255,7 +255,7 @@ namespace Bit.Sdk
         /// Organization to retrieve all the projects from
         /// </summary>
         [JsonProperty("organizationId")]
-        public string OrganizationId { get; set; }
+        public Guid OrganizationId { get; set; }
     }
 
     /// <summary>
@@ -317,7 +317,7 @@ namespace Bit.Sdk
         /// Organization where the secret will be created
         /// </summary>
         [JsonProperty("organizationId")]
-        public string OrganizationId { get; set; }
+        public Guid OrganizationId { get; set; }
 
         [JsonProperty("value")]
         public string Value { get; set; }
@@ -329,7 +329,7 @@ namespace Bit.Sdk
         /// IDs of the secrets to delete
         /// </summary>
         [JsonProperty("ids")]
-        public string[] Ids { get; set; }
+        public Guid[] Ids { get; set; }
     }
 
     public partial class SecretGetRequest
@@ -338,7 +338,7 @@ namespace Bit.Sdk
         /// ID of the secret to retrieve
         /// </summary>
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public Guid Id { get; set; }
     }
 
     public partial class SecretIdentifiersRequest
@@ -347,7 +347,7 @@ namespace Bit.Sdk
         /// Organization to retrieve all the secrets from
         /// </summary>
         [JsonProperty("organizationId")]
-        public string OrganizationId { get; set; }
+        public Guid OrganizationId { get; set; }
     }
 
     public partial class SecretPutRequest
@@ -356,7 +356,7 @@ namespace Bit.Sdk
         /// ID of the secret to modify
         /// </summary>
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public Guid Id { get; set; }
 
         [JsonProperty("key")]
         public string Key { get; set; }
@@ -368,7 +368,7 @@ namespace Bit.Sdk
         /// Organization ID of the secret to modify
         /// </summary>
         [JsonProperty("organizationId")]
-        public string OrganizationId { get; set; }
+        public Guid OrganizationId { get; set; }
 
         [JsonProperty("value")]
         public string Value { get; set; }
@@ -676,7 +676,7 @@ namespace Bit.Sdk
         public string Error { get; set; }
 
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public Guid Id { get; set; }
     }
 
     public partial class ResponseForSecretIdentifierResponse
@@ -703,13 +703,13 @@ namespace Bit.Sdk
     public partial class SecretIdentifierResponse
     {
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public Guid Id { get; set; }
 
         [JsonProperty("key")]
         public string Key { get; set; }
 
         [JsonProperty("organizationId")]
-        public string OrganizationId { get; set; }
+        public Guid OrganizationId { get; set; }
     }
 
     public partial class ResponseForSecretIdentifiersResponse
@@ -742,13 +742,13 @@ namespace Bit.Sdk
     public partial class DatumElement
     {
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public Guid Id { get; set; }
 
         [JsonProperty("key")]
         public string Key { get; set; }
 
         [JsonProperty("organizationId")]
-        public string OrganizationId { get; set; }
+        public Guid OrganizationId { get; set; }
     }
 
     public partial class ResponseForSecretResponse
@@ -778,7 +778,7 @@ namespace Bit.Sdk
         public string CreationDate { get; set; }
 
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public Guid Id { get; set; }
 
         [JsonProperty("key")]
         public string Key { get; set; }
@@ -790,10 +790,10 @@ namespace Bit.Sdk
         public string Object { get; set; }
 
         [JsonProperty("organizationId")]
-        public string OrganizationId { get; set; }
+        public Guid OrganizationId { get; set; }
 
         [JsonProperty("projectId")]
-        public string ProjectId { get; set; }
+        public Guid? ProjectId { get; set; }
 
         [JsonProperty("revisionDate")]
         public string RevisionDate { get; set; }
@@ -835,7 +835,7 @@ namespace Bit.Sdk
         public string Error { get; set; }
 
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public Guid Id { get; set; }
     }
 
     public partial class ResponseForSyncResponse
@@ -889,7 +889,7 @@ namespace Bit.Sdk
         public string Email { get; set; }
 
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public Guid Id { get; set; }
 
         [JsonProperty("name")]
         public string Name { get; set; }
@@ -901,7 +901,7 @@ namespace Bit.Sdk
     public partial class ProfileOrganizationResponse
     {
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public Guid Id { get; set; }
     }
 
     public partial class ResponseForUserApiKeyResponse

@@ -2195,7 +2195,8 @@ pub async fn accounts_verify_otp_post(
 pub async fn accounts_verify_password_post(
     configuration: &configuration::Configuration,
     secret_verification_request_model: Option<crate::models::SecretVerificationRequestModel>,
-) -> Result<(), Error<AccountsVerifyPasswordPostError>> {
+) -> Result<crate::models::MasterPasswordPolicyResponseModel, Error<AccountsVerifyPasswordPostError>>
+{
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -2223,7 +2224,7 @@ pub async fn accounts_verify_password_post(
     let local_var_content = local_var_resp.text().await?;
 
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
-        Ok(())
+        serde_json::from_str(&local_var_content).map_err(Error::from)
     } else {
         let local_var_entity: Option<AccountsVerifyPasswordPostError> =
             serde_json::from_str(&local_var_content).ok();

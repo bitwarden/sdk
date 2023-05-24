@@ -62,6 +62,13 @@ pub enum OrganizationsIdDeletePostError {
     UnknownValue(serde_json::Value),
 }
 
+/// struct for typed errors of method [`organizations_id_enroll_secrets_manager_post`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum OrganizationsIdEnrollSecretsManagerPostError {
+    UnknownValue(serde_json::Value),
+}
+
 /// struct for typed errors of method [`organizations_id_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -101,13 +108,6 @@ pub enum OrganizationsIdLeavePostError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationsIdLicenseGetError {
-    UnknownValue(serde_json::Value),
-}
-
-/// struct for typed errors of method [`organizations_id_license_post`]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum OrganizationsIdLicensePostError {
     UnknownValue(serde_json::Value),
 }
 
@@ -223,13 +223,6 @@ pub enum OrganizationsIdentifierAutoEnrollStatusGetError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`organizations_license_post`]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum OrganizationsLicensePostError {
-    UnknownValue(serde_json::Value),
-}
-
 /// struct for typed errors of method [`organizations_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -281,8 +274,8 @@ pub async fn organizations_get(
 
 pub async fn organizations_id_api_key_information_type_get(
     configuration: &configuration::Configuration,
-    id: &str,
-    _type: crate::models::OrganizationApiKeyType,
+    id: uuid::Uuid,
+    r#type: crate::models::OrganizationApiKeyType,
 ) -> Result<
     crate::models::OrganizationApiKeyInformationListResponseModel,
     Error<OrganizationsIdApiKeyInformationTypeGetError>,
@@ -291,7 +284,7 @@ pub async fn organizations_id_api_key_information_type_get(
 
     let local_var_client = &local_var_configuration.client;
 
-    let local_var_uri_str = format!("{}/organizations/{id}/api-key-information/{type}", local_var_configuration.base_path, id=crate::apis::urlencode(id.to_string()), type=_type.to_string());
+    let local_var_uri_str = format!("{}/organizations/{id}/api-key-information/{type}", local_var_configuration.base_path, id=crate::apis::urlencode(id.to_string()), type=r#type.to_string());
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
 
@@ -549,6 +542,55 @@ pub async fn organizations_id_delete_post(
     }
 }
 
+pub async fn organizations_id_enroll_secrets_manager_post(
+    configuration: &configuration::Configuration,
+    id: uuid::Uuid,
+    organization_enroll_secrets_manager_request_model: Option<
+        crate::models::OrganizationEnrollSecretsManagerRequestModel,
+    >,
+) -> Result<(), Error<OrganizationsIdEnrollSecretsManagerPostError>> {
+    let local_var_configuration = configuration;
+
+    let local_var_client = &local_var_configuration.client;
+
+    let local_var_uri_str = format!(
+        "{}/organizations/{id}/enroll-secrets-manager",
+        local_var_configuration.base_path,
+        id = crate::apis::urlencode(id.to_string())
+    );
+    let mut local_var_req_builder =
+        local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
+
+    if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
+        local_var_req_builder =
+            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
+    }
+    if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
+        local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
+    };
+    local_var_req_builder =
+        local_var_req_builder.json(&organization_enroll_secrets_manager_request_model);
+
+    let local_var_req = local_var_req_builder.build()?;
+    let local_var_resp = local_var_client.execute(local_var_req).await?;
+
+    let local_var_status = local_var_resp.status();
+    let local_var_content = local_var_resp.text().await?;
+
+    if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
+        Ok(())
+    } else {
+        let local_var_entity: Option<OrganizationsIdEnrollSecretsManagerPostError> =
+            serde_json::from_str(&local_var_content).ok();
+        let local_var_error = ResponseContent {
+            status: local_var_status,
+            content: local_var_content,
+            entity: local_var_entity,
+        };
+        Err(Error::ResponseError(local_var_error))
+    }
+}
+
 pub async fn organizations_id_get(
     configuration: &configuration::Configuration,
     id: &str,
@@ -778,7 +820,7 @@ pub async fn organizations_id_leave_post(
 pub async fn organizations_id_license_get(
     configuration: &configuration::Configuration,
     id: &str,
-    installation_id: Option<&str>,
+    installation_id: Option<uuid::Uuid>,
 ) -> Result<crate::models::OrganizationLicense, Error<OrganizationsIdLicenseGetError>> {
     let local_var_configuration = configuration;
 
@@ -814,54 +856,6 @@ pub async fn organizations_id_license_get(
         serde_json::from_str(&local_var_content).map_err(Error::from)
     } else {
         let local_var_entity: Option<OrganizationsIdLicenseGetError> =
-            serde_json::from_str(&local_var_content).ok();
-        let local_var_error = ResponseContent {
-            status: local_var_status,
-            content: local_var_content,
-            entity: local_var_entity,
-        };
-        Err(Error::ResponseError(local_var_error))
-    }
-}
-
-pub async fn organizations_id_license_post(
-    configuration: &configuration::Configuration,
-    id: &str,
-    license: std::path::PathBuf,
-) -> Result<(), Error<OrganizationsIdLicensePostError>> {
-    let local_var_configuration = configuration;
-
-    let local_var_client = &local_var_configuration.client;
-
-    let local_var_uri_str = format!(
-        "{}/organizations/{id}/license",
-        local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
-    );
-    let mut local_var_req_builder =
-        local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
-
-    if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
-        local_var_req_builder =
-            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
-    }
-    if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
-        local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
-    };
-    let mut local_var_form = reqwest::multipart::Form::new();
-    // TODO: support file upload for 'license' parameter
-    local_var_req_builder = local_var_req_builder.multipart(local_var_form);
-
-    let local_var_req = local_var_req_builder.build()?;
-    let local_var_resp = local_var_client.execute(local_var_req).await?;
-
-    let local_var_status = local_var_resp.status();
-    let local_var_content = local_var_resp.text().await?;
-
-    if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
-        Ok(())
-    } else {
-        let local_var_entity: Option<OrganizationsIdLicensePostError> =
             serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,
@@ -1148,7 +1142,7 @@ pub async fn organizations_id_seat_post(
 
 pub async fn organizations_id_sso_get(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
 ) -> Result<crate::models::OrganizationSsoResponseModel, Error<OrganizationsIdSsoGetError>> {
     let local_var_configuration = configuration;
 
@@ -1192,7 +1186,7 @@ pub async fn organizations_id_sso_get(
 
 pub async fn organizations_id_sso_post(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     organization_sso_request_model: Option<crate::models::OrganizationSsoRequestModel>,
 ) -> Result<crate::models::OrganizationSsoResponseModel, Error<OrganizationsIdSsoPostError>> {
     let local_var_configuration = configuration;
@@ -1601,67 +1595,6 @@ pub async fn organizations_identifier_auto_enroll_status_get(
         serde_json::from_str(&local_var_content).map_err(Error::from)
     } else {
         let local_var_entity: Option<OrganizationsIdentifierAutoEnrollStatusGetError> =
-            serde_json::from_str(&local_var_content).ok();
-        let local_var_error = ResponseContent {
-            status: local_var_status,
-            content: local_var_content,
-            entity: local_var_entity,
-        };
-        Err(Error::ResponseError(local_var_error))
-    }
-}
-
-pub async fn organizations_license_post(
-    configuration: &configuration::Configuration,
-    key: &str,
-    keys_public_key: &str,
-    keys_encrypted_private_key: &str,
-    license: std::path::PathBuf,
-    collection_name: Option<&str>,
-) -> Result<crate::models::OrganizationResponseModel, Error<OrganizationsLicensePostError>> {
-    let local_var_configuration = configuration;
-
-    let local_var_client = &local_var_configuration.client;
-
-    let local_var_uri_str = format!(
-        "{}/organizations/license",
-        local_var_configuration.base_path
-    );
-    let mut local_var_req_builder =
-        local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
-
-    local_var_req_builder = local_var_req_builder.query(&[("key", &key.to_string())]);
-    if let Some(ref local_var_str) = collection_name {
-        local_var_req_builder =
-            local_var_req_builder.query(&[("collectionName", &local_var_str.to_string())]);
-    }
-    local_var_req_builder =
-        local_var_req_builder.query(&[("keys.publicKey", &keys_public_key.to_string())]);
-    local_var_req_builder = local_var_req_builder.query(&[(
-        "keys.encryptedPrivateKey",
-        &keys_encrypted_private_key.to_string(),
-    )]);
-    if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
-        local_var_req_builder =
-            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
-    }
-    if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
-        local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
-    };
-    let mut local_var_form = reqwest::multipart::Form::new();
-    // TODO: support file upload for 'license' parameter
-    local_var_req_builder = local_var_req_builder.multipart(local_var_form);
-
-    let local_var_req = local_var_req_builder.build()?;
-    let local_var_resp = local_var_client.execute(local_var_req).await?;
-
-    let local_var_status = local_var_resp.status();
-    let local_var_content = local_var_resp.text().await?;
-
-    if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
-        serde_json::from_str(&local_var_content).map_err(Error::from)
-    } else {
-        let local_var_entity: Option<OrganizationsLicensePostError> =
             serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,

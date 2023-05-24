@@ -22,17 +22,17 @@ pub struct TwoFactorProviderRequestModel {
     #[serde(rename = "secret", skip_serializing_if = "Option::is_none")]
     pub secret: Option<String>,
     #[serde(rename = "type")]
-    pub _type: crate::models::TwoFactorProviderType,
+    pub r#type: crate::models::TwoFactorProviderType,
 }
 
 impl TwoFactorProviderRequestModel {
-    pub fn new(_type: crate::models::TwoFactorProviderType) -> TwoFactorProviderRequestModel {
+    pub fn new(r#type: crate::models::TwoFactorProviderType) -> TwoFactorProviderRequestModel {
         TwoFactorProviderRequestModel {
             master_password_hash: None,
             otp: None,
             auth_request_access_code: None,
             secret: None,
-            _type,
+            r#type,
         }
     }
 }

@@ -21,7 +21,7 @@ pub struct BillingTransaction {
     #[serde(rename = "refundedAmount", skip_serializing_if = "Option::is_none")]
     pub refunded_amount: Option<f64>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-    pub _type: Option<crate::models::TransactionType>,
+    pub r#type: Option<crate::models::TransactionType>,
     #[serde(rename = "paymentMethodType", skip_serializing_if = "Option::is_none")]
     pub payment_method_type: Option<crate::models::PaymentMethodType>,
     #[serde(rename = "details", skip_serializing_if = "Option::is_none")]
@@ -36,7 +36,7 @@ impl BillingTransaction {
             refunded: None,
             partially_refunded: None,
             refunded_amount: None,
-            _type: None,
+            r#type: None,
             payment_method_type: None,
             details: None,
         }

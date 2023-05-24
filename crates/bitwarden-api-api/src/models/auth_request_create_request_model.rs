@@ -19,9 +19,7 @@ pub struct AuthRequestCreateRequestModel {
     #[serde(rename = "accessCode")]
     pub access_code: String,
     #[serde(rename = "type")]
-    pub _type: crate::models::AuthRequestType,
-    #[serde(rename = "fingerprintPhrase")]
-    pub fingerprint_phrase: String,
+    pub r#type: crate::models::AuthRequestType,
 }
 
 impl AuthRequestCreateRequestModel {
@@ -30,16 +28,14 @@ impl AuthRequestCreateRequestModel {
         public_key: String,
         device_identifier: String,
         access_code: String,
-        _type: crate::models::AuthRequestType,
-        fingerprint_phrase: String,
+        r#type: crate::models::AuthRequestType,
     ) -> AuthRequestCreateRequestModel {
         AuthRequestCreateRequestModel {
             email,
             public_key,
             device_identifier,
             access_code,
-            _type,
-            fingerprint_phrase,
+            r#type,
         }
     }
 }

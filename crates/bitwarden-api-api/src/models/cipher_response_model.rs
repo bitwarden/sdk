@@ -13,11 +13,11 @@ pub struct CipherResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
     #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
+    pub id: Option<uuid::Uuid>,
     #[serde(rename = "organizationId", skip_serializing_if = "Option::is_none")]
-    pub organization_id: Option<String>,
+    pub organization_id: Option<uuid::Uuid>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-    pub _type: Option<crate::models::CipherType>,
+    pub r#type: Option<crate::models::CipherType>,
     #[serde(rename = "data", skip_serializing_if = "Option::is_none")]
     pub data: Option<serde_json::Value>,
     #[serde(rename = "name", skip_serializing_if = "Option::is_none")]
@@ -52,7 +52,7 @@ pub struct CipherResponseModel {
     #[serde(rename = "reprompt", skip_serializing_if = "Option::is_none")]
     pub reprompt: Option<crate::models::CipherRepromptType>,
     #[serde(rename = "folderId", skip_serializing_if = "Option::is_none")]
-    pub folder_id: Option<String>,
+    pub folder_id: Option<uuid::Uuid>,
     #[serde(rename = "favorite", skip_serializing_if = "Option::is_none")]
     pub favorite: Option<bool>,
     #[serde(rename = "edit", skip_serializing_if = "Option::is_none")]
@@ -67,7 +67,7 @@ impl CipherResponseModel {
             object: None,
             id: None,
             organization_id: None,
-            _type: None,
+            r#type: None,
             data: None,
             name: None,
             notes: None,

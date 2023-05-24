@@ -11,9 +11,9 @@
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct SecretsWithProjectsInnerSecret {
     #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
+    pub id: Option<uuid::Uuid>,
     #[serde(rename = "organizationId", skip_serializing_if = "Option::is_none")]
-    pub organization_id: Option<String>,
+    pub organization_id: Option<uuid::Uuid>,
     #[serde(rename = "key", skip_serializing_if = "Option::is_none")]
     pub key: Option<String>,
     #[serde(rename = "creationDate", skip_serializing_if = "Option::is_none")]
@@ -22,6 +22,10 @@ pub struct SecretsWithProjectsInnerSecret {
     pub revision_date: Option<String>,
     #[serde(rename = "projects", skip_serializing_if = "Option::is_none")]
     pub projects: Option<Vec<crate::models::SecretWithProjectsInnerProject>>,
+    #[serde(rename = "read", skip_serializing_if = "Option::is_none")]
+    pub read: Option<bool>,
+    #[serde(rename = "write", skip_serializing_if = "Option::is_none")]
+    pub write: Option<bool>,
 }
 
 impl SecretsWithProjectsInnerSecret {
@@ -33,6 +37,8 @@ impl SecretsWithProjectsInnerSecret {
             creation_date: None,
             revision_date: None,
             projects: None,
+            read: None,
+            write: None,
         }
     }
 }

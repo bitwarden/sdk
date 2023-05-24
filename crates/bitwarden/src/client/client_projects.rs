@@ -1,5 +1,3 @@
-use bitwarden_api_api::models::ProjectUpdateRequestModel;
-
 use crate::{
     commands::{create_project, delete_projects, get_project, list_projects, update_project},
     error::Result,

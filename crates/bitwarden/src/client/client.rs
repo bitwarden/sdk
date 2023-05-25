@@ -4,6 +4,7 @@ use log::debug;
 use reqwest::header::{self};
 use uuid::Uuid;
 
+#[allow(unused_imports)]
 use crate::{
     client::{
         auth_settings::AuthSettings,
@@ -125,6 +126,7 @@ impl Client {
         &self.__api_configurations
     }
 
+    #[cfg(feature = "internal")]
     pub async fn password_login(
         &mut self,
         input: &PasswordLoginRequest,
@@ -132,6 +134,7 @@ impl Client {
         password_login(self, input).await
     }
 
+    #[cfg(feature = "internal")]
     pub async fn api_key_login(
         &mut self,
         input: &ApiKeyLoginRequest,
@@ -146,10 +149,12 @@ impl Client {
         access_token_login(self, input).await
     }
 
+    #[cfg(feature = "internal")]
     pub async fn sync(&mut self, input: &SyncRequest) -> Result<SyncResponse> {
         sync(self, input).await
     }
 
+    #[cfg(feature = "internal")]
     pub async fn get_user_api_key(
         &mut self,
         input: &SecretVerificationRequest,
@@ -243,6 +248,7 @@ impl Client {
         Ok(self.encryption_settings.as_ref().unwrap())
     }
 
+    #[cfg(feature = "internal")]
     pub fn fingerprint(&mut self, input: &FingerprintRequest) -> Result<String> {
         generate_fingerprint(input)
     }

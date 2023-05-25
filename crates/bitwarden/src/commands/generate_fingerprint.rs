@@ -4,6 +4,7 @@ use crate::crypto::fingerprint;
 
 use crate::{error::Result, sdk::request::fingerprint_request::FingerprintRequest};
 
+#[allow(dead_code)]
 pub(crate) fn generate_fingerprint(input: &FingerprintRequest) -> Result<String> {
     info!("Generating fingerprint");
     debug!("{:?}", input);

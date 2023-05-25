@@ -4,6 +4,7 @@ use crate::{
     sdk::{request::sync_request::SyncRequest, response::sync_response::SyncResponse},
 };
 
+#[allow(dead_code)]
 pub(crate) async fn sync(client: &mut Client, input: &SyncRequest) -> Result<SyncResponse> {
     let config = client.get_api_configurations().await;
     let sync =

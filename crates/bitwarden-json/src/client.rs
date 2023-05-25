@@ -44,6 +44,7 @@ impl Client {
             Command::GetUserApiKey(req) => self.0.get_user_api_key(&req).await.into_string(),
             Command::ApiKeyLogin(req) => self.0.api_key_login(&req).await.into_string(),
             Command::Sync(req) => self.0.sync(&req).await.into_string(),
+            #[cfg(feature = "internal")]
             Command::Fingerprint(req) => self.0.fingerprint(&req).into_string(),
 
             Command::Secrets(cmd) => match cmd {

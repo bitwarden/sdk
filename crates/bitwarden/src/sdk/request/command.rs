@@ -14,6 +14,7 @@ use crate::sdk::{
     },
 };
 
+#[cfg(feature = "internal")]
 use super::fingerprint_request::FingerprintRequest;
 
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]
@@ -54,6 +55,7 @@ pub enum Command {
     ///
     GetUserApiKey(SecretVerificationRequest),
 
+    #[cfg(feature = "internal")]
     /// Get the user's passphrase
     ///
     /// Returns: String

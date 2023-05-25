@@ -9,17 +9,23 @@ use aes::cipher::{
 };
 use base64::Engine;
 use hmac::digest::OutputSizeUser;
-use num_bigint::BigUint;
-use num_traits::cast::ToPrimitive;
+
 use serde::{de::Visitor, Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 
 pub use crate::client::encryption_settings::{decrypt, encrypt_aes256, SymmetricCryptoKey};
 use crate::{
     error::{CSParseError, Error, Result},
     util::BASE64_ENGINE,
-    wordlist::EFF_LONG_WORD_LIST,
 };
+
+#[cfg(feature = "internal")]
+use crate::wordlist::EFF_LONG_WORD_LIST;
+#[cfg(feature = "internal")]
+use num_bigint::BigUint;
+#[cfg(feature = "internal")]
+use num_traits::cast::ToPrimitive;
+#[cfg(feature = "internal")]
+use sha2::{Digest, Sha256};
 
 #[allow(unused, non_camel_case_types)]
 pub enum CipherString {
@@ -282,6 +288,7 @@ pub(crate) fn stretch_key(secret: [u8; 16], name: &str, info: Option<&str>) -> S
     SymmetricCryptoKey::try_from(key.as_slice()).unwrap()
 }
 
+#[cfg(feature = "internal")]
 pub(crate) fn fingerprint(fingerprint_material: &str, public_key: &[u8]) -> Result<String> {
     let mut h = Sha256::new();
     h.update(public_key);
@@ -297,6 +304,7 @@ pub(crate) fn fingerprint(fingerprint_material: &str, public_key: &[u8]) -> Resu
     Ok(hash_word(user_fingerprint).unwrap())
 }
 
+#[cfg(feature = "internal")]
 fn hash_word(hash: [u8; 32]) -> Result<String> {
     let minimum_entropy = 64;
 
@@ -330,7 +338,7 @@ mod tests {
 
     use crate::crypto::{stretch_key_password, CipherString};
 
-    use super::{fingerprint, stretch_key};
+    use super::stretch_key;
 
     #[test]
     fn test_cipher_string_serialization() {
@@ -379,8 +387,11 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "internal")]
     #[test]
     fn test_fingerprint() {
+        use super::fingerprint;
+
         let user_id = "a09726a0-9590-49d1-a5f5-afe300b6a515";
         let key: &[u8] = &[
             48, 130, 1, 34, 48, 13, 6, 9, 42, 134, 72, 134, 247, 13, 1, 1, 1, 5, 0, 3, 130, 1, 15,

@@ -4,7 +4,10 @@ use serde::{Deserialize, Serialize};
 use crate::sdk::{
     auth::request::{AccessTokenLoginRequest, ApiKeyLoginRequest, PasswordLoginRequest},
     request::{
-        projects_request::{ProjectGetRequest, ProjectsListRequest},
+        projects_request::{
+            ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
+            ProjectsListRequest,
+        },
         secret_verification_request::SecretVerificationRequest,
         secrets_request::{
             SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretPutRequest,
@@ -128,9 +131,33 @@ pub enum ProjectsCommand {
 
     /// > Requires Authentication
     /// > Requires using an Access Token for login or calling Sync at least once
+    /// Creates a new project in the provided organization using the given data
+    ///
+    /// Returns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)
+    ///
+    Create(ProjectCreateRequest),
+
+    /// > Requires Authentication
+    /// > Requires using an Access Token for login or calling Sync at least once
     /// Lists all projects of the given organization
     ///
     /// Returns: [ProjectsResponse](crate::sdk::response::projects_response::ProjectsResponse)
     ///
     List(ProjectsListRequest),
+
+    /// > Requires Authentication
+    /// > Requires using an Access Token for login or calling Sync at least once
+    /// Updates an existing project with the provided ID using the given data
+    ///
+    /// Returns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)
+    ///
+    Update(ProjectPutRequest),
+
+    /// > Requires Authentication
+    /// > Requires using an Access Token for login or calling Sync at least once
+    /// Deletes all the projects whose IDs match the provided ones
+    ///
+    /// Returns: [ProjectsDeleteResponse](crate::sdk::response::projects_response::ProjectsDeleteResponse)
+    ///
+    Delete(ProjectsDeleteRequest),
 }

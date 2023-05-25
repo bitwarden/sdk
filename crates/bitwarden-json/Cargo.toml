@@ -14,7 +14,7 @@ edition = "2021"
 rust-version = "1.57"
 
 [features]
-internal = [] # Internal testing methods
+internal = ["bitwarden/internal"] # Internal testing methods
 
 [dependencies]
 schemars = "0.8.12"

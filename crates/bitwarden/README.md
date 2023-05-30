@@ -28,6 +28,7 @@ use bitwarden::{
         },
     },
 };
+use uuid::Uuid;
 
 async fn test() -> Result<()> {
     // Use the default values
@@ -46,7 +47,8 @@ async fn test() -> Result<()> {
     let token = AccessTokenLoginRequest { access_token: String::from("") };
     client.access_token_login(&token).await.unwrap();
 
-    let org_id = SecretIdentifiersRequest { organization_id: String::from("") };
+    // The "v4" feature must be enabled to use `new_v4()` in the uuid crate
+    let org_id = SecretIdentifiersRequest { organization_id: Uuid::new_v4() };
     println!("Stored secrets: {:#?}", client.secrets().list(&org_id).await.unwrap());
     Ok(())
 }

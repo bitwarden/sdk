@@ -40,7 +40,7 @@ jobs:
           override: true
 
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@060bda31e0be4f453bb6ed2d7e5427b31734ad01 # v2.3.0
+        uses: Swatinem/rust-cache@988c164c3d0e93c4dbab36aaf5bbeb77425b2894 # v2.4.0
 
       - name: Install cargo-release
         run: cargo install cargo-edit
@@ -52,7 +52,7 @@ jobs:
 
       - name: Retrieve secrets
         id: retrieve-secrets
-        uses: bitwarden/gh-actions/get-keyvault-secrets@f07c58ae6d120bcfbb01f695074aff45c41e7627
+        uses: bitwarden/gh-actions/get-keyvault-secrets@72594be690a4e7bfa87b1402b2aedc75acdbff12
         with:
           keyvault: "bitwarden-prod-kv"
           secrets: "github-gpg-private-key, github-gpg-private-key-passphrase"

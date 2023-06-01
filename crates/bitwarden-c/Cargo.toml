@@ -10,7 +10,7 @@ crate-type = ["lib", "staticlib", "cdylib"]
 bench = false
 
 [target.'cfg(not(target_arch="wasm32"))'.dependencies]
-tokio = { version = "1.28.1", features = ["rt-multi-thread", "macros"] }
+tokio = { version = "1.28.2", features = ["rt-multi-thread", "macros"] }
 
 bitwarden-json = { path = "../bitwarden-json" }
 

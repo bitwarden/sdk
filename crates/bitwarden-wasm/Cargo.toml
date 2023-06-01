@@ -15,7 +15,7 @@ wasm-bindgen = { version = "0.2.86", features = ["serde-serialize"] }
 wasm-bindgen-futures = "0.4.36"
 console_error_panic_hook = "0.1.7"
 console_log = { version = "1.0.0", features = ["color"] }
-log = "0.4.17"
+log = "0.4.18"
 
 bitwarden-json = { path = "../bitwarden-json" }
 

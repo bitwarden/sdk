@@ -92,8 +92,6 @@ enum GetCommand {
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
-    color_eyre::install()?;
-
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
     process_commands().await
@@ -105,6 +103,16 @@ const SERVER_URL_KEY_VAR_NAME: &str = "BWS_SERVER_URL";
 
 async fn process_commands() -> Result<()> {
     let cli = Cli::parse();
+
+    let color = cli.color.is_enabled();
+    if color {
+        color_eyre::install()?;
+    } else {
+        // Use an empty theme to disable error coloring
+        color_eyre::config::HookBuilder::new()
+            .theme(color_eyre::config::Theme::new())
+            .install()?;
+    }
 
     let Some(command) = cli.command else {
         let mut cmd = Cli::command();
@@ -198,7 +206,7 @@ async fn process_commands() -> Result<()> {
                 })
                 .await?
                 .data;
-            serialize_response(projects, cli.output, cli.color);
+            serialize_response(projects, cli.output, color);
         }
 
         Commands::List {
@@ -226,7 +234,7 @@ async fn process_commands() -> Result<()> {
                 let secret = client.secrets().get(&SecretGetRequest { id: s.id }).await?;
                 secrets.push(secret);
             }
-            serialize_response(secrets, cli.output, cli.color);
+            serialize_response(secrets, cli.output, color);
         }
 
         Commands::Get {
@@ -236,7 +244,7 @@ async fn process_commands() -> Result<()> {
                 .projects()
                 .get(&ProjectGetRequest { id: project_id })
                 .await?;
-            serialize_response(project, cli.output, cli.color);
+            serialize_response(project, cli.output, color);
         }
 
         Commands::Get {
@@ -246,7 +254,7 @@ async fn process_commands() -> Result<()> {
                 .secrets()
                 .get(&SecretGetRequest { id: secret_id })
                 .await?;
-            serialize_response(secret, cli.output, cli.color);
+            serialize_response(secret, cli.output, color);
         }
         Commands::Config { .. } => {
             unreachable!()

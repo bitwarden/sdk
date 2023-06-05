@@ -47,8 +47,7 @@ async fn test() -> Result<()> {
     let token = AccessTokenLoginRequest { access_token: String::from("") };
     client.access_token_login(&token).await.unwrap();
 
-    // The "v4" feature must be enabled to use `new_v4()` in the uuid crate
-    let org_id = SecretIdentifiersRequest { organization_id: Uuid::new_v4() };
+    let org_id = SecretIdentifiersRequest { organization_id: Uuid::parse_str("00000000-0000-0000-0000-000000000000").unwrap() };
     println!("Stored secrets: {:#?}", client.secrets().list(&org_id).await.unwrap());
     Ok(())
 }

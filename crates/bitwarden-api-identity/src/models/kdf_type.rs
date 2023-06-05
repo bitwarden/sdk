@@ -14,19 +14,21 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum KdfType {
-    _0 = 0,
+    Variant0 = 0,
+    Variant1 = 1,
 }
 
 impl ToString for KdfType {
     fn to_string(&self) -> String {
         match self {
-            Self::_0 => String::from("0"),
+            Self::Variant0 => String::from("0"),
+            Self::Variant1 => String::from("1"),
         }
     }
 }
 
 impl Default for KdfType {
     fn default() -> KdfType {
-        Self::_0
+        Self::Variant0
     }
 }

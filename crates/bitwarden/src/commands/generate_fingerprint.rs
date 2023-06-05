@@ -7,6 +7,7 @@ use crate::util::BASE64_ENGINE;
 use crate::{error::Result, sdk::request::fingerprint_request::FingerprintRequest};
 use base64::Engine;
 
+#[allow(dead_code)]
 pub(crate) fn generate_fingerprint(input: &FingerprintRequest) -> Result<FingerprintResponse> {
     info!("Generating fingerprint");
     debug!("{:?}", input);

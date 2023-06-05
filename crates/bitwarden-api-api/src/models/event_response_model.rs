@@ -13,34 +13,34 @@ pub struct EventResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-    pub _type: Option<crate::models::EventType>,
+    pub r#type: Option<crate::models::EventType>,
     #[serde(rename = "userId", skip_serializing_if = "Option::is_none")]
-    pub user_id: Option<String>,
+    pub user_id: Option<uuid::Uuid>,
     #[serde(rename = "organizationId", skip_serializing_if = "Option::is_none")]
-    pub organization_id: Option<String>,
+    pub organization_id: Option<uuid::Uuid>,
     #[serde(rename = "providerId", skip_serializing_if = "Option::is_none")]
-    pub provider_id: Option<String>,
+    pub provider_id: Option<uuid::Uuid>,
     #[serde(rename = "cipherId", skip_serializing_if = "Option::is_none")]
-    pub cipher_id: Option<String>,
+    pub cipher_id: Option<uuid::Uuid>,
     #[serde(rename = "collectionId", skip_serializing_if = "Option::is_none")]
-    pub collection_id: Option<String>,
+    pub collection_id: Option<uuid::Uuid>,
     #[serde(rename = "groupId", skip_serializing_if = "Option::is_none")]
-    pub group_id: Option<String>,
+    pub group_id: Option<uuid::Uuid>,
     #[serde(rename = "policyId", skip_serializing_if = "Option::is_none")]
-    pub policy_id: Option<String>,
+    pub policy_id: Option<uuid::Uuid>,
     #[serde(rename = "organizationUserId", skip_serializing_if = "Option::is_none")]
-    pub organization_user_id: Option<String>,
+    pub organization_user_id: Option<uuid::Uuid>,
     #[serde(rename = "providerUserId", skip_serializing_if = "Option::is_none")]
-    pub provider_user_id: Option<String>,
+    pub provider_user_id: Option<uuid::Uuid>,
     #[serde(
         rename = "providerOrganizationId",
         skip_serializing_if = "Option::is_none"
     )]
-    pub provider_organization_id: Option<String>,
+    pub provider_organization_id: Option<uuid::Uuid>,
     #[serde(rename = "actingUserId", skip_serializing_if = "Option::is_none")]
-    pub acting_user_id: Option<String>,
+    pub acting_user_id: Option<uuid::Uuid>,
     #[serde(rename = "installationId", skip_serializing_if = "Option::is_none")]
-    pub installation_id: Option<String>,
+    pub installation_id: Option<uuid::Uuid>,
     #[serde(rename = "date", skip_serializing_if = "Option::is_none")]
     pub date: Option<String>,
     #[serde(rename = "deviceType", skip_serializing_if = "Option::is_none")]
@@ -51,13 +51,17 @@ pub struct EventResponseModel {
     pub system_user: Option<crate::models::EventSystemUser>,
     #[serde(rename = "domainName", skip_serializing_if = "Option::is_none")]
     pub domain_name: Option<String>,
+    #[serde(rename = "secretId", skip_serializing_if = "Option::is_none")]
+    pub secret_id: Option<uuid::Uuid>,
+    #[serde(rename = "serviceAccountId", skip_serializing_if = "Option::is_none")]
+    pub service_account_id: Option<uuid::Uuid>,
 }
 
 impl EventResponseModel {
     pub fn new() -> EventResponseModel {
         EventResponseModel {
             object: None,
-            _type: None,
+            r#type: None,
             user_id: None,
             organization_id: None,
             provider_id: None,
@@ -75,6 +79,8 @@ impl EventResponseModel {
             ip_address: None,
             system_user: None,
             domain_name: None,
+            secret_id: None,
+            service_account_id: None,
         }
     }
 }

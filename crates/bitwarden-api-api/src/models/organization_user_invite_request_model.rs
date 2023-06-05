@@ -13,7 +13,7 @@ pub struct OrganizationUserInviteRequestModel {
     #[serde(rename = "emails")]
     pub emails: Vec<String>,
     #[serde(rename = "type")]
-    pub _type: crate::models::OrganizationUserType,
+    pub r#type: crate::models::OrganizationUserType,
     #[serde(rename = "accessAll", skip_serializing_if = "Option::is_none")]
     pub access_all: Option<bool>,
     #[serde(
@@ -26,17 +26,17 @@ pub struct OrganizationUserInviteRequestModel {
     #[serde(rename = "collections", skip_serializing_if = "Option::is_none")]
     pub collections: Option<Vec<crate::models::SelectionReadOnlyRequestModel>>,
     #[serde(rename = "groups", skip_serializing_if = "Option::is_none")]
-    pub groups: Option<Vec<String>>,
+    pub groups: Option<Vec<uuid::Uuid>>,
 }
 
 impl OrganizationUserInviteRequestModel {
     pub fn new(
         emails: Vec<String>,
-        _type: crate::models::OrganizationUserType,
+        r#type: crate::models::OrganizationUserType,
     ) -> OrganizationUserInviteRequestModel {
         OrganizationUserInviteRequestModel {
             emails,
-            _type,
+            r#type,
             access_all: None,
             access_secrets_manager: None,
             permissions: None,

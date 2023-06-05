@@ -4,6 +4,7 @@ use bitwarden_api_api::models::{
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
@@ -14,9 +15,9 @@ use crate::{
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SecretResponse {
     pub object: String,
-    pub id: String,
-    pub organization_id: String,
-    pub project_id: Option<String>,
+    pub id: Uuid,
+    pub organization_id: Uuid,
+    pub project_id: Option<Uuid>,
 
     pub key: String,
     pub value: String,
@@ -31,18 +32,11 @@ impl SecretResponse {
         response: SecretResponseModel,
         enc: &EncryptionSettings,
     ) -> Result<SecretResponse> {
-        let key = enc.decrypt_str(
-            &response.key.ok_or(Error::MissingFields)?,
-            response.organization_id.as_deref(),
-        )?;
-        let value = enc.decrypt_str(
-            &response.value.ok_or(Error::MissingFields)?,
-            response.organization_id.as_deref(),
-        )?;
-        let note = enc.decrypt_str(
-            &response.note.ok_or(Error::MissingFields)?,
-            response.organization_id.as_deref(),
-        )?;
+        let org_id = response.organization_id;
+
+        let key = enc.decrypt_str(&response.key.ok_or(Error::MissingFields)?, org_id)?;
+        let value = enc.decrypt_str(&response.value.ok_or(Error::MissingFields)?, org_id)?;
+        let note = enc.decrypt_str(&response.note.ok_or(Error::MissingFields)?, org_id)?;
 
         let project = response
             .projects
@@ -52,7 +46,7 @@ impl SecretResponse {
         Ok(SecretResponse {
             object: "secret".to_owned(),
             id: response.id.ok_or(Error::MissingFields)?,
-            organization_id: response.organization_id.ok_or(Error::MissingFields)?,
+            organization_id: org_id.ok_or(Error::MissingFields)?,
             project_id: project,
             key,
             value,
@@ -89,8 +83,8 @@ impl SecretIdentifiersResponse {
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SecretIdentifierResponse {
-    pub id: String,
-    pub organization_id: String,
+    pub id: Uuid,
+    pub organization_id: Uuid,
 
     pub key: String,
 }
@@ -100,14 +94,16 @@ impl SecretIdentifierResponse {
         response: SecretsWithProjectsInnerSecret,
         enc: &EncryptionSettings,
     ) -> Result<SecretIdentifierResponse> {
+        let organization_id = response.organization_id.ok_or(Error::MissingFields)?;
+
         let key = enc.decrypt_str(
             &response.key.ok_or(Error::MissingFields)?,
-            response.organization_id.as_deref(),
+            Some(organization_id),
         )?;
 
         Ok(SecretIdentifierResponse {
             id: response.id.ok_or(Error::MissingFields)?,
-            organization_id: response.organization_id.ok_or(Error::MissingFields)?,
+            organization_id,
             key,
         })
     }
@@ -137,7 +133,7 @@ impl SecretsDeleteResponse {
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SecretDeleteResponse {
-    pub id: String,
+    pub id: Uuid,
     pub error: Option<String>,
 }
 

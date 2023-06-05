@@ -11,7 +11,7 @@
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct ImportOrganizationCiphersRequestModel {
     #[serde(rename = "collections", skip_serializing_if = "Option::is_none")]
-    pub collections: Option<Vec<crate::models::CollectionRequestModel>>,
+    pub collections: Option<Vec<crate::models::CollectionWithIdRequestModel>>,
     #[serde(rename = "ciphers", skip_serializing_if = "Option::is_none")]
     pub ciphers: Option<Vec<crate::models::CipherRequestModel>>,
     #[serde(

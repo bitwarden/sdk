@@ -32,11 +32,16 @@ impl AuthSettings {
 
     pub fn make_password_hash(&self, password: &str, salt: &str) -> String {
         let hash = match self.kdf_type {
-            KdfType::_0 => pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(
-                password.as_bytes(),
-                salt.as_bytes(),
-                self.kdf_iterations.get(),
-            ),
+            KdfType::Variant0 => {
+                pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(
+                    password.as_bytes(),
+                    salt.as_bytes(),
+                    self.kdf_iterations.get(),
+                )
+            }
+            KdfType::Variant1 => {
+                todo!("Implement argon2id")
+            }
         }
         .unwrap();
 
@@ -61,8 +66,10 @@ mod tests {
     #[test]
     fn test_password_hash() {
         let res = PreloginResponseModel {
-            kdf: Some(KdfType::_0),
+            kdf: Some(KdfType::Variant0),
             kdf_iterations: Some(100_000),
+            kdf_memory: None,
+            kdf_parallelism: None,
         };
         let settings = AuthSettings::new(res, "test@bitwarden.com".into());
 

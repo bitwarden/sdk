@@ -11,13 +11,13 @@
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct ProviderUserBulkConfirmRequestModelEntry {
     #[serde(rename = "id")]
-    pub id: String,
+    pub id: uuid::Uuid,
     #[serde(rename = "key")]
     pub key: String,
 }
 
 impl ProviderUserBulkConfirmRequestModelEntry {
-    pub fn new(id: String, key: String) -> ProviderUserBulkConfirmRequestModelEntry {
+    pub fn new(id: uuid::Uuid, key: String) -> ProviderUserBulkConfirmRequestModelEntry {
         ProviderUserBulkConfirmRequestModelEntry { id, key }
     }
 }

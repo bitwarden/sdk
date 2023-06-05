@@ -13,7 +13,7 @@ pub struct FolderWithIdRequestModel {
     #[serde(rename = "name")]
     pub name: String,
     #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
+    pub id: Option<uuid::Uuid>,
 }
 
 impl FolderWithIdRequestModel {

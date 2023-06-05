@@ -28,6 +28,7 @@ use crate::{
     util::{decode_token, BASE64_ENGINE},
 };
 
+#[allow(dead_code)]
 pub(crate) async fn password_login(
     client: &mut Client,
     input: &PasswordLoginRequest,
@@ -57,6 +58,7 @@ pub(crate) async fn password_login(
     PasswordLoginResponse::process_response(response)
 }
 
+#[allow(dead_code)]
 pub(crate) async fn api_key_login(
     client: &mut Client,
     input: &ApiKeyLoginRequest,
@@ -128,7 +130,11 @@ pub(crate) async fn access_token_login(
         let access_token_obj = decode_token(&r.access_token)?;
 
         // This should always be Some() when logging in with an access token
-        let organization_id = access_token_obj.organization.ok_or(Error::MissingFields)?;
+        let organization_id = access_token_obj
+            .organization
+            .ok_or(Error::MissingFields)?
+            .parse()
+            .map_err(|_| Error::InvalidResponse)?;
 
         client.set_tokens(
             r.access_token.clone(),
@@ -177,6 +183,7 @@ async fn request_identity_tokens(
         .await
 }
 
+#[allow(dead_code)]
 async fn request_api_identity_tokens(
     client: &mut Client,
     input: &ApiKeyLoginRequest,
@@ -192,7 +199,7 @@ async fn request_access_token(
     input: &AccessToken,
 ) -> Result<IdentityTokenResponse> {
     let config = client.get_api_configurations().await;
-    AccessTokenRequest::new(&input.service_account_id, &input.client_secret)
+    AccessTokenRequest::new(input.service_account_id, &input.client_secret)
         .send(&config)
         .await
 }
@@ -232,7 +239,7 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
                 client_secret,
                 ..
             } => {
-                AccessTokenRequest::new(&service_account_id, &client_secret)
+                AccessTokenRequest::new(*service_account_id, &client_secret)
                     .send(&client.__api_configurations)
                     .await?
             }

@@ -16,7 +16,7 @@ pub struct UpdateDomainsRequestModel {
         rename = "excludedGlobalEquivalentDomains",
         skip_serializing_if = "Option::is_none"
     )]
-    pub excluded_global_equivalent_domains: Option<Vec<i32>>,
+    pub excluded_global_equivalent_domains: Option<Vec<crate::models::GlobalEquivalentDomainsType>>,
 }
 
 impl UpdateDomainsRequestModel {

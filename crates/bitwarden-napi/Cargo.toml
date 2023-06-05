@@ -18,7 +18,7 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 napi = {version="2", features=["async"]}
 napi-derive = "2"
-log = "0.4.17"
+log = "0.4.18"
 env_logger="0.10.0"
 
 bitwarden-json = { path = "../bitwarden-json", version = "0.2.1" }

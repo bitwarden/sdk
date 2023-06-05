@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
 use base64::Engine;
+use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::SymmetricCryptoKey, error::AccessTokenInvalidError,
@@ -8,7 +9,7 @@ use crate::{
 };
 
 pub struct AccessToken {
-    pub service_account_id: String,
+    pub service_account_id: Uuid,
     pub client_secret: String,
     pub encryption_key: SymmetricCryptoKey,
 }
@@ -30,6 +31,8 @@ impl FromStr for AccessToken {
             return Err(AccessTokenInvalidError::WrongVersion.into());
         }
 
+        let Ok(service_account_id) = service_account_id.parse() else { return Err(AccessTokenInvalidError::InvalidUuid.into()) };
+
         let encryption_key = BASE64_ENGINE
             .decode(encryption_key)
             .map_err(AccessTokenInvalidError::InvalidBase64)?;
@@ -43,7 +46,7 @@ impl FromStr for AccessToken {
             crate::crypto::stretch_key(encryption_key, "accesstoken", Some("sm-access-token"));
 
         Ok(AccessToken {
-            service_account_id: service_account_id.to_owned(),
+            service_account_id: service_account_id,
             client_secret: client_secret.to_owned(),
             encryption_key,
         })
@@ -62,7 +65,7 @@ mod tests {
         let token = AccessToken::from_str(access_token).unwrap();
 
         assert_eq!(
-            &token.service_account_id,
+            &token.service_account_id.to_string(),
             "ec2c1d46-6a4b-4751-a310-af9601317f2d"
         );
         assert_eq!(token.client_secret, "C2IgxjjLF7qSshsbwe8JGcbM075YXw");

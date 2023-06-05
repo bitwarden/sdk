@@ -13,8 +13,7 @@ pub(crate) async fn get_project(
 ) -> Result<ProjectResponse> {
     let config = client.get_api_configurations().await;
 
-    let res =
-        bitwarden_api_api::apis::projects_api::projects_id_get(&config.api, &input.id).await?;
+    let res = bitwarden_api_api::apis::projects_api::projects_id_get(&config.api, input.id).await?;
 
     let enc = client
         .get_encryption_settings()
@@ -31,7 +30,7 @@ pub(crate) async fn list_projects(
     let config = client.get_api_configurations().await;
     let res = bitwarden_api_api::apis::projects_api::organizations_organization_id_projects_get(
         &config.api,
-        &input.organization_id,
+        input.organization_id,
     )
     .await?;
 

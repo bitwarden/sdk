@@ -11,7 +11,7 @@
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct CipherFieldModel {
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-    pub _type: Option<crate::models::FieldType>,
+    pub r#type: Option<crate::models::FieldType>,
     #[serde(rename = "name", skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(rename = "value", skip_serializing_if = "Option::is_none")]
@@ -23,7 +23,7 @@ pub struct CipherFieldModel {
 impl CipherFieldModel {
     pub fn new() -> CipherFieldModel {
         CipherFieldModel {
-            _type: None,
+            r#type: None,
             name: None,
             value: None,
             linked_id: None,

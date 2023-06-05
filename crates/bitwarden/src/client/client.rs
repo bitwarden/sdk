@@ -3,7 +3,9 @@ use std::time::Duration;
 use instant::Instant;
 use log::debug;
 use reqwest::header::{self};
+use uuid::Uuid;
 
+#[allow(unused_imports)]
 use crate::{
     client::{
         auth_settings::AuthSettings,
@@ -53,9 +55,9 @@ pub(crate) enum LoginMethod {
         client_secret: String,
     },
     AccessToken {
-        service_account_id: String,
+        service_account_id: Uuid,
         client_secret: String,
-        organization_id: String,
+        organization_id: Uuid,
     },
 }
 
@@ -123,8 +125,8 @@ impl Client {
             auth_settings: settings.internal.map(|s| AuthSettings {
                 email: s.email,
                 kdf_type: match s.kdf_type {
-                    KdfType::Pbkdf2Sha256 => bitwarden_api_identity::models::KdfType::_0,
-                    KdfType::Argon2id => bitwarden_api_identity::models::KdfType::_0,
+                    KdfType::Pbkdf2Sha256 => bitwarden_api_identity::models::KdfType::Variant0,
+                    KdfType::Argon2id => bitwarden_api_identity::models::KdfType::Variant0,
                 },
                 kdf_iterations: s.kdf_iterations,
             }),
@@ -139,6 +141,7 @@ impl Client {
         &self.__api_configurations
     }
 
+    #[cfg(feature = "internal")]
     pub async fn password_login(
         &mut self,
         input: &PasswordLoginRequest,
@@ -146,6 +149,7 @@ impl Client {
         password_login(self, input).await
     }
 
+    #[cfg(feature = "internal")]
     pub async fn api_key_login(
         &mut self,
         input: &ApiKeyLoginRequest,
@@ -160,10 +164,12 @@ impl Client {
         access_token_login(self, input).await
     }
 
+    #[cfg(feature = "internal")]
     pub async fn sync(&mut self, input: &SyncRequest) -> Result<SyncResponse> {
         sync(self, input).await
     }
 
+    #[cfg(feature = "internal")]
     pub async fn get_user_api_key(
         &mut self,
         input: &SecretVerificationRequest,
@@ -175,11 +181,11 @@ impl Client {
         &self.auth_settings
     }
 
-    pub fn get_access_token_organization(&self) -> Option<String> {
+    pub fn get_access_token_organization(&self) -> Option<Uuid> {
         match &self.login_method {
             Some(LoginMethod::AccessToken {
                 organization_id, ..
-            }) => Some(organization_id.clone()),
+            }) => Some(*organization_id),
             _ => None,
         }
     }
@@ -246,7 +252,7 @@ impl Client {
 
     pub(crate) fn initialize_org_crypto(
         &mut self,
-        org_keys: Vec<(String, CipherString)>,
+        org_keys: Vec<(Uuid, CipherString)>,
     ) -> Result<&EncryptionSettings> {
         let enc = self
             .encryption_settings
@@ -257,6 +263,7 @@ impl Client {
         Ok(self.encryption_settings.as_ref().unwrap())
     }
 
+    #[cfg(feature = "internal")]
     pub fn fingerprint(&mut self, input: &FingerprintRequest) -> Result<FingerprintResponse> {
         generate_fingerprint(input)
     }
@@ -340,7 +347,10 @@ mod tests {
             .unwrap();
         assert!(res.authenticated);
         let organization_id = client.get_access_token_organization().unwrap();
-        assert_eq!(organization_id, "f4e44a7f-1190-432a-9d4a-af96013127cb");
+        assert_eq!(
+            organization_id.to_string(),
+            "f4e44a7f-1190-432a-9d4a-af96013127cb"
+        );
 
         // Test that we can retrieve the list of secrets correctly
         let mut res = client

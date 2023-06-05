@@ -11,7 +11,7 @@
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct CipherWithIdRequestModel {
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-    pub _type: Option<crate::models::CipherType>,
+    pub r#type: Option<crate::models::CipherType>,
     #[serde(rename = "organizationId", skip_serializing_if = "Option::is_none")]
     pub organization_id: Option<String>,
     #[serde(rename = "folderId", skip_serializing_if = "Option::is_none")]
@@ -47,13 +47,13 @@ pub struct CipherWithIdRequestModel {
     )]
     pub last_known_revision_date: Option<String>,
     #[serde(rename = "id")]
-    pub id: String,
+    pub id: uuid::Uuid,
 }
 
 impl CipherWithIdRequestModel {
-    pub fn new(name: String, id: String) -> CipherWithIdRequestModel {
+    pub fn new(name: String, id: uuid::Uuid) -> CipherWithIdRequestModel {
         CipherWithIdRequestModel {
-            _type: None,
+            r#type: None,
             organization_id: None,
             folder_id: None,
             favorite: None,

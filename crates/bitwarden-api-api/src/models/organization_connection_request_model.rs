@@ -11,9 +11,9 @@
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct OrganizationConnectionRequestModel {
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-    pub _type: Option<crate::models::OrganizationConnectionType>,
+    pub r#type: Option<crate::models::OrganizationConnectionType>,
     #[serde(rename = "organizationId", skip_serializing_if = "Option::is_none")]
-    pub organization_id: Option<String>,
+    pub organization_id: Option<uuid::Uuid>,
     #[serde(rename = "enabled", skip_serializing_if = "Option::is_none")]
     pub enabled: Option<bool>,
     #[serde(rename = "config", skip_serializing_if = "Option::is_none")]
@@ -23,7 +23,7 @@ pub struct OrganizationConnectionRequestModel {
 impl OrganizationConnectionRequestModel {
     pub fn new() -> OrganizationConnectionRequestModel {
         OrganizationConnectionRequestModel {
-            _type: None,
+            r#type: None,
             organization_id: None,
             enabled: None,
             config: None,

@@ -14,25 +14,25 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum ProductType {
-    _0 = 0,
-    _1 = 1,
-    _2 = 2,
-    _3 = 3,
+    Variant0 = 0,
+    Variant1 = 1,
+    Variant2 = 2,
+    Variant3 = 3,
 }
 
 impl ToString for ProductType {
     fn to_string(&self) -> String {
         match self {
-            Self::_0 => String::from("0"),
-            Self::_1 => String::from("1"),
-            Self::_2 => String::from("2"),
-            Self::_3 => String::from("3"),
+            Self::Variant0 => String::from("0"),
+            Self::Variant1 => String::from("1"),
+            Self::Variant2 => String::from("2"),
+            Self::Variant3 => String::from("3"),
         }
     }
 }
 
 impl Default for ProductType {
     fn default() -> ProductType {
-        Self::_0
+        Self::Variant0
     }
 }

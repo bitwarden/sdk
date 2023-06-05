@@ -189,7 +189,8 @@
       "properties": {
         "id": {
           "description": "ID of the project to retrieve",
-          "type": "string"
+          "type": "string",
+          "format": "uuid"
         }
       },
       "additionalProperties": false
@@ -232,7 +233,8 @@
       "properties": {
         "organizationId": {
           "description": "Organization to retrieve all the projects from",
-          "type": "string"
+          "type": "string",
+          "format": "uuid"
         }
       },
       "additionalProperties": false
@@ -254,7 +256,8 @@
         },
         "organizationId": {
           "description": "Organization where the secret will be created",
-          "type": "string"
+          "type": "string",
+          "format": "uuid"
         },
         "value": {
           "type": "string"
@@ -270,7 +273,8 @@
       "properties": {
         "id": {
           "description": "ID of the secret to retrieve",
-          "type": "string"
+          "type": "string",
+          "format": "uuid"
         }
       },
       "additionalProperties": false
@@ -283,7 +287,8 @@
       "properties": {
         "organizationId": {
           "description": "Organization to retrieve all the secrets from",
-          "type": "string"
+          "type": "string",
+          "format": "uuid"
         }
       },
       "additionalProperties": false
@@ -300,7 +305,8 @@
       "properties": {
         "id": {
           "description": "ID of the secret to modify",
-          "type": "string"
+          "type": "string",
+          "format": "uuid"
         },
         "key": {
           "type": "string"
@@ -310,7 +316,8 @@
         },
         "organizationId": {
           "description": "Organization ID of the secret to modify",
-          "type": "string"
+          "type": "string",
+          "format": "uuid"
         },
         "value": {
           "type": "string"
@@ -417,7 +424,8 @@
           "description": "IDs of the secrets to delete",
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "format": "uuid"
           }
         }
       },

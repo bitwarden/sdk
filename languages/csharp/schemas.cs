@@ -37,7 +37,7 @@ namespace Bit.Sdk
     /// assert_matches::assert_matches; let settings = ClientSettings { identity_url:
     /// "https://identity.bitwarden.com".to_string(), api_url:
     /// "https://api.bitwarden.com".to_string(), user_agent: "Bitwarden Rust-SDK".to_string(),
-    /// device_type: DeviceType::SDK, }; let default = ClientSettings::default();
+    /// device_type: DeviceType::SDK, internal: None, }; let default = ClientSettings::default();
     /// assert_matches!(settings, default); ```
     ///
     /// Targets `localhost:8080` for debug builds.

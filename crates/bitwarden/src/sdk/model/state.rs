@@ -1,13 +1,8 @@
 use std::{collections::HashMap, fmt::Debug, path::PathBuf};
 
+use async_lock::Mutex;
 use bitwarden_api_api::models::SyncResponseModel;
-use fs4::tokio::AsyncFileExt;
 use serde_json::Value;
-use tokio::{
-    fs::OpenOptions,
-    io::{AsyncReadExt, AsyncSeekExt, AsyncWriteExt},
-    sync::Mutex,
-};
 use uuid::Uuid;
 
 use crate::{
@@ -188,17 +183,20 @@ trait StateStorageMedium: Sync + Send + Debug {
     ) -> Result<StateMap>;
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Debug)]
 struct FileStateStorageMedium {
     path: PathBuf,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl FileStateStorageMedium {
     pub fn new(path: PathBuf) -> Self {
         Self { path }
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[async_trait::async_trait]
 impl StateStorageMedium for FileStateStorageMedium {
     async fn read(&mut self) -> Result<StateMap> {
@@ -214,7 +212,9 @@ impl StateStorageMedium for FileStateStorageMedium {
         &mut self,
         modify_fn: Box<dyn for<'a> FnOnce(&'a mut StateMap) -> Result<()> + Send + 'b>,
     ) -> Result<StateMap> {
-        let mut f = OpenOptions::new()
+        use tokio::io::{AsyncReadExt, AsyncSeekExt, AsyncWriteExt};
+
+        let mut f = tokio::fs::OpenOptions::new()
             .read(true)
             .write(true)
             .create(true)
@@ -222,6 +222,7 @@ impl StateStorageMedium for FileStateStorageMedium {
             .await?;
 
         // Try locking the file so no other process modifies it at the same time
+        use fs4::tokio::AsyncFileExt;
         f.lock_exclusive()?;
 
         let mut object_string = String::new();

@@ -159,6 +159,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "async-lock"
+version = "2.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fa24f727524730b077666307f2734b4a1a1c57acb79193127dcc8914d5242dd7"
+dependencies = [
+ "event-listener",
+]
+
+[[package]]
 name = "async-trait"
 version = "0.1.68"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -283,6 +292,7 @@ version = "0.2.1"
 dependencies = [
  "aes",
  "assert_matches",
+ "async-lock",
  "async-trait",
  "base64 0.21.2",
  "bitwarden-api-api",

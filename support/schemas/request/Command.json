@@ -94,7 +94,7 @@
       "additionalProperties": false
     },
     {
-      "description": "> Requires Authentication Retrieve all user data, ciphers and organizations the user is a part of\n\nReturns: [SyncResponse](crate::sdk::response::sync_response::SyncResponse)",
+      "description": "> Requires Authentication Retrieve all user data, ciphers and organizations the user is a part of",
       "type": "object",
       "required": [
         "sync"

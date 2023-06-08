@@ -8,7 +8,6 @@ import {
   ResponseForSecretIdentifiersResponse,
   ResponseForSecretResponse,
   ResponseForSecretsDeleteResponse,
-  ResponseForSyncResponse,
 } from "./schemas";
 
 export class BitwardenClient {
@@ -43,16 +42,14 @@ export class BitwardenClient {
     return Convert.toResponseForAPIKeyLoginResponse(response);
   }
 
-  async sync(excludeSubdomains = false): Promise<ResponseForSyncResponse> {
-    const response = await this.client.runCommand(
+  async sync(excludeSubdomains = false): Promise<void> {
+    await this.client.runCommand(
       Convert.commandToJson({
         sync: {
           excludeSubdomains,
         },
       })
     );
-
-    return Convert.toResponseForSyncResponse(response);
   }
 
   secrets(): SecretsClient {

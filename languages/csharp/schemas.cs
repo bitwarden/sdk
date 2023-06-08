@@ -116,8 +116,6 @@ namespace Bit.Sdk
     ///
     /// > Requires Authentication Retrieve all user data, ciphers and organizations the user is a
     /// part of
-    ///
-    /// Returns: [SyncResponse](crate::sdk::response::sync_response::SyncResponse)
     /// </summary>
     public partial class Command
     {

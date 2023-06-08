@@ -641,8 +641,6 @@ class Command:
     
     > Requires Authentication Retrieve all user data, ciphers and organizations the user is a
     part of
-    
-    Returns: [SyncResponse](crate::sdk::response::sync_response::SyncResponse)
     """
     password_login: Optional[PasswordLoginRequest] = None
     api_key_login: Optional[APIKeyLoginRequest] = None

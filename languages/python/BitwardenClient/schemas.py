@@ -1,6 +1,6 @@
 from enum import Enum
 from dataclasses import dataclass
-from typing import Any, Optional, List, TypeVar, Type, cast, Callable
+from typing import Optional, Any, List, Dict, TypeVar, Type, cast, Callable
 from uuid import UUID
 
 
@@ -11,11 +11,6 @@ EnumT = TypeVar("EnumT", bound=Enum)
 def from_str(x: Any) -> str:
     assert isinstance(x, str)
     return x
-
-
-def to_enum(c: Type[EnumT], x: Any) -> EnumT:
-    assert isinstance(x, c)
-    return x.value
 
 
 def from_none(x: Any) -> Any:
@@ -32,6 +27,11 @@ def from_union(fs, x):
     assert False
 
 
+def to_enum(c: Type[EnumT], x: Any) -> EnumT:
+    assert isinstance(x, c)
+    return x.value
+
+
 def to_class(c: Type[T], x: Any) -> dict:
     assert isinstance(x, c)
     return cast(Any, x).to_dict()
@@ -45,6 +45,11 @@ def from_list(f: Callable[[Any], T], x: Any) -> List[T]:
 def from_bool(x: Any) -> bool:
     assert isinstance(x, bool)
     return x
+
+
+def from_dict(f: Callable[[Any], T], x: Any) -> Dict[str, T]:
+    assert isinstance(x, dict)
+    return { k: f(v) for (k, v) in x.items() }
 
 
 class DeviceType(Enum):
@@ -85,8 +90,8 @@ class ClientSettings:
     assert_matches::assert_matches; let settings = ClientSettings { identity_url:
     "https://identity.bitwarden.com".to_string(), api_url:
     "https://api.bitwarden.com".to_string(), user_agent: "Bitwarden Rust-SDK".to_string(),
-    device_type: DeviceType::SDK, }; let default = ClientSettings::default();
-    assert_matches!(settings, default); ```
+    device_type: DeviceType::SDK, state_path: None, }; let default =
+    ClientSettings::default(); assert_matches!(settings, default); ```
     
     Targets `localhost:8080` for debug builds.
     """
@@ -100,6 +105,11 @@ class ClientSettings:
     identity_url: str
     """The user_agent to sent to Bitwarden. Defaults to `Bitwarden Rust-SDK`"""
     user_agent: str
+    """Path to the file that stores the SDK's internal state, when not set the state is kept in
+    memory only This option has no effect when compiling for WebAssembly, in that case
+    LocalStorage is always used.
+    """
+    state_path: Optional[str] = None
 
     @staticmethod
     def from_dict(obj: Any) -> 'ClientSettings':
@@ -108,7 +118,8 @@ class ClientSettings:
         device_type = DeviceType(obj.get("deviceType"))
         identity_url = from_str(obj.get("identityUrl"))
         user_agent = from_str(obj.get("userAgent"))
-        return ClientSettings(api_url, device_type, identity_url, user_agent)
+        state_path = from_union([from_none, from_str], obj.get("statePath"))
+        return ClientSettings(api_url, device_type, identity_url, user_agent, state_path)
 
     def to_dict(self) -> dict:
         result: dict = {}
@@ -116,6 +127,8 @@ class ClientSettings:
         result["deviceType"] = to_enum(DeviceType, self.device_type)
         result["identityUrl"] = from_str(self.identity_url)
         result["userAgent"] = from_str(self.user_agent)
+        if self.state_path is not None:
+            result["statePath"] = from_union([from_none, from_str], self.state_path)
         return result
 
 
@@ -181,6 +194,86 @@ class FingerprintRequest:
         result: dict = {}
         result["fingerprintMaterial"] = from_str(self.fingerprint_material)
         result["publicKey"] = from_str(self.public_key)
+        return result
+
+
+@dataclass
+class FolderCreateRequest:
+    """Encrypted folder name"""
+    name: str
+
+    @staticmethod
+    def from_dict(obj: Any) -> 'FolderCreateRequest':
+        assert isinstance(obj, dict)
+        name = from_str(obj.get("name"))
+        return FolderCreateRequest(name)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        result["name"] = from_str(self.name)
+        return result
+
+
+@dataclass
+class FolderDeleteRequest:
+    """ID of the folder to delete"""
+    id: UUID
+
+    @staticmethod
+    def from_dict(obj: Any) -> 'FolderDeleteRequest':
+        assert isinstance(obj, dict)
+        id = UUID(obj.get("id"))
+        return FolderDeleteRequest(id)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        result["id"] = str(self.id)
+        return result
+
+
+@dataclass
+class FolderUpdateRequest:
+    """ID of the folder to update"""
+    id: UUID
+    """Encrypted folder name"""
+    name: str
+
+    @staticmethod
+    def from_dict(obj: Any) -> 'FolderUpdateRequest':
+        assert isinstance(obj, dict)
+        id = UUID(obj.get("id"))
+        name = from_str(obj.get("name"))
+        return FolderUpdateRequest(id, name)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        result["id"] = str(self.id)
+        result["name"] = from_str(self.name)
+        return result
+
+
+@dataclass
+class FoldersCommand:
+    create: Optional[FolderCreateRequest] = None
+    update: Optional[FolderUpdateRequest] = None
+    delete: Optional[FolderDeleteRequest] = None
+
+    @staticmethod
+    def from_dict(obj: Any) -> 'FoldersCommand':
+        assert isinstance(obj, dict)
+        create = from_union([FolderCreateRequest.from_dict, from_none], obj.get("create"))
+        update = from_union([FolderUpdateRequest.from_dict, from_none], obj.get("update"))
+        delete = from_union([FolderDeleteRequest.from_dict, from_none], obj.get("delete"))
+        return FoldersCommand(create, update, delete)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        if self.create is not None:
+            result["create"] = from_union([lambda x: to_class(FolderCreateRequest, x), from_none], self.create)
+        if self.update is not None:
+            result["update"] = from_union([lambda x: to_class(FolderUpdateRequest, x), from_none], self.update)
+        if self.delete is not None:
+            result["delete"] = from_union([lambda x: to_class(FolderDeleteRequest, x), from_none], self.delete)
         return result
 
 
@@ -468,6 +561,28 @@ class SecretsCommand:
 
 
 @dataclass
+class SessionLoginRequest:
+    """Login to Bitwarden using a saved session"""
+    """User's master password, used to unlock the vault"""
+    password: str
+    """User's uuid"""
+    user_id: UUID
+
+    @staticmethod
+    def from_dict(obj: Any) -> 'SessionLoginRequest':
+        assert isinstance(obj, dict)
+        password = from_str(obj.get("password"))
+        user_id = UUID(obj.get("userId"))
+        return SessionLoginRequest(password, user_id)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        result["password"] = from_str(self.password)
+        result["userId"] = str(self.user_id)
+        return result
+
+
+@dataclass
 class SyncRequest:
     """Exclude the subdomains from the response, defaults to false"""
     exclude_subdomains: Optional[bool] = None
@@ -509,6 +624,8 @@ class Command:
     
     Returns: [ApiKeyLoginResponse](crate::sdk::auth::response::ApiKeyLoginResponse)
     
+    Login with a previously saved session
+    
     > Requires Authentication Get the API key of the currently authenticated user
     
     Returns:
@@ -518,6 +635,10 @@ class Command:
     
     Returns: String
     
+    > Requires Authentication Get the user's account data associated with this client
+    
+    Returns: [AccountData](crate::sdk::model::account_data::AccountData)
+    
     > Requires Authentication Retrieve all user data, ciphers and organizations the user is a
     part of
     
@@ -526,11 +647,14 @@ class Command:
     password_login: Optional[PasswordLoginRequest] = None
     api_key_login: Optional[APIKeyLoginRequest] = None
     access_token_login: Optional[AccessTokenLoginRequest] = None
+    session_login: Optional[SessionLoginRequest] = None
     get_user_api_key: Optional[SecretVerificationRequest] = None
     fingerprint: Optional[FingerprintRequest] = None
+    get_account_state: Optional[Dict[str, Any]] = None
     sync: Optional[SyncRequest] = None
     secrets: Optional[SecretsCommand] = None
     projects: Optional[ProjectsCommand] = None
+    folders: Optional[FoldersCommand] = None
 
     @staticmethod
     def from_dict(obj: Any) -> 'Command':
@@ -538,12 +662,15 @@ class Command:
         password_login = from_union([PasswordLoginRequest.from_dict, from_none], obj.get("passwordLogin"))
         api_key_login = from_union([APIKeyLoginRequest.from_dict, from_none], obj.get("apiKeyLogin"))
         access_token_login = from_union([AccessTokenLoginRequest.from_dict, from_none], obj.get("accessTokenLogin"))
+        session_login = from_union([SessionLoginRequest.from_dict, from_none], obj.get("sessionLogin"))
         get_user_api_key = from_union([SecretVerificationRequest.from_dict, from_none], obj.get("getUserApiKey"))
         fingerprint = from_union([FingerprintRequest.from_dict, from_none], obj.get("fingerprint"))
+        get_account_state = from_union([lambda x: from_dict(lambda x: x, x), from_none], obj.get("getAccountState"))
         sync = from_union([SyncRequest.from_dict, from_none], obj.get("sync"))
         secrets = from_union([SecretsCommand.from_dict, from_none], obj.get("secrets"))
         projects = from_union([ProjectsCommand.from_dict, from_none], obj.get("projects"))
-        return Command(password_login, api_key_login, access_token_login, get_user_api_key, fingerprint, sync, secrets, projects)
+        folders = from_union([FoldersCommand.from_dict, from_none], obj.get("folders"))
+        return Command(password_login, api_key_login, access_token_login, session_login, get_user_api_key, fingerprint, get_account_state, sync, secrets, projects, folders)
 
     def to_dict(self) -> dict:
         result: dict = {}
@@ -553,16 +680,22 @@ class Command:
             result["apiKeyLogin"] = from_union([lambda x: to_class(APIKeyLoginRequest, x), from_none], self.api_key_login)
         if self.access_token_login is not None:
             result["accessTokenLogin"] = from_union([lambda x: to_class(AccessTokenLoginRequest, x), from_none], self.access_token_login)
+        if self.session_login is not None:
+            result["sessionLogin"] = from_union([lambda x: to_class(SessionLoginRequest, x), from_none], self.session_login)
         if self.get_user_api_key is not None:
             result["getUserApiKey"] = from_union([lambda x: to_class(SecretVerificationRequest, x), from_none], self.get_user_api_key)
         if self.fingerprint is not None:
             result["fingerprint"] = from_union([lambda x: to_class(FingerprintRequest, x), from_none], self.fingerprint)
+        if self.get_account_state is not None:
+            result["getAccountState"] = from_union([lambda x: from_dict(lambda x: x, x), from_none], self.get_account_state)
         if self.sync is not None:
             result["sync"] = from_union([lambda x: to_class(SyncRequest, x), from_none], self.sync)
         if self.secrets is not None:
             result["secrets"] = from_union([lambda x: to_class(SecretsCommand, x), from_none], self.secrets)
         if self.projects is not None:
             result["projects"] = from_union([lambda x: to_class(ProjectsCommand, x), from_none], self.projects)
+        if self.folders is not None:
+            result["folders"] = from_union([lambda x: to_class(FoldersCommand, x), from_none], self.folders)
         return result
 
 
@@ -1280,114 +1413,6 @@ class ResponseForSecretsDeleteResponse:
 
 
 @dataclass
-class CipherDetailsResponse:
-    pass
-
-    @staticmethod
-    def from_dict(obj: Any) -> 'CipherDetailsResponse':
-        assert isinstance(obj, dict)
-        return CipherDetailsResponse()
-
-    def to_dict(self) -> dict:
-        result: dict = {}
-        return result
-
-
-@dataclass
-class ProfileOrganizationResponse:
-    id: UUID
-
-    @staticmethod
-    def from_dict(obj: Any) -> 'ProfileOrganizationResponse':
-        assert isinstance(obj, dict)
-        id = UUID(obj.get("id"))
-        return ProfileOrganizationResponse(id)
-
-    def to_dict(self) -> dict:
-        result: dict = {}
-        result["id"] = str(self.id)
-        return result
-
-
-@dataclass
-class ProfileResponse:
-    """Data about the user, including their encryption keys and the organizations they are a
-    part of
-    """
-    email: str
-    id: UUID
-    name: str
-    organizations: List[ProfileOrganizationResponse]
-
-    @staticmethod
-    def from_dict(obj: Any) -> 'ProfileResponse':
-        assert isinstance(obj, dict)
-        email = from_str(obj.get("email"))
-        id = UUID(obj.get("id"))
-        name = from_str(obj.get("name"))
-        organizations = from_list(ProfileOrganizationResponse.from_dict, obj.get("organizations"))
-        return ProfileResponse(email, id, name, organizations)
-
-    def to_dict(self) -> dict:
-        result: dict = {}
-        result["email"] = from_str(self.email)
-        result["id"] = str(self.id)
-        result["name"] = from_str(self.name)
-        result["organizations"] = from_list(lambda x: to_class(ProfileOrganizationResponse, x), self.organizations)
-        return result
-
-
-@dataclass
-class SyncResponse:
-    """List of ciphers accesible by the user"""
-    ciphers: List[CipherDetailsResponse]
-    """Data about the user, including their encryption keys and the organizations they are a
-    part of
-    """
-    profile: ProfileResponse
-
-    @staticmethod
-    def from_dict(obj: Any) -> 'SyncResponse':
-        assert isinstance(obj, dict)
-        ciphers = from_list(CipherDetailsResponse.from_dict, obj.get("ciphers"))
-        profile = ProfileResponse.from_dict(obj.get("profile"))
-        return SyncResponse(ciphers, profile)
-
-    def to_dict(self) -> dict:
-        result: dict = {}
-        result["ciphers"] = from_list(lambda x: to_class(CipherDetailsResponse, x), self.ciphers)
-        result["profile"] = to_class(ProfileResponse, self.profile)
-        return result
-
-
-@dataclass
-class ResponseForSyncResponse:
-    """Whether or not the SDK request succeeded."""
-    success: bool
-    """The response data. Populated if `success` is true."""
-    data: Optional[SyncResponse] = None
-    """A message for any error that may occur. Populated if `success` is false."""
-    error_message: Optional[str] = None
-
-    @staticmethod
-    def from_dict(obj: Any) -> 'ResponseForSyncResponse':
-        assert isinstance(obj, dict)
-        success = from_bool(obj.get("success"))
-        data = from_union([SyncResponse.from_dict, from_none], obj.get("data"))
-        error_message = from_union([from_none, from_str], obj.get("errorMessage"))
-        return ResponseForSyncResponse(success, data, error_message)
-
-    def to_dict(self) -> dict:
-        result: dict = {}
-        result["success"] = from_bool(self.success)
-        if self.data is not None:
-            result["data"] = from_union([lambda x: to_class(SyncResponse, x), from_none], self.data)
-        if self.error_message is not None:
-            result["errorMessage"] = from_union([from_none, from_str], self.error_message)
-        return result
-
-
-@dataclass
 class UserAPIKeyResponse:
     """The user's API key, which represents the client_secret portion of an oauth request."""
     api_key: str
@@ -1501,14 +1526,6 @@ def response_for_secrets_delete_response_from_dict(s: Any) -> ResponseForSecrets
 
 def response_for_secrets_delete_response_to_dict(x: ResponseForSecretsDeleteResponse) -> Any:
     return to_class(ResponseForSecretsDeleteResponse, x)
-
-
-def response_for_sync_response_from_dict(s: Any) -> ResponseForSyncResponse:
-    return ResponseForSyncResponse.from_dict(s)
-
-
-def response_for_sync_response_to_dict(x: ResponseForSyncResponse) -> Any:
-    return to_class(ResponseForSyncResponse, x)
 
 
 def response_for_user_api_key_response_from_dict(s: Any) -> ResponseForUserAPIKeyResponse:

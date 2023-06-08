@@ -42,6 +42,19 @@
       "additionalProperties": false
     },
     {
+      "description": "Login with a previously saved session",
+      "type": "object",
+      "required": [
+        "sessionLogin"
+      ],
+      "properties": {
+        "sessionLogin": {
+          "$ref": "#/definitions/SessionLoginRequest"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
       "description": "> Requires Authentication Get the API key of the currently authenticated user\n\nReturns: [UserApiKeyResponse](crate::sdk::response::user_api_key_response::UserApiKeyResponse)",
       "type": "object",
       "required": [
@@ -63,6 +76,19 @@
       "properties": {
         "fingerprint": {
           "$ref": "#/definitions/FingerprintRequest"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "> Requires Authentication Get the user's account data associated with this client\n\nReturns: [AccountData](crate::sdk::model::account_data::AccountData)",
+      "type": "object",
+      "required": [
+        "getAccountState"
+      ],
+      "properties": {
+        "getAccountState": {
+          "$ref": "#/definitions/EmptyRequest"
         }
       },
       "additionalProperties": false
@@ -100,6 +126,18 @@
       "properties": {
         "projects": {
           "$ref": "#/definitions/ProjectsCommand"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "folders"
+      ],
+      "properties": {
+        "folders": {
+          "$ref": "#/definitions/FoldersCommand"
         }
       },
       "additionalProperties": false
@@ -144,6 +182,10 @@
       },
       "additionalProperties": false
     },
+    "EmptyRequest": {
+      "description": "An empty request that needs no parameters",
+      "type": "object"
+    },
     "FingerprintRequest": {
       "type": "object",
       "required": [
@@ -161,6 +203,92 @@
         }
       },
       "additionalProperties": false
+    },
+    "FolderCreateRequest": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "description": "Encrypted folder name",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "FolderDeleteRequest": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "description": "ID of the folder to delete",
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "FolderUpdateRequest": {
+      "type": "object",
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "description": "ID of the folder to update",
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": {
+          "description": "Encrypted folder name",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "FoldersCommand": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "create"
+          ],
+          "properties": {
+            "create": {
+              "$ref": "#/definitions/FolderCreateRequest"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "update"
+          ],
+          "properties": {
+            "update": {
+              "$ref": "#/definitions/FolderUpdateRequest"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "delete"
+          ],
+          "properties": {
+            "delete": {
+              "$ref": "#/definitions/FolderDeleteRequest"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     },
     "PasswordLoginRequest": {
       "description": "Login to Bitwarden with Username and Password",
@@ -427,6 +555,26 @@
             "type": "string",
             "format": "uuid"
           }
+        }
+      },
+      "additionalProperties": false
+    },
+    "SessionLoginRequest": {
+      "description": "Login to Bitwarden using a saved session",
+      "type": "object",
+      "required": [
+        "password",
+        "userId"
+      ],
+      "properties": {
+        "password": {
+          "description": "User's master password, used to unlock the vault",
+          "type": "string"
+        },
+        "userId": {
+          "description": "User's uuid",
+          "type": "string",
+          "format": "uuid"
         }
       },
       "additionalProperties": false

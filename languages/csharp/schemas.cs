@@ -13,7 +13,6 @@
 //    var responseForSecretIdentifiersResponse = ResponseForSecretIdentifiersResponse.FromJson(jsonString);
 //    var responseForSecretResponse = ResponseForSecretResponse.FromJson(jsonString);
 //    var responseForSecretsDeleteResponse = ResponseForSecretsDeleteResponse.FromJson(jsonString);
-//    var responseForSyncResponse = ResponseForSyncResponse.FromJson(jsonString);
 //    var responseForUserApiKeyResponse = ResponseForUserApiKeyResponse.FromJson(jsonString);
 
 namespace Bit.Sdk
@@ -36,8 +35,8 @@ namespace Bit.Sdk
     /// assert_matches::assert_matches; let settings = ClientSettings { identity_url:
     /// "https://identity.bitwarden.com".to_string(), api_url:
     /// "https://api.bitwarden.com".to_string(), user_agent: "Bitwarden Rust-SDK".to_string(),
-    /// device_type: DeviceType::SDK, }; let default = ClientSettings::default();
-    /// assert_matches!(settings, default); ```
+    /// device_type: DeviceType::SDK, state_path: None, }; let default =
+    /// ClientSettings::default(); assert_matches!(settings, default); ```
     ///
     /// Targets `localhost:8080` for debug builds.
     /// </summary>
@@ -61,6 +60,14 @@ namespace Bit.Sdk
         /// </summary>
         [JsonProperty("identityUrl")]
         public string IdentityUrl { get; set; }
+
+        /// <summary>
+        /// Path to the file that stores the SDK's internal state, when not set the state is kept in
+        /// memory only This option has no effect when compiling for WebAssembly, in that case
+        /// LocalStorage is always used.
+        /// </summary>
+        [JsonProperty("statePath")]
+        public string StatePath { get; set; }
 
         /// <summary>
         /// The user_agent to sent to Bitwarden. Defaults to `Bitwarden Rust-SDK`
@@ -92,6 +99,8 @@ namespace Bit.Sdk
     ///
     /// Returns: [ApiKeyLoginResponse](crate::sdk::auth::response::ApiKeyLoginResponse)
     ///
+    /// Login with a previously saved session
+    ///
     /// > Requires Authentication Get the API key of the currently authenticated user
     ///
     /// Returns:
@@ -100,6 +109,10 @@ namespace Bit.Sdk
     /// Get the user's passphrase
     ///
     /// Returns: String
+    ///
+    /// > Requires Authentication Get the user's account data associated with this client
+    ///
+    /// Returns: [AccountData](crate::sdk::model::account_data::AccountData)
     ///
     /// > Requires Authentication Retrieve all user data, ciphers and organizations the user is a
     /// part of
@@ -117,11 +130,17 @@ namespace Bit.Sdk
         [JsonProperty("accessTokenLogin", NullValueHandling = NullValueHandling.Ignore)]
         public AccessTokenLoginRequest AccessTokenLogin { get; set; }
 
+        [JsonProperty("sessionLogin", NullValueHandling = NullValueHandling.Ignore)]
+        public SessionLoginRequest SessionLogin { get; set; }
+
         [JsonProperty("getUserApiKey", NullValueHandling = NullValueHandling.Ignore)]
         public SecretVerificationRequest GetUserApiKey { get; set; }
 
         [JsonProperty("fingerprint", NullValueHandling = NullValueHandling.Ignore)]
         public FingerprintRequest Fingerprint { get; set; }
+
+        [JsonProperty("getAccountState", NullValueHandling = NullValueHandling.Ignore)]
+        public Dictionary<string, object> GetAccountState { get; set; }
 
         [JsonProperty("sync", NullValueHandling = NullValueHandling.Ignore)]
         public SyncRequest Sync { get; set; }
@@ -131,6 +150,9 @@ namespace Bit.Sdk
 
         [JsonProperty("projects", NullValueHandling = NullValueHandling.Ignore)]
         public ProjectsCommand Projects { get; set; }
+
+        [JsonProperty("folders", NullValueHandling = NullValueHandling.Ignore)]
+        public FoldersCommand Folders { get; set; }
     }
 
     /// <summary>
@@ -182,6 +204,51 @@ namespace Bit.Sdk
         /// </summary>
         [JsonProperty("publicKey")]
         public string PublicKey { get; set; }
+    }
+
+    public partial class FoldersCommand
+    {
+        [JsonProperty("create", NullValueHandling = NullValueHandling.Ignore)]
+        public FolderCreateRequest Create { get; set; }
+
+        [JsonProperty("update", NullValueHandling = NullValueHandling.Ignore)]
+        public FolderUpdateRequest Update { get; set; }
+
+        [JsonProperty("delete", NullValueHandling = NullValueHandling.Ignore)]
+        public FolderDeleteRequest Delete { get; set; }
+    }
+
+    public partial class FolderCreateRequest
+    {
+        /// <summary>
+        /// Encrypted folder name
+        /// </summary>
+        [JsonProperty("name")]
+        public string Name { get; set; }
+    }
+
+    public partial class FolderDeleteRequest
+    {
+        /// <summary>
+        /// ID of the folder to delete
+        /// </summary>
+        [JsonProperty("id")]
+        public Guid Id { get; set; }
+    }
+
+    public partial class FolderUpdateRequest
+    {
+        /// <summary>
+        /// ID of the folder to update
+        /// </summary>
+        [JsonProperty("id")]
+        public Guid Id { get; set; }
+
+        /// <summary>
+        /// Encrypted folder name
+        /// </summary>
+        [JsonProperty("name")]
+        public string Name { get; set; }
     }
 
     public partial class SecretVerificationRequest
@@ -372,6 +439,24 @@ namespace Bit.Sdk
 
         [JsonProperty("value")]
         public string Value { get; set; }
+    }
+
+    /// <summary>
+    /// Login to Bitwarden using a saved session
+    /// </summary>
+    public partial class SessionLoginRequest
+    {
+        /// <summary>
+        /// User's master password, used to unlock the vault
+        /// </summary>
+        [JsonProperty("password")]
+        public string Password { get; set; }
+
+        /// <summary>
+        /// User's uuid
+        /// </summary>
+        [JsonProperty("userId")]
+        public Guid UserId { get; set; }
     }
 
     public partial class SyncRequest
@@ -838,72 +923,6 @@ namespace Bit.Sdk
         public Guid Id { get; set; }
     }
 
-    public partial class ResponseForSyncResponse
-    {
-        /// <summary>
-        /// The response data. Populated if `success` is true.
-        /// </summary>
-        [JsonProperty("data")]
-        public SyncResponse Data { get; set; }
-
-        /// <summary>
-        /// A message for any error that may occur. Populated if `success` is false.
-        /// </summary>
-        [JsonProperty("errorMessage")]
-        public string ErrorMessage { get; set; }
-
-        /// <summary>
-        /// Whether or not the SDK request succeeded.
-        /// </summary>
-        [JsonProperty("success")]
-        public bool Success { get; set; }
-    }
-
-    public partial class SyncResponse
-    {
-        /// <summary>
-        /// List of ciphers accesible by the user
-        /// </summary>
-        [JsonProperty("ciphers")]
-        public CipherDetailsResponse[] Ciphers { get; set; }
-
-        /// <summary>
-        /// Data about the user, including their encryption keys and the organizations they are a
-        /// part of
-        /// </summary>
-        [JsonProperty("profile")]
-        public ProfileResponse Profile { get; set; }
-    }
-
-    public partial class CipherDetailsResponse
-    {
-    }
-
-    /// <summary>
-    /// Data about the user, including their encryption keys and the organizations they are a
-    /// part of
-    /// </summary>
-    public partial class ProfileResponse
-    {
-        [JsonProperty("email")]
-        public string Email { get; set; }
-
-        [JsonProperty("id")]
-        public Guid Id { get; set; }
-
-        [JsonProperty("name")]
-        public string Name { get; set; }
-
-        [JsonProperty("organizations")]
-        public ProfileOrganizationResponse[] Organizations { get; set; }
-    }
-
-    public partial class ProfileOrganizationResponse
-    {
-        [JsonProperty("id")]
-        public Guid Id { get; set; }
-    }
-
     public partial class ResponseForUserApiKeyResponse
     {
         /// <summary>
@@ -984,11 +1003,6 @@ namespace Bit.Sdk
         public static ResponseForSecretsDeleteResponse FromJson(string json) => JsonConvert.DeserializeObject<ResponseForSecretsDeleteResponse>(json, Bit.Sdk.Converter.Settings);
     }
 
-    public partial class ResponseForSyncResponse
-    {
-        public static ResponseForSyncResponse FromJson(string json) => JsonConvert.DeserializeObject<ResponseForSyncResponse>(json, Bit.Sdk.Converter.Settings);
-    }
-
     public partial class ResponseForUserApiKeyResponse
     {
         public static ResponseForUserApiKeyResponse FromJson(string json) => JsonConvert.DeserializeObject<ResponseForUserApiKeyResponse>(json, Bit.Sdk.Converter.Settings);
@@ -1005,7 +1019,6 @@ namespace Bit.Sdk
         public static string ToJson(this ResponseForSecretIdentifiersResponse self) => JsonConvert.SerializeObject(self, Bit.Sdk.Converter.Settings);
         public static string ToJson(this ResponseForSecretResponse self) => JsonConvert.SerializeObject(self, Bit.Sdk.Converter.Settings);
         public static string ToJson(this ResponseForSecretsDeleteResponse self) => JsonConvert.SerializeObject(self, Bit.Sdk.Converter.Settings);
-        public static string ToJson(this ResponseForSyncResponse self) => JsonConvert.SerializeObject(self, Bit.Sdk.Converter.Settings);
         public static string ToJson(this ResponseForUserApiKeyResponse self) => JsonConvert.SerializeObject(self, Bit.Sdk.Converter.Settings);
     }
 

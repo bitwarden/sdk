@@ -1,3 +1,4 @@
+use log::error;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -31,6 +32,7 @@ pub fn parse_identity_response(response: &str) -> Result<IdentityTokenResponse> 
     } else if let Ok(r) = serde_json::from_str::<IdentityTokenFailResponse>(response) {
         Err(Error::IdentityFail(r))
     } else {
+        error!("{}", response);
         Err(Error::Internal("Failed to parse IdentityTokenResponse"))
     }
 }

@@ -3,7 +3,8 @@ use bitwarden::sdk::{
 };
 use clap::{command, CommandFactory, Parser, Subcommand};
 use color_eyre::eyre::{bail, Result};
-use inquire::Text;
+use inquire::{Password, Text};
+use log::error;
 use render::{Color, Output};
 use std::path::PathBuf;
 
@@ -41,7 +42,10 @@ struct Cli {
 #[derive(Subcommand, Debug)]
 enum Commands {
     #[command(long_about = "List items")]
-    Login {},
+    Login {
+        #[arg(short = 'e', long, help = "Email address")]
+        email: Option<String>,
+    },
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -89,10 +93,29 @@ async fn process_commands() -> Result<()> {
 
     // And finally we process all the commands which require authentication
     match command {
-        Commands::Login {} => {
-            let email = Text::new("Email").prompt()?;
+        // FIXME: Rust CLI will not support password login!
+        Commands::Login { email } => {
+            let email = if let Some(email) = email {
+                email
+            } else {
+                Text::new("Email").prompt()?
+            };
 
-            client.password_login(&PasswordLoginRequest { email: email });
+            let password = Password::new("Password").without_confirmation().prompt()?;
+
+            let result = client
+                .password_login(&PasswordLoginRequest {
+                    email: email,
+                    password: password,
+                })
+                .await?;
+
+            if let Some(_) = result.captcha {
+                // TODO: We should build a web captcha solution
+                error!("Captcha required");
+            } else {
+                error!("{:?}", result);
+            }
         }
     }
 

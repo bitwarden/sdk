@@ -61,6 +61,7 @@ pub mod error;
 pub mod sdk;
 mod util;
 pub mod wordlist;
+mod models;
 
 pub use client::Client;
 

@@ -180,14 +180,19 @@ impl EncryptionSettings {
         }
     }
 
-    pub fn decrypt(&self, cipher: &CipherString, org_id: Option<Uuid>) -> Result<Vec<u8>> {
+    pub fn decrypt_to_bytes(&self, cipher: &CipherString, org_id: Option<Uuid>) -> Result<Vec<u8>> {
         let key = self.get_key(org_id).ok_or(CryptoError::NoKeyForOrg)?;
         decrypt(cipher, key)
     }
 
+    pub fn decrypt(&self, cipher: &CipherString, org_id: Option<Uuid>) -> Result<String> {
+        let dec = self.decrypt_to_bytes(cipher, org_id)?;
+        String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String.into())
+    }
+
     pub fn decrypt_str(&self, cipher: &str, org_id: Option<Uuid>) -> Result<String> {
         let cipher = CipherString::from_str(cipher)?;
-        let dec = self.decrypt(&cipher, org_id)?;
+        let dec = self.decrypt_to_bytes(&cipher, org_id)?;
         String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String.into())
     }
 

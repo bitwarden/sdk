@@ -1,5 +1,8 @@
 use bitwarden::sdk::{
-    auth::request::PasswordLoginRequest, request::client_settings::ClientSettings,
+    auth::request::{
+        PasswordLoginRequest, TwoFactorEmailRequest, TwoFactorProvider, TwoFactorRequest,
+    },
+    request::client_settings::ClientSettings,
 };
 use clap::{command, CommandFactory, Parser, Subcommand};
 use color_eyre::eyre::{bail, Result};
@@ -105,14 +108,44 @@ async fn process_commands() -> Result<()> {
 
             let result = client
                 .password_login(&PasswordLoginRequest {
-                    email: email,
-                    password: password,
+                    email: email.clone(),
+                    password: password.clone(),
+                    two_factor: None,
                 })
                 .await?;
 
             if let Some(_) = result.captcha {
                 // TODO: We should build a web captcha solution
                 error!("Captcha required");
+            } else if let Some(two_factor) = result.two_factor {
+                if let Some(tf) = two_factor.email {
+                    // Send token
+                    client
+                        .send_two_factor_email(&TwoFactorEmailRequest {
+                            email: email.clone(),
+                            password: password.clone(),
+                        })
+                        .await?;
+
+                    error!("Two factor code sent to {:?}", tf);
+                    let token = Text::new("Two factor code").prompt()?;
+
+                    let result = client
+                        .password_login(&PasswordLoginRequest {
+                            email: email,
+                            password: password,
+                            two_factor: Some(TwoFactorRequest {
+                                token: token,
+                                provider: TwoFactorProvider::Email,
+                                remember: false,
+                            }),
+                        })
+                        .await?;
+
+                    error!("{:?}", result);
+                } else {
+                    error!("Not supported: {:?}", two_factor);
+                }
             } else {
                 error!("{:?}", result);
             }

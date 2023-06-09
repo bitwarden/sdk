@@ -32,6 +32,7 @@ use crate::{
         response::{sync_response::SyncResponse, user_api_key_response::UserApiKeyResponse},
     },
 };
+use crate::{commands::send_two_factor_email, sdk::auth::request::TwoFactorEmailRequest};
 
 #[derive(Debug)]
 pub(crate) struct ApiConfigurations {
@@ -251,6 +252,10 @@ impl Client {
     #[cfg(feature = "internal")]
     pub fn fingerprint(&mut self, input: &FingerprintRequest) -> Result<String> {
         generate_fingerprint(input)
+    }
+
+    pub async fn send_two_factor_email(&mut self, tf: &TwoFactorEmailRequest) -> Result<()> {
+        send_two_factor_email(self, tf).await
     }
 }
 

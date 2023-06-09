@@ -4,6 +4,7 @@ use std::{
 };
 
 use base64::Engine;
+use bitwarden_api_api::models::TwoFactorEmailRequestModel;
 use bitwarden_api_identity::{
     apis::accounts_api::accounts_prelogin_post,
     models::{PreloginRequestModel, PreloginResponseModel},
@@ -29,6 +30,7 @@ use crate::{
     },
     util::{decode_token, BASE64_ENGINE},
 };
+use crate::{crypto, sdk::auth::request::TwoFactorEmailRequest};
 
 #[allow(dead_code)]
 pub(crate) async fn password_login(
@@ -180,7 +182,7 @@ async fn request_identity_tokens(
     password_hash: &String,
 ) -> Result<IdentityTokenResponse> {
     let config = client.get_api_configurations().await;
-    PasswordTokenRequest::new(&input.email, password_hash)
+    PasswordTokenRequest::new(&input.email, password_hash, &input.two_factor)
         .send(&config)
         .await
 }
@@ -204,6 +206,29 @@ async fn request_access_token(
     AccessTokenRequest::new(input.service_account_id, &input.client_secret)
         .send(&config)
         .await
+}
+
+pub async fn send_two_factor_email(
+    client: &mut Client,
+    input: &TwoFactorEmailRequest,
+) -> Result<()> {
+    let password_hash = determine_password_hash(client, &input.email, &input.password).await?;
+
+    let config = client.get_api_configurations().await;
+    bitwarden_api_api::apis::two_factor_api::two_factor_send_email_login_post(
+        &config.api,
+        Some(TwoFactorEmailRequestModel {
+            master_password_hash: Some(password_hash),
+            otp: None,
+            auth_request_access_code: None,
+            secret: None,
+            email: input.email.to_owned(),
+            auth_request_id: None,
+            sso_email2_fa_session_token: None,
+        }),
+    )
+    .await?;
+    Ok(())
 }
 
 pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {

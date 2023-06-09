@@ -308,7 +308,7 @@ async fn process_commands() -> Result<()> {
                     name: key.unwrap_or(old_project.name),
                 })
                 .await?;
-            serialize_response(secret, cli.output, cli.color);
+            serialize_response(project, cli.output, cli.color);
         }
 
         Commands::Delete {
@@ -319,7 +319,7 @@ async fn process_commands() -> Result<()> {
                 .delete(ProjectsDeleteRequest { ids: project_ids })
                 .await?;
 
-            println!("Secret deleted correctly");
+            println!("Project deleted correctly");
         }
 
         Commands::Get {

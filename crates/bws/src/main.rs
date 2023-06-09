@@ -10,7 +10,10 @@ use bitwarden::{
         auth::request::AccessTokenLoginRequest,
         request::{
             client_settings::ClientSettings,
-            projects_request::{ProjectGetRequest, ProjectsListRequest},
+            projects_request::{
+                ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
+                ProjectsListRequest,
+            },
             secrets_request::{
                 SecretGetRequest, SecretIdentifiersByProjectRequest, SecretIdentifiersRequest,
             },
@@ -68,6 +71,21 @@ enum Commands {
         #[command(subcommand)]
         cmd: GetCommand,
     },
+    #[command(long_about = "Create a single item")]
+    Create {
+        #[command(subcommand)]
+        cmd: CreateCommand,
+    },
+    #[command(long_about = "Edit a single item")]
+    Edit {
+        #[command(subcommand)]
+        cmd: EditCommand,
+    },
+    #[command(long_about = "Delete one or more items")]
+    Delete {
+        #[command(subcommand)]
+        cmd: DeleteCommand,
+    },
     #[command(long_about = "Configure the CLI", arg_required_else_help(true))]
     Config {
         name: Option<ProfileKey>,
@@ -88,6 +106,26 @@ enum ListCommand {
 enum GetCommand {
     Project { project_id: Uuid },
     Secret { secret_id: Uuid },
+}
+
+#[derive(Subcommand, Debug)]
+enum CreateCommand {
+    Project { name: String },
+}
+
+#[derive(Subcommand, Debug)]
+enum EditCommand {
+    #[clap(group = ArgGroup::new("edit_field").required(true).multiple(true))]
+    Project {
+        project_id: String,
+        #[arg(long, group = "edit_field")]
+        name: String,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+enum DeleteCommand {
+    Project { project_ids: Vec<String> },
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -237,6 +275,51 @@ async fn process_commands() -> Result<()> {
                 .get(&ProjectGetRequest { id: project_id })
                 .await?;
             serialize_response(project, cli.output, cli.color);
+        }
+
+        Commands::Create {
+            cmd: CreateCommand::Project { name },
+        } => {
+            let project = client
+                .projects()
+                .create(&ProjectCreateRequest {
+                    organization_id,
+                    name,
+                })
+                .await?;
+            serialize_response(project, cli.output, cli.color);
+        }
+
+        Commands::Edit {
+            cmd: EditCommand::Project { project_id, name },
+        } => {
+            let old_project = client
+                .projects()
+                .get(&ProjectGetRequest {
+                    id: project_id.clone(),
+                })
+                .await?;
+
+            let project = client
+                .projects()
+                .update(&ProjectPutRequest {
+                    id: project_id,
+                    organization_id,
+                    name: key.unwrap_or(old_project.name),
+                })
+                .await?;
+            serialize_response(secret, cli.output, cli.color);
+        }
+
+        Commands::Delete {
+            cmd: DeleteCommand::Project { project_ids },
+        } => {
+            client
+                .projects()
+                .delete(ProjectsDeleteRequest { ids: project_ids })
+                .await?;
+
+            println!("Secret deleted correctly");
         }
 
         Commands::Get {

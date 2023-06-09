@@ -11,6 +11,7 @@ use bitwarden_api_identity::{
 };
 use log::{debug, info};
 
+use crate::sdk::auth::request::TwoFactorEmailRequest;
 use crate::{
     api::{
         request::{AccessTokenRequest, ApiTokenRequest, PasswordTokenRequest},
@@ -30,7 +31,6 @@ use crate::{
     },
     util::{decode_token, BASE64_ENGINE},
 };
-use crate::{crypto, sdk::auth::request::TwoFactorEmailRequest};
 
 #[allow(dead_code)]
 pub(crate) async fn password_login(

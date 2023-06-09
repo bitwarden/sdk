@@ -118,7 +118,19 @@ async fn process_commands() -> Result<()> {
                 // TODO: We should build a web captcha solution
                 error!("Captcha required");
             } else if let Some(two_factor) = result.two_factor {
-                if let Some(tf) = two_factor.email {
+                error!("{:?}", two_factor);
+
+                let two_factor = if let Some(tf) = two_factor.authenticator {
+                    error!("{:?}", tf);
+
+                    let token = Text::new("Authenticator code").prompt()?;
+
+                    Some(TwoFactorRequest {
+                        token: token,
+                        provider: TwoFactorProvider::Authenticator,
+                        remember: false,
+                    })
+                } else if let Some(tf) = two_factor.email {
                     // Send token
                     client
                         .send_two_factor_email(&TwoFactorEmailRequest {
@@ -130,22 +142,26 @@ async fn process_commands() -> Result<()> {
                     error!("Two factor code sent to {:?}", tf);
                     let token = Text::new("Two factor code").prompt()?;
 
-                    let result = client
-                        .password_login(&PasswordLoginRequest {
-                            email: email,
-                            password: password,
-                            two_factor: Some(TwoFactorRequest {
-                                token: token,
-                                provider: TwoFactorProvider::Email,
-                                remember: false,
-                            }),
-                        })
-                        .await?;
-
-                    error!("{:?}", result);
+                    Some(TwoFactorRequest {
+                        token: token,
+                        provider: TwoFactorProvider::Email,
+                        remember: false,
+                    })
                 } else {
                     error!("Not supported: {:?}", two_factor);
-                }
+
+                    None
+                };
+
+                let result = client
+                    .password_login(&PasswordLoginRequest {
+                        email: email,
+                        password: password,
+                        two_factor: two_factor,
+                    })
+                    .await?;
+
+                error!("{:?}", result);
             } else {
                 error!("{:?}", result);
             }

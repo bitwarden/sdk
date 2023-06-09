@@ -27,7 +27,7 @@ pub struct TwoFactorProviders {
 impl From<crate::api::response::TwoFactorProviders> for TwoFactorProviders {
     fn from(api: crate::api::response::TwoFactorProviders) -> Self {
         Self {
-            authenticator: api.authenticator.map(Into::into),
+            authenticator: api.authenticator.map(|_| Authenticator {}),
             email: api.email.map(Into::into),
             duo: api.duo.map(Into::into),
             organization_duo: api.organization_duo.map(Into::into),

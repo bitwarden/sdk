@@ -2,9 +2,9 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[allow(unused_imports)]
-use crate::sdk::{
+use crate::{
     auth::request::{AccessTokenLoginRequest, ApiKeyLoginRequest, PasswordLoginRequest},
-    request::{
+    sdk::request::{
         projects_request::{ProjectGetRequest, ProjectsListRequest},
         secret_verification_request::SecretVerificationRequest,
         secrets_request::{

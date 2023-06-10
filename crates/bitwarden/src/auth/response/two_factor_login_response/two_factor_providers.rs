@@ -1,7 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::sdk::auth::response::two_factor_login_response::{
+use crate::auth::response::two_factor_login_response::{
     authenticator::Authenticator, duo::Duo, email::Email, remember::Remember, web_authn::WebAuthn,
     yubi_key::YubiKey,
 };

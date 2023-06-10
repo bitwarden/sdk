@@ -54,6 +54,7 @@
 //!
 
 mod api;
+pub mod auth;
 pub mod client;
 mod commands;
 pub mod crypto;

@@ -3,11 +3,11 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     api::response::IdentityTokenResponse,
-    error::Result,
-    sdk::auth::response::{
+    auth::response::{
         password_login_response::PasswordLoginResponse,
         two_factor_login_response::TwoFactorProviders,
     },
+    error::Result,
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

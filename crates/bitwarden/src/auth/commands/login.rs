@@ -15,6 +15,10 @@ use crate::{
         request::{AccessTokenRequest, ApiTokenRequest, PasswordTokenRequest},
         response::IdentityTokenResponse,
     },
+    auth::{
+        request::{AccessTokenLoginRequest, ApiKeyLoginRequest, PasswordLoginRequest},
+        response::{ApiKeyLoginResponse, PasswordLoginResponse},
+    },
     client::{
         access_token::AccessToken,
         auth_settings::AuthSettings,
@@ -23,10 +27,6 @@ use crate::{
     },
     crypto::CipherString,
     error::{Error, Result},
-    sdk::auth::{
-        request::{AccessTokenLoginRequest, ApiKeyLoginRequest, PasswordLoginRequest},
-        response::{ApiKeyLoginResponse, PasswordLoginResponse},
-    },
     util::{decode_token, BASE64_ENGINE},
 };
 

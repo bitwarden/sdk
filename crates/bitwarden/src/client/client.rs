@@ -6,23 +6,21 @@ use uuid::Uuid;
 
 #[allow(unused_imports)]
 use crate::{
+    auth::{
+        commands::{access_token_login, api_key_login, password_login, renew_token},
+        request::{AccessTokenLoginRequest, ApiKeyLoginRequest, PasswordLoginRequest},
+        response::{ApiKeyLoginResponse, PasswordLoginResponse},
+    },
     client::{
         auth_settings::AuthSettings,
         client_projects::ClientProjects,
         client_secrets::ClientSecrets,
         encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
     },
-    commands::{
-        access_token_login, api_key_login, generate_fingerprint, get_user_api_key, password_login,
-        renew_token, sync,
-    },
+    commands::{generate_fingerprint, get_user_api_key, sync},
     crypto::CipherString,
     error::{Error, Result},
     sdk::{
-        auth::{
-            request::{AccessTokenLoginRequest, ApiKeyLoginRequest, PasswordLoginRequest},
-            response::{ApiKeyLoginResponse, PasswordLoginResponse},
-        },
         request::{
             client_settings::{ClientSettings, DeviceType},
             fingerprint_request::FingerprintRequest,
@@ -268,7 +266,7 @@ impl<'a> Client {
 mod tests {
     use wiremock::{matchers, Mock, ResponseTemplate};
 
-    use crate::sdk::{auth::request::AccessTokenLoginRequest, request::secrets_request::*};
+    use crate::{auth::request::AccessTokenLoginRequest, sdk::request::secrets_request::*};
 
     #[tokio::test]
     async fn test_access_token_login() {

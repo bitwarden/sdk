@@ -5,15 +5,13 @@ use color_eyre::eyre::{bail, Result};
 use log::error;
 
 use bitwarden::{
+    auth::request::AccessTokenLoginRequest,
     client::AccessToken,
-    sdk::{
-        auth::request::AccessTokenLoginRequest,
-        request::{
-            client_settings::ClientSettings,
-            projects_request::{ProjectGetRequest, ProjectsListRequest},
-            secrets_request::{
-                SecretGetRequest, SecretIdentifiersByProjectRequest, SecretIdentifiersRequest,
-            },
+    sdk::request::{
+        client_settings::ClientSettings,
+        projects_request::{ProjectGetRequest, ProjectsListRequest},
+        secrets_request::{
+            SecretGetRequest, SecretIdentifiersByProjectRequest, SecretIdentifiersRequest,
         },
     },
 };

@@ -31,7 +31,7 @@ pub enum Error {
     InvalidCipherString(#[from] CSParseError),
 
     #[error("Error parsing Identity response: {0}")]
-    IdentityFail(crate::api::response::IdentityTokenFailResponse),
+    IdentityFail(crate::auth::api::response::IdentityTokenFailResponse),
 
     #[error(transparent)]
     Reqwest(#[from] reqwest::Error),

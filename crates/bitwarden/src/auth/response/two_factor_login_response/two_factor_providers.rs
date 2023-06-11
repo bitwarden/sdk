@@ -24,8 +24,8 @@ pub struct TwoFactorProviders {
     pub web_authn: Option<WebAuthn>,
 }
 
-impl From<crate::api::response::TwoFactorProviders> for TwoFactorProviders {
-    fn from(api: crate::api::response::TwoFactorProviders) -> Self {
+impl From<crate::auth::api::response::TwoFactorProviders> for TwoFactorProviders {
+    fn from(api: crate::auth::api::response::TwoFactorProviders) -> Self {
         Self {
             authenticator: api.authenticator.map(Into::into),
             email: api.email.map(Into::into),

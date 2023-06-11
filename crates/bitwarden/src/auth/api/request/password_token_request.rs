@@ -1,7 +1,7 @@
 use log::debug;
 use serde::{Deserialize, Serialize};
 
-use crate::{api::response::IdentityTokenResponse, client::ApiConfigurations, error::Result};
+use crate::{auth::api::response::IdentityTokenResponse, client::ApiConfigurations, error::Result};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct PasswordTokenRequest {

@@ -8,8 +8,8 @@ pub struct CaptchaResponse {
     pub site_key: String,
 }
 
-impl From<crate::api::response::IdentityCaptchaResponse> for CaptchaResponse {
-    fn from(api: crate::api::response::IdentityCaptchaResponse) -> Self {
+impl From<crate::auth::api::response::IdentityCaptchaResponse> for CaptchaResponse {
+    fn from(api: crate::auth::api::response::IdentityCaptchaResponse) -> Self {
         Self {
             site_key: api.site_key,
         }

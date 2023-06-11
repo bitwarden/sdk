@@ -5,11 +5,11 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Authenticator {}
 
-impl From<crate::api::response::two_factor_provider_data::authenticator::Authenticator>
+impl From<crate::auth::api::response::two_factor_provider_data::authenticator::Authenticator>
     for Authenticator
 {
     fn from(
-        _: crate::api::response::two_factor_provider_data::authenticator::Authenticator,
+        _: crate::auth::api::response::two_factor_provider_data::authenticator::Authenticator,
     ) -> Self {
         Self {}
     }

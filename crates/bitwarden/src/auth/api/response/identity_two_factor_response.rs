@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::api::response::two_factor_providers::TwoFactorProviders;
+use crate::auth::api::response::two_factor_providers::TwoFactorProviders;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct IdentityTwoFactorResponse {

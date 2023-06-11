@@ -2,8 +2,11 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    api::response::IdentityTokenResponse,
-    auth::response::two_factor_login_response::TwoFactorProviders, error::Result,
+    auth::{
+        api::response::IdentityTokenResponse,
+        response::two_factor_login_response::TwoFactorProviders,
+    },
+    error::Result,
     sdk::response::captcha_response::CaptchaResponse,
 };
 

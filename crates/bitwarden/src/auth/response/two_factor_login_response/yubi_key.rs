@@ -8,8 +8,8 @@ pub struct YubiKey {
     pub nfc: bool,
 }
 
-impl From<crate::api::response::two_factor_provider_data::yubi_key::YubiKey> for YubiKey {
-    fn from(api: crate::api::response::two_factor_provider_data::yubi_key::YubiKey) -> Self {
+impl From<crate::auth::api::response::two_factor_provider_data::yubi_key::YubiKey> for YubiKey {
+    fn from(api: crate::auth::api::response::two_factor_provider_data::yubi_key::YubiKey) -> Self {
         Self { nfc: api.nfc }
     }
 }

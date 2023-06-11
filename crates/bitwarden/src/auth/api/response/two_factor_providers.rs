@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::api::response::two_factor_provider_data::{
+use crate::auth::api::response::two_factor_provider_data::{
     authenticator::Authenticator, duo::Duo, email::Email, organization_duo::OrganizationDuo,
     remember::Remember, web_authn::WebAuthn, yubi_key::YubiKey,
 };

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    api::response::{
+    auth::api::response::{
         IdentityCaptchaResponse, IdentityTokenFailResponse, IdentityTokenPayloadResponse,
         IdentityTokenRefreshResponse, IdentityTokenSuccessResponse, IdentityTwoFactorResponse,
     },

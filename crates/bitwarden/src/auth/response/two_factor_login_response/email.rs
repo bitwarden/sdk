@@ -8,8 +8,8 @@ pub struct Email {
     pub email: String,
 }
 
-impl From<crate::api::response::two_factor_provider_data::email::Email> for Email {
-    fn from(api: crate::api::response::two_factor_provider_data::email::Email) -> Self {
+impl From<crate::auth::api::response::two_factor_provider_data::email::Email> for Email {
+    fn from(api: crate::auth::api::response::two_factor_provider_data::email::Email) -> Self {
         Self { email: api.email }
     }
 }

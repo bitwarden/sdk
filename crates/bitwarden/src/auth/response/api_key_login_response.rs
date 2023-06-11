@@ -2,10 +2,12 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    api::response::IdentityTokenResponse,
-    auth::response::{
-        password_login_response::PasswordLoginResponse,
-        two_factor_login_response::TwoFactorProviders,
+    auth::{
+        api::response::IdentityTokenResponse,
+        response::{
+            password_login_response::PasswordLoginResponse,
+            two_factor_login_response::TwoFactorProviders,
+        },
     },
     error::Result,
 };

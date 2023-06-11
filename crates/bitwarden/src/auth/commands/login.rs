@@ -11,11 +11,11 @@ use bitwarden_api_identity::{
 use log::{debug, info};
 
 use crate::{
-    api::{
-        request::{AccessTokenRequest, ApiTokenRequest, PasswordTokenRequest},
-        response::IdentityTokenResponse,
-    },
     auth::{
+        api::{
+            request::{AccessTokenRequest, ApiTokenRequest, PasswordTokenRequest},
+            response::IdentityTokenResponse,
+        },
         request::{AccessTokenLoginRequest, ApiKeyLoginRequest, PasswordLoginRequest},
         response::{ApiKeyLoginResponse, PasswordLoginResponse},
     },
@@ -221,7 +221,7 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
                     .as_deref()
                     .ok_or(Error::NotAuthenticated)?;
 
-                crate::api::request::RenewTokenRequest::new(
+                crate::auth::api::request::RenewTokenRequest::new(
                     refresh.to_owned(),
                     client_id.to_owned(),
                 )

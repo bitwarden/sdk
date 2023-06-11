@@ -10,7 +10,7 @@ pub(crate) use password_token_request::*;
 pub(crate) use renew_token_request::*;
 
 use crate::{
-    api::response::{parse_identity_response, IdentityTokenResponse},
+    auth::api::response::{parse_identity_response, IdentityTokenResponse},
     client::ApiConfigurations,
     error::Result,
     util::BASE64_ENGINE,

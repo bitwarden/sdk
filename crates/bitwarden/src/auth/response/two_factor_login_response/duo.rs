@@ -8,8 +8,8 @@ pub struct Duo {
     pub signature: String,
 }
 
-impl From<crate::api::response::two_factor_provider_data::duo::Duo> for Duo {
-    fn from(api: crate::api::response::two_factor_provider_data::duo::Duo) -> Self {
+impl From<crate::auth::api::response::two_factor_provider_data::duo::Duo> for Duo {
+    fn from(api: crate::auth::api::response::two_factor_provider_data::duo::Duo) -> Self {
         Self {
             host: api.host,
             signature: api.signature,
@@ -17,11 +17,11 @@ impl From<crate::api::response::two_factor_provider_data::duo::Duo> for Duo {
     }
 }
 
-impl From<crate::api::response::two_factor_provider_data::organization_duo::OrganizationDuo>
+impl From<crate::auth::api::response::two_factor_provider_data::organization_duo::OrganizationDuo>
     for Duo
 {
     fn from(
-        api: crate::api::response::two_factor_provider_data::organization_duo::OrganizationDuo,
+        api: crate::auth::api::response::two_factor_provider_data::organization_duo::OrganizationDuo,
     ) -> Self {
         Self {
             host: api.host,

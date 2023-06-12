@@ -1,6 +1,6 @@
 use std::{path::PathBuf, str::FromStr};
 
-use clap::{CommandFactory, Parser, Subcommand};
+use clap::{ArgGroup, CommandFactory, Parser, Subcommand};
 use color_eyre::eyre::{bail, Result};
 use log::error;
 
@@ -293,19 +293,17 @@ async fn process_commands() -> Result<()> {
         Commands::Edit {
             cmd: EditCommand::Project { project_id, name },
         } => {
-            let old_project = client
-                .projects()
-                .get(&ProjectGetRequest {
-                    id: project_id.clone(),
-                })
-                .await?;
+            let project_id = match Uuid::parse_str(project_id.as_str()) {
+                Ok(id) => id,
+                Err(_) => bail!("Project Id must be a valid Uuid."),
+            };
 
             let project = client
                 .projects()
                 .update(&ProjectPutRequest {
                     id: project_id,
                     organization_id,
-                    name: key.unwrap_or(old_project.name),
+                    name,
                 })
                 .await?;
             serialize_response(project, cli.output, cli.color);
@@ -314,12 +312,27 @@ async fn process_commands() -> Result<()> {
         Commands::Delete {
             cmd: DeleteCommand::Project { project_ids },
         } => {
+            let project_ids: Vec<Uuid> = match project_ids
+                .into_iter()
+                .map(|id| Uuid::parse_str(id.as_str()))
+                .collect()
+            {
+                Ok(ids) => ids,
+                Err(_) => bail!("All Project Id's must be Uuid's."),
+            };
+
+            let project_count = project_ids.len();
+
             client
                 .projects()
                 .delete(ProjectsDeleteRequest { ids: project_ids })
                 .await?;
 
-            println!("Project deleted correctly");
+            if project_count > 1 {
+                println!("Projects deleted successfully.");
+            } else {
+                println!("Project deleted successfully.");
+            }
         }
 
         Commands::Get {

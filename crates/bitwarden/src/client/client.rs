@@ -1,7 +1,9 @@
+use std::ops::DerefMut;
 use std::time::{Duration, Instant};
 
 use log::debug;
 use reqwest::header::{self};
+use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 #[allow(unused_imports)]
@@ -33,7 +35,7 @@ use crate::{
     },
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) struct ApiConfigurations {
     pub identity: bitwarden_api_identity::apis::configuration::Configuration,
     pub api: bitwarden_api_api::apis::configuration::Configuration,
@@ -66,11 +68,11 @@ pub struct Client {
     /// Use Client::get_api_configurations() to access this.
     /// It should only be used directly in renew_token
     #[doc(hidden)]
-    pub(crate) __api_configurations: ApiConfigurations,
+    pub(crate) __api_configurations: RwLock<Arc<ApiConfigurations>>,
 
     auth_settings: Option<AuthSettings>,
 
-    encryption_settings: Option<EncryptionSettings>,
+    encryption_settings: RwLock<Option<Arc<EncryptionSettings>>>,
 }
 
 impl Client {
@@ -109,21 +111,21 @@ impl Client {
             refresh_token: None,
             token_expires_in: None,
             login_method: None,
-            __api_configurations: ApiConfigurations {
+            __api_configurations: RwLock::new(Arc::new(ApiConfigurations {
                 identity,
                 api,
                 device_type: settings.device_type,
-            },
+            })),
             auth_settings: None,
-            encryption_settings: None,
+            encryption_settings: RwLock::new(None),
         }
     }
 
-    pub(crate) async fn get_api_configurations(&mut self) -> &ApiConfigurations {
+    pub(crate) async fn get_api_configurations(&mut self) -> Arc<ApiConfigurations> {
         // At the moment we ignore the error result from the token renewal, if it fails,
         // the token will end up expiring and the next operation is going to fail anyway.
         self.renew_token().await.ok();
-        &self.__api_configurations
+        self.__api_configurations.read().unwrap().clone()
     }
 
     #[cfg(feature = "internal")]
@@ -175,8 +177,12 @@ impl Client {
         }
     }
 
-    pub(crate) fn get_encryption_settings(&self) -> &Option<EncryptionSettings> {
-        &self.encryption_settings
+    pub(crate) fn get_encryption_settings(&self) -> Result<Arc<EncryptionSettings>> {
+        self.encryption_settings
+            .read()
+            .unwrap()
+            .clone()
+            .ok_or(Error::VaultLocked)
     }
 
     pub(crate) fn set_auth_settings(&mut self, auth_settings: AuthSettings) {
@@ -195,8 +201,12 @@ impl Client {
         self.refresh_token = refresh_token;
         self.token_expires_in = Some(Instant::now() + Duration::from_secs(expires_in));
         self.login_method = Some(login_method);
-        self.__api_configurations.identity.oauth_access_token = Some(token.clone());
-        self.__api_configurations.api.oauth_access_token = Some(token);
+
+        let mut api_configurations = self.__api_configurations.write().unwrap();
+        let mut new_configuration = ApiConfigurations::clone(&api_configurations);
+        new_configuration.identity.oauth_access_token = Some(token.clone());
+        new_configuration.api.oauth_access_token = Some(token);
+        *api_configurations = Arc::new(new_configuration);
     }
 
     pub async fn renew_token(&mut self) -> Result<()> {
@@ -212,40 +222,41 @@ impl Client {
         password: &str,
         user_key: CipherString,
         private_key: CipherString,
-    ) -> Result<&EncryptionSettings> {
+    ) -> Result<()> {
         let auth = match &self.auth_settings {
             Some(a) => a,
             None => return Err(Error::NotAuthenticated),
         };
 
-        self.encryption_settings = Some(EncryptionSettings::new(
+        let mut settings = self.encryption_settings.write().unwrap();
+        *settings = Some(Arc::new(EncryptionSettings::new(
             auth,
             password,
             user_key,
             private_key,
-        )?);
-        Ok(self.encryption_settings.as_ref().unwrap())
+        )?));
+        Ok(())
     }
 
-    pub(crate) fn initialize_crypto_single_key(
-        &mut self,
-        key: SymmetricCryptoKey,
-    ) -> &EncryptionSettings {
-        self.encryption_settings = Some(EncryptionSettings::new_single_key(key));
-        self.encryption_settings.as_ref().unwrap()
+    pub(crate) fn initialize_crypto_single_key(&mut self, key: SymmetricCryptoKey) {
+        let mut settings = self.encryption_settings.write().unwrap();
+        *settings = Some(Arc::new(EncryptionSettings::new_single_key(key)));
     }
 
     pub(crate) fn initialize_org_crypto(
         &mut self,
         org_keys: Vec<(Uuid, CipherString)>,
-    ) -> Result<&EncryptionSettings> {
-        let enc = self
-            .encryption_settings
-            .as_mut()
-            .ok_or(Error::VaultLocked)?;
-
-        enc.set_org_keys(org_keys)?;
-        Ok(self.encryption_settings.as_ref().unwrap())
+    ) -> Result<Arc<EncryptionSettings>> {
+        let mut settings = self.encryption_settings.write().unwrap();
+        match settings.deref_mut() {
+            Some(ref mut enc) => {
+                let mut new_enc = EncryptionSettings::clone(&enc);
+                new_enc.set_org_keys(org_keys)?;
+                *enc = Arc::new(new_enc);
+                Ok(enc.clone())
+            }
+            None => Err(Error::VaultLocked),
+        }
     }
 
     #[cfg(feature = "internal")]

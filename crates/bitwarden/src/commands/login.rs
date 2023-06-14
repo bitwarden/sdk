@@ -214,6 +214,8 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
             return Ok(());
         }
 
+        let api_configurations = client.__api_configurations.read().unwrap().clone();
+
         let res = match login_method {
             LoginMethod::Username { client_id } => {
                 let refresh = client
@@ -225,7 +227,7 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
                     refresh.to_owned(),
                     client_id.to_owned(),
                 )
-                .send(&client.__api_configurations)
+                .send(&api_configurations)
                 .await?
             }
             LoginMethod::ApiKey {
@@ -233,7 +235,7 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
                 client_secret,
             } => {
                 ApiTokenRequest::new(client_id, client_secret)
-                    .send(&client.__api_configurations)
+                    .send(&api_configurations)
                     .await?
             }
             LoginMethod::AccessToken {
@@ -242,7 +244,7 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
                 ..
             } => {
                 AccessTokenRequest::new(*service_account_id, &client_secret)
-                    .send(&client.__api_configurations)
+                    .send(&api_configurations)
                     .await?
             }
         };

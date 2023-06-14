@@ -2,7 +2,7 @@ use bitwarden_api_api::models::{SecretCreateRequestModel, SecretUpdateRequestMod
 
 use crate::{
     client::Client,
-    error::{Error, Result},
+    error::Result,
     sdk::{
         request::secrets_request::{
             SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
@@ -21,22 +21,16 @@ pub(crate) async fn get_secret(
     let config = client.get_api_configurations().await;
     let res = bitwarden_api_api::apis::secrets_api::secrets_id_get(&config.api, input.id).await?;
 
-    let enc = client
-        .get_encryption_settings()
-        .as_ref()
-        .ok_or(Error::VaultLocked)?;
+    let enc = client.get_encryption_settings()?;
 
-    SecretResponse::process_response(res, enc)
+    SecretResponse::process_response(res, &enc)
 }
 
 pub(crate) async fn create_secret(
     client: &mut Client,
     input: &SecretCreateRequest,
 ) -> Result<SecretResponse> {
-    let enc = client
-        .get_encryption_settings()
-        .as_ref()
-        .ok_or(Error::VaultLocked)?;
+    let enc = client.get_encryption_settings()?;
 
     let org_id = Some(input.organization_id);
 
@@ -55,12 +49,7 @@ pub(crate) async fn create_secret(
     )
     .await?;
 
-    let enc = client
-        .get_encryption_settings()
-        .as_ref()
-        .ok_or(Error::VaultLocked)?;
-
-    SecretResponse::process_response(res, enc)
+    SecretResponse::process_response(res, &enc)
 }
 
 pub(crate) async fn list_secrets(
@@ -74,12 +63,9 @@ pub(crate) async fn list_secrets(
     )
     .await?;
 
-    let enc = client
-        .get_encryption_settings()
-        .as_ref()
-        .ok_or(Error::VaultLocked)?;
+    let enc = client.get_encryption_settings()?;
 
-    SecretIdentifiersResponse::process_response(res, enc)
+    SecretIdentifiersResponse::process_response(res, &enc)
 }
 
 pub(crate) async fn list_secrets_by_project(
@@ -93,22 +79,16 @@ pub(crate) async fn list_secrets_by_project(
     )
     .await?;
 
-    let enc = client
-        .get_encryption_settings()
-        .as_ref()
-        .ok_or(Error::VaultLocked)?;
+    let enc = client.get_encryption_settings()?;
 
-    SecretIdentifiersResponse::process_response(res, enc)
+    SecretIdentifiersResponse::process_response(res, &enc)
 }
 
 pub(crate) async fn update_secret(
     client: &mut Client,
     input: &SecretPutRequest,
 ) -> Result<SecretResponse> {
-    let enc = client
-        .get_encryption_settings()
-        .as_ref()
-        .ok_or(Error::VaultLocked)?;
+    let enc = client.get_encryption_settings()?;
 
     let org_id = Some(input.organization_id);
 
@@ -123,12 +103,9 @@ pub(crate) async fn update_secret(
     let res =
         bitwarden_api_api::apis::secrets_api::secrets_id_put(&config.api, input.id, secret).await?;
 
-    let enc = client
-        .get_encryption_settings()
-        .as_ref()
-        .ok_or(Error::VaultLocked)?;
+    let enc = client.get_encryption_settings()?;
 
-    SecretResponse::process_response(res, enc)
+    SecretResponse::process_response(res, &enc)
 }
 
 pub(crate) async fn delete_secrets(

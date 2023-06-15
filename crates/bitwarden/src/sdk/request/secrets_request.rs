@@ -20,7 +20,7 @@ pub struct SecretCreateRequest {
     pub note: String,
 
     /// IDs of the projects that this secret will belong to
-    pub project_ids: Option<Vec<String>>,
+    pub project_ids: Option<Vec<Uuid>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

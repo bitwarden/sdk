@@ -55,6 +55,19 @@
       "additionalProperties": false
     },
     {
+      "description": "Get the user's passphrase\n\nReturns: String",
+      "type": "object",
+      "required": [
+        "fingerprint"
+      ],
+      "properties": {
+        "fingerprint": {
+          "$ref": "#/definitions/FingerprintRequest"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
       "description": "> Requires Authentication Retrieve all user data, ciphers and organizations the user is a part of\n\nReturns: [SyncResponse](crate::sdk::response::sync_response::SyncResponse)",
       "type": "object",
       "required": [
@@ -131,6 +144,24 @@
       },
       "additionalProperties": false
     },
+    "FingerprintRequest": {
+      "type": "object",
+      "required": [
+        "fingerprintMaterial",
+        "publicKey"
+      ],
+      "properties": {
+        "fingerprintMaterial": {
+          "description": "The input material, used in the fingerprint generation process.",
+          "type": "string"
+        },
+        "publicKey": {
+          "description": "The user's public key",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
     "PasswordLoginRequest": {
       "description": "Login to Bitwarden with Username and Password",
       "type": "object",
@@ -158,7 +189,8 @@
       "properties": {
         "id": {
           "description": "ID of the project to retrieve",
-          "type": "string"
+          "type": "string",
+          "format": "uuid"
         }
       },
       "additionalProperties": false
@@ -201,7 +233,8 @@
       "properties": {
         "organizationId": {
           "description": "Organization to retrieve all the projects from",
-          "type": "string"
+          "type": "string",
+          "format": "uuid"
         }
       },
       "additionalProperties": false
@@ -223,7 +256,8 @@
         },
         "organizationId": {
           "description": "Organization where the secret will be created",
-          "type": "string"
+          "type": "string",
+          "format": "uuid"
         },
         "projectIds": {
           "description": "IDs of the projects that this secret will belong to",
@@ -249,7 +283,8 @@
       "properties": {
         "id": {
           "description": "ID of the secret to retrieve",
-          "type": "string"
+          "type": "string",
+          "format": "uuid"
         }
       },
       "additionalProperties": false
@@ -262,7 +297,8 @@
       "properties": {
         "organizationId": {
           "description": "Organization to retrieve all the secrets from",
-          "type": "string"
+          "type": "string",
+          "format": "uuid"
         }
       },
       "additionalProperties": false
@@ -279,7 +315,8 @@
       "properties": {
         "id": {
           "description": "ID of the secret to modify",
-          "type": "string"
+          "type": "string",
+          "format": "uuid"
         },
         "key": {
           "type": "string"
@@ -289,7 +326,8 @@
         },
         "organizationId": {
           "description": "Organization ID of the secret to modify",
-          "type": "string"
+          "type": "string",
+          "format": "uuid"
         },
         "value": {
           "type": "string"
@@ -396,7 +434,8 @@
           "description": "IDs of the secrets to delete",
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "format": "uuid"
           }
         }
       },

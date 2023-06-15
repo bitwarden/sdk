@@ -92,7 +92,7 @@ pub enum ServiceAccountsIdGrantedPoliciesPostError {
 
 pub async fn access_policies_id_delete(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
 ) -> Result<(), Error<AccessPoliciesIdDeleteError>> {
     let local_var_configuration = configuration;
 
@@ -136,7 +136,7 @@ pub async fn access_policies_id_delete(
 
 pub async fn access_policies_id_put(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     access_policy_update_request: Option<crate::models::AccessPolicyUpdateRequest>,
 ) -> Result<crate::models::BaseAccessPolicyResponseModel, Error<AccessPoliciesIdPutError>> {
     let local_var_configuration = configuration;
@@ -182,7 +182,7 @@ pub async fn access_policies_id_put(
 
 pub async fn organizations_id_access_policies_people_potential_grantees_get(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
 ) -> Result<
     crate::models::PotentialGranteeResponseModelListResponseModel,
     Error<OrganizationsIdAccessPoliciesPeoplePotentialGranteesGetError>,
@@ -229,7 +229,7 @@ pub async fn organizations_id_access_policies_people_potential_grantees_get(
 
 pub async fn organizations_id_access_policies_projects_potential_grantees_get(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
 ) -> Result<
     crate::models::PotentialGranteeResponseModelListResponseModel,
     Error<OrganizationsIdAccessPoliciesProjectsPotentialGranteesGetError>,
@@ -277,7 +277,7 @@ pub async fn organizations_id_access_policies_projects_potential_grantees_get(
 
 pub async fn organizations_id_access_policies_service_accounts_potential_grantees_get(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
 ) -> Result<
     crate::models::PotentialGranteeResponseModelListResponseModel,
     Error<OrganizationsIdAccessPoliciesServiceAccountsPotentialGranteesGetError>,
@@ -325,7 +325,7 @@ pub async fn organizations_id_access_policies_service_accounts_potential_grantee
 
 pub async fn projects_id_access_policies_get(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
 ) -> Result<
     crate::models::ProjectAccessPoliciesResponseModel,
     Error<ProjectsIdAccessPoliciesGetError>,
@@ -372,7 +372,7 @@ pub async fn projects_id_access_policies_get(
 
 pub async fn projects_id_access_policies_post(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     access_policies_create_request: Option<crate::models::AccessPoliciesCreateRequest>,
 ) -> Result<
     crate::models::ProjectAccessPoliciesResponseModel,
@@ -421,7 +421,7 @@ pub async fn projects_id_access_policies_post(
 
 pub async fn service_accounts_id_access_policies_get(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
 ) -> Result<
     crate::models::ServiceAccountAccessPoliciesResponseModel,
     Error<ServiceAccountsIdAccessPoliciesGetError>,
@@ -468,7 +468,7 @@ pub async fn service_accounts_id_access_policies_get(
 
 pub async fn service_accounts_id_access_policies_post(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     access_policies_create_request: Option<crate::models::AccessPoliciesCreateRequest>,
 ) -> Result<
     crate::models::ServiceAccountAccessPoliciesResponseModel,
@@ -517,7 +517,7 @@ pub async fn service_accounts_id_access_policies_post(
 
 pub async fn service_accounts_id_granted_policies_get(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
 ) -> Result<
     crate::models::ServiceAccountProjectAccessPolicyResponseModelListResponseModel,
     Error<ServiceAccountsIdGrantedPoliciesGetError>,
@@ -564,7 +564,7 @@ pub async fn service_accounts_id_granted_policies_get(
 
 pub async fn service_accounts_id_granted_policies_post(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     granted_access_policy_request: Option<Vec<crate::models::GrantedAccessPolicyRequest>>,
 ) -> Result<
     crate::models::ServiceAccountProjectAccessPolicyResponseModelListResponseModel,

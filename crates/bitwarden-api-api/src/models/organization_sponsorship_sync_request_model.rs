@@ -16,7 +16,7 @@ pub struct OrganizationSponsorshipSyncRequestModel {
         rename = "sponsoringOrganizationCloudId",
         skip_serializing_if = "Option::is_none"
     )]
-    pub sponsoring_organization_cloud_id: Option<String>,
+    pub sponsoring_organization_cloud_id: Option<uuid::Uuid>,
     #[serde(rename = "sponsorshipsBatch", skip_serializing_if = "Option::is_none")]
     pub sponsorships_batch: Option<Vec<crate::models::OrganizationSponsorshipRequestModel>>,
 }

@@ -290,7 +290,7 @@ pub async fn organizations_org_id_users_id_events_get(
 
 pub async fn providers_provider_id_events_get(
     configuration: &configuration::Configuration,
-    provider_id: &str,
+    provider_id: uuid::Uuid,
     start: Option<String>,
     end: Option<String>,
     continuation_token: Option<&str>,
@@ -351,8 +351,8 @@ pub async fn providers_provider_id_events_get(
 
 pub async fn providers_provider_id_users_id_events_get(
     configuration: &configuration::Configuration,
-    provider_id: &str,
-    id: &str,
+    provider_id: uuid::Uuid,
+    id: uuid::Uuid,
     start: Option<String>,
     end: Option<String>,
     continuation_token: Option<&str>,

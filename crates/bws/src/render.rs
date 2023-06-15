@@ -22,19 +22,29 @@ pub(crate) enum Color {
     Auto,
 }
 
+impl Color {
+    pub(crate) fn is_enabled(self) -> bool {
+        match self {
+            Color::No => false,
+            Color::Yes => true,
+            Color::Auto => {
+                if std::env::var("NO_COLOR").is_ok() {
+                    false
+                } else {
+                    atty::is(atty::Stream::Stdout)
+                }
+            }
+        }
+    }
+}
+
 const ASCII_HEADER_ONLY: &str = "     --            ";
 
 pub(crate) fn serialize_response<T: Serialize + TableSerialize<N>, const N: usize>(
     data: T,
     output: Output,
-    color: Color,
+    color: bool,
 ) {
-    let color = match color {
-        Color::No => false,
-        Color::Yes => true,
-        Color::Auto => atty::is(atty::Stream::Stdout),
-    };
-
     match output {
         Output::JSON => {
             let mut text = serde_json::to_string_pretty(&data).unwrap();
@@ -116,7 +126,7 @@ impl TableSerialize<3> for ProjectResponse {
 
     fn get_values(&self) -> Vec<[String; 3]> {
         vec![[
-            self.id.clone(),
+            self.id.to_string(),
             self.name.clone(),
             format_date(&self.creation_date),
         ]]
@@ -130,7 +140,7 @@ impl TableSerialize<4> for SecretResponse {
 
     fn get_values(&self) -> Vec<[String; 4]> {
         vec![[
-            self.id.clone(),
+            self.id.to_string(),
             self.key.clone(),
             self.value.clone(),
             format_date(&self.creation_date),

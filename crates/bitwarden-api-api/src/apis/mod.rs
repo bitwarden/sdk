@@ -74,6 +74,7 @@ pub mod events_api;
 pub mod folders_api;
 pub mod groups_api;
 pub mod hibp_api;
+pub mod import_ciphers_api;
 pub mod info_api;
 pub mod installations_api;
 pub mod licenses_api;
@@ -99,6 +100,7 @@ pub mod sends_api;
 pub mod service_accounts_api;
 pub mod settings_api;
 pub mod sync_api;
+pub mod trash_api;
 pub mod two_factor_api;
 pub mod users_api;
 

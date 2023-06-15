@@ -11,7 +11,7 @@
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct DeviceRequestModel {
     #[serde(rename = "type")]
-    pub _type: crate::models::DeviceType,
+    pub r#type: crate::models::DeviceType,
     #[serde(rename = "name")]
     pub name: String,
     #[serde(rename = "identifier")]
@@ -22,12 +22,12 @@ pub struct DeviceRequestModel {
 
 impl DeviceRequestModel {
     pub fn new(
-        _type: crate::models::DeviceType,
+        r#type: crate::models::DeviceType,
         name: String,
         identifier: String,
     ) -> DeviceRequestModel {
         DeviceRequestModel {
-            _type,
+            r#type,
             name,
             identifier,
             push_token: None,

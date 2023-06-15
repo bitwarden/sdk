@@ -11,7 +11,7 @@
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct EmergencyAccessUpdateRequestModel {
     #[serde(rename = "type")]
-    pub _type: crate::models::EmergencyAccessType,
+    pub r#type: crate::models::EmergencyAccessType,
     #[serde(rename = "waitTimeDays")]
     pub wait_time_days: i32,
     #[serde(rename = "keyEncrypted", skip_serializing_if = "Option::is_none")]
@@ -20,11 +20,11 @@ pub struct EmergencyAccessUpdateRequestModel {
 
 impl EmergencyAccessUpdateRequestModel {
     pub fn new(
-        _type: crate::models::EmergencyAccessType,
+        r#type: crate::models::EmergencyAccessType,
         wait_time_days: i32,
     ) -> EmergencyAccessUpdateRequestModel {
         EmergencyAccessUpdateRequestModel {
-            _type,
+            r#type,
             wait_time_days,
             key_encrypted: None,
         }

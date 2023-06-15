@@ -21,8 +21,6 @@ pub struct OrganizationDomainSsoDetailsResponseModel {
         skip_serializing_if = "Option::is_none"
     )]
     pub organization_identifier: Option<String>,
-    #[serde(rename = "ssoRequired", skip_serializing_if = "Option::is_none")]
-    pub sso_required: Option<bool>,
     #[serde(rename = "verifiedDate", skip_serializing_if = "Option::is_none")]
     pub verified_date: Option<String>,
 }
@@ -34,7 +32,6 @@ impl OrganizationDomainSsoDetailsResponseModel {
             sso_available: None,
             domain_name: None,
             organization_identifier: None,
-            sso_required: None,
             verified_date: None,
         }
     }

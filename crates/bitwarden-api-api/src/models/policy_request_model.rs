@@ -11,7 +11,7 @@
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct PolicyRequestModel {
     #[serde(rename = "type")]
-    pub _type: crate::models::PolicyType,
+    pub r#type: crate::models::PolicyType,
     #[serde(rename = "enabled")]
     pub enabled: bool,
     #[serde(rename = "data", skip_serializing_if = "Option::is_none")]
@@ -19,9 +19,9 @@ pub struct PolicyRequestModel {
 }
 
 impl PolicyRequestModel {
-    pub fn new(_type: crate::models::PolicyType, enabled: bool) -> PolicyRequestModel {
+    pub fn new(r#type: crate::models::PolicyType, enabled: bool) -> PolicyRequestModel {
         PolicyRequestModel {
-            _type,
+            r#type,
             enabled,
             data: None,
         }

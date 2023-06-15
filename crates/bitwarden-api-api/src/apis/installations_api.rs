@@ -29,7 +29,7 @@ pub enum InstallationsPostError {
 
 pub async fn installations_id_get(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
 ) -> Result<crate::models::InstallationResponseModel, Error<InstallationsIdGetError>> {
     let local_var_configuration = configuration;
 

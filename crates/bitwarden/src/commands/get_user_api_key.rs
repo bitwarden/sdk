@@ -13,6 +13,7 @@ use crate::{
     Client,
 };
 
+#[allow(dead_code)]
 pub(crate) async fn get_user_api_key(
     client: &mut Client,
     input: &SecretVerificationRequest,

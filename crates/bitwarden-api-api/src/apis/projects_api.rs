@@ -50,7 +50,7 @@ pub enum ProjectsIdPutError {
 
 pub async fn organizations_organization_id_projects_get(
     configuration: &configuration::Configuration,
-    organization_id: &str,
+    organization_id: uuid::Uuid,
 ) -> Result<
     crate::models::ProjectResponseModelListResponseModel,
     Error<OrganizationsOrganizationIdProjectsGetError>,
@@ -97,7 +97,7 @@ pub async fn organizations_organization_id_projects_get(
 
 pub async fn organizations_organization_id_projects_post(
     configuration: &configuration::Configuration,
-    organization_id: &str,
+    organization_id: uuid::Uuid,
     project_create_request_model: Option<crate::models::ProjectCreateRequestModel>,
 ) -> Result<crate::models::ProjectResponseModel, Error<OrganizationsOrganizationIdProjectsPostError>>
 {
@@ -144,7 +144,7 @@ pub async fn organizations_organization_id_projects_post(
 
 pub async fn projects_delete_post(
     configuration: &configuration::Configuration,
-    request_body: Option<Vec<String>>,
+    uuid_colon_colon_uuid: Option<Vec<uuid::Uuid>>,
 ) -> Result<crate::models::BulkDeleteResponseModelListResponseModel, Error<ProjectsDeletePostError>>
 {
     let local_var_configuration = configuration;
@@ -162,7 +162,7 @@ pub async fn projects_delete_post(
     if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
         local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
     };
-    local_var_req_builder = local_var_req_builder.json(&request_body);
+    local_var_req_builder = local_var_req_builder.json(&uuid_colon_colon_uuid);
 
     let local_var_req = local_var_req_builder.build()?;
     let local_var_resp = local_var_client.execute(local_var_req).await?;
@@ -186,7 +186,7 @@ pub async fn projects_delete_post(
 
 pub async fn projects_id_get(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
 ) -> Result<crate::models::ProjectResponseModel, Error<ProjectsIdGetError>> {
     let local_var_configuration = configuration;
 
@@ -230,7 +230,7 @@ pub async fn projects_id_get(
 
 pub async fn projects_id_put(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     project_update_request_model: Option<crate::models::ProjectUpdateRequestModel>,
 ) -> Result<crate::models::ProjectResponseModel, Error<ProjectsIdPutError>> {
     let local_var_configuration = configuration;

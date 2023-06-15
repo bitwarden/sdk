@@ -14,23 +14,23 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum Saml2SigningBehavior {
-    _0 = 0,
-    _1 = 1,
-    _3 = 3,
+    Variant0 = 0,
+    Variant1 = 1,
+    Variant3 = 3,
 }
 
 impl ToString for Saml2SigningBehavior {
     fn to_string(&self) -> String {
         match self {
-            Self::_0 => String::from("0"),
-            Self::_1 => String::from("1"),
-            Self::_3 => String::from("3"),
+            Self::Variant0 => String::from("0"),
+            Self::Variant1 => String::from("1"),
+            Self::Variant3 => String::from("3"),
         }
     }
 }
 
 impl Default for Saml2SigningBehavior {
     fn default() -> Saml2SigningBehavior {
-        Self::_0
+        Self::Variant0
     }
 }

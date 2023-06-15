@@ -1,6 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+#[allow(unused_imports)]
 use crate::sdk::{
     auth::request::{AccessTokenLoginRequest, ApiKeyLoginRequest, PasswordLoginRequest},
     request::{
@@ -14,9 +15,13 @@ use crate::sdk::{
     },
 };
 
+#[cfg(feature = "internal")]
+use super::fingerprint_request::FingerprintRequest;
+
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum Command {
+    #[cfg(feature = "internal")]
     /// Login with username and password
     ///
     /// This command is for initiating an authentication handshake with Bitwarden.
@@ -29,6 +34,7 @@ pub enum Command {
     ///
     PasswordLogin(PasswordLoginRequest),
 
+    #[cfg(feature = "internal")]
     /// Login with API Key
     ///
     /// This command is for initiating an authentication handshake with Bitwarden.
@@ -45,6 +51,7 @@ pub enum Command {
     ///
     AccessTokenLogin(AccessTokenLoginRequest),
 
+    #[cfg(feature = "internal")]
     /// > Requires Authentication
     /// Get the API key of the currently authenticated user
     ///
@@ -52,6 +59,14 @@ pub enum Command {
     ///
     GetUserApiKey(SecretVerificationRequest),
 
+    #[cfg(feature = "internal")]
+    /// Get the user's passphrase
+    ///
+    /// Returns: String
+    ///
+    Fingerprint(FingerprintRequest),
+
+    #[cfg(feature = "internal")]
     /// > Requires Authentication
     /// Retrieve all user data, ciphers and organizations the user is a part of
     ///

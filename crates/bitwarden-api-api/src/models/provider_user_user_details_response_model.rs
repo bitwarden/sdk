@@ -13,11 +13,11 @@ pub struct ProviderUserUserDetailsResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
     #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
+    pub id: Option<uuid::Uuid>,
     #[serde(rename = "userId", skip_serializing_if = "Option::is_none")]
-    pub user_id: Option<String>,
+    pub user_id: Option<uuid::Uuid>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-    pub _type: Option<crate::models::ProviderUserType>,
+    pub r#type: Option<crate::models::ProviderUserType>,
     #[serde(rename = "status", skip_serializing_if = "Option::is_none")]
     pub status: Option<crate::models::ProviderUserStatusType>,
     #[serde(rename = "permissions", skip_serializing_if = "Option::is_none")]
@@ -34,7 +34,7 @@ impl ProviderUserUserDetailsResponseModel {
             object: None,
             id: None,
             user_id: None,
-            _type: None,
+            r#type: None,
             status: None,
             permissions: None,
             name: None,

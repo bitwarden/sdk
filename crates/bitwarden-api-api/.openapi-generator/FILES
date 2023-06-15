@@ -15,6 +15,7 @@ src/apis/events_api.rs
 src/apis/folders_api.rs
 src/apis/groups_api.rs
 src/apis/hibp_api.rs
+src/apis/import_ciphers_api.rs
 src/apis/info_api.rs
 src/apis/installations_api.rs
 src/apis/licenses_api.rs
@@ -41,6 +42,7 @@ src/apis/sends_api.rs
 src/apis/service_accounts_api.rs
 src/apis/settings_api.rs
 src/apis/sync_api.rs
+src/apis/trash_api.rs
 src/apis/two_factor_api.rs
 src/apis/users_api.rs
 src/lib.rs
@@ -110,6 +112,7 @@ src/models/collection_details_response_model_list_response_model.rs
 src/models/collection_request_model.rs
 src/models/collection_response_model.rs
 src/models/collection_response_model_list_response_model.rs
+src/models/collection_with_id_request_model.rs
 src/models/config_response_model.rs
 src/models/delete_recover_request_model.rs
 src/models/device_request_model.rs
@@ -145,6 +148,7 @@ src/models/folder_response_model.rs
 src/models/folder_response_model_list_response_model.rs
 src/models/folder_with_id_request_model.rs
 src/models/global_domains.rs
+src/models/global_equivalent_domains_type.rs
 src/models/granted_access_policy_request.rs
 src/models/group.rs
 src/models/group_bulk_request_model.rs
@@ -158,7 +162,6 @@ src/models/iap_check_request_model.rs
 src/models/import_ciphers_request_model.rs
 src/models/import_organization_ciphers_request_model.rs
 src/models/import_organization_users_request_model.rs
-src/models/inner_project.rs
 src/models/inner_project_export_response_model.rs
 src/models/inner_project_import_request_model.rs
 src/models/inner_secret_export_response_model.rs
@@ -172,6 +175,7 @@ src/models/key_model.rs
 src/models/keys_request_model.rs
 src/models/keys_response_model.rs
 src/models/license_type.rs
+src/models/master_password_policy_response_model.rs
 src/models/mod.rs
 src/models/open_id_connect_redirect_behavior.rs
 src/models/organization_api_key_information.rs
@@ -188,6 +192,7 @@ src/models/organization_domain_response_model.rs
 src/models/organization_domain_response_model_list_response_model.rs
 src/models/organization_domain_sso_details_request_model.rs
 src/models/organization_domain_sso_details_response_model.rs
+src/models/organization_enroll_secrets_manager_request_model.rs
 src/models/organization_keys_request_model.rs
 src/models/organization_keys_response_model.rs
 src/models/organization_license.rs
@@ -206,6 +211,7 @@ src/models/organization_subscription_update_request_model.rs
 src/models/organization_tax_info_update_request_model.rs
 src/models/organization_update_request_model.rs
 src/models/organization_upgrade_request_model.rs
+src/models/organization_user_accept_init_request_model.rs
 src/models/organization_user_accept_request_model.rs
 src/models/organization_user_bulk_confirm_request_model.rs
 src/models/organization_user_bulk_confirm_request_model_entry.rs
@@ -262,6 +268,7 @@ src/models/provider_organization_organization_details_response_model_list_respon
 src/models/provider_organization_response_model.rs
 src/models/provider_response_model.rs
 src/models/provider_setup_request_model.rs
+src/models/provider_type.rs
 src/models/provider_update_request_model.rs
 src/models/provider_user_accept_request_model.rs
 src/models/provider_user_bulk_confirm_request_model.rs
@@ -292,6 +299,7 @@ src/models/saml2_binding_type.rs
 src/models/saml2_name_id_format.rs
 src/models/saml2_signing_behavior.rs
 src/models/secret_create_request_model.rs
+src/models/secret_response_inner_project.rs
 src/models/secret_response_model.rs
 src/models/secret_update_request_model.rs
 src/models/secret_verification_request_model.rs

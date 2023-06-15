@@ -33,7 +33,7 @@ jobs:
       release-version: ${{ steps.version.outputs.version }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
 
       - name: Branch check
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
@@ -47,7 +47,7 @@ jobs:
 
       - name: Check Release Version
         id: version
-        uses: bitwarden/gh-actions/release-version-check@4f2a18ff6b521dbdc0d9079e528bf82114175520
+        uses: bitwarden/gh-actions/release-version-check@72594be690a4e7bfa87b1402b2aedc75acdbff12
         with:
           release-type: ${{ github.event.inputs.release_type }}
           project-type: ts
@@ -67,7 +67,7 @@ jobs:
 
       - name: Download all Release artifacts
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
-        uses: bitwarden/gh-actions/download-artifacts@4f2a18ff6b521dbdc0d9079e528bf82114175520
+        uses: bitwarden/gh-actions/download-artifacts@72594be690a4e7bfa87b1402b2aedc75acdbff12
         with:
           workflow: build-napi.yml
           path: artifacts
@@ -76,7 +76,7 @@ jobs:
 
       - name: Dry Run - Download all artifacts
         if: ${{ github.event.inputs.release_type == 'Dry Run' }}
-        uses: bitwarden/gh-actions/download-artifacts@4f2a18ff6b521dbdc0d9079e528bf82114175520
+        uses: bitwarden/gh-actions/download-artifacts@72594be690a4e7bfa87b1402b2aedc75acdbff12
         with:
           workflow: build-napi.yml
           path: artifacts
@@ -122,7 +122,7 @@ jobs:
       _PKG_VERSION: ${{ needs.setup.outputs.release-version }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
 
       - name: Setup Node
         uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
@@ -144,14 +144,14 @@ jobs:
 
       - name: Retrieve secrets
         id: retrieve-secrets
-        uses: bitwarden/gh-actions/get-keyvault-secrets@4f2a18ff6b521dbdc0d9079e528bf82114175520
+        uses: bitwarden/gh-actions/get-keyvault-secrets@72594be690a4e7bfa87b1402b2aedc75acdbff12
         with:
           keyvault: "bitwarden-prod-kv"
           secrets: "npm-api-key"
 
       - name: Download artifacts
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
-        uses: bitwarden/gh-actions/download-artifacts@4f2a18ff6b521dbdc0d9079e528bf82114175520
+        uses: bitwarden/gh-actions/download-artifacts@72594be690a4e7bfa87b1402b2aedc75acdbff12
         with:
           workflow: build-napi.yml
           path: ${{ github.workspace }}/crates/bitwarden-napi/artifacts
@@ -160,7 +160,7 @@ jobs:
 
       - name: Dry Run - Download artifacts
         if: ${{ github.event.inputs.release_type == 'Dry Run' }}
-        uses: bitwarden/gh-actions/download-artifacts@4f2a18ff6b521dbdc0d9079e528bf82114175520
+        uses: bitwarden/gh-actions/download-artifacts@72594be690a4e7bfa87b1402b2aedc75acdbff12
         with:
           workflow: build-napi.yml
           path: ${{ github.workspace }}/crates/bitwarden-napi/artifacts

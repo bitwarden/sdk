@@ -19,7 +19,7 @@ pub(crate) async fn get_secret(
     input: &SecretGetRequest,
 ) -> Result<SecretResponse> {
     let config = client.get_api_configurations().await;
-    let res = bitwarden_api_api::apis::secrets_api::secrets_id_get(&config.api, &input.id).await?;
+    let res = bitwarden_api_api::apis::secrets_api::secrets_id_get(&config.api, input.id).await?;
 
     let enc = client
         .get_encryption_settings()
@@ -38,7 +38,7 @@ pub(crate) async fn create_secret(
         .as_ref()
         .ok_or(Error::VaultLocked)?;
 
-    let org_id = Some(input.organization_id.as_str());
+    let org_id = Some(input.organization_id);
 
     let secret = Some(SecretCreateRequestModel {
         key: enc.encrypt(input.key.as_bytes(), org_id)?.to_string(),
@@ -50,7 +50,7 @@ pub(crate) async fn create_secret(
     let config = client.get_api_configurations().await;
     let res = bitwarden_api_api::apis::secrets_api::organizations_organization_id_secrets_post(
         &config.api,
-        &input.organization_id,
+        input.organization_id,
         secret,
     )
     .await?;
@@ -70,7 +70,7 @@ pub(crate) async fn list_secrets(
     let config = client.get_api_configurations().await;
     let res = bitwarden_api_api::apis::secrets_api::organizations_organization_id_secrets_get(
         &config.api,
-        &input.organization_id,
+        input.organization_id,
     )
     .await?;
 
@@ -89,7 +89,7 @@ pub(crate) async fn list_secrets_by_project(
     let config = client.get_api_configurations().await;
     let res = bitwarden_api_api::apis::secrets_api::projects_project_id_secrets_get(
         &config.api,
-        &input.project_id,
+        input.project_id,
     )
     .await?;
 
@@ -110,7 +110,7 @@ pub(crate) async fn update_secret(
         .as_ref()
         .ok_or(Error::VaultLocked)?;
 
-    let org_id = Some(input.organization_id.as_str());
+    let org_id = Some(input.organization_id);
 
     let secret = Some(SecretUpdateRequestModel {
         key: enc.encrypt(input.key.as_bytes(), org_id)?.to_string(),
@@ -120,8 +120,8 @@ pub(crate) async fn update_secret(
     });
 
     let config = client.get_api_configurations().await;
-    let res = bitwarden_api_api::apis::secrets_api::secrets_id_put(&config.api, &input.id, secret)
-        .await?;
+    let res =
+        bitwarden_api_api::apis::secrets_api::secrets_id_put(&config.api, input.id, secret).await?;
 
     let enc = client
         .get_encryption_settings()

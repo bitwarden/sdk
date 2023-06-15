@@ -11,7 +11,7 @@
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct CipherCreateRequestModel {
     #[serde(rename = "collectionIds", skip_serializing_if = "Option::is_none")]
-    pub collection_ids: Option<Vec<String>>,
+    pub collection_ids: Option<Vec<uuid::Uuid>>,
     #[serde(rename = "cipher")]
     pub cipher: Box<crate::models::CipherRequestModel>,
 }

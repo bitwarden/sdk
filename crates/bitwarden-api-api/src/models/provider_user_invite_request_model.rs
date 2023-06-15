@@ -13,14 +13,14 @@ pub struct ProviderUserInviteRequestModel {
     #[serde(rename = "emails")]
     pub emails: Vec<String>,
     #[serde(rename = "type")]
-    pub _type: crate::models::ProviderUserType,
+    pub r#type: crate::models::ProviderUserType,
 }
 
 impl ProviderUserInviteRequestModel {
     pub fn new(
         emails: Vec<String>,
-        _type: crate::models::ProviderUserType,
+        r#type: crate::models::ProviderUserType,
     ) -> ProviderUserInviteRequestModel {
-        ProviderUserInviteRequestModel { emails, _type }
+        ProviderUserInviteRequestModel { emails, r#type }
     }
 }

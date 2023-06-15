@@ -25,7 +25,9 @@ pub struct PasswordLoginResponse {
 }
 
 impl PasswordLoginResponse {
-    pub fn process_response(response: IdentityTokenResponse) -> Result<PasswordLoginResponse> {
+    pub(crate) fn process_response(
+        response: IdentityTokenResponse,
+    ) -> Result<PasswordLoginResponse> {
         match response {
             IdentityTokenResponse::Authenticated(success) => Ok(PasswordLoginResponse {
                 authenticated: true,

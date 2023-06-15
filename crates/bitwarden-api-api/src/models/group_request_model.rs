@@ -17,7 +17,7 @@ pub struct GroupRequestModel {
     #[serde(rename = "collections", skip_serializing_if = "Option::is_none")]
     pub collections: Option<Vec<crate::models::SelectionReadOnlyRequestModel>>,
     #[serde(rename = "users", skip_serializing_if = "Option::is_none")]
-    pub users: Option<Vec<String>>,
+    pub users: Option<Vec<uuid::Uuid>>,
 }
 
 impl GroupRequestModel {

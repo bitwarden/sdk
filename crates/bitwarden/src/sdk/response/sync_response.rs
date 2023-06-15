@@ -4,6 +4,7 @@ use bitwarden_api_api::models::{
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
@@ -13,7 +14,7 @@ use crate::{
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ProfileResponse {
-    pub id: String,
+    pub id: Uuid,
     pub name: String,
     pub email: String,
 
@@ -25,7 +26,7 @@ pub struct ProfileResponse {
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ProfileOrganizationResponse {
-    pub id: String,
+    pub id: Uuid,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -42,7 +43,7 @@ pub struct SyncResponse {
 }
 
 impl SyncResponse {
-    pub fn process_response(
+    pub(crate) fn process_response(
         response: SyncResponseModel,
         enc: &EncryptionSettings,
     ) -> Result<SyncResponse> {

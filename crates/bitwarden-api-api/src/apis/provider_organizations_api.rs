@@ -50,7 +50,7 @@ pub enum ProvidersProviderIdOrganizationsPostError {
 
 pub async fn providers_provider_id_organizations_add_post(
     configuration: &configuration::Configuration,
-    provider_id: &str,
+    provider_id: uuid::Uuid,
     provider_organization_add_request_model: Option<
         crate::models::ProviderOrganizationAddRequestModel,
     >,
@@ -98,7 +98,7 @@ pub async fn providers_provider_id_organizations_add_post(
 
 pub async fn providers_provider_id_organizations_get(
     configuration: &configuration::Configuration,
-    provider_id: &str,
+    provider_id: uuid::Uuid,
 ) -> Result<
     crate::models::ProviderOrganizationOrganizationDetailsResponseModelListResponseModel,
     Error<ProvidersProviderIdOrganizationsGetError>,
@@ -145,8 +145,8 @@ pub async fn providers_provider_id_organizations_get(
 
 pub async fn providers_provider_id_organizations_id_delete(
     configuration: &configuration::Configuration,
-    provider_id: &str,
-    id: &str,
+    provider_id: uuid::Uuid,
+    id: uuid::Uuid,
 ) -> Result<(), Error<ProvidersProviderIdOrganizationsIdDeleteError>> {
     let local_var_configuration = configuration;
 
@@ -191,8 +191,8 @@ pub async fn providers_provider_id_organizations_id_delete(
 
 pub async fn providers_provider_id_organizations_id_delete_post(
     configuration: &configuration::Configuration,
-    provider_id: &str,
-    id: &str,
+    provider_id: uuid::Uuid,
+    id: uuid::Uuid,
 ) -> Result<(), Error<ProvidersProviderIdOrganizationsIdDeletePostError>> {
     let local_var_configuration = configuration;
 
@@ -237,7 +237,7 @@ pub async fn providers_provider_id_organizations_id_delete_post(
 
 pub async fn providers_provider_id_organizations_post(
     configuration: &configuration::Configuration,
-    provider_id: &str,
+    provider_id: uuid::Uuid,
     provider_organization_create_request_model: Option<
         crate::models::ProviderOrganizationCreateRequestModel,
     >,

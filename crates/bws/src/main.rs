@@ -10,7 +10,10 @@ use bitwarden::{
         auth::request::AccessTokenLoginRequest,
         request::{
             client_settings::ClientSettings,
-            projects_request::{ProjectGetRequest, ProjectsListRequest},
+            projects_request::{
+                ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
+                ProjectsListRequest,
+            },
             secrets_request::{
                 SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
                 SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest,
@@ -118,6 +121,9 @@ enum CreateCommand {
         #[arg(long, help = "The ID of the project this secret will be added to")]
         project_id: Option<Uuid>,
     },
+    Project {
+        name: String,
+    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -132,11 +138,18 @@ enum EditCommand {
         #[arg(long, group = "edit_field")]
         note: Option<String>,
     },
+    #[clap(group = ArgGroup::new("edit_field").required(true).multiple(true))]
+    Project {
+        project_id: Uuid,
+        #[arg(long, group = "edit_field")]
+        name: String,
+    },
 }
 
 #[derive(Subcommand, Debug)]
 enum DeleteCommand {
     Secret { secret_ids: Vec<Uuid> },
+    Project { project_ids: Vec<Uuid> },
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -294,6 +307,50 @@ async fn process_commands() -> Result<()> {
                 .get(&ProjectGetRequest { id: project_id })
                 .await?;
             serialize_response(project, cli.output, color);
+        }
+
+        Commands::Create {
+            cmd: CreateCommand::Project { name },
+        } => {
+            let project = client
+                .projects()
+                .create(&ProjectCreateRequest {
+                    organization_id,
+                    name,
+                })
+                .await?;
+            serialize_response(project, cli.output, color);
+        }
+
+        Commands::Edit {
+            cmd: EditCommand::Project { project_id, name },
+        } => {
+            let project = client
+                .projects()
+                .update(&ProjectPutRequest {
+                    id: project_id,
+                    organization_id,
+                    name,
+                })
+                .await?;
+            serialize_response(project, cli.output, color);
+        }
+
+        Commands::Delete {
+            cmd: DeleteCommand::Project { project_ids },
+        } => {
+            let project_count = project_ids.len();
+
+            client
+                .projects()
+                .delete(ProjectsDeleteRequest { ids: project_ids })
+                .await?;
+
+            if project_count > 1 {
+                println!("Projects deleted successfully.");
+            } else {
+                println!("Project deleted successfully.");
+            }
         }
 
         Commands::Get {

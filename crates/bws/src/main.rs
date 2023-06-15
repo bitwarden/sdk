@@ -122,7 +122,7 @@ enum CreateCommand {
         project_id: Option<Uuid>,
     },
     Project {
-        name: String
+        name: String,
     },
 }
 
@@ -143,7 +143,7 @@ enum EditCommand {
         project_id: Uuid,
         #[arg(long, group = "edit_field")]
         name: String,
-    }
+    },
 }
 
 #[derive(Subcommand, Debug)]

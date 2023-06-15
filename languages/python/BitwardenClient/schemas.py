@@ -307,7 +307,7 @@ class SecretCreateRequest:
     organization_id: UUID
     value: str
     """IDs of the projects that this secret will belong to"""
-    project_ids: Optional[List[str]] = None
+    project_ids: Optional[List[UUID]] = None
 
     @staticmethod
     def from_dict(obj: Any) -> 'SecretCreateRequest':
@@ -316,7 +316,7 @@ class SecretCreateRequest:
         note = from_str(obj.get("note"))
         organization_id = UUID(obj.get("organizationId"))
         value = from_str(obj.get("value"))
-        project_ids = from_union([from_none, lambda x: from_list(from_str, x)], obj.get("projectIds"))
+        project_ids = from_union([from_none, lambda x: from_list(lambda x: UUID(x), x)], obj.get("projectIds"))
         return SecretCreateRequest(key, note, organization_id, value, project_ids)
 
     def to_dict(self) -> dict:
@@ -326,7 +326,7 @@ class SecretCreateRequest:
         result["organizationId"] = str(self.organization_id)
         result["value"] = from_str(self.value)
         if self.project_ids is not None:
-            result["projectIds"] = from_union([from_none, lambda x: from_list(from_str, x)], self.project_ids)
+            result["projectIds"] = from_union([from_none, lambda x: from_list(lambda x: str(x), x)], self.project_ids)
         return result
 
 

@@ -323,7 +323,7 @@ namespace Bit.Sdk
         /// IDs of the projects that this secret will belong to
         /// </summary>
         [JsonProperty("projectIds")]
-        public string[] ProjectIds { get; set; }
+        public Guid[] ProjectIds { get; set; }
 
         [JsonProperty("value")]
         public string Value { get; set; }

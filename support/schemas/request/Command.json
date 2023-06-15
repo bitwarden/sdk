@@ -266,7 +266,8 @@
             "null"
           ],
           "items": {
-            "type": "string"
+            "type": "string",
+            "format": "uuid"
           }
         },
         "value": {

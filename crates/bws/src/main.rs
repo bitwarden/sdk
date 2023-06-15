@@ -111,10 +111,10 @@ enum CreateCommand {
         key: String,
         value: String,
 
-        #[arg(long, help="An optional note to add to the secret")]
+        #[arg(long, help = "An optional note to add to the secret")]
         note: Option<String>,
 
-        #[arg(long, help="The ID of the project this secret will be added to")]
+        #[arg(long, help = "The ID of the project this secret will be added to")]
         project_id: Option<String>,
     },
 }

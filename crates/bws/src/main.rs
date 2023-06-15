@@ -140,7 +140,7 @@ enum EditCommand {
     },
     #[clap(group = ArgGroup::new("edit_field").required(true).multiple(true))]
     Project {
-        project_id: String,
+        project_id: Uuid,
         #[arg(long, group = "edit_field")]
         name: String,
     }
@@ -149,7 +149,7 @@ enum EditCommand {
 #[derive(Subcommand, Debug)]
 enum DeleteCommand {
     Secret { secret_ids: Vec<Uuid> },
-    Project { project_ids: Vec<String> },
+    Project { project_ids: Vec<Uuid> },
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -325,11 +325,6 @@ async fn process_commands() -> Result<()> {
         Commands::Edit {
             cmd: EditCommand::Project { project_id, name },
         } => {
-            let project_id = match Uuid::parse_str(project_id.as_str()) {
-                Ok(id) => id,
-                Err(_) => bail!("Project Id must be a valid Uuid."),
-            };
-
             let project = client
                 .projects()
                 .update(&ProjectPutRequest {
@@ -344,15 +339,6 @@ async fn process_commands() -> Result<()> {
         Commands::Delete {
             cmd: DeleteCommand::Project { project_ids },
         } => {
-            let project_ids: Vec<Uuid> = match project_ids
-                .into_iter()
-                .map(|id| Uuid::parse_str(id.as_str()))
-                .collect()
-            {
-                Ok(ids) => ids,
-                Err(_) => bail!("All Project Id's must be Uuid's."),
-            };
-
             let project_count = project_ids.len();
 
             client

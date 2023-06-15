@@ -63,3 +63,7 @@ mod util;
 pub mod wordlist;
 
 pub use client::Client;
+
+// Ensure the readme docs compile
+#[doc = include_str!("../README.md")]
+mod readme {}

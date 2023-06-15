@@ -22,22 +22,34 @@ pub(crate) enum Color {
     Auto,
 }
 
+impl Color {
+    pub(crate) fn is_enabled(self) -> bool {
+        match self {
+            Color::No => false,
+            Color::Yes => true,
+            Color::Auto => {
+                if std::env::var("NO_COLOR").is_ok() {
+                    false
+                } else {
+                    atty::is(atty::Stream::Stdout)
+                }
+            }
+        }
+    }
+}
+
 const ASCII_HEADER_ONLY: &str = "     --            ";
 
 pub(crate) fn serialize_response<T: Serialize + TableSerialize<N>, const N: usize>(
     data: T,
     output: Output,
-    color: Color,
+    color: bool,
 ) {
-    let color = match color {
-        Color::No => false,
-        Color::Yes => true,
-        Color::Auto => atty::is(atty::Stream::Stdout),
-    };
-
     match output {
         Output::JSON => {
-            let text = serde_json::to_string_pretty(&data).unwrap();
+            let mut text = serde_json::to_string_pretty(&data).unwrap();
+            // Yaml/table/tsv serializations add a newline at the end, so we do the same here for consistency
+            text.push('\n');
             pretty_print("json", &text, color);
         }
         Output::YAML => {
@@ -75,7 +87,7 @@ fn pretty_print(language: &str, data: &str, color: bool) {
             .print()
             .unwrap();
     } else {
-        println!("{}", data);
+        print!("{}", data);
     }
 }
 

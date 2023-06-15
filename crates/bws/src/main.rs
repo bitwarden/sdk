@@ -1,6 +1,6 @@
 use std::{path::PathBuf, str::FromStr};
 
-use clap::{CommandFactory, Parser, Subcommand};
+use clap::{ArgGroup, CommandFactory, Parser, Subcommand};
 use color_eyre::eyre::{bail, Result};
 use log::error;
 
@@ -12,7 +12,8 @@ use bitwarden::{
             client_settings::ClientSettings,
             projects_request::{ProjectGetRequest, ProjectsListRequest},
             secrets_request::{
-                SecretGetRequest, SecretIdentifiersByProjectRequest, SecretIdentifiersRequest,
+                SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
+                SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest,
             },
         },
     },
@@ -68,6 +69,21 @@ enum Commands {
         #[command(subcommand)]
         cmd: GetCommand,
     },
+    #[command(long_about = "Create a single item")]
+    Create {
+        #[command(subcommand)]
+        cmd: CreateCommand,
+    },
+    #[command(long_about = "Edit a single item")]
+    Edit {
+        #[command(subcommand)]
+        cmd: EditCommand,
+    },
+    #[command(long_about = "Delete one or more items")]
+    Delete {
+        #[command(subcommand)]
+        cmd: DeleteCommand,
+    },
     #[command(long_about = "Configure the CLI", arg_required_else_help(true))]
     Config {
         name: Option<ProfileKey>,
@@ -88,6 +104,39 @@ enum ListCommand {
 enum GetCommand {
     Project { project_id: Uuid },
     Secret { secret_id: Uuid },
+}
+
+#[derive(Subcommand, Debug)]
+enum CreateCommand {
+    Secret {
+        key: String,
+        value: String,
+
+        #[arg(long, help = "An optional note to add to the secret")]
+        note: Option<String>,
+
+        #[arg(long, help = "The ID of the project this secret will be added to")]
+        project_id: Option<Uuid>,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+enum EditCommand {
+    #[clap(group = ArgGroup::new("edit_field").required(true).multiple(true))]
+    Secret {
+        secret_id: Uuid,
+        #[arg(long, group = "edit_field")]
+        key: Option<String>,
+        #[arg(long, group = "edit_field")]
+        value: Option<String>,
+        #[arg(long, group = "edit_field")]
+        note: Option<String>,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+enum DeleteCommand {
+    Secret { secret_ids: Vec<Uuid> },
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -256,6 +305,69 @@ async fn process_commands() -> Result<()> {
                 .await?;
             serialize_response(secret, cli.output, color);
         }
+
+        Commands::Create {
+            cmd:
+                CreateCommand::Secret {
+                    key,
+                    value,
+                    note,
+                    project_id,
+                },
+        } => {
+            let secret = client
+                .secrets()
+                .create(&SecretCreateRequest {
+                    organization_id,
+                    key,
+                    value,
+                    note: note.unwrap_or_default(),
+                    project_ids: project_id.map(|p| vec![p]),
+                })
+                .await?;
+            serialize_response(secret, cli.output, color);
+        }
+
+        Commands::Edit {
+            cmd:
+                EditCommand::Secret {
+                    secret_id,
+                    key,
+                    value,
+                    note,
+                },
+        } => {
+            let old_secret = client
+                .secrets()
+                .get(&SecretGetRequest {
+                    id: secret_id.clone(),
+                })
+                .await?;
+
+            let secret = client
+                .secrets()
+                .update(&SecretPutRequest {
+                    id: secret_id,
+                    organization_id,
+                    key: key.unwrap_or(old_secret.key),
+                    value: value.unwrap_or(old_secret.value),
+                    note: note.unwrap_or(old_secret.note),
+                })
+                .await?;
+            serialize_response(secret, cli.output, color);
+        }
+
+        Commands::Delete {
+            cmd: DeleteCommand::Secret { secret_ids },
+        } => {
+            client
+                .secrets()
+                .delete(SecretsDeleteRequest { ids: secret_ids })
+                .await?;
+
+            println!("Secret deleted correctly");
+        }
+
         Commands::Config { .. } => {
             unreachable!()
         }

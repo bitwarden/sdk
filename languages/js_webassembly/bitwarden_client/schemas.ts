@@ -270,7 +270,11 @@ export interface SecretCreateRequest {
      * Organization where the secret will be created
      */
     organizationId: string;
-    value:          string;
+    /**
+     * IDs of the projects that this secret will belong to
+     */
+    projectIds?: string[] | null;
+    value:       string;
 }
 
 export interface SecretsDeleteRequest {
@@ -985,6 +989,7 @@ const typeMap: any = {
         { json: "key", js: "key", typ: "" },
         { json: "note", js: "note", typ: "" },
         { json: "organizationId", js: "organizationId", typ: "" },
+        { json: "projectIds", js: "projectIds", typ: u(undefined, u(a(""), null)) },
         { json: "value", js: "value", typ: "" },
     ], false),
     "SecretsDeleteRequest": o([

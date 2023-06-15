@@ -197,6 +197,8 @@ pub(crate) async fn session_login(client: &mut Client, input: &SessionLoginReque
         .initialize_user_crypto(&input.password, keys.crypto_symmetric_key, keys.private_key)
         .await?;
 
+    client.initialize_org_crypto().await?;
+
     Ok(())
 }
 

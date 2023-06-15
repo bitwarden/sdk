@@ -227,17 +227,63 @@ namespace Bit.Sdk
     /// Returns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)
     ///
     /// > Requires Authentication > Requires using an Access Token for login or calling Sync at
+    /// least once Creates a new project in the provided organization using the given data
+    ///
+    /// Returns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)
+    ///
+    /// > Requires Authentication > Requires using an Access Token for login or calling Sync at
     /// least once Lists all projects of the given organization
     ///
     /// Returns: [ProjectsResponse](crate::sdk::response::projects_response::ProjectsResponse)
+    ///
+    /// > Requires Authentication > Requires using an Access Token for login or calling Sync at
+    /// least once Updates an existing project with the provided ID using the given data
+    ///
+    /// Returns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)
+    ///
+    /// > Requires Authentication > Requires using an Access Token for login or calling Sync at
+    /// least once Deletes all the projects whose IDs match the provided ones
+    ///
+    /// Returns:
+    /// [ProjectsDeleteResponse](crate::sdk::response::projects_response::ProjectsDeleteResponse)
     /// </summary>
     public partial class ProjectsCommand
     {
         [JsonProperty("get", NullValueHandling = NullValueHandling.Ignore)]
         public ProjectGetRequest Get { get; set; }
 
+        [JsonProperty("create", NullValueHandling = NullValueHandling.Ignore)]
+        public ProjectCreateRequest Create { get; set; }
+
         [JsonProperty("list", NullValueHandling = NullValueHandling.Ignore)]
         public ProjectsListRequest List { get; set; }
+
+        [JsonProperty("update", NullValueHandling = NullValueHandling.Ignore)]
+        public ProjectPutRequest Update { get; set; }
+
+        [JsonProperty("delete", NullValueHandling = NullValueHandling.Ignore)]
+        public ProjectsDeleteRequest Delete { get; set; }
+    }
+
+    public partial class ProjectCreateRequest
+    {
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        /// <summary>
+        /// Organization where the project will be created
+        /// </summary>
+        [JsonProperty("organizationId")]
+        public Guid OrganizationId { get; set; }
+    }
+
+    public partial class ProjectsDeleteRequest
+    {
+        /// <summary>
+        /// IDs of the projects to delete
+        /// </summary>
+        [JsonProperty("ids")]
+        public Guid[] Ids { get; set; }
     }
 
     public partial class ProjectGetRequest
@@ -253,6 +299,24 @@ namespace Bit.Sdk
     {
         /// <summary>
         /// Organization to retrieve all the projects from
+        /// </summary>
+        [JsonProperty("organizationId")]
+        public Guid OrganizationId { get; set; }
+    }
+
+    public partial class ProjectPutRequest
+    {
+        /// <summary>
+        /// ID of the project to modify
+        /// </summary>
+        [JsonProperty("id")]
+        public Guid Id { get; set; }
+
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        /// <summary>
+        /// Organization ID of the project to modify
         /// </summary>
         [JsonProperty("organizationId")]
         public Guid OrganizationId { get; set; }

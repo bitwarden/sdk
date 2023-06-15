@@ -1,4 +1,7 @@
-use bitwarden_api_api::models::{ProjectResponseModel, ProjectResponseModelListResponseModel};
+use bitwarden_api_api::models::{
+    BulkDeleteResponseModel, BulkDeleteResponseModelListResponseModel, ProjectResponseModel,
+    ProjectResponseModelListResponseModel,
+};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -62,6 +65,45 @@ impl ProjectsResponse {
                 .into_iter()
                 .map(|r| ProjectResponse::process_response(r, enc))
                 .collect::<Result<_, _>>()?,
+        })
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct ProjectsDeleteResponse {
+    pub data: Vec<ProjectDeleteResponse>,
+}
+
+impl ProjectsDeleteResponse {
+    pub(crate) fn process_response(
+        response: BulkDeleteResponseModelListResponseModel,
+    ) -> Result<ProjectsDeleteResponse> {
+        Ok(ProjectsDeleteResponse {
+            data: response
+                .data
+                .unwrap_or_default()
+                .into_iter()
+                .map(ProjectDeleteResponse::process_response)
+                .collect::<Result<_, _>>()?,
+        })
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct ProjectDeleteResponse {
+    pub id: Uuid,
+    pub error: Option<String>,
+}
+
+impl ProjectDeleteResponse {
+    pub(crate) fn process_response(
+        response: BulkDeleteResponseModel,
+    ) -> Result<ProjectDeleteResponse> {
+        Ok(ProjectDeleteResponse {
+            id: response.id.ok_or(Error::MissingFields)?,
+            error: response.error,
         })
     }
 }

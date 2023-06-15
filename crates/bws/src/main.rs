@@ -116,7 +116,7 @@ enum CreateCommand {
         note: Option<String>,
 
         #[arg(long, help = "The ID of the project this secret will be added to")]
-        project_id: Option<String>,
+        project_id: Option<Uuid>,
     },
 }
 
@@ -124,7 +124,7 @@ enum CreateCommand {
 enum EditCommand {
     #[clap(group = ArgGroup::new("edit_field").required(true).multiple(true))]
     Secret {
-        secret_id: String,
+        secret_id: Uuid,
         #[arg(long, group = "edit_field")]
         key: Option<String>,
         #[arg(long, group = "edit_field")]
@@ -136,7 +136,7 @@ enum EditCommand {
 
 #[derive(Subcommand, Debug)]
 enum DeleteCommand {
-    Secret { secret_ids: Vec<String> },
+    Secret { secret_ids: Vec<Uuid> },
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -325,7 +325,7 @@ async fn process_commands() -> Result<()> {
                     project_ids: project_id.map(|p| vec![p]),
                 })
                 .await?;
-            serialize_response(secret, cli.output, cli.color);
+            serialize_response(secret, cli.output, color);
         }
 
         Commands::Edit {
@@ -354,7 +354,7 @@ async fn process_commands() -> Result<()> {
                     note: note.unwrap_or(old_secret.note),
                 })
                 .await?;
-            serialize_response(secret, cli.output, cli.color);
+            serialize_response(secret, cli.output, color);
         }
 
         Commands::Delete {

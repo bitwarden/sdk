@@ -131,6 +131,10 @@ jobs:
           cache: "npm"
           cache-dependency-path: crates/bitwarden-napi/package-lock.json
 
+      - name: Generate schemas
+        run: npm ci && npm run schemas
+        working-directory: .
+
       - name: Install dependencies
         run: npm ci
 

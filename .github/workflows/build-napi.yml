@@ -84,6 +84,10 @@ jobs:
         with:
           key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.os }}
 
+      - name: Generate schemas
+        run: npm ci && npm run schemas
+        working-directory: .
+
       - name: Install dependencies
         run: npm ci
 

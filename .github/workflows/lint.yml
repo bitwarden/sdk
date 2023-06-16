@@ -45,13 +45,3 @@ jobs:
 
       - name: Node Lint
         run: npm run lint
-
-      - name: Verify Schemas are up to date
-        run: |
-          npm run schemas
-          git diff --exit-code HEAD
-          # Verify no untracked files
-          if [ ! -z "$(git status --porcelain)" ]; then
-            >&2 echo "Failed: Found untracked files!"
-            exit 1
-          fi

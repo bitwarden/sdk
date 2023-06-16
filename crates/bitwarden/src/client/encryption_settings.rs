@@ -17,6 +17,7 @@ use crate::{
     util::BASE64_ENGINE,
 };
 
+#[derive(Clone)]
 pub struct SymmetricCryptoKey {
     pub key: GenericArray<u8, U32>,
     pub mac_key: Option<GenericArray<u8, U32>>,
@@ -75,6 +76,7 @@ impl TryFrom<&[u8]> for SymmetricCryptoKey {
     }
 }
 
+#[derive(Clone)]
 pub struct EncryptionSettings {
     user_key: SymmetricCryptoKey,
     private_key: Option<RsaPrivateKey>,

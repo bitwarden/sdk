@@ -23,5 +23,5 @@ pub(crate) async fn sync(client: &mut Client, input: &SyncRequest) -> Result<Syn
 
     let enc = client.initialize_org_crypto(org_keys)?;
 
-    SyncResponse::process_response(sync, enc)
+    SyncResponse::process_response(sync, &enc)
 }

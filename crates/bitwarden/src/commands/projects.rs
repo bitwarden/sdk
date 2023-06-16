@@ -2,7 +2,7 @@ use bitwarden_api_api::models::{ProjectCreateRequestModel, ProjectUpdateRequestM
 
 use crate::{
     client::Client,
-    error::{Error, Result},
+    error::Result,
     sdk::{
         request::projects_request::{
             ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
@@ -18,14 +18,11 @@ pub(crate) async fn get_project(
 ) -> Result<ProjectResponse> {
     let config = client.get_api_configurations().await;
 
+    let enc = client.get_encryption_settings()?;
+
     let res = bitwarden_api_api::apis::projects_api::projects_id_get(&config.api, input.id).await?;
 
-    let enc = client
-        .get_encryption_settings()
-        .as_ref()
-        .ok_or(Error::VaultLocked)?;
-
-    ProjectResponse::process_response(res, enc)
+    ProjectResponse::process_response(res, &enc)
 }
 
 pub(crate) async fn create_project(
@@ -70,12 +67,9 @@ pub(crate) async fn list_projects(
     )
     .await?;
 
-    let enc = client
-        .get_encryption_settings()
-        .as_ref()
-        .ok_or(Error::VaultLocked)?;
+    let enc = client.get_encryption_settings()?;
 
-    ProjectsResponse::process_response(res, enc)
+    ProjectsResponse::process_response(res, &enc)
 }
 
 pub(crate) async fn update_project(

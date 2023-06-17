@@ -1,6 +1,6 @@
 from enum import Enum
 from dataclasses import dataclass
-from typing import Any, Optional, List, TypeVar, Type, Callable, cast
+from typing import Any, Optional, List, TypeVar, Type, cast, Callable
 from uuid import UUID
 
 
@@ -37,14 +37,14 @@ def from_union(fs, x):
     assert False
 
 
-def from_list(f: Callable[[Any], T], x: Any) -> List[T]:
-    assert isinstance(x, list)
-    return [f(y) for y in x]
-
-
 def to_class(c: Type[T], x: Any) -> dict:
     assert isinstance(x, c)
     return cast(Any, x).to_dict()
+
+
+def from_list(f: Callable[[Any], T], x: Any) -> List[T]:
+    assert isinstance(x, list)
+    return [f(y) for y in x]
 
 
 def from_bool(x: Any) -> bool:

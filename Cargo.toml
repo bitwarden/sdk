@@ -11,3 +11,8 @@ codegen-units = 1
 # Turn on a small amount of optimisation in Development mode.
 [profile.dev]
 opt-level = 1
+
+[profile.release-wasm]
+inherits = "release"
+opt-level = 's'
+lto = true

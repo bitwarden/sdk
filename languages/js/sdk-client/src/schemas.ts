@@ -1,10 +1,11 @@
 // To parse this data:
 //
-//   import { Convert, ClientSettings, Command, ResponseForAPIKeyLoginResponse, ResponseForPasswordLoginResponse, ResponseForSecretDeleteResponse, ResponseForSecretIdentifierResponse, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsDeleteResponse, ResponseForSyncResponse, ResponseForUserAPIKeyResponse } from "./file";
+//   import { Convert, ClientSettings, Command, ResponseForAPIKeyLoginResponse, ResponseForFingerprintResponse, ResponseForPasswordLoginResponse, ResponseForSecretDeleteResponse, ResponseForSecretIdentifierResponse, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsDeleteResponse, ResponseForSyncResponse, ResponseForUserAPIKeyResponse } from "./file";
 //
 //   const clientSettings = Convert.toClientSettings(json);
 //   const command = Convert.toCommand(json);
 //   const responseForAPIKeyLoginResponse = Convert.toResponseForAPIKeyLoginResponse(json);
+//   const responseForFingerprintResponse = Convert.toResponseForFingerprintResponse(json);
 //   const responseForPasswordLoginResponse = Convert.toResponseForPasswordLoginResponse(json);
 //   const responseForSecretDeleteResponse = Convert.toResponseForSecretDeleteResponse(json);
 //   const responseForSecretIdentifierResponse = Convert.toResponseForSecretIdentifierResponse(json);
@@ -28,7 +29,7 @@
  * assert_matches::assert_matches; let settings = ClientSettings { identity_url:
  * "https://identity.bitwarden.com".to_string(), api_url:
  * "https://api.bitwarden.com".to_string(), user_agent: "Bitwarden Rust-SDK".to_string(),
- * device_type: DeviceType::SDK, }; let default = ClientSettings::default();
+ * device_type: DeviceType::SDK, internal: None, }; let default = ClientSettings::default();
  * assert_matches!(settings, default); ```
  *
  * Targets `localhost:8080` for debug builds.
@@ -47,6 +48,7 @@ export interface ClientSettings {
      * `https://identity.bitwarden.com`
      */
     identityUrl: string;
+    internal?:   ClientSettingsInternal | null;
     /**
      * The user_agent to sent to Bitwarden. Defaults to `Bitwarden Rust-SDK`
      */
@@ -79,6 +81,20 @@ export enum DeviceType {
     VivaldiBrowser = "VivaldiBrowser",
     VivaldiExtension = "VivaldiExtension",
     WindowsDesktop = "WindowsDesktop",
+}
+
+export interface ClientSettingsInternal {
+    accessToken:   string;
+    email:         string;
+    expiresIn:     number;
+    kdfIterations: number;
+    kdfType:       KdfType;
+    refreshToken:  string;
+}
+
+export enum KdfType {
+    Argon2ID = "argon2id",
+    Pbkdf2Sha256 = "pbkdf2Sha256",
 }
 
 /**
@@ -163,7 +179,7 @@ export interface FingerprintRequest {
      */
     fingerprintMaterial: string;
     /**
-     * The user's public key
+     * The user's public key encoded with base64.
      */
     publicKey: string;
 }
@@ -203,13 +219,47 @@ export interface PasswordLoginRequest {
  * Returns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)
  *
  * > Requires Authentication > Requires using an Access Token for login or calling Sync at
+ * least once Creates a new project in the provided organization using the given data
+ *
+ * Returns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)
+ *
+ * > Requires Authentication > Requires using an Access Token for login or calling Sync at
  * least once Lists all projects of the given organization
  *
  * Returns: [ProjectsResponse](crate::sdk::response::projects_response::ProjectsResponse)
+ *
+ * > Requires Authentication > Requires using an Access Token for login or calling Sync at
+ * least once Updates an existing project with the provided ID using the given data
+ *
+ * Returns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)
+ *
+ * > Requires Authentication > Requires using an Access Token for login or calling Sync at
+ * least once Deletes all the projects whose IDs match the provided ones
+ *
+ * Returns:
+ * [ProjectsDeleteResponse](crate::sdk::response::projects_response::ProjectsDeleteResponse)
  */
 export interface ProjectsCommand {
-    get?:  ProjectGetRequest;
-    list?: ProjectsListRequest;
+    get?:    ProjectGetRequest;
+    create?: ProjectCreateRequest;
+    list?:   ProjectsListRequest;
+    update?: ProjectPutRequest;
+    delete?: ProjectsDeleteRequest;
+}
+
+export interface ProjectCreateRequest {
+    name: string;
+    /**
+     * Organization where the project will be created
+     */
+    organizationId: string;
+}
+
+export interface ProjectsDeleteRequest {
+    /**
+     * IDs of the projects to delete
+     */
+    ids: string[];
 }
 
 export interface ProjectGetRequest {
@@ -222,6 +272,18 @@ export interface ProjectGetRequest {
 export interface ProjectsListRequest {
     /**
      * Organization to retrieve all the projects from
+     */
+    organizationId: string;
+}
+
+export interface ProjectPutRequest {
+    /**
+     * ID of the project to modify
+     */
+    id:   string;
+    name: string;
+    /**
+     * Organization ID of the project to modify
      */
     organizationId: string;
 }
@@ -270,7 +332,11 @@ export interface SecretCreateRequest {
      * Organization where the secret will be created
      */
     organizationId: string;
-    value:          string;
+    /**
+     * IDs of the projects that this secret will belong to
+     */
+    projectIds?: string[] | null;
+    value:       string;
 }
 
 export interface SecretsDeleteRequest {
@@ -397,6 +463,25 @@ export interface PurpleYubiKey {
      * Whether the stored yubikey supports near field communication
      */
     nfc: boolean;
+}
+
+export interface ResponseForFingerprintResponse {
+    /**
+     * The response data. Populated if `success` is true.
+     */
+    data?: FingerprintResponse | null;
+    /**
+     * A message for any error that may occur. Populated if `success` is false.
+     */
+    errorMessage?: null | string;
+    /**
+     * Whether or not the SDK request succeeded.
+     */
+    success: boolean;
+}
+
+export interface FingerprintResponse {
+    fingerprint: string;
 }
 
 export interface ResponseForPasswordLoginResponse {
@@ -710,6 +795,14 @@ export class Convert {
         return JSON.stringify(uncast(value, r("ResponseForAPIKeyLoginResponse")), null, 2);
     }
 
+    public static toResponseForFingerprintResponse(json: string): ResponseForFingerprintResponse {
+        return cast(JSON.parse(json), r("ResponseForFingerprintResponse"));
+    }
+
+    public static responseForFingerprintResponseToJson(value: ResponseForFingerprintResponse): string {
+        return JSON.stringify(uncast(value, r("ResponseForFingerprintResponse")), null, 2);
+    }
+
     public static toResponseForPasswordLoginResponse(json: string): ResponseForPasswordLoginResponse {
         return cast(JSON.parse(json), r("ResponseForPasswordLoginResponse"));
     }
@@ -932,7 +1025,16 @@ const typeMap: any = {
         { json: "apiUrl", js: "apiUrl", typ: "" },
         { json: "deviceType", js: "deviceType", typ: r("DeviceType") },
         { json: "identityUrl", js: "identityUrl", typ: "" },
+        { json: "internal", js: "internal", typ: u(undefined, u(r("ClientSettingsInternal"), null)) },
         { json: "userAgent", js: "userAgent", typ: "" },
+    ], false),
+    "ClientSettingsInternal": o([
+        { json: "accessToken", js: "accessToken", typ: "" },
+        { json: "email", js: "email", typ: "" },
+        { json: "expiresIn", js: "expiresIn", typ: 0 },
+        { json: "kdfIterations", js: "kdfIterations", typ: 0 },
+        { json: "kdfType", js: "kdfType", typ: r("KdfType") },
+        { json: "refreshToken", js: "refreshToken", typ: "" },
     ], false),
     "Command": o([
         { json: "passwordLogin", js: "passwordLogin", typ: u(undefined, r("PasswordLoginRequest")) },
@@ -966,12 +1068,27 @@ const typeMap: any = {
     ], false),
     "ProjectsCommand": o([
         { json: "get", js: "get", typ: u(undefined, r("ProjectGetRequest")) },
+        { json: "create", js: "create", typ: u(undefined, r("ProjectCreateRequest")) },
         { json: "list", js: "list", typ: u(undefined, r("ProjectsListRequest")) },
+        { json: "update", js: "update", typ: u(undefined, r("ProjectPutRequest")) },
+        { json: "delete", js: "delete", typ: u(undefined, r("ProjectsDeleteRequest")) },
+    ], false),
+    "ProjectCreateRequest": o([
+        { json: "name", js: "name", typ: "" },
+        { json: "organizationId", js: "organizationId", typ: "" },
+    ], false),
+    "ProjectsDeleteRequest": o([
+        { json: "ids", js: "ids", typ: a("") },
     ], false),
     "ProjectGetRequest": o([
         { json: "id", js: "id", typ: "" },
     ], false),
     "ProjectsListRequest": o([
+        { json: "organizationId", js: "organizationId", typ: "" },
+    ], false),
+    "ProjectPutRequest": o([
+        { json: "id", js: "id", typ: "" },
+        { json: "name", js: "name", typ: "" },
         { json: "organizationId", js: "organizationId", typ: "" },
     ], false),
     "SecretsCommand": o([
@@ -985,6 +1102,7 @@ const typeMap: any = {
         { json: "key", js: "key", typ: "" },
         { json: "note", js: "note", typ: "" },
         { json: "organizationId", js: "organizationId", typ: "" },
+        { json: "projectIds", js: "projectIds", typ: u(undefined, u(a(""), null)) },
         { json: "value", js: "value", typ: "" },
     ], false),
     "SecretsDeleteRequest": o([
@@ -1041,6 +1159,14 @@ const typeMap: any = {
     ], false),
     "PurpleYubiKey": o([
         { json: "nfc", js: "nfc", typ: true },
+    ], false),
+    "ResponseForFingerprintResponse": o([
+        { json: "data", js: "data", typ: u(undefined, u(r("FingerprintResponse"), null)) },
+        { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
+        { json: "success", js: "success", typ: true },
+    ], false),
+    "FingerprintResponse": o([
+        { json: "fingerprint", js: "fingerprint", typ: "" },
     ], false),
     "ResponseForPasswordLoginResponse": o([
         { json: "data", js: "data", typ: u(undefined, u(r("PasswordLoginResponse"), null)) },
@@ -1193,6 +1319,10 @@ const typeMap: any = {
         "VivaldiBrowser",
         "VivaldiExtension",
         "WindowsDesktop",
+    ],
+    "KdfType": [
+        "argon2id",
+        "pbkdf2Sha256",
     ],
 };
 

@@ -156,7 +156,7 @@
           "type": "string"
         },
         "publicKey": {
-          "description": "The user's public key",
+          "description": "The user's public key encoded with base64.",
           "type": "string"
         }
       },
@@ -181,6 +181,24 @@
       },
       "additionalProperties": false
     },
+    "ProjectCreateRequest": {
+      "type": "object",
+      "required": [
+        "name",
+        "organizationId"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "organizationId": {
+          "description": "Organization where the project will be created",
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "additionalProperties": false
+    },
     "ProjectGetRequest": {
       "type": "object",
       "required": [
@@ -189,6 +207,30 @@
       "properties": {
         "id": {
           "description": "ID of the project to retrieve",
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProjectPutRequest": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "organizationId"
+      ],
+      "properties": {
+        "id": {
+          "description": "ID of the project to modify",
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string"
+        },
+        "organizationId": {
+          "description": "Organization ID of the project to modify",
           "type": "string",
           "format": "uuid"
         }
@@ -211,6 +253,19 @@
           "additionalProperties": false
         },
         {
+          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Creates a new project in the provided organization using the given data\n\nReturns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)",
+          "type": "object",
+          "required": [
+            "create"
+          ],
+          "properties": {
+            "create": {
+              "$ref": "#/definitions/ProjectCreateRequest"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
           "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Lists all projects of the given organization\n\nReturns: [ProjectsResponse](crate::sdk::response::projects_response::ProjectsResponse)",
           "type": "object",
           "required": [
@@ -222,8 +277,51 @@
             }
           },
           "additionalProperties": false
+        },
+        {
+          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Updates an existing project with the provided ID using the given data\n\nReturns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)",
+          "type": "object",
+          "required": [
+            "update"
+          ],
+          "properties": {
+            "update": {
+              "$ref": "#/definitions/ProjectPutRequest"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Deletes all the projects whose IDs match the provided ones\n\nReturns: [ProjectsDeleteResponse](crate::sdk::response::projects_response::ProjectsDeleteResponse)",
+          "type": "object",
+          "required": [
+            "delete"
+          ],
+          "properties": {
+            "delete": {
+              "$ref": "#/definitions/ProjectsDeleteRequest"
+            }
+          },
+          "additionalProperties": false
         }
       ]
+    },
+    "ProjectsDeleteRequest": {
+      "type": "object",
+      "required": [
+        "ids"
+      ],
+      "properties": {
+        "ids": {
+          "description": "IDs of the projects to delete",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "additionalProperties": false
     },
     "ProjectsListRequest": {
       "type": "object",
@@ -258,6 +356,17 @@
           "description": "Organization where the secret will be created",
           "type": "string",
           "format": "uuid"
+        },
+        "projectIds": {
+          "description": "IDs of the projects that this secret will belong to",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
         },
         "value": {
           "type": "string"

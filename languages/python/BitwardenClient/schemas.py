@@ -13,6 +13,11 @@ def from_str(x: Any) -> str:
     return x
 
 
+def from_int(x: Any) -> int:
+    assert isinstance(x, int) and not isinstance(x, bool)
+    return x
+
+
 def to_enum(c: Type[EnumT], x: Any) -> EnumT:
     assert isinstance(x, c)
     return x.value
@@ -73,6 +78,42 @@ class DeviceType(Enum):
     WINDOWS_DESKTOP = "WindowsDesktop"
 
 
+class KdfType(Enum):
+    ARGON2_ID = "argon2id"
+    PBKDF2_SHA256 = "pbkdf2Sha256"
+
+
+@dataclass
+class ClientSettingsInternal:
+    access_token: str
+    email: str
+    expires_in: int
+    kdf_iterations: int
+    kdf_type: KdfType
+    refresh_token: str
+
+    @staticmethod
+    def from_dict(obj: Any) -> 'ClientSettingsInternal':
+        assert isinstance(obj, dict)
+        access_token = from_str(obj.get("accessToken"))
+        email = from_str(obj.get("email"))
+        expires_in = from_int(obj.get("expiresIn"))
+        kdf_iterations = from_int(obj.get("kdfIterations"))
+        kdf_type = KdfType(obj.get("kdfType"))
+        refresh_token = from_str(obj.get("refreshToken"))
+        return ClientSettingsInternal(access_token, email, expires_in, kdf_iterations, kdf_type, refresh_token)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        result["accessToken"] = from_str(self.access_token)
+        result["email"] = from_str(self.email)
+        result["expiresIn"] = from_int(self.expires_in)
+        result["kdfIterations"] = from_int(self.kdf_iterations)
+        result["kdfType"] = to_enum(KdfType, self.kdf_type)
+        result["refreshToken"] = from_str(self.refresh_token)
+        return result
+
+
 @dataclass
 class ClientSettings:
     """Basic client behavior settings. These settings specify the various targets and behavior
@@ -85,7 +126,7 @@ class ClientSettings:
     assert_matches::assert_matches; let settings = ClientSettings { identity_url:
     "https://identity.bitwarden.com".to_string(), api_url:
     "https://api.bitwarden.com".to_string(), user_agent: "Bitwarden Rust-SDK".to_string(),
-    device_type: DeviceType::SDK, }; let default = ClientSettings::default();
+    device_type: DeviceType::SDK, internal: None, }; let default = ClientSettings::default();
     assert_matches!(settings, default); ```
     
     Targets `localhost:8080` for debug builds.
@@ -100,6 +141,7 @@ class ClientSettings:
     identity_url: str
     """The user_agent to sent to Bitwarden. Defaults to `Bitwarden Rust-SDK`"""
     user_agent: str
+    internal: Optional[ClientSettingsInternal] = None
 
     @staticmethod
     def from_dict(obj: Any) -> 'ClientSettings':
@@ -108,7 +150,8 @@ class ClientSettings:
         device_type = DeviceType(obj.get("deviceType"))
         identity_url = from_str(obj.get("identityUrl"))
         user_agent = from_str(obj.get("userAgent"))
-        return ClientSettings(api_url, device_type, identity_url, user_agent)
+        internal = from_union([ClientSettingsInternal.from_dict, from_none], obj.get("internal"))
+        return ClientSettings(api_url, device_type, identity_url, user_agent, internal)
 
     def to_dict(self) -> dict:
         result: dict = {}
@@ -116,6 +159,8 @@ class ClientSettings:
         result["deviceType"] = to_enum(DeviceType, self.device_type)
         result["identityUrl"] = from_str(self.identity_url)
         result["userAgent"] = from_str(self.user_agent)
+        if self.internal is not None:
+            result["internal"] = from_union([lambda x: to_class(ClientSettingsInternal, x), from_none], self.internal)
         return result
 
 
@@ -167,7 +212,7 @@ class APIKeyLoginRequest:
 class FingerprintRequest:
     """The input material, used in the fingerprint generation process."""
     fingerprint_material: str
-    """The user's public key"""
+    """The user's public key encoded with base64."""
     public_key: str
 
     @staticmethod
@@ -235,6 +280,43 @@ class PasswordLoginRequest:
 
 
 @dataclass
+class ProjectCreateRequest:
+    name: str
+    """Organization where the project will be created"""
+    organization_id: UUID
+
+    @staticmethod
+    def from_dict(obj: Any) -> 'ProjectCreateRequest':
+        assert isinstance(obj, dict)
+        name = from_str(obj.get("name"))
+        organization_id = UUID(obj.get("organizationId"))
+        return ProjectCreateRequest(name, organization_id)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        result["name"] = from_str(self.name)
+        result["organizationId"] = str(self.organization_id)
+        return result
+
+
+@dataclass
+class ProjectsDeleteRequest:
+    """IDs of the projects to delete"""
+    ids: List[UUID]
+
+    @staticmethod
+    def from_dict(obj: Any) -> 'ProjectsDeleteRequest':
+        assert isinstance(obj, dict)
+        ids = from_list(lambda x: UUID(x), obj.get("ids"))
+        return ProjectsDeleteRequest(ids)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        result["ids"] = from_list(lambda x: str(x), self.ids)
+        return result
+
+
+@dataclass
 class ProjectGetRequest:
     """ID of the project to retrieve"""
     id: UUID
@@ -269,6 +351,30 @@ class ProjectsListRequest:
 
 
 @dataclass
+class ProjectPutRequest:
+    """ID of the project to modify"""
+    id: UUID
+    name: str
+    """Organization ID of the project to modify"""
+    organization_id: UUID
+
+    @staticmethod
+    def from_dict(obj: Any) -> 'ProjectPutRequest':
+        assert isinstance(obj, dict)
+        id = UUID(obj.get("id"))
+        name = from_str(obj.get("name"))
+        organization_id = UUID(obj.get("organizationId"))
+        return ProjectPutRequest(id, name, organization_id)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        result["id"] = str(self.id)
+        result["name"] = from_str(self.name)
+        result["organizationId"] = str(self.organization_id)
+        return result
+
+
+@dataclass
 class ProjectsCommand:
     """> Requires Authentication > Requires using an Access Token for login or calling Sync at
     least once Retrieve a project by the provided identifier
@@ -276,26 +382,54 @@ class ProjectsCommand:
     Returns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)
     
     > Requires Authentication > Requires using an Access Token for login or calling Sync at
+    least once Creates a new project in the provided organization using the given data
+    
+    Returns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)
+    
+    > Requires Authentication > Requires using an Access Token for login or calling Sync at
     least once Lists all projects of the given organization
     
     Returns: [ProjectsResponse](crate::sdk::response::projects_response::ProjectsResponse)
+    
+    > Requires Authentication > Requires using an Access Token for login or calling Sync at
+    least once Updates an existing project with the provided ID using the given data
+    
+    Returns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)
+    
+    > Requires Authentication > Requires using an Access Token for login or calling Sync at
+    least once Deletes all the projects whose IDs match the provided ones
+    
+    Returns:
+    [ProjectsDeleteResponse](crate::sdk::response::projects_response::ProjectsDeleteResponse)
     """
     get: Optional[ProjectGetRequest] = None
+    create: Optional[ProjectCreateRequest] = None
     list: Optional[ProjectsListRequest] = None
+    update: Optional[ProjectPutRequest] = None
+    delete: Optional[ProjectsDeleteRequest] = None
 
     @staticmethod
     def from_dict(obj: Any) -> 'ProjectsCommand':
         assert isinstance(obj, dict)
         get = from_union([ProjectGetRequest.from_dict, from_none], obj.get("get"))
+        create = from_union([ProjectCreateRequest.from_dict, from_none], obj.get("create"))
         list = from_union([ProjectsListRequest.from_dict, from_none], obj.get("list"))
-        return ProjectsCommand(get, list)
+        update = from_union([ProjectPutRequest.from_dict, from_none], obj.get("update"))
+        delete = from_union([ProjectsDeleteRequest.from_dict, from_none], obj.get("delete"))
+        return ProjectsCommand(get, create, list, update, delete)
 
     def to_dict(self) -> dict:
         result: dict = {}
         if self.get is not None:
             result["get"] = from_union([lambda x: to_class(ProjectGetRequest, x), from_none], self.get)
+        if self.create is not None:
+            result["create"] = from_union([lambda x: to_class(ProjectCreateRequest, x), from_none], self.create)
         if self.list is not None:
             result["list"] = from_union([lambda x: to_class(ProjectsListRequest, x), from_none], self.list)
+        if self.update is not None:
+            result["update"] = from_union([lambda x: to_class(ProjectPutRequest, x), from_none], self.update)
+        if self.delete is not None:
+            result["delete"] = from_union([lambda x: to_class(ProjectsDeleteRequest, x), from_none], self.delete)
         return result
 
 
@@ -306,6 +440,8 @@ class SecretCreateRequest:
     """Organization where the secret will be created"""
     organization_id: UUID
     value: str
+    """IDs of the projects that this secret will belong to"""
+    project_ids: Optional[List[UUID]] = None
 
     @staticmethod
     def from_dict(obj: Any) -> 'SecretCreateRequest':
@@ -314,7 +450,8 @@ class SecretCreateRequest:
         note = from_str(obj.get("note"))
         organization_id = UUID(obj.get("organizationId"))
         value = from_str(obj.get("value"))
-        return SecretCreateRequest(key, note, organization_id, value)
+        project_ids = from_union([from_none, lambda x: from_list(lambda x: UUID(x), x)], obj.get("projectIds"))
+        return SecretCreateRequest(key, note, organization_id, value, project_ids)
 
     def to_dict(self) -> dict:
         result: dict = {}
@@ -322,6 +459,8 @@ class SecretCreateRequest:
         result["note"] = from_str(self.note)
         result["organizationId"] = str(self.organization_id)
         result["value"] = from_str(self.value)
+        if self.project_ids is not None:
+            result["projectIds"] = from_union([from_none, lambda x: from_list(lambda x: str(x), x)], self.project_ids)
         return result
 
 
@@ -758,6 +897,49 @@ class ResponseForAPIKeyLoginResponse:
         result["success"] = from_bool(self.success)
         if self.data is not None:
             result["data"] = from_union([lambda x: to_class(APIKeyLoginResponse, x), from_none], self.data)
+        if self.error_message is not None:
+            result["errorMessage"] = from_union([from_none, from_str], self.error_message)
+        return result
+
+
+@dataclass
+class FingerprintResponse:
+    fingerprint: str
+
+    @staticmethod
+    def from_dict(obj: Any) -> 'FingerprintResponse':
+        assert isinstance(obj, dict)
+        fingerprint = from_str(obj.get("fingerprint"))
+        return FingerprintResponse(fingerprint)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        result["fingerprint"] = from_str(self.fingerprint)
+        return result
+
+
+@dataclass
+class ResponseForFingerprintResponse:
+    """Whether or not the SDK request succeeded."""
+    success: bool
+    """The response data. Populated if `success` is true."""
+    data: Optional[FingerprintResponse] = None
+    """A message for any error that may occur. Populated if `success` is false."""
+    error_message: Optional[str] = None
+
+    @staticmethod
+    def from_dict(obj: Any) -> 'ResponseForFingerprintResponse':
+        assert isinstance(obj, dict)
+        success = from_bool(obj.get("success"))
+        data = from_union([FingerprintResponse.from_dict, from_none], obj.get("data"))
+        error_message = from_union([from_none, from_str], obj.get("errorMessage"))
+        return ResponseForFingerprintResponse(success, data, error_message)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        result["success"] = from_bool(self.success)
+        if self.data is not None:
+            result["data"] = from_union([lambda x: to_class(FingerprintResponse, x), from_none], self.data)
         if self.error_message is not None:
             result["errorMessage"] = from_union([from_none, from_str], self.error_message)
         return result
@@ -1453,6 +1635,14 @@ def response_for_api_key_login_response_from_dict(s: Any) -> ResponseForAPIKeyLo
 
 def response_for_api_key_login_response_to_dict(x: ResponseForAPIKeyLoginResponse) -> Any:
     return to_class(ResponseForAPIKeyLoginResponse, x)
+
+
+def response_for_fingerprint_response_from_dict(s: Any) -> ResponseForFingerprintResponse:
+    return ResponseForFingerprintResponse.from_dict(s)
+
+
+def response_for_fingerprint_response_to_dict(x: ResponseForFingerprintResponse) -> Any:
+    return to_class(ResponseForFingerprintResponse, x)
 
 
 def response_for_password_login_response_from_dict(s: Any) -> ResponseForPasswordLoginResponse:

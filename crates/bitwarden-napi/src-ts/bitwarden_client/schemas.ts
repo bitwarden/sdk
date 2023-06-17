@@ -219,13 +219,47 @@ export interface PasswordLoginRequest {
  * Returns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)
  *
  * > Requires Authentication > Requires using an Access Token for login or calling Sync at
+ * least once Creates a new project in the provided organization using the given data
+ *
+ * Returns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)
+ *
+ * > Requires Authentication > Requires using an Access Token for login or calling Sync at
  * least once Lists all projects of the given organization
  *
  * Returns: [ProjectsResponse](crate::sdk::response::projects_response::ProjectsResponse)
+ *
+ * > Requires Authentication > Requires using an Access Token for login or calling Sync at
+ * least once Updates an existing project with the provided ID using the given data
+ *
+ * Returns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)
+ *
+ * > Requires Authentication > Requires using an Access Token for login or calling Sync at
+ * least once Deletes all the projects whose IDs match the provided ones
+ *
+ * Returns:
+ * [ProjectsDeleteResponse](crate::sdk::response::projects_response::ProjectsDeleteResponse)
  */
 export interface ProjectsCommand {
-    get?:  ProjectGetRequest;
-    list?: ProjectsListRequest;
+    get?:    ProjectGetRequest;
+    create?: ProjectCreateRequest;
+    list?:   ProjectsListRequest;
+    update?: ProjectPutRequest;
+    delete?: ProjectsDeleteRequest;
+}
+
+export interface ProjectCreateRequest {
+    name: string;
+    /**
+     * Organization where the project will be created
+     */
+    organizationId: string;
+}
+
+export interface ProjectsDeleteRequest {
+    /**
+     * IDs of the projects to delete
+     */
+    ids: string[];
 }
 
 export interface ProjectGetRequest {
@@ -238,6 +272,18 @@ export interface ProjectGetRequest {
 export interface ProjectsListRequest {
     /**
      * Organization to retrieve all the projects from
+     */
+    organizationId: string;
+}
+
+export interface ProjectPutRequest {
+    /**
+     * ID of the project to modify
+     */
+    id:   string;
+    name: string;
+    /**
+     * Organization ID of the project to modify
      */
     organizationId: string;
 }
@@ -286,7 +332,11 @@ export interface SecretCreateRequest {
      * Organization where the secret will be created
      */
     organizationId: string;
-    value:          string;
+    /**
+     * IDs of the projects that this secret will belong to
+     */
+    projectIds?: string[] | null;
+    value:       string;
 }
 
 export interface SecretsDeleteRequest {
@@ -1018,12 +1068,27 @@ const typeMap: any = {
     ], false),
     "ProjectsCommand": o([
         { json: "get", js: "get", typ: u(undefined, r("ProjectGetRequest")) },
+        { json: "create", js: "create", typ: u(undefined, r("ProjectCreateRequest")) },
         { json: "list", js: "list", typ: u(undefined, r("ProjectsListRequest")) },
+        { json: "update", js: "update", typ: u(undefined, r("ProjectPutRequest")) },
+        { json: "delete", js: "delete", typ: u(undefined, r("ProjectsDeleteRequest")) },
+    ], false),
+    "ProjectCreateRequest": o([
+        { json: "name", js: "name", typ: "" },
+        { json: "organizationId", js: "organizationId", typ: "" },
+    ], false),
+    "ProjectsDeleteRequest": o([
+        { json: "ids", js: "ids", typ: a("") },
     ], false),
     "ProjectGetRequest": o([
         { json: "id", js: "id", typ: "" },
     ], false),
     "ProjectsListRequest": o([
+        { json: "organizationId", js: "organizationId", typ: "" },
+    ], false),
+    "ProjectPutRequest": o([
+        { json: "id", js: "id", typ: "" },
+        { json: "name", js: "name", typ: "" },
         { json: "organizationId", js: "organizationId", typ: "" },
     ], false),
     "SecretsCommand": o([
@@ -1037,6 +1102,7 @@ const typeMap: any = {
         { json: "key", js: "key", typ: "" },
         { json: "note", js: "note", typ: "" },
         { json: "organizationId", js: "organizationId", typ: "" },
+        { json: "projectIds", js: "projectIds", typ: u(undefined, u(a(""), null)) },
         { json: "value", js: "value", typ: "" },
     ], false),
     "SecretsDeleteRequest": o([

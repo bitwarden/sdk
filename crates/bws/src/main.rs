@@ -417,12 +417,18 @@ async fn process_commands() -> Result<()> {
         Commands::Delete {
             cmd: DeleteCommand::Secret { secret_ids },
         } => {
+            let secret_count = secret_ids.len();
+
             client
                 .secrets()
                 .delete(SecretsDeleteRequest { ids: secret_ids })
                 .await?;
 
-            println!("Secret deleted correctly");
+            if secret_count > 1 {
+                println!("Secrets deleted successfully.");
+            } else {
+                println!("Secret deleted successfully.");
+            }
         }
 
         Commands::Config { .. } => {

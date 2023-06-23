@@ -62,41 +62,6 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
-    #[command(long_about = "Commands available on Secrets")]
-    Secret {
-        #[command(subcommand)]
-        cmd: SecretCommand,
-    },
-    #[command(long_about = "Commands available on Projects")]
-    Project {
-        #[command(subcommand)]
-        cmd: ProjectCommand,
-    },
-    #[command(long_about = "List items (deprecated)", hide(true))]
-    List {
-        #[command(subcommand)]
-        cmd: ListCommand,
-    },
-    #[command(long_about = "Retrieve a single item (deprecated)", hide(true))]
-    Get {
-        #[command(subcommand)]
-        cmd: GetCommand,
-    },
-    #[command(long_about = "Create a single item (deprecated)", hide(true))]
-    Create {
-        #[command(subcommand)]
-        cmd: CreateCommand,
-    },
-    #[command(long_about = "Edit a single item (deprecated)", hide(true))]
-    Edit {
-        #[command(subcommand)]
-        cmd: EditCommand,
-    },
-    #[command(long_about = "Delete one or more items (deprecated)", hide(true))]
-    Delete {
-        #[command(subcommand)]
-        cmd: DeleteCommand,
-    },
     #[command(long_about = "Configure the CLI", arg_required_else_help(true))]
     Config {
         name: Option<ProfileKey>,
@@ -105,13 +70,45 @@ enum Commands {
         #[arg(short = 'd', long)]
         delete: bool,
     },
+    #[command(long_about = "Commands available on Projects")]
+    Project {
+        #[command(subcommand)]
+        cmd: ProjectCommand,
+    },
+    #[command(long_about = "Commands available on Secrets")]
+    Secret {
+        #[command(subcommand)]
+        cmd: SecretCommand,
+    },
+    #[command(long_about = "Create a single item (deprecated)", hide(true))]
+    Create {
+        #[command(subcommand)]
+        cmd: CreateCommand,
+    },
+    #[command(long_about = "Delete one or more items (deprecated)", hide(true))]
+    Delete {
+        #[command(subcommand)]
+        cmd: DeleteCommand,
+    },
+    #[command(long_about = "Edit a single item (deprecated)", hide(true))]
+    Edit {
+        #[command(subcommand)]
+        cmd: EditCommand,
+    },
+    #[command(long_about = "Retrieve a single item (deprecated)", hide(true))]
+    Get {
+        #[command(subcommand)]
+        cmd: GetCommand,
+    },
+    #[command(long_about = "List items (deprecated)", hide(true))]
+    List {
+        #[command(subcommand)]
+        cmd: ListCommand,
+    },
 }
 
 #[derive(Subcommand, Debug)]
 enum SecretCommand {
-    Get {
-        secret_id: Uuid,
-    },
     Create {
         key: String,
         value: String,
@@ -122,8 +119,8 @@ enum SecretCommand {
         #[arg(long, help = "The ID of the project this secret will be added to")]
         project_id: Option<Uuid>,
     },
-    List {
-        project_id: Option<Uuid>,
+    Delete {
+        secret_ids: Vec<Uuid>,
     },
     Edit {
         secret_id: Uuid,
@@ -134,28 +131,31 @@ enum SecretCommand {
         #[arg(long, group = "edit_field")]
         note: Option<String>,
     },
-    Delete {
-        secret_ids: Vec<Uuid>,
+    Get {
+        secret_id: Uuid,
+    },
+    List {
+        project_id: Option<Uuid>,
     },
 }
 
 #[derive(Subcommand, Debug)]
 enum ProjectCommand {
-    Get {
-        project_id: Uuid,
-    },
     Create {
-        name: String,
-    },
-    List,
-    Edit {
-        project_id: Uuid,
-        #[arg(long, group = "edit_field")]
         name: String,
     },
     Delete {
         project_ids: Vec<Uuid>,
     },
+    Edit {
+        project_id: Uuid,
+        #[arg(long, group = "edit_field")]
+        name: String,
+    },
+    Get {
+        project_id: Uuid,
+    },
+    List,
 }
 
 #[derive(Subcommand, Debug)]
@@ -172,6 +172,9 @@ enum GetCommand {
 
 #[derive(Subcommand, Debug)]
 enum CreateCommand {
+    Project {
+        name: String,
+    },
     Secret {
         key: String,
         value: String,
@@ -182,13 +185,16 @@ enum CreateCommand {
         #[arg(long, help = "The ID of the project this secret will be added to")]
         project_id: Option<Uuid>,
     },
-    Project {
-        name: String,
-    },
 }
 
 #[derive(Subcommand, Debug)]
 enum EditCommand {
+    #[clap(group = ArgGroup::new("edit_field").required(true).multiple(true))]
+    Project {
+        project_id: Uuid,
+        #[arg(long, group = "edit_field")]
+        name: String,
+    },
     #[clap(group = ArgGroup::new("edit_field").required(true).multiple(true))]
     Secret {
         secret_id: Uuid,
@@ -199,18 +205,12 @@ enum EditCommand {
         #[arg(long, group = "edit_field")]
         note: Option<String>,
     },
-    #[clap(group = ArgGroup::new("edit_field").required(true).multiple(true))]
-    Project {
-        project_id: Uuid,
-        #[arg(long, group = "edit_field")]
-        name: String,
-    },
 }
 
 #[derive(Subcommand, Debug)]
 enum DeleteCommand {
-    Secret { secret_ids: Vec<Uuid> },
     Project { project_ids: Vec<Uuid> },
+    Secret { secret_ids: Vec<Uuid> },
 }
 
 #[tokio::main(flavor = "current_thread")]

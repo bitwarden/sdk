@@ -61,7 +61,10 @@ impl Client {
 
             Command::Projects(cmd) => match cmd {
                 ProjectsCommand::Get(req) => self.0.projects().get(&req).await.into_string(),
+                ProjectsCommand::Create(req) => self.0.projects().create(&req).await.into_string(),
                 ProjectsCommand::List(req) => self.0.projects().list(&req).await.into_string(),
+                ProjectsCommand::Update(req) => self.0.projects().update(&req).await.into_string(),
+                ProjectsCommand::Delete(req) => self.0.projects().delete(req).await.into_string(),
             },
         }
     }

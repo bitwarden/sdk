@@ -1,6 +1,6 @@
 from enum import Enum
 from dataclasses import dataclass
-from typing import Any, Optional, List, TypeVar, Type, cast, Callable
+from typing import Any, Optional, List, TypeVar, Type, Callable, cast
 from uuid import UUID
 
 
@@ -32,14 +32,14 @@ def from_union(fs, x):
     assert False
 
 
-def to_class(c: Type[T], x: Any) -> dict:
-    assert isinstance(x, c)
-    return cast(Any, x).to_dict()
-
-
 def from_list(f: Callable[[Any], T], x: Any) -> List[T]:
     assert isinstance(x, list)
     return [f(y) for y in x]
+
+
+def to_class(c: Type[T], x: Any) -> dict:
+    assert isinstance(x, c)
+    return cast(Any, x).to_dict()
 
 
 def from_bool(x: Any) -> bool:
@@ -235,6 +235,43 @@ class PasswordLoginRequest:
 
 
 @dataclass
+class ProjectCreateRequest:
+    name: str
+    """Organization where the project will be created"""
+    organization_id: UUID
+
+    @staticmethod
+    def from_dict(obj: Any) -> 'ProjectCreateRequest':
+        assert isinstance(obj, dict)
+        name = from_str(obj.get("name"))
+        organization_id = UUID(obj.get("organizationId"))
+        return ProjectCreateRequest(name, organization_id)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        result["name"] = from_str(self.name)
+        result["organizationId"] = str(self.organization_id)
+        return result
+
+
+@dataclass
+class ProjectsDeleteRequest:
+    """IDs of the projects to delete"""
+    ids: List[UUID]
+
+    @staticmethod
+    def from_dict(obj: Any) -> 'ProjectsDeleteRequest':
+        assert isinstance(obj, dict)
+        ids = from_list(lambda x: UUID(x), obj.get("ids"))
+        return ProjectsDeleteRequest(ids)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        result["ids"] = from_list(lambda x: str(x), self.ids)
+        return result
+
+
+@dataclass
 class ProjectGetRequest:
     """ID of the project to retrieve"""
     id: UUID
@@ -269,6 +306,30 @@ class ProjectsListRequest:
 
 
 @dataclass
+class ProjectPutRequest:
+    """ID of the project to modify"""
+    id: UUID
+    name: str
+    """Organization ID of the project to modify"""
+    organization_id: UUID
+
+    @staticmethod
+    def from_dict(obj: Any) -> 'ProjectPutRequest':
+        assert isinstance(obj, dict)
+        id = UUID(obj.get("id"))
+        name = from_str(obj.get("name"))
+        organization_id = UUID(obj.get("organizationId"))
+        return ProjectPutRequest(id, name, organization_id)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        result["id"] = str(self.id)
+        result["name"] = from_str(self.name)
+        result["organizationId"] = str(self.organization_id)
+        return result
+
+
+@dataclass
 class ProjectsCommand:
     """> Requires Authentication > Requires using an Access Token for login or calling Sync at
     least once Retrieve a project by the provided identifier
@@ -276,26 +337,54 @@ class ProjectsCommand:
     Returns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)
     
     > Requires Authentication > Requires using an Access Token for login or calling Sync at
+    least once Creates a new project in the provided organization using the given data
+    
+    Returns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)
+    
+    > Requires Authentication > Requires using an Access Token for login or calling Sync at
     least once Lists all projects of the given organization
     
     Returns: [ProjectsResponse](crate::sdk::response::projects_response::ProjectsResponse)
+    
+    > Requires Authentication > Requires using an Access Token for login or calling Sync at
+    least once Updates an existing project with the provided ID using the given data
+    
+    Returns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)
+    
+    > Requires Authentication > Requires using an Access Token for login or calling Sync at
+    least once Deletes all the projects whose IDs match the provided ones
+    
+    Returns:
+    [ProjectsDeleteResponse](crate::sdk::response::projects_response::ProjectsDeleteResponse)
     """
     get: Optional[ProjectGetRequest] = None
+    create: Optional[ProjectCreateRequest] = None
     list: Optional[ProjectsListRequest] = None
+    update: Optional[ProjectPutRequest] = None
+    delete: Optional[ProjectsDeleteRequest] = None
 
     @staticmethod
     def from_dict(obj: Any) -> 'ProjectsCommand':
         assert isinstance(obj, dict)
         get = from_union([ProjectGetRequest.from_dict, from_none], obj.get("get"))
+        create = from_union([ProjectCreateRequest.from_dict, from_none], obj.get("create"))
         list = from_union([ProjectsListRequest.from_dict, from_none], obj.get("list"))
-        return ProjectsCommand(get, list)
+        update = from_union([ProjectPutRequest.from_dict, from_none], obj.get("update"))
+        delete = from_union([ProjectsDeleteRequest.from_dict, from_none], obj.get("delete"))
+        return ProjectsCommand(get, create, list, update, delete)
 
     def to_dict(self) -> dict:
         result: dict = {}
         if self.get is not None:
             result["get"] = from_union([lambda x: to_class(ProjectGetRequest, x), from_none], self.get)
+        if self.create is not None:
+            result["create"] = from_union([lambda x: to_class(ProjectCreateRequest, x), from_none], self.create)
         if self.list is not None:
             result["list"] = from_union([lambda x: to_class(ProjectsListRequest, x), from_none], self.list)
+        if self.update is not None:
+            result["update"] = from_union([lambda x: to_class(ProjectPutRequest, x), from_none], self.update)
+        if self.delete is not None:
+            result["delete"] = from_union([lambda x: to_class(ProjectsDeleteRequest, x), from_none], self.delete)
         return result
 
 
@@ -306,6 +395,8 @@ class SecretCreateRequest:
     """Organization where the secret will be created"""
     organization_id: UUID
     value: str
+    """IDs of the projects that this secret will belong to"""
+    project_ids: Optional[List[UUID]] = None
 
     @staticmethod
     def from_dict(obj: Any) -> 'SecretCreateRequest':
@@ -314,7 +405,8 @@ class SecretCreateRequest:
         note = from_str(obj.get("note"))
         organization_id = UUID(obj.get("organizationId"))
         value = from_str(obj.get("value"))
-        return SecretCreateRequest(key, note, organization_id, value)
+        project_ids = from_union([from_none, lambda x: from_list(lambda x: UUID(x), x)], obj.get("projectIds"))
+        return SecretCreateRequest(key, note, organization_id, value, project_ids)
 
     def to_dict(self) -> dict:
         result: dict = {}
@@ -322,6 +414,8 @@ class SecretCreateRequest:
         result["note"] = from_str(self.note)
         result["organizationId"] = str(self.organization_id)
         result["value"] = from_str(self.value)
+        if self.project_ids is not None:
+            result["projectIds"] = from_union([from_none, lambda x: from_list(lambda x: str(x), x)], self.project_ids)
         return result
 
 

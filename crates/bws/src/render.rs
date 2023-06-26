@@ -1,5 +1,4 @@
-use bitwarden::{projects::ProjectResponse, secrets::SecretResponse};
-
+use bitwarden::secrets_manager::{projects::ProjectResponse, secrets::SecretResponse};
 use chrono::DateTime;
 use clap::ValueEnum;
 use comfy_table::Table;

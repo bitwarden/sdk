@@ -266,7 +266,7 @@ impl<'a> Client {
 mod tests {
     use wiremock::{matchers, Mock, ResponseTemplate};
 
-    use crate::{auth::request::AccessTokenLoginRequest, secrets::*};
+    use crate::{auth::request::AccessTokenLoginRequest, secrets_manager::secrets::*};
 
     #[tokio::test]
     async fn test_access_token_login() {

@@ -1,22 +1,23 @@
 use std::{path::PathBuf, str::FromStr};
 
-use clap::{ArgGroup, CommandFactory, Parser, Subcommand};
-use color_eyre::eyre::{bail, Result};
-use log::error;
-
 use bitwarden::{
     auth::request::AccessTokenLoginRequest,
     client::AccessToken,
-    projects::{
-        ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
-        ProjectsListRequest,
-    },
     sdk::request::client_settings::ClientSettings,
-    secrets::{
-        SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
-        SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest,
+    secrets_manager::{
+        projects::{
+            ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
+            ProjectsListRequest,
+        },
+        secrets::{
+            SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
+            SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest,
+        },
     },
 };
+use clap::{ArgGroup, CommandFactory, Parser, Subcommand};
+use color_eyre::eyre::{bail, Result};
+use log::error;
 
 mod config;
 mod render;

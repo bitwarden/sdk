@@ -2,11 +2,10 @@
 
 use std::fmt::Debug;
 
-use reqwest::StatusCode;
-use thiserror::Error;
-
 use bitwarden_api_api::apis::Error as ApiError;
 use bitwarden_api_identity::apis::Error as IdentityError;
+use reqwest::StatusCode;
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum Error {

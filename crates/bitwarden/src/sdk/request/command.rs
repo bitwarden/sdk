@@ -1,24 +1,25 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "internal")]
+use super::fingerprint_request::FingerprintRequest;
 #[allow(unused_imports)]
 use crate::{
     auth::request::{AccessTokenLoginRequest, ApiKeyLoginRequest, PasswordLoginRequest},
-    projects::{
-        ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
-        ProjectsListRequest,
-    },
     sdk::request::{
         secret_verification_request::SecretVerificationRequest, sync_request::SyncRequest,
     },
-    secrets::{
-        SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretPutRequest,
-        SecretsDeleteRequest,
+    secrets_manager::{
+        projects::{
+            ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
+            ProjectsListRequest,
+        },
+        secrets::{
+            SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretPutRequest,
+            SecretsDeleteRequest,
+        },
     },
 };
-
-#[cfg(feature = "internal")]
-use super::fingerprint_request::FingerprintRequest;
 
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

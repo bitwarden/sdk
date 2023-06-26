@@ -1,7 +1,6 @@
 use log::{debug, info};
 
 use crate::crypto::fingerprint;
-
 use crate::{error::Result, sdk::request::fingerprint_request::FingerprintRequest};
 
 #[allow(dead_code)]

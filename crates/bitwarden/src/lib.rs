@@ -19,7 +19,7 @@
 //!     auth::request::AccessTokenLoginRequest,
 //!     error::Result,
 //!     sdk::request::client_settings::{ClientSettings, DeviceType},
-//!     secrets::SecretIdentifiersRequest,
+//!     secrets_manager::secrets::SecretIdentifiersRequest,
 //!     Client,
 //! };
 //!
@@ -54,9 +54,8 @@ pub mod client;
 mod commands;
 pub mod crypto;
 pub mod error;
-pub mod projects;
 pub mod sdk;
-pub mod secrets;
+pub mod secrets_manager;
 mod util;
 pub mod wordlist;
 

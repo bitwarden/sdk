@@ -1,10 +1,10 @@
+use std::{fs::File, io::Write};
+
 use anyhow::Result;
+use bitwarden::sdk::*;
 use itertools::Itertools;
 use schemars::schema::RootSchema;
 use schemars::schema_for;
-use std::{fs::File, io::Write};
-
-use bitwarden::sdk::*;
 
 /// Creates a json schema file for any type passed in using Schemars. The filename and path of the generated
 /// schema file is derived from the namespace passed into the macro or supplied as the first argument.
@@ -110,9 +110,9 @@ fn main() -> Result<()> {
     write_schema_for_response! {
         bitwarden::auth::response::ApiKeyLoginResponse,
         bitwarden::auth::response::PasswordLoginResponse,
-        bitwarden::secrets::SecretIdentifiersResponse,
-        bitwarden::secrets::SecretResponse,
-        bitwarden::secrets::SecretsDeleteResponse,
+        bitwarden::secrets_manager::secrets::SecretIdentifiersResponse,
+        bitwarden::secrets_manager::secrets::SecretResponse,
+        bitwarden::secrets_manager::secrets::SecretsDeleteResponse,
         response::sync_response::SyncResponse,
         response::user_api_key_response::UserApiKeyResponse,
     };

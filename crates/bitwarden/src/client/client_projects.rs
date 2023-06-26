@@ -1,7 +1,7 @@
 use crate::{
     error::Result,
-    projects::{create_project, delete_projects, get_project, list_projects, update_project},
-    projects::{
+    secrets_manager::projects::{
+        create_project, delete_projects, get_project, list_projects, update_project,
         ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectResponse,
         ProjectsDeleteRequest, ProjectsDeleteResponse, ProjectsListRequest, ProjectsResponse,
     },

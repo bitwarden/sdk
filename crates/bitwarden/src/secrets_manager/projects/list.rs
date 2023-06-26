@@ -1,15 +1,14 @@
-use crate::{
-    client::Client,
-    error::{Error, Result},
-};
 use bitwarden_api_api::models::ProjectResponseModelListResponseModel;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::client::encryption_settings::EncryptionSettings;
-
 use super::ProjectResponse;
+use crate::client::encryption_settings::EncryptionSettings;
+use crate::{
+    client::Client,
+    error::{Error, Result},
+};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

@@ -1,32 +1,31 @@
-use crate::{
-    client::Client,
-    error::{Error, Result},
-};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::ProjectResponse;
+use super::SecretResponse;
+use crate::{
+    error::{Error, Result},
+    Client,
+};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct ProjectGetRequest {
-    /// ID of the project to retrieve
+pub struct SecretGetRequest {
+    /// ID of the secret to retrieve
     pub id: Uuid,
 }
 
-pub(crate) async fn get_project(
+pub(crate) async fn get_secret(
     client: &mut Client,
-    input: &ProjectGetRequest,
-) -> Result<ProjectResponse> {
+    input: &SecretGetRequest,
+) -> Result<SecretResponse> {
     let config = client.get_api_configurations().await;
-
-    let res = bitwarden_api_api::apis::projects_api::projects_id_get(&config.api, input.id).await?;
+    let res = bitwarden_api_api::apis::secrets_api::secrets_id_get(&config.api, input.id).await?;
 
     let enc = client
         .get_encryption_settings()
         .as_ref()
         .ok_or(Error::VaultLocked)?;
 
-    ProjectResponse::process_response(res, enc)
+    SecretResponse::process_response(res, enc)
 }

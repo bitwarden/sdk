@@ -1,29 +1,26 @@
-use bitwarden_api_api::models::ProjectUpdateRequestModel;
-
-use crate::{
-    client::Client,
-    error::{Error, Result},
-};
+use bitwarden_api_api::models::ProjectCreateRequestModel;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::ProjectResponse;
+use crate::{
+    client::Client,
+    error::{Error, Result},
+};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct ProjectPutRequest {
-    /// ID of the project to modify
-    pub id: Uuid,
-    /// Organization ID of the project to modify
+pub struct ProjectCreateRequest {
+    /// Organization where the project will be created
     pub organization_id: Uuid,
 
     pub name: String,
 }
 
-pub(crate) async fn update_project(
+pub(crate) async fn create_project(
     client: &mut Client,
-    input: &ProjectPutRequest,
+    input: &ProjectCreateRequest,
 ) -> Result<ProjectResponse> {
     let enc = client
         .get_encryption_settings()
@@ -32,14 +29,17 @@ pub(crate) async fn update_project(
 
     let org_id = Some(input.organization_id);
 
-    let project = Some(ProjectUpdateRequestModel {
+    let project = Some(ProjectCreateRequestModel {
         name: enc.encrypt(input.name.as_bytes(), org_id)?.to_string(),
     });
 
     let config = client.get_api_configurations().await;
-    let res =
-        bitwarden_api_api::apis::projects_api::projects_id_put(&config.api, input.id, project)
-            .await?;
+    let res = bitwarden_api_api::apis::projects_api::organizations_organization_id_projects_post(
+        &config.api,
+        input.organization_id,
+        project,
+    )
+    .await?;
 
     let enc = client
         .get_encryption_settings()

@@ -328,9 +328,8 @@ fn hash_word(hash: [u8; 32]) -> Result<String> {
 mod tests {
     use std::num::NonZeroU32;
 
-    use crate::crypto::{stretch_key_password, CipherString};
-
     use super::{fingerprint, stretch_key};
+    use crate::crypto::{stretch_key_password, CipherString};
 
     #[test]
     fn test_cipher_string_serialization() {

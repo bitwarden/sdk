@@ -1,6 +1,6 @@
 use crate::{
     error::Result,
-    secrets::{
+    secrets_manager::secrets::{
         create_secret, delete_secrets, get_secret, list_secrets, list_secrets_by_project,
         update_secret, SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
         SecretIdentifiersRequest, SecretIdentifiersResponse, SecretPutRequest, SecretResponse,

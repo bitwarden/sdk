@@ -21,7 +21,7 @@ use bitwarden::{
     auth::request::AccessTokenLoginRequest,
     error::Result,
     sdk::request::client_settings::{ClientSettings, DeviceType},
-    secrets::SecretIdentifiersRequest,
+    secrets_manager::secrets::SecretIdentifiersRequest,
     Client,
 };
 use uuid::Uuid;

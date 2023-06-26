@@ -1,6 +1,9 @@
+#[cfg(feature = "internal")]
 pub(crate) use generate_fingerprint::*;
+#[cfg(feature = "internal")]
 pub(crate) use get_user_api_key::*;
 pub use sync::SyncResponse;
+#[cfg(feature = "internal")]
 pub(crate) use sync::*;
 mod generate_fingerprint;
 pub(crate) mod get_user_api_key;

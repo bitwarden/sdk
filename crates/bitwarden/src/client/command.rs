@@ -1,12 +1,8 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "internal")]
-use crate::platform::{FingerprintRequest, SecretVerificationRequest};
-#[allow(unused_imports)]
 use crate::{
-    auth::request::{AccessTokenLoginRequest, ApiKeyLoginRequest, PasswordLoginRequest},
-    platform::SyncRequest,
+    auth::request::AccessTokenLoginRequest,
     secrets_manager::{
         projects::{
             ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
@@ -17,6 +13,11 @@ use crate::{
             SecretsDeleteRequest,
         },
     },
+};
+#[cfg(feature = "internal")]
+use crate::{
+    auth::request::{ApiKeyLoginRequest, PasswordLoginRequest},
+    platform::{FingerprintRequest, SecretVerificationRequest, SyncRequest},
 };
 
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]

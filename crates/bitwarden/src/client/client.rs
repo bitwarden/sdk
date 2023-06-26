@@ -4,12 +4,11 @@ use log::debug;
 use reqwest::header::{self};
 use uuid::Uuid;
 
-#[allow(unused_imports)]
 use crate::{
     auth::{
-        commands::{access_token_login, api_key_login, password_login, renew_token},
-        request::{AccessTokenLoginRequest, ApiKeyLoginRequest, PasswordLoginRequest},
-        response::{ApiKeyLoginResponse, PasswordLoginResponse},
+        commands::{access_token_login, renew_token},
+        request::AccessTokenLoginRequest,
+        response::ApiKeyLoginResponse,
     },
     client::{
         auth_settings::AuthSettings,
@@ -18,6 +17,14 @@ use crate::{
     },
     crypto::CipherString,
     error::{Error, Result},
+};
+#[cfg(feature = "internal")]
+use crate::{
+    auth::{
+        commands::{api_key_login, password_login},
+        request::{ApiKeyLoginRequest, PasswordLoginRequest},
+        response::PasswordLoginResponse,
+    },
     platform::{
         generate_fingerprint, get_user_api_key, sync, FingerprintRequest,
         SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,

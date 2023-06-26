@@ -20,10 +20,8 @@ Rust **1.57** or higher.
 use bitwarden::{
     auth::request::AccessTokenLoginRequest,
     error::Result,
-    sdk::request::{
-        client_settings::{ClientSettings, DeviceType},
-        secrets_request::SecretIdentifiersRequest,
-    },
+    sdk::request::client_settings::{ClientSettings, DeviceType},
+    secrets::SecretIdentifiersRequest,
     Client,
 };
 use uuid::Uuid;

@@ -13,7 +13,6 @@ pub struct FingerprintRequest {
     pub public_key: String,
 }
 
-#[allow(dead_code)]
 pub(crate) fn generate_fingerprint(input: &FingerprintRequest) -> Result<String> {
     info!("Generating fingerprint");
     debug!("{:?}", input);

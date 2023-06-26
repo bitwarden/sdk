@@ -52,6 +52,7 @@ pub mod auth;
 pub mod client;
 pub mod crypto;
 pub mod error;
+#[cfg(feature = "internal")]
 pub mod platform;
 pub mod secrets_manager;
 mod util;

@@ -102,12 +102,15 @@ fn main() -> Result<()> {
         bitwarden::secrets_manager::secrets::SecretIdentifiersResponse,
         bitwarden::secrets_manager::secrets::SecretResponse,
         bitwarden::secrets_manager::secrets::SecretsDeleteResponse,
+    };
+
+    // Same as above, but for the internal feature
+    #[cfg(feature = "internal")]
+    write_schema_for_response! {
         bitwarden::platform::SyncResponse,
         bitwarden::platform::UserApiKeyResponse,
-        bitwarden::auth::response::PasswordLoginResponse,
-        bitwarden::auth::response::ApiKeyLoginResponse,
-        bitwarden::platform::UserApiKeyResponse
     };
+
 
     Ok(())
 }

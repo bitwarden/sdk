@@ -1,6 +1,6 @@
 // To parse this data:
 //
-//   import { Convert, ClientSettings, Command, ResponseForAPIKeyLoginResponse, ResponseForPasswordLoginResponse, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsDeleteResponse, ResponseForSyncResponse, ResponseForUserAPIKeyResponse } from "./file";
+//   import { Convert, ClientSettings, Command, ResponseForAPIKeyLoginResponse, ResponseForPasswordLoginResponse, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsDeleteResponse } from "./file";
 //
 //   const clientSettings = Convert.toClientSettings(json);
 //   const command = Convert.toCommand(json);
@@ -9,8 +9,6 @@
 //   const responseForSecretIdentifiersResponse = Convert.toResponseForSecretIdentifiersResponse(json);
 //   const responseForSecretResponse = Convert.toResponseForSecretResponse(json);
 //   const responseForSecretsDeleteResponse = Convert.toResponseForSecretsDeleteResponse(json);
-//   const responseForSyncResponse = Convert.toResponseForSyncResponse(json);
-//   const responseForUserAPIKeyResponse = Convert.toResponseForUserAPIKeyResponse(json);
 //
 // These functions will throw an error if the JSON doesn't
 // match the expected interface, even if the JSON is valid.
@@ -623,73 +621,6 @@ export interface SecretDeleteResponse {
     id:     string;
 }
 
-export interface ResponseForSyncResponse {
-    /**
-     * The response data. Populated if `success` is true.
-     */
-    data?: SyncResponse | null;
-    /**
-     * A message for any error that may occur. Populated if `success` is false.
-     */
-    errorMessage?: null | string;
-    /**
-     * Whether or not the SDK request succeeded.
-     */
-    success: boolean;
-}
-
-export interface SyncResponse {
-    /**
-     * List of ciphers accesible by the user
-     */
-    ciphers: CipherDetailsResponse[];
-    /**
-     * Data about the user, including their encryption keys and the organizations they are a
-     * part of
-     */
-    profile: ProfileResponse;
-}
-
-export interface CipherDetailsResponse {
-}
-
-/**
- * Data about the user, including their encryption keys and the organizations they are a
- * part of
- */
-export interface ProfileResponse {
-    email:         string;
-    id:            string;
-    name:          string;
-    organizations: ProfileOrganizationResponse[];
-}
-
-export interface ProfileOrganizationResponse {
-    id: string;
-}
-
-export interface ResponseForUserAPIKeyResponse {
-    /**
-     * The response data. Populated if `success` is true.
-     */
-    data?: UserAPIKeyResponse | null;
-    /**
-     * A message for any error that may occur. Populated if `success` is false.
-     */
-    errorMessage?: null | string;
-    /**
-     * Whether or not the SDK request succeeded.
-     */
-    success: boolean;
-}
-
-export interface UserAPIKeyResponse {
-    /**
-     * The user's API key, which represents the client_secret portion of an oauth request.
-     */
-    apiKey: string;
-}
-
 // Converts JSON strings to/from your types
 // and asserts the results of JSON.parse at runtime
 export class Convert {
@@ -747,22 +678,6 @@ export class Convert {
 
     public static responseForSecretsDeleteResponseToJson(value: ResponseForSecretsDeleteResponse): string {
         return JSON.stringify(uncast(value, r("ResponseForSecretsDeleteResponse")), null, 2);
-    }
-
-    public static toResponseForSyncResponse(json: string): ResponseForSyncResponse {
-        return cast(JSON.parse(json), r("ResponseForSyncResponse"));
-    }
-
-    public static responseForSyncResponseToJson(value: ResponseForSyncResponse): string {
-        return JSON.stringify(uncast(value, r("ResponseForSyncResponse")), null, 2);
-    }
-
-    public static toResponseForUserAPIKeyResponse(json: string): ResponseForUserAPIKeyResponse {
-        return cast(JSON.parse(json), r("ResponseForUserAPIKeyResponse"));
-    }
-
-    public static responseForUserAPIKeyResponseToJson(value: ResponseForUserAPIKeyResponse): string {
-        return JSON.stringify(uncast(value, r("ResponseForUserAPIKeyResponse")), null, 2);
     }
 }
 
@@ -1129,34 +1044,6 @@ const typeMap: any = {
     "SecretDeleteResponse": o([
         { json: "error", js: "error", typ: u(undefined, u(null, "")) },
         { json: "id", js: "id", typ: "" },
-    ], false),
-    "ResponseForSyncResponse": o([
-        { json: "data", js: "data", typ: u(undefined, u(r("SyncResponse"), null)) },
-        { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
-        { json: "success", js: "success", typ: true },
-    ], false),
-    "SyncResponse": o([
-        { json: "ciphers", js: "ciphers", typ: a(r("CipherDetailsResponse")) },
-        { json: "profile", js: "profile", typ: r("ProfileResponse") },
-    ], false),
-    "CipherDetailsResponse": o([
-    ], false),
-    "ProfileResponse": o([
-        { json: "email", js: "email", typ: "" },
-        { json: "id", js: "id", typ: "" },
-        { json: "name", js: "name", typ: "" },
-        { json: "organizations", js: "organizations", typ: a(r("ProfileOrganizationResponse")) },
-    ], false),
-    "ProfileOrganizationResponse": o([
-        { json: "id", js: "id", typ: "" },
-    ], false),
-    "ResponseForUserAPIKeyResponse": o([
-        { json: "data", js: "data", typ: u(undefined, u(r("UserAPIKeyResponse"), null)) },
-        { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
-        { json: "success", js: "success", typ: true },
-    ], false),
-    "UserAPIKeyResponse": o([
-        { json: "apiKey", js: "apiKey", typ: "" },
     ], false),
     "DeviceType": [
         "Android",

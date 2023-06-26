@@ -11,8 +11,6 @@
 //    var responseForSecretIdentifiersResponse = ResponseForSecretIdentifiersResponse.FromJson(jsonString);
 //    var responseForSecretResponse = ResponseForSecretResponse.FromJson(jsonString);
 //    var responseForSecretsDeleteResponse = ResponseForSecretsDeleteResponse.FromJson(jsonString);
-//    var responseForSyncResponse = ResponseForSyncResponse.FromJson(jsonString);
-//    var responseForUserApiKeyResponse = ResponseForUserApiKeyResponse.FromJson(jsonString);
 
 namespace Bit.Sdk
 {
@@ -843,102 +841,6 @@ namespace Bit.Sdk
         public Guid Id { get; set; }
     }
 
-    public partial class ResponseForSyncResponse
-    {
-        /// <summary>
-        /// The response data. Populated if `success` is true.
-        /// </summary>
-        [JsonProperty("data")]
-        public SyncResponse Data { get; set; }
-
-        /// <summary>
-        /// A message for any error that may occur. Populated if `success` is false.
-        /// </summary>
-        [JsonProperty("errorMessage")]
-        public string ErrorMessage { get; set; }
-
-        /// <summary>
-        /// Whether or not the SDK request succeeded.
-        /// </summary>
-        [JsonProperty("success")]
-        public bool Success { get; set; }
-    }
-
-    public partial class SyncResponse
-    {
-        /// <summary>
-        /// List of ciphers accesible by the user
-        /// </summary>
-        [JsonProperty("ciphers")]
-        public CipherDetailsResponse[] Ciphers { get; set; }
-
-        /// <summary>
-        /// Data about the user, including their encryption keys and the organizations they are a
-        /// part of
-        /// </summary>
-        [JsonProperty("profile")]
-        public ProfileResponse Profile { get; set; }
-    }
-
-    public partial class CipherDetailsResponse
-    {
-    }
-
-    /// <summary>
-    /// Data about the user, including their encryption keys and the organizations they are a
-    /// part of
-    /// </summary>
-    public partial class ProfileResponse
-    {
-        [JsonProperty("email")]
-        public string Email { get; set; }
-
-        [JsonProperty("id")]
-        public Guid Id { get; set; }
-
-        [JsonProperty("name")]
-        public string Name { get; set; }
-
-        [JsonProperty("organizations")]
-        public ProfileOrganizationResponse[] Organizations { get; set; }
-    }
-
-    public partial class ProfileOrganizationResponse
-    {
-        [JsonProperty("id")]
-        public Guid Id { get; set; }
-    }
-
-    public partial class ResponseForUserApiKeyResponse
-    {
-        /// <summary>
-        /// The response data. Populated if `success` is true.
-        /// </summary>
-        [JsonProperty("data")]
-        public UserApiKeyResponse Data { get; set; }
-
-        /// <summary>
-        /// A message for any error that may occur. Populated if `success` is false.
-        /// </summary>
-        [JsonProperty("errorMessage")]
-        public string ErrorMessage { get; set; }
-
-        /// <summary>
-        /// Whether or not the SDK request succeeded.
-        /// </summary>
-        [JsonProperty("success")]
-        public bool Success { get; set; }
-    }
-
-    public partial class UserApiKeyResponse
-    {
-        /// <summary>
-        /// The user's API key, which represents the client_secret portion of an oauth request.
-        /// </summary>
-        [JsonProperty("apiKey")]
-        public string ApiKey { get; set; }
-    }
-
     /// <summary>
     /// Device type to send to Bitwarden. Defaults to SDK
     /// </summary>
@@ -979,16 +881,6 @@ namespace Bit.Sdk
         public static ResponseForSecretsDeleteResponse FromJson(string json) => JsonConvert.DeserializeObject<ResponseForSecretsDeleteResponse>(json, Bit.Sdk.Converter.Settings);
     }
 
-    public partial class ResponseForSyncResponse
-    {
-        public static ResponseForSyncResponse FromJson(string json) => JsonConvert.DeserializeObject<ResponseForSyncResponse>(json, Bit.Sdk.Converter.Settings);
-    }
-
-    public partial class ResponseForUserApiKeyResponse
-    {
-        public static ResponseForUserApiKeyResponse FromJson(string json) => JsonConvert.DeserializeObject<ResponseForUserApiKeyResponse>(json, Bit.Sdk.Converter.Settings);
-    }
-
     public static class Serialize
     {
         public static string ToJson(this ClientSettings self) => JsonConvert.SerializeObject(self, Bit.Sdk.Converter.Settings);
@@ -998,8 +890,6 @@ namespace Bit.Sdk
         public static string ToJson(this ResponseForSecretIdentifiersResponse self) => JsonConvert.SerializeObject(self, Bit.Sdk.Converter.Settings);
         public static string ToJson(this ResponseForSecretResponse self) => JsonConvert.SerializeObject(self, Bit.Sdk.Converter.Settings);
         public static string ToJson(this ResponseForSecretsDeleteResponse self) => JsonConvert.SerializeObject(self, Bit.Sdk.Converter.Settings);
-        public static string ToJson(this ResponseForSyncResponse self) => JsonConvert.SerializeObject(self, Bit.Sdk.Converter.Settings);
-        public static string ToJson(this ResponseForUserApiKeyResponse self) => JsonConvert.SerializeObject(self, Bit.Sdk.Converter.Settings);
     }
 
     internal static class Converter

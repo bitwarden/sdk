@@ -112,12 +112,10 @@ enum SecretCommand {
     Create {
         key: String,
         value: String,
+        project_id: Uuid,
 
         #[arg(long, help = "An optional note to add to the secret")]
         note: Option<String>,
-
-        #[arg(long, help = "The ID of the project this secret will be added to")]
-        project_id: Uuid,
     },
     Delete {
         secret_ids: Vec<Uuid>,

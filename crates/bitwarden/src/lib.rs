@@ -56,6 +56,7 @@ pub mod client;
 mod commands;
 pub mod crypto;
 pub mod error;
+pub mod projects;
 pub mod sdk;
 pub mod secrets;
 mod util;

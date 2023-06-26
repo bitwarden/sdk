@@ -1,12 +1,9 @@
 use crate::{
-    commands::{create_project, delete_projects, get_project, list_projects, update_project},
     error::Result,
-    sdk::{
-        request::projects_request::{
-            ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
-            ProjectsListRequest,
-        },
-        response::projects_response::{ProjectResponse, ProjectsDeleteResponse, ProjectsResponse},
+    projects::{create_project, delete_projects, get_project, list_projects, update_project},
+    projects::{
+        ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectResponse,
+        ProjectsDeleteRequest, ProjectsDeleteResponse, ProjectsListRequest, ProjectsResponse,
     },
 };
 

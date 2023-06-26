@@ -4,13 +4,12 @@ use serde::{Deserialize, Serialize};
 #[allow(unused_imports)]
 use crate::{
     auth::request::{AccessTokenLoginRequest, ApiKeyLoginRequest, PasswordLoginRequest},
+    projects::{
+        ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
+        ProjectsListRequest,
+    },
     sdk::request::{
-        projects_request::{
-            ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
-            ProjectsListRequest,
-        },
-        secret_verification_request::SecretVerificationRequest,
-        sync_request::SyncRequest,
+        secret_verification_request::SecretVerificationRequest, sync_request::SyncRequest,
     },
     secrets::{
         SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretPutRequest,

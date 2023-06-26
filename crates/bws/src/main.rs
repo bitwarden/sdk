@@ -7,13 +7,11 @@ use log::error;
 use bitwarden::{
     auth::request::AccessTokenLoginRequest,
     client::AccessToken,
-    sdk::request::{
-        client_settings::ClientSettings,
-        projects_request::{
-            ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
-            ProjectsListRequest,
-        },
+    projects::{
+        ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
+        ProjectsListRequest,
     },
+    sdk::request::client_settings::ClientSettings,
     secrets::{
         SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
         SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest,

@@ -89,22 +89,13 @@ fn write_schema(schema: RootSchema, dir_path: String, type_name: String) -> Resu
 }
 
 fn main() -> Result<()> {
+    // Input types for new Client
     write_schema_for!(bitwarden::client::client_settings::ClientSettings);
+    // Input types for Client::run_command
     write_schema_for!(bitwarden_json::command::Command);
 
-    write_schema_for!(
-        "response",
-        bitwarden_json::response::Response<bitwarden::auth::response::PasswordLoginResponse>
-    );
-    write_schema_for!(
-        "response",
-        bitwarden_json::response::Response<bitwarden::auth::response::ApiKeyLoginResponse>
-    );
-    write_schema_for!(
-        "response",
-        bitwarden_json::response::Response<bitwarden::platform::UserApiKeyResponse>
-    );
-
+    // Output types for Client::run_command
+    // Only add structs which are direct results of SDK commands.
     write_schema_for_response! {
         bitwarden::auth::response::ApiKeyLoginResponse,
         bitwarden::auth::response::PasswordLoginResponse,
@@ -113,6 +104,9 @@ fn main() -> Result<()> {
         bitwarden::secrets_manager::secrets::SecretsDeleteResponse,
         bitwarden::platform::SyncResponse,
         bitwarden::platform::UserApiKeyResponse,
+        bitwarden::auth::response::PasswordLoginResponse,
+        bitwarden::auth::response::ApiKeyLoginResponse,
+        bitwarden::platform::UserApiKeyResponse
     };
 
     Ok(())

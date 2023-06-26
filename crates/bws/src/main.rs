@@ -117,11 +117,12 @@ enum SecretCommand {
         note: Option<String>,
 
         #[arg(long, help = "The ID of the project this secret will be added to")]
-        project_id: Option<Uuid>,
+        project_id: Uuid,
     },
     Delete {
         secret_ids: Vec<Uuid>,
     },
+    #[clap(group = ArgGroup::new("edit_field").required(true).multiple(true))]
     Edit {
         secret_id: Uuid,
         #[arg(long, group = "edit_field")]
@@ -130,6 +131,8 @@ enum SecretCommand {
         value: Option<String>,
         #[arg(long, group = "edit_field")]
         note: Option<String>,
+        #[arg(long, group = "edit_field")]
+        project_id: Option<Uuid>,
     },
     Get {
         secret_id: Uuid,
@@ -183,7 +186,7 @@ enum CreateCommand {
         note: Option<String>,
 
         #[arg(long, help = "The ID of the project this secret will be added to")]
-        project_id: Option<Uuid>,
+        project_id: Uuid,
     },
 }
 
@@ -204,6 +207,8 @@ enum EditCommand {
         value: Option<String>,
         #[arg(long, group = "edit_field")]
         note: Option<String>,
+        #[arg(long, group = "edit_field")]
+        project_id: Option<Uuid>,
     },
 }
 
@@ -470,7 +475,7 @@ async fn process_commands() -> Result<()> {
                     key,
                     value,
                     note: note.unwrap_or_default(),
-                    project_ids: project_id.map(|p| vec![p]),
+                    project_ids: Some(vec![project_id]),
                 })
                 .await?;
             serialize_response(secret, cli.output, color);
@@ -483,6 +488,7 @@ async fn process_commands() -> Result<()> {
                     key,
                     value,
                     note,
+                    project_id,
                 },
         }
         | Commands::Edit {
@@ -492,6 +498,7 @@ async fn process_commands() -> Result<()> {
                     key,
                     value,
                     note,
+                    project_id,
                 },
         } => {
             let old_secret = client
@@ -509,6 +516,13 @@ async fn process_commands() -> Result<()> {
                     key: key.unwrap_or(old_secret.key),
                     value: value.unwrap_or(old_secret.value),
                     note: note.unwrap_or(old_secret.note),
+                    project_ids: match project_id {
+                        Some(id) => Some(vec![id]),
+                        None => match old_secret.project_id {
+                            Some(id) => Some(vec![id]),
+                            None => bail!("Editing a secret requires a project_id."),
+                        },
+                    },
                 })
                 .await?;
             serialize_response(secret, cli.output, color);

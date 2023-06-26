@@ -34,6 +34,7 @@ pub struct SecretPutRequest {
     pub key: String,
     pub value: String,
     pub note: String,
+    pub project_ids: Option<Vec<Uuid>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

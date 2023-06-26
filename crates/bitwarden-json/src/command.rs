@@ -1,7 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{
+use bitwarden::{
     auth::request::AccessTokenLoginRequest,
     secrets_manager::{
         projects::{
@@ -15,7 +15,7 @@ use crate::{
     },
 };
 #[cfg(feature = "internal")]
-use crate::{
+use bitwarden::{
     auth::request::{ApiKeyLoginRequest, PasswordLoginRequest},
     platform::{FingerprintRequest, SecretVerificationRequest, SyncRequest},
 };

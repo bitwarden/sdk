@@ -90,7 +90,7 @@ fn write_schema(schema: RootSchema, dir_path: String, type_name: String) -> Resu
 
 fn main() -> Result<()> {
     write_schema_for!(bitwarden::client::client_settings::ClientSettings);
-    write_schema_for!(bitwarden::client::command::Command);
+    write_schema_for!(bitwarden_json::command::Command);
 
     write_schema_for!(
         "response",

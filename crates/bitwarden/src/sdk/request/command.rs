@@ -10,11 +10,11 @@ use crate::{
             ProjectsListRequest,
         },
         secret_verification_request::SecretVerificationRequest,
-        secrets_request::{
-            SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretPutRequest,
-            SecretsDeleteRequest,
-        },
         sync_request::SyncRequest,
+    },
+    secrets::request::{
+        SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretPutRequest,
+        SecretsDeleteRequest,
     },
 };
 

@@ -13,10 +13,10 @@ use bitwarden::{
             ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
             ProjectsListRequest,
         },
-        secrets_request::{
-            SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
-            SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest,
-        },
+    },
+    secrets::request::{
+        SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
+        SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest,
     },
 };
 

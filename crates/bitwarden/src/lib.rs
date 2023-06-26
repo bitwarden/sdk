@@ -57,6 +57,7 @@ mod commands;
 pub mod crypto;
 pub mod error;
 pub mod sdk;
+pub mod secrets;
 mod util;
 pub mod wordlist;
 

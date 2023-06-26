@@ -1,17 +1,15 @@
 use crate::{
-    commands::{
-        create_secret, delete_secrets, get_secret, list_secrets, list_secrets_by_project,
-        update_secret,
-    },
     error::Result,
-    sdk::{
-        request::secrets_request::{
+    secrets::{
+        commands::{
+            create_secret, delete_secrets, get_secret, list_secrets, list_secrets_by_project,
+            update_secret,
+        },
+        request::{
             SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
             SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest,
         },
-        response::secrets_response::{
-            SecretIdentifiersResponse, SecretResponse, SecretsDeleteResponse,
-        },
+        response::{SecretIdentifiersResponse, SecretResponse, SecretsDeleteResponse},
     },
 };
 

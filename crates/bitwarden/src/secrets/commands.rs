@@ -1,17 +1,16 @@
 use bitwarden_api_api::models::{SecretCreateRequestModel, SecretUpdateRequestModel};
 
+use super::{
+    request::{
+        SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
+        SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest,
+    },
+    response::{SecretIdentifiersResponse, SecretResponse, SecretsDeleteResponse},
+};
+
 use crate::{
     client::Client,
     error::{Error, Result},
-    sdk::{
-        request::secrets_request::{
-            SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
-            SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest,
-        },
-        response::secrets_response::{
-            SecretIdentifiersResponse, SecretResponse, SecretsDeleteResponse,
-        },
-    },
 };
 
 pub(crate) async fn get_secret(

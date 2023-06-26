@@ -233,6 +233,7 @@ impl Client {
         self.encryption_settings.as_ref().unwrap()
     }
 
+    #[cfg(feature = "internal")]
     pub(crate) fn initialize_org_crypto(
         &mut self,
         org_keys: Vec<(Uuid, CipherString)>,

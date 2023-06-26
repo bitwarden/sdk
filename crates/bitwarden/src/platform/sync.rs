@@ -18,7 +18,6 @@ pub struct SyncRequest {
     pub exclude_subdomains: Option<bool>,
 }
 
-#[allow(dead_code)]
 pub(crate) async fn sync(client: &mut Client, input: &SyncRequest) -> Result<SyncResponse> {
     let config = client.get_api_configurations().await;
     let sync =

@@ -13,8 +13,6 @@ use crate::{
     },
     client::{
         auth_settings::AuthSettings,
-        client_projects::ClientProjects,
-        client_secrets::ClientSecrets,
         encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
     },
     commands::{generate_fingerprint, get_user_api_key, sync},
@@ -249,16 +247,6 @@ impl Client {
     #[cfg(feature = "internal")]
     pub fn fingerprint(&mut self, input: &FingerprintRequest) -> Result<String> {
         generate_fingerprint(input)
-    }
-}
-
-impl<'a> Client {
-    pub fn secrets(&'a mut self) -> ClientSecrets<'a> {
-        ClientSecrets { client: self }
-    }
-
-    pub fn projects(&'a mut self) -> ClientProjects<'a> {
-        ClientProjects { client: self }
     }
 }
 

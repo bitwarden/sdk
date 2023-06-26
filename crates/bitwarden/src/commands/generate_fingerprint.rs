@@ -1,13 +1,19 @@
 use log::{debug, info};
 
 use crate::crypto::fingerprint;
+use crate::sdk::response::fingerprint_response::FingerprintResponse;
 
+use crate::util::BASE64_ENGINE;
 use crate::{error::Result, sdk::request::fingerprint_request::FingerprintRequest};
+use base64::Engine;
 
 #[allow(dead_code)]
-pub(crate) fn generate_fingerprint(input: &FingerprintRequest) -> Result<String> {
+pub(crate) fn generate_fingerprint(input: &FingerprintRequest) -> Result<FingerprintResponse> {
     info!("Generating fingerprint");
     debug!("{:?}", input);
 
-    fingerprint(&input.fingerprint_material, input.public_key.as_bytes())
+    let key = BASE64_ENGINE.decode(&input.public_key)?;
+
+    fingerprint(&input.fingerprint_material, &key)
+        .map(|fingerprint| FingerprintResponse { fingerprint })
 }

@@ -1,3 +1,5 @@
+use std::num::NonZeroU32;
+
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -14,6 +16,7 @@ use serde::{Deserialize, Serialize};
 ///     api_url: "https://api.bitwarden.com".to_string(),
 ///     user_agent: "Bitwarden Rust-SDK".to_string(),
 ///     device_type: DeviceType::SDK,
+///     internal: None,
 /// };
 /// let default = ClientSettings::default();
 /// assert_matches!(settings, default);
@@ -31,6 +34,35 @@ pub struct ClientSettings {
     pub user_agent: String,
     /// Device type to send to Bitwarden. Defaults to SDK
     pub device_type: DeviceType,
+
+    // These are temporary fields that allows the SDK to be initiated with existing access tokens. These will be used
+    // during the migration phase, after which they will be removed, and the SDK itself will be resopnsible for
+    // authenticating.
+    pub internal: Option<ClientSettingsInternal>,
+}
+
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct ClientSettingsInternal {
+    // Refresh Token
+    pub refresh_token: String,
+    // Access Token
+    pub access_token: String,
+    // Access token expiration
+    pub expires_in: u64,
+
+    // Email
+    pub email: String,
+    // Kdf
+    pub kdf_type: KdfType,
+    pub kdf_iterations: NonZeroU32,
+}
+
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub enum KdfType {
+    Pbkdf2Sha256 = 0,
+    Argon2id = 1,
 }
 
 #[cfg(debug_assertions)]
@@ -41,6 +73,8 @@ impl Default for ClientSettings {
             api_url: "https://localhost:8080/api".into(),
             user_agent: "Bitwarden Rust-SDK".into(),
             device_type: DeviceType::SDK,
+
+            internal: None,
         }
     }
 }
@@ -53,6 +87,8 @@ impl Default for ClientSettings {
             api_url: "https://api.bitwarden.com".into(),
             user_agent: "Bitwarden Rust-SDK".into(),
             device_type: DeviceType::SDK,
+
+            internal: None,
         }
     }
 }

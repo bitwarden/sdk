@@ -1,4 +1,5 @@
 pub mod captcha_response;
+pub mod fingerprint_response;
 pub mod projects_response;
 pub mod secrets_response;
 pub mod sync_response;

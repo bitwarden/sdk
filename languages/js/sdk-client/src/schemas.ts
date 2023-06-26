@@ -1,10 +1,11 @@
 // To parse this data:
 //
-//   import { Convert, ClientSettings, Command, ResponseForAPIKeyLoginResponse, ResponseForPasswordLoginResponse, ResponseForSecretDeleteResponse, ResponseForSecretIdentifierResponse, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsDeleteResponse, ResponseForSyncResponse, ResponseForUserAPIKeyResponse } from "./file";
+//   import { Convert, ClientSettings, Command, ResponseForAPIKeyLoginResponse, ResponseForFingerprintResponse, ResponseForPasswordLoginResponse, ResponseForSecretDeleteResponse, ResponseForSecretIdentifierResponse, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsDeleteResponse, ResponseForSyncResponse, ResponseForUserAPIKeyResponse } from "./file";
 //
 //   const clientSettings = Convert.toClientSettings(json);
 //   const command = Convert.toCommand(json);
 //   const responseForAPIKeyLoginResponse = Convert.toResponseForAPIKeyLoginResponse(json);
+//   const responseForFingerprintResponse = Convert.toResponseForFingerprintResponse(json);
 //   const responseForPasswordLoginResponse = Convert.toResponseForPasswordLoginResponse(json);
 //   const responseForSecretDeleteResponse = Convert.toResponseForSecretDeleteResponse(json);
 //   const responseForSecretIdentifierResponse = Convert.toResponseForSecretIdentifierResponse(json);
@@ -28,7 +29,7 @@
  * assert_matches::assert_matches; let settings = ClientSettings { identity_url:
  * "https://identity.bitwarden.com".to_string(), api_url:
  * "https://api.bitwarden.com".to_string(), user_agent: "Bitwarden Rust-SDK".to_string(),
- * device_type: DeviceType::SDK, }; let default = ClientSettings::default();
+ * device_type: DeviceType::SDK, internal: None, }; let default = ClientSettings::default();
  * assert_matches!(settings, default); ```
  *
  * Targets `localhost:8080` for debug builds.
@@ -47,6 +48,7 @@ export interface ClientSettings {
      * `https://identity.bitwarden.com`
      */
     identityUrl: string;
+    internal?:   ClientSettingsInternal | null;
     /**
      * The user_agent to sent to Bitwarden. Defaults to `Bitwarden Rust-SDK`
      */
@@ -79,6 +81,20 @@ export enum DeviceType {
     VivaldiBrowser = "VivaldiBrowser",
     VivaldiExtension = "VivaldiExtension",
     WindowsDesktop = "WindowsDesktop",
+}
+
+export interface ClientSettingsInternal {
+    accessToken:   string;
+    email:         string;
+    expiresIn:     number;
+    kdfIterations: number;
+    kdfType:       KdfType;
+    refreshToken:  string;
+}
+
+export enum KdfType {
+    Argon2ID = "argon2id",
+    Pbkdf2Sha256 = "pbkdf2Sha256",
 }
 
 /**
@@ -163,7 +179,7 @@ export interface FingerprintRequest {
      */
     fingerprintMaterial: string;
     /**
-     * The user's public key
+     * The user's public key encoded with base64.
      */
     publicKey: string;
 }
@@ -447,6 +463,25 @@ export interface PurpleYubiKey {
      * Whether the stored yubikey supports near field communication
      */
     nfc: boolean;
+}
+
+export interface ResponseForFingerprintResponse {
+    /**
+     * The response data. Populated if `success` is true.
+     */
+    data?: FingerprintResponse | null;
+    /**
+     * A message for any error that may occur. Populated if `success` is false.
+     */
+    errorMessage?: null | string;
+    /**
+     * Whether or not the SDK request succeeded.
+     */
+    success: boolean;
+}
+
+export interface FingerprintResponse {
+    fingerprint: string;
 }
 
 export interface ResponseForPasswordLoginResponse {
@@ -760,6 +795,14 @@ export class Convert {
         return JSON.stringify(uncast(value, r("ResponseForAPIKeyLoginResponse")), null, 2);
     }
 
+    public static toResponseForFingerprintResponse(json: string): ResponseForFingerprintResponse {
+        return cast(JSON.parse(json), r("ResponseForFingerprintResponse"));
+    }
+
+    public static responseForFingerprintResponseToJson(value: ResponseForFingerprintResponse): string {
+        return JSON.stringify(uncast(value, r("ResponseForFingerprintResponse")), null, 2);
+    }
+
     public static toResponseForPasswordLoginResponse(json: string): ResponseForPasswordLoginResponse {
         return cast(JSON.parse(json), r("ResponseForPasswordLoginResponse"));
     }
@@ -982,7 +1025,16 @@ const typeMap: any = {
         { json: "apiUrl", js: "apiUrl", typ: "" },
         { json: "deviceType", js: "deviceType", typ: r("DeviceType") },
         { json: "identityUrl", js: "identityUrl", typ: "" },
+        { json: "internal", js: "internal", typ: u(undefined, u(r("ClientSettingsInternal"), null)) },
         { json: "userAgent", js: "userAgent", typ: "" },
+    ], false),
+    "ClientSettingsInternal": o([
+        { json: "accessToken", js: "accessToken", typ: "" },
+        { json: "email", js: "email", typ: "" },
+        { json: "expiresIn", js: "expiresIn", typ: 0 },
+        { json: "kdfIterations", js: "kdfIterations", typ: 0 },
+        { json: "kdfType", js: "kdfType", typ: r("KdfType") },
+        { json: "refreshToken", js: "refreshToken", typ: "" },
     ], false),
     "Command": o([
         { json: "passwordLogin", js: "passwordLogin", typ: u(undefined, r("PasswordLoginRequest")) },
@@ -1107,6 +1159,14 @@ const typeMap: any = {
     ], false),
     "PurpleYubiKey": o([
         { json: "nfc", js: "nfc", typ: true },
+    ], false),
+    "ResponseForFingerprintResponse": o([
+        { json: "data", js: "data", typ: u(undefined, u(r("FingerprintResponse"), null)) },
+        { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
+        { json: "success", js: "success", typ: true },
+    ], false),
+    "FingerprintResponse": o([
+        { json: "fingerprint", js: "fingerprint", typ: "" },
     ], false),
     "ResponseForPasswordLoginResponse": o([
         { json: "data", js: "data", typ: u(undefined, u(r("PasswordLoginResponse"), null)) },
@@ -1259,6 +1319,10 @@ const typeMap: any = {
         "VivaldiBrowser",
         "VivaldiExtension",
         "WindowsDesktop",
+    ],
+    "KdfType": [
+        "argon2id",
+        "pbkdf2Sha256",
     ],
 };
 

@@ -156,7 +156,7 @@
           "type": "string"
         },
         "publicKey": {
-          "description": "The user's public key",
+          "description": "The user's public key encoded with base64.",
           "type": "string"
         }
       },

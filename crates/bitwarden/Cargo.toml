@@ -15,6 +15,9 @@ rust-version = "1.57"
 [features]
 internal = [] # Internal testing methods
 
+stdweb = ["instant/stdweb"]
+wasm-bindgen = ["instant/wasm-bindgen"]
+
 [dependencies]
 base64 = "0.21.2"
 lazy_static = "1.4.0"
@@ -45,6 +48,7 @@ getrandom = { version = "0.2.9", features = ["js"] }
 
 bitwarden-api-identity = { path = "../bitwarden-api-identity", version = "0.2.0" }
 bitwarden-api-api = { path = "../bitwarden-api-api", version = "0.2.0" }
+instant = "0.1.12"
 
 [dev-dependencies]
 tokio = { version = "1.28.2", features = ["rt", "macros"] }

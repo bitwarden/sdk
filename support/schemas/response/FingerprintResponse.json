@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Response_for_FingerprintResponse",
+  "type": "object",
+  "required": [
+    "success"
+  ],
+  "properties": {
+    "data": {
+      "description": "The response data. Populated if `success` is true.",
+      "anyOf": [
+        {
+          "$ref": "#/definitions/FingerprintResponse"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "errorMessage": {
+      "description": "A message for any error that may occur. Populated if `success` is false.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "success": {
+      "description": "Whether or not the SDK request succeeded.",
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "FingerprintResponse": {
+      "type": "object",
+      "required": [
+        "fingerprint"
+      ],
+      "properties": {
+        "fingerprint": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

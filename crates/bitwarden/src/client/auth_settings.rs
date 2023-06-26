@@ -10,7 +10,7 @@ use crate::{
 #[derive(Debug)]
 pub(crate) struct AuthSettings {
     pub email: String,
-    kdf_type: KdfType,
+    pub kdf_type: KdfType,
     pub(crate) kdf_iterations: NonZeroU32,
 }
 

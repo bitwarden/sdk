@@ -6,6 +6,6 @@ use serde::{Deserialize, Serialize};
 pub struct FingerprintRequest {
     /// The input material, used in the fingerprint generation process.
     pub fingerprint_material: String,
-    /// The user's public key
+    /// The user's public key encoded with base64.
     pub public_key: String,
 }

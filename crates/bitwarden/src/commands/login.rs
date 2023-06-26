@@ -1,13 +1,11 @@
-use std::{
-    str::FromStr,
-    time::{Duration, Instant},
-};
+use std::{str::FromStr, time::Duration};
 
 use base64::Engine;
 use bitwarden_api_identity::{
     apis::accounts_api::accounts_prelogin_post,
     models::{PreloginRequestModel, PreloginResponseModel},
 };
+use instant::Instant;
 use log::{debug, info};
 
 use crate::{

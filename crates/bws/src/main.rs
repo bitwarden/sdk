@@ -392,17 +392,31 @@ async fn process_commands() -> Result<()> {
         | Commands::Delete {
             cmd: DeleteCommand::Project { project_ids },
         } => {
-            let project_count = project_ids.len();
-
-            client
+            let result = client
                 .projects()
                 .delete(ProjectsDeleteRequest { ids: project_ids })
                 .await?;
 
-            if project_count > 1 {
-                println!("Projects deleted successfully.");
+            let mut projects_success = 0;
+            let mut projects_failed: Vec<(Uuid, String)> = Vec::new();
+
+            for project in result.data.iter() {
+                match &project.error {
+                    Some(error_message) => {
+                        projects_failed.push((project.id, error_message.to_owned()))
+                    }
+                    None => projects_success += 1,
+                }
+            }
+
+            if projects_success > 1 {
+                println!("{} projects deleted successfully.", projects_success);
             } else {
-                println!("Project deleted successfully.");
+                println!("{} project deleted successfully.", projects_success);
+            }
+
+            for project in projects_failed {
+                println!("{}: {}", project.0, project.1);
             }
         }
 
@@ -534,12 +548,32 @@ async fn process_commands() -> Result<()> {
         | Commands::Delete {
             cmd: DeleteCommand::Secret { secret_ids },
         } => {
-            client
+            let result = client
                 .secrets()
                 .delete(SecretsDeleteRequest { ids: secret_ids })
                 .await?;
 
-            println!("Secret deleted correctly");
+            let mut secrets_success = 0;
+            let mut secrets_failed: Vec<(Uuid, String)> = Vec::new();
+
+            for secret in result.data.iter() {
+                match &secret.error {
+                    Some(error_message) => {
+                        secrets_failed.push((secret.id, error_message.to_owned()))
+                    }
+                    None => secrets_success += 1,
+                }
+            }
+
+            if secrets_success > 1 {
+                println!("{} secrets deleted successfully.", secrets_success);
+            } else {
+                println!("{} secret deleted successfully.", secrets_success);
+            }
+
+            for secret in secrets_failed {
+                println!("{}: {}", secret.0, secret.1);
+            }
         }
 
         Commands::Config { .. } => {

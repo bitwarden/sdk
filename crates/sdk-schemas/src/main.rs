@@ -110,11 +110,9 @@ fn main() -> Result<()> {
     write_schema_for_response! {
         bitwarden::auth::response::ApiKeyLoginResponse,
         bitwarden::auth::response::PasswordLoginResponse,
-        bitwarden::secrets::response::SecretDeleteResponse,
-        bitwarden::secrets::response::SecretIdentifierResponse,
-        bitwarden::secrets::response::SecretIdentifiersResponse,
-        bitwarden::secrets::response::SecretResponse,
-        bitwarden::secrets::response::SecretsDeleteResponse,
+        bitwarden::secrets::SecretIdentifiersResponse,
+        bitwarden::secrets::SecretResponse,
+        bitwarden::secrets::SecretsDeleteResponse,
         response::sync_response::SyncResponse,
         response::user_api_key_response::UserApiKeyResponse,
     };

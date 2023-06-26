@@ -1,13 +1,11 @@
 // To parse this data:
 //
-//   import { Convert, ClientSettings, Command, ResponseForAPIKeyLoginResponse, ResponseForPasswordLoginResponse, ResponseForSecretDeleteResponse, ResponseForSecretIdentifierResponse, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsDeleteResponse, ResponseForSyncResponse, ResponseForUserAPIKeyResponse } from "./file";
+//   import { Convert, ClientSettings, Command, ResponseForAPIKeyLoginResponse, ResponseForPasswordLoginResponse, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsDeleteResponse, ResponseForSyncResponse, ResponseForUserAPIKeyResponse } from "./file";
 //
 //   const clientSettings = Convert.toClientSettings(json);
 //   const command = Convert.toCommand(json);
 //   const responseForAPIKeyLoginResponse = Convert.toResponseForAPIKeyLoginResponse(json);
 //   const responseForPasswordLoginResponse = Convert.toResponseForPasswordLoginResponse(json);
-//   const responseForSecretDeleteResponse = Convert.toResponseForSecretDeleteResponse(json);
-//   const responseForSecretIdentifierResponse = Convert.toResponseForSecretIdentifierResponse(json);
 //   const responseForSecretIdentifiersResponse = Convert.toResponseForSecretIdentifiersResponse(json);
 //   const responseForSecretResponse = Convert.toResponseForSecretResponse(json);
 //   const responseForSecretsDeleteResponse = Convert.toResponseForSecretsDeleteResponse(json);
@@ -549,47 +547,6 @@ export interface FluffyYubiKey {
     nfc: boolean;
 }
 
-export interface ResponseForSecretDeleteResponse {
-    /**
-     * The response data. Populated if `success` is true.
-     */
-    data?: SecretDeleteResponse | null;
-    /**
-     * A message for any error that may occur. Populated if `success` is false.
-     */
-    errorMessage?: null | string;
-    /**
-     * Whether or not the SDK request succeeded.
-     */
-    success: boolean;
-}
-
-export interface SecretDeleteResponse {
-    error?: null | string;
-    id:     string;
-}
-
-export interface ResponseForSecretIdentifierResponse {
-    /**
-     * The response data. Populated if `success` is true.
-     */
-    data?: SecretIdentifierResponse | null;
-    /**
-     * A message for any error that may occur. Populated if `success` is false.
-     */
-    errorMessage?: null | string;
-    /**
-     * Whether or not the SDK request succeeded.
-     */
-    success: boolean;
-}
-
-export interface SecretIdentifierResponse {
-    id:             string;
-    key:            string;
-    organizationId: string;
-}
-
 export interface ResponseForSecretIdentifiersResponse {
     /**
      * The response data. Populated if `success` is true.
@@ -606,10 +563,10 @@ export interface ResponseForSecretIdentifiersResponse {
 }
 
 export interface SecretIdentifiersResponse {
-    data: DatumElement[];
+    data: SecretIdentifierResponse[];
 }
 
-export interface DatumElement {
+export interface SecretIdentifierResponse {
     id:             string;
     key:            string;
     organizationId: string;
@@ -658,10 +615,10 @@ export interface ResponseForSecretsDeleteResponse {
 }
 
 export interface SecretsDeleteResponse {
-    data: DatumClass[];
+    data: SecretDeleteResponse[];
 }
 
-export interface DatumClass {
+export interface SecretDeleteResponse {
     error?: null | string;
     id:     string;
 }
@@ -766,22 +723,6 @@ export class Convert {
 
     public static responseForPasswordLoginResponseToJson(value: ResponseForPasswordLoginResponse): string {
         return JSON.stringify(uncast(value, r("ResponseForPasswordLoginResponse")), null, 2);
-    }
-
-    public static toResponseForSecretDeleteResponse(json: string): ResponseForSecretDeleteResponse {
-        return cast(JSON.parse(json), r("ResponseForSecretDeleteResponse"));
-    }
-
-    public static responseForSecretDeleteResponseToJson(value: ResponseForSecretDeleteResponse): string {
-        return JSON.stringify(uncast(value, r("ResponseForSecretDeleteResponse")), null, 2);
-    }
-
-    public static toResponseForSecretIdentifierResponse(json: string): ResponseForSecretIdentifierResponse {
-        return cast(JSON.parse(json), r("ResponseForSecretIdentifierResponse"));
-    }
-
-    public static responseForSecretIdentifierResponseToJson(value: ResponseForSecretIdentifierResponse): string {
-        return JSON.stringify(uncast(value, r("ResponseForSecretIdentifierResponse")), null, 2);
     }
 
     public static toResponseForSecretIdentifiersResponse(json: string): ResponseForSecretIdentifiersResponse {
@@ -1148,34 +1089,15 @@ const typeMap: any = {
     "FluffyYubiKey": o([
         { json: "nfc", js: "nfc", typ: true },
     ], false),
-    "ResponseForSecretDeleteResponse": o([
-        { json: "data", js: "data", typ: u(undefined, u(r("SecretDeleteResponse"), null)) },
-        { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
-        { json: "success", js: "success", typ: true },
-    ], false),
-    "SecretDeleteResponse": o([
-        { json: "error", js: "error", typ: u(undefined, u(null, "")) },
-        { json: "id", js: "id", typ: "" },
-    ], false),
-    "ResponseForSecretIdentifierResponse": o([
-        { json: "data", js: "data", typ: u(undefined, u(r("SecretIdentifierResponse"), null)) },
-        { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
-        { json: "success", js: "success", typ: true },
-    ], false),
-    "SecretIdentifierResponse": o([
-        { json: "id", js: "id", typ: "" },
-        { json: "key", js: "key", typ: "" },
-        { json: "organizationId", js: "organizationId", typ: "" },
-    ], false),
     "ResponseForSecretIdentifiersResponse": o([
         { json: "data", js: "data", typ: u(undefined, u(r("SecretIdentifiersResponse"), null)) },
         { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
         { json: "success", js: "success", typ: true },
     ], false),
     "SecretIdentifiersResponse": o([
-        { json: "data", js: "data", typ: a(r("DatumElement")) },
+        { json: "data", js: "data", typ: a(r("SecretIdentifierResponse")) },
     ], false),
-    "DatumElement": o([
+    "SecretIdentifierResponse": o([
         { json: "id", js: "id", typ: "" },
         { json: "key", js: "key", typ: "" },
         { json: "organizationId", js: "organizationId", typ: "" },
@@ -1202,9 +1124,9 @@ const typeMap: any = {
         { json: "success", js: "success", typ: true },
     ], false),
     "SecretsDeleteResponse": o([
-        { json: "data", js: "data", typ: a(r("DatumClass")) },
+        { json: "data", js: "data", typ: a(r("SecretDeleteResponse")) },
     ], false),
-    "DatumClass": o([
+    "SecretDeleteResponse": o([
         { json: "error", js: "error", typ: u(undefined, u(null, "")) },
         { json: "id", js: "id", typ: "" },
     ], false),

@@ -14,7 +14,7 @@ use bitwarden::{
             ProjectsListRequest,
         },
     },
-    secrets::request::{
+    secrets::{
         SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
         SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest,
     },

@@ -1082,53 +1082,6 @@ class ResponseForPasswordLoginResponse:
 
 
 @dataclass
-class SecretDeleteResponse:
-    id: UUID
-    error: Optional[str] = None
-
-    @staticmethod
-    def from_dict(obj: Any) -> 'SecretDeleteResponse':
-        assert isinstance(obj, dict)
-        id = UUID(obj.get("id"))
-        error = from_union([from_none, from_str], obj.get("error"))
-        return SecretDeleteResponse(id, error)
-
-    def to_dict(self) -> dict:
-        result: dict = {}
-        result["id"] = str(self.id)
-        if self.error is not None:
-            result["error"] = from_union([from_none, from_str], self.error)
-        return result
-
-
-@dataclass
-class ResponseForSecretDeleteResponse:
-    """Whether or not the SDK request succeeded."""
-    success: bool
-    """The response data. Populated if `success` is true."""
-    data: Optional[SecretDeleteResponse] = None
-    """A message for any error that may occur. Populated if `success` is false."""
-    error_message: Optional[str] = None
-
-    @staticmethod
-    def from_dict(obj: Any) -> 'ResponseForSecretDeleteResponse':
-        assert isinstance(obj, dict)
-        success = from_bool(obj.get("success"))
-        data = from_union([SecretDeleteResponse.from_dict, from_none], obj.get("data"))
-        error_message = from_union([from_none, from_str], obj.get("errorMessage"))
-        return ResponseForSecretDeleteResponse(success, data, error_message)
-
-    def to_dict(self) -> dict:
-        result: dict = {}
-        result["success"] = from_bool(self.success)
-        if self.data is not None:
-            result["data"] = from_union([lambda x: to_class(SecretDeleteResponse, x), from_none], self.data)
-        if self.error_message is not None:
-            result["errorMessage"] = from_union([from_none, from_str], self.error_message)
-        return result
-
-
-@dataclass
 class SecretIdentifierResponse:
     id: UUID
     key: str
@@ -1151,67 +1104,18 @@ class SecretIdentifierResponse:
 
 
 @dataclass
-class ResponseForSecretIdentifierResponse:
-    """Whether or not the SDK request succeeded."""
-    success: bool
-    """The response data. Populated if `success` is true."""
-    data: Optional[SecretIdentifierResponse] = None
-    """A message for any error that may occur. Populated if `success` is false."""
-    error_message: Optional[str] = None
-
-    @staticmethod
-    def from_dict(obj: Any) -> 'ResponseForSecretIdentifierResponse':
-        assert isinstance(obj, dict)
-        success = from_bool(obj.get("success"))
-        data = from_union([SecretIdentifierResponse.from_dict, from_none], obj.get("data"))
-        error_message = from_union([from_none, from_str], obj.get("errorMessage"))
-        return ResponseForSecretIdentifierResponse(success, data, error_message)
-
-    def to_dict(self) -> dict:
-        result: dict = {}
-        result["success"] = from_bool(self.success)
-        if self.data is not None:
-            result["data"] = from_union([lambda x: to_class(SecretIdentifierResponse, x), from_none], self.data)
-        if self.error_message is not None:
-            result["errorMessage"] = from_union([from_none, from_str], self.error_message)
-        return result
-
-
-@dataclass
-class DatumElement:
-    id: UUID
-    key: str
-    organization_id: UUID
-
-    @staticmethod
-    def from_dict(obj: Any) -> 'DatumElement':
-        assert isinstance(obj, dict)
-        id = UUID(obj.get("id"))
-        key = from_str(obj.get("key"))
-        organization_id = UUID(obj.get("organizationId"))
-        return DatumElement(id, key, organization_id)
-
-    def to_dict(self) -> dict:
-        result: dict = {}
-        result["id"] = str(self.id)
-        result["key"] = from_str(self.key)
-        result["organizationId"] = str(self.organization_id)
-        return result
-
-
-@dataclass
 class SecretIdentifiersResponse:
-    data: List[DatumElement]
+    data: List[SecretIdentifierResponse]
 
     @staticmethod
     def from_dict(obj: Any) -> 'SecretIdentifiersResponse':
         assert isinstance(obj, dict)
-        data = from_list(DatumElement.from_dict, obj.get("data"))
+        data = from_list(SecretIdentifierResponse.from_dict, obj.get("data"))
         return SecretIdentifiersResponse(data)
 
     def to_dict(self) -> dict:
         result: dict = {}
-        result["data"] = from_list(lambda x: to_class(DatumElement, x), self.data)
+        result["data"] = from_list(lambda x: to_class(SecretIdentifierResponse, x), self.data)
         return result
 
 
@@ -1311,16 +1215,16 @@ class ResponseForSecretResponse:
 
 
 @dataclass
-class DatumClass:
+class SecretDeleteResponse:
     id: UUID
     error: Optional[str] = None
 
     @staticmethod
-    def from_dict(obj: Any) -> 'DatumClass':
+    def from_dict(obj: Any) -> 'SecretDeleteResponse':
         assert isinstance(obj, dict)
         id = UUID(obj.get("id"))
         error = from_union([from_none, from_str], obj.get("error"))
-        return DatumClass(id, error)
+        return SecretDeleteResponse(id, error)
 
     def to_dict(self) -> dict:
         result: dict = {}
@@ -1332,17 +1236,17 @@ class DatumClass:
 
 @dataclass
 class SecretsDeleteResponse:
-    data: List[DatumClass]
+    data: List[SecretDeleteResponse]
 
     @staticmethod
     def from_dict(obj: Any) -> 'SecretsDeleteResponse':
         assert isinstance(obj, dict)
-        data = from_list(DatumClass.from_dict, obj.get("data"))
+        data = from_list(SecretDeleteResponse.from_dict, obj.get("data"))
         return SecretsDeleteResponse(data)
 
     def to_dict(self) -> dict:
         result: dict = {}
-        result["data"] = from_list(lambda x: to_class(DatumClass, x), self.data)
+        result["data"] = from_list(lambda x: to_class(SecretDeleteResponse, x), self.data)
         return result
 
 
@@ -1555,22 +1459,6 @@ def response_for_password_login_response_from_dict(s: Any) -> ResponseForPasswor
 
 def response_for_password_login_response_to_dict(x: ResponseForPasswordLoginResponse) -> Any:
     return to_class(ResponseForPasswordLoginResponse, x)
-
-
-def response_for_secret_delete_response_from_dict(s: Any) -> ResponseForSecretDeleteResponse:
-    return ResponseForSecretDeleteResponse.from_dict(s)
-
-
-def response_for_secret_delete_response_to_dict(x: ResponseForSecretDeleteResponse) -> Any:
-    return to_class(ResponseForSecretDeleteResponse, x)
-
-
-def response_for_secret_identifier_response_from_dict(s: Any) -> ResponseForSecretIdentifierResponse:
-    return ResponseForSecretIdentifierResponse.from_dict(s)
-
-
-def response_for_secret_identifier_response_to_dict(x: ResponseForSecretIdentifierResponse) -> Any:
-    return to_class(ResponseForSecretIdentifierResponse, x)
 
 
 def response_for_secret_identifiers_response_from_dict(s: Any) -> ResponseForSecretIdentifiersResponse:

@@ -1,6 +1,4 @@
-use bitwarden::{
-    sdk::response::projects_response::ProjectResponse, secrets::response::SecretResponse,
-};
+use bitwarden::{sdk::response::projects_response::ProjectResponse, secrets::SecretResponse};
 
 use chrono::DateTime;
 use clap::ValueEnum;

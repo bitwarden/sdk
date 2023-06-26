@@ -12,7 +12,7 @@ use crate::{
         secret_verification_request::SecretVerificationRequest,
         sync_request::SyncRequest,
     },
-    secrets::request::{
+    secrets::{
         SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretPutRequest,
         SecretsDeleteRequest,
     },

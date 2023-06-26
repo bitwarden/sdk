@@ -2,8 +2,7 @@ use std::{fs::File, io::Write};
 
 use anyhow::Result;
 use itertools::Itertools;
-use schemars::schema::RootSchema;
-use schemars::schema_for;
+use schemars::{schema::RootSchema, schema_for};
 
 /// Creates a json schema file for any type passed in using Schemars. The filename and path of the generated
 /// schema file is derived from the namespace passed into the macro or supplied as the first argument.

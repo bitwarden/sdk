@@ -2,8 +2,7 @@ use log::{debug, info};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::crypto::fingerprint;
-use crate::error::Result;
+use crate::{crypto::fingerprint, error::Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

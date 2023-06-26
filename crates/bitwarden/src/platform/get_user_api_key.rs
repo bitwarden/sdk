@@ -1,6 +1,6 @@
-use bitwarden_api_api::models::ApiKeyResponseModel;
 use bitwarden_api_api::{
-    apis::accounts_api::accounts_api_key_post, models::SecretVerificationRequestModel,
+    apis::accounts_api::accounts_api_key_post,
+    models::{ApiKeyResponseModel, SecretVerificationRequestModel},
 };
 use log::{debug, info};
 use schemars::JsonSchema;

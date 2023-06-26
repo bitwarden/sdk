@@ -4,9 +4,8 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::ProjectResponse;
-use crate::client::encryption_settings::EncryptionSettings;
 use crate::{
-    client::Client,
+    client::{encryption_settings::EncryptionSettings, Client},
     error::{Error, Result},
 };
 

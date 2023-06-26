@@ -30,7 +30,7 @@ use crate::{
     util::{decode_token, BASE64_ENGINE},
 };
 
-#[allow(dead_code)]
+#[cfg(feature = "internal")]
 pub(crate) async fn password_login(
     client: &mut Client,
     input: &PasswordLoginRequest,
@@ -60,7 +60,7 @@ pub(crate) async fn password_login(
     PasswordLoginResponse::process_response(response)
 }
 
-#[allow(dead_code)]
+#[cfg(feature = "internal")]
 pub(crate) async fn api_key_login(
     client: &mut Client,
     input: &ApiKeyLoginRequest,
@@ -185,7 +185,7 @@ async fn request_identity_tokens(
         .await
 }
 
-#[allow(dead_code)]
+#[cfg(feature = "internal")]
 async fn request_api_identity_tokens(
     client: &mut Client,
     input: &ApiKeyLoginRequest,

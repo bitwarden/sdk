@@ -6,10 +6,40 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::client::encryption_settings::EncryptionSettings;
 use crate::{
-    client::encryption_settings::EncryptionSettings,
+    client::Client,
     error::{Error, Result},
 };
+
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct SyncRequest {
+    /// Exclude the subdomains from the response, defaults to false
+    pub exclude_subdomains: Option<bool>,
+}
+
+#[allow(dead_code)]
+pub(crate) async fn sync(client: &mut Client, input: &SyncRequest) -> Result<SyncResponse> {
+    let config = client.get_api_configurations().await;
+    let sync =
+        bitwarden_api_api::apis::sync_api::sync_get(&config.api, input.exclude_subdomains).await?;
+
+    let org_keys: Vec<_> = sync
+        .profile
+        .as_ref()
+        .ok_or(Error::MissingFields)?
+        .organizations
+        .as_deref()
+        .unwrap_or_default()
+        .iter()
+        .filter_map(|o| o.id.zip(o.key.as_deref().and_then(|k| k.parse().ok())))
+        .collect();
+
+    let enc = client.initialize_org_crypto(org_keys)?;
+
+    SyncResponse::process_response(sync, enc)
+}
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

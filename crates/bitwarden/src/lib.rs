@@ -51,9 +51,9 @@
 
 pub mod auth;
 pub mod client;
-mod commands;
 pub mod crypto;
 pub mod error;
+pub mod platform;
 pub mod sdk;
 pub mod secrets_manager;
 mod util;

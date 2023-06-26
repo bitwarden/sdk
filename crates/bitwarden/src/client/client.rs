@@ -15,18 +15,13 @@ use crate::{
         auth_settings::AuthSettings,
         encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
     },
-    commands::{generate_fingerprint, get_user_api_key, sync},
     crypto::CipherString,
     error::{Error, Result},
-    sdk::{
-        request::{
-            client_settings::{ClientSettings, DeviceType},
-            fingerprint_request::FingerprintRequest,
-            secret_verification_request::SecretVerificationRequest,
-            sync_request::SyncRequest,
-        },
-        response::{sync_response::SyncResponse, user_api_key_response::UserApiKeyResponse},
+    platform::{
+        generate_fingerprint, get_user_api_key, sync, FingerprintRequest,
+        SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,
     },
+    sdk::request::client_settings::{ClientSettings, DeviceType},
 };
 
 #[derive(Debug)]

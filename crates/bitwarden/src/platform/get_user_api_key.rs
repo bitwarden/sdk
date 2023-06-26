@@ -1,15 +1,15 @@
+use bitwarden_api_api::models::ApiKeyResponseModel;
 use bitwarden_api_api::{
     apis::accounts_api::accounts_api_key_post, models::SecretVerificationRequestModel,
 };
 use log::{debug, info};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 
+use super::SecretVerificationRequest;
 use crate::{
     client::auth_settings::AuthSettings,
     error::{Error, Result},
-    sdk::{
-        request::secret_verification_request::SecretVerificationRequest,
-        response::user_api_key_response::UserApiKeyResponse,
-    },
     Client,
 };
 
@@ -55,5 +55,21 @@ fn get_secret_verification_request(
         otp: input.otp.as_ref().cloned(),
         secret: None,
         auth_request_access_code: None,
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct UserApiKeyResponse {
+    /// The user's API key, which represents the client_secret portion of an oauth request.
+    api_key: String,
+}
+
+impl UserApiKeyResponse {
+    pub(crate) fn process_response(response: ApiKeyResponseModel) -> Result<UserApiKeyResponse> {
+        match response.api_key {
+            Some(api_key) => Ok(UserApiKeyResponse { api_key }),
+            None => Err(Error::MissingFields),
+        }
     }
 }

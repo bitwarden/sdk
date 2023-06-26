@@ -111,6 +111,5 @@ fn main() -> Result<()> {
         bitwarden::platform::UserApiKeyResponse,
     };
 
-
     Ok(())
 }

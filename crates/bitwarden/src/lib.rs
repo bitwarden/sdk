@@ -17,12 +17,11 @@
 //! ```rust
 //! use bitwarden::{
 //!     auth::request::AccessTokenLoginRequest,
+//!     client::client_settings::{ClientSettings, DeviceType},
 //!     error::Result,
-//!     sdk::request::client_settings::{ClientSettings, DeviceType},
 //!     secrets_manager::secrets::SecretIdentifiersRequest,
 //!     Client,
 //! };
-//!
 //! use uuid::Uuid;
 //!
 //! async fn test() -> Result<()> {
@@ -54,7 +53,6 @@ pub mod client;
 pub mod crypto;
 pub mod error;
 pub mod platform;
-pub mod sdk;
 pub mod secrets_manager;
 mod util;
 pub mod wordlist;

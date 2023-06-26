@@ -13,6 +13,7 @@ use crate::{
     },
     client::{
         auth_settings::AuthSettings,
+        client_settings::{ClientSettings, DeviceType},
         encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
     },
     crypto::CipherString,
@@ -21,7 +22,6 @@ use crate::{
         generate_fingerprint, get_user_api_key, sync, FingerprintRequest,
         SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,
     },
-    sdk::request::client_settings::{ClientSettings, DeviceType},
 };
 
 #[derive(Debug)]

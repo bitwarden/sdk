@@ -2,8 +2,7 @@ use std::{path::PathBuf, str::FromStr};
 
 use bitwarden::{
     auth::request::AccessTokenLoginRequest,
-    client::AccessToken,
-    sdk::request::client_settings::ClientSettings,
+    client::{client_settings::ClientSettings, AccessToken},
     secrets_manager::{
         projects::{
             ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,

@@ -1,4 +1,4 @@
-use bitwarden::sdk::request::{
+use bitwarden::client::{
     client_settings::ClientSettings,
     command::{Command, ProjectsCommand, SecretsCommand},
 };

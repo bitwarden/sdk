@@ -19,8 +19,8 @@ Rust **1.57** or higher.
 ```rust
 use bitwarden::{
     auth::request::AccessTokenLoginRequest,
+    client::client_settings::{ClientSettings, DeviceType},
     error::Result,
-    sdk::request::client_settings::{ClientSettings, DeviceType},
     secrets_manager::secrets::SecretIdentifiersRequest,
     Client,
 };

@@ -81,7 +81,7 @@ class ClientSettings:
     
     Defaults to
     
-    ``` # use bitwarden::sdk::request::client_settings::{ClientSettings, DeviceType}; # use
+    ``` # use bitwarden::client::client_settings::{ClientSettings, DeviceType}; # use
     assert_matches::assert_matches; let settings = ClientSettings { identity_url:
     "https://identity.bitwarden.com".to_string(), api_url:
     "https://api.bitwarden.com".to_string(), user_agent: "Bitwarden Rust-SDK".to_string(),

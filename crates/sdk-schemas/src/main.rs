@@ -1,7 +1,6 @@
 use std::{fs::File, io::Write};
 
 use anyhow::Result;
-use bitwarden::sdk::*;
 use itertools::Itertools;
 use schemars::schema::RootSchema;
 use schemars::schema_for;
@@ -91,8 +90,8 @@ fn write_schema(schema: RootSchema, dir_path: String, type_name: String) -> Resu
 }
 
 fn main() -> Result<()> {
-    write_schema_for!(request::client_settings::ClientSettings);
-    write_schema_for!(request::command::Command);
+    write_schema_for!(bitwarden::client::client_settings::ClientSettings);
+    write_schema_for!(bitwarden::client::command::Command);
 
     write_schema_for!(
         "response",

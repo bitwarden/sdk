@@ -1,13 +1,23 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base", "schedule:monthly", ":maintainLockFilesWeekly"],
+  "extends": [
+    "config:base",
+    ":combinePatchMinorReleases",
+    ":dependencyDashboard",
+    ":maintainLockFilesWeekly",
+    ":pinAllExceptPeerDependencies",
+    ":prConcurrentLimit10",
+    ":rebaseStalePrs",
+    "schedule:weekends",
+    ":separateMajorReleases"
+  ],
   "separateMajorMinor": true,
+  "enabledManagers": ["cargo", "github-actions", "npm", "nuget"],
   "packageRules": [
     {
+      "groupName": "npm minor",
       "matchManagers": ["npm"],
-      "matchPackagePatterns": ["*"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "node non-major"
+      "matchUpdateTypes": ["minor", "patch"]
     },
     {
       "matchManagers": ["cargo"],
@@ -22,15 +32,14 @@
       "groupName": "pyo3 non-major"
     },
     {
+      "groupName": "nuget minor",
       "matchManagers": ["nuget"],
-      "matchPackagePatterns": ["*"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "dotnet non-major"
-    },
-    {
-      "matchManagers": ["github-actions"],
-      "matchPackagePatterns": ["*"],
-      "groupName": "gh actions all"
+      "matchUpdateTypes": ["minor", "patch"]
     }
+    {
+      "groupName": "gh minor",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch"]
+    },
   ]
 }

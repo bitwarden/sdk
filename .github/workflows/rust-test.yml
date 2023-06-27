@@ -20,7 +20,7 @@ jobs:
       - run: exit 0
 
   test:
-    name: ${{ matrix.os }} / ${{matrix.package}} / ${{matrix.target || 'default' }}
+    name: ${{ matrix.os }} / ${{matrix.target || 'default' }}
 
     runs-on: ${{ matrix.os || 'ubuntu-latest' }}
 

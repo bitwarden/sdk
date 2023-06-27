@@ -31,13 +31,6 @@ jobs:
           - macOS-latest
           - windows-latest
 
-        package:
-          - bitwarden
-          - bitwarden-json
-          - bitwarden-c
-          - bitwarden-wasm
-          - bws
-
     steps:
       - name: Checkout
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
@@ -57,13 +50,11 @@ jobs:
         uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
         with:
           command: build
-          args: ${{ matrix.features }}
 
       - name: Test
         uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
         with:
           command: test
-          args: -p ${{ matrix.package }} -- --test-threads=1
 
   wasm:
     name: WASM

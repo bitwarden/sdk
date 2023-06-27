@@ -108,6 +108,8 @@ enum SecretCommand {
     Create {
         key: String,
         value: String,
+
+        #[arg(help = "The ID of the project this secret will be added to")]
         project_id: Uuid,
 
         #[arg(long, help = "An optional note to add to the secret")]

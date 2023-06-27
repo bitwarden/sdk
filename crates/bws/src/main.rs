@@ -403,7 +403,7 @@ async fn process_commands() -> Result<()> {
                 }
             }
 
-            if projects_success > 1 {
+            if projects_success == 0 || projects_success > 1 {
                 println!("{} projects deleted successfully.", projects_success);
             } else {
                 println!("{} project deleted successfully.", projects_success);
@@ -411,7 +411,7 @@ async fn process_commands() -> Result<()> {
 
             if projects_failed.len() > 1 {
                 println!("{} projects had errors:", projects_failed.len());
-            } else {
+            } else if projects_failed.len() == 1 {
                 println!("{} project had an error:", projects_failed.len());
             }
 
@@ -565,7 +565,7 @@ async fn process_commands() -> Result<()> {
                 }
             }
 
-            if secrets_success > 1 {
+            if secrets_success == 0 || secrets_success > 1 {
                 println!("{} secrets deleted successfully.", secrets_success);
             } else {
                 println!("{} secret deleted successfully.", secrets_success);
@@ -573,7 +573,7 @@ async fn process_commands() -> Result<()> {
 
             if secrets_failed.len() > 1 {
                 println!("{} secrets had errors:", secrets_failed.len());
-            } else {
+            } else if secrets_failed.len() == 1 {
                 println!("{} secret had an error:", secrets_failed.len());
             }
 

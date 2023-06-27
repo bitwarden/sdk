@@ -1,9 +1,9 @@
-use bitwarden::sdk::request::{
-    client_settings::ClientSettings,
-    command::{Command, ProjectsCommand, SecretsCommand},
-};
+use bitwarden::client::client_settings::ClientSettings;
 
-use crate::response::ResponseIntoString;
+use crate::{
+    command::{Command, ProjectsCommand, SecretsCommand},
+    response::ResponseIntoString,
+};
 
 pub struct Client(bitwarden::Client);
 

@@ -16,17 +16,12 @@
 //!
 //! ```rust
 //! use bitwarden::{
-//!     Client,
+//!     auth::request::AccessTokenLoginRequest,
+//!     client::client_settings::{ClientSettings, DeviceType},
 //!     error::Result,
-//!     sdk::{
-//!         auth::request::AccessTokenLoginRequest,
-//!         request::{
-//!             client_settings::{ClientSettings, DeviceType},
-//!             secrets_request::SecretIdentifiersRequest
-//!         },
-//!     },
+//!     secrets_manager::secrets::SecretIdentifiersRequest,
+//!     Client,
 //! };
-//!
 //! use uuid::Uuid;
 //!
 //! async fn test() -> Result<()> {
@@ -53,12 +48,13 @@
 //! ```
 //!
 
-mod api;
+pub mod auth;
 pub mod client;
-mod commands;
 pub mod crypto;
 pub mod error;
-pub mod sdk;
+#[cfg(feature = "internal")]
+pub mod platform;
+pub mod secrets_manager;
 mod util;
 pub mod wordlist;
 

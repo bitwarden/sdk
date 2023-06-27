@@ -5,13 +5,11 @@
     ":combinePatchMinorReleases",
     ":dependencyDashboard",
     ":maintainLockFilesWeekly",
-    ":pinAllExceptPeerDependencies",
     ":prConcurrentLimit10",
     ":rebaseStalePrs",
     "schedule:weekends",
     ":separateMajorReleases"
   ],
-  "separateMajorMinor": true,
   "enabledManagers": ["cargo", "github-actions", "npm", "nuget"],
   "packageRules": [
     {

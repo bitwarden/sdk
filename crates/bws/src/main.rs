@@ -409,6 +409,12 @@ async fn process_commands() -> Result<()> {
                 println!("{} project deleted successfully.", projects_success);
             }
 
+            if projects_failed.len() > 1 {
+                println!("{} projects had errors:", projects_failed.len());
+            } else {
+                println!("{} project had an error:", projects_failed.len());
+            }
+
             for project in projects_failed {
                 println!("{}: {}", project.0, project.1);
             }
@@ -563,6 +569,12 @@ async fn process_commands() -> Result<()> {
                 println!("{} secrets deleted successfully.", secrets_success);
             } else {
                 println!("{} secret deleted successfully.", secrets_success);
+            }
+
+            if secrets_failed.len() > 1 {
+                println!("{} secrets had errors:", secrets_failed.len());
+            } else {
+                println!("{} secret had an error:", secrets_failed.len());
             }
 
             for secret in secrets_failed {

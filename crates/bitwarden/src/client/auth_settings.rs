@@ -1,6 +1,7 @@
+use std::num::NonZeroU32;
+
 use base64::Engine;
 use bitwarden_api_identity::models::{KdfType, PreloginResponseModel};
-use std::num::NonZeroU32;
 
 use crate::{
     crypto::{PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},

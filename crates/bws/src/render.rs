@@ -1,6 +1,4 @@
-use bitwarden::sdk::response::{
-    projects_response::ProjectResponse, secrets_response::SecretResponse,
-};
+use bitwarden::secrets_manager::{projects::ProjectResponse, secrets::SecretResponse};
 use chrono::DateTime;
 use clap::ValueEnum;
 use comfy_table::Table;

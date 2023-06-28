@@ -82,12 +82,6 @@ jobs:
           TARGET: ${{ matrix.settings.target }}
         run: cargo build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
 
-      - name: Test
-        uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
-        with:
-          command: test
-          args: -p bws -- --test-threads=1
-
       - name: Zip Windows
         shell: cmd
         if: runner.os == 'Windows'

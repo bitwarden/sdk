@@ -1,17 +1,14 @@
 // To parse this data:
 //
-//   import { Convert, ClientSettings, Command, ResponseForAPIKeyLoginResponse, ResponseForPasswordLoginResponse, ResponseForSecretDeleteResponse, ResponseForSecretIdentifierResponse, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsDeleteResponse, ResponseForUserAPIKeyResponse } from "./file";
+//   import { Convert, ClientSettings, Command, ResponseForAPIKeyLoginResponse, ResponseForPasswordLoginResponse, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsDeleteResponse } from "./file";
 //
 //   const clientSettings = Convert.toClientSettings(json);
 //   const command = Convert.toCommand(json);
 //   const responseForAPIKeyLoginResponse = Convert.toResponseForAPIKeyLoginResponse(json);
 //   const responseForPasswordLoginResponse = Convert.toResponseForPasswordLoginResponse(json);
-//   const responseForSecretDeleteResponse = Convert.toResponseForSecretDeleteResponse(json);
-//   const responseForSecretIdentifierResponse = Convert.toResponseForSecretIdentifierResponse(json);
 //   const responseForSecretIdentifiersResponse = Convert.toResponseForSecretIdentifiersResponse(json);
 //   const responseForSecretResponse = Convert.toResponseForSecretResponse(json);
 //   const responseForSecretsDeleteResponse = Convert.toResponseForSecretsDeleteResponse(json);
-//   const responseForUserAPIKeyResponse = Convert.toResponseForUserAPIKeyResponse(json);
 //
 // These functions will throw an error if the JSON doesn't
 // match the expected interface, even if the JSON is valid.
@@ -23,7 +20,7 @@
  *
  * Defaults to
  *
- * ``` # use bitwarden::sdk::request::client_settings::{ClientSettings, DeviceType}; # use
+ * ``` # use bitwarden::client::client_settings::{ClientSettings, DeviceType}; # use
  * assert_matches::assert_matches; let settings = ClientSettings { identity_url:
  * "https://identity.bitwarden.com".to_string(), api_url:
  * "https://api.bitwarden.com".to_string(), user_agent: "Bitwarden Rust-SDK".to_string(),
@@ -95,26 +92,25 @@ export enum DeviceType {
  *
  * This command is not capable of handling authentication requiring 2fa or captcha.
  *
- * Returns: [PasswordLoginResponse](crate::sdk::auth::response::PasswordLoginResponse)
+ * Returns: [PasswordLoginResponse](bitwarden::auth::response::PasswordLoginResponse)
  *
  * Login with API Key
  *
  * This command is for initiating an authentication handshake with Bitwarden.
  *
- * Returns: [ApiKeyLoginResponse](crate::sdk::auth::response::ApiKeyLoginResponse)
+ * Returns: [ApiKeyLoginResponse](bitwarden::auth::response::ApiKeyLoginResponse)
  *
  * Login with Secrets Manager Access Token
  *
  * This command is for initiating an authentication handshake with Bitwarden.
  *
- * Returns: [ApiKeyLoginResponse](crate::sdk::auth::response::ApiKeyLoginResponse)
+ * Returns: [ApiKeyLoginResponse](bitwarden::auth::response::ApiKeyLoginResponse)
  *
  * Login with a previously saved session
  *
  * > Requires Authentication Get the API key of the currently authenticated user
  *
- * Returns:
- * [UserApiKeyResponse](crate::sdk::response::user_api_key_response::UserApiKeyResponse)
+ * Returns: [UserApiKeyResponse](bitwarden::platform::UserApiKeyResponse)
  *
  * Get the user's passphrase
  *
@@ -122,7 +118,7 @@ export enum DeviceType {
  *
  * > Requires Authentication Get the user's account data associated with this client
  *
- * Returns: [AccountData](crate::sdk::model::account_data::AccountData)
+ * Returns: [AccountData](bitwarden::state::domain::AccountData)
  *
  * > Requires Authentication Retrieve all user data, ciphers and organizations the user is a
  * part of
@@ -180,6 +176,16 @@ export interface FingerprintRequest {
     publicKey: string;
 }
 
+/**
+ * > Requires Authentication > Requires an unlocked vault Creates a new folder with the
+ * provided data
+ *
+ * > Requires Authentication > Requires an unlocked vault Updates an existing folder with
+ * the provided data given its ID
+ *
+ * > Requires Authentication > Requires an unlocked vault Deletes the folder associated with
+ * the provided ID
+ */
 export interface FoldersCommand {
     create?: FolderCreateRequest;
     update?: FolderUpdateRequest;
@@ -243,16 +249,50 @@ export interface PasswordLoginRequest {
  * > Requires Authentication > Requires using an Access Token for login or calling Sync at
  * least once Retrieve a project by the provided identifier
  *
- * Returns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)
+ * Returns: [ProjectResponse](bitwarden::secrets_manager::projects::ProjectResponse)
+ *
+ * > Requires Authentication > Requires using an Access Token for login or calling Sync at
+ * least once Creates a new project in the provided organization using the given data
+ *
+ * Returns: [ProjectResponse](bitwarden::secrets_manager::projects::ProjectResponse)
  *
  * > Requires Authentication > Requires using an Access Token for login or calling Sync at
  * least once Lists all projects of the given organization
  *
- * Returns: [ProjectsResponse](crate::sdk::response::projects_response::ProjectsResponse)
+ * Returns: [ProjectsResponse](bitwarden::secrets_manager::projects::ProjectsResponse)
+ *
+ * > Requires Authentication > Requires using an Access Token for login or calling Sync at
+ * least once Updates an existing project with the provided ID using the given data
+ *
+ * Returns: [ProjectResponse](bitwarden::secrets_manager::projects::ProjectResponse)
+ *
+ * > Requires Authentication > Requires using an Access Token for login or calling Sync at
+ * least once Deletes all the projects whose IDs match the provided ones
+ *
+ * Returns:
+ * [ProjectsDeleteResponse](bitwarden::secrets_manager::projects::ProjectsDeleteResponse)
  */
 export interface ProjectsCommand {
-    get?:  ProjectGetRequest;
-    list?: ProjectsListRequest;
+    get?:    ProjectGetRequest;
+    create?: ProjectCreateRequest;
+    list?:   ProjectsListRequest;
+    update?: ProjectPutRequest;
+    delete?: ProjectsDeleteRequest;
+}
+
+export interface ProjectCreateRequest {
+    name: string;
+    /**
+     * Organization where the project will be created
+     */
+    organizationId: string;
+}
+
+export interface ProjectsDeleteRequest {
+    /**
+     * IDs of the projects to delete
+     */
+    ids: string[];
 }
 
 export interface ProjectGetRequest {
@@ -269,34 +309,46 @@ export interface ProjectsListRequest {
     organizationId: string;
 }
 
+export interface ProjectPutRequest {
+    /**
+     * ID of the project to modify
+     */
+    id:   string;
+    name: string;
+    /**
+     * Organization ID of the project to modify
+     */
+    organizationId: string;
+}
+
 /**
  * > Requires Authentication > Requires using an Access Token for login or calling Sync at
  * least once Retrieve a secret by the provided identifier
  *
- * Returns: [SecretResponse](crate::sdk::response::secrets_response::SecretResponse)
+ * Returns: [SecretResponse](bitwarden::secrets_manager::secrets::SecretResponse)
  *
  * > Requires Authentication > Requires using an Access Token for login or calling Sync at
  * least once Creates a new secret in the provided organization using the given data
  *
- * Returns: [SecretResponse](crate::sdk::response::secrets_response::SecretResponse)
+ * Returns: [SecretResponse](bitwarden::secrets_manager::secrets::SecretResponse)
  *
  * > Requires Authentication > Requires using an Access Token for login or calling Sync at
  * least once Lists all secret identifiers of the given organization, to then retrieve each
  * secret, use `CreateSecret`
  *
  * Returns:
- * [SecretIdentifiersResponse](crate::sdk::response::secrets_response::SecretIdentifiersResponse)
+ * [SecretIdentifiersResponse](bitwarden::secrets_manager::secrets::SecretIdentifiersResponse)
  *
  * > Requires Authentication > Requires using an Access Token for login or calling Sync at
  * least once Updates an existing secret with the provided ID using the given data
  *
- * Returns: [SecretResponse](crate::sdk::response::secrets_response::SecretResponse)
+ * Returns: [SecretResponse](bitwarden::secrets_manager::secrets::SecretResponse)
  *
  * > Requires Authentication > Requires using an Access Token for login or calling Sync at
  * least once Deletes all the secrets whose IDs match the provided ones
  *
  * Returns:
- * [SecretsDeleteResponse](crate::sdk::response::secrets_response::SecretsDeleteResponse)
+ * [SecretsDeleteResponse](bitwarden::secrets_manager::secrets::SecretsDeleteResponse)
  */
 export interface SecretsCommand {
     get?:    SecretGetRequest;
@@ -313,7 +365,11 @@ export interface SecretCreateRequest {
      * Organization where the secret will be created
      */
     organizationId: string;
-    value:          string;
+    /**
+     * IDs of the projects that this secret will belong to
+     */
+    projectIds?: string[] | null;
+    value:       string;
 }
 
 export interface SecretsDeleteRequest {
@@ -556,47 +612,6 @@ export interface FluffyYubiKey {
     nfc: boolean;
 }
 
-export interface ResponseForSecretDeleteResponse {
-    /**
-     * The response data. Populated if `success` is true.
-     */
-    data?: SecretDeleteResponse | null;
-    /**
-     * A message for any error that may occur. Populated if `success` is false.
-     */
-    errorMessage?: null | string;
-    /**
-     * Whether or not the SDK request succeeded.
-     */
-    success: boolean;
-}
-
-export interface SecretDeleteResponse {
-    error?: null | string;
-    id:     string;
-}
-
-export interface ResponseForSecretIdentifierResponse {
-    /**
-     * The response data. Populated if `success` is true.
-     */
-    data?: SecretIdentifierResponse | null;
-    /**
-     * A message for any error that may occur. Populated if `success` is false.
-     */
-    errorMessage?: null | string;
-    /**
-     * Whether or not the SDK request succeeded.
-     */
-    success: boolean;
-}
-
-export interface SecretIdentifierResponse {
-    id:             string;
-    key:            string;
-    organizationId: string;
-}
-
 export interface ResponseForSecretIdentifiersResponse {
     /**
      * The response data. Populated if `success` is true.
@@ -613,10 +628,10 @@ export interface ResponseForSecretIdentifiersResponse {
 }
 
 export interface SecretIdentifiersResponse {
-    data: DatumElement[];
+    data: SecretIdentifierResponse[];
 }
 
-export interface DatumElement {
+export interface SecretIdentifierResponse {
     id:             string;
     key:            string;
     organizationId: string;
@@ -665,34 +680,12 @@ export interface ResponseForSecretsDeleteResponse {
 }
 
 export interface SecretsDeleteResponse {
-    data: DatumClass[];
+    data: SecretDeleteResponse[];
 }
 
-export interface DatumClass {
+export interface SecretDeleteResponse {
     error?: null | string;
     id:     string;
-}
-
-export interface ResponseForUserAPIKeyResponse {
-    /**
-     * The response data. Populated if `success` is true.
-     */
-    data?: UserAPIKeyResponse | null;
-    /**
-     * A message for any error that may occur. Populated if `success` is false.
-     */
-    errorMessage?: null | string;
-    /**
-     * Whether or not the SDK request succeeded.
-     */
-    success: boolean;
-}
-
-export interface UserAPIKeyResponse {
-    /**
-     * The user's API key, which represents the client_secret portion of an oauth request.
-     */
-    apiKey: string;
 }
 
 // Converts JSON strings to/from your types
@@ -730,22 +723,6 @@ export class Convert {
         return JSON.stringify(uncast(value, r("ResponseForPasswordLoginResponse")), null, 2);
     }
 
-    public static toResponseForSecretDeleteResponse(json: string): ResponseForSecretDeleteResponse {
-        return cast(JSON.parse(json), r("ResponseForSecretDeleteResponse"));
-    }
-
-    public static responseForSecretDeleteResponseToJson(value: ResponseForSecretDeleteResponse): string {
-        return JSON.stringify(uncast(value, r("ResponseForSecretDeleteResponse")), null, 2);
-    }
-
-    public static toResponseForSecretIdentifierResponse(json: string): ResponseForSecretIdentifierResponse {
-        return cast(JSON.parse(json), r("ResponseForSecretIdentifierResponse"));
-    }
-
-    public static responseForSecretIdentifierResponseToJson(value: ResponseForSecretIdentifierResponse): string {
-        return JSON.stringify(uncast(value, r("ResponseForSecretIdentifierResponse")), null, 2);
-    }
-
     public static toResponseForSecretIdentifiersResponse(json: string): ResponseForSecretIdentifiersResponse {
         return cast(JSON.parse(json), r("ResponseForSecretIdentifiersResponse"));
     }
@@ -768,14 +745,6 @@ export class Convert {
 
     public static responseForSecretsDeleteResponseToJson(value: ResponseForSecretsDeleteResponse): string {
         return JSON.stringify(uncast(value, r("ResponseForSecretsDeleteResponse")), null, 2);
-    }
-
-    public static toResponseForUserAPIKeyResponse(json: string): ResponseForUserAPIKeyResponse {
-        return cast(JSON.parse(json), r("ResponseForUserAPIKeyResponse"));
-    }
-
-    public static responseForUserAPIKeyResponseToJson(value: ResponseForUserAPIKeyResponse): string {
-        return JSON.stringify(uncast(value, r("ResponseForUserAPIKeyResponse")), null, 2);
     }
 }
 
@@ -989,12 +958,27 @@ const typeMap: any = {
     ], false),
     "ProjectsCommand": o([
         { json: "get", js: "get", typ: u(undefined, r("ProjectGetRequest")) },
+        { json: "create", js: "create", typ: u(undefined, r("ProjectCreateRequest")) },
         { json: "list", js: "list", typ: u(undefined, r("ProjectsListRequest")) },
+        { json: "update", js: "update", typ: u(undefined, r("ProjectPutRequest")) },
+        { json: "delete", js: "delete", typ: u(undefined, r("ProjectsDeleteRequest")) },
+    ], false),
+    "ProjectCreateRequest": o([
+        { json: "name", js: "name", typ: "" },
+        { json: "organizationId", js: "organizationId", typ: "" },
+    ], false),
+    "ProjectsDeleteRequest": o([
+        { json: "ids", js: "ids", typ: a("") },
     ], false),
     "ProjectGetRequest": o([
         { json: "id", js: "id", typ: "" },
     ], false),
     "ProjectsListRequest": o([
+        { json: "organizationId", js: "organizationId", typ: "" },
+    ], false),
+    "ProjectPutRequest": o([
+        { json: "id", js: "id", typ: "" },
+        { json: "name", js: "name", typ: "" },
         { json: "organizationId", js: "organizationId", typ: "" },
     ], false),
     "SecretsCommand": o([
@@ -1008,6 +992,7 @@ const typeMap: any = {
         { json: "key", js: "key", typ: "" },
         { json: "note", js: "note", typ: "" },
         { json: "organizationId", js: "organizationId", typ: "" },
+        { json: "projectIds", js: "projectIds", typ: u(undefined, u(a(""), null)) },
         { json: "value", js: "value", typ: "" },
     ], false),
     "SecretsDeleteRequest": o([
@@ -1109,34 +1094,15 @@ const typeMap: any = {
     "FluffyYubiKey": o([
         { json: "nfc", js: "nfc", typ: true },
     ], false),
-    "ResponseForSecretDeleteResponse": o([
-        { json: "data", js: "data", typ: u(undefined, u(r("SecretDeleteResponse"), null)) },
-        { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
-        { json: "success", js: "success", typ: true },
-    ], false),
-    "SecretDeleteResponse": o([
-        { json: "error", js: "error", typ: u(undefined, u(null, "")) },
-        { json: "id", js: "id", typ: "" },
-    ], false),
-    "ResponseForSecretIdentifierResponse": o([
-        { json: "data", js: "data", typ: u(undefined, u(r("SecretIdentifierResponse"), null)) },
-        { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
-        { json: "success", js: "success", typ: true },
-    ], false),
-    "SecretIdentifierResponse": o([
-        { json: "id", js: "id", typ: "" },
-        { json: "key", js: "key", typ: "" },
-        { json: "organizationId", js: "organizationId", typ: "" },
-    ], false),
     "ResponseForSecretIdentifiersResponse": o([
         { json: "data", js: "data", typ: u(undefined, u(r("SecretIdentifiersResponse"), null)) },
         { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
         { json: "success", js: "success", typ: true },
     ], false),
     "SecretIdentifiersResponse": o([
-        { json: "data", js: "data", typ: a(r("DatumElement")) },
+        { json: "data", js: "data", typ: a(r("SecretIdentifierResponse")) },
     ], false),
-    "DatumElement": o([
+    "SecretIdentifierResponse": o([
         { json: "id", js: "id", typ: "" },
         { json: "key", js: "key", typ: "" },
         { json: "organizationId", js: "organizationId", typ: "" },
@@ -1163,19 +1129,11 @@ const typeMap: any = {
         { json: "success", js: "success", typ: true },
     ], false),
     "SecretsDeleteResponse": o([
-        { json: "data", js: "data", typ: a(r("DatumClass")) },
+        { json: "data", js: "data", typ: a(r("SecretDeleteResponse")) },
     ], false),
-    "DatumClass": o([
+    "SecretDeleteResponse": o([
         { json: "error", js: "error", typ: u(undefined, u(null, "")) },
         { json: "id", js: "id", typ: "" },
-    ], false),
-    "ResponseForUserAPIKeyResponse": o([
-        { json: "data", js: "data", typ: u(undefined, u(r("UserAPIKeyResponse"), null)) },
-        { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
-        { json: "success", js: "success", typ: true },
-    ], false),
-    "UserAPIKeyResponse": o([
-        { json: "apiKey", js: "apiKey", typ: "" },
     ], false),
     "DeviceType": [
         "Android",

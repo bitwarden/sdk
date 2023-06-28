@@ -464,7 +464,6 @@ version = "0.0.2"
 name = "bws"
 version = "0.2.1"
 dependencies = [
- "atty",
  "bat",
  "bitwarden",
  "chrono",
@@ -477,6 +476,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_yaml 0.9.21",
+ "supports-color",
  "tempfile",
  "thiserror",
  "tokio",
@@ -1588,6 +1588,12 @@ dependencies = [
  "rustix",
  "windows-sys 0.48.0",
 ]
+
+[[package]]
+name = "is_ci"
+version = "1.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "616cde7c720bb2bb5824a224687d8f77bfd38922027f01d825cd7453be5099fb"
 
 [[package]]
 name = "itertools"
@@ -2892,6 +2898,16 @@ name = "subtle"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "81cdd64d312baedb58e21336b31bc043b77e01cc99033ce76ef539f78e965ebc"
+
+[[package]]
+name = "supports-color"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4950e7174bffabe99455511c39707310e7e9b440364a2fcb1cc21521be57b354"
+dependencies = [
+ "is-terminal",
+ "is_ci",
+]
 
 [[package]]
 name = "syn"

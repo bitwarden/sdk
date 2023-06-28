@@ -5,48 +5,37 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::sdk::model::{
-    domain::AccountData,
-    state_service::{CIPHERS_SERVICE, FOLDERS_SERVICE, PROFILE_SERVICE, SETTINGS_SERVICE},
-};
-#[allow(unused_imports)]
 use crate::{
+    auth::{
+        commands::{access_token_login, renew_token},
+        request::{AccessTokenLoginRequest, SessionLoginRequest},
+        response::ApiKeyLoginResponse,
+    },
     client::{
         auth_settings::AuthSettings,
-        client_projects::ClientProjects,
-        client_secrets::ClientSecrets,
+        client_settings::{ClientSettings, DeviceType},
         encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
     },
-    commands::{
-        access_token_login, api_key_login, generate_fingerprint, get_user_api_key, password_login,
-        renew_token, session_login, sync,
-    },
-    crypto::{CipherString, Decryptable},
+    crypto::CipherString,
     error::{Error, Result},
-    sdk::{
-        auth::{
-            request::{
-                AccessTokenLoginRequest, ApiKeyLoginRequest, PasswordLoginRequest,
-                SessionLoginRequest,
-            },
-            response::{ApiKeyLoginResponse, PasswordLoginResponse},
-        },
-        model::{
-            state::State,
-            state_service::{AUTH_SERVICE, KEYS_SERVICE},
-            view::AccountDataView,
-        },
-        request::{
-            client_settings::{ClientSettings, DeviceType},
-            fingerprint_request::FingerprintRequest,
-            secret_verification_request::SecretVerificationRequest,
-            sync_request::SyncRequest,
-        },
-        response::user_api_key_response::UserApiKeyResponse,
+    state::{
+        state::State,
+        state_service::{AUTH_SERVICE, KEYS_SERVICE},
     },
 };
 
-use super::ClientFolders;
+#[cfg(feature = "internal")]
+use crate::{
+    auth::{
+        commands::{api_key_login, password_login},
+        request::{ApiKeyLoginRequest, PasswordLoginRequest},
+        response::PasswordLoginResponse,
+    },
+    platform::{
+        generate_fingerprint, get_user_api_key, sync, FingerprintRequest,
+        SecretVerificationRequest, SyncRequest, UserApiKeyResponse,
+    },
+};
 
 #[derive(Debug)]
 pub(crate) struct ApiConfigurations {
@@ -157,7 +146,10 @@ impl Client {
         access_token_login(self, input).await
     }
 
+    #[cfg(feature = "internal")]
     pub async fn session_login(&mut self, input: &SessionLoginRequest) -> Result<()> {
+        use crate::auth::commands::session_login;
+
         session_login(self, input).await
     }
 
@@ -176,21 +168,6 @@ impl Client {
 
     pub(crate) async fn get_auth_settings(&self) -> Option<AuthSettings> {
         self.get_state_service(AUTH_SERVICE).get().await.kdf
-    }
-
-    pub async fn get_account_state(&mut self) -> AccountDataView {
-        let domain = AccountData {
-            keys: self.get_state_service(KEYS_SERVICE).get().await,
-            profile: self.get_state_service(PROFILE_SERVICE).get().await,
-            ciphers: self.get_state_service(CIPHERS_SERVICE).get().await,
-            folders: self.get_state_service(FOLDERS_SERVICE).get().await,
-            settings: self.get_state_service(SETTINGS_SERVICE).get().await,
-            auth: self.get_state_service(AUTH_SERVICE).get().await,
-        };
-
-        domain
-            .decrypt(self.encryption_settings.as_ref().unwrap(), &None)
-            .unwrap()
     }
 
     pub async fn get_access_token_organization(&self) -> Option<Uuid> {
@@ -283,6 +260,7 @@ impl Client {
         self.encryption_settings.as_ref().unwrap()
     }
 
+    #[cfg(feature = "internal")]
     pub(crate) async fn initialize_org_crypto(&mut self) -> Result<&EncryptionSettings> {
         let keys = self
             .get_state_service(KEYS_SERVICE)
@@ -305,26 +283,11 @@ impl Client {
     }
 }
 
-impl<'a> Client {
-    pub fn secrets(&'a mut self) -> ClientSecrets<'a> {
-        ClientSecrets { client: self }
-    }
-
-    pub fn projects(&'a mut self) -> ClientProjects<'a> {
-        ClientProjects { client: self }
-    }
-
-    #[cfg(feature = "internal")]
-    pub fn folders(&'a mut self) -> ClientFolders<'a> {
-        ClientFolders { client: self }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use wiremock::{matchers, Mock, ResponseTemplate};
 
-    use crate::sdk::{auth::request::AccessTokenLoginRequest, request::secrets_request::*};
+    use crate::{auth::request::AccessTokenLoginRequest, secrets_manager::secrets::*};
 
     #[tokio::test]
     async fn test_access_token_login() {

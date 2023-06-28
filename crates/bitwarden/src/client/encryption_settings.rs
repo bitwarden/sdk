@@ -140,6 +140,7 @@ impl EncryptionSettings {
         }
     }
 
+    #[cfg(feature = "internal")]
     pub(crate) fn set_org_keys(
         &mut self,
         org_enc_keys: &HashMap<Uuid, CipherString>,

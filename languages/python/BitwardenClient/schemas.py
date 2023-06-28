@@ -86,7 +86,7 @@ class ClientSettings:
     
     Defaults to
     
-    ``` # use bitwarden::sdk::request::client_settings::{ClientSettings, DeviceType}; # use
+    ``` # use bitwarden::client::client_settings::{ClientSettings, DeviceType}; # use
     assert_matches::assert_matches; let settings = ClientSettings { identity_url:
     "https://identity.bitwarden.com".to_string(), api_url:
     "https://api.bitwarden.com".to_string(), user_agent: "Bitwarden Rust-SDK".to_string(),
@@ -254,6 +254,15 @@ class FolderUpdateRequest:
 
 @dataclass
 class FoldersCommand:
+    """> Requires Authentication > Requires an unlocked vault Creates a new folder with the
+    provided data
+    
+    > Requires Authentication > Requires an unlocked vault Updates an existing folder with
+    the provided data given its ID
+    
+    > Requires Authentication > Requires an unlocked vault Deletes the folder associated with
+    the provided ID
+    """
     create: Optional[FolderCreateRequest] = None
     update: Optional[FolderUpdateRequest] = None
     delete: Optional[FolderDeleteRequest] = None
@@ -328,6 +337,43 @@ class PasswordLoginRequest:
 
 
 @dataclass
+class ProjectCreateRequest:
+    name: str
+    """Organization where the project will be created"""
+    organization_id: UUID
+
+    @staticmethod
+    def from_dict(obj: Any) -> 'ProjectCreateRequest':
+        assert isinstance(obj, dict)
+        name = from_str(obj.get("name"))
+        organization_id = UUID(obj.get("organizationId"))
+        return ProjectCreateRequest(name, organization_id)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        result["name"] = from_str(self.name)
+        result["organizationId"] = str(self.organization_id)
+        return result
+
+
+@dataclass
+class ProjectsDeleteRequest:
+    """IDs of the projects to delete"""
+    ids: List[UUID]
+
+    @staticmethod
+    def from_dict(obj: Any) -> 'ProjectsDeleteRequest':
+        assert isinstance(obj, dict)
+        ids = from_list(lambda x: UUID(x), obj.get("ids"))
+        return ProjectsDeleteRequest(ids)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        result["ids"] = from_list(lambda x: str(x), self.ids)
+        return result
+
+
+@dataclass
 class ProjectGetRequest:
     """ID of the project to retrieve"""
     id: UUID
@@ -362,33 +408,85 @@ class ProjectsListRequest:
 
 
 @dataclass
+class ProjectPutRequest:
+    """ID of the project to modify"""
+    id: UUID
+    name: str
+    """Organization ID of the project to modify"""
+    organization_id: UUID
+
+    @staticmethod
+    def from_dict(obj: Any) -> 'ProjectPutRequest':
+        assert isinstance(obj, dict)
+        id = UUID(obj.get("id"))
+        name = from_str(obj.get("name"))
+        organization_id = UUID(obj.get("organizationId"))
+        return ProjectPutRequest(id, name, organization_id)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        result["id"] = str(self.id)
+        result["name"] = from_str(self.name)
+        result["organizationId"] = str(self.organization_id)
+        return result
+
+
+@dataclass
 class ProjectsCommand:
     """> Requires Authentication > Requires using an Access Token for login or calling Sync at
     least once Retrieve a project by the provided identifier
     
-    Returns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)
+    Returns: [ProjectResponse](bitwarden::secrets_manager::projects::ProjectResponse)
+    
+    > Requires Authentication > Requires using an Access Token for login or calling Sync at
+    least once Creates a new project in the provided organization using the given data
+    
+    Returns: [ProjectResponse](bitwarden::secrets_manager::projects::ProjectResponse)
     
     > Requires Authentication > Requires using an Access Token for login or calling Sync at
     least once Lists all projects of the given organization
     
-    Returns: [ProjectsResponse](crate::sdk::response::projects_response::ProjectsResponse)
+    Returns: [ProjectsResponse](bitwarden::secrets_manager::projects::ProjectsResponse)
+    
+    > Requires Authentication > Requires using an Access Token for login or calling Sync at
+    least once Updates an existing project with the provided ID using the given data
+    
+    Returns: [ProjectResponse](bitwarden::secrets_manager::projects::ProjectResponse)
+    
+    > Requires Authentication > Requires using an Access Token for login or calling Sync at
+    least once Deletes all the projects whose IDs match the provided ones
+    
+    Returns:
+    [ProjectsDeleteResponse](bitwarden::secrets_manager::projects::ProjectsDeleteResponse)
     """
     get: Optional[ProjectGetRequest] = None
+    create: Optional[ProjectCreateRequest] = None
     list: Optional[ProjectsListRequest] = None
+    update: Optional[ProjectPutRequest] = None
+    delete: Optional[ProjectsDeleteRequest] = None
 
     @staticmethod
     def from_dict(obj: Any) -> 'ProjectsCommand':
         assert isinstance(obj, dict)
         get = from_union([ProjectGetRequest.from_dict, from_none], obj.get("get"))
+        create = from_union([ProjectCreateRequest.from_dict, from_none], obj.get("create"))
         list = from_union([ProjectsListRequest.from_dict, from_none], obj.get("list"))
-        return ProjectsCommand(get, list)
+        update = from_union([ProjectPutRequest.from_dict, from_none], obj.get("update"))
+        delete = from_union([ProjectsDeleteRequest.from_dict, from_none], obj.get("delete"))
+        return ProjectsCommand(get, create, list, update, delete)
 
     def to_dict(self) -> dict:
         result: dict = {}
         if self.get is not None:
             result["get"] = from_union([lambda x: to_class(ProjectGetRequest, x), from_none], self.get)
+        if self.create is not None:
+            result["create"] = from_union([lambda x: to_class(ProjectCreateRequest, x), from_none], self.create)
         if self.list is not None:
             result["list"] = from_union([lambda x: to_class(ProjectsListRequest, x), from_none], self.list)
+        if self.update is not None:
+            result["update"] = from_union([lambda x: to_class(ProjectPutRequest, x), from_none], self.update)
+        if self.delete is not None:
+            result["delete"] = from_union([lambda x: to_class(ProjectsDeleteRequest, x), from_none], self.delete)
         return result
 
 
@@ -399,6 +497,8 @@ class SecretCreateRequest:
     """Organization where the secret will be created"""
     organization_id: UUID
     value: str
+    """IDs of the projects that this secret will belong to"""
+    project_ids: Optional[List[UUID]] = None
 
     @staticmethod
     def from_dict(obj: Any) -> 'SecretCreateRequest':
@@ -407,7 +507,8 @@ class SecretCreateRequest:
         note = from_str(obj.get("note"))
         organization_id = UUID(obj.get("organizationId"))
         value = from_str(obj.get("value"))
-        return SecretCreateRequest(key, note, organization_id, value)
+        project_ids = from_union([from_none, lambda x: from_list(lambda x: UUID(x), x)], obj.get("projectIds"))
+        return SecretCreateRequest(key, note, organization_id, value, project_ids)
 
     def to_dict(self) -> dict:
         result: dict = {}
@@ -415,6 +516,8 @@ class SecretCreateRequest:
         result["note"] = from_str(self.note)
         result["organizationId"] = str(self.organization_id)
         result["value"] = from_str(self.value)
+        if self.project_ids is not None:
+            result["projectIds"] = from_union([from_none, lambda x: from_list(lambda x: str(x), x)], self.project_ids)
         return result
 
 
@@ -504,30 +607,30 @@ class SecretsCommand:
     """> Requires Authentication > Requires using an Access Token for login or calling Sync at
     least once Retrieve a secret by the provided identifier
     
-    Returns: [SecretResponse](crate::sdk::response::secrets_response::SecretResponse)
+    Returns: [SecretResponse](bitwarden::secrets_manager::secrets::SecretResponse)
     
     > Requires Authentication > Requires using an Access Token for login or calling Sync at
     least once Creates a new secret in the provided organization using the given data
     
-    Returns: [SecretResponse](crate::sdk::response::secrets_response::SecretResponse)
+    Returns: [SecretResponse](bitwarden::secrets_manager::secrets::SecretResponse)
     
     > Requires Authentication > Requires using an Access Token for login or calling Sync at
     least once Lists all secret identifiers of the given organization, to then retrieve each
     secret, use `CreateSecret`
     
     Returns:
-    [SecretIdentifiersResponse](crate::sdk::response::secrets_response::SecretIdentifiersResponse)
+    [SecretIdentifiersResponse](bitwarden::secrets_manager::secrets::SecretIdentifiersResponse)
     
     > Requires Authentication > Requires using an Access Token for login or calling Sync at
     least once Updates an existing secret with the provided ID using the given data
     
-    Returns: [SecretResponse](crate::sdk::response::secrets_response::SecretResponse)
+    Returns: [SecretResponse](bitwarden::secrets_manager::secrets::SecretResponse)
     
     > Requires Authentication > Requires using an Access Token for login or calling Sync at
     least once Deletes all the secrets whose IDs match the provided ones
     
     Returns:
-    [SecretsDeleteResponse](crate::sdk::response::secrets_response::SecretsDeleteResponse)
+    [SecretsDeleteResponse](bitwarden::secrets_manager::secrets::SecretsDeleteResponse)
     """
     get: Optional[SecretGetRequest] = None
     create: Optional[SecretCreateRequest] = None
@@ -610,26 +713,25 @@ class Command:
     
     This command is not capable of handling authentication requiring 2fa or captcha.
     
-    Returns: [PasswordLoginResponse](crate::sdk::auth::response::PasswordLoginResponse)
+    Returns: [PasswordLoginResponse](bitwarden::auth::response::PasswordLoginResponse)
     
     Login with API Key
     
     This command is for initiating an authentication handshake with Bitwarden.
     
-    Returns: [ApiKeyLoginResponse](crate::sdk::auth::response::ApiKeyLoginResponse)
+    Returns: [ApiKeyLoginResponse](bitwarden::auth::response::ApiKeyLoginResponse)
     
     Login with Secrets Manager Access Token
     
     This command is for initiating an authentication handshake with Bitwarden.
     
-    Returns: [ApiKeyLoginResponse](crate::sdk::auth::response::ApiKeyLoginResponse)
+    Returns: [ApiKeyLoginResponse](bitwarden::auth::response::ApiKeyLoginResponse)
     
     Login with a previously saved session
     
     > Requires Authentication Get the API key of the currently authenticated user
     
-    Returns:
-    [UserApiKeyResponse](crate::sdk::response::user_api_key_response::UserApiKeyResponse)
+    Returns: [UserApiKeyResponse](bitwarden::platform::UserApiKeyResponse)
     
     Get the user's passphrase
     
@@ -637,7 +739,7 @@ class Command:
     
     > Requires Authentication Get the user's account data associated with this client
     
-    Returns: [AccountData](crate::sdk::model::account_data::AccountData)
+    Returns: [AccountData](bitwarden::state::domain::AccountData)
     
     > Requires Authentication Retrieve all user data, ciphers and organizations the user is a
     part of
@@ -1119,53 +1221,6 @@ class ResponseForPasswordLoginResponse:
 
 
 @dataclass
-class SecretDeleteResponse:
-    id: UUID
-    error: Optional[str] = None
-
-    @staticmethod
-    def from_dict(obj: Any) -> 'SecretDeleteResponse':
-        assert isinstance(obj, dict)
-        id = UUID(obj.get("id"))
-        error = from_union([from_none, from_str], obj.get("error"))
-        return SecretDeleteResponse(id, error)
-
-    def to_dict(self) -> dict:
-        result: dict = {}
-        result["id"] = str(self.id)
-        if self.error is not None:
-            result["error"] = from_union([from_none, from_str], self.error)
-        return result
-
-
-@dataclass
-class ResponseForSecretDeleteResponse:
-    """Whether or not the SDK request succeeded."""
-    success: bool
-    """The response data. Populated if `success` is true."""
-    data: Optional[SecretDeleteResponse] = None
-    """A message for any error that may occur. Populated if `success` is false."""
-    error_message: Optional[str] = None
-
-    @staticmethod
-    def from_dict(obj: Any) -> 'ResponseForSecretDeleteResponse':
-        assert isinstance(obj, dict)
-        success = from_bool(obj.get("success"))
-        data = from_union([SecretDeleteResponse.from_dict, from_none], obj.get("data"))
-        error_message = from_union([from_none, from_str], obj.get("errorMessage"))
-        return ResponseForSecretDeleteResponse(success, data, error_message)
-
-    def to_dict(self) -> dict:
-        result: dict = {}
-        result["success"] = from_bool(self.success)
-        if self.data is not None:
-            result["data"] = from_union([lambda x: to_class(SecretDeleteResponse, x), from_none], self.data)
-        if self.error_message is not None:
-            result["errorMessage"] = from_union([from_none, from_str], self.error_message)
-        return result
-
-
-@dataclass
 class SecretIdentifierResponse:
     id: UUID
     key: str
@@ -1188,67 +1243,18 @@ class SecretIdentifierResponse:
 
 
 @dataclass
-class ResponseForSecretIdentifierResponse:
-    """Whether or not the SDK request succeeded."""
-    success: bool
-    """The response data. Populated if `success` is true."""
-    data: Optional[SecretIdentifierResponse] = None
-    """A message for any error that may occur. Populated if `success` is false."""
-    error_message: Optional[str] = None
-
-    @staticmethod
-    def from_dict(obj: Any) -> 'ResponseForSecretIdentifierResponse':
-        assert isinstance(obj, dict)
-        success = from_bool(obj.get("success"))
-        data = from_union([SecretIdentifierResponse.from_dict, from_none], obj.get("data"))
-        error_message = from_union([from_none, from_str], obj.get("errorMessage"))
-        return ResponseForSecretIdentifierResponse(success, data, error_message)
-
-    def to_dict(self) -> dict:
-        result: dict = {}
-        result["success"] = from_bool(self.success)
-        if self.data is not None:
-            result["data"] = from_union([lambda x: to_class(SecretIdentifierResponse, x), from_none], self.data)
-        if self.error_message is not None:
-            result["errorMessage"] = from_union([from_none, from_str], self.error_message)
-        return result
-
-
-@dataclass
-class DatumElement:
-    id: UUID
-    key: str
-    organization_id: UUID
-
-    @staticmethod
-    def from_dict(obj: Any) -> 'DatumElement':
-        assert isinstance(obj, dict)
-        id = UUID(obj.get("id"))
-        key = from_str(obj.get("key"))
-        organization_id = UUID(obj.get("organizationId"))
-        return DatumElement(id, key, organization_id)
-
-    def to_dict(self) -> dict:
-        result: dict = {}
-        result["id"] = str(self.id)
-        result["key"] = from_str(self.key)
-        result["organizationId"] = str(self.organization_id)
-        return result
-
-
-@dataclass
 class SecretIdentifiersResponse:
-    data: List[DatumElement]
+    data: List[SecretIdentifierResponse]
 
     @staticmethod
     def from_dict(obj: Any) -> 'SecretIdentifiersResponse':
         assert isinstance(obj, dict)
-        data = from_list(DatumElement.from_dict, obj.get("data"))
+        data = from_list(SecretIdentifierResponse.from_dict, obj.get("data"))
         return SecretIdentifiersResponse(data)
 
     def to_dict(self) -> dict:
         result: dict = {}
-        result["data"] = from_list(lambda x: to_class(DatumElement, x), self.data)
+        result["data"] = from_list(lambda x: to_class(SecretIdentifierResponse, x), self.data)
         return result
 
 
@@ -1348,16 +1354,16 @@ class ResponseForSecretResponse:
 
 
 @dataclass
-class DatumClass:
+class SecretDeleteResponse:
     id: UUID
     error: Optional[str] = None
 
     @staticmethod
-    def from_dict(obj: Any) -> 'DatumClass':
+    def from_dict(obj: Any) -> 'SecretDeleteResponse':
         assert isinstance(obj, dict)
         id = UUID(obj.get("id"))
         error = from_union([from_none, from_str], obj.get("error"))
-        return DatumClass(id, error)
+        return SecretDeleteResponse(id, error)
 
     def to_dict(self) -> dict:
         result: dict = {}
@@ -1369,17 +1375,17 @@ class DatumClass:
 
 @dataclass
 class SecretsDeleteResponse:
-    data: List[DatumClass]
+    data: List[SecretDeleteResponse]
 
     @staticmethod
     def from_dict(obj: Any) -> 'SecretsDeleteResponse':
         assert isinstance(obj, dict)
-        data = from_list(DatumClass.from_dict, obj.get("data"))
+        data = from_list(SecretDeleteResponse.from_dict, obj.get("data"))
         return SecretsDeleteResponse(data)
 
     def to_dict(self) -> dict:
         result: dict = {}
-        result["data"] = from_list(lambda x: to_class(DatumClass, x), self.data)
+        result["data"] = from_list(lambda x: to_class(SecretDeleteResponse, x), self.data)
         return result
 
 
@@ -1405,50 +1411,6 @@ class ResponseForSecretsDeleteResponse:
         result["success"] = from_bool(self.success)
         if self.data is not None:
             result["data"] = from_union([lambda x: to_class(SecretsDeleteResponse, x), from_none], self.data)
-        if self.error_message is not None:
-            result["errorMessage"] = from_union([from_none, from_str], self.error_message)
-        return result
-
-
-@dataclass
-class UserAPIKeyResponse:
-    """The user's API key, which represents the client_secret portion of an oauth request."""
-    api_key: str
-
-    @staticmethod
-    def from_dict(obj: Any) -> 'UserAPIKeyResponse':
-        assert isinstance(obj, dict)
-        api_key = from_str(obj.get("apiKey"))
-        return UserAPIKeyResponse(api_key)
-
-    def to_dict(self) -> dict:
-        result: dict = {}
-        result["apiKey"] = from_str(self.api_key)
-        return result
-
-
-@dataclass
-class ResponseForUserAPIKeyResponse:
-    """Whether or not the SDK request succeeded."""
-    success: bool
-    """The response data. Populated if `success` is true."""
-    data: Optional[UserAPIKeyResponse] = None
-    """A message for any error that may occur. Populated if `success` is false."""
-    error_message: Optional[str] = None
-
-    @staticmethod
-    def from_dict(obj: Any) -> 'ResponseForUserAPIKeyResponse':
-        assert isinstance(obj, dict)
-        success = from_bool(obj.get("success"))
-        data = from_union([UserAPIKeyResponse.from_dict, from_none], obj.get("data"))
-        error_message = from_union([from_none, from_str], obj.get("errorMessage"))
-        return ResponseForUserAPIKeyResponse(success, data, error_message)
-
-    def to_dict(self) -> dict:
-        result: dict = {}
-        result["success"] = from_bool(self.success)
-        if self.data is not None:
-            result["data"] = from_union([lambda x: to_class(UserAPIKeyResponse, x), from_none], self.data)
         if self.error_message is not None:
             result["errorMessage"] = from_union([from_none, from_str], self.error_message)
         return result
@@ -1486,22 +1448,6 @@ def response_for_password_login_response_to_dict(x: ResponseForPasswordLoginResp
     return to_class(ResponseForPasswordLoginResponse, x)
 
 
-def response_for_secret_delete_response_from_dict(s: Any) -> ResponseForSecretDeleteResponse:
-    return ResponseForSecretDeleteResponse.from_dict(s)
-
-
-def response_for_secret_delete_response_to_dict(x: ResponseForSecretDeleteResponse) -> Any:
-    return to_class(ResponseForSecretDeleteResponse, x)
-
-
-def response_for_secret_identifier_response_from_dict(s: Any) -> ResponseForSecretIdentifierResponse:
-    return ResponseForSecretIdentifierResponse.from_dict(s)
-
-
-def response_for_secret_identifier_response_to_dict(x: ResponseForSecretIdentifierResponse) -> Any:
-    return to_class(ResponseForSecretIdentifierResponse, x)
-
-
 def response_for_secret_identifiers_response_from_dict(s: Any) -> ResponseForSecretIdentifiersResponse:
     return ResponseForSecretIdentifiersResponse.from_dict(s)
 
@@ -1524,12 +1470,4 @@ def response_for_secrets_delete_response_from_dict(s: Any) -> ResponseForSecrets
 
 def response_for_secrets_delete_response_to_dict(x: ResponseForSecretsDeleteResponse) -> Any:
     return to_class(ResponseForSecretsDeleteResponse, x)
-
-
-def response_for_user_api_key_response_from_dict(s: Any) -> ResponseForUserAPIKeyResponse:
-    return ResponseForUserAPIKeyResponse.from_dict(s)
-
-
-def response_for_user_api_key_response_to_dict(x: ResponseForUserAPIKeyResponse) -> Any:
-    return to_class(ResponseForUserAPIKeyResponse, x)
 

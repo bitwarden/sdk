@@ -418,12 +418,11 @@ impl<T: Decryptable<Output>, Output, Id: Hash + Eq> Decryptable<HashMap<Id, Outp
 mod tests {
     use std::num::NonZeroU32;
 
+    use super::{fingerprint, stretch_key};
     use crate::{
         client::auth_settings::Kdf,
         crypto::{stretch_key_password, CipherString},
     };
-
-    use super::{fingerprint, stretch_key};
 
     #[test]
     fn test_cipher_string_serialization() {

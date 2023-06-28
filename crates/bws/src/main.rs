@@ -388,26 +388,23 @@ async fn process_commands() -> Result<()> {
         | Commands::Delete {
             cmd: DeleteCommand::Project { project_ids },
         } => {
+            let mut projects_success = project_ids.len();
+
             let result = client
                 .projects()
                 .delete(ProjectsDeleteRequest { ids: project_ids })
                 .await?;
 
-            let mut projects_success = 0;
-            let mut projects_failed: Vec<(Uuid, String)> = Vec::new();
+            let projects_failed: Vec<(Uuid, String)> = result
+                .data
+                .into_iter()
+                .filter_map(|r| r.error.map(|e| (r.id, e)))
+                .collect();
+            projects_success -= projects_failed.len();
 
-            for project in result.data.iter() {
-                match &project.error {
-                    Some(error_message) => {
-                        projects_failed.push((project.id, error_message.to_owned()))
-                    }
-                    None => projects_success += 1,
-                }
-            }
-
-            if projects_success == 0 || projects_success > 1 {
+            if projects_success > 1 {
                 println!("{} projects deleted successfully.", projects_success);
-            } else {
+            } else if projects_success == 1 {
                 println!("{} project deleted successfully.", projects_success);
             }
 
@@ -550,26 +547,23 @@ async fn process_commands() -> Result<()> {
         | Commands::Delete {
             cmd: DeleteCommand::Secret { secret_ids },
         } => {
+            let mut secrets_success = secret_ids.len();
+
             let result = client
                 .secrets()
                 .delete(SecretsDeleteRequest { ids: secret_ids })
                 .await?;
 
-            let mut secrets_success = 0;
-            let mut secrets_failed: Vec<(Uuid, String)> = Vec::new();
+            let secrets_failed: Vec<(Uuid, String)> = result
+                .data
+                .into_iter()
+                .filter_map(|r| r.error.map(|e| (r.id, e)))
+                .collect();
+            secrets_success -= secrets_failed.len();
 
-            for secret in result.data.iter() {
-                match &secret.error {
-                    Some(error_message) => {
-                        secrets_failed.push((secret.id, error_message.to_owned()))
-                    }
-                    None => secrets_success += 1,
-                }
-            }
-
-            if secrets_success == 0 || secrets_success > 1 {
+            if secrets_success > 1 {
                 println!("{} secrets deleted successfully.", secrets_success);
-            } else {
+            } else if secrets_success == 1 {
                 println!("{} secret deleted successfully.", secrets_success);
             }
 

@@ -1,6 +1,6 @@
 from enum import Enum
 from dataclasses import dataclass
-from typing import Optional, Any, List, Dict, TypeVar, Type, cast, Callable
+from typing import Optional, Any, Dict, List, TypeVar, Type, Callable, cast
 from uuid import UUID
 
 
@@ -32,6 +32,11 @@ def to_enum(c: Type[EnumT], x: Any) -> EnumT:
     return x.value
 
 
+def from_dict(f: Callable[[Any], T], x: Any) -> Dict[str, T]:
+    assert isinstance(x, dict)
+    return { k: f(v) for (k, v) in x.items() }
+
+
 def to_class(c: Type[T], x: Any) -> dict:
     assert isinstance(x, c)
     return cast(Any, x).to_dict()
@@ -45,11 +50,6 @@ def from_list(f: Callable[[Any], T], x: Any) -> List[T]:
 def from_bool(x: Any) -> bool:
     assert isinstance(x, bool)
     return x
-
-
-def from_dict(f: Callable[[Any], T], x: Any) -> Dict[str, T]:
-    assert isinstance(x, dict)
-    return { k: f(v) for (k, v) in x.items() }
 
 
 class DeviceType(Enum):
@@ -257,6 +257,11 @@ class FoldersCommand:
     """> Requires Authentication > Requires an unlocked vault Creates a new folder with the
     provided data
     
+    > Requires Authentication > Requires an unlocked vault and calling Sync at least once
+    Lists all folders in the vault
+    
+    Returns: [FoldersResponse](bitwarden::platform::folders::FoldersResponse)
+    
     > Requires Authentication > Requires an unlocked vault Updates an existing folder with
     the provided data given its ID
     
@@ -264,6 +269,7 @@ class FoldersCommand:
     the provided ID
     """
     create: Optional[FolderCreateRequest] = None
+    list: Optional[Dict[str, Any]] = None
     update: Optional[FolderUpdateRequest] = None
     delete: Optional[FolderDeleteRequest] = None
 
@@ -271,14 +277,17 @@ class FoldersCommand:
     def from_dict(obj: Any) -> 'FoldersCommand':
         assert isinstance(obj, dict)
         create = from_union([FolderCreateRequest.from_dict, from_none], obj.get("create"))
+        list = from_union([lambda x: from_dict(lambda x: x, x), from_none], obj.get("list"))
         update = from_union([FolderUpdateRequest.from_dict, from_none], obj.get("update"))
         delete = from_union([FolderDeleteRequest.from_dict, from_none], obj.get("delete"))
-        return FoldersCommand(create, update, delete)
+        return FoldersCommand(create, list, update, delete)
 
     def to_dict(self) -> dict:
         result: dict = {}
         if self.create is not None:
             result["create"] = from_union([lambda x: to_class(FolderCreateRequest, x), from_none], self.create)
+        if self.list is not None:
+            result["list"] = from_union([lambda x: from_dict(lambda x: x, x), from_none], self.list)
         if self.update is not None:
             result["update"] = from_union([lambda x: to_class(FolderUpdateRequest, x), from_none], self.update)
         if self.delete is not None:
@@ -737,10 +746,6 @@ class Command:
     
     Returns: String
     
-    > Requires Authentication Get the user's account data associated with this client
-    
-    Returns: [AccountData](bitwarden::state::domain::AccountData)
-    
     > Requires Authentication Retrieve all user data, ciphers and organizations the user is a
     part of
     """
@@ -750,7 +755,6 @@ class Command:
     session_login: Optional[SessionLoginRequest] = None
     get_user_api_key: Optional[SecretVerificationRequest] = None
     fingerprint: Optional[FingerprintRequest] = None
-    get_account_state: Optional[Dict[str, Any]] = None
     sync: Optional[SyncRequest] = None
     secrets: Optional[SecretsCommand] = None
     projects: Optional[ProjectsCommand] = None
@@ -765,12 +769,11 @@ class Command:
         session_login = from_union([SessionLoginRequest.from_dict, from_none], obj.get("sessionLogin"))
         get_user_api_key = from_union([SecretVerificationRequest.from_dict, from_none], obj.get("getUserApiKey"))
         fingerprint = from_union([FingerprintRequest.from_dict, from_none], obj.get("fingerprint"))
-        get_account_state = from_union([lambda x: from_dict(lambda x: x, x), from_none], obj.get("getAccountState"))
         sync = from_union([SyncRequest.from_dict, from_none], obj.get("sync"))
         secrets = from_union([SecretsCommand.from_dict, from_none], obj.get("secrets"))
         projects = from_union([ProjectsCommand.from_dict, from_none], obj.get("projects"))
         folders = from_union([FoldersCommand.from_dict, from_none], obj.get("folders"))
-        return Command(password_login, api_key_login, access_token_login, session_login, get_user_api_key, fingerprint, get_account_state, sync, secrets, projects, folders)
+        return Command(password_login, api_key_login, access_token_login, session_login, get_user_api_key, fingerprint, sync, secrets, projects, folders)
 
     def to_dict(self) -> dict:
         result: dict = {}
@@ -786,8 +789,6 @@ class Command:
             result["getUserApiKey"] = from_union([lambda x: to_class(SecretVerificationRequest, x), from_none], self.get_user_api_key)
         if self.fingerprint is not None:
             result["fingerprint"] = from_union([lambda x: to_class(FingerprintRequest, x), from_none], self.fingerprint)
-        if self.get_account_state is not None:
-            result["getAccountState"] = from_union([lambda x: from_dict(lambda x: x, x), from_none], self.get_account_state)
         if self.sync is not None:
             result["sync"] = from_union([lambda x: to_class(SyncRequest, x), from_none], self.sync)
         if self.secrets is not None:

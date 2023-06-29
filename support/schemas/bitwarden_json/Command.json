@@ -81,19 +81,6 @@
       "additionalProperties": false
     },
     {
-      "description": "> Requires Authentication Get the user's account data associated with this client\n\nReturns: [AccountData](bitwarden::state::domain::AccountData)",
-      "type": "object",
-      "required": [
-        "getAccountState"
-      ],
-      "properties": {
-        "getAccountState": {
-          "$ref": "#/definitions/EmptyRequest"
-        }
-      },
-      "additionalProperties": false
-    },
-    {
       "description": "> Requires Authentication Retrieve all user data, ciphers and organizations the user is a part of",
       "type": "object",
       "required": [
@@ -261,6 +248,19 @@
           "properties": {
             "create": {
               "$ref": "#/definitions/FolderCreateRequest"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "> Requires Authentication > Requires an unlocked vault and calling Sync at least once Lists all folders in the vault\n\nReturns: [FoldersResponse](bitwarden::platform::folders::FoldersResponse)",
+          "type": "object",
+          "required": [
+            "list"
+          ],
+          "properties": {
+            "list": {
+              "$ref": "#/definitions/EmptyRequest"
             }
           },
           "additionalProperties": false

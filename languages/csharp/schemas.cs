@@ -106,10 +106,6 @@ namespace Bit.Sdk
     ///
     /// Returns: String
     ///
-    /// > Requires Authentication Get the user's account data associated with this client
-    ///
-    /// Returns: [AccountData](bitwarden::state::domain::AccountData)
-    ///
     /// > Requires Authentication Retrieve all user data, ciphers and organizations the user is a
     /// part of
     /// </summary>
@@ -132,9 +128,6 @@ namespace Bit.Sdk
 
         [JsonProperty("fingerprint", NullValueHandling = NullValueHandling.Ignore)]
         public FingerprintRequest Fingerprint { get; set; }
-
-        [JsonProperty("getAccountState", NullValueHandling = NullValueHandling.Ignore)]
-        public Dictionary<string, object> GetAccountState { get; set; }
 
         [JsonProperty("sync", NullValueHandling = NullValueHandling.Ignore)]
         public SyncRequest Sync { get; set; }
@@ -204,6 +197,11 @@ namespace Bit.Sdk
     /// > Requires Authentication > Requires an unlocked vault Creates a new folder with the
     /// provided data
     ///
+    /// > Requires Authentication > Requires an unlocked vault and calling Sync at least once
+    /// Lists all folders in the vault
+    ///
+    /// Returns: [FoldersResponse](bitwarden::platform::folders::FoldersResponse)
+    ///
     /// > Requires Authentication > Requires an unlocked vault Updates an existing folder with
     /// the provided data given its ID
     ///
@@ -214,6 +212,9 @@ namespace Bit.Sdk
     {
         [JsonProperty("create", NullValueHandling = NullValueHandling.Ignore)]
         public FolderCreateRequest Create { get; set; }
+
+        [JsonProperty("list", NullValueHandling = NullValueHandling.Ignore)]
+        public Dictionary<string, object> List { get; set; }
 
         [JsonProperty("update", NullValueHandling = NullValueHandling.Ignore)]
         public FolderUpdateRequest Update { get; set; }

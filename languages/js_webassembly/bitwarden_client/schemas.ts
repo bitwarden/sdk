@@ -116,10 +116,6 @@ export enum DeviceType {
  *
  * Returns: String
  *
- * > Requires Authentication Get the user's account data associated with this client
- *
- * Returns: [AccountData](bitwarden::state::domain::AccountData)
- *
  * > Requires Authentication Retrieve all user data, ciphers and organizations the user is a
  * part of
  */
@@ -130,7 +126,6 @@ export interface Command {
     sessionLogin?:     SessionLoginRequest;
     getUserApiKey?:    SecretVerificationRequest;
     fingerprint?:      FingerprintRequest;
-    getAccountState?:  { [key: string]: any };
     sync?:             SyncRequest;
     secrets?:          SecretsCommand;
     projects?:         ProjectsCommand;
@@ -180,6 +175,11 @@ export interface FingerprintRequest {
  * > Requires Authentication > Requires an unlocked vault Creates a new folder with the
  * provided data
  *
+ * > Requires Authentication > Requires an unlocked vault and calling Sync at least once
+ * Lists all folders in the vault
+ *
+ * Returns: [FoldersResponse](bitwarden::platform::folders::FoldersResponse)
+ *
  * > Requires Authentication > Requires an unlocked vault Updates an existing folder with
  * the provided data given its ID
  *
@@ -188,6 +188,7 @@ export interface FingerprintRequest {
  */
 export interface FoldersCommand {
     create?: FolderCreateRequest;
+    list?:   { [key: string]: any };
     update?: FolderUpdateRequest;
     delete?: FolderDeleteRequest;
 }
@@ -915,7 +916,6 @@ const typeMap: any = {
         { json: "sessionLogin", js: "sessionLogin", typ: u(undefined, r("SessionLoginRequest")) },
         { json: "getUserApiKey", js: "getUserApiKey", typ: u(undefined, r("SecretVerificationRequest")) },
         { json: "fingerprint", js: "fingerprint", typ: u(undefined, r("FingerprintRequest")) },
-        { json: "getAccountState", js: "getAccountState", typ: u(undefined, m("any")) },
         { json: "sync", js: "sync", typ: u(undefined, r("SyncRequest")) },
         { json: "secrets", js: "secrets", typ: u(undefined, r("SecretsCommand")) },
         { json: "projects", js: "projects", typ: u(undefined, r("ProjectsCommand")) },
@@ -935,6 +935,7 @@ const typeMap: any = {
     ], false),
     "FoldersCommand": o([
         { json: "create", js: "create", typ: u(undefined, r("FolderCreateRequest")) },
+        { json: "list", js: "list", typ: u(undefined, m("any")) },
         { json: "update", js: "update", typ: u(undefined, r("FolderUpdateRequest")) },
         { json: "delete", js: "delete", typ: u(undefined, r("FolderDeleteRequest")) },
     ], false),

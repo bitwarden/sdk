@@ -55,6 +55,8 @@ pub mod crypto;
 pub mod error;
 #[cfg(feature = "internal")]
 pub mod platform;
+#[cfg(feature = "internal")]
+pub mod vault;
 pub mod secrets_manager;
 pub(crate) mod state;
 mod util;

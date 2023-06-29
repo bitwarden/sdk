@@ -17,10 +17,12 @@ use bitwarden::{
 #[cfg(feature = "internal")]
 use bitwarden::{
     auth::request::{ApiKeyLoginRequest, PasswordLoginRequest, SessionLoginRequest},
-    platform::{
+    vault::{
         folders::{FolderCreateRequest, FolderDeleteRequest, FolderUpdateRequest},
-        EmptyRequest, FingerprintRequest, SecretVerificationRequest, SyncRequest,
     },
+    platform::{
+        EmptyRequest, FingerprintRequest, SecretVerificationRequest, SyncRequest
+    }
 };
 
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]

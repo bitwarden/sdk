@@ -1,12 +1,12 @@
-use bitwarden_api_api::models::FolderRequestModel;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use super::FolderToSave;
 use crate::{
+    client::encryption_settings::EncryptionSettings,
     crypto::Encryptable,
     error::{Error, Result},
-    state::{domain::Folder, state_service::FOLDERS_SERVICE},
     Client,
 };
 
@@ -20,44 +20,18 @@ pub struct FolderUpdateRequest {
     pub name: String,
 }
 
-pub(crate) async fn update_folder(client: &mut Client, input: FolderUpdateRequest) -> Result<()> {
-    let enc = client
-        .get_encryption_settings()
-        .as_ref()
-        .ok_or(Error::VaultLocked)?;
-
-    let name = input.name.encrypt(&enc, &None)?;
-
-    let param = Some(FolderRequestModel {
-        name: name.to_string(),
-    });
-
-    let config = client.get_api_configurations().await;
-    let res = bitwarden_api_api::apis::folders_api::folders_id_put(
-        &config.api,
-        &input.id.to_string(),
-        param,
-    )
-    .await?;
-
-    client
-        .get_state_service(FOLDERS_SERVICE)
-        .modify(move |folders| {
-            let id = res.id.unwrap();
-            folders.insert(
-                id,
-                Folder {
-                    id,
-                    name,
-                    revision_date: res
-                        .revision_date
-                        .unwrap()
-                        .parse()
-                        .map_err(|_| Error::InvalidResponse)?,
-                },
-            );
-            Ok(())
+impl Encryptable<FolderToSave> for FolderUpdateRequest {
+    fn encrypt(self, enc: &EncryptionSettings, _: &Option<Uuid>) -> Result<FolderToSave> {
+        Ok(FolderToSave {
+            id: Some(self.id),
+            name: enc.encrypt(&self.name.as_bytes(), &None)?,
         })
-        .await?;
+    }
+}
+
+pub(crate) async fn update_folder(client: &mut Client, input: FolderUpdateRequest) -> Result<()> {
+    let enc = client.get_encryption_settings().as_ref().ok_or(Error::VaultLocked)?;
+
+    input.encrypt(enc, &None)?.save_to_server(client).await?;
     Ok(())
 }

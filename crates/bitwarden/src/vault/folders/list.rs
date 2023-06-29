@@ -1,22 +1,12 @@
-use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
+use super::{FolderFromDisk, FolderView};
 use crate::{
-    client::encryption_settings::EncryptionSettings,
-    crypto::{Decryptable, Encryptable},
+    crypto::Decryptable,
     error::{Error, Result},
-    state::{domain, state_service::FOLDERS_SERVICE},
     Client,
 };
-
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct FolderCreateRequest {
-    /// Encrypted folder name
-    pub name: String,
-}
 
 pub(crate) async fn list_folders(client: &Client) -> Result<FoldersResponse> {
     let enc = client
@@ -24,48 +14,17 @@ pub(crate) async fn list_folders(client: &Client) -> Result<FoldersResponse> {
         .as_ref()
         .ok_or(Error::VaultLocked)?;
 
-    let folders = client
-        .get_state_service(FOLDERS_SERVICE)
-        .get()
+    let folders = FolderFromDisk::list(client)
         .await
-        .decrypt(enc, &None)?;
+        .into_iter()
+        .map(|f| f.decrypt(enc, &None))
+        .collect::<Result<Vec<FolderView>>>()?;
 
-    Ok(FoldersResponse {
-        data: folders.into_iter().map(|f| f.1).collect(),
-    })
+    Ok(FoldersResponse { data: folders })
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct FoldersResponse {
     pub data: Vec<FolderView>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct FolderView {
-    pub id: Uuid,
-    pub name: String,
-
-    pub revision_date: DateTime<Utc>,
-}
-
-impl Decryptable<FolderView> for domain::Folder {
-    fn decrypt(&self, enc: &EncryptionSettings, _: &Option<Uuid>) -> Result<FolderView> {
-        Ok(FolderView {
-            id: self.id,
-            name: self.name.decrypt(enc, &None)?,
-            revision_date: self.revision_date,
-        })
-    }
-}
-
-impl Encryptable<domain::Folder> for FolderView {
-    fn encrypt(self, enc: &EncryptionSettings, _: &Option<Uuid>) -> Result<domain::Folder> {
-        Ok(domain::Folder {
-            id: self.id,
-            name: self.name.encrypt(enc, &None)?,
-            revision_date: self.revision_date,
-        })
-    }
 }

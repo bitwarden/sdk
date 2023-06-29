@@ -3,9 +3,8 @@ use std::{collections::HashMap, marker::PhantomData};
 use serde::{de::DeserializeOwned, Serialize};
 use uuid::Uuid;
 
-use crate::error::Result;
-
 use super::{domain::*, state::State};
+use crate::error::Result;
 
 #[derive(Clone, Copy)]
 pub(crate) struct ServiceDefinition<T: Serialize + DeserializeOwned> {
@@ -16,7 +15,7 @@ pub(crate) struct ServiceDefinition<T: Serialize + DeserializeOwned> {
 }
 
 impl<T: Serialize + DeserializeOwned> ServiceDefinition<T> {
-    const fn new(namespace: &'static str) -> Self {
+    pub const fn new(namespace: &'static str) -> Self {
         let _type = PhantomData;
         Self { namespace, _type }
     }
@@ -27,8 +26,6 @@ pub(crate) const PROFILE_SERVICE: ServiceDefinition<Option<Profile>> =
     ServiceDefinition::new("profile");
 pub(crate) const CIPHERS_SERVICE: ServiceDefinition<HashMap<Uuid, Cipher>> =
     ServiceDefinition::new("ciphers");
-pub(crate) const FOLDERS_SERVICE: ServiceDefinition<HashMap<Uuid, Folder>> =
-    ServiceDefinition::new("folders");
 pub(crate) const AUTH_SERVICE: ServiceDefinition<Auth> = ServiceDefinition::new("auth");
 pub(crate) const SETTINGS_SERVICE: ServiceDefinition<Settings> = ServiceDefinition::new("settings");
 

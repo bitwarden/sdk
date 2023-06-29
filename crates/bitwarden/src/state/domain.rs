@@ -1,17 +1,12 @@
-use std::collections::HashMap;
-
-use std::str::FromStr;
-
-use chrono::DateTime;
-use chrono::Utc;
-use schemars::JsonSchema;
-use serde::Deserialize;
-use serde::Serialize;
-use uuid::Uuid;
+use std::{collections::HashMap, str::FromStr};
 
 use bitwarden_api_api::models::{
-    CipherDetailsResponseModel, FolderResponseModel, ProfileResponseModel,
+    CipherDetailsResponseModel, ProfileResponseModel,
 };
+use chrono::{DateTime, Utc};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::{
     client::{auth_settings::AuthSettings, LoginMethod},
@@ -39,7 +34,7 @@ pub struct AccountData {
     pub profile: Option<Profile>,
 
     pub ciphers: HashMap<Uuid, Cipher>,
-    pub folders: HashMap<Uuid, Folder>,
+    // pub folders: HashMap<Uuid, Folder>,
 
     pub settings: Settings,
     pub auth: Auth,
@@ -93,15 +88,6 @@ pub struct Cipher {
     pub revision_date: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct Folder {
-    pub id: Uuid,
-    pub name: CipherString,
-
-    pub revision_date: DateTime<Utc>,
-}
-
 pub(crate) fn convert_cipher(c: CipherDetailsResponseModel) -> Result<(Uuid, Cipher)> {
     Ok((
         c.id.ok_or(Error::MissingFields)?,
@@ -125,25 +111,6 @@ pub(crate) fn convert_cipher(c: CipherDetailsResponseModel) -> Result<(Uuid, Cip
                 .transpose()
                 .map_err(|_| Error::InvalidResponse)?,
             revision_date: c
-                .revision_date
-                .ok_or(Error::MissingFields)?
-                .parse()
-                .map_err(|_| Error::InvalidResponse)?,
-        },
-    ))
-}
-
-pub(crate) fn convert_folder(f: FolderResponseModel) -> Result<(Uuid, Folder)> {
-    Ok((
-        f.id.ok_or(Error::MissingFields)?,
-        Folder {
-            id: f.id.ok_or(Error::MissingFields)?,
-            name: f
-                .name
-                .ok_or(Error::MissingFields)?
-                .parse()
-                .map_err(|_| Error::InvalidResponse)?,
-            revision_date: f
                 .revision_date
                 .ok_or(Error::MissingFields)?
                 .parse()

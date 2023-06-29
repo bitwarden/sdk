@@ -1,6 +1,3 @@
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-
 use bitwarden::{
     auth::request::AccessTokenLoginRequest,
     secrets_manager::{
@@ -17,13 +14,11 @@ use bitwarden::{
 #[cfg(feature = "internal")]
 use bitwarden::{
     auth::request::{ApiKeyLoginRequest, PasswordLoginRequest, SessionLoginRequest},
-    vault::{
-        folders::{FolderCreateRequest, FolderDeleteRequest, FolderUpdateRequest},
-    },
-    platform::{
-        EmptyRequest, FingerprintRequest, SecretVerificationRequest, SyncRequest
-    }
+    platform::{EmptyRequest, FingerprintRequest, SecretVerificationRequest, SyncRequest},
+    vault::folders::{FolderCreateRequest, FolderDeleteRequest, FolderUpdateRequest},
 };
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

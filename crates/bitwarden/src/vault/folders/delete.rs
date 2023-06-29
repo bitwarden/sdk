@@ -2,7 +2,9 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{error::Result, state::state_service::FOLDERS_SERVICE, Client};
+use crate::{error::Result, Client};
+
+use super::folder::FolderToDelete;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -11,17 +13,15 @@ pub struct FolderDeleteRequest {
     pub id: Uuid,
 }
 
-pub(crate) async fn delete_folder(client: &mut Client, input: FolderDeleteRequest) -> Result<()> {
-    let config: &crate::client::ApiConfigurations = client.get_api_configurations().await;
-    bitwarden_api_api::apis::folders_api::folders_id_delete(&config.api, &input.id.to_string())
-        .await?;
+impl From<FolderDeleteRequest> for FolderToDelete {
+    fn from(input: FolderDeleteRequest) -> Self {
+        Self {
+            id: input.id,
+        }
+    }
+}
 
-    client
-        .get_state_service(FOLDERS_SERVICE)
-        .modify(move |folders| {
-            folders.remove(&input.id);
-            Ok(())
-        })
-        .await?;
-    Ok(())
+pub(crate) async fn delete_folder(client: &mut Client, input: FolderDeleteRequest) -> Result<()> {
+    let input: FolderToDelete = input.into();
+    Ok(input.delete_from_server(client).await?)
 }

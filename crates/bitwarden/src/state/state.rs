@@ -5,14 +5,13 @@ use bitwarden_api_api::models::SyncResponseModel;
 use serde_json::Value;
 use uuid::Uuid;
 
+use super::{
+    domain::{convert_cipher, convert_keys, convert_profile},
+    state_service::{CIPHERS_SERVICE, KEYS_SERVICE, PROFILE_SERVICE},
+};
 use crate::{
     client::client_settings::ClientSettings,
-    error::{Error, Result},
-};
-
-use super::{
-    domain::{convert_cipher, convert_folder, convert_keys, convert_profile},
-    state_service::{CIPHERS_SERVICE, FOLDERS_SERVICE, KEYS_SERVICE, PROFILE_SERVICE},
+    error::{Error, Result}, vault::folders::store_folders_from_sync,
 };
 
 pub struct State {
@@ -80,18 +79,7 @@ impl State {
                 Ok(())
             })
             .await?;
-        self.get_state_service(FOLDERS_SERVICE)
-            .modify(|f| {
-                *f = data
-                    .folders
-                    .unwrap_or_default()
-                    .into_iter()
-                    .map(convert_folder)
-                    .collect::<Result<_, _>>()?;
-                Ok(())
-            })
-            .await?;
-
+        store_folders_from_sync(data.folders.unwrap_or_default(), self).await?;
         Ok(())
     }
 

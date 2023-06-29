@@ -1,6 +1,4 @@
-use bitwarden::sdk::response::{
-    projects_response::ProjectResponse, secrets_response::SecretResponse,
-};
+use bitwarden::secrets_manager::{projects::ProjectResponse, secrets::SecretResponse};
 use chrono::DateTime;
 use clap::ValueEnum;
 use comfy_table::Table;
@@ -27,13 +25,7 @@ impl Color {
         match self {
             Color::No => false,
             Color::Yes => true,
-            Color::Auto => {
-                if std::env::var("NO_COLOR").is_ok() {
-                    false
-                } else {
-                    atty::is(atty::Stream::Stdout)
-                }
-            }
+            Color::Auto => supports_color::on(supports_color::Stream::Stdout).is_some(),
         }
     }
 }
@@ -47,7 +39,9 @@ pub(crate) fn serialize_response<T: Serialize + TableSerialize<N>, const N: usiz
 ) {
     match output {
         Output::JSON => {
-            let text = serde_json::to_string_pretty(&data).unwrap();
+            let mut text = serde_json::to_string_pretty(&data).unwrap();
+            // Yaml/table/tsv serializations add a newline at the end, so we do the same here for consistency
+            text.push('\n');
             pretty_print("json", &text, color);
         }
         Output::YAML => {
@@ -85,7 +79,7 @@ fn pretty_print(language: &str, data: &str, color: bool) {
             .print()
             .unwrap();
     } else {
-        println!("{}", data);
+        print!("{}", data);
     }
 }
 

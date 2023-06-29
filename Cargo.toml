@@ -2,12 +2,21 @@
 
 members = ["crates/*"]
 
-# Compile all dependencies on release mode even when building this crate on debug
-# The crypto crates are very slow on debug so this helps make the debug experience more performant
+# Compile all dependencies with some optimizations when building this crate on debug
+# This slows down clean builds by about 50%, but the resulting binaries can be orders of magnitude faster
+# As clean builds won't occur very often, this won't slow down the development process
 [profile.dev.package."*"]
-opt-level = 3
-codegen-units = 1
+opt-level = 2
 
-# Turn on a small amount of optimisation in Development mode.
+# Turn on a small amount of optimisation in development mode. This might interfere when trying to use a debugger
+# if the compiler decides to optimize some code away, if that's the case, it can be set to 0 or commented out
 [profile.dev]
 opt-level = 1
+
+# Turn on LTO on release mode
+[profile.release]
+lto = "thin"
+codegen-units = 1
+# Stripping the binary reduces the size by ~30%, but the stacktraces won't be usable anymore. 
+# This is fine as long as we don't have any unhandled panics, but let's keep it disabled for now
+# strip = true

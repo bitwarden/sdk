@@ -1,10 +1,6 @@
-use bitwarden::sdk::response::{
-    projects_response::ProjectResponse, secrets_response::SecretResponse,
-};
+use bitwarden::secrets_manager::{projects::ProjectResponse, secrets::SecretResponse};
 use chrono::DateTime;
 use clap::ValueEnum;
-use comfy_table::Table;
-use serde::Serialize;
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
 pub(crate) enum Output {
@@ -35,57 +31,6 @@ impl Color {
                 }
             }
         }
-    }
-}
-
-const ASCII_HEADER_ONLY: &str = "     --            ";
-
-pub(crate) fn serialize_response<T: Serialize + TableSerialize<N>, const N: usize>(
-    data: T,
-    output: Output,
-    color: bool,
-) {
-    match output {
-        Output::JSON => {
-            let text = serde_json::to_string_pretty(&data).unwrap();
-            pretty_print("json", &text, color);
-        }
-        Output::YAML => {
-            let text = serde_yaml::to_string(&data).unwrap();
-            pretty_print("yaml", &text, color);
-        }
-        Output::Table => {
-            let mut table = Table::new();
-            table
-                .load_preset(ASCII_HEADER_ONLY)
-                .set_header(T::get_headers())
-                .add_rows(data.get_values());
-
-            println!("{table}");
-        }
-        Output::TSV => {
-            println!("{}", T::get_headers().join("\t"));
-
-            let rows: Vec<String> = data
-                .get_values()
-                .into_iter()
-                .map(|row| row.join("\t"))
-                .collect();
-            println!("{}", rows.join("\n"));
-        }
-        Output::None => {}
-    }
-}
-
-fn pretty_print(language: &str, data: &str, color: bool) {
-    if color {
-        bat::PrettyPrinter::new()
-            .input_from_bytes(data.as_bytes())
-            .language(language)
-            .print()
-            .unwrap();
-    } else {
-        println!("{}", data);
     }
 }
 

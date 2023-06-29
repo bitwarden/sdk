@@ -1,11 +1,11 @@
-use bitwarden::sdk::{
+use bitwarden::{
     auth::request::{
         PasswordLoginRequest, TwoFactorEmailRequest, TwoFactorProvider, TwoFactorRequest,
     },
-    request::client_settings::ClientSettings,
+    client::client_settings::ClientSettings,
 };
 use clap::{command, CommandFactory, Parser, Subcommand};
-use color_eyre::eyre::{bail, Result};
+use color_eyre::eyre::Result;
 use inquire::{Password, Text};
 use log::error;
 use render::{Color, Output};

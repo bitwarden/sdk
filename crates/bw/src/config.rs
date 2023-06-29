@@ -30,16 +30,6 @@ pub(crate) enum ProfileKey {
     server_identity,
 }
 
-impl ProfileKey {
-    fn update_profile_value(&self, p: &mut Profile, value: String) {
-        match self {
-            ProfileKey::server_base => p.server_base = Some(value),
-            ProfileKey::server_api => p.server_api = Some(value),
-            ProfileKey::server_identity => p.server_identity = Some(value),
-        }
-    }
-}
-
 pub(crate) const FILENAME: &str = "config";
 pub(crate) const DIRECTORY: &str = ".bw";
 
@@ -69,43 +59,6 @@ pub(crate) fn load_config(config_file: Option<&Path>, must_exist: bool) -> Resul
 
     let config: Config = toml::from_str(&content?)?;
     Ok(config)
-}
-
-fn write_config(config: Config, config_file: Option<&Path>) -> Result<()> {
-    let file = get_config_path(config_file, true);
-
-    let content = toml::to_string_pretty(&config)?;
-
-    std::fs::write(file, content)?;
-    Ok(())
-}
-
-pub(crate) fn update_profile(
-    config_file: Option<&Path>,
-    profile: String,
-    name: ProfileKey,
-    value: String,
-) -> Result<()> {
-    let mut config = load_config(config_file, false)?;
-
-    let mut p = config.profiles.entry(profile).or_default();
-    name.update_profile_value(&mut p, value);
-
-    write_config(config, config_file)?;
-    Ok(())
-}
-
-pub(crate) fn delete_profile(config_file: Option<&Path>, profile: String) -> Result<()> {
-    let mut config = load_config(config_file, true)?;
-
-    if !config.profiles.contains_key(&profile) {
-        bail!("Profile does not exist");
-    }
-
-    config.profiles.remove(&profile);
-
-    write_config(config, config_file)?;
-    Ok(())
 }
 
 impl Profile {

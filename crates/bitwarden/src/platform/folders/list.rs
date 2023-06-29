@@ -51,7 +51,7 @@ pub struct FolderView {
 }
 
 impl Decryptable<FolderView> for domain::Folder {
-    fn decrypt(self, enc: &EncryptionSettings, _: &Option<Uuid>) -> Result<FolderView> {
+    fn decrypt(&self, enc: &EncryptionSettings, _: &Option<Uuid>) -> Result<FolderView> {
         Ok(FolderView {
             id: self.id,
             name: self.name.decrypt(enc, &None)?,

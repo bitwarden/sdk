@@ -388,7 +388,7 @@ async fn process_commands() -> Result<()> {
         | Commands::Delete {
             cmd: DeleteCommand::Project { project_ids },
         } => {
-            let mut projects_success = project_ids.len();
+            let count = project_ids.len();
 
             let result = client
                 .projects()
@@ -400,12 +400,12 @@ async fn process_commands() -> Result<()> {
                 .into_iter()
                 .filter_map(|r| r.error.map(|e| (r.id, e)))
                 .collect();
-            projects_success -= projects_failed.len();
+            let deleted_projects = count - projects_failed.len();
 
-            if projects_success > 1 {
-                println!("{} projects deleted successfully.", projects_success);
-            } else if projects_success == 1 {
-                println!("{} project deleted successfully.", projects_success);
+            if deleted_projects > 1 {
+                println!("{} projects deleted successfully.", deleted_projects);
+            } else if deleted_projects == 1 {
+                println!("{} project deleted successfully.", deleted_projects);
             }
 
             if projects_failed.len() > 1 {
@@ -547,7 +547,7 @@ async fn process_commands() -> Result<()> {
         | Commands::Delete {
             cmd: DeleteCommand::Secret { secret_ids },
         } => {
-            let mut secrets_success = secret_ids.len();
+            let count = secret_ids.len();
 
             let result = client
                 .secrets()
@@ -559,12 +559,12 @@ async fn process_commands() -> Result<()> {
                 .into_iter()
                 .filter_map(|r| r.error.map(|e| (r.id, e)))
                 .collect();
-            secrets_success -= secrets_failed.len();
+            let deleted_secrets = count - secrets_failed.len();
 
-            if secrets_success > 1 {
-                println!("{} secrets deleted successfully.", secrets_success);
-            } else if secrets_success == 1 {
-                println!("{} secret deleted successfully.", secrets_success);
+            if deleted_secrets > 1 {
+                println!("{} secrets deleted successfully.", deleted_secrets);
+            } else if deleted_secrets == 1 {
+                println!("{} secret deleted successfully.", deleted_secrets);
             }
 
             if secrets_failed.len() > 1 {

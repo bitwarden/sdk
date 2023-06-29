@@ -8,7 +8,7 @@ use uuid::Uuid;
 use crate::{
     crypto::CipherString,
     error::{Error, Result},
-    state::{state_service::ServiceDefinition, state::State},
+    state::{state::State, state_service::ServiceDefinition},
     Client,
 };
 
@@ -165,22 +165,25 @@ async fn remove_folder(id: Uuid, client: &Client) -> Result<()> {
 
 /// Clobbers folders list with given folder response values
 /// used during sync events
-pub async fn store_folders_from_sync(folders: Vec<FolderResponseModel>, state: &State) -> Result<()> {
+pub async fn store_folders_from_sync(
+    folders: Vec<FolderResponseModel>,
+    state: &State,
+) -> Result<()> {
     let folders: HashMap<Uuid, Folder> = prep_folders_for_storage(folders)?;
 
-    state.get_state_service(FOLDERS_SERVICE).modify(|f| {
-        *f = folders;
-        Ok(())
-    }).await?;
+    state
+        .get_state_service(FOLDERS_SERVICE)
+        .modify(|f| {
+            *f = folders;
+            Ok(())
+        })
+        .await?;
     Ok(())
 }
 
-
 /// Processes a list of FolderResponseModels into [Folders](Folder).
 /// this is used during [sync](crate::commands::sync::sync) to update the full list of folders for an account.
-fn prep_folders_for_storage(
-    folders: Vec<FolderResponseModel>,
-) -> Result<HashMap<Uuid, Folder>> {
+fn prep_folders_for_storage(folders: Vec<FolderResponseModel>) -> Result<HashMap<Uuid, Folder>> {
     folders
         .into_iter()
         .map(|r| {

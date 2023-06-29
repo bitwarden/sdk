@@ -23,7 +23,6 @@ use crate::{
         state_service::{AUTH_SERVICE, KEYS_SERVICE},
     },
 };
-
 #[cfg(feature = "internal")]
 use crate::{
     auth::{

@@ -1,6 +1,6 @@
 use super::folders::{
-    create_folder, delete_folder, list_folders, update_folder, FolderCreateRequest,
-    FolderDeleteRequest, FolderUpdateRequest, FoldersResponse, FolderGetRequest, get_folder, FolderResponse,
+    create_folder, delete_folder, get_folder, list_folders, update_folder, FolderCreateRequest,
+    FolderDeleteRequest, FolderGetRequest, FolderResponse, FolderUpdateRequest, FoldersResponse,
 };
 use crate::{error::Result, Client};
 

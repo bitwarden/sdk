@@ -24,7 +24,8 @@ pub(crate) async fn get_folder(client: &Client, input: FolderGetRequest) -> Resu
 
     let folder = FolderFromDisk::get(input.id, client)
         .await
-        .map(|f| f.decrypt(enc, &None)).transpose()?;
+        .map(|f| f.decrypt(enc, &None))
+        .transpose()?;
 
     Ok(FolderResponse { data: folder })
 }

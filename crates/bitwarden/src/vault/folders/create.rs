@@ -28,7 +28,10 @@ impl Encryptable<FolderToSave> for FolderCreateRequest {
 }
 
 pub(crate) async fn create_folder(client: &mut Client, input: FolderCreateRequest) -> Result<()> {
-    let enc = client.get_encryption_settings().as_ref().ok_or(Error::VaultLocked)?;
+    let enc = client
+        .get_encryption_settings()
+        .as_ref()
+        .ok_or(Error::VaultLocked)?;
 
     input.encrypt(enc, &None)?.save_to_server(client).await?;
     Ok(())

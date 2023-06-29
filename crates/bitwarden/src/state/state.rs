@@ -11,7 +11,8 @@ use super::{
 };
 use crate::{
     client::client_settings::ClientSettings,
-    error::{Error, Result}, vault::folders::store_folders_from_sync,
+    error::{Error, Result},
+    vault::folders::store_folders_from_sync,
 };
 
 pub struct State {

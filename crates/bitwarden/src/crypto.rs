@@ -408,7 +408,8 @@ impl<T: Decryptable<Output>, Output, Id: Hash + Eq + Clone> Decryptable<HashMap<
         enc: &EncryptionSettings,
         org_id: &Option<Uuid>,
     ) -> Result<HashMap<Id, Output>> {
-        self.into_iter().map(|(id, e)| Ok(((id.to_owned()), e.decrypt(enc, org_id)?)))
+        self.into_iter()
+            .map(|(id, e)| Ok(((id.to_owned()), e.decrypt(enc, org_id)?)))
             .collect::<Result<HashMap<_, _>>>()
     }
 }

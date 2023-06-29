@@ -272,9 +272,8 @@ fn validate_mac(mac_key: &[u8], iv: &[u8], data: &[u8]) -> Result<[u8; 32]> {
 mod tests {
     use std::str::FromStr;
 
-    use crate::crypto::{Decryptable, Encryptable};
-
     use super::{EncryptionSettings, SymmetricCryptoKey};
+    use crate::crypto::{Decryptable, Encryptable};
 
     #[test]
     fn test_symmetric_crypto_key() {

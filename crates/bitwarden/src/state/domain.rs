@@ -1,8 +1,6 @@
 use std::{collections::HashMap, str::FromStr};
 
-use bitwarden_api_api::models::{
-    CipherDetailsResponseModel, ProfileResponseModel,
-};
+use bitwarden_api_api::models::{CipherDetailsResponseModel, ProfileResponseModel};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -35,7 +33,6 @@ pub struct AccountData {
 
     pub ciphers: HashMap<Uuid, Cipher>,
     // pub folders: HashMap<Uuid, Folder>,
-
     pub settings: Settings,
     pub auth: Auth,
 }

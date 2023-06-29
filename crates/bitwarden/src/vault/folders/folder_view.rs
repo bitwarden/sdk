@@ -3,8 +3,13 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::folder::{FolderFromDisk,};
-use crate::{client::encryption_settings::EncryptionSettings, crypto::{Decryptable}, error::{Result, Error}, Client};
+use super::folder::FolderFromDisk;
+use crate::{
+    client::encryption_settings::EncryptionSettings,
+    crypto::Decryptable,
+    error::{Error, Result},
+    Client,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]

@@ -2,9 +2,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{error::Result, Client};
-
 use super::folder::FolderToDelete;
+use crate::{error::Result, Client};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -15,9 +14,7 @@ pub struct FolderDeleteRequest {
 
 impl From<FolderDeleteRequest> for FolderToDelete {
     fn from(input: FolderDeleteRequest) -> Self {
-        Self {
-            id: input.id,
-        }
+        Self { id: input.id }
     }
 }
 

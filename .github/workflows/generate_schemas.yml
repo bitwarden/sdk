@@ -41,7 +41,7 @@ jobs:
           name: schemas.ts
           path: ${{ github.workspace }}/languages/js_webassembly/bitwarden_client/schemas.ts
           if-no-files-found: error
-      
+
       - name: Upload c# schemas artifact
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
@@ -55,7 +55,7 @@ jobs:
           name: schemas.py
           path: ${{ github.workspace }}/languages/python/BitwardenClient/schemas.py
           if-no-files-found: error
-          
+
       - name: Upload json schemas artifact
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:

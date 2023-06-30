@@ -113,10 +113,13 @@ jobs:
           state: "failure"
           deployment-id: ${{ steps.deployment.outputs.deployment_id }}
 
+  generate_schemas:
+    uses: ./.github/workflows/generate_schemas.yml
+
   npm:
     name: Publish NPM
     runs-on: ubuntu-22.04
-    needs: setup
+    needs: [setup, generate_schemas]
     if: inputs.npm_publish
     env:
       _PKG_VERSION: ${{ needs.setup.outputs.release-version }}
@@ -131,9 +134,11 @@ jobs:
           cache: "npm"
           cache-dependency-path: crates/bitwarden-napi/package-lock.json
 
-      - name: Generate schemas
-        run: npm ci && npm run schemas
-        working-directory: .
+      - name: Retrieve schemas
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: schemas.ts
+          path: ${{ github.workspace }}/crates/bitwarden-napi/src-ts/bitwarden_client/
 
       - name: Install dependencies
         run: npm ci

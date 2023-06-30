@@ -21,7 +21,7 @@ pub(crate) async fn get_user_api_key(
     debug!("{:?}", input);
 
     let auth_settings = get_auth_settings(client)?;
-    let request = get_secret_verification_request(auth_settings, input);
+    let request = get_secret_verification_request(auth_settings, input)?;
 
     let config = client.get_api_configurations().await;
 
@@ -44,17 +44,18 @@ fn get_auth_settings(client: &Client) -> Result<&AuthSettings> {
 fn get_secret_verification_request(
     auth_settings: &AuthSettings,
     input: &SecretVerificationRequest,
-) -> SecretVerificationRequestModel {
+) -> Result<SecretVerificationRequestModel> {
     let master_password_hash = input
         .master_password
         .as_ref()
-        .map(|p| auth_settings.make_user_password_hash(p));
-    SecretVerificationRequestModel {
+        .map(|p| auth_settings.make_user_password_hash(p))
+        .transpose()?;
+    Ok(SecretVerificationRequestModel {
         master_password_hash,
         otp: input.otp.as_ref().cloned(),
         secret: None,
         auth_request_access_code: None,
-    }
+    })
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

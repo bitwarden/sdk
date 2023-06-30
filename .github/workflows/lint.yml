@@ -57,6 +57,6 @@ jobs:
           fi
 
       - name: Verify rust documentation links
-        run: cargo doc --no-deps
+        run: cargo doc --no-deps --features internal
         env:
-          RUSTDOCFLAGS: "-D warnings --features internal"
+          RUSTDOCFLAGS: "-D warnings"

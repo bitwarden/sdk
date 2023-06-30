@@ -20,7 +20,7 @@ jobs:
       - run: exit 0
 
   test:
-    name: ${{ matrix.os }} / ${{matrix.package}} / ${{matrix.target || 'default' }}
+    name: ${{ matrix.os }} / ${{matrix.target || 'default' }}
 
     runs-on: ${{ matrix.os || 'ubuntu-latest' }}
 
@@ -30,13 +30,6 @@ jobs:
           - ubuntu-latest
           - macOS-latest
           - windows-latest
-
-        package:
-          - bitwarden
-          - bitwarden-json
-          - bitwarden-c
-          - bitwarden-wasm
-          - bws
 
     steps:
       - name: Checkout
@@ -57,13 +50,11 @@ jobs:
         uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
         with:
           command: build
-          args: ${{ matrix.features }}
 
       - name: Test
         uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
         with:
           command: test
-          args: -p ${{ matrix.package }} -- --test-threads=1
 
   wasm:
     name: WASM

@@ -1,6 +1,4 @@
-use bitwarden::sdk::response::{
-    projects_response::ProjectResponse, secrets_response::SecretResponse,
-};
+use bitwarden::secrets_manager::{projects::ProjectResponse, secrets::SecretResponse};
 use chrono::DateTime;
 use clap::ValueEnum;
 use comfy_table::Table;
@@ -27,13 +25,7 @@ impl Color {
         match self {
             Color::No => false,
             Color::Yes => true,
-            Color::Auto => {
-                if std::env::var("NO_COLOR").is_ok() {
-                    false
-                } else {
-                    atty::is(atty::Stream::Stdout)
-                }
-            }
+            Color::Auto => supports_color::on(supports_color::Stream::Stdout).is_some(),
         }
     }
 }

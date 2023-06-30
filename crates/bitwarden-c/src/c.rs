@@ -1,7 +1,8 @@
 use std::{ffi::CStr, os::raw::c_char, str};
 
-use crate::{box_ptr, ffi_ref};
 use bitwarden_json::client::Client;
+
+use crate::{box_ptr, ffi_ref};
 
 #[no_mangle]
 #[tokio::main]

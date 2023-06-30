@@ -16,21 +16,6 @@ defaults:
     working-directory: crates/bitwarden-napi
 
 jobs:
-  cloc:
-    name: CLOC
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
-
-      - name: Set up cloc
-        run: |
-          sudo apt update
-          sudo apt -y install cloc
-
-      - name: Print lines of code
-        run: cloc --vcs git
-
   build:
     name: Building @bitwarden/sdk-napi for - ${{ matrix.settings.os }}
     runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}

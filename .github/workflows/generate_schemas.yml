@@ -1,0 +1,64 @@
+name: Generate schemas
+
+on:
+  workflow_call:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  schemas:
+    name: Generate schemas
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+
+      - name: Install rust
+        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+
+      - name: Set up Node
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+        with:
+          cache: "npm"
+          cache-dependency-path: "package-lock.json"
+          node-version: "16"
+
+      - name: NPM setup
+        run: npm ci
+
+      - name: NPM Schemas
+        run: npm run schemas
+
+      - name: Upload ts schemas artifact
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: schemas.ts
+          path: ${{ github.workspace }}/languages/js_webassembly/bitwarden_client/schemas.ts
+          if-no-files-found: error
+      
+      - name: Upload c# schemas artifact
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: schemas.cs
+          path: ${{ github.workspace }}/languages/csharp/schemas.cs
+          if-no-files-found: error
+
+      - name: Upload python schemas artifact
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: schemas.py
+          path: ${{ github.workspace }}/languages/python/BitwardenClient/schemas.py
+          if-no-files-found: error
+          
+      - name: Upload json schemas artifact
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: sdk-schemas-json
+          path: ${{ github.workspace }}/support/schemas/*
+          if-no-files-found: error

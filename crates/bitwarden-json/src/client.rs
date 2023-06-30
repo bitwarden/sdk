@@ -58,9 +58,9 @@ impl Client {
 
             Command::Secrets(cmd) => match cmd {
                 SecretsCommand::Get(req) => self.0.secrets().get(&req).await.into_string(),
-                SecretsCommand::Create(req) => self.0.secrets().create(req).await.into_string(),
+                SecretsCommand::Create(req) => self.0.secrets().create(&req).await.into_string(),
                 SecretsCommand::List(req) => self.0.secrets().list(&req).await.into_string(),
-                SecretsCommand::Update(req) => self.0.secrets().update(req).await.into_string(),
+                SecretsCommand::Update(req) => self.0.secrets().update(&req).await.into_string(),
                 SecretsCommand::Delete(req) => self.0.secrets().delete(req).await.into_string(),
             },
 

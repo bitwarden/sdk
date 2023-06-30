@@ -82,25 +82,26 @@ namespace Bit.Sdk
     ///
     /// This command is not capable of handling authentication requiring 2fa or captcha.
     ///
-    /// Returns: [PasswordLoginResponse](bitwarden::auth::response::PasswordLoginResponse)
+    /// Returns: [PasswordLoginResponse](crate::sdk::auth::response::PasswordLoginResponse)
     ///
     /// Login with API Key
     ///
     /// This command is for initiating an authentication handshake with Bitwarden.
     ///
-    /// Returns: [ApiKeyLoginResponse](bitwarden::auth::response::ApiKeyLoginResponse)
+    /// Returns: [ApiKeyLoginResponse](crate::sdk::auth::response::ApiKeyLoginResponse)
     ///
     /// Login with Secrets Manager Access Token
     ///
     /// This command is for initiating an authentication handshake with Bitwarden.
     ///
-    /// Returns: [ApiKeyLoginResponse](bitwarden::auth::response::ApiKeyLoginResponse)
+    /// Returns: [ApiKeyLoginResponse](crate::sdk::auth::response::ApiKeyLoginResponse)
     ///
     /// Login with a previously saved session
     ///
     /// > Requires Authentication Get the API key of the currently authenticated user
     ///
-    /// Returns: [UserApiKeyResponse](bitwarden::platform::UserApiKeyResponse)
+    /// Returns:
+    /// [UserApiKeyResponse](crate::sdk::response::user_api_key_response::UserApiKeyResponse)
     ///
     /// Get the user's passphrase
     ///
@@ -296,28 +297,28 @@ namespace Bit.Sdk
     /// > Requires Authentication > Requires using an Access Token for login or calling Sync at
     /// least once Retrieve a project by the provided identifier
     ///
-    /// Returns: [ProjectResponse](bitwarden::secrets_manager::projects::ProjectResponse)
+    /// Returns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)
     ///
     /// > Requires Authentication > Requires using an Access Token for login or calling Sync at
     /// least once Creates a new project in the provided organization using the given data
     ///
-    /// Returns: [ProjectResponse](bitwarden::secrets_manager::projects::ProjectResponse)
+    /// Returns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)
     ///
     /// > Requires Authentication > Requires using an Access Token for login or calling Sync at
     /// least once Lists all projects of the given organization
     ///
-    /// Returns: [ProjectsResponse](bitwarden::secrets_manager::projects::ProjectsResponse)
+    /// Returns: [ProjectsResponse](crate::sdk::response::projects_response::ProjectsResponse)
     ///
     /// > Requires Authentication > Requires using an Access Token for login or calling Sync at
     /// least once Updates an existing project with the provided ID using the given data
     ///
-    /// Returns: [ProjectResponse](bitwarden::secrets_manager::projects::ProjectResponse)
+    /// Returns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)
     ///
     /// > Requires Authentication > Requires using an Access Token for login or calling Sync at
     /// least once Deletes all the projects whose IDs match the provided ones
     ///
     /// Returns:
-    /// [ProjectsDeleteResponse](bitwarden::secrets_manager::projects::ProjectsDeleteResponse)
+    /// [ProjectsDeleteResponse](crate::sdk::response::projects_response::ProjectsDeleteResponse)
     /// </summary>
     public partial class ProjectsCommand
     {
@@ -398,30 +399,30 @@ namespace Bit.Sdk
     /// > Requires Authentication > Requires using an Access Token for login or calling Sync at
     /// least once Retrieve a secret by the provided identifier
     ///
-    /// Returns: [SecretResponse](bitwarden::secrets_manager::secrets::SecretResponse)
+    /// Returns: [SecretResponse](crate::sdk::response::secrets_response::SecretResponse)
     ///
     /// > Requires Authentication > Requires using an Access Token for login or calling Sync at
     /// least once Creates a new secret in the provided organization using the given data
     ///
-    /// Returns: [SecretResponse](bitwarden::secrets_manager::secrets::SecretResponse)
+    /// Returns: [SecretResponse](crate::sdk::response::secrets_response::SecretResponse)
     ///
     /// > Requires Authentication > Requires using an Access Token for login or calling Sync at
     /// least once Lists all secret identifiers of the given organization, to then retrieve each
     /// secret, use `CreateSecret`
     ///
     /// Returns:
-    /// [SecretIdentifiersResponse](bitwarden::secrets_manager::secrets::SecretIdentifiersResponse)
+    /// [SecretIdentifiersResponse](crate::sdk::response::secrets_response::SecretIdentifiersResponse)
     ///
     /// > Requires Authentication > Requires using an Access Token for login or calling Sync at
     /// least once Updates an existing secret with the provided ID using the given data
     ///
-    /// Returns: [SecretResponse](bitwarden::secrets_manager::secrets::SecretResponse)
+    /// Returns: [SecretResponse](crate::sdk::response::secrets_response::SecretResponse)
     ///
     /// > Requires Authentication > Requires using an Access Token for login or calling Sync at
     /// least once Deletes all the secrets whose IDs match the provided ones
     ///
     /// Returns:
-    /// [SecretsDeleteResponse](bitwarden::secrets_manager::secrets::SecretsDeleteResponse)
+    /// [SecretsDeleteResponse](crate::sdk::response::secrets_response::SecretsDeleteResponse)
     /// </summary>
     public partial class SecretsCommand
     {

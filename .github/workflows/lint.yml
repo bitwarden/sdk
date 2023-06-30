@@ -55,3 +55,8 @@ jobs:
             >&2 echo "Failed: Found untracked files!"
             exit 1
           fi
+
+      - name: Verify rust documentation links
+        run: cargo doc --no-deps
+        env:
+          RUSTDOCFLAGS: "-D warnings"

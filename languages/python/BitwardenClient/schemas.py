@@ -445,28 +445,28 @@ class ProjectsCommand:
     """> Requires Authentication > Requires using an Access Token for login or calling Sync at
     least once Retrieve a project by the provided identifier
     
-    Returns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)
+    Returns: [ProjectResponse](bitwarden::secrets_manager::projects::ProjectResponse)
     
     > Requires Authentication > Requires using an Access Token for login or calling Sync at
     least once Creates a new project in the provided organization using the given data
     
-    Returns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)
+    Returns: [ProjectResponse](bitwarden::secrets_manager::projects::ProjectResponse)
     
     > Requires Authentication > Requires using an Access Token for login or calling Sync at
     least once Lists all projects of the given organization
     
-    Returns: [ProjectsResponse](crate::sdk::response::projects_response::ProjectsResponse)
+    Returns: [ProjectsResponse](bitwarden::secrets_manager::projects::ProjectsResponse)
     
     > Requires Authentication > Requires using an Access Token for login or calling Sync at
     least once Updates an existing project with the provided ID using the given data
     
-    Returns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)
+    Returns: [ProjectResponse](bitwarden::secrets_manager::projects::ProjectResponse)
     
     > Requires Authentication > Requires using an Access Token for login or calling Sync at
     least once Deletes all the projects whose IDs match the provided ones
     
     Returns:
-    [ProjectsDeleteResponse](crate::sdk::response::projects_response::ProjectsDeleteResponse)
+    [ProjectsDeleteResponse](bitwarden::secrets_manager::projects::ProjectsDeleteResponse)
     """
     get: Optional[ProjectGetRequest] = None
     create: Optional[ProjectCreateRequest] = None
@@ -616,30 +616,30 @@ class SecretsCommand:
     """> Requires Authentication > Requires using an Access Token for login or calling Sync at
     least once Retrieve a secret by the provided identifier
     
-    Returns: [SecretResponse](crate::sdk::response::secrets_response::SecretResponse)
+    Returns: [SecretResponse](bitwarden::secrets_manager::secrets::SecretResponse)
     
     > Requires Authentication > Requires using an Access Token for login or calling Sync at
     least once Creates a new secret in the provided organization using the given data
     
-    Returns: [SecretResponse](crate::sdk::response::secrets_response::SecretResponse)
+    Returns: [SecretResponse](bitwarden::secrets_manager::secrets::SecretResponse)
     
     > Requires Authentication > Requires using an Access Token for login or calling Sync at
     least once Lists all secret identifiers of the given organization, to then retrieve each
     secret, use `CreateSecret`
     
     Returns:
-    [SecretIdentifiersResponse](crate::sdk::response::secrets_response::SecretIdentifiersResponse)
+    [SecretIdentifiersResponse](bitwarden::secrets_manager::secrets::SecretIdentifiersResponse)
     
     > Requires Authentication > Requires using an Access Token for login or calling Sync at
     least once Updates an existing secret with the provided ID using the given data
     
-    Returns: [SecretResponse](crate::sdk::response::secrets_response::SecretResponse)
+    Returns: [SecretResponse](bitwarden::secrets_manager::secrets::SecretResponse)
     
     > Requires Authentication > Requires using an Access Token for login or calling Sync at
     least once Deletes all the secrets whose IDs match the provided ones
     
     Returns:
-    [SecretsDeleteResponse](crate::sdk::response::secrets_response::SecretsDeleteResponse)
+    [SecretsDeleteResponse](bitwarden::secrets_manager::secrets::SecretsDeleteResponse)
     """
     get: Optional[SecretGetRequest] = None
     create: Optional[SecretCreateRequest] = None
@@ -722,26 +722,25 @@ class Command:
     
     This command is not capable of handling authentication requiring 2fa or captcha.
     
-    Returns: [PasswordLoginResponse](crate::sdk::auth::response::PasswordLoginResponse)
+    Returns: [PasswordLoginResponse](bitwarden::auth::response::PasswordLoginResponse)
     
     Login with API Key
     
     This command is for initiating an authentication handshake with Bitwarden.
     
-    Returns: [ApiKeyLoginResponse](crate::sdk::auth::response::ApiKeyLoginResponse)
+    Returns: [ApiKeyLoginResponse](bitwarden::auth::response::ApiKeyLoginResponse)
     
     Login with Secrets Manager Access Token
     
     This command is for initiating an authentication handshake with Bitwarden.
     
-    Returns: [ApiKeyLoginResponse](crate::sdk::auth::response::ApiKeyLoginResponse)
+    Returns: [ApiKeyLoginResponse](bitwarden::auth::response::ApiKeyLoginResponse)
     
     Login with a previously saved session
     
     > Requires Authentication Get the API key of the currently authenticated user
     
-    Returns:
-    [UserApiKeyResponse](crate::sdk::response::user_api_key_response::UserApiKeyResponse)
+    Returns: [UserApiKeyResponse](bitwarden::platform::UserApiKeyResponse)
     
     Get the user's passphrase
     

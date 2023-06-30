@@ -7,58 +7,36 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     crypto::{PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},
-    util::{
-        default_argon2_iterations, default_argon2_memory, default_argon2_parallelism,
-        default_pbkdf2_iterations, BASE64_ENGINE,
-    },
+    util::{default_kdf_iterations, BASE64_ENGINE},
 };
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+enum Kdf {
+    PBKDF2,
+    Argon2,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct AuthSettings {
     pub email: String,
-    #[serde(flatten)]
-    pub(crate) kdf: Kdf,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
-pub enum Kdf {
-    PBKDF2 {
-        iterations: NonZeroU32,
-    },
-    Argon2id {
-        iterations: NonZeroU32,
-        memory: NonZeroU32,
-        parallelism: NonZeroU32,
-    },
+    kdf_type: Kdf,
+    pub(crate) kdf_iterations: NonZeroU32,
 }
 
 impl AuthSettings {
     pub fn new(response: PreloginResponseModel, email: String) -> Self {
-        let kdf = match response.kdf.unwrap_or_default() {
-            KdfType::Variant0 => Kdf::PBKDF2 {
-                iterations: response
-                    .kdf_iterations
-                    .and_then(|e| NonZeroU32::new(e as u32))
-                    .unwrap_or_else(default_pbkdf2_iterations),
-            },
-            KdfType::Variant1 => Kdf::Argon2id {
-                iterations: response
-                    .kdf_iterations
-                    .and_then(|e| NonZeroU32::new(e as u32))
-                    .unwrap_or_else(default_argon2_iterations),
-
-                memory: response
-                    .kdf_memory
-                    .and_then(|e| NonZeroU32::new(e as u32))
-                    .unwrap_or_else(default_argon2_memory),
-                parallelism: response
-                    .kdf_parallelism
-                    .and_then(|e| NonZeroU32::new(e as u32))
-                    .unwrap_or_else(default_argon2_parallelism),
-            },
+        let kdf_type = match response.kdf.unwrap_or_default() {
+            KdfType::Variant0 => Kdf::PBKDF2,
+            KdfType::Variant1 => Kdf::Argon2,
         };
-
-        Self { email, kdf }
+        Self {
+            email,
+            kdf_type,
+            kdf_iterations: response
+                .kdf_iterations
+                .and_then(|e| NonZeroU32::new(e as u32))
+                .unwrap_or_else(default_kdf_iterations),
+        }
     }
 
     pub fn make_user_password_hash(&self, password: &str) -> String {
@@ -66,19 +44,16 @@ impl AuthSettings {
     }
 
     pub fn make_password_hash(&self, password: &str, salt: &str) -> String {
-        let hash = match self.kdf {
-            Kdf::PBKDF2 { iterations } => pbkdf2::pbkdf2_array::<
-                PbkdfSha256Hmac,
-                PBKDF_SHA256_HMAC_OUT_SIZE,
-            >(
-                password.as_bytes(), salt.as_bytes(), iterations.get()
-            ),
-            Kdf::Argon2id {
-                iterations,
-                memory,
-                parallelism,
-            } => {
-                todo!("Implement argon2id");
+        let hash = match self.kdf_type {
+            Kdf::PBKDF2 => {
+                pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(
+                    password.as_bytes(),
+                    salt.as_bytes(),
+                    self.kdf_iterations.get(),
+                )
+            }
+            Kdf::Argon2 => {
+                todo!("Implement argon2id")
             }
         }
         .unwrap();

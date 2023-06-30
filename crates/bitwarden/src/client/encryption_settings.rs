@@ -104,7 +104,7 @@ impl EncryptionSettings {
         let (key, mac_key) = crate::crypto::stretch_key_password(
             password.as_bytes(),
             auth.email.as_bytes(),
-            &auth.kdf,
+            auth.kdf_iterations,
         )
         .map_err(|_| CryptoError::KeyStretch)?;
 

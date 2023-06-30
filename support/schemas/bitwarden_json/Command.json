@@ -3,7 +3,7 @@
   "title": "Command",
   "oneOf": [
     {
-      "description": "Login with username and password\n\nThis command is for initiating an authentication handshake with Bitwarden. Authorization may fail due to requiring 2fa or captcha challenge completion despite accurate credentials.\n\nThis command is not capable of handling authentication requiring 2fa or captcha.\n\nReturns: [PasswordLoginResponse](crate::sdk::auth::response::PasswordLoginResponse)",
+      "description": "Login with username and password\n\nThis command is for initiating an authentication handshake with Bitwarden. Authorization may fail due to requiring 2fa or captcha challenge completion despite accurate credentials.\n\nThis command is not capable of handling authentication requiring 2fa or captcha.\n\nReturns: [PasswordLoginResponse](bitwarden::auth::response::PasswordLoginResponse)",
       "type": "object",
       "required": [
         "passwordLogin"
@@ -16,7 +16,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Login with API Key\n\nThis command is for initiating an authentication handshake with Bitwarden.\n\nReturns: [ApiKeyLoginResponse](crate::sdk::auth::response::ApiKeyLoginResponse)",
+      "description": "Login with API Key\n\nThis command is for initiating an authentication handshake with Bitwarden.\n\nReturns: [ApiKeyLoginResponse](bitwarden::auth::response::ApiKeyLoginResponse)",
       "type": "object",
       "required": [
         "apiKeyLogin"
@@ -29,7 +29,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Login with Secrets Manager Access Token\n\nThis command is for initiating an authentication handshake with Bitwarden.\n\nReturns: [ApiKeyLoginResponse](crate::sdk::auth::response::ApiKeyLoginResponse)",
+      "description": "Login with Secrets Manager Access Token\n\nThis command is for initiating an authentication handshake with Bitwarden.\n\nReturns: [ApiKeyLoginResponse](bitwarden::auth::response::ApiKeyLoginResponse)",
       "type": "object",
       "required": [
         "accessTokenLogin"
@@ -42,7 +42,7 @@
       "additionalProperties": false
     },
     {
-      "description": "> Requires Authentication Get the API key of the currently authenticated user\n\nReturns: [UserApiKeyResponse](crate::sdk::response::user_api_key_response::UserApiKeyResponse)",
+      "description": "> Requires Authentication Get the API key of the currently authenticated user\n\nReturns: [UserApiKeyResponse](bitwarden::platform::UserApiKeyResponse)",
       "type": "object",
       "required": [
         "getUserApiKey"
@@ -68,7 +68,7 @@
       "additionalProperties": false
     },
     {
-      "description": "> Requires Authentication Retrieve all user data, ciphers and organizations the user is a part of\n\nReturns: [SyncResponse](crate::sdk::response::sync_response::SyncResponse)",
+      "description": "> Requires Authentication Retrieve all user data, ciphers and organizations the user is a part of\n\nReturns: [SyncResponse](bitwarden::platform::SyncResponse)",
       "type": "object",
       "required": [
         "sync"
@@ -240,7 +240,7 @@
     "ProjectsCommand": {
       "oneOf": [
         {
-          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Retrieve a project by the provided identifier\n\nReturns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)",
+          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Retrieve a project by the provided identifier\n\nReturns: [ProjectResponse](bitwarden::secrets_manager::projects::ProjectResponse)",
           "type": "object",
           "required": [
             "get"
@@ -253,7 +253,7 @@
           "additionalProperties": false
         },
         {
-          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Creates a new project in the provided organization using the given data\n\nReturns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)",
+          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Creates a new project in the provided organization using the given data\n\nReturns: [ProjectResponse](bitwarden::secrets_manager::projects::ProjectResponse)",
           "type": "object",
           "required": [
             "create"
@@ -266,7 +266,7 @@
           "additionalProperties": false
         },
         {
-          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Lists all projects of the given organization\n\nReturns: [ProjectsResponse](crate::sdk::response::projects_response::ProjectsResponse)",
+          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Lists all projects of the given organization\n\nReturns: [ProjectsResponse](bitwarden::secrets_manager::projects::ProjectsResponse)",
           "type": "object",
           "required": [
             "list"
@@ -279,7 +279,7 @@
           "additionalProperties": false
         },
         {
-          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Updates an existing project with the provided ID using the given data\n\nReturns: [ProjectResponse](crate::sdk::response::projects_response::ProjectResponse)",
+          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Updates an existing project with the provided ID using the given data\n\nReturns: [ProjectResponse](bitwarden::secrets_manager::projects::ProjectResponse)",
           "type": "object",
           "required": [
             "update"
@@ -292,7 +292,7 @@
           "additionalProperties": false
         },
         {
-          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Deletes all the projects whose IDs match the provided ones\n\nReturns: [ProjectsDeleteResponse](crate::sdk::response::projects_response::ProjectsDeleteResponse)",
+          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Deletes all the projects whose IDs match the provided ones\n\nReturns: [ProjectsDeleteResponse](bitwarden::secrets_manager::projects::ProjectsDeleteResponse)",
           "type": "object",
           "required": [
             "delete"
@@ -457,7 +457,7 @@
     "SecretsCommand": {
       "oneOf": [
         {
-          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Retrieve a secret by the provided identifier\n\nReturns: [SecretResponse](crate::sdk::response::secrets_response::SecretResponse)",
+          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Retrieve a secret by the provided identifier\n\nReturns: [SecretResponse](bitwarden::secrets_manager::secrets::SecretResponse)",
           "type": "object",
           "required": [
             "get"
@@ -470,7 +470,7 @@
           "additionalProperties": false
         },
         {
-          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Creates a new secret in the provided organization using the given data\n\nReturns: [SecretResponse](crate::sdk::response::secrets_response::SecretResponse)",
+          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Creates a new secret in the provided organization using the given data\n\nReturns: [SecretResponse](bitwarden::secrets_manager::secrets::SecretResponse)",
           "type": "object",
           "required": [
             "create"
@@ -483,7 +483,7 @@
           "additionalProperties": false
         },
         {
-          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Lists all secret identifiers of the given organization, to then retrieve each secret, use `CreateSecret`\n\nReturns: [SecretIdentifiersResponse](crate::sdk::response::secrets_response::SecretIdentifiersResponse)",
+          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Lists all secret identifiers of the given organization, to then retrieve each secret, use `CreateSecret`\n\nReturns: [SecretIdentifiersResponse](bitwarden::secrets_manager::secrets::SecretIdentifiersResponse)",
           "type": "object",
           "required": [
             "list"
@@ -496,7 +496,7 @@
           "additionalProperties": false
         },
         {
-          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Updates an existing secret with the provided ID using the given data\n\nReturns: [SecretResponse](crate::sdk::response::secrets_response::SecretResponse)",
+          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Updates an existing secret with the provided ID using the given data\n\nReturns: [SecretResponse](bitwarden::secrets_manager::secrets::SecretResponse)",
           "type": "object",
           "required": [
             "update"
@@ -509,7 +509,7 @@
           "additionalProperties": false
         },
         {
-          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Deletes all the secrets whose IDs match the provided ones\n\nReturns: [SecretsDeleteResponse](crate::sdk::response::secrets_response::SecretsDeleteResponse)",
+          "description": "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Deletes all the secrets whose IDs match the provided ones\n\nReturns: [SecretsDeleteResponse](bitwarden::secrets_manager::secrets::SecretsDeleteResponse)",
           "type": "object",
           "required": [
             "delete"

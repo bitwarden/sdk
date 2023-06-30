@@ -4,7 +4,6 @@ use std::str::FromStr;
 
 use chrono::DateTime;
 use chrono::Utc;
-use schemars::JsonSchema;
 use serde::Deserialize;
 use serde::Serialize;
 use uuid::Uuid;
@@ -19,7 +18,7 @@ use crate::{
     error::{Error, Result},
 };
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EnvironmentUrls {
     pub base: Option<String>,
@@ -32,7 +31,7 @@ pub struct EnvironmentUrls {
     pub key_connector: Option<String>,
 }
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountData {
     pub keys: Option<Keys>,
@@ -45,7 +44,7 @@ pub struct AccountData {
     pub auth: Auth,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Keys {
     pub crypto_symmetric_key: CipherString,
@@ -53,7 +52,7 @@ pub struct Keys {
     pub private_key: CipherString,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Profile {
     pub user_id: Uuid,
@@ -62,13 +61,13 @@ pub struct Profile {
     pub last_sync: DateTime<Utc>,
 }
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
     pub environment_urls: EnvironmentUrls,
 }
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Auth {
     pub access_token: String,
@@ -79,7 +78,7 @@ pub struct Auth {
     pub kdf: Option<AuthSettings>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Cipher {
     pub id: Uuid,
@@ -93,7 +92,7 @@ pub struct Cipher {
     pub revision_date: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Folder {
     pub id: Uuid,

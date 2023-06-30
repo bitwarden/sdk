@@ -2,7 +2,6 @@ use std::num::NonZeroU32;
 
 use base64::Engine;
 use bitwarden_api_identity::models::{KdfType, PreloginResponseModel};
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -10,28 +9,18 @@ use crate::{
     util::{default_kdf_iterations, BASE64_ENGINE},
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
-enum Kdf {
-    PBKDF2,
-    Argon2,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuthSettings {
     pub email: String,
-    kdf_type: Kdf,
+    kdf_type: KdfType,
     pub(crate) kdf_iterations: NonZeroU32,
 }
 
 impl AuthSettings {
     pub fn new(response: PreloginResponseModel, email: String) -> Self {
-        let kdf_type = match response.kdf.unwrap_or_default() {
-            KdfType::Variant0 => Kdf::PBKDF2,
-            KdfType::Variant1 => Kdf::Argon2,
-        };
         Self {
             email,
-            kdf_type,
+            kdf_type: response.kdf.unwrap_or_default(),
             kdf_iterations: response
                 .kdf_iterations
                 .and_then(|e| NonZeroU32::new(e as u32))
@@ -45,14 +34,14 @@ impl AuthSettings {
 
     pub fn make_password_hash(&self, password: &str, salt: &str) -> String {
         let hash = match self.kdf_type {
-            Kdf::PBKDF2 => {
+            KdfType::Variant0 => {
                 pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(
                     password.as_bytes(),
                     salt.as_bytes(),
                     self.kdf_iterations.get(),
                 )
             }
-            Kdf::Argon2 => {
+            KdfType::Variant1 => {
                 todo!("Implement argon2id")
             }
         }

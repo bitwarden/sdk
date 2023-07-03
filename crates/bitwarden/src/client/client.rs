@@ -24,8 +24,8 @@ use crate::{
 #[cfg(feature = "internal")]
 use crate::{
     auth::{
-        commands::{api_key_login, password_login},
-        request::{ApiKeyLoginRequest, PasswordLoginRequest},
+        commands::{api_key_login, lock, password_login, unlock},
+        request::{ApiKeyLoginRequest, PasswordLoginRequest, UnlockRequest},
         response::PasswordLoginResponse,
     },
     platform::{
@@ -146,10 +146,25 @@ impl Client {
     }
 
     #[cfg(feature = "internal")]
+    pub async fn list_accounts(&self) -> Result<Vec<Uuid>> {
+        self.state.list_accounts().await
+    }
+
+    #[cfg(feature = "internal")]
     pub async fn session_login(&mut self, input: &SessionLoginRequest) -> Result<()> {
         use crate::auth::commands::session_login;
 
         session_login(self, input).await
+    }
+
+    #[cfg(feature = "internal")]
+    pub async fn unlock(&mut self, input: &UnlockRequest) -> Result<()> {
+        unlock(self, input).await
+    }
+
+    #[cfg(feature = "internal")]
+    pub async fn lock(&mut self) -> Result<()> {
+        lock(self).await
     }
 
     #[cfg(feature = "internal")]
@@ -249,6 +264,11 @@ impl Client {
 
         enc.set_org_keys(org_keys)?;
         Ok(self.encryption_settings.as_ref().unwrap())
+    }
+
+    #[cfg(feature = "internal")]
+    pub(crate) fn deinitialize_crypto(&mut self) {
+        self.encryption_settings = None;
     }
 
     #[cfg(feature = "internal")]

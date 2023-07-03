@@ -29,7 +29,4 @@ pub struct AccessTokenLoginRequest {
 pub struct SessionLoginRequest {
     /// User's uuid
     pub user_id: Uuid,
-
-    /// User's master password, used to unlock the vault
-    pub password: String,
 }

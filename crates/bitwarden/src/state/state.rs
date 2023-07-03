@@ -67,10 +67,19 @@ impl State {
         account.read().await?;
         Ok(())
     }
+
+    pub(crate) async fn list_accounts(&self) -> Result<Vec<Uuid>> {
+        let mut medium = load_medium(&self.path);
+        let file = medium.read().await?;
+        Ok(file
+            .keys()
+            .filter_map(|key| Uuid::parse_str(key).ok())
+            .collect())
+    }
 }
 
 pub struct StateStorage {
-    cache: HashMap<String, Value>,
+    cache: serde_json::Map<String, Value>,
     account_id: String,
     medium: Box<dyn StateStorageMedium>,
 }
@@ -78,17 +87,16 @@ pub struct StateStorage {
 impl StateStorage {
     fn new(account_id: String, medium: Box<dyn StateStorageMedium>) -> Self {
         Self {
-            cache: HashMap::new(),
+            cache: serde_json::Map::new(),
             account_id,
             medium,
         }
     }
-
-    pub fn get(&self) -> HashMap<String, Value> {
+    pub fn get(&self) -> serde_json::Map<String, Value> {
         self.cache.clone()
     }
 
-    pub async fn read(&mut self) -> Result<HashMap<String, Value>> {
+    pub async fn read(&mut self) -> Result<serde_json::Map<String, Value>> {
         let value = self
             .medium
             .read()
@@ -101,7 +109,7 @@ impl StateStorage {
 
     pub async fn modify<'b>(
         &mut self,
-        modify_fn: impl FnOnce(&mut Option<HashMap<String, Value>>) -> Result<()> + Send + 'b,
+        modify_fn: impl FnOnce(&mut Option<serde_json::Map<String, Value>>) -> Result<()> + Send + 'b,
     ) -> Result<()> {
         let account_id = self.account_id.clone();
 
@@ -138,7 +146,7 @@ fn load_medium(path: &Option<String>) -> Box<dyn StateStorageMedium> {
     }
 }
 
-type StateMap = HashMap<String, HashMap<String, Value>>;
+type StateMap = HashMap<String, serde_json::Map<String, Value>>;
 
 #[async_trait::async_trait]
 trait StateStorageMedium: Sync + Send + Debug {

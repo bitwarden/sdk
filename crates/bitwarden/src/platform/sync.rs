@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     client::{keys::Keys, Client},
     error::{Error, Result},
+    state::state,
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -21,7 +22,7 @@ pub(crate) async fn sync(client: &mut Client, input: &SyncRequest) -> Result<()>
     let profile = sync.profile.as_ref().ok_or(Error::MissingFields)?;
     let account_id = profile.id.ok_or(Error::MissingFields)?;
 
-    client.state.set_account_sync_data(account_id, sync).await?;
+    state::set_account_sync_data(client, account_id, sync).await?;
 
     let keys = Keys::get(client).await.ok_or(Error::VaultLocked)?;
     client

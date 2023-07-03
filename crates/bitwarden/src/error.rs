@@ -44,6 +44,9 @@ pub enum Error {
     #[error("Received error message from server: [{}] {}", .status, .message)]
     ResponseContent { status: StatusCode, message: String },
 
+    #[error("Error running migrations: {0}")]
+    Migration(#[from] MigrationError),
+
     #[error("Internal error: {0}")]
     Internal(&'static str),
 }
@@ -92,6 +95,22 @@ pub enum CSParseError {
     InvalidBase64(#[from] base64::DecodeError),
     #[error("Invalid base64 length: expected {expected}, got {got}")]
     InvalidBase64Length { expected: usize, got: usize },
+}
+
+#[derive(Debug, Error)]
+pub enum MigrationError {
+    #[error("Can't apply migration {from} -> {to} for version {current} ")]
+    InvalidVersion {
+        current: usize,
+        from: usize,
+        to: usize,
+    },
+    #[error("Can't apply rollback {from} -> {to} for version {current} ")]
+    InvalidVersionRollback {
+        current: usize,
+        from: usize,
+        to: usize,
+    },
 }
 
 // Ensure that the error messages implement Send and Sync

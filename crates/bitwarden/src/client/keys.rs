@@ -11,7 +11,7 @@ use bitwarden_api_api::models::ProfileResponseModel;
 use crate::{
     crypto::CipherString,
     error::{Error, Result},
-    state::{state::State, state_service::ServiceDefinition},
+    state::state_service::ServiceDefinition,
     Client,
 };
 
@@ -64,9 +64,9 @@ impl Keys {
 
 pub(crate) async fn store_keys_from_sync(
     profile: &ProfileResponseModel,
-    state: &State,
+    client: &Client,
 ) -> Result<()> {
-    state
+    client
         .get_state_service(KEYS_SERVICE)
         .modify(|k| {
             *k = Some(profile.try_into()?);

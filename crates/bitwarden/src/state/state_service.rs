@@ -87,17 +87,8 @@ impl crate::Client {
         &self,
         definition: ServiceDefinition<T>,
     ) -> StateService<'_, T> {
-        self.state.get_state_service(definition)
-    }
-}
-
-impl State {
-    pub(crate) fn get_state_service<T: Serialize + DeserializeOwned + Default>(
-        &self,
-        definition: ServiceDefinition<T>,
-    ) -> StateService<'_, T> {
         StateService {
-            state: &self,
+            state: &self.state,
             definition,
         }
     }

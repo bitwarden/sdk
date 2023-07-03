@@ -8,7 +8,7 @@ use bitwarden_api_api::models::ProfileResponseModel;
 
 use crate::{
     error::{Error, Result},
-    state::{state::State, state_service::ServiceDefinition},
+    state::state_service::ServiceDefinition,
     Client,
 };
 
@@ -44,9 +44,9 @@ impl Profile {
 
 pub(crate) async fn store_profile_from_sync(
     profile: &ProfileResponseModel,
-    state: &State,
+    client: &Client,
 ) -> Result<()> {
-    state
+    client
         .get_state_service(PROFILE_SERVICE)
         .modify(|k| {
             *k = Some(profile.try_into()?);

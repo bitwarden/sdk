@@ -45,6 +45,8 @@ impl Client {
             #[cfg(feature = "internal")]
             Command::SessionLogin(req) => self.0.session_login(&req).await.into_string(),
             #[cfg(feature = "internal")]
+            Command::Unlock(req) => self.0.unlock(&req).await.into_string(),
+            #[cfg(feature = "internal")]
             Command::GetUserApiKey(req) => self.0.get_user_api_key(&req).await.into_string(),
             #[cfg(feature = "internal")]
             Command::ApiKeyLogin(req) => self.0.api_key_login(&req).await.into_string(),

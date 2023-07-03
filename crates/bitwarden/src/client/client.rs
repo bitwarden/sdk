@@ -24,8 +24,8 @@ use crate::{
 #[cfg(feature = "internal")]
 use crate::{
     auth::{
-        commands::{api_key_login, password_login},
-        request::{ApiKeyLoginRequest, PasswordLoginRequest},
+        commands::{api_key_login, password_login, unlock},
+        request::{ApiKeyLoginRequest, PasswordLoginRequest, UnlockRequest},
         response::PasswordLoginResponse,
     },
     platform::{
@@ -150,6 +150,11 @@ impl Client {
         use crate::auth::commands::session_login;
 
         session_login(self, input).await
+    }
+
+    #[cfg(feature = "internal")]
+    pub async fn unlock(&mut self, input: &UnlockRequest) -> Result<()> {
+        unlock(self, input).await
     }
 
     #[cfg(feature = "internal")]

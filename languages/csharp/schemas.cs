@@ -137,9 +137,6 @@ namespace Bit.Sdk
 
         [JsonProperty("projects", NullValueHandling = NullValueHandling.Ignore)]
         public ProjectsCommand Projects { get; set; }
-
-        [JsonProperty("folders", NullValueHandling = NullValueHandling.Ignore)]
-        public FoldersCommand Folders { get; set; }
     }
 
     /// <summary>
@@ -191,69 +188,6 @@ namespace Bit.Sdk
         /// </summary>
         [JsonProperty("publicKey")]
         public string PublicKey { get; set; }
-    }
-
-    /// <summary>
-    /// > Requires Authentication > Requires an unlocked vault Creates a new folder with the
-    /// provided data
-    ///
-    /// > Requires Authentication > Requires an unlocked vault and calling Sync at least once
-    /// Lists all folders in the vault
-    ///
-    /// Returns: [FoldersResponse](bitwarden::platform::folders::FoldersResponse)
-    ///
-    /// > Requires Authentication > Requires an unlocked vault Updates an existing folder with
-    /// the provided data given its ID
-    ///
-    /// > Requires Authentication > Requires an unlocked vault Deletes the folder associated with
-    /// the provided ID
-    /// </summary>
-    public partial class FoldersCommand
-    {
-        [JsonProperty("create", NullValueHandling = NullValueHandling.Ignore)]
-        public FolderCreateRequest Create { get; set; }
-
-        [JsonProperty("list", NullValueHandling = NullValueHandling.Ignore)]
-        public Dictionary<string, object> List { get; set; }
-
-        [JsonProperty("update", NullValueHandling = NullValueHandling.Ignore)]
-        public FolderUpdateRequest Update { get; set; }
-
-        [JsonProperty("delete", NullValueHandling = NullValueHandling.Ignore)]
-        public FolderDeleteRequest Delete { get; set; }
-    }
-
-    public partial class FolderCreateRequest
-    {
-        /// <summary>
-        /// Encrypted folder name
-        /// </summary>
-        [JsonProperty("name")]
-        public string Name { get; set; }
-    }
-
-    public partial class FolderDeleteRequest
-    {
-        /// <summary>
-        /// ID of the folder to delete
-        /// </summary>
-        [JsonProperty("id")]
-        public Guid Id { get; set; }
-    }
-
-    public partial class FolderUpdateRequest
-    {
-        /// <summary>
-        /// ID of the folder to update
-        /// </summary>
-        [JsonProperty("id")]
-        public Guid Id { get; set; }
-
-        /// <summary>
-        /// Encrypted folder name
-        /// </summary>
-        [JsonProperty("name")]
-        public string Name { get; set; }
     }
 
     public partial class SecretVerificationRequest

@@ -1,6 +1,4 @@
-mod client_folders;
 mod empty_request;
-pub mod folders;
 mod generate_fingerprint;
 mod get_user_api_key;
 mod secret_verification_request;

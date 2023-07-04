@@ -10,10 +10,8 @@ use crate::{
     error::{Error, Result},
 };
 
-use super::{
-    domain::{convert_cipher, convert_folder, convert_keys, convert_profile},
-    state_service::{CIPHERS_SERVICE, FOLDERS_SERVICE, KEYS_SERVICE, PROFILE_SERVICE},
-};
+#[cfg(feature = "internal")]
+use crate::state::state_service::{KEYS_SERVICE, PROFILE_SERVICE};
 
 pub struct State {
     pub(crate) account: Mutex<StateStorage>,
@@ -35,6 +33,7 @@ impl State {
         }
     }
 
+    #[cfg(feature = "internal")]
     pub(crate) async fn set_account_sync_data(
         &self,
         id: Uuid,
@@ -59,35 +58,13 @@ impl State {
 
         self.get_state_service(KEYS_SERVICE)
             .modify(|k| {
-                *k = Some(convert_keys(&profile)?);
+                *k = Some(profile.as_ref().try_into()?);
                 Ok(())
             })
             .await?;
         self.get_state_service(PROFILE_SERVICE)
             .modify(|p| {
-                *p = Some(convert_profile(&profile)?);
-                Ok(())
-            })
-            .await?;
-        self.get_state_service(CIPHERS_SERVICE)
-            .modify(|c| {
-                *c = data
-                    .ciphers
-                    .unwrap_or_default()
-                    .into_iter()
-                    .map(convert_cipher)
-                    .collect::<Result<_, _>>()?;
-                Ok(())
-            })
-            .await?;
-        self.get_state_service(FOLDERS_SERVICE)
-            .modify(|f| {
-                *f = data
-                    .folders
-                    .unwrap_or_default()
-                    .into_iter()
-                    .map(convert_folder)
-                    .collect::<Result<_, _>>()?;
+                *p = Some(profile.as_ref().try_into()?);
                 Ok(())
             })
             .await?;

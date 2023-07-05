@@ -30,7 +30,7 @@ pub(crate) async fn create_project(
     let org_id = Some(input.organization_id);
 
     let project = Some(ProjectCreateRequestModel {
-        name: enc.encrypt(input.name.as_bytes(), &org_id)?.to_string(),
+        name: enc.encrypt(input.name.as_bytes(), org_id)?.to_string(),
     });
 
     let config = client.get_api_configurations().await;

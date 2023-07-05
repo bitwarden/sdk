@@ -5,7 +5,6 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::CipherString,
     error::{Error, Result},
 };
 
@@ -27,12 +26,10 @@ impl ProjectResponse {
     ) -> Result<Self> {
         let organization_id = response.organization_id.ok_or(Error::MissingFields)?;
 
-        use crate::crypto::Decryptable;
-        let name = response
-            .name
-            .ok_or(Error::MissingFields)?
-            .parse::<CipherString>()?
-            .decrypt(enc, &Some(organization_id))?;
+        let name = enc.decrypt_str(
+            &response.name.ok_or(Error::MissingFields)?,
+            Some(organization_id),
+        )?;
 
         Ok(ProjectResponse {
             object: "project".to_owned(),

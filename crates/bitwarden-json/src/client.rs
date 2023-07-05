@@ -73,11 +73,8 @@ impl Client {
 
     fn parse_settings(settings_input: Option<String>) -> Option<ClientSettings> {
         if let Some(input) = settings_input.as_ref() {
-            match serde_json::from_str(input) {
-                Ok(settings) => return Some(settings),
-                Err(e) => {
-                    eprintln!("Error parsing Bitwarden client settings: {e:?}");
-                }
+            if let Ok(settings) = serde_json::from_str(input) {
+                return Some(settings);
             }
         }
         None

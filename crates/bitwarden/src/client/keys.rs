@@ -2,8 +2,6 @@ use std::collections::HashMap;
 
 use std::str::FromStr;
 
-use chrono::DateTime;
-use chrono::Utc;
 use serde::Deserialize;
 use serde::Serialize;
 use uuid::Uuid;
@@ -11,10 +9,13 @@ use uuid::Uuid;
 use bitwarden_api_api::models::ProfileResponseModel;
 
 use crate::{
-    client::{auth_settings::AuthSettings, LoginMethod},
     crypto::CipherString,
     error::{Error, Result},
+    state::{state::State, state_service::ServiceDefinition},
+    Client,
 };
+
+const KEYS_SERVICE: ServiceDefinition<Option<Keys>> = ServiceDefinition::new("keys");
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -22,39 +23,6 @@ pub struct Keys {
     pub crypto_symmetric_key: CipherString,
     pub organization_keys: HashMap<Uuid, CipherString>,
     pub private_key: CipherString,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Profile {
-    pub user_id: Uuid,
-    pub name: String,
-    pub email: String,
-    pub last_sync: DateTime<Utc>,
-}
-
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Auth {
-    pub access_token: String,
-    pub refresh_token: Option<String>,
-    pub token_expiration: Option<chrono::DateTime<Utc>>,
-    pub login_method: Option<LoginMethod>,
-
-    pub kdf: Option<AuthSettings>,
-}
-
-impl TryFrom<&ProfileResponseModel> for Profile {
-    type Error = Error;
-
-    fn try_from(value: &ProfileResponseModel) -> Result<Self> {
-        Ok(Profile {
-            user_id: value.id.ok_or(Error::MissingFields)?,
-            name: value.name.clone().ok_or(Error::MissingFields)?,
-            email: value.email.clone().ok_or(Error::MissingFields)?,
-            last_sync: Utc::now(),
-        })
-    }
 }
 
 impl TryFrom<&ProfileResponseModel> for Keys {
@@ -86,4 +54,23 @@ impl TryFrom<&ProfileResponseModel> for Keys {
                 .ok_or(Error::MissingFields)?,
         })
     }
+}
+
+impl Keys {
+    pub(crate) async fn get(client: &Client) -> Option<Keys> {
+        client.get_state_service(KEYS_SERVICE).get().await
+    }
+}
+
+pub(crate) async fn store_keys_from_sync(
+    profile: &ProfileResponseModel,
+    state: &State,
+) -> Result<()> {
+    state
+        .get_state_service(KEYS_SERVICE)
+        .modify(|k| {
+            *k = Some(profile.try_into()?);
+            Ok(())
+        })
+        .await
 }

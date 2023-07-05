@@ -2,10 +2,7 @@ use std::marker::PhantomData;
 
 use serde::{de::DeserializeOwned, Serialize};
 
-use crate::{
-    error::Result,
-    state::{models::*, state::State},
-};
+use crate::{error::Result, state::state::State};
 
 #[derive(Clone, Copy)]
 pub(crate) struct ServiceDefinition<T: Serialize + DeserializeOwned> {
@@ -21,11 +18,6 @@ impl<T: Serialize + DeserializeOwned> ServiceDefinition<T> {
         Self { namespace, _type }
     }
 }
-
-pub(crate) const KEYS_SERVICE: ServiceDefinition<Option<Keys>> = ServiceDefinition::new("keys");
-pub(crate) const PROFILE_SERVICE: ServiceDefinition<Option<Profile>> =
-    ServiceDefinition::new("profile");
-pub(crate) const AUTH_SERVICE: ServiceDefinition<Auth> = ServiceDefinition::new("auth");
 
 pub(crate) struct StateService<'a, T: Serialize + DeserializeOwned + Default> {
     state: &'a State,

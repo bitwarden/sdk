@@ -21,13 +21,13 @@ use crate::{
     },
     client::{
         access_token::AccessToken,
+        auth::Auth,
         auth_settings::AuthSettings,
         encryption_settings::{decrypt, SymmetricCryptoKey},
         Client, LoginMethod,
     },
     crypto::CipherString,
     error::{Error, Result},
-    state::state_service::AUTH_SERVICE,
     util::{decode_token, BASE64_ENGINE},
 };
 
@@ -168,13 +168,12 @@ pub(crate) async fn access_token_login(
 
 #[cfg(feature = "internal")]
 pub(crate) async fn session_login(client: &mut Client, input: &SessionLoginRequest) -> Result<()> {
-    use crate::state::state_service::{KEYS_SERVICE, PROFILE_SERVICE};
+    use crate::client::{keys::Keys, profile::Profile};
 
     client.state.load_account(input.user_id).await?;
 
-    let Some(profile) = client.get_state_service(PROFILE_SERVICE).get().await else {return Err(Error::NotAuthenticated)};
-
-    let auth = client.get_state_service(AUTH_SERVICE).get().await;
+    let Some(profile) = Profile::get(client).await else {return Err(Error::NotAuthenticated)};
+    let auth = Auth::get(client).await;
 
     let Some(expires) = auth.token_expiration else {return Err(Error::VaultLocked)};
     let Some(login_method) = auth.login_method else {return Err(Error::VaultLocked)};
@@ -191,13 +190,15 @@ pub(crate) async fn session_login(client: &mut Client, input: &SessionLoginReque
 
     let _ = determine_password_hash(client, &profile.email, &input.password).await?;
 
-    let Some(keys) = client.get_state_service(KEYS_SERVICE).get().await else {return Err(Error::VaultLocked)};
+    let Some(keys) = Keys::get(client).await else {return Err(Error::VaultLocked)};
 
     client
         .initialize_user_crypto(&input.password, keys.crypto_symmetric_key, keys.private_key)
         .await?;
 
-    client.initialize_org_crypto().await?;
+    client
+        .initialize_org_crypto(&keys.organization_keys)
+        .await?;
 
     Ok(())
 }
@@ -256,7 +257,7 @@ async fn request_access_token(
 pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
     let token_renew_margin = chrono::Duration::seconds(5 * 60);
 
-    let auth = client.get_state_service(AUTH_SERVICE).get().await;
+    let auth = Auth::get(client).await;
 
     if let (Some(expires), Some(login_method)) = (&auth.token_expiration, &auth.login_method) {
         if expires > &(Utc::now() + token_renew_margin) {

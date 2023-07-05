@@ -10,9 +10,6 @@ use crate::{
     error::{Error, Result},
 };
 
-#[cfg(feature = "internal")]
-use crate::state::state_service::{KEYS_SERVICE, PROFILE_SERVICE};
-
 pub struct State {
     pub(crate) account: Mutex<StateStorage>,
     path: Option<String>,
@@ -40,6 +37,8 @@ impl State {
         data: SyncResponseModel,
     ) -> Result<()> {
         // Before we create the storage profile, keep a copy of the current temporary storage (tokens, kdf params, etc)
+
+        use crate::client::{keys::store_keys_from_sync, profile::store_profile_from_sync};
         let state = self.account.lock().await.get();
 
         // Create the new account state, and load the temporary storage into it
@@ -56,18 +55,8 @@ impl State {
         // Save the new data
         let profile = data.profile.ok_or(Error::MissingFields)?;
 
-        self.get_state_service(KEYS_SERVICE)
-            .modify(|k| {
-                *k = Some(profile.as_ref().try_into()?);
-                Ok(())
-            })
-            .await?;
-        self.get_state_service(PROFILE_SERVICE)
-            .modify(|p| {
-                *p = Some(profile.as_ref().try_into()?);
-                Ok(())
-            })
-            .await?;
+        store_keys_from_sync(profile.as_ref(), self).await?;
+        store_profile_from_sync(profile.as_ref(), self).await?;
 
         Ok(())
     }

@@ -2,7 +2,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    client::Client,
+    client::{keys::Keys, Client},
     error::{Error, Result},
 };
 
@@ -22,7 +22,11 @@ pub(crate) async fn sync(client: &mut Client, input: &SyncRequest) -> Result<()>
     let account_id = profile.id.ok_or(Error::MissingFields)?;
 
     client.state.set_account_sync_data(account_id, sync).await?;
-    client.initialize_org_crypto().await?;
+
+    let keys = Keys::get(client).await.ok_or(Error::VaultLocked)?;
+    client
+        .initialize_org_crypto(&keys.organization_keys)
+        .await?;
 
     Ok(())
 }

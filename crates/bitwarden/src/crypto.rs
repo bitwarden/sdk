@@ -330,7 +330,7 @@ pub trait Encryptable<Output> {
 }
 
 pub trait Decryptable<Output> {
-    fn decrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Output>;
+    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Output>;
 }
 
 impl Encryptable<CipherString> for String {
@@ -340,7 +340,7 @@ impl Encryptable<CipherString> for String {
 }
 
 impl Decryptable<String> for CipherString {
-    fn decrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<String> {
+    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<String> {
         enc.decrypt(&self, org_id)
     }
 }
@@ -352,8 +352,8 @@ impl<T: Encryptable<Output>, Output> Encryptable<Option<Output>> for Option<T> {
 }
 
 impl<T: Decryptable<Output>, Output> Decryptable<Option<Output>> for Option<T> {
-    fn decrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Option<Output>> {
-        self.map(|e| e.decrypt(enc, org_id)).transpose()
+    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Option<Output>> {
+        self.as_ref().map(|e| e.decrypt(enc, org_id)).transpose()
     }
 }
 
@@ -364,7 +364,7 @@ impl<T: Encryptable<Output>, Output> Encryptable<Vec<Output>> for Vec<T> {
 }
 
 impl<T: Decryptable<Output>, Output> Decryptable<Vec<Output>> for Vec<T> {
-    fn decrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Vec<Output>> {
+    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Vec<Output>> {
         self.into_iter().map(|e| e.decrypt(enc, org_id)).collect()
     }
 }
@@ -383,16 +383,16 @@ impl<T: Encryptable<Output>, Output, Id: Hash + Eq> Encryptable<HashMap<Id, Outp
     }
 }
 
-impl<T: Decryptable<Output>, Output, Id: Hash + Eq> Decryptable<HashMap<Id, Output>>
+impl<T: Decryptable<Output>, Output, Id: Hash + Eq + Copy> Decryptable<HashMap<Id, Output>>
     for HashMap<Id, T>
 {
     fn decrypt(
-        self,
+        &self,
         enc: &EncryptionSettings,
         org_id: &Option<Uuid>,
     ) -> Result<HashMap<Id, Output>> {
         self.into_iter()
-            .map(|(id, e)| Ok((id, e.decrypt(enc, org_id)?)))
+            .map(|(id, e)| Ok((*id, e.decrypt(enc, org_id)?)))
             .collect::<Result<HashMap<_, _>>>()
     }
 }

@@ -1,9 +1,12 @@
 use bitwarden::client::client_settings::ClientSettings;
 
 use crate::{
-    command::{Command, FoldersCommand, ProjectsCommand, SecretsCommand},
+    command::{Command, ProjectsCommand, SecretsCommand},
     response::ResponseIntoString,
 };
+
+#[cfg(feature = "internal")]
+use crate::command::FoldersCommand;
 
 pub struct Client(bitwarden::Client);
 

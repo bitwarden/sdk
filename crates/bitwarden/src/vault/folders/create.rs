@@ -1,4 +1,3 @@
-use bitwarden_api_api::models::FolderRequestModel;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;

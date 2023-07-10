@@ -143,10 +143,15 @@ async fn store_folder_response(
     response: FolderResponseModel,
     client: &Client,
 ) -> Result<FolderFromDisk> {
-    let folder = response.try_into()?;
+    let folder: Folder = response.try_into()?;
 
-    // TODO store folder on disk
-
+    client
+        .get_state_service(FOLDERS_SERVICE)
+        .modify(|folders| {
+            folders.insert(folder.id, folder.clone());
+            Ok(())
+        })
+        .await?;
     Ok(FolderFromDisk(folder))
 }
 

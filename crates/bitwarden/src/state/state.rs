@@ -38,7 +38,10 @@ impl State {
     ) -> Result<()> {
         // Before we create the storage profile, keep a copy of the current temporary storage (tokens, kdf params, etc)
 
-        use crate::client::{keys::store_keys_from_sync, profile::store_profile_from_sync};
+        use crate::{
+            client::{keys::store_keys_from_sync, profile::store_profile_from_sync},
+            vault::folders::store_folders_from_sync,
+        };
         let state = self.account.lock().await.get();
 
         // Create the new account state, and load the temporary storage into it
@@ -57,6 +60,8 @@ impl State {
 
         store_keys_from_sync(profile.as_ref(), self).await?;
         store_profile_from_sync(profile.as_ref(), self).await?;
+
+        store_folders_from_sync(data.folders.unwrap_or_default(), self).await?;
 
         Ok(())
     }

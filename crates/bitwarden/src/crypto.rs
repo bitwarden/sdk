@@ -284,15 +284,15 @@ pub(crate) fn stretch_key_password(
     salt: &[u8],
     kdf: &Kdf,
 ) -> Result<(GenericArray<u8, U32>, GenericArray<u8, U32>)> {
-    let master_key = hash_kdf(secret, salt, kdf)?;
+    let master_key: [u8; 32] = hash_kdf(secret, salt, kdf)?;
 
     let hkdf = hkdf::Hkdf::<sha2::Sha256>::from_prk(&master_key)
         .expect("Input is a valid fixed size hash");
 
-    let mut key = GenericArray::default();
+    let mut key = GenericArray::<u8, U32>::default();
     hkdf.expand("enc".as_bytes(), &mut key)
         .expect("key is a valid fixed size buffer");
-    let mut mac_key = GenericArray::default();
+    let mut mac_key = GenericArray::<u8, U32>::default();
     hkdf.expand("mac".as_bytes(), &mut mac_key)
         .expect("mac_key is a valid fixed size buffer");
 

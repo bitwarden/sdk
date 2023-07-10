@@ -63,7 +63,8 @@ impl AuthSettings {
     }
 
     pub fn make_password_hash(&self, password: &str, salt: &str) -> Result<String> {
-        let hash = crate::crypto::hash_kdf(password.as_bytes(), salt.as_bytes(), &self.kdf)?;
+        let hash: [u8; 32] =
+            crate::crypto::hash_kdf(password.as_bytes(), salt.as_bytes(), &self.kdf)?;
 
         // Server expects hash + 1 iteration
         let login_hash = pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(

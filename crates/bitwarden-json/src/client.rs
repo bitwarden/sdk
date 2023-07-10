@@ -1,9 +1,7 @@
 use bitwarden::client::client_settings::ClientSettings;
 
-#[cfg(feature = "internal")]
-use crate::command::FoldersCommand;
 use crate::{
-    command::{Command, ProjectsCommand, SecretsCommand},
+    command::{Command, FoldersCommand, ProjectsCommand, SecretsCommand},
     response::ResponseIntoString,
 };
 
@@ -57,9 +55,9 @@ impl Client {
 
             Command::Secrets(cmd) => match cmd {
                 SecretsCommand::Get(req) => self.0.secrets().get(&req).await.into_string(),
-                SecretsCommand::Create(req) => self.0.secrets().create(req).await.into_string(),
+                SecretsCommand::Create(req) => self.0.secrets().create(&req).await.into_string(),
                 SecretsCommand::List(req) => self.0.secrets().list(&req).await.into_string(),
-                SecretsCommand::Update(req) => self.0.secrets().update(req).await.into_string(),
+                SecretsCommand::Update(req) => self.0.secrets().update(&req).await.into_string(),
                 SecretsCommand::Delete(req) => self.0.secrets().delete(req).await.into_string(),
             },
 
@@ -83,11 +81,8 @@ impl Client {
 
     fn parse_settings(settings_input: Option<String>) -> Option<ClientSettings> {
         if let Some(input) = settings_input.as_ref() {
-            match serde_json::from_str(input) {
-                Ok(settings) => return Some(settings),
-                Err(e) => {
-                    eprintln!("Error parsing Bitwarden client settings: {e:?}");
-                }
+            if let Ok(settings) = serde_json::from_str(input) {
+                return Some(settings);
             }
         }
         None

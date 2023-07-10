@@ -1,6 +1,6 @@
 //! Cryptographic primitives used in the SDK
 
-use std::{collections::HashMap, fmt::Display, hash::Hash, str::FromStr};
+use std::{collections::HashMap, fmt::Display, hash::Hash, num::NonZeroU32, str::FromStr};
 
 use aes::cipher::{
     generic_array::GenericArray,
@@ -15,9 +15,8 @@ use serde::{de::Visitor, Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use uuid::Uuid;
 
-pub use crate::client::encryption_settings::{decrypt, encrypt_aes256, SymmetricCryptoKey};
 use crate::{
-    client::{auth_settings::Kdf, encryption_settings::EncryptionSettings},
+    client::encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
     error::{CSParseError, Error, Result},
     util::BASE64_ENGINE,
     wordlist::EFF_LONG_WORD_LIST,
@@ -251,20 +250,14 @@ pub(crate) const PBKDF_SHA256_HMAC_OUT_SIZE: usize =
 pub(crate) fn stretch_key_password(
     secret: &[u8],
     salt: &[u8],
-    kdf: &Kdf,
+    iterations: NonZeroU32,
 ) -> Result<(GenericArray<u8, U32>, GenericArray<u8, U32>), hkdf::InvalidLength> {
-    let master_key = match kdf {
-        Kdf::PBKDF2 { iterations } => pbkdf2::pbkdf2_array::<
-            PbkdfSha256Hmac,
-            PBKDF_SHA256_HMAC_OUT_SIZE,
-        >(secret, salt, iterations.get())
-        .unwrap(),
-        Kdf::Argon2id {
-            iterations,
-            memory,
-            parallelism,
-        } => todo!("Argon2id not implemented"),
-    };
+    let master_key = pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(
+        secret,
+        salt,
+        iterations.get(),
+    )
+    .unwrap();
 
     let hkdf =
         hkdf::Hkdf::<sha2::Sha256>::from_prk(&master_key).map_err(|_| hkdf::InvalidLength)?;
@@ -358,7 +351,7 @@ impl Encryptable<CipherString> for String {
 
 impl Decryptable<String> for CipherString {
     fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<String> {
-        enc.decrypt(self, org_id)
+        enc.decrypt(&self, org_id)
     }
 }
 
@@ -400,7 +393,7 @@ impl<T: Encryptable<Output>, Output, Id: Hash + Eq> Encryptable<HashMap<Id, Outp
     }
 }
 
-impl<T: Decryptable<Output>, Output, Id: Hash + Eq + Clone> Decryptable<HashMap<Id, Output>>
+impl<T: Decryptable<Output>, Output, Id: Hash + Eq + Copy> Decryptable<HashMap<Id, Output>>
     for HashMap<Id, T>
 {
     fn decrypt(
@@ -409,7 +402,7 @@ impl<T: Decryptable<Output>, Output, Id: Hash + Eq + Clone> Decryptable<HashMap<
         org_id: &Option<Uuid>,
     ) -> Result<HashMap<Id, Output>> {
         self.into_iter()
-            .map(|(id, e)| Ok(((id.to_owned()), e.decrypt(enc, org_id)?)))
+            .map(|(id, e)| Ok((*id, e.decrypt(enc, org_id)?)))
             .collect::<Result<HashMap<_, _>>>()
     }
 }
@@ -419,10 +412,7 @@ mod tests {
     use std::num::NonZeroU32;
 
     use super::{fingerprint, stretch_key};
-    use crate::{
-        client::auth_settings::Kdf,
-        crypto::{stretch_key_password, CipherString},
-    };
+    use crate::crypto::{stretch_key_password, CipherString};
 
     #[test]
     fn test_cipher_string_serialization() {
@@ -451,9 +441,7 @@ mod tests {
         let (key, mac) = stretch_key_password(
             &b"67t9b5g67$%Dh89n"[..],
             "test_key".as_bytes(),
-            &Kdf::PBKDF2 {
-                iterations: NonZeroU32::new(10000).unwrap(),
-            },
+            NonZeroU32::new(10000).unwrap(),
         )
         .unwrap();
 

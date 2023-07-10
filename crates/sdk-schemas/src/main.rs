@@ -107,7 +107,7 @@ fn main() -> Result<()> {
     // Same as above, but for the internal feature
     #[cfg(feature = "internal")]
     write_schema_for_response! {
-        bitwarden::vault::UserApiKeyResponse,
+        bitwarden::platform::UserApiKeyResponse,
     };
 
     Ok(())

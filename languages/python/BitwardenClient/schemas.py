@@ -1,6 +1,6 @@
 from enum import Enum
 from dataclasses import dataclass
-from typing import Optional, Any, Dict, List, TypeVar, Type, Callable, cast
+from typing import Optional, Any, List, TypeVar, Type, Callable, cast
 from uuid import UUID
 
 
@@ -32,19 +32,14 @@ def to_enum(c: Type[EnumT], x: Any) -> EnumT:
     return x.value
 
 
-def from_dict(f: Callable[[Any], T], x: Any) -> Dict[str, T]:
-    assert isinstance(x, dict)
-    return { k: f(v) for (k, v) in x.items() }
+def from_list(f: Callable[[Any], T], x: Any) -> List[T]:
+    assert isinstance(x, list)
+    return [f(y) for y in x]
 
 
 def to_class(c: Type[T], x: Any) -> dict:
     assert isinstance(x, c)
     return cast(Any, x).to_dict()
-
-
-def from_list(f: Callable[[Any], T], x: Any) -> List[T]:
-    assert isinstance(x, list)
-    return [f(y) for y in x]
 
 
 def from_bool(x: Any) -> bool:
@@ -194,104 +189,6 @@ class FingerprintRequest:
         result: dict = {}
         result["fingerprintMaterial"] = from_str(self.fingerprint_material)
         result["publicKey"] = from_str(self.public_key)
-        return result
-
-
-@dataclass
-class FolderCreateRequest:
-    """Encrypted folder name"""
-    name: str
-
-    @staticmethod
-    def from_dict(obj: Any) -> 'FolderCreateRequest':
-        assert isinstance(obj, dict)
-        name = from_str(obj.get("name"))
-        return FolderCreateRequest(name)
-
-    def to_dict(self) -> dict:
-        result: dict = {}
-        result["name"] = from_str(self.name)
-        return result
-
-
-@dataclass
-class FolderDeleteRequest:
-    """ID of the folder to delete"""
-    id: UUID
-
-    @staticmethod
-    def from_dict(obj: Any) -> 'FolderDeleteRequest':
-        assert isinstance(obj, dict)
-        id = UUID(obj.get("id"))
-        return FolderDeleteRequest(id)
-
-    def to_dict(self) -> dict:
-        result: dict = {}
-        result["id"] = str(self.id)
-        return result
-
-
-@dataclass
-class FolderUpdateRequest:
-    """ID of the folder to update"""
-    id: UUID
-    """Encrypted folder name"""
-    name: str
-
-    @staticmethod
-    def from_dict(obj: Any) -> 'FolderUpdateRequest':
-        assert isinstance(obj, dict)
-        id = UUID(obj.get("id"))
-        name = from_str(obj.get("name"))
-        return FolderUpdateRequest(id, name)
-
-    def to_dict(self) -> dict:
-        result: dict = {}
-        result["id"] = str(self.id)
-        result["name"] = from_str(self.name)
-        return result
-
-
-@dataclass
-class FoldersCommand:
-    """> Requires Authentication > Requires an unlocked vault Creates a new folder with the
-    provided data
-    
-    > Requires Authentication > Requires an unlocked vault and calling Sync at least once
-    Lists all folders in the vault
-    
-    Returns: [FoldersResponse](bitwarden::platform::folders::FoldersResponse)
-    
-    > Requires Authentication > Requires an unlocked vault Updates an existing folder with
-    the provided data given its ID
-    
-    > Requires Authentication > Requires an unlocked vault Deletes the folder associated with
-    the provided ID
-    """
-    create: Optional[FolderCreateRequest] = None
-    list: Optional[Dict[str, Any]] = None
-    update: Optional[FolderUpdateRequest] = None
-    delete: Optional[FolderDeleteRequest] = None
-
-    @staticmethod
-    def from_dict(obj: Any) -> 'FoldersCommand':
-        assert isinstance(obj, dict)
-        create = from_union([FolderCreateRequest.from_dict, from_none], obj.get("create"))
-        list = from_union([lambda x: from_dict(lambda x: x, x), from_none], obj.get("list"))
-        update = from_union([FolderUpdateRequest.from_dict, from_none], obj.get("update"))
-        delete = from_union([FolderDeleteRequest.from_dict, from_none], obj.get("delete"))
-        return FoldersCommand(create, list, update, delete)
-
-    def to_dict(self) -> dict:
-        result: dict = {}
-        if self.create is not None:
-            result["create"] = from_union([lambda x: to_class(FolderCreateRequest, x), from_none], self.create)
-        if self.list is not None:
-            result["list"] = from_union([lambda x: from_dict(lambda x: x, x), from_none], self.list)
-        if self.update is not None:
-            result["update"] = from_union([lambda x: to_class(FolderUpdateRequest, x), from_none], self.update)
-        if self.delete is not None:
-            result["delete"] = from_union([lambda x: to_class(FolderDeleteRequest, x), from_none], self.delete)
         return result
 
 
@@ -758,7 +655,6 @@ class Command:
     sync: Optional[SyncRequest] = None
     secrets: Optional[SecretsCommand] = None
     projects: Optional[ProjectsCommand] = None
-    folders: Optional[FoldersCommand] = None
 
     @staticmethod
     def from_dict(obj: Any) -> 'Command':
@@ -772,8 +668,7 @@ class Command:
         sync = from_union([SyncRequest.from_dict, from_none], obj.get("sync"))
         secrets = from_union([SecretsCommand.from_dict, from_none], obj.get("secrets"))
         projects = from_union([ProjectsCommand.from_dict, from_none], obj.get("projects"))
-        folders = from_union([FoldersCommand.from_dict, from_none], obj.get("folders"))
-        return Command(password_login, api_key_login, access_token_login, session_login, get_user_api_key, fingerprint, sync, secrets, projects, folders)
+        return Command(password_login, api_key_login, access_token_login, session_login, get_user_api_key, fingerprint, sync, secrets, projects)
 
     def to_dict(self) -> dict:
         result: dict = {}
@@ -795,8 +690,6 @@ class Command:
             result["secrets"] = from_union([lambda x: to_class(SecretsCommand, x), from_none], self.secrets)
         if self.projects is not None:
             result["projects"] = from_union([lambda x: to_class(ProjectsCommand, x), from_none], self.projects)
-        if self.folders is not None:
-            result["folders"] = from_union([lambda x: to_class(FoldersCommand, x), from_none], self.folders)
         return result
 
 

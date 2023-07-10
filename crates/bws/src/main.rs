@@ -461,7 +461,7 @@ async fn process_commands() -> Result<()> {
         } => {
             let secret = client
                 .secrets()
-                .create(SecretCreateRequest {
+                .create(&SecretCreateRequest {
                     organization_id,
                     key,
                     value,
@@ -499,7 +499,7 @@ async fn process_commands() -> Result<()> {
 
             let secret = client
                 .secrets()
-                .update(SecretPutRequest {
+                .update(&SecretPutRequest {
                     id: secret_id,
                     organization_id,
                     key: key.unwrap_or(old_secret.key),

@@ -5,14 +5,9 @@ use bitwarden_api_api::models::SyncResponseModel;
 use serde_json::Value;
 use uuid::Uuid;
 
-use super::{
-    domain::{convert_cipher, convert_keys, convert_profile},
-    state_service::{CIPHERS_SERVICE, KEYS_SERVICE, PROFILE_SERVICE},
-};
 use crate::{
     client::client_settings::ClientSettings,
     error::{Error, Result},
-    vault::folders::store_folders_from_sync,
 };
 
 pub struct State {
@@ -35,12 +30,15 @@ impl State {
         }
     }
 
+    #[cfg(feature = "internal")]
     pub(crate) async fn set_account_sync_data(
         &self,
         id: Uuid,
         data: SyncResponseModel,
     ) -> Result<()> {
         // Before we create the storage profile, keep a copy of the current temporary storage (tokens, kdf params, etc)
+
+        use crate::client::{keys::store_keys_from_sync, profile::store_profile_from_sync};
         let state = self.account.lock().await.get();
 
         // Create the new account state, and load the temporary storage into it
@@ -57,30 +55,9 @@ impl State {
         // Save the new data
         let profile = data.profile.ok_or(Error::MissingFields)?;
 
-        self.get_state_service(KEYS_SERVICE)
-            .modify(|k| {
-                *k = Some(convert_keys(&profile)?);
-                Ok(())
-            })
-            .await?;
-        self.get_state_service(PROFILE_SERVICE)
-            .modify(|p| {
-                *p = Some(convert_profile(&profile)?);
-                Ok(())
-            })
-            .await?;
-        self.get_state_service(CIPHERS_SERVICE)
-            .modify(|c| {
-                *c = data
-                    .ciphers
-                    .unwrap_or_default()
-                    .into_iter()
-                    .map(convert_cipher)
-                    .collect::<Result<_, _>>()?;
-                Ok(())
-            })
-            .await?;
-        store_folders_from_sync(data.folders.unwrap_or_default(), self).await?;
+        store_keys_from_sync(profile.as_ref(), self).await?;
+        store_profile_from_sync(profile.as_ref(), self).await?;
+
         Ok(())
     }
 

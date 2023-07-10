@@ -1,10 +1,8 @@
-use std::{collections::HashMap, marker::PhantomData};
+use std::marker::PhantomData;
 
 use serde::{de::DeserializeOwned, Serialize};
-use uuid::Uuid;
 
-use super::{domain::*, state::State};
-use crate::error::Result;
+use crate::{error::Result, state::state::State};
 
 #[derive(Clone, Copy)]
 pub(crate) struct ServiceDefinition<T: Serialize + DeserializeOwned> {
@@ -15,19 +13,11 @@ pub(crate) struct ServiceDefinition<T: Serialize + DeserializeOwned> {
 }
 
 impl<T: Serialize + DeserializeOwned> ServiceDefinition<T> {
-    pub const fn new(namespace: &'static str) -> Self {
+    pub(crate) const fn new(namespace: &'static str) -> Self {
         let _type = PhantomData;
         Self { namespace, _type }
     }
 }
-
-pub(crate) const KEYS_SERVICE: ServiceDefinition<Option<Keys>> = ServiceDefinition::new("keys");
-pub(crate) const PROFILE_SERVICE: ServiceDefinition<Option<Profile>> =
-    ServiceDefinition::new("profile");
-pub(crate) const CIPHERS_SERVICE: ServiceDefinition<HashMap<Uuid, Cipher>> =
-    ServiceDefinition::new("ciphers");
-pub(crate) const AUTH_SERVICE: ServiceDefinition<Auth> = ServiceDefinition::new("auth");
-pub(crate) const SETTINGS_SERVICE: ServiceDefinition<Settings> = ServiceDefinition::new("settings");
 
 pub(crate) struct StateService<'a, T: Serialize + DeserializeOwned + Default> {
     state: &'a State,

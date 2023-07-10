@@ -1,8 +1,8 @@
-use chrono::Utc;
 use log::debug;
 use reqwest::header::{self};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use uuid::Uuid;
 
 use crate::{
@@ -18,11 +18,9 @@ use crate::{
     },
     crypto::CipherString,
     error::{Error, Result},
-    state::{
-        state::State,
-        state_service::{AUTH_SERVICE, KEYS_SERVICE},
-    },
+    state::state::State,
 };
+
 #[cfg(feature = "internal")]
 use crate::{
     auth::{
@@ -35,6 +33,8 @@ use crate::{
         SecretVerificationRequest, SyncRequest, UserApiKeyResponse,
     },
 };
+
+use super::auth::Auth;
 
 #[derive(Debug)]
 pub(crate) struct ApiConfigurations {
@@ -166,16 +166,11 @@ impl Client {
     }
 
     pub(crate) async fn get_auth_settings(&self) -> Option<AuthSettings> {
-        self.get_state_service(AUTH_SERVICE).get().await.kdf
+        Auth::get(self).await.kdf
     }
 
     pub async fn get_access_token_organization(&self) -> Option<Uuid> {
-        match self
-            .get_state_service(AUTH_SERVICE)
-            .get()
-            .await
-            .login_method
-        {
+        match Auth::get(self).await.login_method {
             Some(LoginMethod::AccessToken {
                 organization_id, ..
             }) => Some(organization_id),
@@ -190,13 +185,7 @@ impl Client {
     pub(crate) async fn set_auth_settings(&mut self, auth_settings: AuthSettings) -> Result<()> {
         debug! {"setting auth settings: {:#?}", auth_settings}
 
-        self.get_state_service(AUTH_SERVICE)
-            .modify(|auth| {
-                auth.kdf = Some(auth_settings);
-                Ok(())
-            })
-            .await?;
-        Ok(())
+        Auth::set_kdf(self, auth_settings).await
     }
 
     pub(crate) async fn set_tokens(
@@ -209,18 +198,7 @@ impl Client {
         self.__api_configurations.identity.oauth_access_token = Some(token.clone());
         self.__api_configurations.api.oauth_access_token = Some(token.clone());
 
-        self.get_state_service(AUTH_SERVICE)
-            .modify(move |auth| {
-                auth.access_token = token.clone();
-                auth.refresh_token = refresh_token;
-                auth.token_expiration =
-                    Some(Utc::now() + chrono::Duration::seconds(expires_in as i64));
-                auth.login_method = Some(login_method);
-                Ok(())
-            })
-            .await?;
-
-        Ok(())
+        Auth::set_tokens(self, token, refresh_token, expires_in, login_method).await
     }
 
     pub async fn renew_token(&mut self) -> Result<()> {
@@ -260,19 +238,16 @@ impl Client {
     }
 
     #[cfg(feature = "internal")]
-    pub(crate) async fn initialize_org_crypto(&mut self) -> Result<&EncryptionSettings> {
-        let keys = self
-            .get_state_service(KEYS_SERVICE)
-            .get()
-            .await
-            .ok_or(Error::VaultLocked)?;
-
+    pub(crate) async fn initialize_org_crypto(
+        &mut self,
+        org_keys: &HashMap<Uuid, CipherString>,
+    ) -> Result<&EncryptionSettings> {
         let enc = self
             .encryption_settings
             .as_mut()
             .ok_or(Error::VaultLocked)?;
 
-        enc.set_org_keys(&keys.organization_keys)?;
+        enc.set_org_keys(org_keys)?;
         Ok(self.encryption_settings.as_ref().unwrap())
     }
 

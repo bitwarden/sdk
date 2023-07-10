@@ -131,7 +131,7 @@ jobs:
           cache: "npm"
           cache-dependency-path: crates/bitwarden-napi/package-lock.json
 
-      - name: Download artifacts
+      - name: Download schemas
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
         uses: bitwarden/gh-actions/download-artifacts@72594be690a4e7bfa87b1402b2aedc75acdbff12
         with:
@@ -141,7 +141,7 @@ jobs:
           workflow_conclusion: success
           branch: ${{ github.ref_name }}
 
-      - name: Dry Run - Download artifacts
+      - name: Dry Run - Download schemas
         if: ${{ github.event.inputs.release_type == 'Dry Run' }}
         uses: bitwarden/gh-actions/download-artifacts@72594be690a4e7bfa87b1402b2aedc75acdbff12
         with:
@@ -149,7 +149,7 @@ jobs:
           artifacts: schemas.ts
           path: ${{ github.workspace }}/crates/bitwarden-napi/src-ts/bitwarden_client/
           workflow_conclusion: success
-          branch: remove_schemas
+          branch: master
 
       - name: Install dependencies
         run: npm ci

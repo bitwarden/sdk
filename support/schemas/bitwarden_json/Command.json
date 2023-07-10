@@ -253,7 +253,7 @@
           "additionalProperties": false
         },
         {
-          "description": "> Requires Authentication > Requires an unlocked vault and calling Sync at least once Lists all folders in the vault\n\nReturns: [FoldersResponse](bitwarden::platform::folders::FoldersResponse)",
+          "description": "> Requires Authentication > Requires an unlocked vault and calling Sync at least once Lists all folders in the vault\n\nReturns: [FoldersResponse](bitwarden::vault::folders::FoldersResponse)",
           "type": "object",
           "required": [
             "list"

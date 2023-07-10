@@ -187,7 +187,7 @@ pub enum FoldersCommand {
     /// > Requires an unlocked vault and calling Sync at least once
     /// Lists all folders in the vault
     ///
-    /// Returns: [FoldersResponse](bitwarden::platform::folders::FoldersResponse)
+    /// Returns: [FoldersResponse](bitwarden::vault::folders::FoldersResponse)
     ///
     List(EmptyRequest),
 

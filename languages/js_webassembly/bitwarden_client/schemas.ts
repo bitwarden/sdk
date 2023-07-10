@@ -178,7 +178,7 @@ export interface FingerprintRequest {
  * > Requires Authentication > Requires an unlocked vault and calling Sync at least once
  * Lists all folders in the vault
  *
- * Returns: [FoldersResponse](bitwarden::platform::folders::FoldersResponse)
+ * Returns: [FoldersResponse](bitwarden::vault::folders::FoldersResponse)
  *
  * > Requires Authentication > Requires an unlocked vault Updates an existing folder with
  * the provided data given its ID

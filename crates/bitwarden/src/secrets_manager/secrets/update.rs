@@ -35,9 +35,9 @@ pub(crate) async fn update_secret(
     let org_id = Some(input.organization_id);
 
     let secret = Some(SecretUpdateRequestModel {
-        key: enc.encrypt(input.key.as_bytes(), org_id)?.to_string(),
-        value: enc.encrypt(input.value.as_bytes(), org_id)?.to_string(),
-        note: enc.encrypt(input.note.as_bytes(), org_id)?.to_string(),
+        key: enc.encrypt(input.key.as_bytes(), &org_id)?.to_string(),
+        value: enc.encrypt(input.value.as_bytes(), &org_id)?.to_string(),
+        note: enc.encrypt(input.note.as_bytes(), &org_id)?.to_string(),
         project_ids: input.project_ids.clone(),
     });
 

@@ -30,10 +30,10 @@ impl<T: Serialize + JsonSchema> Response<T> {
         }
     }
 
-    pub fn error(message: &str) -> Self {
+    pub fn error(message: String) -> Self {
         Self {
             success: false,
-            error_message: Some(message.into()),
+            error_message: Some(message),
             data: None,
         }
     }
@@ -47,7 +47,7 @@ impl<T: Serialize + JsonSchema, E: Error> ResponseIntoString for Result<T, E> {
     fn into_string(self) -> String {
         match serde_json::to_string(&Response::new(self)) {
             Ok(ser) => ser,
-            Err(e) => serde_json::to_string(&Response::<T>::error(&format!(
+            Err(e) => serde_json::to_string(&Response::<T>::error(format!(
                 "Failed to serialize Response: {}",
                 e
             )))

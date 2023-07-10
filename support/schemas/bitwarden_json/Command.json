@@ -116,6 +116,18 @@
         }
       },
       "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "folders"
+      ],
+      "properties": {
+        "folders": {
+          "$ref": "#/definitions/FoldersCommand"
+        }
+      },
+      "additionalProperties": false
     }
   ],
   "definitions": {
@@ -157,6 +169,10 @@
       },
       "additionalProperties": false
     },
+    "EmptyRequest": {
+      "description": "An empty request that needs no parameters",
+      "type": "object"
+    },
     "FingerprintRequest": {
       "type": "object",
       "required": [
@@ -174,6 +190,108 @@
         }
       },
       "additionalProperties": false
+    },
+    "FolderCreateRequest": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "description": "Encrypted folder name",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "FolderDeleteRequest": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "description": "ID of the folder to delete",
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "FolderUpdateRequest": {
+      "type": "object",
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "description": "ID of the folder to update",
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": {
+          "description": "Encrypted folder name",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "FoldersCommand": {
+      "oneOf": [
+        {
+          "description": "> Requires Authentication > Requires an unlocked vault Creates a new folder with the provided data",
+          "type": "object",
+          "required": [
+            "create"
+          ],
+          "properties": {
+            "create": {
+              "$ref": "#/definitions/FolderCreateRequest"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "> Requires Authentication > Requires an unlocked vault and calling Sync at least once Lists all folders in the vault\n\nReturns: [FoldersResponse](bitwarden::platform::folders::FoldersResponse)",
+          "type": "object",
+          "required": [
+            "list"
+          ],
+          "properties": {
+            "list": {
+              "$ref": "#/definitions/EmptyRequest"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "> Requires Authentication > Requires an unlocked vault Updates an existing folder with the provided data given its ID",
+          "type": "object",
+          "required": [
+            "update"
+          ],
+          "properties": {
+            "update": {
+              "$ref": "#/definitions/FolderUpdateRequest"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "> Requires Authentication > Requires an unlocked vault Deletes the folder associated with the provided ID",
+          "type": "object",
+          "required": [
+            "delete"
+          ],
+          "properties": {
+            "delete": {
+              "$ref": "#/definitions/FolderDeleteRequest"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     },
     "PasswordLoginRequest": {
       "description": "Login to Bitwarden with Username and Password",

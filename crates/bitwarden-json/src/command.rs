@@ -1,6 +1,3 @@
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-
 use bitwarden::{
     auth::request::AccessTokenLoginRequest,
     secrets_manager::{
@@ -19,6 +16,8 @@ use bitwarden::{
     auth::request::{ApiKeyLoginRequest, PasswordLoginRequest, SessionLoginRequest},
     platform::{FingerprintRequest, SecretVerificationRequest, SyncRequest},
 };
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

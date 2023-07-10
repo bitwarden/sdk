@@ -1,6 +1,6 @@
 //! Cryptographic primitives used in the SDK
 
-use std::{fmt::Display, num::NonZeroU32, str::FromStr};
+use std::{collections::HashMap, fmt::Display, hash::Hash, num::NonZeroU32, str::FromStr};
 
 use aes::cipher::{
     generic_array::GenericArray,
@@ -13,9 +13,10 @@ use num_bigint::BigUint;
 use num_traits::cast::ToPrimitive;
 use serde::{de::Visitor, Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use uuid::Uuid;
 
-pub use crate::client::encryption_settings::{decrypt, encrypt_aes256, SymmetricCryptoKey};
 use crate::{
+    client::encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
     error::{CSParseError, Error, Result},
     util::BASE64_ENGINE,
     wordlist::EFF_LONG_WORD_LIST,
@@ -332,6 +333,78 @@ fn hash_word(hash: [u8; 32]) -> Result<String> {
     }
 
     Ok(phrase.join("-"))
+}
+
+pub trait Encryptable<Output> {
+    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Output>;
+}
+
+pub trait Decryptable<Output> {
+    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Output>;
+}
+
+impl Encryptable<CipherString> for String {
+    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<CipherString> {
+        enc.encrypt(self.as_bytes(), org_id)
+    }
+}
+
+impl Decryptable<String> for CipherString {
+    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<String> {
+        enc.decrypt(&self, org_id)
+    }
+}
+
+impl<T: Encryptable<Output>, Output> Encryptable<Option<Output>> for Option<T> {
+    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Option<Output>> {
+        self.map(|e| e.encrypt(enc, org_id)).transpose()
+    }
+}
+
+impl<T: Decryptable<Output>, Output> Decryptable<Option<Output>> for Option<T> {
+    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Option<Output>> {
+        self.as_ref().map(|e| e.decrypt(enc, org_id)).transpose()
+    }
+}
+
+impl<T: Encryptable<Output>, Output> Encryptable<Vec<Output>> for Vec<T> {
+    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Vec<Output>> {
+        self.into_iter().map(|e| e.encrypt(enc, org_id)).collect()
+    }
+}
+
+impl<T: Decryptable<Output>, Output> Decryptable<Vec<Output>> for Vec<T> {
+    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Vec<Output>> {
+        self.into_iter().map(|e| e.decrypt(enc, org_id)).collect()
+    }
+}
+
+impl<T: Encryptable<Output>, Output, Id: Hash + Eq> Encryptable<HashMap<Id, Output>>
+    for HashMap<Id, T>
+{
+    fn encrypt(
+        self,
+        enc: &EncryptionSettings,
+        org_id: &Option<Uuid>,
+    ) -> Result<HashMap<Id, Output>> {
+        self.into_iter()
+            .map(|(id, e)| Ok((id, e.encrypt(enc, org_id)?)))
+            .collect::<Result<HashMap<_, _>>>()
+    }
+}
+
+impl<T: Decryptable<Output>, Output, Id: Hash + Eq + Copy> Decryptable<HashMap<Id, Output>>
+    for HashMap<Id, T>
+{
+    fn decrypt(
+        &self,
+        enc: &EncryptionSettings,
+        org_id: &Option<Uuid>,
+    ) -> Result<HashMap<Id, Output>> {
+        self.into_iter()
+            .map(|(id, e)| Ok((*id, e.decrypt(enc, org_id)?)))
+            .collect::<Result<HashMap<_, _>>>()
+    }
 }
 
 #[cfg(test)]

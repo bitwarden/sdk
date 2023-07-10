@@ -469,7 +469,10 @@ mod tests {
 
         let key = stretch_key(*b"67t9b5g67$%Dh89n", "test_key", Some("test"));
         assert_eq!(key.to_base64(), "F9jVQmrACGx9VUPjuzfMYDjr726JtL300Y3Yg+VYUnVQtQ1s8oImJ5xtp1KALC9h2nav04++1LDW4iFD+infng==");
+    }
 
+    #[test]
+    fn test_key_stretch_password_pbkdf2() {
         let (key, mac) = stretch_key_password(
             &b"67t9b5g67$%Dh89n"[..],
             "test_key".as_bytes(),
@@ -493,7 +496,10 @@ mod tests {
                 166, 209, 247, 194, 87, 232, 26, 48, 85, 193, 249, 179, 155
             ]
         );
+    }
 
+    #[test]
+    fn test_key_stretch_password_argon2() {
         let (key, mac) = stretch_key_password(
             &b"67t9b5g67$%Dh89n"[..],
             "test_key".as_bytes(),

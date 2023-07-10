@@ -85,7 +85,7 @@ mod tests {
     use super::AuthSettings;
 
     #[test]
-    fn test_password_hash() {
+    fn test_password_hash_pbkdf2() {
         let res = PreloginResponseModel {
             kdf: Some(KdfType::Variant0),
             kdf_iterations: Some(100_000),
@@ -104,7 +104,10 @@ mod tests {
             settings.make_user_password_hash("asdfasdf").unwrap(),
             "wmyadRMyBZOH7P/a/ucTCbSghKgdzDpPqUnu/DAVtSw="
         );
+    }
 
+    #[test]
+    fn test_password_hash_argon2id() {
         let res = PreloginResponseModel {
             kdf: Some(KdfType::Variant1),
             kdf_iterations: Some(4),

@@ -103,5 +103,24 @@ mod tests {
             settings.make_user_password_hash("asdfasdf").unwrap(),
             "wmyadRMyBZOH7P/a/ucTCbSghKgdzDpPqUnu/DAVtSw="
         );
+
+        let res = PreloginResponseModel {
+            kdf: Some(KdfType::Variant1),
+            kdf_iterations: Some(4),
+            kdf_memory: Some(32),
+            kdf_parallelism: Some(2),
+        };
+        let settings = AuthSettings::new(res, "test@bitwarden.com".into());
+
+        assert_eq!(
+            settings
+                .make_password_hash("asdfasdf", "test_salt")
+                .unwrap(),
+            "PR6UjYmjmppTYcdyTiNbAhPJuQQOmynKbdEl1oyi/iQ="
+        );
+        assert_eq!(
+            settings.make_user_password_hash("asdfasdf").unwrap(),
+            "ImYMPyd/X7FPrWzbt+wRfmlICWTA25yZrOob4TBMEZw="
+        );
     }
 }

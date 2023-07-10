@@ -418,6 +418,32 @@ mod tests {
                 166, 209, 247, 194, 87, 232, 26, 48, 85, 193, 249, 179, 155
             ]
         );
+
+        let (key, mac) = stretch_key_password(
+            &b"67t9b5g67$%Dh89n"[..],
+            "test_key".as_bytes(),
+            &Kdf::Argon2id {
+                iterations: NonZeroU32::new(4).unwrap(),
+                memory: NonZeroU32::new(32).unwrap(),
+                parallelism: NonZeroU32::new(2).unwrap(),
+            },
+        )
+        .unwrap();
+
+        assert_eq!(
+            key.as_slice(),
+            [
+                236, 253, 166, 121, 207, 124, 98, 149, 42, 141, 97, 226, 207, 71, 173, 60, 10, 0,
+                184, 255, 252, 87, 62, 32, 188, 166, 173, 223, 146, 159, 222, 219
+            ]
+        );
+        assert_eq!(
+            mac.as_slice(),
+            [
+                214, 144, 76, 173, 225, 106, 132, 131, 173, 56, 134, 241, 223, 227, 165, 161, 146,
+                37, 111, 206, 155, 24, 224, 151, 134, 189, 202, 0, 27, 149, 131, 21
+            ]
+        );
     }
 
     #[test]

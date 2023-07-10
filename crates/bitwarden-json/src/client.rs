@@ -5,6 +5,9 @@ use crate::{
     response::ResponseIntoString,
 };
 
+#[cfg(feature = "internal")]
+use crate::command::FoldersCommand;
+
 pub struct Client(bitwarden::Client);
 
 impl Client {
@@ -67,6 +70,14 @@ impl Client {
                 ProjectsCommand::List(req) => self.0.projects().list(&req).await.into_string(),
                 ProjectsCommand::Update(req) => self.0.projects().update(&req).await.into_string(),
                 ProjectsCommand::Delete(req) => self.0.projects().delete(req).await.into_string(),
+            },
+
+            #[cfg(feature = "internal")]
+            Command::Folders(cmd) => match cmd {
+                FoldersCommand::Create(req) => self.0.folders().create(req).await.into_string(),
+                FoldersCommand::List(_) => self.0.folders().list().await.into_string(),
+                FoldersCommand::Update(req) => self.0.folders().update(req).await.into_string(),
+                FoldersCommand::Delete(req) => self.0.folders().delete(req).await.into_string(),
             },
         }
     }

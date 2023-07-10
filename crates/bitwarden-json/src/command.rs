@@ -14,7 +14,8 @@ use bitwarden::{
 #[cfg(feature = "internal")]
 use bitwarden::{
     auth::request::{ApiKeyLoginRequest, PasswordLoginRequest, SessionLoginRequest},
-    platform::{FingerprintRequest, SecretVerificationRequest, SyncRequest},
+    platform::{EmptyRequest, FingerprintRequest, SecretVerificationRequest, SyncRequest},
+    vault::folders::{FolderCreateRequest, FolderDeleteRequest, FolderUpdateRequest},
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -79,6 +80,9 @@ pub enum Command {
 
     Secrets(SecretsCommand),
     Projects(ProjectsCommand),
+
+    #[cfg(feature = "internal")]
+    Folders(FoldersCommand),
 }
 
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]
@@ -167,4 +171,35 @@ pub enum ProjectsCommand {
     /// Returns: [ProjectsDeleteResponse](bitwarden::secrets_manager::projects::ProjectsDeleteResponse)
     ///
     Delete(ProjectsDeleteRequest),
+}
+
+#[cfg(feature = "internal")]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub enum FoldersCommand {
+    /// > Requires Authentication
+    /// > Requires an unlocked vault
+    /// Creates a new folder with the provided data
+    ///
+    Create(FolderCreateRequest),
+
+    /// > Requires Authentication
+    /// > Requires an unlocked vault and calling Sync at least once
+    /// Lists all folders in the vault
+    ///
+    /// Returns: [FoldersResponse](bitwarden::vault::folders::FoldersResponse)
+    ///
+    List(EmptyRequest),
+
+    /// > Requires Authentication
+    /// > Requires an unlocked vault
+    /// Updates an existing folder with the provided data given its ID
+    ///
+    Update(FolderUpdateRequest),
+
+    /// > Requires Authentication
+    /// > Requires an unlocked vault
+    /// Deletes the folder associated with the provided ID
+    ///
+    Delete(FolderDeleteRequest),
 }

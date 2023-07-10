@@ -32,8 +32,8 @@ namespace Bit.Sdk
     /// assert_matches::assert_matches; let settings = ClientSettings { identity_url:
     /// "https://identity.bitwarden.com".to_string(), api_url:
     /// "https://api.bitwarden.com".to_string(), user_agent: "Bitwarden Rust-SDK".to_string(),
-    /// device_type: DeviceType::SDK, }; let default = ClientSettings::default();
-    /// assert_matches!(settings, default); ```
+    /// device_type: DeviceType::SDK, state_path: None, }; let default =
+    /// ClientSettings::default(); assert_matches!(settings, default); ```
     ///
     /// Targets `localhost:8080` for debug builds.
     /// </summary>
@@ -57,6 +57,14 @@ namespace Bit.Sdk
         /// </summary>
         [JsonProperty("identityUrl")]
         public string IdentityUrl { get; set; }
+
+        /// <summary>
+        /// Path to the file that stores the SDK's internal state, when not set the state is kept in
+        /// memory only This option has no effect when compiling for WebAssembly, in that case
+        /// LocalStorage is always used.
+        /// </summary>
+        [JsonProperty("statePath")]
+        public string StatePath { get; set; }
 
         /// <summary>
         /// The user_agent to sent to Bitwarden. Defaults to `Bitwarden Rust-SDK`
@@ -88,6 +96,8 @@ namespace Bit.Sdk
     ///
     /// Returns: [ApiKeyLoginResponse](bitwarden::auth::response::ApiKeyLoginResponse)
     ///
+    /// Login with a previously saved session
+    ///
     /// > Requires Authentication Get the API key of the currently authenticated user
     ///
     /// Returns: [UserApiKeyResponse](bitwarden::platform::UserApiKeyResponse)
@@ -98,8 +108,6 @@ namespace Bit.Sdk
     ///
     /// > Requires Authentication Retrieve all user data, ciphers and organizations the user is a
     /// part of
-    ///
-    /// Returns: [SyncResponse](bitwarden::platform::SyncResponse)
     /// </summary>
     public partial class Command
     {
@@ -111,6 +119,9 @@ namespace Bit.Sdk
 
         [JsonProperty("accessTokenLogin", NullValueHandling = NullValueHandling.Ignore)]
         public AccessTokenLoginRequest AccessTokenLogin { get; set; }
+
+        [JsonProperty("sessionLogin", NullValueHandling = NullValueHandling.Ignore)]
+        public SessionLoginRequest SessionLogin { get; set; }
 
         [JsonProperty("getUserApiKey", NullValueHandling = NullValueHandling.Ignore)]
         public SecretVerificationRequest GetUserApiKey { get; set; }
@@ -437,6 +448,24 @@ namespace Bit.Sdk
 
         [JsonProperty("value")]
         public string Value { get; set; }
+    }
+
+    /// <summary>
+    /// Login to Bitwarden using a saved session
+    /// </summary>
+    public partial class SessionLoginRequest
+    {
+        /// <summary>
+        /// User's master password, used to unlock the vault
+        /// </summary>
+        [JsonProperty("password")]
+        public string Password { get; set; }
+
+        /// <summary>
+        /// User's uuid
+        /// </summary>
+        [JsonProperty("userId")]
+        public Guid UserId { get; set; }
     }
 
     public partial class SyncRequest

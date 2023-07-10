@@ -143,12 +143,12 @@ impl EncryptionSettings {
     #[cfg(feature = "internal")]
     pub(crate) fn set_org_keys(
         &mut self,
-        org_enc_keys: Vec<(Uuid, CipherString)>,
+        org_enc_keys: &HashMap<Uuid, CipherString>,
     ) -> Result<&mut Self> {
         let private_key = self.private_key.as_ref().ok_or(Error::VaultLocked)?;
 
         // Decrypt the org keys with the private key
-        for (org_id, org_enc_key) in org_enc_keys {
+        for (&org_id, org_enc_key) in org_enc_keys {
             let data = match org_enc_key {
                 CipherString::Rsa2048_OaepSha1_B64 { data } => data,
                 _ => return Err(CryptoError::InvalidKey.into()),

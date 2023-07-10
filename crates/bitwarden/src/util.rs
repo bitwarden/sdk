@@ -82,6 +82,7 @@ pub async fn start_mock(mocks: Vec<wiremock::Mock>) -> (wiremock::MockServer, cr
         api_url: format!("http://{}/api", server.address()),
         user_agent: "Bitwarden Rust-SDK [TEST]".into(),
         device_type: crate::client::client_settings::DeviceType::SDK,
+        state_path: None,
     };
 
     (server, crate::Client::new(Some(settings)))

@@ -42,6 +42,19 @@
       "additionalProperties": false
     },
     {
+      "description": "Login with a previously saved session",
+      "type": "object",
+      "required": [
+        "sessionLogin"
+      ],
+      "properties": {
+        "sessionLogin": {
+          "$ref": "#/definitions/SessionLoginRequest"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
       "description": "> Requires Authentication Get the API key of the currently authenticated user\n\nReturns: [UserApiKeyResponse](bitwarden::platform::UserApiKeyResponse)",
       "type": "object",
       "required": [
@@ -68,7 +81,7 @@
       "additionalProperties": false
     },
     {
-      "description": "> Requires Authentication Retrieve all user data, ciphers and organizations the user is a part of\n\nReturns: [SyncResponse](bitwarden::platform::SyncResponse)",
+      "description": "> Requires Authentication Retrieve all user data, ciphers and organizations the user is a part of",
       "type": "object",
       "required": [
         "sync"
@@ -536,6 +549,26 @@
             "type": "string",
             "format": "uuid"
           }
+        }
+      },
+      "additionalProperties": false
+    },
+    "SessionLoginRequest": {
+      "description": "Login to Bitwarden using a saved session",
+      "type": "object",
+      "required": [
+        "password",
+        "userId"
+      ],
+      "properties": {
+        "password": {
+          "description": "User's master password, used to unlock the vault",
+          "type": "string"
+        },
+        "userId": {
+          "description": "User's uuid",
+          "type": "string",
+          "format": "uuid"
         }
       },
       "additionalProperties": false

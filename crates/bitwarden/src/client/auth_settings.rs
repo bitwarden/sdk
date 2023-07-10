@@ -2,14 +2,15 @@ use std::num::NonZeroU32;
 
 use base64::Engine;
 use bitwarden_api_identity::models::{KdfType, PreloginResponseModel};
+use serde::{Deserialize, Serialize};
 
 use crate::{
     crypto::{PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},
     util::{default_kdf_iterations, BASE64_ENGINE},
 };
 
-#[derive(Debug)]
-pub(crate) struct AuthSettings {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuthSettings {
     pub email: String,
     kdf_type: KdfType,
     pub(crate) kdf_iterations: NonZeroU32,

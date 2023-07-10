@@ -1,7 +1,7 @@
 import json
 from typing import Any, List
 import bitwarden_py
-from .schemas import ClientSettings, Command, PasswordLoginRequest, PasswordLoginResponse, ResponseForPasswordLoginResponse, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsDeleteResponse, ResponseForSyncResponse, ResponseForUserAPIKeyResponse, SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretIdentifiersResponse, SecretPutRequest, SecretResponse, SecretVerificationRequest, SecretsCommand, SecretsDeleteRequest, SecretsDeleteResponse, SyncRequest, SyncResponse, UserAPIKeyResponse
+from .schemas import ClientSettings, Command, PasswordLoginRequest, PasswordLoginResponse, ResponseForPasswordLoginResponse, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsDeleteResponse, ResponseForUserAPIKeyResponse, SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretIdentifiersResponse, SecretPutRequest, SecretResponse, SecretVerificationRequest, SecretsCommand, SecretsDeleteRequest, SecretsDeleteResponse, SyncRequest, UserAPIKeyResponse
 
 
 class BitwardenClient:
@@ -25,11 +25,10 @@ class BitwardenClient:
         )
         return ResponseForUserAPIKeyResponse.from_dict(result)
 
-    def sync(self, exclude_subdomains: bool = False) -> ResponseForSyncResponse:
-        result = self._run_command(
+    def sync(self, exclude_subdomains: bool = False):
+        self._run_command(
             Command(sync=SyncRequest(exclude_subdomains))
         )
-        return ResponseForSyncResponse.from_dict(result)
 
     def secrets(self):
         return SecretsClient(self)

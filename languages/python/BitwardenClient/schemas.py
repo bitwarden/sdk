@@ -1,6 +1,6 @@
 from enum import Enum
 from dataclasses import dataclass
-from typing import Any, Optional, List, TypeVar, Type, Callable, cast
+from typing import Optional, Any, List, TypeVar, Type, Callable, cast
 from uuid import UUID
 
 
@@ -11,11 +11,6 @@ EnumT = TypeVar("EnumT", bound=Enum)
 def from_str(x: Any) -> str:
     assert isinstance(x, str)
     return x
-
-
-def to_enum(c: Type[EnumT], x: Any) -> EnumT:
-    assert isinstance(x, c)
-    return x.value
 
 
 def from_none(x: Any) -> Any:
@@ -30,6 +25,11 @@ def from_union(fs, x):
         except:
             pass
     assert False
+
+
+def to_enum(c: Type[EnumT], x: Any) -> EnumT:
+    assert isinstance(x, c)
+    return x.value
 
 
 def from_list(f: Callable[[Any], T], x: Any) -> List[T]:
@@ -85,8 +85,8 @@ class ClientSettings:
     assert_matches::assert_matches; let settings = ClientSettings { identity_url:
     "https://identity.bitwarden.com".to_string(), api_url:
     "https://api.bitwarden.com".to_string(), user_agent: "Bitwarden Rust-SDK".to_string(),
-    device_type: DeviceType::SDK, }; let default = ClientSettings::default();
-    assert_matches!(settings, default); ```
+    device_type: DeviceType::SDK, state_path: None, }; let default =
+    ClientSettings::default(); assert_matches!(settings, default); ```
     
     Targets `localhost:8080` for debug builds.
     """
@@ -100,6 +100,11 @@ class ClientSettings:
     identity_url: str
     """The user_agent to sent to Bitwarden. Defaults to `Bitwarden Rust-SDK`"""
     user_agent: str
+    """Path to the file that stores the SDK's internal state, when not set the state is kept in
+    memory only This option has no effect when compiling for WebAssembly, in that case
+    LocalStorage is always used.
+    """
+    state_path: Optional[str] = None
 
     @staticmethod
     def from_dict(obj: Any) -> 'ClientSettings':
@@ -108,7 +113,8 @@ class ClientSettings:
         device_type = DeviceType(obj.get("deviceType"))
         identity_url = from_str(obj.get("identityUrl"))
         user_agent = from_str(obj.get("userAgent"))
-        return ClientSettings(api_url, device_type, identity_url, user_agent)
+        state_path = from_union([from_none, from_str], obj.get("statePath"))
+        return ClientSettings(api_url, device_type, identity_url, user_agent, state_path)
 
     def to_dict(self) -> dict:
         result: dict = {}
@@ -116,6 +122,8 @@ class ClientSettings:
         result["deviceType"] = to_enum(DeviceType, self.device_type)
         result["identityUrl"] = from_str(self.identity_url)
         result["userAgent"] = from_str(self.user_agent)
+        if self.state_path is not None:
+            result["statePath"] = from_union([from_none, from_str], self.state_path)
         return result
 
 
@@ -562,6 +570,28 @@ class SecretsCommand:
 
 
 @dataclass
+class SessionLoginRequest:
+    """Login to Bitwarden using a saved session"""
+    """User's master password, used to unlock the vault"""
+    password: str
+    """User's uuid"""
+    user_id: UUID
+
+    @staticmethod
+    def from_dict(obj: Any) -> 'SessionLoginRequest':
+        assert isinstance(obj, dict)
+        password = from_str(obj.get("password"))
+        user_id = UUID(obj.get("userId"))
+        return SessionLoginRequest(password, user_id)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        result["password"] = from_str(self.password)
+        result["userId"] = str(self.user_id)
+        return result
+
+
+@dataclass
 class SyncRequest:
     """Exclude the subdomains from the response, defaults to false"""
     exclude_subdomains: Optional[bool] = None
@@ -603,6 +633,8 @@ class Command:
     
     Returns: [ApiKeyLoginResponse](bitwarden::auth::response::ApiKeyLoginResponse)
     
+    Login with a previously saved session
+    
     > Requires Authentication Get the API key of the currently authenticated user
     
     Returns: [UserApiKeyResponse](bitwarden::platform::UserApiKeyResponse)
@@ -613,12 +645,11 @@ class Command:
     
     > Requires Authentication Retrieve all user data, ciphers and organizations the user is a
     part of
-    
-    Returns: [SyncResponse](bitwarden::platform::SyncResponse)
     """
     password_login: Optional[PasswordLoginRequest] = None
     api_key_login: Optional[APIKeyLoginRequest] = None
     access_token_login: Optional[AccessTokenLoginRequest] = None
+    session_login: Optional[SessionLoginRequest] = None
     get_user_api_key: Optional[SecretVerificationRequest] = None
     fingerprint: Optional[FingerprintRequest] = None
     sync: Optional[SyncRequest] = None
@@ -631,12 +662,13 @@ class Command:
         password_login = from_union([PasswordLoginRequest.from_dict, from_none], obj.get("passwordLogin"))
         api_key_login = from_union([APIKeyLoginRequest.from_dict, from_none], obj.get("apiKeyLogin"))
         access_token_login = from_union([AccessTokenLoginRequest.from_dict, from_none], obj.get("accessTokenLogin"))
+        session_login = from_union([SessionLoginRequest.from_dict, from_none], obj.get("sessionLogin"))
         get_user_api_key = from_union([SecretVerificationRequest.from_dict, from_none], obj.get("getUserApiKey"))
         fingerprint = from_union([FingerprintRequest.from_dict, from_none], obj.get("fingerprint"))
         sync = from_union([SyncRequest.from_dict, from_none], obj.get("sync"))
         secrets = from_union([SecretsCommand.from_dict, from_none], obj.get("secrets"))
         projects = from_union([ProjectsCommand.from_dict, from_none], obj.get("projects"))
-        return Command(password_login, api_key_login, access_token_login, get_user_api_key, fingerprint, sync, secrets, projects)
+        return Command(password_login, api_key_login, access_token_login, session_login, get_user_api_key, fingerprint, sync, secrets, projects)
 
     def to_dict(self) -> dict:
         result: dict = {}
@@ -646,6 +678,8 @@ class Command:
             result["apiKeyLogin"] = from_union([lambda x: to_class(APIKeyLoginRequest, x), from_none], self.api_key_login)
         if self.access_token_login is not None:
             result["accessTokenLogin"] = from_union([lambda x: to_class(AccessTokenLoginRequest, x), from_none], self.access_token_login)
+        if self.session_login is not None:
+            result["sessionLogin"] = from_union([lambda x: to_class(SessionLoginRequest, x), from_none], self.session_login)
         if self.get_user_api_key is not None:
             result["getUserApiKey"] = from_union([lambda x: to_class(SecretVerificationRequest, x), from_none], self.get_user_api_key)
         if self.fingerprint is not None:

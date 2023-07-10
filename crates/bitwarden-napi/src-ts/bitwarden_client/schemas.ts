@@ -24,8 +24,8 @@
  * assert_matches::assert_matches; let settings = ClientSettings { identity_url:
  * "https://identity.bitwarden.com".to_string(), api_url:
  * "https://api.bitwarden.com".to_string(), user_agent: "Bitwarden Rust-SDK".to_string(),
- * device_type: DeviceType::SDK, }; let default = ClientSettings::default();
- * assert_matches!(settings, default); ```
+ * device_type: DeviceType::SDK, state_path: None, }; let default =
+ * ClientSettings::default(); assert_matches!(settings, default); ```
  *
  * Targets `localhost:8080` for debug builds.
  */
@@ -43,6 +43,12 @@ export interface ClientSettings {
      * `https://identity.bitwarden.com`
      */
     identityUrl: string;
+    /**
+     * Path to the file that stores the SDK's internal state, when not set the state is kept in
+     * memory only This option has no effect when compiling for WebAssembly, in that case
+     * LocalStorage is always used.
+     */
+    statePath?: null | string;
     /**
      * The user_agent to sent to Bitwarden. Defaults to `Bitwarden Rust-SDK`
      */
@@ -100,6 +106,8 @@ export enum DeviceType {
  *
  * Returns: [ApiKeyLoginResponse](bitwarden::auth::response::ApiKeyLoginResponse)
  *
+ * Login with a previously saved session
+ *
  * > Requires Authentication Get the API key of the currently authenticated user
  *
  * Returns: [UserApiKeyResponse](bitwarden::platform::UserApiKeyResponse)
@@ -110,13 +118,12 @@ export enum DeviceType {
  *
  * > Requires Authentication Retrieve all user data, ciphers and organizations the user is a
  * part of
- *
- * Returns: [SyncResponse](bitwarden::platform::SyncResponse)
  */
 export interface Command {
     passwordLogin?:    PasswordLoginRequest;
     apiKeyLogin?:      APIKeyLoginRequest;
     accessTokenLogin?: AccessTokenLoginRequest;
+    sessionLogin?:     SessionLoginRequest;
     getUserApiKey?:    SecretVerificationRequest;
     fingerprint?:      FingerprintRequest;
     sync?:             SyncRequest;
@@ -351,6 +358,20 @@ export interface SecretPutRequest {
      */
     organizationId: string;
     value:          string;
+}
+
+/**
+ * Login to Bitwarden using a saved session
+ */
+export interface SessionLoginRequest {
+    /**
+     * User's master password, used to unlock the vault
+     */
+    password: string;
+    /**
+     * User's uuid
+     */
+    userId: string;
 }
 
 export interface SyncRequest {
@@ -837,12 +858,14 @@ const typeMap: any = {
         { json: "apiUrl", js: "apiUrl", typ: "" },
         { json: "deviceType", js: "deviceType", typ: r("DeviceType") },
         { json: "identityUrl", js: "identityUrl", typ: "" },
+        { json: "statePath", js: "statePath", typ: u(undefined, u(null, "")) },
         { json: "userAgent", js: "userAgent", typ: "" },
     ], false),
     "Command": o([
         { json: "passwordLogin", js: "passwordLogin", typ: u(undefined, r("PasswordLoginRequest")) },
         { json: "apiKeyLogin", js: "apiKeyLogin", typ: u(undefined, r("APIKeyLoginRequest")) },
         { json: "accessTokenLogin", js: "accessTokenLogin", typ: u(undefined, r("AccessTokenLoginRequest")) },
+        { json: "sessionLogin", js: "sessionLogin", typ: u(undefined, r("SessionLoginRequest")) },
         { json: "getUserApiKey", js: "getUserApiKey", typ: u(undefined, r("SecretVerificationRequest")) },
         { json: "fingerprint", js: "fingerprint", typ: u(undefined, r("FingerprintRequest")) },
         { json: "sync", js: "sync", typ: u(undefined, r("SyncRequest")) },
@@ -923,6 +946,10 @@ const typeMap: any = {
         { json: "note", js: "note", typ: "" },
         { json: "organizationId", js: "organizationId", typ: "" },
         { json: "value", js: "value", typ: "" },
+    ], false),
+    "SessionLoginRequest": o([
+        { json: "password", js: "password", typ: "" },
+        { json: "userId", js: "userId", typ: "" },
     ], false),
     "SyncRequest": o([
         { json: "excludeSubdomains", js: "excludeSubdomains", typ: u(undefined, u(true, null)) },

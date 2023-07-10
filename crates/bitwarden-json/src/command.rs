@@ -13,7 +13,7 @@ use bitwarden::{
 };
 #[cfg(feature = "internal")]
 use bitwarden::{
-    auth::request::{ApiKeyLoginRequest, PasswordLoginRequest},
+    auth::request::{ApiKeyLoginRequest, PasswordLoginRequest, SessionLoginRequest},
     platform::{FingerprintRequest, SecretVerificationRequest, SyncRequest},
 };
 use schemars::JsonSchema;
@@ -53,6 +53,10 @@ pub enum Command {
     AccessTokenLogin(AccessTokenLoginRequest),
 
     #[cfg(feature = "internal")]
+    /// Login with a previously saved session
+    SessionLogin(SessionLoginRequest),
+
+    #[cfg(feature = "internal")]
     /// > Requires Authentication
     /// Get the API key of the currently authenticated user
     ///
@@ -70,8 +74,6 @@ pub enum Command {
     #[cfg(feature = "internal")]
     /// > Requires Authentication
     /// Retrieve all user data, ciphers and organizations the user is a part of
-    ///
-    /// Returns: [SyncResponse](bitwarden::platform::SyncResponse)
     ///
     Sync(SyncRequest),
 

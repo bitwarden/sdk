@@ -7,7 +7,6 @@ import {
   ResponseForSecretIdentifiersResponse,
   ResponseForSecretResponse,
   ResponseForSecretsDeleteResponse,
-  ResponseForSyncResponse,
   ResponseForUserAPIKeyResponse,
 } from "./schemas";
 
@@ -51,16 +50,14 @@ export class BitwardenClient {
 
   async sync(
     excludeSubdomains: boolean = false
-  ): Promise<ResponseForSyncResponse> {
-    const response = await this.client.run_command(
+  ): Promise<void> {
+    await this.client.run_command(
       Convert.commandToJson({
         sync: {
           excludeSubdomains
         },
       })
     );
-
-    return Convert.toResponseForSyncResponse(response);
   }
 
   secrets(): SecretsClient {

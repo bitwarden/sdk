@@ -17,7 +17,7 @@ defaults:
 jobs:
   direct-minimal-versions:
     name: Check dependencies minimal versions for - ${{ matrix.settings.os }} - ${{ matrix.settings.target }}
-
+    runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}
     strategy:
       fail-fast: false
       matrix:

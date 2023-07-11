@@ -428,6 +428,16 @@
           "type": "string",
           "format": "uuid"
         },
+        "projectIds": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
         "value": {
           "type": "string"
         }

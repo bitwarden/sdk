@@ -435,6 +435,9 @@ namespace Bit.Sdk
         [JsonProperty("organizationId")]
         public Guid OrganizationId { get; set; }
 
+        [JsonProperty("projectIds")]
+        public Guid[] ProjectIds { get; set; }
+
         [JsonProperty("value")]
         public string Value { get; set; }
     }

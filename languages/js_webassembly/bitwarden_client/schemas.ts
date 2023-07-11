@@ -350,6 +350,7 @@ export interface SecretPutRequest {
      * Organization ID of the secret to modify
      */
     organizationId: string;
+    projectIds?:    string[] | null;
     value:          string;
 }
 
@@ -922,6 +923,7 @@ const typeMap: any = {
         { json: "key", js: "key", typ: "" },
         { json: "note", js: "note", typ: "" },
         { json: "organizationId", js: "organizationId", typ: "" },
+        { json: "projectIds", js: "projectIds", typ: u(undefined, u(a(""), null)) },
         { json: "value", js: "value", typ: "" },
     ], false),
     "SyncRequest": o([

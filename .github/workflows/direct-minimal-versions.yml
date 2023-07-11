@@ -1,0 +1,33 @@
+---
+name: Check Minimum Version
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "master"
+      - "rc"
+      - "hotfix-rc"
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  direct-minimal-versions:
+    - name: Checkout
+      uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+
+    - name: Install rust
+      uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
+      with:
+        toolchain: unstable
+        profile: minimal
+        override: true
+
+    - name: cargo check direct-minimal-versions
+      uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
+      with:
+        command: check
+        args: -Z direct-minimal-versions

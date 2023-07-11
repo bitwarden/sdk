@@ -19,14 +19,16 @@
       "matchManagers": ["cargo"],
       "matchPackagePatterns": ["*"],
       "matchUpdateTypes": ["patch"],
-      "groupName": "rust non-major"
+      "groupName": "rust non-breaking",
+      "enabled": false
     },
     {
       "matchManagers": ["cargo"],
       "matchPackagePatterns": ["*"],
       "matchUpdateTypes": ["minor"],
       "matchCurrentVersion": ">=1.0.0",
-      "groupName": "rust non-major"
+      "groupName": "rust non-breaking",
+      "enabled": false
     },
     {
       "matchManagers": ["cargo"],

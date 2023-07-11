@@ -1,5 +1,5 @@
 ---
-name: Check Minimum Version
+name: Direct Minimum Version
 
 on:
   pull_request:

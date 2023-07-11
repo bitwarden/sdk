@@ -6,8 +6,8 @@ use uuid::Uuid;
 
 use crate::{
     auth::{
-        commands::{access_token_login, renew_token},
-        request::AccessTokenLoginRequest,
+        commands::{access_token_login, renew_token, send_two_factor_email},
+        request::{AccessTokenLoginRequest, TwoFactorEmailRequest},
         response::ApiKeyLoginResponse,
     },
     client::{
@@ -250,6 +250,10 @@ impl Client {
     #[cfg(feature = "internal")]
     pub fn fingerprint(&mut self, input: &FingerprintRequest) -> Result<String> {
         generate_fingerprint(input)
+    }
+
+    pub async fn send_two_factor_email(&mut self, tf: &TwoFactorEmailRequest) -> Result<()> {
+        send_two_factor_email(self, tf).await
     }
 }
 

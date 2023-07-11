@@ -39,6 +39,20 @@
       },
       "args": [],
       "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "bw",
+      "cargo": {
+        "args": ["build", "--package=bw"],
+        "filter": {
+          "name": "bw",
+          "kind": "bin"
+        }
+      },
+      "args": ["login", "--email", "twofactor@stark.com"],
+      "cwd": "${workspaceFolder}"
     }
   ]
 }

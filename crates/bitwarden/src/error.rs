@@ -68,8 +68,6 @@ pub enum AccessTokenInvalidError {
 
 #[derive(Debug, Error)]
 pub enum CryptoError {
-    #[error("Error stretching key")]
-    KeyStretch,
     #[error("The provided key is not the expected type")]
     InvalidKey,
     #[error("The cipher's MAC doesn't match the expected value")]

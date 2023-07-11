@@ -16,19 +16,16 @@
     {
       "groupName": "npm minor",
       "matchManagers": ["npm"],
-      "matchPackagePatterns": ["*"],
       "matchUpdateTypes": ["minor", "patch"]
     },
     {
       "matchManagers": ["cargo"],
-      "matchPackagePatterns": ["*"],
       "matchUpdateTypes": ["patch"],
       "groupName": "rust non-breaking",
       "enabled": false
     },
     {
       "matchManagers": ["cargo"],
-      "matchPackagePatterns": ["*"],
       "matchUpdateTypes": ["minor"],
       "matchCurrentVersion": ">=1.0.0",
       "groupName": "rust non-breaking",
@@ -43,7 +40,6 @@
     {
       "groupName": "nuget minor",
       "matchManagers": ["nuget"],
-      "matchPackagePatterns": ["*"],
       "matchUpdateTypes": ["minor", "patch"]
     },
     {

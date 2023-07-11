@@ -16,18 +16,42 @@ defaults:
 
 jobs:
   direct-minimal-versions:
-    - name: Checkout
-      uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+    name: Check dependencies minimal versions for - ${{ matrix.settings.os }} - ${{ matrix.settings.target }}
 
-    - name: Install rust
-      uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
-      with:
-        toolchain: unstable
-        profile: minimal
-        override: true
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - os: macos-12
+            target: x86_64-apple-darwin
 
-    - name: cargo check direct-minimal-versions
-      uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
-      with:
-        command: check
-        args: -Z direct-minimal-versions
+          - os: macos-12
+            target: aarch64-apple-darwin
+
+          - os: windows-2022
+            target: x86_64-pc-windows-msvc
+
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+
+      - name: Install rust
+        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
+        with:
+          toolchain: unstable
+          profile: minimal
+          override: true
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@988c164c3d0e93c4dbab36aaf5bbeb77425b2894 # v2.4.0
+        with:
+          key: dmv-${{ matrix.settings.target }}-cargo-${{ matrix.settings.os }}
+
+      - name: cargo check direct-minimal-versions
+        uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
+        with:
+          command: check
+          args: -Z direct-minimal-versions

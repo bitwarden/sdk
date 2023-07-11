@@ -28,3 +28,10 @@ crates/bitwarden-napi/sdk-napi.*.node
 
 # Complied TypeScript client
 crates/bitwarden-napi/dist
+
+# Schemas
+support/schemas
+crates/bitwarden-napi/src-ts/bitwarden_client/schemas.ts
+languages/csharp/schemas.cs
+languages/js_webassembly/bitwarden_client/schemas.ts
+languages/python/BitwardenClient/schemas.py

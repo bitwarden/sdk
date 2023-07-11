@@ -3,8 +3,12 @@
   "extends": [
     "config:base",
     "schedule:weekends",
+    ":combinePatchMinorReleases",
     ":dependencyDashboard",
-    ":maintainLockFilesWeekly"
+    ":maintainLockFilesWeekly",
+    ":prConcurrentLimit10",
+    ":rebaseStalePrs",
+    ":separateMajorReleases"
   ],
   "separateMajorMinor": true,
   "enabledManagers": ["cargo", "github-actions", "npm", "nuget"],

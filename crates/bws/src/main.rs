@@ -226,8 +226,6 @@ const PROFILE_KEY_VAR_NAME: &str = "BWS_PROFILE";
 const SERVER_URL_KEY_VAR_NAME: &str = "BWS_SERVER_URL";
 
 async fn process_commands() -> Result<()> {
-    const MAX_PROJECT_NAME_LENGTH: usize = 1000;
-    const MAX_SECRET_NAME_LENGTH: usize = 1000;
     let cli = Cli::parse();
 
     let color = cli.color.is_enabled();

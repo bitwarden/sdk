@@ -20,10 +20,6 @@
     },
     {
       "matchManagers": ["cargo"],
-      "rangeStrategy": "widen"
-    },
-    {
-      "matchManagers": ["cargo"],
       "matchUpdateTypes": ["patch"],
       "enabled": false
     },

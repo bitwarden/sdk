@@ -1,4 +1,4 @@
-use std::{path::PathBuf, str::FromStr, process};
+use std::{path::PathBuf, process, str::FromStr};
 
 use bitwarden::{
     auth::request::AccessTokenLoginRequest,

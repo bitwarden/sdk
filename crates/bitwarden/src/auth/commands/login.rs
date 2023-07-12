@@ -210,7 +210,7 @@ async fn determine_password_hash(
 ) -> Result<String> {
     let pre_login = request_prelogin(client, email.to_owned()).await?;
     let auth_settings = AuthSettings::new(pre_login, email.to_owned());
-    let password_hash = auth_settings.make_user_password_hash(password);
+    let password_hash = auth_settings.make_user_password_hash(password)?;
     client.set_auth_settings(auth_settings).await?;
 
     Ok(password_hash)

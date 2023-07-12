@@ -8,8 +8,17 @@ use base64::{
 
 use crate::error::Result;
 
-pub fn default_kdf_iterations() -> NonZeroU32 {
+pub fn default_pbkdf2_iterations() -> NonZeroU32 {
     NonZeroU32::new(600_000).unwrap()
+}
+pub fn default_argon2_iterations() -> NonZeroU32 {
+    NonZeroU32::new(3).unwrap()
+}
+pub fn default_argon2_memory() -> NonZeroU32 {
+    NonZeroU32::new(64).unwrap()
+}
+pub fn default_argon2_parallelism() -> NonZeroU32 {
+    NonZeroU32::new(4).unwrap()
 }
 
 #[derive(serde::Deserialize)]

@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "2.6.0",
-    "prettier": "2.8.8",
+    "prettier": "3.0.0",
     "quicktype-core": "21.0.16",
     "rimraf": "5.0.0",
     "ts-node": "10.9.1",

@@ -20,15 +20,17 @@
     },
     {
       "matchManagers": ["cargo"],
+      "rangeStrategy": "widen"
+    },
+    {
+      "matchManagers": ["cargo"],
       "matchUpdateTypes": ["patch"],
-      "groupName": "rust non-breaking",
       "enabled": false
     },
     {
       "matchManagers": ["cargo"],
       "matchUpdateTypes": ["minor"],
       "matchCurrentVersion": ">=1.0.0",
-      "groupName": "rust non-breaking",
       "enabled": false
     },
     {

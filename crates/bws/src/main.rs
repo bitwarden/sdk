@@ -226,6 +226,8 @@ const PROFILE_KEY_VAR_NAME: &str = "BWS_PROFILE";
 const SERVER_URL_KEY_VAR_NAME: &str = "BWS_SERVER_URL";
 
 async fn process_commands() -> Result<()> {
+    const MAX_PROJECT_NAME_LENGTH: usize = 1000;
+    const MAX_SECRET_NAME_LENGTH: usize = 1000;
     let cli = Cli::parse();
 
     let color = cli.color.is_enabled();
@@ -355,6 +357,10 @@ async fn process_commands() -> Result<()> {
         | Commands::Create {
             cmd: CreateCommand::Project { name },
         } => {
+            if name.trim().len() > MAX_PROJECT_NAME_LENGTH {
+                bail!("Project name cannot be greater than 1000 characters.");
+            }
+
             let project = client
                 .projects()
                 .create(&ProjectCreateRequest {
@@ -371,6 +377,10 @@ async fn process_commands() -> Result<()> {
         | Commands::Edit {
             cmd: EditCommand::Project { project_id, name },
         } => {
+            if name.trim().len() > MAX_PROJECT_NAME_LENGTH {
+                bail!("Project name cannot be greater than 1000 characters.");
+            }
+
             let project = client
                 .projects()
                 .update(&ProjectPutRequest {
@@ -481,6 +491,10 @@ async fn process_commands() -> Result<()> {
                     project_id,
                 },
         } => {
+            if key.trim().len() > MAX_SECRET_NAME_LENGTH {
+                bail!("Secret name cannot be greater than 1000 characters.");
+            }
+
             let secret = client
                 .secrets()
                 .create(&SecretCreateRequest {
@@ -514,6 +528,15 @@ async fn process_commands() -> Result<()> {
                     project_id,
                 },
         } => {
+            match &key {
+                Some(x) => {
+                    if x.len() > MAX_SECRET_NAME_LENGTH {
+                        bail!("Secret name cannot be greater than 1000 characters.");
+                    }
+                }
+                None => (),
+            };
+
             let old_secret = client
                 .secrets()
                 .get(&SecretGetRequest {

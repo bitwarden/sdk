@@ -357,7 +357,7 @@ async fn process_commands() -> Result<()> {
         | Commands::Create {
             cmd: CreateCommand::Project { name },
         } => {
-            if name.trim().len() > MAX_PROJECT_NAME_LENGTH {
+            if name.len() > MAX_PROJECT_NAME_LENGTH {
                 bail!("Project name cannot be greater than 1000 characters.");
             }
 
@@ -377,7 +377,7 @@ async fn process_commands() -> Result<()> {
         | Commands::Edit {
             cmd: EditCommand::Project { project_id, name },
         } => {
-            if name.trim().len() > MAX_PROJECT_NAME_LENGTH {
+            if name.len() > MAX_PROJECT_NAME_LENGTH {
                 bail!("Project name cannot be greater than 1000 characters.");
             }
 
@@ -491,7 +491,7 @@ async fn process_commands() -> Result<()> {
                     project_id,
                 },
         } => {
-            if key.trim().len() > MAX_SECRET_NAME_LENGTH {
+            if key.len() > MAX_SECRET_NAME_LENGTH {
                 bail!("Secret name cannot be greater than 1000 characters.");
             }
 

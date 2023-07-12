@@ -17,4 +17,4 @@ pub use project_response::ProjectResponse;
 pub(crate) use update::update_project;
 pub use update::ProjectPutRequest;
 
-const PROJECT_NAME_MAX_LENGTH: usize = 1000;
+const PROJECT_NAME_MAX_LENGTH: usize = 500;

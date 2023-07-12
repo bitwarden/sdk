@@ -44,6 +44,12 @@ pub enum Error {
     #[error("Received error message from server: [{}] {}", .status, .message)]
     ResponseContent { status: StatusCode, message: String },
 
+    #[error("Field '{}' exceeds the maximum length: {}", .field_name, .maximum_length)]
+    FieldLengthExceeded {
+        field_name: &'static str,
+        maximum_length: usize,
+    },
+
     #[error("Internal error: {0}")]
     Internal(&'static str),
 }

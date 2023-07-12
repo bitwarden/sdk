@@ -3,7 +3,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::ProjectResponse;
+use super::{ProjectResponse, PROJECT_NAME_MAX_LENGTH};
+
 use crate::{
     client::Client,
     error::{Error, Result},
@@ -22,6 +23,8 @@ pub(crate) async fn create_project(
     client: &mut Client,
     input: &ProjectCreateRequest,
 ) -> Result<ProjectResponse> {
+    validate(input)?;
+
     let enc = client
         .get_encryption_settings()
         .as_ref()
@@ -47,4 +50,15 @@ pub(crate) async fn create_project(
         .ok_or(Error::VaultLocked)?;
 
     ProjectResponse::process_response(res, enc)
+}
+
+fn validate(input: &ProjectCreateRequest) -> Result<()> {
+    if input.name.len() > PROJECT_NAME_MAX_LENGTH {
+        return Err(Error::FieldLengthExceeded {
+            field_name: "name",
+            maximum_length: PROJECT_NAME_MAX_LENGTH,
+        });
+    }
+
+    Ok(())
 }

@@ -3,7 +3,10 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::SecretResponse;
+use super::{
+    SecretResponse, SECRET_KEY_MAX_LENGTH, SECRET_NOTE_MAX_LENGTH, SECRET_VALUE_MAX_LENGTH,
+};
+
 use crate::{
     client::Client,
     error::{Error, Result},
@@ -27,6 +30,8 @@ pub(crate) async fn update_secret(
     client: &mut Client,
     input: &SecretPutRequest,
 ) -> Result<SecretResponse> {
+    validate(input)?;
+
     let enc = client
         .get_encryption_settings()
         .as_ref()
@@ -51,4 +56,29 @@ pub(crate) async fn update_secret(
         .ok_or(Error::VaultLocked)?;
 
     SecretResponse::process_response(res, enc)
+}
+
+fn validate(input: &SecretPutRequest) -> Result<()> {
+    if input.key.len() > SECRET_KEY_MAX_LENGTH {
+        return Err(Error::FieldLengthExceeded {
+            field_name: "key",
+            maximum_length: SECRET_KEY_MAX_LENGTH,
+        });
+    }
+
+    if input.value.len() > SECRET_VALUE_MAX_LENGTH {
+        return Err(Error::FieldLengthExceeded {
+            field_name: "value",
+            maximum_length: SECRET_VALUE_MAX_LENGTH,
+        });
+    }
+
+    if input.note.len() > SECRET_NOTE_MAX_LENGTH {
+        return Err(Error::FieldLengthExceeded {
+            field_name: "note",
+            maximum_length: SECRET_NOTE_MAX_LENGTH,
+        });
+    }
+
+    Ok(())
 }

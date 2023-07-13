@@ -48,7 +48,7 @@ export class BitwardenClient {
         sync: {
           excludeSubdomains,
         },
-      })
+      }),
     );
   }
 

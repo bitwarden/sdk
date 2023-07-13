@@ -149,7 +149,7 @@ jobs:
           artifacts: schemas.ts
           path: ${{ github.workspace }}/crates/bitwarden-napi/src-ts/bitwarden_client/
           workflow_conclusion: success
-          branch: remove_schemas
+          branch: master
 
       - name: Install dependencies
         run: npm ci

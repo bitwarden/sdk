@@ -16,9 +16,13 @@ defaults:
     working-directory: crates/bitwarden-napi
 
 jobs:
+  generate_schemas:
+    uses: ./.github/workflows/generate_schemas.yml
+
   build:
     name: Building @bitwarden/sdk-napi for - ${{ matrix.settings.os }}
     runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}
+    needs: generate_schemas
     strategy:
       fail-fast: false
       matrix:
@@ -68,6 +72,12 @@ jobs:
         uses: Swatinem/rust-cache@dd05243424bd5c0e585e4b55eb2d7615cdd32f1f # v2.5.1
         with:
           key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.os }}
+
+      - name: Retrieve schemas
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: schemas.ts
+          path: ${{ github.workspace }}/crates/bitwarden-napi/src-ts/bitwarden_client/
 
       - name: Install dependencies
         run: npm ci

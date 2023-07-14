@@ -15,6 +15,7 @@ use bitwarden::{
     },
 };
 use clap::{ArgGroup, CommandFactory, Parser, Subcommand};
+use clap_complete::Shell;
 use color_eyre::eyre::{bail, Result};
 use log::error;
 
@@ -26,16 +27,16 @@ use render::{serialize_response, Color, Output};
 use uuid::Uuid;
 
 #[derive(Parser, Debug)]
-#[command(name = "Bitwarden Secrets CLI", version, about = "Bitwarden Secrets CLI", long_about = None)]
+#[command(name = "bws", version, about = "Bitwarden Secrets CLI", long_about = None)]
 struct Cli {
     // Optional as a workaround for https://github.com/clap-rs/clap/issues/3572
     #[command(subcommand)]
     command: Option<Commands>,
 
-    #[arg(short = 'o', long, global = true, value_enum, default_value_t = Output::JSON)]
+    #[arg(short = 'o', long, global = true, value_enum, default_value_t = Output::JSON, help="Select the output format for the commands", hide = true)]
     output: Output,
 
-    #[arg(short = 'c', long, global = true, value_enum, default_value_t = Color::Auto)]
+    #[arg(short = 'c', long, global = true, value_enum, default_value_t = Color::Auto, help="Enable or disable the use of colors in the output")]
     color: Color,
 
     #[arg(short = 't', long, global = true, env = ACCESS_TOKEN_KEY_VAR_NAME, hide_env_values = true, help="Specify access token for the service account")]
@@ -66,6 +67,12 @@ enum Commands {
         #[arg(short = 'd', long)]
         delete: bool,
     },
+
+    #[command(long_about = "Generate shell completion files")]
+    Completions { shell: Option<Shell> },
+    #[command(long_about = "Generate manpages at the provided path")]
+    ManPage { path: PathBuf },
+
     #[command(long_about = "Commands available on Projects")]
     Project {
         #[command(subcommand)]
@@ -238,6 +245,36 @@ async fn process_commands() -> Result<()> {
         cmd.print_help()?;
         return Ok(());
     };
+
+    if let Commands::Completions { shell } = command {
+        let Some(shell) = shell.or_else(Shell::from_env) else {
+            eprintln!("Couldn't autodetect a valid shell. Run `bws completions --help` for more info.");
+            std::process::exit(1);
+        };
+
+        let mut cmd = Cli::command();
+        let name = cmd.get_name().to_string();
+        clap_complete::generate(shell, &mut cmd, name, &mut std::io::stdout());
+        return Ok(());
+    }
+
+    if let Commands::ManPage { path } = command {
+        std::fs::create_dir_all(&path)?;
+        let cmd = Cli::command();
+
+        let man = clap_mangen::Man::new(cmd.clone());
+        let mut buffer: Vec<u8> = Default::default();
+        man.render(&mut buffer)?;
+        std::fs::write(path.join("bws.1"), buffer)?;
+
+        for sc in cmd.get_subcommands() {
+            let name = format!("bws-{}", sc.get_name());
+            let mut buffer: Vec<u8> = Vec::new();
+            clap_mangen::Man::new(sc.clone().name(&name)).render(&mut buffer)?;
+            std::fs::write(path.join(format!("{}{}", &name, ".1")), buffer)?;
+        }
+        return Ok(());
+    }
 
     // Modify profile commands
     if let Commands::Config {
@@ -524,7 +561,7 @@ async fn process_commands() -> Result<()> {
             println!("Secret deleted correctly");
         }
 
-        Commands::Config { .. } => {
+        Commands::Config { .. } | Commands::Completions { .. } | Commands::ManPage { .. } => {
             unreachable!()
         }
     }

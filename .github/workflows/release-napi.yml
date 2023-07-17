@@ -47,7 +47,7 @@ jobs:
 
       - name: Check Release Version
         id: version
-        uses: bitwarden/gh-actions/release-version-check@a30e9c3d658dc97c4c2e61ec749fdab64b83386c
+        uses: bitwarden/gh-actions/release-version-check@12452ffcde72eca60a91abef555090ad17ba2108
         with:
           release-type: ${{ github.event.inputs.release_type }}
           project-type: ts
@@ -67,7 +67,7 @@ jobs:
 
       - name: Download all Release artifacts
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
-        uses: bitwarden/gh-actions/download-artifacts@a30e9c3d658dc97c4c2e61ec749fdab64b83386c
+        uses: bitwarden/gh-actions/download-artifacts@12452ffcde72eca60a91abef555090ad17ba2108
         with:
           workflow: build-napi.yml
           path: artifacts
@@ -76,7 +76,7 @@ jobs:
 
       - name: Dry Run - Download all artifacts
         if: ${{ github.event.inputs.release_type == 'Dry Run' }}
-        uses: bitwarden/gh-actions/download-artifacts@a30e9c3d658dc97c4c2e61ec749fdab64b83386c
+        uses: bitwarden/gh-actions/download-artifacts@12452ffcde72eca60a91abef555090ad17ba2108
         with:
           workflow: build-napi.yml
           path: artifacts
@@ -133,7 +133,7 @@ jobs:
 
       - name: Download schemas
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
-        uses: bitwarden/gh-actions/download-artifacts@72594be690a4e7bfa87b1402b2aedc75acdbff12
+        uses: bitwarden/gh-actions/download-artifacts@12452ffcde72eca60a91abef555090ad17ba2108
         with:
           workflow: build-napi.yml
           artifacts: schemas.ts
@@ -143,7 +143,7 @@ jobs:
 
       - name: Dry Run - Download schemas
         if: ${{ github.event.inputs.release_type == 'Dry Run' }}
-        uses: bitwarden/gh-actions/download-artifacts@72594be690a4e7bfa87b1402b2aedc75acdbff12
+        uses: bitwarden/gh-actions/download-artifacts@12452ffcde72eca60a91abef555090ad17ba2108
         with:
           workflow: build-napi.yml
           artifacts: schemas.ts
@@ -164,14 +164,14 @@ jobs:
 
       - name: Retrieve secrets
         id: retrieve-secrets
-        uses: bitwarden/gh-actions/get-keyvault-secrets@a30e9c3d658dc97c4c2e61ec749fdab64b83386c
+        uses: bitwarden/gh-actions/get-keyvault-secrets@12452ffcde72eca60a91abef555090ad17ba2108
         with:
           keyvault: "bitwarden-ci"
           secrets: "npm-api-key"
 
       - name: Download artifacts
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
-        uses: bitwarden/gh-actions/download-artifacts@a30e9c3d658dc97c4c2e61ec749fdab64b83386c
+        uses: bitwarden/gh-actions/download-artifacts@12452ffcde72eca60a91abef555090ad17ba2108
         with:
           workflow: build-napi.yml
           path: ${{ github.workspace }}/crates/bitwarden-napi/artifacts
@@ -180,7 +180,7 @@ jobs:
 
       - name: Dry Run - Download artifacts
         if: ${{ github.event.inputs.release_type == 'Dry Run' }}
-        uses: bitwarden/gh-actions/download-artifacts@a30e9c3d658dc97c4c2e61ec749fdab64b83386c
+        uses: bitwarden/gh-actions/download-artifacts@12452ffcde72eca60a91abef555090ad17ba2108
         with:
           workflow: build-napi.yml
           path: ${{ github.workspace }}/crates/bitwarden-napi/artifacts

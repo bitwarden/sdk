@@ -52,6 +52,8 @@ jobs:
         with:
           command: build
           args: ${{ matrix.features }} -p ${{ matrix.package }} --release
+        env:
+          RUSTFLAGS: "-D warnings"
 
       - name: Build Internal
         if: ${{ matrix.package == 'bitwarden' }}
@@ -59,6 +61,8 @@ jobs:
         with:
           command: build
           args: ${{ matrix.features }} -p ${{ matrix.package }} --features internal --release
+        env:
+          RUSTFLAGS: "-D warnings"
 
   release-dry-run:
     name: Release dry-run

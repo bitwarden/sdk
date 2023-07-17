@@ -2,7 +2,7 @@ use bitwarden::client::client_settings::ClientSettings;
 
 use crate::{
     command::{Command, ProjectsCommand, SecretsCommand},
-    response::ResponseIntoString,
+    response::{Response, ResponseIntoString},
 };
 
 #[cfg(feature = "internal")]
@@ -20,7 +20,9 @@ impl Client {
         const SUBCOMMANDS_TO_CLEAN: &[&str] = &["Secrets"];
         let mut cmd_value: serde_json::Value = match serde_json::from_str(input_str) {
             Ok(cmd) => cmd,
-            Err(e) => return format!("{:#?}", e),
+            Err(e) => {
+                return Response::error(format!("Invalid command string: {}", e)).into_string()
+            }
         };
 
         if let Some(cmd_value_map) = cmd_value.as_object_mut() {
@@ -38,7 +40,9 @@ impl Client {
 
         let cmd: Command = match serde_json::from_value(cmd_value) {
             Ok(cmd) => cmd,
-            Err(e) => return format!("{:#?}", e),
+            Err(e) => {
+                return Response::error(format!("Invalid command value: {}", e)).into_string()
+            }
         };
 
         match cmd {
@@ -84,8 +88,11 @@ impl Client {
 
     fn parse_settings(settings_input: Option<String>) -> Option<ClientSettings> {
         if let Some(input) = settings_input.as_ref() {
-            if let Ok(settings) = serde_json::from_str(input) {
-                return Some(settings);
+            match serde_json::from_str(input) {
+                Ok(settings) => return Some(settings),
+                Err(e) => {
+                    log::error!("Failed to parse settings: {}", e);
+                }
             }
         }
         None

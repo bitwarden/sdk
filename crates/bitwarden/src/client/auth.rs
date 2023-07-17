@@ -47,6 +47,7 @@ impl Auth {
             .await
     }
 
+    #[cfg(feature = "internal")]
     pub(crate) async fn set_kdf(client: &Client, kdf: AuthSettings) -> Result<()> {
         client
             .get_state_service(AUTH_SERVICE)

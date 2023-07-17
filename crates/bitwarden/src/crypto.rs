@@ -2,27 +2,25 @@
 
 use std::{collections::HashMap, fmt::Display, hash::Hash, str::FromStr};
 
-use aes::cipher::{
-    generic_array::GenericArray,
-    typenum::{U32, U64},
-    Unsigned,
-};
+use aes::cipher::{generic_array::GenericArray, typenum::U64, Unsigned};
 use base64::Engine;
 use hmac::digest::OutputSizeUser;
-use num_bigint::BigUint;
-use num_traits::cast::ToPrimitive;
 use serde::{de::Visitor, Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 use uuid::Uuid;
 
 use crate::{
-    client::{
-        auth_settings::Kdf,
-        encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
-    },
+    client::encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
     error::{CSParseError, Error, Result},
     util::BASE64_ENGINE,
-    wordlist::EFF_LONG_WORD_LIST,
+};
+
+#[cfg(feature = "internal")]
+use {
+    crate::{client::auth_settings::Kdf, wordlist::EFF_LONG_WORD_LIST},
+    aes::cipher::typenum::U32,
+    num_bigint::BigUint,
+    num_traits::cast::ToPrimitive,
+    sha2::{Digest, Sha256},
 };
 
 #[allow(unused, non_camel_case_types)]
@@ -240,6 +238,7 @@ pub(crate) type PbkdfSha256Hmac = hmac::Hmac<sha2::Sha256>;
 pub(crate) const PBKDF_SHA256_HMAC_OUT_SIZE: usize =
     <<PbkdfSha256Hmac as OutputSizeUser>::OutputSize as Unsigned>::USIZE;
 
+#[cfg(feature = "internal")]
 pub(crate) fn hash_kdf(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<[u8; 32]> {
     let hash = match kdf {
         Kdf::PBKDF2 { iterations } => pbkdf2::pbkdf2_array::<
@@ -279,6 +278,7 @@ pub(crate) fn hash_kdf(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<[u8; 32]
     Ok(hash)
 }
 
+#[cfg(feature = "internal")]
 pub(crate) fn stretch_key_password(
     secret: &[u8],
     salt: &[u8],
@@ -322,6 +322,7 @@ pub(crate) fn stretch_key(secret: [u8; 16], name: &str, info: Option<&str>) -> S
     SymmetricCryptoKey::try_from(key.as_slice()).unwrap()
 }
 
+#[cfg(feature = "internal")]
 pub(crate) fn fingerprint(fingerprint_material: &str, public_key: &[u8]) -> Result<String> {
     let mut h = Sha256::new();
     h.update(public_key);
@@ -337,6 +338,7 @@ pub(crate) fn fingerprint(fingerprint_material: &str, public_key: &[u8]) -> Resu
     Ok(hash_word(user_fingerprint).unwrap())
 }
 
+#[cfg(feature = "internal")]
 fn hash_word(hash: [u8; 32]) -> Result<String> {
     let minimum_entropy = 64;
 
@@ -438,14 +440,19 @@ impl<T: Decryptable<Output>, Output, Id: Hash + Eq + Copy> Decryptable<HashMap<I
 
 #[cfg(test)]
 mod tests {
-    use std::num::NonZeroU32;
+    use super::stretch_key;
 
-    use super::{fingerprint, stretch_key};
-    use crate::{
-        client::auth_settings::Kdf,
-        crypto::{stretch_key_password, CipherString},
+    #[cfg(feature = "internal")]
+    use {
+        super::fingerprint,
+        crate::{
+            client::auth_settings::Kdf,
+            crypto::{stretch_key_password, CipherString},
+        },
+        std::num::NonZeroU32,
     };
 
+    #[cfg(feature = "internal")]
     #[test]
     fn test_cipher_string_serialization() {
         #[derive(serde::Serialize, serde::Deserialize)]
@@ -471,6 +478,7 @@ mod tests {
         assert_eq!(key.to_base64(), "F9jVQmrACGx9VUPjuzfMYDjr726JtL300Y3Yg+VYUnVQtQ1s8oImJ5xtp1KALC9h2nav04++1LDW4iFD+infng==");
     }
 
+    #[cfg(feature = "internal")]
     #[test]
     fn test_key_stretch_password_pbkdf2() {
         let (key, mac) = stretch_key_password(
@@ -498,6 +506,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "internal")]
     #[test]
     fn test_key_stretch_password_argon2() {
         let (key, mac) = stretch_key_password(
@@ -527,6 +536,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "internal")]
     #[test]
     fn test_fingerprint() {
         let user_id = "a09726a0-9590-49d1-a5f5-afe300b6a515";

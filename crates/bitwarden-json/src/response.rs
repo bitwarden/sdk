@@ -29,7 +29,9 @@ impl<T: Serialize + JsonSchema> Response<T> {
             },
         }
     }
+}
 
+impl Response<()> {
     pub fn error(message: String) -> Self {
         Self {
             success: false,
@@ -45,13 +47,18 @@ pub(crate) trait ResponseIntoString {
 
 impl<T: Serialize + JsonSchema, E: Error> ResponseIntoString for Result<T, E> {
     fn into_string(self) -> String {
-        match serde_json::to_string(&Response::new(self)) {
+        Response::new(self).into_string()
+    }
+}
+
+impl<T: Serialize + JsonSchema> ResponseIntoString for Response<T> {
+    fn into_string(self) -> String {
+        match serde_json::to_string(&self) {
             Ok(ser) => ser,
-            Err(e) => serde_json::to_string(&Response::<T>::error(format!(
-                "Failed to serialize Response: {}",
-                e
-            )))
-            .unwrap(),
+            Err(e) => {
+                let error = Response::error(format!("Failed to serialize Response: {}", e));
+                serde_json::to_string(&error).unwrap()
+            }
         }
     }
 }

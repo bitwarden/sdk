@@ -1,3 +1,4 @@
+use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -17,7 +18,10 @@ pub enum IdentityTokenResponse {
     CaptchaRequired(IdentityCaptchaResponse),
 }
 
-pub fn parse_identity_response(response: &str) -> Result<IdentityTokenResponse> {
+pub fn parse_identity_response(
+    status: StatusCode,
+    response: &str,
+) -> Result<IdentityTokenResponse> {
     if let Ok(r) = serde_json::from_str::<IdentityTokenSuccessResponse>(response) {
         Ok(IdentityTokenResponse::Authenticated(r))
     } else if let Ok(r) = serde_json::from_str::<IdentityTokenPayloadResponse>(response) {
@@ -31,7 +35,10 @@ pub fn parse_identity_response(response: &str) -> Result<IdentityTokenResponse> 
     } else if let Ok(r) = serde_json::from_str::<IdentityTokenFailResponse>(response) {
         Err(Error::IdentityFail(r))
     } else {
-        Err(Error::Internal("Failed to parse IdentityTokenResponse"))
+        Err(Error::ResponseContent {
+            status: status,
+            message: response.to_owned(),
+        })
     }
 }
 
@@ -44,7 +51,7 @@ mod test {
         let expected = IdentityTokenSuccessResponse::default();
         let success = serde_json::to_string(&expected).unwrap();
         let expected = IdentityTokenResponse::Authenticated(expected);
-        let actual = parse_identity_response(&success).unwrap();
+        let actual = parse_identity_response(StatusCode::OK, &success).unwrap();
         assert_eq!(expected, actual);
     }
 
@@ -53,7 +60,7 @@ mod test {
         let expected = IdentityTwoFactorResponse::default();
         let two_factor = serde_json::to_string(&expected).unwrap();
         let expected = IdentityTokenResponse::TwoFactorRequired(expected);
-        let actual = parse_identity_response(&two_factor).unwrap();
+        let actual = parse_identity_response(StatusCode::BAD_REQUEST, &two_factor).unwrap();
         assert_eq!(expected, actual);
     }
 
@@ -62,7 +69,7 @@ mod test {
         let expected = IdentityCaptchaResponse::default();
         let captcha = serde_json::to_string(&expected).unwrap();
         let expected = IdentityTokenResponse::CaptchaRequired(expected);
-        let actual = parse_identity_response(&captcha).unwrap();
+        let actual = parse_identity_response(StatusCode::BAD_REQUEST, &captcha).unwrap();
         assert_eq!(expected, actual);
     }
 }

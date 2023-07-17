@@ -50,12 +50,13 @@ async fn send_identity_connect_request(
         request = request.header("Auth-Email", BASE64_ENGINE.encode(email.as_bytes()));
     }
 
-    let raw_response = request
+    let response = request
         .body(serde_qs::to_string(&body).unwrap())
         .send()
-        .await?
-        .text()
         .await?;
 
-    parse_identity_response(&raw_response)
+    let status = response.status();
+    let text = response.text().await?;
+
+    parse_identity_response(status, &text)
 }

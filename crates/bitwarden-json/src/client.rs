@@ -78,7 +78,7 @@ impl Client {
             match serde_json::from_str(input) {
                 Ok(settings) => return Some(settings),
                 Err(e) => {
-                    eprintln!("Failed to parse settings: {}", e);
+                    log::error!("Failed to parse settings: {}", e);
                 }
             }
         }

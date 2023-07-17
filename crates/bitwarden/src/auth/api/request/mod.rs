@@ -47,6 +47,7 @@ async fn send_identity_connect_request(
         .body(serde_qs::to_string(&body).unwrap())
         .send()
         .await?
+        .error_for_status()?
         .text()
         .await?;
 

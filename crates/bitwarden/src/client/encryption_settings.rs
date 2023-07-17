@@ -18,7 +18,7 @@ use crate::{
 
 #[cfg(feature = "internal")]
 use {
-    client::auth_settings::AuthSettings,
+    crate::client::auth_settings::AuthSettings,
     rsa::{pkcs8::DecodePrivateKey, Oaep},
 };
 

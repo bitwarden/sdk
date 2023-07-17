@@ -17,10 +17,10 @@ use crate::{
 #[cfg(feature = "internal")]
 use {
     crate::{client::auth_settings::Kdf, wordlist::EFF_LONG_WORD_LIST},
+    aes::cipher::typenum::U32,
     num_bigint::BigUint,
     num_traits::cast::ToPrimitive,
     sha2::{Digest, Sha256},
-    typenum::U32,
 };
 
 #[allow(unused, non_camel_case_types)]

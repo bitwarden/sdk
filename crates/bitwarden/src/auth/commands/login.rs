@@ -25,7 +25,7 @@ use crate::{
 use {
     crate::{
         auth::{
-            api::request::{AccessTokenRequest, ApiTokenRequest, PasswordTokenRequest},
+            api::request::{ApiTokenRequest, PasswordTokenRequest},
             request::{ApiKeyLoginRequest, PasswordLoginRequest},
             response::PasswordLoginResponse,
         },

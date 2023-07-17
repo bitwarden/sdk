@@ -16,20 +16,22 @@ use crate::{
     error::Result,
 };
 #[cfg(feature = "internal")]
-use crate::{
-    auth::{
-        commands::{api_key_login, password_login},
-        request::{ApiKeyLoginRequest, PasswordLoginRequest},
-        response::PasswordLoginResponse,
+use {
+    crate::{
+        auth::{
+            commands::{api_key_login, password_login},
+            request::{ApiKeyLoginRequest, PasswordLoginRequest},
+            response::PasswordLoginResponse,
+        },
+        client::auth_settings::AuthSettings,
+        crypto::CipherString,
+        error::Error,
+        platform::{
+            generate_fingerprint, get_user_api_key, sync, FingerprintRequest,
+            SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,
+        },
     },
-    auth_settings::AuthSettings,
-    crypto::CipherString,
-    error::Error,
     log::debug,
-    platform::{
-        generate_fingerprint, get_user_api_key, sync, FingerprintRequest,
-        SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,
-    },
 };
 
 #[derive(Debug)]

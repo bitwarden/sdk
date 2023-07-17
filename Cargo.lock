@@ -335,6 +335,7 @@ name = "bitwarden-json"
 version = "0.2.1"
 dependencies = [
  "bitwarden",
+ "log",
  "schemars",
  "serde",
  "serde_json",

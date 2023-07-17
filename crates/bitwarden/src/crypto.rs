@@ -22,8 +22,10 @@ use crate::{
     },
     error::{CSParseError, Error, Result},
     util::BASE64_ENGINE,
-    wordlist::EFF_LONG_WORD_LIST,
 };
+
+#[cfg(feature = "internal")]
+use crate::wordlist::EFF_LONG_WORD_LIST;
 
 #[allow(unused, non_camel_case_types)]
 pub enum CipherString {
@@ -322,6 +324,7 @@ pub(crate) fn stretch_key(secret: [u8; 16], name: &str, info: Option<&str>) -> S
     SymmetricCryptoKey::try_from(key.as_slice()).unwrap()
 }
 
+#[cfg(feature = "internal")]
 pub(crate) fn fingerprint(fingerprint_material: &str, public_key: &[u8]) -> Result<String> {
     let mut h = Sha256::new();
     h.update(public_key);
@@ -337,6 +340,7 @@ pub(crate) fn fingerprint(fingerprint_material: &str, public_key: &[u8]) -> Resu
     Ok(hash_word(user_fingerprint).unwrap())
 }
 
+#[cfg(feature = "internal")]
 fn hash_word(hash: [u8; 32]) -> Result<String> {
     let minimum_entropy = 64;
 

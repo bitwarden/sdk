@@ -440,14 +440,19 @@ impl<T: Decryptable<Output>, Output, Id: Hash + Eq + Copy> Decryptable<HashMap<I
 
 #[cfg(test)]
 mod tests {
-    use std::num::NonZeroU32;
+    use super::stretch_key;
 
-    use super::{fingerprint, stretch_key};
-    use crate::{
-        client::auth_settings::Kdf,
-        crypto::{stretch_key_password, CipherString},
+    #[cfg(feature = "internal")]
+    use {
+        super::fingerprint,
+        crate::{
+            client::auth_settings::Kdf,
+            crypto::{stretch_key_password, CipherString},
+        },
+        std::num::NonZeroU32,
     };
 
+    #[cfg(feature = "internal")]
     #[test]
     fn test_cipher_string_serialization() {
         #[derive(serde::Serialize, serde::Deserialize)]
@@ -473,6 +478,7 @@ mod tests {
         assert_eq!(key.to_base64(), "F9jVQmrACGx9VUPjuzfMYDjr726JtL300Y3Yg+VYUnVQtQ1s8oImJ5xtp1KALC9h2nav04++1LDW4iFD+infng==");
     }
 
+    #[cfg(feature = "internal")]
     #[test]
     fn test_key_stretch_password_pbkdf2() {
         let (key, mac) = stretch_key_password(
@@ -500,6 +506,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "internal")]
     #[test]
     fn test_key_stretch_password_argon2() {
         let (key, mac) = stretch_key_password(
@@ -529,6 +536,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "internal")]
     #[test]
     fn test_fingerprint() {
         let user_id = "a09726a0-9590-49d1-a5f5-afe300b6a515";

@@ -1,13 +1,20 @@
 mod access_token_request;
+#[cfg(feature = "internal")]
 mod api_token_request;
+#[cfg(feature = "internal")]
 mod password_token_request;
+#[cfg(feature = "internal")]
 mod renew_token_request;
 
 pub(crate) use access_token_request::*;
+#[cfg(feature = "internal")]
 pub(crate) use api_token_request::*;
-use base64::Engine;
+#[cfg(feature = "internal")]
 pub(crate) use password_token_request::*;
+#[cfg(feature = "internal")]
 pub(crate) use renew_token_request::*;
+
+use base64::Engine;
 
 use crate::{
     auth::api::response::{parse_identity_response, IdentityTokenResponse},

@@ -1,17 +1,18 @@
 use std::{collections::HashMap, fmt::Debug, path::PathBuf};
 
 use async_lock::Mutex;
-use bitwarden_api_api::models::SyncResponseModel;
 use serde_json::Value;
+#[cfg(feature = "internal")]
 use uuid::Uuid;
 
-use crate::{
-    client::client_settings::ClientSettings,
-    error::{Error, Result},
-};
+use crate::{client::client_settings::ClientSettings, error::Result};
+
+#[cfg(feature = "internal")]
+use crate::error::Error;
 
 pub struct State {
     pub(crate) account: Mutex<StateStorage>,
+    #[cfg(feature = "internal")]
     path: Option<String>,
 }
 
@@ -22,11 +23,12 @@ impl Debug for State {
 }
 
 impl State {
-    pub(crate) fn load_state(settings: &ClientSettings) -> Self {
+    pub(crate) fn load_state(_settings: &ClientSettings) -> Self {
         Self {
             // The account storage will be in memory until the client is initialized
             account: Mutex::new(StateStorage::new(String::new(), load_medium(&None))),
-            path: settings.state_path.clone(),
+            #[cfg(feature = "internal")]
+            path: _settings.state_path.clone(),
         }
     }
 
@@ -34,7 +36,7 @@ impl State {
     pub(crate) async fn set_account_sync_data(
         &self,
         id: Uuid,
-        data: SyncResponseModel,
+        data: bitwarden_api_api::models::SyncResponseModel,
     ) -> Result<()> {
         // Before we create the storage profile, keep a copy of the current temporary storage (tokens, kdf params, etc)
 
@@ -61,6 +63,7 @@ impl State {
         Ok(())
     }
 
+    #[cfg(feature = "internal")]
     pub(crate) async fn load_account(&self, id: Uuid) -> Result<()> {
         let mut account = self.account.lock().await;
         *account = StateStorage::new(id.to_string(), load_medium(&self.path));
@@ -88,6 +91,7 @@ impl StateStorage {
         self.cache.clone()
     }
 
+    #[cfg(feature = "internal")]
     pub async fn read(&mut self) -> Result<HashMap<String, Value>> {
         let value = self
             .medium

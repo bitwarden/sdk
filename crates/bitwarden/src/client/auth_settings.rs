@@ -1,9 +1,12 @@
 use std::num::NonZeroU32;
 
+#[cfg(feature = "internal")]
 use base64::Engine;
+#[cfg(feature = "internal")]
 use bitwarden_api_identity::models::{KdfType, PreloginResponseModel};
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "internal")]
 use crate::{
     crypto::{PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},
     error::Result,
@@ -24,6 +27,7 @@ pub enum Kdf {
     PBKDF2 {
         iterations: NonZeroU32,
     },
+    #[cfg(feature = "internal")]
     Argon2id {
         iterations: NonZeroU32,
         memory: NonZeroU32,
@@ -31,6 +35,7 @@ pub enum Kdf {
     },
 }
 
+#[cfg(feature = "internal")]
 impl AuthSettings {
     pub fn new(response: PreloginResponseModel, email: String) -> Self {
         let kdf = match response.kdf.unwrap_or_default() {
@@ -40,6 +45,7 @@ impl AuthSettings {
                     .and_then(|e| NonZeroU32::new(e as u32))
                     .unwrap_or_else(default_pbkdf2_iterations),
             },
+            #[cfg(feature = "internal")]
             KdfType::Variant1 => Kdf::Argon2id {
                 iterations: response
                     .kdf_iterations

@@ -1,6 +1,5 @@
 use std::time::{Duration, Instant};
 
-use log::debug;
 use reqwest::header::{self};
 use uuid::Uuid;
 
@@ -11,12 +10,10 @@ use crate::{
         response::ApiKeyLoginResponse,
     },
     client::{
-        auth_settings::AuthSettings,
         client_settings::{ClientSettings, DeviceType},
         encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
     },
-    crypto::CipherString,
-    error::{Error, Result},
+    error::Result,
 };
 #[cfg(feature = "internal")]
 use crate::{
@@ -25,6 +22,10 @@ use crate::{
         request::{ApiKeyLoginRequest, PasswordLoginRequest},
         response::PasswordLoginResponse,
     },
+    auth_settings::AuthSettings,
+    crypto::CipherString,
+    error::Error,
+    log::debug,
     platform::{
         generate_fingerprint, get_user_api_key, sync, FingerprintRequest,
         SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,
@@ -40,9 +41,9 @@ pub(crate) struct ApiConfigurations {
 
 #[derive(Debug, Clone)]
 pub(crate) enum LoginMethod {
-    Username {
-        client_id: String,
-    },
+    #[cfg(feature = "internal")]
+    Username { client_id: String },
+    #[cfg(feature = "internal")]
     ApiKey {
         client_id: String,
         client_secret: String,
@@ -66,6 +67,7 @@ pub struct Client {
     #[doc(hidden)]
     pub(crate) __api_configurations: ApiConfigurations,
 
+    #[cfg(feature = "internal")]
     auth_settings: Option<AuthSettings>,
 
     encryption_settings: Option<EncryptionSettings>,
@@ -112,6 +114,7 @@ impl Client {
                 api,
                 device_type: settings.device_type,
             },
+            #[cfg(feature = "internal")]
             auth_settings: None,
             encryption_settings: None,
         }
@@ -160,6 +163,7 @@ impl Client {
         get_user_api_key(self, input).await
     }
 
+    #[cfg(feature = "internal")]
     pub(crate) fn get_auth_settings(&self) -> &Option<AuthSettings> {
         &self.auth_settings
     }
@@ -177,6 +181,7 @@ impl Client {
         &self.encryption_settings
     }
 
+    #[cfg(feature = "internal")]
     pub(crate) fn set_auth_settings(&mut self, auth_settings: AuthSettings) {
         debug! {"setting auth settings: {:#?}", auth_settings}
         self.auth_settings = Some(auth_settings);
@@ -201,10 +206,12 @@ impl Client {
         renew_token(self).await
     }
 
+    #[cfg(feature = "internal")]
     pub fn is_authed(&self) -> bool {
         self.token.is_some() || self.auth_settings.is_some()
     }
 
+    #[cfg(feature = "internal")]
     pub(crate) fn initialize_user_crypto(
         &mut self,
         password: &str,

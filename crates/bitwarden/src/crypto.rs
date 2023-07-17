@@ -2,30 +2,26 @@
 
 use std::{collections::HashMap, fmt::Display, hash::Hash, str::FromStr};
 
-use aes::cipher::{
-    generic_array::GenericArray,
-    typenum::{U32, U64},
-    Unsigned,
-};
+use aes::cipher::{generic_array::GenericArray, typenum::U64, Unsigned};
 use base64::Engine;
 use hmac::digest::OutputSizeUser;
-use num_bigint::BigUint;
-use num_traits::cast::ToPrimitive;
 use serde::{de::Visitor, Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 use uuid::Uuid;
 
 use crate::{
-    client::{
-        auth_settings::Kdf,
-        encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
-    },
+    client::encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
     error::{CSParseError, Error, Result},
     util::BASE64_ENGINE,
 };
 
 #[cfg(feature = "internal")]
-use crate::wordlist::EFF_LONG_WORD_LIST;
+use {
+    crate::{client::auth_settings::Kdf, wordlist::EFF_LONG_WORD_LIST},
+    num_bigint::BigUint,
+    num_traits::cast::ToPrimitive,
+    sha2::{Digest, Sha256},
+    typenum::U32,
+};
 
 #[allow(unused, non_camel_case_types)]
 pub enum CipherString {
@@ -242,6 +238,7 @@ pub(crate) type PbkdfSha256Hmac = hmac::Hmac<sha2::Sha256>;
 pub(crate) const PBKDF_SHA256_HMAC_OUT_SIZE: usize =
     <<PbkdfSha256Hmac as OutputSizeUser>::OutputSize as Unsigned>::USIZE;
 
+#[cfg(feature = "internal")]
 pub(crate) fn hash_kdf(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<[u8; 32]> {
     let hash = match kdf {
         Kdf::PBKDF2 { iterations } => pbkdf2::pbkdf2_array::<
@@ -281,6 +278,7 @@ pub(crate) fn hash_kdf(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<[u8; 32]
     Ok(hash)
 }
 
+#[cfg(feature = "internal")]
 pub(crate) fn stretch_key_password(
     secret: &[u8],
     salt: &[u8],

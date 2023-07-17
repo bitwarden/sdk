@@ -7,7 +7,10 @@ pub(crate) mod auth_settings;
 mod client;
 pub mod client_settings;
 pub(crate) mod encryption_settings;
+
+#[cfg(feature = "internal")]
 pub(crate) mod keys;
+#[cfg(feature = "internal")]
 pub(crate) mod profile;
 
 pub use access_token::AccessToken;

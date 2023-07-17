@@ -1,40 +1,44 @@
-use log::debug;
 use reqwest::header::{self};
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "internal")]
 use std::collections::HashMap;
 use uuid::Uuid;
 
 use crate::{
     auth::{
         commands::{access_token_login, renew_token},
-        request::{AccessTokenLoginRequest, SessionLoginRequest},
+        request::AccessTokenLoginRequest,
         response::ApiKeyLoginResponse,
     },
     client::{
-        auth_settings::AuthSettings,
+        auth::Auth,
         client_settings::{ClientSettings, DeviceType},
         encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
     },
-    crypto::CipherString,
-    error::{Error, Result},
+    error::Result,
     state::state::State,
 };
 
 #[cfg(feature = "internal")]
-use crate::{
-    auth::{
-        commands::{api_key_login, password_login, unlock},
-        request::{ApiKeyLoginRequest, PasswordLoginRequest, UnlockRequest},
-        response::PasswordLoginResponse,
+use {
+    crate::{
+        auth::{
+            commands::{api_key_login, password_login, unlock},
+            request::{
+                ApiKeyLoginRequest, PasswordLoginRequest, SessionLoginRequest, UnlockRequest,
+            },
+            response::PasswordLoginResponse,
+        },
+        client::auth_settings::AuthSettings,
+        crypto::CipherString,
+        error::Error,
+        platform::{
+            generate_fingerprint, get_user_api_key, sync, FingerprintRequest,
+            SecretVerificationRequest, SyncRequest, UserApiKeyResponse,
+        },
     },
-    platform::{
-        generate_fingerprint, get_user_api_key, sync, FingerprintRequest,
-        SecretVerificationRequest, SyncRequest, UserApiKeyResponse,
-    },
+    log::debug,
 };
-
-use super::auth::Auth;
 
 #[derive(Debug)]
 pub(crate) struct ApiConfigurations {
@@ -43,11 +47,11 @@ pub(crate) struct ApiConfigurations {
     pub device_type: DeviceType,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum LoginMethod {
-    Username {
-        client_id: String,
-    },
+    #[cfg(feature = "internal")]
+    Username { client_id: String },
+    #[cfg(feature = "internal")]
     ApiKey {
         client_id: String,
         client_secret: String,
@@ -170,6 +174,7 @@ impl Client {
         get_user_api_key(self, input).await
     }
 
+    #[cfg(feature = "internal")]
     pub(crate) async fn get_auth_settings(&self) -> Option<AuthSettings> {
         Auth::get(self).await.kdf
     }
@@ -187,6 +192,7 @@ impl Client {
         &self.encryption_settings
     }
 
+    #[cfg(feature = "internal")]
     pub(crate) async fn set_auth_settings(&mut self, auth_settings: AuthSettings) -> Result<()> {
         debug! {"setting auth settings: {:#?}", auth_settings}
 
@@ -210,10 +216,12 @@ impl Client {
         renew_token(self).await
     }
 
+    #[cfg(feature = "internal")]
     pub async fn is_authed(&self) -> bool {
         self.get_auth_settings().await.is_some()
     }
 
+    #[cfg(feature = "internal")]
     pub(crate) async fn initialize_user_crypto(
         &mut self,
         password: &str,

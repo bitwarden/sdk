@@ -1,28 +1,16 @@
 use std::str::FromStr;
 
 use base64::Engine;
-use bitwarden_api_identity::{
-    apis::accounts_api::accounts_prelogin_post,
-    models::{PreloginRequestModel, PreloginResponseModel},
-};
-use chrono::Utc;
-use log::{debug, info};
 
 use crate::{
     auth::{
-        api::{
-            request::{AccessTokenRequest, ApiTokenRequest, PasswordTokenRequest},
-            response::IdentityTokenResponse,
-        },
-        request::{
-            AccessTokenLoginRequest, ApiKeyLoginRequest, PasswordLoginRequest, SessionLoginRequest,
-        },
-        response::{ApiKeyLoginResponse, PasswordLoginResponse},
+        api::{request::AccessTokenRequest, response::IdentityTokenResponse},
+        request::AccessTokenLoginRequest,
+        response::ApiKeyLoginResponse,
     },
     client::{
         access_token::AccessToken,
         auth::Auth,
-        auth_settings::AuthSettings,
         encryption_settings::{decrypt, SymmetricCryptoKey},
         Client, LoginMethod,
     },
@@ -32,7 +20,23 @@ use crate::{
 };
 
 #[cfg(feature = "internal")]
-use crate::auth::request::UnlockRequest;
+use {
+    crate::{
+        auth::{
+            api::request::{ApiTokenRequest, PasswordTokenRequest},
+            request::{
+                ApiKeyLoginRequest, PasswordLoginRequest, SessionLoginRequest, UnlockRequest,
+            },
+            response::PasswordLoginResponse,
+        },
+        client::auth_settings::AuthSettings,
+    },
+    bitwarden_api_identity::{
+        apis::accounts_api::accounts_prelogin_post,
+        models::{PreloginRequestModel, PreloginResponseModel},
+    },
+    log::{debug, info},
+};
 
 #[cfg(feature = "internal")]
 pub(crate) async fn password_login(
@@ -177,7 +181,7 @@ pub(crate) async fn session_login(client: &mut Client, input: &SessionLoginReque
 
     let Some(expires) = auth.token_expiration else {return Err(Error::VaultLocked)};
     let Some(login_method) = auth.login_method else {return Err(Error::VaultLocked)};
-    let expires_seconds = (expires.timestamp() - Utc::now().timestamp()) as u64;
+    let expires_seconds = (expires.timestamp() - chrono::Utc::now().timestamp()) as u64;
 
     client
         .set_tokens(
@@ -217,6 +221,7 @@ pub(crate) async fn unlock(client: &mut Client, input: &UnlockRequest) -> Result
     Ok(())
 }
 
+#[cfg(feature = "internal")]
 async fn determine_password_hash(
     client: &mut Client,
     email: &str,
@@ -230,12 +235,14 @@ async fn determine_password_hash(
     Ok(password_hash)
 }
 
+#[cfg(feature = "internal")]
 async fn request_prelogin(client: &mut Client, email: String) -> Result<PreloginResponseModel> {
     let request_model = PreloginRequestModel::new(email);
     let config = client.get_api_configurations().await;
     Ok(accounts_prelogin_post(&config.identity, Some(request_model)).await?)
 }
 
+#[cfg(feature = "internal")]
 async fn request_identity_tokens(
     client: &mut Client,
     input: &PasswordLoginRequest,
@@ -274,11 +281,12 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
     let auth = Auth::get(client).await;
 
     if let (Some(expires), Some(login_method)) = (&auth.token_expiration, &auth.login_method) {
-        if expires > &(Utc::now() + token_renew_margin) {
+        if expires > &(chrono::Utc::now() + token_renew_margin) {
             return Ok(());
         }
 
         let res = match login_method {
+            #[cfg(feature = "internal")]
             LoginMethod::Username { client_id } => {
                 let refresh = auth
                     .refresh_token
@@ -292,6 +300,7 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
                 .send(&client.__api_configurations)
                 .await?
             }
+            #[cfg(feature = "internal")]
             LoginMethod::ApiKey {
                 client_id,
                 client_secret,

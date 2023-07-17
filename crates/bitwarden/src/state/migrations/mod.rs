@@ -277,10 +277,6 @@ impl Migrations {
         client.get_state_service(MIGRATION_SERVICE).get().await
     }
 
-    pub async fn is_latest(client: &Client) -> bool {
-        Self::get(client).await.version == LATEST_VERSION
-    }
-
     pub async fn set_version(client: &Client, version: usize) -> Result<()> {
         client
             .get_state_service(MIGRATION_SERVICE)

@@ -1,4 +1,5 @@
 // EFF's Long Wordlist from https://www.eff.org/dice
+#[cfg(feature = "internal")]
 pub(crate) const EFF_LONG_WORD_LIST: &'static [&str] = &[
     "abacus",
     "abdomen",

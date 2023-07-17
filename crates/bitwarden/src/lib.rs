@@ -58,6 +58,7 @@ pub mod platform;
 pub mod secrets_manager;
 pub(crate) mod state;
 mod util;
+pub mod vault;
 pub mod wordlist;
 
 pub use client::Client;

@@ -10,14 +10,14 @@ name="bitwarden_py"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.17.3", features = ["extension-module"] }
-pyo3-log = "0.7.0"
+pyo3 = { version = "0.19.1", features = ["extension-module"] }
+pyo3-log = "0.8.3"
 
 bitwarden-json = { path = "../bitwarden-json" }
 
 [build-dependencies]
-pyo3-build-config = { version = "0.17.3"}
+pyo3-build-config = { version = "0.19.1"}
 
 [target.'cfg(not(target_arch="wasm32"))'.dependencies]
 tokio = { version = "1.28.2", features = ["rt-multi-thread", "macros"] }
-pyo3-asyncio = { version = "0.17.0", features = ["attributes", "tokio-runtime"] }
+pyo3-asyncio = { version = "0.18.0", features = ["attributes", "tokio-runtime"] }

@@ -17,12 +17,12 @@ use crate::{
 
 const KEYS_SERVICE: ServiceDefinition<Option<Keys>> = ServiceDefinition::new("keys");
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Keys {
-    pub crypto_symmetric_key: CipherString,
-    pub organization_keys: HashMap<Uuid, CipherString>,
-    pub private_key: CipherString,
+pub(crate) struct Keys {
+    pub(crate) crypto_symmetric_key: CipherString,
+    pub(crate) organization_keys: HashMap<Uuid, CipherString>,
+    pub(crate) private_key: CipherString,
 }
 
 impl TryFrom<&ProfileResponseModel> for Keys {

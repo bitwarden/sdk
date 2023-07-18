@@ -24,7 +24,6 @@ use {
 };
 
 #[allow(unused, non_camel_case_types)]
-#[derive(Clone)]
 pub enum CipherString {
     // 0
     AesCbc256_B64 {
@@ -67,15 +66,6 @@ pub enum CipherString {
 impl std::fmt::Debug for CipherString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("CipherString").finish()
-    }
-}
-
-impl schemars::JsonSchema for CipherString {
-    fn schema_name() -> String {
-        "CipherString".to_owned()
-    }
-    fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
-        gen.subschema_for::<String>()
     }
 }
 

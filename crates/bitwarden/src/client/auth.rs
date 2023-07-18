@@ -13,13 +13,13 @@ const AUTH_SERVICE: ServiceDefinition<Auth> = ServiceDefinition::new("auth");
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Auth {
-    pub access_token: String,
-    pub refresh_token: Option<String>,
-    pub token_expiration: Option<chrono::DateTime<Utc>>,
-    pub login_method: Option<LoginMethod>,
+pub(crate) struct Auth {
+    pub(crate) access_token: String,
+    pub(crate) refresh_token: Option<String>,
+    pub(crate) token_expiration: Option<chrono::DateTime<Utc>>,
+    pub(crate) login_method: Option<LoginMethod>,
 
-    pub kdf: Option<AuthSettings>,
+    pub(crate) kdf: Option<AuthSettings>,
 }
 
 impl Auth {

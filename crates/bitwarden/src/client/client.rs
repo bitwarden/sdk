@@ -46,7 +46,7 @@ pub(crate) struct ApiConfigurations {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum LoginMethod {
+pub(crate) enum LoginMethod {
     #[cfg(feature = "internal")]
     Username { client_id: String },
     #[cfg(feature = "internal")]
@@ -84,7 +84,7 @@ impl Client {
             .build()
             .unwrap();
 
-        let state = State::load_state(&settings);
+        let state = State::initialize_state(&settings);
 
         let identity = bitwarden_api_identity::apis::configuration::Configuration {
             base_path: settings.identity_url,

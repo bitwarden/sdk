@@ -17,17 +17,16 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuthSettings {
-    pub email: String,
+pub(crate) struct AuthSettings {
+    pub(crate) email: String,
     pub(crate) kdf: Kdf,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum Kdf {
+pub(crate) enum Kdf {
     PBKDF2 {
         iterations: NonZeroU32,
     },
-    #[cfg(feature = "internal")]
     Argon2id {
         iterations: NonZeroU32,
         memory: NonZeroU32,
@@ -45,7 +44,6 @@ impl AuthSettings {
                     .and_then(|e| NonZeroU32::new(e as u32))
                     .unwrap_or_else(default_pbkdf2_iterations),
             },
-            #[cfg(feature = "internal")]
             KdfType::Variant1 => Kdf::Argon2id {
                 iterations: response
                     .kdf_iterations

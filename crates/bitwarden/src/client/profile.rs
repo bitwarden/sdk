@@ -16,11 +16,11 @@ const PROFILE_SERVICE: ServiceDefinition<Option<Profile>> = ServiceDefinition::n
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Profile {
-    pub user_id: Uuid,
-    pub name: String,
-    pub email: String,
-    pub last_sync: DateTime<Utc>,
+pub(crate) struct Profile {
+    pub(crate) user_id: Uuid,
+    pub(crate) name: String,
+    pub(crate) email: String,
+    pub(crate) last_sync: DateTime<Utc>,
 }
 
 impl TryFrom<&ProfileResponseModel> for Profile {

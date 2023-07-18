@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Debug, path::PathBuf};
+use std::{collections::HashMap, fmt::Debug};
 
 use async_lock::Mutex;
 use serde_json::Value;
@@ -9,6 +9,8 @@ use crate::{client::client_settings::ClientSettings, error::Result};
 
 #[cfg(feature = "internal")]
 use crate::error::Error;
+
+use super::storage::{initialize_storage, Storage};
 
 pub struct State {
     pub(crate) account: Mutex<StateStorage>,
@@ -23,10 +25,10 @@ impl Debug for State {
 }
 
 impl State {
-    pub(crate) fn load_state(_settings: &ClientSettings) -> Self {
+    pub(crate) fn initialize_state(_settings: &ClientSettings) -> Self {
         Self {
             // The account storage will be in memory until the client is initialized
-            account: Mutex::new(StateStorage::new(String::new(), load_medium(&None))),
+            account: Mutex::new(StateStorage::new(String::new(), initialize_storage(&None))),
             #[cfg(feature = "internal")]
             path: _settings.state_path.clone(),
         }
@@ -45,7 +47,7 @@ impl State {
 
         // Create the new account state, and load the temporary storage into it
         let mut account = self.account.lock().await;
-        *account = StateStorage::new(id.to_string(), load_medium(&self.path));
+        *account = StateStorage::new(id.to_string(), initialize_storage(&self.path));
         account
             .modify(|acc| {
                 *acc = Some(state);
@@ -66,7 +68,7 @@ impl State {
     #[cfg(feature = "internal")]
     pub(crate) async fn load_account(&self, id: Uuid) -> Result<()> {
         let mut account = self.account.lock().await;
-        *account = StateStorage::new(id.to_string(), load_medium(&self.path));
+        *account = StateStorage::new(id.to_string(), initialize_storage(&self.path));
         account.read().await?;
         Ok(())
     }
@@ -75,11 +77,11 @@ impl State {
 pub struct StateStorage {
     cache: HashMap<String, Value>,
     account_id: String,
-    medium: Box<dyn StateStorageMedium>,
+    medium: Box<dyn Storage>,
 }
 
 impl StateStorage {
-    fn new(account_id: String, medium: Box<dyn StateStorageMedium>) -> Self {
+    fn new(account_id: String, medium: Box<dyn Storage>) -> Self {
         Self {
             cache: HashMap::new(),
             account_id,
@@ -124,170 +126,5 @@ impl StateStorage {
 
         self.cache = result.get(&self.account_id).cloned().unwrap_or_default();
         Ok(())
-    }
-}
-
-fn load_medium(path: &Option<String>) -> Box<dyn StateStorageMedium> {
-    if let Some(path) = path {
-        #[cfg(target_arch = "wasm32")]
-        {
-            Box::new(WasmLocalStorageMedium::new(path.to_owned()))
-        }
-        #[cfg(not(target_arch = "wasm32"))]
-        {
-            Box::new(FileStateStorageMedium::new(path.into()))
-        }
-    } else {
-        Box::new(InMemoryStateStorageMedium::new())
-    }
-}
-
-type StateMap = HashMap<String, HashMap<String, Value>>;
-
-#[async_trait::async_trait]
-trait StateStorageMedium: Sync + Send + Debug {
-    async fn read(&mut self) -> Result<StateMap>;
-    async fn modify<'b>(
-        &mut self,
-        f: Box<dyn for<'a> FnOnce(&'a mut StateMap) -> Result<()> + Send + 'b>,
-    ) -> Result<StateMap>;
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-#[derive(Debug)]
-struct FileStateStorageMedium {
-    path: PathBuf,
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-impl FileStateStorageMedium {
-    pub fn new(path: PathBuf) -> Self {
-        Self { path }
-    }
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-#[async_trait::async_trait]
-impl StateStorageMedium for FileStateStorageMedium {
-    async fn read(&mut self) -> Result<StateMap> {
-        if !self.path.exists() {
-            return Ok(HashMap::new());
-        }
-        let data = tokio::fs::read_to_string(&self.path).await?;
-
-        Ok(serde_json::from_str(&data)?)
-    }
-
-    async fn modify<'b>(
-        &mut self,
-        modify_fn: Box<dyn for<'a> FnOnce(&'a mut StateMap) -> Result<()> + Send + 'b>,
-    ) -> Result<StateMap> {
-        use tokio::io::{AsyncReadExt, AsyncSeekExt, AsyncWriteExt};
-
-        let mut f = tokio::fs::OpenOptions::new()
-            .read(true)
-            .write(true)
-            .create(true)
-            .open(&self.path)
-            .await?;
-
-        // Try locking the file so no other process modifies it at the same time
-        use fs4::tokio::AsyncFileExt;
-        f.lock_exclusive()?;
-
-        let mut object_string = String::new();
-        let read_count = f.read_to_string(&mut object_string).await?;
-
-        let mut object: StateMap = if read_count == 0 {
-            // File was just created, use an empty map
-            HashMap::new()
-        } else {
-            serde_json::from_str(&object_string)?
-        };
-
-        modify_fn(&mut object)?;
-
-        // Truncate the file and overwrite
-        f.rewind().await?;
-        f.set_len(0).await?;
-        f.write_all(serde_json::to_string_pretty(&object)?.as_bytes())
-            .await?;
-
-        Ok(object.clone())
-    }
-}
-
-#[cfg(target_arch = "wasm32")]
-#[derive(Debug)]
-struct WasmLocalStorageMedium {
-    key: String,
-}
-
-#[cfg(target_arch = "wasm32")]
-impl WasmLocalStorageMedium {
-    pub fn new(key: String) -> Self {
-        Self { key }
-    }
-}
-
-#[cfg(target_arch = "wasm32")]
-#[async_trait::async_trait]
-impl StateStorageMedium for WasmLocalStorageMedium {
-    async fn read(&mut self) -> Result<StateMap> {
-        let storage = web_sys::window().unwrap().local_storage().unwrap().unwrap();
-
-        let result = storage.get_item(&self.key).unwrap();
-        let Some(item) = result else { return Ok(HashMap::new()) };
-
-        Ok(serde_json::from_str(&item)?)
-    }
-
-    async fn modify<'b>(
-        &mut self,
-        modify_fn: Box<dyn for<'a> FnOnce(&'a mut StateMap) -> Result<()> + Send + 'b>,
-    ) -> Result<StateMap> {
-        let storage = web_sys::window().unwrap().local_storage().unwrap().unwrap();
-
-        let mut object = if let Some(item) = storage.get_item(&self.key).unwrap() {
-            serde_json::from_str(&item)?
-        } else {
-            HashMap::new()
-        };
-
-        modify_fn(&mut object)?;
-
-        storage
-            .set_item(&self.key, &serde_json::to_string_pretty(&object)?)
-            .unwrap();
-
-        Ok(object.clone())
-    }
-}
-
-#[derive(Debug)]
-struct InMemoryStateStorageMedium {
-    data: StateMap,
-}
-
-impl InMemoryStateStorageMedium {
-    pub fn new() -> Self {
-        Self {
-            data: HashMap::new(),
-        }
-    }
-}
-
-#[async_trait::async_trait]
-impl StateStorageMedium for InMemoryStateStorageMedium {
-    async fn read(&mut self) -> Result<StateMap> {
-        Ok(self.data.clone())
-    }
-
-    async fn modify<'b>(
-        &mut self,
-        modify_fn: Box<dyn for<'a> FnOnce(&'a mut StateMap) -> Result<()> + Send + 'b>,
-    ) -> Result<StateMap> {
-        modify_fn(&mut self.data)?;
-        Ok(self.data.clone())
     }
 }

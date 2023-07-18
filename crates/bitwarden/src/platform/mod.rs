@@ -10,3 +10,6 @@ pub use get_user_api_key::UserApiKeyResponse;
 pub use secret_verification_request::SecretVerificationRequest;
 pub(crate) use sync::sync;
 pub use sync::{SyncRequest, SyncResponse};
+
+#[cfg(feature = "performance-testing")]
+pub mod performance_test;

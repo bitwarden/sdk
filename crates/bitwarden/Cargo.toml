@@ -14,6 +14,7 @@ rust-version = "1.57"
 
 [features]
 internal = [] # Internal testing methods
+performance-testing = [] # Performance testing methods
 
 [dependencies]
 base64 = ">=0.21.2, <0.22"
@@ -50,5 +51,10 @@ bitwarden-api-identity = { path = "../bitwarden-api-identity", version = "0.2.0"
 bitwarden-api-api = { path = "../bitwarden-api-api", version = "0.2.0" }
 
 [dev-dependencies]
+criterion = "0.5.1"
 tokio = { version = "1.28.2", features = ["rt", "macros"] }
-wiremock = "0.5.18"
+wiremock = ">=0.5.17, <=0.5.18"
+
+[[bench]]
+name = "crypto_bench"
+harness = false

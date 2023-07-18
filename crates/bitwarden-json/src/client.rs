@@ -1,5 +1,8 @@
 use bitwarden::client::client_settings::ClientSettings;
 
+#[cfg(feature = "performance-testing")]
+use crate::command::PerformanceCommand;
+
 use crate::{
     command::{Command, ProjectsCommand, SecretsCommand},
     response::{Response, ResponseIntoString},
@@ -54,6 +57,12 @@ impl Client {
             Command::Sync(req) => self.0.sync(&req).await.into_string(),
             #[cfg(feature = "internal")]
             Command::Fingerprint(req) => self.0.fingerprint(&req).into_string(),
+
+            #[cfg(feature = "performance-testing")]
+            Command::Performance(cmd) => match cmd {
+                PerformanceCommand::Decrypt(req) => self.0.performance().decrypt(&req).into_string(),
+                PerformanceCommand::Encrypt(req) => self.0.performance().encrypt(&req).into_string(),
+            }
 
             Command::Secrets(cmd) => match cmd {
                 SecretsCommand::Get(req) => self.0.secrets().get(&req).await.into_string(),

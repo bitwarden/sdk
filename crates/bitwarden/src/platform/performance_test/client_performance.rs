@@ -7,18 +7,18 @@ pub struct ClientPerformance {}
 impl ClientPerformance {
     pub fn decrypt(
         &self,
-        input: DecryptPerformanceRequest,
+        input: &DecryptPerformanceRequest,
     ) -> Result<DecryptPerformanceResponse> {
         decrypt_performance(&input)
     }
 
-    pub fn encrypt(&self, input: EncryptPerformanceRequest) -> Result<()> {
+    pub fn encrypt(&self, input: &EncryptPerformanceRequest) -> Result<()> {
         encrypt_performance(&input)
     }
 }
 
 impl Client {
-    pub fn performance(&mut self) -> ClientPerformance {
+    pub fn performance(&self) -> ClientPerformance {
         ClientPerformance {}
     }
 }

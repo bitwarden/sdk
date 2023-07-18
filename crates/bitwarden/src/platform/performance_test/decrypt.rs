@@ -9,7 +9,8 @@ use crate::{client::encryption_settings::{EncryptionSettings, SymmetricCryptoKey
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct DecryptPerformanceRequest {
     pub cipher_text: String,
-    pub key: String
+    pub key: String,
+    pub num_operations: u32,
 }
 
 impl Display for DecryptPerformanceRequest {
@@ -25,7 +26,10 @@ pub fn decrypt_performance(
     let key = SymmetricCryptoKey::from_str(&request.key)?;
     let encryption_settings = EncryptionSettings::new_single_key(key);
     let cipher = CipherString::from_str(&request.cipher_text)?;
-    let clear_text = encryption_settings.decrypt(&cipher, &None)?;
+    let mut clear_text = String::new();
+    for _ in 0..request.num_operations {
+        clear_text = encryption_settings.decrypt(&cipher, &None)?;
+    }
     Ok(DecryptPerformanceResponse { clear_text })
 }
 

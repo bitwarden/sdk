@@ -23,10 +23,10 @@ pub struct AccessTokenLoginRequest {
     pub access_token: String,
 }
 
-/// Login to Bitwarden using a saved session
+/// Unlock a saved vault
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct SessionLoginRequest {
+pub struct UnlockRequest {
     /// User's uuid
     pub user_id: Uuid,
 

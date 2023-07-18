@@ -13,7 +13,7 @@ use bitwarden::{
 };
 #[cfg(feature = "internal")]
 use bitwarden::{
-    auth::request::{ApiKeyLoginRequest, PasswordLoginRequest, SessionLoginRequest},
+    auth::request::{ApiKeyLoginRequest, PasswordLoginRequest, UnlockRequest},
     platform::{FingerprintRequest, SecretVerificationRequest, SyncRequest},
 };
 use schemars::JsonSchema;
@@ -53,8 +53,8 @@ pub enum Command {
     AccessTokenLogin(AccessTokenLoginRequest),
 
     #[cfg(feature = "internal")]
-    /// Login with a previously saved session
-    SessionLogin(SessionLoginRequest),
+    /// Unlock a saved vault
+    Unlock(UnlockRequest),
 
     #[cfg(feature = "internal")]
     /// > Requires Authentication

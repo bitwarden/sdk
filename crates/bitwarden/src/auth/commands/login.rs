@@ -24,7 +24,7 @@ use {
     crate::{
         auth::{
             api::request::{ApiTokenRequest, PasswordTokenRequest},
-            request::{ApiKeyLoginRequest, PasswordLoginRequest, SessionLoginRequest},
+            request::{ApiKeyLoginRequest, PasswordLoginRequest, UnlockRequest},
             response::PasswordLoginResponse,
         },
         client::auth_settings::AuthSettings,
@@ -172,7 +172,7 @@ pub(crate) async fn access_token_login(
 }
 
 #[cfg(feature = "internal")]
-pub(crate) async fn session_login(client: &mut Client, input: &SessionLoginRequest) -> Result<()> {
+pub(crate) async fn unlock(client: &mut Client, input: &UnlockRequest) -> Result<()> {
     use crate::client::{keys::Keys, profile::Profile};
 
     client.state.load_account(input.user_id).await?;

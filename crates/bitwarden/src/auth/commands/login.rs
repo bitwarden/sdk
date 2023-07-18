@@ -179,19 +179,7 @@ pub(crate) async fn unlock(client: &mut Client, input: &UnlockRequest) -> Result
 
     let Some(profile) = Profile::get(client).await else {return Err(Error::NotAuthenticated)};
     let auth = Auth::get(client).await;
-
-    let Some(expires) = auth.token_expiration else {return Err(Error::VaultLocked)};
-    let Some(login_method) = auth.login_method else {return Err(Error::VaultLocked)};
-    let expires_seconds = (expires.timestamp() - chrono::Utc::now().timestamp()) as u64;
-
-    client
-        .set_tokens(
-            auth.access_token,
-            auth.refresh_token,
-            expires_seconds,
-            login_method,
-        )
-        .await?;
+    client.set_access_token(auth.access_token);
 
     let _ = determine_password_hash(client, &profile.email, &input.password).await?;
 

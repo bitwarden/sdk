@@ -192,6 +192,11 @@ impl Client {
         Auth::set_kdf(self, auth_settings).await
     }
 
+    pub(crate) fn set_access_token(&mut self, token: String) {
+        self.__api_configurations.identity.oauth_access_token = Some(token.clone());
+        self.__api_configurations.api.oauth_access_token = Some(token);
+    }
+
     pub(crate) async fn set_tokens(
         &mut self,
         token: String,
@@ -199,9 +204,7 @@ impl Client {
         expires_in: u64,
         login_method: LoginMethod,
     ) -> Result<()> {
-        self.__api_configurations.identity.oauth_access_token = Some(token.clone());
-        self.__api_configurations.api.oauth_access_token = Some(token.clone());
-
+        self.set_access_token(token.clone());
         Auth::set_tokens(self, token, refresh_token, expires_in, login_method).await
     }
 

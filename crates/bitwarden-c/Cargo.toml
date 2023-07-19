@@ -9,6 +9,10 @@ rust-version = "1.57"
 crate-type = ["lib", "staticlib", "cdylib"]
 bench = false
 
+[features]
+internal = ["bitwarden-json/internal"] # Internal testing methods
+performance-testing = ["bitwarden-json/performance-testing"] # Performance testing methods
+
 [target.'cfg(not(target_arch="wasm32"))'.dependencies]
 tokio = { version = ">=1.28.2, <2.0", features = ["rt-multi-thread", "macros"] }
 

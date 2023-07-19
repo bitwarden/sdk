@@ -8,6 +8,10 @@ rust-version = "1.57"
 [lib]
 crate-type = ["cdylib", "rlib"]
 
+[features]
+internal = ["bitwarden-json/internal"] # Internal testing methods
+performance-testing = ["bitwarden-json/performance-testing"] # Performance testing methods
+
 [dependencies]
 js-sys = "0.3.63"
 serde = {version = "1.0.163", features = ["derive"] }

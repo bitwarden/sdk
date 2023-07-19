@@ -342,10 +342,12 @@ name = "bitwarden-json"
 version = "0.2.1"
 dependencies = [
  "bitwarden",
+ "criterion",
  "log",
  "schemars",
  "serde",
  "serde_json",
+ "tokio",
 ]
 
 [[package]]
@@ -768,6 +770,7 @@ dependencies = [
  "ciborium",
  "clap",
  "criterion-plot",
+ "futures",
  "is-terminal",
  "itertools 0.10.5",
  "num-traits",

@@ -111,5 +111,11 @@ fn main() -> Result<()> {
         bitwarden::platform::UserApiKeyResponse,
     };
 
+    // Same as above, but for the performance-test feature
+    #[cfg(feature = "performance-testing")]
+    write_schema_for_response! {
+        bitwarden::platform::performance_test::DecryptPerformanceResponse,
+    };
+
     Ok(())
 }

@@ -5,12 +5,16 @@ const keySize = 256;
 
 const encIv = 'FX7Y3pYmcLIQt6WrKc62jA==';
 const encCt = 'EDlxtzpEOfGIAIa8PkCQmA==';
-const forgeKey = forge.pbkdf2('mypassword', 'a salt', iterations, keySize / 8, 'sha256');
+const forgeKey = makeKey();
 
 function getRandomForgeBytes() {
   var bytes = new Uint8Array(16);
   window.crypto.getRandomValues(bytes);
   return String.fromCharCode.apply(null, bytes);
+}
+
+export function makeKey() {
+  return forge.pbkdf2('mypassword', 'a salt', iterations, keySize / 8, 'sha256');
 }
 
 export function encrypt(message: string) {

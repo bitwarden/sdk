@@ -3,14 +3,15 @@ const keySize = 256;
 
 const encIv = 'FX7Y3pYmcLIQt6WrKc62jA==';
 const encCt = 'EDlxtzpEOfGIAIa8PkCQmA==';
-var webcryptoKey = null;
-window.crypto.subtle.importKey(
-  'raw', fromUtf8('mypassword'), {
+
+export async function makeDerivedKey() {
+  const importedKey = await window.crypto.subtle.importKey(
+    'raw', fromUtf8('mypassword'), {
     name: 'PBKDF2'
   },
-  false, ['deriveKey', 'deriveBits']
-).then(function(importedKey) {
-  window.crypto.subtle.deriveKey({
+    false, ['deriveKey', 'deriveBits']
+  );
+  return await window.crypto.subtle.deriveKey({
       'name': 'PBKDF2',
       salt: fromUtf8('a salt'),
       iterations: iterations,
@@ -18,17 +19,20 @@ window.crypto.subtle.importKey(
         name: 'SHA-256'
       }
     },
-    importedKey, {
+      importedKey, {
       name: 'AES-CBC',
       length: keySize
     },
-    true, ['encrypt', 'decrypt']
-  ).then(function(derivedKey) {
-    webcryptoKey = derivedKey;
-  });
-});
+      true, ['encrypt', 'decrypt']
+  )
+}
 
-export async function encrypt(message: string) {
+export async function makeKey() {
+  const derivedKey = await makeDerivedKey();
+  return await window.crypto.subtle.exportKey('raw', derivedKey)
+}
+
+export async function encrypt(message: string, webcryptoKey: CryptoKey) {
   var ivBytes = window.crypto.getRandomValues(new Uint8Array(16));
   const encrypted = await window.crypto.subtle.encrypt({
     name: 'AES-CBC',
@@ -39,14 +43,14 @@ export async function encrypt(message: string) {
   var ctResult = toB64(encrypted);
 }
 
-export async function decrypt() {
+export async function decrypt(webCryptoKey: CryptoKey) {
   var ivBytes = fromB64(encIv);
   var ctBytes = fromB64(encCt);
 
   const decrypted = await window.crypto.subtle.decrypt({
     name: 'AES-CBC',
     iv: ivBytes
-  }, webcryptoKey, ctBytes)
+  }, webCryptoKey, ctBytes)
   var result = toUtf8(decrypted);
 }
 

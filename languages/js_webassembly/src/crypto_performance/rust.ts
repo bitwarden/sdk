@@ -27,11 +27,11 @@ export async function decrypt(numOperations: number) {
   return await client.performance.decrypt(cipherText, key, numOperations);
 }
 
-export async function encrypt_direct(numOperations: number) {
+export async function encryptDirect(numOperations: number) {
   return await client.performance.perf_encrypt(numOperations);
 }
 
-export async function decrypt_direct(numOperations: number) {
+export async function decryptDirect(numOperations: number) {
   return await client.performance.perf_decrypt(numOperations);
 }
 

@@ -1,20 +1,38 @@
 import { Bench } from "tinybench";
 
-import { encrypt as forge_encrypt, decrypt as forge_decrypt, encrypt } from "./forge";
-import { encrypt as web_crypto_encrypt, decrypt as web_crypto_decrypt } from "./web_crypto";
-import { encrypt as rust_encrypt, decrypt as rust_decrypt, normalizeRustResult, encrypt_direct, decrypt_direct } from "./rust";
+import { encrypt as forgeEncrypt, decrypt as forgeDecrypt, makeKey as forgeMakeKey } from "./forge";
+import { encrypt as webCryptoEncrypt, decrypt as webCryptoDecrypt, makeDerivedKey, makeKey as webCryptoMakeKey } from "./web_crypto";
+import { encrypt as rustEncrypt, decrypt as rustDecrypt, normalizeRustResult, encryptDirect as rustEncryptDirect, decryptDirect as rustDecryptDirect } from "./rust";
+
+export async function benchmark_pbkdf2() {
+  const bench = new Bench();
+  
+  bench.add("Forge", function () {
+    forgeMakeKey();
+  }).add("WebCrypto", async function () {
+    webCryptoMakeKey();
+  }).todo("Rust", async function () {
+    // await rust_make_key();
+  });
+
+  bench.warmup();
+  await bench.run();
+
+  return bench.table();
+}
 
 export async function benchmark_encrypt() {
   const bench = new Bench();
   const rustNormalization = 50;
+  const webCryptoKey = await makeDerivedKey();
   bench.add("Forge", function () {
-      forge_encrypt("message");
+      forgeEncrypt("message");
   }).add("WebCrypto", async function () {
-    await web_crypto_encrypt("message");
+    await webCryptoEncrypt("message", webCryptoKey);
   }).todo("Rust through command", async function () {
-    await rust_encrypt(rustNormalization);
+    await rustEncrypt(rustNormalization);
   }).add("Rust", async function () {
-    await encrypt_direct(rustNormalization);
+    await rustEncryptDirect(rustNormalization);
   });
 
   bench.warmup();
@@ -26,14 +44,15 @@ export async function benchmark_encrypt() {
 export async function benchmark_decrypt() {
   const bench = new Bench();
   const rustNormalization = 50;
+  const webCryptoKey = await makeDerivedKey();
   bench.add("Forge", function () {
-    forge_decrypt();
+    forgeDecrypt();
   }).add("WebCrypto", async function () {
-    await web_crypto_decrypt();
+    await webCryptoDecrypt(webCryptoKey);
   }).todo("Rust through command", async function () {
-    await rust_decrypt(rustNormalization);
+    await rustDecrypt(rustNormalization);
   }).add("Rust", async function () {
-    await decrypt_direct(rustNormalization);
+    await rustDecryptDirect(rustNormalization);
   });
 
   await bench.warmup();

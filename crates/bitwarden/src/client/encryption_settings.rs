@@ -7,14 +7,19 @@ use aes::cipher::{
 use base64::Engine;
 use hmac::Mac;
 use rand::RngCore;
-use rsa::{pkcs8::DecodePrivateKey, Oaep, RsaPrivateKey};
+use rsa::RsaPrivateKey;
 use uuid::Uuid;
 
 use crate::{
-    client::auth_settings::AuthSettings,
     crypto::{CipherString, PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},
     error::{CryptoError, Error, Result},
     util::BASE64_ENGINE,
+};
+
+#[cfg(feature = "internal")]
+use {
+    crate::client::auth_settings::AuthSettings,
+    rsa::{pkcs8::DecodePrivateKey, Oaep},
 };
 
 pub struct SymmetricCryptoKey {
@@ -94,6 +99,7 @@ impl std::fmt::Debug for EncryptionSettings {
 }
 
 impl EncryptionSettings {
+    #[cfg(feature = "internal")]
     pub(crate) fn new(
         auth: &AuthSettings,
         password: &str,

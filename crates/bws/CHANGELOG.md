@@ -9,12 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
--
+- Switched command order from `action type` to `type action`, please re-read the help documentation (#76)
 
 ### Added
 
-- Support for creating and editing secrets (#77)
-- Support for creating and editing projects (#53)
+- Ability to create and edit projects (#53)
+- Ability to create and edit secrets (#77)
+- Support `NO_COLOR` environment variable to disable CLI colors (#61)
+- Support for `CLICOLOR_FORCE` (#74)
 
 ### Changed
 
@@ -23,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Improve login error handling (#109)
+- Respect users color choice for errors (#61)
 
 ## [0.2.1] - 2023-03-22
 

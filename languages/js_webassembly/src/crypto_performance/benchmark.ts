@@ -6,7 +6,7 @@ import { encrypt as rust_encrypt, decrypt as rust_decrypt, normalizeRustResult, 
 
 export async function benchmark_encrypt() {
   const bench = new Bench();
-  const rustNormalization = 1000;
+  const rustNormalization = 50;
   bench.add("Forge", function () {
       forge_encrypt("message");
   }).add("WebCrypto", async function () {
@@ -14,7 +14,7 @@ export async function benchmark_encrypt() {
   }).todo("Rust through command", async function () {
     await rust_encrypt(rustNormalization);
   }).add("Rust", async function () {
-    await encrypt_direct();
+    await encrypt_direct(rustNormalization);
   });
 
   bench.warmup();
@@ -25,7 +25,7 @@ export async function benchmark_encrypt() {
 
 export async function benchmark_decrypt() {
   const bench = new Bench();
-  const rustNormalization = 1000;
+  const rustNormalization = 50;
   bench.add("Forge", function () {
     forge_decrypt();
   }).add("WebCrypto", async function () {
@@ -33,7 +33,7 @@ export async function benchmark_decrypt() {
   }).todo("Rust through command", async function () {
     await rust_decrypt(rustNormalization);
   }).add("Rust", async function () {
-    await decrypt_direct();
+    await decrypt_direct(rustNormalization);
   });
 
   await bench.warmup();

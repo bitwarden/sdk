@@ -1,7 +1,8 @@
 {
   "scripts": {
     "build": "webpack",
-    "build:watch": "webpack serve"
+    "build:watch": "webpack serve",
+    "build:node": "wasm-pack build ../../crates/bitwarden-wasm --out-dir ../../languages/js_webassembly/nodepkg --target nodejs --all-features"
   },
   "devDependencies": {
     "@wasm-tool/wasm-pack-plugin": "^1.7.0",

@@ -82,22 +82,22 @@ impl Client {
         }
     }
 
-    pub fn perf_encrypt(&self) {
+    pub fn perf_encrypt(&self, num_operations: u32) {
         let key = "UY4B5N4DA4UisCNClgZtRr6VLy9ZF5BXXC7cDZRqourKi4ghEMgISbCsubvgCkHf5DZctQjVot11/vVvN9NNHQ==".to_owned();
         let encrypt_request = bitwarden::platform::performance_test::EncryptPerformanceRequest {
             key: key.clone(),
-            num_operations: 1000,
+            num_operations,
         };
 
         self.0.performance().encrypt(&encrypt_request).into_string();
     }
 
-    pub fn perf_decrypt(&self) {
+    pub fn perf_decrypt(&self, num_operations: u32) {
         let key = "UY4B5N4DA4UisCNClgZtRr6VLy9ZF5BXXC7cDZRqourKi4ghEMgISbCsubvgCkHf5DZctQjVot11/vVvN9NNHQ==".to_owned();
         let decrypt_request = bitwarden::platform::performance_test::DecryptPerformanceRequest {
             cipher_text: "2.wdCOHqz8UoAezZBcBaXilQ==|/HNKsVacSuL0uh2FoSIl2w==|zL4gnsP+zU3rG0bF9SQ5uphhy5HDTH26GNGzMyYVK1o=".to_owned(), // "test" encrypted by default key
             key: key.clone(),
-            num_operations: 1000,
+            num_operations,
         };
         
         self.0.performance().decrypt(&decrypt_request).into_string();

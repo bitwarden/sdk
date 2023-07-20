@@ -4,7 +4,7 @@ const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
 const webpack = require("webpack");
 
 module.exports = {
-  entry: "./index.ts",
+  entry: "./web/index.ts",
   module: {
     rules: [
       {
@@ -23,7 +23,7 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: "./index.html",
+      template: "./web/index.html",
       filename: "index.html",
     }),
     new WasmPackPlugin({

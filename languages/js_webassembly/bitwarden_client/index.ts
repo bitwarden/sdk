@@ -102,12 +102,12 @@ export class PerformanceClient {
     );
   }
 
-  async perf_decrypt(): Promise<void> {
-    await this.client.perf_decrypt();
+  async perf_decrypt(numOperations: number): Promise<void> {
+    await this.client.perf_decrypt(numOperations);
   }
 
-  async perf_encrypt(): Promise<void> {
-    await this.client.perf_encrypt();
+  async perf_encrypt(numOperations: number): Promise<void> {
+    await this.client.perf_encrypt(numOperations);
   }
 }
 

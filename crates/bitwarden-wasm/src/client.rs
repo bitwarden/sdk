@@ -60,13 +60,13 @@ impl BitwardenClient {
 
     #[wasm_bindgen]
     #[cfg(feature = "performance-testing")]
-    pub fn perf_encrypt(&mut self) {
-        self.0.read().unwrap().perf_encrypt();
+    pub fn perf_encrypt(&mut self, num_operations: u32) {
+        self.0.read().unwrap().perf_encrypt(num_operations);
     }
 
     #[wasm_bindgen]
     #[cfg(feature = "performance-testing")]
-    pub fn perf_decrypt(&mut self) {
-        self.0.read().unwrap().perf_decrypt();
+    pub fn perf_decrypt(&mut self, num_operations: u32) {
+        self.0.read().unwrap().perf_decrypt(num_operations);
     }
 }

@@ -25,3 +25,7 @@ bitwarden-json = { path = "../bitwarden-json" }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.36"
+
+[profile.release]
+lto = true
+opt-level = "z"

@@ -1,11 +1,15 @@
 {
   "scripts": {
-    "build": "wasm-pack build ../../crates/bitwarden-wasm --out-dir ../../languages/js_webassembly/pkg --dev",
-    "build:watch": "npm run build && webpack serve"
+    "build": "webpack",
+    "build:watch": "webpack serve"
   },
   "devDependencies": {
+    "@types/benchmark": "^2.1.2",
+    "@wasm-tool/wasm-pack-plugin": "^1.7.0",
+    "benchmark": "^2.1.4",
     "html-webpack-plugin": "5.5.1",
     "text-encoding": "0.7.0",
+    "tinybench": "^2.5.0",
     "ts-loader": "9.4.2",
     "wasm-pack": "0.11.0",
     "webpack": "5.81.0",

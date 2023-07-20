@@ -1,4 +1,4 @@
-import * as rust from "../pkg/bitwarden_wasm";
+import * as rust from "../pkg";
 import { LoggingLevel } from "./logging_level";
 import {
   ClientSettings,
@@ -63,8 +63,47 @@ export class BitwardenClient {
     return Convert.toResponseForSyncResponse(response);
   }
 
+  get performance(): PerformanceClient {
+    return new PerformanceClient(this.client);
+  }
+
   secrets(): SecretsClient {
     return new SecretsClient(this.client);
+  }
+}
+
+export class PerformanceClient {
+  client: rust.BitwardenClient;
+
+  constructor(client: rust.BitwardenClient) {
+    this.client = client;
+  }
+
+  async encrypt(key: string, numOperations = 1000): Promise<void> {
+    await this.client.run_command(
+      Convert.commandToJson({
+        performance: {
+          encrypt: {
+            key,
+            numOperations,
+          }
+        },
+      })
+    );
+  }
+
+  async decrypt(cipherText:string, key: string, numOperations = 1000): Promise<void> {
+    await this.client.run_command(
+      Convert.commandToJson({
+        performance: {
+          decrypt: {
+            cipherText,
+            key,
+            numOperations,
+          }
+        },
+      })
+    );
   }
 }
 

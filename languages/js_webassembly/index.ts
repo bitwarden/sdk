@@ -1,26 +1,32 @@
 import { LoggingLevel } from "./bitwarden_client/logging_level";
 import { DeviceType } from "./bitwarden_client/schemas";
+import { BitwardenClient } from './bitwarden_client';
 
-import("./bitwarden_client").then(async (module) => {
-  const client = new module.BitwardenClient({
-    apiUrl: "http://localhost:8081/api",
-    identityUrl: "http://localhost:8081/identity",
-    deviceType: DeviceType.SDK,
-    userAgent: "Bitwarden JS SDK",
-  }, LoggingLevel.Debug);
-  const result = await client.login("test@bitwarden.com", "asdfasdf");
-  console.log(`auth result success: ${result.success}`);
+import { benchmark_decrypt, benchmark_encrypt } from './src/crypto_performance/benchmark';
 
-  const apikeyResponse = await client.getUserApiKey("asdfasdf");
-  console.log(`user API key: ${apikeyResponse.data.apiKey}`);
+var benchmark_running = false;
 
-  const sync = await client.sync();
-  console.log("Sync result", sync);
+async function run_benchmark(name: string, callback: () => Promise<any>): Promise<void> {
+  if (benchmark_running) {
+    return;
+  }
+  benchmark_running = true;
 
-  const org_id = sync.data.profile.organizations[0].id;
+  const result = await callback();
 
-  const secret = await client.secrets().create("TEST_KEY", "This is a test secret", org_id, "Secret1234!");
-  console.log("New secret: ", secret.data);
+  console.log("Benchmark results for ", name)
+  console.table(result);
+  benchmark_running = false;
+}
 
-  await client.secrets().delete([secret.data.id]);
+
+document.getElementById("encrypt").addEventListener("click", async (e) => {
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  await run_benchmark("encrypting", benchmark_encrypt);
+});
+document.getElementById("decrypt").addEventListener("click", async (e) => {
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  await run_benchmark("decrypting", benchmark_decrypt);
 });

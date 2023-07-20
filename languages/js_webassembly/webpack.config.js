@@ -1,5 +1,6 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
 const webpack = require("webpack");
 
 module.exports = {
@@ -7,34 +8,39 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.tsx?$/,
+        test: /\.ts$/,
         use: "ts-loader",
         exclude: /node_modules/,
-      },
-      {
-        test: /\.wasm$/,
-        type: "webassembly/sync",
       },
     ],
   },
   resolve: {
-    extensions: [".tsx", ".ts", ".js"],
+    extensions: [".ts", ".js"],
   },
   output: {
     path: path.resolve(__dirname, "dist"),
     filename: "index.js",
   },
   plugins: [
-    new HtmlWebpackPlugin(),
+    new HtmlWebpackPlugin({
+      template: "./index.html",
+      filename: "index.html",
+    }),
     // Have this example work in Edge which doesn't ship `TextEncoder` or
     // `TextDecoder` at this time.
+    new WasmPackPlugin({
+      crateDirectory: path.resolve(__dirname, "../../crates/bitwarden-wasm"),
+      outDir: path.resolve(__dirname, "../../languages/js_webassembly/pkg"),
+      extraArgs: "-- --all-features",
+      forceMode: "production",
+    }),
     new webpack.ProvidePlugin({
       TextDecoder: ["text-encoding", "TextDecoder"],
       TextEncoder: ["text-encoding", "TextEncoder"],
     }),
   ],
   experiments: {
-    syncWebAssembly: true,
+    asyncWebAssembly: true,
   },
   devServer: {
     proxy: {
@@ -51,6 +57,7 @@ module.exports = {
         changeOrigin: true,
       },
     },
+    port: 8081,
   },
   mode: "development",
   devtool: "source-map",

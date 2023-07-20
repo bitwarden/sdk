@@ -1,13 +1,20 @@
 mod access_token_request;
+#[cfg(feature = "internal")]
 mod api_token_request;
+#[cfg(feature = "internal")]
 mod password_token_request;
+#[cfg(feature = "internal")]
 mod renew_token_request;
 
 pub(crate) use access_token_request::*;
+#[cfg(feature = "internal")]
 pub(crate) use api_token_request::*;
-use base64::Engine;
+#[cfg(feature = "internal")]
 pub(crate) use password_token_request::*;
+#[cfg(feature = "internal")]
 pub(crate) use renew_token_request::*;
+
+use base64::Engine;
 
 use crate::{
     auth::api::response::{parse_identity_response, IdentityTokenResponse},
@@ -43,12 +50,13 @@ async fn send_identity_connect_request(
         request = request.header("Auth-Email", BASE64_ENGINE.encode(email.as_bytes()));
     }
 
-    let raw_response = request
+    let response = request
         .body(serde_qs::to_string(&body).unwrap())
         .send()
-        .await?
-        .text()
         .await?;
 
-    parse_identity_response(&raw_response)
+    let status = response.status();
+    let text = response.text().await?;
+
+    parse_identity_response(status, &text)
 }

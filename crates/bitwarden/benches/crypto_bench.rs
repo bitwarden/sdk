@@ -1,4 +1,4 @@
-use bitwarden::platform::performance_test::{DecryptPerformanceRequest, decrypt_performance, EncryptPerformanceRequest, encrypt_performance};
+use bitwarden::platform::performance_test::{DecryptPerformanceRequest, decrypt_performance, EncryptPerformanceRequest, encrypt_performance, Pbkdf2PerformanceRequest, pbkdf2_performance};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 pub fn criterion_benchmark(c: &mut Criterion) {
@@ -12,9 +12,14 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         key: key.clone(),
         num_operations: 1,
     };
+    let pbkdf2_request = Pbkdf2PerformanceRequest {
+        password: "test".to_owned(),
+        num_operations: 1,
+    };
 
     c.bench_function("decrypt 1", |b| b.iter(|| decrypt_performance(black_box(&decrypt_request))));
     c.bench_function("encrypt 1", |b| b.iter(|| encrypt_performance(black_box(&encrypt_request))));
+    c.bench_function("pbkdf2 1", |b| b.iter(|| pbkdf2_performance(black_box(&pbkdf2_request))));
 }
 
 criterion_group!(benches, criterion_benchmark);

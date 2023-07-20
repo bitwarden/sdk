@@ -1,6 +1,6 @@
 use std::sync::Mutex;
 
-use bitwarden::platform::performance_test::{DecryptPerformanceRequest, EncryptPerformanceRequest};
+use bitwarden::platform::performance_test::{DecryptPerformanceRequest, EncryptPerformanceRequest, Pbkdf2PerformanceRequest};
 use bitwarden_json::{client::Client, command::{Command, PerformanceCommand}};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use criterion::async_executor::FuturesExecutor;
@@ -16,12 +16,18 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         key: key.clone(),
         num_operations: 1000,
     };
+    let pbkdf2_request = Pbkdf2PerformanceRequest {
+        password: "test".to_owned(),
+        num_operations: 600_000,
+    };
 
     let decrypt_command = Command::Performance(PerformanceCommand::Decrypt(decrypt_request));
     let encrypt_command = Command::Performance(PerformanceCommand::Encrypt(encrypt_request));
+    let pbkdf2_command = Command::Performance(PerformanceCommand::Pbkdf2(pbkdf2_request));
     
     let decrypt_json = serde_json::to_string(&decrypt_command).unwrap();
     let encrypt_json = serde_json::to_string(&encrypt_command).unwrap();
+    let pbkdf2_json = serde_json::to_string(&pbkdf2_command).unwrap();
 
     let client = Mutex::new(Client::new(None));
     
@@ -30,6 +36,9 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     }));
     c.bench_function("json encrypt 1k ops", |b| b.to_async(FuturesExecutor).iter(|| async {
         client.lock().unwrap().run_command(black_box(&encrypt_json)).await
+    }));
+    c.bench_function("json pbkdf2 600k", |b| b.to_async(FuturesExecutor).iter(|| async {
+        client.lock().unwrap().run_command(black_box(&pbkdf2_json)).await
     }));
 }
 

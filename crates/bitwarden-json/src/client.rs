@@ -62,6 +62,7 @@ impl Client {
             Command::Performance(cmd) => match cmd {
                 PerformanceCommand::Decrypt(req) => self.0.performance().decrypt(&req).into_string(),
                 PerformanceCommand::Encrypt(req) => self.0.performance().encrypt(&req).into_string(),
+                PerformanceCommand::Pbkdf2(req) => self.0.performance().pbkdf2(&req).into_string(),
             }
 
             Command::Secrets(cmd) => match cmd {

@@ -1,10 +1,9 @@
-const iterations = 5000;
 const keySize = 256;
 
 const encIv = 'FX7Y3pYmcLIQt6WrKc62jA==';
 const encCt = 'EDlxtzpEOfGIAIa8PkCQmA==';
 
-export async function makeDerivedKey() {
+export async function makeDerivedKey(iterations: number) {
   const importedKey = await window.crypto.subtle.importKey(
     'raw', fromUtf8('mypassword'), {
     name: 'PBKDF2'
@@ -27,8 +26,8 @@ export async function makeDerivedKey() {
   )
 }
 
-export async function makeKey() {
-  const derivedKey = await makeDerivedKey();
+export async function pbkdf2(iterations: number) {
+  const derivedKey = await makeDerivedKey(iterations);
   return await window.crypto.subtle.exportKey('raw', derivedKey)
 }
 

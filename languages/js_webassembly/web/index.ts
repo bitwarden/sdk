@@ -1,4 +1,4 @@
-import { benchmark_decrypt, benchmark_encrypt } from '../src/crypto_performance/benchmark';
+import { benchmark_decrypt, benchmark_encrypt, benchmark_pbkdf2 } from '../src/crypto_performance/benchmark';
 
 var benchmark_running = false;
 
@@ -15,13 +15,34 @@ async function run_benchmark(name: string, callback: () => Promise<any>): Promis
   benchmark_running = false;
 }
 
-document.getElementById("encrypt").addEventListener("click", async (e) => {
+const pbkdf2_button = document.getElementById("pbkdf2") as HTMLButtonElement;
+const encrypt_button = document.getElementById("encrypt") as HTMLButtonElement;
+const decrypt_button = document.getElementById("decrypt") as HTMLButtonElement;
+
+function disableButtons(disable: boolean) {
+  pbkdf2_button.disabled = disable;
+  encrypt_button.disabled = disable;
+  decrypt_button.disabled = disable;
+}
+
+encrypt_button.addEventListener("click", async (e) => {
   e.preventDefault();
   e.stopImmediatePropagation();
+  disableButtons(true);
   await run_benchmark("encrypting", benchmark_encrypt);
+  disableButtons(false);
 });
-document.getElementById("decrypt").addEventListener("click", async (e) => {
+decrypt_button.addEventListener("click", async (e) => {
   e.preventDefault();
   e.stopImmediatePropagation();
-  await run_benchmark("decrypting", benchmark_decrypt);
+  disableButtons(true);
+  run_benchmark("decrypting", benchmark_decrypt)
+    .then(() => disableButtons(false));
+});
+pbkdf2_button.addEventListener("click", async (e) => {
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  disableButtons(true);
+  run_benchmark("pbkdf2", benchmark_pbkdf2)
+    .then(() => disableButtons(false));
 });

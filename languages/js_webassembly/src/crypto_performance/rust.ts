@@ -35,6 +35,10 @@ export async function decryptDirect(numOperations: number) {
   return await client.performance.perf_decrypt(numOperations);
 }
 
+export async function pbkdf2(iterations: number) {
+  return await client.performance.pbkdf2(iterations, "mypassword");
+}
+
 export function normalizeRustResult(tableData: any[], numOperations: number) {
   return tableData.map(r => {
     if (r["Task Name"] !== "Rust") {

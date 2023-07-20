@@ -18,7 +18,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     };
     let pbkdf2_request = Pbkdf2PerformanceRequest {
         password: "test".to_owned(),
-        num_operations: 600_000,
+        num_operations: 5000,
     };
 
     let decrypt_command = Command::Performance(PerformanceCommand::Decrypt(decrypt_request));
@@ -37,7 +37,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("json encrypt 1k ops", |b| b.to_async(FuturesExecutor).iter(|| async {
         client.lock().unwrap().run_command(black_box(&encrypt_json)).await
     }));
-    c.bench_function("json pbkdf2 600k", |b| b.to_async(FuturesExecutor).iter(|| async {
+    c.bench_function("json pbkdf2 5000", |b| b.to_async(FuturesExecutor).iter(|| async {
         client.lock().unwrap().run_command(black_box(&pbkdf2_json)).await
     }));
 }

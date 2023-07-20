@@ -1,9 +1,9 @@
-use std::{str::FromStr, num::NonZeroU32};
+use std::num::NonZeroU32;
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{client::{encryption_settings::{EncryptionSettings, SymmetricCryptoKey}, auth_settings::Kdf}, error::Result, crypto::hash_kdf};
+use crate::{client::auth_settings::Kdf, error::Result, crypto::hash_kdf};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

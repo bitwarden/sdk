@@ -55,8 +55,11 @@ module.exports = {
         changeOrigin: true,
       },
     },
+    client: {
+      overlay: false,
+    },
     port: 8081,
   },
-  mode: "development",
+  mode: "production",
   devtool: "source-map",
 };

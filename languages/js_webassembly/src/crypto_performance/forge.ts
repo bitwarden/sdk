@@ -1,11 +1,10 @@
 import * as forge from 'node-forge';
 
-const iterations = 5000;
 const keySize = 256;
 
 const encIv = 'FX7Y3pYmcLIQt6WrKc62jA==';
 const encCt = 'EDlxtzpEOfGIAIa8PkCQmA==';
-const forgeKey = makeKey();
+const forgeKey = pbkdf2(5000); // Keep this iteration count constant -- it's the key used to encrypt the message being decrypted
 
 function getRandomForgeBytes() {
   var bytes = new Uint8Array(16);
@@ -13,8 +12,8 @@ function getRandomForgeBytes() {
   return String.fromCharCode.apply(null, bytes);
 }
 
-export function makeKey() {
-  return forge.pbkdf2('mypassword', 'a salt', iterations, keySize / 8, 'sha256');
+export function pbkdf2(numIterations) {
+  return forge.pbkdf2('mypassword', 'a salt', numIterations, keySize / 8, 'sha256');
 }
 
 export function encrypt(message: string) {

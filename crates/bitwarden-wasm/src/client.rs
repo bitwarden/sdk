@@ -3,7 +3,7 @@ use std::{rc::Rc, sync::RwLock};
 
 use bitwarden_json::client::Client as JsonClient;
 use js_sys::Promise;
-use log::{Level, info, debug, warn};
+use log::Level;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::future_to_promise;
 

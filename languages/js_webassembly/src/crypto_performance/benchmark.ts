@@ -1,18 +1,18 @@
 import { Bench } from "tinybench";
 
-import { encrypt as forgeEncrypt, decrypt as forgeDecrypt, makeKey as forgeMakeKey } from "./forge";
-import { encrypt as webCryptoEncrypt, decrypt as webCryptoDecrypt, makeDerivedKey, makeKey as webCryptoMakeKey } from "./web_crypto";
-import { encrypt as rustEncrypt, decrypt as rustDecrypt, normalizeRustResult, encryptDirect as rustEncryptDirect, decryptDirect as rustDecryptDirect } from "./rust";
+import { encrypt as forgeEncrypt, decrypt as forgeDecrypt, pbkdf2 as forgePbkdf2 } from "./forge";
+import { encrypt as webCryptoEncrypt, decrypt as webCryptoDecrypt, makeDerivedKey, pbkdf2 as webCryptoPbkdf2 } from "./web_crypto";
+import { encrypt as rustEncrypt, decrypt as rustDecrypt, normalizeRustResult, encryptDirect as rustEncryptDirect, decryptDirect as rustDecryptDirect, pbkdf2 as rustPbkdf2 } from "./rust";
 
 export async function benchmark_pbkdf2() {
   const bench = new Bench();
-  
-  bench.add("Forge", function () {
-    forgeMakeKey();
+  const iterations = 5000;
+  bench.todo("Forge", function () {
+    forgePbkdf2(iterations);
   }).add("WebCrypto", async function () {
-    webCryptoMakeKey();
-  }).todo("Rust", async function () {
-    // await rust_make_key();
+    webCryptoPbkdf2(iterations);
+  }).add("Rust", async function () {
+    await rustPbkdf2(iterations);
   });
 
   bench.warmup();
@@ -24,7 +24,7 @@ export async function benchmark_pbkdf2() {
 export async function benchmark_encrypt() {
   const bench = new Bench();
   const rustNormalization = 50;
-  const webCryptoKey = await makeDerivedKey();
+  const webCryptoKey = await makeDerivedKey(5000);
   bench.add("Forge", function () {
       forgeEncrypt("message");
   }).add("WebCrypto", async function () {
@@ -44,7 +44,7 @@ export async function benchmark_encrypt() {
 export async function benchmark_decrypt() {
   const bench = new Bench();
   const rustNormalization = 50;
-  const webCryptoKey = await makeDerivedKey();
+  const webCryptoKey = await makeDerivedKey(5000); // Keep this iteration count constant -- it's the key used to encrypt the message being decrypted
   bench.add("Forge", function () {
     forgeDecrypt();
   }).add("WebCrypto", async function () {

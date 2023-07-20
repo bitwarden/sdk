@@ -102,6 +102,19 @@ export class PerformanceClient {
     );
   }
 
+  async pbkdf2(iterations: number, secret: string): Promise < void> {
+    await this.client.run_command(
+      Convert.commandToJson({
+        performance: {
+          pbkdf2: {
+            numOperations: iterations,
+            password: secret,
+          }
+        },
+      })
+    );
+  }
+
   async perf_decrypt(numOperations: number): Promise<void> {
     await this.client.perf_decrypt(numOperations);
   }

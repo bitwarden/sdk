@@ -4,7 +4,7 @@ const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
 const webpack = require("webpack");
 
 module.exports = {
-  entry: "./web/index.ts",
+  entry: "./index.ts",
   module: {
     rules: [
       {
@@ -23,12 +23,12 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: "./web/index.html",
+      template: "./index.html",
       filename: "index.html",
     }),
     new WasmPackPlugin({
-      crateDirectory: path.resolve(__dirname, "../../crates/bitwarden-wasm"),
-      outDir: path.resolve(__dirname, "../../languages/js_webassembly/pkg"),
+      crateDirectory: path.resolve(__dirname, "../../../crates/bitwarden-wasm"),
+      outDir: path.resolve(__dirname, "../../../languages/js_webassembly/pkg"),
       extraArgs: "-- --all-features",
       forceMode: "production",
     }),

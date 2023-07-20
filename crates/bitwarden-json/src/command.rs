@@ -1,16 +1,17 @@
-use bitwarden::{
-    auth::request::AccessTokenLoginRequest,
-    secrets_manager::{
-        projects::{
-            ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
-            ProjectsListRequest,
-        },
-        secrets::{
-            SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretPutRequest,
-            SecretsDeleteRequest,
-        },
+use bitwarden::auth::request::AccessTokenLoginRequest;
+
+#[cfg(feature = "secrets")]
+use bitwarden::secrets_manager::{
+    projects::{
+        ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
+        ProjectsListRequest,
+    },
+    secrets::{
+        SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretPutRequest,
+        SecretsDeleteRequest,
     },
 };
+
 #[cfg(feature = "internal")]
 use bitwarden::{
     auth::request::{ApiKeyLoginRequest, PasswordLoginRequest},
@@ -75,10 +76,13 @@ pub enum Command {
     ///
     Sync(SyncRequest),
 
+    #[cfg(feature = "secrets")]
     Secrets(SecretsCommand),
+    #[cfg(feature = "secrets")]
     Projects(ProjectsCommand),
 }
 
+#[cfg(feature = "secrets")]
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum SecretsCommand {
@@ -123,6 +127,7 @@ pub enum SecretsCommand {
     Delete(SecretsDeleteRequest),
 }
 
+#[cfg(feature = "secrets")]
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum ProjectsCommand {

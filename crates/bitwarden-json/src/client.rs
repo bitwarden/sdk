@@ -1,9 +1,12 @@
 use bitwarden::client::client_settings::ClientSettings;
 
 use crate::{
-    command::{Command, ProjectsCommand, SecretsCommand},
+    command::Command,
     response::{Response, ResponseIntoString},
 };
+
+#[cfg(feature = "secrets")]
+use crate::command::{ProjectsCommand, SecretsCommand};
 
 pub struct Client(bitwarden::Client);
 
@@ -55,6 +58,7 @@ impl Client {
             #[cfg(feature = "internal")]
             Command::Fingerprint(req) => self.0.fingerprint(&req).into_string(),
 
+            #[cfg(feature = "secrets")]
             Command::Secrets(cmd) => match cmd {
                 SecretsCommand::Get(req) => self.0.secrets().get(&req).await.into_string(),
                 SecretsCommand::Create(req) => self.0.secrets().create(&req).await.into_string(),
@@ -63,6 +67,7 @@ impl Client {
                 SecretsCommand::Delete(req) => self.0.secrets().delete(req).await.into_string(),
             },
 
+            #[cfg(feature = "secrets")]
             Command::Projects(cmd) => match cmd {
                 ProjectsCommand::Get(req) => self.0.projects().get(&req).await.into_string(),
                 ProjectsCommand::Create(req) => self.0.projects().create(&req).await.into_string(),

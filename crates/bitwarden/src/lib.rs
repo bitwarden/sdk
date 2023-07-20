@@ -54,6 +54,7 @@ pub mod crypto;
 pub mod error;
 #[cfg(feature = "internal")]
 pub mod platform;
+#[cfg(feature = "secrets")]
 pub mod secrets_manager;
 mod util;
 pub mod wordlist;

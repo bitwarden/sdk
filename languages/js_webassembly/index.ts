@@ -1,4 +1,4 @@
-import { benchmark_decrypt, benchmark_encrypt, benchmark_pbkdf2 } from '../src/crypto_performance/benchmark';
+import { benchmark_decrypt, benchmark_encrypt, benchmark_pbkdf2 } from './src/crypto_performance/benchmark';
 
 var benchmark_running = false;
 

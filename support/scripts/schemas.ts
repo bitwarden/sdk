@@ -40,6 +40,7 @@ async function main() {
   });
 
   writeToFile("./languages/js_webassembly/bitwarden_client/schemas.ts", ts.lines);
+  writeToFile("./languages/nodejs_wasm/bitwarden_client/schemas.ts", ts.lines);
   writeToFile("./crates/bitwarden-napi/src-ts/bitwarden_client/schemas.ts", ts.lines);
 
   const python = await quicktype({

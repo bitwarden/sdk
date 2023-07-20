@@ -27,8 +27,8 @@ module.exports = {
       filename: "index.html",
     }),
     new WasmPackPlugin({
-      crateDirectory: path.resolve(__dirname, "../../../crates/bitwarden-wasm"),
-      outDir: path.resolve(__dirname, "../../../languages/js_webassembly/pkg"),
+      crateDirectory: path.resolve(__dirname, "../../crates/bitwarden-wasm"),
+      outDir: path.resolve(__dirname, "../../languages/js_webassembly/pkg"),
       extraArgs: "-- --all-features",
       forceMode: "production",
     }),

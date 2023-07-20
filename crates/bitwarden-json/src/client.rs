@@ -8,6 +8,9 @@ use crate::{
 #[cfg(feature = "secrets")]
 use crate::command::{ProjectsCommand, SecretsCommand};
 
+#[cfg(feature = "mobile")]
+use crate::command::{MobileCommand, MobileCryptoCommand, MobileKdfCommand};
+
 pub struct Client(bitwarden::Client);
 
 impl Client {
@@ -74,6 +77,32 @@ impl Client {
                 ProjectsCommand::List(req) => self.0.projects().list(&req).await.into_string(),
                 ProjectsCommand::Update(req) => self.0.projects().update(&req).await.into_string(),
                 ProjectsCommand::Delete(req) => self.0.projects().delete(req).await.into_string(),
+            },
+
+            #[cfg(feature = "mobile")]
+            Command::Mobile(cmd) => match cmd {
+                MobileCommand::Kdf(cmd) => match cmd {
+                    MobileKdfCommand::SetKdfParams(req) => {
+                        self.0.kdf().set_kdf_params(req).await.into_string()
+                    }
+                    MobileKdfCommand::GetUserPasswordHash(req) => {
+                        self.0.kdf().get_user_password_hash(req).await.into_string()
+                    }
+                },
+                MobileCommand::Crypto(cmd) => match cmd {
+                    MobileCryptoCommand::InitUserCrypto(req) => self
+                        .0
+                        .crypto()
+                        .initialize_user_crypto(req)
+                        .await
+                        .into_string(),
+                    MobileCryptoCommand::InitOrgCrypto(req) => self
+                        .0
+                        .crypto()
+                        .initialize_org_crypto(req)
+                        .await
+                        .into_string(),
+                },
             },
         }
     }

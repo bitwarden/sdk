@@ -2,6 +2,8 @@ use std::num::NonZeroU32;
 
 use base64::Engine;
 use bitwarden_api_identity::models::{KdfType, PreloginResponseModel};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     crypto::{PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},
@@ -18,7 +20,8 @@ pub(crate) struct AuthSettings {
     pub(crate) kdf: Kdf,
 }
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum Kdf {
     PBKDF2 {
         iterations: NonZeroU32,

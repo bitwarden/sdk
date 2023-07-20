@@ -17,6 +17,13 @@ use bitwarden::{
     auth::request::{ApiKeyLoginRequest, PasswordLoginRequest},
     platform::{FingerprintRequest, SecretVerificationRequest, SyncRequest},
 };
+
+#[cfg(feature = "mobile")]
+use bitwarden::mobile::{
+    crypto::{InitOrgCryptoRequest, InitUserCryptoRequest},
+    kdf::{KdfParamRequest, PasswordHashRequest},
+};
+
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -80,6 +87,9 @@ pub enum Command {
     Secrets(SecretsCommand),
     #[cfg(feature = "secrets")]
     Projects(ProjectsCommand),
+
+    #[cfg(feature = "mobile")]
+    Mobile(MobileCommand),
 }
 
 #[cfg(feature = "secrets")]
@@ -170,4 +180,41 @@ pub enum ProjectsCommand {
     /// Returns: [ProjectsDeleteResponse](bitwarden::secrets_manager::projects::ProjectsDeleteResponse)
     ///
     Delete(ProjectsDeleteRequest),
+}
+
+#[cfg(feature = "mobile")]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub enum MobileCommand {
+    Kdf(MobileKdfCommand),
+    Crypto(MobileCryptoCommand),
+}
+
+#[cfg(feature = "mobile")]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub enum MobileKdfCommand {
+    /// Sets the KDF parameters that are received in the prelogin request
+    ///
+    SetKdfParams(KdfParamRequest),
+    /// > Requires having previously set the KDF parameters
+    /// Calculates the user master password hash based on the provided password
+    ///
+    /// Returns: String
+    ///
+    GetUserPasswordHash(PasswordHashRequest),
+}
+
+#[cfg(feature = "mobile")]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub enum MobileCryptoCommand {
+    /// > Requires having previously set the KDF parameters
+    /// Decrypts the users keys and initializes the user crypto, allowing for the encryption/decryption of the users items
+    ///
+    InitUserCrypto(InitUserCryptoRequest),
+    /// > Requires having previously initialized the user crypto
+    /// Decrypts the users organization keys, allowing for the encryption/decryption of the items in the users organizations
+    ///
+    InitOrgCrypto(InitOrgCryptoRequest),
 }

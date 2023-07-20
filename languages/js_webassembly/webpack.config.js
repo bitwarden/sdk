@@ -26,8 +26,6 @@ module.exports = {
       template: "./index.html",
       filename: "index.html",
     }),
-    // Have this example work in Edge which doesn't ship `TextEncoder` or
-    // `TextDecoder` at this time.
     new WasmPackPlugin({
       crateDirectory: path.resolve(__dirname, "../../crates/bitwarden-wasm"),
       outDir: path.resolve(__dirname, "../../languages/js_webassembly/pkg"),

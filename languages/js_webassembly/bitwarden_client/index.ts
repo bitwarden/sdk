@@ -67,17 +67,13 @@ export class BitwardenClient {
     return new PerformanceClient(this.client);
   }
 
-  secrets(): SecretsClient {
+  get secrets(): SecretsClient {
     return new SecretsClient(this.client);
   }
 }
 
 export class PerformanceClient {
-  client: rust.BitwardenClient;
-
-  constructor(client: rust.BitwardenClient) {
-    this.client = client;
-  }
+  constructor(private client: rust.BitwardenClient) { }
 
   async encrypt(key: string, numOperations = 1000): Promise<void> {
     await this.client.run_command(
@@ -105,12 +101,18 @@ export class PerformanceClient {
       })
     );
   }
+
+  async perf_decrypt(): Promise<void> {
+    await this.client.perf_decrypt();
+  }
+
+  async perf_encrypt(): Promise<void> {
+    await this.client.perf_encrypt();
+  }
 }
 
 export class SecretsClient {
-  client: rust.BitwardenClient;
-
-  constructor(client: rust.BitwardenClient) {
+  constructor(private client: rust.BitwardenClient) {
     this.client = client;
   }
 

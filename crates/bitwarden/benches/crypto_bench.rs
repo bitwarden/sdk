@@ -9,7 +9,6 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         num_operations: 1,
     };
     let encrypt_request = EncryptPerformanceRequest {
-        clear_text: "test".to_owned(),
         key: key.clone(),
         num_operations: 1,
     };

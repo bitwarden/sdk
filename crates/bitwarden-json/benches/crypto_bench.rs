@@ -10,12 +10,11 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     let decrypt_request = DecryptPerformanceRequest {
         cipher_text: "2.wdCOHqz8UoAezZBcBaXilQ==|/HNKsVacSuL0uh2FoSIl2w==|zL4gnsP+zU3rG0bF9SQ5uphhy5HDTH26GNGzMyYVK1o=".to_owned(), // "test" encrypted by default key
         key: key.clone(),
-        num_operations: 10000,
+        num_operations: 1000,
     };
     let encrypt_request = EncryptPerformanceRequest {
-        clear_text: "test".to_owned(),
         key: key.clone(),
-        num_operations: 10000,
+        num_operations: 1000,
     };
 
     let decrypt_command = Command::Performance(PerformanceCommand::Decrypt(decrypt_request));
@@ -26,10 +25,10 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
     let client = Mutex::new(Client::new(None));
     
-    c.bench_function("json decrypt 10k ops", |b| b.to_async(FuturesExecutor).iter(|| async {
+    c.bench_function("json decrypt 1k ops", |b| b.to_async(FuturesExecutor).iter(|| async {
         client.lock().unwrap().run_command(black_box(&decrypt_json)).await
     }));
-    c.bench_function("json encrypt 10k ops", |b| b.to_async(FuturesExecutor).iter(|| async {
+    c.bench_function("json encrypt 1k ops", |b| b.to_async(FuturesExecutor).iter(|| async {
         client.lock().unwrap().run_command(black_box(&encrypt_json)).await
     }));
 }

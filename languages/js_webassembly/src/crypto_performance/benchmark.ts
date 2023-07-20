@@ -1,9 +1,8 @@
 import { Bench } from "tinybench";
-import { Suite } from "benchmark";
 
-import { encrypt as forge_encrypt, decrypt as forge_decrypt } from "./forge";
-import { encrypt as web_crypto_encrypt, decrypt as web_crypto_decrypt } from "./web_crypt";
-import { encrypt as rust_encrypt, decrypt as rust_decrypt, normalizeRustResult } from "./rust";
+import { encrypt as forge_encrypt, decrypt as forge_decrypt, encrypt } from "./forge";
+import { encrypt as web_crypto_encrypt, decrypt as web_crypto_decrypt } from "./web_crypto";
+import { encrypt as rust_encrypt, decrypt as rust_decrypt, normalizeRustResult, encrypt_direct, decrypt_direct } from "./rust";
 
 export async function benchmark_encrypt() {
   const bench = new Bench();
@@ -12,8 +11,10 @@ export async function benchmark_encrypt() {
       forge_encrypt("message");
   }).add("WebCrypto", async function () {
     await web_crypto_encrypt("message");
-  }).add("Rust", async function () {
+  }).todo("Rust through command", async function () {
     await rust_encrypt(rustNormalization);
+  }).add("Rust", async function () {
+    await encrypt_direct();
   });
 
   bench.warmup();
@@ -24,13 +25,15 @@ export async function benchmark_encrypt() {
 
 export async function benchmark_decrypt() {
   const bench = new Bench();
-  const rustNormalization = 10;
+  const rustNormalization = 1000;
   bench.add("Forge", function () {
     forge_decrypt();
   }).add("WebCrypto", async function () {
     await web_crypto_decrypt();
-  }).add("Rust", async function () {
+  }).todo("Rust through command", async function () {
     await rust_decrypt(rustNormalization);
+  }).add("Rust", async function () {
+    await decrypt_direct();
   });
 
   await bench.warmup();

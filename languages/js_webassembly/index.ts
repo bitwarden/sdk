@@ -1,7 +1,3 @@
-import { LoggingLevel } from "./bitwarden_client/logging_level";
-import { DeviceType } from "./bitwarden_client/schemas";
-import { BitwardenClient } from './bitwarden_client';
-
 import { benchmark_decrypt, benchmark_encrypt } from './src/crypto_performance/benchmark';
 
 var benchmark_running = false;
@@ -18,7 +14,6 @@ async function run_benchmark(name: string, callback: () => Promise<any>): Promis
   console.table(result);
   benchmark_running = false;
 }
-
 
 document.getElementById("encrypt").addEventListener("click", async (e) => {
   e.preventDefault();

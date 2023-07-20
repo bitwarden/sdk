@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
     "outDir": "./dist/",
-    "module": "es2020",
-    "target": "es5",
+    "target": "ES2016",
+    "module": "ES2020",
     "jsx": "react",
     "allowJs": true,
     "moduleResolution": "node",
-    "sourceMap": true
+    "sourceMap": true,
   }
 }

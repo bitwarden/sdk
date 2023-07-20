@@ -27,6 +27,14 @@ export async function decrypt(numOperations: number) {
   return await client.performance.decrypt(cipherText, key, numOperations);
 }
 
+export async function encrypt_direct() {
+  return await client.performance.perf_encrypt();
+}
+
+export async function decrypt_direct() {
+  return await client.performance.perf_decrypt();
+}
+
 export function normalizeRustResult(tableData: any[], numOperations: number) {
   return tableData.map(r => {
     if (r["Task Name"] !== "Rust") {

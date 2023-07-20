@@ -3,10 +3,11 @@ use std::{rc::Rc, sync::RwLock};
 
 use bitwarden_json::client::Client as JsonClient;
 use js_sys::Promise;
-use log::Level;
+use log::{Level, info, debug, warn};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::future_to_promise;
 
+#[derive(Debug)]
 #[wasm_bindgen]
 pub enum LogLevel {
     Trace,
@@ -55,5 +56,17 @@ impl BitwardenClient {
             let result = client.run_command(&js_input).await;
             Ok(result.into())
         })
+    }
+
+    #[wasm_bindgen]
+    #[cfg(feature = "performance-testing")]
+    pub fn perf_encrypt(&mut self) {
+        self.0.read().unwrap().perf_encrypt();
+    }
+
+    #[wasm_bindgen]
+    #[cfg(feature = "performance-testing")]
+    pub fn perf_decrypt(&mut self) {
+        self.0.read().unwrap().perf_decrypt();
     }
 }

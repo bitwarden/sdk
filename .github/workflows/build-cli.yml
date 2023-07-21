@@ -67,11 +67,6 @@ jobs:
           toolchain: stable
           target: ${{ matrix.settings.target }}
 
-      - name: Install libssl-dev for aarch64-unknown-linux-gnu
-        if: ${{ matrix.settings.target == 'aarch64-unknown-linux-gnu' }}
-        run: |
-          sudo apt-get install gcc-aarch64-linux-gnu
-
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@dd05243424bd5c0e585e4b55eb2d7615cdd32f1f # v2.5.1
         with:

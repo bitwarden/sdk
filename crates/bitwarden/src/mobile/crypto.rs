@@ -3,11 +3,20 @@ use std::collections::HashMap;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{crypto::CipherString, error::Result, Client};
+use crate::{
+    client::auth_settings::{AuthSettings, Kdf},
+    crypto::CipherString,
+    error::Result,
+    Client,
+};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct InitCryptoRequest {
+    /// The user's KDF parameters, as received from the prelogin request
+    pub kdf_params: Kdf,
+    /// The user's email address
+    pub email: String,
     /// The user's master password
     pub password: String,
     /// The user's encrypted symmetric crypto key
@@ -19,6 +28,12 @@ pub struct InitCryptoRequest {
 }
 
 pub async fn initialize_crypto(client: &mut Client, req: InitCryptoRequest) -> Result<()> {
+    let auth_settings = AuthSettings {
+        email: req.email,
+        kdf: req.kdf_params,
+    };
+    client.set_auth_settings(auth_settings);
+
     let user_key = req.user_key.parse::<CipherString>()?;
     let private_key = req.private_key.parse::<CipherString>()?;
 

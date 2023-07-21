@@ -20,10 +20,7 @@ use bitwarden::{
 };
 
 #[cfg(feature = "mobile")]
-use bitwarden::mobile::{
-    crypto::InitCryptoRequest,
-    kdf::{KdfParamRequest, PasswordHashRequest},
-};
+use bitwarden::mobile::{crypto::InitCryptoRequest, kdf::PasswordHashRequest};
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -196,11 +193,7 @@ pub enum MobileCommand {
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum MobileKdfCommand {
-    /// Sets the KDF parameters that are received in the prelogin request
-    ///
-    SetKdfParams(KdfParamRequest),
-    /// > Requires having previously set the KDF parameters
-    /// Calculates the user master password hash based on the provided password
+    /// Calculates the user master password hash based on the provided password and KDF parametes
     ///
     /// Returns: String
     ///
@@ -211,7 +204,6 @@ pub enum MobileKdfCommand {
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum MobileCryptoCommand {
-    /// > Requires having previously set the KDF parameters
     /// Decrypts the users keys and initializes the user crypto, allowing for the encryption/decryption of the users vault
     ///
     InitCrypto(InitCryptoRequest),

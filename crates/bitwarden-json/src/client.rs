@@ -83,9 +83,6 @@ impl Client {
             #[cfg(feature = "mobile")]
             Command::Mobile(cmd) => match cmd {
                 MobileCommand::Kdf(cmd) => match cmd {
-                    MobileKdfCommand::SetKdfParams(req) => {
-                        self.0.kdf().set_kdf_params(req).await.into_string()
-                    }
                     MobileKdfCommand::HashPassword(req) => {
                         self.0.kdf().hash_password(req).await.into_string()
                     }

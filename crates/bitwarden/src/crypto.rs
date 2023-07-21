@@ -16,12 +16,12 @@ use crate::{
 
 #[cfg(feature = "internal")]
 use {
-    crate::{client::auth_settings::Kdf, wordlist::EFF_LONG_WORD_LIST},
-    aes::cipher::typenum::U32,
-    num_bigint::BigUint,
+    crate::wordlist::EFF_LONG_WORD_LIST, aes::cipher::typenum::U32, num_bigint::BigUint,
     num_traits::cast::ToPrimitive,
-    sha2::{Digest, Sha256},
 };
+
+#[cfg(any(feature = "internal", feature = "mobile"))]
+use {crate::client::auth_settings::Kdf, sha2::Digest};
 
 #[allow(unused, non_camel_case_types)]
 pub enum CipherString {
@@ -238,7 +238,7 @@ pub(crate) type PbkdfSha256Hmac = hmac::Hmac<sha2::Sha256>;
 pub(crate) const PBKDF_SHA256_HMAC_OUT_SIZE: usize =
     <<PbkdfSha256Hmac as OutputSizeUser>::OutputSize as Unsigned>::USIZE;
 
-#[cfg(feature = "internal")]
+#[cfg(any(feature = "internal", feature = "mobile"))]
 pub(crate) fn hash_kdf(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<[u8; 32]> {
     let hash = match kdf {
         Kdf::PBKDF2 { iterations } => pbkdf2::pbkdf2_array::<
@@ -324,7 +324,7 @@ pub(crate) fn stretch_key(secret: [u8; 16], name: &str, info: Option<&str>) -> S
 
 #[cfg(feature = "internal")]
 pub(crate) fn fingerprint(fingerprint_material: &str, public_key: &[u8]) -> Result<String> {
-    let mut h = Sha256::new();
+    let mut h = sha2::Sha256::new();
     h.update(public_key);
     h.finalize();
 

@@ -1,9 +1,17 @@
 use bitwarden::client::client_settings::ClientSettings;
 
 use crate::{
-    command::{Command, ProjectsCommand, SecretsCommand},
+    command::Command,
     response::{Response, ResponseIntoString},
 };
+
+#[cfg(feature = "secrets")]
+use crate::command::{ProjectsCommand, SecretsCommand};
+
+#[cfg(all(feature = "internal", feature = "mobile"))]
+use crate::command::MobileCryptoCommand;
+#[cfg(feature = "mobile")]
+use crate::command::{MobileCommand, MobileKdfCommand};
 
 pub struct Client(bitwarden::Client);
 
@@ -45,6 +53,7 @@ impl Client {
         match cmd {
             #[cfg(feature = "internal")]
             Command::PasswordLogin(req) => self.0.password_login(&req).await.into_string(),
+            #[cfg(feature = "secrets")]
             Command::AccessTokenLogin(req) => self.0.access_token_login(&req).await.into_string(),
             #[cfg(feature = "internal")]
             Command::GetUserApiKey(req) => self.0.get_user_api_key(&req).await.into_string(),
@@ -55,6 +64,7 @@ impl Client {
             #[cfg(feature = "internal")]
             Command::Fingerprint(req) => self.0.fingerprint(&req).into_string(),
 
+            #[cfg(feature = "secrets")]
             Command::Secrets(cmd) => match cmd {
                 SecretsCommand::Get(req) => self.0.secrets().get(&req).await.into_string(),
                 SecretsCommand::Create(req) => self.0.secrets().create(&req).await.into_string(),
@@ -63,12 +73,28 @@ impl Client {
                 SecretsCommand::Delete(req) => self.0.secrets().delete(req).await.into_string(),
             },
 
+            #[cfg(feature = "secrets")]
             Command::Projects(cmd) => match cmd {
                 ProjectsCommand::Get(req) => self.0.projects().get(&req).await.into_string(),
                 ProjectsCommand::Create(req) => self.0.projects().create(&req).await.into_string(),
                 ProjectsCommand::List(req) => self.0.projects().list(&req).await.into_string(),
                 ProjectsCommand::Update(req) => self.0.projects().update(&req).await.into_string(),
                 ProjectsCommand::Delete(req) => self.0.projects().delete(req).await.into_string(),
+            },
+
+            #[cfg(feature = "mobile")]
+            Command::Mobile(cmd) => match cmd {
+                MobileCommand::Kdf(cmd) => match cmd {
+                    MobileKdfCommand::HashPassword(req) => {
+                        self.0.kdf().hash_password(req).await.into_string()
+                    }
+                },
+                MobileCommand::Crypto(cmd) => match cmd {
+                    #[cfg(feature = "internal")]
+                    MobileCryptoCommand::InitCrypto(req) => {
+                        self.0.crypto().initialize_crypto(req).await.into_string()
+                    }
+                },
             },
         }
     }

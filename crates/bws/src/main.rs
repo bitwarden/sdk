@@ -109,15 +109,16 @@ enum SecretCommand {
         key: String,
         value: String,
 
+        #[arg(help = "The ID of the project this secret will be added to")]
+        project_id: Uuid,
+
         #[arg(long, help = "An optional note to add to the secret")]
         note: Option<String>,
-
-        #[arg(long, help = "The ID of the project this secret will be added to")]
-        project_id: Option<Uuid>,
     },
     Delete {
         secret_ids: Vec<Uuid>,
     },
+    #[clap(group = ArgGroup::new("edit_field").required(true).multiple(true))]
     Edit {
         secret_id: Uuid,
         #[arg(long, group = "edit_field")]
@@ -126,6 +127,8 @@ enum SecretCommand {
         value: Option<String>,
         #[arg(long, group = "edit_field")]
         note: Option<String>,
+        #[arg(long, group = "edit_field")]
+        project_id: Option<Uuid>,
     },
     Get {
         secret_id: Uuid,
@@ -179,7 +182,7 @@ enum CreateCommand {
         note: Option<String>,
 
         #[arg(long, help = "The ID of the project this secret will be added to")]
-        project_id: Option<Uuid>,
+        project_id: Uuid,
     },
 }
 
@@ -200,6 +203,8 @@ enum EditCommand {
         value: Option<String>,
         #[arg(long, group = "edit_field")]
         note: Option<String>,
+        #[arg(long, group = "edit_field")]
+        project_id: Option<Uuid>,
     },
 }
 
@@ -383,17 +388,34 @@ async fn process_commands() -> Result<()> {
         | Commands::Delete {
             cmd: DeleteCommand::Project { project_ids },
         } => {
-            let project_count = project_ids.len();
+            let count = project_ids.len();
 
-            client
+            let result = client
                 .projects()
                 .delete(ProjectsDeleteRequest { ids: project_ids })
                 .await?;
 
-            if project_count > 1 {
-                println!("Projects deleted successfully.");
-            } else {
-                println!("Project deleted successfully.");
+            let projects_failed: Vec<(Uuid, String)> = result
+                .data
+                .into_iter()
+                .filter_map(|r| r.error.map(|e| (r.id, e)))
+                .collect();
+            let deleted_projects = count - projects_failed.len();
+
+            if deleted_projects > 1 {
+                println!("{} projects deleted successfully.", deleted_projects);
+            } else if deleted_projects == 1 {
+                println!("{} project deleted successfully.", deleted_projects);
+            }
+
+            if projects_failed.len() > 1 {
+                println!("{} projects had errors:", projects_failed.len());
+            } else if projects_failed.len() == 1 {
+                println!("{} project had an error:", projects_failed.len());
+            }
+
+            for project in projects_failed {
+                println!("{}: {}", project.0, project.1);
             }
         }
 
@@ -466,7 +488,7 @@ async fn process_commands() -> Result<()> {
                     key,
                     value,
                     note: note.unwrap_or_default(),
-                    project_ids: project_id.map(|p| vec![p]),
+                    project_ids: Some(vec![project_id]),
                 })
                 .await?;
             serialize_response(secret, cli.output, color);
@@ -479,6 +501,7 @@ async fn process_commands() -> Result<()> {
                     key,
                     value,
                     note,
+                    project_id,
                 },
         }
         | Commands::Edit {
@@ -488,6 +511,7 @@ async fn process_commands() -> Result<()> {
                     key,
                     value,
                     note,
+                    project_id,
                 },
         } => {
             let old_secret = client
@@ -505,6 +529,13 @@ async fn process_commands() -> Result<()> {
                     key: key.unwrap_or(old_secret.key),
                     value: value.unwrap_or(old_secret.value),
                     note: note.unwrap_or(old_secret.note),
+                    project_ids: match project_id {
+                        Some(id) => Some(vec![id]),
+                        None => match old_secret.project_id {
+                            Some(id) => Some(vec![id]),
+                            None => bail!("Editing a secret requires a project_id."),
+                        },
+                    },
                 })
                 .await?;
             serialize_response(secret, cli.output, color);
@@ -516,12 +547,35 @@ async fn process_commands() -> Result<()> {
         | Commands::Delete {
             cmd: DeleteCommand::Secret { secret_ids },
         } => {
-            client
+            let count = secret_ids.len();
+
+            let result = client
                 .secrets()
                 .delete(SecretsDeleteRequest { ids: secret_ids })
                 .await?;
 
-            println!("Secret deleted correctly");
+            let secrets_failed: Vec<(Uuid, String)> = result
+                .data
+                .into_iter()
+                .filter_map(|r| r.error.map(|e| (r.id, e)))
+                .collect();
+            let deleted_secrets = count - secrets_failed.len();
+
+            if deleted_secrets > 1 {
+                println!("{} secrets deleted successfully.", deleted_secrets);
+            } else if deleted_secrets == 1 {
+                println!("{} secret deleted successfully.", deleted_secrets);
+            }
+
+            if secrets_failed.len() > 1 {
+                println!("{} secrets had errors:", secrets_failed.len());
+            } else if secrets_failed.len() == 1 {
+                println!("{} secret had an error:", secrets_failed.len());
+            }
+
+            for secret in secrets_failed {
+                println!("{}: {}", secret.0, secret.1);
+            }
         }
 
         Commands::Config { .. } => {

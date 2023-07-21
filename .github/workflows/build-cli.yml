@@ -22,7 +22,7 @@ jobs:
       package_version: ${{ steps.retrieve-version.outputs.package_version }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
 
       - name: Get Package Version
         id: retrieve-version
@@ -57,7 +57,7 @@ jobs:
           #   target: aarch64-unknown-linux-gnu
     steps:
       - name: Checkout repo
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
 
       - name: Install rust
         uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
@@ -73,7 +73,7 @@ jobs:
           sudo apt-get install gcc-aarch64-linux-gnu
 
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@988c164c3d0e93c4dbab36aaf5bbeb77425b2894 # v2.4.0
+        uses: Swatinem/rust-cache@dd05243424bd5c0e585e4b55eb2d7615cdd32f1f # v2.5.1
         with:
           key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.os }}
 
@@ -81,12 +81,6 @@ jobs:
         env:
           TARGET: ${{ matrix.settings.target }}
         run: cargo build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
-
-      - name: Test
-        uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
-        with:
-          command: test
-          args: -p bws -- --test-threads=1
 
       - name: Zip Windows
         shell: cmd
@@ -114,7 +108,7 @@ jobs:
       _PACKAGE_VERSION: ${{ needs.setup.outputs.package_version }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
 
       - name: Download x86_64-apple-darwin artifact
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2

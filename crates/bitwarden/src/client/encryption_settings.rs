@@ -7,14 +7,19 @@ use aes::cipher::{
 use base64::Engine;
 use hmac::Mac;
 use rand::RngCore;
-use rsa::{pkcs8::DecodePrivateKey, Oaep, RsaPrivateKey};
+use rsa::RsaPrivateKey;
 use uuid::Uuid;
 
 use crate::{
-    client::auth_settings::AuthSettings,
     crypto::{CipherString, PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},
     error::{CryptoError, Error, Result},
     util::BASE64_ENGINE,
+};
+
+#[cfg(feature = "internal")]
+use {
+    crate::client::auth_settings::AuthSettings,
+    rsa::{pkcs8::DecodePrivateKey, Oaep},
 };
 
 pub struct SymmetricCryptoKey {
@@ -94,6 +99,7 @@ impl std::fmt::Debug for EncryptionSettings {
 }
 
 impl EncryptionSettings {
+    #[cfg(feature = "internal")]
     pub(crate) fn new(
         auth: &AuthSettings,
         password: &str,
@@ -104,9 +110,8 @@ impl EncryptionSettings {
         let (key, mac_key) = crate::crypto::stretch_key_password(
             password.as_bytes(),
             auth.email.as_bytes(),
-            auth.kdf_iterations,
-        )
-        .map_err(|_| CryptoError::KeyStretch)?;
+            &auth.kdf,
+        )?;
 
         // Decrypt the user key with the stretched key
         let user_key = {
@@ -140,6 +145,7 @@ impl EncryptionSettings {
         }
     }
 
+    #[cfg(feature = "internal")]
     pub(crate) fn set_org_keys(
         &mut self,
         org_enc_keys: Vec<(Uuid, CipherString)>,
@@ -165,14 +171,14 @@ impl EncryptionSettings {
         Ok(self)
     }
 
-    fn get_key(&self, org_id: Option<Uuid>) -> Option<&SymmetricCryptoKey> {
+    fn get_key(&self, org_id: &Option<Uuid>) -> Option<&SymmetricCryptoKey> {
         // If we don't have a private key set (to decode multiple org keys), we just use the main user key
         if self.private_key.is_none() {
             return Some(&self.user_key);
         }
 
         match org_id {
-            Some(org_id) => match self.org_keys.get(&org_id) {
+            Some(org_id) => match self.org_keys.get(org_id) {
                 Some(k) => Some(k),
                 None => return None,
             },
@@ -180,18 +186,13 @@ impl EncryptionSettings {
         }
     }
 
-    pub fn decrypt(&self, cipher: &CipherString, org_id: Option<Uuid>) -> Result<Vec<u8>> {
+    pub(crate) fn decrypt(&self, cipher: &CipherString, org_id: &Option<Uuid>) -> Result<String> {
         let key = self.get_key(org_id).ok_or(CryptoError::NoKeyForOrg)?;
-        decrypt(cipher, key)
-    }
-
-    pub fn decrypt_str(&self, cipher: &str, org_id: Option<Uuid>) -> Result<String> {
-        let cipher = CipherString::from_str(cipher)?;
-        let dec = self.decrypt(&cipher, org_id)?;
+        let dec = decrypt(cipher, key)?;
         String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String.into())
     }
 
-    pub fn encrypt(&self, data: &[u8], org_id: Option<Uuid>) -> Result<CipherString> {
+    pub(crate) fn encrypt(&self, data: &[u8], org_id: &Option<Uuid>) -> Result<CipherString> {
         let key = self.get_key(org_id).ok_or(CryptoError::NoKeyForOrg)?;
 
         let dec = encrypt_aes256(data, key.mac_key, key.key)?;
@@ -277,6 +278,7 @@ mod tests {
     use std::str::FromStr;
 
     use super::{EncryptionSettings, SymmetricCryptoKey};
+    use crate::crypto::{Decryptable, Encryptable};
 
     #[test]
     fn test_symmetric_crypto_key() {
@@ -295,10 +297,10 @@ mod tests {
         let key = SymmetricCryptoKey::generate("test");
         let settings = EncryptionSettings::new_single_key(key);
 
-        let test_string = "encrypted_test_string";
-        let cipher = settings.encrypt(test_string.as_bytes(), None).unwrap();
+        let test_string = "encrypted_test_string".to_string();
+        let cipher = test_string.clone().encrypt(&settings, &None).unwrap();
 
-        let decrypted_str = settings.decrypt_str(&cipher.to_string(), None).unwrap();
+        let decrypted_str = cipher.decrypt(&settings, &None).unwrap();
         assert_eq!(decrypted_str, test_string);
     }
 }

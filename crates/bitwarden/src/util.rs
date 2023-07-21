@@ -8,8 +8,20 @@ use base64::{
 
 use crate::error::Result;
 
-pub fn default_kdf_iterations() -> NonZeroU32 {
+pub fn default_pbkdf2_iterations() -> NonZeroU32 {
     NonZeroU32::new(600_000).unwrap()
+}
+#[cfg(feature = "internal")]
+pub fn default_argon2_iterations() -> NonZeroU32 {
+    NonZeroU32::new(3).unwrap()
+}
+#[cfg(feature = "internal")]
+pub fn default_argon2_memory() -> NonZeroU32 {
+    NonZeroU32::new(64).unwrap()
+}
+#[cfg(feature = "internal")]
+pub fn default_argon2_parallelism() -> NonZeroU32 {
+    NonZeroU32::new(4).unwrap()
 }
 
 #[derive(serde::Deserialize)]
@@ -77,11 +89,11 @@ pub async fn start_mock(mocks: Vec<wiremock::Mock>) -> (wiremock::MockServer, cr
         server.register(mock).await;
     }
 
-    let settings = crate::sdk::request::client_settings::ClientSettings {
+    let settings = crate::client::client_settings::ClientSettings {
         identity_url: format!("http://{}/identity", server.address()),
         api_url: format!("http://{}/api", server.address()),
         user_agent: "Bitwarden Rust-SDK [TEST]".into(),
-        device_type: crate::sdk::request::client_settings::DeviceType::SDK,
+        device_type: crate::client::client_settings::DeviceType::SDK,
         internal: None,
     };
 

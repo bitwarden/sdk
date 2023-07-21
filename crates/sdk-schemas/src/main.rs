@@ -1,10 +1,8 @@
-use anyhow::Result;
-use itertools::Itertools;
-use schemars::schema::RootSchema;
-use schemars::schema_for;
 use std::{fs::File, io::Write};
 
-use bitwarden::sdk::*;
+use anyhow::Result;
+use itertools::Itertools;
+use schemars::{schema::RootSchema, schema_for};
 
 /// Creates a json schema file for any type passed in using Schemars. The filename and path of the generated
 /// schema file is derived from the namespace passed into the macro or supplied as the first argument.
@@ -91,33 +89,27 @@ fn write_schema(schema: RootSchema, dir_path: String, type_name: String) -> Resu
 }
 
 fn main() -> Result<()> {
-    write_schema_for!(request::client_settings::ClientSettings);
-    write_schema_for!(request::command::Command);
+    // Input types for new Client
+    write_schema_for!(bitwarden::client::client_settings::ClientSettings);
+    // Input types for Client::run_command
+    write_schema_for!(bitwarden_json::command::Command);
 
-    write_schema_for!(
-        "response",
-        bitwarden_json::response::Response<auth::response::PasswordLoginResponse>
-    );
-    write_schema_for!(
-        "response",
-        bitwarden_json::response::Response<auth::response::ApiKeyLoginResponse>
-    );
-    write_schema_for!(
-        "response",
-        bitwarden_json::response::Response<response::user_api_key_response::UserApiKeyResponse>
-    );
-
+    // Output types for Client::run_command
+    // Only add structs which are direct results of SDK commands.
     write_schema_for_response! {
-        auth::response::ApiKeyLoginResponse,
-        auth::response::PasswordLoginResponse,
-        response::fingerprint_response::FingerprintResponse,
-        response::secrets_response::SecretDeleteResponse,
-        response::secrets_response::SecretIdentifierResponse,
-        response::secrets_response::SecretIdentifiersResponse,
-        response::secrets_response::SecretResponse,
-        response::secrets_response::SecretsDeleteResponse,
-        response::sync_response::SyncResponse,
-        response::user_api_key_response::UserApiKeyResponse,
+        bitwarden::auth::response::ApiKeyLoginResponse,
+        bitwarden::auth::response::PasswordLoginResponse,
+        bitwarden::secrets_manager::secrets::SecretIdentifiersResponse,
+        bitwarden::secrets_manager::secrets::SecretResponse,
+        bitwarden::secrets_manager::secrets::SecretsDeleteResponse,
+    };
+
+    // Same as above, but for the internal feature
+    #[cfg(feature = "internal")]
+    write_schema_for_response! {
+        bitwarden::platform::SyncResponse,
+        bitwarden::platform::UserApiKeyResponse,
+        bitwarden::platform::FingerprintResponse,
     };
 
     Ok(())

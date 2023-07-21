@@ -58,8 +58,9 @@ mod tests {
 
     #[test]
     fn can_decode_access_token() {
-        use crate::client::AccessToken;
         use std::str::FromStr;
+
+        use crate::client::AccessToken;
 
         let access_token = "0.ec2c1d46-6a4b-4751-a310-af9601317f2d.C2IgxjjLF7qSshsbwe8JGcbM075YXw:X8vbvA0bduihIDe/qrzIQQ==";
         let token = AccessToken::from_str(access_token).unwrap();
@@ -74,8 +75,9 @@ mod tests {
 
     #[test]
     fn malformed_tokens() {
-        use crate::client::AccessToken;
         use std::str::FromStr;
+
+        use crate::client::AccessToken;
 
         // Encryption key without base64 padding, we generate it with padding but ignore it when decoding
         let t = "0.ec2c1d46-6a4b-4751-a310-af9601317f2d.C2IgxjjLF7qSshsbwe8JGcbM075YXw:X8vbvA0bduihIDe/qrzIQQ";

@@ -1,41 +1,39 @@
 use std::time::Duration;
 
 use instant::Instant;
-use log::debug;
 use reqwest::header::{self};
 use uuid::Uuid;
 
-#[allow(unused_imports)]
 use crate::{
+    auth::{
+        commands::{access_token_login, renew_token},
+        request::AccessTokenLoginRequest,
+        response::ApiKeyLoginResponse,
+    },
     client::{
-        auth_settings::AuthSettings,
-        client_projects::ClientProjects,
-        client_secrets::ClientSecrets,
+        client_settings::{ClientSettings, DeviceType},
         encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
     },
-    commands::{
-        access_token_login, api_key_login, generate_fingerprint, get_user_api_key, password_login,
-        renew_token, sync,
-    },
-    crypto::CipherString,
-    error::{Error, Result},
-    sdk::{
+    error::Result,
+};
+#[cfg(feature = "internal")]
+use {
+    crate::{
         auth::{
-            request::{AccessTokenLoginRequest, ApiKeyLoginRequest, PasswordLoginRequest},
-            response::{ApiKeyLoginResponse, PasswordLoginResponse},
+            commands::{api_key_login, password_login},
+            request::{ApiKeyLoginRequest, PasswordLoginRequest},
+            response::PasswordLoginResponse,
         },
-        request::{
-            client_settings::{ClientSettings, DeviceType, KdfType},
-            fingerprint_request::FingerprintRequest,
-            secret_verification_request::SecretVerificationRequest,
-            sync_request::SyncRequest,
-        },
-        response::{
-            fingerprint_response::FingerprintResponse, sync_response::SyncResponse,
-            user_api_key_response::UserApiKeyResponse,
+        client::auth_settings::{AuthSettings, Kdf},
+        client::client_settings::KdfType,
+        crypto::CipherString,
+        error::Error,
+        platform::{
+            generate_fingerprint, get_user_api_key, sync, FingerprintRequest, FingerprintResponse,
+            SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,
         },
     },
-    util::default_kdf_iterations,
+    log::debug,
 };
 
 #[derive(Debug)]
@@ -47,9 +45,9 @@ pub(crate) struct ApiConfigurations {
 
 #[derive(Debug, Clone)]
 pub(crate) enum LoginMethod {
-    Username {
-        client_id: String,
-    },
+    #[cfg(feature = "internal")]
+    Username { client_id: String },
+    #[cfg(feature = "internal")]
     ApiKey {
         client_id: String,
         client_secret: String,
@@ -73,6 +71,7 @@ pub struct Client {
     #[doc(hidden)]
     pub(crate) __api_configurations: ApiConfigurations,
 
+    #[cfg(feature = "internal")]
     auth_settings: Option<AuthSettings>,
 
     encryption_settings: Option<EncryptionSettings>,
@@ -122,13 +121,19 @@ impl Client {
                 api,
                 device_type: settings.device_type,
             },
+            #[cfg(feature = "internal")]
             auth_settings: settings.internal.map(|s| AuthSettings {
                 email: s.email,
-                kdf_type: match s.kdf_type {
-                    KdfType::Pbkdf2Sha256 => bitwarden_api_identity::models::KdfType::Variant0,
-                    KdfType::Argon2id => bitwarden_api_identity::models::KdfType::Variant0,
+                kdf: match s.kdf_type {
+                    KdfType::Pbkdf2Sha256 => Kdf::PBKDF2 {
+                        iterations: s.kdf_iterations,
+                    },
+                    KdfType::Argon2id => Kdf::Argon2id {
+                        iterations: s.kdf_iterations,
+                        memory: todo!(),
+                        parallelism: todo!(),
+                    },
                 },
-                kdf_iterations: s.kdf_iterations,
             }),
             encryption_settings: None,
         }
@@ -177,6 +182,7 @@ impl Client {
         get_user_api_key(self, input).await
     }
 
+    #[cfg(feature = "internal")]
     pub(crate) fn get_auth_settings(&self) -> &Option<AuthSettings> {
         &self.auth_settings
     }
@@ -194,6 +200,7 @@ impl Client {
         &self.encryption_settings
     }
 
+    #[cfg(feature = "internal")]
     pub(crate) fn set_auth_settings(&mut self, auth_settings: AuthSettings) {
         debug! {"setting auth settings: {:#?}", auth_settings}
         self.auth_settings = Some(auth_settings);
@@ -218,10 +225,12 @@ impl Client {
         renew_token(self).await
     }
 
+    #[cfg(feature = "internal")]
     pub fn is_authed(&self) -> bool {
         self.token.is_some() || self.auth_settings.is_some()
     }
 
+    #[cfg(feature = "internal")]
     pub(crate) fn initialize_user_crypto(
         &mut self,
         password: &str,
@@ -250,6 +259,7 @@ impl Client {
         self.encryption_settings.as_ref().unwrap()
     }
 
+    #[cfg(feature = "internal")]
     pub(crate) fn initialize_org_crypto(
         &mut self,
         org_keys: Vec<(Uuid, CipherString)>,
@@ -269,21 +279,11 @@ impl Client {
     }
 }
 
-impl<'a> Client {
-    pub fn secrets(&'a mut self) -> ClientSecrets<'a> {
-        ClientSecrets { client: self }
-    }
-
-    pub fn projects(&'a mut self) -> ClientProjects<'a> {
-        ClientProjects { client: self }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use wiremock::{matchers, Mock, ResponseTemplate};
 
-    use crate::sdk::{auth::request::AccessTokenLoginRequest, request::secrets_request::*};
+    use crate::{auth::request::AccessTokenLoginRequest, secrets_manager::secrets::*};
 
     #[tokio::test]
     async fn test_access_token_login() {

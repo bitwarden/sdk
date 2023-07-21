@@ -1,0 +1,23 @@
+name: CLOC
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["master"]
+  pull_request:
+
+jobs:
+  cloc:
+    name: CLOC
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+
+      - name: Set up cloc
+        run: |
+          sudo apt update
+          sudo apt -y install cloc
+
+      - name: Print lines of code
+        run: cloc --vcs git

@@ -8,7 +8,6 @@ import {
   ResponseForSecretIdentifiersResponse,
   ResponseForSecretResponse,
   ResponseForSecretsDeleteResponse,
-  ResponseForSyncResponse,
 } from "./schemas";
 
 export class BitwardenClient {
@@ -26,7 +25,7 @@ export class BitwardenClient {
           email: email,
           password: password,
         },
-      })
+      }),
     );
 
     return Convert.toResponseForPasswordLoginResponse(response);
@@ -43,6 +42,7 @@ export class BitwardenClient {
     return Convert.toResponseForAPIKeyLoginResponse(response);
   }
 
+  /*
   async sync(excludeSubdomains = false): Promise<ResponseForSyncResponse> {
     const response = await this.client.runCommand(
       Convert.commandToJson({
@@ -54,6 +54,7 @@ export class BitwardenClient {
 
     return Convert.toResponseForSyncResponse(response);
   }
+  */
 
   secrets(): SecretsClient {
     return new SecretsClient(this.client);
@@ -73,7 +74,7 @@ export class SecretsClient {
         secrets: {
           get: { id },
         },
-      })
+      }),
     );
 
     return Convert.toResponseForSecretResponse(response);
@@ -83,14 +84,14 @@ export class SecretsClient {
     key: string,
     note: string,
     organizationId: string,
-    value: string
+    value: string,
   ): Promise<ResponseForSecretResponse> {
     const response = await this.client.runCommand(
       Convert.commandToJson({
         secrets: {
           create: { key, note, organizationId, value },
         },
-      })
+      }),
     );
 
     return Convert.toResponseForSecretResponse(response);
@@ -102,7 +103,7 @@ export class SecretsClient {
         secrets: {
           list: { organizationId },
         },
-      })
+      }),
     );
 
     return Convert.toResponseForSecretIdentifiersResponse(response);
@@ -113,14 +114,14 @@ export class SecretsClient {
     key: string,
     note: string,
     organizationId: string,
-    value: string
+    value: string,
   ): Promise<ResponseForSecretResponse> {
     const response = await this.client.runCommand(
       Convert.commandToJson({
         secrets: {
           update: { id, key, note, organizationId, value },
         },
-      })
+      }),
     );
 
     return Convert.toResponseForSecretResponse(response);
@@ -132,7 +133,7 @@ export class SecretsClient {
         secrets: {
           delete: { ids },
         },
-      })
+      }),
     );
 
     return Convert.toResponseForSecretsDeleteResponse(response);

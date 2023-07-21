@@ -20,7 +20,7 @@ jobs:
       - run: exit 0
 
   test:
-    name: ${{ matrix.os }} / ${{matrix.package}} / ${{matrix.target || 'default' }}
+    name: ${{ matrix.os }} / ${{matrix.target || 'default' }}
 
     runs-on: ${{ matrix.os || 'ubuntu-latest' }}
 
@@ -31,16 +31,9 @@ jobs:
           - macOS-latest
           - windows-latest
 
-        package:
-          - bitwarden
-          - bitwarden-json
-          - bitwarden-c
-          - bitwarden-wasm
-          - bws
-
     steps:
       - name: Checkout
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
 
       - name: Install rust
         uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
@@ -51,19 +44,13 @@ jobs:
           override: true
 
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@988c164c3d0e93c4dbab36aaf5bbeb77425b2894 # v2.4.0
-
-      - name: Build
-        uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
-        with:
-          command: build
-          args: ${{ matrix.features }}
+        uses: Swatinem/rust-cache@dd05243424bd5c0e585e4b55eb2d7615cdd32f1f # v2.5.1
 
       - name: Test
         uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
         with:
           command: test
-          args: -p ${{ matrix.package }} -- --test-threads=1
+          args: --all-features
 
   wasm:
     name: WASM
@@ -72,7 +59,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
 
       - name: Install rust
         uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
@@ -83,7 +70,7 @@ jobs:
           override: true
 
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@988c164c3d0e93c4dbab36aaf5bbeb77425b2894 # v2.4.0
+        uses: Swatinem/rust-cache@dd05243424bd5c0e585e4b55eb2d7615cdd32f1f # v2.5.1
 
       - name: Check
         uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3

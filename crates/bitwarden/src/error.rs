@@ -2,11 +2,10 @@
 
 use std::fmt::Debug;
 
-use reqwest::StatusCode;
-use thiserror::Error;
-
 use bitwarden_api_api::apis::Error as ApiError;
 use bitwarden_api_identity::apis::Error as IdentityError;
+use reqwest::StatusCode;
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -31,7 +30,7 @@ pub enum Error {
     InvalidCipherString(#[from] CSParseError),
 
     #[error("Error parsing Identity response: {0}")]
-    IdentityFail(crate::api::response::IdentityTokenFailResponse),
+    IdentityFail(crate::auth::api::response::IdentityTokenFailResponse),
 
     #[error(transparent)]
     Reqwest(#[from] reqwest::Error),
@@ -69,8 +68,6 @@ pub enum AccessTokenInvalidError {
 
 #[derive(Debug, Error)]
 pub enum CryptoError {
-    #[error("Error stretching key")]
-    KeyStretch,
     #[error("The provided key is not the expected type")]
     InvalidKey,
     #[error("The cipher's MAC doesn't match the expected value")]

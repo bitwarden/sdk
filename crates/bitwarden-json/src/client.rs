@@ -51,6 +51,7 @@ impl Client {
         match cmd {
             #[cfg(feature = "internal")]
             Command::PasswordLogin(req) => self.0.password_login(&req).await.into_string(),
+            #[cfg(feature = "secrets")]
             Command::AccessTokenLogin(req) => self.0.access_token_login(&req).await.into_string(),
             #[cfg(feature = "internal")]
             Command::GetUserApiKey(req) => self.0.get_user_api_key(&req).await.into_string(),
@@ -85,23 +86,14 @@ impl Client {
                     MobileKdfCommand::SetKdfParams(req) => {
                         self.0.kdf().set_kdf_params(req).await.into_string()
                     }
-                    MobileKdfCommand::GetUserPasswordHash(req) => {
-                        self.0.kdf().get_user_password_hash(req).await.into_string()
+                    MobileKdfCommand::HashPassword(req) => {
+                        self.0.kdf().hash_password(req).await.into_string()
                     }
                 },
                 MobileCommand::Crypto(cmd) => match cmd {
-                    MobileCryptoCommand::InitUserCrypto(req) => self
-                        .0
-                        .crypto()
-                        .initialize_user_crypto(req)
-                        .await
-                        .into_string(),
-                    MobileCryptoCommand::InitOrgCrypto(req) => self
-                        .0
-                        .crypto()
-                        .initialize_org_crypto(req)
-                        .await
-                        .into_string(),
+                    MobileCryptoCommand::InitCrypto(req) => {
+                        self.0.crypto().initialize_crypto(req).await.into_string()
+                    }
                 },
             },
         }

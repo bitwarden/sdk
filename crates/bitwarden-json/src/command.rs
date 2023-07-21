@@ -1,14 +1,15 @@
-use bitwarden::auth::request::AccessTokenLoginRequest;
-
 #[cfg(feature = "secrets")]
-use bitwarden::secrets_manager::{
-    projects::{
-        ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
-        ProjectsListRequest,
-    },
-    secrets::{
-        SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretPutRequest,
-        SecretsDeleteRequest,
+use bitwarden::{
+    auth::request::AccessTokenLoginRequest,
+    secrets_manager::{
+        projects::{
+            ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
+            ProjectsListRequest,
+        },
+        secrets::{
+            SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretPutRequest,
+            SecretsDeleteRequest,
+        },
     },
 };
 
@@ -20,7 +21,7 @@ use bitwarden::{
 
 #[cfg(feature = "mobile")]
 use bitwarden::mobile::{
-    crypto::{InitOrgCryptoRequest, InitUserCryptoRequest},
+    crypto::InitCryptoRequest,
     kdf::{KdfParamRequest, PasswordHashRequest},
 };
 
@@ -52,6 +53,7 @@ pub enum Command {
     ///
     ApiKeyLogin(ApiKeyLoginRequest),
 
+    #[cfg(feature = "secrets")]
     /// Login with Secrets Manager Access Token
     ///
     /// This command is for initiating an authentication handshake with Bitwarden.
@@ -202,7 +204,7 @@ pub enum MobileKdfCommand {
     ///
     /// Returns: String
     ///
-    GetUserPasswordHash(PasswordHashRequest),
+    HashPassword(PasswordHashRequest),
 }
 
 #[cfg(feature = "mobile")]
@@ -210,11 +212,7 @@ pub enum MobileKdfCommand {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum MobileCryptoCommand {
     /// > Requires having previously set the KDF parameters
-    /// Decrypts the users keys and initializes the user crypto, allowing for the encryption/decryption of the users items
+    /// Decrypts the users keys and initializes the user crypto, allowing for the encryption/decryption of the users vault
     ///
-    InitUserCrypto(InitUserCryptoRequest),
-    /// > Requires having previously initialized the user crypto
-    /// Decrypts the users organization keys, allowing for the encryption/decryption of the items in the users organizations
-    ///
-    InitOrgCrypto(InitOrgCryptoRequest),
+    InitCrypto(InitCryptoRequest),
 }

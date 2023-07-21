@@ -6,7 +6,6 @@ use uuid::Uuid;
 use crate::{
     auth::{
         commands::{access_token_login, renew_token},
-        request::AccessTokenLoginRequest,
         response::ApiKeyLoginResponse,
     },
     client::{
@@ -15,6 +14,10 @@ use crate::{
     },
     error::Result,
 };
+
+#[cfg(feature = "secrets")]
+use crate::auth::request::AccessTokenLoginRequest;
+
 #[cfg(feature = "internal")]
 use {
     crate::{
@@ -145,6 +148,7 @@ impl Client {
         api_key_login(self, input).await
     }
 
+    #[cfg(feature = "secrets")]
     pub async fn access_token_login(
         &mut self,
         input: &AccessTokenLoginRequest,

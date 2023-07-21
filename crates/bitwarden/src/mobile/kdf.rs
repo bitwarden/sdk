@@ -33,10 +33,7 @@ pub struct PasswordHashRequest {
     pub password: String,
 }
 
-pub async fn get_user_password_hash(
-    client: &mut Client,
-    req: PasswordHashRequest,
-) -> Result<String> {
+pub async fn hash_password(client: &mut Client, req: PasswordHashRequest) -> Result<String> {
     let Some(auth_settings) = client.get_auth_settings() else { return Err(Error::NotAuthenticated); };
     let hash = auth_settings.make_user_password_hash(&req.password)?;
     Ok(hash)

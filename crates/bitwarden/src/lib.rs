@@ -7,7 +7,7 @@
 //!
 //! ```ini
 //! [dependencies]
-//! bitwarden = "*"
+//! bitwarden = { "*", features = ["secrets"] }
 //! ```
 //!
 //! # Basic setup

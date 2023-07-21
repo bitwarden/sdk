@@ -13,7 +13,7 @@ crate-type = ["cdylib"]
 pyo3 = { version = "0.18.3", features = ["extension-module"] }
 pyo3-log = "0.8.3"
 
-bitwarden-json = { path = "../bitwarden-json" }
+bitwarden-json = { path = "../bitwarden-json", features = ["secrets"] }
 
 [build-dependencies]
 pyo3-build-config = { version = "0.18.3" }

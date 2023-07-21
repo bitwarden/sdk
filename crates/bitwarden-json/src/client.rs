@@ -88,6 +88,7 @@ impl Client {
                     }
                 },
                 MobileCommand::Crypto(cmd) => match cmd {
+                    #[cfg(feature = "internal")]
                     MobileCryptoCommand::InitCrypto(req) => {
                         self.0.crypto().initialize_crypto(req).await.into_string()
                     }

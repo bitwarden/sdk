@@ -10,6 +10,7 @@ use crate::{
     Client,
 };
 
+#[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct InitCryptoRequest {
@@ -27,6 +28,7 @@ pub struct InitCryptoRequest {
     pub organization_keys: HashMap<uuid::Uuid, String>,
 }
 
+#[cfg(feature = "internal")]
 pub async fn initialize_crypto(client: &mut Client, req: InitCryptoRequest) -> Result<()> {
     let auth_settings = AuthSettings {
         email: req.email,

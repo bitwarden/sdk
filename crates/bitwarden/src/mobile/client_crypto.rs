@@ -1,5 +1,6 @@
 use crate::{error::Result, Client};
 
+#[cfg(feature = "internal")]
 use super::crypto::{initialize_crypto, InitCryptoRequest};
 
 pub struct ClientCrypto<'a> {
@@ -7,6 +8,7 @@ pub struct ClientCrypto<'a> {
 }
 
 impl<'a> ClientCrypto<'a> {
+    #[cfg(feature = "internal")]
     pub async fn initialize_crypto(&mut self, req: InitCryptoRequest) -> Result<()> {
         initialize_crypto(self.client, req).await
     }

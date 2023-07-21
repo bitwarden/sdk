@@ -1,3 +1,4 @@
+#[cfg(feature = "internal")]
 pub mod crypto;
 pub mod kdf;
 

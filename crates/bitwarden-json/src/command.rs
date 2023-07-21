@@ -204,6 +204,7 @@ pub enum MobileKdfCommand {
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum MobileCryptoCommand {
+    #[cfg(feature = "internal")]
     /// Decrypts the users keys and initializes the user crypto, allowing for the encryption/decryption of the users vault
     ///
     InitCrypto(InitCryptoRequest),

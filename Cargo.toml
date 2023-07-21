@@ -3,7 +3,6 @@ resolver = "2"
 
 members = ["crates/*"]
 
-
 # Compile all dependencies with some optimizations when building this crate on debug
 # This slows down clean builds by about 50%, but the resulting binaries can be orders of magnitude faster
 # As clean builds won't occur very often, this won't slow down the development process

@@ -13,8 +13,7 @@ edition = "2021"
 rust-version = "1.57"
 
 [features]
-default = ["internal"]
-internal = []          # Internal testing methods
+internal = [] # Internal testing methods
 
 stdweb = ["instant/stdweb"]
 wasm-bindgen = ["instant/wasm-bindgen"]

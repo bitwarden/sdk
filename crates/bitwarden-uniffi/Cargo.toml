@@ -1,0 +1,20 @@
+[package]
+name = "bitwarden-uniffi"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.57"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+crate-type = ["staticlib", "cdylib"]
+bench = false
+
+[dependencies]
+env_logger = "0.10.0"
+openssl = { version = "0.10", features = ["vendored"] }
+uniffi = "0.24.1"
+
+bitwarden = { path = "../bitwarden" }
+
+[build-dependencies]
+uniffi = { version = "0.24.1", features = ["build"] }

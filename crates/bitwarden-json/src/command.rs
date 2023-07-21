@@ -20,7 +20,10 @@ use bitwarden::{
 };
 
 #[cfg(feature = "mobile")]
-use bitwarden::mobile::{crypto::InitCryptoRequest, kdf::PasswordHashRequest};
+use bitwarden::mobile::kdf::PasswordHashRequest;
+
+#[cfg(all(feature = "mobile", feature = "internal"))]
+use bitwarden::mobile::crypto::InitCryptoRequest;
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

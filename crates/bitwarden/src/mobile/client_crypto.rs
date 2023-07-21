@@ -1,4 +1,6 @@
-use crate::{error::Result, Client};
+#[cfg(feature = "internal")]
+use crate::error::Result;
+use crate::Client;
 
 #[cfg(feature = "internal")]
 use super::crypto::{initialize_crypto, InitCryptoRequest};

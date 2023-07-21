@@ -8,8 +8,10 @@ use crate::{
 #[cfg(feature = "secrets")]
 use crate::command::{ProjectsCommand, SecretsCommand};
 
+#[cfg(all(feature = "internal", feature = "mobile"))]
+use crate::command::MobileCryptoCommand;
 #[cfg(feature = "mobile")]
-use crate::command::{MobileCommand, MobileCryptoCommand, MobileKdfCommand};
+use crate::command::{MobileCommand, MobileKdfCommand};
 
 pub struct Client(bitwarden::Client);
 

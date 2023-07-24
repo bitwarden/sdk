@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{CipherString, Decryptable},
+    crypto::{CipherString, Decryptable, Encryptable},
     error::Result,
 };
 
@@ -29,6 +29,16 @@ pub struct FolderView {
     id: Uuid,
     name: String,
     revision_date: DateTime<Utc>,
+}
+
+impl Encryptable<Folder> for FolderView {
+    fn encrypt(self, enc: &EncryptionSettings, _org: &Option<Uuid>) -> Result<Folder> {
+        Ok(Folder {
+            id: self.id,
+            name: self.name.encrypt(enc, &None)?,
+            revision_date: self.revision_date,
+        })
+    }
 }
 
 impl Decryptable<FolderView> for Folder {

@@ -59,7 +59,7 @@ jobs:
           toolchain: 1.67.0 # https://github.com/cross-rs/cross/issues/1222
 
       - name: Download Artifacts
-        download: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
 
       - name: Move artifacts
         working-directory: ./crates/bitwarden-uniffi/android/sdk/src/main/jniLibs

@@ -26,7 +26,7 @@ module.exports = {
       crateDirectory: path.resolve(__dirname, "../../crates/bitwarden-wasm"),
       outDir: path.resolve(__dirname, "../../languages/nodejs_wasm/pkg"),
       extraArgs: "--target nodejs --all-features",
-      forceMode: "development",
+      forceMode: "production",
     }),
     new webpack.ProvidePlugin({
       TextDecoder: ["text-encoding", "TextDecoder"],
@@ -36,7 +36,7 @@ module.exports = {
   experiments: {
     asyncWebAssembly: true,
   },
-  mode: "development",
+  mode: "production",
   devtool: "source-map",
   target: "node",
 };

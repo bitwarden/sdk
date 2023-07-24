@@ -43,8 +43,8 @@ export function register_decrypt(rootCommand: Command) {
       }
 
       if (libraries.includes("web")) {
+        const webCryptoKey = await makeDerivedKey(5000);
         bennyOperations.push(benny.add("WebCrypto", async () => {
-          const webCryptoKey = await makeDerivedKey(5000);
           for (let i = 0; i < iterations; i++) {
             await webDecrypt(webCryptoKey);
           }

@@ -44,8 +44,8 @@ export function register_encrypt(rootCommand: Command) {
       }
 
       if (libraries.includes("web")) {
+        const webCryptoKey = await makeDerivedKey(5000);
         bennyOperations.push(benny.add("WebCrypto", async () => {
-          const webCryptoKey = await makeDerivedKey(5000);
           for (let i = 0; i < iterations; i++) {
             await webEncrypt(i.toString(), webCryptoKey);
           }

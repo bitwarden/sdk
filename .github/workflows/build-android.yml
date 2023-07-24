@@ -18,6 +18,10 @@ jobs:
       matrix:
         settings:
           - target: aarch64-linux-android
+          - target: armv7-linux-androideabi
+          - target: x86_64-linux-android
+          - target: i686-linux-android
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3

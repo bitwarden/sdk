@@ -115,11 +115,9 @@ jobs:
           secrets: "cratesio-api-token"
 
       - name: Install rust
-        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
+        uses: dtolnay/rust-toolchain@0e66bd3e6b38ec0ad5312288c83e47c143e6b09e # v1.80.0
         with:
-          toolchain: "stable"
-          profile: minimal
-          override: true
+          toolchain: stable
 
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@dd05243424bd5c0e585e4b55eb2d7615cdd32f1f # v2.5.1

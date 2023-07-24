@@ -46,19 +46,13 @@ jobs:
         uses: Swatinem/rust-cache@dd05243424bd5c0e585e4b55eb2d7615cdd32f1f # v2.5.1
 
       - name: Build
-        uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
-        with:
-          command: build
-          args: ${{ matrix.features }} -p ${{ matrix.package }} --release
+        run: cargo build -p ${{ matrix.package }} --release
         env:
           RUSTFLAGS: "-D warnings"
 
       - name: Build Internal
         if: ${{ matrix.package == 'bitwarden' }}
-        uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
-        with:
-          command: build
-          args: ${{ matrix.features }} -p ${{ matrix.package }} --features internal --release
+        run: cargo build -p ${{ matrix.package }} --features internal --release
         env:
           RUSTFLAGS: "-D warnings"
 

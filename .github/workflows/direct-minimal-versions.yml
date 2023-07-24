@@ -50,7 +50,4 @@ jobs:
           key: dmv-${{ matrix.settings.target }}-cargo-${{ matrix.settings.os }}
 
       - name: cargo check direct-minimal-versions
-        uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
-        with:
-          command: check
-          args: -Z direct-minimal-versions --all-features
+        run: cargo check -Z direct-minimal-versions --all-features

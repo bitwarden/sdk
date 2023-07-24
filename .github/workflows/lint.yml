@@ -24,11 +24,8 @@ jobs:
         with:
           toolchain: stable
 
-      - name: cargo fmt -- --check
-        uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
-        with:
-          command: fmt
-          args: -- --check
+      - name: Cargo fmt
+        run: cargo fmt --check
 
       - name: Set up Node
         uses: actions/setup-node@e33196f7422957bea03ed53f6fbb155025ffc7b8 # v3.7.0

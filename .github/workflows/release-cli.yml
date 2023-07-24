@@ -90,6 +90,7 @@ jobs:
             packages/bws-aarch64-apple-darwin-${{ env.PKG_VERSION }}.zip,
             packages/bws-macos-universal-${{ env.PKG_VERSION }}.zip,
             packages/bws-x86_64-pc-windows-msvc-${{ env.PKG_VERSION }}.zip,
+            packages/bws-aarch64-pc-windows-msvc-${{ env.PKG_VERSION }}.zip,
             packages/bws-x86_64-unknown-linux-gnu-${{ env.PKG_VERSION }}.zip,
             packages/bws-aarch64-unknown-linux-gnu-${{ env.PKG_VERSION }}.zip,
             packages/bws-sha256-checksums-${{ env.PKG_VERSION }}.txt"

@@ -34,6 +34,11 @@ jobs:
       - name: Install Cross
         run: cargo install cross
 
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@dd05243424bd5c0e585e4b55eb2d7615cdd32f1f # v2.5.1
+        with:
+          key: ${{ matrix.settings.target }}-cargo
+
       - name: Build
         env:
           TARGET: ${{ matrix.settings.target }}
@@ -60,6 +65,11 @@ jobs:
         with:
           toolchain: 1.67.0 # https://github.com/cross-rs/cross/issues/1222
 
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@dd05243424bd5c0e585e4b55eb2d7615cdd32f1f # v2.5.1
+        with:
+          key: cargo-combine-cache
+
       - name: Setup Java
         uses: actions/setup-java@cd89f46ac9d01407894225f350157564c9c7cee2 # v3.12.0
         with:
@@ -70,7 +80,7 @@ jobs:
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
 
       - name: Move artifacts
-        working-directory: ./crates/bitwarden-uniffi/android/sdk/src/main/jniLibs
+        working-directory: crates/bitwarden-uniffi/android/sdk/src/main/jniLibs
         run: |
           mkdir armeabi-v7a arm64-v8a x86 x86_64
           mv /home/runner/work/sdk/sdk/android-armv7-linux-androideabi/libbitwarden_uniffi.so ./armeabi-v7a/libbitwarden_uniffi.so
@@ -79,12 +89,13 @@ jobs:
           mv /home/runner/work/sdk/sdk/android-x86_64-linux-android/libbitwarden_uniffi.so ./x86_64/libbitwarden_uniffi.so
 
       - name: Generate bindings
-        working-directory: ./crates/bitwarden-uniffi/android
+        working-directory: crates/bitwarden-uniffi/android
         run: ./build-sdk.sh
 
       - name: Publish
         uses: gradle/gradle-build-action@915a66c096a03101667f9df2e56c9efef558b165 # v2.6.1
         with:
           arguments: sdk:publish
+          build-root-directory: crates/bitwarden-uniffi/android
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

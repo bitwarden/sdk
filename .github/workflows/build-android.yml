@@ -73,12 +73,10 @@ jobs:
         working-directory: ./crates/bitwarden-uniffi/android/sdk/src/main/jniLibs
         run: |
           mkdir armeabi-v7a arm64-v8a x86 x86_64
-          ls -lah /etc/usr/artifacts/
-          ls -lah /etc/usr/artifacts/android-armv7-linux-androideabi
-          mv /etc/usr/artifacts/android-armv7-linux-androideabi/libbitwarden_uniffi.so ./armeabi-v7a/libbitwarden_uniffi.so
-          mv /etc/usr/artifacts/android-aarch64-linux-android/libbitwarden_uniffi.so ./arm64-v8a/libbitwarden_uniffi.so
-          mv /etc/usr/artifacts/android-i686-linux-android/libbitwarden_uniffi.so ./x86/libbitwarden_uniffi.so
-          mv /etc/usr/artifacts/android-x86_64-linux-android/libbitwarden_uniffi.so ./x86_64/libbitwarden_uniffi.so
+          mv /home/runner/work/sdk/sdk/libbitwarden_uniffi.so ./armeabi-v7a/libbitwarden_uniffi.so
+          mv /home/runner/work/sdk/sdk/android-aarch64-linux-android/libbitwarden_uniffi.so ./arm64-v8a/libbitwarden_uniffi.so
+          mv /home/runner/work/sdk/sdk/android-i686-linux-android/libbitwarden_uniffi.so ./x86/libbitwarden_uniffi.so
+          mv /home/runner/work/sdk/sdk/android-x86_64-linux-android/libbitwarden_uniffi.so ./x86_64/libbitwarden_uniffi.so
 
       - name: Generate bindings
         working-directory: ./crates/bitwarden-uniffi/android

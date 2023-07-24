@@ -15,4 +15,3 @@
 local.properties
 
 sdk/src/main/java/com/bitwarden/sdk/bitwarden.kt
-sdk/src/main/jniLibs

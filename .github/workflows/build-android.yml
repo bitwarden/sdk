@@ -45,3 +45,39 @@ jobs:
           name: android-${{ matrix.settings.target }}
           path: ./target/${{ matrix.settings.target }}/release/libbitwarden_uniffi.so
           if-no-files-found: error
+
+  combine:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@0e66bd3e6b38ec0ad5312288c83e47c143e6b09e # stable
+        with:
+          toolchain: 1.67.0 # https://github.com/cross-rs/cross/issues/1222
+
+      - name: Download Artifacts
+        download: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+
+      - name: Move artifacts
+        working-directory: ./crates/bitwarden-uniffi/android/sdk/src/main/jniLibs
+        run: |
+          mkdir armeabi-v7a arm64-v8a x86 x86_64
+          mv /etc/usr/artifacts/android-armv7-linux-androideabi/libbitwarden_uniffi.so ./armeabi-v7a/libbitwarden_uniffi.so
+          mv /etc/usr/artifacts/android-aarch64-linux-android/libbitwarden_uniffi.so ./arm64-v8a/libbitwarden_uniffi.so
+          mv /etc/usr/artifacts/android-i686-linux-android/libbitwarden_uniffi.so ./x86/libbitwarden_uniffi.so
+          mv /etc/usr/artifacts/android-x86_64-linux-android/libbitwarden_uniffi.so ./x86_64/libbitwarden_uniffi.so
+
+      - name: Generate bindings
+        working-directory: ./crates/bitwarden-uniffi/android
+        run: ./build-sdk.sh
+
+      - name: Upload
+        working-directory: ./crates/bitwarden-uniffi/android
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+         with:
+          name: android-sdk
+          path: ./sdk
+          if-no-files-found: error

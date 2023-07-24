@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import { register_pbkdf2 } from './commands/pkbdf2';
 import { register_encrypt } from './commands/encrypt';
 import { register_decrypt } from './commands/decrypt';
+import { register_test } from './commands/test';
 
 class Main {
 
@@ -19,6 +20,7 @@ class Main {
     register_pbkdf2(this.program);
     register_encrypt(this.program);
     register_decrypt(this.program);
+    register_test(this.program);
 
     await this.program.parseAsync();
   }

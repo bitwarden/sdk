@@ -1,24 +1,25 @@
-import * as forge from 'node-forge';
+import * as forge from "node-forge";
+import { webcrypto } from "crypto";
 
 const keySize = 256;
 
-const encIv = 'FX7Y3pYmcLIQt6WrKc62jA==';
-const encCt = 'EDlxtzpEOfGIAIa8PkCQmA==';
+const encIv = "FX7Y3pYmcLIQt6WrKc62jA==";
+const encCt = "EDlxtzpEOfGIAIa8PkCQmA==";
 const forgeKey = pbkdf2(5000); // Keep this iteration count constant -- it's the key used to encrypt the message being decrypted
 
 function getRandomForgeBytes() {
   var bytes = new Uint8Array(16);
-  window.crypto.getRandomValues(bytes);
+  webcrypto.getRandomValues(bytes);
   return String.fromCharCode.apply(null, bytes);
 }
 
 export function pbkdf2(numIterations) {
-  return forge.pbkdf2('mypassword', 'a salt', numIterations, keySize / 8, 'sha256');
+  return forge.pbkdf2("mypassword", "a salt", numIterations, keySize / 8, "sha256");
 }
 
 export function encrypt(message: string) {
-  var buffer = forge.util.createBuffer(message, 'utf8');
-  var cipher = forge.cipher.createCipher('AES-CBC', forgeKey);
+  var buffer = forge.util.createBuffer(message, "utf8");
+  var cipher = forge.cipher.createCipher("AES-CBC", forgeKey);
   var ivBytes = getRandomForgeBytes();
   cipher.start({
     iv: ivBytes
@@ -39,12 +40,12 @@ export function decrypt() {
   var ctBytes = forge.util.decode64(encCt);
   var ctBuffer = forge.util.createBuffer(ctBytes);
 
-  var decipher = forge.cipher.createDecipher('AES-CBC', forgeKey);
+  var decipher = forge.cipher.createDecipher("AES-CBC", forgeKey);
   decipher.start({
     iv: decIvBytes
   });
   decipher.update(ctBuffer);
   decipher.finish();
 
-  var result = decipher.output.toString('utf8');
+  var result = decipher.output.toString("utf8");
 }

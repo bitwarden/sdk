@@ -1,25 +1,27 @@
 import { Command } from "commander";
 import * as program from "commander";
-import Bench from "tinybench";
+import * as benny from "benny";
 import { encrypt as forgeEncrypt } from "../crypto_performance/forge";
 import {
   encryptDirect as sdkEncryptDirect,
   encrypt as sdkEncrypt,
   normalizeRustResult,
 } from "../crypto_performance/rust";
+import { parseIntOption } from './option_parsing';
+import { makeDerivedKey, encrypt as webEncrypt } from '../crypto_performance/web_crypto';
 
 const librariesOption = new program.Option(
   "-l, --libraries <libraries...>",
   "Libraries to test"
-).choices(["forge", "sdk", "sdkCommand"]);
+).choices(["forge", "web", "sdk", "sdkCommand"]);
 const iterationsOption = new program.Option(
   "-i, --iterations <iterations>",
   "Number of iterations"
-).default("1");
+).argParser(parseIntOption).default("1");
 const sdkIterationOption = new program.Option(
   "--sdk-iterations <iterations>",
   "Number of iterations"
-).default("10000");
+).argParser(parseIntOption).default("10000");
 
 export function register_encrypt(rootCommand: Command) {
   rootCommand
@@ -29,36 +31,43 @@ export function register_encrypt(rootCommand: Command) {
     .addOption(sdkIterationOption)
     .action(async (options: program.OptionValues) => {
       const libraries = options.libraries;
-      const iterations = options.iterations;
-      const sdkIterations = options.sdkIterations;
-      const bench = new Bench();
+      const iterations = options.iterations as number;
+      const sdkIterations = options.sdkIterations as number;
 
+      const bennyOperations = []
       if (libraries.includes("forge")) {
-        bench.add("Forge", function () {
+        bennyOperations.push(benny.add("Forge", async () => {
           for (let i = 0; i < iterations; i++) {
-            forgeEncrypt(i.toString());
+            await forgeEncrypt(i.toString());
           }
-        });
+        }));
       }
 
-      if (libraries.includes("sdkCommand")) {
-        bench.add("sdkCommand", async function () {
-          await sdkEncrypt(sdkIterations);
-        });
+      if (libraries.includes("web")) {
+        bennyOperations.push(benny.add("WebCrypto", async () => {
+          const webCryptoKey = await makeDerivedKey(5000);
+          for (let i = 0; i < iterations; i++) {
+            await webEncrypt(i.toString(), webCryptoKey);
+          }
+        }));
       }
 
       if (libraries.includes("sdk")) {
-        bench.add("sdk", async function () {
+        bennyOperations.push(benny.add(`sdk (${sdkIterations} encryptions per op)`, async () => {
           await sdkEncryptDirect(sdkIterations);
-        });
+        }));
       }
 
-      await bench.warmup();
-      await bench.run();
+      if (libraries.includes("sdkCommand")) {
+        bennyOperations.push(benny.add(`sdkCommand (${sdkIterations} encryptions per op)`, async () => {
+          await sdkEncrypt(sdkIterations);
+        }));
+      }
 
-      const result = bench.table();
+      bennyOperations.push(benny.cycle());
+      bennyOperations.push(benny.complete());
 
-      console.table(normalizeRustResult(result, sdkIterations));
+      await benny.suite("Encrypt", ...bennyOperations);
     });
   return rootCommand;
 }

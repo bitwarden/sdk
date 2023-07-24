@@ -4,10 +4,6 @@ name: Build Android
 on:
   pull_request:
   push:
-    branches:
-      - "master"
-      - "rc"
-      - "hotfix-rc"
   workflow_dispatch:
 
 defaults:
@@ -16,14 +12,33 @@ defaults:
 
 jobs:
   build:
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - os: ubuntu-22.04
+            target: aarch64-linux-android
     steps:
       - name: Checkout repo
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
 
       - name: Install rust
-        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
+        uses: dtolnay/rust-toolchain@0e66bd3e6b38ec0ad5312288c83e47c143e6b09e # stable
         with:
-          profile: minimal
-          override: true
           toolchain: stable
-          target: ${{ matrix.settings.target }}
+
+      - name: Install Cross
+        if: ${{ matrix.settings.target == 'aarch64-unknown-linux-gnu' }}
+        run: cargo install cross
+
+      - name: Build
+        env:
+          TARGET: ${{ matrix.settings.target }}
+        run: cross build ${{ matrix.features }} -p bitwarden-uniffi --release --target=${{ matrix.settings.target }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: android-${{ matrix.settings.target }}
+          path: ./target/${{ matrix.settings.target }}/release/libbitwarden-uniffi.so
+          if-no-files-found: error

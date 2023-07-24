@@ -60,6 +60,12 @@ jobs:
         with:
           toolchain: 1.67.0 # https://github.com/cross-rs/cross/issues/1222
 
+      - name: Setup Java
+        uses: actions/setup-java@cd89f46ac9d01407894225f350157564c9c7cee2 # v3.12.0
+        with:
+          distribution: temurin
+          java-version: 11
+
       - name: Download Artifacts
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
 
@@ -76,9 +82,9 @@ jobs:
         working-directory: ./crates/bitwarden-uniffi/android
         run: ./build-sdk.sh
 
-      - name: Upload
-        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+      - name: Publish
+        uses: gradle/gradle-build-action@915a66c096a03101667f9df2e56c9efef558b165 # v2.6.1
         with:
-          name: android-sdk
-          path: ./crates/bitwarden-uniffi/android/sdk
-          if-no-files-found: error
+          arguments: sdk:publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

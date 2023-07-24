@@ -41,10 +41,10 @@ export async function pbkdf2(iterations: number) {
 
 export function normalizeRustResult(tableData: any[], numOperations: number) {
   return tableData.map(r => {
-    if (r["Task Name"] !== "Rust") {
+    if (r["Task Name"] !== "Rust" && r["Task Name"] !== "Rust (command)") {
       return r;
     }
-    r["Task Name"] = `Rust (normalized by ${numOperations})`;
+    r["Task Name"] = `${r["Task Name"]} (normalized by ${numOperations})`;
     r["ops/sec"] = (Number.parseInt(r["ops/sec"].replace(/,/g,"")) * numOperations).toLocaleString("en-US");
     r["Average Time (ns)"] = r["Average Time (ns)"] / numOperations;
     r["Samples"] = r["Samples"] * numOperations;

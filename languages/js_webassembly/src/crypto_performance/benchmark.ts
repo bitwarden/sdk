@@ -6,7 +6,7 @@ import { encrypt as rustEncrypt, decrypt as rustDecrypt, normalizeRustResult, en
 
 export async function benchmark_pbkdf2() {
   const bench = new Bench();
-  const iterations = 5000;
+  const iterations = 1000;
   bench.todo("Forge", function () {
     forgePbkdf2(iterations);
   }).add("WebCrypto", async function () {
@@ -23,15 +23,15 @@ export async function benchmark_pbkdf2() {
 
 export async function benchmark_encrypt() {
   const bench = new Bench();
-  const rustNormalization = 50;
+  const rustNormalization = 100;
   const webCryptoKey = await makeDerivedKey(5000);
   bench.add("Forge", function () {
       forgeEncrypt("message");
   }).add("WebCrypto", async function () {
     await webCryptoEncrypt("message", webCryptoKey);
-  }).todo("Rust through command", async function () {
+  }).add("Rust (command)", async function () {
     await rustEncrypt(rustNormalization);
-  }).add("Rust", async function () {
+  }).todo("Rust", async function () {
     await rustEncryptDirect(rustNormalization);
   });
 
@@ -43,15 +43,15 @@ export async function benchmark_encrypt() {
 
 export async function benchmark_decrypt() {
   const bench = new Bench();
-  const rustNormalization = 50;
+  const rustNormalization = 100;
   const webCryptoKey = await makeDerivedKey(5000); // Keep this iteration count constant -- it's the key used to encrypt the message being decrypted
   bench.add("Forge", function () {
     forgeDecrypt();
   }).add("WebCrypto", async function () {
     await webCryptoDecrypt(webCryptoKey);
-  }).todo("Rust through command", async function () {
+  }).add("Rust (command)", async function () {
     await rustDecrypt(rustNormalization);
-  }).add("Rust", async function () {
+  }).todo("Rust", async function () {
     await rustDecryptDirect(rustNormalization);
   });
 

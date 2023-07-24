@@ -1,4 +1,4 @@
-import { benchmark_decrypt, benchmark_encrypt, benchmark_pbkdf2 } from './src/crypto_performance/benchmark';
+import { benchmark_encrypt, benchmark_decrypt, benchmark_pbkdf2 } from './src/crypto_performance/benchmark';
 
 var benchmark_running = false;
 
@@ -26,6 +26,7 @@ function disableButtons(disable: boolean) {
 }
 
 encrypt_button.addEventListener("click", async (e) => {
+  console.log("running encrypt benchmark");
   e.preventDefault();
   e.stopImmediatePropagation();
   disableButtons(true);
@@ -33,6 +34,7 @@ encrypt_button.addEventListener("click", async (e) => {
   disableButtons(false);
 });
 decrypt_button.addEventListener("click", async (e) => {
+  console.log("running decrypt benchmark");
   e.preventDefault();
   e.stopImmediatePropagation();
   disableButtons(true);
@@ -40,6 +42,7 @@ decrypt_button.addEventListener("click", async (e) => {
     .then(() => disableButtons(false));
 });
 pbkdf2_button.addEventListener("click", async (e) => {
+  console.log("running pbkdf2 benchmark");
   e.preventDefault();
   e.stopImmediatePropagation();
   disableButtons(true);

@@ -1,4 +1,4 @@
-use std::{path::PathBuf, str::FromStr};
+use std::{path::PathBuf, process, str::FromStr};
 
 use bitwarden::{
     auth::request::AccessTokenLoginRequest,
@@ -409,13 +409,17 @@ async fn process_commands() -> Result<()> {
             }
 
             if projects_failed.len() > 1 {
-                println!("{} projects had errors:", projects_failed.len());
+                eprintln!("{} projects had errors:", projects_failed.len());
             } else if projects_failed.len() == 1 {
-                println!("{} project had an error:", projects_failed.len());
+                eprintln!("{} project had an error:", projects_failed.len());
             }
 
-            for project in projects_failed {
-                println!("{}: {}", project.0, project.1);
+            for project in &projects_failed {
+                eprintln!("{}: {}", project.0, project.1);
+            }
+
+            if projects_failed.len() > 0 {
+                process::exit(1);
             }
         }
 
@@ -568,13 +572,17 @@ async fn process_commands() -> Result<()> {
             }
 
             if secrets_failed.len() > 1 {
-                println!("{} secrets had errors:", secrets_failed.len());
+                eprintln!("{} secrets had errors:", secrets_failed.len());
             } else if secrets_failed.len() == 1 {
-                println!("{} secret had an error:", secrets_failed.len());
+                eprintln!("{} secret had an error:", secrets_failed.len());
             }
 
-            for secret in secrets_failed {
-                println!("{}: {}", secret.0, secret.1);
+            for secret in &secrets_failed {
+                eprintln!("{}: {}", secret.0, secret.1);
+            }
+
+            if secrets_failed.len() > 0 {
+                process::exit(1);
             }
         }
 

@@ -1,3 +1,3 @@
 mod folder;
 
-pub use folder::*;
+pub use folder::{Folder, FolderView};

@@ -59,6 +59,7 @@ pub mod platform;
 #[cfg(feature = "secrets")]
 pub mod secrets_manager;
 mod util;
+pub mod vault;
 pub mod wordlist;
 
 pub use client::Client;

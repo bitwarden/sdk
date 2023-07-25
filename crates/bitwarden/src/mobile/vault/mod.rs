@@ -4,5 +4,5 @@ mod folders;
 
 pub use folders::{
     FolderDecryptListRequest, FolderDecryptListResponse, FolderDecryptRequest,
-    FolderDecryptResponse,
+    FolderDecryptResponse, FolderEncryptRequest, FolderEncryptResponse,
 };

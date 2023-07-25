@@ -1,12 +1,12 @@
 use crate::{
-    crypto::Decryptable,
+    crypto::{Decryptable, Encryptable},
     error::{Error, Result},
     Client,
 };
 
 use super::{
     client_vault::ClientVault, FolderDecryptListRequest, FolderDecryptListResponse,
-    FolderDecryptRequest, FolderDecryptResponse,
+    FolderDecryptRequest, FolderDecryptResponse, FolderEncryptRequest, FolderEncryptResponse,
 };
 
 pub struct ClientFolders<'a> {
@@ -14,6 +14,18 @@ pub struct ClientFolders<'a> {
 }
 
 impl<'a> ClientFolders<'a> {
+    pub async fn encrypt(&mut self, req: FolderEncryptRequest) -> Result<FolderEncryptResponse> {
+        let enc = self
+            .client
+            .get_encryption_settings()
+            .as_ref()
+            .ok_or(Error::VaultLocked)?;
+
+        let folder = req.folder.encrypt(enc, &None)?;
+
+        Ok(FolderEncryptResponse { folder })
+    }
+
     pub async fn decrypt(&mut self, req: FolderDecryptRequest) -> Result<FolderDecryptResponse> {
         let enc = self
             .client

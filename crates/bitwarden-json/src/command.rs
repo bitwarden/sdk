@@ -20,7 +20,10 @@ use bitwarden::{
 };
 
 #[cfg(feature = "mobile")]
-use bitwarden::mobile::kdf::PasswordHashRequest;
+use bitwarden::mobile::{
+    kdf::PasswordHashRequest,
+    vault::{FolderDecryptListRequest, FolderDecryptRequest},
+};
 
 #[cfg(all(feature = "mobile", feature = "internal"))]
 use bitwarden::mobile::crypto::InitCryptoRequest;
@@ -190,6 +193,8 @@ pub enum ProjectsCommand {
 pub enum MobileCommand {
     Kdf(MobileKdfCommand),
     Crypto(MobileCryptoCommand),
+
+    Vault(MobileVaultCommand),
 }
 
 #[cfg(feature = "mobile")]
@@ -211,4 +216,29 @@ pub enum MobileCryptoCommand {
     /// Decrypts the users keys and initializes the user crypto, allowing for the encryption/decryption of the users vault
     ///
     InitCrypto(InitCryptoRequest),
+}
+
+#[cfg(feature = "mobile")]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub enum MobileVaultCommand {
+    Folders(MobileFoldersCommand),
+}
+
+#[cfg(feature = "mobile")]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub enum MobileFoldersCommand {
+    /// > Requires having previously initialized the cryptography parameters
+    /// Decrypts the provided folder
+    ///
+    /// Returns: [FolderDecryptResponse](bitwarden::mobile::vault::FolderDecryptResponse)
+    ///  
+    Decrypt(FolderDecryptRequest),
+    /// > Requires having previously initialized the cryptography parameters
+    /// Decrypts the provided folders
+    ///
+    /// Returns: [FolderDecryptListResponse](bitwarden::mobile::vault::FolderDecryptListResponse)   
+    ///
+    DecryptList(FolderDecryptListRequest),
 }

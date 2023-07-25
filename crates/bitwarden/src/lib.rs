@@ -59,6 +59,7 @@ pub mod platform;
 #[cfg(feature = "secrets")]
 pub mod secrets_manager;
 mod util;
+#[cfg(feature = "mobile")]
 pub mod vault;
 pub mod wordlist;
 

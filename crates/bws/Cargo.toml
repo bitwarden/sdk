@@ -1,6 +1,6 @@
 [package]
 name = "bws"
-version = "0.2.1"
+version = "0.3.0"
 edition = "2021"
 rust-version = "1.60"
 authors = ["Bitwarden Inc"]
@@ -18,7 +18,7 @@ keywords = ["bitwarden", "secrets-manager", "cli"]
 clap = { version = "4.3.0", features = ["derive", "env"] }
 tokio = { version = "1.28.2", features = ["rt-multi-thread", "macros"] }
 log = "0.4.18"
-bitwarden = { path = "../bitwarden", version = "0.2.1", features = ["secrets"] }
+bitwarden = { path = "../bitwarden", version = "0.3.0", features = ["secrets"] }
 env_logger = "0.10.0"
 supports-color = "2.0.0"
 thiserror = "1.0.40"

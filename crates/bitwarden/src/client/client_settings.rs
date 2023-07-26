@@ -22,6 +22,7 @@ use serde::{Deserialize, Serialize};
 /// Targets `localhost:8080` for debug builds.
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct ClientSettings {
     /// The identity url of the targeted Bitwarden instance. Defaults to `https://identity.bitwarden.com`
     pub identity_url: String,
@@ -59,6 +60,7 @@ impl Default for ClientSettings {
 
 #[allow(non_camel_case_types)]
 #[derive(Serialize, Deserialize, Copy, Clone, Debug, JsonSchema)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum DeviceType {
     Android = 0,
     iOS = 1,

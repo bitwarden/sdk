@@ -36,7 +36,8 @@ crates/bitwarden-uniffi/swift/BitwardenFFI.xcframework
 crates/bitwarden-uniffi/swift/.build
 crates/bitwarden-uniffi/swift/.swiftpm
 crates/bitwarden-uniffi/swift/Sources/BitwardenSdk
-crates/bitwarden-uniffi/android/sdk/src/main/java/com/bitwarden/sdk/bitwarden.kt
+crates/bitwarden-uniffi/android/sdk/src/main/java/com/bitwarden/sdk/bitwarden_uniffi.kt
+crates/bitwarden-uniffi/android/sdk/src/main/java/com/bitwarden/core/bitwarden.kt
 
 # Schemas
 support/schemas

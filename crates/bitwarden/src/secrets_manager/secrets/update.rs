@@ -20,6 +20,7 @@ pub struct SecretPutRequest {
     pub key: String,
     pub value: String,
     pub note: String,
+    pub project_ids: Option<Vec<Uuid>>,
 }
 
 pub(crate) async fn update_secret(
@@ -37,7 +38,7 @@ pub(crate) async fn update_secret(
         key: enc.encrypt(input.key.as_bytes(), &org_id)?.to_string(),
         value: enc.encrypt(input.value.as_bytes(), &org_id)?.to_string(),
         note: enc.encrypt(input.note.as_bytes(), &org_id)?.to_string(),
-        project_ids: None,
+        project_ids: input.project_ids.clone(),
     });
 
     let config = client.get_api_configurations().await;

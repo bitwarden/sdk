@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 
 rm -r bindings
 
@@ -11,8 +11,8 @@ mkdir dist/ios
 
 # Swift
 
-cargo run -p uniffi-bindgen generate src/sdk.udl --language swift  --out-dir bindings/swift
-cargo build --package bitwarden-uniffi --target aarch64-apple-ios-sim --release
+cargo build --package bitwarden-uniffi --target aarch64-apple-ios-sim --release --all-features
+cargo run -p uniffi-bindgen generate ../../target/aarch64-apple-ios-sim/release/libbitwarden_uniffi.dylib --library --language swift --no-format --out-dir bindings/swift
 
 mkdir bindings/swift/Headers
 
@@ -25,7 +25,8 @@ cp src/bitwarden.swift platforms/apple/Hello/Sources/Hello
 
 # Kotlin
 
-cargo run -p uniffi-bindgen generate src/sdk.udl --language kotlin --out-dir bindings/kotlin
-cargo ndk -t arm64-v8a -o ./bindings/kotlin/jniLibs build
+# Use the iOS build to generate the bindings for Android to avoid an extra compilation
+cargo run -p uniffi-bindgen generate ../../target/aarch64-apple-ios-sim/release/libbitwarden_uniffi.dylib --library --language kotlin --no-format --out-dir bindings/kotlin
+cargo ndk -t arm64-v8a -o ./bindings/kotlin/jniLibs build --all-features
 
 # Copy files to android project

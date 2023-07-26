@@ -9,6 +9,7 @@ use crate::{
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct PasswordHashRequest {
     /// The user's KDF parameters, as received from the prelogin request
     pub kdf_params: Kdf,
@@ -18,7 +19,7 @@ pub struct PasswordHashRequest {
     pub password: String,
 }
 
-pub async fn hash_password(_client: &mut Client, req: PasswordHashRequest) -> Result<String> {
+pub async fn hash_password(_client: &Client, req: PasswordHashRequest) -> Result<String> {
     let auth_settings = AuthSettings {
         email: req.email,
         kdf: req.kdf_params,

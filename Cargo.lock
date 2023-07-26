@@ -262,7 +262,7 @@ checksum = "630be753d4e58660abd17930c71b647fe46c27ea6b63cc59e1e3851406972e42"
 
 [[package]]
 name = "bitwarden"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "aes",
  "argon2",
@@ -298,7 +298,7 @@ dependencies = [
 
 [[package]]
 name = "bitwarden-api-api"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "reqwest",
  "serde",
@@ -344,7 +344,7 @@ dependencies = [
 
 [[package]]
 name = "bitwarden-napi"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "bitwarden-json",
  "env_logger",
@@ -430,7 +430,7 @@ version = "0.0.2"
 
 [[package]]
 name = "bws"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "bat",
  "bitwarden",

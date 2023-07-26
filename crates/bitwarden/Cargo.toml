@@ -51,7 +51,7 @@ chrono = { version = ">=0.4.26, <0.5", features = ["serde"], default-features = 
 # We don't use this directly (it's used by rand), but we need it here to enable WASM support
 getrandom = { version = ">=0.2.9", features = ["js"] }
 
-bitwarden-api-identity = { path = "../bitwarden-api-identity", version = "0.2.0" }
+bitwarden-api-identity = { path = "../bitwarden-api-identity", version = "0.2.1" }
 bitwarden-api-api = { path = "../bitwarden-api-api", version = "0.2.1" }
 
 [dev-dependencies]

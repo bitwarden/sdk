@@ -20,10 +20,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support `NO_COLOR` environment variable to disable CLI colors (#61)
 - Support for `CLICOLOR_FORCE` (#74)
 
-### Changed
-
-- Folder structure, update `use` declarations (#68)
-
 ### Fixed
 
 - Improve login error handling (#109)

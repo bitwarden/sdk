@@ -138,3 +138,31 @@ jobs:
           name: bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip
           path: ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip
           if-no-files-found: error
+
+  third_party:
+    name: Generate THIRDPARTY.html
+    runs-on: ubuntu-22.04
+    needs:
+      - setup
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@0e66bd3e6b38ec0ad5312288c83e47c143e6b09e # stable
+        with:
+          toolchain: stable
+
+      - name: Install cargo-about
+        run: cargo install cargo-about
+
+      - name: Generate THIRDPARTY.html
+        working-directory: ./crates/bws
+        run: cargo about generate --output THIRDPARTY.html
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: THIRDPARTY.html
+          path: ./crates/bws/THIRDPARTY.html
+          if-no-files-found: error

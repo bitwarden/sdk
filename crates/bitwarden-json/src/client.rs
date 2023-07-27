@@ -97,6 +97,9 @@ impl Client {
                 },
                 MobileCommand::Vault(cmd) => match cmd {
                     MobileVaultCommand::Folders(cmd) => match cmd {
+                        MobileFoldersCommand::Encrypt(cmd) => {
+                            self.0.vault().folders().encrypt(cmd).await.into_string()
+                        }
                         MobileFoldersCommand::Decrypt(cmd) => {
                             self.0.vault().folders().decrypt(cmd).await.into_string()
                         }

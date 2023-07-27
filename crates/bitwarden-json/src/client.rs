@@ -11,7 +11,7 @@ use crate::command::{ProjectsCommand, SecretsCommand};
 #[cfg(all(feature = "internal", feature = "mobile"))]
 use crate::command::MobileCryptoCommand;
 #[cfg(feature = "mobile")]
-use crate::command::{MobileCommand, MobileKdfCommand};
+use crate::command::{MobileCommand, MobileFoldersCommand, MobileKdfCommand, MobileVaultCommand};
 
 pub struct Client(bitwarden::Client);
 
@@ -94,6 +94,20 @@ impl Client {
                     MobileCryptoCommand::InitCrypto(req) => {
                         self.0.crypto().initialize_crypto(req).await.into_string()
                     }
+                },
+                MobileCommand::Vault(cmd) => match cmd {
+                    MobileVaultCommand::Folders(cmd) => match cmd {
+                        MobileFoldersCommand::Decrypt(cmd) => {
+                            self.0.vault().folders().decrypt(cmd).await.into_string()
+                        }
+                        MobileFoldersCommand::DecryptList(cmd) => self
+                            .0
+                            .vault()
+                            .folders()
+                            .decrypt_list(cmd)
+                            .await
+                            .into_string(),
+                    },
                 },
             },
         }

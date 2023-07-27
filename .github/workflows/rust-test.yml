@@ -3,7 +3,10 @@ name: Rust tests
 on:
   workflow_dispatch:
   push:
-    branches: ["master"]
+    branches:
+      - "master"
+      - "rc"
+      - "hotfix-rc"
   pull_request:
 
 env:

@@ -165,7 +165,7 @@ jobs:
         working-directory: ./crates/bws
         run: |
           cargo about generate ../../about.hbs > THIRDPARTY.html
-          sed -i .bak 's/\$NAME\$/Bitwarden Secrets Manager CLI/g' THIRDPARTY.html
+          sed -i.bak 's/\$NAME\$/Bitwarden Secrets Manager CLI/g' THIRDPARTY.html
 
       - name: Upload artifact
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2

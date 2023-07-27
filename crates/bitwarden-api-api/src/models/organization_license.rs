@@ -73,6 +73,11 @@ pub struct OrganizationLicense {
     pub refresh: Option<String>,
     #[serde(rename = "expires", skip_serializing_if = "Option::is_none")]
     pub expires: Option<String>,
+    #[serde(
+        rename = "expirationWithoutGracePeriod",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub expiration_without_grace_period: Option<String>,
     #[serde(rename = "trial", skip_serializing_if = "Option::is_none")]
     pub trial: Option<bool>,
     #[serde(rename = "licenseType", skip_serializing_if = "Option::is_none")]
@@ -116,6 +121,7 @@ impl OrganizationLicense {
             issued: None,
             refresh: None,
             expires: None,
+            expiration_without_grace_period: None,
             trial: None,
             license_type: None,
             hash: None,

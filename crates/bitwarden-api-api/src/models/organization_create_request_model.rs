@@ -68,10 +68,24 @@ pub struct OrganizationCreateRequestModel {
     pub billing_address_country: Option<String>,
     #[serde(rename = "maxAutoscaleSeats", skip_serializing_if = "Option::is_none")]
     pub max_autoscale_seats: Option<i32>,
+    #[serde(rename = "additionalSmSeats", skip_serializing_if = "Option::is_none")]
+    pub additional_sm_seats: Option<i32>,
+    #[serde(
+        rename = "additionalServiceAccounts",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub additional_service_accounts: Option<i32>,
+    #[serde(rename = "useSecretsManager")]
+    pub use_secrets_manager: bool,
 }
 
 impl OrganizationCreateRequestModel {
-    pub fn new(name: String, billing_email: String, key: String) -> OrganizationCreateRequestModel {
+    pub fn new(
+        name: String,
+        billing_email: String,
+        key: String,
+        use_secrets_manager: bool,
+    ) -> OrganizationCreateRequestModel {
         OrganizationCreateRequestModel {
             name,
             business_name: None,
@@ -93,6 +107,9 @@ impl OrganizationCreateRequestModel {
             billing_address_postal_code: None,
             billing_address_country: None,
             max_autoscale_seats: None,
+            additional_sm_seats: None,
+            additional_service_accounts: None,
+            use_secrets_manager,
         }
     }
 }

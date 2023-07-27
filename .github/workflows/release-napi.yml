@@ -65,38 +65,6 @@ jobs:
           description: "Deployment ${{ steps.version.outputs.version }} from branch ${{ github.ref_name }}"
           task: release
 
-      - name: Download all Release artifacts
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
-        uses: bitwarden/gh-actions/download-artifacts@12452ffcde72eca60a91abef555090ad17ba2108
-        with:
-          workflow: build-napi.yml
-          path: artifacts
-          workflow_conclusion: success
-          branch: ${{ github.ref_name }}
-
-      - name: Dry Run - Download all artifacts
-        if: ${{ github.event.inputs.release_type == 'Dry Run' }}
-        uses: bitwarden/gh-actions/download-artifacts@12452ffcde72eca60a91abef555090ad17ba2108
-        with:
-          workflow: build-napi.yml
-          path: artifacts
-          workflow_conclusion: success
-          branch: master
-
-      - name: Create release
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
-        uses: ncipollo/release-action@a2e71bdd4e7dab70ca26a852f29600c98b33153e # v1.12.0
-        env:
-          PKG_VERSION: ${{ steps.version.outputs.version }}
-        with:
-          artifacts: ""
-          commit: ${{ github.sha }}
-          tag: sdk-napi-v${{ env.PKG_VERSION }}
-          name: Bitwarden SDK NAPI v${{ env.PKG_VERSION }}
-          body: "<insert release notes here>"
-          token: ${{ secrets.GITHUB_TOKEN }}
-          draft: true
-
       - name: Update deployment status to Success
         if: ${{ github.event.inputs.release_type != 'Dry Run' && success() }}
         uses: chrnorm/deployment-status@2afb7d27101260f4a764219439564d954d10b5b0 # v2.0.1

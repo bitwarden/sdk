@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2023-07-26
+
 ### Deprecated
 
 - Switched command order from `action type` to `type action`, please re-read the help documentation (#76)
@@ -17,10 +19,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ability to create and edit secrets (#77)
 - Support `NO_COLOR` environment variable to disable CLI colors (#61)
 - Support for `CLICOLOR_FORCE` (#74)
-
-### Changed
-
-- Folder structure, update `use` declarations (#68)
 
 ### Fixed
 

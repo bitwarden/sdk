@@ -22,7 +22,7 @@ use bitwarden::{
 #[cfg(feature = "mobile")]
 use bitwarden::mobile::{
     kdf::PasswordHashRequest,
-    vault::{FolderDecryptListRequest, FolderDecryptRequest},
+    vault::{FolderDecryptListRequest, FolderDecryptRequest, FolderEncryptRequest},
 };
 
 #[cfg(all(feature = "mobile", feature = "internal"))]

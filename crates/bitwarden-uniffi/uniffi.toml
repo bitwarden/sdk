@@ -1,3 +1,7 @@
 [bindings.kotlin]
 package_name = "com.bitwarden.sdk"
 cdylib_name = "bitwarden_uniffi"
+
+[bindings.swift]
+ffi_module_name = "BitwardenFFI"
+module_name = "BitwardenSDK"

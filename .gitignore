@@ -30,7 +30,10 @@ crates/bitwarden-napi/sdk-napi.*.node
 crates/bitwarden-napi/dist
 
 # Uniffi
-crates/bitwarden-uniffi/bindings
+crates/bitwarden-uniffi/swift/BitwardenFFI.xcframework
+crates/bitwarden-uniffi/swift/.build
+crates/bitwarden-uniffi/swift/.swiftpm
+crates/bitwarden-uniffi/swift/Sources/BitwardenSdk
 
 # Schemas
 support/schemas

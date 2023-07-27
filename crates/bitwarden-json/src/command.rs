@@ -230,6 +230,12 @@ pub enum MobileVaultCommand {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum MobileFoldersCommand {
     /// > Requires having previously initialized the cryptography parameters
+    /// Encrypts the provided folder
+    ///
+    /// Returns: [FolderEncryptResponse](bitwarden::mobile::vault::FolderEncryptResponse)
+    ///  
+    Encrypt(FolderEncryptRequest),
+    /// > Requires having previously initialized the cryptography parameters
     /// Decrypts the provided folder
     ///
     /// Returns: [FolderDecryptResponse](bitwarden::mobile::vault::FolderDecryptResponse)

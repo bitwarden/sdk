@@ -13,5 +13,3 @@
 .externalNativeBuild
 .cxx
 local.properties
-
-sdk/src/main/java/com/bitwarden/sdk/bitwarden.kt

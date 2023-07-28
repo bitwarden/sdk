@@ -14,6 +14,8 @@ bld/
 [Bb]in/
 [Oo]bj/
 
+.idea
+
 
 # Added by cargo
 #
@@ -34,6 +36,7 @@ crates/bitwarden-uniffi/swift/BitwardenFFI.xcframework
 crates/bitwarden-uniffi/swift/.build
 crates/bitwarden-uniffi/swift/.swiftpm
 crates/bitwarden-uniffi/swift/Sources/BitwardenSdk
+crates/bitwarden-uniffi/android/sdk/src/main/java/com/bitwarden/sdk/bitwarden.kt
 
 # Schemas
 support/schemas

@@ -10,11 +10,11 @@ use super::{
 };
 
 pub struct ClientFolders<'a> {
-    pub(crate) client: &'a mut Client,
+    pub(crate) client: &'a Client,
 }
 
 impl<'a> ClientFolders<'a> {
-    pub async fn encrypt(&mut self, req: FolderEncryptRequest) -> Result<FolderEncryptResponse> {
+    pub async fn encrypt(&self, req: FolderEncryptRequest) -> Result<FolderEncryptResponse> {
         let enc = self
             .client
             .get_encryption_settings()
@@ -26,7 +26,7 @@ impl<'a> ClientFolders<'a> {
         Ok(FolderEncryptResponse { folder })
     }
 
-    pub async fn decrypt(&mut self, req: FolderDecryptRequest) -> Result<FolderDecryptResponse> {
+    pub async fn decrypt(&self, req: FolderDecryptRequest) -> Result<FolderDecryptResponse> {
         let enc = self
             .client
             .get_encryption_settings()
@@ -39,7 +39,7 @@ impl<'a> ClientFolders<'a> {
     }
 
     pub async fn decrypt_list(
-        &mut self,
+        &self,
         req: FolderDecryptListRequest,
     ) -> Result<FolderDecryptListResponse> {
         let enc = self
@@ -55,7 +55,7 @@ impl<'a> ClientFolders<'a> {
 }
 
 impl<'a> ClientVault<'a> {
-    pub fn folders(&'a mut self) -> ClientFolders<'a> {
+    pub fn folders(&'a self) -> ClientFolders<'a> {
         ClientFolders {
             client: self.client,
         }

@@ -18,7 +18,7 @@ pub struct PasswordHashRequest {
     pub password: String,
 }
 
-pub async fn hash_password(_client: &mut Client, req: PasswordHashRequest) -> Result<String> {
+pub async fn hash_password(_client: &Client, req: PasswordHashRequest) -> Result<String> {
     let auth_settings = AuthSettings {
         email: req.email,
         kdf: req.kdf_params,

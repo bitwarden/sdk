@@ -5,7 +5,11 @@ use uuid::Uuid;
 
 use crate::crypto::CipherString;
 
-use super::{attachment, card, field, identity, login, password_history, secure_note};
+use super::{
+    attachment, card, field, identity,
+    local_data::{LocalData, LocalDataView},
+    login, password_history, secure_note,
+};
 
 #[derive(Clone, Copy, Serialize, Deserialize, Debug, JsonSchema)]
 pub enum CipherType {
@@ -24,9 +28,10 @@ pub enum CipherRepromptType {
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Cipher {
-    pub id: Uuid,
+    pub id: Option<Uuid>,
     pub organization_id: Option<Uuid>,
     pub folder_id: Option<Uuid>,
+    pub collection_ids: Vec<Uuid>,
 
     pub name: CipherString,
     pub notes: CipherString,
@@ -37,9 +42,12 @@ pub struct Cipher {
     pub card: Option<card::Card>,
     pub secure_note: Option<secure_note::SecureNote>,
 
-    pub collection_ids: Vec<Uuid>,
     pub favorite: bool,
     pub reprompt: CipherRepromptType,
+    pub organization_use_totp: bool,
+    pub edit: bool,
+    pub view_password: bool,
+    pub local_data: Option<LocalData>,
 
     pub attachments: Vec<attachment::Attachment>,
     pub fields: Vec<field::Field>,
@@ -53,9 +61,10 @@ pub struct Cipher {
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct CipherView {
-    pub id: Uuid,
+    pub id: Option<Uuid>,
     pub organization_id: Option<Uuid>,
     pub folder_id: Option<Uuid>,
+    pub collection_ids: Vec<Uuid>,
 
     pub name: String,
     pub notes: String,
@@ -64,11 +73,14 @@ pub struct CipherView {
     pub login: Option<login::LoginView>,
     pub identity: Option<identity::IdentityView>,
     pub card: Option<card::CardView>,
-    pub secure_note: Option<secure_note::SecureNote>,
+    pub secure_note: Option<secure_note::SecureNoteView>,
 
-    pub collection_ids: Vec<Uuid>,
     pub favorite: bool,
     pub reprompt: CipherRepromptType,
+    pub organization_use_totp: bool,
+    pub edit: bool,
+    pub view_password: bool,
+    pub local_data: Option<LocalDataView>,
 
     pub attachments: Vec<attachment::AttachmentView>,
     pub fields: Vec<field::FieldView>,
@@ -82,26 +94,23 @@ pub struct CipherView {
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct CipherListView {
-    pub id: Uuid,
+    pub id: Option<Uuid>,
     pub organization_id: Option<Uuid>,
     pub folder_id: Option<Uuid>,
+    pub collection_ids: Vec<Uuid>,
 
     pub name: String,
-    pub notes: String,
+    pub sub_title: String,
 
     pub r#type: CipherType,
-    pub login: Option<login::LoginView>,
-    pub identity: Option<identity::IdentityView>,
-    pub card: Option<card::CardView>,
-    pub secure_note: Option<secure_note::SecureNote>,
 
-    pub collection_ids: Vec<Uuid>,
     pub favorite: bool,
     pub reprompt: CipherRepromptType,
+    pub edit: bool,
+    pub view_password: bool,
 
-    pub attachments: Vec<attachment::AttachmentView>,
-    pub fields: Vec<field::FieldView>,
-    pub password_history: Vec<password_history::PasswordHistoryView>,
+    /// The number of attachments
+    pub attachments: usize,
 
     pub creation_date: DateTime<Utc>,
     pub deleted_date: Option<DateTime<Utc>>,

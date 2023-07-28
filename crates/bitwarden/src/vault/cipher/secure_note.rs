@@ -11,3 +11,9 @@ pub enum SecureNoteType {
 pub struct SecureNote {
     r#type: SecureNoteType,
 }
+
+#[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct SecureNoteView {
+    r#type: SecureNoteType,
+}

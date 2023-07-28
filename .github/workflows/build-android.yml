@@ -4,6 +4,10 @@ name: Build Android
 on:
   pull_request:
   push:
+    branches:
+      - "master"
+      - "rc"
+      - "hotfix-rc"
   workflow_dispatch:
 
 defaults:

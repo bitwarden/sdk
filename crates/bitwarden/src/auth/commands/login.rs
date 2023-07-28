@@ -192,7 +192,7 @@ async fn request_identity_tokens(
 ) -> Result<IdentityTokenResponse> {
     let config = client.get_api_configurations().await;
     PasswordTokenRequest::new(&input.email, password_hash)
-        .send(&config)
+        .send(config)
         .await
 }
 
@@ -203,7 +203,7 @@ async fn request_api_identity_tokens(
 ) -> Result<IdentityTokenResponse> {
     let config = client.get_api_configurations().await;
     ApiTokenRequest::new(&input.client_id, &input.client_secret)
-        .send(&config)
+        .send(config)
         .await
 }
 
@@ -213,7 +213,7 @@ async fn request_access_token(
 ) -> Result<IdentityTokenResponse> {
     let config = client.get_api_configurations().await;
     AccessTokenRequest::new(input.service_account_id, &input.client_secret)
-        .send(&config)
+        .send(config)
         .await
 }
 

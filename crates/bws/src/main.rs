@@ -225,6 +225,7 @@ const ACCESS_TOKEN_KEY_VAR_NAME: &str = "BWS_ACCESS_TOKEN";
 const PROFILE_KEY_VAR_NAME: &str = "BWS_PROFILE";
 const SERVER_URL_KEY_VAR_NAME: &str = "BWS_SERVER_URL";
 
+#[allow(clippy::comparison_chain)]
 async fn process_commands() -> Result<()> {
     let cli = Cli::parse();
 
@@ -414,7 +415,7 @@ async fn process_commands() -> Result<()> {
                 eprintln!("{}: {}", project.0, project.1);
             }
 
-            if projects_failed.len() > 0 {
+            if !projects_failed.is_empty() {
                 process::exit(1);
             }
         }
@@ -571,7 +572,7 @@ async fn process_commands() -> Result<()> {
                 eprintln!("{}: {}", secret.0, secret.1);
             }
 
-            if secrets_failed.len() > 0 {
+            if !secrets_failed.is_empty() {
                 process::exit(1);
             }
         }

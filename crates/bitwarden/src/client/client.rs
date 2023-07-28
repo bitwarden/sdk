@@ -183,8 +183,8 @@ impl Client {
         }
     }
 
-    pub(crate) fn get_encryption_settings(&self) -> &Option<EncryptionSettings> {
-        &self.encryption_settings
+    pub(crate) fn get_encryption_settings(&self) -> Result<&EncryptionSettings> {
+        self.encryption_settings.as_ref().ok_or(Error::VaultLocked)
     }
 
     #[cfg(feature = "internal")]

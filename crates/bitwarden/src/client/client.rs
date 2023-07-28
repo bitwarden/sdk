@@ -12,7 +12,7 @@ use crate::{
         client_settings::{ClientSettings, DeviceType},
         encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
     },
-    error::Result,
+    error::{Error, Result},
 };
 
 #[cfg(feature = "secrets")]
@@ -28,7 +28,6 @@ use {
         },
         client::auth_settings::AuthSettings,
         crypto::CipherString,
-        error::Error,
         platform::{
             generate_fingerprint, get_user_api_key, sync, FingerprintRequest,
             SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,

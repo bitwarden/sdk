@@ -3,10 +3,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::SecretResponse;
-use crate::{
-    error::{Error, Result},
-    Client,
-};
+use crate::{error::Result, Client};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -22,10 +19,7 @@ pub(crate) async fn get_secret(
     let config = client.get_api_configurations().await;
     let res = bitwarden_api_api::apis::secrets_api::secrets_id_get(&config.api, input.id).await?;
 
-    let enc = client
-        .get_encryption_settings()
-        .as_ref()
-        .ok_or(Error::VaultLocked)?;
+    let enc = client.get_encryption_settings()?;
 
     SecretResponse::process_response(res, enc)
 }

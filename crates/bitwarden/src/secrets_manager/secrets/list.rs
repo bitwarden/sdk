@@ -29,10 +29,7 @@ pub(crate) async fn list_secrets(
     )
     .await?;
 
-    let enc = client
-        .get_encryption_settings()
-        .as_ref()
-        .ok_or(Error::VaultLocked)?;
+    let enc = client.get_encryption_settings()?;
 
     SecretIdentifiersResponse::process_response(res, enc)
 }
@@ -55,10 +52,7 @@ pub(crate) async fn list_secrets_by_project(
     )
     .await?;
 
-    let enc = client
-        .get_encryption_settings()
-        .as_ref()
-        .ok_or(Error::VaultLocked)?;
+    let enc = client.get_encryption_settings()?;
 
     SecretIdentifiersResponse::process_response(res, enc)
 }

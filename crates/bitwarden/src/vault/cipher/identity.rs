@@ -5,30 +5,6 @@ use crate::crypto::CipherString;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub enum IdentityLinkedId {
-    Title = 400,
-    MiddleName = 401,
-    Address1 = 402,
-    Address2 = 403,
-    Address3 = 404,
-    City = 405,
-    State = 406,
-    PostalCode = 407,
-    Country = 408,
-    Company = 409,
-    Email = 410,
-    Phone = 411,
-    Ssn = 412,
-    Username = 413,
-    PassportNumber = 414,
-    LicenseNumber = 415,
-    FirstName = 416,
-    LastName = 417,
-    FullName = 418,
-}
-
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Identity {
     pub title: Option<CipherString>,
     pub first_name: Option<CipherString>,

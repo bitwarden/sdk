@@ -1,10 +1,12 @@
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::crypto::CipherString;
 
-#[derive(Clone, Copy, Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
+#[repr(u8)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum UriMatchType {
     Domain = 0,

@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 use uuid::Uuid;
 
 use crate::crypto::CipherString;
@@ -11,7 +12,8 @@ use super::{
     login, password_history, secure_note,
 };
 
-#[derive(Clone, Copy, Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
+#[repr(u8)]
 pub enum CipherType {
     Login = 1,
     SecureNote = 2,
@@ -19,7 +21,8 @@ pub enum CipherType {
     Identity = 4,
 }
 
-#[derive(Clone, Copy, Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
+#[repr(u8)]
 pub enum CipherRepromptType {
     None = 0,
     Password = 1,

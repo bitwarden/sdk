@@ -22,7 +22,9 @@ use bitwarden::{
 #[cfg(feature = "mobile")]
 use bitwarden::mobile::{
     kdf::PasswordHashRequest,
-    vault::{FolderDecryptListRequest, FolderDecryptRequest, FolderEncryptRequest},
+    vault::{
+        CipherEncryptRequest, FolderDecryptListRequest, FolderDecryptRequest, FolderEncryptRequest,
+    },
 };
 
 #[cfg(all(feature = "mobile", feature = "internal"))]
@@ -223,6 +225,7 @@ pub enum MobileCryptoCommand {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum MobileVaultCommand {
     Folders(MobileFoldersCommand),
+    Ciphers(MobileCiphersCommand),
 }
 
 #[cfg(feature = "mobile")]
@@ -247,4 +250,16 @@ pub enum MobileFoldersCommand {
     /// Returns: [FolderDecryptListResponse](bitwarden::mobile::vault::FolderDecryptListResponse)   
     ///
     DecryptList(FolderDecryptListRequest),
+}
+
+#[cfg(feature = "mobile")]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub enum MobileCiphersCommand {
+    /// > Requires having previously initialized the cryptography parameters
+    /// Encrypts the provided cipher
+    ///
+    /// Returns: [CipherEncryptResponse](bitwarden::mobile::vault::CipherEncryptResponse)
+    ///
+    Encrypt(CipherEncryptRequest),
 }

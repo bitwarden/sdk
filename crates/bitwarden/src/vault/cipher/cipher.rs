@@ -4,7 +4,11 @@ use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use uuid::Uuid;
 
-use crate::crypto::CipherString;
+use crate::{
+    client::encryption_settings::EncryptionSettings,
+    crypto::{CipherString, Encryptable},
+    error::Result,
+};
 
 use super::{
     attachment, card, field, identity,
@@ -118,4 +122,35 @@ pub struct CipherListView {
     pub creation_date: DateTime<Utc>,
     pub deleted_date: Option<DateTime<Utc>>,
     pub revision_date: DateTime<Utc>,
+}
+
+impl Encryptable<Cipher> for CipherView {
+    fn encrypt(self, enc: &EncryptionSettings, _: &Option<Uuid>) -> Result<Cipher> {
+        let org_id = &self.organization_id;
+        Ok(Cipher {
+            id: self.id,
+            organization_id: self.organization_id,
+            folder_id: self.folder_id,
+            collection_ids: self.collection_ids,
+            name: self.name.encrypt(enc, org_id)?,
+            notes: self.notes.encrypt(enc, org_id)?,
+            r#type: self.r#type,
+            login: self.login.encrypt(enc, org_id)?,
+            identity: self.identity.encrypt(enc, org_id)?,
+            card: self.card.encrypt(enc, org_id)?,
+            secure_note: self.secure_note.encrypt(enc, org_id)?,
+            favorite: self.favorite,
+            reprompt: self.reprompt,
+            organization_use_totp: self.organization_use_totp,
+            edit: self.edit,
+            view_password: self.view_password,
+            local_data: self.local_data.encrypt(enc, org_id)?,
+            attachments: self.attachments.encrypt(enc, org_id)?,
+            fields: self.fields.encrypt(enc, org_id)?,
+            password_history: self.password_history.encrypt(enc, org_id)?,
+            creation_date: self.creation_date,
+            deleted_date: self.deleted_date,
+            revision_date: self.revision_date,
+        })
+    }
 }

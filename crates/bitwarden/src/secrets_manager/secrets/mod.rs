@@ -18,3 +18,7 @@ pub use list::{
 pub use secret_response::SecretResponse;
 pub(crate) use update::update_secret;
 pub use update::SecretPutRequest;
+
+const SECRET_KEY_MAX_LENGTH: usize = 500;
+const SECRET_VALUE_MAX_LENGTH: usize = 3000;
+const SECRET_NOTE_MAX_LENGTH: usize = 7000;

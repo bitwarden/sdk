@@ -20,24 +20,24 @@ pub enum IdentityTokenResponse {
 
 pub fn parse_identity_response(
     status: StatusCode,
-    response: &str,
+    response: String,
 ) -> Result<IdentityTokenResponse> {
-    if let Ok(r) = serde_json::from_str::<IdentityTokenSuccessResponse>(response) {
+    if let Ok(r) = serde_json::from_str::<IdentityTokenSuccessResponse>(&response) {
         Ok(IdentityTokenResponse::Authenticated(r))
-    } else if let Ok(r) = serde_json::from_str::<IdentityTokenPayloadResponse>(response) {
+    } else if let Ok(r) = serde_json::from_str::<IdentityTokenPayloadResponse>(&response) {
         Ok(IdentityTokenResponse::Payload(r))
-    } else if let Ok(r) = serde_json::from_str::<IdentityTokenRefreshResponse>(response) {
+    } else if let Ok(r) = serde_json::from_str::<IdentityTokenRefreshResponse>(&response) {
         Ok(IdentityTokenResponse::Refreshed(r))
-    } else if let Ok(r) = serde_json::from_str::<IdentityTwoFactorResponse>(response) {
+    } else if let Ok(r) = serde_json::from_str::<IdentityTwoFactorResponse>(&response) {
         Ok(IdentityTokenResponse::TwoFactorRequired(r))
-    } else if let Ok(r) = serde_json::from_str::<IdentityCaptchaResponse>(response) {
+    } else if let Ok(r) = serde_json::from_str::<IdentityCaptchaResponse>(&response) {
         Ok(IdentityTokenResponse::CaptchaRequired(r))
-    } else if let Ok(r) = serde_json::from_str::<IdentityTokenFailResponse>(response) {
+    } else if let Ok(r) = serde_json::from_str::<IdentityTokenFailResponse>(&response) {
         Err(Error::IdentityFail(r))
     } else {
         Err(Error::ResponseContent {
-            status: status,
-            message: response.to_owned(),
+            status,
+            message: response,
         })
     }
 }
@@ -51,7 +51,7 @@ mod test {
         let expected = IdentityTokenSuccessResponse::default();
         let success = serde_json::to_string(&expected).unwrap();
         let expected = IdentityTokenResponse::Authenticated(expected);
-        let actual = parse_identity_response(StatusCode::OK, &success).unwrap();
+        let actual = parse_identity_response(StatusCode::OK, success).unwrap();
         assert_eq!(expected, actual);
     }
 
@@ -60,7 +60,7 @@ mod test {
         let expected = IdentityTwoFactorResponse::default();
         let two_factor = serde_json::to_string(&expected).unwrap();
         let expected = IdentityTokenResponse::TwoFactorRequired(expected);
-        let actual = parse_identity_response(StatusCode::BAD_REQUEST, &two_factor).unwrap();
+        let actual = parse_identity_response(StatusCode::BAD_REQUEST, two_factor).unwrap();
         assert_eq!(expected, actual);
     }
 
@@ -69,7 +69,7 @@ mod test {
         let expected = IdentityCaptchaResponse::default();
         let captcha = serde_json::to_string(&expected).unwrap();
         let expected = IdentityTokenResponse::CaptchaRequired(expected);
-        let actual = parse_identity_response(StatusCode::BAD_REQUEST, &captcha).unwrap();
+        let actual = parse_identity_response(StatusCode::BAD_REQUEST, captcha).unwrap();
         assert_eq!(expected, actual);
     }
 }

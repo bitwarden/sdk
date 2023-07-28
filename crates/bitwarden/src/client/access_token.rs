@@ -46,7 +46,7 @@ impl FromStr for AccessToken {
             crate::crypto::stretch_key(encryption_key, "accesstoken", Some("sm-access-token"));
 
         Ok(AccessToken {
-            service_account_id: service_account_id,
+            service_account_id,
             client_secret: client_secret.to_owned(),
             encryption_key,
         })

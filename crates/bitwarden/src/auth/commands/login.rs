@@ -133,7 +133,7 @@ pub(crate) async fn access_token_login(
 
         let payload: Payload = serde_json::from_slice(&decrypted_payload)?;
 
-        let encryption_key = BASE64_ENGINE.decode(&payload.encryption_key)?;
+        let encryption_key = BASE64_ENGINE.decode(payload.encryption_key)?;
 
         let encryption_key = SymmetricCryptoKey::try_from(encryption_key.as_slice())?;
 
@@ -254,7 +254,7 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
                 client_secret,
                 ..
             } => {
-                AccessTokenRequest::new(*service_account_id, &client_secret)
+                AccessTokenRequest::new(*service_account_id, client_secret)
                     .send(&client.__api_configurations)
                     .await?
             }

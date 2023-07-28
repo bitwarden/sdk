@@ -58,5 +58,5 @@ async fn send_identity_connect_request(
     let status = response.status();
     let text = response.text().await?;
 
-    parse_identity_response(status, &text)
+    parse_identity_response(status, text)
 }

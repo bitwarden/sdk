@@ -54,7 +54,7 @@ impl FromStr for SymmetricCryptoKey {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let bytes = BASE64_ENGINE
-            .decode(&s)
+            .decode(s)
             .map_err(|_| CryptoError::InvalidKey)?;
         SymmetricCryptoKey::try_from(bytes.as_slice())
     }
@@ -120,7 +120,7 @@ impl EncryptionSettings {
                 _ => return Err(CryptoError::InvalidKey.into()),
             };
 
-            let dec = decrypt_aes256(&iv, &mac, &data, Some(mac_key), key)?;
+            let dec = decrypt_aes256(&iv, &mac, data, Some(mac_key), key)?;
             SymmetricCryptoKey::try_from(dec.as_slice())?
         };
 
@@ -178,10 +178,7 @@ impl EncryptionSettings {
         }
 
         match org_id {
-            Some(org_id) => match self.org_keys.get(org_id) {
-                Some(k) => Some(k),
-                None => return None,
-            },
+            Some(org_id) => self.org_keys.get(org_id),
             None => Some(&self.user_key),
         }
     }
@@ -203,17 +200,17 @@ impl EncryptionSettings {
 pub fn decrypt(cipher: &CipherString, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
     match cipher {
         CipherString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
-            let dec = decrypt_aes256(iv, mac, data, key.mac_key, key.key)?;
+            let dec = decrypt_aes256(iv, mac, data.clone(), key.mac_key, key.key)?;
             Ok(dec)
         }
-        _ => return Err(CryptoError::InvalidKey.into()),
+        _ => Err(CryptoError::InvalidKey.into()),
     }
 }
 
 pub fn decrypt_aes256(
     iv: &[u8; 16],
     mac: &[u8; 32],
-    data: &Vec<u8>,
+    data: Vec<u8>,
     mac_key: Option<GenericArray<u8, U32>>,
     key: GenericArray<u8, U32>,
 ) -> Result<Vec<u8>> {
@@ -223,14 +220,14 @@ pub fn decrypt_aes256(
     };
 
     // Validate HMAC
-    let res = validate_mac(&mac_key, iv, data)?;
+    let res = validate_mac(&mac_key, iv, &data)?;
     if res != *mac {
         return Err(CryptoError::InvalidMac.into());
     }
 
     // Decrypt data
     let iv = GenericArray::from_slice(iv);
-    let mut data = data.clone();
+    let mut data = data;
     let decrypted_key_slice = cbc::Decryptor::<aes::Aes256>::new(&key, iv)
         .decrypt_padded_mut::<Pkcs7>(&mut data)
         .map_err(|_| CryptoError::KeyDecrypt)?;

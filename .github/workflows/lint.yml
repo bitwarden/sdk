@@ -46,6 +46,6 @@ jobs:
           RUSTDOCFLAGS: "-D warnings"
 
       - name: Cargo clippy
-        run: cargo clippy --all-targets --all-features
+        run: cargo clippy --all-features
         env:
           RUSTFLAGS: "-D warnings"

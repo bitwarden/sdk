@@ -10,5 +10,6 @@ pub use folders::{
 };
 
 pub use ciphers::{
-    CipherDecryptRequest, CipherDecryptResponse, CipherEncryptRequest, CipherEncryptResponse,
+    CipherDecryptListRequest, CipherDecryptListResponse, CipherDecryptRequest,
+    CipherDecryptResponse, CipherEncryptRequest, CipherEncryptResponse,
 };

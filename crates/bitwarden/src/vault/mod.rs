@@ -3,4 +3,4 @@ mod folder;
 
 pub use folder::{Folder, FolderView};
 
-pub use cipher::{Cipher, CipherView};
+pub use cipher::{Cipher, CipherListView, CipherView};

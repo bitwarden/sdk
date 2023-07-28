@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{CipherString, Encryptable},
+    crypto::{CipherString, Decryptable, Encryptable},
     error::Result,
 };
 
@@ -77,6 +77,28 @@ impl Encryptable<Login> for LoginView {
             password_revision_date: self.password_revision_date,
             uris: self.uris.encrypt(enc, org_id)?,
             totp: self.totp.encrypt(enc, org_id)?,
+            autofill_on_page_load: self.autofill_on_page_load,
+        })
+    }
+}
+
+impl Decryptable<LoginUriView> for LoginUri {
+    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<LoginUriView> {
+        Ok(LoginUriView {
+            uri: self.uri.decrypt(enc, org_id)?,
+            r#match: self.r#match,
+        })
+    }
+}
+
+impl Decryptable<LoginView> for Login {
+    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<LoginView> {
+        Ok(LoginView {
+            username: self.username.decrypt(enc, org_id)?,
+            password: self.password.decrypt(enc, org_id)?,
+            password_revision_date: self.password_revision_date,
+            uris: self.uris.decrypt(enc, org_id)?,
+            totp: self.totp.decrypt(enc, org_id)?,
             autofill_on_page_load: self.autofill_on_page_load,
         })
     }

@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{CipherString, Encryptable},
+    crypto::{CipherString, Decryptable, Encryptable},
     error::Result,
 };
 
@@ -40,6 +40,19 @@ impl Encryptable<Attachment> for AttachmentView {
             size_name: self.size_name,
             file_name: self.file_name.encrypt(enc, org_id)?,
             key: self.key.encrypt(enc, org_id)?,
+        })
+    }
+}
+
+impl Decryptable<AttachmentView> for Attachment {
+    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<AttachmentView> {
+        Ok(AttachmentView {
+            id: self.id.clone(),
+            url: self.url.clone(),
+            size: self.size.clone(),
+            size_name: self.size_name.clone(),
+            file_name: self.file_name.decrypt(enc, org_id)?,
+            key: self.key.decrypt(enc, org_id)?,
         })
     }
 }

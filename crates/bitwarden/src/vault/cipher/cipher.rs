@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{CipherString, Encryptable},
+    crypto::{CipherString, Decryptable, Encryptable},
     error::Result,
 };
 
@@ -148,6 +148,37 @@ impl Encryptable<Cipher> for CipherView {
             attachments: self.attachments.encrypt(enc, org_id)?,
             fields: self.fields.encrypt(enc, org_id)?,
             password_history: self.password_history.encrypt(enc, org_id)?,
+            creation_date: self.creation_date,
+            deleted_date: self.deleted_date,
+            revision_date: self.revision_date,
+        })
+    }
+}
+
+impl Decryptable<CipherView> for Cipher {
+    fn decrypt(&self, enc: &EncryptionSettings, _: &Option<Uuid>) -> Result<CipherView> {
+        let org_id = &self.organization_id;
+        Ok(CipherView {
+            id: self.id,
+            organization_id: self.organization_id,
+            folder_id: self.folder_id,
+            collection_ids: self.collection_ids.clone(),
+            name: self.name.decrypt(enc, org_id)?,
+            notes: self.notes.decrypt(enc, org_id)?,
+            r#type: self.r#type,
+            login: self.login.decrypt(enc, org_id)?,
+            identity: self.identity.decrypt(enc, org_id)?,
+            card: self.card.decrypt(enc, org_id)?,
+            secure_note: self.secure_note.decrypt(enc, org_id)?,
+            favorite: self.favorite,
+            reprompt: self.reprompt,
+            organization_use_totp: self.organization_use_totp,
+            edit: self.edit,
+            view_password: self.view_password,
+            local_data: self.local_data.decrypt(enc, org_id)?,
+            attachments: self.attachments.decrypt(enc, org_id)?,
+            fields: self.fields.decrypt(enc, org_id)?,
+            password_history: self.password_history.decrypt(enc, org_id)?,
             creation_date: self.creation_date,
             deleted_date: self.deleted_date,
             revision_date: self.revision_date,

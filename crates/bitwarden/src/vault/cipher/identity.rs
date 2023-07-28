@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{CipherString, Encryptable},
+    crypto::{CipherString, Decryptable, Encryptable},
     error::Result,
 };
 
@@ -75,6 +75,31 @@ impl Encryptable<Identity> for IdentityView {
             username: self.username.encrypt(enc, org_id)?,
             passport_number: self.passport_number.encrypt(enc, org_id)?,
             license_number: self.license_number.encrypt(enc, org_id)?,
+        })
+    }
+}
+
+impl Decryptable<IdentityView> for Identity {
+    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<IdentityView> {
+        Ok(IdentityView {
+            title: self.title.decrypt(enc, org_id)?,
+            first_name: self.first_name.decrypt(enc, org_id)?,
+            middle_name: self.middle_name.decrypt(enc, org_id)?,
+            last_name: self.last_name.decrypt(enc, org_id)?,
+            address1: self.address1.decrypt(enc, org_id)?,
+            address2: self.address2.decrypt(enc, org_id)?,
+            address3: self.address3.decrypt(enc, org_id)?,
+            city: self.city.decrypt(enc, org_id)?,
+            state: self.state.decrypt(enc, org_id)?,
+            postal_code: self.postal_code.decrypt(enc, org_id)?,
+            country: self.country.decrypt(enc, org_id)?,
+            company: self.company.decrypt(enc, org_id)?,
+            email: self.email.decrypt(enc, org_id)?,
+            phone: self.phone.decrypt(enc, org_id)?,
+            ssn: self.ssn.decrypt(enc, org_id)?,
+            username: self.username.decrypt(enc, org_id)?,
+            passport_number: self.passport_number.decrypt(enc, org_id)?,
+            license_number: self.license_number.decrypt(enc, org_id)?,
         })
     }
 }

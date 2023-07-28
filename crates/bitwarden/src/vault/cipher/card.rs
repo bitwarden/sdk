@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{CipherString, Encryptable},
+    crypto::{CipherString, Decryptable, Encryptable},
     error::Result,
 };
 
@@ -39,6 +39,19 @@ impl Encryptable<Card> for CardView {
             code: self.code.encrypt(enc, org_id)?,
             brand: self.brand.encrypt(enc, org_id)?,
             number: self.number.encrypt(enc, org_id)?,
+        })
+    }
+}
+
+impl Decryptable<CardView> for Card {
+    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<CardView> {
+        Ok(CardView {
+            cardholder_name: self.cardholder_name.decrypt(enc, org_id)?,
+            exp_month: self.exp_month.decrypt(enc, org_id)?,
+            exp_year: self.exp_year.decrypt(enc, org_id)?,
+            code: self.code.decrypt(enc, org_id)?,
+            brand: self.brand.decrypt(enc, org_id)?,
+            number: self.number.decrypt(enc, org_id)?,
         })
     }
 }

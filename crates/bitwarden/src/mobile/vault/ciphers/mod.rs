@@ -1,5 +1,5 @@
 mod request;
 mod response;
 
-pub use request::CipherEncryptRequest;
-pub use response::CipherEncryptResponse;
+pub use request::{CipherDecryptRequest, CipherEncryptRequest};
+pub use response::{CipherDecryptResponse, CipherEncryptResponse};

@@ -44,3 +44,8 @@ jobs:
         run: cargo doc --no-deps --features internal
         env:
           RUSTDOCFLAGS: "-D warnings"
+
+      - name: Cargo clippy
+        run: cargo clippy --all-targets --all-features
+        env:
+          RUSTFLAGS: "-D warnings"

@@ -24,7 +24,7 @@ use bitwarden::mobile::{
     kdf::PasswordHashRequest,
     vault::{
         CipherDecryptListRequest, CipherDecryptRequest, CipherEncryptRequest,
-        FolderDecryptListRequest, FolderDecryptRequest,FolderEncryptRequest,
+        FolderDecryptListRequest, FolderDecryptRequest, FolderEncryptRequest,
     },
 };
 

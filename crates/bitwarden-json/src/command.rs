@@ -113,7 +113,7 @@ pub enum SecretsCommand {
     /// > Requires using an Access Token for login or calling Sync at least once
     /// Retrieve secrets by the provided identifiers
     ///
-    /// Returns: [GetSecretsResponse](bitwarden::secrets_manager::secrets::GetSecretsResponse)
+    /// Returns: [SecretsResponse](bitwarden::secrets_manager::secrets::SecretsResponse)
     ///
     GetByIds(SecretsGetRequest),
 

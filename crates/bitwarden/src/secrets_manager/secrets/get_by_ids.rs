@@ -1,14 +1,14 @@
-use bitwarden_api_api::models::{BaseSecretResponseModelListResponseModel, GetSecretsRequestModel};
+use bitwarden_api_api::models::GetSecretsRequestModel;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-    client::{encryption_settings::EncryptionSettings, Client},
+    client::Client,
     error::{Error, Result},
 };
 
-use super::SecretResponse;
+use super::SecretsResponse;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -20,7 +20,7 @@ pub struct SecretsGetRequest {
 pub(crate) async fn get_secrets_by_ids(
     client: &mut Client,
     input: SecretsGetRequest,
-) -> Result<SecretsGetByIdsResponse> {
+) -> Result<SecretsResponse> {
     let config = client.get_api_configurations().await;
 
     let request = Some(GetSecretsRequestModel {
@@ -35,27 +35,5 @@ pub(crate) async fn get_secrets_by_ids(
         .as_ref()
         .ok_or(Error::VaultLocked)?;
 
-    SecretsGetByIdsResponse::process_response(res, enc)
-}
-
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct SecretsGetByIdsResponse {
-    pub data: Vec<SecretResponse>,
-}
-
-impl SecretsGetByIdsResponse {
-    pub(crate) fn process_response(
-        response: BaseSecretResponseModelListResponseModel,
-        enc: &EncryptionSettings,
-    ) -> Result<Self> {
-        let data = response.data.unwrap_or_default();
-
-        Ok(SecretsGetByIdsResponse {
-            data: data
-                .into_iter()
-                .map(|r| SecretResponse::process_base_response(r, enc))
-                .collect::<Result<_, _>>()?,
-        })
-    }
+    SecretsResponse::process_response(res, enc)
 }

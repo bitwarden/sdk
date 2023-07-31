@@ -1,4 +1,6 @@
-use bitwarden_api_api::models::{BaseSecretResponseModel, SecretResponseModel};
+use bitwarden_api_api::models::{
+    BaseSecretResponseModel, BaseSecretResponseModelListResponseModel, SecretResponseModel,
+};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -81,6 +83,28 @@ impl SecretResponse {
 
             creation_date: response.creation_date.ok_or(Error::MissingFields)?,
             revision_date: response.revision_date.ok_or(Error::MissingFields)?,
+        })
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct SecretsResponse {
+    pub data: Vec<SecretResponse>,
+}
+
+impl SecretsResponse {
+    pub(crate) fn process_response(
+        response: BaseSecretResponseModelListResponseModel,
+        enc: &EncryptionSettings,
+    ) -> Result<SecretsResponse> {
+        Ok(SecretsResponse {
+            data: response
+                .data
+                .unwrap_or_default()
+                .into_iter()
+                .map(|r| SecretResponse::process_base_response(r, enc))
+                .collect::<Result<_, _>>()?,
         })
     }
 }

@@ -11,10 +11,12 @@ bench = false
 
 [dependencies]
 env_logger = "0.10.0"
-openssl = { version = "0.10", features = ["vendored"] }
 uniffi = "0.24.1"
 
 bitwarden = { path = "../bitwarden" }
 
 [build-dependencies]
 uniffi = { version = "0.24.1", features = ["build"] }
+
+[target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
+openssl = { version = "0.10", features = ["vendored"] }

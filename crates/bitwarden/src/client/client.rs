@@ -27,8 +27,7 @@ use {
             request::{ApiKeyLoginRequest, PasswordLoginRequest},
             response::PasswordLoginResponse,
         },
-        client::auth_settings::{AuthSettings, Kdf},
-        client::client_settings::KdfType,
+        client::auth_settings::AuthSettings,
         crypto::CipherString,
         platform::{
             generate_fingerprint, get_user_api_key, sync, FingerprintRequest, FingerprintResponse,
@@ -95,7 +94,7 @@ impl Client {
             user_agent: Some(settings.user_agent.clone()),
             client: client.clone(),
             basic_auth: None,
-            oauth_access_token: settings.internal.as_ref().map(|s| s.access_token.clone()),
+            oauth_access_token: None,
             bearer_access_token: None,
             api_key: None,
         };
@@ -105,18 +104,15 @@ impl Client {
             user_agent: Some(settings.user_agent),
             client,
             basic_auth: None,
-            oauth_access_token: settings.internal.as_ref().map(|s| s.access_token.clone()),
+            oauth_access_token: None,
             bearer_access_token: None,
             api_key: None,
         };
 
         Self {
-            token: settings.internal.as_ref().map(|s| s.access_token.clone()),
-            refresh_token: settings.internal.as_ref().map(|s| s.refresh_token.clone()),
-            token_expires_in: settings
-                .internal
-                .as_ref()
-                .map(|s| Instant::now() + Duration::new(s.expires_in, 0)),
+            token: None,
+            refresh_token: None,
+            token_expires_in: None,
             login_method: None,
             __api_configurations: ApiConfigurations {
                 identity,
@@ -124,19 +120,7 @@ impl Client {
                 device_type: settings.device_type,
             },
             #[cfg(feature = "internal")]
-            auth_settings: settings.internal.map(|s| AuthSettings {
-                email: s.email,
-                kdf: match s.kdf_type {
-                    KdfType::Pbkdf2Sha256 => Kdf::PBKDF2 {
-                        iterations: s.kdf_iterations,
-                    },
-                    KdfType::Argon2id => Kdf::Argon2id {
-                        iterations: s.kdf_iterations,
-                        memory: unimplemented!(),
-                        parallelism: unimplemented!(),
-                    },
-                },
-            }),
+            auth_settings: None,
             encryption_settings: None,
         }
     }

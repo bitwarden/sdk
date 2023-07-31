@@ -34,11 +34,6 @@ pub struct ClientSettings {
     pub user_agent: String,
     /// Device type to send to Bitwarden. Defaults to SDK
     pub device_type: DeviceType,
-
-    // These are temporary fields that allows the SDK to be initiated with existing access tokens. These will be used
-    // during the migration phase, after which they will be removed, and the SDK itself will be resopnsible for
-    // authenticating.
-    pub internal: Option<ClientSettingsInternal>,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -73,8 +68,6 @@ impl Default for ClientSettings {
             api_url: "https://localhost:8080/api".into(),
             user_agent: "Bitwarden Rust-SDK".into(),
             device_type: DeviceType::SDK,
-
-            internal: None,
         }
     }
 }

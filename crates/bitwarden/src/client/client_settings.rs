@@ -16,7 +16,6 @@ use serde::{Deserialize, Serialize};
 ///     api_url: "https://api.bitwarden.com".to_string(),
 ///     user_agent: "Bitwarden Rust-SDK".to_string(),
 ///     device_type: DeviceType::SDK,
-///     internal: None,
 /// };
 /// let default = ClientSettings::default();
 /// assert_matches!(settings, default);
@@ -80,8 +79,6 @@ impl Default for ClientSettings {
             api_url: "https://api.bitwarden.com".into(),
             user_agent: "Bitwarden Rust-SDK".into(),
             device_type: DeviceType::SDK,
-
-            internal: None,
         }
     }
 }

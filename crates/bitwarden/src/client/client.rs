@@ -30,7 +30,7 @@ use {
         client::auth_settings::AuthSettings,
         crypto::CipherString,
         platform::{
-            generate_fingerprint, get_user_api_key, sync, FingerprintRequest, FingerprintResponse,
+            generate_fingerprint, get_user_api_key, sync, FingerprintRequest,
             SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,
         },
     },
@@ -261,7 +261,7 @@ impl Client {
     }
 
     #[cfg(feature = "internal")]
-    pub fn fingerprint(&mut self, input: &FingerprintRequest) -> Result<FingerprintResponse> {
+    pub fn fingerprint(&mut self, input: &FingerprintRequest) -> Result<String> {
         generate_fingerprint(input)
     }
 }

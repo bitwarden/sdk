@@ -109,7 +109,6 @@ fn main() -> Result<()> {
     write_schema_for_response! {
         bitwarden::platform::SyncResponse,
         bitwarden::platform::UserApiKeyResponse,
-        bitwarden::platform::FingerprintResponse,
     };
 
     Ok(())

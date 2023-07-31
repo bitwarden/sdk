@@ -137,6 +137,13 @@ impl Client {
                             .encrypt(cmd)
                             .await
                             .into_string(),
+                        MobilePasswordHistoryCommand::DecryptList(cmd) => self
+                            .0
+                            .vault()
+                            .password_history()
+                            .decrypt_list(cmd)
+                            .await
+                            .into_string(),
                     },
                 },
             },

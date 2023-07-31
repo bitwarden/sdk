@@ -40,7 +40,7 @@ android {
 publishing {
     publications {
         maven(MavenPublication) {
-            groupId = 'com.bitwarden.sdk'
+            groupId = 'com.bitwarden'
             artifactId = 'sdk'
             version = '0.0.1'
             

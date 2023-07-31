@@ -2,12 +2,12 @@
 name: Build Android
 
 on:
-  pull_request:
-  push:
-    branches:
-      - "master"
-      - "rc"
-      - "hotfix-rc"
+  # pull_request:
+  # push:
+  #   branches:
+  #     - "master"
+  #     - "rc"
+  #     - "hotfix-rc"
   workflow_dispatch:
 
 defaults:
@@ -46,7 +46,7 @@ jobs:
       - name: Build
         env:
           TARGET: ${{ matrix.settings.target }}
-        run: cross build ${{ matrix.features }} -p bitwarden-uniffi --release --target=${{ matrix.settings.target }}
+        run: cross build -p bitwarden-uniffi --release --target=${{ matrix.settings.target }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
@@ -94,12 +94,12 @@ jobs:
 
       - name: Generate bindings
         working-directory: crates/bitwarden-uniffi/android
-        run: ./build-sdk.sh
+        run: ./build-schemas.sh
 
-      - name: Publish
-        uses: gradle/gradle-build-action@915a66c096a03101667f9df2e56c9efef558b165 # v2.6.1
-        with:
-          arguments: sdk:publish
-          build-root-directory: crates/bitwarden-uniffi/android
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Publish
+      #   uses: gradle/gradle-build-action@915a66c096a03101667f9df2e56c9efef558b165 # v2.6.1
+      #   with:
+      #     arguments: sdk:publish
+      #     build-root-directory: crates/bitwarden-uniffi/android
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

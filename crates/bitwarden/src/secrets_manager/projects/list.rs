@@ -6,7 +6,7 @@ use uuid::Uuid;
 use super::ProjectResponse;
 use crate::{
     client::{encryption_settings::EncryptionSettings, Client},
-    error::{Error, Result},
+    error::Result,
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -27,10 +27,7 @@ pub(crate) async fn list_projects(
     )
     .await?;
 
-    let enc = client
-        .get_encryption_settings()
-        .as_ref()
-        .ok_or(Error::VaultLocked)?;
+    let enc = client.get_encryption_settings()?;
 
     ProjectsResponse::process_response(res, enc)
 }

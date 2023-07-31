@@ -90,6 +90,7 @@ jobs:
             packages/bws-aarch64-apple-darwin-${{ env.PKG_VERSION }}.zip,
             packages/bws-macos-universal-${{ env.PKG_VERSION }}.zip,
             packages/bws-x86_64-pc-windows-msvc-${{ env.PKG_VERSION }}.zip,
+            packages/bws-aarch64-pc-windows-msvc-${{ env.PKG_VERSION }}.zip,
             packages/bws-x86_64-unknown-linux-gnu-${{ env.PKG_VERSION }}.zip,
             packages/bws-aarch64-unknown-linux-gnu-${{ env.PKG_VERSION }}.zip,
             packages/bws-sha256-checksums-${{ env.PKG_VERSION }}.txt"
@@ -138,11 +139,9 @@ jobs:
           secrets: "cratesio-api-token"
 
       - name: Install rust
-        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
+        uses: dtolnay/rust-toolchain@0e66bd3e6b38ec0ad5312288c83e47c143e6b09e # stable
         with:
-          toolchain: "stable"
-          profile: minimal
-          override: true
+          toolchain: stable
 
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@dd05243424bd5c0e585e4b55eb2d7615cdd32f1f # v2.5.1

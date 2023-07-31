@@ -7,7 +7,7 @@ be missing some functionality.
 
 ```toml
 [dependencies]
-bitwarden = "*"
+bitwarden = { "*", features = ["secrets"] }
 ```
 
 ## Minimum Supported Rust Version

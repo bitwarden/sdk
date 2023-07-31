@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2023-07-26
+
 ### Deprecated
 
--
+- The secrets manager SDK is now hidden behind a `secrets` feature flag. Make sure to enable
+  this flag in your `Cargo.toml` file. At the moment the flag is enabled by default for compatibility
+  reasons, but this is considered deprecated and the flag will be made opt-in eventually.
 
 ### Added
 

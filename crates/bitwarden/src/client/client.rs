@@ -6,15 +6,18 @@ use uuid::Uuid;
 use crate::{
     auth::{
         commands::{access_token_login, renew_token},
-        request::AccessTokenLoginRequest,
         response::ApiKeyLoginResponse,
     },
     client::{
         client_settings::{ClientSettings, DeviceType},
         encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
     },
-    error::Result,
+    error::{Error, Result},
 };
+
+#[cfg(feature = "secrets")]
+use crate::auth::request::AccessTokenLoginRequest;
+
 #[cfg(feature = "internal")]
 use {
     crate::{
@@ -25,7 +28,6 @@ use {
         },
         client::auth_settings::AuthSettings,
         crypto::CipherString,
-        error::Error,
         platform::{
             generate_fingerprint, get_user_api_key, sync, FingerprintRequest,
             SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,
@@ -145,6 +147,7 @@ impl Client {
         api_key_login(self, input).await
     }
 
+    #[cfg(feature = "secrets")]
     pub async fn access_token_login(
         &mut self,
         input: &AccessTokenLoginRequest,
@@ -179,8 +182,8 @@ impl Client {
         }
     }
 
-    pub(crate) fn get_encryption_settings(&self) -> &Option<EncryptionSettings> {
-        &self.encryption_settings
+    pub(crate) fn get_encryption_settings(&self) -> Result<&EncryptionSettings> {
+        self.encryption_settings.as_ref().ok_or(Error::VaultLocked)
     }
 
     #[cfg(feature = "internal")]

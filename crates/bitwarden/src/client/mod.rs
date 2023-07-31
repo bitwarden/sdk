@@ -2,7 +2,7 @@
 
 pub(crate) use client::*;
 pub(crate) mod access_token;
-#[cfg(feature = "internal")]
+#[cfg(any(feature = "internal", feature = "mobile"))]
 pub(crate) mod auth_settings;
 mod client;
 pub mod client_settings;

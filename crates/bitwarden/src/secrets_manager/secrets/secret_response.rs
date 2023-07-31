@@ -1,4 +1,4 @@
-use bitwarden_api_api::models::SecretResponseModel;
+use bitwarden_api_api::models::{BaseSecretResponseModel, SecretResponseModel};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -28,6 +28,23 @@ pub struct SecretResponse {
 impl SecretResponse {
     pub(crate) fn process_response(
         response: SecretResponseModel,
+        enc: &EncryptionSettings,
+    ) -> Result<SecretResponse> {
+        let base = BaseSecretResponseModel {
+            object: response.object,
+            id: response.id,
+            organization_id: response.organization_id,
+            key: response.key,
+            value: response.value,
+            note: response.note,
+            creation_date: response.creation_date,
+            revision_date: response.revision_date,
+            projects: response.projects,
+        };
+        Self::process_base_response(base, enc)
+    }
+    pub(crate) fn process_base_response(
+        response: BaseSecretResponseModel,
         enc: &EncryptionSettings,
     ) -> Result<SecretResponse> {
         let org_id = response.organization_id;

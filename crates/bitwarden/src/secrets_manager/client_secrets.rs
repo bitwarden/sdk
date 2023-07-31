@@ -5,7 +5,7 @@ use crate::{
         list_secrets_by_project, update_secret, SecretCreateRequest, SecretGetRequest,
         SecretIdentifiersByProjectRequest, SecretIdentifiersRequest, SecretIdentifiersResponse,
         SecretPutRequest, SecretResponse, SecretsDeleteRequest, SecretsDeleteResponse,
-        SecretsGetRequest, SecretsResponse,
+        SecretsGetByIdsResponse, SecretsGetRequest,
     },
     Client,
 };
@@ -19,7 +19,10 @@ impl<'a> ClientSecrets<'a> {
         get_secret(self.client, input).await
     }
 
-    pub async fn get_by_ids(&mut self, input: SecretsGetRequest) -> Result<SecretsResponse> {
+    pub async fn get_by_ids(
+        &mut self,
+        input: SecretsGetRequest,
+    ) -> Result<SecretsGetByIdsResponse> {
         get_secrets_by_ids(self.client, input).await
     }
 

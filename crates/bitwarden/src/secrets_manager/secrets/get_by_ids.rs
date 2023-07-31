@@ -3,24 +3,24 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::SecretResponse;
 use crate::{
-    client::encryption_settings::EncryptionSettings,
+    client::{encryption_settings::EncryptionSettings, Client},
     error::{Error, Result},
-    Client,
 };
+
+use super::SecretResponse;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SecretsGetRequest {
-    /// ID of the secret to retrieve
+    /// IDs of the secrets to retrieve
     pub ids: Vec<Uuid>,
 }
 
 pub(crate) async fn get_secrets_by_ids(
     client: &mut Client,
     input: SecretsGetRequest,
-) -> Result<SecretsResponse> {
+) -> Result<SecretsGetByIdsResponse> {
     let config = client.get_api_configurations().await;
 
     let request = Some(GetSecretsRequestModel {
@@ -35,23 +35,23 @@ pub(crate) async fn get_secrets_by_ids(
         .as_ref()
         .ok_or(Error::VaultLocked)?;
 
-    SecretsResponse::process_response(res, enc)
+    SecretsGetByIdsResponse::process_response(res, enc)
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct SecretsResponse {
+pub struct SecretsGetByIdsResponse {
     pub data: Vec<SecretResponse>,
 }
 
-impl SecretsResponse {
+impl SecretsGetByIdsResponse {
     pub(crate) fn process_response(
         response: BaseSecretResponseModelListResponseModel,
         enc: &EncryptionSettings,
     ) -> Result<Self> {
         let data = response.data.unwrap_or_default();
 
-        Ok(SecretsResponse {
+        Ok(SecretsGetByIdsResponse {
             data: data
                 .into_iter()
                 .map(|r| SecretResponse::process_base_response(r, enc))

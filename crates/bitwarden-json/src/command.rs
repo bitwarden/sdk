@@ -8,7 +8,7 @@ use bitwarden::{
         },
         secrets::{
             SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretPutRequest,
-            SecretsDeleteRequest,
+            SecretsDeleteRequest, SecretsGetRequest,
         },
     },
 };
@@ -108,6 +108,14 @@ pub enum SecretsCommand {
     /// Returns: [SecretResponse](bitwarden::secrets_manager::secrets::SecretResponse)
     ///
     Get(SecretGetRequest),
+
+    /// > Requires Authentication
+    /// > Requires using an Access Token for login or calling Sync at least once
+    /// Retrieve secrets by the provided identifiers
+    ///
+    /// Returns: [GetSecretsResponse](bitwarden::secrets_manager::secrets::GetSecretsResponse)
+    ///
+    GetByIds(SecretsGetRequest),
 
     /// > Requires Authentication
     /// > Requires using an Access Token for login or calling Sync at least once

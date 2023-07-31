@@ -13,7 +13,7 @@ pub use delete::{SecretsDeleteRequest, SecretsDeleteResponse};
 pub(crate) use get::get_secret;
 pub use get::SecretGetRequest;
 pub(crate) use get_by_ids::get_secrets_by_ids;
-pub use get_by_ids::{SecretsGetRequest, SecretsResponse};
+pub use get_by_ids::{SecretsGetByIdsResponse, SecretsGetRequest};
 pub(crate) use list::{list_secrets, list_secrets_by_project};
 pub use list::{
     SecretIdentifiersByProjectRequest, SecretIdentifiersRequest, SecretIdentifiersResponse,

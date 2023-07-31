@@ -132,8 +132,8 @@ impl Client {
                     },
                     KdfType::Argon2id => Kdf::Argon2id {
                         iterations: s.kdf_iterations,
-                        memory: todo!(),
-                        parallelism: todo!(),
+                        memory: unimplemented!(),
+                        parallelism: unimplemented!(),
                     },
                 },
             }),

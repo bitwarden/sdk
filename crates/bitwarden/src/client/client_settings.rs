@@ -33,13 +33,6 @@ pub struct ClientSettings {
     pub device_type: DeviceType,
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub enum KdfType {
-    Pbkdf2Sha256 = 0,
-    Argon2id = 1,
-}
-
 #[cfg(debug_assertions)]
 impl Default for ClientSettings {
     fn default() -> Self {

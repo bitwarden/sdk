@@ -1,5 +1,3 @@
-use std::num::NonZeroU32;
-
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -33,23 +31,6 @@ pub struct ClientSettings {
     pub user_agent: String,
     /// Device type to send to Bitwarden. Defaults to SDK
     pub device_type: DeviceType,
-}
-
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct ClientSettingsInternal {
-    // Refresh Token
-    pub refresh_token: String,
-    // Access Token
-    pub access_token: String,
-    // Access token expiration
-    pub expires_in: u64,
-
-    // Email
-    pub email: String,
-    // Kdf
-    pub kdf_type: KdfType,
-    pub kdf_iterations: NonZeroU32,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

@@ -1,3 +1,4 @@
+#[cfg(feature = "secrets")]
 use bitwarden::{
     auth::request::AccessTokenLoginRequest,
     secrets_manager::{
@@ -11,11 +12,22 @@ use bitwarden::{
         },
     },
 };
+
 #[cfg(feature = "internal")]
 use bitwarden::{
     auth::request::{ApiKeyLoginRequest, PasswordLoginRequest},
     platform::{FingerprintRequest, SecretVerificationRequest, SyncRequest},
 };
+
+#[cfg(feature = "mobile")]
+use bitwarden::mobile::{
+    kdf::PasswordHashRequest,
+    vault::{FolderDecryptListRequest, FolderDecryptRequest, FolderEncryptRequest},
+};
+
+#[cfg(all(feature = "mobile", feature = "internal"))]
+use bitwarden::mobile::crypto::InitCryptoRequest;
+
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -44,6 +56,7 @@ pub enum Command {
     ///
     ApiKeyLogin(ApiKeyLoginRequest),
 
+    #[cfg(feature = "secrets")]
     /// Login with Secrets Manager Access Token
     ///
     /// This command is for initiating an authentication handshake with Bitwarden.
@@ -75,10 +88,16 @@ pub enum Command {
     ///
     Sync(SyncRequest),
 
+    #[cfg(feature = "secrets")]
     Secrets(SecretsCommand),
+    #[cfg(feature = "secrets")]
     Projects(ProjectsCommand),
+
+    #[cfg(feature = "mobile")]
+    Mobile(MobileCommand),
 }
 
+#[cfg(feature = "secrets")]
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum SecretsCommand {
@@ -123,6 +142,7 @@ pub enum SecretsCommand {
     Delete(SecretsDeleteRequest),
 }
 
+#[cfg(feature = "secrets")]
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum ProjectsCommand {
@@ -165,4 +185,66 @@ pub enum ProjectsCommand {
     /// Returns: [ProjectsDeleteResponse](bitwarden::secrets_manager::projects::ProjectsDeleteResponse)
     ///
     Delete(ProjectsDeleteRequest),
+}
+
+#[cfg(feature = "mobile")]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub enum MobileCommand {
+    Kdf(MobileKdfCommand),
+    Crypto(MobileCryptoCommand),
+
+    Vault(MobileVaultCommand),
+}
+
+#[cfg(feature = "mobile")]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub enum MobileKdfCommand {
+    /// Calculates the user master password hash based on the provided password and KDF parametes
+    ///
+    /// Returns: String
+    ///
+    HashPassword(PasswordHashRequest),
+}
+
+#[cfg(feature = "mobile")]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub enum MobileCryptoCommand {
+    #[cfg(feature = "internal")]
+    /// Decrypts the users keys and initializes the user crypto, allowing for the encryption/decryption of the users vault
+    ///
+    InitCrypto(InitCryptoRequest),
+}
+
+#[cfg(feature = "mobile")]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub enum MobileVaultCommand {
+    Folders(MobileFoldersCommand),
+}
+
+#[cfg(feature = "mobile")]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub enum MobileFoldersCommand {
+    /// > Requires having previously initialized the cryptography parameters
+    /// Encrypts the provided folder
+    ///
+    /// Returns: [FolderEncryptResponse](bitwarden::mobile::vault::FolderEncryptResponse)
+    ///  
+    Encrypt(FolderEncryptRequest),
+    /// > Requires having previously initialized the cryptography parameters
+    /// Decrypts the provided folder
+    ///
+    /// Returns: [FolderDecryptResponse](bitwarden::mobile::vault::FolderDecryptResponse)
+    ///  
+    Decrypt(FolderDecryptRequest),
+    /// > Requires having previously initialized the cryptography parameters
+    /// Decrypts the provided folders
+    ///
+    /// Returns: [FolderDecryptListResponse](bitwarden::mobile::vault::FolderDecryptListResponse)   
+    ///
+    DecryptList(FolderDecryptListRequest),
 }

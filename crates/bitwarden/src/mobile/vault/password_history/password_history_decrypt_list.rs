@@ -5,12 +5,12 @@ use crate::vault::{PasswordHistory, PasswordHistoryView};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PasswordHistoryEncryptRequest {
-    pub history: PasswordHistoryView,
+pub struct PasswordHistoryDecryptListRequest {
+    pub history: PasswordHistory,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PasswordHistoryDecryptListRequest {
-    pub history: Vec<PasswordHistory>,
+pub struct PasswordHistoryDecryptListResponse {
+    pub history: PasswordHistoryView,
 }

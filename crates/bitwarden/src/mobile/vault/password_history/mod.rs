@@ -1,5 +1,7 @@
-mod request;
-mod response;
+mod password_history_decrypt_list;
+mod password_history_encrypt;
 
-pub use request::{PasswordHistoryDecryptListRequest, PasswordHistoryEncryptRequest};
-pub use response::{PasswordHistoryDecryptListResponse, PasswordHistoryEncryptResponse};
+pub use password_history_decrypt_list::{
+    PasswordHistoryDecryptListRequest, PasswordHistoryDecryptListResponse,
+};
+pub use password_history_encrypt::{PasswordHistoryEncryptRequest, PasswordHistoryEncryptResponse};

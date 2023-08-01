@@ -1,8 +1,13 @@
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
-use crate::crypto::CipherString;
+use crate::{
+    client::encryption_settings::EncryptionSettings,
+    crypto::{CipherString, Encryptable},
+    error::Result,
+};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -16,4 +21,13 @@ pub struct PasswordHistory {
 pub struct PasswordHistoryView {
     password: String,
     last_used_date: DateTime<Utc>,
+}
+
+impl Encryptable<PasswordHistory> for PasswordHistoryView {
+    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<PasswordHistory> {
+        Ok(PasswordHistory {
+            password: self.password.encrypt(enc, org_id)?,
+            last_used_date: self.last_used_date,
+        })
+    }
 }

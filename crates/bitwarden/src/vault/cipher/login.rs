@@ -2,8 +2,13 @@ use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
+use uuid::Uuid;
 
-use crate::crypto::CipherString;
+use crate::{
+    client::encryption_settings::EncryptionSettings,
+    crypto::{CipherString, Encryptable},
+    error::Result,
+};
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
@@ -53,4 +58,26 @@ pub struct LoginView {
     pub uris: Vec<LoginUriView>,
     pub totp: Option<String>,
     pub autofill_on_page_load: Option<bool>,
+}
+
+impl Encryptable<LoginUri> for LoginUriView {
+    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<LoginUri> {
+        Ok(LoginUri {
+            uri: self.uri.encrypt(enc, org_id)?,
+            r#match: self.r#match,
+        })
+    }
+}
+
+impl Encryptable<Login> for LoginView {
+    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Login> {
+        Ok(Login {
+            username: self.username.encrypt(enc, org_id)?,
+            password: self.password.encrypt(enc, org_id)?,
+            password_revision_date: self.password_revision_date,
+            uris: self.uris.encrypt(enc, org_id)?,
+            totp: self.totp.encrypt(enc, org_id)?,
+            autofill_on_page_load: self.autofill_on_page_load,
+        })
+    }
 }

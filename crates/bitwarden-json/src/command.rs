@@ -25,7 +25,7 @@ use bitwarden::mobile::{
     vault::{
         CipherDecryptListRequest, CipherDecryptRequest, CipherEncryptRequest,
         FolderDecryptListRequest, FolderDecryptRequest, FolderEncryptRequest,
-        PasswordHistoryEncryptRequest,
+        PasswordHistoryDecryptListRequest, PasswordHistoryEncryptRequest,
     },
 };
 
@@ -298,4 +298,10 @@ pub enum MobilePasswordHistoryCommand {
     /// Returns: [PasswordHistoryEncryptResponse](bitwarden::mobile::vault::PasswordHistoryEncryptResponse)
     ///
     Encrypt(PasswordHistoryEncryptRequest),
+    /// > Requires having previously initialized the cryptography parameters
+    /// Decrypts the provided password history
+    ///
+    /// Returns: [PasswordHistoryDecryptListResponse](bitwarden::mobile::vault::PasswordHistoryDecryptListResponse)   
+    ///
+    DecryptList(PasswordHistoryDecryptListRequest),
 }

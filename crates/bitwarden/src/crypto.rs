@@ -438,6 +438,18 @@ impl<T: Decryptable<Output>, Output, Id: Hash + Eq + Copy> Decryptable<HashMap<I
     }
 }
 
+impl<T: Encryptable<Output>, Output> Encryptable<Output> for Box<T> {
+    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Output> {
+        (*self).encrypt(enc, org_id)
+    }
+}
+
+impl<T: Decryptable<Output>, Output> Decryptable<Output> for Box<T> {
+    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Output> {
+        (**self).decrypt(enc, org_id)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::stretch_key;

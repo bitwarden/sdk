@@ -1,5 +1,3 @@
-mod request;
-mod response;
+mod password_history_encrypt;
 
-pub use request::PasswordHistoryEncryptRequest;
-pub use response::PasswordHistoryEncryptResponse;
+pub use password_history_encrypt::{PasswordHistoryEncryptRequest, PasswordHistoryEncryptResponse};

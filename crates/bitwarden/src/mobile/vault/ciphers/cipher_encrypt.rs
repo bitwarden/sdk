@@ -5,12 +5,12 @@ use crate::vault::{Cipher, CipherView};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct CipherEncryptResponse {
-    pub cipher: Cipher,
+pub struct CipherEncryptRequest {
+    pub cipher: CipherView,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct CipherDecryptResponse {
-    pub cipher: CipherView,
+pub struct CipherEncryptResponse {
+    pub cipher: Cipher,
 }

@@ -185,3 +185,87 @@ impl Decryptable<CipherView> for Cipher {
         })
     }
 }
+
+impl Cipher {
+    fn get_decrypted_subtitle(
+        &self,
+        enc: &EncryptionSettings,
+        org_id: &Option<Uuid>,
+    ) -> Result<String> {
+        Ok(match self.r#type {
+            CipherType::Login => {
+                let Some(login) = &self.login else { return Ok(String::new()) };
+                login.username.decrypt(enc, org_id).unwrap_or_default()
+            }
+            CipherType::SecureNote => String::new(),
+            CipherType::Card => {
+                let Some(card) = &self.card else { return Ok(String::new()) };
+                let mut sub_title = String::new();
+
+                if let Some(brand) = &card.brand {
+                    sub_title.push_str(&brand.decrypt(enc, org_id)?);
+                }
+
+                if let Some(number) = &card.number {
+                    let number = number.decrypt(enc, org_id)?;
+                    let number_len = number.len();
+                    if number_len > 4 {
+                        if !sub_title.is_empty() {
+                            sub_title.push_str(", ");
+                        }
+
+                        // On AMEX cards we show 5 digits instead of 4
+                        let digit_count = match &number[0..2] {
+                            "34" | "37" => 5,
+                            _ => 4,
+                        };
+
+                        sub_title.push_str(&number[(number_len - digit_count)..]);
+                    }
+                }
+
+                sub_title
+            }
+            CipherType::Identity => {
+                let Some(identity) = &self.identity else { return Ok(String::new()) };
+                let mut sub_title = String::new();
+
+                if let Some(first_name) = &identity.first_name {
+                    sub_title.push_str(&first_name.decrypt(enc, org_id)?);
+                }
+
+                if let Some(last_name) = &identity.last_name {
+                    if !sub_title.is_empty() {
+                        sub_title.push(' ');
+                    }
+                    sub_title.push_str(&last_name.decrypt(enc, org_id)?);
+                }
+
+                sub_title
+            }
+        })
+    }
+}
+
+impl Decryptable<CipherListView> for Cipher {
+    fn decrypt(&self, enc: &EncryptionSettings, _: &Option<Uuid>) -> Result<CipherListView> {
+        let org_id = &self.organization_id;
+        Ok(CipherListView {
+            id: self.id,
+            organization_id: self.organization_id,
+            folder_id: self.folder_id,
+            collection_ids: self.collection_ids.clone(),
+            name: self.name.decrypt(enc, org_id)?,
+            sub_title: self.get_decrypted_subtitle(enc, org_id)?,
+            r#type: self.r#type,
+            favorite: self.favorite,
+            reprompt: self.reprompt,
+            edit: self.edit,
+            view_password: self.view_password,
+            attachments: self.attachments.len(),
+            creation_date: self.creation_date,
+            deleted_date: self.deleted_date,
+            revision_date: self.revision_date,
+        })
+    }
+}

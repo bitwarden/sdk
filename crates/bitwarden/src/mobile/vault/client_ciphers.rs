@@ -5,8 +5,8 @@ use crate::{
 };
 
 use super::{
-    client_vault::ClientVault, CipherDecryptRequest, CipherDecryptResponse, CipherEncryptRequest,
-    CipherEncryptResponse,
+    client_vault::ClientVault, CipherDecryptListRequest, CipherDecryptListResponse,
+    CipherDecryptRequest, CipherDecryptResponse, CipherEncryptRequest, CipherEncryptResponse,
 };
 
 pub struct ClientCiphers<'a> {
@@ -28,6 +28,17 @@ impl<'a> ClientCiphers<'a> {
         let cipher = req.cipher.decrypt(enc, &None)?;
 
         Ok(CipherDecryptResponse { cipher })
+    }
+
+    pub async fn decrypt_list(
+        &self,
+        req: CipherDecryptListRequest,
+    ) -> Result<CipherDecryptListResponse> {
+        let enc = self.client.get_encryption_settings()?;
+
+        let ciphers = req.ciphers.decrypt(enc, &None)?;
+
+        Ok(CipherDecryptListResponse { ciphers })
     }
 }
 

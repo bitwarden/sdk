@@ -1,5 +1,3 @@
-mod request;
-mod response;
+mod cipher_encrypt;
 
-pub use request::CipherEncryptRequest;
-pub use response::CipherEncryptResponse;
+pub use cipher_encrypt::{CipherEncryptRequest, CipherEncryptResponse};

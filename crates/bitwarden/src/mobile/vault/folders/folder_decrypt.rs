@@ -5,7 +5,7 @@ use crate::vault::{Folder, FolderView};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct FolderEncryptResponse {
+pub struct FolderDecryptRequest {
     pub folder: Folder,
 }
 
@@ -13,10 +13,4 @@ pub struct FolderEncryptResponse {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct FolderDecryptResponse {
     pub folder: FolderView,
-}
-
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct FolderDecryptListResponse {
-    pub folders: Vec<FolderView>,
 }

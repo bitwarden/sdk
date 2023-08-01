@@ -8,12 +8,13 @@ use crate::{
     client::encryption_settings::EncryptionSettings,
     crypto::{CipherString, Decryptable, Encryptable},
     error::Result,
+    vault::password_history,
 };
 
 use super::{
     attachment, card, field, identity,
     local_data::{LocalData, LocalDataView},
-    login, password_history, secure_note,
+    login, secure_note,
 };
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]

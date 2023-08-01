@@ -16,4 +16,7 @@ pub use ciphers::{
     CipherDecryptResponse, CipherEncryptRequest, CipherEncryptResponse,
 };
 
-pub use password_history::{PasswordHistoryEncryptRequest, PasswordHistoryEncryptResponse};
+pub use password_history::{
+    PasswordHistoryDecryptListRequest, PasswordHistoryDecryptListResponse,
+    PasswordHistoryEncryptRequest, PasswordHistoryEncryptResponse,
+};

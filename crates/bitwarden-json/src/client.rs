@@ -117,6 +117,9 @@ impl Client {
                         MobileCiphersCommand::Encrypt(cmd) => {
                             self.0.vault().ciphers().encrypt(cmd).await.into_string()
                         }
+                        MobileCiphersCommand::Decrypt(cmd) => {
+                            self.0.vault().ciphers().decrypt(cmd).await.into_string()
+                        }
                     },
                 },
             },

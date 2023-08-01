@@ -9,4 +9,6 @@ pub use folders::{
     FolderDecryptResponse, FolderEncryptRequest, FolderEncryptResponse,
 };
 
-pub use ciphers::{CipherEncryptRequest, CipherEncryptResponse};
+pub use ciphers::{
+    CipherDecryptRequest, CipherDecryptResponse, CipherEncryptRequest, CipherEncryptResponse,
+};

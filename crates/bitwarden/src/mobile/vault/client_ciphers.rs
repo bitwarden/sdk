@@ -1,6 +1,13 @@
-use crate::{crypto::Encryptable, error::Result, Client};
+use crate::{
+    crypto::{Decryptable, Encryptable},
+    error::Result,
+    Client,
+};
 
-use super::{client_vault::ClientVault, CipherEncryptRequest, CipherEncryptResponse};
+use super::{
+    client_vault::ClientVault, CipherDecryptRequest, CipherDecryptResponse, CipherEncryptRequest,
+    CipherEncryptResponse,
+};
 
 pub struct ClientCiphers<'a> {
     pub(crate) client: &'a Client,
@@ -13,6 +20,14 @@ impl<'a> ClientCiphers<'a> {
         let cipher = req.cipher.encrypt(enc, &None)?;
 
         Ok(CipherEncryptResponse { cipher })
+    }
+
+    pub async fn decrypt(&self, req: CipherDecryptRequest) -> Result<CipherDecryptResponse> {
+        let enc = self.client.get_encryption_settings()?;
+
+        let cipher = req.cipher.decrypt(enc, &None)?;
+
+        Ok(CipherDecryptResponse { cipher })
     }
 }
 

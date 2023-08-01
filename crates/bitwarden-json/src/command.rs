@@ -23,7 +23,8 @@ use bitwarden::{
 use bitwarden::mobile::{
     kdf::PasswordHashRequest,
     vault::{
-        CipherEncryptRequest, FolderDecryptListRequest, FolderDecryptRequest, FolderEncryptRequest,
+        CipherDecryptRequest, CipherEncryptRequest, FolderDecryptListRequest, FolderDecryptRequest,
+        FolderEncryptRequest,
     },
 };
 
@@ -262,4 +263,10 @@ pub enum MobileCiphersCommand {
     /// Returns: [CipherEncryptResponse](bitwarden::mobile::vault::CipherEncryptResponse)
     ///
     Encrypt(CipherEncryptRequest),
+    /// > Requires having previously initialized the cryptography parameters
+    /// Decrypts the provided cipher
+    ///
+    /// Returns: [CipherDecryptResponse](bitwarden::mobile::vault::CipherDecryptResponse)
+    ///  
+    Decrypt(CipherDecryptRequest),
 }

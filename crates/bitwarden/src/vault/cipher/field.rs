@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{CipherString, Encryptable},
+    crypto::{CipherString, Decryptable, Encryptable},
     error::Result,
 };
 
@@ -45,6 +45,17 @@ impl Encryptable<Field> for FieldView {
         Ok(Field {
             name: self.name.encrypt(enc, org_id)?,
             value: self.value.encrypt(enc, org_id)?,
+            r#type: self.r#type,
+            linked_id: self.linked_id,
+        })
+    }
+}
+
+impl Decryptable<FieldView> for Field {
+    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<FieldView> {
+        Ok(FieldView {
+            name: self.name.decrypt(enc, org_id)?,
+            value: self.value.decrypt(enc, org_id)?,
             r#type: self.r#type,
             linked_id: self.linked_id,
         })

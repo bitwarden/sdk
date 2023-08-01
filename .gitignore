@@ -23,6 +23,9 @@ bld/
 node_modules/
 clients/python/env/
 
+# Third party license
+THIRDPARTY.html
+
 # Node.js addon binary file, for the current running operating system.
 crates/bitwarden-napi/sdk-napi.*.node
 

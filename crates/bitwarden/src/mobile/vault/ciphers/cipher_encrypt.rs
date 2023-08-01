@@ -1,22 +1,22 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::vault::{Folder, FolderView};
+use crate::vault::{Cipher, CipherView};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct FolderEncryptResponse {
-    pub folder: Folder,
+pub struct CipherEncryptRequest {
+    pub cipher: CipherView,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct FolderDecryptResponse {
-    pub folder: FolderView,
+pub struct CipherEncryptResponse {
+    pub cipher: Cipher,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct FolderDecryptListResponse {
-    pub folders: Vec<FolderView>,
+pub struct CipherDecryptListRequest {
+    pub ciphers: Vec<Cipher>,
 }

@@ -4,10 +4,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::SecretResponse;
-use crate::{
-    error::{Error, Result},
-    Client,
-};
+use crate::{error::Result, Client};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -27,10 +24,7 @@ pub(crate) async fn create_secret(
     client: &mut Client,
     input: &SecretCreateRequest,
 ) -> Result<SecretResponse> {
-    let enc = client
-        .get_encryption_settings()
-        .as_ref()
-        .ok_or(Error::VaultLocked)?;
+    let enc = client.get_encryption_settings()?;
 
     let org_id = Some(input.organization_id);
 
@@ -49,10 +43,7 @@ pub(crate) async fn create_secret(
     )
     .await?;
 
-    let enc = client
-        .get_encryption_settings()
-        .as_ref()
-        .ok_or(Error::VaultLocked)?;
+    let enc = client.get_encryption_settings()?;
 
     SecretResponse::process_response(res, enc)
 }

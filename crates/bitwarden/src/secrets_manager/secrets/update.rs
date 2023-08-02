@@ -4,10 +4,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::SecretResponse;
-use crate::{
-    client::Client,
-    error::{Error, Result},
-};
+use crate::{client::Client, error::Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -27,10 +24,7 @@ pub(crate) async fn update_secret(
     client: &mut Client,
     input: &SecretPutRequest,
 ) -> Result<SecretResponse> {
-    let enc = client
-        .get_encryption_settings()
-        .as_ref()
-        .ok_or(Error::VaultLocked)?;
+    let enc = client.get_encryption_settings()?;
 
     let org_id = Some(input.organization_id);
 
@@ -45,10 +39,7 @@ pub(crate) async fn update_secret(
     let res =
         bitwarden_api_api::apis::secrets_api::secrets_id_put(&config.api, input.id, secret).await?;
 
-    let enc = client
-        .get_encryption_settings()
-        .as_ref()
-        .ok_or(Error::VaultLocked)?;
+    let enc = client.get_encryption_settings()?;
 
     SecretResponse::process_response(res, enc)
 }

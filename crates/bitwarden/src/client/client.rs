@@ -12,7 +12,7 @@ use crate::{
         client_settings::{ClientSettings, DeviceType},
         encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
     },
-    error::Result,
+    error::{Error, Result},
 };
 
 #[cfg(feature = "secrets")]
@@ -28,9 +28,8 @@ use {
         },
         client::auth_settings::AuthSettings,
         crypto::CipherString,
-        error::Error,
         platform::{
-            generate_fingerprint, get_user_api_key, sync, FingerprintRequest,
+            generate_fingerprint, get_user_api_key, sync, FingerprintRequest, FingerprintResponse,
             SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,
         },
     },
@@ -183,8 +182,8 @@ impl Client {
         }
     }
 
-    pub(crate) fn get_encryption_settings(&self) -> &Option<EncryptionSettings> {
-        &self.encryption_settings
+    pub(crate) fn get_encryption_settings(&self) -> Result<&EncryptionSettings> {
+        self.encryption_settings.as_ref().ok_or(Error::VaultLocked)
     }
 
     #[cfg(feature = "internal")]
@@ -261,7 +260,7 @@ impl Client {
     }
 
     #[cfg(feature = "internal")]
-    pub fn fingerprint(&mut self, input: &FingerprintRequest) -> Result<String> {
+    pub fn fingerprint(&mut self, input: &FingerprintRequest) -> Result<FingerprintResponse> {
         generate_fingerprint(input)
     }
 }

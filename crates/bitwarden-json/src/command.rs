@@ -24,8 +24,9 @@ use bitwarden::mobile::{
     kdf::PasswordHashRequest,
     vault::{
         CipherDecryptListRequest, CipherDecryptRequest, CipherEncryptRequest,
-        FolderDecryptListRequest, FolderDecryptRequest, FolderEncryptRequest,
-        PasswordHistoryDecryptListRequest, PasswordHistoryEncryptRequest,
+        CollectionDecryptListRequest, CollectionDecryptRequest, FolderDecryptListRequest,
+        FolderDecryptRequest, FolderEncryptRequest, PasswordHistoryDecryptListRequest,
+        PasswordHistoryEncryptRequest,
     },
 };
 
@@ -229,6 +230,7 @@ pub enum MobileVaultCommand {
     Folders(MobileFoldersCommand),
     Ciphers(MobileCiphersCommand),
     PasswordHistory(MobilePasswordHistoryCommand),
+    Collections(MobileCollectionsCommand),
 }
 
 #[cfg(feature = "mobile")]
@@ -296,4 +298,22 @@ pub enum MobilePasswordHistoryCommand {
     /// Returns: [PasswordHistoryDecryptListResponse](bitwarden::mobile::vault::PasswordHistoryDecryptListResponse)   
     ///
     DecryptList(PasswordHistoryDecryptListRequest),
+}
+
+#[cfg(feature = "mobile")]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub enum MobileCollectionsCommand {
+    /// > Requires having previously initialized the cryptography parameters
+    /// Decrypts the provided collection
+    ///
+    /// Returns: [CollectionDecryptResponse](bitwarden::mobile::vault::CollectionDecryptResponse)
+    ///  
+    Decrypt(CollectionDecryptRequest),
+    /// > Requires having previously initialized the cryptography parameters
+    /// Decrypts the provided collections
+    ///
+    /// Returns: [CollectionDecryptListResponse](bitwarden::mobile::vault::CollectionDecryptListResponse)   
+    ///
+    DecryptList(CollectionDecryptListRequest),
 }

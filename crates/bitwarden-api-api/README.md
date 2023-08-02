@@ -137,6 +137,7 @@ All URIs are relative to _http://localhost_
 | _CiphersApi_                            | [**ciphers_organization_details_get**](docs/CiphersApi.md#ciphers_organization_details_get)                                                                                                                                  | **GET** /ciphers/organization-details                                                    |
 | _CiphersApi_                            | [**ciphers_post**](docs/CiphersApi.md#ciphers_post)                                                                                                                                                                          | **POST** /ciphers                                                                        |
 | _CiphersApi_                            | [**ciphers_purge_post**](docs/CiphersApi.md#ciphers_purge_post)                                                                                                                                                              | **POST** /ciphers/purge                                                                  |
+| _CiphersApi_                            | [**ciphers_restore_admin_put**](docs/CiphersApi.md#ciphers_restore_admin_put)                                                                                                                                                | **PUT** /ciphers/restore-admin                                                           |
 | _CiphersApi_                            | [**ciphers_restore_put**](docs/CiphersApi.md#ciphers_restore_put)                                                                                                                                                            | **PUT** /ciphers/restore                                                                 |
 | _CiphersApi_                            | [**ciphers_share_post**](docs/CiphersApi.md#ciphers_share_post)                                                                                                                                                              | **POST** /ciphers/share                                                                  |
 | _CiphersApi_                            | [**ciphers_share_put**](docs/CiphersApi.md#ciphers_share_put)                                                                                                                                                                | **PUT** /ciphers/share                                                                   |
@@ -371,6 +372,7 @@ All URIs are relative to _http://localhost_
 | _SecretsApi_                            | [**organizations_organization_id_secrets_post**](docs/SecretsApi.md#organizations_organization_id_secrets_post)                                                                                                              | **POST** /organizations/{organizationId}/secrets                                         |
 | _SecretsApi_                            | [**projects_project_id_secrets_get**](docs/SecretsApi.md#projects_project_id_secrets_get)                                                                                                                                    | **GET** /projects/{projectId}/secrets                                                    |
 | _SecretsApi_                            | [**secrets_delete_post**](docs/SecretsApi.md#secrets_delete_post)                                                                                                                                                            | **POST** /secrets/delete                                                                 |
+| _SecretsApi_                            | [**secrets_get_by_ids_post**](docs/SecretsApi.md#secrets_get_by_ids_post)                                                                                                                                                    | **POST** /secrets/get-by-ids                                                             |
 | _SecretsApi_                            | [**secrets_id_get**](docs/SecretsApi.md#secrets_id_get)                                                                                                                                                                      | **GET** /secrets/{id}                                                                    |
 | _SecretsApi_                            | [**secrets_id_put**](docs/SecretsApi.md#secrets_id_put)                                                                                                                                                                      | **PUT** /secrets/{id}                                                                    |
 | _SecretsManagerPortingApi_              | [**sm_organization_id_export_get**](docs/SecretsManagerPortingApi.md#sm_organization_id_export_get)                                                                                                                          | **GET** /sm/{organizationId}/export                                                      |
@@ -464,6 +466,8 @@ All URIs are relative to _http://localhost_
 - [AuthenticationExtensionsClientOutputs](docs/AuthenticationExtensionsClientOutputs.md)
 - [AuthenticatorAttestationRawResponse](docs/AuthenticatorAttestationRawResponse.md)
 - [BaseAccessPolicyResponseModel](docs/BaseAccessPolicyResponseModel.md)
+- [BaseSecretResponseModel](docs/BaseSecretResponseModel.md)
+- [BaseSecretResponseModelListResponseModel](docs/BaseSecretResponseModelListResponseModel.md)
 - [BillingHistoryResponseModel](docs/BillingHistoryResponseModel.md)
 - [BillingInvoice](docs/BillingInvoice.md)
 - [BillingPaymentResponseModel](docs/BillingPaymentResponseModel.md)
@@ -495,12 +499,12 @@ All URIs are relative to _http://localhost_
 - [CipherMiniDetailsResponseModel](docs/CipherMiniDetailsResponseModel.md)
 - [CipherMiniDetailsResponseModelListResponseModel](docs/CipherMiniDetailsResponseModelListResponseModel.md)
 - [CipherMiniResponseModel](docs/CipherMiniResponseModel.md)
+- [CipherMiniResponseModelListResponseModel](docs/CipherMiniResponseModelListResponseModel.md)
 - [CipherPartialRequestModel](docs/CipherPartialRequestModel.md)
 - [CipherPasswordHistoryModel](docs/CipherPasswordHistoryModel.md)
 - [CipherRepromptType](docs/CipherRepromptType.md)
 - [CipherRequestModel](docs/CipherRequestModel.md)
 - [CipherResponseModel](docs/CipherResponseModel.md)
-- [CipherResponseModelListResponseModel](docs/CipherResponseModelListResponseModel.md)
 - [CipherSecureNoteModel](docs/CipherSecureNoteModel.md)
 - [CipherShareRequestModel](docs/CipherShareRequestModel.md)
 - [CipherType](docs/CipherType.md)
@@ -549,6 +553,7 @@ All URIs are relative to _http://localhost_
 - [FolderResponseModel](docs/FolderResponseModel.md)
 - [FolderResponseModelListResponseModel](docs/FolderResponseModelListResponseModel.md)
 - [FolderWithIdRequestModel](docs/FolderWithIdRequestModel.md)
+- [GetSecretsRequestModel](docs/GetSecretsRequestModel.md)
 - [GlobalDomains](docs/GlobalDomains.md)
 - [GlobalEquivalentDomainsType](docs/GlobalEquivalentDomainsType.md)
 - [GrantedAccessPolicyRequest](docs/GrantedAccessPolicyRequest.md)

@@ -67,6 +67,8 @@ src/models/auth_request_update_request_model.rs
 src/models/authentication_extensions_client_outputs.rs
 src/models/authenticator_attestation_raw_response.rs
 src/models/base_access_policy_response_model.rs
+src/models/base_secret_response_model.rs
+src/models/base_secret_response_model_list_response_model.rs
 src/models/billing_history_response_model.rs
 src/models/billing_invoice.rs
 src/models/billing_payment_response_model.rs
@@ -98,12 +100,12 @@ src/models/cipher_login_uri_model.rs
 src/models/cipher_mini_details_response_model.rs
 src/models/cipher_mini_details_response_model_list_response_model.rs
 src/models/cipher_mini_response_model.rs
+src/models/cipher_mini_response_model_list_response_model.rs
 src/models/cipher_partial_request_model.rs
 src/models/cipher_password_history_model.rs
 src/models/cipher_reprompt_type.rs
 src/models/cipher_request_model.rs
 src/models/cipher_response_model.rs
-src/models/cipher_response_model_list_response_model.rs
 src/models/cipher_secure_note_model.rs
 src/models/cipher_share_request_model.rs
 src/models/cipher_type.rs
@@ -152,6 +154,7 @@ src/models/folder_request_model.rs
 src/models/folder_response_model.rs
 src/models/folder_response_model_list_response_model.rs
 src/models/folder_with_id_request_model.rs
+src/models/get_secrets_request_model.rs
 src/models/global_domains.rs
 src/models/global_equivalent_domains_type.rs
 src/models/granted_access_policy_request.rs

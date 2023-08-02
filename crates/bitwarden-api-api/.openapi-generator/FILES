@@ -100,12 +100,12 @@ src/models/cipher_login_uri_model.rs
 src/models/cipher_mini_details_response_model.rs
 src/models/cipher_mini_details_response_model_list_response_model.rs
 src/models/cipher_mini_response_model.rs
+src/models/cipher_mini_response_model_list_response_model.rs
 src/models/cipher_partial_request_model.rs
 src/models/cipher_password_history_model.rs
 src/models/cipher_reprompt_type.rs
 src/models/cipher_request_model.rs
 src/models/cipher_response_model.rs
-src/models/cipher_response_model_list_response_model.rs
 src/models/cipher_secure_note_model.rs
 src/models/cipher_share_request_model.rs
 src/models/cipher_type.rs

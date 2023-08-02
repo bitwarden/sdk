@@ -137,6 +137,7 @@ All URIs are relative to _http://localhost_
 | _CiphersApi_                            | [**ciphers_organization_details_get**](docs/CiphersApi.md#ciphers_organization_details_get)                                                                                                                                  | **GET** /ciphers/organization-details                                                    |
 | _CiphersApi_                            | [**ciphers_post**](docs/CiphersApi.md#ciphers_post)                                                                                                                                                                          | **POST** /ciphers                                                                        |
 | _CiphersApi_                            | [**ciphers_purge_post**](docs/CiphersApi.md#ciphers_purge_post)                                                                                                                                                              | **POST** /ciphers/purge                                                                  |
+| _CiphersApi_                            | [**ciphers_restore_admin_put**](docs/CiphersApi.md#ciphers_restore_admin_put)                                                                                                                                                | **PUT** /ciphers/restore-admin                                                           |
 | _CiphersApi_                            | [**ciphers_restore_put**](docs/CiphersApi.md#ciphers_restore_put)                                                                                                                                                            | **PUT** /ciphers/restore                                                                 |
 | _CiphersApi_                            | [**ciphers_share_post**](docs/CiphersApi.md#ciphers_share_post)                                                                                                                                                              | **POST** /ciphers/share                                                                  |
 | _CiphersApi_                            | [**ciphers_share_put**](docs/CiphersApi.md#ciphers_share_put)                                                                                                                                                                | **PUT** /ciphers/share                                                                   |
@@ -498,12 +499,12 @@ All URIs are relative to _http://localhost_
 - [CipherMiniDetailsResponseModel](docs/CipherMiniDetailsResponseModel.md)
 - [CipherMiniDetailsResponseModelListResponseModel](docs/CipherMiniDetailsResponseModelListResponseModel.md)
 - [CipherMiniResponseModel](docs/CipherMiniResponseModel.md)
+- [CipherMiniResponseModelListResponseModel](docs/CipherMiniResponseModelListResponseModel.md)
 - [CipherPartialRequestModel](docs/CipherPartialRequestModel.md)
 - [CipherPasswordHistoryModel](docs/CipherPasswordHistoryModel.md)
 - [CipherRepromptType](docs/CipherRepromptType.md)
 - [CipherRequestModel](docs/CipherRequestModel.md)
 - [CipherResponseModel](docs/CipherResponseModel.md)
-- [CipherResponseModelListResponseModel](docs/CipherResponseModelListResponseModel.md)
 - [CipherSecureNoteModel](docs/CipherSecureNoteModel.md)
 - [CipherShareRequestModel](docs/CipherShareRequestModel.md)
 - [CipherType](docs/CipherType.md)

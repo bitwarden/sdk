@@ -17,9 +17,7 @@ pub(crate) async fn get_secrets_by_ids(
     client: &mut Client,
     input: SecretsGetRequest,
 ) -> Result<SecretsResponse> {
-    let request = Some(GetSecretsRequestModel {
-        ids: input.ids.clone(),
-    });
+    let request = Some(GetSecretsRequestModel { ids: input.ids });
 
     let config = client.get_api_configurations().await;
 

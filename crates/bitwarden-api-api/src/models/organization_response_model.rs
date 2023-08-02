@@ -32,6 +32,8 @@ pub struct OrganizationResponseModel {
     pub billing_email: Option<String>,
     #[serde(rename = "plan", skip_serializing_if = "Option::is_none")]
     pub plan: Option<Box<crate::models::PlanResponseModel>>,
+    #[serde(rename = "secretsManagerPlan", skip_serializing_if = "Option::is_none")]
+    pub secrets_manager_plan: Option<Box<crate::models::PlanResponseModel>>,
     #[serde(rename = "planType", skip_serializing_if = "Option::is_none")]
     pub plan_type: Option<crate::models::PlanType>,
     #[serde(rename = "seats", skip_serializing_if = "Option::is_none")]
@@ -80,6 +82,22 @@ pub struct OrganizationResponseModel {
         skip_serializing_if = "Option::is_none"
     )]
     pub has_public_and_private_keys: Option<bool>,
+    #[serde(rename = "usePasswordManager", skip_serializing_if = "Option::is_none")]
+    pub use_password_manager: Option<bool>,
+    #[serde(rename = "smSeats", skip_serializing_if = "Option::is_none")]
+    pub sm_seats: Option<i32>,
+    #[serde(rename = "smServiceAccounts", skip_serializing_if = "Option::is_none")]
+    pub sm_service_accounts: Option<i32>,
+    #[serde(
+        rename = "maxAutoscaleSmSeats",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub max_autoscale_sm_seats: Option<i32>,
+    #[serde(
+        rename = "maxAutoscaleSmServiceAccounts",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub max_autoscale_sm_service_accounts: Option<i32>,
 }
 
 impl OrganizationResponseModel {
@@ -96,6 +114,7 @@ impl OrganizationResponseModel {
             business_tax_number: None,
             billing_email: None,
             plan: None,
+            secrets_manager_plan: None,
             plan_type: None,
             seats: None,
             max_autoscale_seats: None,
@@ -117,6 +136,11 @@ impl OrganizationResponseModel {
             use_custom_permissions: None,
             self_host: None,
             has_public_and_private_keys: None,
+            use_password_manager: None,
+            sm_seats: None,
+            sm_service_accounts: None,
+            max_autoscale_sm_seats: None,
+            max_autoscale_sm_service_accounts: None,
         }
     }
 }

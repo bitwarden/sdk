@@ -24,6 +24,7 @@ use {
 use {crate::client::auth_settings::Kdf, sha2::Digest};
 
 #[allow(unused, non_camel_case_types)]
+#[derive(Clone)]
 pub enum CipherString {
     // 0
     AesCbc256_B64 {
@@ -131,6 +132,35 @@ impl FromStr for CipherString {
             (enc_type, parts) => Err(CSParseError::InvalidType {
                 enc_type: enc_type.to_string(),
                 parts,
+            }
+            .into()),
+        }
+    }
+}
+
+impl CipherString {
+    pub(crate) fn from_buffer(buf: &[u8]) -> Result<Self> {
+        if buf.is_empty() {
+            return Err(CSParseError::NoType.into());
+        }
+        let enc_type = buf[0];
+
+        match enc_type {
+            0 => unimplemented!(),
+            1 | 2 => {
+                let iv = buf[1..17].try_into().unwrap();
+                let mac = buf[17..49].try_into().unwrap();
+                let data = buf[49..].to_vec();
+
+                if enc_type == 1 {
+                    Ok(CipherString::AesCbc128_HmacSha256_B64 { iv, mac, data })
+                } else {
+                    Ok(CipherString::AesCbc256_HmacSha256_B64 { iv, mac, data })
+                }
+            }
+            _ => Err(CSParseError::InvalidType {
+                enc_type: enc_type.to_string(),
+                parts: 1,
             }
             .into()),
         }

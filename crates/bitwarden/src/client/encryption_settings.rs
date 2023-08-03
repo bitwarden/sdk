@@ -183,9 +183,17 @@ impl EncryptionSettings {
         }
     }
 
-    pub(crate) fn decrypt(&self, cipher: &CipherString, org_id: &Option<Uuid>) -> Result<String> {
+    pub(crate) fn decrypt_bytes(
+        &self,
+        cipher: &CipherString,
+        org_id: &Option<Uuid>,
+    ) -> Result<Vec<u8>> {
         let key = self.get_key(org_id).ok_or(CryptoError::NoKeyForOrg)?;
-        let dec = decrypt(cipher, key)?;
+        decrypt(cipher, key)
+    }
+
+    pub(crate) fn decrypt(&self, cipher: &CipherString, org_id: &Option<Uuid>) -> Result<String> {
+        let dec = self.decrypt_bytes(cipher, org_id)?;
         String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String.into())
     }
 

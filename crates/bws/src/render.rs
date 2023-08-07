@@ -5,6 +5,7 @@ use comfy_table::Table;
 use serde::Serialize;
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
+#[allow(clippy::upper_case_acronyms)]
 pub(crate) enum Output {
     JSON,
     YAML,

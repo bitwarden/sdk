@@ -5,7 +5,7 @@ uniffi::include_scaffolding!("sdk");
 pub struct Client(bitwarden::Client);
 
 impl Client {
-    pub fn new(settings_input: String) -> Self {
+    pub fn new(_settings_input: String) -> Self {
         let settings = Self::parse_settings(None);
         Self(bitwarden::Client::new(settings))
     }
@@ -14,7 +14,7 @@ impl Client {
         input_str
     }
 
-    fn parse_settings(settings_input: Option<String>) -> Option<ClientSettings> {
+    fn parse_settings(_settings_input: Option<String>) -> Option<ClientSettings> {
         None
     }
 }

@@ -61,7 +61,7 @@ jobs:
           cache-dependency-path: crates/bitwarden-napi/package-lock.json
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@0e66bd3e6b38ec0ad5312288c83e47c143e6b09e # stable
+        uses: dtolnay/rust-toolchain@f361669954a8ecfc00a3443f35f9ac8e610ffc06 # stable
         with:
           toolchain: stable
           targets: ${{ matrix.settings.target }}

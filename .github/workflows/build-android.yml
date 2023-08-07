@@ -96,10 +96,22 @@ jobs:
         working-directory: crates/bitwarden-uniffi/android
         run: ./build-schemas.sh
 
-      # - name: Publish
-      #   uses: gradle/gradle-build-action@915a66c096a03101667f9df2e56c9efef558b165 # v2.6.1
-      #   with:
-      #     arguments: sdk:publish
-      #     build-root-directory: crates/bitwarden-uniffi/android
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to Azure - Prod Subscription
+        uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
+        with:
+          creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
+
+      - name: Retrieve bot secrets
+        id: retrieve-bot-secrets
+        uses: bitwarden/gh-actions/get-keyvault-secrets@a30e9c3d658dc97c4c2e61ec749fdab64b83386c
+        with:
+          keyvault: bitwarden-ci
+          secrets: "github-pat-bitwarden-devops-bot-packages-scope"
+
+      - name: Publish
+        uses: gradle/gradle-build-action@915a66c096a03101667f9df2e56c9efef558b165 # v2.6.1
+        with:
+          arguments: sdk:publish
+          build-root-directory: crates/bitwarden-uniffi/android
+        env:
+          GITHUB_TOKEN: ${{ steps.retrieve-bot-secrets.outputs.github-pat-bitwarden-devops-bot-packages-scope }}

@@ -133,7 +133,7 @@ pub(crate) async fn access_token_login(
 
         let payload: Payload = serde_json::from_slice(&decrypted_payload)?;
 
-        let encryption_key = BASE64_ENGINE.decode(&payload.encryption_key)?;
+        let encryption_key = BASE64_ENGINE.decode(payload.encryption_key)?;
 
         let encryption_key = SymmetricCryptoKey::try_from(encryption_key.as_slice())?;
 
@@ -192,7 +192,7 @@ async fn request_identity_tokens(
 ) -> Result<IdentityTokenResponse> {
     let config = client.get_api_configurations().await;
     PasswordTokenRequest::new(&input.email, password_hash)
-        .send(&config)
+        .send(config)
         .await
 }
 
@@ -203,7 +203,7 @@ async fn request_api_identity_tokens(
 ) -> Result<IdentityTokenResponse> {
     let config = client.get_api_configurations().await;
     ApiTokenRequest::new(&input.client_id, &input.client_secret)
-        .send(&config)
+        .send(config)
         .await
 }
 
@@ -213,7 +213,7 @@ async fn request_access_token(
 ) -> Result<IdentityTokenResponse> {
     let config = client.get_api_configurations().await;
     AccessTokenRequest::new(input.service_account_id, &input.client_secret)
-        .send(&config)
+        .send(config)
         .await
 }
 
@@ -254,7 +254,7 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
                 client_secret,
                 ..
             } => {
-                AccessTokenRequest::new(*service_account_id, &client_secret)
+                AccessTokenRequest::new(*service_account_id, client_secret)
                     .send(&client.__api_configurations)
                     .await?
             }

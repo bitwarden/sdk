@@ -15,7 +15,7 @@ available for download at the following URL, as updated from time to time.
 1.3 A "Compatible Application" means any software program or service that (i)
 connects to and interoperates with a current version of the Bitwarden server
 products distributed by the Company; and (ii) complies with the Company’s
-acceptable use policy available at the following URL: 
+acceptable use policy available at the following URL:
 https://bitwarden.com/terms/#acceptable_use.
 
 1.4 "Company" means Bitwarden Inc., organized under the laws of the State of
@@ -68,9 +68,9 @@ develop another SDK.
 3.4 You may not use the SDK for any purpose not expressly permitted by the
 License Agreement. Except for contributions to Bitwarden pursuant to the
 Contribution License Agreement available at this URL:
-https://cla-assistant.io/bitwarden/clients, or to the extent required by 
+https://cla-assistant.io/bitwarden/clients, or to the extent required by
 applicable third party licenses, you may not copy modify, adapt, redistribute,
-decompile, reverse engineer, disassemble, or create derivative works of the SDK 
+decompile, reverse engineer, disassemble, or create derivative works of the SDK
 or any part of the SDK.
 
 3.5 Use, reproduction, and distribution of a component of the SDK licensed under

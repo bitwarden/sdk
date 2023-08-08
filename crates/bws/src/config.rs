@@ -88,8 +88,8 @@ pub(crate) fn update_profile(
 ) -> Result<()> {
     let mut config = load_config(config_file, false)?;
 
-    let mut p = config.profiles.entry(profile).or_default();
-    name.update_profile_value(&mut p, value);
+    let p = config.profiles.entry(profile).or_default();
+    name.update_profile_value(p, value);
 
     write_config(config, config_file)?;
     Ok(())

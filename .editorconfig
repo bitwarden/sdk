@@ -22,3 +22,7 @@ indent_size = 4
 [*.{kt,java,xml,gradle}]
 indent_style = space
 indent_size = 4
+
+[*.{xml}]
+# VS Code XML extension removes the final newline
+insert_final_newline = false

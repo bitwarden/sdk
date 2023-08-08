@@ -1,7 +1,7 @@
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
-    id 'maven-publish' 
+    id 'maven-publish'
     id 'com.palantir.git-version' version '3.0.0'
 }
 
@@ -44,7 +44,7 @@ publishing {
             groupId = 'com.bitwarden'
             artifactId = 'sdk'
             version gitVersion()
-            
+
             afterEvaluate {
                 from components.release
             }

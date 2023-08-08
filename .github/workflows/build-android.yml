@@ -113,6 +113,6 @@ jobs:
         with:
           arguments: sdk:publish
           build-root-directory: crates/bitwarden-uniffi/android
-        env: 
+        env:
           GITHUB_ACTOR: "bitwarden-devops-bot"
           GITHUB_TOKEN: ${{ steps.retrieve-bot-secrets.outputs.github-pat-bitwarden-devops-bot-packages-scope }}

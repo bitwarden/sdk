@@ -1,4 +1,4 @@
-# Install OpenSSL for 
+# Install OpenSSL
 [target.aarch64-unknown-linux-gnu]
 pre-build = [
     "dpkg --add-architecture $CROSS_DEB_ARCH",

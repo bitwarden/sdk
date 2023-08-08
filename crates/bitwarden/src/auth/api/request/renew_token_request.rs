@@ -11,12 +11,11 @@ pub struct RenewTokenRequest {
 
 impl RenewTokenRequest {
     pub fn new(refresh_token: String, client_id: String) -> Self {
-        let obj = Self {
+        Self {
             refresh_token,
             client_id,
             grant_type: "refresh_token".to_string(),
-        };
-        obj
+        }
     }
 
     pub(crate) async fn send(

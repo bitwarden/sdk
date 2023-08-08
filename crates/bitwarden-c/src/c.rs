@@ -15,10 +15,10 @@ pub async extern "C" fn run_command(
     println!("{}", input_str);
 
     let result = client.run_command(input_str).await;
-    return match std::ffi::CString::new(result) {
+    match std::ffi::CString::new(result) {
         Ok(cstr) => cstr.into_raw(),
         Err(_) => panic!("failed to return command result: null encountered"),
-    };
+    }
 }
 
 // Init client, potential leak! You need to call free_mem after this!
@@ -26,12 +26,12 @@ pub async extern "C" fn run_command(
 pub extern "C" fn init(c_str_ptr: *const c_char) -> *mut Client {
     env_logger::init();
     if c_str_ptr.is_null() {
-        return box_ptr!(Client::new(None));
+        box_ptr!(Client::new(None))
     } else {
         let input_string = str::from_utf8(unsafe { CStr::from_ptr(c_str_ptr).to_bytes() })
             .unwrap()
             .to_owned();
-        return box_ptr!(Client::new(Some(input_string)));
+        box_ptr!(Client::new(Some(input_string)))
     }
 }
 

@@ -50,6 +50,9 @@ impl BitwardenClient {
     #[wasm_bindgen]
     pub fn run_command(&mut self, js_input: String) -> Promise {
         let rc = self.0.clone();
+        // TODO: We should probably switch to an async-aware RwLock here,
+        // but it probably doesn't matter much in a single threaded environment
+        #[allow(clippy::await_holding_lock)]
         future_to_promise(async move {
             let mut client = rc.write().unwrap();
             let result = client.run_command(&js_input).await;

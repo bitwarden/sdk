@@ -1,16 +1,16 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::vault::{Cipher, CipherView};
+use crate::vault::{Collection, CollectionView};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct CipherEncryptRequest {
-    pub cipher: Box<CipherView>,
+pub struct CollectionDecryptRequest {
+    pub collection: Collection,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct CipherEncryptResponse {
-    pub cipher: Box<Cipher>,
+pub struct CollectionDecryptResponse {
+    pub collection: CollectionView,
 }

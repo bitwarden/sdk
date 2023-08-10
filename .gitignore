@@ -25,6 +25,9 @@ bld/
 node_modules/
 clients/python/env/
 
+# Third party license
+THIRDPARTY.html
+
 # Node.js addon binary file, for the current running operating system.
 crates/bitwarden-napi/sdk-napi.*.node
 
@@ -32,12 +35,12 @@ crates/bitwarden-napi/sdk-napi.*.node
 crates/bitwarden-napi/dist
 
 # Uniffi
-crates/bitwarden-uniffi/swift/BitwardenFFI.xcframework
-crates/bitwarden-uniffi/swift/.build
-crates/bitwarden-uniffi/swift/.swiftpm
-crates/bitwarden-uniffi/swift/Sources/BitwardenSdk
-crates/bitwarden-uniffi/android/sdk/src/main/java/com/bitwarden/sdk/bitwarden_uniffi.kt
-crates/bitwarden-uniffi/android/sdk/src/main/java/com/bitwarden/core/bitwarden.kt
+languages/swift/BitwardenFFI.xcframework
+languages/swift/tmp
+languages/swift/.build
+languages/swift/.swiftpm
+languages/kotlin/sdk/src/main/java/com/bitwarden/sdk/bitwarden_uniffi.kt
+languages/kotlin/sdk/src/main/java/com/bitwarden/sdk/bitwarden.kt
 
 # Schemas
 support/schemas

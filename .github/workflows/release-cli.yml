@@ -93,6 +93,7 @@ jobs:
             packages/bws-aarch64-pc-windows-msvc-${{ env.PKG_VERSION }}.zip,
             packages/bws-x86_64-unknown-linux-gnu-${{ env.PKG_VERSION }}.zip,
             packages/bws-aarch64-unknown-linux-gnu-${{ env.PKG_VERSION }}.zip,
+            packages/THIRDPARTY.html,
             packages/bws-sha256-checksums-${{ env.PKG_VERSION }}.txt"
           commit: ${{ github.sha }}
           tag: bws-v${{ env.PKG_VERSION }}
@@ -139,12 +140,12 @@ jobs:
           secrets: "cratesio-api-token"
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@0e66bd3e6b38ec0ad5312288c83e47c143e6b09e # stable
+        uses: dtolnay/rust-toolchain@f361669954a8ecfc00a3443f35f9ac8e610ffc06 # stable
         with:
           toolchain: stable
 
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@dd05243424bd5c0e585e4b55eb2d7615cdd32f1f # v2.5.1
+        uses: Swatinem/rust-cache@b8a6852b4f997182bdea832df3f9e153038b5191 # v2.6.0
 
       - name: Install cargo-release
         run: cargo install cargo-release

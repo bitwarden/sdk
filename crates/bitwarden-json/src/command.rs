@@ -22,7 +22,12 @@ use bitwarden::{
 #[cfg(feature = "mobile")]
 use bitwarden::mobile::{
     kdf::PasswordHashRequest,
-    vault::{FolderDecryptListRequest, FolderDecryptRequest, FolderEncryptRequest},
+    vault::{
+        CipherDecryptListRequest, CipherDecryptRequest, CipherEncryptRequest,
+        CollectionDecryptListRequest, CollectionDecryptRequest, FolderDecryptListRequest,
+        FolderDecryptRequest, FolderEncryptRequest, PasswordHistoryDecryptListRequest,
+        PasswordHistoryEncryptRequest,
+    },
 };
 
 #[cfg(all(feature = "mobile", feature = "internal"))]
@@ -223,6 +228,9 @@ pub enum MobileCryptoCommand {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum MobileVaultCommand {
     Folders(MobileFoldersCommand),
+    Ciphers(MobileCiphersCommand),
+    PasswordHistory(MobilePasswordHistoryCommand),
+    Collections(MobileCollectionsCommand),
 }
 
 #[cfg(feature = "mobile")]
@@ -233,18 +241,79 @@ pub enum MobileFoldersCommand {
     /// Encrypts the provided folder
     ///
     /// Returns: [FolderEncryptResponse](bitwarden::mobile::vault::FolderEncryptResponse)
-    ///  
+    ///
     Encrypt(FolderEncryptRequest),
     /// > Requires having previously initialized the cryptography parameters
     /// Decrypts the provided folder
     ///
     /// Returns: [FolderDecryptResponse](bitwarden::mobile::vault::FolderDecryptResponse)
-    ///  
+    ///
     Decrypt(FolderDecryptRequest),
     /// > Requires having previously initialized the cryptography parameters
     /// Decrypts the provided folders
     ///
-    /// Returns: [FolderDecryptListResponse](bitwarden::mobile::vault::FolderDecryptListResponse)   
+    /// Returns: [FolderDecryptListResponse](bitwarden::mobile::vault::FolderDecryptListResponse)
     ///
     DecryptList(FolderDecryptListRequest),
+}
+
+#[cfg(feature = "mobile")]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub enum MobileCiphersCommand {
+    /// > Requires having previously initialized the cryptography parameters
+    /// Encrypts the provided cipher
+    ///
+    /// Returns: [CipherEncryptResponse](bitwarden::mobile::vault::CipherEncryptResponse)
+    ///
+    Encrypt(CipherEncryptRequest),
+    /// > Requires having previously initialized the cryptography parameters
+    /// Decrypts the provided cipher
+    ///
+    /// Returns: [CipherDecryptResponse](bitwarden::mobile::vault::CipherDecryptResponse)
+    ///
+    Decrypt(CipherDecryptRequest),
+    /// > Requires having previously initialized the cryptography parameters
+    /// Decrypts the provided ciphers. Note that some sensitive fields might not be included in the response.
+    /// To get them, use `DecryptCipher` for each cipher individually when those fields are needed
+    ///
+    /// Returns: [CipherDecryptListResponse](bitwarden::mobile::vault::CipherDecryptListResponse)
+    ///
+    DecryptList(CipherDecryptListRequest),
+}
+
+#[cfg(feature = "mobile")]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub enum MobilePasswordHistoryCommand {
+    /// > Requires having previously initialized the cryptography parameters
+    /// Encrypts the provided password history entry
+    ///
+    /// Returns: [PasswordHistoryEncryptResponse](bitwarden::mobile::vault::PasswordHistoryEncryptResponse)
+    ///
+    Encrypt(PasswordHistoryEncryptRequest),
+    /// > Requires having previously initialized the cryptography parameters
+    /// Decrypts the provided password history
+    ///
+    /// Returns: [PasswordHistoryDecryptListResponse](bitwarden::mobile::vault::PasswordHistoryDecryptListResponse)
+    ///
+    DecryptList(PasswordHistoryDecryptListRequest),
+}
+
+#[cfg(feature = "mobile")]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub enum MobileCollectionsCommand {
+    /// > Requires having previously initialized the cryptography parameters
+    /// Decrypts the provided collection
+    ///
+    /// Returns: [CollectionDecryptResponse](bitwarden::mobile::vault::CollectionDecryptResponse)
+    ///  
+    Decrypt(CollectionDecryptRequest),
+    /// > Requires having previously initialized the cryptography parameters
+    /// Decrypts the provided collections
+    ///
+    /// Returns: [CollectionDecryptListResponse](bitwarden::mobile::vault::CollectionDecryptListResponse)   
+    ///
+    DecryptList(CollectionDecryptListRequest),
 }

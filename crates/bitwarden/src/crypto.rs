@@ -306,7 +306,7 @@ pub(crate) fn stretch_key(secret: [u8; 16], name: &str, info: Option<&str>) -> S
     // TODO: Are these the final `key` and `info` parameters or should we change them? I followed the pattern used for sends
     let res = Hmac::<sha2::Sha256>::new_from_slice(format!("bitwarden-{}", name).as_bytes())
         .unwrap()
-        .chain_update(&secret)
+        .chain_update(secret)
         .finalize()
         .into_bytes();
 
@@ -317,7 +317,7 @@ pub(crate) fn stretch_key(secret: [u8; 16], name: &str, info: Option<&str>) -> S
     // TODO: Should we have a default value for info?
     //  Should it be required?
     let i = info.map(|i| i.as_bytes()).unwrap_or(&[]);
-    hkdf.expand(&i, &mut key).unwrap();
+    hkdf.expand(i, &mut key).unwrap();
 
     SymmetricCryptoKey::try_from(key.as_slice()).unwrap()
 }
@@ -343,7 +343,7 @@ fn hash_word(hash: [u8; 32]) -> Result<String> {
     let minimum_entropy = 64;
 
     let entropy_per_word = (EFF_LONG_WORD_LIST.len() as f64).log2();
-    let num_words = ((minimum_entropy as f64 / entropy_per_word).ceil() as f64).to_owned() as i64;
+    let num_words = ((minimum_entropy as f64 / entropy_per_word).ceil()).to_owned() as i64;
 
     let hash_arr: Vec<u8> = hash.to_vec();
     let entropy_available = hash_arr.len() * 4;
@@ -358,7 +358,7 @@ fn hash_word(hash: [u8; 32]) -> Result<String> {
     let mut hash_number = BigUint::from_bytes_be(&hash_arr);
     for _ in 0..num_words {
         let remainder = hash_number.clone() % EFF_LONG_WORD_LIST.len();
-        hash_number = hash_number / EFF_LONG_WORD_LIST.len();
+        hash_number /= EFF_LONG_WORD_LIST.len();
 
         phrase.push(EFF_LONG_WORD_LIST[remainder.to_usize().unwrap()].to_string());
     }
@@ -382,7 +382,7 @@ impl Encryptable<CipherString> for String {
 
 impl Decryptable<String> for CipherString {
     fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<String> {
-        enc.decrypt(&self, org_id)
+        enc.decrypt(self, org_id)
     }
 }
 
@@ -406,7 +406,7 @@ impl<T: Encryptable<Output>, Output> Encryptable<Vec<Output>> for Vec<T> {
 
 impl<T: Decryptable<Output>, Output> Decryptable<Vec<Output>> for Vec<T> {
     fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Vec<Output>> {
-        self.into_iter().map(|e| e.decrypt(enc, org_id)).collect()
+        self.iter().map(|e| e.decrypt(enc, org_id)).collect()
     }
 }
 
@@ -432,9 +432,21 @@ impl<T: Decryptable<Output>, Output, Id: Hash + Eq + Copy> Decryptable<HashMap<I
         enc: &EncryptionSettings,
         org_id: &Option<Uuid>,
     ) -> Result<HashMap<Id, Output>> {
-        self.into_iter()
+        self.iter()
             .map(|(id, e)| Ok((*id, e.decrypt(enc, org_id)?)))
             .collect::<Result<HashMap<_, _>>>()
+    }
+}
+
+impl<T: Encryptable<Output>, Output> Encryptable<Output> for Box<T> {
+    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Output> {
+        (*self).encrypt(enc, org_id)
+    }
+}
+
+impl<T: Decryptable<Output>, Output> Decryptable<Output> for Box<T> {
+    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Output> {
+        (**self).decrypt(enc, org_id)
     }
 }
 

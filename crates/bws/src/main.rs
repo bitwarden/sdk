@@ -225,6 +225,7 @@ const ACCESS_TOKEN_KEY_VAR_NAME: &str = "BWS_ACCESS_TOKEN";
 const PROFILE_KEY_VAR_NAME: &str = "BWS_PROFILE";
 const SERVER_URL_KEY_VAR_NAME: &str = "BWS_SERVER_URL";
 
+#[allow(clippy::comparison_chain)]
 async fn process_commands() -> Result<()> {
     let cli = Cli::parse();
 
@@ -305,9 +306,7 @@ async fn process_commands() -> Result<()> {
 
     // Load session or return if no session exists
     let _ = client
-        .access_token_login(&AccessTokenLoginRequest {
-            access_token: access_token,
-        })
+        .access_token_login(&AccessTokenLoginRequest { access_token })
         .await?;
 
     let organization_id = match client.get_access_token_organization() {
@@ -328,9 +327,7 @@ async fn process_commands() -> Result<()> {
         } => {
             let projects = client
                 .projects()
-                .list(&ProjectsListRequest {
-                    organization_id: organization_id.clone(),
-                })
+                .list(&ProjectsListRequest { organization_id })
                 .await?
                 .data;
             serialize_response(projects, cli.output, color);
@@ -418,7 +415,7 @@ async fn process_commands() -> Result<()> {
                 eprintln!("{}: {}", project.0, project.1);
             }
 
-            if projects_failed.len() > 0 {
+            if !projects_failed.is_empty() {
                 process::exit(1);
             }
         }
@@ -432,16 +429,12 @@ async fn process_commands() -> Result<()> {
             let res = if let Some(project_id) = project_id {
                 client
                     .secrets()
-                    .list_by_project(&SecretIdentifiersByProjectRequest {
-                        project_id: project_id,
-                    })
+                    .list_by_project(&SecretIdentifiersByProjectRequest { project_id })
                     .await?
             } else {
                 client
                     .secrets()
-                    .list(&SecretIdentifiersRequest {
-                        organization_id: organization_id.clone(),
-                    })
+                    .list(&SecretIdentifiersRequest { organization_id })
                     .await?
             };
 
@@ -520,9 +513,7 @@ async fn process_commands() -> Result<()> {
         } => {
             let old_secret = client
                 .secrets()
-                .get(&SecretGetRequest {
-                    id: secret_id.clone(),
-                })
+                .get(&SecretGetRequest { id: secret_id })
                 .await?;
 
             let secret = client
@@ -581,7 +572,7 @@ async fn process_commands() -> Result<()> {
                 eprintln!("{}: {}", secret.0, secret.1);
             }
 
-            if secrets_failed.len() > 0 {
+            if !secrets_failed.is_empty() {
                 process::exit(1);
             }
         }
@@ -598,7 +589,7 @@ fn get_config_profile(
     server_url: &Option<String>,
     profile: &Option<String>,
     config_file: &Option<PathBuf>,
-    access_token: &String,
+    access_token: &str,
 ) -> Result<Option<config::Profile>, color_eyre::Report> {
     let profile = if let Some(server_url) = server_url {
         Some(config::Profile::from_url(server_url)?)

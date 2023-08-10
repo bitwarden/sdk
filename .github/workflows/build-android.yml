@@ -2,7 +2,7 @@
 name: Build Android
 
 on:
-  pull_request:
+  # pull_request:
   # push:
   #   branches:
   #     - "master"
@@ -112,7 +112,7 @@ jobs:
         uses: gradle/gradle-build-action@915a66c096a03101667f9df2e56c9efef558b165 # v2.6.1
         with:
           arguments: sdk:publish
-          build-root-directory: languages/kotlin/android
+          build-root-directory: languages/kotlin
         env:
           GITHUB_ACTOR: "bitwarden-devops-bot"
           GITHUB_TOKEN: ${{ steps.retrieve-bot-secrets.outputs.github-pat-bitwarden-devops-bot-packages-scope }}

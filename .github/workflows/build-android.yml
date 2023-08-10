@@ -23,7 +23,6 @@ jobs:
           - target: armv7-linux-androideabi
           - target: x86_64-linux-android
           - target: i686-linux-android
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
@@ -55,9 +54,7 @@ jobs:
 
   combine:
     runs-on: ubuntu-22.04
-    needs:
-      - build
-
+    needs: build
     steps:
       - name: Checkout repo (PR)
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
@@ -104,7 +101,7 @@ jobs:
         working-directory: languages/kotlin
         run: ./build-schemas.sh
 
-      - name: Login to Azure - Prod Subscription
+      - name: Login to Azure - CI Subscription
         uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
         with:
           creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}

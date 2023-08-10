@@ -43,7 +43,14 @@ publishing {
         maven(MavenPublication) {
             groupId = 'com.bitwarden'
             artifactId = 'sdk'
-            version "${gitVersion()}-SNAPSHOT"
+
+            def details = versionDetails()
+
+            if (details.branchName == null) {
+                version = "master-SNAPSHOT"
+            } else {
+                version "${details.branchName}-${details.gitHash}-SNAPSHOT"
+            }
 
             afterEvaluate {
                 from components.release

@@ -40,7 +40,7 @@ languages/swift/tmp
 languages/swift/.build
 languages/swift/.swiftpm
 languages/kotlin/sdk/src/main/java/com/bitwarden/sdk/bitwarden_uniffi.kt
-languages/kotlin/sdk/src/main/java/com/bitwarden/sdk/bitwarden.kt
+languages/kotlin/sdk/src/main/java/com/bitwarden/core/bitwarden.kt
 
 # Schemas
 support/schemas

@@ -18,14 +18,14 @@ opt-level = 1
 [profile.release]
 lto = "thin"
 codegen-units = 1
-# Stripping the binary reduces the size by ~30%, but the stacktraces won't be usable anymore. 
+# Stripping the binary reduces the size by ~30%, but the stacktraces won't be usable anymore.
 # This is fine as long as we don't have any unhandled panics, but let's keep it disabled for now
 # strip = true
 
 # Uniffi proc-macro support is still not part of a release, so we need to use the git version for now
 [patch.crates-io]
-uniffi = { git = "https://github.com/mozilla/uniffi-rs", rev = "b0f85597ec8f95d6a24fd8d93a7a3c01815ef8a3" }
-uniffi_build = { git = "https://github.com/mozilla/uniffi-rs", rev = "b0f85597ec8f95d6a24fd8d93a7a3c01815ef8a3" }
-uniffi_bindgen = { git = "https://github.com/mozilla/uniffi-rs", rev = "b0f85597ec8f95d6a24fd8d93a7a3c01815ef8a3" }
-uniffi_core = { git = "https://github.com/mozilla/uniffi-rs", rev = "b0f85597ec8f95d6a24fd8d93a7a3c01815ef8a3" }
-uniffi_macros = { git = "https://github.com/mozilla/uniffi-rs", rev = "b0f85597ec8f95d6a24fd8d93a7a3c01815ef8a3" }
+uniffi = { git = "https://github.com/mozilla/uniffi-rs", rev = "53d5ac7274d8b4d66ad35b68cb6e2d89898f96af" }
+uniffi_build = { git = "https://github.com/mozilla/uniffi-rs", rev = "53d5ac7274d8b4d66ad35b68cb6e2d89898f96af" }
+uniffi_bindgen = { git = "https://github.com/mozilla/uniffi-rs", rev = "53d5ac7274d8b4d66ad35b68cb6e2d89898f96af" }
+uniffi_core = { git = "https://github.com/mozilla/uniffi-rs", rev = "53d5ac7274d8b4d66ad35b68cb6e2d89898f96af" }
+uniffi_macros = { git = "https://github.com/mozilla/uniffi-rs", rev = "53d5ac7274d8b4d66ad35b68cb6e2d89898f96af" }

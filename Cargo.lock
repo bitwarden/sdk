@@ -3301,7 +3301,7 @@ checksum = "c0edd1e5b14653f783770bce4a4dabb4a5108a5370a5f5d8cfe8710c361f6c8b"
 [[package]]
 name = "uniffi"
 version = "0.24.1"
-source = "git+https://github.com/mozilla/uniffi-rs?rev=b0f85597ec8f95d6a24fd8d93a7a3c01815ef8a3#b0f85597ec8f95d6a24fd8d93a7a3c01815ef8a3"
+source = "git+https://github.com/mozilla/uniffi-rs?rev=53d5ac7274d8b4d66ad35b68cb6e2d89898f96af#53d5ac7274d8b4d66ad35b68cb6e2d89898f96af"
 dependencies = [
  "anyhow",
  "camino",
@@ -3322,7 +3322,7 @@ dependencies = [
 [[package]]
 name = "uniffi_bindgen"
 version = "0.24.1"
-source = "git+https://github.com/mozilla/uniffi-rs?rev=b0f85597ec8f95d6a24fd8d93a7a3c01815ef8a3#b0f85597ec8f95d6a24fd8d93a7a3c01815ef8a3"
+source = "git+https://github.com/mozilla/uniffi-rs?rev=53d5ac7274d8b4d66ad35b68cb6e2d89898f96af#53d5ac7274d8b4d66ad35b68cb6e2d89898f96af"
 dependencies = [
  "anyhow",
  "askama",
@@ -3346,7 +3346,7 @@ dependencies = [
 [[package]]
 name = "uniffi_build"
 version = "0.24.1"
-source = "git+https://github.com/mozilla/uniffi-rs?rev=b0f85597ec8f95d6a24fd8d93a7a3c01815ef8a3#b0f85597ec8f95d6a24fd8d93a7a3c01815ef8a3"
+source = "git+https://github.com/mozilla/uniffi-rs?rev=53d5ac7274d8b4d66ad35b68cb6e2d89898f96af#53d5ac7274d8b4d66ad35b68cb6e2d89898f96af"
 dependencies = [
  "anyhow",
  "camino",
@@ -3356,7 +3356,7 @@ dependencies = [
 [[package]]
 name = "uniffi_checksum_derive"
 version = "0.24.1"
-source = "git+https://github.com/mozilla/uniffi-rs?rev=b0f85597ec8f95d6a24fd8d93a7a3c01815ef8a3#b0f85597ec8f95d6a24fd8d93a7a3c01815ef8a3"
+source = "git+https://github.com/mozilla/uniffi-rs?rev=53d5ac7274d8b4d66ad35b68cb6e2d89898f96af#53d5ac7274d8b4d66ad35b68cb6e2d89898f96af"
 dependencies = [
  "quote",
  "syn 2.0.28",
@@ -3365,7 +3365,7 @@ dependencies = [
 [[package]]
 name = "uniffi_core"
 version = "0.24.1"
-source = "git+https://github.com/mozilla/uniffi-rs?rev=b0f85597ec8f95d6a24fd8d93a7a3c01815ef8a3#b0f85597ec8f95d6a24fd8d93a7a3c01815ef8a3"
+source = "git+https://github.com/mozilla/uniffi-rs?rev=53d5ac7274d8b4d66ad35b68cb6e2d89898f96af#53d5ac7274d8b4d66ad35b68cb6e2d89898f96af"
 dependencies = [
  "anyhow",
  "bytes",
@@ -3380,7 +3380,7 @@ dependencies = [
 [[package]]
 name = "uniffi_macros"
 version = "0.24.1"
-source = "git+https://github.com/mozilla/uniffi-rs?rev=b0f85597ec8f95d6a24fd8d93a7a3c01815ef8a3#b0f85597ec8f95d6a24fd8d93a7a3c01815ef8a3"
+source = "git+https://github.com/mozilla/uniffi-rs?rev=53d5ac7274d8b4d66ad35b68cb6e2d89898f96af#53d5ac7274d8b4d66ad35b68cb6e2d89898f96af"
 dependencies = [
  "bincode",
  "camino",
@@ -3398,7 +3398,7 @@ dependencies = [
 [[package]]
 name = "uniffi_meta"
 version = "0.24.1"
-source = "git+https://github.com/mozilla/uniffi-rs?rev=b0f85597ec8f95d6a24fd8d93a7a3c01815ef8a3#b0f85597ec8f95d6a24fd8d93a7a3c01815ef8a3"
+source = "git+https://github.com/mozilla/uniffi-rs?rev=53d5ac7274d8b4d66ad35b68cb6e2d89898f96af#53d5ac7274d8b4d66ad35b68cb6e2d89898f96af"
 dependencies = [
  "anyhow",
  "bytes",
@@ -3410,7 +3410,7 @@ dependencies = [
 [[package]]
 name = "uniffi_testing"
 version = "0.24.1"
-source = "git+https://github.com/mozilla/uniffi-rs?rev=b0f85597ec8f95d6a24fd8d93a7a3c01815ef8a3#b0f85597ec8f95d6a24fd8d93a7a3c01815ef8a3"
+source = "git+https://github.com/mozilla/uniffi-rs?rev=53d5ac7274d8b4d66ad35b68cb6e2d89898f96af#53d5ac7274d8b4d66ad35b68cb6e2d89898f96af"
 dependencies = [
  "anyhow",
  "camino",
@@ -3424,7 +3424,7 @@ dependencies = [
 [[package]]
 name = "uniffi_udl"
 version = "0.24.1"
-source = "git+https://github.com/mozilla/uniffi-rs?rev=b0f85597ec8f95d6a24fd8d93a7a3c01815ef8a3#b0f85597ec8f95d6a24fd8d93a7a3c01815ef8a3"
+source = "git+https://github.com/mozilla/uniffi-rs?rev=53d5ac7274d8b4d66ad35b68cb6e2d89898f96af#53d5ac7274d8b4d66ad35b68cb6e2d89898f96af"
 dependencies = [
  "anyhow",
  "uniffi_meta",
@@ -3631,7 +3631,7 @@ dependencies = [
 [[package]]
 name = "weedle2"
 version = "4.0.0"
-source = "git+https://github.com/mozilla/uniffi-rs?rev=b0f85597ec8f95d6a24fd8d93a7a3c01815ef8a3#b0f85597ec8f95d6a24fd8d93a7a3c01815ef8a3"
+source = "git+https://github.com/mozilla/uniffi-rs?rev=53d5ac7274d8b4d66ad35b68cb6e2d89898f96af#53d5ac7274d8b4d66ad35b68cb6e2d89898f96af"
 dependencies = [
  "nom",
 ]

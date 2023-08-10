@@ -15,6 +15,7 @@ pub struct ClientFolders(Arc<Client>);
 
 #[uniffi::export]
 impl ClientVault {
+    /// Folder operations
     pub fn folders(self: Arc<Self>) -> Arc<ClientFolders> {
         Arc::new(ClientFolders(self.0.clone()))
     }
@@ -22,6 +23,7 @@ impl ClientVault {
 
 #[uniffi::export]
 impl Client {
+    /// Vault operations
     pub fn vault(self: Arc<Self>) -> Arc<ClientVault> {
         Arc::new(ClientVault(self))
     }
@@ -29,6 +31,7 @@ impl Client {
 
 #[uniffi::export]
 impl ClientFolders {
+    /// Encrypt folder
     pub async fn encrypt(&self, req: FolderEncryptRequest) -> Result<FolderEncryptResponse> {
         Ok(self
             .0
@@ -41,6 +44,7 @@ impl ClientFolders {
             .await?)
     }
 
+    /// Decrypt folder
     pub async fn decrypt(&self, req: FolderDecryptRequest) -> Result<FolderDecryptResponse> {
         Ok(self
             .0
@@ -53,6 +57,7 @@ impl ClientFolders {
             .await?)
     }
 
+    /// Decrypt folder list
     pub async fn decrypt_list(
         &self,
         req: FolderDecryptListRequest,

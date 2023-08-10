@@ -59,10 +59,17 @@ jobs:
       - build
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repo (PR)
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+        if: github.event_name == 'pull_request'
         with:
-          ref: ${{ github.ref }}
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Checkout repo (Push)
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+        if: github.event_name == 'push'
+        with:
           fetch-depth: 0
 
       - name: Install rust

@@ -2,12 +2,10 @@
 name: Build Android
 
 on:
-  # pull_request:
-  # push:
-  #   branches:
-  #     - "master"
-  #     - "rc"
-  #     - "hotfix-rc"
+  pull_request:
+  push:
+    branches:
+      - "master"
   workflow_dispatch:
 
 defaults:
@@ -114,5 +112,5 @@ jobs:
           arguments: sdk:publish
           build-root-directory: languages/kotlin
         env:
-          GITHUB_USERNAME: "bitwarden-devops-bot"
-          GITHUB_PASSWORD: ${{ steps.retrieve-bot-secrets.outputs.github-pat-bitwarden-devops-bot-packages-scope }}
+          GITHUB_ACTOR: "bitwarden-devops-bot"
+          GITHUB_TOKEN: ${{ steps.retrieve-bot-secrets.outputs.github-pat-bitwarden-devops-bot-packages-scope }}

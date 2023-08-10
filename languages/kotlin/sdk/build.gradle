@@ -43,7 +43,7 @@ publishing {
         maven(MavenPublication) {
             groupId = 'com.bitwarden'
             artifactId = 'sdk'
-            version gitVersion()
+            version "${gitVersion()}-SNAPSHOT"
 
             afterEvaluate {
                 from components.release
@@ -55,8 +55,8 @@ publishing {
             name = "GitHubPackages"
             url = "https://maven.pkg.github.com/bitwarden/sdk-maven"
             credentials {
-                username = System.getenv("GITHUB_USERNAME")
-                password = System.getenv("GITHUB_PASSWORD")
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
             }
         }
     }

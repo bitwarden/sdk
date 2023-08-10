@@ -55,8 +55,8 @@ publishing {
             name = "GitHubPackages"
             url = "https://maven.pkg.github.com/bitwarden/sdk-maven"
             credentials {
-                username = System.getenv("GITHUB_ACTOR")
-                password = System.getenv("GITHUB_TOKEN")
+                username = System.getenv("GITHUB_USERNAME")
+                password = System.getenv("GITHUB_PASSWORD")
             }
         }
     }

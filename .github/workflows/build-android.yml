@@ -93,7 +93,7 @@ jobs:
           mv /home/runner/work/sdk/sdk/android-x86_64-linux-android/libbitwarden_uniffi.so ./x86_64/libbitwarden_uniffi.so
 
       - name: Generate bindings
-        working-directory: languages/kotlin/android
+        working-directory: languages/kotlin
         run: ./build-schemas.sh
 
       - name: Login to Azure - Prod Subscription

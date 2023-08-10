@@ -14,6 +14,8 @@ bld/
 [Bb]in/
 [Oo]bj/
 
+# Editor directories and files
+.idea
 
 # Added by cargo
 #
@@ -31,6 +33,13 @@ crates/bitwarden-napi/sdk-napi.*.node
 
 # Complied TypeScript client
 crates/bitwarden-napi/dist
+
+# Uniffi
+languages/swift/BitwardenFFI.xcframework
+languages/swift/tmp
+languages/swift/.build
+languages/swift/.swiftpm
+languages/kotlin/sdk/src/main/java/com/bitwarden/sdk/bitwarden.kt
 
 # Schemas
 support/schemas

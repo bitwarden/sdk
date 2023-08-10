@@ -49,7 +49,7 @@ publishing {
             if (details.branchName == null) {
                 version = "master-SNAPSHOT"
             } else {
-                version "${details.branchName}-SNAPSHOT"
+                version "${details.branchName.replaceAll('/', '-')}-SNAPSHOT"
             }
 
             afterEvaluate {

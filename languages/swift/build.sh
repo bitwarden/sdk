@@ -9,6 +9,7 @@ mkdir tmp
 # Build native library
 cargo build --package bitwarden-uniffi --target aarch64-apple-ios-sim --release
 
+# Generate swift bindings
 cargo run -p uniffi-bindgen generate \
   ../../target/aarch64-apple-ios-sim/release/libbitwarden_uniffi.dylib \
   --library \

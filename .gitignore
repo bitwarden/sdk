@@ -16,6 +16,7 @@ bld/
 
 # Editor directories and files
 .idea
+xcuserdata/
 
 # Added by cargo
 #

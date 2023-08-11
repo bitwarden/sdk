@@ -1,2 +1,6 @@
 [bindings.kotlin]
 package_name = "com.bitwarden.core"
+
+[bindings.swift]
+ffi_module_name = "BitwardenCoreFFI"
+module_name = "BitwardenCore"

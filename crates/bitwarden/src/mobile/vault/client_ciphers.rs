@@ -17,7 +17,7 @@ impl<'a> ClientCiphers<'a> {
     pub async fn encrypt(&self, req: CipherEncryptRequest) -> Result<CipherEncryptResponse> {
         let enc = self.client.get_encryption_settings()?;
 
-        let cipher = Box::new(req.cipher.encrypt(enc, &None)?);
+        let cipher = req.cipher.encrypt(enc, &None)?;
 
         Ok(CipherEncryptResponse { cipher })
     }
@@ -25,7 +25,7 @@ impl<'a> ClientCiphers<'a> {
     pub async fn decrypt(&self, req: CipherDecryptRequest) -> Result<CipherDecryptResponse> {
         let enc = self.client.get_encryption_settings()?;
 
-        let cipher = Box::new(req.cipher.decrypt(enc, &None)?);
+        let cipher = req.cipher.decrypt(enc, &None)?;
 
         Ok(CipherDecryptResponse { cipher })
     }

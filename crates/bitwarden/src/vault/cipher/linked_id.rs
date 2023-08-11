@@ -4,14 +4,16 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 
 #[derive(Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(untagged)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum LinkedIdType {
-    Login(LoginLinkedIdType),
-    Card(CardLinkedIdType),
-    Identity(IdentityLinkedIdType),
+    Login { val: LoginLinkedIdType },
+    Card { val: CardLinkedIdType },
+    Identity { val: IdentityLinkedIdType },
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u16)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum LoginLinkedIdType {
     Username = 100,
     Password = 101,
@@ -19,6 +21,7 @@ pub enum LoginLinkedIdType {
 
 #[derive(Clone, Copy, PartialEq, Eq, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u16)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum CardLinkedIdType {
     CardholderName = 300,
     ExpMonth = 301,
@@ -30,6 +33,7 @@ pub enum CardLinkedIdType {
 
 #[derive(Clone, Copy, PartialEq, Eq, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u16)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum IdentityLinkedIdType {
     Title = 400,
     MiddleName = 401,

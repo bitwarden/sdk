@@ -8,26 +8,7 @@ use bitwarden::mobile::vault::{
 use crate::{Client, Result};
 
 #[derive(uniffi::Object)]
-pub struct ClientVault(Arc<Client>);
-
-#[derive(uniffi::Object)]
-pub struct ClientFolders(Arc<Client>);
-
-#[uniffi::export]
-impl ClientVault {
-    /// Folder operations
-    pub fn folders(self: Arc<Self>) -> Arc<ClientFolders> {
-        Arc::new(ClientFolders(self.0.clone()))
-    }
-}
-
-#[uniffi::export]
-impl Client {
-    /// Vault operations
-    pub fn vault(self: Arc<Self>) -> Arc<ClientVault> {
-        Arc::new(ClientVault(self))
-    }
-}
+pub struct ClientFolders(pub Arc<Client>);
 
 #[uniffi::export]
 impl ClientFolders {

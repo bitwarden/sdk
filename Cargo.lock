@@ -393,6 +393,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bitwarden-cli"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "color-eyre",
+ "supports-color",
+]
+
+[[package]]
 name = "bitwarden-json"
 version = "0.3.0"
 dependencies = [
@@ -514,6 +523,7 @@ dependencies = [
  "atty",
  "bat",
  "bitwarden",
+ "bitwarden-cli",
  "chrono",
  "clap",
  "color-eyre",

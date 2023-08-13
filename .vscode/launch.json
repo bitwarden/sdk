@@ -43,7 +43,7 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "bw",
+      "name": "bw login",
       "cargo": {
         "args": ["build", "--package=bw"],
         "filter": {
@@ -51,7 +51,7 @@
           "kind": "bin"
         }
       },
-      "args": ["login", "--email", "twofactor@stark.com"],
+      "args": ["login", "api-key", "--server", "https://localhost:8080"],
       "cwd": "${workspaceFolder}"
     }
   ]

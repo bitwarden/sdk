@@ -7,14 +7,19 @@ use aes::cipher::{
 use base64::Engine;
 use hmac::Mac;
 use rand::RngCore;
-use rsa::{pkcs8::DecodePrivateKey, Oaep, RsaPrivateKey};
+use rsa::RsaPrivateKey;
 use uuid::Uuid;
 
 use crate::{
-    client::auth_settings::AuthSettings,
     crypto::{CipherString, PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},
     error::{CryptoError, Error, Result},
     util::BASE64_ENGINE,
+};
+
+#[cfg(feature = "internal")]
+use {
+    crate::client::auth_settings::AuthSettings,
+    rsa::{pkcs8::DecodePrivateKey, Oaep},
 };
 
 pub struct SymmetricCryptoKey {
@@ -49,7 +54,7 @@ impl FromStr for SymmetricCryptoKey {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let bytes = BASE64_ENGINE
-            .decode(&s)
+            .decode(s)
             .map_err(|_| CryptoError::InvalidKey)?;
         SymmetricCryptoKey::try_from(bytes.as_slice())
     }
@@ -94,6 +99,7 @@ impl std::fmt::Debug for EncryptionSettings {
 }
 
 impl EncryptionSettings {
+    #[cfg(feature = "internal")]
     pub(crate) fn new(
         auth: &AuthSettings,
         password: &str,
@@ -104,9 +110,8 @@ impl EncryptionSettings {
         let (key, mac_key) = crate::crypto::stretch_key_password(
             password.as_bytes(),
             auth.email.as_bytes(),
-            auth.kdf_iterations,
-        )
-        .map_err(|_| CryptoError::KeyStretch)?;
+            &auth.kdf,
+        )?;
 
         // Decrypt the user key with the stretched key
         let user_key = {
@@ -115,7 +120,7 @@ impl EncryptionSettings {
                 _ => return Err(CryptoError::InvalidKey.into()),
             };
 
-            let dec = decrypt_aes256(&iv, &mac, &data, Some(mac_key), key)?;
+            let dec = decrypt_aes256(&iv, &mac, data, Some(mac_key), key)?;
             SymmetricCryptoKey::try_from(dec.as_slice())?
         };
 
@@ -166,33 +171,25 @@ impl EncryptionSettings {
         Ok(self)
     }
 
-    fn get_key(&self, org_id: Option<Uuid>) -> Option<&SymmetricCryptoKey> {
+    fn get_key(&self, org_id: &Option<Uuid>) -> Option<&SymmetricCryptoKey> {
         // If we don't have a private key set (to decode multiple org keys), we just use the main user key
         if self.private_key.is_none() {
             return Some(&self.user_key);
         }
 
         match org_id {
-            Some(org_id) => match self.org_keys.get(&org_id) {
-                Some(k) => Some(k),
-                None => return None,
-            },
+            Some(org_id) => self.org_keys.get(org_id),
             None => Some(&self.user_key),
         }
     }
 
-    pub fn decrypt(&self, cipher: &CipherString, org_id: Option<Uuid>) -> Result<Vec<u8>> {
+    pub(crate) fn decrypt(&self, cipher: &CipherString, org_id: &Option<Uuid>) -> Result<String> {
         let key = self.get_key(org_id).ok_or(CryptoError::NoKeyForOrg)?;
-        decrypt(cipher, key)
-    }
-
-    pub fn decrypt_str(&self, cipher: &str, org_id: Option<Uuid>) -> Result<String> {
-        let cipher = CipherString::from_str(cipher)?;
-        let dec = self.decrypt(&cipher, org_id)?;
+        let dec = decrypt(cipher, key)?;
         String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String.into())
     }
 
-    pub fn encrypt(&self, data: &[u8], org_id: Option<Uuid>) -> Result<CipherString> {
+    pub(crate) fn encrypt(&self, data: &[u8], org_id: &Option<Uuid>) -> Result<CipherString> {
         let key = self.get_key(org_id).ok_or(CryptoError::NoKeyForOrg)?;
 
         let dec = encrypt_aes256(data, key.mac_key, key.key)?;
@@ -203,17 +200,17 @@ impl EncryptionSettings {
 pub fn decrypt(cipher: &CipherString, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
     match cipher {
         CipherString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
-            let dec = decrypt_aes256(iv, mac, data, key.mac_key, key.key)?;
+            let dec = decrypt_aes256(iv, mac, data.clone(), key.mac_key, key.key)?;
             Ok(dec)
         }
-        _ => return Err(CryptoError::InvalidKey.into()),
+        _ => Err(CryptoError::InvalidKey.into()),
     }
 }
 
 pub fn decrypt_aes256(
     iv: &[u8; 16],
     mac: &[u8; 32],
-    data: &Vec<u8>,
+    data: Vec<u8>,
     mac_key: Option<GenericArray<u8, U32>>,
     key: GenericArray<u8, U32>,
 ) -> Result<Vec<u8>> {
@@ -223,14 +220,14 @@ pub fn decrypt_aes256(
     };
 
     // Validate HMAC
-    let res = validate_mac(&mac_key, iv, data)?;
+    let res = validate_mac(&mac_key, iv, &data)?;
     if res != *mac {
         return Err(CryptoError::InvalidMac.into());
     }
 
     // Decrypt data
     let iv = GenericArray::from_slice(iv);
-    let mut data = data.clone();
+    let mut data = data;
     let decrypted_key_slice = cbc::Decryptor::<aes::Aes256>::new(&key, iv)
         .decrypt_padded_mut::<Pkcs7>(&mut data)
         .map_err(|_| CryptoError::KeyDecrypt)?;
@@ -278,6 +275,7 @@ mod tests {
     use std::str::FromStr;
 
     use super::{EncryptionSettings, SymmetricCryptoKey};
+    use crate::crypto::{Decryptable, Encryptable};
 
     #[test]
     fn test_symmetric_crypto_key() {
@@ -296,10 +294,10 @@ mod tests {
         let key = SymmetricCryptoKey::generate("test");
         let settings = EncryptionSettings::new_single_key(key);
 
-        let test_string = "encrypted_test_string";
-        let cipher = settings.encrypt(test_string.as_bytes(), None).unwrap();
+        let test_string = "encrypted_test_string".to_string();
+        let cipher = test_string.clone().encrypt(&settings, &None).unwrap();
 
-        let decrypted_str = settings.decrypt_str(&cipher.to_string(), None).unwrap();
+        let decrypted_str = cipher.decrypt(&settings, &None).unwrap();
         assert_eq!(decrypted_str, test_string);
     }
 }

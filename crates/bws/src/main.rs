@@ -1,4 +1,4 @@
-use std::{path::PathBuf, str::FromStr};
+use std::{path::PathBuf, process, str::FromStr};
 
 use bitwarden::{
     auth::request::AccessTokenLoginRequest,
@@ -109,15 +109,16 @@ enum SecretCommand {
         key: String,
         value: String,
 
+        #[arg(help = "The ID of the project this secret will be added to")]
+        project_id: Uuid,
+
         #[arg(long, help = "An optional note to add to the secret")]
         note: Option<String>,
-
-        #[arg(long, help = "The ID of the project this secret will be added to")]
-        project_id: Option<Uuid>,
     },
     Delete {
         secret_ids: Vec<Uuid>,
     },
+    #[clap(group = ArgGroup::new("edit_field").required(true).multiple(true))]
     Edit {
         secret_id: Uuid,
         #[arg(long, group = "edit_field")]
@@ -126,6 +127,8 @@ enum SecretCommand {
         value: Option<String>,
         #[arg(long, group = "edit_field")]
         note: Option<String>,
+        #[arg(long, group = "edit_field")]
+        project_id: Option<Uuid>,
     },
     Get {
         secret_id: Uuid,
@@ -179,7 +182,7 @@ enum CreateCommand {
         note: Option<String>,
 
         #[arg(long, help = "The ID of the project this secret will be added to")]
-        project_id: Option<Uuid>,
+        project_id: Uuid,
     },
 }
 
@@ -200,6 +203,8 @@ enum EditCommand {
         value: Option<String>,
         #[arg(long, group = "edit_field")]
         note: Option<String>,
+        #[arg(long, group = "edit_field")]
+        project_id: Option<Uuid>,
     },
 }
 
@@ -220,6 +225,7 @@ const ACCESS_TOKEN_KEY_VAR_NAME: &str = "BWS_ACCESS_TOKEN";
 const PROFILE_KEY_VAR_NAME: &str = "BWS_PROFILE";
 const SERVER_URL_KEY_VAR_NAME: &str = "BWS_SERVER_URL";
 
+#[allow(clippy::comparison_chain)]
 async fn process_commands() -> Result<()> {
     let cli = Cli::parse();
 
@@ -300,9 +306,7 @@ async fn process_commands() -> Result<()> {
 
     // Load session or return if no session exists
     let _ = client
-        .access_token_login(&AccessTokenLoginRequest {
-            access_token: access_token,
-        })
+        .access_token_login(&AccessTokenLoginRequest { access_token })
         .await?;
 
     let organization_id = match client.get_access_token_organization() {
@@ -323,9 +327,7 @@ async fn process_commands() -> Result<()> {
         } => {
             let projects = client
                 .projects()
-                .list(&ProjectsListRequest {
-                    organization_id: organization_id.clone(),
-                })
+                .list(&ProjectsListRequest { organization_id })
                 .await?
                 .data;
             serialize_response(projects, cli.output, color);
@@ -383,17 +385,38 @@ async fn process_commands() -> Result<()> {
         | Commands::Delete {
             cmd: DeleteCommand::Project { project_ids },
         } => {
-            let project_count = project_ids.len();
+            let count = project_ids.len();
 
-            client
+            let result = client
                 .projects()
                 .delete(ProjectsDeleteRequest { ids: project_ids })
                 .await?;
 
-            if project_count > 1 {
-                println!("Projects deleted successfully.");
-            } else {
-                println!("Project deleted successfully.");
+            let projects_failed: Vec<(Uuid, String)> = result
+                .data
+                .into_iter()
+                .filter_map(|r| r.error.map(|e| (r.id, e)))
+                .collect();
+            let deleted_projects = count - projects_failed.len();
+
+            if deleted_projects > 1 {
+                println!("{} projects deleted successfully.", deleted_projects);
+            } else if deleted_projects == 1 {
+                println!("{} project deleted successfully.", deleted_projects);
+            }
+
+            if projects_failed.len() > 1 {
+                eprintln!("{} projects had errors:", projects_failed.len());
+            } else if projects_failed.len() == 1 {
+                eprintln!("{} project had an error:", projects_failed.len());
+            }
+
+            for project in &projects_failed {
+                eprintln!("{}: {}", project.0, project.1);
+            }
+
+            if !projects_failed.is_empty() {
+                process::exit(1);
             }
         }
 
@@ -406,16 +429,12 @@ async fn process_commands() -> Result<()> {
             let res = if let Some(project_id) = project_id {
                 client
                     .secrets()
-                    .list_by_project(&SecretIdentifiersByProjectRequest {
-                        project_id: project_id,
-                    })
+                    .list_by_project(&SecretIdentifiersByProjectRequest { project_id })
                     .await?
             } else {
                 client
                     .secrets()
-                    .list(&SecretIdentifiersRequest {
-                        organization_id: organization_id.clone(),
-                    })
+                    .list(&SecretIdentifiersRequest { organization_id })
                     .await?
             };
 
@@ -466,7 +485,7 @@ async fn process_commands() -> Result<()> {
                     key,
                     value,
                     note: note.unwrap_or_default(),
-                    project_ids: project_id.map(|p| vec![p]),
+                    project_ids: Some(vec![project_id]),
                 })
                 .await?;
             serialize_response(secret, cli.output, color);
@@ -479,6 +498,7 @@ async fn process_commands() -> Result<()> {
                     key,
                     value,
                     note,
+                    project_id,
                 },
         }
         | Commands::Edit {
@@ -488,13 +508,12 @@ async fn process_commands() -> Result<()> {
                     key,
                     value,
                     note,
+                    project_id,
                 },
         } => {
             let old_secret = client
                 .secrets()
-                .get(&SecretGetRequest {
-                    id: secret_id.clone(),
-                })
+                .get(&SecretGetRequest { id: secret_id })
                 .await?;
 
             let secret = client
@@ -505,6 +524,13 @@ async fn process_commands() -> Result<()> {
                     key: key.unwrap_or(old_secret.key),
                     value: value.unwrap_or(old_secret.value),
                     note: note.unwrap_or(old_secret.note),
+                    project_ids: match project_id {
+                        Some(id) => Some(vec![id]),
+                        None => match old_secret.project_id {
+                            Some(id) => Some(vec![id]),
+                            None => bail!("Editing a secret requires a project_id."),
+                        },
+                    },
                 })
                 .await?;
             serialize_response(secret, cli.output, color);
@@ -516,12 +542,39 @@ async fn process_commands() -> Result<()> {
         | Commands::Delete {
             cmd: DeleteCommand::Secret { secret_ids },
         } => {
-            client
+            let count = secret_ids.len();
+
+            let result = client
                 .secrets()
                 .delete(SecretsDeleteRequest { ids: secret_ids })
                 .await?;
 
-            println!("Secret deleted correctly");
+            let secrets_failed: Vec<(Uuid, String)> = result
+                .data
+                .into_iter()
+                .filter_map(|r| r.error.map(|e| (r.id, e)))
+                .collect();
+            let deleted_secrets = count - secrets_failed.len();
+
+            if deleted_secrets > 1 {
+                println!("{} secrets deleted successfully.", deleted_secrets);
+            } else if deleted_secrets == 1 {
+                println!("{} secret deleted successfully.", deleted_secrets);
+            }
+
+            if secrets_failed.len() > 1 {
+                eprintln!("{} secrets had errors:", secrets_failed.len());
+            } else if secrets_failed.len() == 1 {
+                eprintln!("{} secret had an error:", secrets_failed.len());
+            }
+
+            for secret in &secrets_failed {
+                eprintln!("{}: {}", secret.0, secret.1);
+            }
+
+            if !secrets_failed.is_empty() {
+                process::exit(1);
+            }
         }
 
         Commands::Config { .. } => {
@@ -536,7 +589,7 @@ fn get_config_profile(
     server_url: &Option<String>,
     profile: &Option<String>,
     config_file: &Option<PathBuf>,
-    access_token: &String,
+    access_token: &str,
 ) -> Result<Option<config::Profile>, color_eyre::Report> {
     let profile = if let Some(server_url) = server_url {
         Some(config::Profile::from_url(server_url)?)

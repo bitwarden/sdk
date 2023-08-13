@@ -7,6 +7,7 @@ use uuid::Uuid;
 
 use crate::{
     client::{encryption_settings::EncryptionSettings, Client},
+    crypto::{CipherString, Decryptable},
     error::{Error, Result},
 };
 
@@ -28,10 +29,7 @@ pub(crate) async fn list_secrets(
     )
     .await?;
 
-    let enc = client
-        .get_encryption_settings()
-        .as_ref()
-        .ok_or(Error::VaultLocked)?;
+    let enc = client.get_encryption_settings()?;
 
     SecretIdentifiersResponse::process_response(res, enc)
 }
@@ -54,10 +52,7 @@ pub(crate) async fn list_secrets_by_project(
     )
     .await?;
 
-    let enc = client
-        .get_encryption_settings()
-        .as_ref()
-        .ok_or(Error::VaultLocked)?;
+    let enc = client.get_encryption_settings()?;
 
     SecretIdentifiersResponse::process_response(res, enc)
 }
@@ -100,10 +95,11 @@ impl SecretIdentifierResponse {
     ) -> Result<SecretIdentifierResponse> {
         let organization_id = response.organization_id.ok_or(Error::MissingFields)?;
 
-        let key = enc.decrypt_str(
-            &response.key.ok_or(Error::MissingFields)?,
-            Some(organization_id),
-        )?;
+        let key = response
+            .key
+            .ok_or(Error::MissingFields)?
+            .parse::<CipherString>()?
+            .decrypt(enc, &Some(organization_id))?;
 
         Ok(SecretIdentifierResponse {
             id: response.id.ok_or(Error::MissingFields)?,

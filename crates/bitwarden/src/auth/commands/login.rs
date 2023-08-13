@@ -13,25 +13,28 @@ use log::{debug, info};
 
 use crate::{
     auth::{
-        api::{
-            request::{AccessTokenRequest, ApiTokenRequest, PasswordTokenRequest},
-            response::IdentityTokenResponse,
-        },
-        request::{
-            AccessTokenLoginRequest, ApiKeyLoginRequest, PasswordLoginRequest,
-            TwoFactorEmailRequest,
-        },
-        response::{ApiKeyLoginResponse, PasswordLoginResponse},
+        api::{request::AccessTokenRequest, response::IdentityTokenResponse},
+        request::{AccessTokenLoginRequest, TwoFactorEmailRequest},
+        response::ApiKeyLoginResponse,
     },
     client::{
         access_token::AccessToken,
-        auth_settings::AuthSettings,
         encryption_settings::{decrypt, SymmetricCryptoKey},
         Client, LoginMethod,
     },
     crypto::CipherString,
     error::{Error, Result},
     util::{decode_token, BASE64_ENGINE},
+};
+
+#[cfg(feature = "internal")]
+use crate::{
+    auth::{
+        api::request::{ApiTokenRequest, PasswordTokenRequest},
+        request::{ApiKeyLoginRequest, PasswordLoginRequest},
+        response::PasswordLoginResponse,
+    },
+    client::auth_settings::AuthSettings,
 };
 
 #[cfg(feature = "internal")]
@@ -129,7 +132,7 @@ pub(crate) async fn access_token_login(
 
         let payload: Payload = serde_json::from_slice(&decrypted_payload)?;
 
-        let encryption_key = BASE64_ENGINE.decode(&payload.encryption_key)?;
+        let encryption_key = BASE64_ENGINE.decode(payload.encryption_key)?;
 
         let encryption_key = SymmetricCryptoKey::try_from(encryption_key.as_slice())?;
 
@@ -159,6 +162,7 @@ pub(crate) async fn access_token_login(
     ApiKeyLoginResponse::process_response(response)
 }
 
+#[cfg(feature = "internal")]
 async fn determine_password_hash(
     client: &mut Client,
     email: &str,
@@ -166,18 +170,20 @@ async fn determine_password_hash(
 ) -> Result<String> {
     let pre_login = request_prelogin(client, email.to_owned()).await?;
     let auth_settings = AuthSettings::new(pre_login, email.to_owned());
-    let password_hash = auth_settings.make_user_password_hash(password);
+    let password_hash = auth_settings.make_user_password_hash(password)?;
     client.set_auth_settings(auth_settings);
 
     Ok(password_hash)
 }
 
+#[cfg(feature = "internal")]
 async fn request_prelogin(client: &mut Client, email: String) -> Result<PreloginResponseModel> {
     let request_model = PreloginRequestModel::new(email);
     let config = client.get_api_configurations().await;
     Ok(accounts_prelogin_post(&config.identity, Some(request_model)).await?)
 }
 
+#[cfg(feature = "internal")]
 async fn request_identity_tokens(
     client: &mut Client,
     input: &PasswordLoginRequest,
@@ -196,7 +202,7 @@ async fn request_api_identity_tokens(
 ) -> Result<IdentityTokenResponse> {
     let config = client.get_api_configurations().await;
     ApiTokenRequest::new(&input.client_id, &input.client_secret)
-        .send(&config)
+        .send(config)
         .await
 }
 
@@ -206,7 +212,7 @@ async fn request_access_token(
 ) -> Result<IdentityTokenResponse> {
     let config = client.get_api_configurations().await;
     AccessTokenRequest::new(input.service_account_id, &input.client_secret)
-        .send(&config)
+        .send(config)
         .await
 }
 
@@ -242,6 +248,7 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
         }
 
         let res = match login_method {
+            #[cfg(feature = "internal")]
             LoginMethod::Username { client_id } => {
                 let refresh = client
                     .refresh_token
@@ -255,6 +262,7 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
                 .send(&client.__api_configurations)
                 .await?
             }
+            #[cfg(feature = "internal")]
             LoginMethod::ApiKey {
                 client_id,
                 client_secret,
@@ -268,7 +276,7 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
                 client_secret,
                 ..
             } => {
-                AccessTokenRequest::new(*service_account_id, &client_secret)
+                AccessTokenRequest::new(*service_account_id, client_secret)
                     .send(&client.__api_configurations)
                     .await?
             }

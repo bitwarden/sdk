@@ -4,17 +4,11 @@ use std::{
 };
 
 use base64::Engine;
-use bitwarden_api_api::models::TwoFactorEmailRequestModel;
-use bitwarden_api_identity::{
-    apis::accounts_api::accounts_prelogin_post,
-    models::{PreloginRequestModel, PreloginResponseModel},
-};
-use log::{debug, info};
 
 use crate::{
     auth::{
         api::{request::AccessTokenRequest, response::IdentityTokenResponse},
-        request::{AccessTokenLoginRequest, TwoFactorEmailRequest},
+        request::AccessTokenLoginRequest,
         response::ApiKeyLoginResponse,
     },
     client::{
@@ -28,13 +22,21 @@ use crate::{
 };
 
 #[cfg(feature = "internal")]
-use crate::{
-    auth::{
-        api::request::{ApiTokenRequest, PasswordTokenRequest},
-        request::{ApiKeyLoginRequest, PasswordLoginRequest},
-        response::PasswordLoginResponse,
+use {
+    crate::{
+        auth::{
+            api::request::{ApiTokenRequest, PasswordTokenRequest},
+            request::{ApiKeyLoginRequest, PasswordLoginRequest, TwoFactorEmailRequest},
+            response::PasswordLoginResponse,
+        },
+        client::auth_settings::AuthSettings,
     },
-    client::auth_settings::AuthSettings,
+    bitwarden_api_api::models::TwoFactorEmailRequestModel,
+    bitwarden_api_identity::{
+        apis::accounts_api::accounts_prelogin_post,
+        models::{PreloginRequestModel, PreloginResponseModel},
+    },
+    log::{debug, info},
 };
 
 #[cfg(feature = "internal")]
@@ -216,7 +218,8 @@ async fn request_access_token(
         .await
 }
 
-pub async fn send_two_factor_email(
+#[cfg(feature = "internal")]
+pub(crate) async fn send_two_factor_email(
     client: &mut Client,
     input: &TwoFactorEmailRequest,
 ) -> Result<()> {

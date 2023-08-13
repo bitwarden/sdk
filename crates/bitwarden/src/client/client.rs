@@ -5,8 +5,7 @@ use uuid::Uuid;
 
 use crate::{
     auth::{
-        commands::{access_token_login, renew_token, send_two_factor_email},
-        request::{AccessTokenLoginRequest, TwoFactorEmailRequest},
+        commands::{access_token_login, renew_token},
         response::ApiKeyLoginResponse,
     },
     client::{
@@ -16,12 +15,15 @@ use crate::{
     error::{Error, Result},
 };
 
+#[cfg(feature = "secrets")]
+use crate::auth::request::AccessTokenLoginRequest;
+
 #[cfg(feature = "internal")]
 use {
     crate::{
         auth::{
-            commands::{api_key_login, password_login},
-            request::{ApiKeyLoginRequest, PasswordLoginRequest},
+            commands::{api_key_login, password_login, send_two_factor_email},
+            request::{ApiKeyLoginRequest, PasswordLoginRequest, TwoFactorEmailRequest},
             response::PasswordLoginResponse,
         },
         client::auth_settings::AuthSettings,
@@ -262,6 +264,7 @@ impl Client {
         generate_fingerprint(input)
     }
 
+    #[cfg(feature = "internal")]
     pub async fn send_two_factor_email(&mut self, tf: &TwoFactorEmailRequest) -> Result<()> {
         send_two_factor_email(self, tf).await
     }

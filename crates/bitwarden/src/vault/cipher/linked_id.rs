@@ -24,7 +24,7 @@ impl UniffiCustomTypeConverter for LinkedIdType {
     }
 
     fn from_custom(obj: Self) -> Self::Builtin {
-        serde_json::to_value(&obj)
+        serde_json::to_value(obj)
             .expect("LinkedIdType should be serializable")
             .as_u64()
             .expect("Not a numeric enum value") as u32

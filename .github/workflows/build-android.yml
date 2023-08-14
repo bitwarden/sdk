@@ -28,12 +28,12 @@ jobs:
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@0e66bd3e6b38ec0ad5312288c83e47c143e6b09e # stable
+        uses: dtolnay/rust-toolchain@f361669954a8ecfc00a3443f35f9ac8e610ffc06 # stable
         with:
           toolchain: 1.67.0 # https://github.com/cross-rs/cross/issues/1222
 
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@dd05243424bd5c0e585e4b55eb2d7615cdd32f1f # v2.5.1
+        uses: Swatinem/rust-cache@578b235f6e5f613f7727f1c17bd3305b4d4d4e1f # v2.6.1
         with:
           key: ${{ matrix.settings.target }}-cargo
 
@@ -70,12 +70,12 @@ jobs:
           fetch-depth: 0
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@0e66bd3e6b38ec0ad5312288c83e47c143e6b09e # stable
+        uses: dtolnay/rust-toolchain@f361669954a8ecfc00a3443f35f9ac8e610ffc06 # stable
         with:
           toolchain: 1.67.0 # https://github.com/cross-rs/cross/issues/1222
 
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@dd05243424bd5c0e585e4b55eb2d7615cdd32f1f # v2.5.1
+        uses: Swatinem/rust-cache@578b235f6e5f613f7727f1c17bd3305b4d4d4e1f # v2.6.1
         with:
           key: cargo-combine-cache
 
@@ -108,13 +108,13 @@ jobs:
 
       - name: Retrieve bot secrets
         id: retrieve-bot-secrets
-        uses: bitwarden/gh-actions/get-keyvault-secrets@a30e9c3d658dc97c4c2e61ec749fdab64b83386c
+        uses: bitwarden/gh-actions/get-keyvault-secrets@f096207b7a2f31723165aee6ad03e91716686e78
         with:
           keyvault: bitwarden-ci
           secrets: "github-pat-bitwarden-devops-bot-packages-scope"
 
       - name: Publish
-        uses: gradle/gradle-build-action@915a66c096a03101667f9df2e56c9efef558b165 # v2.6.1
+        uses: gradle/gradle-build-action@a4cf152f482c7ca97ef56ead29bf08bcd953284c # v2.7.0
         with:
           arguments: sdk:publish
           build-root-directory: languages/kotlin

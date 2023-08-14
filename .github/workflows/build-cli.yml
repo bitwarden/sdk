@@ -17,7 +17,7 @@ defaults:
 jobs:
   setup:
     name: Setup
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       package_version: ${{ steps.retrieve-version.outputs.package_version }}
     steps:

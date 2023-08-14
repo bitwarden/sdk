@@ -193,7 +193,7 @@ async fn request_identity_tokens(
 ) -> Result<IdentityTokenResponse> {
     let config = client.get_api_configurations().await;
     PasswordTokenRequest::new(&input.email, password_hash, &input.two_factor)
-        .send(&config)
+        .send(config)
         .await
 }
 

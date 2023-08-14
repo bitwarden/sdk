@@ -80,29 +80,26 @@ async fn process_commands() -> Result<()> {
         return Ok(());
     };
 
-    match command.clone() {
-        Commands::Login(args) => {
-            let settings = args.server.map(|server| ClientSettings {
-                api_url: format!("{}/api", server),
-                identity_url: format!("{}/identity", server),
-                ..Default::default()
-            });
-            let client = bitwarden::Client::new(settings);
+    if let Commands::Login(args) = command.clone() {
+        let settings = args.server.map(|server| ClientSettings {
+            api_url: format!("{}/api", server),
+            identity_url: format!("{}/identity", server),
+            ..Default::default()
+        });
+        let client = bitwarden::Client::new(settings);
 
-            match args.command {
-                // FIXME: Rust CLI will not support password login!
-                LoginCommands::Password { email } => {
-                    auth::password_login(client, email).await?;
-                }
-                LoginCommands::ApiKey {
-                    client_id,
-                    client_secret,
-                } => auth::api_key_login(client, client_id, client_secret).await?,
+        match args.command {
+            // FIXME: Rust CLI will not support password login!
+            LoginCommands::Password { email } => {
+                auth::password_login(client, email).await?;
             }
-            return Ok(());
+            LoginCommands::ApiKey {
+                client_id,
+                client_secret,
+            } => auth::api_key_login(client, client_id, client_secret).await?,
         }
-        _ => {}
-    };
+        return Ok(());
+    }
 
     // Not login, assuming we have a config
     let mut _client = bitwarden::Client::new(None);

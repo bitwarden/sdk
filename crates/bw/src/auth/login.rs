@@ -26,7 +26,7 @@ pub(crate) async fn password_login(mut client: Client, email: Option<String>) ->
         })
         .await?;
 
-    if let Some(_) = result.captcha {
+    if result.captcha.is_some() {
         // TODO: We should build a web captcha solution
         error!("Captcha required");
     } else if let Some(two_factor) = result.two_factor {
@@ -67,9 +67,9 @@ pub(crate) async fn password_login(mut client: Client, email: Option<String>) ->
 
         let result = client
             .password_login(&PasswordLoginRequest {
-                email: email,
-                password: password,
-                two_factor: two_factor,
+                email,
+                password,
+                two_factor,
             })
             .await?;
 

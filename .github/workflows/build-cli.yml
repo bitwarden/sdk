@@ -107,7 +107,7 @@ jobs:
 
   macos-universal-binary:
     name: Generate universal macOS binary
-    runs-on: macos-12
+    runs-on: macos-13
     needs:
       - setup
       - build

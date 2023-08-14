@@ -20,7 +20,7 @@ tokio = { version = "1.28.2", features = ["rt-multi-thread", "macros"] }
 log = "0.4.18"
 env_logger = "0.10.0"
 color-eyre = "0.6"
-inquire = "^0.6.2"
+inquire = "0.6.2"
 
 bitwarden = { path = "../bitwarden", version = "0.3.0", features = [
     "internal",

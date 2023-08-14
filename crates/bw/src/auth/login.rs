@@ -10,11 +10,7 @@ use inquire::{Password, Text};
 use log::error;
 
 pub(crate) async fn password_login(mut client: Client, email: Option<String>) -> Result<()> {
-    let email = if let Some(email) = email {
-        email
-    } else {
-        Text::new("Email").prompt()?
-    };
+    let email = text_prompt_when_none("Email", email)?;
 
     let password = Password::new("Password").without_confirmation().prompt()?;
 
@@ -86,8 +82,8 @@ pub(crate) async fn api_key_login(
     client_id: Option<String>,
     client_secret: Option<String>,
 ) -> Result<()> {
-    let client_id = text_prompt(client_id, "Client ID")?;
-    let client_secret = text_prompt(client_secret, "Client Secret")?;
+    let client_id = text_prompt_when_none("Client ID", client_id)?;
+    let client_secret = text_prompt_when_none("Client Secret", client_secret)?;
 
     let password = Password::new("Password").without_confirmation().prompt()?;
 
@@ -104,7 +100,10 @@ pub(crate) async fn api_key_login(
     Ok(())
 }
 
-fn text_prompt(val: Option<String>, prompt: &str) -> Result<String> {
+/// Prompt the user for input if the value is None
+///
+/// Typically used when the user can provide a value via CLI or prompt
+fn text_prompt_when_none(prompt: &str, val: Option<String>) -> Result<String> {
     Ok(if let Some(val) = val {
         val
     } else {

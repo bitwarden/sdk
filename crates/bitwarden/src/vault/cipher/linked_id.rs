@@ -10,11 +10,11 @@ pub enum LinkedIdType {
     Identity(IdentityLinkedIdType),
 }
 
-[#cfg(feature = "mobile")]
+#[cfg(feature = "mobile")]
 use crate::UniffiCustomTypeConverter;
-[#cfg(feature = "mobile")]
+#[cfg(feature = "mobile")]
 uniffi::custom_type!(LinkedIdType, u32);
-[#cfg(feature = "mobile")]
+#[cfg(feature = "mobile")]
 impl UniffiCustomTypeConverter for LinkedIdType {
     type Builtin = u32;
 
@@ -29,7 +29,6 @@ impl UniffiCustomTypeConverter for LinkedIdType {
 
 #[derive(Clone, Copy, PartialEq, Eq, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u16)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum LoginLinkedIdType {
     Username = 100,
     Password = 101,
@@ -37,7 +36,6 @@ pub enum LoginLinkedIdType {
 
 #[derive(Clone, Copy, PartialEq, Eq, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u16)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum CardLinkedIdType {
     CardholderName = 300,
     ExpMonth = 301,
@@ -49,7 +47,6 @@ pub enum CardLinkedIdType {
 
 #[derive(Clone, Copy, PartialEq, Eq, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u16)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum IdentityLinkedIdType {
     Title = 400,
     MiddleName = 401,

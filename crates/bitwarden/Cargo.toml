@@ -15,9 +15,9 @@ rust-version = "1.57"
 [features]
 default = ["secrets"]
 
-secrets = []        # Secrets manager API
-internal = []       # Internal testing methods
-mobile = ["uniffi"] # Mobile-specific features
+secrets = []                    # Secrets manager API
+internal = []                   # Internal testing methods
+mobile = ["uniffi", "internal"] # Mobile-specific features
 
 [dependencies]
 base64 = ">=0.21.2, <0.22"

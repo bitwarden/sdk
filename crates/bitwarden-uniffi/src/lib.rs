@@ -12,6 +12,7 @@ mod error;
 pub mod vault;
 
 use error::Result;
+use vault::ClientVault;
 
 #[derive(uniffi::Object)]
 pub struct Client(RwLock<bitwarden::Client>);
@@ -38,6 +39,11 @@ impl Client {
     /// Crypto operations
     pub fn crypto(self: Arc<Self>) -> Arc<ClientCrypto> {
         Arc::new(ClientCrypto(self))
+    }
+
+    /// Vault item operations
+    pub fn vault(self: Arc<Self>) -> Arc<ClientVault> {
+        Arc::new(ClientVault(self))
     }
 
     /// Test method, echoes back the input

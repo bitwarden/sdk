@@ -8,7 +8,7 @@ pub mod folders;
 pub mod password_history;
 
 #[derive(uniffi::Object)]
-pub struct ClientVault(Arc<Client>);
+pub struct ClientVault(pub(crate) Arc<Client>);
 
 #[uniffi::export]
 impl ClientVault {

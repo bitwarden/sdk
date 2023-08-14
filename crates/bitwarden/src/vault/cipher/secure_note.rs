@@ -11,18 +11,21 @@ use crate::{
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum SecureNoteType {
     Generic = 0,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SecureNote {
     r#type: SecureNoteType,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SecureNoteView {
     r#type: SecureNoteType,
 }

@@ -1,20 +1,69 @@
-use bitwarden::client::client_settings::ClientSettings;
+uniffi::setup_scaffolding!();
 
-uniffi::include_scaffolding!("sdk");
+use std::sync::Arc;
 
-pub struct Client(bitwarden::Client);
+use async_lock::RwLock;
+use bitwarden::{
+    client::client_settings::ClientSettings,
+    mobile::{crypto::InitCryptoRequest, kdf::PasswordHashRequest},
+};
 
+mod error;
+pub mod vault;
+
+use error::Result;
+
+#[derive(uniffi::Object)]
+pub struct Client(RwLock<bitwarden::Client>);
+
+#[derive(uniffi::Object)]
+pub struct ClientKdf(Arc<Client>);
+
+#[derive(uniffi::Object)]
+pub struct ClientCrypto(Arc<Client>);
+
+#[uniffi::export]
 impl Client {
-    pub fn new(_settings_input: String) -> Self {
-        let settings = Self::parse_settings(None);
-        Self(bitwarden::Client::new(settings))
+    /// Initialize a new instance of the SDK client
+    #[uniffi::constructor]
+    pub fn new(settings: Option<ClientSettings>) -> Arc<Self> {
+        Arc::new(Self(RwLock::new(bitwarden::Client::new(settings))))
     }
 
-    pub fn run_command(&self, input_str: String) -> String {
-        input_str
+    /// KDF operations
+    pub fn kdf(self: Arc<Self>) -> Arc<ClientKdf> {
+        Arc::new(ClientKdf(self))
     }
 
-    fn parse_settings(_settings_input: Option<String>) -> Option<ClientSettings> {
-        None
+    /// Crypto operations
+    pub fn crypto(self: Arc<Self>) -> Arc<ClientCrypto> {
+        Arc::new(ClientCrypto(self))
+    }
+
+    /// Test method, echoes back the input
+    pub fn echo(&self, msg: String) -> String {
+        msg
+    }
+}
+
+#[uniffi::export]
+impl ClientKdf {
+    /// Hash the user password
+    pub async fn hash_password(&self, req: PasswordHashRequest) -> Result<String> {
+        Ok(self.0 .0.read().await.kdf().hash_password(req).await?)
+    }
+}
+#[uniffi::export]
+impl ClientCrypto {
+    /// Initialization method for the crypto. Needs to be called before any other crypto operations.
+    pub async fn initialize_crypto(&self, req: InitCryptoRequest) -> Result<()> {
+        Ok(self
+            .0
+             .0
+            .write()
+            .await
+            .crypto()
+            .initialize_crypto(req)
+            .await?)
     }
 }

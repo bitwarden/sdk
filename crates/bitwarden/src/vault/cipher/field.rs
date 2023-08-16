@@ -13,6 +13,7 @@ use super::linked_id::LinkedIdType;
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum FieldType {
     Text = 0,
     Hidden = 1,
@@ -22,6 +23,7 @@ pub enum FieldType {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Field {
     name: CipherString,
     value: CipherString,
@@ -32,6 +34,7 @@ pub struct Field {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct FieldView {
     name: String,
     value: String,

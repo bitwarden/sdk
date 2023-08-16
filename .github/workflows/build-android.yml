@@ -1,0 +1,123 @@
+---
+name: Build Android
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "master"
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - target: aarch64-linux-android
+          - target: armv7-linux-androideabi
+          - target: x86_64-linux-android
+          - target: i686-linux-android
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@f361669954a8ecfc00a3443f35f9ac8e610ffc06 # stable
+        with:
+          toolchain: 1.67.0 # https://github.com/cross-rs/cross/issues/1222
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@578b235f6e5f613f7727f1c17bd3305b4d4d4e1f # v2.6.1
+        with:
+          key: ${{ matrix.settings.target }}-cargo
+
+      - name: Install Cross
+        run: cargo install cross
+
+      - name: Build
+        env:
+          TARGET: ${{ matrix.settings.target }}
+        run: cross build -p bitwarden-uniffi --release --target=${{ matrix.settings.target }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: android-${{ matrix.settings.target }}
+          path: ./target/${{ matrix.settings.target }}/release/libbitwarden_uniffi.so
+          if-no-files-found: error
+
+  combine:
+    runs-on: ubuntu-22.04
+    needs: build
+    steps:
+      - name: Checkout repo (PR)
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+        if: github.event_name == 'pull_request'
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Checkout repo (Push)
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+        if: github.event_name == 'push'
+        with:
+          fetch-depth: 0
+
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@f361669954a8ecfc00a3443f35f9ac8e610ffc06 # stable
+        with:
+          toolchain: 1.67.0 # https://github.com/cross-rs/cross/issues/1222
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@578b235f6e5f613f7727f1c17bd3305b4d4d4e1f # v2.6.1
+        with:
+          key: cargo-combine-cache
+
+      - name: Setup Java
+        uses: actions/setup-java@cd89f46ac9d01407894225f350157564c9c7cee2 # v3.12.0
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+
+      - name: Move artifacts
+        working-directory: languages/kotlin/sdk/src/main/jniLibs
+        run: |
+          mkdir armeabi-v7a arm64-v8a x86 x86_64
+          mv /home/runner/work/sdk/sdk/android-armv7-linux-androideabi/libbitwarden_uniffi.so ./armeabi-v7a/libbitwarden_uniffi.so
+          mv /home/runner/work/sdk/sdk/android-aarch64-linux-android/libbitwarden_uniffi.so ./arm64-v8a/libbitwarden_uniffi.so
+          mv /home/runner/work/sdk/sdk/android-i686-linux-android/libbitwarden_uniffi.so ./x86/libbitwarden_uniffi.so
+          mv /home/runner/work/sdk/sdk/android-x86_64-linux-android/libbitwarden_uniffi.so ./x86_64/libbitwarden_uniffi.so
+
+      - name: Generate bindings
+        working-directory: languages/kotlin
+        run: ./build-schemas.sh
+
+      - name: Login to Azure - CI Subscription
+        uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
+        with:
+          creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
+
+      - name: Retrieve bot secrets
+        id: retrieve-bot-secrets
+        uses: bitwarden/gh-actions/get-keyvault-secrets@f096207b7a2f31723165aee6ad03e91716686e78
+        with:
+          keyvault: bitwarden-ci
+          secrets: "github-pat-bitwarden-devops-bot-packages-scope"
+
+      - name: Publish
+        uses: gradle/gradle-build-action@a4cf152f482c7ca97ef56ead29bf08bcd953284c # v2.7.0
+        with:
+          arguments: sdk:publish
+          build-root-directory: languages/kotlin
+        env:
+          GITHUB_ACTOR: "bitwarden-devops-bot"
+          GITHUB_TOKEN: ${{ steps.retrieve-bot-secrets.outputs.github-pat-bitwarden-devops-bot-packages-scope }}

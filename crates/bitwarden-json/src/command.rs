@@ -274,20 +274,20 @@ pub enum MobileCiphersCommand {
     ///
     /// Returns: [CipherEncryptResponse](bitwarden::mobile::vault::CipherEncryptResponse)
     ///
-    Encrypt(CipherEncryptRequest),
+    Encrypt(Box<CipherEncryptRequest>),
     /// > Requires having previously initialized the cryptography parameters
     /// Decrypts the provided cipher
     ///
     /// Returns: [CipherDecryptResponse](bitwarden::mobile::vault::CipherDecryptResponse)
     ///
-    Decrypt(CipherDecryptRequest),
+    Decrypt(Box<CipherDecryptRequest>),
     /// > Requires having previously initialized the cryptography parameters
     /// Decrypts the provided ciphers. Note that some sensitive fields might not be included in the response.
     /// To get them, use `DecryptCipher` for each cipher individually when those fields are needed
     ///
     /// Returns: [CipherDecryptListResponse](bitwarden::mobile::vault::CipherDecryptListResponse)
     ///
-    DecryptList(CipherDecryptListRequest),
+    DecryptList(Box<CipherDecryptListRequest>),
 }
 
 #[cfg(feature = "mobile")]
@@ -316,12 +316,12 @@ pub enum MobileCollectionsCommand {
     /// Decrypts the provided collection
     ///
     /// Returns: [CollectionDecryptResponse](bitwarden::mobile::vault::CollectionDecryptResponse)
-    ///  
+    ///
     Decrypt(CollectionDecryptRequest),
     /// > Requires having previously initialized the cryptography parameters
     /// Decrypts the provided collections
     ///
-    /// Returns: [CollectionDecryptListResponse](bitwarden::mobile::vault::CollectionDecryptListResponse)   
+    /// Returns: [CollectionDecryptListResponse](bitwarden::mobile::vault::CollectionDecryptListResponse)
     ///
     DecryptList(CollectionDecryptListRequest),
 }

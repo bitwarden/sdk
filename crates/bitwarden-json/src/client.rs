@@ -119,16 +119,16 @@ impl Client {
                     },
                     MobileVaultCommand::Ciphers(cmd) => match cmd {
                         MobileCiphersCommand::Encrypt(cmd) => {
-                            self.0.vault().ciphers().encrypt(cmd).await.into_string()
+                            self.0.vault().ciphers().encrypt(*cmd).await.into_string()
                         }
                         MobileCiphersCommand::Decrypt(cmd) => {
-                            self.0.vault().ciphers().decrypt(cmd).await.into_string()
+                            self.0.vault().ciphers().decrypt(*cmd).await.into_string()
                         }
                         MobileCiphersCommand::DecryptList(cmd) => self
                             .0
                             .vault()
                             .ciphers()
-                            .decrypt_list(cmd)
+                            .decrypt_list(*cmd)
                             .await
                             .into_string(),
                     },

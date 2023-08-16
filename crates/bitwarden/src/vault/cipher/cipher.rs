@@ -19,6 +19,7 @@ use super::{
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum CipherType {
     Login = 1,
     SecureNote = 2,
@@ -28,6 +29,7 @@ pub enum CipherType {
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum CipherRepromptType {
     None = 0,
     Password = 1,
@@ -35,6 +37,7 @@ pub enum CipherRepromptType {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Cipher {
     pub id: Option<Uuid>,
     pub organization_id: Option<Uuid>,
@@ -45,9 +48,9 @@ pub struct Cipher {
     pub notes: CipherString,
 
     pub r#type: CipherType,
-    pub login: Option<Box<login::Login>>,
-    pub identity: Option<Box<identity::Identity>>,
-    pub card: Option<Box<card::Card>>,
+    pub login: Option<login::Login>,
+    pub identity: Option<identity::Identity>,
+    pub card: Option<card::Card>,
     pub secure_note: Option<secure_note::SecureNote>,
 
     pub favorite: bool,
@@ -68,6 +71,7 @@ pub struct Cipher {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct CipherView {
     pub id: Option<Uuid>,
     pub organization_id: Option<Uuid>,
@@ -78,10 +82,10 @@ pub struct CipherView {
     pub notes: String,
 
     pub r#type: CipherType,
-    pub login: Option<Box<login::LoginView>>,
-    pub identity: Option<Box<identity::IdentityView>>,
-    pub card: Option<Box<card::CardView>>,
-    pub secure_note: Option<Box<secure_note::SecureNoteView>>,
+    pub login: Option<login::LoginView>,
+    pub identity: Option<identity::IdentityView>,
+    pub card: Option<card::CardView>,
+    pub secure_note: Option<secure_note::SecureNoteView>,
 
     pub favorite: bool,
     pub reprompt: CipherRepromptType,
@@ -101,6 +105,7 @@ pub struct CipherView {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct CipherListView {
     pub id: Option<Uuid>,
     pub organization_id: Option<Uuid>,
@@ -118,7 +123,7 @@ pub struct CipherListView {
     pub view_password: bool,
 
     /// The number of attachments
-    pub attachments: usize,
+    pub attachments: u32,
 
     pub creation_date: DateTime<Utc>,
     pub deleted_date: Option<DateTime<Utc>>,
@@ -136,9 +141,9 @@ impl Encryptable<Cipher> for CipherView {
             name: self.name.encrypt(enc, org_id)?,
             notes: self.notes.encrypt(enc, org_id)?,
             r#type: self.r#type,
-            login: self.login.encrypt(enc, org_id)?.map(Box::new),
-            identity: self.identity.encrypt(enc, org_id)?.map(Box::new),
-            card: self.card.encrypt(enc, org_id)?.map(Box::new),
+            login: self.login.encrypt(enc, org_id)?,
+            identity: self.identity.encrypt(enc, org_id)?,
+            card: self.card.encrypt(enc, org_id)?,
             secure_note: self.secure_note.encrypt(enc, org_id)?,
             favorite: self.favorite,
             reprompt: self.reprompt,
@@ -167,10 +172,10 @@ impl Decryptable<CipherView> for Cipher {
             name: self.name.decrypt(enc, org_id)?,
             notes: self.notes.decrypt(enc, org_id)?,
             r#type: self.r#type,
-            login: self.login.decrypt(enc, org_id)?.map(Box::new),
-            identity: self.identity.decrypt(enc, org_id)?.map(Box::new),
-            card: self.card.decrypt(enc, org_id)?.map(Box::new),
-            secure_note: self.secure_note.decrypt(enc, org_id)?.map(Box::new),
+            login: self.login.decrypt(enc, org_id)?,
+            identity: self.identity.decrypt(enc, org_id)?,
+            card: self.card.decrypt(enc, org_id)?,
+            secure_note: self.secure_note.decrypt(enc, org_id)?,
             favorite: self.favorite,
             reprompt: self.reprompt,
             organization_use_totp: self.organization_use_totp,
@@ -263,7 +268,7 @@ impl Decryptable<CipherListView> for Cipher {
             reprompt: self.reprompt,
             edit: self.edit,
             view_password: self.view_password,
-            attachments: self.attachments.len(),
+            attachments: self.attachments.len() as u32,
             creation_date: self.creation_date,
             deleted_date: self.deleted_date,
             revision_date: self.revision_date,

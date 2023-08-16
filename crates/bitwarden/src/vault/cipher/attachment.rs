@@ -10,6 +10,7 @@ use crate::{
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Attachment {
     pub id: Option<String>,
     pub url: Option<String>,
@@ -22,6 +23,7 @@ pub struct Attachment {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct AttachmentView {
     pub id: Option<String>,
     pub url: Option<String>,

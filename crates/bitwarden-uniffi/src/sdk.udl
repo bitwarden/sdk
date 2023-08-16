@@ -1,0 +1,8 @@
+interface Client {
+    constructor(optional string settings = "");
+    string run_command(string command);
+};
+
+namespace bitwarden {
+
+};

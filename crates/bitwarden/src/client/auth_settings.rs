@@ -20,6 +20,7 @@ pub(crate) struct AuthSettings {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum Kdf {
     PBKDF2 {
         iterations: NonZeroU32,

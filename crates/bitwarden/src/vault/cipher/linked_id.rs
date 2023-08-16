@@ -10,6 +10,27 @@ pub enum LinkedIdType {
     Identity(IdentityLinkedIdType),
 }
 
+#[cfg(feature = "mobile")]
+use crate::UniffiCustomTypeConverter;
+#[cfg(feature = "mobile")]
+uniffi::custom_type!(LinkedIdType, u32);
+#[cfg(feature = "mobile")]
+impl UniffiCustomTypeConverter for LinkedIdType {
+    type Builtin = u32;
+
+    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
+        let val = serde_json::Value::Number(val.into());
+        Ok(serde_json::from_value(val)?)
+    }
+
+    fn from_custom(obj: Self) -> Self::Builtin {
+        serde_json::to_value(obj)
+            .expect("LinkedIdType should be serializable")
+            .as_u64()
+            .expect("Not a numeric enum value") as u32
+    }
+}
+
 #[derive(Clone, Copy, PartialEq, Eq, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u16)]
 pub enum LoginLinkedIdType {
@@ -71,5 +92,33 @@ mod tests {
 
         let serialized = serde_json::to_string(&val).unwrap();
         assert_eq!(serialized, json);
+    }
+
+    #[cfg(feature = "mobile")]
+    #[test]
+    fn test_linked_id_serialization_uniffi() {
+        use super::{CardLinkedIdType, LinkedIdType, LoginLinkedIdType};
+
+        assert_eq!(
+            100,
+            crate::UniffiCustomTypeConverter::from_custom(LinkedIdType::Login(
+                LoginLinkedIdType::Username
+            ))
+        );
+        assert_eq!(
+            303,
+            crate::UniffiCustomTypeConverter::from_custom(LinkedIdType::Card(
+                CardLinkedIdType::Code
+            ))
+        );
+
+        assert_eq!(
+            LinkedIdType::Login(LoginLinkedIdType::Username),
+            crate::UniffiCustomTypeConverter::into_custom(100).unwrap()
+        );
+        assert_eq!(
+            LinkedIdType::Card(CardLinkedIdType::Code),
+            crate::UniffiCustomTypeConverter::into_custom(303).unwrap()
+        );
     }
 }

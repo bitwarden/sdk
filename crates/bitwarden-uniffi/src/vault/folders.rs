@@ -1,9 +1,6 @@
 use std::sync::Arc;
 
-use bitwarden::mobile::vault::{
-    FolderDecryptListRequest, FolderDecryptListResponse, FolderDecryptRequest,
-    FolderDecryptResponse, FolderEncryptRequest, FolderEncryptResponse,
-};
+use bitwarden::vault::{Folder, FolderView};
 
 use crate::{Client, Result};
 
@@ -13,7 +10,7 @@ pub struct ClientFolders(pub Arc<Client>);
 #[uniffi::export]
 impl ClientFolders {
     /// Encrypt folder
-    pub async fn encrypt(&self, req: FolderEncryptRequest) -> Result<FolderEncryptResponse> {
+    pub async fn encrypt(&self, folder: FolderView) -> Result<Folder> {
         Ok(self
             .0
              .0
@@ -21,12 +18,12 @@ impl ClientFolders {
             .await
             .vault()
             .folders()
-            .encrypt(req)
+            .encrypt(folder)
             .await?)
     }
 
     /// Decrypt folder
-    pub async fn decrypt(&self, req: FolderDecryptRequest) -> Result<FolderDecryptResponse> {
+    pub async fn decrypt(&self, folder: Folder) -> Result<FolderView> {
         Ok(self
             .0
              .0
@@ -34,15 +31,12 @@ impl ClientFolders {
             .await
             .vault()
             .folders()
-            .decrypt(req)
+            .decrypt(folder)
             .await?)
     }
 
     /// Decrypt folder list
-    pub async fn decrypt_list(
-        &self,
-        req: FolderDecryptListRequest,
-    ) -> Result<FolderDecryptListResponse> {
+    pub async fn decrypt_list(&self, folders: Vec<Folder>) -> Result<Vec<FolderView>> {
         Ok(self
             .0
              .0
@@ -50,7 +44,7 @@ impl ClientFolders {
             .await
             .vault()
             .folders()
-            .decrypt_list(req)
+            .decrypt_list(folders)
             .await?)
     }
 }

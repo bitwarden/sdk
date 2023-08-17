@@ -24,10 +24,8 @@ mv ./tmp/bindings/BitwardenCore.swift ./Sources/BitwardenSdk/
 # Massage the generated files to fit xcframework
 mkdir tmp/Headers
 mv ./tmp/bindings/BitwardenFFI.h ./tmp/Headers/
-mv ./tmp/bindings/BitwardenFFI.modulemap ./tmp/Headers/module.modulemap
 mv ./tmp/bindings/BitwardenCoreFFI.h ./tmp/Headers/
-mv ./tmp/bindings/BitwardenCoreFFI.modulemap ./tmp/Headers/module.modulemap
-
+cat ./tmp/bindings/BitwardenFFI.modulemap ./tmp/bindings/BitwardenCoreFFI.modulemap > ./tmp/Headers/module.modulemap
 
 # Build xcframework
 xcodebuild -create-xcframework \

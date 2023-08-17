@@ -66,7 +66,9 @@ Hash the user password
 **Arguments**:
 
 - self:
-- req: [PasswordHashRequest](#passwordhashrequest)
+- email: String
+- password: String
+- kdf_params: [Kdf](#kdf)
 
 **Output**: std::result::Result<String,BitwardenError>
 
@@ -134,9 +136,9 @@ Encrypt cipher
 **Arguments**:
 
 - self:
-- req: [CipherEncryptRequest](#cipherencryptrequest)
+- cipher_view: [CipherView](#cipherview)
 
-**Output**: std::result::Result<CipherEncryptResponse,BitwardenError>
+**Output**: std::result::Result<Cipher,BitwardenError>
 
 ### `decrypt`
 
@@ -145,9 +147,9 @@ Decrypt cipher
 **Arguments**:
 
 - self:
-- req: [CipherDecryptRequest](#cipherdecryptrequest)
+- cipher: [Cipher](#cipher)
 
-**Output**: std::result::Result<CipherDecryptResponse,BitwardenError>
+**Output**: std::result::Result<CipherView,BitwardenError>
 
 ### `decrypt_list`
 
@@ -156,9 +158,9 @@ Decrypt cipher list
 **Arguments**:
 
 - self:
-- req: [CipherDecryptListRequest](#cipherdecryptlistrequest)
+- ciphers: Vec<Cipher>
 
-**Output**: std::result::Result<CipherDecryptListResponse,BitwardenError>
+**Output**: std::result::Result<Vec,BitwardenError>
 
 ## ClientCollections
 
@@ -169,9 +171,9 @@ Decrypt collection
 **Arguments**:
 
 - self:
-- req: [CollectionDecryptRequest](#collectiondecryptrequest)
+- collection: [Collection](#collection)
 
-**Output**: std::result::Result<CollectionDecryptResponse,BitwardenError>
+**Output**: std::result::Result<CollectionView,BitwardenError>
 
 ### `decrypt_list`
 
@@ -180,9 +182,9 @@ Decrypt collection list
 **Arguments**:
 
 - self:
-- req: [CollectionDecryptListRequest](#collectiondecryptlistrequest)
+- collections: Vec<Collection>
 
-**Output**: std::result::Result<CollectionDecryptListResponse,BitwardenError>
+**Output**: std::result::Result<Vec,BitwardenError>
 
 ## ClientFolders
 
@@ -193,9 +195,9 @@ Encrypt folder
 **Arguments**:
 
 - self:
-- req: [FolderEncryptRequest](#folderencryptrequest)
+- folder: [FolderView](#folderview)
 
-**Output**: std::result::Result<FolderEncryptResponse,BitwardenError>
+**Output**: std::result::Result<Folder,BitwardenError>
 
 ### `decrypt`
 
@@ -204,9 +206,9 @@ Decrypt folder
 **Arguments**:
 
 - self:
-- req: [FolderDecryptRequest](#folderdecryptrequest)
+- folder: [Folder](#folder)
 
-**Output**: std::result::Result<FolderDecryptResponse,BitwardenError>
+**Output**: std::result::Result<FolderView,BitwardenError>
 
 ### `decrypt_list`
 
@@ -215,9 +217,9 @@ Decrypt folder list
 **Arguments**:
 
 - self:
-- req: [FolderDecryptListRequest](#folderdecryptlistrequest)
+- folders: Vec<Folder>
 
-**Output**: std::result::Result<FolderDecryptListResponse,BitwardenError>
+**Output**: std::result::Result<Vec,BitwardenError>
 
 ## ClientPasswordHistory
 
@@ -228,9 +230,9 @@ Encrypt password history
 **Arguments**:
 
 - self:
-- req: [PasswordHistoryEncryptRequest](#passwordhistoryencryptrequest)
+- password_history: [PasswordHistoryView](#passwordhistoryview)
 
-**Output**: std::result::Result<PasswordHistoryEncryptResponse,BitwardenError>
+**Output**: std::result::Result<PasswordHistory,BitwardenError>
 
 ### `decrypt_list`
 
@@ -239,16 +241,16 @@ Decrypt password history
 **Arguments**:
 
 - self:
-- req: [PasswordHistoryDecryptListRequest](#passwordhistorydecryptlistrequest)
+- list: Vec<PasswordHistory>
 
-**Output**: std::result::Result<PasswordHistoryDecryptListResponse,BitwardenError>
+**Output**: std::result::Result<Vec,BitwardenError>
 
 # Command references
 
 Command references are generated from the JSON schemas and should mostly match the kotlin and swift
 implementations.
 
-## `CipherDecryptListRequest`
+## `Cipher`
 
 <table>
 <tr>
@@ -257,88 +259,123 @@ implementations.
     <th>Description</th>
 </tr>
 <tr>
-    <th>ciphers</th>
+    <th>id</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>organizationId</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>folderId</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>collectionIds</th>
     <th>array</th>
     <th></th>
 </tr>
-</table>
-
-## `CipherDecryptRequest`
-
-<table>
 <tr>
-    <th>Key</th>
-    <th>Type</th>
-    <th>Description</th>
-</tr>
-<tr>
-    <th>cipher</th>
+    <th>name</th>
     <th></th>
     <th></th>
 </tr>
-</table>
-
-## `CipherEncryptRequest`
-
-<table>
 <tr>
-    <th>Key</th>
-    <th>Type</th>
-    <th>Description</th>
-</tr>
-<tr>
-    <th>cipher</th>
+    <th>notes</th>
     <th></th>
     <th></th>
 </tr>
-</table>
-
-## `CollectionDecryptListRequest`
-
-<table>
 <tr>
-    <th>Key</th>
-    <th>Type</th>
-    <th>Description</th>
+    <th>type</th>
+    <th></th>
+    <th></th>
 </tr>
 <tr>
-    <th>collections</th>
+    <th>login</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>identity</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>card</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>secureNote</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>favorite</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>reprompt</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>organizationUseTotp</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>edit</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>viewPassword</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>localData</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>attachments</th>
     <th>array</th>
     <th></th>
 </tr>
-</table>
-
-## `CollectionDecryptRequest`
-
-<table>
 <tr>
-    <th>Key</th>
-    <th>Type</th>
-    <th>Description</th>
-</tr>
-<tr>
-    <th>collection</th>
-    <th></th>
-    <th></th>
-</tr>
-</table>
-
-## `FolderDecryptListRequest`
-
-<table>
-<tr>
-    <th>Key</th>
-    <th>Type</th>
-    <th>Description</th>
-</tr>
-<tr>
-    <th>folders</th>
+    <th>fields</th>
     <th>array</th>
     <th></th>
 </tr>
+<tr>
+    <th>passwordHistory</th>
+    <th>array</th>
+    <th></th>
+</tr>
+<tr>
+    <th>creationDate</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>deletedDate</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>revisionDate</th>
+    <th>string</th>
+    <th></th>
+</tr>
 </table>
 
-## `FolderDecryptRequest`
+## `CipherView`
 
 <table>
 <tr>
@@ -347,13 +384,123 @@ implementations.
     <th>Description</th>
 </tr>
 <tr>
-    <th>folder</th>
+    <th>id</th>
+    <th>string,null</th>
     <th></th>
+</tr>
+<tr>
+    <th>organizationId</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>folderId</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>collectionIds</th>
+    <th>array</th>
+    <th></th>
+</tr>
+<tr>
+    <th>name</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>notes</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>type</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>login</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>identity</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>card</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>secureNote</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>favorite</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>reprompt</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>organizationUseTotp</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>edit</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>viewPassword</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>localData</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>attachments</th>
+    <th>array</th>
+    <th></th>
+</tr>
+<tr>
+    <th>fields</th>
+    <th>array</th>
+    <th></th>
+</tr>
+<tr>
+    <th>passwordHistory</th>
+    <th>array</th>
+    <th></th>
+</tr>
+<tr>
+    <th>creationDate</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>deletedDate</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>revisionDate</th>
+    <th>string</th>
     <th></th>
 </tr>
 </table>
 
-## `FolderEncryptRequest`
+## `Collection`
 
 <table>
 <tr>
@@ -362,8 +509,83 @@ implementations.
     <th>Description</th>
 </tr>
 <tr>
-    <th>folder</th>
+    <th>id</th>
+    <th>string</th>
     <th></th>
+</tr>
+<tr>
+    <th>organizationId</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>name</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>externalId</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>hidePasswords</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>readOnly</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+</table>
+
+## `Folder`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>id</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>name</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>revisionDate</th>
+    <th>string</th>
+    <th></th>
+</tr>
+</table>
+
+## `FolderView`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>id</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>name</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>revisionDate</th>
+    <th>string</th>
     <th></th>
 </tr>
 </table>
@@ -470,57 +692,22 @@ implementations.
 </tr>
 </table>
 
-## `PasswordHashRequest`
+## `PasswordHistoryView`
 
 <table>
 <tr>
     <th>Key</th>
     <th>Type</th>
     <th>Description</th>
-</tr>
-<tr>
-    <th>kdfParams</th>
-    <th></th>
-    <th>The user&#x27;s KDF parameters, as received from the prelogin request</th>
-</tr>
-<tr>
-    <th>email</th>
-    <th>string</th>
-    <th>The user&#x27;s email address</th>
 </tr>
 <tr>
     <th>password</th>
     <th>string</th>
-    <th>The user&#x27;s master password</th>
-</tr>
-</table>
-
-## `PasswordHistoryDecryptListRequest`
-
-<table>
-<tr>
-    <th>Key</th>
-    <th>Type</th>
-    <th>Description</th>
-</tr>
-<tr>
-    <th>history</th>
-    <th></th>
     <th></th>
 </tr>
-</table>
-
-## `PasswordHistoryEncryptRequest`
-
-<table>
 <tr>
-    <th>Key</th>
-    <th>Type</th>
-    <th>Description</th>
-</tr>
-<tr>
-    <th>history</th>
-    <th></th>
+    <th>lastUsedDate</th>
+    <th>string</th>
     <th></th>
 </tr>
 </table>

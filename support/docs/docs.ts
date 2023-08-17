@@ -64,7 +64,7 @@ function stripDef(str: string) {
   return str.replace(/#\/definitions\//g, "");
 }
 
-Handlebars.registerHelper("stripDef", (str) => {
+Handlebars.registerHelper("stripDef", (str: string) => {
   return stripDef(str);
 });
 
@@ -113,7 +113,7 @@ function map_type(t: InputType) {
     usedDefinitions.push(name);
 
     if (command.definitions[name] != null) {
-      out += `[${name}](#${name})`;
+      out += `[${name}](#${name.toLowerCase()})`;
     } else {
       out += name;
     }

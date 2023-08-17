@@ -1,38 +1,31 @@
-use crate::{crypto::Decryptable, error::Result, Client};
-
-use super::{
-    client_vault::ClientVault,
-    collections::{
-        CollectionDecryptListRequest, CollectionDecryptListResponse, CollectionDecryptRequest,
-        CollectionDecryptResponse,
-    },
+use crate::{
+    crypto::Decryptable,
+    error::Result,
+    vault::{Collection, CollectionView},
+    Client,
 };
+
+use super::client_vault::ClientVault;
 
 pub struct ClientCollections<'a> {
     pub(crate) client: &'a Client,
 }
 
 impl<'a> ClientCollections<'a> {
-    pub async fn decrypt(
-        &self,
-        req: CollectionDecryptRequest,
-    ) -> Result<CollectionDecryptResponse> {
+    pub async fn decrypt(&self, collection: Collection) -> Result<CollectionView> {
         let enc = self.client.get_encryption_settings()?;
 
-        let collection = req.collection.decrypt(enc, &None)?;
+        let view = collection.decrypt(enc, &None)?;
 
-        Ok(CollectionDecryptResponse { collection })
+        Ok(view)
     }
 
-    pub async fn decrypt_list(
-        &self,
-        req: CollectionDecryptListRequest,
-    ) -> Result<CollectionDecryptListResponse> {
+    pub async fn decrypt_list(&self, collections: Vec<Collection>) -> Result<Vec<CollectionView>> {
         let enc = self.client.get_encryption_settings()?;
 
-        let collections = req.collections.decrypt(enc, &None)?;
+        let views = collections.decrypt(enc, &None)?;
 
-        Ok(CollectionDecryptListResponse { collections })
+        Ok(views)
     }
 }
 

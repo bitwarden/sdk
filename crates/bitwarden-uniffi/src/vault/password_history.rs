@@ -1,9 +1,6 @@
 use std::sync::Arc;
 
-use bitwarden::mobile::vault::{
-    PasswordHistoryDecryptListRequest, PasswordHistoryDecryptListResponse,
-    PasswordHistoryEncryptRequest, PasswordHistoryEncryptResponse,
-};
+use bitwarden::vault::{PasswordHistory, PasswordHistoryView};
 
 use crate::{Client, Result};
 
@@ -13,10 +10,7 @@ pub struct ClientPasswordHistory(pub Arc<Client>);
 #[uniffi::export]
 impl ClientPasswordHistory {
     /// Encrypt password history
-    pub async fn encrypt(
-        &self,
-        req: PasswordHistoryEncryptRequest,
-    ) -> Result<PasswordHistoryEncryptResponse> {
+    pub async fn encrypt(&self, password_history: PasswordHistoryView) -> Result<PasswordHistory> {
         Ok(self
             .0
              .0
@@ -24,15 +18,15 @@ impl ClientPasswordHistory {
             .await
             .vault()
             .password_history()
-            .encrypt(req)
+            .encrypt(password_history)
             .await?)
     }
 
     /// Decrypt password history
     pub async fn decrypt_list(
         &self,
-        req: PasswordHistoryDecryptListRequest,
-    ) -> Result<PasswordHistoryDecryptListResponse> {
+        list: Vec<PasswordHistory>,
+    ) -> Result<Vec<PasswordHistoryView>> {
         Ok(self
             .0
              .0
@@ -40,7 +34,7 @@ impl ClientPasswordHistory {
             .await
             .vault()
             .password_history()
-            .decrypt_list(req)
+            .decrypt_list(list)
             .await?)
     }
 }

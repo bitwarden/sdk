@@ -4,220 +4,251 @@ Auto generated documentation for the Bitwarden Mobile SDK. For more information 
 the rust crates `bitwarden` and `bitwarden-uniffi`. For code samples check the
 `languages/kotlin/app` and `languages/swift/app` directories.
 
-
 ## Client
 
 ### `new`
+
 Initialize a new instance of the SDK client
 
 **Arguments**:
+
 - settings: Option<ClientSettings>
 
 **Output**: Arc<Self>
 
 ### `kdf`
+
 KDF operations
 
 **Arguments**:
+
 - self: Arc<Self>
 
 **Output**: Arc<ClientKdf>
 
 ### `crypto`
+
 Crypto operations
 
 **Arguments**:
+
 - self: Arc<Self>
 
 **Output**: Arc<ClientCrypto>
 
 ### `vault`
+
 Vault item operations
 
 **Arguments**:
+
 - self: Arc<Self>
 
 **Output**: Arc<ClientVault>
 
 ### `echo`
+
 Test method, echoes back the input
 
 **Arguments**:
-- self: 
+
+- self:
 - msg: String
 
 **Output**: String
 
-
 ## ClientKdf
 
 ### `hash_password`
+
 Hash the user password
 
 **Arguments**:
-- self: 
+
+- self:
 - req: [PasswordHashRequest](#passwordhashrequest)
 
 **Output**: std::result::Result<String,BitwardenError>
 
-
 ## ClientCrypto
 
 ### `initialize_crypto`
+
 Initialization method for the crypto. Needs to be called before any other crypto operations.
 
 **Arguments**:
-- self: 
+
+- self:
 - req: [InitCryptoRequest](#initcryptorequest)
 
 **Output**: std::result::Result<,BitwardenError>
 
-
 ## ClientVault
 
 ### `folders`
+
 Folder operations
 
 **Arguments**:
+
 - self: Arc<Self>
 
 **Output**: Arc<folders::ClientFolders>
 
 ### `collections`
+
 Collections operations
 
 **Arguments**:
+
 - self: Arc<Self>
 
 **Output**: Arc<collections::ClientCollections>
 
 ### `ciphers`
+
 Ciphers operations
 
 **Arguments**:
+
 - self: Arc<Self>
 
 **Output**: Arc<ciphers::ClientCiphers>
 
 ### `password_history`
+
 Ciphers operations
 
 **Arguments**:
+
 - self: Arc<Self>
 
 **Output**: Arc<password_history::ClientPasswordHistory>
 
-
 ## ClientCiphers
 
 ### `encrypt`
+
 Encrypt cipher
 
 **Arguments**:
-- self: 
+
+- self:
 - req: [CipherEncryptRequest](#cipherencryptrequest)
 
 **Output**: std::result::Result<CipherEncryptResponse,BitwardenError>
 
 ### `decrypt`
+
 Decrypt cipher
 
 **Arguments**:
-- self: 
+
+- self:
 - req: [CipherDecryptRequest](#cipherdecryptrequest)
 
 **Output**: std::result::Result<CipherDecryptResponse,BitwardenError>
 
 ### `decrypt_list`
+
 Decrypt cipher list
 
 **Arguments**:
-- self: 
+
+- self:
 - req: [CipherDecryptListRequest](#cipherdecryptlistrequest)
 
 **Output**: std::result::Result<CipherDecryptListResponse,BitwardenError>
 
-
 ## ClientCollections
 
 ### `decrypt`
+
 Decrypt collection
 
 **Arguments**:
-- self: 
+
+- self:
 - req: [CollectionDecryptRequest](#collectiondecryptrequest)
 
 **Output**: std::result::Result<CollectionDecryptResponse,BitwardenError>
 
 ### `decrypt_list`
+
 Decrypt collection list
 
 **Arguments**:
-- self: 
+
+- self:
 - req: [CollectionDecryptListRequest](#collectiondecryptlistrequest)
 
 **Output**: std::result::Result<CollectionDecryptListResponse,BitwardenError>
 
-
 ## ClientFolders
 
 ### `encrypt`
+
 Encrypt folder
 
 **Arguments**:
-- self: 
+
+- self:
 - req: [FolderEncryptRequest](#folderencryptrequest)
 
 **Output**: std::result::Result<FolderEncryptResponse,BitwardenError>
 
 ### `decrypt`
+
 Decrypt folder
 
 **Arguments**:
-- self: 
+
+- self:
 - req: [FolderDecryptRequest](#folderdecryptrequest)
 
 **Output**: std::result::Result<FolderDecryptResponse,BitwardenError>
 
 ### `decrypt_list`
+
 Decrypt folder list
 
 **Arguments**:
-- self: 
+
+- self:
 - req: [FolderDecryptListRequest](#folderdecryptlistrequest)
 
 **Output**: std::result::Result<FolderDecryptListResponse,BitwardenError>
 
-
 ## ClientPasswordHistory
 
 ### `encrypt`
+
 Encrypt password history
 
 **Arguments**:
-- self: 
+
+- self:
 - req: [PasswordHistoryEncryptRequest](#passwordhistoryencryptrequest)
 
 **Output**: std::result::Result<PasswordHistoryEncryptResponse,BitwardenError>
 
 ### `decrypt_list`
+
 Decrypt password history
 
 **Arguments**:
-- self: 
+
+- self:
 - req: [PasswordHistoryDecryptListRequest](#passwordhistorydecryptlistrequest)
 
 **Output**: std::result::Result<PasswordHistoryDecryptListResponse,BitwardenError>
-
 
 # Command references
 
 Command references are generated from the JSON schemas and should mostly match the kotlin and swift
 implementations.
 
-
 ## `CipherDecryptListRequest`
-
 
 <table>
 <tr>
@@ -232,9 +263,7 @@ implementations.
 </tr>
 </table>
 
-
 ## `CipherDecryptRequest`
-
 
 <table>
 <tr>
@@ -248,11 +277,9 @@ implementations.
     <th></th>
 </tr>
 </table>
-
 
 ## `CipherEncryptRequest`
 
-
 <table>
 <tr>
     <th>Key</th>
@@ -266,9 +293,7 @@ implementations.
 </tr>
 </table>
 
-
 ## `CollectionDecryptListRequest`
-
 
 <table>
 <tr>
@@ -283,9 +308,7 @@ implementations.
 </tr>
 </table>
 
-
 ## `CollectionDecryptRequest`
-
 
 <table>
 <tr>
@@ -300,9 +323,7 @@ implementations.
 </tr>
 </table>
 
-
 ## `FolderDecryptListRequest`
-
 
 <table>
 <tr>
@@ -317,9 +338,7 @@ implementations.
 </tr>
 </table>
 
-
 ## `FolderDecryptRequest`
-
 
 <table>
 <tr>
@@ -333,11 +352,9 @@ implementations.
     <th></th>
 </tr>
 </table>
-
 
 ## `FolderEncryptRequest`
 
-
 <table>
 <tr>
     <th>Key</th>
@@ -351,9 +368,7 @@ implementations.
 </tr>
 </table>
 
-
 ## `InitCryptoRequest`
-
 
 <table>
 <tr>
@@ -392,7 +407,6 @@ implementations.
     <th>The encryption keys for all the organizations the user is a part of</th>
 </tr>
 </table>
-
 
 ## `Kdf`
 
@@ -456,11 +470,7 @@ implementations.
 </tr>
 </table>
 
-
-
-
 ## `PasswordHashRequest`
-
 
 <table>
 <tr>
@@ -485,9 +495,7 @@ implementations.
 </tr>
 </table>
 
-
 ## `PasswordHistoryDecryptListRequest`
-
 
 <table>
 <tr>
@@ -501,11 +509,9 @@ implementations.
     <th></th>
 </tr>
 </table>
-
 
 ## `PasswordHistoryEncryptRequest`
 
-
 <table>
 <tr>
     <th>Key</th>
@@ -518,5 +524,3 @@ implementations.
     <th></th>
 </tr>
 </table>
-
-

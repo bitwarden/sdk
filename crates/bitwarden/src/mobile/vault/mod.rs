@@ -1,4 +1,3 @@
-mod ciphers;
 mod client_ciphers;
 mod client_collection;
 mod client_folders;
@@ -11,11 +10,6 @@ mod password_history;
 pub use folders::{
     FolderDecryptListRequest, FolderDecryptListResponse, FolderDecryptRequest,
     FolderDecryptResponse, FolderEncryptRequest, FolderEncryptResponse,
-};
-
-pub use ciphers::{
-    CipherDecryptListRequest, CipherDecryptListResponse, CipherDecryptRequest,
-    CipherDecryptResponse, CipherEncryptRequest, CipherEncryptResponse,
 };
 
 pub use password_history::{

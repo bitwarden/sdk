@@ -1,44 +1,39 @@
 use crate::{
     crypto::{Decryptable, Encryptable},
     error::Result,
+    vault::{Cipher, CipherListView, CipherView},
     Client,
 };
 
-use super::{
-    client_vault::ClientVault, CipherDecryptListRequest, CipherDecryptListResponse,
-    CipherDecryptRequest, CipherDecryptResponse, CipherEncryptRequest, CipherEncryptResponse,
-};
+use super::client_vault::ClientVault;
 
 pub struct ClientCiphers<'a> {
     pub(crate) client: &'a Client,
 }
 
 impl<'a> ClientCiphers<'a> {
-    pub async fn encrypt(&self, req: CipherEncryptRequest) -> Result<CipherEncryptResponse> {
+    pub async fn encrypt(&self, cipher_view: CipherView) -> Result<Cipher> {
         let enc = self.client.get_encryption_settings()?;
 
-        let cipher = req.cipher.encrypt(enc, &None)?;
+        let cipher = cipher_view.encrypt(enc, &None)?;
 
-        Ok(CipherEncryptResponse { cipher })
+        Ok(cipher)
     }
 
-    pub async fn decrypt(&self, req: CipherDecryptRequest) -> Result<CipherDecryptResponse> {
+    pub async fn decrypt(&self, cipher: Cipher) -> Result<CipherView> {
         let enc = self.client.get_encryption_settings()?;
 
-        let cipher = req.cipher.decrypt(enc, &None)?;
+        let cipher_view = cipher.decrypt(enc, &None)?;
 
-        Ok(CipherDecryptResponse { cipher })
+        Ok(cipher_view)
     }
 
-    pub async fn decrypt_list(
-        &self,
-        req: CipherDecryptListRequest,
-    ) -> Result<CipherDecryptListResponse> {
+    pub async fn decrypt_list(&self, ciphers: Vec<Cipher>) -> Result<Vec<CipherListView>> {
         let enc = self.client.get_encryption_settings()?;
 
-        let ciphers = req.ciphers.decrypt(enc, &None)?;
+        let cipher_views = ciphers.decrypt(enc, &None)?;
 
-        Ok(CipherDecryptListResponse { ciphers })
+        Ok(cipher_views)
     }
 }
 

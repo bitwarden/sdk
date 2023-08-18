@@ -1,9 +1,6 @@
 use std::sync::Arc;
 
-use bitwarden::mobile::vault::{
-    CipherDecryptListRequest, CipherDecryptListResponse, CipherDecryptRequest,
-    CipherDecryptResponse, CipherEncryptRequest, CipherEncryptResponse,
-};
+use bitwarden::vault::{Cipher, CipherListView, CipherView};
 
 use crate::{Client, Result};
 
@@ -13,7 +10,7 @@ pub struct ClientCiphers(pub Arc<Client>);
 #[uniffi::export]
 impl ClientCiphers {
     /// Encrypt cipher
-    pub async fn encrypt(&self, req: CipherEncryptRequest) -> Result<CipherEncryptResponse> {
+    pub async fn encrypt(&self, cipher_view: CipherView) -> Result<Cipher> {
         Ok(self
             .0
              .0
@@ -21,12 +18,12 @@ impl ClientCiphers {
             .await
             .vault()
             .ciphers()
-            .encrypt(req)
+            .encrypt(cipher_view)
             .await?)
     }
 
     /// Decrypt cipher
-    pub async fn decrypt(&self, req: CipherDecryptRequest) -> Result<CipherDecryptResponse> {
+    pub async fn decrypt(&self, cipher: Cipher) -> Result<CipherView> {
         Ok(self
             .0
              .0
@@ -34,15 +31,12 @@ impl ClientCiphers {
             .await
             .vault()
             .ciphers()
-            .decrypt(req)
+            .decrypt(cipher)
             .await?)
     }
 
     /// Decrypt cipher list
-    pub async fn decrypt_list(
-        &self,
-        req: CipherDecryptListRequest,
-    ) -> Result<CipherDecryptListResponse> {
+    pub async fn decrypt_list(&self, ciphers: Vec<Cipher>) -> Result<Vec<CipherListView>> {
         Ok(self
             .0
              .0
@@ -50,7 +44,7 @@ impl ClientCiphers {
             .await
             .vault()
             .ciphers()
-            .decrypt_list(req)
+            .decrypt_list(ciphers)
             .await?)
     }
 }

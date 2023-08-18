@@ -19,20 +19,6 @@ use bitwarden::{
     platform::{FingerprintRequest, SecretVerificationRequest, SyncRequest},
 };
 
-#[cfg(feature = "mobile")]
-use bitwarden::mobile::{
-    kdf::PasswordHashRequest,
-    vault::{
-        CipherDecryptListRequest, CipherDecryptRequest, CipherEncryptRequest,
-        CollectionDecryptListRequest, CollectionDecryptRequest, FolderDecryptListRequest,
-        FolderDecryptRequest, FolderEncryptRequest, PasswordHistoryDecryptListRequest,
-        PasswordHistoryEncryptRequest,
-    },
-};
-
-#[cfg(all(feature = "mobile", feature = "internal"))]
-use bitwarden::mobile::crypto::InitCryptoRequest;
-
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -97,9 +83,6 @@ pub enum Command {
     Secrets(SecretsCommand),
     #[cfg(feature = "secrets")]
     Projects(ProjectsCommand),
-
-    #[cfg(feature = "mobile")]
-    Mobile(MobileCommand),
 }
 
 #[cfg(feature = "secrets")]
@@ -190,130 +173,4 @@ pub enum ProjectsCommand {
     /// Returns: [ProjectsDeleteResponse](bitwarden::secrets_manager::projects::ProjectsDeleteResponse)
     ///
     Delete(ProjectsDeleteRequest),
-}
-
-#[cfg(feature = "mobile")]
-#[derive(Serialize, Deserialize, JsonSchema, Debug)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub enum MobileCommand {
-    Kdf(MobileKdfCommand),
-    Crypto(MobileCryptoCommand),
-
-    Vault(MobileVaultCommand),
-}
-
-#[cfg(feature = "mobile")]
-#[derive(Serialize, Deserialize, JsonSchema, Debug)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub enum MobileKdfCommand {
-    /// Calculates the user master password hash based on the provided password and KDF parametes
-    ///
-    /// Returns: String
-    ///
-    HashPassword(PasswordHashRequest),
-}
-
-#[cfg(feature = "mobile")]
-#[derive(Serialize, Deserialize, JsonSchema, Debug)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub enum MobileCryptoCommand {
-    #[cfg(feature = "internal")]
-    /// Decrypts the users keys and initializes the user crypto, allowing for the encryption/decryption of the users vault
-    ///
-    InitCrypto(InitCryptoRequest),
-}
-
-#[cfg(feature = "mobile")]
-#[derive(Serialize, Deserialize, JsonSchema, Debug)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub enum MobileVaultCommand {
-    Folders(MobileFoldersCommand),
-    Ciphers(MobileCiphersCommand),
-    PasswordHistory(MobilePasswordHistoryCommand),
-    Collections(MobileCollectionsCommand),
-}
-
-#[cfg(feature = "mobile")]
-#[derive(Serialize, Deserialize, JsonSchema, Debug)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub enum MobileFoldersCommand {
-    /// > Requires having previously initialized the cryptography parameters
-    /// Encrypts the provided folder
-    ///
-    /// Returns: [FolderEncryptResponse](bitwarden::mobile::vault::FolderEncryptResponse)
-    ///
-    Encrypt(FolderEncryptRequest),
-    /// > Requires having previously initialized the cryptography parameters
-    /// Decrypts the provided folder
-    ///
-    /// Returns: [FolderDecryptResponse](bitwarden::mobile::vault::FolderDecryptResponse)
-    ///
-    Decrypt(FolderDecryptRequest),
-    /// > Requires having previously initialized the cryptography parameters
-    /// Decrypts the provided folders
-    ///
-    /// Returns: [FolderDecryptListResponse](bitwarden::mobile::vault::FolderDecryptListResponse)
-    ///
-    DecryptList(FolderDecryptListRequest),
-}
-
-#[cfg(feature = "mobile")]
-#[derive(Serialize, Deserialize, JsonSchema, Debug)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub enum MobileCiphersCommand {
-    /// > Requires having previously initialized the cryptography parameters
-    /// Encrypts the provided cipher
-    ///
-    /// Returns: [CipherEncryptResponse](bitwarden::mobile::vault::CipherEncryptResponse)
-    ///
-    Encrypt(Box<CipherEncryptRequest>),
-    /// > Requires having previously initialized the cryptography parameters
-    /// Decrypts the provided cipher
-    ///
-    /// Returns: [CipherDecryptResponse](bitwarden::mobile::vault::CipherDecryptResponse)
-    ///
-    Decrypt(Box<CipherDecryptRequest>),
-    /// > Requires having previously initialized the cryptography parameters
-    /// Decrypts the provided ciphers. Note that some sensitive fields might not be included in the response.
-    /// To get them, use `DecryptCipher` for each cipher individually when those fields are needed
-    ///
-    /// Returns: [CipherDecryptListResponse](bitwarden::mobile::vault::CipherDecryptListResponse)
-    ///
-    DecryptList(Box<CipherDecryptListRequest>),
-}
-
-#[cfg(feature = "mobile")]
-#[derive(Serialize, Deserialize, JsonSchema, Debug)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub enum MobilePasswordHistoryCommand {
-    /// > Requires having previously initialized the cryptography parameters
-    /// Encrypts the provided password history entry
-    ///
-    /// Returns: [PasswordHistoryEncryptResponse](bitwarden::mobile::vault::PasswordHistoryEncryptResponse)
-    ///
-    Encrypt(PasswordHistoryEncryptRequest),
-    /// > Requires having previously initialized the cryptography parameters
-    /// Decrypts the provided password history
-    ///
-    /// Returns: [PasswordHistoryDecryptListResponse](bitwarden::mobile::vault::PasswordHistoryDecryptListResponse)
-    ///
-    DecryptList(PasswordHistoryDecryptListRequest),
-}
-
-#[cfg(feature = "mobile")]
-#[derive(Serialize, Deserialize, JsonSchema, Debug)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub enum MobileCollectionsCommand {
-    /// > Requires having previously initialized the cryptography parameters
-    /// Decrypts the provided collection
-    ///
-    /// Returns: [CollectionDecryptResponse](bitwarden::mobile::vault::CollectionDecryptResponse)
-    ///
-    Decrypt(CollectionDecryptRequest),
-    /// > Requires having previously initialized the cryptography parameters
-    /// Decrypts the provided collections
-    ///
-    /// Returns: [CollectionDecryptListResponse](bitwarden::mobile::vault::CollectionDecryptListResponse)
-    ///
-    DecryptList(CollectionDecryptListRequest),
 }

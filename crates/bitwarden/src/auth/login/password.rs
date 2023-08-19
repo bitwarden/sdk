@@ -1,12 +1,12 @@
-use std::str::FromStr;
-
 use log::{debug, info};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
 use crate::{
     auth::{
         api::{request::PasswordTokenRequest, response::IdentityTokenResponse},
         login::determine_password_hash,
-        request::PasswordLoginRequest,
         response::PasswordLoginResponse,
     },
     client::LoginMethod,
@@ -53,4 +53,14 @@ async fn request_identity_tokens(
     PasswordTokenRequest::new(&input.email, password_hash)
         .send(config)
         .await
+}
+
+/// Login to Bitwarden with Username and Password
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct PasswordLoginRequest {
+    /// Bitwarden account email address
+    pub email: String,
+    /// Bitwarden account master password
+    pub password: String,
 }

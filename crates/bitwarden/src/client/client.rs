@@ -4,7 +4,7 @@ use reqwest::header::{self};
 use uuid::Uuid;
 
 use crate::{
-    auth::{login::access_token_login, renew::renew_token, response::ApiKeyLoginResponse},
+    auth::{renew::renew_token, response::ApiKeyLoginResponse},
     client::{
         client_settings::{ClientSettings, DeviceType},
         encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
@@ -13,14 +13,13 @@ use crate::{
 };
 
 #[cfg(feature = "secrets")]
-use crate::auth::request::AccessTokenLoginRequest;
+use crate::auth::login::{access_token_login, AccessTokenLoginRequest};
 
 #[cfg(feature = "internal")]
 use {
     crate::{
         auth::{
-            login::{api_key_login, password_login},
-            request::{ApiKeyLoginRequest, PasswordLoginRequest},
+            login::{api_key_login, password_login, ApiKeyLoginRequest, PasswordLoginRequest},
             response::PasswordLoginResponse,
         },
         client::auth_settings::AuthSettings,

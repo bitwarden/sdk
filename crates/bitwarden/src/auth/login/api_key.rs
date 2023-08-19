@@ -1,9 +1,12 @@
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
 use crate::{
     auth::{
-        api::{response::IdentityTokenResponse, request::ApiTokenRequest}, login::determine_password_hash,
-        request::ApiKeyLoginRequest, response::ApiKeyLoginResponse,
+        api::{request::ApiTokenRequest, response::IdentityTokenResponse},
+        login::determine_password_hash,
+        response::ApiKeyLoginResponse,
     },
     client::LoginMethod,
     crypto::CipherString,
@@ -58,4 +61,17 @@ async fn request_api_identity_tokens(
     ApiTokenRequest::new(&input.client_id, &input.client_secret)
         .send(config)
         .await
+}
+
+/// Login to Bitwarden with Api Key
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct ApiKeyLoginRequest {
+    /// Bitwarden account client_id
+    pub client_id: String,
+    /// Bitwarden account client_secret
+    pub client_secret: String,
+
+    /// Bitwarden account master password
+    pub password: String,
 }

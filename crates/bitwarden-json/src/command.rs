@@ -1,6 +1,6 @@
 #[cfg(feature = "secrets")]
 use bitwarden::{
-    auth::request::AccessTokenLoginRequest,
+    auth::login::AccessTokenLoginRequest,
     secrets_manager::{
         projects::{
             ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
@@ -15,7 +15,7 @@ use bitwarden::{
 
 #[cfg(feature = "internal")]
 use bitwarden::{
-    auth::request::{ApiKeyLoginRequest, PasswordLoginRequest},
+    auth::login::{ApiKeyLoginRequest, PasswordLoginRequest},
     platform::{FingerprintRequest, SecretVerificationRequest, SyncRequest},
 };
 
@@ -52,7 +52,7 @@ pub enum Command {
     ///
     /// This command is for initiating an authentication handshake with Bitwarden.
     ///
-    /// Returns: [ApiKeyLoginResponse](bitwarden::auth::response::ApiKeyLoginResponse)
+    /// Returns: [ApiKeyLoginResponse](bitwarden::auth::login::ApiKeyLoginResponse)
     ///
     AccessTokenLogin(AccessTokenLoginRequest),
 

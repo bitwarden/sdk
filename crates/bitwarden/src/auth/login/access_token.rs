@@ -1,11 +1,12 @@
 use std::str::FromStr;
 
 use base64::Engine;
+use schemars::JsonSchema;
+use serde::{Serialize, Deserialize};
 
 use crate::{
     auth::{
         api::{request::AccessTokenRequest, response::IdentityTokenResponse},
-        request::AccessTokenLoginRequest,
         response::ApiKeyLoginResponse,
     },
     client::{
@@ -82,4 +83,13 @@ async fn request_access_token(
     AccessTokenRequest::new(input.service_account_id, &input.client_secret)
         .send(config)
         .await
+}
+
+
+/// Login to Bitwarden with access token
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct AccessTokenLoginRequest {
+    /// Bitwarden service API access token
+    pub access_token: String,
 }

@@ -15,14 +15,20 @@ mod password;
 #[cfg(feature = "internal")]
 pub(crate) use password::password_login;
 #[cfg(feature = "internal")]
+pub use password::PasswordLoginRequest;
+#[cfg(feature = "internal")]
 mod api_key;
 #[cfg(feature = "internal")]
 pub(crate) use api_key::api_key_login;
+#[cfg(feature = "internal")]
+pub use api_key::ApiKeyLoginRequest;
 
 #[cfg(feature = "secrets")]
 mod access_token;
 #[cfg(feature = "secrets")]
 pub(crate) use access_token::access_token_login;
+#[cfg(feature = "secrets")]
+pub use access_token::AccessTokenLoginRequest;
 
 #[cfg(feature = "internal")]
 async fn determine_password_hash(

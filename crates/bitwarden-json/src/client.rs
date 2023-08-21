@@ -1,9 +1,12 @@
 use bitwarden::client::client_settings::ClientSettings;
 
 use crate::{
-    command::{Command, ProjectsCommand, SecretsCommand},
-    response::ResponseIntoString,
+    command::Command,
+    response::{Response, ResponseIntoString},
 };
+
+#[cfg(feature = "secrets")]
+use crate::command::{ProjectsCommand, SecretsCommand};
 
 pub struct Client(bitwarden::Client);
 
@@ -17,7 +20,9 @@ impl Client {
         const SUBCOMMANDS_TO_CLEAN: &[&str] = &["Secrets"];
         let mut cmd_value: serde_json::Value = match serde_json::from_str(input_str) {
             Ok(cmd) => cmd,
-            Err(e) => return format!("{:#?}", e),
+            Err(e) => {
+                return Response::error(format!("Invalid command string: {}", e)).into_string()
+            }
         };
 
         if let Some(cmd_value_map) = cmd_value.as_object_mut() {
@@ -35,12 +40,15 @@ impl Client {
 
         let cmd: Command = match serde_json::from_value(cmd_value) {
             Ok(cmd) => cmd,
-            Err(e) => return format!("{:#?}", e),
+            Err(e) => {
+                return Response::error(format!("Invalid command value: {}", e)).into_string()
+            }
         };
 
         match cmd {
             #[cfg(feature = "internal")]
             Command::PasswordLogin(req) => self.0.password_login(&req).await.into_string(),
+            #[cfg(feature = "secrets")]
             Command::AccessTokenLogin(req) => self.0.access_token_login(&req).await.into_string(),
             #[cfg(feature = "internal")]
             Command::GetUserApiKey(req) => self.0.get_user_api_key(&req).await.into_string(),
@@ -51,6 +59,7 @@ impl Client {
             #[cfg(feature = "internal")]
             Command::Fingerprint(req) => self.0.fingerprint(&req).into_string(),
 
+            #[cfg(feature = "secrets")]
             Command::Secrets(cmd) => match cmd {
                 SecretsCommand::Get(req) => self.0.secrets().get(&req).await.into_string(),
                 SecretsCommand::Create(req) => self.0.secrets().create(&req).await.into_string(),
@@ -59,6 +68,7 @@ impl Client {
                 SecretsCommand::Delete(req) => self.0.secrets().delete(req).await.into_string(),
             },
 
+            #[cfg(feature = "secrets")]
             Command::Projects(cmd) => match cmd {
                 ProjectsCommand::Get(req) => self.0.projects().get(&req).await.into_string(),
                 ProjectsCommand::Create(req) => self.0.projects().create(&req).await.into_string(),
@@ -71,8 +81,11 @@ impl Client {
 
     fn parse_settings(settings_input: Option<String>) -> Option<ClientSettings> {
         if let Some(input) = settings_input.as_ref() {
-            if let Ok(settings) = serde_json::from_str(input) {
-                return Some(settings);
+            match serde_json::from_str(input) {
+                Ok(settings) => return Some(settings),
+                Err(e) => {
+                    log::error!("Failed to parse settings: {}", e);
+                }
             }
         }
         None

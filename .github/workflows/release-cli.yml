@@ -22,7 +22,7 @@ defaults:
 jobs:
   setup:
     name: Setup
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       release-version: ${{ steps.version.outputs.version }}
     steps:
@@ -58,7 +58,7 @@ jobs:
 
       - name: Download all Release artifacts
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
-        uses: bitwarden/gh-actions/download-artifacts@a30e9c3d658dc97c4c2e61ec749fdab64b83386c
+        uses: bitwarden/gh-actions/download-artifacts@f096207b7a2f31723165aee6ad03e91716686e78
         with:
           workflow: build-cli.yml
           path: packages
@@ -67,7 +67,7 @@ jobs:
 
       - name: Dry Run - Download all artifacts
         if: ${{ github.event.inputs.release_type == 'Dry Run' }}
-        uses: bitwarden/gh-actions/download-artifacts@a30e9c3d658dc97c4c2e61ec749fdab64b83386c
+        uses: bitwarden/gh-actions/download-artifacts@f096207b7a2f31723165aee6ad03e91716686e78
         with:
           workflow: build-cli.yml
           path: packages
@@ -75,7 +75,7 @@ jobs:
           branch: master
 
       - name: Get checksum files
-        uses: bitwarden/gh-actions/get-checksum@a30e9c3d658dc97c4c2e61ec749fdab64b83386c
+        uses: bitwarden/gh-actions/get-checksum@f096207b7a2f31723165aee6ad03e91716686e78
         with:
           packages_dir: "packages"
           file_path: "packages/bws-sha256-checksums-${{ steps.version.outputs.version }}.txt"
@@ -90,8 +90,10 @@ jobs:
             packages/bws-aarch64-apple-darwin-${{ env.PKG_VERSION }}.zip,
             packages/bws-macos-universal-${{ env.PKG_VERSION }}.zip,
             packages/bws-x86_64-pc-windows-msvc-${{ env.PKG_VERSION }}.zip,
+            packages/bws-aarch64-pc-windows-msvc-${{ env.PKG_VERSION }}.zip,
             packages/bws-x86_64-unknown-linux-gnu-${{ env.PKG_VERSION }}.zip,
             packages/bws-aarch64-unknown-linux-gnu-${{ env.PKG_VERSION }}.zip,
+            packages/THIRDPARTY.html,
             packages/bws-sha256-checksums-${{ env.PKG_VERSION }}.txt"
           commit: ${{ github.sha }}
           tag: bws-v${{ env.PKG_VERSION }}
@@ -128,24 +130,22 @@ jobs:
       - name: Login to Azure
         uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
         with:
-          creds: ${{ secrets.AZURE_PROD_KV_CREDENTIALS }}
+          creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
 
       - name: Retrieve secrets
         id: retrieve-secrets
-        uses: bitwarden/gh-actions/get-keyvault-secrets@a30e9c3d658dc97c4c2e61ec749fdab64b83386c
+        uses: bitwarden/gh-actions/get-keyvault-secrets@f096207b7a2f31723165aee6ad03e91716686e78
         with:
-          keyvault: "bitwarden-prod-kv"
+          keyvault: "bitwarden-ci"
           secrets: "cratesio-api-token"
 
       - name: Install rust
-        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
+        uses: dtolnay/rust-toolchain@f361669954a8ecfc00a3443f35f9ac8e610ffc06 # stable
         with:
-          toolchain: "stable"
-          profile: minimal
-          override: true
+          toolchain: stable
 
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@dd05243424bd5c0e585e4b55eb2d7615cdd32f1f # v2.5.1
+        uses: Swatinem/rust-cache@578b235f6e5f613f7727f1c17bd3305b4d4d4e1f # v2.6.1
 
       - name: Install cargo-release
         run: cargo install cargo-release

@@ -2,28 +2,26 @@
 
 use std::{collections::HashMap, fmt::Display, hash::Hash, str::FromStr};
 
-use aes::cipher::{
-    generic_array::GenericArray,
-    typenum::{U32, U64},
-    Unsigned,
-};
+use aes::cipher::{generic_array::GenericArray, typenum::U64, Unsigned};
 use base64::Engine;
 use hmac::digest::OutputSizeUser;
-use num_bigint::BigUint;
-use num_traits::cast::ToPrimitive;
 use serde::{de::Visitor, Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 use uuid::Uuid;
 
 use crate::{
-    client::{
-        auth_settings::Kdf,
-        encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
-    },
+    client::encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
     error::{CSParseError, Error, Result},
     util::BASE64_ENGINE,
-    wordlist::EFF_LONG_WORD_LIST,
 };
+
+#[cfg(feature = "internal")]
+use {
+    crate::wordlist::EFF_LONG_WORD_LIST, aes::cipher::typenum::U32, num_bigint::BigUint,
+    num_traits::cast::ToPrimitive,
+};
+
+#[cfg(any(feature = "internal", feature = "mobile"))]
+use {crate::client::auth_settings::Kdf, sha2::Digest};
 
 #[allow(unused, non_camel_case_types)]
 pub enum CipherString {
@@ -240,6 +238,7 @@ pub(crate) type PbkdfSha256Hmac = hmac::Hmac<sha2::Sha256>;
 pub(crate) const PBKDF_SHA256_HMAC_OUT_SIZE: usize =
     <<PbkdfSha256Hmac as OutputSizeUser>::OutputSize as Unsigned>::USIZE;
 
+#[cfg(any(feature = "internal", feature = "mobile"))]
 pub(crate) fn hash_kdf(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<[u8; 32]> {
     let hash = match kdf {
         Kdf::PBKDF2 { iterations } => pbkdf2::pbkdf2_array::<
@@ -279,6 +278,7 @@ pub(crate) fn hash_kdf(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<[u8; 32]
     Ok(hash)
 }
 
+#[cfg(feature = "internal")]
 pub(crate) fn stretch_key_password(
     secret: &[u8],
     salt: &[u8],
@@ -306,7 +306,7 @@ pub(crate) fn stretch_key(secret: [u8; 16], name: &str, info: Option<&str>) -> S
     // TODO: Are these the final `key` and `info` parameters or should we change them? I followed the pattern used for sends
     let res = Hmac::<sha2::Sha256>::new_from_slice(format!("bitwarden-{}", name).as_bytes())
         .unwrap()
-        .chain_update(&secret)
+        .chain_update(secret)
         .finalize()
         .into_bytes();
 
@@ -317,13 +317,14 @@ pub(crate) fn stretch_key(secret: [u8; 16], name: &str, info: Option<&str>) -> S
     // TODO: Should we have a default value for info?
     //  Should it be required?
     let i = info.map(|i| i.as_bytes()).unwrap_or(&[]);
-    hkdf.expand(&i, &mut key).unwrap();
+    hkdf.expand(i, &mut key).unwrap();
 
     SymmetricCryptoKey::try_from(key.as_slice()).unwrap()
 }
 
+#[cfg(feature = "internal")]
 pub(crate) fn fingerprint(fingerprint_material: &str, public_key: &[u8]) -> Result<String> {
-    let mut h = Sha256::new();
+    let mut h = sha2::Sha256::new();
     h.update(public_key);
     h.finalize();
 
@@ -337,11 +338,12 @@ pub(crate) fn fingerprint(fingerprint_material: &str, public_key: &[u8]) -> Resu
     Ok(hash_word(user_fingerprint).unwrap())
 }
 
+#[cfg(feature = "internal")]
 fn hash_word(hash: [u8; 32]) -> Result<String> {
     let minimum_entropy = 64;
 
     let entropy_per_word = (EFF_LONG_WORD_LIST.len() as f64).log2();
-    let num_words = ((minimum_entropy as f64 / entropy_per_word).ceil() as f64).to_owned() as i64;
+    let num_words = ((minimum_entropy as f64 / entropy_per_word).ceil()).to_owned() as i64;
 
     let hash_arr: Vec<u8> = hash.to_vec();
     let entropy_available = hash_arr.len() * 4;
@@ -356,7 +358,7 @@ fn hash_word(hash: [u8; 32]) -> Result<String> {
     let mut hash_number = BigUint::from_bytes_be(&hash_arr);
     for _ in 0..num_words {
         let remainder = hash_number.clone() % EFF_LONG_WORD_LIST.len();
-        hash_number = hash_number / EFF_LONG_WORD_LIST.len();
+        hash_number /= EFF_LONG_WORD_LIST.len();
 
         phrase.push(EFF_LONG_WORD_LIST[remainder.to_usize().unwrap()].to_string());
     }
@@ -380,7 +382,7 @@ impl Encryptable<CipherString> for String {
 
 impl Decryptable<String> for CipherString {
     fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<String> {
-        enc.decrypt(&self, org_id)
+        enc.decrypt(self, org_id)
     }
 }
 
@@ -404,7 +406,7 @@ impl<T: Encryptable<Output>, Output> Encryptable<Vec<Output>> for Vec<T> {
 
 impl<T: Decryptable<Output>, Output> Decryptable<Vec<Output>> for Vec<T> {
     fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Vec<Output>> {
-        self.into_iter().map(|e| e.decrypt(enc, org_id)).collect()
+        self.iter().map(|e| e.decrypt(enc, org_id)).collect()
     }
 }
 
@@ -430,22 +432,39 @@ impl<T: Decryptable<Output>, Output, Id: Hash + Eq + Copy> Decryptable<HashMap<I
         enc: &EncryptionSettings,
         org_id: &Option<Uuid>,
     ) -> Result<HashMap<Id, Output>> {
-        self.into_iter()
+        self.iter()
             .map(|(id, e)| Ok((*id, e.decrypt(enc, org_id)?)))
             .collect::<Result<HashMap<_, _>>>()
     }
 }
 
+impl<T: Encryptable<Output>, Output> Encryptable<Output> for Box<T> {
+    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Output> {
+        (*self).encrypt(enc, org_id)
+    }
+}
+
+impl<T: Decryptable<Output>, Output> Decryptable<Output> for Box<T> {
+    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Output> {
+        (**self).decrypt(enc, org_id)
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use std::num::NonZeroU32;
+    use super::stretch_key;
 
-    use super::{fingerprint, stretch_key};
-    use crate::{
-        client::auth_settings::Kdf,
-        crypto::{stretch_key_password, CipherString},
+    #[cfg(feature = "internal")]
+    use {
+        super::fingerprint,
+        crate::{
+            client::auth_settings::Kdf,
+            crypto::{stretch_key_password, CipherString},
+        },
+        std::num::NonZeroU32,
     };
 
+    #[cfg(feature = "internal")]
     #[test]
     fn test_cipher_string_serialization() {
         #[derive(serde::Serialize, serde::Deserialize)]
@@ -471,6 +490,7 @@ mod tests {
         assert_eq!(key.to_base64(), "F9jVQmrACGx9VUPjuzfMYDjr726JtL300Y3Yg+VYUnVQtQ1s8oImJ5xtp1KALC9h2nav04++1LDW4iFD+infng==");
     }
 
+    #[cfg(feature = "internal")]
     #[test]
     fn test_key_stretch_password_pbkdf2() {
         let (key, mac) = stretch_key_password(
@@ -498,6 +518,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "internal")]
     #[test]
     fn test_key_stretch_password_argon2() {
         let (key, mac) = stretch_key_password(
@@ -527,6 +548,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "internal")]
     #[test]
     fn test_fingerprint() {
         let user_id = "a09726a0-9590-49d1-a5f5-afe300b6a515";

@@ -1,3 +1,4 @@
+#[cfg(feature = "secrets")]
 use bitwarden::{
     auth::request::AccessTokenLoginRequest,
     secrets_manager::{
@@ -11,11 +12,13 @@ use bitwarden::{
         },
     },
 };
+
 #[cfg(feature = "internal")]
 use bitwarden::{
     auth::request::{ApiKeyLoginRequest, PasswordLoginRequest},
     platform::{FingerprintRequest, SecretVerificationRequest, SyncRequest},
 };
+
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -44,6 +47,7 @@ pub enum Command {
     ///
     ApiKeyLogin(ApiKeyLoginRequest),
 
+    #[cfg(feature = "secrets")]
     /// Login with Secrets Manager Access Token
     ///
     /// This command is for initiating an authentication handshake with Bitwarden.
@@ -75,10 +79,13 @@ pub enum Command {
     ///
     Sync(SyncRequest),
 
+    #[cfg(feature = "secrets")]
     Secrets(SecretsCommand),
+    #[cfg(feature = "secrets")]
     Projects(ProjectsCommand),
 }
 
+#[cfg(feature = "secrets")]
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum SecretsCommand {
@@ -123,6 +130,7 @@ pub enum SecretsCommand {
     Delete(SecretsDeleteRequest),
 }
 
+#[cfg(feature = "secrets")]
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum ProjectsCommand {

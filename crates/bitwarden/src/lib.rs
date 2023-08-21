@@ -7,7 +7,7 @@
 //!
 //! ```ini
 //! [dependencies]
-//! bitwarden = "*"
+//! bitwarden = { "*", features = ["secrets"] }
 //! ```
 //!
 //! # Basic setup
@@ -48,14 +48,24 @@
 //! ```
 //!
 
+#[cfg(feature = "mobile")]
+uniffi::setup_scaffolding!();
+
 pub mod auth;
 pub mod client;
 pub mod crypto;
 pub mod error;
+#[cfg(feature = "mobile")]
+pub mod mobile;
 #[cfg(feature = "internal")]
 pub mod platform;
+#[cfg(feature = "secrets")]
 pub mod secrets_manager;
+#[cfg(feature = "mobile")]
+pub(crate) mod uniffi_support;
 mod util;
+#[cfg(feature = "mobile")]
+pub mod vault;
 pub mod wordlist;
 
 pub use client::Client;

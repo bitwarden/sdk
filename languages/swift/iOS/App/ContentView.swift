@@ -32,7 +32,7 @@ struct ContentView: View {
 
         Task {
 
-            /////////////////////////////////////////// Get master password hash ////////////////////////////////////////
+            ////////////////////////////// Get master password hash //////////////////////////////
 
             struct PreloginRequest: Codable { let email: String }
             struct PreloginResponse: Codable {

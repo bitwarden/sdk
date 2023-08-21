@@ -21,7 +21,7 @@ jobs:
           toolchain: stable
 
       - name: Set up Node
-        uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
+        uses: actions/setup-node@e33196f7422957bea03ed53f6fbb155025ffc7b8 # v3.7.0
         with:
           cache: "npm"
           cache-dependency-path: "package-lock.json"
@@ -31,7 +31,7 @@ jobs:
         run: npm ci
 
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@e207df5d269b42b69c8bc5101da26f7d31feddb4 # v2.6.2
+        uses: Swatinem/rust-cache@b8a6852b4f997182bdea832df3f9e153038b5191 # v2.6.0
 
       - name: NPM Schemas
         run: npm run schemas
@@ -62,4 +62,11 @@ jobs:
         with:
           name: sdk-schemas-json
           path: ${{ github.workspace }}/support/schemas/*
+          if-no-files-found: error
+
+      - name: Upload java schemas artifact
+        uses: actions/upload-artifact@ #TODO
+        with:
+          name: sdk-schemas-java
+          path: ${{ github.workspace }}/languages/java/src/main/java/bit/sdk/schema/*
           if-no-files-found: error

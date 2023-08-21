@@ -46,6 +46,17 @@
       "options": {
         "cwd": "${workspaceFolder}/languages/python"
       }
-    }
+    },
+    {
+      "label": "buildJava",
+      "type": "shell",
+      "command": "mvn",
+      "args": [
+          "clean",
+          "install"
+      ],
+      "dependsOrder": "sequence",
+      "dependsOn": ["rust: bitwarden-c build"]
+  }
   ]
 }

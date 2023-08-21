@@ -1,4 +1,4 @@
-import { quicktype, InputData, JSONSchemaInput, FetchingJSONSchemaStore } from "quicktype-core";
+import { quicktype, quicktypeMultiFile, InputData, JSONSchemaInput, FetchingJSONSchemaStore } from "quicktype-core";
 
 import fs from "fs";
 import path from "path";
@@ -62,6 +62,23 @@ async function main() {
   });
 
   writeToFile("./languages/csharp/schemas.cs", csharp.lines);
+
+  const java = await quicktypeMultiFile({
+    inputData,
+    lang: "java",
+    rendererOptions: {
+      package: "bit.sdk.schema",
+      "java-version": "11",
+    },
+  });
+
+  const javaDir = "./languages/java/src/main/java/bit/sdk/schema/";
+  if (!fs.existsSync(javaDir)) {
+    fs.mkdirSync(javaDir);
+  }
+  java.forEach((file, path) => {
+    writeToFile(javaDir + path, file.lines);
+  })
 }
 
 main();

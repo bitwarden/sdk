@@ -19,19 +19,25 @@ bws --help
 ```
 
 ## How to enable shell autocompletions
+
 ### Zsh
+
 If completion is not enabled already, you need to enable it first:
+
 ```zsh
 echo "autoload -U compinit; compinit" >> ~/.zshrc
-``````
+```
 
 Enable autocompletions for the current user:
+
 ```zsh
 echo 'source <(/path/to/bws completions zsh)' >> ~/.zshrc
 ```
 
 ### Bash
+
 Enable autocompletions for the current user:
+
 ```zsh
 echo 'source <(/path/to/bws completions bash)' >> ~/.bashrc
 ```

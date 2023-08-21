@@ -16,7 +16,7 @@
 //!
 //! ```rust
 //! use bitwarden::{
-//!     auth::request::AccessTokenLoginRequest,
+//!     auth::login::AccessTokenLoginRequest,
 //!     client::client_settings::{ClientSettings, DeviceType},
 //!     error::Result,
 //!     secrets_manager::secrets::SecretIdentifiersRequest,
@@ -48,6 +48,9 @@
 //! ```
 //!
 
+#[cfg(feature = "mobile")]
+uniffi::setup_scaffolding!();
+
 pub mod auth;
 pub mod client;
 pub mod crypto;
@@ -58,6 +61,8 @@ pub mod mobile;
 pub mod platform;
 #[cfg(feature = "secrets")]
 pub mod secrets_manager;
+#[cfg(feature = "mobile")]
+pub(crate) mod uniffi_support;
 mod util;
 #[cfg(feature = "mobile")]
 pub mod vault;

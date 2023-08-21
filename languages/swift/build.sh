@@ -6,18 +6,26 @@ rm -r tmp
 
 mkdir tmp
 
-cargo run -p uniffi-bindgen generate ../../crates/bitwarden-uniffi/src/sdk.udl --language swift --out-dir tmp/bindings
+# Build native library
+cargo build --package bitwarden-uniffi --target aarch64-apple-ios-sim --release
+
+# Generate swift bindings
+cargo run -p uniffi-bindgen generate \
+  ../../target/aarch64-apple-ios-sim/release/libbitwarden_uniffi.dylib \
+  --library \
+  --language swift \
+  --no-format \
+  --out-dir tmp/bindings
 
 # Move generated swift bindings
 mv ./tmp/bindings/BitwardenSDK.swift ./Sources/BitwardenSdk/
+mv ./tmp/bindings/BitwardenCore.swift ./Sources/BitwardenSdk/
 
 # Massage the generated files to fit xcframework
 mkdir tmp/Headers
 mv ./tmp/bindings/BitwardenFFI.h ./tmp/Headers/
-mv ./tmp/bindings/BitwardenFFI.modulemap ./tmp/Headers/module.modulemap
-
-# Build native library
-cargo build --package bitwarden-uniffi --target aarch64-apple-ios-sim --release
+mv ./tmp/bindings/BitwardenCoreFFI.h ./tmp/Headers/
+cat ./tmp/bindings/BitwardenFFI.modulemap ./tmp/bindings/BitwardenCoreFFI.modulemap > ./tmp/Headers/module.modulemap
 
 # Build xcframework
 xcodebuild -create-xcframework \

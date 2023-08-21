@@ -8,14 +8,6 @@ use crate::{
 #[cfg(feature = "secrets")]
 use crate::command::{ProjectsCommand, SecretsCommand};
 
-#[cfg(all(feature = "internal", feature = "mobile"))]
-use crate::command::MobileCryptoCommand;
-#[cfg(feature = "mobile")]
-use crate::command::{
-    MobileCiphersCommand, MobileCollectionsCommand, MobileCommand, MobileFoldersCommand,
-    MobileKdfCommand, MobilePasswordHistoryCommand, MobileVaultCommand,
-};
-
 pub struct Client(bitwarden::Client);
 
 impl Client {
@@ -83,85 +75,6 @@ impl Client {
                 ProjectsCommand::List(req) => self.0.projects().list(&req).await.into_string(),
                 ProjectsCommand::Update(req) => self.0.projects().update(&req).await.into_string(),
                 ProjectsCommand::Delete(req) => self.0.projects().delete(req).await.into_string(),
-            },
-
-            #[cfg(feature = "mobile")]
-            Command::Mobile(cmd) => match cmd {
-                MobileCommand::Kdf(cmd) => match cmd {
-                    MobileKdfCommand::HashPassword(req) => {
-                        self.0.kdf().hash_password(req).await.into_string()
-                    }
-                },
-                MobileCommand::Crypto(cmd) => match cmd {
-                    #[cfg(feature = "internal")]
-                    MobileCryptoCommand::InitCrypto(req) => {
-                        self.0.crypto().initialize_crypto(req).await.into_string()
-                    }
-                },
-                MobileCommand::Vault(cmd) => match cmd {
-                    MobileVaultCommand::Folders(cmd) => match cmd {
-                        MobileFoldersCommand::Encrypt(cmd) => {
-                            self.0.vault().folders().encrypt(cmd).await.into_string()
-                        }
-                        MobileFoldersCommand::Decrypt(cmd) => {
-                            self.0.vault().folders().decrypt(cmd).await.into_string()
-                        }
-                        MobileFoldersCommand::DecryptList(cmd) => self
-                            .0
-                            .vault()
-                            .folders()
-                            .decrypt_list(cmd)
-                            .await
-                            .into_string(),
-                    },
-                    MobileVaultCommand::Ciphers(cmd) => match cmd {
-                        MobileCiphersCommand::Encrypt(cmd) => {
-                            self.0.vault().ciphers().encrypt(cmd).await.into_string()
-                        }
-                        MobileCiphersCommand::Decrypt(cmd) => {
-                            self.0.vault().ciphers().decrypt(cmd).await.into_string()
-                        }
-                        MobileCiphersCommand::DecryptList(cmd) => self
-                            .0
-                            .vault()
-                            .ciphers()
-                            .decrypt_list(cmd)
-                            .await
-                            .into_string(),
-                    },
-                    MobileVaultCommand::PasswordHistory(cmd) => match cmd {
-                        MobilePasswordHistoryCommand::Encrypt(cmd) => self
-                            .0
-                            .vault()
-                            .password_history()
-                            .encrypt(cmd)
-                            .await
-                            .into_string(),
-                        MobilePasswordHistoryCommand::DecryptList(cmd) => self
-                            .0
-                            .vault()
-                            .password_history()
-                            .decrypt_list(cmd)
-                            .await
-                            .into_string(),
-                    },
-                    MobileVaultCommand::Collections(cmd) => match cmd {
-                        MobileCollectionsCommand::Decrypt(cmd) => self
-                            .0
-                            .vault()
-                            .collections()
-                            .decrypt(cmd)
-                            .await
-                            .into_string(),
-                        MobileCollectionsCommand::DecryptList(cmd) => self
-                            .0
-                            .vault()
-                            .collections()
-                            .decrypt_list(cmd)
-                            .await
-                            .into_string(),
-                    },
-                },
             },
         }
     }

@@ -11,6 +11,7 @@ use crate::{
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Folder {
     id: Uuid,
     name: CipherString,
@@ -19,6 +20,7 @@ pub struct Folder {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct FolderView {
     id: Uuid,
     name: String,

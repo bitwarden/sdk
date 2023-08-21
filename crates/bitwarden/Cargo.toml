@@ -15,9 +15,9 @@ rust-version = "1.57"
 [features]
 default = ["secrets"]
 
-secrets = []  # Secrets manager API
-internal = [] # Internal testing methods
-mobile = []   # Mobile-specific features
+secrets = []                    # Secrets manager API
+internal = []                   # Internal testing methods
+mobile = ["uniffi", "internal"] # Mobile-specific features
 
 [dependencies]
 base64 = ">=0.21.2, <0.22"
@@ -46,7 +46,11 @@ rand = ">=0.8.5, <0.9"
 num-bigint = ">=0.4, <0.5"
 num-traits = ">=0.2.15, <0.3"
 uuid = { version = ">=1.3.3, <2.0", features = ["serde"] }
-chrono = { version = ">=0.4.26, <0.5", features = ["serde"], default-features = false }
+chrono = { version = ">=0.4.26, <0.5", features = [
+    "serde",
+    "std",
+], default-features = false }
+uniffi = { version = "=0.24.1", optional = true }
 
 # We don't use this directly (it's used by rand), but we need it here to enable WASM support
 getrandom = { version = ">=0.2.9", features = ["js"] }

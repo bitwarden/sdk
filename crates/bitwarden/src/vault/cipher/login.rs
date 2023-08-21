@@ -13,6 +13,7 @@ use crate::{
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum UriMatchType {
     Domain = 0,
     Host = 1,
@@ -24,6 +25,7 @@ pub enum UriMatchType {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct LoginUri {
     pub uri: CipherString,
     pub r#match: Option<UriMatchType>,
@@ -31,6 +33,7 @@ pub struct LoginUri {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct LoginUriView {
     pub uri: String,
     pub r#match: Option<UriMatchType>,
@@ -38,6 +41,7 @@ pub struct LoginUriView {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Login {
     pub username: CipherString,
     pub password: CipherString,
@@ -50,6 +54,7 @@ pub struct Login {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct LoginView {
     pub username: String,
     pub password: String,

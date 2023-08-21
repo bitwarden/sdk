@@ -97,8 +97,8 @@ fn main() -> Result<()> {
     // Output types for Client::run_command
     // Only add structs which are direct results of SDK commands.
     write_schema_for_response! {
-        bitwarden::auth::response::ApiKeyLoginResponse,
-        bitwarden::auth::response::PasswordLoginResponse,
+        bitwarden::auth::login::ApiKeyLoginResponse,
+        bitwarden::auth::login::PasswordLoginResponse,
         bitwarden::secrets_manager::secrets::SecretIdentifiersResponse,
         bitwarden::secrets_manager::secrets::SecretResponse,
         bitwarden::secrets_manager::secrets::SecretsDeleteResponse,

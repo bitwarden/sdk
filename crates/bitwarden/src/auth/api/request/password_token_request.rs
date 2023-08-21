@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     auth::{
         api::response::IdentityTokenResponse,
-        request::{TwoFactorProvider, TwoFactorRequest},
+        login::{TwoFactorProvider, TwoFactorRequest},
     },
     client::ApiConfigurations,
     error::Result,

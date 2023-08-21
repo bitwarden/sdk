@@ -10,6 +10,7 @@ use crate::{
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Card {
     pub cardholder_name: Option<CipherString>,
     pub exp_month: Option<CipherString>,
@@ -21,6 +22,7 @@ pub struct Card {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct CardView {
     pub cardholder_name: Option<String>,
     pub exp_month: Option<String>,

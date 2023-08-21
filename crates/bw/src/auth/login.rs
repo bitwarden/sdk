@@ -1,5 +1,5 @@
 use bitwarden::{
-    auth::request::{
+    auth::login::{
         ApiKeyLoginRequest, PasswordLoginRequest, TwoFactorEmailRequest, TwoFactorProvider,
         TwoFactorRequest,
     },

@@ -24,6 +24,7 @@ chrono = { version = "0.4.26", features = [
 ], default-features = false }
 clap = { version = "4.3.0", features = ["derive", "env", "string"] }
 clap_complete = "4.3.2"
+clap_mangen = "0.2.12"
 color-eyre = "0.6"
 comfy-table = "^7.0.1"
 directories = "5.0.1"

@@ -34,7 +34,7 @@ pub enum Command {
     ///
     /// This command is not capable of handling authentication requiring 2fa or captcha.
     ///
-    /// Returns: [PasswordLoginResponse](bitwarden::login::response::PasswordLoginResponse)
+    /// Returns: [PasswordLoginResponse](bitwarden::login::PasswordLoginResponse)
     ///
     PasswordLogin(PasswordLoginRequest),
 
@@ -43,7 +43,7 @@ pub enum Command {
     ///
     /// This command is for initiating an authentication handshake with Bitwarden.
     ///
-    /// Returns: [ApiKeyLoginResponse](bitwarden::login::response::ApiKeyLoginResponse)
+    /// Returns: [ApiKeyLoginResponse](bitwarden::login::ApiKeyLoginResponse)
     ///
     ApiKeyLogin(ApiKeyLoginRequest),
 

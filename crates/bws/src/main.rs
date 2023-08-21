@@ -70,8 +70,6 @@ enum Commands {
 
     #[command(long_about = "Generate shell completion files")]
     Completions { shell: Option<Shell> },
-    #[command(long_about = "Generate manpages at the provided path")]
-    ManPage { path: PathBuf },
 
     #[command(long_about = "Commands available on Projects")]
     Project {
@@ -255,24 +253,6 @@ async fn process_commands() -> Result<()> {
         let mut cmd = Cli::command();
         let name = cmd.get_name().to_string();
         clap_complete::generate(shell, &mut cmd, name, &mut std::io::stdout());
-        return Ok(());
-    }
-
-    if let Commands::ManPage { path } = command {
-        std::fs::create_dir_all(&path)?;
-        let cmd = Cli::command();
-
-        let man = clap_mangen::Man::new(cmd.clone());
-        let mut buffer: Vec<u8> = Default::default();
-        man.render(&mut buffer)?;
-        std::fs::write(path.join("bws.1"), buffer)?;
-
-        for sc in cmd.get_subcommands() {
-            let name = format!("bws-{}", sc.get_name());
-            let mut buffer: Vec<u8> = Vec::new();
-            clap_mangen::Man::new(sc.clone().name(&name)).render(&mut buffer)?;
-            std::fs::write(path.join(format!("{}{}", &name, ".1")), buffer)?;
-        }
         return Ok(());
     }
 
@@ -561,7 +541,7 @@ async fn process_commands() -> Result<()> {
             println!("Secret deleted correctly");
         }
 
-        Commands::Config { .. } | Commands::Completions { .. } | Commands::ManPage { .. } => {
+        Commands::Config { .. } | Commands::Completions { .. } => {
             unreachable!()
         }
     }

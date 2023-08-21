@@ -262,7 +262,7 @@ async fn process_commands() -> Result<()> {
             let name = cmd.get_name().to_string();
             clap_complete::generate(shell, &mut cmd, name, &mut std::io::stdout());
             return Ok(());
-        },
+        }
         Commands::Config {
             name,
             value,

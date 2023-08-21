@@ -24,7 +24,8 @@ pub async extern "C" fn run_command(
 // Init client, potential leak! You need to call free_mem after this!
 #[no_mangle]
 pub extern "C" fn init(c_str_ptr: *const c_char) -> *mut Client {
-    env_logger::init();
+    // This will only fail if another logger was already initialized, so we can ignore the result
+    let _ = env_logger::try_init();
     if c_str_ptr.is_null() {
         box_ptr!(Client::new(None))
     } else {

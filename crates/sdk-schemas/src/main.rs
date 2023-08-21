@@ -102,6 +102,9 @@ fn main() -> Result<()> {
         bitwarden::secrets_manager::secrets::SecretIdentifiersResponse,
         bitwarden::secrets_manager::secrets::SecretResponse,
         bitwarden::secrets_manager::secrets::SecretsDeleteResponse,
+        bitwarden::secrets_manager::projects::ProjectResponse,
+        bitwarden::secrets_manager::projects::ProjectResponse,
+        bitwarden::secrets_manager::projects::ProjectsDeleteResponse,
     };
 
     // Same as above, but for the internal feature

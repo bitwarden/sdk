@@ -1,13 +1,12 @@
 use std::time::{Duration, Instant};
 
+#[cfg(feature = "internal")]
+use crate::auth::api::request::ApiTokenRequest;
 use crate::{
     auth::api::{request::AccessTokenRequest, response::IdentityTokenResponse},
     client::{Client, LoginMethod},
     error::{Error, Result},
 };
-
-#[cfg(feature = "internal")]
-use crate::auth::api::request::ApiTokenRequest;
 
 pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
     const TOKEN_RENEW_MARGIN: Duration = Duration::from_secs(5 * 60);

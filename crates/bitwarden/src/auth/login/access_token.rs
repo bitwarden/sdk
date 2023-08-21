@@ -2,12 +2,12 @@ use std::str::FromStr;
 
 use base64::Engine;
 use schemars::JsonSchema;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use crate::{
     auth::{
         api::{request::AccessTokenRequest, response::IdentityTokenResponse},
-        response::ApiKeyLoginResponse,
+        login::ApiKeyLoginResponse,
     },
     client::{
         encryption_settings::{decrypt, SymmetricCryptoKey},
@@ -84,7 +84,6 @@ async fn request_access_token(
         .send(config)
         .await
 }
-
 
 /// Login to Bitwarden with access token
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

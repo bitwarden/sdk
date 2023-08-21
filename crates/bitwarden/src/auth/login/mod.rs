@@ -10,18 +10,20 @@ use {
     },
 };
 
+pub mod response;
+
 #[cfg(feature = "internal")]
 mod password;
 #[cfg(feature = "internal")]
 pub(crate) use password::password_login;
 #[cfg(feature = "internal")]
-pub use password::PasswordLoginRequest;
+pub use password::{PasswordLoginRequest, PasswordLoginResponse};
 #[cfg(feature = "internal")]
 mod api_key;
 #[cfg(feature = "internal")]
 pub(crate) use api_key::api_key_login;
 #[cfg(feature = "internal")]
-pub use api_key::ApiKeyLoginRequest;
+pub use api_key::{ApiKeyLoginRequest, ApiKeyLoginResponse};
 
 #[cfg(feature = "secrets")]
 mod access_token;

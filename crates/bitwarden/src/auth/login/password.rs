@@ -1,20 +1,27 @@
-use std::str::FromStr;
-
+#[cfg(feature = "internal")]
 use log::{debug, info};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "internal")]
+use std::str::FromStr;
 
 use crate::{
     auth::{
-        api::{request::PasswordTokenRequest, response::IdentityTokenResponse},
-        login::determine_password_hash,
+        api::response::IdentityTokenResponse,
+        login::response::{captcha_response::CaptchaResponse, two_factor::TwoFactorProviders},
     },
+    error::Result,
+};
+
+#[cfg(feature = "internal")]
+use crate::{
+    auth::{api::request::PasswordTokenRequest, login::determine_password_hash},
     client::LoginMethod,
     crypto::CipherString,
-    error::Result,
     Client,
 };
 
+#[cfg(feature = "internal")]
 pub(crate) async fn password_login(
     client: &mut Client,
     input: &PasswordLoginRequest,
@@ -44,6 +51,7 @@ pub(crate) async fn password_login(
     PasswordLoginResponse::process_response(response)
 }
 
+#[cfg(feature = "internal")]
 async fn request_identity_tokens(
     client: &mut Client,
     input: &PasswordLoginRequest,
@@ -64,10 +72,6 @@ pub struct PasswordLoginRequest {
     /// Bitwarden account master password
     pub password: String,
 }
-
-use crate::auth::login::response::{
-    captcha_response::CaptchaResponse, two_factor::TwoFactorProviders,
-};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

@@ -12,12 +12,13 @@ use {
 
 pub mod response;
 
-#[cfg(feature = "internal")]
 mod password;
+pub use password::PasswordLoginResponse;
+
 #[cfg(feature = "internal")]
 pub(crate) use password::password_login;
 #[cfg(feature = "internal")]
-pub use password::{PasswordLoginRequest, PasswordLoginResponse};
+pub use password::PasswordLoginRequest;
 #[cfg(feature = "internal")]
 mod api_key;
 #[cfg(feature = "internal")]
@@ -30,7 +31,7 @@ mod access_token;
 #[cfg(feature = "secrets")]
 pub(crate) use access_token::access_token_login;
 #[cfg(feature = "secrets")]
-pub use access_token::AccessTokenLoginRequest;
+pub use access_token::{AccessTokenLoginRequest, AccessTokenLoginResponse};
 
 #[cfg(feature = "internal")]
 async fn determine_password_hash(

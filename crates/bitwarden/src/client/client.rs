@@ -13,7 +13,7 @@ use crate::{
 };
 
 #[cfg(feature = "secrets")]
-use crate::auth::login::{access_token_login, AccessTokenLoginRequest};
+use crate::auth::login::{access_token_login, AccessTokenLoginRequest, AccessTokenLoginResponse};
 
 #[cfg(feature = "internal")]
 use {
@@ -147,7 +147,7 @@ impl Client {
     pub async fn access_token_login(
         &mut self,
         input: &AccessTokenLoginRequest,
-    ) -> Result<ApiKeyLoginResponse> {
+    ) -> Result<AccessTokenLoginResponse> {
         access_token_login(self, input).await
     }
 

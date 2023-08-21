@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     auth::{
         api::{request::AccessTokenRequest, response::IdentityTokenResponse},
-        login::ApiKeyLoginResponse,
+        login::{response::two_factor::TwoFactorProviders, PasswordLoginResponse},
     },
     client::{
         encryption_settings::{decrypt, SymmetricCryptoKey},
@@ -22,7 +22,7 @@ use crate::{
 pub(crate) async fn access_token_login(
     client: &mut Client,
     input: &AccessTokenLoginRequest,
-) -> Result<ApiKeyLoginResponse> {
+) -> Result<AccessTokenLoginResponse> {
     //info!("api key logging in");
     //debug!("{:#?}, {:#?}", client, input);
 
@@ -72,7 +72,7 @@ pub(crate) async fn access_token_login(
         client.initialize_crypto_single_key(encryption_key);
     }
 
-    ApiKeyLoginResponse::process_response(response)
+    AccessTokenLoginResponse::process_response(response)
 }
 
 async fn request_access_token(
@@ -91,4 +91,30 @@ async fn request_access_token(
 pub struct AccessTokenLoginRequest {
     /// Bitwarden service API access token
     pub access_token: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct AccessTokenLoginResponse {
+    pub authenticated: bool,
+    /// TODO: What does this do?
+    pub reset_master_password: bool,
+    /// Whether or not the user is required to update their master password
+    pub force_password_reset: bool,
+    two_factor: Option<TwoFactorProviders>,
+}
+
+impl AccessTokenLoginResponse {
+    pub(crate) fn process_response(
+        response: IdentityTokenResponse,
+    ) -> Result<AccessTokenLoginResponse> {
+        let password_response = PasswordLoginResponse::process_response(response)?;
+
+        Ok(AccessTokenLoginResponse {
+            authenticated: password_response.authenticated,
+            reset_master_password: password_response.reset_master_password,
+            force_password_reset: password_response.force_password_reset,
+            two_factor: password_response.two_factor,
+        })
+    }
 }

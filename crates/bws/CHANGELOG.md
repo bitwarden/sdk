@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Support for shell autocompletion with the `bws completions` command (#103)
+
 ## [0.3.0] - 2023-07-26
 
 ### Deprecated

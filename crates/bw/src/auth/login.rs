@@ -5,9 +5,9 @@ use bitwarden::{
     },
     Client,
 };
-use color_eyre::eyre::Result;
+use color_eyre::eyre::{bail, Result};
 use inquire::{Password, Text};
-use log::error;
+use log::{debug, error, info};
 
 pub(crate) async fn password_login(mut client: Client, email: Option<String>) -> Result<()> {
     let email = text_prompt_when_none("Email", email)?;
@@ -57,8 +57,6 @@ pub(crate) async fn password_login(mut client: Client, email: Option<String>) ->
             })
         } else {
             bail!("Not supported: {:?}", two_factor);
-
-            None
         };
 
         let result = client

@@ -20,6 +20,13 @@ pub(crate) use password::password_login;
 #[cfg(feature = "internal")]
 pub use password::PasswordLoginRequest;
 #[cfg(feature = "internal")]
+mod two_factor;
+#[cfg(feature = "internal")]
+pub(crate) use two_factor::send_two_factor_email;
+#[cfg(feature = "internal")]
+pub use two_factor::{TwoFactorEmailRequest, TwoFactorProvider, TwoFactorRequest};
+
+#[cfg(feature = "internal")]
 mod api_key;
 #[cfg(feature = "internal")]
 pub(crate) use api_key::api_key_login;

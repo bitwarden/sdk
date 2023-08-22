@@ -15,7 +15,10 @@ use crate::{
 
 #[cfg(feature = "internal")]
 use crate::{
-    auth::{api::request::PasswordTokenRequest, login::determine_password_hash},
+    auth::{
+        api::request::PasswordTokenRequest,
+        login::{determine_password_hash, TwoFactorRequest},
+    },
     client::LoginMethod,
     crypto::CipherString,
     Client,
@@ -58,19 +61,22 @@ async fn request_identity_tokens(
     password_hash: &String,
 ) -> Result<IdentityTokenResponse> {
     let config = client.get_api_configurations().await;
-    PasswordTokenRequest::new(&input.email, password_hash)
+    PasswordTokenRequest::new(&input.email, password_hash, &input.two_factor)
         .send(config)
         .await
 }
 
-/// Login to Bitwarden with Username and Password
+#[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+/// Login to Bitwarden with Username and Password
 pub struct PasswordLoginRequest {
     /// Bitwarden account email address
     pub email: String,
     /// Bitwarden account master password
     pub password: String,
+    // Two-factor authentication
+    pub two_factor: Option<TwoFactorRequest>,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

@@ -19,8 +19,9 @@ use crate::auth::login::{access_token_login, AccessTokenLoginRequest, AccessToke
 use {
     crate::{
         auth::login::{
-            api_key_login, password_login, ApiKeyLoginRequest, ApiKeyLoginResponse,
-            PasswordLoginRequest, PasswordLoginResponse,
+            api_key_login, password_login, send_two_factor_email, ApiKeyLoginRequest,
+            ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse,
+            TwoFactorEmailRequest,
         },
         client::auth_settings::AuthSettings,
         crypto::CipherString,
@@ -258,6 +259,11 @@ impl Client {
     #[cfg(feature = "internal")]
     pub fn fingerprint(&mut self, input: &FingerprintRequest) -> Result<FingerprintResponse> {
         generate_fingerprint(input)
+    }
+
+    #[cfg(feature = "internal")]
+    pub async fn send_two_factor_email(&mut self, tf: &TwoFactorEmailRequest) -> Result<()> {
+        send_two_factor_email(self, tf).await
     }
 }
 

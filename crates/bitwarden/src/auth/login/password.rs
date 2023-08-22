@@ -1,15 +1,77 @@
+#[cfg(feature = "internal")]
+use log::{debug, info};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "internal")]
+use std::str::FromStr;
 
 use crate::{
     auth::{
         api::response::IdentityTokenResponse,
-        response::{
-            captcha_response::CaptchaResponse, two_factor_login_response::TwoFactorProviders,
-        },
+        login::response::{captcha_response::CaptchaResponse, two_factor::TwoFactorProviders},
     },
     error::Result,
 };
+
+#[cfg(feature = "internal")]
+use crate::{
+    auth::{api::request::PasswordTokenRequest, login::determine_password_hash},
+    client::LoginMethod,
+    crypto::CipherString,
+    Client,
+};
+
+#[cfg(feature = "internal")]
+pub(crate) async fn password_login(
+    client: &mut Client,
+    input: &PasswordLoginRequest,
+) -> Result<PasswordLoginResponse> {
+    info!("password logging in");
+    debug!("{:#?}, {:#?}", client, input);
+
+    let password_hash = determine_password_hash(client, &input.email, &input.password).await?;
+    let response = request_identity_tokens(client, input, &password_hash).await?;
+
+    if let IdentityTokenResponse::Authenticated(r) = &response {
+        client.set_tokens(
+            r.access_token.clone(),
+            r.refresh_token.clone(),
+            r.expires_in,
+            LoginMethod::Username {
+                client_id: "web".to_owned(),
+            },
+        );
+
+        let user_key = CipherString::from_str(r.key.as_deref().unwrap()).unwrap();
+        let private_key = CipherString::from_str(r.private_key.as_deref().unwrap()).unwrap();
+
+        client.initialize_user_crypto(&input.password, user_key, private_key)?;
+    }
+
+    PasswordLoginResponse::process_response(response)
+}
+
+#[cfg(feature = "internal")]
+async fn request_identity_tokens(
+    client: &mut Client,
+    input: &PasswordLoginRequest,
+    password_hash: &String,
+) -> Result<IdentityTokenResponse> {
+    let config = client.get_api_configurations().await;
+    PasswordTokenRequest::new(&input.email, password_hash)
+        .send(config)
+        .await
+}
+
+/// Login to Bitwarden with Username and Password
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct PasswordLoginRequest {
+    /// Bitwarden account email address
+    pub email: String,
+    /// Bitwarden account master password
+    pub password: String,
+}
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

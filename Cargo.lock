@@ -498,6 +498,7 @@ dependencies = [
  "bitwarden",
  "chrono",
  "clap",
+ "clap_complete",
  "color-eyre",
  "comfy-table",
  "directories",
@@ -640,6 +641,15 @@ dependencies = [
  "clap_lex",
  "once_cell",
  "strsim",
+]
+
+[[package]]
+name = "clap_complete"
+version = "4.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5fc443334c81a804575546c5a8a79b4913b50e28d69232903604cada1de817ce"
+dependencies = [
+ "clap",
 ]
 
 [[package]]

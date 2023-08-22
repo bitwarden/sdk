@@ -29,7 +29,7 @@ pub(crate) async fn password_login(mut client: Client, email: Option<String>) ->
         error!("{:?}", two_factor);
 
         let two_factor = if let Some(tf) = two_factor.authenticator {
-            error!("{:?}", tf);
+            debug!("{:?}", tf);
 
             let token = Text::new("Authenticator code").prompt()?;
 
@@ -47,7 +47,7 @@ pub(crate) async fn password_login(mut client: Client, email: Option<String>) ->
                 })
                 .await?;
 
-            error!("Two factor code sent to {:?}", tf);
+            info!("Two factor code sent to {:?}", tf);
             let token = Text::new("Two factor code").prompt()?;
 
             Some(TwoFactorRequest {
@@ -56,7 +56,7 @@ pub(crate) async fn password_login(mut client: Client, email: Option<String>) ->
                 remember: false,
             })
         } else {
-            error!("Not supported: {:?}", two_factor);
+            bail!("Not supported: {:?}", two_factor);
 
             None
         };
@@ -69,9 +69,9 @@ pub(crate) async fn password_login(mut client: Client, email: Option<String>) ->
             })
             .await?;
 
-        error!("{:?}", result);
+        debug!("{:?}", result);
     } else {
-        error!("{:?}", result);
+        debug!("{:?}", result);
     }
 
     Ok(())
@@ -95,7 +95,7 @@ pub(crate) async fn api_key_login(
         })
         .await?;
 
-    error!("{:?}", result);
+    debug!("{:?}", result);
 
     Ok(())
 }

@@ -103,7 +103,7 @@ fn main() -> Result<()> {
         bitwarden::secrets_manager::secrets::SecretResponse,
         bitwarden::secrets_manager::secrets::SecretsDeleteResponse,
         bitwarden::secrets_manager::projects::ProjectResponse,
-        bitwarden::secrets_manager::projects::ProjectResponse,
+        bitwarden::secrets_manager::projects::ProjectsResponse,
         bitwarden::secrets_manager::projects::ProjectsDeleteResponse,
     };
 

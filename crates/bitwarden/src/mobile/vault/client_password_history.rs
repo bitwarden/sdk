@@ -1,42 +1,34 @@
 use crate::{
     crypto::{Decryptable, Encryptable},
     error::Result,
+    vault::{PasswordHistory, PasswordHistoryView},
     Client,
 };
 
-use super::{
-    client_vault::ClientVault,
-    password_history::{
-        PasswordHistoryDecryptListRequest, PasswordHistoryDecryptListResponse,
-        PasswordHistoryEncryptRequest, PasswordHistoryEncryptResponse,
-    },
-};
+use super::client_vault::ClientVault;
 
 pub struct ClientPasswordHistory<'a> {
     pub(crate) client: &'a Client,
 }
 
 impl<'a> ClientPasswordHistory<'a> {
-    pub async fn encrypt(
-        &self,
-        req: PasswordHistoryEncryptRequest,
-    ) -> Result<PasswordHistoryEncryptResponse> {
+    pub async fn encrypt(&self, history_view: PasswordHistoryView) -> Result<PasswordHistory> {
         let enc = self.client.get_encryption_settings()?;
 
-        let history = req.history.encrypt(enc, &None)?;
+        let history = history_view.encrypt(enc, &None)?;
 
-        Ok(PasswordHistoryEncryptResponse { history })
+        Ok(history)
     }
 
     pub async fn decrypt_list(
         &self,
-        req: PasswordHistoryDecryptListRequest,
-    ) -> Result<PasswordHistoryDecryptListResponse> {
+        history: Vec<PasswordHistory>,
+    ) -> Result<Vec<PasswordHistoryView>> {
         let enc = self.client.get_encryption_settings()?;
 
-        let history = req.history.decrypt(enc, &None)?;
+        let history_view = history.decrypt(enc, &None)?;
 
-        Ok(PasswordHistoryDecryptListResponse { history })
+        Ok(history_view)
     }
 }
 

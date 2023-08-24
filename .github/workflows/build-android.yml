@@ -33,7 +33,7 @@ jobs:
           toolchain: 1.67.0 # https://github.com/cross-rs/cross/issues/1222
 
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@578b235f6e5f613f7727f1c17bd3305b4d4d4e1f # v2.6.1
+        uses: Swatinem/rust-cache@e207df5d269b42b69c8bc5101da26f7d31feddb4 # v2.6.2
         with:
           key: ${{ matrix.settings.target }}-cargo
 
@@ -75,7 +75,7 @@ jobs:
           toolchain: 1.67.0 # https://github.com/cross-rs/cross/issues/1222
 
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@578b235f6e5f613f7727f1c17bd3305b4d4d4e1f # v2.6.1
+        uses: Swatinem/rust-cache@e207df5d269b42b69c8bc5101da26f7d31feddb4 # v2.6.2
         with:
           key: cargo-combine-cache
 
@@ -114,7 +114,7 @@ jobs:
           secrets: "github-pat-bitwarden-devops-bot-packages-scope"
 
       - name: Publish
-        uses: gradle/gradle-build-action@a4cf152f482c7ca97ef56ead29bf08bcd953284c # v2.7.0
+        uses: gradle/gradle-build-action@243af859f8ca30903d9d7f7936897ca0358ba691 # v2.7.1
         with:
           arguments: sdk:publish
           build-root-directory: languages/kotlin

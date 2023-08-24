@@ -1,7 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::auth::response::two_factor_login_response::{
+use crate::auth::login::response::two_factor::{
     authenticator::Authenticator, duo::Duo, email::Email, remember::Remember, web_authn::WebAuthn,
     yubi_key::YubiKey,
 };
@@ -27,7 +27,7 @@ pub struct TwoFactorProviders {
 impl From<crate::auth::api::response::TwoFactorProviders> for TwoFactorProviders {
     fn from(api: crate::auth::api::response::TwoFactorProviders) -> Self {
         Self {
-            authenticator: api.authenticator.map(Into::into),
+            authenticator: api.authenticator.map(|_| Authenticator {}),
             email: api.email.map(Into::into),
             duo: api.duo.map(Into::into),
             organization_duo: api.organization_duo.map(Into::into),

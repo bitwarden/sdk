@@ -4,10 +4,7 @@ use reqwest::header::{self};
 use uuid::Uuid;
 
 use crate::{
-    auth::{
-        commands::{access_token_login, renew_token},
-        response::ApiKeyLoginResponse,
-    },
+    auth::renew::renew_token,
     client::{
         client_settings::{ClientSettings, DeviceType},
         encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
@@ -16,15 +13,15 @@ use crate::{
 };
 
 #[cfg(feature = "secrets")]
-use crate::auth::request::AccessTokenLoginRequest;
+use crate::auth::login::{access_token_login, AccessTokenLoginRequest, AccessTokenLoginResponse};
 
 #[cfg(feature = "internal")]
 use {
     crate::{
-        auth::{
-            commands::{api_key_login, password_login},
-            request::{ApiKeyLoginRequest, PasswordLoginRequest},
-            response::PasswordLoginResponse,
+        auth::login::{
+            api_key_login, password_login, send_two_factor_email, ApiKeyLoginRequest,
+            ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse,
+            TwoFactorEmailRequest,
         },
         client::auth_settings::AuthSettings,
         crypto::CipherString,
@@ -151,7 +148,7 @@ impl Client {
     pub async fn access_token_login(
         &mut self,
         input: &AccessTokenLoginRequest,
-    ) -> Result<ApiKeyLoginResponse> {
+    ) -> Result<AccessTokenLoginResponse> {
         access_token_login(self, input).await
     }
 
@@ -263,13 +260,18 @@ impl Client {
     pub fn fingerprint(&mut self, input: &FingerprintRequest) -> Result<FingerprintResponse> {
         generate_fingerprint(input)
     }
+
+    #[cfg(feature = "internal")]
+    pub async fn send_two_factor_email(&mut self, tf: &TwoFactorEmailRequest) -> Result<()> {
+        send_two_factor_email(self, tf).await
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use wiremock::{matchers, Mock, ResponseTemplate};
 
-    use crate::{auth::request::AccessTokenLoginRequest, secrets_manager::secrets::*};
+    use crate::{auth::login::AccessTokenLoginRequest, secrets_manager::secrets::*};
 
     #[tokio::test]
     async fn test_access_token_login() {

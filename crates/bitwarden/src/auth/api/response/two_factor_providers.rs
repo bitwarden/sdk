@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 
 use crate::auth::api::response::two_factor_provider_data::{
@@ -10,8 +10,8 @@ use crate::auth::api::response::two_factor_provider_data::{
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct TwoFactorProviders {
-    #[serde(rename = "0")]
-    pub authenticator: Option<Authenticator>,
+    #[serde(rename = "0", default, deserialize_with = "double_option")]
+    pub authenticator: Option<Option<Authenticator>>,
     #[serde(rename = "1")]
     pub email: Option<Email>,
     #[serde(rename = "2")]
@@ -46,4 +46,12 @@ impl Default for TwoFactorProviders {
             extra: Default::default(),
         }
     }
+}
+
+pub fn double_option<'de, T, D>(de: D) -> Result<Option<Option<T>>, D::Error>
+where
+    T: Deserialize<'de>,
+    D: Deserializer<'de>,
+{
+    Deserialize::deserialize(de).map(Some)
 }

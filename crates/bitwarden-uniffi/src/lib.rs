@@ -4,8 +4,8 @@ use std::sync::Arc;
 
 use async_lock::RwLock;
 use bitwarden::{
-    client::client_settings::ClientSettings,
-    mobile::{crypto::InitCryptoRequest, kdf::PasswordHashRequest},
+    client::{auth_settings::Kdf, client_settings::ClientSettings},
+    mobile::crypto::InitCryptoRequest,
 };
 
 mod error;
@@ -55,8 +55,20 @@ impl Client {
 #[uniffi::export]
 impl ClientKdf {
     /// Hash the user password
-    pub async fn hash_password(&self, req: PasswordHashRequest) -> Result<String> {
-        Ok(self.0 .0.read().await.kdf().hash_password(req).await?)
+    pub async fn hash_password(
+        &self,
+        email: String,
+        password: String,
+        kdf_params: Kdf,
+    ) -> Result<String> {
+        Ok(self
+            .0
+             .0
+            .read()
+            .await
+            .kdf()
+            .hash_password(email, password, kdf_params)
+            .await?)
     }
 }
 #[uniffi::export]

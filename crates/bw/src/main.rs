@@ -34,7 +34,7 @@ enum Commands {
     #[command(long_about = "Pull the latest vault data from the server")]
     Sync {},
 
-    #[command(long_about = "Pull the latest vault data from the server")]
+    #[command(long_about = "Password and passphrase generators")]
     Generate {
         #[command(subcommand)]
         command: GeneratorCommands,
@@ -93,11 +93,7 @@ struct PasswordGeneratorArgs {
     )]
     special: bool,
 
-    #[arg(
-        long,
-        default_value = "16",
-        help = "Minimum length of generated password"
-    )]
+    #[arg(long, default_value = "16", help = "Length of generated password")]
     length: u8,
 }
 

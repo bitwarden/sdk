@@ -30,9 +30,10 @@ pub struct BitwardenClient(JsonClient);
 impl BitwardenClient {
     #[napi(constructor)]
     pub fn new(settings_input: Option<String>, log_level: Option<LogLevel>) -> Self {
-        env_logger::Builder::from_default_env()
+        // This will only fail if another logger was already initialized, so we can ignore the result
+        let _ = env_logger::Builder::from_default_env()
             .filter_level(convert_level(log_level.unwrap_or(LogLevel::Info)))
-            .init();
+            .try_init();
         Self(bitwarden_json::client::Client::new(settings_input))
     }
 

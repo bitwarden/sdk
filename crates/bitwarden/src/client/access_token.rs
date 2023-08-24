@@ -31,7 +31,9 @@ impl FromStr for AccessToken {
             return Err(AccessTokenInvalidError::WrongVersion.into());
         }
 
-        let Ok(service_account_id) = service_account_id.parse() else { return Err(AccessTokenInvalidError::InvalidUuid.into()) };
+        let Ok(service_account_id) = service_account_id.parse() else {
+            return Err(AccessTokenInvalidError::InvalidUuid.into());
+        };
 
         let encryption_key = BASE64_ENGINE
             .decode(encryption_key)

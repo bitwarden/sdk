@@ -7,6 +7,7 @@
     "dylib",
     "Hkdf",
     "Maybeable",
+    "schemars",
     "uniffi",
     "wordlist"
   ]

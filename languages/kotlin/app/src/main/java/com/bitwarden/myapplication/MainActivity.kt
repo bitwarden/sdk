@@ -12,10 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.bitwarden.core.DateTime
 import com.bitwarden.core.Folder
-import com.bitwarden.core.FolderDecryptListRequest
 import com.bitwarden.core.InitCryptoRequest
 import com.bitwarden.core.Kdf
-import com.bitwarden.core.PasswordHashRequest
 import com.bitwarden.core.Uuid
 import com.bitwarden.myapplication.ui.theme.MyApplicationTheme
 import com.bitwarden.sdk.Client
@@ -84,11 +82,7 @@ class MainActivity : ComponentActivity() {
                     prelogin_body.kdfParallelism!!
                 )
             }
-            val masterPasswordHash = client.kdf().hashPassword(
-                PasswordHashRequest(
-                    kdfParams = kdf, email = EMAIL, password = PASSWORD
-                )
-            )
+            val masterPasswordHash = client.kdf().hashPassword(EMAIL, PASSWORD, kdf)
 
             ///////////////////////////// Login /////////////////////////////
 
@@ -155,10 +149,9 @@ class MainActivity : ComponentActivity() {
 
             ///////////////////////////// Decrypt some folders /////////////////////////////
 
-            val decrypted_folders =
-                client.vault().folders().decryptList(FolderDecryptListRequest(folders))
+            val decryptedFolders = client.vault().folders().decryptList(folders)
 
-            println(decrypted_folders)
+            println(decryptedFolders)
 
         }
 

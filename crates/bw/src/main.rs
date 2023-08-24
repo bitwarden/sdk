@@ -141,7 +141,7 @@ async fn process_commands() -> Result<()> {
     }
 
     // Not login, assuming we have a config
-    let mut client = bitwarden::Client::new(None);
+    let client = bitwarden::Client::new(None);
 
     // And finally we process all the commands which require authentication
     match command {
@@ -152,7 +152,7 @@ async fn process_commands() -> Result<()> {
             GeneratorCommands::Password(args) => {
                 let password = client
                     .generator()
-                    .password(&PasswordGeneratorRequest {
+                    .password(PasswordGeneratorRequest {
                         lowercase: args.lowercase,
                         uppercase: args.uppercase,
                         numbers: args.numbers,

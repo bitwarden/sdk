@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 /// The default length is 16.
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Default)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct PasswordGeneratorRequest {
     pub lowercase: bool,
     pub uppercase: bool,
@@ -30,6 +31,7 @@ pub struct PasswordGeneratorRequest {
 /// The default separator is `-` and default number of words is 3.
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Default)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct PassphraseGeneratorRequest {
     pub num_words: Option<u8>,
     pub word_separator: Option<String>,

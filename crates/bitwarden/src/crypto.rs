@@ -139,6 +139,7 @@ impl FromStr for CipherString {
 }
 
 impl CipherString {
+    #[cfg(feature = "mobile")]
     pub(crate) fn from_buffer(buf: &[u8]) -> Result<Self> {
         if buf.is_empty() {
             return Err(CSParseError::NoType.into());

@@ -1,4 +1,4 @@
-use bitwarden::client::client_settings::ClientSettings;
+use bitwarden::{client::client_settings::ClientSettings, tool::PasswordGeneratorRequest};
 use bitwarden_cli::{install_color_eyre, Color};
 use clap::{command, Args, CommandFactory, Parser, Subcommand};
 use color_eyre::eyre::Result;
@@ -33,6 +33,12 @@ enum Commands {
 
     #[command(long_about = "Pull the latest vault data from the server")]
     Sync {},
+
+    #[command(long_about = "Pull the latest vault data from the server")]
+    Generate {
+        #[command(subcommand)]
+        command: GeneratorCommands,
+    },
 }
 
 #[derive(Args, Clone)]
@@ -60,6 +66,39 @@ enum LoginCommands {
 enum ItemCommands {
     Get { id: String },
     Create {},
+}
+
+#[derive(Subcommand, Clone)]
+enum GeneratorCommands {
+    Password(PasswordGeneratorArgs),
+    Passphrase {},
+}
+
+#[derive(Args, Clone)]
+struct PasswordGeneratorArgs {
+    #[arg(short = 'l', long, action, help = "Include lowercase characters (a-z)")]
+    lowercase: bool,
+
+    #[arg(short = 'u', long, action, help = "Include uppercase characters (A-Z)")]
+    uppercase: bool,
+
+    #[arg(short = 'n', long, action, help = "Include numbers (0-9)")]
+    numbers: bool,
+
+    #[arg(
+        short = 's',
+        long,
+        action,
+        help = "Include special characters (!@#$%^&*)"
+    )]
+    special: bool,
+
+    #[arg(
+        long,
+        default_value = "16",
+        help = "Minimum length of generated password"
+    )]
+    length: u8,
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -102,14 +141,34 @@ async fn process_commands() -> Result<()> {
     }
 
     // Not login, assuming we have a config
-    let mut _client = bitwarden::Client::new(None);
+    let mut client = bitwarden::Client::new(None);
 
     // And finally we process all the commands which require authentication
     match command {
         Commands::Login(_) => unreachable!(),
         Commands::Item { command: _ } => todo!(),
         Commands::Sync {} => todo!(),
-    }
+        Commands::Generate { command } => match command {
+            GeneratorCommands::Password(args) => {
+                let password = client
+                    .generator()
+                    .password(&PasswordGeneratorRequest {
+                        lowercase: args.lowercase,
+                        uppercase: args.uppercase,
+                        numbers: args.numbers,
+                        special: args.special,
+                        length: Some(args.length),
+                        ..Default::default()
+                    })
+                    .await?;
+
+                println!("{}", password);
+            }
+            GeneratorCommands::Passphrase {} => todo!(),
+        },
+    };
+
+    Ok(())
 }
 
 #[cfg(test)]

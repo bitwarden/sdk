@@ -245,6 +245,30 @@ Decrypt password history
 
 **Output**: std::result::Result<Vec,BitwardenError>
 
+## ClientGenerators
+
+### `password`
+
+Generate Password
+
+**Arguments**:
+
+- self:
+- settings: PasswordGeneratorRequest
+
+**Output**: std::result::Result<String,BitwardenError>
+
+### `passphrase`
+
+Generate Passphrase
+
+**Arguments**:
+
+- self:
+- settings: PassphraseGeneratorRequest
+
+**Output**: std::result::Result<String,BitwardenError>
+
 # Command references
 
 Command references are generated from the JSON schemas and should mostly match the kotlin and swift

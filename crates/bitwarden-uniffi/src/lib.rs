@@ -9,9 +9,11 @@ use bitwarden::{
 };
 
 mod error;
+pub mod tool;
 pub mod vault;
 
 use error::Result;
+use tool::ClientGenerators;
 use vault::ClientVault;
 
 #[derive(uniffi::Object)]
@@ -44,6 +46,10 @@ impl Client {
     /// Vault item operations
     pub fn vault(self: Arc<Self>) -> Arc<ClientVault> {
         Arc::new(ClientVault(self))
+    }
+
+    pub fn generators(self: Arc<Self>) -> Arc<ClientGenerators> {
+        Arc::new(ClientGenerators(self))
     }
 
     /// Test method, echoes back the input

@@ -10,7 +10,7 @@ import { Input, InputType } from "./rustdoc";
 
 const doc = JSON.parse(fs.readFileSync("./target/doc/bitwarden_uniffi.json", "utf8"));
 const command = JSON.parse(
-  fs.readFileSync("./support/schemas/bitwarden_json/Command.json", "utf8"),
+  fs.readFileSync("./support/schemas/bitwarden_uniffi/DocRef.json", "utf8"),
 );
 
 const template = Handlebars.compile(

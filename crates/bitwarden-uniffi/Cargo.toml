@@ -4,14 +4,18 @@ version = "0.1.0"
 edition = "2021"
 rust-version = "1.57"
 
+[features]
+docs = ["dep:schemars"] # Docs
+
 [lib]
-crate-type = ["staticlib", "cdylib"]
+crate-type = ["lib", "staticlib", "cdylib"]
 bench = false
 
 [dependencies]
 async-lock = "2.7.0"
 env_logger = "0.10.0"
 uniffi = "=0.24.1"
+schemars = { version = ">=0.8, <0.9", optional = true }
 
 bitwarden = { path = "../bitwarden", features = ["mobile", "internal"] }
 

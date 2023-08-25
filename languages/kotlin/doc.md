@@ -269,9 +269,9 @@ Generate Passphrase
 
 **Output**: std::result::Result<String,BitwardenError>
 
-# Command references
+# References
 
-Command references are generated from the JSON schemas and should mostly match the kotlin and swift
+References are generated from the JSON schemas and should mostly match the kotlin and swift
 implementations.
 
 ## `Cipher`

@@ -115,5 +115,8 @@ fn main() -> Result<()> {
         bitwarden::platform::UserApiKeyResponse,
     };
 
+    #[cfg(feature = "internal")]
+    write_schema_for!(bitwarden_uniffi::docs::DocRef);
+
     Ok(())
 }

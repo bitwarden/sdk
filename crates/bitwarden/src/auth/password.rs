@@ -1,3 +1,5 @@
+use schemars::JsonSchema;
+
 pub(super) fn password_strength(
     _password: String,
     _email: String,
@@ -14,7 +16,7 @@ pub(super) fn satisfies_policy(
     unimplemented!()
 }
 
-#[derive(Debug)]
+#[derive(Debug, JsonSchema)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 #[allow(dead_code)]
 pub struct MasterPasswordPolicyOptions {

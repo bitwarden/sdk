@@ -14,6 +14,9 @@ mod error;
 pub mod tool;
 pub mod vault;
 
+#[cfg(feature = "docs")]
+pub mod docs;
+
 use error::Result;
 use tool::ClientGenerators;
 use vault::ClientVault;

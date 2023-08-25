@@ -274,7 +274,7 @@ Decrypt password history
 **Arguments**:
 
 - self:
-- settings: PasswordGeneratorRequest
+- settings: [PasswordGeneratorRequest](#passwordgeneratorrequest)
 
 **Output**: std::result::Result<String,BitwardenError>
 
@@ -285,7 +285,7 @@ Decrypt password history
 **Arguments**:
 
 - self:
-- settings: PassphraseGeneratorRequest
+- settings: [PassphraseGeneratorRequest](#passphrasegeneratorrequest)
 
 **Output**: std::result::Result<String,BitwardenError>
 
@@ -313,7 +313,7 @@ Decrypt password history
 - self:
 - password: String
 - strength:
-- policy: MasterPasswordPolicyOptions
+- policy: [MasterPasswordPolicyOptions](#masterpasswordpolicyoptions)
 
 **Output**:
 
@@ -761,6 +761,141 @@ implementations.
             </tr>
         </table>
     </td>
+</tr>
+</table>
+
+## `MasterPasswordPolicyOptions`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>min_complexity</th>
+    <th>integer</th>
+    <th></th>
+</tr>
+<tr>
+    <th>min_length</th>
+    <th>integer</th>
+    <th></th>
+</tr>
+<tr>
+    <th>require_upper</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>require_lower</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>require_numbers</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>require_special</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>enforce_on_login</th>
+    <th>boolean</th>
+    <th>Flag to indicate if the policy should be enforced on login. If true, and the user&#x27;s password does not meet the policy requirements, the user will be forced to update their password.</th>
+</tr>
+</table>
+
+## `PassphraseGeneratorRequest`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>numWords</th>
+    <th>integer,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>wordSeparator</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>capitalize</th>
+    <th>boolean,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>includeNumber</th>
+    <th>boolean,null</th>
+    <th></th>
+</tr>
+</table>
+
+## `PasswordGeneratorRequest`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>lowercase</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>uppercase</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>numbers</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>special</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>length</th>
+    <th>integer,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>avoidAmbiguous</th>
+    <th>boolean,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>minLowercase</th>
+    <th>boolean,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>minUppercase</th>
+    <th>boolean,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>minNumber</th>
+    <th>boolean,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>minSpecial</th>
+    <th>boolean,null</th>
+    <th></th>
 </tr>
 </table>
 

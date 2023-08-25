@@ -1,6 +1,8 @@
 use bitwarden::{
+    auth::password::MasterPasswordPolicyOptions,
     client::auth_settings::Kdf,
     mobile::crypto::InitCryptoRequest,
+    tool::{PassphraseGeneratorRequest, PasswordGeneratorRequest},
     vault::{Cipher, CipherView, Collection, Folder, FolderView},
 };
 use schemars::JsonSchema;
@@ -16,6 +18,13 @@ pub enum DocRef {
 
     // Crypto
     InitCryptoRequest(InitCryptoRequest),
+
+    // Generators
+    PasswordGeneratorRequest(PasswordGeneratorRequest),
+    PassphraseGeneratorRequest(PassphraseGeneratorRequest),
+
+    // Auth
+    MasterPasswordPolicyOptions(MasterPasswordPolicyOptions),
 
     // Kdf
     Kdf(Kdf),

@@ -46,6 +46,26 @@ Vault item operations
 
 **Output**: Arc<ClientVault>
 
+### `generators`
+
+Generator operations
+
+**Arguments**:
+
+- self: Arc<Self>
+
+**Output**: Arc<ClientGenerators>
+
+### `auth`
+
+Auth operations
+
+**Arguments**:
+
+- self: Arc<Self>
+
+**Output**: Arc<ClientAuth>
+
 ### `echo`
 
 Test method, echoes back the input
@@ -249,7 +269,7 @@ Decrypt password history
 
 ### `password`
 
-Generate Password
+**API Draft:** Generate Password
 
 **Arguments**:
 
@@ -260,7 +280,7 @@ Generate Password
 
 ### `passphrase`
 
-Generate Passphrase
+**API Draft:** Generate Passphrase
 
 **Arguments**:
 
@@ -268,6 +288,34 @@ Generate Passphrase
 - settings: PassphraseGeneratorRequest
 
 **Output**: std::result::Result<String,BitwardenError>
+
+## ClientAuth
+
+### `password_strength`
+
+**API Draft:** Calculate Password Strength
+
+**Arguments**:
+
+- self:
+- password: String
+- email: String
+- additional_inputs: Vec<String>
+
+**Output**:
+
+### `satisfies_policy`
+
+**API Draft:** Evaluate if the provided password satisfies the provided policy
+
+**Arguments**:
+
+- self:
+- password: String
+- strength:
+- policy: MasterPasswordPolicyOptions
+
+**Output**:
 
 # References
 

@@ -16,6 +16,7 @@ pub(super) fn satisfies_policy(
 
 #[derive(Debug)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[allow(dead_code)]
 pub struct MasterPasswordPolicyOptions {
     min_complexity: u8,
     min_length: u8,

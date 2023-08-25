@@ -20,7 +20,6 @@ const template = Handlebars.compile(
 // Modify this to include more root elements
 const rootElements = [
   "Client",
-  "ClientKdf",
   "ClientCrypto",
   "ClientVault",
   "ClientCiphers",

@@ -246,7 +246,7 @@ async fn process_commands() -> Result<()> {
 
     let Some(command) = cli.command else {
         let mut cmd = Cli::command();
-        cmd.print_help()?;
+        eprintln!("{}", cmd.render_help());
         return Ok(());
     };
 

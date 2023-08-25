@@ -46,6 +46,26 @@ Vault item operations
 
 **Output**: Arc<ClientVault>
 
+### `generators`
+
+Generator operations
+
+**Arguments**:
+
+- self: Arc<Self>
+
+**Output**: Arc<ClientGenerators>
+
+### `auth`
+
+Auth operations
+
+**Arguments**:
+
+- self: Arc<Self>
+
+**Output**: Arc<ClientAuth>
+
 ### `echo`
 
 Test method, echoes back the input
@@ -249,29 +269,57 @@ Decrypt password history
 
 ### `password`
 
-Generate Password
+**API Draft:** Generate Password
 
 **Arguments**:
 
 - self:
-- settings: PasswordGeneratorRequest
+- settings: [PasswordGeneratorRequest](#passwordgeneratorrequest)
 
 **Output**: std::result::Result<String,BitwardenError>
 
 ### `passphrase`
 
-Generate Passphrase
+**API Draft:** Generate Passphrase
 
 **Arguments**:
 
 - self:
-- settings: PassphraseGeneratorRequest
+- settings: [PassphraseGeneratorRequest](#passphrasegeneratorrequest)
 
 **Output**: std::result::Result<String,BitwardenError>
 
-# Command references
+## ClientAuth
 
-Command references are generated from the JSON schemas and should mostly match the kotlin and swift
+### `password_strength`
+
+**API Draft:** Calculate Password Strength
+
+**Arguments**:
+
+- self:
+- password: String
+- email: String
+- additional_inputs: Vec<String>
+
+**Output**:
+
+### `satisfies_policy`
+
+**API Draft:** Evaluate if the provided password satisfies the provided policy
+
+**Arguments**:
+
+- self:
+- password: String
+- strength:
+- policy: [MasterPasswordPolicyOptions](#masterpasswordpolicyoptions)
+
+**Output**:
+
+# References
+
+References are generated from the JSON schemas and should mostly match the kotlin and swift
 implementations.
 
 ## `Cipher`
@@ -713,6 +761,141 @@ implementations.
             </tr>
         </table>
     </td>
+</tr>
+</table>
+
+## `MasterPasswordPolicyOptions`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>min_complexity</th>
+    <th>integer</th>
+    <th></th>
+</tr>
+<tr>
+    <th>min_length</th>
+    <th>integer</th>
+    <th></th>
+</tr>
+<tr>
+    <th>require_upper</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>require_lower</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>require_numbers</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>require_special</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>enforce_on_login</th>
+    <th>boolean</th>
+    <th>Flag to indicate if the policy should be enforced on login. If true, and the user&#x27;s password does not meet the policy requirements, the user will be forced to update their password.</th>
+</tr>
+</table>
+
+## `PassphraseGeneratorRequest`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>numWords</th>
+    <th>integer,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>wordSeparator</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>capitalize</th>
+    <th>boolean,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>includeNumber</th>
+    <th>boolean,null</th>
+    <th></th>
+</tr>
+</table>
+
+## `PasswordGeneratorRequest`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>lowercase</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>uppercase</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>numbers</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>special</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>length</th>
+    <th>integer,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>avoidAmbiguous</th>
+    <th>boolean,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>minLowercase</th>
+    <th>boolean,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>minUppercase</th>
+    <th>boolean,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>minNumber</th>
+    <th>boolean,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>minSpecial</th>
+    <th>boolean,null</th>
+    <th></th>
 </tr>
 </table>
 

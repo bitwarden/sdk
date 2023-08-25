@@ -3,14 +3,19 @@ uniffi::setup_scaffolding!();
 use std::sync::Arc;
 
 use async_lock::RwLock;
+use auth::ClientAuth;
 use bitwarden::{
     client::{auth_settings::Kdf, client_settings::ClientSettings},
     mobile::crypto::InitCryptoRequest,
 };
 
+pub mod auth;
 mod error;
 pub mod tool;
 pub mod vault;
+
+#[cfg(feature = "docs")]
+pub mod docs;
 
 use error::Result;
 use tool::ClientGenerators;
@@ -48,8 +53,14 @@ impl Client {
         Arc::new(ClientVault(self))
     }
 
+    /// Generator operations
     pub fn generators(self: Arc<Self>) -> Arc<ClientGenerators> {
         Arc::new(ClientGenerators(self))
+    }
+
+    /// Auth operations
+    pub fn auth(self: Arc<Self>) -> Arc<ClientAuth> {
+        Arc::new(ClientAuth(self))
     }
 
     /// Test method, echoes back the input

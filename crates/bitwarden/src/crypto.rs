@@ -71,7 +71,7 @@ impl std::fmt::Debug for CipherString {
 }
 
 fn invalid_len_error(expected: usize) -> impl Fn(Vec<u8>) -> CSParseError {
-    move |e: Vec<_>| CSParseError::InvalidBase64Length {
+    move |e: Vec<_>| CSParseError::InvalidLength {
         expected,
         got: e.len(),
     }
@@ -149,6 +149,14 @@ impl CipherString {
         match enc_type {
             0 => unimplemented!(),
             1 | 2 => {
+                if buf.len() < 49 {
+                    return Err(CSParseError::InvalidLength {
+                        expected: 49,
+                        got: buf.len(),
+                    }
+                    .into());
+                }
+
                 let iv = buf[1..17].try_into().unwrap();
                 let mac = buf[17..49].try_into().unwrap();
                 let data = buf[49..].to_vec();

@@ -36,9 +36,9 @@ impl<'a> ClientSends<'a> {
 
     pub async fn decrypt_buffer(&self, send: Send, encrypted_buffer: &[u8]) -> Result<Vec<u8>> {
         let enc = self.client.get_encryption_settings()?;
-        let enc = send.get_send_key(enc, &None)?;
+        let enc = send.get_send_encryption(enc, &None)?;
 
-        let cs = CipherString::from_buffer(&encrypted_buffer)?;
+        let cs = CipherString::from_buffer(encrypted_buffer)?;
 
         enc.decrypt_bytes(&cs, &None)
     }

@@ -9,7 +9,7 @@ pub struct ClientGenerators(pub(crate) Arc<Client>);
 
 #[uniffi::export]
 impl ClientGenerators {
-    /// Generate Password
+    /// **API Draft:** Generate Password
     pub async fn password(&self, settings: PasswordGeneratorRequest) -> Result<String> {
         Ok(self
             .0
@@ -21,7 +21,7 @@ impl ClientGenerators {
             .await?)
     }
 
-    /// Generate Passphrase
+    /// **API Draft:** Generate Passphrase
     pub async fn passphrase(&self, settings: PassphraseGeneratorRequest) -> Result<String> {
         Ok(self
             .0

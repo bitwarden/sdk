@@ -8,6 +8,7 @@ use bitwarden::{
 use schemars::JsonSchema;
 
 #[derive(JsonSchema)]
+#[allow(clippy::large_enum_variant)]
 pub enum DocRef {
     // Vault
     Cipher(Cipher),

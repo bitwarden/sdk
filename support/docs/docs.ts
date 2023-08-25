@@ -27,6 +27,7 @@ const rootElements = [
   "ClientCollections",
   "ClientFolders",
   "ClientPasswordHistory",
+  "ClientGenerators",
 ];
 
 const localIndexArray = Object.values(doc.index).filter((entry: any) => entry.crate_id == 0);

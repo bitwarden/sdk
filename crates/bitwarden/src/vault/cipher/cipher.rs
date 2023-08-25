@@ -200,12 +200,16 @@ impl Cipher {
     ) -> Result<String> {
         Ok(match self.r#type {
             CipherType::Login => {
-                let Some(login) = &self.login else { return Ok(String::new()) };
+                let Some(login) = &self.login else {
+                    return Ok(String::new());
+                };
                 login.username.decrypt(enc, org_id).unwrap_or_default()
             }
             CipherType::SecureNote => String::new(),
             CipherType::Card => {
-                let Some(card) = &self.card else { return Ok(String::new()) };
+                let Some(card) = &self.card else {
+                    return Ok(String::new());
+                };
                 let mut sub_title = String::new();
 
                 if let Some(brand) = &card.brand {
@@ -233,7 +237,9 @@ impl Cipher {
                 sub_title
             }
             CipherType::Identity => {
-                let Some(identity) = &self.identity else { return Ok(String::new()) };
+                let Some(identity) = &self.identity else {
+                    return Ok(String::new());
+                };
                 let mut sub_title = String::new();
 
                 if let Some(first_name) = &identity.first_name {

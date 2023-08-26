@@ -11,10 +11,13 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
-<PropertyGroup >
+<PropertyGroup>
     <!--Debugonly-->
 </PropertyGroup>
 
+<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  <WarningLevel>4</WarningLevel>
+</PropertyGroup>
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
     <Content Include="../../target/debug/libbitwarden_c*.dylib">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

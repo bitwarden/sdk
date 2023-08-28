@@ -1,3 +1,6 @@
+use std::io::Write;
+
+use base64::Engine;
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,7 +10,8 @@ use uuid::Uuid;
 use crate::{
     client::encryption_settings::EncryptionSettings,
     crypto::{stretch_key, Decryptable, EncString, SymmetricCryptoKey},
-    error::Result,
+    error::{Error, Result},
+    util::BASE64_ENGINE,
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -172,6 +176,79 @@ impl Decryptable<SendView> for Send {
             expiration_date: self.expiration_date,
         })
     }
+}
+
+#[cfg(feature = "mobile")]
+pub async fn download_send_file_from_url(
+    url: &str,
+    password: Option<String>,
+    path: &str,
+) -> Result<()> {
+    let Some((domain, hash)) = url.split_once('#') else {
+        return Err(Error::Internal("Invalid send URL"));
+    };
+    let domain = domain.strip_suffix('/').unwrap_or(domain);
+    let hash = hash.strip_prefix("/send/").unwrap_or(hash);
+
+    let Some((id, key_str)) = hash.split_once('/') else {
+        return Err(Error::Internal("Invalid hash"));
+    };
+    let mut key = [0u8; 16];
+    BASE64_ENGINE
+        .decode_slice_unchecked(key_str, &mut key)
+        .unwrap();
+    let key = stretch_key(key, "send", Some("send"));
+
+    let api_url = match domain {
+        "https://send.bitwarden.com" => "https://api.bitwarden.com".to_string(),
+        "https://send.bitwarden.eu" => "https://api.bitwarden.eu".to_string(),
+        _ => format!("{}/api", domain),
+    };
+    use bitwarden_api_api::models::SendAccessRequestModel;
+    let send_access_request_model = SendAccessRequestModel { password };
+
+    let client = reqwest::Client::new();
+    let access_response = client
+        .post(format!("{}/sends/access/{}", api_url, id))
+        .json(&send_access_request_model)
+        .send()
+        .await?
+        .json::<serde_json::Value>()
+        .await?;
+    let file_id = access_response["file"]["id"]
+        .as_str()
+        .ok_or(Error::Internal("Invalid send response"))?;
+
+    let access_file_response = client
+        .post(format!("{}/sends/{}/access/file/{}", api_url, id, file_id))
+        .json(&send_access_request_model)
+        .send()
+        .await?
+        .json::<serde_json::Value>()
+        .await?;
+    let url = access_file_response["url"]
+        .as_str()
+        .ok_or(Error::Internal("Invalid send response"))?;
+
+    let mut file = std::fs::File::create(path)?;
+    let mut file_response = client.get(url).send().await?;
+
+    let initial_chunk = file_response.chunk().await?.unwrap();
+
+    let (mut decryptor, chunk) = crate::crypto::ChunkedDecryptor::new(key, &initial_chunk)?;
+    file.write_all(&chunk)?;
+
+    while let Some(chunk) = file_response.chunk().await? {
+        let chunk = decryptor.decrypt_chunk(&chunk)?;
+        file.write_all(&chunk)?;
+    }
+
+    let chunk = decryptor.finalize()?;
+    file.write_all(&chunk)?;
+
+    file.flush()?;
+
+    Ok(())
 }
 
 #[cfg(test)]

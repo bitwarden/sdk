@@ -21,6 +21,11 @@ pub use aes_opt::{decrypt_aes256, encrypt_aes256};
 mod symmetric_crypto_key;
 pub use symmetric_crypto_key::SymmetricCryptoKey;
 
+#[cfg(feature = "mobile")]
+mod chunked_decryptor;
+#[cfg(feature = "mobile")]
+pub use chunked_decryptor::{decrypt_file, ChunkedDecryptor};
+
 #[cfg(feature = "internal")]
 mod fingerprint;
 #[cfg(feature = "internal")]

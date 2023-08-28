@@ -29,9 +29,10 @@ impl<'a> ClientSends<'a> {
         encrypted_file_path: &Path,
         decrypted_file_path: &Path,
     ) -> Result<()> {
-        let data = std::fs::read(encrypted_file_path).unwrap();
-        let decrypted = self.decrypt_buffer(send, &data).await?;
-        std::fs::write(decrypted_file_path, decrypted)?;
+        let enc = self.client.get_encryption_settings()?;
+        let key = Send::get_key(&send.key, enc, &None)?;
+
+        crate::crypto::decrypt_file(key, encrypted_file_path, decrypted_file_path)?;
         Ok(())
     }
 

@@ -72,3 +72,22 @@ impl std::fmt::Debug for SymmetricCryptoKey {
         f.debug_struct("Key").finish()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use super::SymmetricCryptoKey;
+
+    #[test]
+    fn test_symmetric_crypto_key() {
+        let key = SymmetricCryptoKey::generate("test");
+        let key2 = SymmetricCryptoKey::from_str(&key.to_base64()).unwrap();
+        assert_eq!(key.key, key2.key);
+        assert_eq!(key.mac_key, key2.mac_key);
+
+        let key = "UY4B5N4DA4UisCNClgZtRr6VLy9ZF5BXXC7cDZRqourKi4ghEMgISbCsubvgCkHf5DZctQjVot11/vVvN9NNHQ==";
+        let key2 = SymmetricCryptoKey::from_str(key).unwrap();
+        assert_eq!(key, key2.to_base64());
+    }
+}

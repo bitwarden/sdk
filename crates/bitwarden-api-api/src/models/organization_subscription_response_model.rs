@@ -32,6 +32,8 @@ pub struct OrganizationSubscriptionResponseModel {
     pub billing_email: Option<String>,
     #[serde(rename = "plan", skip_serializing_if = "Option::is_none")]
     pub plan: Option<Box<crate::models::PlanResponseModel>>,
+    #[serde(rename = "secretsManagerPlan", skip_serializing_if = "Option::is_none")]
+    pub secrets_manager_plan: Option<Box<crate::models::PlanResponseModel>>,
     #[serde(rename = "planType", skip_serializing_if = "Option::is_none")]
     pub plan_type: Option<crate::models::PlanType>,
     #[serde(rename = "seats", skip_serializing_if = "Option::is_none")]
@@ -80,6 +82,22 @@ pub struct OrganizationSubscriptionResponseModel {
         skip_serializing_if = "Option::is_none"
     )]
     pub has_public_and_private_keys: Option<bool>,
+    #[serde(rename = "usePasswordManager", skip_serializing_if = "Option::is_none")]
+    pub use_password_manager: Option<bool>,
+    #[serde(rename = "smSeats", skip_serializing_if = "Option::is_none")]
+    pub sm_seats: Option<i32>,
+    #[serde(rename = "smServiceAccounts", skip_serializing_if = "Option::is_none")]
+    pub sm_service_accounts: Option<i32>,
+    #[serde(
+        rename = "maxAutoscaleSmSeats",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub max_autoscale_sm_seats: Option<i32>,
+    #[serde(
+        rename = "maxAutoscaleSmServiceAccounts",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub max_autoscale_sm_service_accounts: Option<i32>,
     #[serde(rename = "storageName", skip_serializing_if = "Option::is_none")]
     pub storage_name: Option<String>,
     #[serde(rename = "storageGb", skip_serializing_if = "Option::is_none")]
@@ -88,8 +106,17 @@ pub struct OrganizationSubscriptionResponseModel {
     pub subscription: Option<Box<crate::models::BillingSubscription>>,
     #[serde(rename = "upcomingInvoice", skip_serializing_if = "Option::is_none")]
     pub upcoming_invoice: Option<Box<crate::models::BillingSubscriptionUpcomingInvoice>>,
+    /// Date when a self-hosted organization's subscription expires, without any grace period.
+    #[serde(
+        rename = "expirationWithoutGracePeriod",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub expiration_without_grace_period: Option<String>,
+    /// Date when a self-hosted organization expires (includes grace period).
     #[serde(rename = "expiration", skip_serializing_if = "Option::is_none")]
     pub expiration: Option<String>,
+    #[serde(rename = "secretsManagerBeta", skip_serializing_if = "Option::is_none")]
+    pub secrets_manager_beta: Option<bool>,
 }
 
 impl OrganizationSubscriptionResponseModel {
@@ -106,6 +133,7 @@ impl OrganizationSubscriptionResponseModel {
             business_tax_number: None,
             billing_email: None,
             plan: None,
+            secrets_manager_plan: None,
             plan_type: None,
             seats: None,
             max_autoscale_seats: None,
@@ -127,11 +155,18 @@ impl OrganizationSubscriptionResponseModel {
             use_custom_permissions: None,
             self_host: None,
             has_public_and_private_keys: None,
+            use_password_manager: None,
+            sm_seats: None,
+            sm_service_accounts: None,
+            max_autoscale_sm_seats: None,
+            max_autoscale_sm_service_accounts: None,
             storage_name: None,
             storage_gb: None,
             subscription: None,
             upcoming_invoice: None,
+            expiration_without_grace_period: None,
             expiration: None,
+            secrets_manager_beta: None,
         }
     }
 }

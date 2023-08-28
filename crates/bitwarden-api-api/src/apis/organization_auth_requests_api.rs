@@ -13,44 +13,45 @@ use reqwest;
 use super::{configuration, Error};
 use crate::apis::ResponseContent;
 
-/// struct for typed errors of method [`plans_all_get`]
+/// struct for typed errors of method [`organizations_org_id_auth_requests_deny_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum PlansAllGetError {
+pub enum OrganizationsOrgIdAuthRequestsDenyPostError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`plans_get`]
+/// struct for typed errors of method [`organizations_org_id_auth_requests_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum PlansGetError {
+pub enum OrganizationsOrgIdAuthRequestsGetError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`plans_sales_tax_rates_get`]
+/// struct for typed errors of method [`organizations_org_id_auth_requests_request_id_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum PlansSalesTaxRatesGetError {
+pub enum OrganizationsOrgIdAuthRequestsRequestIdPostError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`plans_sm_plans_get`]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum PlansSmPlansGetError {
-    UnknownValue(serde_json::Value),
-}
-
-pub async fn plans_all_get(
+pub async fn organizations_org_id_auth_requests_deny_post(
     configuration: &configuration::Configuration,
-) -> Result<crate::models::PlanResponseModelListResponseModel, Error<PlansAllGetError>> {
+    org_id: uuid::Uuid,
+    bulk_deny_admin_auth_request_request_model: Option<
+        crate::models::BulkDenyAdminAuthRequestRequestModel,
+    >,
+) -> Result<(), Error<OrganizationsOrgIdAuthRequestsDenyPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
 
-    let local_var_uri_str = format!("{}/plans/all", local_var_configuration.base_path);
+    let local_var_uri_str = format!(
+        "{}/organizations/{orgId}/auth-requests/deny",
+        local_var_configuration.base_path,
+        orgId = crate::apis::urlencode(org_id.to_string())
+    );
     let mut local_var_req_builder =
-        local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
+        local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
 
     if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
         local_var_req_builder =
@@ -59,6 +60,7 @@ pub async fn plans_all_get(
     if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
         local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
     };
+    local_var_req_builder = local_var_req_builder.json(&bulk_deny_admin_auth_request_request_model);
 
     let local_var_req = local_var_req_builder.build()?;
     let local_var_resp = local_var_client.execute(local_var_req).await?;
@@ -67,9 +69,9 @@ pub async fn plans_all_get(
     let local_var_content = local_var_resp.text().await?;
 
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
-        serde_json::from_str(&local_var_content).map_err(Error::from)
+        Ok(())
     } else {
-        let local_var_entity: Option<PlansAllGetError> =
+        let local_var_entity: Option<OrganizationsOrgIdAuthRequestsDenyPostError> =
             serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,
@@ -80,55 +82,21 @@ pub async fn plans_all_get(
     }
 }
 
-pub async fn plans_get(
+pub async fn organizations_org_id_auth_requests_get(
     configuration: &configuration::Configuration,
-) -> Result<crate::models::PlanResponseModelListResponseModel, Error<PlansGetError>> {
-    let local_var_configuration = configuration;
-
-    let local_var_client = &local_var_configuration.client;
-
-    let local_var_uri_str = format!("{}/plans", local_var_configuration.base_path);
-    let mut local_var_req_builder =
-        local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
-
-    if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
-        local_var_req_builder =
-            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
-    }
-    if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
-        local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
-    };
-
-    let local_var_req = local_var_req_builder.build()?;
-    let local_var_resp = local_var_client.execute(local_var_req).await?;
-
-    let local_var_status = local_var_resp.status();
-    let local_var_content = local_var_resp.text().await?;
-
-    if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
-        serde_json::from_str(&local_var_content).map_err(Error::from)
-    } else {
-        let local_var_entity: Option<PlansGetError> = serde_json::from_str(&local_var_content).ok();
-        let local_var_error = ResponseContent {
-            status: local_var_status,
-            content: local_var_content,
-            entity: local_var_entity,
-        };
-        Err(Error::ResponseError(local_var_error))
-    }
-}
-
-pub async fn plans_sales_tax_rates_get(
-    configuration: &configuration::Configuration,
-) -> Result<crate::models::TaxRateResponseModelListResponseModel, Error<PlansSalesTaxRatesGetError>>
-{
+    org_id: uuid::Uuid,
+) -> Result<
+    crate::models::PendingOrganizationAuthRequestResponseModelListResponseModel,
+    Error<OrganizationsOrgIdAuthRequestsGetError>,
+> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
 
     let local_var_uri_str = format!(
-        "{}/plans/sales-tax-rates",
-        local_var_configuration.base_path
+        "{}/organizations/{orgId}/auth-requests",
+        local_var_configuration.base_path,
+        orgId = crate::apis::urlencode(org_id.to_string())
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -150,7 +118,7 @@ pub async fn plans_sales_tax_rates_get(
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
         serde_json::from_str(&local_var_content).map_err(Error::from)
     } else {
-        let local_var_entity: Option<PlansSalesTaxRatesGetError> =
+        let local_var_entity: Option<OrganizationsOrgIdAuthRequestsGetError> =
             serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,
@@ -161,16 +129,26 @@ pub async fn plans_sales_tax_rates_get(
     }
 }
 
-pub async fn plans_sm_plans_get(
+pub async fn organizations_org_id_auth_requests_request_id_post(
     configuration: &configuration::Configuration,
-) -> Result<crate::models::PlanResponseModelListResponseModel, Error<PlansSmPlansGetError>> {
+    org_id: uuid::Uuid,
+    request_id: uuid::Uuid,
+    admin_auth_request_update_request_model: Option<
+        crate::models::AdminAuthRequestUpdateRequestModel,
+    >,
+) -> Result<(), Error<OrganizationsOrgIdAuthRequestsRequestIdPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
 
-    let local_var_uri_str = format!("{}/plans/sm-plans", local_var_configuration.base_path);
+    let local_var_uri_str = format!(
+        "{}/organizations/{orgId}/auth-requests/{requestId}",
+        local_var_configuration.base_path,
+        orgId = crate::apis::urlencode(org_id.to_string()),
+        requestId = crate::apis::urlencode(request_id.to_string())
+    );
     let mut local_var_req_builder =
-        local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
+        local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
 
     if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
         local_var_req_builder =
@@ -179,6 +157,7 @@ pub async fn plans_sm_plans_get(
     if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
         local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
     };
+    local_var_req_builder = local_var_req_builder.json(&admin_auth_request_update_request_model);
 
     let local_var_req = local_var_req_builder.build()?;
     let local_var_resp = local_var_client.execute(local_var_req).await?;
@@ -187,9 +166,9 @@ pub async fn plans_sm_plans_get(
     let local_var_content = local_var_resp.text().await?;
 
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
-        serde_json::from_str(&local_var_content).map_err(Error::from)
+        Ok(())
     } else {
-        let local_var_entity: Option<PlansSmPlansGetError> =
+        let local_var_entity: Option<OrganizationsOrgIdAuthRequestsRequestIdPostError> =
             serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,

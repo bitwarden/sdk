@@ -5,8 +5,10 @@ use aes::cipher::{
 use hmac::Mac;
 use rand::RngCore;
 
-use super::{EncString, PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE};
-use crate::error::{CryptoError, Result};
+use crate::{
+    crypto::{EncString, PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},
+    error::{CryptoError, Result},
+};
 
 pub fn decrypt_aes256(
     iv: &[u8; 16],

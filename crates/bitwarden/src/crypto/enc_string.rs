@@ -4,9 +4,9 @@ use base64::Engine;
 use serde::{de::Visitor, Deserialize};
 use uuid::Uuid;
 
-use super::{decrypt_aes256, Decryptable, Encryptable, SymmetricCryptoKey};
 use crate::{
     client::encryption_settings::EncryptionSettings,
+    crypto::{decrypt_aes256, Decryptable, Encryptable, SymmetricCryptoKey},
     error::{CryptoError, EncStringParseError, Error, Result},
     util::BASE64_ENGINE,
 };

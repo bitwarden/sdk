@@ -1,7 +1,7 @@
 name: Build .NET 6 Project
 
 on:
-  push:
+  pull_request:
     branches:
       - master
 

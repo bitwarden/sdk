@@ -1,10 +1,11 @@
 use crate::{
     error::Result,
     secrets_manager::secrets::{
-        create_secret, delete_secrets, get_secret, list_secrets, list_secrets_by_project,
-        update_secret, SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
-        SecretIdentifiersRequest, SecretIdentifiersResponse, SecretPutRequest, SecretResponse,
-        SecretsDeleteRequest, SecretsDeleteResponse,
+        create_secret, delete_secrets, get_secret, get_secrets_by_ids, list_secrets,
+        list_secrets_by_project, update_secret, SecretCreateRequest, SecretGetRequest,
+        SecretIdentifiersByProjectRequest, SecretIdentifiersRequest, SecretIdentifiersResponse,
+        SecretPutRequest, SecretResponse, SecretsDeleteRequest, SecretsDeleteResponse,
+        SecretsGetRequest, SecretsResponse,
     },
     Client,
 };
@@ -16,6 +17,10 @@ pub struct ClientSecrets<'a> {
 impl<'a> ClientSecrets<'a> {
     pub async fn get(&mut self, input: &SecretGetRequest) -> Result<SecretResponse> {
         get_secret(self.client, input).await
+    }
+
+    pub async fn get_by_ids(&mut self, input: SecretsGetRequest) -> Result<SecretsResponse> {
+        get_secrets_by_ids(self.client, input).await
     }
 
     pub async fn create(&mut self, input: &SecretCreateRequest) -> Result<SecretResponse> {

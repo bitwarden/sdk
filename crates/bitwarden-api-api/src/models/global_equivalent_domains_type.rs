@@ -104,6 +104,7 @@ pub enum GlobalEquivalentDomainsType {
     Variant87 = 87,
     Variant88 = 88,
     Variant89 = 89,
+    Variant90 = 90,
 }
 
 impl ToString for GlobalEquivalentDomainsType {
@@ -199,6 +200,7 @@ impl ToString for GlobalEquivalentDomainsType {
             Self::Variant87 => String::from("87"),
             Self::Variant88 => String::from("88"),
             Self::Variant89 => String::from("89"),
+            Self::Variant90 => String::from("90"),
         }
     }
 }

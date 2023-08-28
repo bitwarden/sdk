@@ -7,8 +7,9 @@ use crate::{
     auth::renew::renew_token,
     client::{
         client_settings::{ClientSettings, DeviceType},
-        encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
+        encryption_settings::EncryptionSettings,
     },
+    crypto::SymmetricCryptoKey,
     error::{Error, Result},
 };
 
@@ -24,7 +25,7 @@ use {
             TwoFactorEmailRequest,
         },
         client::auth_settings::AuthSettings,
-        crypto::CipherString,
+        crypto::EncString,
         platform::{
             generate_fingerprint, get_user_api_key, sync, FingerprintRequest, FingerprintResponse,
             SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,
@@ -217,8 +218,8 @@ impl Client {
     pub(crate) fn initialize_user_crypto(
         &mut self,
         password: &str,
-        user_key: CipherString,
-        private_key: CipherString,
+        user_key: EncString,
+        private_key: EncString,
     ) -> Result<&EncryptionSettings> {
         let auth = match &self.auth_settings {
             Some(a) => a,
@@ -245,7 +246,7 @@ impl Client {
     #[cfg(feature = "internal")]
     pub(crate) fn initialize_org_crypto(
         &mut self,
-        org_keys: Vec<(Uuid, CipherString)>,
+        org_keys: Vec<(Uuid, EncString)>,
     ) -> Result<&EncryptionSettings> {
         let enc = self
             .encryption_settings

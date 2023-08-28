@@ -21,6 +21,7 @@ src/apis/installations_api.rs
 src/apis/licenses_api.rs
 src/apis/misc_api.rs
 src/apis/mod.rs
+src/apis/organization_auth_requests_api.rs
 src/apis/organization_connections_api.rs
 src/apis/organization_domain_api.rs
 src/apis/organization_export_api.rs
@@ -53,6 +54,7 @@ src/models/access_token_create_request_model.rs
 src/models/access_token_creation_response_model.rs
 src/models/access_token_response_model.rs
 src/models/access_token_response_model_list_response_model.rs
+src/models/admin_auth_request_update_request_model.rs
 src/models/api_key_response_model.rs
 src/models/attachment_request_model.rs
 src/models/attachment_response_model.rs
@@ -65,6 +67,8 @@ src/models/auth_request_update_request_model.rs
 src/models/authentication_extensions_client_outputs.rs
 src/models/authenticator_attestation_raw_response.rs
 src/models/base_access_policy_response_model.rs
+src/models/base_secret_response_model.rs
+src/models/base_secret_response_model_list_response_model.rs
 src/models/billing_history_response_model.rs
 src/models/billing_invoice.rs
 src/models/billing_payment_response_model.rs
@@ -75,8 +79,10 @@ src/models/billing_subscription_item.rs
 src/models/billing_subscription_upcoming_invoice.rs
 src/models/billing_transaction.rs
 src/models/bit_pay_invoice_request_model.rs
+src/models/bitwarden_product_type.rs
 src/models/bulk_delete_response_model.rs
 src/models/bulk_delete_response_model_list_response_model.rs
+src/models/bulk_deny_admin_auth_request_request_model.rs
 src/models/cipher_attachment_model.rs
 src/models/cipher_bulk_delete_request_model.rs
 src/models/cipher_bulk_move_request_model.rs
@@ -94,12 +100,12 @@ src/models/cipher_login_uri_model.rs
 src/models/cipher_mini_details_response_model.rs
 src/models/cipher_mini_details_response_model_list_response_model.rs
 src/models/cipher_mini_response_model.rs
+src/models/cipher_mini_response_model_list_response_model.rs
 src/models/cipher_partial_request_model.rs
 src/models/cipher_password_history_model.rs
 src/models/cipher_reprompt_type.rs
 src/models/cipher_request_model.rs
 src/models/cipher_response_model.rs
-src/models/cipher_response_model_list_response_model.rs
 src/models/cipher_secure_note_model.rs
 src/models/cipher_share_request_model.rs
 src/models/cipher_type.rs
@@ -115,6 +121,7 @@ src/models/collection_response_model_list_response_model.rs
 src/models/collection_with_id_request_model.rs
 src/models/config_response_model.rs
 src/models/delete_recover_request_model.rs
+src/models/device_keys_request_model.rs
 src/models/device_request_model.rs
 src/models/device_response_model.rs
 src/models/device_response_model_list_response_model.rs
@@ -147,6 +154,7 @@ src/models/folder_request_model.rs
 src/models/folder_response_model.rs
 src/models/folder_response_model_list_response_model.rs
 src/models/folder_with_id_request_model.rs
+src/models/get_secrets_request_model.rs
 src/models/global_domains.rs
 src/models/global_equivalent_domains_type.rs
 src/models/granted_access_policy_request.rs
@@ -176,6 +184,7 @@ src/models/keys_request_model.rs
 src/models/keys_response_model.rs
 src/models/license_type.rs
 src/models/master_password_policy_response_model.rs
+src/models/member_decryption_type.rs
 src/models/mod.rs
 src/models/open_id_connect_redirect_behavior.rs
 src/models/organization_api_key_information.rs
@@ -237,6 +246,8 @@ src/models/password_request_model.rs
 src/models/payment_method_type.rs
 src/models/payment_request_model.rs
 src/models/payment_response_model.rs
+src/models/pending_organization_auth_request_response_model.rs
+src/models/pending_organization_auth_request_response_model_list_response_model.rs
 src/models/permissions.rs
 src/models/plan_response_model.rs
 src/models/plan_response_model_list_response_model.rs
@@ -305,6 +316,7 @@ src/models/secret_update_request_model.rs
 src/models/secret_verification_request_model.rs
 src/models/secret_with_projects_inner_project.rs
 src/models/secret_with_projects_list_response_model.rs
+src/models/secrets_manager_subscription_update_request_model.rs
 src/models/secrets_with_projects_inner_secret.rs
 src/models/secure_note_type.rs
 src/models/selection_read_only_request_model.rs

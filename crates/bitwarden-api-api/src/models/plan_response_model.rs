@@ -125,6 +125,34 @@ pub struct PlanResponseModel {
         skip_serializing_if = "Option::is_none"
     )]
     pub premium_access_option_price: Option<f64>,
+    #[serde(
+        rename = "stripeServiceAccountPlanId",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub stripe_service_account_plan_id: Option<String>,
+    #[serde(
+        rename = "additionalPricePerServiceAccount",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub additional_price_per_service_account: Option<f64>,
+    #[serde(rename = "baseServiceAccount", skip_serializing_if = "Option::is_none")]
+    pub base_service_account: Option<i32>,
+    #[serde(rename = "maxServiceAccounts", skip_serializing_if = "Option::is_none")]
+    pub max_service_accounts: Option<i32>,
+    #[serde(
+        rename = "maxAdditionalServiceAccounts",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub max_additional_service_accounts: Option<i32>,
+    #[serde(
+        rename = "hasAdditionalServiceAccountOption",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub has_additional_service_account_option: Option<bool>,
+    #[serde(rename = "maxProjects", skip_serializing_if = "Option::is_none")]
+    pub max_projects: Option<i32>,
+    #[serde(rename = "bitwardenProduct", skip_serializing_if = "Option::is_none")]
+    pub bitwarden_product: Option<crate::models::BitwardenProductType>,
 }
 
 impl PlanResponseModel {
@@ -171,6 +199,14 @@ impl PlanResponseModel {
             seat_price: None,
             additional_storage_price_per_gb: None,
             premium_access_option_price: None,
+            stripe_service_account_plan_id: None,
+            additional_price_per_service_account: None,
+            base_service_account: None,
+            max_service_accounts: None,
+            max_additional_service_accounts: None,
+            has_additional_service_account_option: None,
+            max_projects: None,
+            bitwarden_product: None,
         }
     }
 }

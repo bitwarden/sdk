@@ -4,8 +4,8 @@ use rsa::RsaPrivateKey;
 use uuid::Uuid;
 
 use crate::{
-    crypto::{decrypt_aes256, encrypt_aes256, EncString, SymmetricCryptoKey},
-    error::{CryptoError, Error, Result},
+    crypto::{encrypt_aes256, EncString, SymmetricCryptoKey},
+    error::{CryptoError, Result},
 };
 
 #[cfg(feature = "internal")]
@@ -34,8 +34,9 @@ impl EncryptionSettings {
         user_key: EncString,
         private_key: EncString,
     ) -> Result<Self> {
-        // Stretch keys from the provided password
+        use crate::crypto::decrypt_aes256;
 
+        // Stretch keys from the provided password
         let (key, mac_key) = crate::crypto::stretch_key_password(
             password.as_bytes(),
             auth.email.as_bytes(),
@@ -79,6 +80,8 @@ impl EncryptionSettings {
         &mut self,
         org_enc_keys: Vec<(Uuid, EncString)>,
     ) -> Result<&mut Self> {
+        use crate::error::Error;
+
         let private_key = self.private_key.as_ref().ok_or(Error::VaultLocked)?;
 
         // Decrypt the org keys with the private key

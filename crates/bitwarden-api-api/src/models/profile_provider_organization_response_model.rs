@@ -40,6 +40,8 @@ pub struct ProfileProviderOrganizationResponseModel {
     pub use_reset_password: Option<bool>,
     #[serde(rename = "useSecretsManager", skip_serializing_if = "Option::is_none")]
     pub use_secrets_manager: Option<bool>,
+    #[serde(rename = "usePasswordManager", skip_serializing_if = "Option::is_none")]
+    pub use_password_manager: Option<bool>,
     #[serde(rename = "usersGetPremium", skip_serializing_if = "Option::is_none")]
     pub users_get_premium: Option<bool>,
     #[serde(
@@ -151,6 +153,7 @@ impl ProfileProviderOrganizationResponseModel {
             use_api: None,
             use_reset_password: None,
             use_secrets_manager: None,
+            use_password_manager: None,
             users_get_premium: None,
             use_custom_permissions: None,
             use_activate_autofill_policy: None,

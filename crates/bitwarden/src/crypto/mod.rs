@@ -1,24 +1,23 @@
 //! Cryptographic primitives used in the SDK
 
-use aes::cipher::{generic_array::GenericArray, typenum::U64, Unsigned};
-use hmac::digest::OutputSizeUser;
-
-use crate::client::encryption_settings::SymmetricCryptoKey;
-
 #[cfg(feature = "internal")]
 use aes::cipher::typenum::U32;
-
+use aes::cipher::{generic_array::GenericArray, typenum::U64, Unsigned};
+use hmac::digest::OutputSizeUser;
 #[cfg(any(feature = "internal", feature = "mobile"))]
 use {
     crate::{client::auth_settings::Kdf, error::Result},
     sha2::Digest,
 };
 
-mod cipher_string;
-pub use cipher_string::CipherString;
+mod enc_string;
+pub use enc_string::EncString;
 mod encryptable;
 pub use encryptable::{Decryptable, Encryptable};
-pub mod aes_ops;
+mod aes_opt;
+pub use aes_opt::{decrypt_aes256, encrypt_aes256, encrypt_aes256_no_mac};
+mod symmetric_crypto_key;
+pub use symmetric_crypto_key::SymmetricCryptoKey;
 
 #[cfg(feature = "internal")]
 mod fingerprint;
@@ -115,13 +114,13 @@ pub(crate) fn stretch_key(secret: [u8; 16], name: &str, info: Option<&str>) -> S
 
 #[cfg(test)]
 mod tests {
-    use super::stretch_key;
-
     #[cfg(feature = "internal")]
     use {
         crate::{client::auth_settings::Kdf, crypto::stretch_key_password},
         std::num::NonZeroU32,
     };
+
+    use super::stretch_key;
 
     #[test]
     fn test_key_stretch() {

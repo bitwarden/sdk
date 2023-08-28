@@ -1,6 +1,5 @@
 use std::num::NonZeroU32;
 
-use aes::cipher::{generic_array::GenericArray, typenum::U64};
 use base64::Engine;
 #[cfg(feature = "internal")]
 use bitwarden_api_identity::models::{KdfType, PreloginResponseModel};
@@ -13,12 +12,13 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    crypto::{CipherString, PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},
+    crypto::{
+        encrypt_aes256, encrypt_aes256_no_mac, EncString, PbkdfSha256Hmac, SymmetricCryptoKey,
+        PBKDF_SHA256_HMAC_OUT_SIZE,
+    },
     error::{Error, Result},
     util::BASE64_ENGINE,
 };
-
-use super::encryption_settings::{encrypt_aes256, SymmetricCryptoKey};
 
 #[derive(Debug)]
 pub(crate) struct AuthSettings {
@@ -95,14 +95,11 @@ impl AuthSettings {
         Ok(BASE64_ENGINE.encode(login_hash))
     }
 
-    pub(crate) fn make_user_key(
-        &self,
-        key: [u8; 32],
-    ) -> Result<(SymmetricCryptoKey, CipherString)> {
+    pub(crate) fn make_user_key(&self, key: [u8; 32]) -> Result<(SymmetricCryptoKey, EncString)> {
         let mut user_key = [0u8; 64];
         rand::thread_rng().fill(&mut user_key);
 
-        let protected = crate::crypto::aes_ops::encrypt_aes256(&user_key, key.into())?;
+        let protected = encrypt_aes256_no_mac(&user_key, key.into())?;
 
         let u: &[u8] = &user_key;
         Ok((SymmetricCryptoKey::try_from(u)?, protected))
@@ -111,7 +108,7 @@ impl AuthSettings {
     pub(crate) fn make_key_pair(
         &self,
         user_key: SymmetricCryptoKey,
-    ) -> Result<(String, CipherString)> {
+    ) -> Result<(String, EncString)> {
         let mut rng = rand::thread_rng();
         let bits = 2048;
         let priv_key = RsaPrivateKey::new(&mut rng, bits).expect("failed to generate a key");

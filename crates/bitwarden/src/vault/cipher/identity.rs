@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{CipherString, Decryptable, Encryptable},
+    crypto::{Decryptable, EncString, Encryptable},
     error::Result,
 };
 
@@ -12,24 +12,24 @@ use crate::{
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Identity {
-    pub title: Option<CipherString>,
-    pub first_name: Option<CipherString>,
-    pub middle_name: Option<CipherString>,
-    pub last_name: Option<CipherString>,
-    pub address1: Option<CipherString>,
-    pub address2: Option<CipherString>,
-    pub address3: Option<CipherString>,
-    pub city: Option<CipherString>,
-    pub state: Option<CipherString>,
-    pub postal_code: Option<CipherString>,
-    pub country: Option<CipherString>,
-    pub company: Option<CipherString>,
-    pub email: Option<CipherString>,
-    pub phone: Option<CipherString>,
-    pub ssn: Option<CipherString>,
-    pub username: Option<CipherString>,
-    pub passport_number: Option<CipherString>,
-    pub license_number: Option<CipherString>,
+    pub title: Option<EncString>,
+    pub first_name: Option<EncString>,
+    pub middle_name: Option<EncString>,
+    pub last_name: Option<EncString>,
+    pub address1: Option<EncString>,
+    pub address2: Option<EncString>,
+    pub address3: Option<EncString>,
+    pub city: Option<EncString>,
+    pub state: Option<EncString>,
+    pub postal_code: Option<EncString>,
+    pub country: Option<EncString>,
+    pub company: Option<EncString>,
+    pub email: Option<EncString>,
+    pub phone: Option<EncString>,
+    pub ssn: Option<EncString>,
+    pub username: Option<EncString>,
+    pub passport_number: Option<EncString>,
+    pub license_number: Option<EncString>,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

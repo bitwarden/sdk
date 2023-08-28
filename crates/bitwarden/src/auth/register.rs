@@ -6,7 +6,6 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    auth,
     client::auth_settings::{AuthSettings, Kdf},
     error::Result,
     util::default_pbkdf2_iterations,

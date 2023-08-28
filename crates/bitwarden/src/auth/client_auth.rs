@@ -1,6 +1,5 @@
-use crate::Client;
-
 use super::password::{password_strength, satisfies_policy, MasterPasswordPolicyOptions};
+use crate::Client;
 
 pub struct ClientAuth<'a> {
     pub(crate) _client: &'a crate::Client,

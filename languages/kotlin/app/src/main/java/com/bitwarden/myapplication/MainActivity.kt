@@ -82,7 +82,7 @@ class MainActivity : ComponentActivity() {
                     prelogin_body.kdfParallelism!!
                 )
             }
-            val masterPasswordHash = client.kdf().hashPassword(EMAIL, PASSWORD, kdf)
+            val masterPasswordHash = client.auth().hashPassword(EMAIL, PASSWORD, kdf)
 
             ///////////////////////////// Login /////////////////////////////
 

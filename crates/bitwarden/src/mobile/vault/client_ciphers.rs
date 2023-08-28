@@ -1,11 +1,10 @@
+use super::client_vault::ClientVault;
 use crate::{
     crypto::{Decryptable, Encryptable},
     error::Result,
     vault::{Cipher, CipherListView, CipherView},
     Client,
 };
-
-use super::client_vault::ClientVault;
 
 pub struct ClientCiphers<'a> {
     pub(crate) client: &'a Client,

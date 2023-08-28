@@ -9,11 +9,8 @@ use crate::{
         api::{request::AccessTokenRequest, response::IdentityTokenResponse},
         login::{response::two_factor::TwoFactorProviders, PasswordLoginResponse},
     },
-    client::{
-        encryption_settings::{decrypt, SymmetricCryptoKey},
-        AccessToken, LoginMethod,
-    },
-    crypto::CipherString,
+    client::{AccessToken, LoginMethod},
+    crypto::{EncString, SymmetricCryptoKey},
     error::{Error, Result},
     util::{decode_token, BASE64_ENGINE},
     Client,
@@ -32,9 +29,9 @@ pub(crate) async fn access_token_login(
 
     if let IdentityTokenResponse::Payload(r) = &response {
         // Extract the encrypted payload and use the access token encryption key to decrypt it
-        let payload = CipherString::from_str(&r.encrypted_payload)?;
+        let payload = EncString::from_str(&r.encrypted_payload)?;
 
-        let decrypted_payload = decrypt(&payload, &access_token.encryption_key)?;
+        let decrypted_payload = payload.decrypt_with_key(&access_token.encryption_key)?;
 
         // Once decrypted, we have to JSON decode to extract the organization encryption key
         #[derive(serde::Deserialize)]

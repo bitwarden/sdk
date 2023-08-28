@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{CipherString, Decryptable, Encryptable},
+    crypto::{Decryptable, EncString, Encryptable},
     error::Result,
 };
 
@@ -14,7 +14,7 @@ use crate::{
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Folder {
     id: Uuid,
-    name: CipherString,
+    name: EncString,
     revision_date: DateTime<Utc>,
 }
 

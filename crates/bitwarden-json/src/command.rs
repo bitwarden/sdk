@@ -8,17 +8,15 @@ use bitwarden::{
         },
         secrets::{
             SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretPutRequest,
-            SecretsDeleteRequest,
+            SecretsDeleteRequest, SecretsGetRequest,
         },
     },
 };
-
 #[cfg(feature = "internal")]
 use bitwarden::{
     auth::login::{ApiKeyLoginRequest, PasswordLoginRequest},
     platform::{FingerprintRequest, SecretVerificationRequest, SyncRequest},
 };
-
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -96,6 +94,14 @@ pub enum SecretsCommand {
     /// Returns: [SecretResponse](bitwarden::secrets_manager::secrets::SecretResponse)
     ///
     Get(SecretGetRequest),
+
+    /// > Requires Authentication
+    /// > Requires using an Access Token for login or calling Sync at least once
+    /// Retrieve secrets by the provided identifiers
+    ///
+    /// Returns: [SecretsResponse](bitwarden::secrets_manager::secrets::SecretsResponse)
+    ///
+    GetByIds(SecretsGetRequest),
 
     /// > Requires Authentication
     /// > Requires using an Access Token for login or calling Sync at least once

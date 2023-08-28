@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{CipherString, Decryptable, Encryptable},
+    crypto::{Decryptable, EncString, Encryptable},
     error::Result,
 };
 
@@ -12,12 +12,12 @@ use crate::{
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Card {
-    pub cardholder_name: Option<CipherString>,
-    pub exp_month: Option<CipherString>,
-    pub exp_year: Option<CipherString>,
-    pub code: Option<CipherString>,
-    pub brand: Option<CipherString>,
-    pub number: Option<CipherString>,
+    pub cardholder_name: Option<EncString>,
+    pub exp_month: Option<EncString>,
+    pub exp_year: Option<EncString>,
+    pub code: Option<EncString>,
+    pub brand: Option<EncString>,
+    pub number: Option<EncString>,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

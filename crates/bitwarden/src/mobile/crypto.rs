@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     client::auth_settings::{AuthSettings, Kdf},
-    crypto::CipherString,
+    crypto::EncString,
     error::Result,
     Client,
 };
@@ -37,15 +37,15 @@ pub async fn initialize_crypto(client: &mut Client, req: InitCryptoRequest) -> R
     };
     client.set_auth_settings(auth_settings);
 
-    let user_key = req.user_key.parse::<CipherString>()?;
-    let private_key = req.private_key.parse::<CipherString>()?;
+    let user_key = req.user_key.parse::<EncString>()?;
+    let private_key = req.private_key.parse::<EncString>()?;
 
     client.initialize_user_crypto(&req.password, user_key, private_key)?;
 
     let organization_keys = req
         .organization_keys
         .into_iter()
-        .map(|(k, v)| Ok((k, v.parse::<CipherString>()?)))
+        .map(|(k, v)| Ok((k, v.parse::<EncString>()?)))
         .collect::<Result<Vec<_>>>()?;
 
     client.initialize_org_crypto(organization_keys)?;

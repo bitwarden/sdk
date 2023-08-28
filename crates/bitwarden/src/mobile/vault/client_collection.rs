@@ -1,11 +1,10 @@
+use super::client_vault::ClientVault;
 use crate::{
     crypto::Decryptable,
     error::Result,
     vault::{Collection, CollectionView},
     Client,
 };
-
-use super::client_vault::ClientVault;
 
 pub struct ClientCollections<'a> {
     pub(crate) client: &'a Client,

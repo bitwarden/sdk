@@ -2,19 +2,6 @@ use std::time::{Duration, Instant};
 
 use reqwest::header::{self};
 use uuid::Uuid;
-
-use crate::{
-    auth::renew::renew_token,
-    client::{
-        client_settings::{ClientSettings, DeviceType},
-        encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
-    },
-    error::{Error, Result},
-};
-
-#[cfg(feature = "secrets")]
-use crate::auth::login::{access_token_login, AccessTokenLoginRequest, AccessTokenLoginResponse};
-
 #[cfg(feature = "internal")]
 use {
     crate::{
@@ -24,13 +11,25 @@ use {
             TwoFactorEmailRequest,
         },
         client::auth_settings::AuthSettings,
-        crypto::CipherString,
+        crypto::EncString,
         platform::{
             generate_fingerprint, get_user_api_key, sync, FingerprintRequest, FingerprintResponse,
             SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,
         },
     },
     log::debug,
+};
+
+#[cfg(feature = "secrets")]
+use crate::auth::login::{access_token_login, AccessTokenLoginRequest, AccessTokenLoginResponse};
+use crate::{
+    auth::renew::renew_token,
+    client::{
+        client_settings::{ClientSettings, DeviceType},
+        encryption_settings::EncryptionSettings,
+    },
+    crypto::SymmetricCryptoKey,
+    error::{Error, Result},
 };
 
 #[derive(Debug)]
@@ -217,8 +216,8 @@ impl Client {
     pub(crate) fn initialize_user_crypto(
         &mut self,
         password: &str,
-        user_key: CipherString,
-        private_key: CipherString,
+        user_key: EncString,
+        private_key: EncString,
     ) -> Result<&EncryptionSettings> {
         let auth = match &self.auth_settings {
             Some(a) => a,
@@ -245,7 +244,7 @@ impl Client {
     #[cfg(feature = "internal")]
     pub(crate) fn initialize_org_crypto(
         &mut self,
-        org_keys: Vec<(Uuid, CipherString)>,
+        org_keys: Vec<(Uuid, EncString)>,
     ) -> Result<&EncryptionSettings> {
         let enc = self
             .encryption_settings

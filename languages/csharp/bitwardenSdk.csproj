@@ -3,19 +3,32 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
+      <PackageReadmeFile>README.md</PackageReadmeFile>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AssemblyName>BitwardenSdk</AssemblyName>
+    <PackageId>BitwardenSdk</PackageId>
+    <Title>Bitwarden Sdk</Title>
+    <Authors>Bitwarden</Authors>
+    <Description>Bitwarden Sdk</Description>
+    <Copyright>Bitwarden</Copyright>
+    <RepositoryUrl>https://github.com/bitwarden/sdk/tree/master/languages/csharp</RepositoryUrl>
+    <PackageTags>Bitwarden;Sdk;.NET</PackageTags>
+    <Product>BitwardenSdk</Product>
+    <PackageIcon>bitwarden.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+      <None Include="bitwarden.png" Pack="true" PackagePath="\" />
+      <None Include="docs/README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 <PropertyGroup>
     <!--Debugonly-->
 </PropertyGroup>
 
-<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug||AnyCPU' ">
   <WarningLevel>4</WarningLevel>
 </PropertyGroup>
   <ItemGroup Condition="'$(Configuration)'=='Debug'">

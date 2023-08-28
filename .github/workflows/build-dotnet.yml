@@ -1,0 +1,25 @@
+name: Build .NET 6 Project
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: '6.0.21'
+
+      - name: Build .NET 6 Project
+        working-directory: languages/csharp
+        run: |
+          dotnet restore
+          dotnet build --configuration Release

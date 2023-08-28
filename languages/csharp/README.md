@@ -1,6 +1,6 @@
 # Requirements
 
-- Dotnet
+- Dotnet 6
 
 # Installation
 

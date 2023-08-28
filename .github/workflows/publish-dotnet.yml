@@ -1,0 +1,33 @@
+name: Deploy NuGet Package
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: '6.0.21'
+
+      - name: Build and Pack NuGet Package
+        working-directory: languages/csharp
+        run: |
+          dotnet restore
+          dotnet build --configuration Release
+          dotnet pack --configuration Release --no-build --output ./nuget-output
+
+      - name: Publish NuGet Package
+        uses: nuget/publish@v1
+        with:
+          nuget-api-key: ${{ secrets.NUGET_API_KEY }}
+          nuget-package: ./languages/csharp/nuget-output/*.nupkg
+          nuget-endpoint: https://api.nuget.org/v3/index.json

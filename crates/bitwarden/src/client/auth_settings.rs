@@ -1,16 +1,24 @@
 use std::num::NonZeroU32;
 
+use aes::cipher::{generic_array::GenericArray, typenum::U64};
 use base64::Engine;
 #[cfg(feature = "internal")]
 use bitwarden_api_identity::models::{KdfType, PreloginResponseModel};
+use rand::Rng;
+use rsa::{
+    pkcs8::{EncodePrivateKey, EncodePublicKey},
+    RsaPrivateKey, RsaPublicKey,
+};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    crypto::{PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},
-    error::Result,
+    crypto::{CipherString, PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},
+    error::{Error, Result},
     util::BASE64_ENGINE,
 };
+
+use super::encryption_settings::{encrypt_aes256, SymmetricCryptoKey};
 
 #[derive(Debug)]
 pub(crate) struct AuthSettings {
@@ -67,22 +75,58 @@ impl AuthSettings {
     }
 
     pub fn make_user_password_hash(&self, password: &str) -> Result<String> {
-        self.make_password_hash(password, &self.email)
+        let key = self.make_master_key(password, &self.email)?;
+        self.make_password_hash(password, key)
     }
 
-    pub fn make_password_hash(&self, password: &str, salt: &str) -> Result<String> {
-        let hash: [u8; 32] =
-            crate::crypto::hash_kdf(password.as_bytes(), salt.as_bytes(), &self.kdf)?;
+    pub fn make_master_key(&self, password: &str, email: &str) -> Result<[u8; 32]> {
+        crate::crypto::hash_kdf(password.as_bytes(), email.as_bytes(), &self.kdf)
+    }
 
+    pub fn make_password_hash(&self, password: &str, key: [u8; 32]) -> Result<String> {
         // Server expects hash + 1 iteration
         let login_hash = pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(
-            &hash,
+            &key,
             password.as_bytes(),
             1,
         )
         .expect("hash is a valid fixed size");
 
         Ok(BASE64_ENGINE.encode(login_hash))
+    }
+
+    pub(crate) fn make_user_key(
+        &self,
+        key: [u8; 32],
+    ) -> Result<(SymmetricCryptoKey, CipherString)> {
+        let mut user_key = [0u8; 64];
+        rand::thread_rng().fill(&mut user_key);
+
+        let protected = crate::crypto::aes_ops::encrypt_aes256(&user_key, key.into())?;
+
+        let u: &[u8] = &user_key;
+        Ok((SymmetricCryptoKey::try_from(u)?, protected))
+    }
+
+    pub(crate) fn make_key_pair(
+        &self,
+        user_key: SymmetricCryptoKey,
+    ) -> Result<(String, CipherString)> {
+        let mut rng = rand::thread_rng();
+        let bits = 2048;
+        let priv_key = RsaPrivateKey::new(&mut rng, bits).expect("failed to generate a key");
+        let pub_key = RsaPublicKey::from(&priv_key);
+
+        let spki = pub_key
+            .to_public_key_der()
+            .map_err(|e| Error::Internal("hi"))?;
+
+        let b64 = BASE64_ENGINE.encode(spki.as_bytes());
+        let pkcs = priv_key.to_pkcs8_der().map_err(|e| Error::Internal("hi"))?;
+
+        let protected = encrypt_aes256(pkcs.as_bytes(), user_key.mac_key, user_key.key)?;
+
+        Ok((b64, protected))
     }
 }
 
@@ -102,10 +146,10 @@ mod tests {
         };
         let settings = AuthSettings::new(res, "test@bitwarden.com".into());
 
+        let key = settings.make_master_key("asdfasdf", "test_salt").unwrap();
+
         assert_eq!(
-            settings
-                .make_password_hash("asdfasdf", "test_salt")
-                .unwrap(),
+            settings.make_password_hash("asdfasdf", key).unwrap(),
             "ZF6HjxUTSyBHsC+HXSOhZoXN+UuMnygV5YkWXCY4VmM="
         );
         assert_eq!(
@@ -124,10 +168,10 @@ mod tests {
         };
         let settings = AuthSettings::new(res, "test@bitwarden.com".into());
 
+        let key = settings.make_master_key("asdfasdf", "test_salt").unwrap();
+
         assert_eq!(
-            settings
-                .make_password_hash("asdfasdf", "test_salt")
-                .unwrap(),
+            settings.make_password_hash("asdfasdf", key).unwrap(),
             "PR6UjYmjmppTYcdyTiNbAhPJuQQOmynKbdEl1oyi/iQ="
         );
         assert_eq!(

@@ -18,6 +18,7 @@ mod cipher_string;
 pub use cipher_string::CipherString;
 mod encryptable;
 pub use encryptable::{Decryptable, Encryptable};
+pub mod aes_ops;
 
 #[cfg(feature = "internal")]
 mod fingerprint;

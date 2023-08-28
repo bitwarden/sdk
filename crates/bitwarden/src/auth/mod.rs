@@ -5,3 +5,10 @@ pub mod login;
 #[cfg(feature = "internal")]
 pub mod password;
 pub mod renew;
+
+#[cfg(feature = "internal")]
+mod register;
+#[cfg(feature = "internal")]
+pub(crate) use register::register;
+#[cfg(feature = "internal")]
+pub use register::{RegisterRequest, RegisterResponse};

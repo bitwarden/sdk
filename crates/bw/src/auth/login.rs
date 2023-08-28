@@ -5,6 +5,7 @@ use bitwarden::{
     },
     Client,
 };
+use bitwarden_cli::text_prompt_when_none;
 use color_eyre::eyre::{bail, Result};
 use inquire::{Password, Text};
 use log::{debug, error, info};
@@ -96,15 +97,4 @@ pub(crate) async fn api_key_login(
     debug!("{:?}", result);
 
     Ok(())
-}
-
-/// Prompt the user for input if the value is None
-///
-/// Typically used when the user can provide a value via CLI or prompt
-fn text_prompt_when_none(prompt: &str, val: Option<String>) -> Result<String> {
-    Ok(if let Some(val) = val {
-        val
-    } else {
-        Text::new(prompt).prompt()?
-    })
 }

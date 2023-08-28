@@ -3,13 +3,16 @@
 use aes::cipher::{generic_array::GenericArray, typenum::U64, Unsigned};
 use hmac::digest::OutputSizeUser;
 
-use crate::{client::encryption_settings::SymmetricCryptoKey, error::Result};
+use crate::client::encryption_settings::SymmetricCryptoKey;
 
 #[cfg(feature = "internal")]
 use aes::cipher::typenum::U32;
 
 #[cfg(any(feature = "internal", feature = "mobile"))]
-use {crate::client::auth_settings::Kdf, sha2::Digest};
+use {
+    crate::{client::auth_settings::Kdf, error::Result},
+    sha2::Digest,
+};
 
 mod cipher_string;
 pub use cipher_string::CipherString;

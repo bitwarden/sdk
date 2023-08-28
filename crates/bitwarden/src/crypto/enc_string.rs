@@ -155,6 +155,31 @@ impl EncString {
             .into()),
         }
     }
+
+    #[cfg(feature = "mobile")]
+    pub(crate) fn to_buffer(&self) -> Result<Vec<u8>> {
+        let mut buf;
+
+        match self {
+            EncString::AesCbc256_B64 { iv, data } => {
+                buf = Vec::with_capacity(1 + 16 + data.len());
+                buf.push(self.enc_type());
+                buf.extend_from_slice(iv);
+                buf.extend_from_slice(data);
+            }
+            EncString::AesCbc128_HmacSha256_B64 { iv, mac, data }
+            | EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
+                buf = Vec::with_capacity(1 + 16 + 32 + data.len());
+                buf.push(self.enc_type());
+                buf.extend_from_slice(iv);
+                buf.extend_from_slice(mac);
+                buf.extend_from_slice(data);
+            }
+            _ => todo!(),
+        }
+
+        Ok(buf)
+    }
 }
 
 impl Display for EncString {

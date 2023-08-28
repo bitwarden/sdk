@@ -109,24 +109,14 @@ pub struct SendView {
 }
 
 impl Send {
-    pub(crate) fn get_send_key(
-        &self,
+    pub(crate) fn get_key(
+        key: &EncString,
         enc: &EncryptionSettings,
         org_id: &Option<Uuid>,
     ) -> Result<SymmetricCryptoKey> {
-        let key: Vec<u8> = enc.decrypt_bytes(&self.key, org_id)?;
+        let key: Vec<u8> = enc.decrypt_bytes(&key, org_id)?;
         let key = stretch_key(key.try_into().unwrap(), "send", Some("send"));
         Ok(key)
-    }
-
-    pub(crate) fn get_send_encryption(
-        &self,
-        enc: &EncryptionSettings,
-        org_id: &Option<Uuid>,
-    ) -> Result<EncryptionSettings> {
-        Ok(EncryptionSettings::new_single_key(
-            self.get_send_key(enc, org_id)?,
-        ))
     }
 }
 
@@ -153,7 +143,8 @@ impl Decryptable<SendFileView> for SendFile {
 impl Decryptable<SendView> for Send {
     fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<SendView> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
-        let enc_owned = self.get_send_encryption(enc, org_id)?;
+        let key = Send::get_key(&self.key, enc, org_id)?;
+        let enc_owned = EncryptionSettings::new_single_key(key);
 
         // For the rest of the fields, we ignore the provided EncryptionSettings and use a new one with the stretched key
         let enc = &enc_owned;
@@ -239,7 +230,7 @@ mod tests {
         };
 
         // Get the send key
-        let send_key = send.get_send_key(&enc, &None).unwrap();
+        let send_key = Send::get_key(&send.key, &enc, &None).unwrap();
         let send_key_b64 = send_key.to_base64();
         assert_eq!(send_key_b64, "IR9ImHGm6rRuIjiN7csj94bcZR5WYTJj5GtNfx33zm6tJCHUl+QZlpNPba8g2yn70KnOHsAODLcR0um6E3MAlg==");
     }

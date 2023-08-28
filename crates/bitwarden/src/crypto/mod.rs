@@ -1,6 +1,5 @@
 //! Cryptographic primitives used in the SDK
 
-use crate::error::CryptoError;
 use aes::cipher::{generic_array::GenericArray, typenum::U64, Unsigned};
 use hmac::digest::OutputSizeUser;
 
@@ -113,16 +112,6 @@ pub(crate) fn stretch_key(secret: [u8; 16], name: &str, info: Option<&str>) -> S
     hkdf.expand(i, &mut key).unwrap();
 
     SymmetricCryptoKey::try_from(key.as_slice()).unwrap()
-}
-
-pub fn decrypt(cipher: &EncString, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
-    match cipher {
-        EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
-            let dec = decrypt_aes256(iv, mac, data.clone(), key.mac_key, key.key)?;
-            Ok(dec)
-        }
-        _ => Err(CryptoError::InvalidKey.into()),
-    }
 }
 
 #[cfg(test)]

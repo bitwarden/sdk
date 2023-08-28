@@ -4,7 +4,7 @@ use rsa::RsaPrivateKey;
 use uuid::Uuid;
 
 use crate::{
-    crypto::{decrypt, decrypt_aes256, encrypt_aes256, EncString, SymmetricCryptoKey},
+    crypto::{decrypt_aes256, encrypt_aes256, EncString, SymmetricCryptoKey},
     error::{CryptoError, Error, Result},
 };
 
@@ -55,7 +55,7 @@ impl EncryptionSettings {
 
         // Decrypt the private key with the user key
         let private_key = {
-            let dec = decrypt(&private_key, &user_key)?;
+            let dec = private_key.decrypt_with_key(&user_key)?;
             Some(rsa::RsaPrivateKey::from_pkcs8_der(&dec).map_err(|_| CryptoError::InvalidKey)?)
         };
 
@@ -114,7 +114,7 @@ impl EncryptionSettings {
 
     pub(crate) fn decrypt(&self, cipher: &EncString, org_id: &Option<Uuid>) -> Result<String> {
         let key = self.get_key(org_id).ok_or(CryptoError::NoKeyForOrg)?;
-        let dec = decrypt(cipher, key)?;
+        let dec = cipher.decrypt_with_key(key)?;
         String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String.into())
     }
 
@@ -128,22 +128,8 @@ impl EncryptionSettings {
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
-
     use super::{EncryptionSettings, SymmetricCryptoKey};
     use crate::crypto::{Decryptable, Encryptable};
-
-    #[test]
-    fn test_symmetric_crypto_key() {
-        let key = SymmetricCryptoKey::generate("test");
-        let key2 = SymmetricCryptoKey::from_str(&key.to_base64()).unwrap();
-        assert_eq!(key.key, key2.key);
-        assert_eq!(key.mac_key, key2.mac_key);
-
-        let key = "UY4B5N4DA4UisCNClgZtRr6VLy9ZF5BXXC7cDZRqourKi4ghEMgISbCsubvgCkHf5DZctQjVot11/vVvN9NNHQ==";
-        let key2 = SymmetricCryptoKey::from_str(key).unwrap();
-        assert_eq!(key, key2.to_base64());
-    }
 
     #[test]
     fn test_encryption_settings() {

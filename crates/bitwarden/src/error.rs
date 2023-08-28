@@ -72,7 +72,7 @@ pub enum CryptoError {
     InvalidKey,
     #[error("The cipher's MAC doesn't match the expected value")]
     InvalidMac,
-    #[error("Error while decrypting cipher string")]
+    #[error("Error while decrypting EncString")]
     KeyDecrypt,
     #[error("The cipher key has an invalid length")]
     InvalidKeyLen,

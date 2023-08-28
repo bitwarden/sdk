@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{CipherString, Decryptable, Encryptable},
+    crypto::{Decryptable, EncString, Encryptable},
     error::Result,
 };
 
@@ -25,8 +25,8 @@ pub enum FieldType {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Field {
-    name: CipherString,
-    value: CipherString,
+    name: EncString,
+    value: EncString,
     r#type: FieldType,
 
     linked_id: Option<LinkedIdType>,

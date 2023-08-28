@@ -26,8 +26,8 @@ pub enum Error {
     #[error("Cryptography error, {0}")]
     Crypto(#[from] CryptoError),
 
-    #[error("Error parsing CipherString: {0}")]
-    InvalidCipherString(#[from] CSParseError),
+    #[error("Error parsing EncString: {0}")]
+    InvalidEncString(#[from] EncStringParseError),
 
     #[error("Error parsing Identity response: {0}")]
     IdentityFail(crate::auth::api::response::IdentityTokenFailResponse),
@@ -72,7 +72,7 @@ pub enum CryptoError {
     InvalidKey,
     #[error("The cipher's MAC doesn't match the expected value")]
     InvalidMac,
-    #[error("Error while decrypting cipher string")]
+    #[error("Error while decrypting EncString")]
     KeyDecrypt,
     #[error("The cipher key has an invalid length")]
     InvalidKeyLen,
@@ -83,15 +83,15 @@ pub enum CryptoError {
 }
 
 #[derive(Debug, Error)]
-pub enum CSParseError {
+pub enum EncStringParseError {
     #[error("No type detected, missing '.' separator")]
     NoType,
     #[error("Invalid type, got {enc_type} with {parts} parts")]
     InvalidType { enc_type: String, parts: usize },
     #[error("Error decoding base64: {0}")]
     InvalidBase64(#[from] base64::DecodeError),
-    #[error("Invalid base64 length: expected {expected}, got {got}")]
-    InvalidBase64Length { expected: usize, got: usize },
+    #[error("Invalid length: expected {expected}, got {got}")]
+    InvalidLength { expected: usize, got: usize },
 }
 
 // Ensure that the error messages implement Send and Sync

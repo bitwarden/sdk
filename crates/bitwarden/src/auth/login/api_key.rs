@@ -12,7 +12,7 @@ use crate::{
         },
     },
     client::LoginMethod,
-    crypto::CipherString,
+    crypto::EncString,
     error::{Error, Result},
     util::decode_token,
     Client,
@@ -47,8 +47,8 @@ pub(crate) async fn api_key_login(
 
         let _ = determine_password_hash(client, &email, &input.password).await?;
 
-        let user_key = CipherString::from_str(r.key.as_deref().unwrap()).unwrap();
-        let private_key = CipherString::from_str(r.private_key.as_deref().unwrap()).unwrap();
+        let user_key = EncString::from_str(r.key.as_deref().unwrap()).unwrap();
+        let private_key = EncString::from_str(r.private_key.as_deref().unwrap()).unwrap();
 
         client.initialize_user_crypto(&input.password, user_key, private_key)?;
     }

@@ -434,6 +434,7 @@ dependencies = [
  "bitwarden",
  "env_logger",
  "openssl",
+ "schemars",
  "uniffi",
 ]
 
@@ -2691,6 +2692,7 @@ dependencies = [
  "anyhow",
  "bitwarden",
  "bitwarden-json",
+ "bitwarden-uniffi",
  "itertools",
  "schemars",
  "serde_json",

@@ -4,10 +4,7 @@ use std::sync::Arc;
 
 use async_lock::RwLock;
 use auth::ClientAuth;
-use bitwarden::{
-    client::{auth_settings::Kdf, client_settings::ClientSettings},
-    mobile::crypto::InitCryptoRequest,
-};
+use bitwarden::{client::client_settings::ClientSettings, mobile::crypto::InitCryptoRequest};
 
 pub mod auth;
 mod error;
@@ -25,9 +22,6 @@ use vault::ClientVault;
 pub struct Client(RwLock<bitwarden::Client>);
 
 #[derive(uniffi::Object)]
-pub struct ClientKdf(Arc<Client>);
-
-#[derive(uniffi::Object)]
 pub struct ClientCrypto(Arc<Client>);
 
 #[uniffi::export]
@@ -36,11 +30,6 @@ impl Client {
     #[uniffi::constructor]
     pub fn new(settings: Option<ClientSettings>) -> Arc<Self> {
         Arc::new(Self(RwLock::new(bitwarden::Client::new(settings))))
-    }
-
-    /// KDF operations
-    pub fn kdf(self: Arc<Self>) -> Arc<ClientKdf> {
-        Arc::new(ClientKdf(self))
     }
 
     /// Crypto operations
@@ -69,25 +58,6 @@ impl Client {
     }
 }
 
-#[uniffi::export]
-impl ClientKdf {
-    /// Hash the user password
-    pub async fn hash_password(
-        &self,
-        email: String,
-        password: String,
-        kdf_params: Kdf,
-    ) -> Result<String> {
-        Ok(self
-            .0
-             .0
-            .read()
-            .await
-            .kdf()
-            .hash_password(email, password, kdf_params)
-            .await?)
-    }
-}
 #[uniffi::export]
 impl ClientCrypto {
     /// Initialization method for the crypto. Needs to be called before any other crypto operations.

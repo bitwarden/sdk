@@ -20,15 +20,14 @@ const template = Handlebars.compile(
 // Modify this to include more root elements
 const rootElements = [
   "Client",
-  "ClientKdf",
-  "ClientCrypto",
-  "ClientVault",
+  "ClientAuth",
   "ClientCiphers",
   "ClientCollections",
+  "ClientCrypto",
   "ClientFolders",
-  "ClientPasswordHistory",
   "ClientGenerators",
-  "ClientAuth",
+  "ClientPasswordHistory",
+  "ClientVault",
 ];
 
 const localIndexArray = Object.values(doc.index).filter((entry: any) => entry.crate_id == 0);

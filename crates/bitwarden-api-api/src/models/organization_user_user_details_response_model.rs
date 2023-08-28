@@ -38,6 +38,8 @@ pub struct OrganizationUserUserDetailsResponseModel {
     pub reset_password_enrolled: Option<bool>,
     #[serde(rename = "usesKeyConnector", skip_serializing_if = "Option::is_none")]
     pub uses_key_connector: Option<bool>,
+    #[serde(rename = "hasMasterPassword", skip_serializing_if = "Option::is_none")]
+    pub has_master_password: Option<bool>,
     #[serde(rename = "name", skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(rename = "email", skip_serializing_if = "Option::is_none")]
@@ -68,6 +70,7 @@ impl OrganizationUserUserDetailsResponseModel {
             permissions: None,
             reset_password_enrolled: None,
             uses_key_connector: None,
+            has_master_password: None,
             name: None,
             email: None,
             avatar_color: None,

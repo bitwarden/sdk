@@ -13,24 +13,22 @@
 #[derive(
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
-pub enum AuthRequestType {
+pub enum BitwardenProductType {
     Variant0 = 0,
     Variant1 = 1,
-    Variant2 = 2,
 }
 
-impl ToString for AuthRequestType {
+impl ToString for BitwardenProductType {
     fn to_string(&self) -> String {
         match self {
             Self::Variant0 => String::from("0"),
             Self::Variant1 => String::from("1"),
-            Self::Variant2 => String::from("2"),
         }
     }
 }
 
-impl Default for AuthRequestType {
-    fn default() -> AuthRequestType {
+impl Default for BitwardenProductType {
+    fn default() -> BitwardenProductType {
         Self::Variant0
     }
 }

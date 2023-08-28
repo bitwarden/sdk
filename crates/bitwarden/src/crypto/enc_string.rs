@@ -6,11 +6,11 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    error::{EncStringParseError, Error, Result},
+    error::{CryptoError, EncStringParseError, Error, Result},
     util::BASE64_ENGINE,
 };
 
-use super::{Decryptable, Encryptable};
+use super::{decrypt_aes256, Decryptable, Encryptable, SymmetricCryptoKey};
 
 #[allow(unused, non_camel_case_types)]
 pub enum EncString {
@@ -212,6 +212,16 @@ impl EncString {
             EncString::Rsa2048_OaepSha1_B64 { .. } => 4,
             EncString::Rsa2048_OaepSha256_HmacSha256_B64 { .. } => 5,
             EncString::Rsa2048_OaepSha1_HmacSha256_B64 { .. } => 6,
+        }
+    }
+
+    pub fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
+        match self {
+            EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
+                let dec = decrypt_aes256(iv, mac, data.clone(), key.mac_key, key.key)?;
+                Ok(dec)
+            }
+            _ => Err(CryptoError::InvalidKey.into()),
         }
     }
 }

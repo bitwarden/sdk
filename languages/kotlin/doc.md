@@ -16,16 +16,6 @@ Initialize a new instance of the SDK client
 
 **Output**: Arc<Self>
 
-### `kdf`
-
-KDF operations
-
-**Arguments**:
-
-- self: Arc<Self>
-
-**Output**: Arc<ClientKdf>
-
 ### `crypto`
 
 Crypto operations
@@ -77,7 +67,33 @@ Test method, echoes back the input
 
 **Output**: String
 
-## ClientKdf
+## ClientAuth
+
+### `password_strength`
+
+**API Draft:** Calculate Password Strength
+
+**Arguments**:
+
+- self:
+- password: String
+- email: String
+- additional_inputs: Vec<String>
+
+**Output**:
+
+### `satisfies_policy`
+
+**API Draft:** Evaluate if the provided password satisfies the provided policy
+
+**Arguments**:
+
+- self:
+- password: String
+- strength:
+- policy: [MasterPasswordPolicyOptions](#masterpasswordpolicyoptions)
+
+**Output**:
 
 ### `hash_password`
 
@@ -91,61 +107,6 @@ Hash the user password
 - kdf_params: [Kdf](#kdf)
 
 **Output**: std::result::Result<String,BitwardenError>
-
-## ClientCrypto
-
-### `initialize_crypto`
-
-Initialization method for the crypto. Needs to be called before any other crypto operations.
-
-**Arguments**:
-
-- self:
-- req: [InitCryptoRequest](#initcryptorequest)
-
-**Output**: std::result::Result<,BitwardenError>
-
-## ClientVault
-
-### `folders`
-
-Folder operations
-
-**Arguments**:
-
-- self: Arc<Self>
-
-**Output**: Arc<folders::ClientFolders>
-
-### `collections`
-
-Collections operations
-
-**Arguments**:
-
-- self: Arc<Self>
-
-**Output**: Arc<collections::ClientCollections>
-
-### `ciphers`
-
-Ciphers operations
-
-**Arguments**:
-
-- self: Arc<Self>
-
-**Output**: Arc<ciphers::ClientCiphers>
-
-### `password_history`
-
-Ciphers operations
-
-**Arguments**:
-
-- self: Arc<Self>
-
-**Output**: Arc<password_history::ClientPasswordHistory>
 
 ## ClientCiphers
 
@@ -206,6 +167,19 @@ Decrypt collection list
 
 **Output**: std::result::Result<Vec,BitwardenError>
 
+## ClientCrypto
+
+### `initialize_crypto`
+
+Initialization method for the crypto. Needs to be called before any other crypto operations.
+
+**Arguments**:
+
+- self:
+- req: [InitCryptoRequest](#initcryptorequest)
+
+**Output**: std::result::Result<,BitwardenError>
+
 ## ClientFolders
 
 ### `encrypt`
@@ -241,30 +215,6 @@ Decrypt folder list
 
 **Output**: std::result::Result<Vec,BitwardenError>
 
-## ClientPasswordHistory
-
-### `encrypt`
-
-Encrypt password history
-
-**Arguments**:
-
-- self:
-- password_history: [PasswordHistoryView](#passwordhistoryview)
-
-**Output**: std::result::Result<PasswordHistory,BitwardenError>
-
-### `decrypt_list`
-
-Decrypt password history
-
-**Arguments**:
-
-- self:
-- list: Vec<PasswordHistory>
-
-**Output**: std::result::Result<Vec,BitwardenError>
-
 ## ClientGenerators
 
 ### `password`
@@ -289,33 +239,71 @@ Decrypt password history
 
 **Output**: std::result::Result<String,BitwardenError>
 
-## ClientAuth
+## ClientPasswordHistory
 
-### `password_strength`
+### `encrypt`
 
-**API Draft:** Calculate Password Strength
-
-**Arguments**:
-
-- self:
-- password: String
-- email: String
-- additional_inputs: Vec<String>
-
-**Output**:
-
-### `satisfies_policy`
-
-**API Draft:** Evaluate if the provided password satisfies the provided policy
+Encrypt password history
 
 **Arguments**:
 
 - self:
-- password: String
-- strength:
-- policy: [MasterPasswordPolicyOptions](#masterpasswordpolicyoptions)
+- password_history: [PasswordHistoryView](#passwordhistoryview)
 
-**Output**:
+**Output**: std::result::Result<PasswordHistory,BitwardenError>
+
+### `decrypt_list`
+
+Decrypt password history
+
+**Arguments**:
+
+- self:
+- list: Vec<PasswordHistory>
+
+**Output**: std::result::Result<Vec,BitwardenError>
+
+## ClientVault
+
+### `folders`
+
+Folder operations
+
+**Arguments**:
+
+- self: Arc<Self>
+
+**Output**: Arc<folders::ClientFolders>
+
+### `collections`
+
+Collections operations
+
+**Arguments**:
+
+- self: Arc<Self>
+
+**Output**: Arc<collections::ClientCollections>
+
+### `ciphers`
+
+Ciphers operations
+
+**Arguments**:
+
+- self: Arc<Self>
+
+**Output**: Arc<ciphers::ClientCiphers>
+
+### `password_history`
+
+Ciphers operations
+
+**Arguments**:
+
+- self: Arc<Self>
+
+**Output**: Arc<password_history::ClientPasswordHistory>
 
 # References
 

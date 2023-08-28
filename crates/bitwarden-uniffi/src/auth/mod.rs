@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use bitwarden::auth::password::MasterPasswordPolicyOptions;
+use bitwarden::{auth::password::MasterPasswordPolicyOptions, client::auth_settings::Kdf};
 
-use crate::Client;
+use crate::{error::Result, Client};
 
 #[derive(uniffi::Object)]
 pub struct ClientAuth(pub(crate) Arc<Client>);
@@ -39,5 +39,22 @@ impl ClientAuth {
             .auth()
             .satisfies_policy(password, strength, &policy)
             .await
+    }
+
+    /// Hash the user password
+    pub async fn hash_password(
+        &self,
+        email: String,
+        password: String,
+        kdf_params: Kdf,
+    ) -> Result<String> {
+        Ok(self
+            .0
+             .0
+            .read()
+            .await
+            .kdf()
+            .hash_password(email, password, kdf_params)
+            .await?)
     }
 }

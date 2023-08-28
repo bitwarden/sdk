@@ -1,7 +1,6 @@
-# Bitwarden Secrets Manager SDK
+# Bitwarden SDK
 
-This repository houses the Bitwarden Secrets Manager SDK. The core SDK is written in Rust and
-provides a Rust API, CLI and Node-API bindings. In the future more language bindings might be added.
+This repository is the main hub for the Bitwarden SDK. The core SDK is written in Rust and provides a Rust API, the Bitwarden Secrets Manager CLI, Node-API bindings and more. In the future more language bindings might be added.
 
 # We're Hiring!
 

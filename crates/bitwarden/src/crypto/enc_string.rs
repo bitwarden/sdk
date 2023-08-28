@@ -11,6 +11,7 @@ use crate::{
     util::BASE64_ENGINE,
 };
 
+#[derive(Clone)]
 #[allow(unused, non_camel_case_types)]
 pub enum EncString {
     // 0
@@ -112,6 +113,44 @@ impl FromStr for EncString {
             (enc_type, parts) => Err(EncStringParseError::InvalidType {
                 enc_type: enc_type.to_string(),
                 parts,
+            }
+            .into()),
+        }
+    }
+}
+
+impl EncString {
+    #[cfg(feature = "mobile")]
+    pub(crate) fn from_buffer(buf: &[u8]) -> Result<Self> {
+        if buf.is_empty() {
+            return Err(EncStringParseError::NoType.into());
+        }
+        let enc_type = buf[0];
+
+        match enc_type {
+            0 => unimplemented!(),
+            1 | 2 => {
+                if buf.len() < 49 {
+                    return Err(EncStringParseError::InvalidLength {
+                        expected: 49,
+                        got: buf.len(),
+                    }
+                    .into());
+                }
+
+                let iv = buf[1..17].try_into().unwrap();
+                let mac = buf[17..49].try_into().unwrap();
+                let data = buf[49..].to_vec();
+
+                if enc_type == 1 {
+                    Ok(EncString::AesCbc128_HmacSha256_B64 { iv, mac, data })
+                } else {
+                    Ok(EncString::AesCbc256_HmacSha256_B64 { iv, mac, data })
+                }
+            }
+            _ => Err(EncStringParseError::InvalidType {
+                enc_type: enc_type.to_string(),
+                parts: 1,
             }
             .into()),
         }
@@ -226,7 +265,7 @@ impl EncString {
 }
 
 fn invalid_len_error(expected: usize) -> impl Fn(Vec<u8>) -> EncStringParseError {
-    move |e: Vec<_>| EncStringParseError::InvalidBase64Length {
+    move |e: Vec<_>| EncStringParseError::InvalidLength {
         expected,
         got: e.len(),
     }

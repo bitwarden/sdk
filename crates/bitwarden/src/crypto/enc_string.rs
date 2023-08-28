@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    error::{CSParseError, Error, Result},
+    error::{EncStringParseError, Error, Result},
     util::BASE64_ENGINE,
 };
 
@@ -62,7 +62,7 @@ impl FromStr for EncString {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (enc_type, data) = s.split_once('.').ok_or(CSParseError::NoType)?;
+        let (enc_type, data) = s.split_once('.').ok_or(EncStringParseError::NoType)?;
 
         let parts: Vec<_> = data.split('|').collect();
         match (enc_type, parts.len()) {
@@ -75,19 +75,19 @@ impl FromStr for EncString {
 
                 let iv = BASE64_ENGINE
                     .decode(iv_str)
-                    .map_err(CSParseError::InvalidBase64)?
+                    .map_err(EncStringParseError::InvalidBase64)?
                     .try_into()
                     .map_err(invalid_len_error(16))?;
 
                 let mac = BASE64_ENGINE
                     .decode(mac_str)
-                    .map_err(CSParseError::InvalidBase64)?
+                    .map_err(EncStringParseError::InvalidBase64)?
                     .try_into()
                     .map_err(invalid_len_error(32))?;
 
                 let data = BASE64_ENGINE
                     .decode(data_str)
-                    .map_err(CSParseError::InvalidBase64)?;
+                    .map_err(EncStringParseError::InvalidBase64)?;
 
                 if enc_type == "1" {
                     Ok(EncString::AesCbc128_HmacSha256_B64 { iv, mac, data })
@@ -99,7 +99,7 @@ impl FromStr for EncString {
             ("3" | "4", 1) => {
                 let data = BASE64_ENGINE
                     .decode(data)
-                    .map_err(CSParseError::InvalidBase64)?;
+                    .map_err(EncStringParseError::InvalidBase64)?;
                 if enc_type == "3" {
                     Ok(EncString::Rsa2048_OaepSha256_B64 { data })
                 } else {
@@ -110,7 +110,7 @@ impl FromStr for EncString {
                 unimplemented!()
             }
 
-            (enc_type, parts) => Err(CSParseError::InvalidType {
+            (enc_type, parts) => Err(EncStringParseError::InvalidType {
                 enc_type: enc_type.to_string(),
                 parts,
             }
@@ -216,8 +216,8 @@ impl EncString {
     }
 }
 
-fn invalid_len_error(expected: usize) -> impl Fn(Vec<u8>) -> CSParseError {
-    move |e: Vec<_>| CSParseError::InvalidBase64Length {
+fn invalid_len_error(expected: usize) -> impl Fn(Vec<u8>) -> EncStringParseError {
+    move |e: Vec<_>| EncStringParseError::InvalidBase64Length {
         expected,
         got: e.len(),
     }

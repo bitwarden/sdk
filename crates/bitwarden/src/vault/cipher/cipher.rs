@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{CipherString, Decryptable, Encryptable},
+    crypto::{Decryptable, EncString, Encryptable},
     error::Result,
     vault::password_history,
 };
@@ -44,8 +44,8 @@ pub struct Cipher {
     pub folder_id: Option<Uuid>,
     pub collection_ids: Vec<Uuid>,
 
-    pub name: CipherString,
-    pub notes: CipherString,
+    pub name: EncString,
+    pub notes: EncString,
 
     pub r#type: CipherType,
     pub login: Option<login::Login>,

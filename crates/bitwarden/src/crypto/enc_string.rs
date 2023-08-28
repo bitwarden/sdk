@@ -13,7 +13,7 @@ use crate::{
 use super::{Decryptable, Encryptable};
 
 #[allow(unused, non_camel_case_types)]
-pub enum CipherString {
+pub enum EncString {
     // 0
     AesCbc256_B64 {
         iv: [u8; 16],
@@ -52,13 +52,13 @@ pub enum CipherString {
 }
 
 // We manually implement these to make sure we don't print any sensitive data
-impl std::fmt::Debug for CipherString {
+impl std::fmt::Debug for EncString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("CipherString").finish()
+        f.debug_struct("EncString").finish()
     }
 }
 
-impl FromStr for CipherString {
+impl FromStr for EncString {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -90,9 +90,9 @@ impl FromStr for CipherString {
                     .map_err(CSParseError::InvalidBase64)?;
 
                 if enc_type == "1" {
-                    Ok(CipherString::AesCbc128_HmacSha256_B64 { iv, mac, data })
+                    Ok(EncString::AesCbc128_HmacSha256_B64 { iv, mac, data })
                 } else {
-                    Ok(CipherString::AesCbc256_HmacSha256_B64 { iv, mac, data })
+                    Ok(EncString::AesCbc256_HmacSha256_B64 { iv, mac, data })
                 }
             }
 
@@ -101,9 +101,9 @@ impl FromStr for CipherString {
                     .decode(data)
                     .map_err(CSParseError::InvalidBase64)?;
                 if enc_type == "3" {
-                    Ok(CipherString::Rsa2048_OaepSha256_B64 { data })
+                    Ok(EncString::Rsa2048_OaepSha256_B64 { data })
                 } else {
-                    Ok(CipherString::Rsa2048_OaepSha1_B64 { data })
+                    Ok(EncString::Rsa2048_OaepSha1_B64 { data })
                 }
             }
             ("5" | "6", 2) => {
@@ -119,38 +119,38 @@ impl FromStr for CipherString {
     }
 }
 
-impl Display for CipherString {
+impl Display for EncString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}.", self.enc_type())?;
 
         let mut parts = Vec::<&[u8]>::new();
 
         match self {
-            CipherString::AesCbc256_B64 { iv, data } => {
+            EncString::AesCbc256_B64 { iv, data } => {
                 parts.push(iv);
                 parts.push(data);
             }
-            CipherString::AesCbc128_HmacSha256_B64 { iv, mac, data } => {
-                parts.push(iv);
-                parts.push(data);
-                parts.push(mac);
-            }
-            CipherString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
+            EncString::AesCbc128_HmacSha256_B64 { iv, mac, data } => {
                 parts.push(iv);
                 parts.push(data);
                 parts.push(mac);
             }
-            CipherString::Rsa2048_OaepSha256_B64 { data } => {
-                parts.push(data);
-            }
-            CipherString::Rsa2048_OaepSha1_B64 { data } => {
-                parts.push(data);
-            }
-            CipherString::Rsa2048_OaepSha256_HmacSha256_B64 { mac, data } => {
+            EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
+                parts.push(iv);
                 parts.push(data);
                 parts.push(mac);
             }
-            CipherString::Rsa2048_OaepSha1_HmacSha256_B64 { mac, data } => {
+            EncString::Rsa2048_OaepSha256_B64 { data } => {
+                parts.push(data);
+            }
+            EncString::Rsa2048_OaepSha1_B64 { data } => {
+                parts.push(data);
+            }
+            EncString::Rsa2048_OaepSha256_HmacSha256_B64 { mac, data } => {
+                parts.push(data);
+                parts.push(mac);
+            }
+            EncString::Rsa2048_OaepSha1_HmacSha256_B64 { mac, data } => {
                 parts.push(data);
                 parts.push(mac);
             }
@@ -168,14 +168,14 @@ impl Display for CipherString {
     }
 }
 
-impl<'de> Deserialize<'de> for CipherString {
+impl<'de> Deserialize<'de> for EncString {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
         struct CSVisitor;
         impl Visitor<'_> for CSVisitor {
-            type Value = CipherString;
+            type Value = EncString;
 
             fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
                 write!(f, "A valid string")
@@ -185,7 +185,7 @@ impl<'de> Deserialize<'de> for CipherString {
             where
                 E: serde::de::Error,
             {
-                CipherString::from_str(v).map_err(|e| E::custom(format!("{:?}", e)))
+                EncString::from_str(v).map_err(|e| E::custom(format!("{:?}", e)))
             }
         }
 
@@ -193,7 +193,7 @@ impl<'de> Deserialize<'de> for CipherString {
     }
 }
 
-impl serde::Serialize for CipherString {
+impl serde::Serialize for EncString {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -202,16 +202,16 @@ impl serde::Serialize for CipherString {
     }
 }
 
-impl CipherString {
+impl EncString {
     fn enc_type(&self) -> u8 {
         match self {
-            CipherString::AesCbc256_B64 { .. } => 0,
-            CipherString::AesCbc128_HmacSha256_B64 { .. } => 1,
-            CipherString::AesCbc256_HmacSha256_B64 { .. } => 2,
-            CipherString::Rsa2048_OaepSha256_B64 { .. } => 3,
-            CipherString::Rsa2048_OaepSha1_B64 { .. } => 4,
-            CipherString::Rsa2048_OaepSha256_HmacSha256_B64 { .. } => 5,
-            CipherString::Rsa2048_OaepSha1_HmacSha256_B64 { .. } => 6,
+            EncString::AesCbc256_B64 { .. } => 0,
+            EncString::AesCbc128_HmacSha256_B64 { .. } => 1,
+            EncString::AesCbc256_HmacSha256_B64 { .. } => 2,
+            EncString::Rsa2048_OaepSha256_B64 { .. } => 3,
+            EncString::Rsa2048_OaepSha1_B64 { .. } => 4,
+            EncString::Rsa2048_OaepSha256_HmacSha256_B64 { .. } => 5,
+            EncString::Rsa2048_OaepSha1_HmacSha256_B64 { .. } => 6,
         }
     }
 }
@@ -223,13 +223,13 @@ fn invalid_len_error(expected: usize) -> impl Fn(Vec<u8>) -> CSParseError {
     }
 }
 
-impl Encryptable<CipherString> for String {
-    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<CipherString> {
+impl Encryptable<EncString> for String {
+    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<EncString> {
         enc.encrypt(self.as_bytes(), org_id)
     }
 }
 
-impl Decryptable<String> for CipherString {
+impl Decryptable<String> for EncString {
     fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<String> {
         enc.decrypt(self, org_id)
     }
@@ -237,13 +237,13 @@ impl Decryptable<String> for CipherString {
 
 #[cfg(test)]
 mod tests {
-    use super::CipherString;
+    use super::EncString;
 
     #[test]
-    fn test_cipher_string_serialization() {
+    fn test_enc_string_serialization() {
         #[derive(serde::Serialize, serde::Deserialize)]
         struct Test {
-            key: CipherString,
+            key: EncString,
         }
 
         let cipher = "2.pMS6/icTQABtulw52pq2lg==|XXbxKxDTh+mWiN1HjH2N1w==|Q6PkuT+KX/axrgN9ubD5Ajk2YNwxQkgs3WJM0S0wtG8=";

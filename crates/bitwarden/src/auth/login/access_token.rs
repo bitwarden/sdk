@@ -13,7 +13,7 @@ use crate::{
         encryption_settings::{decrypt, SymmetricCryptoKey},
         AccessToken, LoginMethod,
     },
-    crypto::CipherString,
+    crypto::EncString,
     error::{Error, Result},
     util::{decode_token, BASE64_ENGINE},
     Client,
@@ -32,7 +32,7 @@ pub(crate) async fn access_token_login(
 
     if let IdentityTokenResponse::Payload(r) = &response {
         // Extract the encrypted payload and use the access token encryption key to decrypt it
-        let payload = CipherString::from_str(&r.encrypted_payload)?;
+        let payload = EncString::from_str(&r.encrypted_payload)?;
 
         let decrypted_payload = decrypt(&payload, &access_token.encryption_key)?;
 

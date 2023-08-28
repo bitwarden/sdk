@@ -1,5 +1,6 @@
 use std::path::Path;
 
+use super::client_vault::ClientVault;
 use crate::{
     client::encryption_settings::EncryptionSettings,
     crypto::{Decryptable, EncString},
@@ -7,8 +8,6 @@ use crate::{
     vault::{Send, SendListView, SendView},
     Client,
 };
-
-use super::client_vault::ClientVault;
 
 pub struct ClientSends<'a> {
     pub(crate) client: &'a Client,

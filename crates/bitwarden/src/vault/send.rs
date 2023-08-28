@@ -218,12 +218,11 @@ impl Decryptable<SendListView> for Send {
 
 #[cfg(test)]
 mod tests {
+    use super::Send;
     use crate::client::{
         auth_settings::{AuthSettings, Kdf},
         encryption_settings::EncryptionSettings,
     };
-
-    use super::Send;
 
     #[test]
     fn test_get_send_key() {

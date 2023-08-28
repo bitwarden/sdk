@@ -11,7 +11,7 @@ use rsa::RsaPrivateKey;
 use uuid::Uuid;
 
 use crate::{
-    crypto::{CipherString, PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},
+    crypto::{EncString, PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},
     error::{CryptoError, Error, Result},
     util::BASE64_ENGINE,
 };
@@ -103,8 +103,8 @@ impl EncryptionSettings {
     pub(crate) fn new(
         auth: &AuthSettings,
         password: &str,
-        user_key: CipherString,
-        private_key: CipherString,
+        user_key: EncString,
+        private_key: EncString,
     ) -> Result<Self> {
         // Stretch keys from the provided password
         let (key, mac_key) = crate::crypto::stretch_key_password(
@@ -116,7 +116,7 @@ impl EncryptionSettings {
         // Decrypt the user key with the stretched key
         let user_key = {
             let (iv, mac, data) = match user_key {
-                CipherString::AesCbc256_HmacSha256_B64 { iv, mac, data } => (iv, mac, data),
+                EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => (iv, mac, data),
                 _ => return Err(CryptoError::InvalidKey.into()),
             };
 
@@ -148,14 +148,14 @@ impl EncryptionSettings {
     #[cfg(feature = "internal")]
     pub(crate) fn set_org_keys(
         &mut self,
-        org_enc_keys: Vec<(Uuid, CipherString)>,
+        org_enc_keys: Vec<(Uuid, EncString)>,
     ) -> Result<&mut Self> {
         let private_key = self.private_key.as_ref().ok_or(Error::VaultLocked)?;
 
         // Decrypt the org keys with the private key
         for (org_id, org_enc_key) in org_enc_keys {
             let data = match org_enc_key {
-                CipherString::Rsa2048_OaepSha1_B64 { data } => data,
+                EncString::Rsa2048_OaepSha1_B64 { data } => data,
                 _ => return Err(CryptoError::InvalidKey.into()),
             };
 
@@ -183,13 +183,13 @@ impl EncryptionSettings {
         }
     }
 
-    pub(crate) fn decrypt(&self, cipher: &CipherString, org_id: &Option<Uuid>) -> Result<String> {
+    pub(crate) fn decrypt(&self, cipher: &EncString, org_id: &Option<Uuid>) -> Result<String> {
         let key = self.get_key(org_id).ok_or(CryptoError::NoKeyForOrg)?;
         let dec = decrypt(cipher, key)?;
         String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String.into())
     }
 
-    pub(crate) fn encrypt(&self, data: &[u8], org_id: &Option<Uuid>) -> Result<CipherString> {
+    pub(crate) fn encrypt(&self, data: &[u8], org_id: &Option<Uuid>) -> Result<EncString> {
         let key = self.get_key(org_id).ok_or(CryptoError::NoKeyForOrg)?;
 
         let dec = encrypt_aes256(data, key.mac_key, key.key)?;
@@ -197,9 +197,9 @@ impl EncryptionSettings {
     }
 }
 
-pub fn decrypt(cipher: &CipherString, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
+pub fn decrypt(cipher: &EncString, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
     match cipher {
-        CipherString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
+        EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
             let dec = decrypt_aes256(iv, mac, data.clone(), key.mac_key, key.key)?;
             Ok(dec)
         }
@@ -243,7 +243,7 @@ pub fn encrypt_aes256(
     data_dec: &[u8],
     mac_key: Option<GenericArray<u8, U32>>,
     key: GenericArray<u8, U32>,
-) -> Result<CipherString> {
+) -> Result<EncString> {
     let mac_key = match mac_key {
         Some(k) => k,
         None => return Err(CryptoError::InvalidMac.into()),
@@ -256,7 +256,7 @@ pub fn encrypt_aes256(
 
     let mac = validate_mac(&mac_key, &iv, &data)?;
 
-    Ok(CipherString::AesCbc256_HmacSha256_B64 { iv, mac, data })
+    Ok(EncString::AesCbc256_HmacSha256_B64 { iv, mac, data })
 }
 
 fn validate_mac(mac_key: &[u8], iv: &[u8], data: &[u8]) -> Result<[u8; 32]> {

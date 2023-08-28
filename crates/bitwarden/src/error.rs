@@ -26,8 +26,8 @@ pub enum Error {
     #[error("Cryptography error, {0}")]
     Crypto(#[from] CryptoError),
 
-    #[error("Error parsing CipherString: {0}")]
-    InvalidCipherString(#[from] CSParseError),
+    #[error("Error parsing EncString: {0}")]
+    InvalidEncString(#[from] CSParseError),
 
     #[error("Error parsing Identity response: {0}")]
     IdentityFail(crate::auth::api::response::IdentityTokenFailResponse),

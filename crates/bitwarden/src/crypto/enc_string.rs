@@ -240,7 +240,7 @@ mod tests {
     use super::EncString;
 
     #[test]
-    fn test_cipher_string_serialization() {
+    fn test_enc_string_serialization() {
         #[derive(serde::Serialize, serde::Deserialize)]
         struct Test {
             key: EncString,

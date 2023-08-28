@@ -4,7 +4,7 @@ use crate::{
     client::encryption_settings::EncryptionSettings,
     crypto::{Decryptable, EncString},
     error::Result,
-    vault::{Send, SendView},
+    vault::{Send, SendListView, SendView},
     Client,
 };
 
@@ -21,6 +21,14 @@ impl<'a> ClientSends<'a> {
         let send_view = send.decrypt(enc, &None)?;
 
         Ok(send_view)
+    }
+
+    pub async fn decrypt_list(&self, sends: Vec<Send>) -> Result<Vec<SendListView>> {
+        let enc = self.client.get_encryption_settings()?;
+
+        let send_views = sends.decrypt(enc, &None)?;
+
+        Ok(send_views)
     }
 
     pub async fn decrypt_file(

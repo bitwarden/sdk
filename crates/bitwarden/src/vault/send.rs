@@ -108,6 +108,23 @@ pub struct SendView {
     pub expiration_date: Option<DateTime<Utc>>,
 }
 
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+pub struct SendListView {
+    pub id: Uuid,
+    pub access_id: String,
+
+    pub name: String,
+
+    pub r#type: SendType,
+    pub disabled: bool,
+
+    pub revision_date: DateTime<Utc>,
+    pub deletion_date: DateTime<Utc>,
+    pub expiration_date: Option<DateTime<Utc>>,
+}
+
 impl Send {
     pub(crate) fn get_key(
         key: &EncString,
@@ -166,6 +183,31 @@ impl Decryptable<SendView> for Send {
             access_count: self.access_count,
             disabled: self.disabled,
             hide_email: self.hide_email,
+
+            revision_date: self.revision_date,
+            deletion_date: self.deletion_date,
+            expiration_date: self.expiration_date,
+        })
+    }
+}
+
+impl Decryptable<SendListView> for Send {
+    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<SendListView> {
+        // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
+        let key = Send::get_key(&self.key, enc, org_id)?;
+        let enc_owned = EncryptionSettings::new_single_key(key);
+
+        // For the rest of the fields, we ignore the provided EncryptionSettings and use a new one with the stretched key
+        let enc = &enc_owned;
+
+        Ok(SendListView {
+            id: self.id,
+            access_id: self.access_id.clone(),
+
+            name: self.name.decrypt(enc, org_id)?,
+            r#type: self.r#type,
+
+            disabled: self.disabled,
 
             revision_date: self.revision_date,
             deletion_date: self.deletion_date,

@@ -1,4 +1,4 @@
-name: Build .NET 6 Project
+name: Build .NET SDK
 
 on:
   pull_request:

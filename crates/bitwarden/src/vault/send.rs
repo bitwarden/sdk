@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
-    crypto::{stretch_key, CipherString, Decryptable},
+    crypto::{stretch_key, Decryptable, EncString},
     error::Result,
 };
 
@@ -15,7 +15,7 @@ use crate::{
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SendFile {
     pub id: String,
-    pub file_name: CipherString,
+    pub file_name: EncString,
     pub size: String,
     /// Readable size, ex: "4.2 KB" or "1.43 GB"
     pub size_name: String,
@@ -36,7 +36,7 @@ pub struct SendFileView {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SendText {
-    pub text: CipherString,
+    pub text: EncString,
     pub hidden: bool,
 }
 
@@ -63,9 +63,9 @@ pub struct Send {
     pub id: Uuid,
     pub access_id: String,
 
-    pub name: CipherString,
-    pub notes: Option<CipherString>,
-    pub key: CipherString,
+    pub name: EncString,
+    pub notes: Option<EncString>,
+    pub key: EncString,
     pub password: Option<String>,
 
     pub r#type: SendType,
@@ -91,7 +91,7 @@ pub struct SendView {
 
     pub name: String,
     pub notes: Option<String>,
-    pub key: CipherString,
+    pub key: EncString,
     pub password: Option<String>,
 
     pub r#type: SendType,

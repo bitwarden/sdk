@@ -14,8 +14,8 @@ use {
     sha2::Digest,
 };
 
-mod cipher_string;
-pub use cipher_string::CipherString;
+mod enc_string;
+pub use enc_string::EncString;
 mod encryptable;
 pub use encryptable::{Decryptable, Encryptable};
 

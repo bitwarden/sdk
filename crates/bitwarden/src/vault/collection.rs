@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{CipherString, Decryptable},
+    crypto::{Decryptable, EncString},
     error::Result,
 };
 
@@ -15,7 +15,7 @@ pub struct Collection {
     id: Uuid,
     organization_id: Uuid,
 
-    name: CipherString,
+    name: EncString,
 
     external_id: Option<String>,
     hide_passwords: bool,

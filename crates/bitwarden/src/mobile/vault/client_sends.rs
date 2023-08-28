@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use crate::{
-    crypto::{CipherString, Decryptable},
+    crypto::{Decryptable, EncString},
     error::Result,
     vault::{Send, SendView},
     Client,
@@ -38,7 +38,7 @@ impl<'a> ClientSends<'a> {
         let enc = self.client.get_encryption_settings()?;
         let enc = send.get_send_encryption(enc, &None)?;
 
-        let cs = CipherString::from_buffer(encrypted_buffer)?;
+        let cs = EncString::from_buffer(encrypted_buffer)?;
 
         enc.decrypt_bytes(&cs, &None)
     }

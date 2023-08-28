@@ -6,7 +6,7 @@ on:
       - master
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-22.04
 
     steps:
@@ -18,14 +18,29 @@ jobs:
         with:
           dotnet-version: '6.0.21'
 
-      - name: Build and Pack NuGet Package
-        working-directory: languages/csharp
+      - name: Get Package Version
+        id: version
         run: |
-          dotnet restore
-          dotnet build --configuration Release
-          dotnet pack --configuration Release --no-build --output ./nuget-output
+          cd languages/csharp
+          package_version=$(dotnet pack --configuration Release --no-build /property:Version=1.2.3 --output ./nuget-output /nologo /v:n)
+          echo "Package Version: $package_version"
+          echo "::set-output name=version::$package_version"
+
+      - name: Check Existing Version on NuGet.org
+        id: check_version
+        run: |
+          existing_version=$(dotnet nuget list source-package-name -s https://api.nuget.org/v3/index.json --version ${{ steps.version.outputs.version }} | grep -oP '(?<=Version: )[^,]+')
+          echo "Existing Version: $existing_version"
+          if [ -n "$existing_version" ]; then
+            echo "Package version already exists on NuGet.org."
+            echo "::set-output name=exists::true"
+          else
+            echo "Package version does not exist on NuGet.org."
+            echo "::set-output name=exists::false"
+          fi
 
       - name: Publish NuGet Package
+        if: steps.check_version.outputs.exists == 'false'
         uses: nuget/publish@v1
         with:
           nuget-api-key: ${{ secrets.NUGET_API_KEY }}

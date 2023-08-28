@@ -5,8 +5,8 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 use uuid::Uuid;
 
 use crate::{
-    client::encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
-    crypto::{stretch_key, Decryptable, EncString},
+    client::encryption_settings::EncryptionSettings,
+    crypto::{stretch_key, Decryptable, EncString, SymmetricCryptoKey},
     error::Result,
 };
 
@@ -114,7 +114,7 @@ impl Send {
         enc: &EncryptionSettings,
         org_id: &Option<Uuid>,
     ) -> Result<SymmetricCryptoKey> {
-        let key: Vec<u8> = enc.decrypt_bytes(&key, org_id)?;
+        let key: Vec<u8> = enc.decrypt_bytes(key, org_id)?;
         let key = stretch_key(key.try_into().unwrap(), "send", Some("send"));
         Ok(key)
     }

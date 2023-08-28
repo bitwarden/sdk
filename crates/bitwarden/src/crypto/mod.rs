@@ -3,8 +3,6 @@
 use aes::cipher::{generic_array::GenericArray, typenum::U64, Unsigned};
 use hmac::digest::OutputSizeUser;
 
-use crate::client::encryption_settings::SymmetricCryptoKey;
-
 #[cfg(feature = "internal")]
 use aes::cipher::typenum::U32;
 
@@ -18,6 +16,10 @@ mod enc_string;
 pub use enc_string::EncString;
 mod encryptable;
 pub use encryptable::{Decryptable, Encryptable};
+mod aes_opt;
+pub use aes_opt::{decrypt_aes256, encrypt_aes256};
+mod symmetric_crypto_key;
+pub use symmetric_crypto_key::SymmetricCryptoKey;
 
 #[cfg(feature = "internal")]
 mod fingerprint;

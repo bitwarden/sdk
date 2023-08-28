@@ -4,13 +4,12 @@ use base64::Engine;
 use serde::{de::Visitor, Deserialize};
 use uuid::Uuid;
 
+use super::{decrypt_aes256, Decryptable, Encryptable, SymmetricCryptoKey};
 use crate::{
     client::encryption_settings::EncryptionSettings,
     error::{CryptoError, EncStringParseError, Error, Result},
     util::BASE64_ENGINE,
 };
-
-use super::{decrypt_aes256, Decryptable, Encryptable, SymmetricCryptoKey};
 
 #[allow(unused, non_camel_case_types)]
 pub enum EncString {

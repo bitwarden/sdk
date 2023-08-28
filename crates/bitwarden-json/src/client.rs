@@ -1,12 +1,11 @@
 use bitwarden::client::client_settings::ClientSettings;
 
+#[cfg(feature = "secrets")]
+use crate::command::{ProjectsCommand, SecretsCommand};
 use crate::{
     command::Command,
     response::{Response, ResponseIntoString},
 };
-
-#[cfg(feature = "secrets")]
-use crate::command::{ProjectsCommand, SecretsCommand};
 
 pub struct Client(bitwarden::Client);
 

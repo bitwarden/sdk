@@ -1,4 +1,3 @@
-use crate::error::{CryptoError, Result};
 use aes::cipher::{
     block_padding::Pkcs7, generic_array::GenericArray, typenum::U32, BlockDecryptMut,
     BlockEncryptMut, KeyIvInit,
@@ -7,6 +6,7 @@ use hmac::Mac;
 use rand::RngCore;
 
 use super::{EncString, PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE};
+use crate::error::{CryptoError, Result};
 
 pub fn decrypt_aes256(
     iv: &[u8; 16],

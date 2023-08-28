@@ -23,6 +23,13 @@ pub struct BillingSubscriptionItem {
         skip_serializing_if = "Option::is_none"
     )]
     pub sponsored_subscription_item: Option<bool>,
+    #[serde(
+        rename = "addonSubscriptionItem",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub addon_subscription_item: Option<bool>,
+    #[serde(rename = "bitwardenProduct", skip_serializing_if = "Option::is_none")]
+    pub bitwarden_product: Option<crate::models::BitwardenProductType>,
 }
 
 impl BillingSubscriptionItem {
@@ -33,6 +40,8 @@ impl BillingSubscriptionItem {
             quantity: None,
             interval: None,
             sponsored_subscription_item: None,
+            addon_subscription_item: None,
+            bitwarden_product: None,
         }
     }
 }

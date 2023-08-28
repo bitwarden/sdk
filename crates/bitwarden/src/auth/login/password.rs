@@ -1,17 +1,10 @@
 #[cfg(feature = "internal")]
+use std::str::FromStr;
+
+#[cfg(feature = "internal")]
 use log::{debug, info};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-#[cfg(feature = "internal")]
-use std::str::FromStr;
-
-use crate::{
-    auth::{
-        api::response::IdentityTokenResponse,
-        login::response::{captcha_response::CaptchaResponse, two_factor::TwoFactorProviders},
-    },
-    error::Result,
-};
 
 #[cfg(feature = "internal")]
 use crate::{
@@ -20,8 +13,15 @@ use crate::{
         login::{determine_password_hash, TwoFactorRequest},
     },
     client::LoginMethod,
-    crypto::CipherString,
+    crypto::EncString,
     Client,
+};
+use crate::{
+    auth::{
+        api::response::IdentityTokenResponse,
+        login::response::{captcha_response::CaptchaResponse, two_factor::TwoFactorProviders},
+    },
+    error::Result,
 };
 
 #[cfg(feature = "internal")]
@@ -45,8 +45,8 @@ pub(crate) async fn password_login(
             },
         );
 
-        let user_key = CipherString::from_str(r.key.as_deref().unwrap()).unwrap();
-        let private_key = CipherString::from_str(r.private_key.as_deref().unwrap()).unwrap();
+        let user_key = EncString::from_str(r.key.as_deref().unwrap()).unwrap();
+        let private_key = EncString::from_str(r.private_key.as_deref().unwrap()).unwrap();
 
         client.initialize_user_crypto(&input.password, user_key, private_key)?;
     }

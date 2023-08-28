@@ -13,6 +13,11 @@ pub struct SsoConfigurationDataRequest {
     #[serde(rename = "configType")]
     pub config_type: crate::models::SsoType,
     #[serde(
+        rename = "memberDecryptionType",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub member_decryption_type: Option<crate::models::MemberDecryptionType>,
+    #[serde(
         rename = "keyConnectorEnabled",
         skip_serializing_if = "Option::is_none"
     )]
@@ -129,6 +134,7 @@ impl SsoConfigurationDataRequest {
     pub fn new(config_type: crate::models::SsoType) -> SsoConfigurationDataRequest {
         SsoConfigurationDataRequest {
             config_type,
+            member_decryption_type: None,
             key_connector_enabled: None,
             key_connector_url: None,
             authority: None,

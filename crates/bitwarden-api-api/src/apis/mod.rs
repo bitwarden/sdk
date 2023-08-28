@@ -1,4 +1,5 @@
-use std::{error, fmt};
+use std::error;
+use std::fmt;
 
 #[derive(Debug, Clone)]
 pub struct ResponseContent<T> {
@@ -78,6 +79,7 @@ pub mod info_api;
 pub mod installations_api;
 pub mod licenses_api;
 pub mod misc_api;
+pub mod organization_auth_requests_api;
 pub mod organization_connections_api;
 pub mod organization_domain_api;
 pub mod organization_export_api;

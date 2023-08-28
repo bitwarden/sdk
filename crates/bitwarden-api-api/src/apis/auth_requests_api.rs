@@ -89,7 +89,7 @@ pub async fn auth_requests_get(
 
 pub async fn auth_requests_id_get(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
 ) -> Result<crate::models::AuthRequestResponseModel, Error<AuthRequestsIdGetError>> {
     let local_var_configuration = configuration;
 
@@ -133,7 +133,7 @@ pub async fn auth_requests_id_get(
 
 pub async fn auth_requests_id_put(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     auth_request_update_request_model: Option<crate::models::AuthRequestUpdateRequestModel>,
 ) -> Result<crate::models::AuthRequestResponseModel, Error<AuthRequestsIdPutError>> {
     let local_var_configuration = configuration;
@@ -179,7 +179,7 @@ pub async fn auth_requests_id_put(
 
 pub async fn auth_requests_id_response_get(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     code: Option<&str>,
 ) -> Result<crate::models::AuthRequestResponseModel, Error<AuthRequestsIdResponseGetError>> {
     let local_var_configuration = configuration;

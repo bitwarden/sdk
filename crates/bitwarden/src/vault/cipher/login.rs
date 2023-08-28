@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{CipherString, Decryptable, Encryptable},
+    crypto::{Decryptable, EncString, Encryptable},
     error::Result,
 };
 
@@ -27,7 +27,7 @@ pub enum UriMatchType {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct LoginUri {
-    pub uri: CipherString,
+    pub uri: EncString,
     pub r#match: Option<UriMatchType>,
 }
 
@@ -43,12 +43,12 @@ pub struct LoginUriView {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Login {
-    pub username: CipherString,
-    pub password: CipherString,
+    pub username: EncString,
+    pub password: EncString,
     pub password_revision_date: Option<DateTime<Utc>>,
 
     pub uris: Vec<LoginUri>,
-    pub totp: Option<CipherString>,
+    pub totp: Option<EncString>,
     pub autofill_on_page_load: Option<bool>,
 }
 

@@ -2,7 +2,7 @@ use std::{num::NonZeroU32, str::FromStr};
 
 use uuid::Uuid;
 
-use crate::{crypto::CipherString, error::Error, UniffiCustomTypeConverter};
+use crate::{crypto::EncString, error::Error, UniffiCustomTypeConverter};
 
 uniffi::custom_type!(NonZeroU32, u32);
 
@@ -18,9 +18,9 @@ impl UniffiCustomTypeConverter for NonZeroU32 {
     }
 }
 
-uniffi::custom_type!(CipherString, String);
+uniffi::custom_type!(EncString, String);
 
-impl UniffiCustomTypeConverter for CipherString {
+impl UniffiCustomTypeConverter for EncString {
     type Builtin = String;
 
     fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {

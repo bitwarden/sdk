@@ -6,7 +6,7 @@ use aes::cipher::{
 use hmac::Mac;
 use rand::RngCore;
 
-use super::{CipherString, PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE};
+use super::{EncString, PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE};
 
 pub fn decrypt_aes256(
     iv: &[u8; 16],
@@ -44,7 +44,7 @@ pub fn encrypt_aes256(
     data_dec: &[u8],
     mac_key: Option<GenericArray<u8, U32>>,
     key: GenericArray<u8, U32>,
-) -> Result<CipherString> {
+) -> Result<EncString> {
     let mac_key = match mac_key {
         Some(k) => k,
         None => return Err(CryptoError::InvalidMac.into()),
@@ -57,7 +57,7 @@ pub fn encrypt_aes256(
 
     let mac = validate_mac(&mac_key, &iv, &data)?;
 
-    Ok(CipherString::AesCbc256_HmacSha256_B64 { iv, mac, data })
+    Ok(EncString::AesCbc256_HmacSha256_B64 { iv, mac, data })
 }
 
 fn validate_mac(mac_key: &[u8], iv: &[u8], data: &[u8]) -> Result<[u8; 32]> {

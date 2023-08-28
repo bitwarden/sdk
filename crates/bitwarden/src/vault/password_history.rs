@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{CipherString, Decryptable, Encryptable},
+    crypto::{Decryptable, EncString, Encryptable},
     error::Result,
 };
 
@@ -13,7 +13,7 @@ use crate::{
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct PasswordHistory {
-    password: CipherString,
+    password: EncString,
     last_used_date: DateTime<Utc>,
 }
 

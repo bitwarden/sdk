@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{CipherString, Decryptable, Encryptable},
+    crypto::{Decryptable, EncString, Encryptable},
     error::Result,
 };
 
@@ -17,8 +17,8 @@ pub struct Attachment {
     pub size: Option<String>,
     /// Readable size, ex: "4.2 KB" or "1.43 GB"
     pub size_name: Option<String>,
-    pub file_name: Option<CipherString>,
-    pub key: Option<CipherString>,
+    pub file_name: Option<EncString>,
+    pub key: Option<EncString>,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

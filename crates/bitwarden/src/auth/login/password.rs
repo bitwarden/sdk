@@ -20,7 +20,7 @@ use crate::{
         login::{determine_password_hash, TwoFactorRequest},
     },
     client::LoginMethod,
-    crypto::CipherString,
+    crypto::EncString,
     Client,
 };
 
@@ -45,8 +45,8 @@ pub(crate) async fn password_login(
             },
         );
 
-        let user_key = CipherString::from_str(r.key.as_deref().unwrap()).unwrap();
-        let private_key = CipherString::from_str(r.private_key.as_deref().unwrap()).unwrap();
+        let user_key = EncString::from_str(r.key.as_deref().unwrap()).unwrap();
+        let private_key = EncString::from_str(r.private_key.as_deref().unwrap()).unwrap();
 
         client.initialize_user_crypto(&input.password, user_key, private_key)?;
     }

@@ -13,8 +13,8 @@ use {
     sha2::Digest,
 };
 
-mod cipher_string;
-pub use cipher_string::CipherString;
+mod enc_string;
+pub use enc_string::EncString;
 mod encryptable;
 pub use encryptable::{Decryptable, Encryptable};
 mod aes_opt;
@@ -115,9 +115,9 @@ pub(crate) fn stretch_key(secret: [u8; 16], name: &str, info: Option<&str>) -> S
     SymmetricCryptoKey::try_from(key.as_slice()).unwrap()
 }
 
-pub fn decrypt(cipher: &CipherString, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
+pub fn decrypt(cipher: &EncString, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
     match cipher {
-        CipherString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
+        EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
             let dec = decrypt_aes256(iv, mac, data.clone(), key.mac_key, key.key)?;
             Ok(dec)
         }

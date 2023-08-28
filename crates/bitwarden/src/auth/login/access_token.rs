@@ -9,11 +9,8 @@ use crate::{
         api::{request::AccessTokenRequest, response::IdentityTokenResponse},
         login::{response::two_factor::TwoFactorProviders, PasswordLoginResponse},
     },
-    client::{
-        encryption_settings::{decrypt, SymmetricCryptoKey},
-        AccessToken, LoginMethod,
-    },
-    crypto::CipherString,
+    client::{AccessToken, LoginMethod},
+    crypto::{decrypt, CipherString, SymmetricCryptoKey},
     error::{Error, Result},
     util::{decode_token, BASE64_ENGINE},
     Client,

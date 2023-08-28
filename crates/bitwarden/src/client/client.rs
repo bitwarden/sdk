@@ -7,8 +7,9 @@ use crate::{
     auth::renew::renew_token,
     client::{
         client_settings::{ClientSettings, DeviceType},
-        encryption_settings::{EncryptionSettings, SymmetricCryptoKey},
+        encryption_settings::EncryptionSettings,
     },
+    crypto::SymmetricCryptoKey,
     error::{Error, Result},
 };
 

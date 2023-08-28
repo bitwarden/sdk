@@ -12,13 +12,11 @@ use bitwarden::{
         },
     },
 };
-
 #[cfg(feature = "internal")]
 use bitwarden::{
     auth::login::{ApiKeyLoginRequest, PasswordLoginRequest},
     platform::{FingerprintRequest, SecretVerificationRequest, SyncRequest},
 };
-
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

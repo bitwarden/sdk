@@ -6,11 +6,10 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
+    crypto::{decrypt_aes256, Decryptable, Encryptable, SymmetricCryptoKey},
     error::{CryptoError, EncStringParseError, Error, Result},
     util::BASE64_ENGINE,
 };
-
-use super::{decrypt_aes256, Decryptable, Encryptable, SymmetricCryptoKey};
 
 #[derive(Clone)]
 #[allow(unused, non_camel_case_types)]

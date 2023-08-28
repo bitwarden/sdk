@@ -13,12 +13,11 @@ use {
 pub mod response;
 
 mod password;
-pub use password::PasswordLoginResponse;
-
 #[cfg(feature = "internal")]
 pub(crate) use password::password_login;
 #[cfg(feature = "internal")]
 pub use password::PasswordLoginRequest;
+pub use password::PasswordLoginResponse;
 #[cfg(feature = "internal")]
 mod two_factor;
 #[cfg(feature = "internal")]

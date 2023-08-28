@@ -4,17 +4,16 @@ use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use uuid::Uuid;
 
+use super::{
+    attachment, card, field, identity,
+    local_data::{LocalData, LocalDataView},
+    login, secure_note,
+};
 use crate::{
     client::encryption_settings::EncryptionSettings,
     crypto::{Decryptable, EncString, Encryptable},
     error::Result,
     vault::password_history,
-};
-
-use super::{
-    attachment, card, field, identity,
-    local_data::{LocalData, LocalDataView},
-    login, secure_note,
 };
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]

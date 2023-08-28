@@ -3,10 +3,7 @@ use std::str::FromStr;
 use base64::Engine;
 use uuid::Uuid;
 
-use crate::{
-    client::encryption_settings::SymmetricCryptoKey, error::AccessTokenInvalidError,
-    util::BASE64_ENGINE,
-};
+use crate::{crypto::SymmetricCryptoKey, error::AccessTokenInvalidError, util::BASE64_ENGINE};
 
 pub struct AccessToken {
     pub service_account_id: Uuid,

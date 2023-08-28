@@ -62,7 +62,7 @@ struct ContentView: View {
                     parallelism: preloginData.kdfParallelism!)
             }
 
-            let passwordHash = try await client.kdf().hashPassword(
+            let passwordHash = try await client.auth().hashPassword(
                 email: EMAIL, password: PASSWORD, kdfParams: kdf)
 
             ///////////////////////////// Login /////////////////////////////

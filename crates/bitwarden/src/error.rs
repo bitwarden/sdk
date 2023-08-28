@@ -27,7 +27,7 @@ pub enum Error {
     Crypto(#[from] CryptoError),
 
     #[error("Error parsing EncString: {0}")]
-    InvalidEncString(#[from] CSParseError),
+    InvalidEncString(#[from] EncStringParseError),
 
     #[error("Error parsing Identity response: {0}")]
     IdentityFail(crate::auth::api::response::IdentityTokenFailResponse),
@@ -83,7 +83,7 @@ pub enum CryptoError {
 }
 
 #[derive(Debug, Error)]
-pub enum CSParseError {
+pub enum EncStringParseError {
     #[error("No type detected, missing '.' separator")]
     NoType,
     #[error("Invalid type, got {enc_type} with {parts} parts")]

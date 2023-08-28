@@ -1,5 +1,8 @@
-use super::password::{PassphraseGeneratorRequest, PasswordGeneratorRequest};
-use crate::{error::Result, Client};
+use crate::{
+    error::Result,
+    tool::password::{PassphraseGeneratorRequest, PasswordGeneratorRequest},
+    Client,
+};
 
 pub struct ClientGenerator<'a> {
     pub(crate) _client: &'a crate::Client,

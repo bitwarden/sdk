@@ -1,11 +1,9 @@
 //! Cryptographic primitives used in the SDK
 
-use aes::cipher::{generic_array::GenericArray, typenum::U64, Unsigned};
-use hmac::digest::OutputSizeUser;
-
 #[cfg(feature = "internal")]
 use aes::cipher::typenum::U32;
-
+use aes::cipher::{generic_array::GenericArray, typenum::U64, Unsigned};
+use hmac::digest::OutputSizeUser;
 #[cfg(any(feature = "internal", feature = "mobile"))]
 use {
     crate::{client::auth_settings::Kdf, error::Result},
@@ -116,13 +114,13 @@ pub(crate) fn stretch_key(secret: [u8; 16], name: &str, info: Option<&str>) -> S
 
 #[cfg(test)]
 mod tests {
-    use super::stretch_key;
-
     #[cfg(feature = "internal")]
     use {
         crate::{client::auth_settings::Kdf, crypto::stretch_key_password},
         std::num::NonZeroU32,
     };
+
+    use super::stretch_key;
 
     #[test]
     fn test_key_stretch() {

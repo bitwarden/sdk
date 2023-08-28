@@ -1,17 +1,10 @@
 #[cfg(feature = "internal")]
+use std::str::FromStr;
+
+#[cfg(feature = "internal")]
 use log::{debug, info};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-#[cfg(feature = "internal")]
-use std::str::FromStr;
-
-use crate::{
-    auth::{
-        api::response::IdentityTokenResponse,
-        login::response::{captcha_response::CaptchaResponse, two_factor::TwoFactorProviders},
-    },
-    error::Result,
-};
 
 #[cfg(feature = "internal")]
 use crate::{
@@ -22,6 +15,13 @@ use crate::{
     client::LoginMethod,
     crypto::EncString,
     Client,
+};
+use crate::{
+    auth::{
+        api::response::IdentityTokenResponse,
+        login::response::{captcha_response::CaptchaResponse, two_factor::TwoFactorProviders},
+    },
+    error::Result,
 };
 
 #[cfg(feature = "internal")]

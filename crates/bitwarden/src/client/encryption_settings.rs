@@ -2,16 +2,15 @@ use std::collections::HashMap;
 
 use rsa::RsaPrivateKey;
 use uuid::Uuid;
-
-use crate::{
-    crypto::{encrypt_aes256, EncString, SymmetricCryptoKey},
-    error::{CryptoError, Result},
-};
-
 #[cfg(feature = "internal")]
 use {
     crate::client::auth_settings::AuthSettings,
     rsa::{pkcs8::DecodePrivateKey, Oaep},
+};
+
+use crate::{
+    crypto::{encrypt_aes256, EncString, SymmetricCryptoKey},
+    error::{CryptoError, Result},
 };
 
 pub struct EncryptionSettings {

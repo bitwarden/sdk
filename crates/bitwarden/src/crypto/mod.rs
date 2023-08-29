@@ -98,6 +98,7 @@ pub(crate) fn stretch_key(secret: [u8; 16], name: &str, info: Option<&str>) -> S
     SymmetricCryptoKey::try_from(key.as_slice()).unwrap()
 }
 
+/// RFC5869 HKDF-Expand operation
 fn hkdf_expand<T: ArrayLength<u8>>(prk: &[u8], info: Option<&str>) -> GenericArray<u8, T> {
     let hkdf = hkdf::Hkdf::<sha2::Sha256>::from_prk(prk).unwrap();
     let mut key = GenericArray::<u8, T>::default();

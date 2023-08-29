@@ -1,4 +1,6 @@
 use aes::cipher::typenum::U32;
+
+use super::hkdf_expand;
 use {
     crate::{client::auth_settings::Kdf, error::Result},
     aes::cipher::generic_array::GenericArray,
@@ -55,15 +57,8 @@ pub(crate) fn stretch_key_password(
 ) -> Result<(GenericArray<u8, U32>, GenericArray<u8, U32>)> {
     let master_key: [u8; 32] = hash_kdf(secret, salt, kdf)?;
 
-    let hkdf = hkdf::Hkdf::<sha2::Sha256>::from_prk(&master_key)
-        .expect("Input is a valid fixed size hash");
-
-    let mut key = GenericArray::<u8, U32>::default();
-    hkdf.expand("enc".as_bytes(), &mut key)
-        .expect("key is a valid fixed size buffer");
-    let mut mac_key = GenericArray::<u8, U32>::default();
-    hkdf.expand("mac".as_bytes(), &mut mac_key)
-        .expect("mac_key is a valid fixed size buffer");
+    let key: GenericArray<u8, U32> = hkdf_expand(&master_key, Some("enc"))?;
+    let mac_key: GenericArray<u8, U32> = hkdf_expand(&master_key, Some("mac"))?;
 
     Ok((key, mac_key))
 }

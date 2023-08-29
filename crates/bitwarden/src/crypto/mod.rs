@@ -1,7 +1,9 @@
 //! Cryptographic primitives used in the SDK
 
-use aes::cipher::Unsigned;
+use aes::cipher::{generic_array::GenericArray, ArrayLength, Unsigned};
 use hmac::digest::OutputSizeUser;
+
+use crate::error::{Error, Result};
 
 mod enc_string;
 pub use enc_string::EncString;
@@ -27,3 +29,16 @@ pub(crate) use fingerprint::fingerprint;
 pub(crate) type PbkdfSha256Hmac = hmac::Hmac<sha2::Sha256>;
 pub(crate) const PBKDF_SHA256_HMAC_OUT_SIZE: usize =
     <<PbkdfSha256Hmac as OutputSizeUser>::OutputSize as Unsigned>::USIZE;
+
+/// RFC5869 HKDF-Expand operation
+fn hkdf_expand<T: ArrayLength<u8>>(prk: &[u8], info: Option<&str>) -> Result<GenericArray<u8, T>> {
+    let hkdf = hkdf::Hkdf::<sha2::Sha256>::from_prk(prk)
+        .map_err(|_| Error::Internal("invalid prk length"))?;
+    let mut key = GenericArray::<u8, T>::default();
+
+    let i = info.map(|i| i.as_bytes()).unwrap_or(&[]);
+    hkdf.expand(i, &mut key)
+        .map_err(|_| Error::Internal("invalid length"))?;
+
+    Ok(key)
+}

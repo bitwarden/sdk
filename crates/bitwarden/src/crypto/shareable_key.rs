@@ -1,6 +1,6 @@
 use aes::cipher::{generic_array::GenericArray, typenum::U64};
 
-use crate::crypto::SymmetricCryptoKey;
+use crate::crypto::{hkdf_expand, SymmetricCryptoKey};
 
 pub(crate) fn stretch_key(secret: [u8; 16], name: &str, info: Option<&str>) -> SymmetricCryptoKey {
     use hmac::{Hmac, Mac};
@@ -13,14 +13,7 @@ pub(crate) fn stretch_key(secret: [u8; 16], name: &str, info: Option<&str>) -> S
         .finalize()
         .into_bytes();
 
-    let hkdf = hkdf::Hkdf::<sha2::Sha256>::from_prk(&res).unwrap();
-
-    let mut key = GenericArray::<u8, U64>::default();
-
-    // TODO: Should we have a default value for info?
-    //  Should it be required?
-    let i = info.map(|i| i.as_bytes()).unwrap_or(&[]);
-    hkdf.expand(i, &mut key).unwrap();
+    let key: GenericArray<u8, U64> = hkdf_expand(&res, info).unwrap();
 
     SymmetricCryptoKey::try_from(key.as_slice()).unwrap()
 }

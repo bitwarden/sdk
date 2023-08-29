@@ -9,13 +9,14 @@
     <AssemblyName>BitwardenSdk</AssemblyName>
     <PackageId>BitwardenSdk</PackageId>
     <Title>Bitwarden Sdk</Title>
-    <Authors>Bitwarden</Authors>
+    <Authors>Bitwarden Inc.</Authors>
     <Description>Bitwarden Sdk</Description>
-    <Copyright>Bitwarden</Copyright>
+    <Copyright>Bitwarden Inc.</Copyright>
     <RepositoryUrl>https://github.com/bitwarden/sdk/tree/master/languages/csharp</RepositoryUrl>
     <PackageTags>Bitwarden;Sdk;.NET</PackageTags>
     <Product>BitwardenSdk</Product>
     <PackageIcon>bitwarden.png</PackageIcon>
+    <RepositoryType>Git</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,24 +35,30 @@
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
     <Content Include="../../target/debug/libbitwarden_c*.dylib">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        <PackageCopyToOutput>true</PackageCopyToOutput>
     </Content>
     <Content Include="../../target/debug/libbitwarden_c*.so">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        <PackageCopyToOutput>true</PackageCopyToOutput>
     </Content>
     <Content Include="../../target/debug/bitwarden_c*.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        <PackageCopyToOutput>true</PackageCopyToOutput>
     </Content>
   </ItemGroup>
 
     <ItemGroup Condition="'$(Configuration)'=='Release'">
     <Content Include="../../target/release/libbitwarden_c*.dylib">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        <PackageCopyToOutput>true</PackageCopyToOutput>
     </Content>
     <Content Include="../../target/release/libbitwarden_c*.so">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        <PackageCopyToOutput>true</PackageCopyToOutput>
     </Content>
     <Content Include="../../target/release/bitwarden_c*.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        <PackageCopyToOutput>true</PackageCopyToOutput>
     </Content>
   </ItemGroup>
 </Project>

@@ -14,11 +14,10 @@ pub use symmetric_crypto_key::SymmetricCryptoKey;
 mod shareable_key;
 pub(crate) use shareable_key::stretch_key;
 
-#[cfg(feature = "internal")]
 mod master_key;
 pub(crate) use master_key::derive_password_hash;
 #[cfg(feature = "internal")]
-pub(crate) use master_key::stretch_key_password;
+pub(crate) use master_key::{decrypt_user_key, derive_master_key};
 
 #[cfg(feature = "internal")]
 mod fingerprint;

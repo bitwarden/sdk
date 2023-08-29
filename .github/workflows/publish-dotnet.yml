@@ -52,7 +52,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-22.04
-    needs: [ generate_schemas, build_rust ]
+    needs: [generate_schemas, build_rust]
 
     steps:
       - name: Checkout Repository
@@ -61,7 +61,7 @@ jobs:
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: "6.0.x"
 
       - name: Get Package Version
         id: version

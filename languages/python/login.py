@@ -4,9 +4,10 @@ from BitwardenClient.bitwarden_client import BitwardenClient
 from BitwardenClient.schemas import client_settings_from_dict
 
 client = BitwardenClient(client_settings_from_dict({
-    "api_url": "http://localhost:4000",
-    "identity_url": "http://localhost:33656",
-    "user_agent": "Python",
+    "apiUrl": "http://localhost:4000",
+    "deviceType": "SDK",
+    "identityUrl": "http://localhost:33656",
+    "userAgent": "Python",
 }))
 
 logging.basicConfig(level=logging.DEBUG)

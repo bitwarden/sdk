@@ -2,7 +2,9 @@ name: Deploy NuGet Package
 
 on:
   workflow_dispatch:
-    branches: [master]
+    version_number:
+      description: "New Version"
+      required: true
 
 jobs:
   generate_schemas:
@@ -71,9 +73,11 @@ jobs:
 
       - name: Get Package Version
         id: version
+        env:
+          VERSION: ${{ github.event.inputs.version_number }}
         run: |
           cd languages/csharp
-          package_version=$(dotnet pack --configuration Release --no-build /property:Version=1.2.3 --output ./nuget-output /nologo /v:n)
+          package_version=$(dotnet pack --configuration Release --no-build /property:Version=${VERSION} --output ./nuget-output /nologo /v:n)
           echo "Package Version: $package_version"
           echo "::set-output name=version::$package_version"
 

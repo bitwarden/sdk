@@ -1,5 +1,3 @@
-//! Cryptographic primitives used in the SDK
-
 use aes::cipher::typenum::U32;
 use {
     crate::{client::auth_settings::Kdf, error::Result},

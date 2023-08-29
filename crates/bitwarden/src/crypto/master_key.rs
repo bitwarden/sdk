@@ -13,7 +13,7 @@ use {
 };
 
 /// A Master Key.
-pub(crate) struct MasterKey(pub SymmetricCryptoKey);
+pub(crate) struct MasterKey(SymmetricCryptoKey);
 
 /// Derives a users master key from their password, email and KDF.
 pub(crate) fn derive_master_key(password: &[u8], email: &[u8], kdf: &Kdf) -> Result<MasterKey> {

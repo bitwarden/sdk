@@ -6,17 +6,22 @@ on:
       - master
 
 jobs:
+  generate_schemas:
+    uses: ./.github/workflows/generate_schemas.yml
+  build_rust_crates:
+    uses: ./.github/workflows/build-rust-crates.yml
+
   build:
     runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
 
       - name: Set up .NET Core
-        uses: actions/setup-dotnet@v2
+        uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '6.0.21'
+          dotnet-version: '6.0.x'
 
       - name: Build .NET 6 Project
         working-directory: languages/csharp

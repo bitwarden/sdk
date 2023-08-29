@@ -1,22 +1,26 @@
 name: Deploy NuGet Package
 
 on:
-  push:
-    branches:
-      - master
+  workflow_dispatch:
+    branches: [master]
 
 jobs:
+  generate_schemas:
+    uses: ./.github/workflows/generate_schemas.yml
+  build_rust_crates:
+    uses: ./.github/workflows/build-rust-crates.yml
+
   deploy:
     runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
 
       - name: Set up .NET Core
-        uses: actions/setup-dotnet@v2
+        uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '6.0.21'
+          dotnet-version: '6.0.x'
 
       - name: Get Package Version
         id: version
@@ -41,8 +45,4 @@ jobs:
 
       - name: Publish NuGet Package
         if: steps.check_version.outputs.exists == 'false'
-        uses: nuget/publish@v1
-        with:
-          nuget-api-key: ${{ secrets.NUGET_API_KEY }}
-          nuget-package: ./languages/csharp/nuget-output/*.nupkg
-          nuget-endpoint: https://api.nuget.org/v3/index.json
+        run: dotnet nuget push ./languages/csharp/nuget-output/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json

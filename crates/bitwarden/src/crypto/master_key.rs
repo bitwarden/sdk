@@ -17,7 +17,7 @@ use {
 pub(crate) struct MasterKey(pub SymmetricCryptoKey);
 
 /// Derives a users master key from their password, email and KDF.
-pub(crate) fn derive_master_key(password: &[u8], email: &[u8], kdf: &Kdf) -> Result<MasterKey> {
+fn derive_master_key(password: &[u8], email: &[u8], kdf: &Kdf) -> Result<MasterKey> {
     derive_key(password, email, kdf).map(MasterKey)
 }
 
@@ -65,15 +65,28 @@ fn derive_key(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<SymmetricCryptoKe
 pub(crate) fn derive_password_hash(password: &[u8], salt: &[u8], kdf: &Kdf) -> Result<String> {
     let hash: MasterKey = derive_master_key(password, salt, kdf)?;
 
-    // Server expects hash + 1 iteration
-    let login_hash = pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(
-        &hash.0.key,
-        password,
-        1,
-    )
-    .expect("hash is a valid fixed size");
+    let login_hash = derive_master_key_hash(hash, password, HashPurpose::ServerAuthorization);
 
     Ok(BASE64_ENGINE.encode(login_hash))
+}
+
+#[derive(Copy, Clone)]
+enum HashPurpose {
+    ServerAuthorization = 1,
+    // LocalAuthorization = 2,
+}
+
+fn derive_master_key_hash(
+    master_key: MasterKey,
+    password: &[u8],
+    purpose: HashPurpose,
+) -> [u8; 32] {
+    pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(
+        &master_key.0.key,
+        password,
+        purpose as u32,
+    )
+    .expect("hash is a valid fixed size")
 }
 
 #[cfg(feature = "internal")]

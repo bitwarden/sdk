@@ -2,11 +2,12 @@
 
 #[cfg(feature = "internal")]
 use aes::cipher::typenum::U32;
-use aes::cipher::{generic_array::GenericArray, Unsigned};
+use aes::cipher::Unsigned;
 use hmac::digest::OutputSizeUser;
 #[cfg(any(feature = "internal", feature = "mobile"))]
 use {
     crate::{client::auth_settings::Kdf, error::Result},
+    aes::cipher::generic_array::GenericArray,
     sha2::Digest,
 };
 

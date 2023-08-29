@@ -1,16 +1,11 @@
 use std::num::NonZeroU32;
 
-use base64::Engine;
 #[cfg(feature = "internal")]
 use bitwarden_api_identity::models::{KdfType, PreloginResponseModel};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    crypto::{derive_master_key, PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},
-    error::Result,
-    util::BASE64_ENGINE,
-};
+use crate::{crypto::derive_password_hash, error::Result};
 
 #[derive(Debug)]
 pub(crate) struct AuthSettings {
@@ -67,71 +62,6 @@ impl AuthSettings {
     }
 
     pub fn make_user_password_hash(&self, password: &str) -> Result<String> {
-        self.make_password_hash(password, &self.email)
-    }
-
-    pub fn make_password_hash(&self, password: &str, salt: &str) -> Result<String> {
-        let master_key = derive_master_key(password.as_bytes(), salt.as_bytes(), &self.kdf)?;
-
-        // Server expects hash + 1 iteration
-        let login_hash = pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(
-            &master_key.0.key,
-            password.as_bytes(),
-            1,
-        )
-        .expect("hash is a valid fixed size");
-
-        Ok(BASE64_ENGINE.encode(login_hash))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use bitwarden_api_identity::models::{KdfType, PreloginResponseModel};
-
-    use super::AuthSettings;
-
-    #[test]
-    fn test_password_hash_pbkdf2() {
-        let res = PreloginResponseModel {
-            kdf: Some(KdfType::Variant0),
-            kdf_iterations: Some(100_000),
-            kdf_memory: None,
-            kdf_parallelism: None,
-        };
-        let settings = AuthSettings::new(res, "test@bitwarden.com".into());
-
-        assert_eq!(
-            settings
-                .make_password_hash("asdfasdf", "test_salt")
-                .unwrap(),
-            "ZF6HjxUTSyBHsC+HXSOhZoXN+UuMnygV5YkWXCY4VmM="
-        );
-        assert_eq!(
-            settings.make_user_password_hash("asdfasdf").unwrap(),
-            "wmyadRMyBZOH7P/a/ucTCbSghKgdzDpPqUnu/DAVtSw="
-        );
-    }
-
-    #[test]
-    fn test_password_hash_argon2id() {
-        let res = PreloginResponseModel {
-            kdf: Some(KdfType::Variant1),
-            kdf_iterations: Some(4),
-            kdf_memory: Some(32),
-            kdf_parallelism: Some(2),
-        };
-        let settings = AuthSettings::new(res, "test@bitwarden.com".into());
-
-        assert_eq!(
-            settings
-                .make_password_hash("asdfasdf", "test_salt")
-                .unwrap(),
-            "PR6UjYmjmppTYcdyTiNbAhPJuQQOmynKbdEl1oyi/iQ="
-        );
-        assert_eq!(
-            settings.make_user_password_hash("asdfasdf").unwrap(),
-            "ImYMPyd/X7FPrWzbt+wRfmlICWTA25yZrOob4TBMEZw="
-        );
+        derive_password_hash(password.as_bytes(), self.email.as_bytes(), &self.kdf)
     }
 }

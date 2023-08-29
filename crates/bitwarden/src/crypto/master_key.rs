@@ -2,8 +2,11 @@
 
 #[cfg(feature = "internal")]
 use aes::cipher::typenum::U32;
+use base64::Engine;
 
-use super::SymmetricCryptoKey;
+use crate::util::BASE64_ENGINE;
+
+use super::{PbkdfSha256Hmac, SymmetricCryptoKey, PBKDF_SHA256_HMAC_OUT_SIZE};
 use {
     crate::{client::auth_settings::Kdf, error::Result},
     aes::cipher::generic_array::GenericArray,
@@ -20,10 +23,6 @@ pub(crate) fn derive_master_key(password: &[u8], email: &[u8], kdf: &Kdf) -> Res
 
 /// Derive a generic key from a secret and salt using the provided KDF.
 fn derive_key(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<SymmetricCryptoKey> {
-    use crate::crypto::PBKDF_SHA256_HMAC_OUT_SIZE;
-
-    use super::PbkdfSha256Hmac;
-
     let hash = match kdf {
         Kdf::PBKDF2 { iterations } => pbkdf2::pbkdf2_array::<
             PbkdfSha256Hmac,
@@ -62,6 +61,21 @@ fn derive_key(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<SymmetricCryptoKe
     SymmetricCryptoKey::try_from(hash.as_slice())
 }
 
+/// Derive a login password hash
+pub(crate) fn derive_password_hash(password: &[u8], salt: &[u8], kdf: &Kdf) -> Result<String> {
+    let hash: MasterKey = derive_master_key(password, salt, kdf)?;
+
+    // Server expects hash + 1 iteration
+    let login_hash = pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(
+        &hash.0.key,
+        password,
+        1,
+    )
+    .expect("hash is a valid fixed size");
+
+    Ok(BASE64_ENGINE.encode(login_hash))
+}
+
 #[cfg(feature = "internal")]
 pub(crate) fn stretch_key_password(
     secret: &[u8],
@@ -85,6 +99,8 @@ pub(crate) fn stretch_key_password(
 
 #[cfg(test)]
 mod tests {
+    use crate::crypto::derive_password_hash;
+
     #[cfg(feature = "internal")]
     use {
         crate::{client::auth_settings::Kdf, crypto::stretch_key_password},
@@ -146,6 +162,38 @@ mod tests {
                 214, 144, 76, 173, 225, 106, 132, 131, 173, 56, 134, 241, 223, 227, 165, 161, 146,
                 37, 111, 206, 155, 24, 224, 151, 134, 189, 202, 0, 27, 149, 131, 21
             ]
+        );
+    }
+
+    #[test]
+    fn test_password_hash_pbkdf2() {
+        assert_eq!(
+            "ZF6HjxUTSyBHsC+HXSOhZoXN+UuMnygV5YkWXCY4VmM=",
+            derive_password_hash(
+                "asdfasdf".as_bytes(),
+                "test_salt".as_bytes(),
+                &Kdf::PBKDF2 {
+                    iterations: NonZeroU32::new(100_000).unwrap()
+                }
+            )
+            .unwrap(),
+        );
+    }
+
+    #[test]
+    fn test_password_hash_argon2id() {
+        assert_eq!(
+            "PR6UjYmjmppTYcdyTiNbAhPJuQQOmynKbdEl1oyi/iQ=",
+            derive_password_hash(
+                "asdfasdf".as_bytes(),
+                "test_salt".as_bytes(),
+                &Kdf::Argon2id {
+                    iterations: NonZeroU32::new(4).unwrap(),
+                    memory: NonZeroU32::new(32).unwrap(),
+                    parallelism: NonZeroU32::new(2).unwrap()
+                }
+            )
+            .unwrap(),
         );
     }
 }

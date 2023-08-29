@@ -7,11 +7,52 @@ on:
 jobs:
   generate_schemas:
     uses: ./.github/workflows/generate_schemas.yml
-  build_rust_crates:
-    uses: ./.github/workflows/build-rust-crates.yml
+
+  build_rust:
+    name: Building ${{matrix.package}} for - ${{ matrix.os }}
+
+    runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+
+        package:
+          - bitwarden
+          - bitwarden-api-api
+          - bitwarden-api-identity
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@f361669954a8ecfc00a3443f35f9ac8e610ffc06 # stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.settings.target }}
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@e207df5d269b42b69c8bc5101da26f7d31feddb4 # v2.6.2
+
+      - name: Build
+        run: cargo build -p ${{ matrix.package }} --release
+        env:
+          RUSTFLAGS: "-D warnings"
+
+      - name: Build Internal
+        if: ${{ matrix.package == 'bitwarden' }}
+        run: cargo build -p ${{ matrix.package }} --features internal --release
+        env:
+          RUSTFLAGS: "-D warnings"
 
   deploy:
     runs-on: ubuntu-22.04
+    needs: [ generate_schemas, build_rust ]
 
     steps:
       - name: Checkout Repository

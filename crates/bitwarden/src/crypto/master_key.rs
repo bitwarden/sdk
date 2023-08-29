@@ -2,13 +2,24 @@
 
 #[cfg(feature = "internal")]
 use aes::cipher::typenum::U32;
+
+use super::SymmetricCryptoKey;
 use {
     crate::{client::auth_settings::Kdf, error::Result},
     aes::cipher::generic_array::GenericArray,
     sha2::Digest,
 };
 
-pub(crate) fn hash_kdf(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<[u8; 32]> {
+/// A Master Key.
+pub(crate) struct MasterKey(pub SymmetricCryptoKey);
+
+/// Derives a users master key from their password, email and KDF.
+pub(crate) fn derive_master_key(password: &[u8], email: &[u8], kdf: &Kdf) -> Result<MasterKey> {
+    derive_key(password, email, kdf).map(MasterKey)
+}
+
+/// Derive a generic key from a secret and salt using the provided KDF.
+fn derive_key(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<SymmetricCryptoKey> {
     use crate::crypto::PBKDF_SHA256_HMAC_OUT_SIZE;
 
     use super::PbkdfSha256Hmac;
@@ -48,7 +59,7 @@ pub(crate) fn hash_kdf(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<[u8; 32]
             hash
         }
     };
-    Ok(hash)
+    SymmetricCryptoKey::try_from(hash.as_slice())
 }
 
 #[cfg(feature = "internal")]
@@ -57,9 +68,9 @@ pub(crate) fn stretch_key_password(
     salt: &[u8],
     kdf: &Kdf,
 ) -> Result<(GenericArray<u8, U32>, GenericArray<u8, U32>)> {
-    let master_key: [u8; 32] = hash_kdf(secret, salt, kdf)?;
+    let master_key = derive_master_key(secret, salt, kdf)?;
 
-    let hkdf = hkdf::Hkdf::<sha2::Sha256>::from_prk(&master_key)
+    let hkdf = hkdf::Hkdf::<sha2::Sha256>::from_prk(&master_key.0.key)
         .expect("Input is a valid fixed size hash");
 
     let mut key = GenericArray::<u8, U32>::default();

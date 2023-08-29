@@ -16,10 +16,8 @@ pub(crate) use shareable_key::stretch_key;
 
 #[cfg(feature = "internal")]
 mod master_key;
-#[cfg(any(feature = "internal", feature = "mobile"))]
-pub(crate) use master_key::hash_kdf;
 #[cfg(feature = "internal")]
-pub(crate) use master_key::stretch_key_password;
+pub(crate) use master_key::{hash_kdf, stretch_key_password};
 
 #[cfg(feature = "internal")]
 mod fingerprint;

@@ -1,6 +1,5 @@
 //! Cryptographic primitives used in the SDK
 
-#[cfg(feature = "internal")]
 use aes::cipher::typenum::U32;
 use {
     crate::{client::auth_settings::Kdf, error::Result},
@@ -51,7 +50,6 @@ pub(crate) fn hash_kdf(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<[u8; 32]
     Ok(hash)
 }
 
-#[cfg(feature = "internal")]
 pub(crate) fn stretch_key_password(
     secret: &[u8],
     salt: &[u8],
@@ -74,13 +72,11 @@ pub(crate) fn stretch_key_password(
 
 #[cfg(test)]
 mod tests {
-    #[cfg(feature = "internal")]
     use {
         crate::{client::auth_settings::Kdf, crypto::stretch_key_password},
         std::num::NonZeroU32,
     };
 
-    #[cfg(feature = "internal")]
     #[test]
     fn test_key_stretch_password_pbkdf2() {
         let (key, mac) = stretch_key_password(
@@ -108,7 +104,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "internal")]
     #[test]
     fn test_key_stretch_password_argon2() {
         let (key, mac) = stretch_key_password(

@@ -5,12 +5,9 @@ use aes::cipher::typenum::U32;
 use aes::cipher::{generic_array::GenericArray, typenum::U64, ArrayLength, Unsigned};
 use hmac::digest::OutputSizeUser;
 #[cfg(any(feature = "internal", feature = "mobile"))]
-use {
-    crate::{client::auth_settings::Kdf, error::Result},
-    sha2::Digest,
-};
+use {crate::client::auth_settings::Kdf, sha2::Digest};
 
-use crate::error::Error;
+use crate::error::{Error, Result};
 
 mod enc_string;
 pub use enc_string::EncString;
@@ -103,12 +100,12 @@ pub(crate) fn stretch_key(secret: [u8; 16], name: &str, info: Option<&str>) -> S
 /// RFC5869 HKDF-Expand operation
 fn hkdf_expand<T: ArrayLength<u8>>(prk: &[u8], info: Option<&str>) -> Result<GenericArray<u8, T>> {
     let hkdf = hkdf::Hkdf::<sha2::Sha256>::from_prk(prk)
-        .map_err(|e| Error::Internal("invalid prk length"))?;
+        .map_err(|_| Error::Internal("invalid prk length"))?;
     let mut key = GenericArray::<u8, T>::default();
 
     let i = info.map(|i| i.as_bytes()).unwrap_or(&[]);
     hkdf.expand(i, &mut key)
-        .map_err(|e| Error::Internal("invalid length"))?;
+        .map_err(|_| Error::Internal("invalid length"))?;
 
     Ok(key)
 }

@@ -2,13 +2,12 @@
 
 #[cfg(feature = "internal")]
 use aes::cipher::typenum::U32;
-use aes::cipher::{generic_array::GenericArray, typenum::U64, Unsigned};
+use aes::cipher::{generic_array::GenericArray, typenum::U64, ArrayLength, Unsigned};
 use hmac::digest::OutputSizeUser;
 #[cfg(any(feature = "internal", feature = "mobile"))]
-use {
-    crate::{client::auth_settings::Kdf, error::Result},
-    sha2::Digest,
-};
+use {crate::client::auth_settings::Kdf, sha2::Digest};
+
+use crate::error::{Error, Result};
 
 mod enc_string;
 pub use enc_string::EncString;
@@ -76,15 +75,8 @@ pub(crate) fn stretch_key_password(
 ) -> Result<(GenericArray<u8, U32>, GenericArray<u8, U32>)> {
     let master_key: [u8; 32] = hash_kdf(secret, salt, kdf)?;
 
-    let hkdf = hkdf::Hkdf::<sha2::Sha256>::from_prk(&master_key)
-        .expect("Input is a valid fixed size hash");
-
-    let mut key = GenericArray::<u8, U32>::default();
-    hkdf.expand("enc".as_bytes(), &mut key)
-        .expect("key is a valid fixed size buffer");
-    let mut mac_key = GenericArray::<u8, U32>::default();
-    hkdf.expand("mac".as_bytes(), &mut mac_key)
-        .expect("mac_key is a valid fixed size buffer");
+    let key: GenericArray<u8, U32> = hkdf_expand(&master_key, Some("enc"))?;
+    let mac_key: GenericArray<u8, U32> = hkdf_expand(&master_key, Some("mac"))?;
 
     Ok((key, mac_key))
 }
@@ -100,16 +92,22 @@ pub(crate) fn stretch_key(secret: [u8; 16], name: &str, info: Option<&str>) -> S
         .finalize()
         .into_bytes();
 
-    let hkdf = hkdf::Hkdf::<sha2::Sha256>::from_prk(&res).unwrap();
-
-    let mut key = GenericArray::<u8, U64>::default();
-
-    // TODO: Should we have a default value for info?
-    //  Should it be required?
-    let i = info.map(|i| i.as_bytes()).unwrap_or(&[]);
-    hkdf.expand(i, &mut key).unwrap();
+    let key: GenericArray<u8, U64> = hkdf_expand(&res, info).unwrap();
 
     SymmetricCryptoKey::try_from(key.as_slice()).unwrap()
+}
+
+/// RFC5869 HKDF-Expand operation
+fn hkdf_expand<T: ArrayLength<u8>>(prk: &[u8], info: Option<&str>) -> Result<GenericArray<u8, T>> {
+    let hkdf = hkdf::Hkdf::<sha2::Sha256>::from_prk(prk)
+        .map_err(|_| Error::Internal("invalid prk length"))?;
+    let mut key = GenericArray::<u8, T>::default();
+
+    let i = info.map(|i| i.as_bytes()).unwrap_or(&[]);
+    hkdf.expand(i, &mut key)
+        .map_err(|_| Error::Internal("invalid length"))?;
+
+    Ok(key)
 }
 
 #[cfg(test)]

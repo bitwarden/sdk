@@ -10,7 +10,7 @@ The Bitwarden SDK (Software Development Kit) is a set of programming tools, libr
 ### Create new Bitwarden client
 ```
 const string accessToken = "<access-token>";
-var bitwardenClient = new BitwardenClient();
+using var bitwardenClient = new BitwardenClient();
 var loginResponse = bitwardenClient.AccessTokenLogin(accessToken);
 ```
 

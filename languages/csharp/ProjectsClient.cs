@@ -1,17 +1,20 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace Bit.Sdk;
 
 
-public class Projects {
+public class ProjectsClient
+{
 
     private readonly CommandRunner _commandRunner;
 
-    internal Projects(CommandRunner commandRunner) {
+    internal ProjectsClient(CommandRunner commandRunner)
+    {
         this._commandRunner = commandRunner;
     }
 
-    public ResponseForProjectResponse Get(Guid id) {
+    public ResponseForProjectResponse Get(Guid id)
+    {
         var command = new Command();
         var projectsCommand = new ProjectsCommand();
         var projectGetRequest = new ProjectGetRequest
@@ -23,7 +26,8 @@ public class Projects {
         return _commandRunner.RunCommand(command, JsonConvert.DeserializeObject<ResponseForProjectResponse>);
     }
 
-    public ResponseForProjectResponse Create(Guid organizationId, string name) {
+    public ResponseForProjectResponse Create(Guid organizationId, string name)
+    {
         var command = new Command();
         var projectsCommand = new ProjectsCommand();
         var projectCreateRequest = new ProjectCreateRequest
@@ -36,7 +40,8 @@ public class Projects {
         return _commandRunner.RunCommand(command, JsonConvert.DeserializeObject<ResponseForProjectResponse>);
     }
 
-    public ResponseForProjectResponse Update(Guid id, Guid organizationId, String name) {
+    public ResponseForProjectResponse Update(Guid id, Guid organizationId, String name)
+    {
         var command = new Command();
         var projectsCommand = new ProjectsCommand();
         var projectPutRequest = new ProjectPutRequest
@@ -50,7 +55,8 @@ public class Projects {
         return _commandRunner.RunCommand(command, JsonConvert.DeserializeObject<ResponseForProjectResponse>);
     }
 
-    public ResponseForProjectsDeleteResponse Delete(Guid[] ids) {
+    public ResponseForProjectsDeleteResponse Delete(Guid[] ids)
+    {
         var command = new Command();
         var projectsCommand = new ProjectsCommand();
         var projectsDeleteRequest = new ProjectsDeleteRequest
@@ -62,7 +68,8 @@ public class Projects {
         return _commandRunner.RunCommand(command, JsonConvert.DeserializeObject<ResponseForProjectsDeleteResponse>);
     }
 
-    public ResponseForProjectsResponse List(Guid organizationId) {
+    public ResponseForProjectsResponse List(Guid organizationId)
+    {
         var command = new Command();
         var projectsCommand = new ProjectsCommand();
         var projectsListRequest = new ProjectsListRequest();

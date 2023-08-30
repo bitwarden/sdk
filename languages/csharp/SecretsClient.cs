@@ -1,17 +1,20 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace Bit.Sdk;
 
 
-public class Secrets {
+public class SecretsClient
+{
 
     private readonly CommandRunner _commandRunner;
 
-    internal Secrets(CommandRunner commandRunner) {
+    internal SecretsClient(CommandRunner commandRunner)
+    {
         _commandRunner = commandRunner;
     }
 
-    public ResponseForSecretResponse Get(Guid id) {
+    public ResponseForSecretResponse Get(Guid id)
+    {
         var command = new Command();
         var secretsCommand = new SecretsCommand();
         var secretGetRequest = new SecretGetRequest
@@ -24,7 +27,8 @@ public class Secrets {
     }
 
     public ResponseForSecretResponse Create(string key, string value, string note, Guid organizationId,
-        Guid[] projectIds) {
+        Guid[] projectIds)
+    {
         var command = new Command();
         var secretsCommand = new SecretsCommand();
         var secretCreateRequest = new SecretCreateRequest
@@ -41,7 +45,8 @@ public class Secrets {
     }
 
     public ResponseForSecretResponse Update(Guid id, string key, string value, string note, Guid organizationId,
-        Guid[] projectIds) {
+        Guid[] projectIds)
+    {
         var command = new Command();
         var secretsCommand = new SecretsCommand();
         var secretPutRequest = new SecretPutRequest
@@ -58,7 +63,8 @@ public class Secrets {
         return _commandRunner.RunCommand(command, JsonConvert.DeserializeObject<ResponseForSecretResponse>);
     }
 
-    public ResponseForSecretsDeleteResponse Delete(Guid[] ids) {
+    public ResponseForSecretsDeleteResponse Delete(Guid[] ids)
+    {
         var command = new Command();
         var secretsCommand = new SecretsCommand();
         var secretsDeleteRequest = new SecretsDeleteRequest
@@ -70,7 +76,8 @@ public class Secrets {
         return _commandRunner.RunCommand(command, JsonConvert.DeserializeObject<ResponseForSecretsDeleteResponse>);
     }
 
-    public ResponseForSecretIdentifiersResponse List(Guid organizationId) {
+    public ResponseForSecretIdentifiersResponse List(Guid organizationId)
+    {
         var command = new Command();
         var secretsCommand = new SecretsCommand();
         var secretIdentifiersRequest = new SecretIdentifiersRequest

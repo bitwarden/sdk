@@ -1,6 +1,6 @@
-namespace Bit.Sdk;
+﻿namespace Bit.Sdk;
 
-public class Settings
+public class BitwardenSettings
 {
     /// <summary>
     /// The api url of the targeted Bitwarden instance. Defaults to `https://api.bitwarden.com`

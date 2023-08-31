@@ -1,4 +1,22 @@
-//! Cryptographic primitives used in the SDK
+//! # Cryptographic primitives
+//!
+//! This module contains the cryptographic primitives used throughout the SDK. The module makes a
+//! best effort to abstract away cryptographic concepts into concepts such as
+//! [`EncString`][EncString] and [`SymmetricCryptoKey`][SymmetricCryptoKey].
+//!
+//! ## Conventions:
+//!
+//! - Pure Functions that deterministically "derive" keys from input are prefixed with `derive_`.
+//!
+//! ## Differences from [`clients`](https://github.com/bitwarden/clients)
+//!
+//! There are some noteworthy differences compared to the other Bitwarden clients. These changes
+//! are made in an effort to introduce conventions in how we name things, improve best practices
+//! and abstracting away internal complexity.
+//!
+//! - `CryptoService.makeSendKey` & `AccessService.createAccessToken` are replaced by the generic
+//!   `derive_shareable_key`
+//!
 
 use aes::cipher::{generic_array::GenericArray, ArrayLength, Unsigned};
 use hmac::digest::OutputSizeUser;
@@ -14,7 +32,7 @@ pub use aes_ops::{decrypt_aes256, encrypt_aes256};
 mod symmetric_crypto_key;
 pub use symmetric_crypto_key::SymmetricCryptoKey;
 mod shareable_key;
-pub(crate) use shareable_key::stretch_key;
+pub(crate) use shareable_key::derive_shareable_key;
 
 #[cfg(feature = "internal")]
 mod master_key;

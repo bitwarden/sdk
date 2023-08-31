@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{stretch_key, Decryptable, EncString, SymmetricCryptoKey},
+    crypto::{derive_shareable_key, Decryptable, EncString, SymmetricCryptoKey},
     error::Result,
 };
 
@@ -132,7 +132,7 @@ impl Send {
         org_id: &Option<Uuid>,
     ) -> Result<SymmetricCryptoKey> {
         let key: Vec<u8> = enc.decrypt_bytes(key, org_id)?;
-        let key = stretch_key(key.try_into().unwrap(), "send", Some("send"));
+        let key = derive_shareable_key(key.try_into().unwrap(), "send", Some("send"));
         Ok(key)
     }
 }
@@ -218,12 +218,11 @@ impl Decryptable<SendListView> for Send {
 
 #[cfg(test)]
 mod tests {
+    use super::Send;
     use crate::client::{
         auth_settings::{AuthSettings, Kdf},
         encryption_settings::EncryptionSettings,
     };
-
-    use super::Send;
 
     #[test]
     fn test_get_send_key() {

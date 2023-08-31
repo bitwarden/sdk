@@ -3,7 +3,11 @@ use std::str::FromStr;
 use base64::Engine;
 use uuid::Uuid;
 
-use crate::{crypto::SymmetricCryptoKey, error::AccessTokenInvalidError, util::BASE64_ENGINE};
+use crate::{
+    crypto::{derive_shareable_key, SymmetricCryptoKey},
+    error::AccessTokenInvalidError,
+    util::BASE64_ENGINE,
+};
 
 pub struct AccessToken {
     pub service_account_id: Uuid,
@@ -42,7 +46,7 @@ impl FromStr for AccessToken {
             }
         })?;
         let encryption_key =
-            crate::crypto::stretch_key(encryption_key, "accesstoken", Some("sm-access-token"));
+            derive_shareable_key(encryption_key, "accesstoken", Some("sm-access-token"));
 
         Ok(AccessToken {
             service_account_id,

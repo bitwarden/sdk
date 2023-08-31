@@ -1,9 +1,17 @@
 use aes::cipher::{generic_array::GenericArray, typenum::U64};
+use hmac::{Hmac, Mac};
 
-use crate::crypto::SymmetricCryptoKey;
+use crate::crypto::{hkdf_expand, SymmetricCryptoKey};
 
-pub(crate) fn stretch_key(secret: [u8; 16], name: &str, info: Option<&str>) -> SymmetricCryptoKey {
-    use hmac::{Hmac, Mac};
+/// Derive a shareable key using hkdf from secret and name.
+///
+/// A specialized variant of this function was called `CryptoService.makeSendKey` in the Bitwarden
+/// `clients` repository.
+pub(crate) fn derive_shareable_key(
+    secret: [u8; 16],
+    name: &str,
+    info: Option<&str>,
+) -> SymmetricCryptoKey {
     // Because all inputs are fixed size, we can unwrap all errors here without issue
 
     // TODO: Are these the final `key` and `info` parameters or should we change them? I followed the pattern used for sends
@@ -13,28 +21,21 @@ pub(crate) fn stretch_key(secret: [u8; 16], name: &str, info: Option<&str>) -> S
         .finalize()
         .into_bytes();
 
-    let hkdf = hkdf::Hkdf::<sha2::Sha256>::from_prk(&res).unwrap();
-
-    let mut key = GenericArray::<u8, U64>::default();
-
-    // TODO: Should we have a default value for info?
-    //  Should it be required?
-    let i = info.map(|i| i.as_bytes()).unwrap_or(&[]);
-    hkdf.expand(i, &mut key).unwrap();
+    let key: GenericArray<u8, U64> = hkdf_expand(&res, info).unwrap();
 
     SymmetricCryptoKey::try_from(key.as_slice()).unwrap()
 }
 
 #[cfg(test)]
 mod tests {
-    use super::stretch_key;
+    use super::derive_shareable_key;
 
     #[test]
-    fn test_key_stretch() {
-        let key = stretch_key(*b"&/$%F1a895g67HlX", "test_key", None);
+    fn test_derive_shareable_key() {
+        let key = derive_shareable_key(*b"&/$%F1a895g67HlX", "test_key", None);
         assert_eq!(key.to_base64(), "4PV6+PcmF2w7YHRatvyMcVQtI7zvCyssv/wFWmzjiH6Iv9altjmDkuBD1aagLVaLezbthbSe+ktR+U6qswxNnQ==");
 
-        let key = stretch_key(*b"67t9b5g67$%Dh89n", "test_key", Some("test"));
+        let key = derive_shareable_key(*b"67t9b5g67$%Dh89n", "test_key", Some("test"));
         assert_eq!(key.to_base64(), "F9jVQmrACGx9VUPjuzfMYDjr726JtL300Y3Yg+VYUnVQtQ1s8oImJ5xtp1KALC9h2nav04++1LDW4iFD+infng==");
     }
 }

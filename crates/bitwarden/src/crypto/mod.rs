@@ -14,7 +14,7 @@ pub use aes_ops::{decrypt_aes256, encrypt_aes256};
 mod symmetric_crypto_key;
 pub use symmetric_crypto_key::SymmetricCryptoKey;
 mod shareable_key;
-pub(crate) use shareable_key::stretch_key;
+pub(crate) use shareable_key::derive_shareable_key;
 
 #[cfg(feature = "internal")]
 mod master_key;

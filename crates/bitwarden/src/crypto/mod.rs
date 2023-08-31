@@ -6,7 +6,7 @@
 //!
 //! ## Conventions:
 //!
-//! - Functions that deterministically "derive" keys from input are prefixed with `derive_`.
+//! - Pure Functions that deterministically "derive" keys from input are prefixed with `derive_`.
 //!
 //! ## Differences from [`clients`](https://github.com/bitwarden/clients)
 //!
@@ -14,8 +14,8 @@
 //! are made in an effort to introduce conventions in how we name things, improve best practices
 //! and abstracting away internal complexity.
 //!
-//! - `CryptoService.makeSendKey` & `AccessService.createAccessToken` are exposed through the
-//!   generic `derive_shareable_key`
+//! - `CryptoService.makeSendKey` & `AccessService.createAccessToken` are replaced by the generic
+//!   `derive_shareable_key`
 //!
 
 use aes::cipher::{generic_array::GenericArray, ArrayLength, Unsigned};

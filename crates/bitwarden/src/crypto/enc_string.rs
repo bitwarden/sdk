@@ -327,4 +327,27 @@ mod tests {
         assert_eq!(t.key.to_string(), cipher);
         assert_eq!(serde_json::to_string(&t).unwrap(), serialized);
     }
+
+    #[cfg(feature = "mobile")]
+    #[test]
+    fn test_enc_from_to_buffer() {
+        let enc_str: &str = "2.pMS6/icTQABtulw52pq2lg==|XXbxKxDTh+mWiN1HjH2N1w==|Q6PkuT+KX/axrgN9ubD5Ajk2YNwxQkgs3WJM0S0wtG8=";
+        let enc_string: EncString = enc_str.parse().unwrap();
+
+        let enc_buf = enc_string.to_buffer().unwrap();
+
+        assert_eq!(
+            enc_buf,
+            vec![
+                2, 164, 196, 186, 254, 39, 19, 64, 0, 109, 186, 92, 57, 218, 154, 182, 150, 67,
+                163, 228, 185, 63, 138, 95, 246, 177, 174, 3, 125, 185, 176, 249, 2, 57, 54, 96,
+                220, 49, 66, 72, 44, 221, 98, 76, 209, 45, 48, 180, 111, 93, 118, 241, 43, 16, 211,
+                135, 233, 150, 136, 221, 71, 140, 125, 141, 215
+            ]
+        );
+
+        let enc_string_new = EncString::from_buffer(&enc_buf).unwrap();
+
+        assert_eq!(enc_string_new.to_string(), enc_str)
+    }
 }

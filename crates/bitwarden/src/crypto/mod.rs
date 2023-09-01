@@ -34,7 +34,9 @@ pub use symmetric_crypto_key::SymmetricCryptoKey;
 mod shareable_key;
 pub(crate) use shareable_key::derive_shareable_key;
 
+#[cfg(feature = "internal")]
 mod master_key;
+#[cfg(feature = "internal")]
 pub(crate) use master_key::{HashPurpose, MasterKey};
 
 #[cfg(feature = "internal")]

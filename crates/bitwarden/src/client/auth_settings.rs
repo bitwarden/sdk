@@ -5,6 +5,7 @@ use bitwarden_api_identity::models::{KdfType, PreloginResponseModel};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "internal")]
 use crate::{
     crypto::{HashPurpose, MasterKey},
     error::Result,
@@ -12,7 +13,9 @@ use crate::{
 
 #[derive(Debug)]
 pub(crate) struct AuthSettings {
+    #[cfg(feature = "internal")]
     pub email: String,
+    #[cfg(feature = "internal")]
     pub(crate) kdf: Kdf,
 }
 
@@ -64,7 +67,8 @@ impl AuthSettings {
         Self { email, kdf }
     }
 
-    pub fn make_user_password_hash(&self, password: &str) -> Result<String> {
+    #[cfg(feature = "internal")]
+    pub fn derive_user_password_hash(&self, password: &str) -> Result<String> {
         let master_key = MasterKey::derive(password.as_bytes(), self.email.as_bytes(), &self.kdf)?;
         master_key.derive_master_key_hash(password.as_bytes(), HashPurpose::ServerAuthorization)
     }

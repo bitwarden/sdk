@@ -48,7 +48,7 @@ fn get_secret_verification_request(
     let master_password_hash = input
         .master_password
         .as_ref()
-        .map(|p| auth_settings.make_user_password_hash(p))
+        .map(|p| auth_settings.derive_user_password_hash(p))
         .transpose()?;
     Ok(SecretVerificationRequestModel {
         master_password_hash,

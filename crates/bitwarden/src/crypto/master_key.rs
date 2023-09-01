@@ -103,13 +103,13 @@ fn stretch_master_key(master_key: &MasterKey) -> Result<SymmetricCryptoKey> {
 
 #[cfg(test)]
 mod tests {
+    use crate::crypto::SymmetricCryptoKey;
+
     use super::{stretch_master_key, HashPurpose, MasterKey};
-    #[cfg(feature = "internal")]
     use {crate::client::auth_settings::Kdf, std::num::NonZeroU32};
 
-    #[cfg(feature = "internal")]
     #[test]
-    fn test_key_stretch_password_pbkdf2() {
+    fn test_master_key_derive_pbkdf2() {
         let master_key = MasterKey::derive(
             &b"67t9b5g67$%Dh89n"[..],
             "test_key".as_bytes(),
@@ -118,6 +118,51 @@ mod tests {
             },
         )
         .unwrap();
+
+        assert_eq!(
+            [
+                31, 79, 104, 226, 150, 71, 177, 90, 194, 80, 172, 209, 17, 129, 132, 81, 138, 167,
+                69, 167, 254, 149, 2, 27, 39, 197, 64, 42, 22, 195, 86, 75
+            ],
+            master_key.0.key.as_slice()
+        );
+        assert_eq!(None, master_key.0.mac_key);
+    }
+
+    #[test]
+    fn test_master_key_derive_argon2() {
+        let master_key = MasterKey::derive(
+            &b"67t9b5g67$%Dh89n"[..],
+            "test_key".as_bytes(),
+            &Kdf::Argon2id {
+                iterations: NonZeroU32::new(4).unwrap(),
+                memory: NonZeroU32::new(32).unwrap(),
+                parallelism: NonZeroU32::new(2).unwrap(),
+            },
+        )
+        .unwrap();
+
+        assert_eq!(
+            [
+                207, 240, 225, 177, 162, 19, 163, 76, 98, 106, 179, 175, 224, 9, 17, 240, 20, 147,
+                237, 47, 246, 150, 141, 184, 62, 225, 131, 242, 51, 53, 225, 242
+            ],
+            master_key.0.key.as_slice()
+        );
+        assert_eq!(None, master_key.0.mac_key);
+    }
+
+    #[test]
+    fn test_stretch_master_key() {
+        let master_key = MasterKey(SymmetricCryptoKey {
+            key: [
+                31, 79, 104, 226, 150, 71, 177, 90, 194, 80, 172, 209, 17, 129, 132, 81, 138, 167,
+                69, 167, 254, 149, 2, 27, 39, 197, 64, 42, 22, 195, 86, 75,
+            ]
+            .into(),
+            mac_key: None,
+        });
+
         let stretched = stretch_master_key(&master_key).unwrap();
 
         assert_eq!(
@@ -131,37 +176,6 @@ mod tests {
             [
                 221, 127, 206, 234, 101, 27, 202, 38, 86, 52, 34, 28, 78, 28, 185, 16, 48, 61, 127,
                 166, 209, 247, 194, 87, 232, 26, 48, 85, 193, 249, 179, 155
-            ],
-            stretched.mac_key.unwrap().as_slice()
-        );
-    }
-
-    #[cfg(feature = "internal")]
-    #[test]
-    fn test_key_stretch_password_argon2() {
-        let master_key = MasterKey::derive(
-            &b"67t9b5g67$%Dh89n"[..],
-            "test_key".as_bytes(),
-            &Kdf::Argon2id {
-                iterations: NonZeroU32::new(4).unwrap(),
-                memory: NonZeroU32::new(32).unwrap(),
-                parallelism: NonZeroU32::new(2).unwrap(),
-            },
-        )
-        .unwrap();
-        let stretched = stretch_master_key(&master_key).unwrap();
-
-        assert_eq!(
-            [
-                236, 253, 166, 121, 207, 124, 98, 149, 42, 141, 97, 226, 207, 71, 173, 60, 10, 0,
-                184, 255, 252, 87, 62, 32, 188, 166, 173, 223, 146, 159, 222, 219
-            ],
-            stretched.key.as_slice()
-        );
-        assert_eq!(
-            [
-                214, 144, 76, 173, 225, 106, 132, 131, 173, 56, 134, 241, 223, 227, 165, 161, 146,
-                37, 111, 206, 155, 24, 224, 151, 134, 189, 202, 0, 27, 149, 131, 21
             ],
             stretched.mac_key.unwrap().as_slice()
         );

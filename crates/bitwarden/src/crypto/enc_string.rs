@@ -14,41 +14,30 @@ use crate::{
 #[derive(Clone)]
 #[allow(unused, non_camel_case_types)]
 pub enum EncString {
-    // 0
-    AesCbc256_B64 {
-        iv: [u8; 16],
-        data: Vec<u8>,
-    },
-    // 1
+    /// 0
+    AesCbc256_B64 { iv: [u8; 16], data: Vec<u8> },
+    /// 1
     AesCbc128_HmacSha256_B64 {
         iv: [u8; 16],
         mac: [u8; 32],
         data: Vec<u8>,
     },
-    // 2
+    /// 2
     AesCbc256_HmacSha256_B64 {
         iv: [u8; 16],
         mac: [u8; 32],
         data: Vec<u8>,
     },
-    // 3
-    Rsa2048_OaepSha256_B64 {
-        data: Vec<u8>,
-    },
-    // 4
-    Rsa2048_OaepSha1_B64 {
-        data: Vec<u8>,
-    },
-    // 5
-    Rsa2048_OaepSha256_HmacSha256_B64 {
-        mac: [u8; 32],
-        data: Vec<u8>,
-    },
-    // 6
-    Rsa2048_OaepSha1_HmacSha256_B64 {
-        mac: [u8; 32],
-        data: Vec<u8>,
-    },
+    /// 3
+    Rsa2048_OaepSha256_B64 { data: Vec<u8> },
+    /// 4
+    Rsa2048_OaepSha1_B64 { data: Vec<u8> },
+    /// 5
+    #[deprecated]
+    Rsa2048_OaepSha256_HmacSha256_B64 { data: Vec<u8> },
+    /// 6
+    #[deprecated]
+    Rsa2048_OaepSha1_HmacSha256_B64 { data: Vec<u8> },
 }
 
 // We manually implement these to make sure we don't print any sensitive data
@@ -62,32 +51,43 @@ impl FromStr for EncString {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (enc_type, data) = s.split_once('.').ok_or(EncStringParseError::NoType)?;
+        let (enc_type, parts): (&str, Vec<_>) = {
+            let header_parts: Vec<_> = s.split('.').collect();
 
-        let parts: Vec<_> = data.split('|').collect();
+            if header_parts.len() == 2 {
+                (header_parts[0], header_parts[1].split('|').collect())
+            } else {
+                // Support legacy format with no header
+                let parts: Vec<_> = s.split('|').collect();
+                if parts.len() == 3 {
+                    ("1", parts) // AesCbc128_HmacSha256_B64
+                } else {
+                    ("0", parts) // AesCbc256_B64
+                }
+            }
+        };
+
+        fn from_b64_vec(s: &str) -> Result<Vec<u8>> {
+            Ok(BASE64_ENGINE
+                .decode(s)
+                .map_err(EncStringParseError::InvalidBase64)?)
+        }
+
+        fn from_b64<const N: usize>(s: &str) -> Result<[u8; N]> {
+            Ok(from_b64_vec(s)?.try_into().map_err(invalid_len_error(N))?)
+        }
+
         match (enc_type, parts.len()) {
-            ("0", 2) => unimplemented!(),
+            ("0", 2) => {
+                let iv = from_b64(parts[0])?;
+                let data = from_b64_vec(parts[1])?;
 
+                Ok(EncString::AesCbc256_B64 { iv, data })
+            }
             ("1" | "2", 3) => {
-                let iv_str = parts[0];
-                let data_str = parts[1];
-                let mac_str = parts[2];
-
-                let iv = BASE64_ENGINE
-                    .decode(iv_str)
-                    .map_err(EncStringParseError::InvalidBase64)?
-                    .try_into()
-                    .map_err(invalid_len_error(16))?;
-
-                let mac = BASE64_ENGINE
-                    .decode(mac_str)
-                    .map_err(EncStringParseError::InvalidBase64)?
-                    .try_into()
-                    .map_err(invalid_len_error(32))?;
-
-                let data = BASE64_ENGINE
-                    .decode(data_str)
-                    .map_err(EncStringParseError::InvalidBase64)?;
+                let iv = from_b64(parts[0])?;
+                let mac = from_b64(parts[1])?;
+                let data = from_b64_vec(parts[2])?;
 
                 if enc_type == "1" {
                     Ok(EncString::AesCbc128_HmacSha256_B64 { iv, mac, data })
@@ -95,19 +95,22 @@ impl FromStr for EncString {
                     Ok(EncString::AesCbc256_HmacSha256_B64 { iv, mac, data })
                 }
             }
-
             ("3" | "4", 1) => {
-                let data = BASE64_ENGINE
-                    .decode(data)
-                    .map_err(EncStringParseError::InvalidBase64)?;
+                let data = from_b64_vec(parts[0])?;
                 if enc_type == "3" {
                     Ok(EncString::Rsa2048_OaepSha256_B64 { data })
                 } else {
                     Ok(EncString::Rsa2048_OaepSha1_B64 { data })
                 }
             }
-            ("5" | "6", 2) => {
-                unimplemented!()
+            #[allow(deprecated)]
+            ("5" | "6", 1) => {
+                let data = from_b64_vec(parts[0])?;
+                if enc_type == "5" {
+                    Ok(EncString::Rsa2048_OaepSha256_HmacSha256_B64 { data })
+                } else {
+                    Ok(EncString::Rsa2048_OaepSha1_HmacSha256_B64 { data })
+                }
             }
 
             (enc_type, parts) => Err(EncStringParseError::InvalidType {
@@ -127,17 +130,27 @@ impl EncString {
         }
         let enc_type = buf[0];
 
-        match enc_type {
-            0 => unimplemented!(),
-            1 | 2 => {
-                if buf.len() < 49 {
-                    return Err(EncStringParseError::InvalidLength {
-                        expected: 49,
-                        got: buf.len(),
-                    }
-                    .into());
+        fn check_length(buf: &[u8], expected: usize) -> Result<()> {
+            if buf.len() < expected {
+                return Err(EncStringParseError::InvalidLength {
+                    expected,
+                    got: buf.len(),
                 }
+                .into());
+            }
+            Ok(())
+        }
 
+        match enc_type {
+            0 => {
+                check_length(buf, 18)?;
+                let iv = buf[1..17].try_into().unwrap();
+                let data = buf[17..].to_vec();
+
+                Ok(EncString::AesCbc256_B64 { iv, data })
+            }
+            1 | 2 => {
+                check_length(buf, 50)?;
                 let iv = buf[1..17].try_into().unwrap();
                 let mac = buf[17..49].try_into().unwrap();
                 let data = buf[49..].to_vec();
@@ -146,6 +159,27 @@ impl EncString {
                     Ok(EncString::AesCbc128_HmacSha256_B64 { iv, mac, data })
                 } else {
                     Ok(EncString::AesCbc256_HmacSha256_B64 { iv, mac, data })
+                }
+            }
+            3 | 4 => {
+                check_length(buf, 2)?;
+                let data = buf[1..].to_vec();
+
+                if enc_type == 3 {
+                    Ok(EncString::Rsa2048_OaepSha256_B64 { data })
+                } else {
+                    Ok(EncString::Rsa2048_OaepSha1_B64 { data })
+                }
+            }
+            #[allow(deprecated)]
+            5 | 6 => {
+                check_length(buf, 2)?;
+                let data = buf[1..].to_vec();
+
+                if enc_type == 1 {
+                    Ok(EncString::Rsa2048_OaepSha256_HmacSha256_B64 { data })
+                } else {
+                    Ok(EncString::Rsa2048_OaepSha1_HmacSha256_B64 { data })
                 }
             }
             _ => Err(EncStringParseError::InvalidType {
@@ -175,7 +209,20 @@ impl EncString {
                 buf.extend_from_slice(mac);
                 buf.extend_from_slice(data);
             }
-            _ => todo!(),
+
+            EncString::Rsa2048_OaepSha256_B64 { data }
+            | EncString::Rsa2048_OaepSha1_B64 { data } => {
+                buf = Vec::with_capacity(1 + data.len());
+                buf.push(self.enc_type());
+                buf.extend_from_slice(data);
+            }
+            #[allow(deprecated)]
+            EncString::Rsa2048_OaepSha256_HmacSha256_B64 { data }
+            | EncString::Rsa2048_OaepSha1_HmacSha256_B64 { data } => {
+                buf = Vec::with_capacity(1 + data.len());
+                buf.push(self.enc_type());
+                buf.extend_from_slice(data);
+            }
         }
 
         Ok(buf)
@@ -203,19 +250,14 @@ impl Display for EncString {
                 parts.push(data);
                 parts.push(mac);
             }
-            EncString::Rsa2048_OaepSha256_B64 { data } => {
+            EncString::Rsa2048_OaepSha256_B64 { data }
+            | EncString::Rsa2048_OaepSha1_B64 { data } => {
                 parts.push(data);
             }
-            EncString::Rsa2048_OaepSha1_B64 { data } => {
+            #[allow(deprecated)]
+            EncString::Rsa2048_OaepSha256_HmacSha256_B64 { data }
+            | EncString::Rsa2048_OaepSha1_HmacSha256_B64 { data } => {
                 parts.push(data);
-            }
-            EncString::Rsa2048_OaepSha256_HmacSha256_B64 { mac, data } => {
-                parts.push(data);
-                parts.push(mac);
-            }
-            EncString::Rsa2048_OaepSha1_HmacSha256_B64 { mac, data } => {
-                parts.push(data);
-                parts.push(mac);
             }
         }
 
@@ -266,14 +308,16 @@ impl serde::Serialize for EncString {
 }
 
 impl EncString {
-    fn enc_type(&self) -> u8 {
+    const fn enc_type(&self) -> u8 {
         match self {
             EncString::AesCbc256_B64 { .. } => 0,
             EncString::AesCbc128_HmacSha256_B64 { .. } => 1,
             EncString::AesCbc256_HmacSha256_B64 { .. } => 2,
             EncString::Rsa2048_OaepSha256_B64 { .. } => 3,
             EncString::Rsa2048_OaepSha1_B64 { .. } => 4,
+            #[allow(deprecated)]
             EncString::Rsa2048_OaepSha256_HmacSha256_B64 { .. } => 5,
+            #[allow(deprecated)]
             EncString::Rsa2048_OaepSha1_HmacSha256_B64 { .. } => 6,
         }
     }

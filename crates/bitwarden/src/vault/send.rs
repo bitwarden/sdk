@@ -135,6 +135,15 @@ impl Send {
         let key = derive_shareable_key(key.try_into().unwrap(), "send", Some("send"));
         Ok(key)
     }
+
+    pub(crate) fn get_encryption(
+        key: &EncString,
+        enc: &EncryptionSettings,
+        org_id: &Option<Uuid>,
+    ) -> Result<EncryptionSettings> {
+        let key = Send::get_key(key, enc, org_id)?;
+        Ok(EncryptionSettings::new_single_key(key))
+    }
 }
 
 impl Decryptable<SendTextView> for SendText {
@@ -180,8 +189,7 @@ impl Encryptable<SendFile> for SendFileView {
 impl Decryptable<SendView> for Send {
     fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<SendView> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
-        let key = Send::get_key(&self.key, enc, org_id)?;
-        let enc_owned = EncryptionSettings::new_single_key(key);
+        let enc_owned = Send::get_encryption(&self.key, enc, org_id)?;
 
         // For the rest of the fields, we ignore the provided EncryptionSettings and use a new one with the stretched key
         let enc = &enc_owned;
@@ -214,8 +222,7 @@ impl Decryptable<SendView> for Send {
 impl Decryptable<SendListView> for Send {
     fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<SendListView> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
-        let key = Send::get_key(&self.key, enc, org_id)?;
-        let enc_owned = EncryptionSettings::new_single_key(key);
+        let enc_owned = Send::get_encryption(&self.key, enc, org_id)?;
 
         // For the rest of the fields, we ignore the provided EncryptionSettings and use a new one with the stretched key
         let enc = &enc_owned;

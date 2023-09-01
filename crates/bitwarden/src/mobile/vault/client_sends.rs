@@ -1,7 +1,6 @@
 use std::path::Path;
 
 use crate::{
-    client::encryption_settings::EncryptionSettings,
     crypto::{Decryptable, EncString, Encryptable},
     error::Result,
     vault::{Send, SendListView, SendView},
@@ -45,8 +44,7 @@ impl<'a> ClientSends<'a> {
 
     pub async fn decrypt_buffer(&self, send: Send, encrypted_buffer: &[u8]) -> Result<Vec<u8>> {
         let enc = self.client.get_encryption_settings()?;
-        let key = Send::get_key(&send.key, enc, &None)?;
-        let enc = EncryptionSettings::new_single_key(key);
+        let enc = Send::get_encryption(&send.key, enc, &None)?;
 
         let buf = EncString::from_buffer(encrypted_buffer)?;
 
@@ -75,8 +73,7 @@ impl<'a> ClientSends<'a> {
 
     pub async fn encrypt_buffer(&self, send: Send, buffer: &[u8]) -> Result<Vec<u8>> {
         let enc = self.client.get_encryption_settings()?;
-        let key = Send::get_key(&send.key, enc, &None)?;
-        let enc = EncryptionSettings::new_single_key(key);
+        let enc = Send::get_encryption(&send.key, enc, &None)?;
 
         let enc = enc.encrypt(buffer, &None)?;
         enc.to_buffer()

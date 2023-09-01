@@ -1,11 +1,10 @@
+use super::client_vault::ClientVault;
 use crate::{
     crypto::{Decryptable, Encryptable},
     error::Result,
     vault::{PasswordHistory, PasswordHistoryView},
     Client,
 };
-
-use super::client_vault::ClientVault;
 
 pub struct ClientPasswordHistory<'a> {
     pub(crate) client: &'a Client,

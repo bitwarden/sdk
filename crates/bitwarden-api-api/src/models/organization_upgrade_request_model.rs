@@ -21,6 +21,15 @@ pub struct OrganizationUpgradeRequestModel {
         skip_serializing_if = "Option::is_none"
     )]
     pub additional_storage_gb: Option<i32>,
+    #[serde(rename = "additionalSmSeats", skip_serializing_if = "Option::is_none")]
+    pub additional_sm_seats: Option<i32>,
+    #[serde(
+        rename = "additionalServiceAccounts",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub additional_service_accounts: Option<i32>,
+    #[serde(rename = "useSecretsManager")]
+    pub use_secrets_manager: bool,
     #[serde(rename = "premiumAccessAddon", skip_serializing_if = "Option::is_none")]
     pub premium_access_addon: Option<bool>,
     #[serde(
@@ -38,12 +47,15 @@ pub struct OrganizationUpgradeRequestModel {
 }
 
 impl OrganizationUpgradeRequestModel {
-    pub fn new() -> OrganizationUpgradeRequestModel {
+    pub fn new(use_secrets_manager: bool) -> OrganizationUpgradeRequestModel {
         OrganizationUpgradeRequestModel {
             business_name: None,
             plan_type: None,
             additional_seats: None,
             additional_storage_gb: None,
+            additional_sm_seats: None,
+            additional_service_accounts: None,
+            use_secrets_manager,
             premium_access_addon: None,
             billing_address_country: None,
             billing_address_postal_code: None,

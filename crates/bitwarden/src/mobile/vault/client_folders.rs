@@ -1,11 +1,10 @@
+use super::client_vault::ClientVault;
 use crate::{
     crypto::{Decryptable, Encryptable},
     error::Result,
     vault::{Folder, FolderView},
     Client,
 };
-
-use super::client_vault::ClientVault;
 
 pub struct ClientFolders<'a> {
     pub(crate) client: &'a Client,

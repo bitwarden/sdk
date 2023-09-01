@@ -2,20 +2,6 @@ use std::time::{Duration, Instant};
 
 use reqwest::header::{self};
 use uuid::Uuid;
-
-use crate::{
-    auth::renew::renew_token,
-    client::{
-        client_settings::{ClientSettings, DeviceType},
-        encryption_settings::EncryptionSettings,
-    },
-    crypto::SymmetricCryptoKey,
-    error::{Error, Result},
-};
-
-#[cfg(feature = "secrets")]
-use crate::auth::login::{access_token_login, AccessTokenLoginRequest, AccessTokenLoginResponse};
-
 #[cfg(feature = "internal")]
 use {
     crate::{
@@ -32,6 +18,18 @@ use {
         },
     },
     log::debug,
+};
+
+#[cfg(feature = "secrets")]
+use crate::auth::login::{access_token_login, AccessTokenLoginRequest, AccessTokenLoginResponse};
+use crate::{
+    auth::renew::renew_token,
+    client::{
+        client_settings::{ClientSettings, DeviceType},
+        encryption_settings::EncryptionSettings,
+    },
+    crypto::SymmetricCryptoKey,
+    error::{Error, Result},
 };
 
 #[derive(Debug)]

@@ -1,6 +1,4 @@
-use crate::{client::auth_settings::Kdf, error::Result, Client};
-
-use super::kdf::hash_password;
+use crate::{client::auth_settings::Kdf, error::Result, mobile::kdf::hash_password, Client};
 
 pub struct ClientKdf<'a> {
     pub(crate) client: &'a crate::Client,

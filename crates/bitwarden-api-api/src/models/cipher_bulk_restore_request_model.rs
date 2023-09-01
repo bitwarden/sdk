@@ -12,10 +12,15 @@
 pub struct CipherBulkRestoreRequestModel {
     #[serde(rename = "ids")]
     pub ids: Vec<String>,
+    #[serde(rename = "organizationId", skip_serializing_if = "Option::is_none")]
+    pub organization_id: Option<uuid::Uuid>,
 }
 
 impl CipherBulkRestoreRequestModel {
     pub fn new(ids: Vec<String>) -> CipherBulkRestoreRequestModel {
-        CipherBulkRestoreRequestModel { ids }
+        CipherBulkRestoreRequestModel {
+            ids,
+            organization_id: None,
+        }
     }
 }

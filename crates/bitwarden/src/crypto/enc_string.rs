@@ -86,8 +86,8 @@ impl FromStr for EncString {
             }
             ("1" | "2", 3) => {
                 let iv = from_b64(parts[0])?;
-                let mac = from_b64(parts[1])?;
-                let data = from_b64_vec(parts[2])?;
+                let data = from_b64_vec(parts[1])?;
+                let mac = from_b64(parts[2])?;
 
                 if enc_type == "1" {
                     Ok(EncString::AesCbc128_HmacSha256_B64 { iv, mac, data })

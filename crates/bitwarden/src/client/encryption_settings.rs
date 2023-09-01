@@ -33,13 +33,13 @@ impl EncryptionSettings {
         user_key: EncString,
         private_key: EncString,
     ) -> Result<Self> {
-        use crate::crypto::{decrypt_user_key, derive_master_key};
+        use crate::crypto::MasterKey;
 
         // Derive master key from password
-        let master_key = derive_master_key(password.as_bytes(), auth.email.as_bytes(), &auth.kdf)?;
+        let master_key = MasterKey::derive(password.as_bytes(), auth.email.as_bytes(), &auth.kdf)?;
 
         // Decrypt the user key
-        let user_key = decrypt_user_key(master_key, user_key)?;
+        let user_key = master_key.decrypt_user_key(user_key)?;
 
         // Decrypt the private key with the user key
         let private_key = {

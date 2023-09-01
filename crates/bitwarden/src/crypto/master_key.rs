@@ -1,5 +1,3 @@
-//! Cryptographic primitives used in the SDK
-
 use aes::cipher::typenum::U32;
 use base64::Engine;
 
@@ -14,12 +12,43 @@ use {
     sha2::Digest,
 };
 
+#[derive(Copy, Clone)]
+pub(crate) enum HashPurpose {
+    ServerAuthorization = 1,
+    // LocalAuthorization = 2,
+}
+
 /// A Master Key.
 pub(crate) struct MasterKey(SymmetricCryptoKey);
 
-/// Derives a users master key from their password, email and KDF.
-pub(crate) fn derive_master_key(password: &[u8], email: &[u8], kdf: &Kdf) -> Result<MasterKey> {
-    derive_key(password, email, kdf).map(MasterKey)
+impl MasterKey {
+    /// Derives a users master key from their password, email and KDF.
+    pub fn derive(password: &[u8], email: &[u8], kdf: &Kdf) -> Result<Self> {
+        derive_key(password, email, kdf).map(Self)
+    }
+
+    pub(crate) fn derive_master_key_hash(
+        &self,
+        password: &[u8],
+        purpose: HashPurpose,
+    ) -> Result<String> {
+        let hash = pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(
+            &self.0.key,
+            password,
+            purpose as u32,
+        )
+        .expect("hash is a valid fixed size");
+
+        Ok(BASE64_ENGINE.encode(hash))
+    }
+
+    pub(crate) fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey> {
+        // The master key needs to be stretched before it can be used
+        let stretched_key = stretch_master_key(self)?;
+
+        let dec = user_key.decrypt_with_key(&stretched_key)?;
+        SymmetricCryptoKey::try_from(dec.as_slice())
+    }
 }
 
 /// Derive a generic key from a secret and salt using the provided KDF.
@@ -62,35 +91,7 @@ fn derive_key(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<SymmetricCryptoKe
     SymmetricCryptoKey::try_from(hash.as_slice())
 }
 
-/// Derive a login password hash
-pub(crate) fn derive_password_hash(password: &[u8], salt: &[u8], kdf: &Kdf) -> Result<String> {
-    let hash: MasterKey = derive_master_key(password, salt, kdf)?;
-
-    let login_hash = derive_master_key_hash(hash, password, HashPurpose::ServerAuthorization);
-
-    Ok(BASE64_ENGINE.encode(login_hash))
-}
-
-#[derive(Copy, Clone)]
-enum HashPurpose {
-    ServerAuthorization = 1,
-    // LocalAuthorization = 2,
-}
-
-fn derive_master_key_hash(
-    master_key: MasterKey,
-    password: &[u8],
-    purpose: HashPurpose,
-) -> [u8; 32] {
-    pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(
-        &master_key.0.key,
-        password,
-        purpose as u32,
-    )
-    .expect("hash is a valid fixed size")
-}
-
-fn stretch_master_key(master_key: MasterKey) -> Result<SymmetricCryptoKey> {
+fn stretch_master_key(master_key: &MasterKey) -> Result<SymmetricCryptoKey> {
     let key: GenericArray<u8, U32> = hkdf_expand(&master_key.0.key, Some("enc"))?;
     let mac_key: GenericArray<u8, U32> = hkdf_expand(&master_key.0.key, Some("mac"))?;
 
@@ -100,29 +101,16 @@ fn stretch_master_key(master_key: MasterKey) -> Result<SymmetricCryptoKey> {
     })
 }
 
-pub(crate) fn decrypt_user_key(
-    master_key: MasterKey,
-    user_key: EncString,
-) -> Result<SymmetricCryptoKey> {
-    // The master key needs to be stretched before it can be used
-    let stretched_key = stretch_master_key(master_key)?;
-
-    let dec = user_key.decrypt_with_key(&stretched_key)?;
-    SymmetricCryptoKey::try_from(dec.as_slice())
-}
-
 #[cfg(test)]
 mod tests {
-    use crate::crypto::derive_password_hash;
-
-    use super::{derive_master_key, stretch_master_key};
+    use super::{stretch_master_key, HashPurpose, MasterKey};
     #[cfg(feature = "internal")]
     use {crate::client::auth_settings::Kdf, std::num::NonZeroU32};
 
     #[cfg(feature = "internal")]
     #[test]
     fn test_key_stretch_password_pbkdf2() {
-        let master_key = derive_master_key(
+        let master_key = MasterKey::derive(
             &b"67t9b5g67$%Dh89n"[..],
             "test_key".as_bytes(),
             &Kdf::PBKDF2 {
@@ -130,7 +118,7 @@ mod tests {
             },
         )
         .unwrap();
-        let stretched = stretch_master_key(master_key).unwrap();
+        let stretched = stretch_master_key(&master_key).unwrap();
 
         assert_eq!(
             [
@@ -151,7 +139,7 @@ mod tests {
     #[cfg(feature = "internal")]
     #[test]
     fn test_key_stretch_password_argon2() {
-        let master_key = derive_master_key(
+        let master_key = MasterKey::derive(
             &b"67t9b5g67$%Dh89n"[..],
             "test_key".as_bytes(),
             &Kdf::Argon2id {
@@ -161,7 +149,7 @@ mod tests {
             },
         )
         .unwrap();
-        let stretched = stretch_master_key(master_key).unwrap();
+        let stretched = stretch_master_key(&master_key).unwrap();
 
         assert_eq!(
             [
@@ -181,33 +169,39 @@ mod tests {
 
     #[test]
     fn test_password_hash_pbkdf2() {
+        let password = "asdfasdf".as_bytes();
+        let salt = "test_salt".as_bytes();
+        let kdf = Kdf::PBKDF2 {
+            iterations: NonZeroU32::new(100_000).unwrap(),
+        };
+
+        let master_key = MasterKey::derive(password, salt, &kdf).unwrap();
+
         assert_eq!(
             "ZF6HjxUTSyBHsC+HXSOhZoXN+UuMnygV5YkWXCY4VmM=",
-            derive_password_hash(
-                "asdfasdf".as_bytes(),
-                "test_salt".as_bytes(),
-                &Kdf::PBKDF2 {
-                    iterations: NonZeroU32::new(100_000).unwrap()
-                }
-            )
-            .unwrap(),
+            master_key
+                .derive_master_key_hash(password, HashPurpose::ServerAuthorization)
+                .unwrap(),
         );
     }
 
     #[test]
     fn test_password_hash_argon2id() {
+        let password = "asdfasdf".as_bytes();
+        let salt = "test_salt".as_bytes();
+        let kdf = Kdf::Argon2id {
+            iterations: NonZeroU32::new(4).unwrap(),
+            memory: NonZeroU32::new(32).unwrap(),
+            parallelism: NonZeroU32::new(2).unwrap(),
+        };
+
+        let master_key = MasterKey::derive(password, salt, &kdf).unwrap();
+
         assert_eq!(
             "PR6UjYmjmppTYcdyTiNbAhPJuQQOmynKbdEl1oyi/iQ=",
-            derive_password_hash(
-                "asdfasdf".as_bytes(),
-                "test_salt".as_bytes(),
-                &Kdf::Argon2id {
-                    iterations: NonZeroU32::new(4).unwrap(),
-                    memory: NonZeroU32::new(32).unwrap(),
-                    parallelism: NonZeroU32::new(2).unwrap()
-                }
-            )
-            .unwrap(),
+            master_key
+                .derive_master_key_hash(password, HashPurpose::ServerAuthorization)
+                .unwrap(),
         );
     }
 }

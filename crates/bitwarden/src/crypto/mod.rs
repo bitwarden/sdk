@@ -35,9 +35,7 @@ mod shareable_key;
 pub(crate) use shareable_key::derive_shareable_key;
 
 mod master_key;
-pub(crate) use master_key::derive_password_hash;
-#[cfg(feature = "internal")]
-pub(crate) use master_key::{decrypt_user_key, derive_master_key};
+pub(crate) use master_key::{HashPurpose, MasterKey};
 
 #[cfg(feature = "internal")]
 mod fingerprint;

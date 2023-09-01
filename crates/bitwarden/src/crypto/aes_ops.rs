@@ -10,25 +10,7 @@ use crate::{
     error::{CryptoError, Result},
 };
 
-pub fn decrypt_aes256(
-    iv: &[u8; 16],
-    mac: Option<&[u8; 32]>,
-    data: Vec<u8>,
-    mac_key: Option<GenericArray<u8, U32>>,
-    key: GenericArray<u8, U32>,
-) -> Result<Vec<u8>> {
-    match (mac_key, mac) {
-        (Some(mac_key), Some(mac)) => {
-            // Validate HMAC
-            let res = validate_mac(&mac_key, iv, &data)?;
-            if res != *mac {
-                return Err(CryptoError::InvalidMac.into());
-            }
-        }
-        (None, None) => { /* No mac provided, so we don't do MAC checking */ }
-        _ => return Err(CryptoError::InvalidMac.into()),
-    };
-
+pub fn decrypt_aes256(iv: &[u8; 16], data: Vec<u8>, key: GenericArray<u8, U32>) -> Result<Vec<u8>> {
     // Decrypt data
     let iv = GenericArray::from_slice(iv);
     let mut data = data;
@@ -41,6 +23,21 @@ pub fn decrypt_aes256(
     data.truncate(decrypted_len);
 
     Ok(data)
+}
+
+pub fn decrypt_aes256_hmac(
+    iv: &[u8; 16],
+    mac: &[u8; 32],
+    data: Vec<u8>,
+    mac_key: GenericArray<u8, U32>,
+    key: GenericArray<u8, U32>,
+) -> Result<Vec<u8>> {
+    // Validate HMAC
+    let res = validate_mac(&mac_key, iv, &data)?;
+    if res != *mac {
+        return Err(CryptoError::InvalidMac.into());
+    }
+    decrypt_aes256(iv, data, key)
 }
 
 pub fn encrypt_aes256(

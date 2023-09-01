@@ -28,7 +28,7 @@ pub use enc_string::EncString;
 mod encryptable;
 pub use encryptable::{Decryptable, Encryptable};
 mod aes_ops;
-pub use aes_ops::{decrypt_aes256, encrypt_aes256};
+pub use aes_ops::{decrypt_aes256, decrypt_aes256_hmac, encrypt_aes256};
 mod symmetric_crypto_key;
 pub use symmetric_crypto_key::SymmetricCryptoKey;
 mod shareable_key;

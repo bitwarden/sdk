@@ -5,7 +5,9 @@ use base64::Engine;
 
 use crate::util::BASE64_ENGINE;
 
-use super::{EncString, PbkdfSha256Hmac, SymmetricCryptoKey, PBKDF_SHA256_HMAC_OUT_SIZE};
+use super::{
+    hkdf_expand, EncString, PbkdfSha256Hmac, SymmetricCryptoKey, PBKDF_SHA256_HMAC_OUT_SIZE,
+};
 use {
     crate::{client::auth_settings::Kdf, error::Result},
     aes::cipher::generic_array::GenericArray,
@@ -88,16 +90,9 @@ fn derive_master_key_hash(
     .expect("hash is a valid fixed size")
 }
 
-fn stretch_key(key: SymmetricCryptoKey) -> Result<SymmetricCryptoKey> {
-    let hkdf =
-        hkdf::Hkdf::<sha2::Sha256>::from_prk(&key.key).expect("Input is a valid fixed size hash");
-
-    let mut key = GenericArray::<u8, U32>::default();
-    hkdf.expand("enc".as_bytes(), &mut key)
-        .expect("key is a valid fixed size buffer");
-    let mut mac_key = GenericArray::<u8, U32>::default();
-    hkdf.expand("mac".as_bytes(), &mut mac_key)
-        .expect("mac_key is a valid fixed size buffer");
+fn stretch_master_key(master_key: MasterKey) -> Result<SymmetricCryptoKey> {
+    let key: GenericArray<u8, U32> = hkdf_expand(&master_key.0.key, Some("enc"))?;
+    let mac_key: GenericArray<u8, U32> = hkdf_expand(&master_key.0.key, Some("mac"))?;
 
     Ok(SymmetricCryptoKey {
         key,
@@ -110,7 +105,7 @@ pub(crate) fn decrypt_user_key(
     user_key: EncString,
 ) -> Result<SymmetricCryptoKey> {
     // The master key needs to be stretched before it can be used
-    let stretched_key = stretch_key(master_key.0)?;
+    let stretched_key = stretch_master_key(master_key)?;
 
     let dec = user_key.decrypt_with_key(&stretched_key)?;
     SymmetricCryptoKey::try_from(dec.as_slice())
@@ -120,7 +115,7 @@ pub(crate) fn decrypt_user_key(
 mod tests {
     use crate::crypto::derive_password_hash;
 
-    use super::{derive_master_key, stretch_key};
+    use super::{derive_master_key, stretch_master_key};
     #[cfg(feature = "internal")]
     use {crate::client::auth_settings::Kdf, std::num::NonZeroU32};
 
@@ -135,7 +130,7 @@ mod tests {
             },
         )
         .unwrap();
-        let stretched = stretch_key(master_key.0).unwrap();
+        let stretched = stretch_master_key(master_key).unwrap();
 
         assert_eq!(
             [
@@ -166,7 +161,7 @@ mod tests {
             },
         )
         .unwrap();
-        let stretched = stretch_key(master_key.0).unwrap();
+        let stretched = stretch_master_key(master_key).unwrap();
 
         assert_eq!(
             [

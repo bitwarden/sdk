@@ -281,7 +281,7 @@ impl EncString {
     pub fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
         match self {
             EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
-                let dec = decrypt_aes256(iv, mac, data.clone(), key.mac_key, key.key)?;
+                let dec = decrypt_aes256(iv, Some(mac), data.clone(), key.mac_key, key.key)?;
                 Ok(dec)
             }
             _ => Err(CryptoError::InvalidKey.into()),

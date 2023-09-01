@@ -49,7 +49,7 @@ impl EncryptionSettings {
                 _ => return Err(CryptoError::InvalidKey.into()),
             };
 
-            let dec = decrypt_aes256(&iv, &mac, data, Some(mac_key), key)?;
+            let dec = decrypt_aes256(&iv, Some(&mac), data, Some(mac_key), key)?;
             SymmetricCryptoKey::try_from(dec.as_slice())?
         };
 

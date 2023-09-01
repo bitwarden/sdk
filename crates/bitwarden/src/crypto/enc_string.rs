@@ -231,43 +231,24 @@ impl EncString {
 
 impl Display for EncString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}.", self.enc_type())?;
-
-        let mut parts = Vec::<&[u8]>::new();
-
-        match self {
-            EncString::AesCbc256_B64 { iv, data } => {
-                parts.push(iv);
-                parts.push(data);
-            }
-            EncString::AesCbc128_HmacSha256_B64 { iv, mac, data } => {
-                parts.push(iv);
-                parts.push(data);
-                parts.push(mac);
-            }
-            EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
-                parts.push(iv);
-                parts.push(data);
-                parts.push(mac);
-            }
-            EncString::Rsa2048_OaepSha256_B64 { data }
-            | EncString::Rsa2048_OaepSha1_B64 { data } => {
-                parts.push(data);
-            }
+        let parts: Vec<&[u8]> = match self {
+            EncString::AesCbc256_B64 { iv, data } => vec![iv, data],
+            EncString::AesCbc128_HmacSha256_B64 { iv, mac, data } => vec![iv, data, mac],
+            EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => vec![iv, data, mac],
+            EncString::Rsa2048_OaepSha256_B64 { data } => vec![data],
+            EncString::Rsa2048_OaepSha1_B64 { data } => vec![data],
             #[allow(deprecated)]
-            EncString::Rsa2048_OaepSha256_HmacSha256_B64 { data }
-            | EncString::Rsa2048_OaepSha1_HmacSha256_B64 { data } => {
-                parts.push(data);
-            }
-        }
+            EncString::Rsa2048_OaepSha256_HmacSha256_B64 { data } => vec![data],
+            #[allow(deprecated)]
+            EncString::Rsa2048_OaepSha1_HmacSha256_B64 { data } => vec![data],
+        };
 
-        for i in 0..parts.len() {
-            if i == parts.len() - 1 {
-                write!(f, "{}", BASE64_ENGINE.encode(parts[i]))?;
-            } else {
-                write!(f, "{}|", BASE64_ENGINE.encode(parts[i]))?;
-            }
-        }
+        let encoded_parts: Vec<String> = parts
+            .iter()
+            .map(|part| BASE64_ENGINE.encode(part))
+            .collect();
+
+        write!(f, "{}.{}", self.enc_type(), encoded_parts.join("|"))?;
 
         Ok(())
     }
@@ -283,7 +264,7 @@ impl<'de> Deserialize<'de> for EncString {
             type Value = EncString;
 
             fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                write!(f, "A valid string")
+                write!(f, "a valid string")
             }
 
             fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>

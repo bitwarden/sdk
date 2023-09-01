@@ -126,7 +126,7 @@ pub struct SendListView {
 }
 
 impl Send {
-    pub(crate) fn get_key(
+    fn get_key(
         key: &EncString,
         enc: &EncryptionSettings,
         org_id: &Option<Uuid>,

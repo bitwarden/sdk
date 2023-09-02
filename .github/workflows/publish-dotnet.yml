@@ -39,7 +39,7 @@ jobs:
 
       - name: Find and Upload libbitwarden_c Files
         run: |
-          find target/release -type f -name '*bitwarden_c*' -exec cp {} $GITHUB_WORKSPACE/ \;
+          find ./target/release -type f -name '*bitwarden_c*' -exec cp {} $GITHUB_WORKSPACE/ \;
         shell: bash
 
       - name: Upload Artifact

@@ -75,7 +75,7 @@ jobs:
       - name: Get Package Version
         id: version
         env:
-          VERSION: ${{ github.event.inputs.version_number }}
+          VERSION: 1.0.0
         run: |
           cd languages/csharp
           package_version=$(dotnet pack --configuration Release --no-build /property:Version=${VERSION} --output ./nuget-output /nologo /v:n)

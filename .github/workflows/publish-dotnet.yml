@@ -74,7 +74,7 @@ jobs:
           VERSION: 1.0.0
         run: |
           cd languages/csharp
-          package_version=$(dotnet pack --configuration Release --no-build /property:Version=${VERSION} --output ./nuget-output /nologo /v:n)
+          package_version=$(dotnet pack --configuration Release /property:Version=${VERSION} --output ./nuget-output /nologo /v:n)
           echo "Package Version: $package_version"
           echo "::set-output name=version::$package_version"
 

@@ -48,15 +48,15 @@
   </ItemGroup>
 
     <ItemGroup Condition="'$(Configuration)'=='Release'">
-    <Content Include="../../target/release/libbitwarden_c*.dylib">
+    <Content Include="libbitwarden_c*.dylib">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         <PackageCopyToOutput>true</PackageCopyToOutput>
     </Content>
-    <Content Include="../../target/release/libbitwarden_c*.so">
+    <Content Include="libbitwarden_c*.so">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         <PackageCopyToOutput>true</PackageCopyToOutput>
     </Content>
-    <Content Include="../../target/release/bitwarden_c*.dll">
+    <Content Include="bitwarden_c*.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         <PackageCopyToOutput>true</PackageCopyToOutput>
     </Content>

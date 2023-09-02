@@ -43,11 +43,11 @@ jobs:
         env:
           RUSTFLAGS: "-D warnings"
 
-      - name: Build Internal
-        if: ${{ matrix.package == 'bitwarden' }}
-        run: cargo build -p ${{ matrix.package }} --features internal --release
-        env:
-          RUSTFLAGS: "-D warnings"
+      - name: Upload Artifact
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: libbitwarden_c_files
+          path: target/release
 
   deploy:
     runs-on: ubuntu-22.04
@@ -61,6 +61,12 @@ jobs:
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: schemas.cs
+          path: languages/csharp
+
+      - name: Download libbitwarden_c files
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: libbitwarden_c_files
           path: languages/csharp
 
       - name: Set up .NET Core

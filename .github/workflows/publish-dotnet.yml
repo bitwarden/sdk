@@ -52,7 +52,7 @@ jobs:
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
           name: libbitwarden_c_files
-          path: target/release
+          path: $GITHUB_WORKSPACE
 
   deploy:
     runs-on: ubuntu-22.04
@@ -82,7 +82,7 @@ jobs:
       - name: Get Package Version
         id: version
         env:
-          VERSION: 1.0.2
+          VERSION: 1.0.3
         run: |
           cd languages/csharp
           dotnet pack --configuration Release /property:Version=${VERSION} --output ./nuget-output /nologo /v:n

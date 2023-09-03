@@ -8,17 +8,15 @@ jobs:
     uses: ./.github/workflows/generate_schemas.yml
 
   build_rust:
-    name: Building ${{matrix.package}} for - ${{ matrix.os }}
-
-    runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}
-
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - macos-latest
-          - ubuntu-latest
-          - windows-latest
+        os: [ macos-latest, ubuntu-latest, windows-latest ]
+
+    runs-on: ${{ matrix.os }}
+
+    name: Building for ${{ matrix.os }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
@@ -27,7 +25,6 @@ jobs:
         uses: dtolnay/rust-toolchain@f361669954a8ecfc00a3443f35f9ac8e610ffc06 # stable
         with:
           toolchain: stable
-          targets: ${{ matrix.settings.target }}
 
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@e207df5d269b42b69c8bc5101da26f7d31feddb4 # v2.6.2
@@ -92,7 +89,7 @@ jobs:
       - name: Get Package Version
         id: version
         env:
-          VERSION: 1.0.3
+          VERSION: 1.0.4
         run: |
           cd languages/csharp
           dotnet pack --configuration Release /property:Version=${VERSION} --output ./nuget-output /nologo /v:n

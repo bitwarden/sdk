@@ -32,13 +32,23 @@ jobs:
 
       - name: Build
         run: |
-          if [[ ${{ matrix.os }} == 'windows-latest' ]]; then
-            cargo build --release --target ${{ matrix.arch }}-pc-windows-msvc
-          elif [[ ${{ matrix.os }} == 'macos-latest' ]]; then
-            cargo build --release --target ${{ matrix.arch }}-apple-darwin
+          if [[ ${{ matrix.os }} == "windows-latest" ]]; then
+            target_os="windows"
+          elif [[ ${{ matrix.os }} == "macos-latest" ]]; then
+            target_os="macos"
           else
-            cargo build --release --target ${{ matrix.arch }}-unknown-linux-gnu
+            target_os="linux"
           fi
+
+          if [[ ${{ matrix.arch }} == "x86" ]]; then
+            target_arch="i686"
+          elif [[ ${{ matrix.arch }} == "x64" ]]; then
+            target_arch="x86_64"
+          else
+            target_arch="aarch64"
+          fi
+
+          cargo build --release --target $target_arch-unknown-$target_os
 
       - name: Upload Artifact
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2

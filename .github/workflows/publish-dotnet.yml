@@ -12,10 +12,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
+        arch: [x86, x64, arm64]
 
     runs-on: ${{ matrix.os }}
 
-    name: Building for ${{ matrix.os }}
+    name: Build for ${{ matrix.os }} ${{ matrix.arch }}
 
     steps:
       - name: Checkout
@@ -30,14 +31,19 @@ jobs:
         uses: Swatinem/rust-cache@e207df5d269b42b69c8bc5101da26f7d31feddb4 # v2.6.2
 
       - name: Build
-        run: cargo build --release
-        env:
-          RUSTFLAGS: "-D warnings"
+        run: |
+          if [[ ${{ matrix.os }} == 'windows-latest' ]]; then
+            cargo build --release --target ${{ matrix.architecture }}-pc-windows-msvc
+          elif [[ ${{ matrix.os }} == 'macos-latest' ]]; then
+            cargo build --release --target ${{ matrix.architecture }}-apple-darwin
+          else
+            cargo build --release --target ${{ matrix.architecture }}-unknown-linux-gnu
+          fi
 
       - name: Upload Artifact
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
-          name: libbitwarden_c_files-${{ matrix.os }}
+          name: libbitwarden_c_files/${{ matrix.os }}-${{ matrix.arch }}
           path: |
             target/release/*bitwarden_c*
 
@@ -55,22 +61,10 @@ jobs:
           name: schemas.cs
           path: languages/csharp
 
-      - name: Download libbitwarden_c files macos-latest
+      - name: Download libbitwarden_c files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
-          name: libbitwarden_c_files-macos-latest
-          path: languages/csharp
-
-      - name: Download libbitwarden_c files ubuntu-latest
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: libbitwarden_c_files-ubuntu-latest
-          path: languages/csharp
-
-      - name: Download libbitwarden_c files windows-latest
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: libbitwarden_c_files-windows-latest
+          name: libbitwarden_c_files
           path: languages/csharp
 
       - name: List libbitwarden_c_files

@@ -37,16 +37,12 @@ jobs:
         env:
           RUSTFLAGS: "-D warnings"
 
-      - name: Find and Upload libbitwarden_c Files
-        run: |
-          find ./target/release -type f -name '*bitwarden_c*' -exec cp {} ${{ github.workspace }}/ \;
-        shell: bash
-
       - name: Upload Artifact
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
           name: libbitwarden_c_files
-          path: ${{ github.workspace }}
+          path: |
+            target/release/*bitwarden_c*
 
   deploy:
     runs-on: ubuntu-22.04

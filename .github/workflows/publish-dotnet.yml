@@ -40,7 +40,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
-          name: libbitwarden_c_files
+          name: libbitwarden_c_files-${{ matrix.os }}
           path: |
             target/release/*bitwarden_c*
 
@@ -58,10 +58,22 @@ jobs:
           name: schemas.cs
           path: languages/csharp
 
-      - name: Download libbitwarden_c files
+      - name: Download libbitwarden_c files macos-latest
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
-          name: libbitwarden_c_files
+          name: libbitwarden_c_files-macos-latest
+          path: languages/csharp
+
+      - name: Download libbitwarden_c files ubuntu-latest
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: libbitwarden_c_files-ubuntu-latest
+          path: languages/csharp
+
+      - name: Download libbitwarden_c files windows-latest
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: libbitwarden_c_files-windows-latest
           path: languages/csharp
 
       - name: List libbitwarden_c_files

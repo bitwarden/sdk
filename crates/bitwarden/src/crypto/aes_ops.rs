@@ -39,16 +39,20 @@ pub fn decrypt_aes256_hmac(
     decrypt_aes256(iv, data, key)
 }
 
-pub fn encrypt_aes256(
+pub fn encrypt_aes256(data_dec: &[u8], key: GenericArray<u8, U32>) -> Result<EncString> {
+    let mut iv = [0u8; 16];
+    rand::thread_rng().fill_bytes(&mut iv);
+    let data = cbc::Encryptor::<aes::Aes256>::new(&key, &iv.into())
+        .encrypt_padded_vec_mut::<Pkcs7>(data_dec);
+
+    Ok(EncString::AesCbc256_B64 { iv, data })
+}
+
+pub fn encrypt_aes256_hmac(
     data_dec: &[u8],
-    mac_key: Option<GenericArray<u8, U32>>,
+    mac_key: GenericArray<u8, U32>,
     key: GenericArray<u8, U32>,
 ) -> Result<EncString> {
-    let mac_key = match mac_key {
-        Some(k) => k,
-        None => return Err(CryptoError::InvalidMac.into()),
-    };
-
     let mut iv = [0u8; 16];
     rand::thread_rng().fill_bytes(&mut iv);
     let data = cbc::Encryptor::<aes::Aes256>::new(&key, &iv.into())

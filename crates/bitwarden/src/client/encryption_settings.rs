@@ -9,7 +9,7 @@ use {
 };
 
 use crate::{
-    crypto::{encrypt_aes256, EncString, SymmetricCryptoKey},
+    crypto::{encrypt_aes256_hmac, EncString, SymmetricCryptoKey},
     error::{CryptoError, Result},
 };
 
@@ -119,7 +119,7 @@ impl EncryptionSettings {
     pub(crate) fn encrypt(&self, data: &[u8], org_id: &Option<Uuid>) -> Result<EncString> {
         let key = self.get_key(org_id).ok_or(CryptoError::NoKeyForOrg)?;
 
-        let dec = encrypt_aes256(data, key.mac_key, key.key)?;
+        let dec = encrypt_aes256_hmac(data, key.mac_key.unwrap(), key.key)?;
         Ok(dec)
     }
 }

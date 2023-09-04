@@ -162,26 +162,27 @@ impl EncString {
                     Ok(EncString::AesCbc256_HmacSha256_B64 { iv, mac, data })
                 }
             }
-            3 | 4 => {
+            3 => {
                 check_length(buf, 2)?;
                 let data = buf[1..].to_vec();
-
-                if enc_type == 3 {
-                    Ok(EncString::Rsa2048_OaepSha256_B64 { data })
-                } else {
-                    Ok(EncString::Rsa2048_OaepSha1_B64 { data })
-                }
+                Ok(EncString::Rsa2048_OaepSha256_B64 { data })
+            }
+            4 => {
+                check_length(buf, 2)?;
+                let data = buf[1..].to_vec();
+                Ok(EncString::Rsa2048_OaepSha1_B64 { data })
             }
             #[allow(deprecated)]
-            5 | 6 => {
+            5 => {
                 check_length(buf, 2)?;
                 let data = buf[1..].to_vec();
-
-                if enc_type == 1 {
-                    Ok(EncString::Rsa2048_OaepSha256_HmacSha256_B64 { data })
-                } else {
-                    Ok(EncString::Rsa2048_OaepSha1_HmacSha256_B64 { data })
-                }
+                Ok(EncString::Rsa2048_OaepSha256_HmacSha256_B64 { data })
+            }
+            #[allow(deprecated)]
+            6 => {
+                check_length(buf, 2)?;
+                let data = buf[1..].to_vec();
+                Ok(EncString::Rsa2048_OaepSha1_HmacSha256_B64 { data })
             }
             _ => Err(EncStringParseError::InvalidType {
                 enc_type: enc_type.to_string(),

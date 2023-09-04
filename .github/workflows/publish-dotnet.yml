@@ -86,7 +86,6 @@ jobs:
 
       - name: Pack NuGet Package
         if: matrix.os != 'windows-latest'
-        id: version
         env:
           VERSION: 1.0.3
         run: |
@@ -99,12 +98,11 @@ jobs:
 
       - name: Pack NuGet Package
         if: matrix.os == 'windows-latest'
-        id: version
         env:
-          DOTNET_VERSION: 1.0.3
+          VERSION: 1.0.3
         run: |
           cd languages/csharp
-          dotnet pack --configuration Release -p:PackageID=TestSDK.${{ matrix.os }}.${{ matrix.arch }}  -p:Platform=${{ matrix.arch }} -p:Version=$env:DOTNET_VERSION --output ./nuget-output /nologo /v:n
+          dotnet pack --configuration Release -p:PackageID=TestSDK.${{ matrix.os }}.${{ matrix.arch }}  -p:Platform=${{ matrix.arch }} -p:Version=$env:VERSION --output ./nuget-output /nologo /v:n
 
       - name: Publish NuGet Package
         if: matrix.os == 'windows-latest'

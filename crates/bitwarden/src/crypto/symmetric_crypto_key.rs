@@ -9,6 +9,7 @@ use crate::{
     util::BASE64_ENGINE,
 };
 
+/// A symmetric encryption key. Used to encrypt and decrypt [`EncString`](crate::crypto::EncString)
 pub struct SymmetricCryptoKey {
     pub key: GenericArray<u8, U32>,
     pub mac_key: Option<GenericArray<u8, U32>>,

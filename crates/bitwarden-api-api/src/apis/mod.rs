@@ -1,4 +1,5 @@
-use std::{error, fmt};
+use std::error;
+use std::fmt;
 
 #[derive(Debug, Clone)]
 pub struct ResponseContent<T> {

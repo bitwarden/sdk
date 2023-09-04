@@ -44,6 +44,7 @@ jobs:
           elif [[ "${{ matrix.arch }}" == "arm64" ]]; then
             echo "TARGET_ARCH=--target aarch64-apple-darwin" >> $GITHUB_ENV
             echo "TARGET_FOLDER=target/aarch64-apple-darwin/release/" >> $GITHUB_ENV
+            rustup target add aarch64-apple-darwin
           fi
 
       - name: Set build architecture, windows

@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
-        arch: [x86, x64, arm64]
+        arch: [x64, arm64]
 
     runs-on: ${{ matrix.os }}
 
@@ -33,11 +33,11 @@ jobs:
       - name: Build
         run: |
           if [[ ${{ matrix.os }} == "windows-latest" ]]; then
-            target_os="windows"
+            target_os="pc-windows-msvc"
           elif [[ ${{ matrix.os }} == "macos-latest" ]]; then
-            target_os="macos"
+            target_os="apple-darwin"
           else
-            target_os="linux"
+            target_os="unknown-linux-gnu"
           fi
 
           if [[ ${{ matrix.arch }} == "x86" ]]; then
@@ -48,7 +48,7 @@ jobs:
             target_arch="aarch64"
           fi
 
-          cargo build --release --target $target_arch-unknown-$target_os
+          cargo build --release --target $target_arch-$target_os
 
       - name: Upload Artifact
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2

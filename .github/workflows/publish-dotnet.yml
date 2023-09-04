@@ -50,8 +50,8 @@ jobs:
       - name: Set build architecture, windows
         if: matrix.os == 'windows-latest'
         run: |
-            echo "TARGET_ARCH=" >> $GITHUB_ENV
-            echo "TARGET_FOLDER=target/release/" >> $GITHUB_ENV
+            echo "TARGET_ARCH=" | Out-File -FilePath $env:GITHUB_ENV
+            echo "TARGET_FOLDER=target/release/" | Out-File -FilePath $env:GITHUB_ENV
 
       - name: Build Rust
         run: cargo build ${{ env.TARGET_ARCH }} --release

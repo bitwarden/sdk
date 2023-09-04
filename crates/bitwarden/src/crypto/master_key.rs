@@ -43,7 +43,6 @@ impl MasterKey {
         Ok(BASE64_ENGINE.encode(hash))
     }
 
-    #[cfg(feature = "internal")]
     pub(crate) fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey> {
         let stretched_key = stretch_master_key(self)?;
 
@@ -92,7 +91,6 @@ fn derive_key(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<SymmetricCryptoKe
     SymmetricCryptoKey::try_from(hash.as_slice())
 }
 
-#[cfg(feature = "internal")]
 fn stretch_master_key(master_key: &MasterKey) -> Result<SymmetricCryptoKey> {
     let key: GenericArray<u8, U32> = hkdf_expand(&master_key.0.key, Some("enc"))?;
     let mac_key: GenericArray<u8, U32> = hkdf_expand(&master_key.0.key, Some("mac"))?;

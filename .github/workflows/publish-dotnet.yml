@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
-        arch: [x86_64, arm64]
+        arch: [x64, arm64]
         exclude:
           - os: windows-latest
             arch: arm64
@@ -38,7 +38,7 @@ jobs:
       - name: Set build architecture, ios, linux
         if: matrix.os != 'windows-latest'
         run: |
-          if [[ "${{ matrix.arch }}" == "x86_64" ]]; then
+          if [[ "${{ matrix.arch }}" == "x64" ]]; then
             echo "TARGET_ARCH=" >> $GITHUB_ENV
             echo "TARGET_FOLDER=target/release/" >> $GITHUB_ENV
           elif [[ "${{ matrix.arch }}" == "arm64" ]]; then
@@ -79,12 +79,6 @@ jobs:
           name: schemas.cs
           path: languages/csharp
 
-      - name: Download libbitwarden_c_files-macos-latest-x86 files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: libbitwarden_c_files-macos-latest-x86
-          path: languages/csharp/macos-latest-x86
-
       - name: Download libbitwarden_c_files-macos-latest-x64 files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
@@ -97,41 +91,17 @@ jobs:
           name: libbitwarden_c_files-macos-latest-arm64
           path: languages/csharp/macos-latest-arm64
 
-      - name: Download libbitwarden_c_files-ubuntu-latest-x86 files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: libbitwarden_c_files-ubuntu-latest-x86
-          path: languages/csharp/ubuntu-latest-x86
-
       - name: Download libbitwarden_c_files-ubuntu-latest-x64 files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: libbitwarden_c_files-ubuntu-latest-x64
           path: languages/csharp/ubuntu-latest-x64
 
-      - name: Download libbitwarden_c_files-ubuntu-latest-arm64 files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: libbitwarden_c_files-ubuntu-latest-arm64
-          path: languages/csharp/ubuntu-latest-arm64
-
-      - name: Download libbitwarden_c_files-windows-latest-x86 files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: libbitwarden_c_files-windows-latest-x86
-          path: languages/csharp/windows-latest-x86
-
       - name: Download libbitwarden_c_files-windows-latest-x64 files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: libbitwarden_c_files-windows-latest-x64
           path: languages/csharp/windows-latest-x64
-
-      - name: Download libbitwarden_c_files-windows-latest-arm64 files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: libbitwarden_c_files-windows-latest-arm64
-          path: languages/csharp/windows-latest-arm64
 
       - name: List libbitwarden_c_files
         run: |
@@ -145,7 +115,7 @@ jobs:
       - name: Get Package Version
         id: version
         env:
-          VERSION: 1.0.4
+          VERSION: 1.0.5
         run: |
           cd languages/csharp
           dotnet pack --configuration Release /property:Version=${VERSION} --output ./nuget-output /nologo /v:n

@@ -6,6 +6,7 @@ pub mod ciphers;
 pub mod collections;
 pub mod folders;
 pub mod password_history;
+pub mod sends;
 
 #[derive(uniffi::Object)]
 pub struct ClientVault(pub(crate) Arc<Client>);
@@ -27,8 +28,13 @@ impl ClientVault {
         Arc::new(ciphers::ClientCiphers(self.0.clone()))
     }
 
-    /// Ciphers operations
+    /// Password history operations
     pub fn password_history(self: Arc<Self>) -> Arc<password_history::ClientPasswordHistory> {
         Arc::new(password_history::ClientPasswordHistory(self.0.clone()))
+    }
+
+    /// Sends operations
+    pub fn sends(self: Arc<Self>) -> Arc<sends::ClientSends> {
+        Arc::new(sends::ClientSends(self.0.clone()))
     }
 }

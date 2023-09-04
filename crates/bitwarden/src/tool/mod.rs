@@ -1,4 +1,5 @@
-mod client_generator;
-mod password;
+mod exporters;
+mod generators;
 
-pub use password::{PassphraseGeneratorRequest, PasswordGeneratorRequest};
+pub use exporters::ExportFormat;
+pub use generators::{PassphraseGeneratorRequest, PasswordGeneratorRequest};

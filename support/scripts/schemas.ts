@@ -62,6 +62,16 @@ async function main() {
   });
 
   writeToFile("./languages/csharp/schemas.cs", csharp.lines);
+
+  const go = await quicktype({
+    inputData,
+    lang: "go",
+    rendererOptions: {
+      "package": "main",
+    },
+  });
+
+  writeToFile("./languages/go/schema.go", go.lines);
 }
 
 main();

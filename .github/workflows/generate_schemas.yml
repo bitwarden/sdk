@@ -63,3 +63,10 @@ jobs:
           name: sdk-schemas-json
           path: ${{ github.workspace }}/support/schemas/*
           if-no-files-found: error
+
+      - name: Upload Go schemas artifact
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: schemas.go
+          path: ${{ github.workspace }}/languages/go/schema.go
+          if-no-files-found: error

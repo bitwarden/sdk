@@ -1,5 +1,9 @@
-use super::password::{password_strength, satisfies_policy, MasterPasswordPolicyOptions};
-use crate::Client;
+use super::{
+    password::{password_strength, satisfies_policy, MasterPasswordPolicyOptions},
+    register::generate_register_keys,
+    RegisterResponse,
+};
+use crate::{client::auth_settings::Kdf, error::Result, Client};
 
 pub struct ClientAuth<'a> {
     pub(crate) _client: &'a crate::Client,
@@ -22,6 +26,15 @@ impl<'a> ClientAuth<'a> {
         policy: &MasterPasswordPolicyOptions,
     ) -> bool {
         satisfies_policy(password, strength, policy)
+    }
+
+    pub fn generate_register_keys(
+        &self,
+        email: String,
+        password: String,
+        kdf: Kdf,
+    ) -> Result<RegisterResponse> {
+        generate_register_keys(email, password, kdf)
     }
 }
 

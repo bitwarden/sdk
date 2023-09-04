@@ -1,6 +1,9 @@
 use std::sync::Arc;
 
-use bitwarden::{auth::password::MasterPasswordPolicyOptions, client::auth_settings::Kdf};
+use bitwarden::{
+    auth::{password::MasterPasswordPolicyOptions, RegisterResponse},
+    client::auth_settings::Kdf,
+};
 
 use crate::{error::Result, Client};
 
@@ -56,5 +59,21 @@ impl ClientAuth {
             .kdf()
             .hash_password(email, password, kdf_params)
             .await?)
+    }
+
+    /// Generate keys needed for registration process
+    pub async fn generate_register_keys(
+        &self,
+        email: String,
+        password: String,
+        kdf: Kdf,
+    ) -> Result<RegisterResponse> {
+        Ok(self
+            .0
+             .0
+            .read()
+            .await
+            .auth()
+            .generate_register_keys(email, password, kdf)?)
     }
 }

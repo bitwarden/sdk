@@ -1,5 +1,5 @@
 use bitwarden::{
-    auth::password::MasterPasswordPolicyOptions,
+    auth::{password::MasterPasswordPolicyOptions, RegisterResponse},
     client::auth_settings::Kdf,
     mobile::crypto::InitCryptoRequest,
     tool::{PassphraseGeneratorRequest, PasswordGeneratorRequest},
@@ -26,6 +26,7 @@ pub enum DocRef {
 
     // Auth
     MasterPasswordPolicyOptions(MasterPasswordPolicyOptions),
+    RegisterResponse(RegisterResponse),
 
     // Kdf
     Kdf(Kdf),

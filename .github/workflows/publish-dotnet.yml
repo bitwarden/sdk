@@ -30,7 +30,27 @@ jobs:
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@e207df5d269b42b69c8bc5101da26f7d31feddb4 # v2.6.2
 
-      - name: Build
+      - name: Install target for ${{ matrix.os }} ${{ matrix.arch }}
+        run: |
+          if [[ ${{ matrix.os }} == "windows-latest" ]]; then
+            target_os="pc-windows-msvc"
+          elif [[ ${{ matrix.os }} == "macos-latest" ]]; then
+            target_os="apple-darwin"
+          else
+            target_os="unknown-linux-gnu"
+          fi
+
+          if [[ ${{ matrix.arch }} == "x86" ]]; then
+            target_arch="i686"
+          elif [[ ${{ matrix.arch }} == "x64" ]]; then
+            target_arch="x86_64"
+          else
+            target_arch="aarch64"
+          fi
+
+          rustup target add $target_arch-$target_os
+
+      - name: Build Rust
         run: |
           if [[ ${{ matrix.os }} == "windows-latest" ]]; then
             target_os="pc-windows-msvc"

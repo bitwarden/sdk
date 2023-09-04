@@ -14,6 +14,6 @@ pub async fn hash_password(
         email,
         kdf: kdf_params,
     };
-    let hash = auth_settings.make_user_password_hash(&password)?;
+    let hash = auth_settings.derive_user_password_hash(&password)?;
     Ok(hash)
 }

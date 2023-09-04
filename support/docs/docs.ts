@@ -24,6 +24,7 @@ const rootElements = [
   "ClientCiphers",
   "ClientCollections",
   "ClientCrypto",
+  "ClientExporters",
   "ClientFolders",
   "ClientGenerators",
   "ClientPasswordHistory",

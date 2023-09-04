@@ -2,7 +2,6 @@
 
 pub(crate) use client::*;
 pub(crate) mod access_token;
-#[cfg(any(feature = "internal", feature = "mobile"))]
 pub mod auth_settings;
 #[allow(clippy::module_inception)]
 mod client;

@@ -4,10 +4,12 @@ use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::Engine;
 
 use crate::{
+    crypto::derive_shareable_key,
     error::{CryptoError, Error},
     util::BASE64_ENGINE,
 };
 
+/// A symmetric encryption key. Used to encrypt and decrypt [`EncString`](crate::crypto::EncString)
 pub struct SymmetricCryptoKey {
     pub key: GenericArray<u8, U32>,
     pub mac_key: Option<GenericArray<u8, U32>>,
@@ -20,7 +22,7 @@ impl SymmetricCryptoKey {
     pub fn generate(name: &str) -> Self {
         use rand::Rng;
         let secret: [u8; 16] = rand::thread_rng().gen();
-        crate::crypto::stretch_key(secret, name, None)
+        derive_shareable_key(secret, name, None)
     }
 
     pub fn to_base64(&self) -> String {

@@ -33,25 +33,13 @@ impl EncryptionSettings {
         user_key: EncString,
         private_key: EncString,
     ) -> Result<Self> {
-        use crate::crypto::decrypt_aes256;
+        use crate::crypto::MasterKey;
 
-        // Stretch keys from the provided password
-        let (key, mac_key) = crate::crypto::stretch_key_password(
-            password.as_bytes(),
-            auth.email.as_bytes(),
-            &auth.kdf,
-        )?;
+        // Derive master key from password
+        let master_key = MasterKey::derive(password.as_bytes(), auth.email.as_bytes(), &auth.kdf)?;
 
-        // Decrypt the user key with the stretched key
-        let user_key = {
-            let (iv, mac, data) = match user_key {
-                EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => (iv, mac, data),
-                _ => return Err(CryptoError::InvalidKey.into()),
-            };
-
-            let dec = decrypt_aes256(&iv, &mac, data, Some(mac_key), key)?;
-            SymmetricCryptoKey::try_from(dec.as_slice())?
-        };
+        // Decrypt the user key
+        let user_key = master_key.decrypt_user_key(user_key)?;
 
         // Decrypt the private key with the user key
         let private_key = {

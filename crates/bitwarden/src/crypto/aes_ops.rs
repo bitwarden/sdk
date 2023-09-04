@@ -72,12 +72,3 @@ fn validate_mac(mac_key: &[u8], iv: &[u8], data: &[u8]) -> Result<[u8; 32]> {
 
     Ok(mac)
 }
-
-pub fn encrypt_aes256_no_mac(data_dec: &[u8], key: GenericArray<u8, U32>) -> Result<EncString> {
-    let mut iv = [0u8; 16];
-    rand::thread_rng().fill_bytes(&mut iv);
-    let data = cbc::Encryptor::<aes::Aes256>::new(&key, &iv.into())
-        .encrypt_padded_vec_mut::<Pkcs7>(data_dec);
-
-    Ok(EncString::AesCbc256_B64 { iv, data })
-}

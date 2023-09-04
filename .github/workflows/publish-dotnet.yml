@@ -60,7 +60,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
-          name: libbitwarden_c_files/${{ matrix.os }}-${{ matrix.arch }}
+          name: libbitwarden_c_files-${{ matrix.os }}-${{ matrix.arch }}
           path: |
             ${{ env.TARGET_FOLDER }}/*bitwarden_c*
 
@@ -78,58 +78,58 @@ jobs:
           name: schemas.cs
           path: languages/csharp
 
-      - name: Download libbitwarden_c_files/macos-latest-x86 files
+      - name: Download libbitwarden_c_files-macos-latest-x86 files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
-          name: libbitwarden_c_files/macos-latest-x86
+          name: libbitwarden_c_files-macos-latest-x86
           path: languages/csharp/macos-latest-x86
 
-      - name: Download libbitwarden_c_files/macos-latest-x64 files
+      - name: Download libbitwarden_c_files-macos-latest-x64 files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
-          name: libbitwarden_c_files/macos-latest-x64
+          name: libbitwarden_c_files-macos-latest-x64
           path: languages/csharp/macos-latest-x64
 
-      - name: Download libbitwarden_c_files/macos-latest-arm64 files
+      - name: Download libbitwarden_c_files-macos-latest-arm64 files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
-          name: libbitwarden_c_files/macos-latest-arm64
+          name: libbitwarden_c_files-macos-latest-arm64
           path: languages/csharp/macos-latest-arm64
 
-      - name: Download libbitwarden_c_files/ubuntu-latest-x86 files
+      - name: Download libbitwarden_c_files-ubuntu-latest-x86 files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
-          name: libbitwarden_c_files/ubuntu-latest-x86
+          name: libbitwarden_c_files-ubuntu-latest-x86
           path: languages/csharp/ubuntu-latest-x86
 
-      - name: Download libbitwarden_c_files/ubuntu-latest-x64 files
+      - name: Download libbitwarden_c_files-ubuntu-latest-x64 files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
-          name: libbitwarden_c_files/ubuntu-latest-x64
+          name: libbitwarden_c_files-ubuntu-latest-x64
           path: languages/csharp/ubuntu-latest-x64
 
-      - name: Download libbitwarden_c_files/ubuntu-latest-arm64 files
+      - name: Download libbitwarden_c_files-ubuntu-latest-arm64 files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
-          name: libbitwarden_c_files/ubuntu-latest-arm64
+          name: libbitwarden_c_files-ubuntu-latest-arm64
           path: languages/csharp/ubuntu-latest-arm64
 
-      - name: Download libbitwarden_c_files/windows-latest-x86 files
+      - name: Download libbitwarden_c_files-windows-latest-x86 files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
-          name: libbitwarden_c_files/windows-latest-x86
+          name: libbitwarden_c_files-windows-latest-x86
           path: languages/csharp/windows-latest-x86
 
-      - name: Download libbitwarden_c_files/windows-latest-x64 files
+      - name: Download libbitwarden_c_files-windows-latest-x64 files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
-          name: libbitwarden_c_files/windows-latest-x64
+          name: libbitwarden_c_files-windows-latest-x64
           path: languages/csharp/windows-latest-x64
 
-      - name: Download libbitwarden_c_files/windows-latest-arm64 files
+      - name: Download libbitwarden_c_files-windows-latest-arm64 files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
-          name: libbitwarden_c_files/windows-latest-arm64
+          name: libbitwarden_c_files-windows-latest-arm64
           path: languages/csharp/windows-latest-arm64
 
       - name: List libbitwarden_c_files

@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{decrypt_aes256, Decryptable, Encryptable, SymmetricCryptoKey},
+    crypto::{decrypt_aes256_hmac, Decryptable, Encryptable, SymmetricCryptoKey},
     error::{CryptoError, EncStringParseError, Error, Result},
     util::BASE64_ENGINE,
 };
@@ -184,48 +184,22 @@ impl EncString {
 
 impl Display for EncString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}.", self.enc_type())?;
+        let parts: Vec<&[u8]> = match self {
+            EncString::AesCbc256_B64 { iv, data } => vec![iv, data],
+            EncString::AesCbc128_HmacSha256_B64 { iv, mac, data } => vec![iv, data, mac],
+            EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => vec![iv, data, mac],
+            EncString::Rsa2048_OaepSha256_B64 { data } => vec![data],
+            EncString::Rsa2048_OaepSha1_B64 { data } => vec![data],
+            EncString::Rsa2048_OaepSha256_HmacSha256_B64 { mac, data } => vec![data, mac],
+            EncString::Rsa2048_OaepSha1_HmacSha256_B64 { mac, data } => vec![data, mac],
+        };
 
-        let mut parts = Vec::<&[u8]>::new();
+        let encoded_parts: Vec<String> = parts
+            .iter()
+            .map(|part| BASE64_ENGINE.encode(part))
+            .collect();
 
-        match self {
-            EncString::AesCbc256_B64 { iv, data } => {
-                parts.push(iv);
-                parts.push(data);
-            }
-            EncString::AesCbc128_HmacSha256_B64 { iv, mac, data } => {
-                parts.push(iv);
-                parts.push(data);
-                parts.push(mac);
-            }
-            EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
-                parts.push(iv);
-                parts.push(data);
-                parts.push(mac);
-            }
-            EncString::Rsa2048_OaepSha256_B64 { data } => {
-                parts.push(data);
-            }
-            EncString::Rsa2048_OaepSha1_B64 { data } => {
-                parts.push(data);
-            }
-            EncString::Rsa2048_OaepSha256_HmacSha256_B64 { mac, data } => {
-                parts.push(data);
-                parts.push(mac);
-            }
-            EncString::Rsa2048_OaepSha1_HmacSha256_B64 { mac, data } => {
-                parts.push(data);
-                parts.push(mac);
-            }
-        }
-
-        for i in 0..parts.len() {
-            if i == parts.len() - 1 {
-                write!(f, "{}", BASE64_ENGINE.encode(parts[i]))?;
-            } else {
-                write!(f, "{}|", BASE64_ENGINE.encode(parts[i]))?;
-            }
-        }
+        write!(f, "{}.{}", self.enc_type(), encoded_parts.join("|"))?;
 
         Ok(())
     }
@@ -241,7 +215,7 @@ impl<'de> Deserialize<'de> for EncString {
             type Value = EncString;
 
             fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                write!(f, "A valid string")
+                write!(f, "a valid string")
             }
 
             fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
@@ -281,7 +255,8 @@ impl EncString {
     pub fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
         match self {
             EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
-                let dec = decrypt_aes256(iv, mac, data.clone(), key.mac_key, key.key)?;
+                let mac_key = key.mac_key.ok_or(CryptoError::InvalidMac)?;
+                let dec = decrypt_aes256_hmac(iv, mac, data.clone(), mac_key, key.key)?;
                 Ok(dec)
             }
             _ => Err(CryptoError::InvalidKey.into()),

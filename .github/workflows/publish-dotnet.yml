@@ -36,7 +36,7 @@ jobs:
         uses: Swatinem/rust-cache@e207df5d269b42b69c8bc5101da26f7d31feddb4 # v2.6.2
 
       - name: Set build architecture, ios, linux
-        if: ${{ matrix.os }}" != "windows-latest"
+        if: matrix.os != 'windows-latest'
         run: |
           if [[ "${{ matrix.arch }}" == "x86_64" ]]; then
             echo "TARGET_ARCH=" >> $GITHUB_ENV
@@ -47,7 +47,7 @@ jobs:
           fi
 
       - name: Set build architecture, windows
-        if: ${{ matrix.os }}" == "windows-latest"
+        if: matrix.os == 'windows-latest'
         run: |
             echo "TARGET_ARCH=" >> $GITHUB_ENV
             echo "TARGET_FOLDER=target/release/" >> $GITHUB_ENV

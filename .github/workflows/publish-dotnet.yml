@@ -35,18 +35,25 @@ jobs:
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@e207df5d269b42b69c8bc5101da26f7d31feddb4 # v2.6.2
 
-      - name: Set build architecture
+      - name: Set build architecture, ios, linux
+        if: ${{ matrix.os }}" != "windows-latest"
         run: |
           if [[ "${{ matrix.arch }}" == "x86_64" ]]; then
             echo "TARGET_ARCH=" >> $GITHUB_ENV
             echo "TARGET_FOLDER=target/release/" >> $GITHUB_ENV
           elif [[ "${{ matrix.arch }}" == "arm64" ]]; then
-            echo "TARGET_ARCH=aarch64-apple-darwin" >> $GITHUB_ENV
+            echo "TARGET_ARCH=--target aarch64-apple-darwin" >> $GITHUB_ENV
             echo "TARGET_FOLDER=target/aarch64-apple-darwin/release/" >> $GITHUB_ENV
           fi
 
+      - name: Set build architecture, windows
+        if: ${{ matrix.os }}" == "windows-latest"
+        run: |
+            echo "TARGET_ARCH=" >> $GITHUB_ENV
+            echo "TARGET_FOLDER=target/release/" >> $GITHUB_ENV
+
       - name: Build Rust
-        run: cargo build --target ${{ env.TARGET_ARCH }} --release
+        run: cargo build ${{ env.TARGET_ARCH }} --release
         env:
           RUSTFLAGS: "-D warnings"
 

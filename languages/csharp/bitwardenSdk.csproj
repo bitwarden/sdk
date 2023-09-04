@@ -7,7 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyName>BitwardenSdk</AssemblyName>
-    <PackageId>TestPackageId</PackageId>
+    <PackageId>BitwardenSdk</PackageId>
     <Title>Bitwarden Sdk</Title>
     <Authors>Bitwarden Inc.</Authors>
     <Description>Bitwarden Sdk</Description>

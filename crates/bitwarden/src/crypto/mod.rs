@@ -16,8 +16,8 @@
 //!
 //! - `CryptoService.makeSendKey` & `AccessService.createAccessToken` are replaced by the generic
 //!   `derive_shareable_key`
-//! - MasterKey operations such as `makeMasterKey` and `hashMasterKey` are moved to the
-//!   [`MasterKey`](MasterKey) struct.
+//! - MasterKey operations such as `makeMasterKey` and `hashMasterKey` are moved to the MasterKey
+//!   struct.
 //!
 
 use aes::cipher::{generic_array::GenericArray, ArrayLength, Unsigned};

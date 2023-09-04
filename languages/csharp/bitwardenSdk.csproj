@@ -46,51 +46,18 @@
         <PackageCopyToOutput>true</PackageCopyToOutput>
     </Content>
   </ItemGroup>
-    <ItemGroup Condition="'$(Configuration)'=='Release'">
-    <Content Include="macos-latest-x86/libbitwarden_c*.dylib">
+  <ItemGroup Condition="'$(Configuration)'=='Release'">
+    <Content Include="libbitwarden_c*.dylib">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <PackageCopyToOutput>true</PackageCopyToOutput>
-      <PackagePath>contentFiles/any/net6.0/x86</PackagePath>
     </Content>
-      <Content Include="macos-latest-x64/libbitwarden_c*.dylib">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        <PackageCopyToOutput>true</PackageCopyToOutput>
-        <PackagePath>contentFiles/any/net6.0/x64</PackagePath>
-      </Content>
-      <Content Include="macos-latest-arm64/libbitwarden_c*.dylib">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        <PackageCopyToOutput>true</PackageCopyToOutput>
-        <PackagePath>contentFiles/any/net6.0/arm64</PackagePath>
-      </Content>
-    <Content Include="ubuntu-latest-x86/libbitwarden_c*.so">
+    <Content Include="libbitwarden_c*.so">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <PackageCopyToOutput>true</PackageCopyToOutput>
-      <PackagePath>contentFiles/any/net6.0/x86</PackagePath>
     </Content>
-      <Content Include="ubuntu-latest-x64/libbitwarden_c*.so">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        <PackageCopyToOutput>true</PackageCopyToOutput>
-        <PackagePath>contentFiles/any/net6.0/x64</PackagePath>
-      </Content>
-      <Content Include="ubuntu-latest-arm64/libbitwarden_c*.so">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        <PackageCopyToOutput>true</PackageCopyToOutput>
-        <PackagePath>contentFiles/any/net6.0/arm64</PackagePath>
-      </Content>
-    <Content Include="windows-latest-x86/bitwarden_c*.dll">
+    <Content Include="bitwarden_c*.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <PackageCopyToOutput>true</PackageCopyToOutput>
-      <PackagePath>contentFiles/any/net6.0/x86</PackagePath>
     </Content>
-      <Content Include="windows-latest-x64/bitwarden_c*.dll">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        <PackageCopyToOutput>true</PackageCopyToOutput>
-        <PackagePath>contentFiles/any/net6.0/x64</PackagePath>
-      </Content>
-      <Content Include="windows-latest-arm64/bitwarden_c*.dll">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        <PackageCopyToOutput>true</PackageCopyToOutput>
-        <PackagePath>contentFiles/any/net6.0/arm64</PackagePath>
-      </Content>
   </ItemGroup>
 </Project>

@@ -27,6 +27,7 @@ impl MasterKey {
         derive_key(password, email, kdf).map(Self)
     }
 
+    /// Derive the master key hash, used for server authorization.
     pub(crate) fn derive_master_key_hash(
         &self,
         password: &[u8],
@@ -44,7 +45,6 @@ impl MasterKey {
 
     #[cfg(feature = "internal")]
     pub(crate) fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey> {
-        // The master key needs to be stretched before it can be used
         let stretched_key = stretch_master_key(self)?;
 
         let dec = user_key.decrypt_with_key(&stretched_key)?;

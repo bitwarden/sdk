@@ -16,6 +16,8 @@
 //!
 //! - `CryptoService.makeSendKey` & `AccessService.createAccessToken` are replaced by the generic
 //!   `derive_shareable_key`
+//! - MasterKey operations such as `makeMasterKey` and `hashMasterKey` are moved to the MasterKey
+//!   struct.
 //!
 
 use aes::cipher::{generic_array::GenericArray, ArrayLength, Unsigned};
@@ -37,7 +39,7 @@ pub(crate) use shareable_key::derive_shareable_key;
 #[cfg(feature = "internal")]
 mod master_key;
 #[cfg(feature = "internal")]
-pub(crate) use master_key::{hash_kdf, stretch_key_password};
+pub(crate) use master_key::{HashPurpose, MasterKey};
 
 #[cfg(feature = "internal")]
 mod fingerprint;

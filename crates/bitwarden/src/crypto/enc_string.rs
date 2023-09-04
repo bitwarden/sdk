@@ -95,22 +95,23 @@ impl FromStr for EncString {
                     Ok(EncString::AesCbc256_HmacSha256_B64 { iv, mac, data })
                 }
             }
-            ("3" | "4", 1) => {
+            ("3", 1) => {
                 let data = from_b64_vec(parts[0])?;
-                if enc_type == "3" {
-                    Ok(EncString::Rsa2048_OaepSha256_B64 { data })
-                } else {
-                    Ok(EncString::Rsa2048_OaepSha1_B64 { data })
-                }
+                Ok(EncString::Rsa2048_OaepSha256_B64 { data })
+            }
+            ("4", 1) => {
+                let data = from_b64_vec(parts[0])?;
+                Ok(EncString::Rsa2048_OaepSha1_B64 { data })
             }
             #[allow(deprecated)]
-            ("5" | "6", 1) => {
+            ("5", 1) => {
                 let data = from_b64_vec(parts[0])?;
-                if enc_type == "5" {
-                    Ok(EncString::Rsa2048_OaepSha256_HmacSha256_B64 { data })
-                } else {
-                    Ok(EncString::Rsa2048_OaepSha1_HmacSha256_B64 { data })
-                }
+                Ok(EncString::Rsa2048_OaepSha256_HmacSha256_B64 { data })
+            }
+            #[allow(deprecated)]
+            ("6", 1) => {
+                let data = from_b64_vec(parts[0])?;
+                Ok(EncString::Rsa2048_OaepSha1_HmacSha256_B64 { data })
             }
 
             (enc_type, parts) => Err(EncStringParseError::InvalidType {

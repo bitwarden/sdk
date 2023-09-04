@@ -32,7 +32,6 @@ pub fn decrypt_aes256_hmac(
     mac_key: GenericArray<u8, U32>,
     key: GenericArray<u8, U32>,
 ) -> Result<Vec<u8>> {
-    // Validate HMAC
     let res = validate_mac(&mac_key, iv, &data)?;
     if res != *mac {
         return Err(CryptoError::InvalidMac.into());

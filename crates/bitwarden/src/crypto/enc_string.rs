@@ -155,52 +155,51 @@ impl EncString {
             .into()),
         }
     }
+
+    #[cfg(feature = "mobile")]
+    pub(crate) fn to_buffer(&self) -> Result<Vec<u8>> {
+        let mut buf;
+
+        match self {
+            EncString::AesCbc256_B64 { iv, data } => {
+                buf = Vec::with_capacity(1 + 16 + data.len());
+                buf.push(self.enc_type());
+                buf.extend_from_slice(iv);
+                buf.extend_from_slice(data);
+            }
+            EncString::AesCbc128_HmacSha256_B64 { iv, mac, data }
+            | EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
+                buf = Vec::with_capacity(1 + 16 + 32 + data.len());
+                buf.push(self.enc_type());
+                buf.extend_from_slice(iv);
+                buf.extend_from_slice(mac);
+                buf.extend_from_slice(data);
+            }
+            _ => todo!(),
+        }
+
+        Ok(buf)
+    }
 }
 
 impl Display for EncString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}.", self.enc_type())?;
+        let parts: Vec<&[u8]> = match self {
+            EncString::AesCbc256_B64 { iv, data } => vec![iv, data],
+            EncString::AesCbc128_HmacSha256_B64 { iv, mac, data } => vec![iv, data, mac],
+            EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => vec![iv, data, mac],
+            EncString::Rsa2048_OaepSha256_B64 { data } => vec![data],
+            EncString::Rsa2048_OaepSha1_B64 { data } => vec![data],
+            EncString::Rsa2048_OaepSha256_HmacSha256_B64 { mac, data } => vec![data, mac],
+            EncString::Rsa2048_OaepSha1_HmacSha256_B64 { mac, data } => vec![data, mac],
+        };
 
-        let mut parts = Vec::<&[u8]>::new();
+        let encoded_parts: Vec<String> = parts
+            .iter()
+            .map(|part| BASE64_ENGINE.encode(part))
+            .collect();
 
-        match self {
-            EncString::AesCbc256_B64 { iv, data } => {
-                parts.push(iv);
-                parts.push(data);
-            }
-            EncString::AesCbc128_HmacSha256_B64 { iv, mac, data } => {
-                parts.push(iv);
-                parts.push(data);
-                parts.push(mac);
-            }
-            EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
-                parts.push(iv);
-                parts.push(data);
-                parts.push(mac);
-            }
-            EncString::Rsa2048_OaepSha256_B64 { data } => {
-                parts.push(data);
-            }
-            EncString::Rsa2048_OaepSha1_B64 { data } => {
-                parts.push(data);
-            }
-            EncString::Rsa2048_OaepSha256_HmacSha256_B64 { mac, data } => {
-                parts.push(data);
-                parts.push(mac);
-            }
-            EncString::Rsa2048_OaepSha1_HmacSha256_B64 { mac, data } => {
-                parts.push(data);
-                parts.push(mac);
-            }
-        }
-
-        for i in 0..parts.len() {
-            if i == parts.len() - 1 {
-                write!(f, "{}", BASE64_ENGINE.encode(parts[i]))?;
-            } else {
-                write!(f, "{}|", BASE64_ENGINE.encode(parts[i]))?;
-            }
-        }
+        write!(f, "{}.{}", self.enc_type(), encoded_parts.join("|"))?;
 
         Ok(())
     }
@@ -216,7 +215,7 @@ impl<'de> Deserialize<'de> for EncString {
             type Value = EncString;
 
             fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                write!(f, "A valid string")
+                write!(f, "a valid string")
             }
 
             fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
@@ -301,5 +300,28 @@ mod tests {
         assert_eq!(t.key.enc_type(), 2);
         assert_eq!(t.key.to_string(), cipher);
         assert_eq!(serde_json::to_string(&t).unwrap(), serialized);
+    }
+
+    #[cfg(feature = "mobile")]
+    #[test]
+    fn test_enc_from_to_buffer() {
+        let enc_str: &str = "2.pMS6/icTQABtulw52pq2lg==|XXbxKxDTh+mWiN1HjH2N1w==|Q6PkuT+KX/axrgN9ubD5Ajk2YNwxQkgs3WJM0S0wtG8=";
+        let enc_string: EncString = enc_str.parse().unwrap();
+
+        let enc_buf = enc_string.to_buffer().unwrap();
+
+        assert_eq!(
+            enc_buf,
+            vec![
+                2, 164, 196, 186, 254, 39, 19, 64, 0, 109, 186, 92, 57, 218, 154, 182, 150, 67,
+                163, 228, 185, 63, 138, 95, 246, 177, 174, 3, 125, 185, 176, 249, 2, 57, 54, 96,
+                220, 49, 66, 72, 44, 221, 98, 76, 209, 45, 48, 180, 111, 93, 118, 241, 43, 16, 211,
+                135, 233, 150, 136, 221, 71, 140, 125, 141, 215
+            ]
+        );
+
+        let enc_string_new = EncString::from_buffer(&enc_buf).unwrap();
+
+        assert_eq!(enc_string_new.to_string(), enc_str)
     }
 }

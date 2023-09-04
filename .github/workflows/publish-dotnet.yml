@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
-        arch: [x64, arm64]
+        arch: [x86_64, arm64]
 
     runs-on: ${{ matrix.os }}
 
@@ -30,38 +30,35 @@ jobs:
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@e207df5d269b42b69c8bc5101da26f7d31feddb4 # v2.6.2
 
-      - name: Build Rust
+      - name: Set build architecture
+        if: ${{ matrix.os != "windows-latest" }}
         run: |
-          if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
-            if [ "${{ matrix.arch }}" == "x86_64" ]; then
-              cargo build --release
-            elif [ "${{ matrix.arch }}" == "arm64" ]; then
-              rustup target add aarch64-unknown-linux-gnu
-              cargo build --target aarch64-unknown-linux-gnu --release
-            fi
-          elif [ "${{ matrix.os }}" == "windows-latest" ]; then
-            if [ "${{ matrix.arch }}" == "x86_64" ]; then
-              cargo build --target x86_64-pc-windows-msvc --release
-            fi
-          elif [ "${{ matrix.os }}" == "macos-latest" ]; then
-            if [ "${{ matrix.arch }}" == "x86_64" ]; then
-              cargo build --release
-            elif [ "${{ matrix.arch }}" == "arm64" ]; then
-              rustup target add aarch64-apple-darwin
-              cargo build --target aarch64-apple-darwin --release
-            fi
+          if [[ "${{ matrix.arch }}" == "x86_64" ]]; then
+            echo "TARGET_ARCH=" >> $GITHUB_ENV
+            echo "TARGET_FOLDER=target/release/" >> $GITHUB_ENV
+          elif [[ "${{ matrix.arch }}" == "arm64" ]]; then
+            echo "TARGET_ARCH=aarch64-apple-darwin" >> $GITHUB_ENV
+            echo "TARGET_FOLDER=target/aarch64-apple-darwin/release/" >> $GITHUB_ENV
           fi
 
-      - name: List libbitwarden_c_files
-        run: |
-          ls -1 target/release # one per line
+      - name: Build Rust
+        if: ${{ matrix.os != "windows-latest" }}
+        run: cargo build --target ${{ env.TARGET_ARCH }} --release
+        env:
+          RUSTFLAGS: "-D warnings"
+
+      - name: Build Rust
+        if: ${{ matrix.os == "windows-latest"}} && ${{ matrix.arch == "x86_64"}}
+        run: cargo build --release
+        env:
+          RUSTFLAGS: "-D warnings"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
           name: libbitwarden_c_files/${{ matrix.os }}-${{ matrix.arch }}
           path: |
-            target/release/*bitwarden_c*
+            ${{ env.TARGET_FOLDER }}/*bitwarden_c*
 
   deploy:
     runs-on: ubuntu-22.04

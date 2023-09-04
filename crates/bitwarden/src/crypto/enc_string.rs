@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{decrypt_aes256, Decryptable, Encryptable, SymmetricCryptoKey},
+    crypto::{decrypt_aes256_hmac, Decryptable, Encryptable, SymmetricCryptoKey},
     error::{CryptoError, EncStringParseError, Error, Result},
     util::BASE64_ENGINE,
 };
@@ -255,7 +255,8 @@ impl EncString {
     pub fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
         match self {
             EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
-                let dec = decrypt_aes256(iv, mac, data.clone(), key.mac_key, key.key)?;
+                let mac_key = key.mac_key.ok_or(CryptoError::InvalidMac)?;
+                let dec = decrypt_aes256_hmac(iv, mac, data.clone(), mac_key, key.key)?;
                 Ok(dec)
             }
             _ => Err(CryptoError::InvalidKey.into()),

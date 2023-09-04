@@ -180,6 +180,34 @@ Initialization method for the crypto. Needs to be called before any other crypto
 
 **Output**: std::result::Result<,BitwardenError>
 
+## ClientExporters
+
+### `export_vault`
+
+**API Draft:** Export user vault
+
+**Arguments**:
+
+- self:
+- folders: Vec<FolderView>
+- ciphers: Vec<CipherView>
+- format: [ExportFormat](#exportformat)
+
+**Output**: std::result::Result<String,BitwardenError>
+
+### `export_organization_vault`
+
+**API Draft:** Export organization vault
+
+**Arguments**:
+
+- self:
+- collections: Vec<CollectionView>
+- ciphers: Vec<CipherView>
+- format: [ExportFormat](#exportformat)
+
+**Output**: std::result::Result<String,BitwardenError>
+
 ## ClientFolders
 
 ### `encrypt`
@@ -597,6 +625,37 @@ implementations.
     <th>readOnly</th>
     <th>boolean</th>
     <th></th>
+</tr>
+</table>
+
+## `ExportFormat`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>EncryptedJson</th>
+    <th>object</th>
+    <th></th>
+</tr>
+<tr>
+    <td colspan="3">
+        <table>
+        <tr>
+            <th>Key</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+            <tr>
+                <td>password</td>
+                <td>string</td>
+                <td></td>
+            </tr>
+        </table>
+    </td>
 </tr>
 </table>
 

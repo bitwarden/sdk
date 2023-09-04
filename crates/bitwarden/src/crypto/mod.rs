@@ -2,7 +2,7 @@
 //!
 //! This module contains the cryptographic primitives used throughout the SDK. The module makes a
 //! best effort to abstract away cryptographic concepts into concepts such as
-//! [`EncString`][EncString] and [`SymmetricCryptoKey`][SymmetricCryptoKey].
+//! [`EncString`] and [`SymmetricCryptoKey`].
 //!
 //! ## Conventions:
 //!

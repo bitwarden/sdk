@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use bitwarden::{
     tool::{ExportFormat, PassphraseGeneratorRequest, PasswordGeneratorRequest},
-    vault::{CipherView, CollectionView, FolderView},
+    vault::{Cipher, Collection, Folder},
 };
 
 use crate::{error::Result, Client};
@@ -45,8 +45,8 @@ impl ClientExporters {
     /// **API Draft:** Export user vault
     pub async fn export_vault(
         &self,
-        folders: Vec<FolderView>,
-        ciphers: Vec<CipherView>,
+        folders: Vec<Folder>,
+        ciphers: Vec<Cipher>,
         format: ExportFormat,
     ) -> Result<String> {
         Ok(self
@@ -62,8 +62,8 @@ impl ClientExporters {
     /// **API Draft:** Export organization vault
     pub async fn export_organization_vault(
         &self,
-        collections: Vec<CollectionView>,
-        ciphers: Vec<CipherView>,
+        collections: Vec<Collection>,
+        ciphers: Vec<Cipher>,
         format: ExportFormat,
     ) -> Result<String> {
         Ok(self

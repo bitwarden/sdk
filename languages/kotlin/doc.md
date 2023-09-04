@@ -189,8 +189,8 @@ Initialization method for the crypto. Needs to be called before any other crypto
 **Arguments**:
 
 - self:
-- folders: Vec<FolderView>
-- ciphers: Vec<CipherView>
+- folders: Vec<Folder>
+- ciphers: Vec<Cipher>
 - format: [ExportFormat](#exportformat)
 
 **Output**: std::result::Result<String,BitwardenError>
@@ -202,8 +202,8 @@ Initialization method for the crypto. Needs to be called before any other crypto
 **Arguments**:
 
 - self:
-- collections: Vec<CollectionView>
-- ciphers: Vec<CipherView>
+- collections: Vec<Collection>
+- ciphers: Vec<Cipher>
 - format: [ExportFormat](#exportformat)
 
 **Output**: std::result::Result<String,BitwardenError>

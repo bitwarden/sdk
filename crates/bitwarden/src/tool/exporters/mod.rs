@@ -2,7 +2,7 @@ use schemars::JsonSchema;
 
 use crate::{
     error::Result,
-    vault::{CipherView, CollectionView, FolderView},
+    vault::{Cipher, Collection, Folder},
 };
 
 mod client_exporter;
@@ -17,16 +17,16 @@ pub enum ExportFormat {
 }
 
 pub(super) fn export_vault(
-    _folders: Vec<FolderView>,
-    _ciphers: Vec<CipherView>,
+    _folders: Vec<Folder>,
+    _ciphers: Vec<Cipher>,
     _format: ExportFormat,
 ) -> Result<String> {
     todo!();
 }
 
 pub(super) fn export_organization_vault(
-    _collections: Vec<CollectionView>,
-    _ciphers: Vec<CipherView>,
+    _collections: Vec<Collection>,
+    _ciphers: Vec<Cipher>,
     _format: ExportFormat,
 ) -> Result<String> {
     todo!();

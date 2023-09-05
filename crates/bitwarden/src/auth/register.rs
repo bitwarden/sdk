@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     client::auth_settings::Kdf,
-    crypto::{HashPurpose, MasterKey},
+    crypto::{HashPurpose, MasterKey, RsaKeyPair},
     error::Result,
     util::default_pbkdf2_iterations,
     Client,
@@ -22,10 +22,7 @@ pub struct RegisterRequest {
     pub password_hint: Option<String>,
 }
 
-pub(super) async fn register(
-    client: &mut Client,
-    req: &RegisterRequest,
-) -> Result<RegisterResponse> {
+pub(super) async fn register(client: &mut Client, req: &RegisterRequest) -> Result<()> {
     let config = client.get_api_configurations().await;
 
     let kdf = Kdf::PBKDF2 {
@@ -45,7 +42,7 @@ pub(super) async fn register(
             key: Some(keys.encrypted_user_key.to_string()),
             keys: Some(Box::new(KeysRequestModel {
                 public_key: Some(keys.keys.public),
-                encrypted_private_key: keys.keys.private,
+                encrypted_private_key: keys.keys.private.to_string(),
             })),
             token: None,
             organization_user_id: None,
@@ -75,10 +72,7 @@ pub(super) fn generate_register_keys(
     Ok(RegisterResponse {
         master_password_hash,
         encrypted_user_key: encrypted_user_key.to_string(),
-        keys: RsaKeyResponse {
-            public: keys.0,
-            private: keys.1.to_string(),
-        },
+        keys,
     })
 }
 
@@ -87,12 +81,5 @@ pub(super) fn generate_register_keys(
 pub struct RegisterResponse {
     master_password_hash: String,
     encrypted_user_key: String,
-    keys: RsaKeyResponse,
-}
-
-#[derive(JsonSchema)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
-pub struct RsaKeyResponse {
-    public: String,
-    private: String,
+    keys: RsaKeyPair,
 }

@@ -46,6 +46,8 @@ mod user_key;
 pub(crate) use user_key::UserKey;
 #[cfg(feature = "internal")]
 mod rsa;
+#[cfg(feature = "internal")]
+pub use rsa::RsaKeyPair;
 
 #[cfg(feature = "internal")]
 mod fingerprint;

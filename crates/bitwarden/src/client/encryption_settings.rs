@@ -119,7 +119,7 @@ impl EncryptionSettings {
     pub(crate) fn encrypt(&self, data: &[u8], org_id: &Option<Uuid>) -> Result<EncString> {
         let key = self.get_key(org_id).ok_or(CryptoError::NoKeyForOrg)?;
 
-        let dec = encrypt_aes256_hmac(data, key.mac_key.unwrap(), key.key)?;
+        let dec = encrypt_aes256_hmac(data, key.mac_key.ok_or(CryptoError::InvalidMac)?, key.key)?;
         Ok(dec)
     }
 }

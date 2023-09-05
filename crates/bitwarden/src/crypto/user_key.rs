@@ -1,5 +1,8 @@
 use crate::{
-    crypto::{rsa::make_key_pair, EncString, SymmetricCryptoKey},
+    crypto::{
+        rsa::{make_key_pair, RsaKeyPair},
+        SymmetricCryptoKey,
+    },
     error::Result,
 };
 
@@ -10,7 +13,7 @@ impl UserKey {
         Self(key)
     }
 
-    pub(crate) fn make_key_pair(&self) -> Result<(String, EncString)> {
+    pub(crate) fn make_key_pair(&self) -> Result<RsaKeyPair> {
         make_key_pair(&self.0)
     }
 }

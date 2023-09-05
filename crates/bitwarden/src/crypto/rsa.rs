@@ -3,6 +3,7 @@ use rsa::{
     pkcs8::{EncodePrivateKey, EncodePublicKey},
     RsaPrivateKey, RsaPublicKey,
 };
+use schemars::JsonSchema;
 
 use crate::{
     crypto::{encrypt_aes256_hmac, EncString, SymmetricCryptoKey},
@@ -10,7 +11,16 @@ use crate::{
     util::BASE64_ENGINE,
 };
 
-pub(super) fn make_key_pair(key: &SymmetricCryptoKey) -> Result<(String, EncString)> {
+#[derive(JsonSchema)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+pub struct RsaKeyPair {
+    /// Base64 encoded DER representation of the public key
+    pub public: String,
+    /// Encrypted PKCS8 private key
+    pub private: EncString,
+}
+
+pub(super) fn make_key_pair(key: &SymmetricCryptoKey) -> Result<RsaKeyPair> {
     let mut rng = rand::thread_rng();
     let bits = 2048;
     let priv_key = RsaPrivateKey::new(&mut rng, bits).expect("failed to generate a key");
@@ -27,5 +37,8 @@ pub(super) fn make_key_pair(key: &SymmetricCryptoKey) -> Result<(String, EncStri
 
     let protected = encrypt_aes256_hmac(pkcs.as_bytes(), key.mac_key.unwrap(), key.key)?;
 
-    Ok((b64, protected))
+    Ok(RsaKeyPair {
+        public: b64,
+        private: protected,
+    })
 }

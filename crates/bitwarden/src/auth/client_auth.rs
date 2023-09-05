@@ -38,7 +38,7 @@ impl<'a> ClientAuth<'a> {
     }
 
     #[cfg(feature = "internal")]
-    pub async fn register(&mut self, input: &RegisterRequest) -> Result<RegisterResponse> {
+    pub async fn register(&mut self, input: &RegisterRequest) -> Result<()> {
         register(self.client, input).await
     }
 }

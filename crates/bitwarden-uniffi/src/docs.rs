@@ -1,5 +1,5 @@
 use bitwarden::{
-    auth::{password::MasterPasswordPolicyOptions, RegisterResponse},
+    auth::password::MasterPasswordPolicyOptions,
     client::auth_settings::Kdf,
     mobile::crypto::InitCryptoRequest,
     tool::{ExportFormat, PassphraseGeneratorRequest, PasswordGeneratorRequest},

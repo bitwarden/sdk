@@ -108,7 +108,7 @@ Hash the user password
 
 **Output**: std::result::Result<String,BitwardenError>
 
-### `generate_register_keys`
+### `make_register_keys`
 
 Generate keys needed for registration process
 
@@ -119,7 +119,7 @@ Generate keys needed for registration process
 - password: String
 - kdf: [Kdf](#kdf)
 
-**Output**: std::result::Result<RegisterResponse,BitwardenError>
+**Output**: std::result::Result<RegisterKeyResponse,BitwardenError>
 
 ## ClientCiphers
 

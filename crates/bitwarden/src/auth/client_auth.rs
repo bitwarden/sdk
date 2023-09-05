@@ -1,6 +1,6 @@
 use super::{
     password::{password_strength, satisfies_policy, MasterPasswordPolicyOptions},
-    register::{generate_register_keys, register},
+    register::{make_register_keys, register},
     RegisterKeyResponse, RegisterRequest,
 };
 use crate::{client::auth_settings::Kdf, error::Result, Client};
@@ -28,13 +28,13 @@ impl<'a> ClientAuth<'a> {
         satisfies_policy(password, strength, policy)
     }
 
-    pub fn generate_register_keys(
+    pub fn make_register_keys(
         &self,
         email: String,
         password: String,
         kdf: Kdf,
     ) -> Result<RegisterKeyResponse> {
-        generate_register_keys(email, password, kdf)
+        make_register_keys(email, password, kdf)
     }
 
     #[cfg(feature = "internal")]

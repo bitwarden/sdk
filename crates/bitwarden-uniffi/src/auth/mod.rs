@@ -62,7 +62,7 @@ impl ClientAuth {
     }
 
     /// Generate keys needed for registration process
-    pub async fn generate_register_keys(
+    pub async fn make_register_keys(
         &self,
         email: String,
         password: String,
@@ -74,6 +74,6 @@ impl ClientAuth {
             .write()
             .await
             .auth()
-            .generate_register_keys(email, password, kdf)?)
+            .make_register_keys(email, password, kdf)?)
     }
 }

@@ -30,7 +30,7 @@ pub(super) async fn register(client: &mut Client, req: &RegisterRequest) -> Resu
         iterations: default_pbkdf2_iterations(),
     };
 
-    let keys = generate_register_keys(req.email.to_owned(), req.password.to_owned(), kdf)?;
+    let keys = make_register_keys(req.email.to_owned(), req.password.to_owned(), kdf)?;
 
     accounts_register_post(
         &config.identity,
@@ -59,7 +59,7 @@ pub(super) async fn register(client: &mut Client, req: &RegisterRequest) -> Resu
     Ok(())
 }
 
-pub(super) fn generate_register_keys(
+pub(super) fn make_register_keys(
     email: String,
     password: String,
     kdf: Kdf,

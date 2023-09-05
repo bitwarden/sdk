@@ -291,6 +291,91 @@ Decrypt password history
 
 **Output**: std::result::Result<Vec,BitwardenError>
 
+## ClientSends
+
+### `encrypt`
+
+Encrypt send
+
+**Arguments**:
+
+- self:
+- send: SendView
+
+**Output**: std::result::Result<Send,BitwardenError>
+
+### `encrypt_buffer`
+
+Encrypt a send file in memory
+
+**Arguments**:
+
+- self:
+- send: Send
+- buffer: Vec<>
+
+**Output**: std::result::Result<Vec,BitwardenError>
+
+### `encrypt_file`
+
+Encrypt a send file located in the file system
+
+**Arguments**:
+
+- self:
+- send: Send
+- decrypted_file_path: String
+- encrypted_file_path: String
+
+**Output**: std::result::Result<,BitwardenError>
+
+### `decrypt`
+
+Decrypt send
+
+**Arguments**:
+
+- self:
+- send: Send
+
+**Output**: std::result::Result<SendView,BitwardenError>
+
+### `decrypt_list`
+
+Decrypt send list
+
+**Arguments**:
+
+- self:
+- sends: Vec<Send>
+
+**Output**: std::result::Result<Vec,BitwardenError>
+
+### `decrypt_buffer`
+
+Decrypt a send file in memory
+
+**Arguments**:
+
+- self:
+- send: Send
+- buffer: Vec<>
+
+**Output**: std::result::Result<Vec,BitwardenError>
+
+### `decrypt_file`
+
+Decrypt a send file located in the file system
+
+**Arguments**:
+
+- self:
+- send: Send
+- encrypted_file_path: String
+- decrypted_file_path: String
+
+**Output**: std::result::Result<,BitwardenError>
+
 ## ClientVault
 
 ### `folders`
@@ -325,13 +410,23 @@ Ciphers operations
 
 ### `password_history`
 
-Ciphers operations
+Password history operations
 
 **Arguments**:
 
 - self: Arc<Self>
 
 **Output**: Arc<password_history::ClientPasswordHistory>
+
+### `sends`
+
+Sends operations
+
+**Arguments**:
+
+- self: Arc<Self>
+
+**Output**: Arc<sends::ClientSends>
 
 # References
 

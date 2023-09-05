@@ -22,6 +22,7 @@ pub struct RegisterRequest {
     pub password_hint: Option<String>,
 }
 
+/// Half baked implementation of user registration
 pub(super) async fn register(client: &mut Client, req: &RegisterRequest) -> Result<()> {
     let config = client.get_api_configurations().await;
 
@@ -55,7 +56,7 @@ pub(super) async fn register(client: &mut Client, req: &RegisterRequest) -> Resu
     )
     .await?;
 
-    unimplemented!()
+    Ok(())
 }
 
 pub(super) fn generate_register_keys(

@@ -169,6 +169,7 @@ async fn process_commands() -> Result<()> {
             let password = Password::new("Password").prompt()?;
 
             client
+                .auth()
                 .register(&RegisterRequest {
                     email,
                     name,

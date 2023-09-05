@@ -9,6 +9,4 @@ pub mod renew;
 #[cfg(feature = "internal")]
 mod register;
 #[cfg(feature = "internal")]
-pub(crate) use register::register;
-#[cfg(feature = "internal")]
 pub use register::{RegisterRequest, RegisterResponse};

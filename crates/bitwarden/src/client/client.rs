@@ -5,13 +5,10 @@ use uuid::Uuid;
 #[cfg(feature = "internal")]
 use {
     crate::{
-        auth::{
-            login::{
-                api_key_login, password_login, send_two_factor_email, ApiKeyLoginRequest,
-                ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse,
-                TwoFactorEmailRequest,
-            },
-            register, RegisterRequest, RegisterResponse,
+        auth::login::{
+            api_key_login, password_login, send_two_factor_email, ApiKeyLoginRequest,
+            ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse,
+            TwoFactorEmailRequest,
         },
         client::auth_settings::AuthSettings,
         crypto::EncString,
@@ -152,11 +149,6 @@ impl Client {
         input: &AccessTokenLoginRequest,
     ) -> Result<AccessTokenLoginResponse> {
         access_token_login(self, input).await
-    }
-
-    #[cfg(feature = "internal")]
-    pub async fn register(&mut self, input: &RegisterRequest) -> Result<RegisterResponse> {
-        register(self, input).await
     }
 
     #[cfg(feature = "internal")]

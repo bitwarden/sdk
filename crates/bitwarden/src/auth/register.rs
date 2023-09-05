@@ -22,7 +22,7 @@ pub struct RegisterRequest {
     pub password_hint: Option<String>,
 }
 
-pub(crate) async fn register(
+pub(super) async fn register(
     client: &mut Client,
     req: &RegisterRequest,
 ) -> Result<RegisterResponse> {

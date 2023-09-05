@@ -21,7 +21,7 @@ impl ClientAuth {
     ) -> u8 {
         self.0
              .0
-            .read()
+            .write()
             .await
             .auth()
             .password_strength(password, email, additional_inputs)
@@ -37,7 +37,7 @@ impl ClientAuth {
     ) -> bool {
         self.0
              .0
-            .read()
+            .write()
             .await
             .auth()
             .satisfies_policy(password, strength, &policy)
@@ -71,7 +71,7 @@ impl ClientAuth {
         Ok(self
             .0
              .0
-            .read()
+            .write()
             .await
             .auth()
             .generate_register_keys(email, password, kdf)?)

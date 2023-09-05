@@ -1,12 +1,12 @@
 use super::{
     password::{password_strength, satisfies_policy, MasterPasswordPolicyOptions},
-    register::generate_register_keys,
-    RegisterResponse,
+    register::{generate_register_keys, register},
+    RegisterRequest, RegisterResponse,
 };
 use crate::{client::auth_settings::Kdf, error::Result, Client};
 
 pub struct ClientAuth<'a> {
-    pub(crate) _client: &'a crate::Client,
+    pub(crate) client: &'a mut crate::Client,
 }
 
 impl<'a> ClientAuth<'a> {
@@ -36,10 +36,15 @@ impl<'a> ClientAuth<'a> {
     ) -> Result<RegisterResponse> {
         generate_register_keys(email, password, kdf)
     }
+
+    #[cfg(feature = "internal")]
+    pub async fn register(&mut self, input: &RegisterRequest) -> Result<RegisterResponse> {
+        register(self.client, input).await
+    }
 }
 
 impl<'a> Client {
-    pub fn auth(&'a self) -> ClientAuth<'a> {
-        ClientAuth { _client: self }
+    pub fn auth(&'a mut self) -> ClientAuth<'a> {
+        ClientAuth { client: self }
     }
 }

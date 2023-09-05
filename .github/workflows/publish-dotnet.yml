@@ -105,7 +105,7 @@ jobs:
           VERSION: ${{ github.event.inputs.version_number }}
         run: |
           cd languages/csharp
-          dotnet pack --configuration Release -p:PackageID=TestSDK.${{ matrix.os }}.${{ matrix.arch }}  -p:Platform=${{ matrix.arch }} -p:Version=$env:VERSION --output ./nuget-output /nologo /v:n
+          dotnet pack --configuration Release -p:PackageID=BitwardenSdk.${{ matrix.os }}.${{ matrix.arch }}  -p:Platform=${{ matrix.arch }} -p:Version=$env:VERSION --output ./nuget-output /nologo /v:n
 
       - name: Publish NuGet Package
         if: matrix.os == 'windows-latest'

@@ -7,6 +7,7 @@
 //! ## Conventions:
 //!
 //! - Pure Functions that deterministically "derive" keys from input are prefixed with `derive_`.
+//! - Functions that generate new keys are prefixed with `make_`.
 //!
 //! ## Differences from [`clients`](https://github.com/bitwarden/clients)
 //!

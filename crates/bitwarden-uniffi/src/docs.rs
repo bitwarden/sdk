@@ -2,8 +2,8 @@ use bitwarden::{
     auth::{password::MasterPasswordPolicyOptions, RegisterResponse},
     client::auth_settings::Kdf,
     mobile::crypto::InitCryptoRequest,
-    tool::{PassphraseGeneratorRequest, PasswordGeneratorRequest},
-    vault::{Cipher, CipherView, Collection, Folder, FolderView},
+    tool::{ExportFormat, PassphraseGeneratorRequest, PasswordGeneratorRequest},
+    vault::{Cipher, CipherView, Collection, Folder, FolderView, Send, SendListView, SendView},
 };
 use schemars::JsonSchema;
 
@@ -16,6 +16,9 @@ pub enum DocRef {
     Collection(Collection),
     Folder(Folder),
     FolderView(FolderView),
+    Send(Send),
+    SendView(SendView),
+    SendListView(SendListView),
 
     // Crypto
     InitCryptoRequest(InitCryptoRequest),
@@ -23,6 +26,9 @@ pub enum DocRef {
     // Generators
     PasswordGeneratorRequest(PasswordGeneratorRequest),
     PassphraseGeneratorRequest(PassphraseGeneratorRequest),
+
+    // Exporters
+    ExportFormat(ExportFormat),
 
     // Auth
     MasterPasswordPolicyOptions(MasterPasswordPolicyOptions),

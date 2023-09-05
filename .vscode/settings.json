@@ -13,6 +13,7 @@
     "Maybeable",
     "Oaep",
     "Pbkdf",
+    "repr",
     "schemars",
     "uniffi",
     "wordlist"

@@ -26,7 +26,7 @@ Download the SDK files and place them in your Go project directory.
 To initialize the client, you need to import the SDK and create a new `BitwardenClient` instance.
 
 ```go
-import "github.com/bitwarden/sdk"
+import "github.com/bitwarden/sdk/languages/go"
 
 settings := ClientSettings{
   // Your settings here

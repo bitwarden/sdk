@@ -70,7 +70,6 @@ async function main() {
       "package": "main",
     },
   });
-
   writeToFile("./languages/go/schema.go", go.lines);
 }
 

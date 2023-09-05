@@ -1,4 +1,4 @@
-module github.com/bitwarden/sdk
+module github.com/bitwarden/sdk/languages/go
 
 go 1.20
 

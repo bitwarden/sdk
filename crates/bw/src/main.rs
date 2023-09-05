@@ -1,7 +1,10 @@
-use bitwarden::{client::client_settings::ClientSettings, tool::PasswordGeneratorRequest};
-use bitwarden_cli::{install_color_eyre, Color};
+use bitwarden::{
+    auth::RegisterRequest, client::client_settings::ClientSettings, tool::PasswordGeneratorRequest,
+};
+use bitwarden_cli::{install_color_eyre, text_prompt_when_none, Color};
 use clap::{command, Args, CommandFactory, Parser, Subcommand};
 use color_eyre::eyre::Result;
+use inquire::Password;
 use render::Output;
 
 mod auth;
@@ -24,6 +27,19 @@ struct Cli {
 #[derive(Subcommand, Clone)]
 enum Commands {
     Login(LoginArgs),
+
+    #[command(long_about = "Register")]
+    Register {
+        #[arg(short = 'e', long, help = "Email address")]
+        email: Option<String>,
+
+        name: Option<String>,
+
+        password_hint: Option<String>,
+
+        #[arg(short = 's', long, global = true, help = "Server URL")]
+        server: Option<String>,
+    },
 
     #[command(long_about = "Manage vault items")]
     Item {
@@ -115,25 +131,54 @@ async fn process_commands() -> Result<()> {
         return Ok(());
     };
 
-    if let Commands::Login(args) = command.clone() {
-        let settings = args.server.map(|server| ClientSettings {
-            api_url: format!("{}/api", server),
-            identity_url: format!("{}/identity", server),
-            ..Default::default()
-        });
-        let client = bitwarden::Client::new(settings);
+    match command.clone() {
+        Commands::Login(args) => {
+            let settings = args.server.map(|server| ClientSettings {
+                api_url: format!("{}/api", server),
+                identity_url: format!("{}/identity", server),
+                ..Default::default()
+            });
+            let client = bitwarden::Client::new(settings);
 
-        match args.command {
-            // FIXME: Rust CLI will not support password login!
-            LoginCommands::Password { email } => {
-                auth::password_login(client, email).await?;
+            match args.command {
+                // FIXME: Rust CLI will not support password login!
+                LoginCommands::Password { email } => {
+                    auth::password_login(client, email).await?;
+                }
+                LoginCommands::ApiKey {
+                    client_id,
+                    client_secret,
+                } => auth::api_key_login(client, client_id, client_secret).await?,
             }
-            LoginCommands::ApiKey {
-                client_id,
-                client_secret,
-            } => auth::api_key_login(client, client_id, client_secret).await?,
+            return Ok(());
         }
-        return Ok(());
+        Commands::Register {
+            email,
+            name,
+            password_hint,
+            server,
+        } => {
+            let settings = server.map(|server| ClientSettings {
+                api_url: format!("{}/api", server),
+                identity_url: format!("{}/identity", server),
+                ..Default::default()
+            });
+            let mut client = bitwarden::Client::new(settings);
+
+            let email = text_prompt_when_none("Email", email)?;
+            let password = Password::new("Password").prompt()?;
+
+            client
+                .auth()
+                .register(&RegisterRequest {
+                    email,
+                    name,
+                    password,
+                    password_hint,
+                })
+                .await?;
+        }
+        _ => {}
     }
 
     // Not login, assuming we have a config
@@ -142,6 +187,7 @@ async fn process_commands() -> Result<()> {
     // And finally we process all the commands which require authentication
     match command {
         Commands::Login(_) => unreachable!(),
+        Commands::Register { .. } => unreachable!(),
         Commands::Item { command: _ } => todo!(),
         Commands::Sync {} => todo!(),
         Commands::Generate { command } => match command {

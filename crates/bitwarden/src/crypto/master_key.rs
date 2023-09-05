@@ -1,10 +1,12 @@
 use aes::cipher::typenum::U32;
 use base64::Engine;
+use rand::Rng;
 
 use crate::util::BASE64_ENGINE;
 
 use super::{
-    hkdf_expand, EncString, PbkdfSha256Hmac, SymmetricCryptoKey, PBKDF_SHA256_HMAC_OUT_SIZE,
+    encrypt_aes256, hkdf_expand, EncString, PbkdfSha256Hmac, SymmetricCryptoKey, UserKey,
+    PBKDF_SHA256_HMAC_OUT_SIZE,
 };
 use {
     crate::{client::auth_settings::Kdf, error::Result},
@@ -41,6 +43,16 @@ impl MasterKey {
         .expect("hash is a valid fixed size");
 
         Ok(BASE64_ENGINE.encode(hash))
+    }
+
+    pub(crate) fn make_user_key(&self) -> Result<(UserKey, EncString)> {
+        let mut user_key = [0u8; 64];
+        rand::thread_rng().fill(&mut user_key);
+
+        let protected = encrypt_aes256(&user_key, self.0.key)?;
+
+        let u: &[u8] = &user_key;
+        Ok((UserKey::new(SymmetricCryptoKey::try_from(u)?), protected))
     }
 
     pub(crate) fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey> {

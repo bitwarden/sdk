@@ -108,7 +108,7 @@ jobs:
 
       - name: Retrieve bot secrets
         id: retrieve-bot-secrets
-        uses: bitwarden/gh-actions/get-keyvault-secrets@f096207b7a2f31723165aee6ad03e91716686e78
+        uses: bitwarden/gh-actions/get-keyvault-secrets@4a7ddc1b38ca5cb4e3e43578f4df5cabe4f55a67
         with:
           keyvault: bitwarden-ci
           secrets: "github-pat-bitwarden-devops-bot-packages-scope"

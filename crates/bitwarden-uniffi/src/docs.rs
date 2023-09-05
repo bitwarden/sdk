@@ -32,7 +32,6 @@ pub enum DocRef {
 
     // Auth
     MasterPasswordPolicyOptions(MasterPasswordPolicyOptions),
-    RegisterResponse(RegisterResponse),
 
     // Kdf
     Kdf(Kdf),

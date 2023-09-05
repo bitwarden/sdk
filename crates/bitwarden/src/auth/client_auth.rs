@@ -1,7 +1,7 @@
 use super::{
     password::{password_strength, satisfies_policy, MasterPasswordPolicyOptions},
     register::{generate_register_keys, register},
-    RegisterRequest, RegisterResponse,
+    RegisterKeyResponse, RegisterRequest,
 };
 use crate::{client::auth_settings::Kdf, error::Result, Client};
 
@@ -33,7 +33,7 @@ impl<'a> ClientAuth<'a> {
         email: String,
         password: String,
         kdf: Kdf,
-    ) -> Result<RegisterResponse> {
+    ) -> Result<RegisterKeyResponse> {
         generate_register_keys(email, password, kdf)
     }
 

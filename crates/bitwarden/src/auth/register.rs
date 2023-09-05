@@ -62,23 +62,22 @@ pub(super) fn generate_register_keys(
     email: String,
     password: String,
     kdf: Kdf,
-) -> Result<RegisterResponse> {
+) -> Result<RegisterKeyResponse> {
     let master_key = MasterKey::derive(password.as_bytes(), email.as_bytes(), &kdf)?;
     let master_password_hash =
         master_key.derive_master_key_hash(password.as_bytes(), HashPurpose::ServerAuthorization)?;
     let (user_key, encrypted_user_key) = master_key.make_user_key()?;
     let keys = user_key.make_key_pair()?;
 
-    Ok(RegisterResponse {
+    Ok(RegisterKeyResponse {
         master_password_hash,
         encrypted_user_key: encrypted_user_key.to_string(),
         keys,
     })
 }
 
-#[derive(JsonSchema)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
-pub struct RegisterResponse {
+pub struct RegisterKeyResponse {
     master_password_hash: String,
     encrypted_user_key: String,
     keys: RsaKeyPair,

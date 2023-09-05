@@ -3,7 +3,6 @@ use rsa::{
     pkcs8::{EncodePrivateKey, EncodePublicKey},
     RsaPrivateKey, RsaPublicKey,
 };
-use schemars::JsonSchema;
 
 use crate::{
     crypto::{encrypt_aes256_hmac, EncString, SymmetricCryptoKey},
@@ -11,7 +10,6 @@ use crate::{
     util::BASE64_ENGINE,
 };
 
-#[derive(JsonSchema)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct RsaKeyPair {
     /// Base64 encoded DER representation of the public key

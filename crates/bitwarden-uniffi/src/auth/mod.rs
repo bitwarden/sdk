@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use bitwarden::{
-    auth::{password::MasterPasswordPolicyOptions, RegisterResponse},
+    auth::{password::MasterPasswordPolicyOptions, RegisterKeyResponse},
     client::auth_settings::Kdf,
 };
 
@@ -67,7 +67,7 @@ impl ClientAuth {
         email: String,
         password: String,
         kdf: Kdf,
-    ) -> Result<RegisterResponse> {
+    ) -> Result<RegisterKeyResponse> {
         Ok(self
             .0
              .0

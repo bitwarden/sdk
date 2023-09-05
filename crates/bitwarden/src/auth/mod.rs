@@ -9,4 +9,4 @@ pub mod renew;
 #[cfg(feature = "internal")]
 mod register;
 #[cfg(feature = "internal")]
-pub use register::{RegisterRequest, RegisterResponse};
+pub use register::{RegisterKeyResponse, RegisterRequest};

@@ -3,8 +3,7 @@ use log::{debug, info};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::util::BASE64_ENGINE;
-use crate::{crypto::fingerprint, error::Result};
+use crate::{crypto::fingerprint, error::Result, util::BASE64_ENGINE};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

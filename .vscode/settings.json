@@ -12,6 +12,8 @@
     "Maybeable",
     "Oaep",
     "Pbkdf",
+    "PKCS8",
+    "repr",
     "schemars",
     "uniffi",
     "wordlist"

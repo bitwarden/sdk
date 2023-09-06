@@ -1,9 +1,9 @@
-#[cfg(feature = "internal")]
-use crate::error::Result;
 use crate::Client;
-
 #[cfg(feature = "internal")]
-use super::crypto::{initialize_crypto, InitCryptoRequest};
+use crate::{
+    error::Result,
+    mobile::crypto::{initialize_crypto, InitCryptoRequest},
+};
 
 pub struct ClientCrypto<'a> {
     pub(crate) client: &'a mut crate::Client,

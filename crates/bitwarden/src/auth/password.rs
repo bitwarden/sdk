@@ -5,7 +5,7 @@ pub(super) fn password_strength(
     _email: String,
     _additional_inputs: Vec<String>,
 ) -> u8 {
-    unimplemented!()
+    todo!()
 }
 
 pub(super) fn satisfies_policy(
@@ -13,7 +13,7 @@ pub(super) fn satisfies_policy(
     _strength: u8,
     _policy: &MasterPasswordPolicyOptions,
 ) -> bool {
-    unimplemented!()
+    todo!()
 }
 
 #[derive(Debug, JsonSchema)]

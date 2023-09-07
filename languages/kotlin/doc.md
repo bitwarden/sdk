@@ -108,6 +108,19 @@ Hash the user password
 
 **Output**: std::result::Result<String,BitwardenError>
 
+### `make_register_keys`
+
+Generate keys needed for registration process
+
+**Arguments**:
+
+- self:
+- email: String
+- password: String
+- kdf: [Kdf](#kdf)
+
+**Output**: std::result::Result<RegisterKeyResponse,BitwardenError>
+
 ## ClientCiphers
 
 ### `encrypt`
@@ -291,6 +304,91 @@ Decrypt password history
 
 **Output**: std::result::Result<Vec,BitwardenError>
 
+## ClientSends
+
+### `encrypt`
+
+Encrypt send
+
+**Arguments**:
+
+- self:
+- send: [SendView](#sendview)
+
+**Output**: std::result::Result<Send,BitwardenError>
+
+### `encrypt_buffer`
+
+Encrypt a send file in memory
+
+**Arguments**:
+
+- self:
+- send: [Send](#send)
+- buffer: Vec<>
+
+**Output**: std::result::Result<Vec,BitwardenError>
+
+### `encrypt_file`
+
+Encrypt a send file located in the file system
+
+**Arguments**:
+
+- self:
+- send: [Send](#send)
+- decrypted_file_path: String
+- encrypted_file_path: String
+
+**Output**: std::result::Result<,BitwardenError>
+
+### `decrypt`
+
+Decrypt send
+
+**Arguments**:
+
+- self:
+- send: [Send](#send)
+
+**Output**: std::result::Result<SendView,BitwardenError>
+
+### `decrypt_list`
+
+Decrypt send list
+
+**Arguments**:
+
+- self:
+- sends: Vec<Send>
+
+**Output**: std::result::Result<Vec,BitwardenError>
+
+### `decrypt_buffer`
+
+Decrypt a send file in memory
+
+**Arguments**:
+
+- self:
+- send: [Send](#send)
+- buffer: Vec<>
+
+**Output**: std::result::Result<Vec,BitwardenError>
+
+### `decrypt_file`
+
+Decrypt a send file located in the file system
+
+**Arguments**:
+
+- self:
+- send: [Send](#send)
+- encrypted_file_path: String
+- decrypted_file_path: String
+
+**Output**: std::result::Result<,BitwardenError>
+
 ## ClientVault
 
 ### `folders`
@@ -325,13 +423,23 @@ Ciphers operations
 
 ### `password_history`
 
-Ciphers operations
+Password history operations
 
 **Arguments**:
 
 - self: Arc<Self>
 
 **Output**: Arc<password_history::ClientPasswordHistory>
+
+### `sends`
+
+Sends operations
+
+**Arguments**:
+
+- self: Arc<Self>
+
+**Output**: Arc<sends::ClientSends>
 
 # References
 
@@ -962,6 +1070,186 @@ implementations.
 <tr>
     <th>lastUsedDate</th>
     <th>string</th>
+    <th></th>
+</tr>
+</table>
+
+## `Send`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>id</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>accessId</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>name</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>notes</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>key</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>password</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>type</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>file</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>text</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>maxAccessCount</th>
+    <th>integer,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>accessCount</th>
+    <th>integer</th>
+    <th></th>
+</tr>
+<tr>
+    <th>disabled</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>hideEmail</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>revisionDate</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>deletionDate</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>expirationDate</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+</table>
+
+## `SendView`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>id</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>accessId</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>name</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>notes</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>key</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>password</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>type</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>file</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>text</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>maxAccessCount</th>
+    <th>integer,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>accessCount</th>
+    <th>integer</th>
+    <th></th>
+</tr>
+<tr>
+    <th>disabled</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>hideEmail</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>revisionDate</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>deletionDate</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>expirationDate</th>
+    <th>string,null</th>
     <th></th>
 </tr>
 </table>

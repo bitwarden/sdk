@@ -1,7 +1,10 @@
 name: Deploy NuGet Package
 
 on:
-  pull_request:
+  workflow_dispatch:
+    version_number:
+      description: "New Version"
+      required: true
 
 jobs:
   generate_schemas:
@@ -110,10 +113,10 @@ jobs:
 
       - name: Pack NuGet Package
         env:
-          VERSION: 1.0.5
+          VERSION: ${{ github.event.inputs.version_number }}
         run: |
           cd languages/csharp
-          dotnet pack --configuration Release -p:PackageID=BBSDK -p:Version=${VERSION} --output ./nuget-output /nologo /v:n
+          dotnet pack --configuration Release -p:PackageID=BitwardenSdk -p:Version=${VERSION} --output ./nuget-output /nologo /v:n
 
       - name: Publish NuGet Package
         run: dotnet nuget push ./languages/csharp/nuget-output/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json

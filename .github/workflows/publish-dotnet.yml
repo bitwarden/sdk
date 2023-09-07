@@ -1,16 +1,13 @@
 name: Deploy NuGet Package
 
 on:
-  workflow_dispatch:
-    version_number:
-      description: "New Version"
-      required: true
+  pull_request:
 
 jobs:
   generate_schemas:
     uses: ./.github/workflows/generate_schemas.yml
 
-  build_and_deploy:
+  build_rust:
     strategy:
       fail-fast: false
       matrix:
@@ -23,8 +20,6 @@ jobs:
             arch: arm64
 
     runs-on: ${{ matrix.os }}
-
-    needs: [generate_schemas]
 
     name: Build for ${{ matrix.os }} ${{ matrix.arch }}
 
@@ -70,16 +65,18 @@ jobs:
           path: |
             ${{ env.TARGET_FOLDER }}/*bitwarden_c*
 
+  deploy:
+    runs-on: ubuntu-22.04
+    needs: [generate_schemas, build_rust]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+
       - name: Download c# schemas artifact
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: schemas.cs
-          path: languages/csharp
-
-      - name: Download libbitwarden_c_files files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: libbitwarden_c_files-${{ matrix.os }}-${{ matrix.arch }}
           path: languages/csharp
 
       - name: Set up .NET Core
@@ -87,28 +84,37 @@ jobs:
         with:
           dotnet-version: "6.0.x"
 
+      - name: Download macos-latest-x64 files
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: libbitwarden_c_files-macos-latest-x64
+          path: languages/csharp/macos-latest-x64
+
+      - name: Download macos-latest-arm64 files
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: libbitwarden_c_files-macos-latest-arm64
+          path: languages/csharp/macos-latest-arm64
+
+      - name: Download ubuntu-latest-x64 files
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: libbitwarden_c_files-ubuntu-latest-x64
+          path: languages/csharp/ubuntu-latest-x64
+
+      - name: Download windows-latest-x64 files
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: libbitwarden_c_files-windows-latest-x64
+          path: languages/csharp/windows-latest-x64
+
       - name: Pack NuGet Package
-        if: matrix.os != 'windows-latest'
         env:
-          VERSION: ${{ github.event.inputs.version_number }}
+          VERSION: 1.0.5
         run: |
           cd languages/csharp
-          dotnet pack --configuration Release -p:PackageID=TestSDK.${{ matrix.os }}.${{ matrix.arch }}  -p:Platform=${{ matrix.arch }} -p:Version=${VERSION} --output ./nuget-output /nologo /v:n
+          dotnet pack --configuration Release -p:PackageID=TestSDK -p:Version=${VERSION} --output ./nuget-output /nologo /v:n
 
       - name: Publish NuGet Package
-        if: matrix.os != 'windows-latest'
         run: dotnet nuget push ./languages/csharp/nuget-output/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
 
-      - name: Pack NuGet Package
-        if: matrix.os == 'windows-latest'
-        env:
-          VERSION: ${{ github.event.inputs.version_number }}
-        run: |
-          cd languages/csharp
-          dotnet pack --configuration Release -p:PackageID=BitwardenSdk.${{ matrix.os }}.${{ matrix.arch }}  -p:Platform=${{ matrix.arch }} -p:Version=$env:VERSION --output ./nuget-output /nologo /v:n
-
-      - name: Publish NuGet Package
-        if: matrix.os == 'windows-latest'
-        run: |
-          cd languages/csharp/nuget-output
-          dotnet nuget push *.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json

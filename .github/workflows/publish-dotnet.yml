@@ -117,4 +117,3 @@ jobs:
 
       - name: Publish NuGet Package
         run: dotnet nuget push ./languages/csharp/nuget-output/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
-

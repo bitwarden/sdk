@@ -5,10 +5,12 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     client::auth_settings::{AuthSettings, Kdf},
-    crypto::EncString,
     error::Result,
     Client,
 };
+
+#[cfg(feature = "internal")]
+use crate::crypto::{AsymmetricEncString, EncString};
 
 #[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -45,7 +47,7 @@ pub async fn initialize_crypto(client: &mut Client, req: InitCryptoRequest) -> R
     let organization_keys = req
         .organization_keys
         .into_iter()
-        .map(|(k, v)| Ok((k, v.parse::<EncString>()?)))
+        .map(|(k, v)| Ok((k, v.parse::<AsymmetricEncString>()?)))
         .collect::<Result<Vec<_>>>()?;
 
     client.initialize_org_crypto(organization_keys)?;

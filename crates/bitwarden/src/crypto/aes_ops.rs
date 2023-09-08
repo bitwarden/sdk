@@ -10,6 +10,8 @@ use crate::{
     error::{CryptoError, Result},
 };
 
+use super::EncStringVariants;
+
 pub fn decrypt_aes256(iv: &[u8; 16], data: Vec<u8>, key: GenericArray<u8, U32>) -> Result<Vec<u8>> {
     // Decrypt data
     let iv = GenericArray::from_slice(iv);
@@ -42,7 +44,7 @@ pub fn decrypt_aes256_hmac(
 pub fn encrypt_aes256(data_dec: &[u8], key: GenericArray<u8, U32>) -> Result<EncString> {
     let (iv, data) = encrypt_aes256_internal(data_dec, key);
 
-    Ok(EncString::AesCbc256_B64 { iv, data })
+    Ok(EncStringVariants::AesCbc256_B64 { iv, data }.into())
 }
 
 pub fn encrypt_aes256_hmac(
@@ -53,7 +55,7 @@ pub fn encrypt_aes256_hmac(
     let (iv, data) = encrypt_aes256_internal(data_dec, key);
     let mac = validate_mac(&mac_key, &iv, &data)?;
 
-    Ok(EncString::AesCbc256_HmacSha256_B64 { iv, mac, data })
+    Ok(EncStringVariants::AesCbc256_HmacSha256_B64 { iv, mac, data }.into())
 }
 
 fn encrypt_aes256_internal(data_dec: &[u8], key: GenericArray<u8, U32>) -> ([u8; 16], Vec<u8>) {

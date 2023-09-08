@@ -11,7 +11,7 @@ use {
             TwoFactorEmailRequest,
         },
         client::auth_settings::AuthSettings,
-        crypto::EncString,
+        crypto::{AsymmetricEncString, EncString},
         platform::{
             generate_fingerprint, get_user_api_key, sync, FingerprintRequest, FingerprintResponse,
             SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,
@@ -244,7 +244,7 @@ impl Client {
     #[cfg(feature = "internal")]
     pub(crate) fn initialize_org_crypto(
         &mut self,
-        org_keys: Vec<(Uuid, EncString)>,
+        org_keys: Vec<(Uuid, AsymmetricEncString)>,
     ) -> Result<&EncryptionSettings> {
         let enc = self
             .encryption_settings

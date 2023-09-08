@@ -3,13 +3,10 @@ use std::collections::HashMap;
 use rsa::RsaPrivateKey;
 use uuid::Uuid;
 #[cfg(feature = "internal")]
-use {
-    crate::client::auth_settings::AuthSettings,
-    rsa::{pkcs8::DecodePrivateKey, Oaep},
-};
+use {crate::client::auth_settings::AuthSettings, rsa::pkcs8::DecodePrivateKey};
 
 use crate::{
-    crypto::{encrypt_aes256_hmac, EncString, SymmetricCryptoKey},
+    crypto::{encrypt_aes256_hmac, AsymmetricEncString, EncString, SymmetricCryptoKey},
     error::{CryptoError, Result},
 };
 
@@ -65,7 +62,7 @@ impl EncryptionSettings {
     #[cfg(feature = "internal")]
     pub(crate) fn set_org_keys(
         &mut self,
-        org_enc_keys: Vec<(Uuid, EncString)>,
+        org_enc_keys: Vec<(Uuid, AsymmetricEncString)>,
     ) -> Result<&mut Self> {
         use crate::error::Error;
 
@@ -73,15 +70,7 @@ impl EncryptionSettings {
 
         // Decrypt the org keys with the private key
         for (org_id, org_enc_key) in org_enc_keys {
-            let data = match org_enc_key {
-                EncString::Rsa2048_OaepSha1_B64 { data } => data,
-                _ => return Err(CryptoError::InvalidKey.into()),
-            };
-
-            let dec = private_key
-                .decrypt(Oaep::new::<sha1::Sha1>(), &data)
-                .map_err(|_| CryptoError::KeyDecrypt)?;
-
+            let dec: Vec<u8> = org_enc_key.decrypt_with_key(private_key)?;
             let org_key = SymmetricCryptoKey::try_from(dec.as_slice())?;
 
             self.org_keys.insert(org_id, org_key);
@@ -122,12 +111,49 @@ impl EncryptionSettings {
         let dec = encrypt_aes256_hmac(data, key.mac_key.ok_or(CryptoError::InvalidMac)?, key.key)?;
         Ok(dec)
     }
+
+    fn get_asymmetric_key(&self, org_id: &Option<Uuid>) -> Option<&rsa::RsaPrivateKey> {
+        // TODO: Add key selection here
+        self.private_key.as_ref()
+    }
+
+    pub(crate) fn decrypt_bytes_asymmetric(
+        &self,
+        cipher: &AsymmetricEncString,
+        org_id: &Option<Uuid>,
+    ) -> Result<Vec<u8>> {
+        let key = self
+            .get_asymmetric_key(org_id)
+            .ok_or(CryptoError::NoKeyForOrg)?;
+        cipher.decrypt_with_key(key)
+    }
+
+    pub(crate) fn decrypt_asymmetric(
+        &self,
+        cipher: &AsymmetricEncString,
+        org_id: &Option<Uuid>,
+    ) -> Result<String> {
+        let dec = self.decrypt_bytes_asymmetric(cipher, org_id)?;
+        String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String.into())
+    }
+
+    pub(crate) fn encrypt_asymmetric(
+        &self,
+        data: &[u8],
+        org_id: &Option<Uuid>,
+    ) -> Result<AsymmetricEncString> {
+        let key = self
+            .get_asymmetric_key(org_id)
+            .ok_or(CryptoError::NoKeyForOrg)?;
+
+        todo!()
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::{EncryptionSettings, SymmetricCryptoKey};
-    use crate::crypto::{Decryptable, Encryptable};
+    use crate::crypto::{Decryptable, EncString, Encryptable};
 
     #[test]
     fn test_encryption_settings() {
@@ -135,7 +161,7 @@ mod tests {
         let settings = EncryptionSettings::new_single_key(key);
 
         let test_string = "encrypted_test_string".to_string();
-        let cipher = test_string.clone().encrypt(&settings, &None).unwrap();
+        let cipher: EncString = test_string.clone().encrypt(&settings, &None).unwrap();
 
         let decrypted_str = cipher.decrypt(&settings, &None).unwrap();
         assert_eq!(decrypted_str, test_string);

@@ -57,6 +57,7 @@ async function main() {
     lang: "csharp",
     rendererOptions: {
       namespace: "Bit.Sdk",
+      framework: "SystemTextJson",
       "csharp-version": "6",
     },
   });

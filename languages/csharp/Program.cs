@@ -1,4 +1,4 @@
-﻿using Bit.Sdk;
+﻿using Bitwarden.Sdk;
 
 var sdk = new BitwardenSdk();
 sdk.PasswordLogin("test@bitwarden.com", "asdfasdf");

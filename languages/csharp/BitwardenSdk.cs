@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace Bit.Sdk
+namespace Bitwarden.Sdk
 {
     internal class BitwardenSdk : IDisposable
     {

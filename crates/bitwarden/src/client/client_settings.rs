@@ -21,7 +21,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// Targets `localhost:8080` for debug builds.
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[serde(default, rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct ClientSettings {
     /// The identity url of the targeted Bitwarden instance. Defaults to `https://identity.bitwarden.com`

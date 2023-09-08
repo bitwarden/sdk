@@ -83,9 +83,9 @@ jobs:
           path: languages/csharp
 
       - name: Set up .NET Core
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@3447fd6a9f9e57506b15f895c5b76d3b197dc7c2 # v3.2.0
         with:
-          dotnet-version: "6.0.x"
+          global-json-file: languages/csharp/global.json
 
       - name: Download macos-latest-x64 files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2

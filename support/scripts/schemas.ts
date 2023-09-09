@@ -56,7 +56,8 @@ async function main() {
     inputData,
     lang: "csharp",
     rendererOptions: {
-      namespace: "Bit.Sdk",
+      namespace: "Bitwarden.Sdk",
+      framework: "SystemTextJson",
       "csharp-version": "6",
     },
   });

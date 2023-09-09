@@ -1,10 +1,10 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace Bit.Sdk;
+namespace Bitwarden.Sdk;
 
 internal class BitwardenSafeHandle : SafeHandle
 {
-    public BitwardenSafeHandle(IntPtr handle) : base(IntPtr.Zero, true)
+    public BitwardenSafeHandle() : base(IntPtr.Zero, true)
     {
         SetHandle(handle);
     }
@@ -16,7 +16,8 @@ internal class BitwardenSafeHandle : SafeHandle
 
     protected override bool ReleaseHandle()
     {
-        BitwardenLibrary.FreeMemory(handle);
+        if (IsClosed) return false;
+        BitwardenLibrary.FreeMemory(this);
         return true;
     }
 }

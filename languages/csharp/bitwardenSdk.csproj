@@ -17,10 +17,11 @@
     <Product>BitwardenSdk</Product>
     <PackageIcon>bitwarden.png</PackageIcon>
     <RepositoryType>Git</RepositoryType>
+    <RootNamespace>Bitwarden.Sdk</RootNamespace>
   </PropertyGroup>
-
+  
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Text.Json" Version="7.0.3" />
       <None Include="bitwarden.png" Pack="true" PackagePath="\" />
       <None Include="docs/README.md" Pack="true" PackagePath="\" />
   </ItemGroup>

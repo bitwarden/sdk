@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-namespace Bit.Sdk;
+﻿namespace Bitwarden.Sdk;
 
 public sealed class BitwardenClient : IDisposable
 {
@@ -19,14 +17,13 @@ public sealed class BitwardenClient : IDisposable
             UserAgent = "Bitwarden DOTNET-SDK"
         };
 
-        var ptr = BitwardenLibrary.Init(clientSettings.ToJson());
-        _handle = new BitwardenSafeHandle(ptr);
-        _commandRunner = new CommandRunner(ptr);
+        _handle = BitwardenLibrary.Init(clientSettings.ToJson());
+        _commandRunner = new CommandRunner(_handle);
         _projectsClient = new ProjectsClient(_commandRunner);
         _secretsClient = new SecretsClient(_commandRunner);
     }
 
-    public ResponseForApiKeyLoginResponse AccessTokenLogin(string accessToken)
+    public ResponseForApiKeyLoginResponse? AccessTokenLogin(string accessToken)
     {
         var command = new Command();
         var accessTokenLoginRequest = new AccessTokenLoginRequest
@@ -34,7 +31,7 @@ public sealed class BitwardenClient : IDisposable
             AccessToken = accessToken
         };
         command.AccessTokenLogin = accessTokenLoginRequest;
-        return _commandRunner.RunCommand(command, JsonConvert.DeserializeObject<ResponseForApiKeyLoginResponse>);
+        return _commandRunner.RunCommand<ResponseForApiKeyLoginResponse>(command);
     }
 
     public ProjectsClient Projects()
@@ -49,6 +46,7 @@ public sealed class BitwardenClient : IDisposable
 
     public void Dispose()
     {
+        BitwardenLibrary.FreeMemory(_handle);
         _handle.Dispose();
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace Bit.Sdk;
+﻿namespace Bitwarden.Sdk;
 
 public class BitwardenSettings
 {

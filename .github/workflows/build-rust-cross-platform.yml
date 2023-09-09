@@ -1,0 +1,63 @@
+name: Build Rust Cross Platform
+
+on:
+  workflow_call:
+
+jobs:
+  build_rust:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        arch: [x64, arm64]
+        exclude:
+          - os: windows-latest
+            arch: arm64
+          - os: ubuntu-latest
+            arch: arm64
+
+    runs-on: ${{ matrix.os }}
+
+    name: Build for ${{ matrix.os }} ${{ matrix.arch }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@f361669954a8ecfc00a3443f35f9ac8e610ffc06 # stable
+        with:
+          toolchain: stable
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@e207df5d269b42b69c8bc5101da26f7d31feddb4 # v2.6.2
+
+      - name: Set build architecture, ios, linux
+        if: matrix.os != 'windows-latest'
+        run: |
+          if [[ "${{ matrix.arch }}" == "x64" ]]; then
+            echo "TARGET_ARCH=" >> $GITHUB_ENV
+            echo "TARGET_FOLDER=target/release/" >> $GITHUB_ENV
+          elif [[ "${{ matrix.arch }}" == "arm64" ]]; then
+            echo "TARGET_ARCH=--target aarch64-apple-darwin" >> $GITHUB_ENV
+            echo "TARGET_FOLDER=target/aarch64-apple-darwin/release/" >> $GITHUB_ENV
+            rustup target add aarch64-apple-darwin
+          fi
+
+      - name: Set build architecture, windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          echo "TARGET_ARCH=" | Out-File -FilePath $env:GITHUB_ENV
+          echo "TARGET_FOLDER=target/release/" | Out-File -FilePath $env:GITHUB_ENV
+
+      - name: Build Rust
+        run: cargo build ${{ env.TARGET_ARCH }} --release
+        env:
+          RUSTFLAGS: "-D warnings"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: libbitwarden_c_files-${{ matrix.os }}-${{ matrix.arch }}
+          path: |
+            ${{ env.TARGET_FOLDER }}/*bitwarden_c*

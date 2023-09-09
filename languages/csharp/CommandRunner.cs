@@ -1,19 +1,20 @@
-﻿namespace Bit.Sdk;
+﻿namespace Bitwarden.Sdk;
+using System.Text.Json;
 
 internal class CommandRunner
 {
 
-    private readonly IntPtr _client;
+    private readonly BitwardenSafeHandle _handle;
 
-    internal CommandRunner(IntPtr client)
+    internal CommandRunner(BitwardenSafeHandle handle)
     {
-        _client = client;
+        _handle = handle;
     }
 
-    internal TReturn? RunCommand<TReturn>(Command command, Func<string, TReturn> deserializer)
+    internal T? RunCommand<T>(Command command)
     {
         var req = command.ToJson();
-        var result = BitwardenLibrary.RunCommand(req, _client);
-        return deserializer(result);
+        var result = BitwardenLibrary.RunCommand(req, _handle);
+        return JsonSerializer.Deserialize<T>(result);
     }
 }

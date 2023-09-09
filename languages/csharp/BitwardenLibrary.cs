@@ -1,30 +1,30 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace Bit.Sdk;
+namespace Bitwarden.Sdk;
 
 internal static class BitwardenLibrary
 {
     [DllImport("bitwarden_c", CallingConvention = CallingConvention.Cdecl)]
-    private static extern IntPtr init(string settings);
+    private static extern BitwardenSafeHandle init(string settings);
 
     [DllImport("bitwarden_c", CallingConvention = CallingConvention.Cdecl)]
-    private static extern void free_mem(IntPtr clientPtr);
+    private static extern void free_mem(BitwardenSafeHandle handle);
 
     [DllImport("bitwarden_c", CallingConvention = CallingConvention.Cdecl)]
-    private static extern string run_command(string loginRequest, IntPtr clientPtr);
+    private static extern string run_command(string json, BitwardenSafeHandle handle);
 
-    internal static IntPtr Init(string settings)
+    internal static BitwardenSafeHandle Init(string settings)
     {
         return init(settings);
     }
 
-    internal static void FreeMemory(IntPtr clientPtr)
+    internal static void FreeMemory(BitwardenSafeHandle handle)
     {
-        free_mem(clientPtr);
+        free_mem(handle);
     }
 
-    internal static string RunCommand(string loginRequest, IntPtr clientPtr)
+    internal static string RunCommand(string json, BitwardenSafeHandle handle)
     {
-        return run_command(loginRequest, clientPtr);
+        return run_command(json, handle);
     }
 }

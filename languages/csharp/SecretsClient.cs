@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-namespace Bit.Sdk;
+﻿namespace Bitwarden.Sdk;
 
 
 public class SecretsClient
@@ -13,7 +11,7 @@ public class SecretsClient
         _commandRunner = commandRunner;
     }
 
-    public ResponseForSecretResponse Get(Guid id)
+    public ResponseForSecretResponse? Get(Guid id)
     {
         var command = new Command();
         var secretsCommand = new SecretsCommand();
@@ -23,10 +21,10 @@ public class SecretsClient
         };
         secretsCommand.Get = secretGetRequest;
         command.Secrets = secretsCommand;
-        return _commandRunner.RunCommand(command, JsonConvert.DeserializeObject<ResponseForSecretResponse>);
+        return _commandRunner.RunCommand<ResponseForSecretResponse>(command);
     }
 
-    public ResponseForSecretResponse Create(string key, string value, string note, Guid organizationId,
+    public ResponseForSecretResponse? Create(string key, string value, string note, Guid organizationId,
         Guid[] projectIds)
     {
         var command = new Command();
@@ -41,10 +39,10 @@ public class SecretsClient
         };
         secretsCommand.Create = secretCreateRequest;
         command.Secrets = secretsCommand;
-        return _commandRunner.RunCommand(command, JsonConvert.DeserializeObject<ResponseForSecretResponse>);
+        return _commandRunner.RunCommand<ResponseForSecretResponse>(command);
     }
 
-    public ResponseForSecretResponse Update(Guid id, string key, string value, string note, Guid organizationId,
+    public ResponseForSecretResponse? Update(Guid id, string key, string value, string note, Guid organizationId,
         Guid[] projectIds)
     {
         var command = new Command();
@@ -60,10 +58,10 @@ public class SecretsClient
         };
         secretsCommand.Update = secretPutRequest;
         command.Secrets = secretsCommand;
-        return _commandRunner.RunCommand(command, JsonConvert.DeserializeObject<ResponseForSecretResponse>);
+        return _commandRunner.RunCommand<ResponseForSecretResponse>(command);
     }
 
-    public ResponseForSecretsDeleteResponse Delete(Guid[] ids)
+    public ResponseForSecretsDeleteResponse? Delete(Guid[] ids)
     {
         var command = new Command();
         var secretsCommand = new SecretsCommand();
@@ -73,10 +71,10 @@ public class SecretsClient
         };
         secretsCommand.Delete = secretsDeleteRequest;
         command.Secrets = secretsCommand;
-        return _commandRunner.RunCommand(command, JsonConvert.DeserializeObject<ResponseForSecretsDeleteResponse>);
+        return _commandRunner.RunCommand<ResponseForSecretsDeleteResponse>(command);
     }
 
-    public ResponseForSecretIdentifiersResponse List(Guid organizationId)
+    public ResponseForSecretIdentifiersResponse? List(Guid organizationId)
     {
         var command = new Command();
         var secretsCommand = new SecretsCommand();
@@ -86,6 +84,6 @@ public class SecretsClient
         };
         secretsCommand.List = secretIdentifiersRequest;
         command.Secrets = secretsCommand;
-        return _commandRunner.RunCommand(command, JsonConvert.DeserializeObject<ResponseForSecretIdentifiersResponse>);
+        return _commandRunner.RunCommand<ResponseForSecretIdentifiersResponse>(command);
     }
 }

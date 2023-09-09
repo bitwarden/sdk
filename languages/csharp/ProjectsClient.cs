@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-namespace Bit.Sdk;
+﻿namespace Bitwarden.Sdk;
 
 
 public class ProjectsClient
@@ -10,10 +8,10 @@ public class ProjectsClient
 
     internal ProjectsClient(CommandRunner commandRunner)
     {
-        this._commandRunner = commandRunner;
+        _commandRunner = commandRunner;
     }
 
-    public ResponseForProjectResponse Get(Guid id)
+    public ResponseForProjectResponse? Get(Guid id)
     {
         var command = new Command();
         var projectsCommand = new ProjectsCommand();
@@ -23,10 +21,10 @@ public class ProjectsClient
         };
         projectsCommand.Get = projectGetRequest;
         command.Projects = projectsCommand;
-        return _commandRunner.RunCommand(command, JsonConvert.DeserializeObject<ResponseForProjectResponse>);
+        return _commandRunner.RunCommand<ResponseForProjectResponse>(command);
     }
 
-    public ResponseForProjectResponse Create(Guid organizationId, string name)
+    public ResponseForProjectResponse? Create(Guid organizationId, string name)
     {
         var command = new Command();
         var projectsCommand = new ProjectsCommand();
@@ -37,10 +35,10 @@ public class ProjectsClient
         };
         projectsCommand.Create = projectCreateRequest;
         command.Projects = projectsCommand;
-        return _commandRunner.RunCommand(command, JsonConvert.DeserializeObject<ResponseForProjectResponse>);
+        return _commandRunner.RunCommand<ResponseForProjectResponse>(command);
     }
 
-    public ResponseForProjectResponse Update(Guid id, Guid organizationId, String name)
+    public ResponseForProjectResponse? Update(Guid id, Guid organizationId, string name)
     {
         var command = new Command();
         var projectsCommand = new ProjectsCommand();
@@ -52,10 +50,10 @@ public class ProjectsClient
         };
         projectsCommand.Update = projectPutRequest;
         command.Projects = projectsCommand;
-        return _commandRunner.RunCommand(command, JsonConvert.DeserializeObject<ResponseForProjectResponse>);
+        return _commandRunner.RunCommand<ResponseForProjectResponse>(command);
     }
 
-    public ResponseForProjectsDeleteResponse Delete(Guid[] ids)
+    public ResponseForProjectsDeleteResponse? Delete(Guid[] ids)
     {
         var command = new Command();
         var projectsCommand = new ProjectsCommand();
@@ -65,17 +63,16 @@ public class ProjectsClient
         };
         projectsCommand.Delete = projectsDeleteRequest;
         command.Projects = projectsCommand;
-        return _commandRunner.RunCommand(command, JsonConvert.DeserializeObject<ResponseForProjectsDeleteResponse>);
+        return _commandRunner.RunCommand<ResponseForProjectsDeleteResponse>(command);
     }
 
-    public ResponseForProjectsResponse List(Guid organizationId)
+    public ResponseForProjectsResponse? List(Guid organizationId)
     {
         var command = new Command();
         var projectsCommand = new ProjectsCommand();
-        var projectsListRequest = new ProjectsListRequest();
-        projectsListRequest.OrganizationId = organizationId;
+        var projectsListRequest = new ProjectsListRequest { OrganizationId = organizationId };
         projectsCommand.List = projectsListRequest;
         command.Projects = projectsCommand;
-        return _commandRunner.RunCommand(command, JsonConvert.DeserializeObject<ResponseForProjectsResponse>);
+        return _commandRunner.RunCommand<ResponseForProjectsResponse>(command);
     }
 }

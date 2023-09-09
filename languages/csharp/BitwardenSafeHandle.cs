@@ -1,17 +1,12 @@
-﻿using System.Runtime.InteropServices;
+﻿using Microsoft.Win32.SafeHandles;
 
 namespace Bitwarden.Sdk;
 
-internal class BitwardenSafeHandle : SafeHandle
+internal class BitwardenSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
 {
-    public BitwardenSafeHandle() : base(IntPtr.Zero, true)
+    public BitwardenSafeHandle() : base(true)
     {
         SetHandle(handle);
-    }
-
-    public override bool IsInvalid
-    {
-        get { return handle == IntPtr.Zero; }
     }
 
     protected override bool ReleaseHandle()

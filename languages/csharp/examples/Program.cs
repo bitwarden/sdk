@@ -1,8 +1,8 @@
 ﻿using Bitwarden.Sdk;
 
 
-const string accessToken = "0.d37c384a-e70b-4239-bf2b-b06a0100efc8.1zxKrHPvHFzxaZ9XdI3UbUHu9jAvv2:MFWrA5ztEIJaKnKO2quJKw==";
-const string organizationIdStr = "dd06fcdd-2834-4b66-98b8-b06a00fd6051";
+const string accessToken = "";
+const string organizationIdStr = "";
 
 using var bitwardenClient = new BitwardenClient();
 var loginResponse = bitwardenClient.AccessTokenLogin(accessToken);

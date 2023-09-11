@@ -1,0 +1,71 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+<PropertyGroup>
+  <TargetFramework>net6.0</TargetFramework>
+  <PackageReadmeFile>README.md</PackageReadmeFile>
+  <ImplicitUsings>enable</ImplicitUsings>
+  <Nullable>enable</Nullable>
+  <AssemblyName>BitwardenSdk</AssemblyName>
+  <PackageId>BitwardenSdk</PackageId>
+  <Title>Bitwarden Sdk</Title>
+  <Authors>Bitwarden Inc.</Authors>
+  <Description>Bitwarden Sdk</Description>
+  <Copyright>Bitwarden Inc.</Copyright>
+  <RepositoryUrl>https://github.com/bitwarden/sdk/tree/master/languages/csharp</RepositoryUrl>
+  <PackageTags>Bitwarden;Sdk;.NET</PackageTags>
+  <Product>BitwardenSdk</Product>
+  <PackageIcon>bitwarden.png</PackageIcon>
+  <RepositoryType>Git</RepositoryType>
+  <RootNamespace>Bitwarden.Sdk</RootNamespace>
+</PropertyGroup>
+
+<ItemGroup>
+  <PackageReference Include="System.Text.Json" Version="7.0.3" />
+  <None Include="bitwarden.png" Pack="true" PackagePath="\" />
+  <None Update="README.md" Pack="true" PackagePath="\" />
+</ItemGroup>
+
+<PropertyGroup>
+  <!--Debugonly-->
+</PropertyGroup>
+
+<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug||AnyCPU' ">
+  <WarningLevel>4</WarningLevel>
+</PropertyGroup>
+<ItemGroup Condition="'$(Configuration)'=='Debug'">
+  <Content Include="../../../target/debug/libbitwarden_c*.dylib">
+    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <PackageCopyToOutput>true</PackageCopyToOutput>
+  </Content>
+  <Content Include="../../../target/debug/libbitwarden_c*.so">
+    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <PackageCopyToOutput>true</PackageCopyToOutput>
+  </Content>
+  <Content Include="../../../target/debug/bitwarden_c*.dll">
+    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <PackageCopyToOutput>true</PackageCopyToOutput>
+  </Content>
+</ItemGroup>
+<ItemGroup Condition="'$(Configuration)'=='Release'">
+  <Content Include="macos-latest-x64/libbitwarden_c*.dylib">
+    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <PackageCopyToOutput>true</PackageCopyToOutput>
+    <PackagePath>runtimes/osx-x64/native</PackagePath>
+  </Content>
+  <Content Include="macos-latest-arm64/libbitwarden_c*.dylib">
+    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <PackageCopyToOutput>true</PackageCopyToOutput>
+    <PackagePath>runtimes/osx-arm64/native</PackagePath>
+  </Content>
+  <Content Include="ubuntu-latest-x64/libbitwarden_c*.so">
+    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <PackageCopyToOutput>true</PackageCopyToOutput>
+    <PackagePath>runtimes/linux-x64/native</PackagePath>
+  </Content>
+  <Content Include="windows-latest-x64/bitwarden_c*.dll">
+    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <PackageCopyToOutput>true</PackageCopyToOutput>
+    <PackagePath>runtimes/win-x64/native</PackagePath>
+  </Content>
+</ItemGroup>
+</Project>

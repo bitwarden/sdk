@@ -41,7 +41,6 @@ public sealed class BitwardenClient : IDisposable
 
     public void Dispose()
     {
-        BitwardenLibrary.FreeMemory(_handle);
         _handle.Dispose();
     }
 }

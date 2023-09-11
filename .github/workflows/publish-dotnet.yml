@@ -25,7 +25,7 @@ jobs:
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: schemas.cs
-          path: languages/csharp
+          path: languages/csharp/Bitwarden.Sdk
 
       - name: Set up .NET Core
         uses: actions/setup-dotnet@3447fd6a9f9e57506b15f895c5b76d3b197dc7c2 # v3.2.0
@@ -36,32 +36,32 @@ jobs:
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: libbitwarden_c_files-macos-latest-x64
-          path: languages/csharp/macos-latest-x64
+          path: languages/csharp/Bitwarden.Sdk/macos-latest-x64
 
       - name: Download macos-latest-arm64 files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: libbitwarden_c_files-macos-latest-arm64
-          path: languages/csharp/macos-latest-arm64
+          path: languages/csharp/Bitwarden.Sdk/macos-latest-arm64
 
       - name: Download ubuntu-latest-x64 files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: libbitwarden_c_files-ubuntu-latest-x64
-          path: languages/csharp/ubuntu-latest-x64
+          path: languages/csharp/Bitwarden.Sdk/ubuntu-latest-x64
 
       - name: Download windows-latest-x64 files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: libbitwarden_c_files-windows-latest-x64
-          path: languages/csharp/windows-latest-x64
+          path: languages/csharp/Bitwarden.Sdk/windows-latest-x64
 
       - name: Pack NuGet Package
         env:
           VERSION: ${{ github.event.inputs.version_number }}
         run: |
-          cd languages/csharp
+          cd languages/csharp/Bitwarden.Sdk
           dotnet pack --configuration Release -p:PackageID=BitwardenSdk -p:Version=${VERSION} --output ./nuget-output /nologo /v:n
 
       - name: Publish NuGet Package
-        run: dotnet nuget push ./languages/csharp/nuget-output/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
+        run: dotnet nuget push ./languages/csharp/Bitwarden.Sdk/nuget-output/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json

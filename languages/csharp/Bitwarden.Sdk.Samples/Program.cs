@@ -1,8 +1,8 @@
 ﻿using Bitwarden.Sdk;
 
 
-const string accessToken = "";
-const string organizationIdStr = "";
+var accessToken = Environment.GetEnvironmentVariable("ACCESS_TOKEN");
+var organizationIdStr = Environment.GetEnvironmentVariable("ORGANIZATION_ID");
 
 using var bitwardenClient = new BitwardenClient();
 var loginResponse = bitwardenClient.AccessTokenLogin(accessToken);

@@ -60,3 +60,17 @@ jobs:
         run: |
           dotnet restore
           dotnet build --configuration Release
+
+      - name: Pack NuGet Package
+        env:
+          VERSION: 0.0.1
+        run: |
+          cd languages/csharp/Bitwarden.Sdk
+          dotnet pack --configuration Release -p:PackageID=BitwardenSdk -p:Version=${VERSION} --output ./nuget-output /nologo /v:n
+
+      - name: Upload NuGet package
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: BitwardenSdk.0.0.1.nupkg
+          path: |
+            ./languages/csharp/Bitwarden.Sdk/nuget-output/*.nupkg

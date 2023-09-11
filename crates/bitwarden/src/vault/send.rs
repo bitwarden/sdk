@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{stretch_key, Decryptable, EncString, SymmetricCryptoKey},
+    crypto::{derive_shareable_key, Decryptable, EncString, Encryptable, SymmetricCryptoKey},
     error::Result,
 };
 
@@ -126,14 +126,23 @@ pub struct SendListView {
 }
 
 impl Send {
-    pub(crate) fn get_key(
+    fn get_key(
         key: &EncString,
         enc: &EncryptionSettings,
         org_id: &Option<Uuid>,
     ) -> Result<SymmetricCryptoKey> {
         let key: Vec<u8> = enc.decrypt_bytes(key, org_id)?;
-        let key = stretch_key(key.try_into().unwrap(), "send", Some("send"));
+        let key = derive_shareable_key(key.try_into().unwrap(), "send", Some("send"));
         Ok(key)
+    }
+
+    pub(crate) fn get_encryption(
+        key: &EncString,
+        enc: &EncryptionSettings,
+        org_id: &Option<Uuid>,
+    ) -> Result<EncryptionSettings> {
+        let key = Send::get_key(key, enc, org_id)?;
+        Ok(EncryptionSettings::new_single_key(key))
     }
 }
 
@@ -141,6 +150,15 @@ impl Decryptable<SendTextView> for SendText {
     fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<SendTextView> {
         Ok(SendTextView {
             text: self.text.decrypt(enc, org_id)?,
+            hidden: self.hidden,
+        })
+    }
+}
+
+impl Encryptable<SendText> for SendTextView {
+    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<SendText> {
+        Ok(SendText {
+            text: self.text.encrypt(enc, org_id)?,
             hidden: self.hidden,
         })
     }
@@ -157,11 +175,21 @@ impl Decryptable<SendFileView> for SendFile {
     }
 }
 
+impl Encryptable<SendFile> for SendFileView {
+    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<SendFile> {
+        Ok(SendFile {
+            id: self.id.clone(),
+            file_name: self.file_name.encrypt(enc, org_id)?,
+            size: self.size.clone(),
+            size_name: self.size_name.clone(),
+        })
+    }
+}
+
 impl Decryptable<SendView> for Send {
     fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<SendView> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
-        let key = Send::get_key(&self.key, enc, org_id)?;
-        let enc_owned = EncryptionSettings::new_single_key(key);
+        let enc_owned = Send::get_encryption(&self.key, enc, org_id)?;
 
         // For the rest of the fields, we ignore the provided EncryptionSettings and use a new one with the stretched key
         let enc = &enc_owned;
@@ -194,8 +222,7 @@ impl Decryptable<SendView> for Send {
 impl Decryptable<SendListView> for Send {
     fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<SendListView> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
-        let key = Send::get_key(&self.key, enc, org_id)?;
-        let enc_owned = EncryptionSettings::new_single_key(key);
+        let enc_owned = Send::get_encryption(&self.key, enc, org_id)?;
 
         // For the rest of the fields, we ignore the provided EncryptionSettings and use a new one with the stretched key
         let enc = &enc_owned;
@@ -216,14 +243,47 @@ impl Decryptable<SendListView> for Send {
     }
 }
 
+impl Encryptable<Send> for SendView {
+    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Send> {
+        // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
+        let key = Send::get_key(&self.key, enc, org_id)?;
+        let enc_owned = EncryptionSettings::new_single_key(key);
+
+        // For the rest of the fields, we ignore the provided EncryptionSettings and use a new one with the stretched key
+        let enc = &enc_owned;
+
+        Ok(Send {
+            id: self.id,
+            access_id: self.access_id,
+
+            name: self.name.encrypt(enc, org_id)?,
+            notes: self.notes.encrypt(enc, org_id)?,
+            key: self.key.clone(),
+            password: self.password.clone(),
+
+            r#type: self.r#type,
+            file: self.file.encrypt(enc, org_id)?,
+            text: self.text.encrypt(enc, org_id)?,
+
+            max_access_count: self.max_access_count,
+            access_count: self.access_count,
+            disabled: self.disabled,
+            hide_email: self.hide_email,
+
+            revision_date: self.revision_date,
+            deletion_date: self.deletion_date,
+            expiration_date: self.expiration_date,
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use super::Send;
     use crate::client::{
         auth_settings::{AuthSettings, Kdf},
         encryption_settings::EncryptionSettings,
     };
-
-    use super::Send;
 
     #[test]
     fn test_get_send_key() {

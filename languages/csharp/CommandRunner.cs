@@ -13,8 +13,8 @@ internal class CommandRunner
 
     internal T? RunCommand<T>(Command command)
     {
-        var req = command.ToJson();
+        var req = JsonSerializer.Serialize(command, Converter.Settings);
         var result = BitwardenLibrary.RunCommand(req, _handle);
-        return JsonSerializer.Deserialize<T>(result);
+        return JsonSerializer.Deserialize<T>(result, Converter.Settings);
     }
 }

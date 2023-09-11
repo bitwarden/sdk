@@ -25,12 +25,7 @@ public sealed class BitwardenClient : IDisposable
 
     public ResponseForApiKeyLoginResponse? AccessTokenLogin(string accessToken)
     {
-        var command = new Command();
-        var accessTokenLoginRequest = new AccessTokenLoginRequest
-        {
-            AccessToken = accessToken
-        };
-        command.AccessTokenLogin = accessTokenLoginRequest;
+        var command = new Command() { AccessTokenLogin = new AccessTokenLoginRequest { AccessToken = accessToken } };
         return _commandRunner.RunCommand<ResponseForApiKeyLoginResponse>(command);
     }
 

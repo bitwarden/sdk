@@ -23,7 +23,10 @@
   <ItemGroup>
     <PackageReference Include="System.Text.Json" Version="7.0.3" />
       <None Include="bitwarden.png" Pack="true" PackagePath="\" />
-      <None Include="docs/README.md" Pack="true" PackagePath="\" />
+      <None Update="README.md">
+        <Pack>true</Pack>
+        <PackagePath>/</PackagePath>
+      </None>
   </ItemGroup>
 
 <PropertyGroup>

@@ -11,7 +11,7 @@ internal class BitwardenSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
 
     protected override bool ReleaseHandle()
     {
-        BitwardenLibrary.FreeMemory(this);
+        BitwardenLibrary.FreeMemory(handle);
         return true;
     }
 }

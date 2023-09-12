@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Bitwarden.Sdk;
+﻿namespace Bitwarden.Sdk;
 
 
 public class ProjectsClient

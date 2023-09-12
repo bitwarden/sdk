@@ -1,24 +1,27 @@
 #[cfg(feature = "internal")]
+use std::str::FromStr;
+
+#[cfg(feature = "internal")]
 use log::{debug, info};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-#[cfg(feature = "internal")]
-use std::str::FromStr;
 
+#[cfg(feature = "internal")]
+use crate::{
+    auth::{
+        api::request::PasswordTokenRequest,
+        login::{determine_password_hash, TwoFactorRequest},
+    },
+    client::LoginMethod,
+    crypto::EncString,
+    Client,
+};
 use crate::{
     auth::{
         api::response::IdentityTokenResponse,
         login::response::{captcha_response::CaptchaResponse, two_factor::TwoFactorProviders},
     },
     error::Result,
-};
-
-#[cfg(feature = "internal")]
-use crate::{
-    auth::{api::request::PasswordTokenRequest, login::determine_password_hash},
-    client::LoginMethod,
-    crypto::CipherString,
-    Client,
 };
 
 #[cfg(feature = "internal")]
@@ -42,8 +45,8 @@ pub(crate) async fn password_login(
             },
         );
 
-        let user_key = CipherString::from_str(r.key.as_deref().unwrap()).unwrap();
-        let private_key = CipherString::from_str(r.private_key.as_deref().unwrap()).unwrap();
+        let user_key = EncString::from_str(r.key.as_deref().unwrap()).unwrap();
+        let private_key = EncString::from_str(r.private_key.as_deref().unwrap()).unwrap();
 
         client.initialize_user_crypto(&input.password, user_key, private_key)?;
     }
@@ -58,19 +61,22 @@ async fn request_identity_tokens(
     password_hash: &String,
 ) -> Result<IdentityTokenResponse> {
     let config = client.get_api_configurations().await;
-    PasswordTokenRequest::new(&input.email, password_hash)
+    PasswordTokenRequest::new(&input.email, password_hash, &input.two_factor)
         .send(config)
         .await
 }
 
-/// Login to Bitwarden with Username and Password
+#[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+/// Login to Bitwarden with Username and Password
 pub struct PasswordLoginRequest {
     /// Bitwarden account email address
     pub email: String,
     /// Bitwarden account master password
     pub password: String,
+    // Two-factor authentication
+    pub two_factor: Option<TwoFactorRequest>,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

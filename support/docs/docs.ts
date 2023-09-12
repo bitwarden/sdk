@@ -10,7 +10,7 @@ import { Input, InputType } from "./rustdoc";
 
 const doc = JSON.parse(fs.readFileSync("./target/doc/bitwarden_uniffi.json", "utf8"));
 const command = JSON.parse(
-  fs.readFileSync("./support/schemas/bitwarden_json/Command.json", "utf8"),
+  fs.readFileSync("./support/schemas/bitwarden_uniffi/DocRef.json", "utf8"),
 );
 
 const template = Handlebars.compile(
@@ -20,13 +20,16 @@ const template = Handlebars.compile(
 // Modify this to include more root elements
 const rootElements = [
   "Client",
-  "ClientKdf",
-  "ClientCrypto",
-  "ClientVault",
+  "ClientAuth",
   "ClientCiphers",
   "ClientCollections",
+  "ClientCrypto",
+  "ClientExporters",
   "ClientFolders",
+  "ClientGenerators",
   "ClientPasswordHistory",
+  "ClientSends",
+  "ClientVault",
 ];
 
 const localIndexArray = Object.values(doc.index).filter((entry: any) => entry.crate_id == 0);

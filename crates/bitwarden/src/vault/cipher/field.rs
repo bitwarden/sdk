@@ -3,13 +3,12 @@ use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use uuid::Uuid;
 
+use super::linked_id::LinkedIdType;
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{CipherString, Decryptable, Encryptable},
+    crypto::{Decryptable, EncString, Encryptable},
     error::Result,
 };
-
-use super::linked_id::LinkedIdType;
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
@@ -25,8 +24,8 @@ pub enum FieldType {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Field {
-    name: CipherString,
-    value: CipherString,
+    name: EncString,
+    value: EncString,
     r#type: FieldType,
 
     linked_id: Option<LinkedIdType>,

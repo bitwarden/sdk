@@ -13,12 +13,18 @@ use {
 pub mod response;
 
 mod password;
-pub use password::PasswordLoginResponse;
-
 #[cfg(feature = "internal")]
 pub(crate) use password::password_login;
 #[cfg(feature = "internal")]
 pub use password::PasswordLoginRequest;
+pub use password::PasswordLoginResponse;
+#[cfg(feature = "internal")]
+mod two_factor;
+#[cfg(feature = "internal")]
+pub(crate) use two_factor::send_two_factor_email;
+#[cfg(feature = "internal")]
+pub use two_factor::{TwoFactorEmailRequest, TwoFactorProvider, TwoFactorRequest};
+
 #[cfg(feature = "internal")]
 mod api_key;
 #[cfg(feature = "internal")]
@@ -41,7 +47,7 @@ async fn determine_password_hash(
 ) -> Result<String> {
     let pre_login = request_prelogin(client, email.to_owned()).await?;
     let auth_settings = AuthSettings::new(pre_login, email.to_owned());
-    let password_hash = auth_settings.make_user_password_hash(password)?;
+    let password_hash = auth_settings.derive_user_password_hash(password)?;
     client.set_auth_settings(auth_settings);
 
     Ok(password_hash)

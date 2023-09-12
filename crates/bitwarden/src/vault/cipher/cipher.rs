@@ -4,17 +4,16 @@ use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use uuid::Uuid;
 
-use crate::{
-    client::encryption_settings::EncryptionSettings,
-    crypto::{CipherString, Decryptable, Encryptable},
-    error::Result,
-    vault::password_history,
-};
-
 use super::{
     attachment, card, field, identity,
     local_data::{LocalData, LocalDataView},
     login, secure_note,
+};
+use crate::{
+    client::encryption_settings::EncryptionSettings,
+    crypto::{Decryptable, EncString, Encryptable},
+    error::Result,
+    vault::password_history,
 };
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
@@ -44,8 +43,8 @@ pub struct Cipher {
     pub folder_id: Option<Uuid>,
     pub collection_ids: Vec<Uuid>,
 
-    pub name: CipherString,
-    pub notes: CipherString,
+    pub name: EncString,
+    pub notes: EncString,
 
     pub r#type: CipherType,
     pub login: Option<login::Login>,
@@ -200,12 +199,16 @@ impl Cipher {
     ) -> Result<String> {
         Ok(match self.r#type {
             CipherType::Login => {
-                let Some(login) = &self.login else { return Ok(String::new()) };
+                let Some(login) = &self.login else {
+                    return Ok(String::new());
+                };
                 login.username.decrypt(enc, org_id).unwrap_or_default()
             }
             CipherType::SecureNote => String::new(),
             CipherType::Card => {
-                let Some(card) = &self.card else { return Ok(String::new()) };
+                let Some(card) = &self.card else {
+                    return Ok(String::new());
+                };
                 let mut sub_title = String::new();
 
                 if let Some(brand) = &card.brand {
@@ -233,7 +236,9 @@ impl Cipher {
                 sub_title
             }
             CipherType::Identity => {
-                let Some(identity) = &self.identity else { return Ok(String::new()) };
+                let Some(identity) = &self.identity else {
+                    return Ok(String::new());
+                };
                 let mut sub_title = String::new();
 
                 if let Some(first_name) = &identity.first_name {

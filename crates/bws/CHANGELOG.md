@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Support for shell autocompletion with the `bws completions` command (#103)
+- When running `bws` with no args, the help text is now printed to `stderr` instead of `stdout` to be consistent with `bws subcommand` behavior (#190)
 
 ## [0.3.0] - 2023-07-26
 

@@ -10,6 +10,8 @@
 
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct EnvironmentConfigResponseModel {
+    #[serde(rename = "cloudRegion", skip_serializing_if = "Option::is_none")]
+    pub cloud_region: Option<String>,
     #[serde(rename = "vault", skip_serializing_if = "Option::is_none")]
     pub vault: Option<String>,
     #[serde(rename = "api", skip_serializing_if = "Option::is_none")]
@@ -25,6 +27,7 @@ pub struct EnvironmentConfigResponseModel {
 impl EnvironmentConfigResponseModel {
     pub fn new() -> EnvironmentConfigResponseModel {
         EnvironmentConfigResponseModel {
+            cloud_region: None,
             vault: None,
             api: None,
             identity: None,

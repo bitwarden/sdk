@@ -10,7 +10,7 @@ use bitwarden::{
         },
         secrets::{
             SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
-            SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest,
+            SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest, SecretsGetRequest,
         },
     },
 };
@@ -246,7 +246,7 @@ async fn process_commands() -> Result<()> {
 
     let Some(command) = cli.command else {
         let mut cmd = Cli::command();
-        cmd.print_help()?;
+        eprintln!("{}", cmd.render_help().ansi());
         return Ok(());
     };
 
@@ -456,12 +456,12 @@ async fn process_commands() -> Result<()> {
                     .await?
             };
 
-            let mut secrets = Vec::new();
-
-            for s in res.data {
-                let secret = client.secrets().get(&SecretGetRequest { id: s.id }).await?;
-                secrets.push(secret);
-            }
+            let secret_ids = res.data.into_iter().map(|e| e.id).collect();
+            let secrets = client
+                .secrets()
+                .get_by_ids(SecretsGetRequest { ids: secret_ids })
+                .await?
+                .data;
             serialize_response(secrets, cli.output, color);
         }
 

@@ -101,6 +101,7 @@ fn main() -> Result<()> {
         bitwarden::auth::login::PasswordLoginResponse,
         bitwarden::secrets_manager::secrets::SecretIdentifiersResponse,
         bitwarden::secrets_manager::secrets::SecretResponse,
+        bitwarden::secrets_manager::secrets::SecretsResponse,
         bitwarden::secrets_manager::secrets::SecretsDeleteResponse,
         bitwarden::secrets_manager::projects::ProjectResponse,
         bitwarden::secrets_manager::projects::ProjectsResponse,
@@ -114,6 +115,9 @@ fn main() -> Result<()> {
         bitwarden::platform::SyncResponse,
         bitwarden::platform::UserApiKeyResponse,
     };
+
+    #[cfg(feature = "internal")]
+    write_schema_for!(bitwarden_uniffi::docs::DocRef);
 
     Ok(())
 }

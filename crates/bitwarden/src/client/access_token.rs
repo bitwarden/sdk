@@ -4,7 +4,8 @@ use base64::Engine;
 use uuid::Uuid;
 
 use crate::{
-    client::encryption_settings::SymmetricCryptoKey, error::AccessTokenInvalidError,
+    crypto::{derive_shareable_key, SymmetricCryptoKey},
+    error::AccessTokenInvalidError,
     util::BASE64_ENGINE,
 };
 
@@ -45,7 +46,7 @@ impl FromStr for AccessToken {
             }
         })?;
         let encryption_key =
-            crate::crypto::stretch_key(encryption_key, "accesstoken", Some("sm-access-token"));
+            derive_shareable_key(encryption_key, "accesstoken", Some("sm-access-token"));
 
         Ok(AccessToken {
             service_account_id,

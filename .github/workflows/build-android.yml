@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@f361669954a8ecfc00a3443f35f9ac8e610ffc06 # stable
+        uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # stable
         with:
           toolchain: 1.67.0 # https://github.com/cross-rs/cross/issues/1222
 
@@ -70,7 +70,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@f361669954a8ecfc00a3443f35f9ac8e610ffc06 # stable
+        uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # stable
         with:
           toolchain: stable
 

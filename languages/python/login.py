@@ -12,14 +12,10 @@ client = BitwardenClient(client_settings_from_dict({
 
 logging.basicConfig(level=logging.DEBUG)
 
-result = client.password_login("test@bitwarden.com", "asdfasdf")
-print(result)
-print(client.get_user_api_key("asdfasdf"))
+result = client.access_token_login("access token here")
 
-sync = client.sync()
+secret = client.secrets().create("TEST_SECRET", "This is a test secret", "organization id here", "Secret1234!", ["project id here"])
 
-secret = client.secrets().create("TEST_SECRET", "This is a test secret",
-                                 sync.data.profile.organizations[0].id, "Secret1234!")
-print(secret)
+input("Press Enter to delete the secret...")
 
 client.secrets().delete([secret.data.id])

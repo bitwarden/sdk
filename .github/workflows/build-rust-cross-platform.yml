@@ -60,7 +60,7 @@ jobs:
           rustup target add ${{ matrix.settings.target }}
 
       - name: Build Rust
-        run: cargo build ${{ matrix.settings.target }} --release
+        run: cargo build --target ${{ matrix.settings.target }} --release
         env:
           RUSTFLAGS: "-D warnings"
 

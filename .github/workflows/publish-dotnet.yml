@@ -44,23 +44,11 @@ jobs:
           name: libbitwarden_c_files-macos-arm64
           path: languages/csharp/Bitwarden.Sdk/macos-arm64
 
-      - name: Download ubuntu-arm64 files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: libbitwarden_c_files-ubuntu-arm64
-          path: languages/csharp/Bitwarden.Sdk/ubuntu-arm64
-
       - name: Download ubuntu-x64 files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: libbitwarden_c_files-ubuntu-x64
           path: languages/csharp/Bitwarden.Sdk/ubuntu-x64
-
-      - name: Download windows-arm64 files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: libbitwarden_c_files-windows-arm64
-          path: languages/csharp/Bitwarden.Sdk/windows-arm64
 
       - name: Download windows-x64 files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2

@@ -62,20 +62,10 @@
     <PackageCopyToOutput>true</PackageCopyToOutput>
     <PackagePath>runtimes/linux-x64/native</PackagePath>
   </Content>
-  <Content Include="ubuntu-arm64/libbitwarden_c*.so">
-    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    <PackageCopyToOutput>true</PackageCopyToOutput>
-    <PackagePath>runtimes/linux-arm64/native</PackagePath>
-  </Content>
   <Content Include="windows-x64/bitwarden_c*.dll">
     <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     <PackageCopyToOutput>true</PackageCopyToOutput>
     <PackagePath>runtimes/win-x64/native</PackagePath>
-  </Content>
-  <Content Include="windows-arm64/bitwarden_c*.dll">
-    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    <PackageCopyToOutput>true</PackageCopyToOutput>
-    <PackagePath>runtimes/win-arm64/native</PackagePath>
   </Content>
 </ItemGroup>
 </Project>

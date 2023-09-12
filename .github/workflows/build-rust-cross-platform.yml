@@ -24,20 +24,10 @@ jobs:
             arch: x64
             folder_name: windows-x64
 
-          - os: windows-2022
-            target: aarch64-pc-windows-msvc
-            arch: arm64
-            folder_name: windows-arm64
-
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
             arch: x64
             folder_name: ubuntu-x64
-
-          - os: ubuntu-22.04
-            target: aarch64-unknown-linux-gnu
-            arch: arm64
-            folder_name: ubuntu-arm64
 
     runs-on: ${{ matrix.settings.os }}
 

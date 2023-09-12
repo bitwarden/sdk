@@ -8,17 +8,40 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
-        arch: [x64, arm64]
-        exclude:
-          - os: windows-latest
-            arch: arm64
-          - os: ubuntu-latest
-            arch: arm64
+        settings:
+          - os: macos-12
+            target: x86_64-apple-darwin
+            arch: x64
+            folder_name: macos-x64
 
-    runs-on: ${{ matrix.os }}
+          - os: macos-12
+            target: aarch64-apple-darwin
+            arch: arm64
+            folder_name: macos-arm64
 
-    name: Build for ${{ matrix.os }} ${{ matrix.arch }}
+          - os: windows-2022
+            target: x86_64-pc-windows-msvc
+            arch: x64
+            folder_name: windows-x64
+
+          - os: windows-2022
+            target: aarch64-pc-windows-msvc
+            arch: arm64
+            folder_name: windows-arm64
+
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            arch: x64
+            folder_name: ubuntu-x64
+
+          - os: ubuntu-22.04
+            target: aarch64-unknown-linux-gnu
+            arch: arm64
+            folder_name: ubuntu-arm64
+
+    runs-on: ${{ matrix.settings.os }}
+
+    name: Build for ${{ matrix.settings.os }} ${{ matrix.settings.target }}
 
     steps:
       - name: Checkout
@@ -32,32 +55,18 @@ jobs:
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@e207df5d269b42b69c8bc5101da26f7d31feddb4 # v2.6.2
 
-      - name: Set build architecture, ios, linux
-        if: matrix.os != 'windows-latest'
+      - name: Add build architecture
         run: |
-          if [[ "${{ matrix.arch }}" == "x64" ]]; then
-            echo "TARGET_ARCH=" >> $GITHUB_ENV
-            echo "TARGET_FOLDER=target/release/" >> $GITHUB_ENV
-          elif [[ "${{ matrix.arch }}" == "arm64" ]]; then
-            echo "TARGET_ARCH=--target aarch64-apple-darwin" >> $GITHUB_ENV
-            echo "TARGET_FOLDER=target/aarch64-apple-darwin/release/" >> $GITHUB_ENV
-            rustup target add aarch64-apple-darwin
-          fi
-
-      - name: Set build architecture, windows
-        if: matrix.os == 'windows-latest'
-        run: |
-          echo "TARGET_ARCH=" | Out-File -FilePath $env:GITHUB_ENV
-          echo "TARGET_FOLDER=target/release/" | Out-File -FilePath $env:GITHUB_ENV
+          rustup target add ${{ matrix.settings.target }}
 
       - name: Build Rust
-        run: cargo build ${{ env.TARGET_ARCH }} --release
+        run: cargo build ${{ matrix.settings.target }} --release
         env:
           RUSTFLAGS: "-D warnings"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
-          name: libbitwarden_c_files-${{ matrix.os }}-${{ matrix.arch }}
+          name: libbitwarden_c_files-${{ matrix.settings.folder_name }}
           path: |
-            ${{ env.TARGET_FOLDER }}/*bitwarden_c*
+            target/${{ matrix.settings.target }}/release/*bitwarden_c*

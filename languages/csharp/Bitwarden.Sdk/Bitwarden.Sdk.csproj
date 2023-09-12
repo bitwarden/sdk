@@ -47,25 +47,35 @@
   </Content>
 </ItemGroup>
 <ItemGroup Condition="'$(Configuration)'=='Release'">
-  <Content Include="macos-latest-x64/libbitwarden_c*.dylib">
+  <Content Include="macos-x64/libbitwarden_c*.dylib">
     <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     <PackageCopyToOutput>true</PackageCopyToOutput>
     <PackagePath>runtimes/osx-x64/native</PackagePath>
   </Content>
-  <Content Include="macos-latest-arm64/libbitwarden_c*.dylib">
+  <Content Include="macos-arm64/libbitwarden_c*.dylib">
     <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     <PackageCopyToOutput>true</PackageCopyToOutput>
     <PackagePath>runtimes/osx-arm64/native</PackagePath>
   </Content>
-  <Content Include="ubuntu-latest-x64/libbitwarden_c*.so">
+  <Content Include="ubuntu-x64/libbitwarden_c*.so">
     <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     <PackageCopyToOutput>true</PackageCopyToOutput>
     <PackagePath>runtimes/linux-x64/native</PackagePath>
   </Content>
-  <Content Include="windows-latest-x64/bitwarden_c*.dll">
+  <Content Include="ubuntu-arm64/libbitwarden_c*.so">
+    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <PackageCopyToOutput>true</PackageCopyToOutput>
+    <PackagePath>runtimes/linux-arm64/native</PackagePath>
+  </Content>
+  <Content Include="windows-x64/bitwarden_c*.dll">
     <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     <PackageCopyToOutput>true</PackageCopyToOutput>
     <PackagePath>runtimes/win-x64/native</PackagePath>
+  </Content>
+  <Content Include="windows-arm64/bitwarden_c*.dll">
+    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <PackageCopyToOutput>true</PackageCopyToOutput>
+    <PackagePath>runtimes/win-arm64/native</PackagePath>
   </Content>
 </ItemGroup>
 </Project>

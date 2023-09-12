@@ -32,29 +32,41 @@ jobs:
         with:
           global-json-file: languages/csharp/global.json
 
-      - name: Download macos-latest-x64 files
+      - name: Download macos-x64 files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
-          name: libbitwarden_c_files-macos-latest-x64
-          path: languages/csharp/Bitwarden.Sdk/macos-latest-x64
+          name: libbitwarden_c_files-macos-x64
+          path: languages/csharp/Bitwarden.Sdk/macos-x64
 
-      - name: Download macos-latest-arm64 files
+      - name: Download macos-arm64 files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
-          name: libbitwarden_c_files-macos-latest-arm64
-          path: languages/csharp/Bitwarden.Sdk/macos-latest-arm64
+          name: libbitwarden_c_files-macos-arm64
+          path: languages/csharp/Bitwarden.Sdk/macos-arm64
 
-      - name: Download ubuntu-latest-x64 files
+      - name: Download ubuntu-arm64 files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
-          name: libbitwarden_c_files-ubuntu-latest-x64
-          path: languages/csharp/Bitwarden.Sdk/ubuntu-latest-x64
+          name: libbitwarden_c_files-ubuntu-arm64
+          path: languages/csharp/Bitwarden.Sdk/ubuntu-arm64
 
-      - name: Download windows-latest-x64 files
+      - name: Download ubuntu-x64 files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
-          name: libbitwarden_c_files-windows-latest-x64
-          path: languages/csharp/Bitwarden.Sdk/windows-latest-x64
+          name: libbitwarden_c_files-ubuntu-x64
+          path: languages/csharp/Bitwarden.Sdk/ubuntu-x64
+
+      - name: Download windows-arm64 files
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: libbitwarden_c_files-windows-arm64
+          path: languages/csharp/Bitwarden.Sdk/windows-arm64
+
+      - name: Download windows-x64 files
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: libbitwarden_c_files-windows-x64
+          path: languages/csharp/Bitwarden.Sdk/windows-x64
 
       - name: Pack NuGet Package
         env:

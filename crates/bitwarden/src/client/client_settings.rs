@@ -34,19 +34,6 @@ pub struct ClientSettings {
     pub device_type: DeviceType,
 }
 
-#[cfg(debug_assertions)]
-impl Default for ClientSettings {
-    fn default() -> Self {
-        Self {
-            identity_url: "https://localhost:8080/identity".into(),
-            api_url: "https://localhost:8080/api".into(),
-            user_agent: "Bitwarden Rust-SDK".into(),
-            device_type: DeviceType::SDK,
-        }
-    }
-}
-
-#[cfg(not(debug_assertions))]
 impl Default for ClientSettings {
     fn default() -> Self {
         Self {

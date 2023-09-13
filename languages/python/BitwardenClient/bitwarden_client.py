@@ -77,10 +77,12 @@ class SecretsClient:
                key: str,
                note: str,
                organization_id: str,
-               value: str) -> ResponseForSecretResponse:
+               value: str,
+               project_ids: Optional[List[UUID]] = None
+               ) -> ResponseForSecretResponse:
         result = self.client._run_command(
             Command(secrets=SecretsCommand(update=SecretPutRequest(
-                id, key, note, organization_id, value)))
+                id, key, note, organization_id, value, project_ids)))
         )
         return ResponseForSecretResponse.from_dict(result)
 

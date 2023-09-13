@@ -13,14 +13,17 @@ jobs:
     uses: ./.github/workflows/build-rust-cross-platform.yml
 
   build_dotnet:
+    name: Build .NET
     runs-on: ubuntu-22.04
-    needs: [generate_schemas, build_rust]
+    needs:
+      - generate_schemas
+      - build_rust
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
 
-      - name: Download c# schemas artifact
+      - name: Download C# schemas artifact
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: schemas.cs
@@ -64,9 +67,8 @@ jobs:
       - name: Pack NuGet Package
         env:
           VERSION: 0.0.1
-        run: |
-          cd languages/csharp/Bitwarden.Sdk
-          dotnet pack --configuration Release -p:PackageID=Bitwarden.Sdk -p:Version=${VERSION} --output ./nuget-output /nologo /v:n
+        run: dotnet pack --configuration Release -p:PackageID=Bitwarden.Sdk -p:Version=${VERSION} --output ./nuget-output /nologo /v:n
+        working-directory: languages/csharp/Bitwarden.Sdk
 
       - name: Upload NuGet package
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2

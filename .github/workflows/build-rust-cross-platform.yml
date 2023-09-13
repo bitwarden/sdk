@@ -5,25 +5,20 @@ on:
 
 jobs:
   build_rust:
+    name: Build for ${{ matrix.settings.os }} ${{ matrix.settings.target }}
+    runs-on: ${{ matrix.settings.os }}
     strategy:
       fail-fast: false
       matrix:
         settings:
           - os: macos-12
             target: x86_64-apple-darwin
-
           - os: macos-12
             target: aarch64-apple-darwin
-
           - os: windows-2022
             target: x86_64-pc-windows-msvc
-
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
-
-    runs-on: ${{ matrix.settings.os }}
-
-    name: Build for ${{ matrix.settings.os }} ${{ matrix.settings.target }}
 
     steps:
       - name: Checkout
@@ -38,13 +33,12 @@ jobs:
         uses: Swatinem/rust-cache@e207df5d269b42b69c8bc5101da26f7d31feddb4 # v2.6.2
 
       - name: Add build architecture
-        run: |
-          rustup target add ${{ matrix.settings.target }}
+        run: rustup target add ${{ matrix.settings.target }}
 
       - name: Build Rust
-        run: cargo build --target ${{ matrix.settings.target }} --release
         env:
           RUSTFLAGS: "-D warnings"
+        run: cargo build --target ${{ matrix.settings.target }} --release
 
       - name: Upload Artifact
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2

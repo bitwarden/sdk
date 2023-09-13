@@ -44,7 +44,7 @@ pub struct Cipher {
     pub collection_ids: Vec<Uuid>,
 
     pub name: EncString,
-    pub notes: EncString,
+    pub notes: Option<EncString>,
 
     pub r#type: CipherType,
     pub login: Option<login::Login>,
@@ -78,7 +78,7 @@ pub struct CipherView {
     pub collection_ids: Vec<Uuid>,
 
     pub name: String,
-    pub notes: String,
+    pub notes: Option<String>,
 
     pub r#type: CipherType,
     pub login: Option<login::LoginView>,

@@ -1,9 +1,7 @@
 ﻿namespace Bitwarden.Sdk;
 
-
 public class SecretsClient
 {
-
     private readonly CommandRunner _commandRunner;
 
     internal SecretsClient(CommandRunner commandRunner)
@@ -13,77 +11,68 @@ public class SecretsClient
 
     public ResponseForSecretResponse? Get(Guid id)
     {
-        var command = new Command();
-        var secretsCommand = new SecretsCommand();
-        var secretGetRequest = new SecretGetRequest
-        {
-            Id = id
-        };
-        secretsCommand.Get = secretGetRequest;
-        command.Secrets = secretsCommand;
+        var command = new Command() { Secrets = new SecretsCommand { Get = new SecretGetRequest { Id = id } } };
         return _commandRunner.RunCommand<ResponseForSecretResponse>(command);
     }
 
     public ResponseForSecretResponse? Create(string key, string value, string note, Guid organizationId,
         Guid[] projectIds)
     {
-        var command = new Command();
-        var secretsCommand = new SecretsCommand();
-        var secretCreateRequest = new SecretCreateRequest
+        var command = new Command()
         {
-            Key = key,
-            Value = value,
-            Note = note,
-            OrganizationId = organizationId,
-            ProjectIds = projectIds
+            Secrets = new SecretsCommand
+            {
+                Create = new SecretCreateRequest
+                {
+                    Key = key,
+                    Value = value,
+                    Note = note,
+                    OrganizationId = organizationId,
+                    ProjectIds = projectIds
+                }
+            }
         };
-        secretsCommand.Create = secretCreateRequest;
-        command.Secrets = secretsCommand;
+
         return _commandRunner.RunCommand<ResponseForSecretResponse>(command);
     }
 
     public ResponseForSecretResponse? Update(Guid id, string key, string value, string note, Guid organizationId,
         Guid[] projectIds)
     {
-        var command = new Command();
-        var secretsCommand = new SecretsCommand();
-        var secretPutRequest = new SecretPutRequest
+        var command = new Command()
         {
-            Id = id,
-            Key = key,
-            Value = value,
-            Note = note,
-            OrganizationId = organizationId,
-            ProjectIds = projectIds
+            Secrets = new SecretsCommand
+            {
+                Update = new SecretPutRequest
+                {
+                    Id = id,
+                    Key = key,
+                    Value = value,
+                    Note = note,
+                    OrganizationId = organizationId,
+                    ProjectIds = projectIds
+                }
+            }
         };
-        secretsCommand.Update = secretPutRequest;
-        command.Secrets = secretsCommand;
+
         return _commandRunner.RunCommand<ResponseForSecretResponse>(command);
     }
 
     public ResponseForSecretsDeleteResponse? Delete(Guid[] ids)
     {
-        var command = new Command();
-        var secretsCommand = new SecretsCommand();
-        var secretsDeleteRequest = new SecretsDeleteRequest
+        var command = new Command()
         {
-            Ids = ids
+            Secrets = new SecretsCommand { Delete = new SecretsDeleteRequest { Ids = ids } }
         };
-        secretsCommand.Delete = secretsDeleteRequest;
-        command.Secrets = secretsCommand;
         return _commandRunner.RunCommand<ResponseForSecretsDeleteResponse>(command);
     }
 
     public ResponseForSecretIdentifiersResponse? List(Guid organizationId)
     {
-        var command = new Command();
-        var secretsCommand = new SecretsCommand();
-        var secretIdentifiersRequest = new SecretIdentifiersRequest
+        var command = new Command()
         {
-            OrganizationId = organizationId
+            Secrets = new SecretsCommand { List = new SecretIdentifiersRequest { OrganizationId = organizationId } }
         };
-        secretsCommand.List = secretIdentifiersRequest;
-        command.Secrets = secretsCommand;
         return _commandRunner.RunCommand<ResponseForSecretIdentifiersResponse>(command);
     }
 }

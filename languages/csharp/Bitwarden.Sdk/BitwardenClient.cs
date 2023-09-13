@@ -12,7 +12,8 @@ public sealed class BitwardenClient : IDisposable
         var clientSettings = new ClientSettings
         {
             ApiUrl = settings is { ApiUrl: not null } ? settings.ApiUrl : "https://api.bitwarden.com",
-            IdentityUrl = settings is { IdentityUrl: not null } ? settings.IdentityUrl : "https://identity.bitwarden.com",
+            IdentityUrl =
+                settings is { IdentityUrl: not null } ? settings.IdentityUrl : "https://identity.bitwarden.com",
             DeviceType = DeviceType.Sdk,
             UserAgent = "Bitwarden DOTNET-SDK"
         };

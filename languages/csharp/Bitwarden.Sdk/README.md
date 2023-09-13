@@ -1,9 +1,10 @@
-# Bitwarden .NET SDK
+# Bitwarden Secrets Manager SDK
 
-The Bitwarden SDK (Software Development Kit) is a set of programming tools, libraries, and resources provided by Bitwarden for developers to integrate Bitwarden's password management and security capabilities into their own applications, services, or platforms. The SDK facilitates the seamless integration of Bitwarden's functionality into third-party software, enabling users to securely manage their passwords, credentials, and sensitive information across various digital environments.
+.NET bindings for interacting with the [Bitwarden Secrets Manager]. This is a beta release and might be missing some functionality.
 
 ## Create access token
-- to create access token go to [access-tokens help page]
+
+Review the help documentation on [Access Tokens]
 
 ## Usage code snippets
 
@@ -35,24 +36,27 @@ responseForProjectResponse = bitwardenClient.Projects().Update(projectId, organi
 ```
 
 ### Add new secret
+
 ```
 var key = "key";
 var value = "value";
 var note = "note";
 var responseForSecretResponse = bitwardenClient.Secrets().Create(key, value, note, organizationId, new Guid[]{projectId});
 var secretId = responseForSecretResponse.Data.Id;
-```
+```csharp
 
 ### List secrets
+
 ```
 var responseForSecretIdentifiersResponse = bitwardenClient.Secrets().List(organizationId);
-```
+```csharp
 
 # Delete secret or project
 
 ```
 var responseForSecretsDeleteResponse = bitwardenClient.Secrets().Delete(new Guid[]{secretId});
 var responseForProjectsDeleteResponse = bitwardenClient.Projects().Delete(new Guid[]{projectId});
-```
+```csharp
 
-[access-tokens help page]: https://bitwarden.com/help/access-tokens/
+[Access Tokens]: https://bitwarden.com/help/access-tokens/
+[Bitwarden Secrets Manager]: https://bitwarden.com/products/secrets-manager/

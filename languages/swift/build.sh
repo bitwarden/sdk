@@ -8,6 +8,8 @@ mkdir tmp
 mkdir -p tmp/target/universal-ios-sim/release
 
 # Build native library
+export IPHONEOS_DEPLOYMENT_TARGET="13.0"
+export RUSTFLAGS="-C link-arg=-Wl,-application_extension"
 cargo build --package bitwarden-uniffi --target aarch64-apple-ios-sim --release
 cargo build --package bitwarden-uniffi --target aarch64-apple-ios --release
 cargo build --package bitwarden-uniffi --target x86_64-apple-ios --release

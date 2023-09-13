@@ -5,8 +5,7 @@
   <PackageReadmeFile>README.md</PackageReadmeFile>
   <ImplicitUsings>enable</ImplicitUsings>
   <Nullable>enable</Nullable>
-  <AssemblyName>BitwardenSdk</AssemblyName>
-  <PackageId>BitwardenSdk</PackageId>
+  <PackageId>Bitwarden.Sdk</PackageId>
   <Title>Bitwarden Secrets Manager SDK</Title>
   <Authors>Bitwarden Inc.</Authors>
   <Description>.NET bindings for interacting with the Bitwarden Secrets Manager</Description>

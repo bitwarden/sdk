@@ -66,7 +66,7 @@ jobs:
           VERSION: 0.0.1
         run: |
           cd languages/csharp/Bitwarden.Sdk
-          dotnet pack --configuration Release -p:PackageID=BitwardenSdk -p:Version=${VERSION} --output ./nuget-output /nologo /v:n
+          dotnet pack --configuration Release -p:PackageID=Bitwarden.Sdk -p:Version=${VERSION} --output ./nuget-output /nologo /v:n
 
       - name: Upload NuGet package
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2

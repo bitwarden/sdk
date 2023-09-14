@@ -42,7 +42,7 @@ publishing {
     publications {
         maven(MavenPublication) {
             groupId = 'com.bitwarden'
-            artifactId = 'sdk'
+            artifactId = 'sdk-kotlin'
 
             def details = versionDetails()
 

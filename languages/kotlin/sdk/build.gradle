@@ -46,18 +46,17 @@ publishing {
             // Determine the version from the git history.
             //
             // PRs: use the branch name.
-            // Master: use the last tag.
+            // Master: Grab it from `crates/bitwarden/Cargo.toml`
 
             def branchName = "git branch --show-current".execute().text.trim()
 
             if (branchName == null) {
-                // lastTag-SNAPSHOT
-                def describe = "git describe --tags --always --first-parent --abbrev=0 --match=v[0-9]* HEAD".execute().text.trim()
-                def match = ~/v(.*)/
-                def matcher = match.matcher(describe)
+                def content = ['grep', '-o', '^version = ".*"', '../../crates/bitwarden/Cargo.toml'].execute().text.trim()
+                def match = ~/version = "(.*)"/
+                def matcher = match.matcher(content)
+                matcher.find()
 
-                def lastTag = (matcher.matches() ? matcher.group(1) : null)
-                version = "${lastTag}-SNAPSHOT"
+                version = "${matcher.group(1)}-SNAPSHOT"
             } else {
                 // branchName-SNAPSHOT
                 version = "${branchName.replaceAll('/', '-')}-SNAPSHOT"

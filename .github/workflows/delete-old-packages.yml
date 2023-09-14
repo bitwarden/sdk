@@ -19,7 +19,6 @@ jobs:
         with:
           package-name: com.bitwarden.sdk-android
           package-type: maven
-          num-old-versions-to-delete: 20
           min-versions-to-keep: 25
 
           # Ignore versions only containing version numbers

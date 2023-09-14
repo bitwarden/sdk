@@ -2,7 +2,6 @@ plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
     id 'maven-publish'
-    id 'com.palantir.git-version' version '3.0.0'
 }
 
 android {
@@ -44,12 +43,24 @@ publishing {
             groupId = 'com.bitwarden'
             artifactId = 'sdk-android'
 
-            def details = versionDetails()
+            // Determine the version from the git history.
+            //
+            // PRs: use the branch name.
+            // Master: use the last tag.
 
-            if (details.branchName == null) {
-                version = "master-SNAPSHOT"
+            def branchName = "git branch --show-current".execute().text.trim()
+
+            if (branchName == null) {
+                // lastTag-SNAPSHOT
+                def describe = "git describe --tags --always --first-parent --abbrev=0 --match=v[0-9]* HEAD".execute().text.trim()
+                def match = ~/v(.*)/
+                def matcher = match.matcher(describe)
+
+                def lastTag = (matcher.matches() ? matcher.group(1) : null)
+                version = "${lastTag}-SNAPSHOT"
             } else {
-                version "${details.branchName.replaceAll('/', '-')}-SNAPSHOT"
+                // branchName-SNAPSHOT
+                version = "${branchName.replaceAll('/', '-')}-SNAPSHOT"
             }
 
             afterEvaluate {

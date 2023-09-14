@@ -13,6 +13,21 @@ defaults:
     shell: bash
 
 jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-22.04
+    outputs:
+      package_version: ${{ steps.retrieve-version.outputs.package_version }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+
+      - name: Get Package Version
+        id: retrieve-version
+        run: |
+          VERSION=$(grep -o '^version = ".*"' crates/bws/Cargo.toml | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
+          echo "package_version=$VERSION" >> $GITHUB_OUTPUT
+  
   build:
     runs-on: ubuntu-22.04
     strategy:
@@ -54,7 +69,9 @@ jobs:
 
   combine:
     runs-on: ubuntu-22.04
-    needs: build
+    needs:
+      - setup
+      - build
     steps:
       - name: Checkout repo (PR)
         uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
@@ -119,5 +136,6 @@ jobs:
           arguments: sdk:publish
           build-root-directory: languages/kotlin
         env:
+          _PACKAGE_VERSION: ${{ needs.setup.outputs.package_version }}
           GITHUB_ACTOR: "bitwarden-devops-bot"
           GITHUB_TOKEN: ${{ steps.retrieve-bot-secrets.outputs.github-pat-bitwarden-devops-bot-packages-scope }}

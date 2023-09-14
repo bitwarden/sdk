@@ -47,9 +47,9 @@ publishing {
             def details = versionDetails()
 
             if (details.branchName == null) {
-                version = "master-SNAPSHOT"
+                version = System.getenv("_PACKAGE_VERSION")
             } else {
-                version "${details.branchName.replaceAll('/', '-')}-SNAPSHOT"
+                version "${System.getenv("_PACKAGE_VERSION")}-${details.branchName.replaceAll('/', '-')}-SNAPSHOT"
             }
 
             afterEvaluate {

@@ -2,8 +2,6 @@
 
 public sealed class BitwardenClient : IDisposable
 {
-    private readonly ProjectsClient _projectsClient;
-    private readonly SecretsClient _secretsClient;
     private readonly CommandRunner _commandRunner;
     private readonly BitwardenSafeHandle _handle;
 
@@ -20,8 +18,8 @@ public sealed class BitwardenClient : IDisposable
 
         _handle = BitwardenLibrary.Init(clientSettings.ToJson());
         _commandRunner = new CommandRunner(_handle);
-        _projectsClient = new ProjectsClient(_commandRunner);
-        _secretsClient = new SecretsClient(_commandRunner);
+        Projects = new ProjectsClient(_commandRunner);
+        Secrets = new SecretsClient(_commandRunner);
     }
 
     public ResponseForApiKeyLoginResponse? AccessTokenLogin(string accessToken)
@@ -30,15 +28,9 @@ public sealed class BitwardenClient : IDisposable
         return _commandRunner.RunCommand<ResponseForApiKeyLoginResponse>(command);
     }
 
-    public ProjectsClient Projects()
-    {
-        return _projectsClient;
-    }
+    public ProjectsClient Projects { get; }
 
-    public SecretsClient Secrets()
-    {
-        return _secretsClient;
-    }
+    public SecretsClient Secrets { get; }
 
     public void Dispose()
     {

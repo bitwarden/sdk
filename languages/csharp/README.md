@@ -27,15 +27,15 @@ var responseForProjectResponse = bitwardenClient.Projects().Create(organizationI
 ### List all projects
 
 ```csharp
-var response = bitwardenClient.Projects().List(organizationId);
+var response = bitwardenClient.Projects.List(organizationId);
 ```
 
 ### Update project
 
 ```csharp
 var projectId = responseForProjectResponse.Data.Id;
-responseForProjectResponse = bitwardenClient.Projects().Get(projectId);
-responseForProjectResponse = bitwardenClient.Projects().Update(projectId, organizationId, "TestProjectUpdated");
+responseForProjectResponse = bitwardenClient.Projects.Get(projectId);
+responseForProjectResponse = bitwardenClient.Projects.Update(projectId, organizationId, "TestProjectUpdated");
 ```
 
 ### Add new secret
@@ -44,21 +44,21 @@ responseForProjectResponse = bitwardenClient.Projects().Update(projectId, organi
 var key = "key";
 var value = "value";
 var note = "note";
-var responseForSecretResponse = bitwardenClient.Secrets().Create(key, value, note, organizationId, new Guid[]{projectId});
+var responseForSecretResponse = bitwardenClient.Secrets.Create(key, value, note, organizationId, new Guid[]{projectId});
 var secretId = responseForSecretResponse.Data.Id;
 ```
 
 ### List secrets
 
 ```csharp
-var responseForSecretIdentifiersResponse = bitwardenClient.Secrets().List(organizationId);
+var responseForSecretIdentifiersResponse = bitwardenClient.Secrets.List(organizationId);
 ```
 
 # Delete secret or project
 
 ```csharp
-var responseForSecretsDeleteResponse = bitwardenClient.Secrets().Delete(new Guid[]{secretId});
-var responseForProjectsDeleteResponse = bitwardenClient.Projects().Delete(new Guid[]{projectId});
+var responseForSecretsDeleteResponse = bitwardenClient.Secrets.Delete(new Guid[]{secretId});
+var responseForProjectsDeleteResponse = bitwardenClient.Projects.Delete(new Guid[]{projectId});
 ```
 
 [Access Tokens]: https://bitwarden.com/help/access-tokens/

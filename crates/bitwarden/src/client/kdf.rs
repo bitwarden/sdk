@@ -5,9 +5,8 @@ use bitwarden_api_identity::models::{KdfType, PreloginResponseModel};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::error::Error;
 #[cfg(feature = "internal")]
-use crate::error::Result;
+use crate::error::{Error, Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

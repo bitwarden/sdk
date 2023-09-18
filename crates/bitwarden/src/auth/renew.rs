@@ -1,10 +1,10 @@
 use std::time::{Duration, Instant};
 
 #[cfg(feature = "internal")]
-use crate::auth::api::request::ApiTokenRequest;
+use crate::{auth::api::request::ApiTokenRequest, client::UserLoginMethod};
 use crate::{
     auth::api::{request::AccessTokenRequest, response::IdentityTokenResponse},
-    client::{Client, LoginMethod, ServiceAccountLoginMethod, UserLoginMethod},
+    client::{Client, LoginMethod, ServiceAccountLoginMethod},
     error::{Error, Result},
 };
 

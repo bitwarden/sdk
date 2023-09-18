@@ -1,23 +1,20 @@
 use std::time::{Duration, Instant};
 
+#[cfg(feature = "internal")]
+use crate::{
+    auth::login::{
+        api_key_login, password_login, send_two_factor_email, ApiKeyLoginRequest,
+        ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse, TwoFactorEmailRequest,
+    },
+    client::kdf::Kdf,
+    crypto::EncString,
+    platform::{
+        generate_fingerprint, get_user_api_key, sync, FingerprintRequest, FingerprintResponse,
+        SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,
+    },
+};
 use reqwest::header::{self};
 use uuid::Uuid;
-#[cfg(feature = "internal")]
-use {
-    crate::{
-        auth::login::{
-            api_key_login, password_login, send_two_factor_email, ApiKeyLoginRequest,
-            ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse,
-            TwoFactorEmailRequest,
-        },
-        crypto::EncString,
-        platform::{
-            generate_fingerprint, get_user_api_key, sync, FingerprintRequest, FingerprintResponse,
-            SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,
-        },
-    },
-    log::debug,
-};
 
 #[cfg(feature = "secrets")]
 use crate::auth::login::{access_token_login, AccessTokenLoginRequest, AccessTokenLoginResponse};
@@ -26,7 +23,6 @@ use crate::{
     client::{
         client_settings::{ClientSettings, DeviceType},
         encryption_settings::EncryptionSettings,
-        kdf::Kdf,
     },
     crypto::SymmetricCryptoKey,
     error::{Error, Result},
@@ -49,6 +45,7 @@ pub(crate) enum LoginMethod {
 }
 
 #[derive(Debug, Clone)]
+#[cfg(feature = "internal")]
 pub(crate) enum UserLoginMethod {
     Username {
         client_id: String,
@@ -194,7 +191,7 @@ impl Client {
             Some(LoginMethod::ServiceAccount(ServiceAccountLoginMethod::AccessToken {
                 organization_id,
                 ..
-            })) => return Some(organization_id),
+            })) => Some(organization_id),
             _ => None,
         }
     }
@@ -203,8 +200,10 @@ impl Client {
         self.encryption_settings.as_ref().ok_or(Error::VaultLocked)
     }
 
-    #[cfg(feature = "internal")]
+    #[cfg(feature = "mobile")]
     pub(crate) fn set_login_method(&mut self, login_method: LoginMethod) {
+        use log::debug;
+
         debug! {"setting login method: {:#?}", login_method}
         self.login_method = Some(login_method);
     }

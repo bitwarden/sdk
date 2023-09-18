@@ -12,7 +12,7 @@ use crate::{
         api::request::PasswordTokenRequest,
         login::{determine_password_hash, TwoFactorRequest},
     },
-    client::LoginMethod,
+    client::{kdf::Kdf, LoginMethod},
     crypto::EncString,
     Client,
 };
@@ -21,7 +21,6 @@ use crate::{
         api::response::IdentityTokenResponse,
         login::response::{captcha_response::CaptchaResponse, two_factor::TwoFactorProviders},
     },
-    client::kdf::Kdf,
     error::Result,
 };
 

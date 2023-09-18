@@ -11,7 +11,7 @@ use crate::{
             PasswordLoginResponse,
         },
     },
-    client::LoginMethod,
+    client::{LoginMethod, UserLoginMethod},
     crypto::EncString,
     error::{Error, Result},
     util::decode_token,
@@ -32,10 +32,10 @@ pub(crate) async fn api_key_login(
             r.access_token.clone(),
             r.refresh_token.clone(),
             r.expires_in,
-            LoginMethod::ApiKey {
+            LoginMethod::User(UserLoginMethod::ApiKey {
                 client_id: input.client_id.to_owned(),
                 client_secret: input.client_secret.to_owned(),
-            },
+            }),
         );
 
         let access_token_obj = decode_token(&r.access_token)?;

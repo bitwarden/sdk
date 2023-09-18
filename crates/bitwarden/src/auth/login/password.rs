@@ -29,6 +29,8 @@ pub(crate) async fn password_login(
     client: &mut Client,
     input: &PasswordLoginRequest,
 ) -> Result<PasswordLoginResponse> {
+    use crate::client::UserLoginMethod;
+
     info!("password logging in");
     debug!("{:#?}, {:#?}", client, input);
 
@@ -40,9 +42,9 @@ pub(crate) async fn password_login(
             r.access_token.clone(),
             r.refresh_token.clone(),
             r.expires_in,
-            LoginMethod::Username {
+            LoginMethod::User(UserLoginMethod::Username { 
                 client_id: "web".to_owned(),
-            },
+            }),
         );
 
         let user_key = EncString::from_str(r.key.as_deref().unwrap()).unwrap();

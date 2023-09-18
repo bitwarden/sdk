@@ -42,12 +42,25 @@ pub(crate) struct ApiConfigurations {
 #[derive(Debug, Clone)]
 pub(crate) enum LoginMethod {
     #[cfg(feature = "internal")]
-    Username { client_id: String },
-    #[cfg(feature = "internal")]
+    User(UserLoginMethod),
+    // TODO: Organizations supports api key
+    // Organization(OrganizationLoginMethod),
+    ServiceAccount(ServiceAccountLoginMethod),
+}
+
+#[derive(Debug, Clone)]
+pub(crate) enum UserLoginMethod {
+    Username {
+        client_id: String,
+    },
     ApiKey {
         client_id: String,
         client_secret: String,
     },
+}
+
+#[derive(Debug, Clone)]
+pub(crate) enum ServiceAccountLoginMethod {
     AccessToken {
         service_account_id: Uuid,
         client_secret: String,
@@ -170,10 +183,11 @@ impl Client {
     }
 
     pub fn get_access_token_organization(&self) -> Option<Uuid> {
-        match &self.login_method {
-            Some(LoginMethod::AccessToken {
-                organization_id, ..
-            }) => Some(*organization_id),
+        match self.login_method {
+            Some(LoginMethod::ServiceAccount(ServiceAccountLoginMethod::AccessToken {
+                    organization_id,
+                    ..
+                })) => return Some(organization_id),
             _ => None,
         }
     }

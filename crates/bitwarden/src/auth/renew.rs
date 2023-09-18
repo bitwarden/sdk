@@ -4,7 +4,7 @@ use std::time::{Duration, Instant};
 use crate::auth::api::request::ApiTokenRequest;
 use crate::{
     auth::api::{request::AccessTokenRequest, response::IdentityTokenResponse},
-    client::{Client, LoginMethod},
+    client::{Client, LoginMethod, ServiceAccountLoginMethod, UserLoginMethod},
     error::{Error, Result},
 };
 
@@ -18,37 +18,40 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
 
         let res = match login_method {
             #[cfg(feature = "internal")]
-            LoginMethod::Username { client_id } => {
-                let refresh = client
-                    .refresh_token
-                    .as_deref()
-                    .ok_or(Error::NotAuthenticated)?;
+            LoginMethod::User(u) => match u {
+                UserLoginMethod::Username { client_id } => {
+                    let refresh = client
+                        .refresh_token
+                        .as_deref()
+                        .ok_or(Error::NotAuthenticated)?;
 
-                crate::auth::api::request::RenewTokenRequest::new(
-                    refresh.to_owned(),
-                    client_id.to_owned(),
-                )
-                .send(&client.__api_configurations)
-                .await?
-            }
-            #[cfg(feature = "internal")]
-            LoginMethod::ApiKey {
-                client_id,
-                client_secret,
-            } => {
-                ApiTokenRequest::new(client_id, client_secret)
+                    crate::auth::api::request::RenewTokenRequest::new(
+                        refresh.to_owned(),
+                        client_id.to_owned(),
+                    )
                     .send(&client.__api_configurations)
                     .await?
-            }
-            LoginMethod::AccessToken {
-                service_account_id,
-                client_secret,
-                ..
-            } => {
-                AccessTokenRequest::new(*service_account_id, client_secret)
-                    .send(&client.__api_configurations)
-                    .await?
-            }
+                }
+                UserLoginMethod::ApiKey {
+                    client_id,
+                    client_secret,
+                } => {
+                    ApiTokenRequest::new(client_id, client_secret)
+                        .send(&client.__api_configurations)
+                        .await?
+                }
+            },
+            LoginMethod::ServiceAccount(s) => match s {
+                ServiceAccountLoginMethod::AccessToken {
+                    service_account_id,
+                    client_secret,
+                    ..
+                } => {
+                    AccessTokenRequest::new(*service_account_id, client_secret)
+                        .send(&client.__api_configurations)
+                        .await?
+                }
+            },
         };
 
         match res {

@@ -9,7 +9,7 @@ use crate::{
         api::{request::AccessTokenRequest, response::IdentityTokenResponse},
         login::{response::two_factor::TwoFactorProviders, PasswordLoginResponse},
     },
-    client::{AccessToken, LoginMethod},
+    client::{AccessToken, LoginMethod, ServiceAccountLoginMethod},
     crypto::{EncString, SymmetricCryptoKey},
     error::{Error, Result},
     util::{decode_token, BASE64_ENGINE},
@@ -59,11 +59,11 @@ pub(crate) async fn access_token_login(
             r.access_token.clone(),
             r.refresh_token.clone(),
             r.expires_in,
-            LoginMethod::AccessToken {
+            LoginMethod::ServiceAccount(ServiceAccountLoginMethod::AccessToken {
                 service_account_id: access_token.service_account_id,
                 client_secret: access_token.client_secret,
                 organization_id,
-            },
+            }),
         );
 
         client.initialize_crypto_single_key(encryption_key);

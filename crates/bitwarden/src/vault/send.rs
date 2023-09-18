@@ -280,7 +280,9 @@ impl Encryptable<Send> for SendView {
 #[cfg(test)]
 mod tests {
     use super::Send;
-    use crate::client::{encryption_settings::EncryptionSettings, kdf::Kdf, LoginMethod, UserLoginMethod};
+    use crate::client::{
+        encryption_settings::EncryptionSettings, kdf::Kdf, LoginMethod, UserLoginMethod,
+    };
 
     #[test]
     fn test_get_send_key() {

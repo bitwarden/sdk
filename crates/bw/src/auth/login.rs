@@ -68,7 +68,7 @@ pub(crate) async fn password_login(mut client: Client, email: Option<String>) ->
                 email,
                 password,
                 two_factor,
-                kdf
+                kdf,
             })
             .await?;
 

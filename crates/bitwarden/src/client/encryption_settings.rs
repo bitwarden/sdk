@@ -36,7 +36,8 @@ impl EncryptionSettings {
         use crate::{client::UserLoginMethod, crypto::MasterKey};
 
         match login_method {
-            LoginMethod::User(UserLoginMethod::Username { email, kdf, .. }) => {
+            LoginMethod::User(UserLoginMethod::Username { email, kdf, .. })
+            | LoginMethod::User(UserLoginMethod::ApiKey { email, kdf, .. }) => {
                 // Derive master key from password
                 let master_key = MasterKey::derive(password.as_bytes(), email.as_bytes(), kdf)?;
 
@@ -58,7 +59,6 @@ impl EncryptionSettings {
                     org_keys: HashMap::new(),
                 })
             }
-            LoginMethod::User(UserLoginMethod::ApiKey { .. }) => todo!(),
             LoginMethod::ServiceAccount(_) => todo!(),
         }
     }

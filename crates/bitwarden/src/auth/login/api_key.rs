@@ -3,13 +3,11 @@ use std::str::FromStr;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use super::request_prelogin;
 use crate::{
     auth::{
         api::{request::ApiTokenRequest, response::IdentityTokenResponse},
-        login::{
-            determine_password_hash, response::two_factor::TwoFactorProviders,
-            PasswordLoginResponse,
-        },
+        login::{response::two_factor::TwoFactorProviders, PasswordLoginResponse},
     },
     client::{LoginMethod, UserLoginMethod},
     crypto::EncString,
@@ -17,8 +15,6 @@ use crate::{
     util::decode_token,
     Client,
 };
-
-use super::request_prelogin;
 
 pub(crate) async fn api_key_login(
     client: &mut Client,
@@ -30,16 +26,6 @@ pub(crate) async fn api_key_login(
     let response = request_api_identity_tokens(client, input).await?;
 
     if let IdentityTokenResponse::Authenticated(r) = &response {
-        client.set_tokens(
-            r.access_token.clone(),
-            r.refresh_token.clone(),
-            r.expires_in,
-            LoginMethod::User(UserLoginMethod::ApiKey {
-                client_id: input.client_id.to_owned(),
-                client_secret: input.client_secret.to_owned(),
-            }),
-        );
-
         let access_token_obj = decode_token(&r.access_token)?;
 
         // This should always be Some() when logging in with an api key
@@ -48,7 +34,18 @@ pub(crate) async fn api_key_login(
             .ok_or(Error::Internal("Access token doesn't contain email"))?;
 
         let kdf = request_prelogin(client, email.clone()).await?.try_into()?;
-        let _ = determine_password_hash(&email, &kdf, &input.password).await?;
+
+        client.set_tokens(
+            r.access_token.clone(),
+            r.refresh_token.clone(),
+            r.expires_in,
+            LoginMethod::User(UserLoginMethod::ApiKey {
+                client_id: input.client_id.to_owned(),
+                client_secret: input.client_secret.to_owned(),
+                email,
+                kdf,
+            }),
+        );
 
         let user_key = EncString::from_str(r.key.as_deref().unwrap()).unwrap();
         let private_key = EncString::from_str(r.private_key.as_deref().unwrap()).unwrap();

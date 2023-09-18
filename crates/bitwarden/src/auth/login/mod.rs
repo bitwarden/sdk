@@ -40,19 +40,18 @@ pub(crate) use access_token::access_token_login;
 pub use access_token::{AccessTokenLoginRequest, AccessTokenLoginResponse};
 
 #[cfg(feature = "internal")]
-async fn determine_password_hash(
-    email: &str,
-    kdf: &Kdf,
-    password: &str,
-) -> Result<String> {
-    use crate::crypto::{MasterKey, HashPurpose};
-    
+async fn determine_password_hash(email: &str, kdf: &Kdf, password: &str) -> Result<String> {
+    use crate::crypto::{HashPurpose, MasterKey};
+
     let master_key = MasterKey::derive(password.as_bytes(), email.as_bytes(), kdf)?;
     master_key.derive_master_key_hash(password.as_bytes(), HashPurpose::ServerAuthorization)
 }
 
 #[cfg(feature = "internal")]
-pub(crate) async fn request_prelogin(client: &mut Client, email: String) -> Result<PreloginResponseModel> {
+pub(crate) async fn request_prelogin(
+    client: &mut Client,
+    email: String,
+) -> Result<PreloginResponseModel> {
     let request_model = PreloginRequestModel::new(email);
     let config = client.get_api_configurations().await;
     Ok(accounts_prelogin_post(&config.identity, Some(request_model)).await?)

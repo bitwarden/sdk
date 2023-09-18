@@ -21,7 +21,8 @@ use crate::{
         api::response::IdentityTokenResponse,
         login::response::{captcha_response::CaptchaResponse, two_factor::TwoFactorProviders},
     },
-    error::Result, client::kdf::Kdf,
+    client::kdf::Kdf,
+    error::Result,
 };
 
 #[cfg(feature = "internal")]
@@ -29,13 +30,12 @@ pub(crate) async fn password_login(
     client: &mut Client,
     input: &PasswordLoginRequest,
 ) -> Result<PasswordLoginResponse> {
-    use crate::{client::UserLoginMethod, auth::login::request_prelogin};
+    use crate::client::UserLoginMethod;
 
     info!("password logging in");
     debug!("{:#?}, {:#?}", client, input);
 
-    let kdf = request_prelogin(client, input.email.clone()).await?.try_into()?;
-    let password_hash = determine_password_hash(&input.email, &kdf, &input.password).await?;
+    let password_hash = determine_password_hash(&input.email, &input.kdf, &input.password).await?;
     let response = request_identity_tokens(client, input, &password_hash).await?;
 
     if let IdentityTokenResponse::Authenticated(r) = &response {
@@ -43,7 +43,7 @@ pub(crate) async fn password_login(
             r.access_token.clone(),
             r.refresh_token.clone(),
             r.expires_in,
-            LoginMethod::User(UserLoginMethod::Username { 
+            LoginMethod::User(UserLoginMethod::Username {
                 client_id: "web".to_owned(),
                 email: input.email.to_owned(),
                 kdf: input.kdf.to_owned(),

@@ -19,7 +19,9 @@ pub(crate) async fn send_two_factor_email(
     client: &mut Client,
     input: &TwoFactorEmailRequest,
 ) -> Result<()> {
-    let kdf = request_prelogin(client, input.email.clone()).await?.try_into()?;
+    let kdf = request_prelogin(client, input.email.clone())
+        .await?
+        .try_into()?;
     let password_hash = determine_password_hash(&input.email, &kdf, &input.password).await?;
 
     let config = client.get_api_configurations().await;

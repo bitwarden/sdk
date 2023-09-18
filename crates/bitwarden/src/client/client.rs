@@ -26,12 +26,11 @@ use crate::{
     client::{
         client_settings::{ClientSettings, DeviceType},
         encryption_settings::EncryptionSettings,
+        kdf::Kdf,
     },
     crypto::SymmetricCryptoKey,
     error::{Error, Result},
 };
-
-use super::kdf::Kdf;
 
 #[derive(Debug)]
 pub(crate) struct ApiConfigurations {
@@ -59,6 +58,9 @@ pub(crate) enum UserLoginMethod {
     ApiKey {
         client_id: String,
         client_secret: String,
+
+        email: String,
+        kdf: Kdf,
     },
 }
 
@@ -139,10 +141,7 @@ impl Client {
     }
 
     #[cfg(feature = "internal")]
-    pub async fn prelogin(
-        &mut self,
-        email: String,
-    ) -> Result<Kdf> {
+    pub async fn prelogin(&mut self, email: String) -> Result<Kdf> {
         use crate::auth::login::request_prelogin;
 
         request_prelogin(self, email).await?.try_into()
@@ -193,9 +192,9 @@ impl Client {
     pub fn get_access_token_organization(&self) -> Option<Uuid> {
         match self.login_method {
             Some(LoginMethod::ServiceAccount(ServiceAccountLoginMethod::AccessToken {
-                    organization_id,
-                    ..
-                })) => return Some(organization_id),
+                organization_id,
+                ..
+            })) => return Some(organization_id),
             _ => None,
         }
     }

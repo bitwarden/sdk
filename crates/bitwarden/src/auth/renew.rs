@@ -35,6 +35,7 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
                 UserLoginMethod::ApiKey {
                     client_id,
                     client_secret,
+                    ..
                 } => {
                     ApiTokenRequest::new(client_id, client_secret)
                         .send(&client.__api_configurations)

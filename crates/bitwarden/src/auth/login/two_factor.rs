@@ -3,7 +3,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use super::determine_password_hash;
+use super::{determine_password_hash, request_prelogin};
 use crate::{error::Result, Client};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -19,7 +19,8 @@ pub(crate) async fn send_two_factor_email(
     client: &mut Client,
     input: &TwoFactorEmailRequest,
 ) -> Result<()> {
-    let password_hash = determine_password_hash(client, &input.email, &input.password).await?;
+    let kdf = request_prelogin(client, input.email.clone()).await?.try_into()?;
+    let password_hash = determine_password_hash(&input.email, &kdf, &input.password).await?;
 
     let config = client.get_api_configurations().await;
     bitwarden_api_api::apis::two_factor_api::two_factor_send_email_login_post(

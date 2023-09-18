@@ -19,7 +19,7 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
         let res = match login_method {
             #[cfg(feature = "internal")]
             LoginMethod::User(u) => match u {
-                UserLoginMethod::Username { client_id } => {
+                UserLoginMethod::Username { client_id, .. } => {
                     let refresh = client
                         .refresh_token
                         .as_deref()

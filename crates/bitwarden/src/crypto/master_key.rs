@@ -9,7 +9,7 @@ use super::{
     PBKDF_SHA256_HMAC_OUT_SIZE,
 };
 use {
-    crate::{client::auth_settings::Kdf, error::Result},
+    crate::{client::kdf::Kdf, error::Result},
     aes::cipher::generic_array::GenericArray,
     sha2::Digest,
 };
@@ -118,7 +118,7 @@ mod tests {
     use crate::crypto::SymmetricCryptoKey;
 
     use super::{stretch_master_key, HashPurpose, MasterKey};
-    use {crate::client::auth_settings::Kdf, std::num::NonZeroU32};
+    use {crate::client::kdf::Kdf, std::num::NonZeroU32};
 
     #[test]
     fn test_master_key_derive_pbkdf2() {

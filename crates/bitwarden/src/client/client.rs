@@ -10,7 +10,6 @@ use {
             ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse,
             TwoFactorEmailRequest,
         },
-        client::auth_settings::AuthSettings,
         crypto::EncString,
         platform::{
             generate_fingerprint, get_user_api_key, sync, FingerprintRequest, FingerprintResponse,
@@ -32,6 +31,8 @@ use crate::{
     error::{Error, Result},
 };
 
+use super::kdf::Kdf;
+
 #[derive(Debug)]
 pub(crate) struct ApiConfigurations {
     pub identity: bitwarden_api_identity::apis::configuration::Configuration,
@@ -52,6 +53,8 @@ pub(crate) enum LoginMethod {
 pub(crate) enum UserLoginMethod {
     Username {
         client_id: String,
+        email: String,
+        kdf: Kdf,
     },
     ApiKey {
         client_id: String,
@@ -79,9 +82,6 @@ pub struct Client {
     /// It should only be used directly in renew_token
     #[doc(hidden)]
     pub(crate) __api_configurations: ApiConfigurations,
-
-    #[cfg(feature = "internal")]
-    auth_settings: Option<AuthSettings>,
 
     encryption_settings: Option<EncryptionSettings>,
 }
@@ -127,8 +127,6 @@ impl Client {
                 api,
                 device_type: settings.device_type,
             },
-            #[cfg(feature = "internal")]
-            auth_settings: None,
             encryption_settings: None,
         }
     }
@@ -138,6 +136,16 @@ impl Client {
         // the token will end up expiring and the next operation is going to fail anyway.
         self.renew_token().await.ok();
         &self.__api_configurations
+    }
+
+    #[cfg(feature = "internal")]
+    pub async fn prelogin(
+        &mut self,
+        email: String,
+    ) -> Result<Kdf> {
+        use crate::auth::login::request_prelogin;
+
+        request_prelogin(self, email).await?.try_into()
     }
 
     #[cfg(feature = "internal")]
@@ -178,8 +186,8 @@ impl Client {
     }
 
     #[cfg(feature = "internal")]
-    pub(crate) fn get_auth_settings(&self) -> &Option<AuthSettings> {
-        &self.auth_settings
+    pub(crate) fn get_login_method(&self) -> &Option<LoginMethod> {
+        &self.login_method
     }
 
     pub fn get_access_token_organization(&self) -> Option<Uuid> {
@@ -197,9 +205,9 @@ impl Client {
     }
 
     #[cfg(feature = "internal")]
-    pub(crate) fn set_auth_settings(&mut self, auth_settings: AuthSettings) {
-        debug! {"setting auth settings: {:#?}", auth_settings}
-        self.auth_settings = Some(auth_settings);
+    pub(crate) fn set_login_method(&mut self, login_method: LoginMethod) {
+        debug! {"setting login method: {:#?}", login_method}
+        self.login_method = Some(login_method);
     }
 
     pub(crate) fn set_tokens(
@@ -223,7 +231,7 @@ impl Client {
 
     #[cfg(feature = "internal")]
     pub fn is_authed(&self) -> bool {
-        self.token.is_some() || self.auth_settings.is_some()
+        self.token.is_some() || self.login_method.is_some()
     }
 
     #[cfg(feature = "internal")]
@@ -233,13 +241,13 @@ impl Client {
         user_key: EncString,
         private_key: EncString,
     ) -> Result<&EncryptionSettings> {
-        let auth = match &self.auth_settings {
+        let login_method = match &self.login_method {
             Some(a) => a,
             None => return Err(Error::NotAuthenticated),
         };
 
         self.encryption_settings = Some(EncryptionSettings::new(
-            auth,
+            login_method,
             password,
             user_key,
             private_key,

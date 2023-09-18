@@ -18,6 +18,8 @@ use crate::{
     Client,
 };
 
+use super::request_prelogin;
+
 pub(crate) async fn api_key_login(
     client: &mut Client,
     input: &ApiKeyLoginRequest,
@@ -45,7 +47,8 @@ pub(crate) async fn api_key_login(
             .email
             .ok_or(Error::Internal("Access token doesn't contain email"))?;
 
-        let _ = determine_password_hash(client, &email, &input.password).await?;
+        let kdf = request_prelogin(client, email.clone()).await?.try_into()?;
+        let _ = determine_password_hash(&email, &kdf, &input.password).await?;
 
         let user_key = EncString::from_str(r.key.as_deref().unwrap()).unwrap();
         let private_key = EncString::from_str(r.private_key.as_deref().unwrap()).unwrap();

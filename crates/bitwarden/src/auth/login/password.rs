@@ -21,7 +21,7 @@ use crate::{
         api::response::IdentityTokenResponse,
         login::response::{captcha_response::CaptchaResponse, two_factor::TwoFactorProviders},
     },
-    error::Result,
+    error::Result, client::kdf::Kdf,
 };
 
 #[cfg(feature = "internal")]
@@ -29,12 +29,13 @@ pub(crate) async fn password_login(
     client: &mut Client,
     input: &PasswordLoginRequest,
 ) -> Result<PasswordLoginResponse> {
-    use crate::client::UserLoginMethod;
+    use crate::{client::UserLoginMethod, auth::login::request_prelogin};
 
     info!("password logging in");
     debug!("{:#?}, {:#?}", client, input);
 
-    let password_hash = determine_password_hash(client, &input.email, &input.password).await?;
+    let kdf = request_prelogin(client, input.email.clone()).await?.try_into()?;
+    let password_hash = determine_password_hash(&input.email, &kdf, &input.password).await?;
     let response = request_identity_tokens(client, input, &password_hash).await?;
 
     if let IdentityTokenResponse::Authenticated(r) = &response {
@@ -44,6 +45,8 @@ pub(crate) async fn password_login(
             r.expires_in,
             LoginMethod::User(UserLoginMethod::Username { 
                 client_id: "web".to_owned(),
+                email: input.email.to_owned(),
+                kdf: input.kdf.to_owned(),
             }),
         );
 
@@ -79,6 +82,8 @@ pub struct PasswordLoginRequest {
     pub password: String,
     // Two-factor authentication
     pub two_factor: Option<TwoFactorRequest>,
+    /// Kdf from prelogin
+    pub kdf: Kdf,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

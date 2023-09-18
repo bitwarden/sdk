@@ -5,6 +5,7 @@ use base64::{
     engine::{DecodePaddingMode, GeneralPurpose, GeneralPurposeConfig},
     Engine,
 };
+use chrono::{DateTime, Utc};
 
 use crate::error::Result;
 
@@ -48,6 +49,11 @@ pub fn decode_token(token: &str) -> Result<JWTToken> {
     }
     let decoded = BASE64_ENGINE.decode(split[1])?;
     Ok(serde_json::from_slice(&decoded)?)
+}
+
+/// Parse a date in RFC3339 format
+pub(crate) fn parse_date(date: &str) -> Result<DateTime<Utc>> {
+    Ok(DateTime::parse_from_rfc3339(date)?.with_timezone(&Utc))
 }
 
 #[cfg(test)]

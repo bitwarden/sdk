@@ -1,6 +1,7 @@
 use bitwarden_api_api::models::{
     BaseSecretResponseModel, BaseSecretResponseModelListResponseModel, SecretResponseModel,
 };
+use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -9,12 +10,12 @@ use crate::{
     client::encryption_settings::EncryptionSettings,
     crypto::{Decryptable, EncString},
     error::{Error, Result},
+    util::parse_date,
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SecretResponse {
-    pub object: String,
     pub id: Uuid,
     pub organization_id: Uuid,
     pub project_id: Option<Uuid>,
@@ -23,8 +24,8 @@ pub struct SecretResponse {
     pub value: String,
     pub note: String,
 
-    pub creation_date: String,
-    pub revision_date: String,
+    pub creation_date: DateTime<Utc>,
+    pub revision_date: DateTime<Utc>,
 }
 
 impl SecretResponse {
@@ -73,7 +74,6 @@ impl SecretResponse {
             .and_then(|p| p.id);
 
         Ok(SecretResponse {
-            object: "secret".to_owned(),
             id: response.id.ok_or(Error::MissingFields)?,
             organization_id: org_id.ok_or(Error::MissingFields)?,
             project_id: project,
@@ -81,8 +81,8 @@ impl SecretResponse {
             value,
             note,
 
-            creation_date: response.creation_date.ok_or(Error::MissingFields)?,
-            revision_date: response.revision_date.ok_or(Error::MissingFields)?,
+            creation_date: parse_date(&response.creation_date.ok_or(Error::MissingFields)?)?,
+            revision_date: parse_date(&response.revision_date.ok_or(Error::MissingFields)?)?,
         })
     }
 }

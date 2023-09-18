@@ -9,13 +9,16 @@ public class SecretsClient
         _commandRunner = commandRunner;
     }
 
-    public ResponseForSecretResponse? Get(Guid id)
+    public SecretResponse Get(Guid id)
     {
         var command = new Command() { Secrets = new SecretsCommand { Get = new SecretGetRequest { Id = id } } };
-        return _commandRunner.RunCommand<ResponseForSecretResponse>(command);
+        var result = _commandRunner.RunCommand<ResponseForSecretResponse>(command);
+
+        if (result is { Success: true }) return result.Data;
+        throw new BitwardenException(result != null ? result.ErrorMessage : "Secret not found");
     }
 
-    public ResponseForSecretResponse? Create(string key, string value, string note, Guid organizationId,
+    public SecretResponse Create(string key, string value, string note, Guid organizationId,
         Guid[] projectIds)
     {
         var command = new Command()
@@ -33,10 +36,13 @@ public class SecretsClient
             }
         };
 
-        return _commandRunner.RunCommand<ResponseForSecretResponse>(command);
+        var result = _commandRunner.RunCommand<ResponseForSecretResponse>(command);
+
+        if (result is { Success: true }) return result.Data;
+        throw new BitwardenException(result != null ? result.ErrorMessage : "Secret create failed");
     }
 
-    public ResponseForSecretResponse? Update(Guid id, string key, string value, string note, Guid organizationId,
+    public SecretResponse Update(Guid id, string key, string value, string note, Guid organizationId,
         Guid[] projectIds)
     {
         var command = new Command()
@@ -55,24 +61,33 @@ public class SecretsClient
             }
         };
 
-        return _commandRunner.RunCommand<ResponseForSecretResponse>(command);
+        var result = _commandRunner.RunCommand<ResponseForSecretResponse>(command);
+
+        if (result is { Success: true }) return result.Data;
+        throw new BitwardenException(result != null ? result.ErrorMessage : "Secret update failed");
     }
 
-    public ResponseForSecretsDeleteResponse? Delete(Guid[] ids)
+    public SecretsDeleteResponse Delete(Guid[] ids)
     {
         var command = new Command()
         {
             Secrets = new SecretsCommand { Delete = new SecretsDeleteRequest { Ids = ids } }
         };
-        return _commandRunner.RunCommand<ResponseForSecretsDeleteResponse>(command);
+        var result = _commandRunner.RunCommand<ResponseForSecretsDeleteResponse>(command);
+
+        if (result is { Success: true }) return result.Data;
+        throw new BitwardenException(result != null ? result.ErrorMessage : "Secrets delete failed");
     }
 
-    public ResponseForSecretIdentifiersResponse? List(Guid organizationId)
+    public SecretIdentifiersResponse List(Guid organizationId)
     {
         var command = new Command()
         {
             Secrets = new SecretsCommand { List = new SecretIdentifiersRequest { OrganizationId = organizationId } }
         };
-        return _commandRunner.RunCommand<ResponseForSecretIdentifiersResponse>(command);
+        var result = _commandRunner.RunCommand<ResponseForSecretIdentifiersResponse>(command);
+
+        if (result is { Success: true }) return result.Data;
+        throw new BitwardenException(result != null ? result.ErrorMessage : "No secret for given organization");
     }
 }

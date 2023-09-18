@@ -5,26 +5,26 @@ var accessToken = Environment.GetEnvironmentVariable("ACCESS_TOKEN");
 var organizationIdStr = Environment.GetEnvironmentVariable("ORGANIZATION_ID");
 
 using var bitwardenClient = new BitwardenClient();
-var loginResponse = bitwardenClient.AccessTokenLogin(accessToken);
+bitwardenClient.AccessTokenLogin(accessToken);
 var organizationId = Guid.Parse(organizationIdStr);
-var responseForProjectResponse = bitwardenClient.Projects.Create(organizationId, "NewTestProject");
-var projectId = responseForProjectResponse.Data.Id;
-var responseForProjectsResponse = bitwardenClient.Projects.List(organizationId);
-responseForProjectResponse = bitwardenClient.Projects.Get(projectId);
-responseForProjectResponse = bitwardenClient.Projects.Update(projectId, organizationId, "NewTestProject2");
+var projectResponse = bitwardenClient.Projects.Create(organizationId, "NewTestProject");
+var projectId = projectResponse.Id;
+var projectsResponse = bitwardenClient.Projects.List(organizationId);
+projectResponse = bitwardenClient.Projects.Get(projectId);
+projectResponse = bitwardenClient.Projects.Update(projectId, organizationId, "NewTestProject2");
 
 var key = "key";
 var value = "value";
 var note = "note";
-var responseForSecretResponse =
+var secretResponse =
     bitwardenClient.Secrets.Create(key, value, note, organizationId, new Guid[] { projectId });
-var secretId = responseForSecretResponse.Data.Id;
+var secretId = secretResponse.Id;
 var responseForSecretIdentifiersResponse = bitwardenClient.Secrets.List(organizationId);
-responseForSecretResponse = bitwardenClient.Secrets.Get(secretId);
+secretResponse = bitwardenClient.Secrets.Get(secretId);
 key = "key2";
 value = "value2";
 note = "note2";
-responseForSecretResponse = bitwardenClient.Secrets
+secretResponse = bitwardenClient.Secrets
     .Update(secretId, key, value, note, organizationId, new Guid[] { projectId });
 
 var responseForSecretsDeleteResponse = bitwardenClient.Secrets.Delete(new Guid[] { secretId });

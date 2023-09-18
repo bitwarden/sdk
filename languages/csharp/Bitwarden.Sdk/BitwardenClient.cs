@@ -9,10 +9,8 @@ public sealed class BitwardenClient : IDisposable
     {
         var clientSettings = new ClientSettings
         {
-            ApiUrl = settings is { ApiUrl: not null } ? settings.ApiUrl : "https://api.bitwarden.com",
-            IdentityUrl =
-                settings is { IdentityUrl: not null } ? settings.IdentityUrl : "https://identity.bitwarden.com",
-            DeviceType = DeviceType.Sdk,
+            ApiUrl = settings?.ApiUrl!,
+            IdentityUrl = settings?.IdentityUrl!,
             UserAgent = "Bitwarden DOTNET-SDK"
         };
 
@@ -22,10 +20,14 @@ public sealed class BitwardenClient : IDisposable
         Secrets = new SecretsClient(_commandRunner);
     }
 
-    public ResponseForApiKeyLoginResponse? AccessTokenLogin(string accessToken)
+    public void AccessTokenLogin(string accessToken)
     {
         var command = new Command() { AccessTokenLogin = new AccessTokenLoginRequest { AccessToken = accessToken } };
-        return _commandRunner.RunCommand<ResponseForApiKeyLoginResponse>(command);
+        var response =  _commandRunner.RunCommand<ResponseForApiKeyLoginResponse>(command);
+        if (response is not { Success: true })
+        {
+            throw new BitwardenException("Login failed");
+        }
     }
 
     public ProjectsClient Projects { get; }

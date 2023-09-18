@@ -9,13 +9,16 @@ public class ProjectsClient
         _commandRunner = commandRunner;
     }
 
-    public ResponseForProjectResponse? Get(Guid id)
+    public ProjectResponse Get(Guid id)
     {
         var command = new Command() { Projects = new ProjectsCommand { Get = new ProjectGetRequest { Id = id } } };
-        return _commandRunner.RunCommand<ResponseForProjectResponse>(command);
+        var result = _commandRunner.RunCommand<ResponseForProjectResponse>(command);
+
+        if (result is { Success: true }) return result.Data;
+        throw new BitwardenException(result != null ? result.ErrorMessage : "Project not found");
     }
 
-    public ResponseForProjectResponse? Create(Guid organizationId, string name)
+    public ProjectResponse Create(Guid organizationId, string name)
     {
         var command = new Command()
         {
@@ -24,10 +27,13 @@ public class ProjectsClient
                 Create = new ProjectCreateRequest { OrganizationId = organizationId, Name = name }
             }
         };
-        return _commandRunner.RunCommand<ResponseForProjectResponse>(command);
+        var result =  _commandRunner.RunCommand<ResponseForProjectResponse>(command);
+
+        if (result is { Success: true }) return result.Data;
+        throw new BitwardenException(result != null ? result.ErrorMessage : "Project create failed");
     }
 
-    public ResponseForProjectResponse? Update(Guid id, Guid organizationId, string name)
+    public ProjectResponse Update(Guid id, Guid organizationId, string name)
     {
         var command = new Command()
         {
@@ -36,24 +42,33 @@ public class ProjectsClient
                 Update = new ProjectPutRequest { Id = id, OrganizationId = organizationId, Name = name }
             }
         };
-        return _commandRunner.RunCommand<ResponseForProjectResponse>(command);
+        var result =  _commandRunner.RunCommand<ResponseForProjectResponse>(command);
+
+        if (result is { Success: true }) return result.Data;
+        throw new BitwardenException(result != null ? result.ErrorMessage : "Project update failed");
     }
 
-    public ResponseForProjectsDeleteResponse? Delete(Guid[] ids)
+    public ProjectsDeleteResponse Delete(Guid[] ids)
     {
         var command = new Command()
         {
             Projects = new ProjectsCommand { Delete = new ProjectsDeleteRequest { Ids = ids } }
         };
-        return _commandRunner.RunCommand<ResponseForProjectsDeleteResponse>(command);
+        var result = _commandRunner.RunCommand<ResponseForProjectsDeleteResponse>(command);
+
+        if (result is { Success: true }) return result.Data;
+        throw new BitwardenException(result != null ? result.ErrorMessage : "Project delete failed");
     }
 
-    public ResponseForProjectsResponse? List(Guid organizationId)
+    public ProjectsResponse List(Guid organizationId)
     {
         var command = new Command()
         {
             Projects = new ProjectsCommand { List = new ProjectsListRequest { OrganizationId = organizationId } }
         };
-        return _commandRunner.RunCommand<ResponseForProjectsResponse>(command);
+        var result =  _commandRunner.RunCommand<ResponseForProjectsResponse>(command);
+
+        if (result is { Success: true }) return result.Data;
+        throw new BitwardenException(result != null ? result.ErrorMessage : "No projects for given organization");
     }
 }

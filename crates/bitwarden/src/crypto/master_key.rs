@@ -1,18 +1,13 @@
-use aes::cipher::typenum::U32;
+use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::Engine;
 use rand::Rng;
-
-use crate::util::BASE64_ENGINE;
+use sha2::Digest;
 
 use super::{
     encrypt_aes256, hkdf_expand, EncString, PbkdfSha256Hmac, SymmetricCryptoKey, UserKey,
     PBKDF_SHA256_HMAC_OUT_SIZE,
 };
-use {
-    crate::{client::kdf::Kdf, error::Result},
-    aes::cipher::generic_array::GenericArray,
-    sha2::Digest,
-};
+use crate::{client::kdf::Kdf, error::Result, util::BASE64_ENGINE};
 
 #[derive(Copy, Clone)]
 pub(crate) enum HashPurpose {
@@ -115,10 +110,10 @@ fn stretch_master_key(master_key: &MasterKey) -> Result<SymmetricCryptoKey> {
 
 #[cfg(test)]
 mod tests {
-    use crate::crypto::SymmetricCryptoKey;
+    use std::num::NonZeroU32;
 
     use super::{stretch_master_key, HashPurpose, MasterKey};
-    use {crate::client::kdf::Kdf, std::num::NonZeroU32};
+    use crate::{client::kdf::Kdf, crypto::SymmetricCryptoKey};
 
     #[test]
     fn test_master_key_derive_pbkdf2() {

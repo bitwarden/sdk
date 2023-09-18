@@ -1,0 +1,71 @@
+---
+name: Release Swift Package
+run-name: Release Swift Package ${{ inputs.release_type }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Release Options"
+        required: true
+        default: "Initial Release"
+        type: choice
+        options:
+          - Initial Release
+          - Redeploy
+          - Dry Run
+
+jobs:
+  validate:
+    name: Validate Branch - Set Version
+    runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      -  name: Checkout repo
+         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+
+      - name: Branch check
+        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/rc" ]] && [[ "$GITHUB_REF" != "refs/heads/hotfix-rc-swift" ]]; then
+            echo "==================================="
+            echo "[!] Can only release from the 'rc' or 'hotfix-rc-cli' branches"
+            echo "==================================="
+            exit 1
+          fi
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(grep -o '^version = ".*"' crates/bitwarden/Cargo.toml | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+
+  github-release:
+    name: GitHub Release
+    runs-on: ubuntu-22.04
+    needs: validate
+    env:
+      _PKG_VERSION: ${{ needs.validate.outputs.version }}
+    steps:
+      - name: Download BitwardenEFI artifact
+        uses: bitwarden/gh-actions/download-artifacts@62d1bf7c3e31c458cc7236b1e69a475d235cd78f
+        with:
+          workflow: build-swift.yml
+          artifacts: BitwardenFFI-${{ env._PKG_VERSION }}.xcframework
+          path: packages
+          workflow_conclusion: success
+          branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'master' || github.ref_name }}
+
+      - name: Create release
+        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        uses: ncipollo/release-action@6c75be85e571768fa31b40abf38de58ba0397db5 # v1.13.0
+        with:
+          artifacts: "packages/BitwardenFFI-${{ env._PKG_VERSION }}.xcframework"
+          commit: ${{ github.sha }}
+          tag: BitwardenFFI-v${{ env._PKG_VERSION }}
+          name: BitwardenFFI v${{ env._PKG_VERSION }}
+          body: "<insert release notes here>"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          draft: true

@@ -10,7 +10,6 @@ use crate::{
     client::encryption_settings::EncryptionSettings,
     crypto::{Decryptable, EncString},
     error::{Error, Result},
-    util::parse_date,
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -81,8 +80,14 @@ impl SecretResponse {
             value,
             note,
 
-            creation_date: parse_date(&response.creation_date.ok_or(Error::MissingFields)?)?,
-            revision_date: parse_date(&response.revision_date.ok_or(Error::MissingFields)?)?,
+            creation_date: response
+                .creation_date
+                .ok_or(Error::MissingFields)?
+                .parse()?,
+            revision_date: response
+                .revision_date
+                .ok_or(Error::MissingFields)?
+                .parse()?,
         })
     }
 }

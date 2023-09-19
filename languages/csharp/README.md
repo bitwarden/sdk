@@ -19,8 +19,7 @@ bitwardenClient.AccessTokenLogin(accessToken);
 ### Create new project
 
 ```csharp
-const string organizationIdStr = "<organization-id>";
-var organizationId = Guid.Parse(organizationIdStr);
+var organizationId = Guid.Parse("<organization-id>");
 var projectResponse = bitwardenClient.Projects().Create(organizationId, "TestProject");
 ```
 
@@ -44,8 +43,14 @@ projectResponse = bitwardenClient.Projects.Update(projectId, organizationId, "Te
 var key = "key";
 var value = "value";
 var note = "note";
-var secretResponse = bitwardenClient.Secrets.Create(key, value, note, organizationId, new Guid[]{projectId});
+var secretResponse = bitwardenClient.Secrets.Create(key, value, note, organizationId, new[] { projectId });
 var secretId = secretResponse.Id;
+```
+
+### Update secret
+```csharp
+secretResponse = bitwardenClient.Secrets
+    .Update(secretId, "key2", "value2", "note2", organizationId, new[] { projectId });
 ```
 
 ### List secrets
@@ -57,8 +62,8 @@ var secretIdentifiersResponse = bitwardenClient.Secrets.List(organizationId);
 # Delete secret or project
 
 ```csharp
-var secretsDeleteResponse = bitwardenClient.Secrets.Delete(new Guid[]{secretId});
-var projectsDeleteResponse = bitwardenClient.Projects.Delete(new Guid[]{projectId});
+bitwardenClient.Secrets.Delete(new [] { secretId });
+bitwardenClient.Projects.Delete(new [] { projectId });
 ```
 
 [Access Tokens]: https://bitwarden.com/help/access-tokens/

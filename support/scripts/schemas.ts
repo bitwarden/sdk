@@ -69,7 +69,7 @@ async function main() {
     lang: "java",
     rendererOptions: {
       package: "bit.sdk.schema",
-      "java-version": "11",
+      "java-version": "8",
     },
   });
 

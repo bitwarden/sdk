@@ -36,7 +36,6 @@ public class BitwardenClient implements AutoCloseable {
     private Secrets secrets;
 
     public BitwardenClient(ClientSettings clientSettings) throws JsonProcessingException {
-        System.setProperty("jna.library.path", System.getProperty("user.dir") + "/libs");
         library = Native.load("bitwarden_c", BitwardenLibrary.class);
         client = library.init(Converter.ClientSettingsToJsonString(clientSettings));
         commandRunner = new CommandRunner(library, client);

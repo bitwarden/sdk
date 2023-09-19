@@ -1,2 +1,5 @@
 target
 .idea
+build
+.gradle
+src/main/resources

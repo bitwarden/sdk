@@ -1,0 +1,13 @@
+class ProjectsClient
+  @command_runner: CommandRunner
+
+  def create_project: -> JSON
+
+  def delete_projects: -> JSON
+
+  def get: -> JSON
+
+  def list_projects: -> JSON
+
+  def update_project: -> JSON
+end

@@ -13,19 +13,19 @@ Depending on which CPU architecture you will need to specify different targets. 
 [Android ABIs](https://developer.android.com/ndk/guides/abis) for more details.
 
 ```bash
-mkdir -p ./sdk/src/main/jniLibs/{arm64-v8a,armeabi-v7a,x86_64,x86}
+mkdir -p ./ruby/src/main/jniLibs/{arm64-v8a,armeabi-v7a,x86_64,x86}
 
 cross build -p bitwarden-uniffi --release --target=aarch64-linux-android
-mv ../../target/aarch64-linux-android/release/libbitwarden_uniffi.so ./sdk/src/main/jniLibs/arm64-v8a/libbitwarden_uniffi.so
+mv ../../target/aarch64-linux-android/release/libbitwarden_uniffi.so ./ruby/src/main/jniLibs/arm64-v8a/libbitwarden_uniffi.so
 
 cross build -p bitwarden-uniffi --release --target=armv7-linux-androideabi
-mv ../../target/armv7-linux-androideabi/release/libbitwarden_uniffi.so ./sdk/src/main/jniLibs/armeabi-v7a/libbitwarden_uniffi.so
+mv ../../target/armv7-linux-androideabi/release/libbitwarden_uniffi.so ./ruby/src/main/jniLibs/armeabi-v7a/libbitwarden_uniffi.so
 
 cross build -p bitwarden-uniffi --release --target=x86_64-linux-android
-mv ../../target/x86_64-linux-android/release/libbitwarden_uniffi.so ./sdk/src/main/jniLibs/x86_64/libbitwarden_uniffi.so
+mv ../../target/x86_64-linux-android/release/libbitwarden_uniffi.so ./ruby/src/main/jniLibs/x86_64/libbitwarden_uniffi.so
 
 cross build -p bitwarden-uniffi --release --target=i686-linux-android
-mv ../../target/i686-linux-android/release/libbitwarden_uniffi.so ./sdk/src/main/jniLibs/x86/libbitwarden_uniffi.so
+mv ../../target/i686-linux-android/release/libbitwarden_uniffi.so ./ruby/src/main/jniLibs/x86/libbitwarden_uniffi.so
 ```
 
 ### Schemas
@@ -40,5 +40,5 @@ mv ../../target/i686-linux-android/release/libbitwarden_uniffi.so ./sdk/src/main
 export GITHUB_ACTOR=username
 export GITHUB_TOKEN=token
 
-./gradlew sdk:publish
+./gradlew ruby:publish
 ```

@@ -25,24 +25,24 @@ switch (platform) {
   case "android":
     switch (arch) {
       case "arm64":
-        localFileExisted = existsSync(join(__dirname, "sdk-napi.android-arm64.node"));
+        localFileExisted = existsSync(join(__dirname, "ruby-napi.android-arm64.node"));
         try {
           if (localFileExisted) {
-            nativeBinding = require("./sdk-napi.android-arm64.node");
+            nativeBinding = require("./ruby-napi.android-arm64.node");
           } else {
-            nativeBinding = require("@bitwarden/sdk-napi-android-arm64");
+            nativeBinding = require("@bitwarden/ruby-napi-android-arm64");
           }
         } catch (e) {
           loadError = e;
         }
         break;
       case "arm":
-        localFileExisted = existsSync(join(__dirname, "sdk-napi.android-arm-eabi.node"));
+        localFileExisted = existsSync(join(__dirname, "ruby-napi.android-arm-eabi.node"));
         try {
           if (localFileExisted) {
-            nativeBinding = require("./sdk-napi.android-arm-eabi.node");
+            nativeBinding = require("./ruby-napi.android-arm-eabi.node");
           } else {
-            nativeBinding = require("@bitwarden/sdk-napi-android-arm-eabi");
+            nativeBinding = require("@bitwarden/ruby-napi-android-arm-eabi");
           }
         } catch (e) {
           loadError = e;
@@ -55,36 +55,36 @@ switch (platform) {
   case "win32":
     switch (arch) {
       case "x64":
-        localFileExisted = existsSync(join(__dirname, "sdk-napi.win32-x64-msvc.node"));
+        localFileExisted = existsSync(join(__dirname, "ruby-napi.win32-x64-msvc.node"));
         try {
           if (localFileExisted) {
-            nativeBinding = require("./sdk-napi.win32-x64-msvc.node");
+            nativeBinding = require("./ruby-napi.win32-x64-msvc.node");
           } else {
-            nativeBinding = require("@bitwarden/sdk-napi-win32-x64-msvc");
+            nativeBinding = require("@bitwarden/ruby-napi-win32-x64-msvc");
           }
         } catch (e) {
           loadError = e;
         }
         break;
       case "ia32":
-        localFileExisted = existsSync(join(__dirname, "sdk-napi.win32-ia32-msvc.node"));
+        localFileExisted = existsSync(join(__dirname, "ruby-napi.win32-ia32-msvc.node"));
         try {
           if (localFileExisted) {
-            nativeBinding = require("./sdk-napi.win32-ia32-msvc.node");
+            nativeBinding = require("./ruby-napi.win32-ia32-msvc.node");
           } else {
-            nativeBinding = require("@bitwarden/sdk-napi-win32-ia32-msvc");
+            nativeBinding = require("@bitwarden/ruby-napi-win32-ia32-msvc");
           }
         } catch (e) {
           loadError = e;
         }
         break;
       case "arm64":
-        localFileExisted = existsSync(join(__dirname, "sdk-napi.win32-arm64-msvc.node"));
+        localFileExisted = existsSync(join(__dirname, "ruby-napi.win32-arm64-msvc.node"));
         try {
           if (localFileExisted) {
-            nativeBinding = require("./sdk-napi.win32-arm64-msvc.node");
+            nativeBinding = require("./ruby-napi.win32-arm64-msvc.node");
           } else {
-            nativeBinding = require("@bitwarden/sdk-napi-win32-arm64-msvc");
+            nativeBinding = require("@bitwarden/ruby-napi-win32-arm64-msvc");
           }
         } catch (e) {
           loadError = e;
@@ -97,24 +97,24 @@ switch (platform) {
   case "darwin":
     switch (arch) {
       case "x64":
-        localFileExisted = existsSync(join(__dirname, "sdk-napi.darwin-x64.node"));
+        localFileExisted = existsSync(join(__dirname, "ruby-napi.darwin-x64.node"));
         try {
           if (localFileExisted) {
-            nativeBinding = require("./sdk-napi.darwin-x64.node");
+            nativeBinding = require("./ruby-napi.darwin-x64.node");
           } else {
-            nativeBinding = require("@bitwarden/sdk-napi-darwin-x64");
+            nativeBinding = require("@bitwarden/ruby-napi-darwin-x64");
           }
         } catch (e) {
           loadError = e;
         }
         break;
       case "arm64":
-        localFileExisted = existsSync(join(__dirname, "sdk-napi.darwin-arm64.node"));
+        localFileExisted = existsSync(join(__dirname, "ruby-napi.darwin-arm64.node"));
         try {
           if (localFileExisted) {
-            nativeBinding = require("./sdk-napi.darwin-arm64.node");
+            nativeBinding = require("./ruby-napi.darwin-arm64.node");
           } else {
-            nativeBinding = require("@bitwarden/sdk-napi-darwin-arm64");
+            nativeBinding = require("@bitwarden/ruby-napi-darwin-arm64");
           }
         } catch (e) {
           loadError = e;
@@ -128,12 +128,12 @@ switch (platform) {
     if (arch !== "x64") {
       throw new Error(`Unsupported architecture on FreeBSD: ${arch}`);
     }
-    localFileExisted = existsSync(join(__dirname, "sdk-napi.freebsd-x64.node"));
+    localFileExisted = existsSync(join(__dirname, "ruby-napi.freebsd-x64.node"));
     try {
       if (localFileExisted) {
-        nativeBinding = require("./sdk-napi.freebsd-x64.node");
+        nativeBinding = require("./ruby-napi.freebsd-x64.node");
       } else {
-        nativeBinding = require("@bitwarden/sdk-napi-freebsd-x64");
+        nativeBinding = require("@bitwarden/ruby-napi-freebsd-x64");
       }
     } catch (e) {
       loadError = e;
@@ -143,23 +143,23 @@ switch (platform) {
     switch (arch) {
       case "x64":
         if (isMusl()) {
-          localFileExisted = existsSync(join(__dirname, "sdk-napi.linux-x64-musl.node"));
+          localFileExisted = existsSync(join(__dirname, "ruby-napi.linux-x64-musl.node"));
           try {
             if (localFileExisted) {
-              nativeBinding = require("./sdk-napi.linux-x64-musl.node");
+              nativeBinding = require("./ruby-napi.linux-x64-musl.node");
             } else {
-              nativeBinding = require("@bitwarden/sdk-napi-linux-x64-musl");
+              nativeBinding = require("@bitwarden/ruby-napi-linux-x64-musl");
             }
           } catch (e) {
             loadError = e;
           }
         } else {
-          localFileExisted = existsSync(join(__dirname, "sdk-napi.linux-x64-gnu.node"));
+          localFileExisted = existsSync(join(__dirname, "ruby-napi.linux-x64-gnu.node"));
           try {
             if (localFileExisted) {
-              nativeBinding = require("./sdk-napi.linux-x64-gnu.node");
+              nativeBinding = require("./ruby-napi.linux-x64-gnu.node");
             } else {
-              nativeBinding = require("@bitwarden/sdk-napi-linux-x64-gnu");
+              nativeBinding = require("@bitwarden/ruby-napi-linux-x64-gnu");
             }
           } catch (e) {
             loadError = e;
@@ -168,23 +168,23 @@ switch (platform) {
         break;
       case "arm64":
         if (isMusl()) {
-          localFileExisted = existsSync(join(__dirname, "sdk-napi.linux-arm64-musl.node"));
+          localFileExisted = existsSync(join(__dirname, "ruby-napi.linux-arm64-musl.node"));
           try {
             if (localFileExisted) {
-              nativeBinding = require("./sdk-napi.linux-arm64-musl.node");
+              nativeBinding = require("./ruby-napi.linux-arm64-musl.node");
             } else {
-              nativeBinding = require("@bitwarden/sdk-napi-linux-arm64-musl");
+              nativeBinding = require("@bitwarden/ruby-napi-linux-arm64-musl");
             }
           } catch (e) {
             loadError = e;
           }
         } else {
-          localFileExisted = existsSync(join(__dirname, "sdk-napi.linux-arm64-gnu.node"));
+          localFileExisted = existsSync(join(__dirname, "ruby-napi.linux-arm64-gnu.node"));
           try {
             if (localFileExisted) {
-              nativeBinding = require("./sdk-napi.linux-arm64-gnu.node");
+              nativeBinding = require("./ruby-napi.linux-arm64-gnu.node");
             } else {
-              nativeBinding = require("@bitwarden/sdk-napi-linux-arm64-gnu");
+              nativeBinding = require("@bitwarden/ruby-napi-linux-arm64-gnu");
             }
           } catch (e) {
             loadError = e;
@@ -192,12 +192,12 @@ switch (platform) {
         }
         break;
       case "arm":
-        localFileExisted = existsSync(join(__dirname, "sdk-napi.linux-arm-gnueabihf.node"));
+        localFileExisted = existsSync(join(__dirname, "ruby-napi.linux-arm-gnueabihf.node"));
         try {
           if (localFileExisted) {
-            nativeBinding = require("./sdk-napi.linux-arm-gnueabihf.node");
+            nativeBinding = require("./ruby-napi.linux-arm-gnueabihf.node");
           } else {
-            nativeBinding = require("@bitwarden/sdk-napi-linux-arm-gnueabihf");
+            nativeBinding = require("@bitwarden/ruby-napi-linux-arm-gnueabihf");
           }
         } catch (e) {
           loadError = e;

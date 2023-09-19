@@ -1,0 +1,5 @@
+class CommandRunner
+  @bitwarden_sdk: Module
+
+  def run: -> JSON
+end

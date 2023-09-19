@@ -1,5 +1,6 @@
 import json
 import logging
+import sys
 from BitwardenClient.bitwarden_client import BitwardenClient
 from BitwardenClient.schemas import client_settings_from_dict, DeviceType
 

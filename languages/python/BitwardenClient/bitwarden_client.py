@@ -2,7 +2,7 @@ import json
 from typing import Any, List, Optional
 from uuid import UUID
 import bitwarden_py
-from .schemas import ClientSettings, Command, PasswordLoginRequest, PasswordLoginResponse, ResponseForPasswordLoginResponse, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsDeleteResponse, ResponseForSyncResponse, ResponseForUserAPIKeyResponse, SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretIdentifiersResponse, SecretPutRequest, SecretResponse, SecretVerificationRequest, SecretsCommand, SecretsDeleteRequest, SecretsDeleteResponse, SyncRequest, SyncResponse, UserAPIKeyResponse, AccessTokenLoginRequest, AccessTokenLoginResponse, ResponseForAccessTokenLoginResponse, ResponseForProjectResponse, ProjectsCommand, ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsListRequest, ResponseForProjectsResponse, ResponseForProjectsDeleteResponse, ProjectsDeleteRequest
+from .schemas import ClientSettings, Command, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsDeleteResponse, SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretIdentifiersResponse, SecretPutRequest, SecretResponse, SecretsCommand, SecretsDeleteRequest, SecretsDeleteResponse, AccessTokenLoginRequest, AccessTokenLoginResponse, ResponseForAccessTokenLoginResponse, ResponseForProjectResponse, ProjectsCommand, ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsListRequest, ResponseForProjectsResponse, ResponseForProjectsDeleteResponse, ProjectsDeleteRequest
 
 class BitwardenClient:
     def __init__(self, settings: ClientSettings = None):
@@ -12,30 +12,11 @@ class BitwardenClient:
             settings_json = json.dumps(settings.to_dict())
             self.inner = bitwarden_py.BitwardenClient(settings_json)
 
-    def password_login(self, email: str, password: str) -> ResponseForPasswordLoginResponse:
-        result = self._run_command(
-            Command(password_login=PasswordLoginRequest(email, password))
-        )
-        return ResponseForPasswordLoginResponse.from_dict(result)
-
     def access_token_login(self, access_token: str) -> AccessTokenLoginResponse:
         result = self._run_command(
             Command(access_token_login=AccessTokenLoginRequest(access_token))
         )
         return ResponseForAccessTokenLoginResponse.from_dict(result)
-
-    def get_user_api_key(self, secret: str, is_otp: bool = False) -> ResponseForUserAPIKeyResponse:
-        result = self._run_command(
-            Command(get_user_api_key=SecretVerificationRequest(
-                secret if not is_otp else None, secret if is_otp else None))
-        )
-        return ResponseForUserAPIKeyResponse.from_dict(result)
-
-    def sync(self, exclude_subdomains: bool = False) -> ResponseForSyncResponse:
-        result = self._run_command(
-            Command(sync=SyncRequest(exclude_subdomains))
-        )
-        return ResponseForSyncResponse.from_dict(result)
 
     def secrets(self):
         return SecretsClient(self)

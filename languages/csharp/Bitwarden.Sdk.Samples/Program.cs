@@ -1,31 +1,30 @@
 ﻿using Bitwarden.Sdk;
 
+// Configure secrets
+var accessToken = Environment.GetEnvironmentVariable("ACCESS_TOKEN")!;
+var organizationIdString = Environment.GetEnvironmentVariable("ORGANIZATION_ID")!;
+var organizationId = Guid.Parse(organizationIdString);
 
-var accessToken = Environment.GetEnvironmentVariable("ACCESS_TOKEN");
-var organizationIdStr = Environment.GetEnvironmentVariable("ORGANIZATION_ID");
-
+// Create SDK Client
 using var bitwardenClient = new BitwardenClient();
+
+// Authenticate
 bitwardenClient.AccessTokenLogin(accessToken);
-var organizationId = Guid.Parse(organizationIdStr);
+
+// Project operations
 var projectResponse = bitwardenClient.Projects.Create(organizationId, "NewTestProject");
-var projectId = projectResponse.Id;
 var projectsResponse = bitwardenClient.Projects.List(organizationId);
+var projectId = projectResponse.Id;
 projectResponse = bitwardenClient.Projects.Get(projectId);
 projectResponse = bitwardenClient.Projects.Update(projectId, organizationId, "NewTestProject2");
 
-var key = "key";
-var value = "value";
-var note = "note";
+// Secret operations
 var secretResponse =
-    bitwardenClient.Secrets.Create(key, value, note, organizationId, new Guid[] { projectId });
+    bitwardenClient.Secrets.Create("key", "value", "note", organizationId, new[] { projectId });
 var secretId = secretResponse.Id;
-var responseForSecretIdentifiersResponse = bitwardenClient.Secrets.List(organizationId);
+var secretIdentifiersResponse = bitwardenClient.Secrets.List(organizationId);
 secretResponse = bitwardenClient.Secrets.Get(secretId);
-key = "key2";
-value = "value2";
-note = "note2";
 secretResponse = bitwardenClient.Secrets
-    .Update(secretId, key, value, note, organizationId, new Guid[] { projectId });
-
-var responseForSecretsDeleteResponse = bitwardenClient.Secrets.Delete(new Guid[] { secretId });
-var responseForProjectsDeleteResponse = bitwardenClient.Projects.Delete(new Guid[] { projectId });
+    .Update(secretId, "key2", "value2", "note2", organizationId, new[] { projectId });
+bitwardenClient.Secrets.Delete(new[] { secretId });
+bitwardenClient.Projects.Delete(new[] { projectId });

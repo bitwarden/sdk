@@ -14,7 +14,7 @@ public class ProjectsClient
         var command = new Command() { Projects = new ProjectsCommand { Get = new ProjectGetRequest { Id = id } } };
         var result = _commandRunner.RunCommand<ResponseForProjectResponse>(command);
 
-        if (result is { Success: true }) return result.Data;
+        if (result is { Success: true }) { return result.Data; }
         throw new BitwardenException(result != null ? result.ErrorMessage : "Project not found");
     }
 
@@ -29,7 +29,7 @@ public class ProjectsClient
         };
         var result =  _commandRunner.RunCommand<ResponseForProjectResponse>(command);
 
-        if (result is { Success: true }) return result.Data;
+        if (result is { Success: true }) { return result.Data; }
         throw new BitwardenException(result != null ? result.ErrorMessage : "Project create failed");
     }
 
@@ -44,7 +44,7 @@ public class ProjectsClient
         };
         var result =  _commandRunner.RunCommand<ResponseForProjectResponse>(command);
 
-        if (result is { Success: true }) return result.Data;
+        if (result is { Success: true }) { return result.Data; }
         throw new BitwardenException(result != null ? result.ErrorMessage : "Project update failed");
     }
 
@@ -56,7 +56,7 @@ public class ProjectsClient
         };
         var result = _commandRunner.RunCommand<ResponseForProjectsDeleteResponse>(command);
 
-        if (result is { Success: true }) return result.Data;
+        if (result is { Success: true }) { return result.Data; }
         throw new BitwardenException(result != null ? result.ErrorMessage : "Project delete failed");
     }
 
@@ -68,7 +68,7 @@ public class ProjectsClient
         };
         var result =  _commandRunner.RunCommand<ResponseForProjectsResponse>(command);
 
-        if (result is { Success: true }) return result.Data;
+        if (result is { Success: true }) { return result.Data; }
         throw new BitwardenException(result != null ? result.ErrorMessage : "No projects for given organization");
     }
 }

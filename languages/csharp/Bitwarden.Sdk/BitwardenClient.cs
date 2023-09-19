@@ -26,7 +26,7 @@ public sealed class BitwardenClient : IDisposable
         var response =  _commandRunner.RunCommand<ResponseForApiKeyLoginResponse>(command);
         if (response is not { Success: true })
         {
-            throw new BitwardenException("Login failed");
+            throw new BitwardenAuthException(response != null ? response.ErrorMessage : "Login failed");
         }
     }
 

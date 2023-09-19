@@ -14,7 +14,7 @@ public class SecretsClient
         var command = new Command() { Secrets = new SecretsCommand { Get = new SecretGetRequest { Id = id } } };
         var result = _commandRunner.RunCommand<ResponseForSecretResponse>(command);
 
-        if (result is { Success: true }) return result.Data;
+        if (result is { Success: true }) { return result.Data; }
         throw new BitwardenException(result != null ? result.ErrorMessage : "Secret not found");
     }
 
@@ -38,7 +38,7 @@ public class SecretsClient
 
         var result = _commandRunner.RunCommand<ResponseForSecretResponse>(command);
 
-        if (result is { Success: true }) return result.Data;
+        if (result is { Success: true }) { return result.Data; }
         throw new BitwardenException(result != null ? result.ErrorMessage : "Secret create failed");
     }
 
@@ -63,7 +63,7 @@ public class SecretsClient
 
         var result = _commandRunner.RunCommand<ResponseForSecretResponse>(command);
 
-        if (result is { Success: true }) return result.Data;
+        if (result is { Success: true }) { return result.Data; }
         throw new BitwardenException(result != null ? result.ErrorMessage : "Secret update failed");
     }
 
@@ -75,7 +75,7 @@ public class SecretsClient
         };
         var result = _commandRunner.RunCommand<ResponseForSecretsDeleteResponse>(command);
 
-        if (result is { Success: true }) return result.Data;
+        if (result is { Success: true }) { return result.Data; }
         throw new BitwardenException(result != null ? result.ErrorMessage : "Secrets delete failed");
     }
 
@@ -87,7 +87,7 @@ public class SecretsClient
         };
         var result = _commandRunner.RunCommand<ResponseForSecretIdentifiersResponse>(command);
 
-        if (result is { Success: true }) return result.Data;
-        throw new BitwardenException(result != null ? result.ErrorMessage : "No secret for given organization");
+        if (result is { Success: true }) { return result.Data; }
+        throw new BitwardenException(result != null ? result.ErrorMessage : "No secrets for given organization");
     }
 }

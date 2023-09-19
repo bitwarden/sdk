@@ -40,6 +40,8 @@ pub enum Error {
     Io(#[from] std::io::Error),
     #[error(transparent)]
     InvalidBase64(#[from] base64::DecodeError),
+    #[error(transparent)]
+    Chrono(#[from] chrono::ParseError),
 
     #[error("Received error message from server: [{}] {}", .status, .message)]
     ResponseContent { status: StatusCode, message: String },
@@ -92,16 +94,6 @@ pub enum EncStringParseError {
     InvalidBase64(#[from] base64::DecodeError),
     #[error("Invalid length: expected {expected}, got {got}")]
     InvalidLength { expected: usize, got: usize },
-}
-
-impl From<chrono::ParseError> for Error {
-    fn from(e: chrono::ParseError) -> Self {
-        Self::Internal(string_to_static_str(e.to_string()))
-    }
-}
-
-fn string_to_static_str(s: String) -> &'static str {
-    Box::leak(s.into_boxed_str())
 }
 
 // Ensure that the error messages implement Send and Sync

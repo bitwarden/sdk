@@ -1,6 +1,6 @@
 name: SDK Bug Report
 description: File a bug report for issues encountered using the Bitwarden SDK
-labels: [bug, ruby]
+labels: [bug, sdk]
 body:
   - type: markdown
     attributes:

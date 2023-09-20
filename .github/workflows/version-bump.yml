@@ -67,14 +67,14 @@ jobs:
         env:
           VERSION: ${{ github.event.inputs.version_number }}
           PROJECT: ${{ github.event.inputs.project }}
-        run: git switch -c ruby-${PROJECT}_version_bump_${VERSION}
+        run: git switch -c sdk-${PROJECT}_version_bump_${VERSION}
 
       ########################
       # VERSION BUMP SECTION #
       ########################
 
       ### napi
-      - name: Bump @bitwarden/ruby-napi Version
+      - name: Bump @bitwarden/sdk-napi Version
         if: ${{ github.event.inputs.project == 'napi' }}
         env:
           VERSION: ${{ github.event.inputs.version_number }}
@@ -159,19 +159,19 @@ jobs:
         env:
           VERSION: ${{ github.event.inputs.version_number }}
           PROJECT: ${{ github.event.inputs.project }}
-        run: git commit -m "Bumped ruby-${PROJECT} version to ${VERSION}" -a
+        run: git commit -m "Bumped sdk-${PROJECT} version to ${VERSION}" -a
 
       - name: Push changes
         if: ${{ steps.version-changed.outputs.changes_to_commit == 'TRUE' }}
         env:
           VERSION: ${{ github.event.inputs.version_number }}
           PROJECT: ${{ github.event.inputs.project }}
-        run: git push -u origin ruby-${PROJECT}_version_bump_${VERSION}
+        run: git push -u origin sdk-${PROJECT}_version_bump_${VERSION}
 
       - name: Create Bump Version PR
         if: ${{ steps.version-changed.outputs.changes_to_commit == 'TRUE' }}
         env:
-          PR_BRANCH: "ruby-${{ github.event.inputs.project }}_version_bump_${{ github.event.inputs.version_number }}"
+          PR_BRANCH: "sdk-${{ github.event.inputs.project }}_version_bump_${{ github.event.inputs.version_number }}"
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           BASE_BRANCH: master
           TITLE: "Bump ${{ github.event.inputs.project }} version to ${{ github.event.inputs.version_number }}"

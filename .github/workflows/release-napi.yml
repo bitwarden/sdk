@@ -1,6 +1,6 @@
 ---
-name: Release @bitwarden/ruby-napi
-run-name: Release @bitwarden/ruby-napi ${{ inputs.release_type }}
+name: Release @bitwarden/sdk-napi
+run-name: Release @bitwarden/sdk-napi ${{ inputs.release_type }}
 
 on:
   workflow_dispatch:

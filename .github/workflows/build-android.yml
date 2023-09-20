@@ -89,7 +89,7 @@ jobs:
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
 
       - name: Move artifacts
-        working-directory: languages/kotlin/ruby/src/main/jniLibs
+        working-directory: languages/kotlin/sdk/src/main/jniLibs
         run: |
           mkdir armeabi-v7a arm64-v8a x86 x86_64
           mv /home/runner/work/sdk/sdk/android-armv7-linux-androideabi/libbitwarden_uniffi.so ./armeabi-v7a/libbitwarden_uniffi.so
@@ -116,7 +116,7 @@ jobs:
       - name: Publish
         uses: gradle/gradle-build-action@ef76a971e2fa3f867b617efd72f2fbd72cf6f8bc # v2.8.0
         with:
-          arguments: ruby:publish
+          arguments: sdk:publish
           build-root-directory: languages/kotlin
         env:
           GITHUB_ACTOR: "bitwarden-devops-bot"

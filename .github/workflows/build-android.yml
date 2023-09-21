@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # stable
+        uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # stable
         with:
           toolchain: 1.67.0 # https://github.com/cross-rs/cross/issues/1222
 
@@ -70,7 +70,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # stable
+        uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # stable
         with:
           toolchain: stable
 
@@ -101,23 +101,10 @@ jobs:
         working-directory: languages/kotlin
         run: ./build-schemas.sh
 
-      - name: Login to Azure - CI Subscription
-        uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
-        with:
-          creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
-
-      - name: Retrieve bot secrets
-        id: retrieve-bot-secrets
-        uses: bitwarden/gh-actions/get-keyvault-secrets@8fccdaea2810d5dfb13753b6dd93bbd3a63ff82e
-        with:
-          keyvault: bitwarden-ci
-          secrets: "github-pat-bitwarden-devops-bot-packages-scope"
-
       - name: Publish
         uses: gradle/gradle-build-action@ef76a971e2fa3f867b617efd72f2fbd72cf6f8bc # v2.8.0
         with:
           arguments: sdk:publish
           build-root-directory: languages/kotlin
         env:
-          GITHUB_ACTOR: "bitwarden-devops-bot"
-          GITHUB_TOKEN: ${{ steps.retrieve-bot-secrets.outputs.github-pat-bitwarden-devops-bot-packages-scope }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

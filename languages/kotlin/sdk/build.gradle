@@ -2,7 +2,6 @@ plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
     id 'maven-publish'
-    id 'com.palantir.git-version' version '3.0.0'
 }
 
 android {
@@ -42,14 +41,25 @@ publishing {
     publications {
         maven(MavenPublication) {
             groupId = 'com.bitwarden'
-            artifactId = 'sdk'
+            artifactId = 'sdk-android'
 
-            def details = versionDetails()
+            // Determine the version from the git history.
+            //
+            // PRs: use the branch name.
+            // Master: Grab it from `crates/bitwarden/Cargo.toml`
 
-            if (details.branchName == null) {
-                version = "master-SNAPSHOT"
+            def branchName = "git branch --show-current".execute().text.trim()
+
+            if (branchName == "master") {
+                def content = ['grep', '-o', '^version = ".*"', '../../crates/bitwarden/Cargo.toml'].execute().text.trim()
+                def match = ~/version = "(.*)"/
+                def matcher = match.matcher(content)
+                matcher.find()
+
+                version = "${matcher.group(1)}-SNAPSHOT"
             } else {
-                version "${details.branchName.replaceAll('/', '-')}-SNAPSHOT"
+                // branchName-SNAPSHOT
+                version = "${branchName.replaceAll('/', '-')}-SNAPSHOT"
             }
 
             afterEvaluate {
@@ -60,7 +70,7 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = "https://maven.pkg.github.com/bitwarden/sdk-maven"
+            url = "https://maven.pkg.github.com/bitwarden/sdk"
             credentials {
                 username = System.getenv("GITHUB_ACTOR")
                 password = System.getenv("GITHUB_TOKEN")

@@ -4,7 +4,10 @@ public class ProjectsClient
 {
     private readonly CommandRunner _commandRunner;
 
-    internal ProjectsClient(CommandRunner commandRunner) => _commandRunner = commandRunner;
+    internal ProjectsClient(CommandRunner commandRunner)
+    {
+        _commandRunner = commandRunner;
+    }
 
     public ProjectResponse Get(Guid id)
     {

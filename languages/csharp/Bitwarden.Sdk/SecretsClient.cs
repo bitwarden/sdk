@@ -4,7 +4,10 @@ public class SecretsClient
 {
     private readonly CommandRunner _commandRunner;
 
-    internal SecretsClient(CommandRunner commandRunner) => _commandRunner = commandRunner;
+    internal SecretsClient(CommandRunner commandRunner)
+    {
+        _commandRunner = commandRunner;
+    }
 
     public SecretResponse Get(Guid id)
     {

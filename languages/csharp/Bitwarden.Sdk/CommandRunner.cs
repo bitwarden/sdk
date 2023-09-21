@@ -6,7 +6,10 @@ internal class CommandRunner
 {
     private readonly BitwardenSafeHandle _handle;
 
-    internal CommandRunner(BitwardenSafeHandle handle) => _handle = handle;
+    internal CommandRunner(BitwardenSafeHandle handle)
+    {
+        _handle = handle;
+    }
 
     internal T? RunCommand<T>(Command command)
     {

@@ -4,14 +4,11 @@ public class ProjectsClient
 {
     private readonly CommandRunner _commandRunner;
 
-    internal ProjectsClient(CommandRunner commandRunner)
-    {
-        _commandRunner = commandRunner;
-    }
+    internal ProjectsClient(CommandRunner commandRunner) => _commandRunner = commandRunner;
 
     public ProjectResponse Get(Guid id)
     {
-        var command = new Command() { Projects = new ProjectsCommand { Get = new ProjectGetRequest { Id = id } } };
+        var command = new Command { Projects = new ProjectsCommand { Get = new ProjectGetRequest { Id = id } } };
         var result = _commandRunner.RunCommand<ResponseForProjectResponse>(command);
 
         if (result is { Success: true })
@@ -24,7 +21,7 @@ public class ProjectsClient
 
     public ProjectResponse Create(Guid organizationId, string name)
     {
-        var command = new Command()
+        var command = new Command
         {
             Projects = new ProjectsCommand
             {
@@ -43,7 +40,7 @@ public class ProjectsClient
 
     public ProjectResponse Update(Guid id, Guid organizationId, string name)
     {
-        var command = new Command()
+        var command = new Command
         {
             Projects = new ProjectsCommand
             {
@@ -62,7 +59,7 @@ public class ProjectsClient
 
     public ProjectsDeleteResponse Delete(Guid[] ids)
     {
-        var command = new Command()
+        var command = new Command
         {
             Projects = new ProjectsCommand { Delete = new ProjectsDeleteRequest { Ids = ids } }
         };
@@ -78,7 +75,7 @@ public class ProjectsClient
 
     public ProjectsResponse List(Guid organizationId)
     {
-        var command = new Command()
+        var command = new Command
         {
             Projects = new ProjectsCommand { List = new ProjectsListRequest { OrganizationId = organizationId } }
         };

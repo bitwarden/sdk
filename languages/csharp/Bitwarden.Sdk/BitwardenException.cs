@@ -6,7 +6,7 @@ public class BitwardenException : Exception
     {
     }
 
-    public BitwardenException(string message, System.Exception innerException)
+    public BitwardenException(string message, Exception innerException)
         : base(message, innerException)
     {
     }

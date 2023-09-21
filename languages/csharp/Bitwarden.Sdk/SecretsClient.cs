@@ -4,14 +4,11 @@ public class SecretsClient
 {
     private readonly CommandRunner _commandRunner;
 
-    internal SecretsClient(CommandRunner commandRunner)
-    {
-        _commandRunner = commandRunner;
-    }
+    internal SecretsClient(CommandRunner commandRunner) => _commandRunner = commandRunner;
 
     public SecretResponse Get(Guid id)
     {
-        var command = new Command() { Secrets = new SecretsCommand { Get = new SecretGetRequest { Id = id } } };
+        var command = new Command { Secrets = new SecretsCommand { Get = new SecretGetRequest { Id = id } } };
         var result = _commandRunner.RunCommand<ResponseForSecretResponse>(command);
 
         if (result is { Success: true })
@@ -25,7 +22,7 @@ public class SecretsClient
     public SecretResponse Create(string key, string value, string note, Guid organizationId,
         Guid[] projectIds)
     {
-        var command = new Command()
+        var command = new Command
         {
             Secrets = new SecretsCommand
             {
@@ -53,7 +50,7 @@ public class SecretsClient
     public SecretResponse Update(Guid id, string key, string value, string note, Guid organizationId,
         Guid[] projectIds)
     {
-        var command = new Command()
+        var command = new Command
         {
             Secrets = new SecretsCommand
             {
@@ -81,10 +78,7 @@ public class SecretsClient
 
     public SecretsDeleteResponse Delete(Guid[] ids)
     {
-        var command = new Command()
-        {
-            Secrets = new SecretsCommand { Delete = new SecretsDeleteRequest { Ids = ids } }
-        };
+        var command = new Command { Secrets = new SecretsCommand { Delete = new SecretsDeleteRequest { Ids = ids } } };
         var result = _commandRunner.RunCommand<ResponseForSecretsDeleteResponse>(command);
 
         if (result is { Success: true })
@@ -97,7 +91,7 @@ public class SecretsClient
 
     public SecretIdentifiersResponse List(Guid organizationId)
     {
-        var command = new Command()
+        var command = new Command
         {
             Secrets = new SecretsCommand { List = new SecretIdentifiersRequest { OrganizationId = organizationId } }
         };

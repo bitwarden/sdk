@@ -8,8 +8,7 @@ public class BitwardenSettings
     public string? ApiUrl { get; set; }
 
     /// <summary>
-    /// The identity url of the targeted Bitwarden instance. Defaults to
-    /// `https://identity.bitwarden.com`
+    /// The identity url of the targeted Bitwarden instance. Defaults to `https://identity.bitwarden.com`
     /// </summary>
     public string? IdentityUrl { get; set; }
 }

@@ -1,9 +1,9 @@
-﻿namespace Bitwarden.Sdk;
-using System.Text.Json;
+﻿using System.Text.Json;
+
+namespace Bitwarden.Sdk;
 
 internal class CommandRunner
 {
-
     private readonly BitwardenSafeHandle _handle;
 
     internal CommandRunner(BitwardenSafeHandle handle)

@@ -9,9 +9,7 @@ public sealed class BitwardenClient : IDisposable
     {
         var clientSettings = new ClientSettings
         {
-            ApiUrl = settings?.ApiUrl!,
-            IdentityUrl = settings?.IdentityUrl!,
-            UserAgent = "Bitwarden DOTNET-SDK"
+            ApiUrl = settings?.ApiUrl!, IdentityUrl = settings?.IdentityUrl!, UserAgent = "Bitwarden DOTNET-SDK"
         };
 
         _handle = BitwardenLibrary.Init(clientSettings.ToJson());
@@ -23,7 +21,7 @@ public sealed class BitwardenClient : IDisposable
     public void AccessTokenLogin(string accessToken)
     {
         var command = new Command() { AccessTokenLogin = new AccessTokenLoginRequest { AccessToken = accessToken } };
-        var response =  _commandRunner.RunCommand<ResponseForApiKeyLoginResponse>(command);
+        var response = _commandRunner.RunCommand<ResponseForApiKeyLoginResponse>(command);
         if (response is not { Success: true })
         {
             throw new BitwardenAuthException(response != null ? response.ErrorMessage : "Login failed");

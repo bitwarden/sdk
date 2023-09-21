@@ -1,0 +1,10 @@
+class BitwardenClient
+  @command_runner: CommandRunner
+
+  attr_reader bitwarden: Module
+  attr_reader project_client: ProjectsClient
+  attr_reader secrets_client: SecretsClient
+
+  def authorize: () -> JSON
+  def free_mem: () -> nil
+end

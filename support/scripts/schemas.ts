@@ -52,6 +52,16 @@ async function main() {
 
   writeToFile("./languages/python/BitwardenClient/schemas.py", python.lines);
 
+  const ruby = await quicktype({
+    inputData,
+    lang: "ruby",
+    rendererOptions: {
+      "ruby-version": "3.2",
+    },
+  });
+
+  writeToFile("./languages/ruby/lib/schemas.rb", ruby.lines);
+
   const csharp = await quicktype({
     inputData,
     lang: "csharp",

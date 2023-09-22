@@ -50,7 +50,7 @@ async function main() {
     },
   });
 
-  writeToFile("./languages/python/BitwardenClient/schemas.rb", python.lines);
+  writeToFile("./languages/python/BitwardenClient/schemas.py", python.lines);
 
   const ruby = await quicktype({
     inputData,

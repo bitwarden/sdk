@@ -1,4 +1,4 @@
-name: Build .NET SDK
+name: Build Ruby SDK
 
 on:
   pull_request:

@@ -58,18 +58,9 @@ jobs:
           name: libbitwarden_c_files-x86_64-pc-windows-msvc
           path: languages/csharp/Bitwarden.Sdk/windows-x64
 
-      - name: Set up Ruby
-        on: [push, pull_request]
+      - name: Checkout Repository
         working-directory: languages/ruby
-        jobs:
-          test:
-            runs-on: ubuntu-latest
-            steps:
-              - uses: actions/checkout@v4
-              - uses: ruby/setup-ruby@v1
-                with:
-                  ruby-version: '3.2' # Not needed with a .ruby-version file
-                  bundler-cache: true # runs 'bundle install' and caches installed gems automatically
-              - run: |
-                  gem build ruby-sdk.gemspec
-                  gem install ruby-sdk-version.gem
+        uses: actions/checkout@ec02537da5712d66d4d50a0f33b7eb52773b5ed1
+      - run: |
+          gem build ruby-sdk.gemspec
+          gem install ruby-sdk-version.gem

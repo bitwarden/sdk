@@ -30,12 +30,11 @@ jobs:
           path: languages/ruby/lib/schemas.rb
 
       - name: Set up Ruby
-        uses: ruby/setup-ruby@ec02537da5712d66d4d50a0f33b7eb52773b5ed1
-        with:
-            ruby-version: '3.1' # Not needed with a .ruby-version file
-        run:  |
-            gem build ruby-sdk.gemspec
-            gem install ruby-sdk-version.gem
+        run: |
+          gem install bundler # If bundler is not already installed
+          bundle install # Install dependencies using bundler
+          gem build ruby-sdk.gemspec
+          gem install ruby-sdk-version.gem
 
       - name: Download x86_64-apple-darwin files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2

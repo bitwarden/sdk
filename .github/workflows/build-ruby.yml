@@ -30,6 +30,7 @@ jobs:
           path: languages/ruby/lib/schemas.rb
 
       - name: Set up Ruby
+        working-directory: languages/ruby
         run: |
           gem build ruby-sdk.gemspec
           gem install ruby-sdk-version.gem

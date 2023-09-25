@@ -4,7 +4,7 @@ use rsa::RsaPrivateKey;
 use uuid::Uuid;
 #[cfg(feature = "internal")]
 use {
-    crate::client::LoginMethod,
+    crate::client::UserLoginMethod,
     rsa::{pkcs8::DecodePrivateKey, Oaep},
 };
 
@@ -28,16 +28,16 @@ impl std::fmt::Debug for EncryptionSettings {
 impl EncryptionSettings {
     #[cfg(feature = "internal")]
     pub(crate) fn new(
-        login_method: &LoginMethod,
+        login_method: &UserLoginMethod,
         password: &str,
         user_key: EncString,
         private_key: EncString,
     ) -> Result<Self> {
-        use crate::{client::UserLoginMethod, crypto::MasterKey};
+        use crate::crypto::MasterKey;
 
         match login_method {
-            LoginMethod::User(UserLoginMethod::Username { email, kdf, .. })
-            | LoginMethod::User(UserLoginMethod::ApiKey { email, kdf, .. }) => {
+            UserLoginMethod::Username { email, kdf, .. }
+            | UserLoginMethod::ApiKey { email, kdf, .. } => {
                 // Derive master key from password
                 let master_key = MasterKey::derive(password.as_bytes(), email.as_bytes(), kdf)?;
 
@@ -59,7 +59,6 @@ impl EncryptionSettings {
                     org_keys: HashMap::new(),
                 })
             }
-            LoginMethod::ServiceAccount(_) => todo!(),
         }
     }
 

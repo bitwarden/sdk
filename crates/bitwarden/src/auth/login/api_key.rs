@@ -3,7 +3,6 @@ use std::str::FromStr;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::request_prelogin;
 use crate::{
     auth::{
         api::{request::ApiTokenRequest, response::IdentityTokenResponse},
@@ -33,7 +32,7 @@ pub(crate) async fn api_key_login(
             .email
             .ok_or(Error::Internal("Access token doesn't contain email"))?;
 
-        let kdf = request_prelogin(client, email.clone()).await?.try_into()?;
+        let kdf = client.prelogin(email.clone()).await?;
 
         client.set_tokens(
             r.access_token.clone(),

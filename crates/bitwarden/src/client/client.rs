@@ -240,8 +240,8 @@ impl Client {
         private_key: EncString,
     ) -> Result<&EncryptionSettings> {
         let login_method = match &self.login_method {
-            Some(a) => a,
-            None => return Err(Error::NotAuthenticated),
+            Some(LoginMethod::User(u)) => u,
+            _ => return Err(Error::NotAuthenticated),
         };
 
         self.encryption_settings = Some(EncryptionSettings::new(

@@ -1,4 +1,10 @@
-import { quicktype, InputData, JSONSchemaInput, FetchingJSONSchemaStore } from "quicktype-core";
+import {
+  quicktype,
+  quicktypeMultiFile,
+  InputData,
+  JSONSchemaInput,
+  FetchingJSONSchemaStore,
+} from "quicktype-core";
 
 import fs from "fs";
 import path from "path";
@@ -62,6 +68,18 @@ async function main() {
   });
 
   writeToFile("./languages/csharp/schemas.cs", csharp.lines);
+
+  // Generate C++ code
+  const cpp = await quicktype({
+    inputData,
+    lang: "cpp", // Use the "cpp" language for C++ code generation
+    rendererOptions: {
+      // Add any C++-specific options here
+    },
+  });
+
+  // Write C++ code to the specified location
+  writeToFile("./languages/cpp/schemas.cpp", cpp.lines);
 }
 
 main();

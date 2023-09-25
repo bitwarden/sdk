@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     client::auth_settings::Kdf,
-    crypto::{HashPurpose, MasterKey, RsaKeyPair},
+    crypto::{keys::{HashPurpose, FromMasterPassword}, RsaKeyPair, SymmetricCryptoKey},
     error::Result,
     util::default_pbkdf2_iterations,
     Client,
@@ -64,7 +64,7 @@ pub(super) fn make_register_keys(
     password: String,
     kdf: Kdf,
 ) -> Result<RegisterKeyResponse> {
-    let master_key = MasterKey::derive(password.as_bytes(), email.as_bytes(), &kdf)?;
+    let master_key = SymmetricCryptoKey::<FromMasterPassword>::derive(password.as_bytes(), email.as_bytes(), &kdf)?;
     let master_password_hash =
         master_key.derive_master_key_hash(password.as_bytes(), HashPurpose::ServerAuthorization)?;
     let (user_key, encrypted_user_key) = master_key.make_user_key()?;

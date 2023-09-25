@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{derive_shareable_key, Decryptable, EncString, Encryptable, SymmetricCryptoKey},
+    crypto::{derive_shareable_key, Decryptable, EncString, Encryptable, SymmetricCryptoKey, keys::KeyPurpose, keys::ShareableKey},
     error::Result,
 };
 
@@ -125,12 +125,17 @@ pub struct SendListView {
     pub expiration_date: Option<DateTime<Utc>>,
 }
 
+/// Indicate the purpose of a SymmetricCryptoKey is for Sends.
+pub struct SendEncryption {}
+impl KeyPurpose for SendEncryption {}
+impl ShareableKey for SendEncryption {}
+
 impl Send {
     fn get_key(
         key: &EncString,
         enc: &EncryptionSettings,
         org_id: &Option<Uuid>,
-    ) -> Result<SymmetricCryptoKey> {
+    ) -> Result<SymmetricCryptoKey<SendEncryption>> {
         let key: Vec<u8> = enc.decrypt_bytes(key, org_id)?;
         let key = derive_shareable_key(key.try_into().unwrap(), "send", Some("send"));
         Ok(key)

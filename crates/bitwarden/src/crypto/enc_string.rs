@@ -11,6 +11,8 @@ use crate::{
     util::BASE64_ENGINE,
 };
 
+use super::keys::KeyPurpose;
+
 #[derive(Clone)]
 #[allow(unused, non_camel_case_types)]
 pub enum EncString {
@@ -305,7 +307,7 @@ impl EncString {
         }
     }
 
-    pub fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
+    pub(crate) fn decrypt_with_key<TKeyPurpose: KeyPurpose>(&self, key: &SymmetricCryptoKey<TKeyPurpose>) -> Result<Vec<u8>> {
         match self {
             EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
                 let mac_key = key.mac_key.ok_or(CryptoError::InvalidMac)?;

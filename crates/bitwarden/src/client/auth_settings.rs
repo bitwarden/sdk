@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "internal")]
 use crate::{
-    crypto::{HashPurpose, MasterKey},
+    crypto::keys::HashPurpose,
     error::Result,
 };
 
@@ -69,7 +69,9 @@ impl AuthSettings {
 
     #[cfg(feature = "internal")]
     pub fn derive_user_password_hash(&self, password: &str) -> Result<String> {
-        let master_key = MasterKey::derive(password.as_bytes(), self.email.as_bytes(), &self.kdf)?;
+        use crate::crypto::{SymmetricCryptoKey, keys::FromMasterPassword};
+
+        let master_key = SymmetricCryptoKey::<FromMasterPassword>::derive(password.as_bytes(), self.email.as_bytes(), &self.kdf)?;
         master_key.derive_master_key_hash(password.as_bytes(), HashPurpose::ServerAuthorization)
     }
 }

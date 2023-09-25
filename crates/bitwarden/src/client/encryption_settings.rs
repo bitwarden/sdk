@@ -9,14 +9,14 @@ use {
 };
 
 use crate::{
-    crypto::{encrypt_aes256_hmac, EncString, SymmetricCryptoKey},
+    crypto::{encrypt_aes256_hmac, EncString, SymmetricCryptoKey, keys::{UserEncryption, OrganizationEncryption, KeyPurpose}},
     error::{CryptoError, Result},
 };
 
 pub struct EncryptionSettings {
-    user_key: SymmetricCryptoKey,
+    user_key: SymmetricCryptoKey<UserEncryption>,
     private_key: Option<RsaPrivateKey>,
-    org_keys: HashMap<Uuid, SymmetricCryptoKey>,
+    org_keys: HashMap<Uuid, SymmetricCryptoKey<OrganizationEncryption>>,
 }
 
 impl std::fmt::Debug for EncryptionSettings {
@@ -24,6 +24,12 @@ impl std::fmt::Debug for EncryptionSettings {
         f.debug_struct("EncryptionSettings").finish()
     }
 }
+
+// TODO: This is a hack to allow Encryptable and Decryptable to automatically determine which key to use.
+// Removing this would require a refactor of the traits
+// to require keys to use. However, it would allow for greater assurances of key usage from the compiler.    struct UniversalKeyPurpose {}
+struct UniversalKeyPurpose {}
+impl KeyPurpose for UniversalKeyPurpose {}
 
 impl EncryptionSettings {
     #[cfg(feature = "internal")]
@@ -33,7 +39,7 @@ impl EncryptionSettings {
         user_key: EncString,
         private_key: EncString,
     ) -> Result<Self> {
-        use crate::crypto::MasterKey;
+        use crate::crypto::keys::MasterKey;
 
         // Derive master key from password
         let master_key = MasterKey::derive(password.as_bytes(), auth.email.as_bytes(), &auth.kdf)?;
@@ -54,7 +60,7 @@ impl EncryptionSettings {
         })
     }
 
-    pub(crate) fn new_single_key(key: SymmetricCryptoKey) -> Self {
+    pub(crate) fn new_single_key(key: SymmetricCryptoKey<UserEncryption>) -> Self {
         EncryptionSettings {
             user_key: key,
             private_key: None,
@@ -90,7 +96,8 @@ impl EncryptionSettings {
         Ok(self)
     }
 
-    fn get_key(&self, org_id: &Option<Uuid>) -> Option<&SymmetricCryptoKey> {
+    // TODO: Remove UniversalKeyPurpose
+    fn get_key(&self, org_id: &Option<Uuid>) -> Option<&SymmetricCryptoKey<UniversalKeyPurpose>> {
         // If we don't have a private key set (to decode multiple org keys), we just use the main user key
         if self.private_key.is_none() {
             return Some(&self.user_key);

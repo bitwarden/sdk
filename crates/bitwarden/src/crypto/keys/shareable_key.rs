@@ -3,15 +3,28 @@ use hmac::{Hmac, Mac};
 
 use crate::crypto::{hkdf_expand, SymmetricCryptoKey};
 
+use super::KeyPurpose;
+
+/// Marker trait to annotate that the key is intended shareable beyond the current account
+pub trait ShareableKey : KeyPurpose {}
+
+impl<TKeyPurpose : ShareableKey> SymmetricCryptoKey<TKeyPurpose> {
+    pub fn generate(name: &str) -> Self {
+        use rand::Rng;
+        let secret: [u8; 16] = rand::thread_rng().gen();
+        derive_shareable_key::<TKeyPurpose>(secret, name, None)
+    }
+}
+
 /// Derive a shareable key using hkdf from secret and name.
 ///
 /// A specialized variant of this function was called `CryptoService.makeSendKey` in the Bitwarden
 /// `clients` repository.
-pub(crate) fn derive_shareable_key(
+pub(crate) fn derive_shareable_key<TKeyPurpose: ShareableKey>(
     secret: [u8; 16],
     name: &str,
     info: Option<&str>,
-) -> SymmetricCryptoKey {
+) -> SymmetricCryptoKey<TKeyPurpose> {
     // Because all inputs are fixed size, we can unwrap all errors here without issue
 
     // TODO: Are these the final `key` and `info` parameters or should we change them? I followed the pattern used for sends

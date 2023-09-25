@@ -9,10 +9,16 @@ use crate::{
     util::BASE64_ENGINE,
 };
 
+/// Marker struct to indicate a key associated with an access token
+pub struct AccessTokenEncryption {}
+impl crate::crypto::keys::KeyPurpose for AccessTokenEncryption {}
+// TODO: It seems odd that this needs to be a sharable key -- perhaps that concept is misnamed, or this key should be build differently?
+impl crate::crypto::keys::ShareableKey for AccessTokenEncryption {}
+
 pub struct AccessToken {
     pub service_account_id: Uuid,
     pub client_secret: String,
-    pub encryption_key: SymmetricCryptoKey,
+    pub(crate) encryption_key: SymmetricCryptoKey<AccessTokenEncryption>,
 }
 
 impl FromStr for AccessToken {

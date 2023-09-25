@@ -4,9 +4,9 @@ use rand::Rng;
 
 use crate::util::BASE64_ENGINE;
 
-use super::{
-    encrypt_aes256, hkdf_expand, EncString, PbkdfSha256Hmac, SymmetricCryptoKey, UserKey,
-    PBKDF_SHA256_HMAC_OUT_SIZE,
+use crate::crypto::{
+    encrypt_aes256, hkdf_expand, EncString, PbkdfSha256Hmac, SymmetricCryptoKey,
+    PBKDF_SHA256_HMAC_OUT_SIZE, keys::UserEncryption,
 };
 use {
     crate::{client::auth_settings::Kdf, error::Result},
@@ -20,11 +20,10 @@ pub(crate) enum HashPurpose {
     // LocalAuthorization = 2,
 }
 
-/// A Master Key.
-pub(crate) struct MasterKey(SymmetricCryptoKey);
+pub struct FromMasterPassword {}
+impl super::KeyPurpose for FromMasterPassword {}
 
-impl MasterKey {
-    /// Derives a users master key from their password, email and KDF.
+impl SymmetricCryptoKey<FromMasterPassword> {
     pub fn derive(password: &[u8], email: &[u8], kdf: &Kdf) -> Result<Self> {
         derive_key(password, email, kdf).map(Self)
     }
@@ -45,17 +44,17 @@ impl MasterKey {
         Ok(BASE64_ENGINE.encode(hash))
     }
 
-    pub(crate) fn make_user_key(&self) -> Result<(UserKey, EncString)> {
+    pub(crate) fn make_user_key(&self) -> Result<(SymmetricCryptoKey<UserEncryption>, EncString)> {
         let mut user_key = [0u8; 64];
         rand::thread_rng().fill(&mut user_key);
 
         let protected = encrypt_aes256(&user_key, self.0.key)?;
 
         let u: &[u8] = &user_key;
-        Ok((UserKey::new(SymmetricCryptoKey::try_from(u)?), protected))
+        Ok((SymmetricCryptoKey::try_from(u)?, protected))
     }
 
-    pub(crate) fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey> {
+    pub(crate) fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey<UserEncryption>> {
         let stretched_key = stretch_master_key(self)?;
 
         let dec = user_key.decrypt_with_key(&stretched_key)?;
@@ -64,7 +63,7 @@ impl MasterKey {
 }
 
 /// Derive a generic key from a secret and salt using the provided KDF.
-fn derive_key(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<SymmetricCryptoKey> {
+fn derive_key<TKeyPurpose>(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<TKeyPurpose> {
     let hash = match kdf {
         Kdf::PBKDF2 { iterations } => pbkdf2::pbkdf2_array::<
             PbkdfSha256Hmac,
@@ -103,19 +102,16 @@ fn derive_key(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<SymmetricCryptoKe
     SymmetricCryptoKey::try_from(hash.as_slice())
 }
 
-fn stretch_master_key(master_key: &MasterKey) -> Result<SymmetricCryptoKey> {
+fn stretch_master_key(master_key: &MasterKey) -> Result<SymmetricCryptoKey<UserEncryption>> {
     let key: GenericArray<u8, U32> = hkdf_expand(&master_key.0.key, Some("enc"))?;
     let mac_key: GenericArray<u8, U32> = hkdf_expand(&master_key.0.key, Some("mac"))?;
 
-    Ok(SymmetricCryptoKey {
-        key,
-        mac_key: Some(mac_key),
-    })
+    Ok(SymmetricCryptoKey::new(key, Some(mac_key)))
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::crypto::SymmetricCryptoKey;
+    use crate::crypto::{SymmetricCryptoKey, keys::UserEncryption};
 
     use super::{stretch_master_key, HashPurpose, MasterKey};
     use {crate::client::auth_settings::Kdf, std::num::NonZeroU32};
@@ -166,14 +162,13 @@ mod tests {
 
     #[test]
     fn test_stretch_master_key() {
-        let master_key = MasterKey(SymmetricCryptoKey {
-            key: [
+        let master_key = MasterKey(SymmetricCryptoKey::<UserEncryption>::new([
                 31, 79, 104, 226, 150, 71, 177, 90, 194, 80, 172, 209, 17, 129, 132, 81, 138, 167,
                 69, 167, 254, 149, 2, 27, 39, 197, 64, 42, 22, 195, 86, 75,
             ]
             .into(),
-            mac_key: None,
-        });
+            None,
+        ));
 
         let stretched = stretch_master_key(&master_key).unwrap();
 

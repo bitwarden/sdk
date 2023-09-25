@@ -1,4 +1,4 @@
-use std::time::{Duration, Instant};
+use std::{time::{Duration, Instant}, str::FromStr};
 
 use reqwest::header::{self};
 use uuid::Uuid;
@@ -28,9 +28,11 @@ use crate::{
         client_settings::{ClientSettings, DeviceType},
         encryption_settings::EncryptionSettings,
     },
-    crypto::SymmetricCryptoKey,
+    crypto::{SymmetricCryptoKey, keys::UserEncryption},
     error::{Error, Result},
 };
+
+use super::access_token::AccessTokenEncryption;
 
 #[derive(Debug)]
 pub(crate) struct ApiConfigurations {
@@ -235,9 +237,12 @@ impl Client {
 
     pub(crate) fn initialize_crypto_single_key(
         &mut self,
-        key: SymmetricCryptoKey,
+        key: SymmetricCryptoKey<AccessTokenEncryption>,
     ) -> &EncryptionSettings {
-        self.encryption_settings = Some(EncryptionSettings::new_single_key(key));
+        // TODO: this is a hack to convert access token keys to user keys. We need to rework how encryption settings work to fix.
+        let user_key = SymmetricCryptoKey::<UserEncryption>::from_str(&key.to_base64()).unwrap();
+
+        self.encryption_settings = Some(EncryptionSettings::new_single_key(user_key));
         self.encryption_settings.as_ref().unwrap()
     }
 

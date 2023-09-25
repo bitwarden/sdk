@@ -30,10 +30,21 @@ jobs:
           path: languages/ruby/lib/schemas.rb
 
       - name: Set up Ruby
+        uses: actions/checkout@v2 # Use a valid version
+        with:
+          ref: main # Replace with the branch you want to check out
+          path: languages/ruby
+          
+      - name: Install Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2' # Replace with your desired Ruby version
+
+      - name: Install Bundler and dependencies
         working-directory: languages/ruby
         run: |
-          gem install bundler 
-          bundle install --path vendor/bundle
+          gem install bundler
+          bundle install
           gem build ruby-sdk.gemspec
           gem install ruby-sdk-0.1.0.gem
 

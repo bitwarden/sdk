@@ -1,6 +1,5 @@
 use bitwarden_api_api::models::{
-    CipherDetailsResponseModel, ProfileOrganizationResponseModel, ProfileResponseModel,
-    SyncResponseModel,
+    ProfileOrganizationResponseModel, ProfileResponseModel, SyncResponseModel,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -9,6 +8,7 @@ use uuid::Uuid;
 use crate::{
     client::{encryption_settings::EncryptionSettings, Client},
     error::{Error, Result},
+    vault::Cipher,
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -59,15 +59,11 @@ pub struct ProfileOrganizationResponse {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct CipherDetailsResponse {}
-
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SyncResponse {
     /// Data about the user, including their encryption keys and the organizations they are a part of
     pub profile: ProfileResponse,
     /// List of ciphers accesible by the user
-    pub ciphers: Vec<CipherDetailsResponse>,
+    pub ciphers: Vec<Cipher>,
 }
 
 impl SyncResponse {
@@ -80,17 +76,8 @@ impl SyncResponse {
 
         Ok(SyncResponse {
             profile: ProfileResponse::process_response(profile, enc)?,
-            ciphers: ciphers
-                .into_iter()
-                .map(CipherDetailsResponse::process_response)
-                .collect::<Result<_, _>>()?,
+            ciphers: ciphers.into_iter().map(|c| c.into()).collect(),
         })
-    }
-}
-
-impl CipherDetailsResponse {
-    fn process_response(_response: CipherDetailsResponseModel) -> Result<CipherDetailsResponse> {
-        Ok(CipherDetailsResponse {})
     }
 }
 

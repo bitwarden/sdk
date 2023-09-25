@@ -9,4 +9,5 @@ pub(crate) mod local_data;
 pub(crate) mod login;
 pub(crate) mod secure_note;
 
+pub use attachment::download_attachment;
 pub use cipher::{Cipher, CipherListView, CipherView};

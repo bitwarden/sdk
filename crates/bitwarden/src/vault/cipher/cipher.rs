@@ -1,4 +1,8 @@
+use std::str::FromStr;
+
+use bitwarden_api_api::models::CipherDetailsResponseModel;
 use chrono::{DateTime, Utc};
+use log::debug;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
@@ -162,28 +166,29 @@ impl Encryptable<Cipher> for CipherView {
 
 impl Decryptable<CipherView> for Cipher {
     fn decrypt(&self, enc: &EncryptionSettings, _: &Option<Uuid>) -> Result<CipherView> {
+        debug!("{:?}", self);
         let org_id = &self.organization_id;
         Ok(CipherView {
             id: self.id,
             organization_id: self.organization_id,
             folder_id: self.folder_id,
             collection_ids: self.collection_ids.clone(),
-            name: self.name.decrypt(enc, org_id)?,
-            notes: self.notes.decrypt(enc, org_id)?,
+            name: self.name.decrypt(enc, org_id).unwrap(),
+            notes: self.notes.decrypt(enc, org_id).unwrap(),
             r#type: self.r#type,
-            login: self.login.decrypt(enc, org_id)?,
-            identity: self.identity.decrypt(enc, org_id)?,
-            card: self.card.decrypt(enc, org_id)?,
-            secure_note: self.secure_note.decrypt(enc, org_id)?,
+            login: self.login.decrypt(enc, org_id).unwrap(),
+            identity: self.identity.decrypt(enc, org_id).unwrap(),
+            card: self.card.decrypt(enc, org_id).unwrap(),
+            secure_note: self.secure_note.decrypt(enc, org_id).unwrap(),
             favorite: self.favorite,
             reprompt: self.reprompt,
             organization_use_totp: self.organization_use_totp,
             edit: self.edit,
             view_password: self.view_password,
-            local_data: self.local_data.decrypt(enc, org_id)?,
-            attachments: self.attachments.decrypt(enc, org_id)?,
-            fields: self.fields.decrypt(enc, org_id)?,
-            password_history: self.password_history.decrypt(enc, org_id)?,
+            local_data: self.local_data.decrypt(enc, org_id).unwrap(),
+            attachments: self.attachments.decrypt(enc, org_id).unwrap(),
+            fields: self.fields.decrypt(enc, org_id).unwrap(),
+            password_history: self.password_history.decrypt(enc, org_id).unwrap(),
             creation_date: self.creation_date,
             deleted_date: self.deleted_date,
             revision_date: self.revision_date,
@@ -278,5 +283,66 @@ impl Decryptable<CipherListView> for Cipher {
             deleted_date: self.deleted_date,
             revision_date: self.revision_date,
         })
+    }
+}
+
+/// Impl from bitwarden_api_api::models::CipherDetailsResponseModel to Cipher
+
+impl From<CipherDetailsResponseModel> for Cipher {
+    fn from(cipher: CipherDetailsResponseModel) -> Self {
+        debug!("{:?}", cipher);
+        Cipher {
+            id: cipher.id,
+            organization_id: cipher.organization_id,
+            folder_id: cipher.folder_id,
+            collection_ids: cipher.collection_ids.unwrap_or_default(),
+            name: EncString::from_str(&cipher.name.unwrap()).unwrap(),
+            notes: cipher.notes.map(|s| EncString::from_str(&s).unwrap()),
+            r#type: cipher.r#type.unwrap().into(),
+            login: None,
+            identity: None,
+            card: None,
+            secure_note: None,
+            favorite: cipher.favorite.unwrap_or(false),
+            reprompt: cipher
+                .reprompt
+                .map(|r| r.into())
+                .unwrap_or(CipherRepromptType::None),
+            organization_use_totp: cipher.organization_use_totp.unwrap_or(true),
+            edit: cipher.edit.unwrap_or(true),
+            view_password: cipher.view_password.unwrap_or(true),
+            local_data: None,
+            attachments: cipher
+                .attachments
+                .unwrap_or_default()
+                .into_iter()
+                .map(|a| a.into())
+                .collect(),
+            fields: vec![],
+            password_history: vec![],
+            creation_date: cipher.creation_date.unwrap().parse().unwrap(),
+            deleted_date: cipher.deleted_date.map(|d| d.parse().unwrap()),
+            revision_date: cipher.revision_date.unwrap().parse().unwrap(),
+        }
+    }
+}
+
+impl From<bitwarden_api_api::models::CipherType> for CipherType {
+    fn from(t: bitwarden_api_api::models::CipherType) -> Self {
+        match t {
+            bitwarden_api_api::models::CipherType::Variant1 => CipherType::Login,
+            bitwarden_api_api::models::CipherType::Variant2 => CipherType::SecureNote,
+            bitwarden_api_api::models::CipherType::Variant3 => CipherType::Card,
+            bitwarden_api_api::models::CipherType::Variant4 => CipherType::Identity,
+        }
+    }
+}
+
+impl From<bitwarden_api_api::models::CipherRepromptType> for CipherRepromptType {
+    fn from(t: bitwarden_api_api::models::CipherRepromptType) -> Self {
+        match t {
+            bitwarden_api_api::models::CipherRepromptType::Variant0 => CipherRepromptType::None,
+            bitwarden_api_api::models::CipherRepromptType::Variant1 => CipherRepromptType::Password,
+        }
     }
 }

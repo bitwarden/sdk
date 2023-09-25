@@ -5,8 +5,10 @@ use crate::{
     Client,
 };
 
+use super::export_vault_attachments;
+
 pub struct ClientExporters<'a> {
-    pub(crate) _client: &'a crate::Client,
+    pub(crate) _client: &'a mut crate::Client,
 }
 
 impl<'a> ClientExporters<'a> {
@@ -27,10 +29,14 @@ impl<'a> ClientExporters<'a> {
     ) -> Result<String> {
         export_organization_vault(collections, ciphers, format)
     }
+
+    pub async fn export_vault_attachments(&mut self) -> Result<()> {
+        export_vault_attachments(self._client).await
+    }
 }
 
 impl<'a> Client {
-    pub fn exporters(&'a self) -> ClientExporters<'a> {
+    pub fn exporters(&'a mut self) -> ClientExporters<'a> {
         ClientExporters { _client: self }
     }
 }

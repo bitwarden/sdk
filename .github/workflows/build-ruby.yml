@@ -31,8 +31,8 @@ jobs:
 
       - name: Set up Ruby
         run: |
-          gem install bundler # If bundler is not already installed
-          bundle install # Install dependencies using bundler
+#          gem install bundler # If bundler is not already installed
+#          bundle install # Install dependencies using bundler
           gem build ruby-sdk.gemspec
           gem install ruby-sdk-version.gem
 

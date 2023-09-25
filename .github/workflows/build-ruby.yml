@@ -33,7 +33,7 @@ jobs:
         working-directory: languages/ruby
         run: |
           gem build ruby-sdk.gemspec
-          gem install ruby-sdk-version.gem
+          gem install ruby-sdk-0.1.0.gem
 
       - name: Download x86_64-apple-darwin files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2

@@ -43,7 +43,7 @@ jobs:
       - name: Install Bundler and dependencies
         working-directory: languages/ruby
         run: |
-          cd ..
+          ls -la
           gem install bundler
           gem build ruby-sdk.gemspec
           gem install ruby-sdk-0.1.0.gem

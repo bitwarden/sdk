@@ -9,7 +9,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "buildCsharp",
-      "program": "${workspaceFolder}/languages/csharp/bin/Debug/net6.0/bitwardenSdk.dll",
+      "program": "${workspaceFolder}/languages/csharp/Bitwarden.Sdk/bin/Debug/net6.0/BitwardenSdk.dll",
       "args": [],
       "env": {
         "RUST_LOG": "debug"

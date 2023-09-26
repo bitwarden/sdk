@@ -25,10 +25,10 @@ jobs:
           - target: i686-linux-android
     steps:
       - name: Checkout repo
-        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # stable
+        uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # stable
         with:
           toolchain: 1.67.0 # https://github.com/cross-rs/cross/issues/1222
 
@@ -57,20 +57,20 @@ jobs:
     needs: build
     steps:
       - name: Checkout repo (PR)
-        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
         if: github.event_name == 'pull_request'
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Checkout repo (Push)
-        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
         if: github.event_name == 'push'
         with:
           fetch-depth: 0
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # stable
+        uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # stable
         with:
           toolchain: stable
 
@@ -80,7 +80,7 @@ jobs:
           key: cargo-combine-cache
 
       - name: Setup Java
-        uses: actions/setup-java@cd89f46ac9d01407894225f350157564c9c7cee2 # v3.12.0
+        uses: actions/setup-java@0ab4596768b603586c0de567f2430c30f5b0d2b0 # v3.13.0
         with:
           distribution: temurin
           java-version: 17
@@ -101,23 +101,10 @@ jobs:
         working-directory: languages/kotlin
         run: ./build-schemas.sh
 
-      - name: Login to Azure - CI Subscription
-        uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
-        with:
-          creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
-
-      - name: Retrieve bot secrets
-        id: retrieve-bot-secrets
-        uses: bitwarden/gh-actions/get-keyvault-secrets@8fccdaea2810d5dfb13753b6dd93bbd3a63ff82e
-        with:
-          keyvault: bitwarden-ci
-          secrets: "github-pat-bitwarden-devops-bot-packages-scope"
-
       - name: Publish
-        uses: gradle/gradle-build-action@ef76a971e2fa3f867b617efd72f2fbd72cf6f8bc # v2.8.0
+        uses: gradle/gradle-build-action@b5126f31dbc19dd434c3269bf8c28c315e121da2 # v2.8.1
         with:
           arguments: sdk:publish
           build-root-directory: languages/kotlin
         env:
-          GITHUB_ACTOR: "bitwarden-devops-bot"
-          GITHUB_TOKEN: ${{ steps.retrieve-bot-secrets.outputs.github-pat-bitwarden-devops-bot-packages-scope }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

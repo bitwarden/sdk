@@ -1,8 +1,8 @@
 # Bitwarden Mobile SDK
 
-Auto generated documentation for the Bitwarden Mobile SDK. For more information please refer to
-the rust crates `bitwarden` and `bitwarden-uniffi`. For code samples check the
-`languages/kotlin/app` and `languages/swift/app` directories.
+Auto generated documentation for the Bitwarden Mobile SDK. For more information please refer to the
+rust crates `bitwarden` and `bitwarden-uniffi`. For code samples check the `languages/kotlin/app`
+and `languages/swift/app` directories.
 
 ## Client
 

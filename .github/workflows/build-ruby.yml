@@ -12,6 +12,9 @@ jobs:
   build_rust:
     uses: ./.github/workflows/build-rust-cross-platform.yml
 
+  env:
+      GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
+
   build_ruby:
     name: Build Ruby
     runs-on: ubuntu-22.04
@@ -45,8 +48,9 @@ jobs:
         run: |
           cd languages/ruby
           gem install bundler
-          gem build ruby-sdk.gemspec
-          gem install ruby-sdk-0.1.0.gem
+          gem build *.gemspec
+          gem install *.gem
+          gem push *.gem
 
       - name: Download x86_64-apple-darwin files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2

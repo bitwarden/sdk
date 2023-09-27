@@ -12,9 +12,6 @@ jobs:
   build_rust:
     uses: ./.github/workflows/build-rust-cross-platform.yml
 
-  env:
-      GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
-
   build_ruby:
     name: Build Ruby
     runs-on: ubuntu-22.04
@@ -43,15 +40,6 @@ jobs:
         with:
           ruby-version: '3.2' 
 
-      - name: Install Bundler and dependencies
-        working-directory: languages/ruby
-        run: |
-          cd languages/ruby
-          gem install bundler
-          gem build *.gemspec
-          gem install *.gem
-          gem push *.gem
-
       - name: Download x86_64-apple-darwin files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
@@ -75,3 +63,16 @@ jobs:
         with:
           name: libbitwarden_c_files-x86_64-pc-windows-msvc
           path: languages/ruby/lib/windows-x64
+
+      - name: Setup gem and release it
+        working-directory: languages/ruby
+        env:
+          RUBYGEMS_API_KEY: ${{secrets.RUBYGEMS_API_KEY}}
+        run: |
+          ls -la
+          cd languages/ruby
+          ls -la
+          gem install bundler
+          gem build *.gemspec
+          gem install *.gem
+          gem push *.gem

@@ -69,8 +69,10 @@ jobs:
         env:
           RUBYGEMS_API_KEY: ${{secrets.RUBYGEMS_API_KEY}}
         run: |
+          pwd
           ls -la
           cd languages/ruby
+          pwd
           ls -la
           gem install bundler
           gem build *.gemspec

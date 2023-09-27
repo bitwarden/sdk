@@ -69,9 +69,6 @@ jobs:
           cd languages/ruby
           pwd
           ls -la
-          cd languages/ruby
-          pwd
-          ls -lah
           gem install bundler
           gem build *.gemspec
           gem install *.gem

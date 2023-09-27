@@ -74,6 +74,10 @@ jobs:
           gem install *.gem
           
       - name: Publish Gem
-        run: gem push *.gem
+        run: |
+          cd languages/ruby/languages/ruby
+          pwd
+          ls -la
+          gem push *.gem
         env:
           RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_AUTH_TOKEN }}

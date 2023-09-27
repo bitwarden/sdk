@@ -20,7 +20,7 @@ auto deleteSecretsDeserializer = [](const std::string& response) -> ResponseForS
     return deleteSecretsResponse;
 };
 
-auto listDeserializer = [](const std::string& response) -> ResponseForSecretIdentifiersResponse {
+auto secretListDeserializer = [](const std::string& response) -> ResponseForSecretIdentifiersResponse {
     nlohmann::json jsonResponse = nlohmann::json::parse(response);
     ResponseForSecretIdentifiersResponse listResponse;
     quicktype::from_json(jsonResponse, listResponse);
@@ -137,7 +137,7 @@ ResponseForSecretIdentifiersResponse Secrets::list(const boost::uuids::uuid& org
     command.set_secrets(secretsCommand);
 
     try {
-        return commandRunner->runCommand<ResponseForSecretIdentifiersResponse>(command, listDeserializer);
+        return commandRunner->runCommand<ResponseForSecretIdentifiersResponse>(command, secretListDeserializer);
     } catch (const std::exception& ex) {
         throw ex;
     }

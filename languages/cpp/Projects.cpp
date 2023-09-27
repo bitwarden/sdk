@@ -21,7 +21,7 @@ auto deleteProjectsDeserializer = [](const char* response) -> ResponseForProject
     return deleteProjectsResponse;
 };
 
-auto listDeserializer = [](const char* response) -> ResponseForProjectsResponse {
+auto projectListDeserializer = [](const char* response) -> ResponseForProjectsResponse {
     nlohmann::json jsonResponse = nlohmann::json::parse(response);
     ResponseForProjectsResponse listResponse;
     quicktype::from_json(jsonResponse, listResponse);
@@ -116,7 +116,7 @@ ResponseForProjectsResponse Projects::list(const boost::uuids::uuid& organizatio
     command.set_projects(projectsCommand);
 
     try {
-        return commandRunner->runCommand<ResponseForProjectsResponse>(command, listDeserializer);
+        return commandRunner->runCommand<ResponseForProjectsResponse>(command, projectListDeserializer);
     } catch (const std::exception& ex) {
         throw ex;
     }

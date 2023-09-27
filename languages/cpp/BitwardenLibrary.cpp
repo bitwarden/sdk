@@ -3,7 +3,8 @@
 
 BitwardenLibrary::BitwardenLibrary(const std::string& providedLibraryPath) : libraryHandle(nullptr) {
     std::string libraryExtension;
-    std::string libraryName = "libbitwarden_c";
+    std::string libraryNameUnix = "libbitwarden_c";
+    std::string libraryNameWin = "bitwarden_c";
 #if defined(_WIN32)
     libraryExtension = ".dll";
 #elif defined(__linux__)
@@ -16,9 +17,9 @@ BitwardenLibrary::BitwardenLibrary(const std::string& providedLibraryPath) : lib
     return;
 #endif
 
-    std::string libraryPath = providedLibraryPath + libraryName + libraryExtension;
     // Load the dynamic library
 #ifdef _WIN32
+    std::string libraryPath = providedLibraryPath + libraryNameWin + libraryExtension;
     // Load the dynamic library on Windows
     libraryHandle = LoadLibraryA(libraryPath.c_str());
 
@@ -26,6 +27,7 @@ BitwardenLibrary::BitwardenLibrary(const std::string& providedLibraryPath) : lib
         std::cerr << "Failed to load the Bitwarden library." << std::endl;
     }
 #else
+    std::string libraryPath = providedLibraryPath + libraryNameUnix + libraryExtension;
     // Load the dynamic library on Unix-based systems (Linux, macOS)
     libraryHandle = dlopen(libraryPath.c_str(), RTLD_NOW);
 
@@ -61,7 +63,7 @@ void* BitwardenLibrary::init(const char* clientSettingsJson) {
         return initFunction(clientSettingsJson);
     }
 
-    std::cerr << "Failed to load init function from the Bitwarden library: " << dlerror() << std::endl;
+    std::cerr << "Failed to load init function from the Bitwarden library: " << std::endl;
     return nullptr;
 }
 

@@ -66,6 +66,7 @@ jobs:
 
       - name: Setup gem and release it
         run: |
+          cd languages/ruby
           pwd
           ls -la
           gem install bundler

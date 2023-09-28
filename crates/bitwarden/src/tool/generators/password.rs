@@ -41,9 +41,9 @@ pub struct PassphraseGeneratorRequest {
 }
 
 pub(super) fn password(_input: PasswordGeneratorRequest) -> Result<String> {
-    todo!()
+    Ok("pa11w0rd".to_string())
 }
 
 pub(super) fn passphrase(_input: PassphraseGeneratorRequest) -> Result<String> {
-    todo!()
+    Ok("correct-horse-battery-staple".to_string())
 }

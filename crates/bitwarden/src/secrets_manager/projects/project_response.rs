@@ -1,4 +1,5 @@
 use bitwarden_api_api::models::ProjectResponseModel;
+use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -12,12 +13,11 @@ use crate::{
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ProjectResponse {
-    pub object: String,
     pub id: Uuid,
     pub organization_id: Uuid,
     pub name: String,
-    pub creation_date: String,
-    pub revision_date: String,
+    pub creation_date: DateTime<Utc>,
+    pub revision_date: DateTime<Utc>,
 }
 
 impl ProjectResponse {
@@ -34,14 +34,18 @@ impl ProjectResponse {
             .decrypt(enc, &Some(organization_id))?;
 
         Ok(ProjectResponse {
-            object: "project".to_owned(),
-
             id: response.id.ok_or(Error::MissingFields)?,
             organization_id,
             name,
 
-            creation_date: response.creation_date.ok_or(Error::MissingFields)?,
-            revision_date: response.revision_date.ok_or(Error::MissingFields)?,
+            creation_date: response
+                .creation_date
+                .ok_or(Error::MissingFields)?
+                .parse()?,
+            revision_date: response
+                .revision_date
+                .ok_or(Error::MissingFields)?
+                .parse()?,
         })
     }
 }

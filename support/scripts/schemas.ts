@@ -62,24 +62,21 @@ async function main() {
     inputData,
     lang: "csharp",
     rendererOptions: {
-      namespace: "Bit.Sdk",
+      namespace: "Bitwarden.Sdk",
+      framework: "SystemTextJson",
       "csharp-version": "6",
     },
   });
 
-  writeToFile("./languages/csharp/schemas.cs", csharp.lines);
+  writeToFile("./languages/csharp/Bitwarden.Sdk/schemas.cs", csharp.lines);
 
-  // Generate C++ code
   const cpp = await quicktype({
     inputData,
-    lang: "cpp", // Use the "cpp" language for C++ code generation
-    rendererOptions: {
-      // Add any C++-specific options here
-    },
+    lang: "cpp",
+    rendererOptions: {},
   });
 
-  // Write C++ code to the specified location
-  writeToFile("./languages/cpp/schemas.cpp", cpp.lines);
+  writeToFile("./languages/cpp/include/schemas.cpp", cpp.lines);
 }
 
 main();

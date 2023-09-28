@@ -77,6 +77,7 @@ jobs:
         env:
           RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_AUTH_TOKEN }}
         run: |
+          ls -lah
           cd languages/ruby/languages/ruby
           pwd
           ls -la

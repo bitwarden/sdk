@@ -75,7 +75,7 @@ jobs:
 
       - name: Publish Gem
         env:
-          RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_AUTH_TOKEN }}
+          RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
         run: |
           ls -lah
           cd languages/ruby/languages/ruby

@@ -1127,7 +1127,7 @@ namespace quicktype {
         void set_last_used_date(boost::optional<int64_t> value) { this->last_used_date = value; }
     };
 
-    enum class UriMatchType : int { DOMAIN, EXACT, HOST, NEVER, REGULAR_EXPRESSION, STARTS_WITH };
+    enum class UriMatchType : int { URI_DOMAIN, EXACT, HOST, NEVER, REGULAR_EXPRESSION, STARTS_WITH };
 
     class LoginUri {
         public:
@@ -5327,7 +5327,7 @@ namespace quicktype {
     }
 
     inline void from_json(const json & j, UriMatchType & x) {
-        if (j == "domain") x = UriMatchType::DOMAIN;
+        if (j == "domain") x = UriMatchType::URI_DOMAIN;
         else if (j == "exact") x = UriMatchType::EXACT;
         else if (j == "host") x = UriMatchType::HOST;
         else if (j == "never") x = UriMatchType::NEVER;
@@ -5338,7 +5338,7 @@ namespace quicktype {
 
     inline void to_json(json & j, const UriMatchType & x) {
         switch (x) {
-            case UriMatchType::DOMAIN: j = "domain"; break;
+            case UriMatchType::URI_DOMAIN: j = "domain"; break;
             case UriMatchType::EXACT: j = "exact"; break;
             case UriMatchType::HOST: j = "host"; break;
             case UriMatchType::NEVER: j = "never"; break;

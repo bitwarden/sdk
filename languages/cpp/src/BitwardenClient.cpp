@@ -11,7 +11,7 @@ BitwardenClient::BitwardenClient(ClientSettings clientSettings) : library(nullpt
     const char* jsonClientSettingsCStr = jsonClientSettingsString.c_str();
 
     try {
-        library = new BitwardenLibrary("../../../target/debug/");
+        library = new BitwardenLibrary("./");
         client = library->init(jsonClientSettingsCStr);
         commandRunner = new CommandRunner(library, client);
         projects = Projects(commandRunner);

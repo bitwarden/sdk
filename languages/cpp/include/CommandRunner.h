@@ -3,7 +3,6 @@
 #include <string>
 #include <functional>
 #include "BitwardenLibrary.h"
-#undef DOMAIN
 #include "schemas.cpp"
 #include <iostream>
 

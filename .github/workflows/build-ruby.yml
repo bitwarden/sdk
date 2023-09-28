@@ -66,6 +66,10 @@ jobs:
 
       - name: Setup gem and release it
         run: |
+          cd languages/ruby
+          ls -la
+          cd ..
+          cd ..
           cd languages/ruby/languages/ruby
           pwd
           ls -la

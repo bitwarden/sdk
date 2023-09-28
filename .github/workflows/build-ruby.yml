@@ -68,6 +68,9 @@ jobs:
         run: |
           cd languages/ruby
           ls -la
+          cd lib
+          ls -la
+          cd ..
           cd ..
           cd ..
           cd languages/ruby/languages/ruby

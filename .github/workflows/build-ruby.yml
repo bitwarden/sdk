@@ -30,15 +30,15 @@ jobs:
           path: languages/ruby/lib/schemas.rb
 
       - name: Set up Ruby
-        uses: actions/checkout@v4 
+        uses: actions/checkout@v4
         with:
-          ref: master 
+          ref: master
           path: languages/ruby
-          
+
       - name: Install Ruby
         uses: ruby/setup-ruby@ec02537da5712d66d4d50a0f33b7eb52773b5ed1
         with:
-          ruby-version: '3.2' 
+          ruby-version: '3.2'
 
       - name: Download x86_64-apple-darwin files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
@@ -72,12 +72,13 @@ jobs:
           gem install bundler
           gem build *.gemspec
           gem install *.gem
-          
+
       - name: Publish Gem
+        env:
+          RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_AUTH_TOKEN }}
         run: |
           cd languages/ruby/languages/ruby
           pwd
           ls -la
           gem push *.gem
-        env:
-          RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_AUTH_TOKEN }}
+

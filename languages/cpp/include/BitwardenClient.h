@@ -11,7 +11,7 @@ public:
     BitwardenClient(ClientSettings clientSettings);
     ~BitwardenClient();
     
-    ResponseForApiKeyLoginResponse accessTokenLogin(const char* accessToken);
+    ResponseForApiKeyLoginResponse accessTokenLogin(const std::string& accessToken);
     ResponseForProjectResponse getProject(const boost::uuids::uuid& id);
     ResponseForProjectResponse createProject(const boost::uuids::uuid& organizationId, const std::string& name);
     ResponseForProjectResponse updateProject(const boost::uuids::uuid& id, const boost::uuids::uuid& organizationId, const std::string& name);

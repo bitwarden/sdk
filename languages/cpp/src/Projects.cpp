@@ -39,7 +39,11 @@ ResponseForProjectResponse Projects::get(const boost::uuids::uuid& id) {
     projectsCommand.set_get(projectGetRequest);
     command.set_projects(projectsCommand);
 
-    return commandRunner->runCommand<ResponseForProjectResponse>(command, projectsDeserializer);
+    try {
+        return commandRunner->runCommand<ResponseForProjectResponse>(command, projectsDeserializer);
+    } catch (const std::exception& ex) {
+        throw ex;
+    }
 }
 
 ResponseForProjectResponse Projects::create(const boost::uuids::uuid& organizationId, const std::string& name) {

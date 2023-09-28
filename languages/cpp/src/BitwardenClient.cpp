@@ -19,6 +19,7 @@ BitwardenClient::BitwardenClient(ClientSettings clientSettings) : library(nullpt
         isClientOpen = true;
     } catch (const std::exception& ex) {
         std::cerr << "Failed to initialize: " << ex.what() << std::endl;
+        throw ex;
     }
 }
 
@@ -31,17 +32,15 @@ BitwardenClient::~BitwardenClient() {
     }
 }
 
-ResponseForApiKeyLoginResponse BitwardenClient::accessTokenLogin(const char* accessToken) {
+ResponseForApiKeyLoginResponse BitwardenClient::accessTokenLogin(const std::string& accessToken) {
     Command command;
     AccessTokenLoginRequest accessTokenLoginRequest;
     accessTokenLoginRequest.set_access_token(accessToken);
     command.set_access_token_login(accessTokenLoginRequest);
 
     auto deserializer = [](const char* response) -> ResponseForApiKeyLoginResponse {
-        // Parse the JSON response and create a ResponseForApiKeyLoginResponse object.
         nlohmann::json jsonResponse = nlohmann::json::parse(response);
         ResponseForApiKeyLoginResponse loginResponse;
-        // Populate loginResponse using jsonResponse
         quicktype::from_json(jsonResponse, loginResponse);
         return loginResponse;
     };

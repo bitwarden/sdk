@@ -19,14 +19,22 @@ set(SCHEMAS_SOURCE "include/schemas.cpp")
 # Add library source files along with the schemas.cpp file
 add_library(BitwardenClient SHARED ${SOURCES} ${SCHEMAS_SOURCE})
 
-# Specify the path to the libbitwarden_c.dylib
-# set(LIB_BITWARDEN_C "/path/to/libbitwarden_c.dylib")
+# Determine the library file extension based on the operating system
+if(UNIX AND NOT APPLE) # Linux
+    set(LIB_BITWARDEN_C "${CMAKE_SOURCE_DIR}/../../target/debug/libbitwarden_c.so")
+elseif(APPLE) # macOS
+    set(LIB_BITWARDEN_C "${CMAKE_SOURCE_DIR}/../../target/debug/libbitwarden_c.dylib")
+elseif(WIN32) # Windows
+    set(LIB_BITWARDEN_C "${CMAKE_SOURCE_DIR}/../../target/debug/bitwarden_c.dll")
+else()
+    message(FATAL_ERROR "Unsupported operating system")
+endif()
 
 # Copy the library to the build directory before building
 add_custom_command(
     TARGET BitwardenClient PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_SOURCE_DIR}/../../target/debug/libbitwarden_c.dylib
+        ${LIB_BITWARDEN_C}
         $<TARGET_FILE_DIR:BitwardenClient>
 )
 

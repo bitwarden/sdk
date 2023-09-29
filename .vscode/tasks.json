@@ -30,7 +30,7 @@
       "type": "process",
       "args": [
         "build",
-        "${workspaceFolder}/languages/csharp/bitwardenSdk.csproj",
+        "${workspaceFolder}/languages/csharp/Bitwarden.Sdk/Bitwarden.Sdk.csproj",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary"
       ],

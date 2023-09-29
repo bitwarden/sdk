@@ -60,7 +60,13 @@ jobs:
           gem build *.gemspec
           gem install *.gem
 
-      - name: Build and publish to RubyGems
-        uses: actionshub/publish-gem-to-rubygems@main
-        with:
-          rubygems_api_key: ${{ secrets.RUBY_GEMS_API_KEY }}
+      - name: Publish Gem
+        env:
+          RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
+        run: |
+          ls -lah
+          cd languages/ruby/languages/ruby
+          pwd
+          ls -la
+          gem push *.gem
+

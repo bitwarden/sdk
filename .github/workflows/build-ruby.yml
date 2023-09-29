@@ -41,6 +41,7 @@ jobs:
         run: |
           echo "RUBYGEMS_AUTH_TOKEN: ${{ secrets.RUBYGEMS_AUTH_TOKEN }}"
           cd languages/ruby/languages/ruby
+          ls -la
           gem install bundler
           gem build *.gemspec
           gem install *.gem

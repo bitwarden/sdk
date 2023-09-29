@@ -3,8 +3,10 @@
 require_relative 'sdk/version'
 
 module Ruby
-  module Sdk
-    class Error < StandardError; end
-    # Your code goes here...
+  module Bitwarden
+    module Sdk
+      class Error < StandardError; end
+      # Your code goes here...
+    end
   end
 end

@@ -40,29 +40,6 @@ jobs:
         with:
           ruby-version: '3.2'
 
-      - name: Download x86_64-apple-darwin files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: libbitwarden_c_files-x86_64-apple-darwin
-          path: languages/ruby/lib/macos-x64
-
-      - name: Download aarch64-apple-darwin files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: libbitwarden_c_files-aarch64-apple-darwin
-          path: languages/ruby/lib/macos-arm64
-
-      - name: Download x86_64-unknown-linux-gnu files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: libbitwarden_c_files-x86_64-unknown-linux-gnu
-          path: languages/ruby/lib/ubuntu-x64
-
-      - name: Download x86_64-pc-windows-msvc files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: libbitwarden_c_files-x86_64-pc-windows-msvc
-          path: languages/ruby/lib/windows-x64
 
       - name: Setup gem and release it
         run: |

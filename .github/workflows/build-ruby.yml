@@ -9,15 +9,12 @@ jobs:
   generate_schemas:
     uses: ./.github/workflows/generate_schemas.yml
 
-  build_rust:
-    uses: ./.github/workflows/build-rust-cross-platform.yml
 
   build_ruby:
     name: Build Ruby
     runs-on: ubuntu-22.04
     needs:
       - generate_schemas
-      - build_rust
 
     steps:
       - name: Checkout Repository

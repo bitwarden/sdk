@@ -3,14 +3,14 @@
 require_relative 'lib/ruby/sdk/version'
 
 Gem::Specification.new do |spec|
-  spec.name = 'ruby-sdk'
-  spec.version = Ruby::Sdk::VERSION
+  spec.name = 'ruby-bitwarden-sdk'
+  spec.version = Ruby::Bitwarden::Sdk::VERSION
   spec.authors = ['Milos Trifunovic']
   spec.email = ['milos.trifunovic@symphony.is']
 
   spec.summary = 'Bitwarden Secrets Manager SDK.'
   spec.description = 'Ruby wrapper for Bitwarden secrets manager SDK.'
-  spec.homepage = 'https://github.com/MaliRobot/ruby-sdk'
+  spec.homepage = 'https://rubygems.org/gems/ruby-bitwarden-sdk'
   spec.required_ruby_version = '>= 2.7.0'
 
   spec.metadata['homepage_uri'] = spec.homepage

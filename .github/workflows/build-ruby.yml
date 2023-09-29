@@ -43,6 +43,16 @@ jobs:
 
       - name: Setup gem and release it
         run: |
+          cd languages/ruby
+          ls -la
+          cd lib
+          ls -la
+          cd ubuntu-x64
+          ls -la
+          cd ..
+          cd ..
+          cd ..
+          cd ..
           cd languages/ruby/languages/ruby
           pwd
           ls -la
@@ -50,13 +60,7 @@ jobs:
           gem build *.gemspec
           gem install *.gem
 
-      - name: Publish Gem
-        env:
-          RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
-        run: |
-          ls -lah
-          cd languages/ruby/languages/ruby
-          pwd
-          ls -la
-          gem push *.gem
-
+      - name: Build and publish to RubyGems
+        uses: actionshub/publish-gem-to-rubygems@main
+        with:
+          rubygems_api_key: ${{ secrets.RUBY_GEMS_API_KEY }}

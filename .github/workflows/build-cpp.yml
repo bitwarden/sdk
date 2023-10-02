@@ -16,7 +16,7 @@ jobs:
   build_rust:
     uses: ./.github/workflows/build-rust-cross-platform.yml
 
-  build_c++:
+  build_cpp:
     name: Build C++
     runs-on: ${{ matrix.os }}
     strategy:

@@ -111,7 +111,7 @@ impl PasswordGeneratorCharSet {
 
 pub(super) fn password(input: PasswordGeneratorRequest) -> Result<String> {
     // We always have to have at least one character set enabled
-    if !input.lowercase || !input.uppercase && !input.numbers && !input.special {
+    if !input.lowercase && !input.uppercase && !input.numbers && !input.special {
         return Err(Error::Internal(
             "At least one character set must be enabled",
         ));

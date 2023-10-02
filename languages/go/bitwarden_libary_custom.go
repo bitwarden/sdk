@@ -1,7 +1,7 @@
 //go:build custom
 // +build custom
 
-package main
+package sdk
 
 import (
 	"fmt"

@@ -1,0 +1,4 @@
+github.com/cvele/sdk/languages/go v0.0.0-20231002081021-8c8bc29d0eef h1:bo/ah+X6YaZMIq/DbXmPIx7Q5Y71ZptojSo7ps++qeY=
+github.com/cvele/sdk/languages/go v0.0.0-20231002081021-8c8bc29d0eef/go.mod h1:Cm5NAVt62p0Ern/M0R1RsVRCd/NLH0jcB6h014X9hPs=
+github.com/gofrs/uuid v4.4.0+incompatible h1:3qXRTX8/NbyulANqlc0lchS1gqAVxRgsuW1YrTJupqA=
+github.com/gofrs/uuid v4.4.0+incompatible/go.mod h1:b2aQJv3Z4Fp6yNu3cdSllBxTCLRxnplIgP/c0N/04lM=

@@ -56,11 +56,14 @@ async function main() {
     inputData,
     lang: "csharp",
     rendererOptions: {
-      namespace: "Bit.Sdk",
+      namespace: "Bitwarden.Sdk",
+      framework: "SystemTextJson",
       "csharp-version": "6",
     },
   });
 
+  writeToFile("./languages/csharp/Bitwarden.Sdk/schemas.cs", csharp.lines);
+  
   writeToFile("./languages/csharp/schemas.cs", csharp.lines);
 
   const go = await quicktype({
@@ -71,6 +74,7 @@ async function main() {
     },
   });
   writeToFile("./languages/go/schema.go", go.lines);
+
 }
 
 main();

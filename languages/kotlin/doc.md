@@ -1,8 +1,8 @@
 # Bitwarden Mobile SDK
 
-Auto generated documentation for the Bitwarden Mobile SDK. For more information please refer to
-the rust crates `bitwarden` and `bitwarden-uniffi`. For code samples check the
-`languages/kotlin/app` and `languages/swift/app` directories.
+Auto generated documentation for the Bitwarden Mobile SDK. For more information please refer to the
+rust crates `bitwarden` and `bitwarden-uniffi`. For code samples check the `languages/kotlin/app`
+and `languages/swift/app` directories.
 
 ## Client
 
@@ -107,6 +107,19 @@ Hash the user password
 - kdf_params: [Kdf](#kdf)
 
 **Output**: std::result::Result<String,BitwardenError>
+
+### `make_register_keys`
+
+Generate keys needed for registration process
+
+**Arguments**:
+
+- self:
+- email: String
+- password: String
+- kdf: [Kdf](#kdf)
+
+**Output**: std::result::Result<RegisterKeyResponse,BitwardenError>
 
 ## ClientCiphers
 
@@ -300,7 +313,7 @@ Encrypt send
 **Arguments**:
 
 - self:
-- send: SendView
+- send: [SendView](#sendview)
 
 **Output**: std::result::Result<Send,BitwardenError>
 
@@ -311,7 +324,7 @@ Encrypt a send file in memory
 **Arguments**:
 
 - self:
-- send: Send
+- send: [Send](#send)
 - buffer: Vec<>
 
 **Output**: std::result::Result<Vec,BitwardenError>
@@ -323,7 +336,7 @@ Encrypt a send file located in the file system
 **Arguments**:
 
 - self:
-- send: Send
+- send: [Send](#send)
 - decrypted_file_path: String
 - encrypted_file_path: String
 
@@ -336,7 +349,7 @@ Decrypt send
 **Arguments**:
 
 - self:
-- send: Send
+- send: [Send](#send)
 
 **Output**: std::result::Result<SendView,BitwardenError>
 
@@ -358,7 +371,7 @@ Decrypt a send file in memory
 **Arguments**:
 
 - self:
-- send: Send
+- send: [Send](#send)
 - buffer: Vec<>
 
 **Output**: std::result::Result<Vec,BitwardenError>
@@ -370,7 +383,7 @@ Decrypt a send file located in the file system
 **Arguments**:
 
 - self:
-- send: Send
+- send: [Send](#send)
 - encrypted_file_path: String
 - decrypted_file_path: String
 
@@ -1057,6 +1070,186 @@ implementations.
 <tr>
     <th>lastUsedDate</th>
     <th>string</th>
+    <th></th>
+</tr>
+</table>
+
+## `Send`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>id</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>accessId</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>name</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>notes</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>key</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>password</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>type</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>file</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>text</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>maxAccessCount</th>
+    <th>integer,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>accessCount</th>
+    <th>integer</th>
+    <th></th>
+</tr>
+<tr>
+    <th>disabled</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>hideEmail</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>revisionDate</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>deletionDate</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>expirationDate</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+</table>
+
+## `SendView`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>id</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>accessId</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>name</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>notes</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>key</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>password</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>type</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>file</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>text</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>maxAccessCount</th>
+    <th>integer,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>accessCount</th>
+    <th>integer</th>
+    <th></th>
+</tr>
+<tr>
+    <th>disabled</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>hideEmail</th>
+    <th>boolean</th>
+    <th></th>
+</tr>
+<tr>
+    <th>revisionDate</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>deletionDate</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>expirationDate</th>
+    <th>string,null</th>
     <th></th>
 </tr>
 </table>

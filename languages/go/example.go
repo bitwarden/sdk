@@ -9,17 +9,8 @@ import (
 
 func main() {
 	apiURL := os.Getenv("API_URL")
-	if apiURL == "" {
-		apiURL = "https://api.bitwarden.com" // Default
-	}
 	identityURL := os.Getenv("IDENTITY_URL")
-	if identityURL == "" {
-		identityURL = "https://identity.bitwarden.com" // Default
-	}
 	userAgent := os.Getenv("USER_AGENT")
-	if userAgent == "" {
-		userAgent = "Bitwarden SDK" // Default
-	}
 
 	clientSettings := ClientSettings{
 		APIURL:      apiURL,
@@ -28,7 +19,7 @@ func main() {
 		UserAgent:   userAgent,
 	}
 
-	lib := &BitwardenLibraryImpl{}
+	lib := NewBitwardenLibrary()
 	bitwardenClient := NewBitwardenClient(clientSettings, lib)
 
 	accessToken := os.Getenv("ACCESS_TOKEN")

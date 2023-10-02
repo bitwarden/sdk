@@ -1,0 +1,69 @@
+name: Go Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_number:
+        description: "New Version"
+        required: true
+
+env:
+  GO111MODULE: on
+  GO_VERSION: '^1.18'
+
+jobs:
+  build_rust:
+    uses: ./.github/workflows/build-rust-cross-platform.yml
+
+  generate-schemas:
+    uses: ./.github/workflows/generate_schemas.yml
+    
+  build:
+    needs: [build_rust, generate-schemas]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Setup Go environment
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Test
+        run: go test -v ./...
+
+  release:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Setup Go environment
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Set release version
+        run: echo "VERSION=${{ github.event.inputs.version_number }}" >> $GITHUB_ENV
+
+      - name: Install Goreleaser
+        run: go install github.com/goreleaser/goreleaser@latest
+
+      - name: Run Goreleaser
+        run: goreleaser release --rm-dist --skip-validate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ env.VERSION }}

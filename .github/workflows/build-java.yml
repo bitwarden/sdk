@@ -59,10 +59,10 @@ jobs:
           name: libbitwarden_c_files-x86_64-pc-windows-msvc
           path: languages/java/src/main/resources/windows-x64
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-        working-directory: languages/java
-
-      - name: Build with Gradle
-        run: ./gradlew build
-        working-directory: languages/java
+      - name: Publish Maven
+        uses: gradle/gradle-build-action@b5126f31dbc19dd434c3269bf8c28c315e121da2 # v2.8.1
+        with:
+          arguments: sdk:publish
+          build-root-directory: languages/java
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

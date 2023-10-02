@@ -11,10 +11,6 @@ repositories {
     mavenLocal()
     maven {
         url = uri('https://repo.maven.apache.org/maven2/')
-        credentials {
-            username project.findProperty("mavenUsername") ?: System.getenv("MAVEN_USERNAME")
-            password project.findProperty("mavenPassword") ?: System.getenv("MAVEN_PASSWORD")
-        }
     }
 
     dependencies {
@@ -31,18 +27,53 @@ repositories {
     publishing {
         publications {
             maven(MavenPublication) {
-                from(components.java)
+                groupId = 'com.bitwarden'
+                artifactId = 'sdk-java'
+
+                // Determine the version from the git history.
+                //
+                // PRs: use the branch name.
+                // Master: Grab it from `crates/bitwarden/Cargo.toml`
+
+                def branchName = "git branch --show-current".execute().text.trim()
+
+                if (branchName == "master") {
+                    def content = ['grep', '-o', '^version = ".*"', '../../crates/bitwarden/Cargo.toml'].execute().text.trim()
+                    def match = ~/version = "(.*)"/
+                    def matcher = match.matcher(content)
+                    matcher.find()
+
+                    version = "${matcher.group(1)}-SNAPSHOT"
+                } else {
+                    // branchName-SNAPSHOT
+                    version = "${branchName.replaceAll('/', '-')}-SNAPSHOT"
+                }
+
+                afterEvaluate {
+                    from components.java
+                }
+            }
+        }
+        repositories {
+            maven {
+                name = "GitHubPackages"
+                url = "https://maven.pkg.github.com/bitwarden/sdk"
+                credentials {
+                    username = System.getenv("GITHUB_ACTOR")
+                    password = System.getenv("GITHUB_TOKEN")
+                }
             }
         }
     }
+}
 
-    tasks.withType(JavaCompile) {
-        options.encoding = 'UTF-8'
-    }
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
 
-    tasks.withType(Javadoc) {
-        options.encoding = 'UTF-8'
-    }
+tasks.withType(Javadoc) {
+    options.encoding = 'UTF-8'
+}
 
 //tasks.register('copyNativeLib', Copy) {
 //    delete 'src/main/resources/darwin-aarch64'
@@ -53,12 +84,12 @@ repositories {
 //    into 'src/main/resources/darwin-aarch64'
 //}
 
-    jar {
+jar {
 //    dependsOn tasks.named("copyNativeLib")
-        from('src/main/resources') {
-            include 'darwin-aarch64/**'
-            include 'darwin-x64/**'
-            include 'ubuntu-x64/**'
-            include 'windows-x64/**'
-        }
+    from('src/main/resources') {
+        include 'darwin-aarch64/**'
+        include 'darwin-x64/**'
+        include 'ubuntu-x64/**'
+        include 'windows-x64/**'
     }
+}

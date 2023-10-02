@@ -19,8 +19,7 @@ func main() {
 		UserAgent:   userAgent,
 	}
 
-	lib := NewBitwardenLibrary()
-	bitwardenClient := NewBitwardenClient(clientSettings, lib)
+	bitwardenClient := NewBitwardenClient(clientSettings)
 
 	accessToken := os.Getenv("ACCESS_TOKEN")
 	organizationIDStr := os.Getenv("ORGANIZATION_ID")

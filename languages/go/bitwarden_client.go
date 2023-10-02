@@ -14,12 +14,13 @@ type BitwardenClient struct {
 	Secrets       SecretsInterface
 }
 
-func NewBitwardenClient(settings ClientSettings, lib cinterface.BitwardenLibrary) *BitwardenClient {
+func NewBitwardenClient(settings ClientSettings) *BitwardenClient {
 	settingsJSON, err := json.Marshal(settings)
 	if err != nil {
 		panic(err)
 	}
 
+	lib := cinterface.NewBitwardenLibrary()
 	client, err := lib.Init(string(settingsJSON))
 	if err != nil {
 		panic(err)

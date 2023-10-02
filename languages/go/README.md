@@ -31,8 +31,7 @@ import "github.com/bitwarden/sdk/languages/go"
 settings := ClientSettings{
   // Your settings here
 }
-lib := BitwardenLibraryImpl{}
-client := NewBitwardenClient(settings, lib)
+client := NewBitwardenClient(settings)
 ```
 
 ---

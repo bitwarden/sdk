@@ -32,6 +32,10 @@ type BitwardenLibrary interface {
 
 type BitwardenLibraryImpl struct{}
 
+func NewBitwardenLibrary() BitwardenLibrary {
+	return &BitwardenLibraryImpl{}
+}
+
 func (b *BitwardenLibraryImpl) Init(clientSettings string) (ClientPointer, error) {
 	ptr := C.init(C.CString(clientSettings))
 	if ptr == nil {

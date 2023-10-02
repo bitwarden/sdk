@@ -62,7 +62,7 @@ async function main() {
     },
   });
 
-  writeToFile("./languages/csharp/schemas.cs", csharp.lines);
+  writeToFile("./languages/csharp/Bitwarden.Sdk/schemas.cs", csharp.lines);
 }
 
 main();

@@ -46,6 +46,6 @@ languages/kotlin/sdk/src/main/java/com/bitwarden/core/bitwarden.kt
 # Schemas
 support/schemas
 crates/bitwarden-napi/src-ts/bitwarden_client/schemas.ts
-languages/csharp/schemas.cs
+languages/csharp/Bitwarden.Sdk/schemas.cs
 languages/js_webassembly/bitwarden_client/schemas.ts
 languages/python/BitwardenClient/schemas.py

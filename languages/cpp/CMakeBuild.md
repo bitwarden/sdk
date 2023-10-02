@@ -17,5 +17,17 @@ One should be in the root directory of the c++ wrapper (the same level where is 
 
 $ mkdir build
 $ cd build
-$ cmake ..
-# cmake --build .
+$ cmake .. -DNLOHMANN=/path/to/include/nlohmann -DBOOST=/path/to/include/boost -DTARGET=relative/path/to/libbitwarden_c
+$ cmake --build .
+
+
+
+## Example
+
+macOS:
+
+$ mkdir build
+$ cd build
+$ cmake .. -DNLOHMANN=/usr/local/include/nlohmann -DBOOST=/opt/homebrew/include -DTARGET=../../target/debug/libbitwarden_c.dylib
+$ cmake --build .
+

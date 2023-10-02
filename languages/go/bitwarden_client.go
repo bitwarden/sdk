@@ -1,16 +1,20 @@
 package sdk
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/bitwarden/sdk/languages/go/internal/cinterface"
+)
 
 type BitwardenClient struct {
-	client        ClientPointer
-	lib           BitwardenLibrary
+	client        cinterface.ClientPointer
+	lib           cinterface.BitwardenLibrary
 	commandRunner CommandRunnerInterface
 	Projects      ProjectsInterface
 	Secrets       SecretsInterface
 }
 
-func NewBitwardenClient(settings ClientSettings, lib BitwardenLibrary) *BitwardenClient {
+func NewBitwardenClient(settings ClientSettings, lib cinterface.BitwardenLibrary) *BitwardenClient {
 	settingsJSON, err := json.Marshal(settings)
 	if err != nil {
 		panic(err)

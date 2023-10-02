@@ -2,6 +2,8 @@ package sdk
 
 import (
 	"encoding/json"
+
+	"github.com/bitwarden/sdk/languages/go/internal/cinterface"
 )
 
 type CommandRunnerInterface interface {
@@ -9,11 +11,11 @@ type CommandRunnerInterface interface {
 }
 
 type CommandRunner struct {
-	client ClientPointer
-	lib    BitwardenLibrary
+	client cinterface.ClientPointer
+	lib    cinterface.BitwardenLibrary
 }
 
-func NewCommandRunner(client ClientPointer, lib BitwardenLibrary) *CommandRunner {
+func NewCommandRunner(client cinterface.ClientPointer, lib cinterface.BitwardenLibrary) *CommandRunner {
 	return &CommandRunner{
 		client: client,
 		lib:    lib,

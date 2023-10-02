@@ -1,7 +1,7 @@
-//go:build !custom
-// +build !custom
+//go:build custom
+// +build custom
 
-package sdk
+package cinterface
 
 import (
 	"fmt"

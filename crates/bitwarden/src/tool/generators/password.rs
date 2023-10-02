@@ -187,16 +187,20 @@ mod test {
         chars.iter().collect()
     }
 
+    fn count(chars: &[char], pass: &str) -> usize {
+        pass.chars().filter(|c| chars.contains(c)).count()
+    }
+
     #[test]
-    fn test_password_characters() {
-        // All characters excluding ambiguous
+    fn test_password_characters_all() {
         let set = PasswordGeneratorCharSet::new(true, true, true, true, true);
         assert_eq!(set.lower, LOWER_CHARS);
         assert_eq!(set.upper, UPPER_CHARS);
         assert_eq!(set.number, NUMBER_CHARS);
         assert_eq!(set.special, SPECIAL_CHARS);
-
-        // All characters including ambiguous
+    }
+    #[test]
+    fn test_password_characters_all_ambiguous() {
         let set = PasswordGeneratorCharSet::new(true, true, true, true, false);
         assert!(to_string(&set.lower).contains(&to_string(LOWER_CHARS)));
         assert!(to_string(&set.lower).contains(&to_string(LOWER_CHARS_AMBIGUOUS)));
@@ -205,14 +209,17 @@ mod test {
         assert!(to_string(&set.number).contains(&to_string(NUMBER_CHARS)));
         assert!(to_string(&set.number).contains(&to_string(NUMBER_CHARS_AMBIGUOUS)));
         assert_eq!(set.special, SPECIAL_CHARS);
-
-        // Only lowercase
+    }
+    #[test]
+    fn test_password_characters_lower() {
         let set = PasswordGeneratorCharSet::new(true, false, false, false, true);
         assert_eq!(set.lower, LOWER_CHARS);
         assert_eq!(set.upper, Vec::new());
         assert_eq!(set.number, Vec::new());
         assert_eq!(set.special, Vec::new());
-
+    }
+    #[test]
+    fn test_password_characters_upper_ambiguous() {
         // Only uppercase including ambiguous
         let set = PasswordGeneratorCharSet::new(false, true, false, false, false);
         assert_eq!(set.lower, Vec::new());
@@ -220,5 +227,61 @@ mod test {
         assert!(to_string(&set.upper).contains(&to_string(UPPER_CHARS_AMBIGUOUS)));
         assert_eq!(set.number, Vec::new());
         assert_eq!(set.special, Vec::new());
+    }
+
+    #[test]
+    fn test_password_gen_all_characters() {
+        let pass = password(PasswordGeneratorRequest {
+            lowercase: true,
+            uppercase: true,
+            numbers: true,
+            special: true,
+            length: Some(100),
+            avoid_ambiguous: Some(true),
+            min_lowercase: Some(1),
+            min_uppercase: Some(1),
+            min_number: Some(1),
+            min_special: Some(1),
+        })
+        .unwrap();
+
+        assert_eq!(pass.len(), 100);
+
+        assert!(count(LOWER_CHARS, &pass) > 1);
+        assert!(count(UPPER_CHARS, &pass) > 1);
+        assert!(count(NUMBER_CHARS, &pass) > 1);
+        assert!(count(SPECIAL_CHARS, &pass) > 1);
+
+        assert_eq!(count(LOWER_CHARS_AMBIGUOUS, &pass), 0);
+        assert_eq!(count(UPPER_CHARS_AMBIGUOUS, &pass), 0);
+        assert_eq!(count(NUMBER_CHARS_AMBIGUOUS, &pass), 0);
+    }
+
+    #[test]
+    fn test_password_gen_some_characters() {
+        let pass = password(PasswordGeneratorRequest {
+            lowercase: true,
+            uppercase: false,
+            numbers: false,
+            special: true,
+            length: Some(10),
+            avoid_ambiguous: Some(true),
+            min_lowercase: Some(9),
+            min_uppercase: None,
+            min_number: None,
+            min_special: Some(1),
+        })
+        .unwrap();
+
+        assert_eq!(pass.len(), 10);
+
+        assert_eq!(count(LOWER_CHARS, &pass), 9);
+        assert_eq!(count(UPPER_CHARS, &pass), 0);
+        assert_eq!(count(NUMBER_CHARS, &pass), 0);
+        assert_eq!(count(SPECIAL_CHARS, &pass), 1);
+
+        assert_eq!(count(LOWER_CHARS_AMBIGUOUS, &pass), 0);
+        assert_eq!(count(UPPER_CHARS_AMBIGUOUS, &pass), 0);
+        assert_eq!(count(NUMBER_CHARS_AMBIGUOUS, &pass), 0);
     }
 }

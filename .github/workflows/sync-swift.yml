@@ -1,5 +1,5 @@
 ---
-    name: Build Swift
+    name: Sync SDK-Swift
     
     on:
       pull_request:
@@ -49,10 +49,10 @@
             
           - name: Update files
             run: |
-              cp -r sdk/languages/swift/README.md sdk-swift/README.md
-              cp -r sdk/languages/swift/Package.swift sdk-swift/Package.swift
-              cp -r sdk/languages/swift/Sources sdk-swift/Sources
-              cp -r sdk/languages/swift/Tests sdk-swift/Tests
+              cp --verbose -rf sdk/languages/swift/README.md sdk-swift/README.md
+              cp --verbose -rf sdk/languages/swift/Package.swift sdk-swift/Package.swift
+              cp --verbose -rf sdk/languages/swift/Sources sdk-swift/Sources
+              cp --verbose -rf sdk/languages/swift/Tests sdk-swift/Tests
           
           - name: Push changes
             working-directory: sdk-swift

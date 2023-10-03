@@ -3,7 +3,7 @@ use super::{
     register::{make_register_keys, register},
     RegisterKeyResponse, RegisterRequest,
 };
-use crate::{client::auth_settings::Kdf, error::Result, Client};
+use crate::{client::kdf::Kdf, error::Result, Client};
 
 pub struct ClientAuth<'a> {
     pub(crate) client: &'a mut crate::Client,

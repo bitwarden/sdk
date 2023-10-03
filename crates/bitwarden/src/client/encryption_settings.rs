@@ -4,7 +4,7 @@ use rsa::RsaPrivateKey;
 use uuid::Uuid;
 #[cfg(feature = "internal")]
 use {
-    crate::client::auth_settings::AuthSettings,
+    crate::client::UserLoginMethod,
     rsa::{pkcs8::DecodePrivateKey, Oaep},
 };
 
@@ -28,30 +28,38 @@ impl std::fmt::Debug for EncryptionSettings {
 impl EncryptionSettings {
     #[cfg(feature = "internal")]
     pub(crate) fn new(
-        auth: &AuthSettings,
+        login_method: &UserLoginMethod,
         password: &str,
         user_key: EncString,
         private_key: EncString,
     ) -> Result<Self> {
         use crate::crypto::MasterKey;
 
-        // Derive master key from password
-        let master_key = MasterKey::derive(password.as_bytes(), auth.email.as_bytes(), &auth.kdf)?;
+        match login_method {
+            UserLoginMethod::Username { email, kdf, .. }
+            | UserLoginMethod::ApiKey { email, kdf, .. } => {
+                // Derive master key from password
+                let master_key = MasterKey::derive(password.as_bytes(), email.as_bytes(), kdf)?;
 
-        // Decrypt the user key
-        let user_key = master_key.decrypt_user_key(user_key)?;
+                // Decrypt the user key
+                let user_key = master_key.decrypt_user_key(user_key)?;
 
-        // Decrypt the private key with the user key
-        let private_key = {
-            let dec = private_key.decrypt_with_key(&user_key)?;
-            Some(rsa::RsaPrivateKey::from_pkcs8_der(&dec).map_err(|_| CryptoError::InvalidKey)?)
-        };
+                // Decrypt the private key with the user key
+                let private_key = {
+                    let dec = private_key.decrypt_with_key(&user_key)?;
+                    Some(
+                        rsa::RsaPrivateKey::from_pkcs8_der(&dec)
+                            .map_err(|_| CryptoError::InvalidKey)?,
+                    )
+                };
 
-        Ok(EncryptionSettings {
-            user_key,
-            private_key,
-            org_keys: HashMap::new(),
-        })
+                Ok(EncryptionSettings {
+                    user_key,
+                    private_key,
+                    org_keys: HashMap::new(),
+                })
+            }
+        }
     }
 
     pub(crate) fn new_single_key(key: SymmetricCryptoKey) -> Self {

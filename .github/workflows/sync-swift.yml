@@ -10,6 +10,7 @@
     
     jobs:
       sync:
+        name: Sync SDK-Swift
         runs-on: ubuntu-22.04
         env:
           _KEY_VAULT: "bitwarden-ci"
@@ -59,5 +60,5 @@
               git add .
               git commit -m "Update Swift SDK to ${{ github.sha }}"
               # Validate changes during testing
-              git status 
+              git ls-files -m
             

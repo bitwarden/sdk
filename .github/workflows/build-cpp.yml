@@ -10,8 +10,8 @@ env:
   LIBS_PATH: ${{ github.workspace }}/libs
 
 jobs:
-  generate_schemas:
-    uses: ./.github/workflows/generate_schemas.yml
+  # generate_schemas:
+  # uses: ./.github/workflows/generate_schemas.yml
 
   build_rust:
     uses: ./.github/workflows/build-rust-cross-platform.yml
@@ -40,27 +40,27 @@ jobs:
             architecture: x86_64
             extension: so
             target: x86_64-linux-gnu
-          - os: macos-12
-            architecture: x86_64
-            extension: dylib
-            target: x86_64-apple-macos12
-          - os: macos-12
-            architecture: arm64
-            extension: dylib
-            target: arm64-apple-macos12
+    #       - os: macos-12
+    #         architecture: x86_64
+    #         extension: dylib
+    #         target: x86_64-apple-macos12
+    #       - os: macos-12
+    #         architecture: arm64
+    #         extension: dylib
+    #         target: arm64-apple-macos12
     needs:
-      - generate_schemas
+      # - generate_schemas
       - build_rust
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
 
-      - name: Download C++ schemas artifact
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: schemas.cpp
-          path: languages/cpp
+      # - name: Download C++ schemas artifact
+      #   uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+      #   with:
+      #     name: schemas.cpp
+      #     path: languages/cpp/include
 
       - name: Setup C++
         uses: aminya/setup-cpp@v1
@@ -73,19 +73,19 @@ jobs:
           cppcheck: true
           clangtidy: true
 
-      - name: Download x86_64-apple-darwin files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: libbitwarden_c_files-x86_64-apple-darwin
-          path: languages/cpp/build
-        if: contains(matrix.os, 'macos') && matrix.architecture=='x86_64'
+      # - name: Download x86_64-apple-darwin files
+      #   uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+      #   with:
+      #     name: libbitwarden_c_files-x86_64-apple-darwin
+      #     path: languages/cpp/build
+      #   if: contains(matrix.os, 'macos') && matrix.architecture=='x86_64'
 
-      - name: Download aarch64-apple-darwin files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: libbitwarden_c_files-aarch64-apple-darwin
-          path: languages/cpp/build
-        if: contains(matrix.os, 'macos') && matrix.architecture=='arm64'
+      # - name: Download aarch64-apple-darwin files
+      #   uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+      #   with:
+      #     name: libbitwarden_c_files-aarch64-apple-darwin
+      #     path: languages/cpp/build
+      #   if: contains(matrix.os, 'macos') && matrix.architecture=='arm64'
 
       - name: Download x86_64-unknown-linux-gnu files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
@@ -94,14 +94,14 @@ jobs:
           path: languages/cpp/build
         if: contains(matrix.os, 'ubuntu')
 
-      - name: Download x86_64-pc-windows-msvc files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: libbitwarden_c_files-x86_64-pc-windows-msvc
-          path: languages/cpp/build
-        if: contains(matrix.os, 'windows')
-      - name: Create Build folder
-        run: mkdir -p languages/cpp/build
+      # - name: Download x86_64-pc-windows-msvc files
+      #   uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+      #   with:
+      #     name: libbitwarden_c_files-x86_64-pc-windows-msvc
+      #     path: languages/cpp/build
+      #   if: contains(matrix.os, 'windows')
+      # - name: Create Build folder
+      #   run: mkdir -p languages/cpp/build
 
       - name: Download Dependencies
         if: "!contains(matrix.os, 'windows')"
@@ -116,7 +116,7 @@ jobs:
         if: "!contains(matrix.os, 'windows')"
         working-directory: languages/cpp/build
         run: |
-          cmake .. -DNLOHMANN=${{ env.LIBS_PATH }} -DBOOST=${{ env.LIBS_PATH }} -DTARGET=./
+          cmake .. -DNLOHMANN=${{ env.LIBS_PATH }} -DBOOST=${{ env.LIBS_PATH }} -DTARGET=./target/${{ matrix.settings.target }}/release/${{ matrix.prefix }}bitwarden_c.${{ matrix.extension }}
           cmake --build .
       - name: Upload C++ package
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2

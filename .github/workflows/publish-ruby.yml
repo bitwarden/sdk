@@ -32,7 +32,7 @@ jobs:
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: schemas.rb
-          path: languages/ruby
+          path: languages/ruby/lib
 
       - name: Download x86_64-apple-darwin files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
@@ -41,7 +41,9 @@ jobs:
           path: temp/macos-x64
 
       - name: Copy MacOS intel lib file
-        run: cp temp/macos-x64/libbitwarden_c.dylib languages/ruby/libbitwarden_c.dylib
+        run: |
+          mkdir languages/ruby/lib/macos-x64
+          cp temp/macos-x64/libbitwarden_c.dylib languages/ruby/lib/macos-x64/libbitwarden_c.dylib
         shell: bash
 
       - name: Download aarch64-apple-darwin files
@@ -51,7 +53,9 @@ jobs:
           path: temp/macos-arm64
 
       - name: Copy MacOS arm lib file
-        run: cp temp/macos-arm64/libbitwarden_c.dylib languages/ruby/libbitwarden_c.dylib
+        run: |
+          mkdir languages/ruby/lib/macos-arm64
+          cp temp/macos-arm64/libbitwarden_c.dylib languages/ruby/lib/macos-arm64/libbitwarden_c.dylib
         shell: bash
 
       - name: Download x86_64-unknown-linux-gnu files
@@ -61,7 +65,9 @@ jobs:
           path: temp/ubuntu-x64
 
       - name: Copy Linux lib file
-        run: cp temp/ubuntu-x64/libbitwarden_c.so languages/ruby/libbitwarden_c.so
+        run: |
+          mkdir languages/ruby/lib/ubuntu-x64
+          cp temp/ubuntu-x64/libbitwarden_c.so languages/ruby/lib/ubuntu-x64/libbitwarden_c.so
         shell: bash
 
       - name: Download x86_64-pc-windows-msvc files
@@ -71,12 +77,18 @@ jobs:
           path: temp/windows-x64
 
       - name: Copy Windows lib file
-        run: cp temp/windows-x64/bitwarden_c.dll languages/ruby/bitwarden_c.dll
+        run: |
+          mkdir languages/ruby/lib/windows-x64
+          cp temp/windows-x64/bitwarden_c.dll languages/ruby/lib/windows-x64/bitwarden_c.dll
         shell: bash
 
       - name: Setup gem and release it
         run: |
           cd languages/ruby
+          ls -lah
+          cd lib
+          ls -lah
+          cd ..
           gem install bundler
           gem build *.gemspec
           gem install *.gem

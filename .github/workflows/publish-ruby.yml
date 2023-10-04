@@ -43,7 +43,7 @@ jobs:
       - name: Copy MacOS intel lib file
         run: |
           mkdir languages/ruby/lib/macos-x64
-          cp temp/macos-x64/libbitwarden_c.dylib languages/ruby/macos-x64/libbitwarden_c.dylib
+          cp temp/macos-x64/libbitwarden_c.dylib languages/ruby/lib/macos-x64/libbitwarden_c.dylib
         shell: bash
 
       - name: Download aarch64-apple-darwin files
@@ -55,7 +55,7 @@ jobs:
       - name: Copy MacOS arm lib file
         run: |
           mkdir languages/ruby/lib/macos-arm64
-          cp temp/macos-arm64/libbitwarden_c.dylib languages/ruby/macos-arm64/libbitwarden_c.dylib
+          cp temp/macos-arm64/libbitwarden_c.dylib languages/ruby/lib/macos-arm64/libbitwarden_c.dylib
         shell: bash
 
       - name: Download x86_64-unknown-linux-gnu files
@@ -67,7 +67,7 @@ jobs:
       - name: Copy Linux lib file
         run: |
           mkdir languages/ruby/lib/ubuntu-x64
-          cp temp/ubuntu-x64/libbitwarden_c.so languages/ruby/ubuntu-x64/libbitwarden_c.so
+          cp temp/ubuntu-x64/libbitwarden_c.so languages/ruby/lib/ubuntu-x64/libbitwarden_c.so
         shell: bash
 
       - name: Download x86_64-pc-windows-msvc files
@@ -79,7 +79,7 @@ jobs:
       - name: Copy Windows lib file
         run: |
           mkdir languages/ruby/lib/windows-x64
-          cp temp/windows-x64/bitwarden_c.dll languages/ruby/windows-x64/bitwarden_c.dll
+          cp temp/windows-x64/bitwarden_c.dll languages/ruby/lib/windows-x64/bitwarden_c.dll
         shell: bash
 
       - name: Setup gem and release it

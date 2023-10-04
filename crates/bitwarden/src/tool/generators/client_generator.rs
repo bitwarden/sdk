@@ -1,7 +1,8 @@
 use crate::{
     error::Result,
-    tool::generators::password::{
-        passphrase, password, PassphraseGeneratorRequest, PasswordGeneratorRequest,
+    tool::generators::{
+        password::{passphrase, password, PassphraseGeneratorRequest, PasswordGeneratorRequest},
+        username::{username, UsernameGeneratorRequest},
     },
     Client,
 };
@@ -17,6 +18,10 @@ impl<'a> ClientGenerator<'a> {
 
     pub async fn passphrase(&self, input: PassphraseGeneratorRequest) -> Result<String> {
         passphrase(input)
+    }
+
+    pub async fn username(&self, input: UsernameGeneratorRequest) -> Result<String> {
+        username(input).await
     }
 }
 

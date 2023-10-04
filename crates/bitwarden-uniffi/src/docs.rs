@@ -1,6 +1,6 @@
 use bitwarden::{
     auth::password::MasterPasswordPolicyOptions,
-    client::auth_settings::Kdf,
+    client::kdf::Kdf,
     mobile::crypto::InitCryptoRequest,
     tool::{ExportFormat, PassphraseGeneratorRequest, PasswordGeneratorRequest},
     vault::{Cipher, CipherView, Collection, Folder, FolderView, Send, SendListView, SendView},

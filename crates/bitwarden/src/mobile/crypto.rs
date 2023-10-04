@@ -3,12 +3,7 @@ use std::collections::HashMap;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    client::auth_settings::{AuthSettings, Kdf},
-    crypto::EncString,
-    error::Result,
-    Client,
-};
+use crate::{client::kdf::Kdf, crypto::EncString, error::Result, Client};
 
 #[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -31,11 +26,12 @@ pub struct InitCryptoRequest {
 
 #[cfg(feature = "internal")]
 pub async fn initialize_crypto(client: &mut Client, req: InitCryptoRequest) -> Result<()> {
-    let auth_settings = AuthSettings {
+    let login_method = crate::client::LoginMethod::User(crate::client::UserLoginMethod::Username {
+        client_id: "".to_string(),
         email: req.email,
         kdf: req.kdf_params,
-    };
-    client.set_auth_settings(auth_settings);
+    });
+    client.set_login_method(login_method);
 
     let user_key = req.user_key.parse::<EncString>()?;
     let private_key = req.private_key.parse::<EncString>()?;

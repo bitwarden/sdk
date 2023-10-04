@@ -24,6 +24,7 @@ inquire = "0.6.2"
 
 bitwarden = { path = "../bitwarden", version = "0.3.0", features = [
     "internal",
+    "mobile",
 ] }
 bitwarden-cli = { path = "../bitwarden-cli", version = "0.1.0" }
 

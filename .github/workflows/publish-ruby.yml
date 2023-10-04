@@ -29,7 +29,7 @@ jobs:
           ruby-version: 3.2
 
       - name: Download Ruby schemas artifact
-        uses: actions/download-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce
+        uses: actions/download-artifact@v2
         with:
           name: schemas.rb
           path: languages/ruby/lib

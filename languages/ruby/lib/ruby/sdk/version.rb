@@ -3,7 +3,7 @@
 module Ruby
   module Bitwarden
     module Sdk
-      VERSION = '0.1.3'
+      VERSION = '0.1.4'
     end
   end
 end

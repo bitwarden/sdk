@@ -75,17 +75,8 @@ tasks.withType(Javadoc) {
     options.encoding = 'UTF-8'
 }
 
-//tasks.register('copyNativeLib', Copy) {
-//    delete 'src/main/resources/darwin-aarch64'
-//    from '../../target/debug'
-//    include '*libbitwarden_c*.dylib'
-//    include '*libbitwarden_c*.so'
-//    include '*bitwarden_c*.dll'
-//    into 'src/main/resources/darwin-aarch64'
-//}
-
 jar {
-//    dependsOn tasks.named("copyNativeLib")
+    // requires GitHub workflow to copy native library to resources
     from('src/main/resources') {
         include 'darwin-aarch64/**'
         include 'darwin-x64/**'

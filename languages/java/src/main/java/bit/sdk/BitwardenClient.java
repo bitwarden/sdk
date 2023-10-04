@@ -1,13 +1,10 @@
 package bit.sdk;
 
-import bit.sdk.schema.AccessTokenLoginRequest;
-import bit.sdk.schema.ClientSettings;
-import bit.sdk.schema.Command;
-import bit.sdk.schema.Converter;
-import bit.sdk.schema.ResponseForAPIKeyLoginResponse;
+import bit.sdk.schema.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
+
 import java.util.function.Function;
 
 public class BitwardenClient implements AutoCloseable {
@@ -35,9 +32,18 @@ public class BitwardenClient implements AutoCloseable {
 
     private Secrets secrets;
 
-    public BitwardenClient(ClientSettings clientSettings) throws JsonProcessingException {
+    public BitwardenClient(BitwardenSettings bitwardenSettings) {
+        ClientSettings clientSettings = new ClientSettings();
+        clientSettings.setAPIURL(bitwardenSettings.getApiUrl());
+        clientSettings.setIdentityURL(bitwardenSettings.getIdentityUrl());
+        clientSettings.setDeviceType(DeviceType.SDK);
+        clientSettings.setUserAgent("Bitwarden Java SDK");
         library = Native.load("bitwarden_c", BitwardenLibrary.class);
-        client = library.init(Converter.ClientSettingsToJsonString(clientSettings));
+        try {
+            client = library.init(Converter.ClientSettingsToJsonString(clientSettings));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error while processing client settings", e);
+        }
         commandRunner = new CommandRunner(library, client);
         projects = new Projects(commandRunner);
         secrets = new Secrets(commandRunner);

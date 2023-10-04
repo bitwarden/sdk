@@ -1,27 +1,17 @@
 package bit.sdk;
 
-import bit.sdk.schema.ClientSettings;
-import bit.sdk.schema.DeviceType;
-import bit.sdk.schema.ResponseForAPIKeyLoginResponse;
-import bit.sdk.schema.ResponseForProjectResponse;
-import bit.sdk.schema.ResponseForProjectsDeleteResponse;
-import bit.sdk.schema.ResponseForProjectsResponse;
-import bit.sdk.schema.ResponseForSecretIdentifiersResponse;
-import bit.sdk.schema.ResponseForSecretResponse;
-import bit.sdk.schema.ResponseForSecretsDeleteResponse;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import bit.sdk.schema.*;
+
 import java.util.UUID;
 
-public class Wrapper {
+public class ExampleProgram {
 
-    public static void main(String[] args) throws JsonProcessingException {
-        ClientSettings clientSettings = new ClientSettings();
-        clientSettings.setAPIURL("https://api.bitwarden.com");
-        clientSettings.setIdentityURL("https://identity.bitwarden.com");
-        clientSettings.setDeviceType(DeviceType.SDK);
-        clientSettings.setUserAgent("Bitwarden SDK");
+    public static void main(String[] args) {
+        BitwardenSettings bitwardenSettings = new BitwardenSettings();
+        bitwardenSettings.setApiUrl("https://api.bitwarden.com");
+        bitwardenSettings.setIdentityUrl("https://identity.bitwarden.com");
 
-        BitwardenClient bitwardenClient = new BitwardenClient(clientSettings);
+        BitwardenClient bitwardenClient = new BitwardenClient(bitwardenSettings);
         ResponseForAPIKeyLoginResponse responseForAPIKeyLoginResponse = bitwardenClient.accessTokenLogin(
             "<access-token>");
 

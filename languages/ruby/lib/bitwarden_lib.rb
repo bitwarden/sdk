@@ -12,16 +12,16 @@ module BitwardenLib
   ffi_lib case RUBY_PLATFORM
           when /darwin/
             local_file = if mac_with_intel?
-                           File.expand_path('/macos-x64/libbitwarden_c.dylib', __dir__)
+                           File.expand_path('macos-x64/libbitwarden_c.dylib', __dir__)
                          else
-                           File.expand_path('/macos-arm64/libbitwarden_c.dylib', __dir__)
+                           File.expand_path('macos-arm64/libbitwarden_c.dylib', __dir__)
                          end
             File.exist?(local_file) ? local_file : File.expand_path('../../../target/debug/libbitwarden_c.dylib', __dir__)
           when /linux/
-            local_file = File.expand_path('/ubuntu-x64/libbitwarden_c.so', __dir__)
+            local_file = File.expand_path('ubuntu-x64/libbitwarden_c.so', __dir__)
             File.exist?(local_file) ? local_file : File.expand_path('../../../target/debug/libbitwarden_c.so', __dir__)
           when /mswin|mingw/
-            local_file = File.expand_path('/windows-x64/bitwarden_c.dll', __dir__)
+            local_file = File.expand_path('windows-x64/bitwarden_c.dll', __dir__)
             File.exist?(local_file) ? local_file : File.expand_path('../../../target/debug/bitwarden_c.dll', __dir__)
           else
             raise "Unsupported platform: #{RUBY_PLATFORM}"

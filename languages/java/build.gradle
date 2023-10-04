@@ -19,8 +19,6 @@ repositories {
         api 'net.java.dev.jna:jna-platform:5.12.1'
     }
 
-    group = 'bit.sdk'
-    version = '1.0-SNAPSHOT'
     description = 'JavaWrapper'
     java.sourceCompatibility = JavaVersion.VERSION_1_8
 
@@ -75,8 +73,19 @@ tasks.withType(Javadoc) {
     options.encoding = 'UTF-8'
 }
 
+//tasks.register('copyNativeLib', Copy) {
+//    delete 'src/main/resources/darwin-aarch64'
+//    from '../../target/debug'
+//    include '*libbitwarden_c*.dylib'
+//    include '*libbitwarden_c*.so'
+//    include '*bitwarden_c*.dll'
+//    into 'src/main/resources/darwin-aarch64'
+//}
+
 jar {
-    // requires GitHub workflow to copy native library to resources
+//  Requires GitHub workflow to copy native library to resources
+//  Uncomment the line below and copyNativeLib task above to use the local build (modify architecture if needed)
+//    dependsOn tasks.named("copyNativeLib")
     from('src/main/resources') {
         include 'darwin-aarch64/**'
         include 'darwin-x64/**'

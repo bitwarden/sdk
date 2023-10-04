@@ -29,7 +29,7 @@ jobs:
           ruby-version: 3.2
 
       - name: Download Ruby schemas artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: schemas.rb
           path: languages/ruby/lib
@@ -42,7 +42,7 @@ jobs:
 
       - name: Copy MacOS intel lib file
         run: |
-          mkdir languages/ruby/macos-x64
+          mkdir languages/ruby/lib/macos-x64
           cp temp/macos-x64/libbitwarden_c.dylib languages/ruby/macos-x64/libbitwarden_c.dylib
         shell: bash
 
@@ -54,7 +54,7 @@ jobs:
 
       - name: Copy MacOS arm lib file
         run: |
-          mkdir languages/ruby/macos-arm64
+          mkdir languages/ruby/lib/macos-arm64
           cp temp/macos-arm64/libbitwarden_c.dylib languages/ruby/macos-arm64/libbitwarden_c.dylib
         shell: bash
 
@@ -66,7 +66,7 @@ jobs:
 
       - name: Copy Linux lib file
         run: |
-          mkdir languages/ruby/ubuntu-x64
+          mkdir languages/ruby/lib/ubuntu-x64
           cp temp/ubuntu-x64/libbitwarden_c.so languages/ruby/ubuntu-x64/libbitwarden_c.so
         shell: bash
 
@@ -78,13 +78,17 @@ jobs:
 
       - name: Copy Windows lib file
         run: |
-          mkdir languages/ruby/windows-x64
+          mkdir languages/ruby/lib/windows-x64
           cp temp/windows-x64/bitwarden_c.dll languages/ruby/windows-x64/bitwarden_c.dll
         shell: bash
 
       - name: Setup gem and release it
         run: |
           cd languages/ruby
+          ls -lah
+          cd lib
+          ls -lah
+          cd ..
           gem install bundler
           gem build *.gemspec
           gem install *.gem

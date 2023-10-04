@@ -86,6 +86,9 @@ jobs:
         run: |
           cd languages/ruby
           ls -lah
+          cd lib
+          ls -lah
+          cd ..
           gem install bundler
           gem build *.gemspec
           gem install *.gem

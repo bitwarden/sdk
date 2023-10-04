@@ -25,10 +25,10 @@ Gem::Specification.new do |spec|
     end
   end
 
-  spec.files += Dir.glob('ubuntu-x64/**/*')
-  spec.files += Dir.glob('macos-x64/**/*')
-  spec.files += Dir.glob('windows-x64/**/*')
-  spec.files += Dir.glob('macos-arm64/**/*')
+  spec.files += Dir.glob('lib/ubuntu-x64/**/*')
+  spec.files += Dir.glob('lib/macos-x64/**/*')
+  spec.files += Dir.glob('lib/windows-x64/**/*')
+  spec.files += Dir.glob('lib/macos-arm64/**/*')
 
   spec.bindir = 'exe'
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }

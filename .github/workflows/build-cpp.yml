@@ -24,7 +24,7 @@ jobs:
         os:
           # - windows-2022
           - ubuntu-22.04
-          - macos-12
+          # - macos-12
         compiler:
           - llvm
         prefix:
@@ -110,7 +110,7 @@ jobs:
           curl https://github.com/nlohmann/json/releases/download/v3.11.2/json.hpp -o json.hpp
           curl https://boostorg.jfrog.io/artifactory/main/release/1.83.0/source/boost_1_83_0.tar.gz -o boost.tar.gz
           tar -xvf boost.tar.gz
-          boostrap.sh --prefix=${{ env.LIBS_PATH }}
+          ./bootstrap.sh --prefix=${{ env.LIBS_PATH }}
           ./b2 install
       - name: Build C++ Project
         if: "!contains(matrix.os, 'windows')"

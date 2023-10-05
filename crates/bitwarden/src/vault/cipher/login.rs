@@ -27,7 +27,7 @@ pub enum UriMatchType {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct LoginUri {
-    pub uri: EncString,
+    pub uri: Option<EncString>,
     pub r#match: Option<UriMatchType>,
 }
 
@@ -35,7 +35,7 @@ pub struct LoginUri {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct LoginUriView {
-    pub uri: String,
+    pub uri: Option<String>,
     pub r#match: Option<UriMatchType>,
 }
 
@@ -43,11 +43,11 @@ pub struct LoginUriView {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Login {
-    pub username: EncString,
-    pub password: EncString,
+    pub username: Option<EncString>,
+    pub password: Option<EncString>,
     pub password_revision_date: Option<DateTime<Utc>>,
 
-    pub uris: Vec<LoginUri>,
+    pub uris: Option<Vec<LoginUri>>,
     pub totp: Option<EncString>,
     pub autofill_on_page_load: Option<bool>,
 }
@@ -56,11 +56,11 @@ pub struct Login {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct LoginView {
-    pub username: String,
-    pub password: String,
+    pub username: Option<String>,
+    pub password: Option<String>,
     pub password_revision_date: Option<DateTime<Utc>>,
 
-    pub uris: Vec<LoginUriView>,
+    pub uris: Option<Vec<LoginUriView>>,
     pub totp: Option<String>,
     pub autofill_on_page_load: Option<bool>,
 }

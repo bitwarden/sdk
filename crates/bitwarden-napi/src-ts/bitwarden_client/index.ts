@@ -4,7 +4,6 @@ import {
   ClientSettings,
   Convert,
   ResponseForAPIKeyLoginResponse,
-  ResponseForPasswordLoginResponse,
   ResponseForSecretIdentifiersResponse,
   ResponseForSecretResponse,
   ResponseForSecretsDeleteResponse,
@@ -17,19 +16,6 @@ export class BitwardenClient {
   constructor(settings?: ClientSettings, loggingLevel?: LogLevel) {
     const settingsJson = settings == null ? null : Convert.clientSettingsToJson(settings);
     this.client = new rust.BitwardenClient(settingsJson, loggingLevel ?? LogLevel.Info);
-  }
-
-  async login(email: string, password: string): Promise<ResponseForPasswordLoginResponse> {
-    const response = await this.client.runCommand(
-      Convert.commandToJson({
-        passwordLogin: {
-          email: email,
-          password: password,
-        },
-      }),
-    );
-
-    return Convert.toResponseForPasswordLoginResponse(response);
   }
 
   async loginWithAccessToken(accessToken: string): Promise<ResponseForAPIKeyLoginResponse> {

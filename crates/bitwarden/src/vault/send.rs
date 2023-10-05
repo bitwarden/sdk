@@ -36,7 +36,7 @@ pub struct SendFileView {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SendText {
-    pub text: EncString,
+    pub text: Option<EncString>,
     pub hidden: bool,
 }
 
@@ -44,7 +44,7 @@ pub struct SendText {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SendTextView {
-    pub text: String,
+    pub text: Option<String>,
     pub hidden: bool,
 }
 

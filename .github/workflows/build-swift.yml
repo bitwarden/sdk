@@ -25,7 +25,6 @@ jobs:
           VERSION=$(grep -o '^version = ".*"' crates/bitwarden/Cargo.toml | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
           echo "package_version=$VERSION" >> $GITHUB_OUTPUT
 
-
   build:
     runs-on: macos-13
     strategy:
@@ -38,7 +37,7 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
-      
+
       - name: Install rust
         uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # stable
         with:
@@ -48,7 +47,7 @@ jobs:
         uses: Swatinem/rust-cache@a95ba195448af2da9b00fb742d14ffaaf3c21f43 # v2.7.0
         with:
           key: ${{ matrix.settings.target }}-cargo
-        
+
       - name: Rustup target
         run: rustup target install ${{ matrix.settings.target }}
 
@@ -73,11 +72,10 @@ jobs:
           path: ./target/${{ matrix.settings.target }}/release/libbitwarden_uniffi.dylib
           if-no-files-found: error
 
-
   package:
     name: Package
     runs-on: macos-13
-    needs: 
+    needs:
       - build
       - version
     env:
@@ -85,12 +83,12 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
-      
+
       - name: Install rust
         uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # stable
         with:
           toolchain: 1.70.0
-      
+
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@a95ba195448af2da9b00fb742d14ffaaf3c21f43 # v2.7.0
         with:
@@ -126,7 +124,7 @@ jobs:
           mv ./bindings/BitwardenFFI.h ./Headers/
           mv ./bindings/BitwardenCoreFFI.h ./Headers/
           cat ./bindings/BitwardenFFI.modulemap ./bindings/BitwardenCoreFFI.modulemap > ./Headers/module.modulemap
-      
+
       - name: Build xcframework
         working-directory: ./languages/swift
         run: |
@@ -136,7 +134,7 @@ jobs:
             -library ${{ github.workspace	}}/universal-ios-sim/release/libbitwarden_uniffi.a \
             -headers ./Headers \
             -output ./BitwardenFFI.xcframework
-      
+
       - name: Upload xcframework artifact
         uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
         with:

@@ -1,5 +1,6 @@
 use crate::{
-    client::auth_settings::{AuthSettings, Kdf},
+    client::kdf::Kdf,
+    crypto::{HashPurpose, MasterKey},
     error::Result,
     Client,
 };
@@ -10,10 +11,7 @@ pub async fn hash_password(
     password: String,
     kdf_params: Kdf,
 ) -> Result<String> {
-    let auth_settings = AuthSettings {
-        email,
-        kdf: kdf_params,
-    };
-    let hash = auth_settings.make_user_password_hash(&password)?;
-    Ok(hash)
+    let master_key = MasterKey::derive(password.as_bytes(), email.as_bytes(), &kdf_params)?;
+
+    master_key.derive_master_key_hash(password.as_bytes(), HashPurpose::ServerAuthorization)
 }

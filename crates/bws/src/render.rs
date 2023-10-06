@@ -1,5 +1,5 @@
 use bitwarden::secrets_manager::{projects::ProjectResponse, secrets::SecretResponse};
-use chrono::DateTime;
+use chrono::{DateTime, Utc};
 use clap::ValueEnum;
 use comfy_table::Table;
 use serde::Serialize;
@@ -105,11 +105,8 @@ impl<T: TableSerialize<N>, const N: usize> TableSerialize<N> for Vec<T> {
     }
 }
 
-fn format_date(date: &str) -> String {
-    DateTime::parse_from_rfc3339(date)
-        .unwrap()
-        .format("%Y-%m-%d %H:%M:%S")
-        .to_string()
+fn format_date(date: &DateTime<Utc>) -> String {
+    date.format("%Y-%m-%d %H:%M:%S").to_string()
 }
 
 impl TableSerialize<3> for ProjectResponse {

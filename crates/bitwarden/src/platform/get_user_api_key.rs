@@ -8,7 +8,8 @@ use serde::{Deserialize, Serialize};
 
 use super::SecretVerificationRequest;
 use crate::{
-    client::auth_settings::AuthSettings,
+    client::{LoginMethod, UserLoginMethod},
+    crypto::{HashPurpose, MasterKey},
     error::{Error, Result},
     Client,
 };
@@ -20,7 +21,7 @@ pub(crate) async fn get_user_api_key(
     info!("Getting Api Key");
     debug!("{:?}", input);
 
-    let auth_settings = get_auth_settings(client)?;
+    let auth_settings = get_login_method(client)?;
     let request = get_secret_verification_request(auth_settings, input)?;
 
     let config = client.get_api_configurations().await;
@@ -29,33 +30,40 @@ pub(crate) async fn get_user_api_key(
     UserApiKeyResponse::process_response(response)
 }
 
-fn get_auth_settings(client: &Client) -> Result<&AuthSettings> {
+fn get_login_method(client: &Client) -> Result<&LoginMethod> {
     if client.is_authed() {
-        let auth_settings = client
-            .get_auth_settings()
+        client
+            .get_login_method()
             .as_ref()
-            .ok_or(Error::NotAuthenticated)?;
-        Ok(auth_settings)
+            .ok_or(Error::NotAuthenticated)
     } else {
         Err(Error::NotAuthenticated)
     }
 }
 
 fn get_secret_verification_request(
-    auth_settings: &AuthSettings,
+    login_method: &LoginMethod,
     input: &SecretVerificationRequest,
 ) -> Result<SecretVerificationRequestModel> {
-    let master_password_hash = input
-        .master_password
-        .as_ref()
-        .map(|p| auth_settings.make_user_password_hash(p))
-        .transpose()?;
-    Ok(SecretVerificationRequestModel {
-        master_password_hash,
-        otp: input.otp.as_ref().cloned(),
-        secret: None,
-        auth_request_access_code: None,
-    })
+    if let LoginMethod::User(UserLoginMethod::Username { email, kdf, .. }) = login_method {
+        let master_password_hash = input
+            .master_password
+            .as_ref()
+            .map(|p| {
+                let master_key = MasterKey::derive(p.as_bytes(), email.as_bytes(), kdf)?;
+
+                master_key.derive_master_key_hash(p.as_bytes(), HashPurpose::ServerAuthorization)
+            })
+            .transpose()?;
+        Ok(SecretVerificationRequestModel {
+            master_password_hash,
+            otp: input.otp.as_ref().cloned(),
+            secret: None,
+            auth_request_access_code: None,
+        })
+    } else {
+        Err(Error::Internal("Unsupported login method"))
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

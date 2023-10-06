@@ -1,8 +1,12 @@
-use super::password::{password_strength, satisfies_policy, MasterPasswordPolicyOptions};
-use crate::Client;
+use super::{
+    password::{password_strength, satisfies_policy, MasterPasswordPolicyOptions},
+    register::{make_register_keys, register},
+    RegisterKeyResponse, RegisterRequest,
+};
+use crate::{client::kdf::Kdf, error::Result, Client};
 
 pub struct ClientAuth<'a> {
-    pub(crate) _client: &'a crate::Client,
+    pub(crate) client: &'a mut crate::Client,
 }
 
 impl<'a> ClientAuth<'a> {
@@ -23,10 +27,24 @@ impl<'a> ClientAuth<'a> {
     ) -> bool {
         satisfies_policy(password, strength, policy)
     }
+
+    pub fn make_register_keys(
+        &self,
+        email: String,
+        password: String,
+        kdf: Kdf,
+    ) -> Result<RegisterKeyResponse> {
+        make_register_keys(email, password, kdf)
+    }
+
+    #[cfg(feature = "internal")]
+    pub async fn register(&mut self, input: &RegisterRequest) -> Result<()> {
+        register(self.client, input).await
+    }
 }
 
 impl<'a> Client {
-    pub fn auth(&'a self) -> ClientAuth<'a> {
-        ClientAuth { _client: self }
+    pub fn auth(&'a mut self) -> ClientAuth<'a> {
+        ClientAuth { client: self }
     }
 }

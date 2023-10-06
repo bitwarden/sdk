@@ -1,13 +1,12 @@
 use std::path::Path;
 
+use super::client_vault::ClientVault;
 use crate::{
     crypto::{Decryptable, EncString, Encryptable},
     error::Result,
     vault::{Send, SendListView, SendView},
     Client,
 };
-
-use super::client_vault::ClientVault;
 
 pub struct ClientSends<'a> {
     pub(crate) client: &'a Client,

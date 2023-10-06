@@ -1,7 +1,7 @@
 #[cfg(feature = "internal")]
 use {
     crate::{
-        client::{auth_settings::AuthSettings, Client},
+        client::{kdf::Kdf, Client},
         error::Result,
     },
     bitwarden_api_identity::{
@@ -40,21 +40,18 @@ pub(crate) use access_token::access_token_login;
 pub use access_token::{AccessTokenLoginRequest, AccessTokenLoginResponse};
 
 #[cfg(feature = "internal")]
-async fn determine_password_hash(
-    client: &mut Client,
-    email: &str,
-    password: &str,
-) -> Result<String> {
-    let pre_login = request_prelogin(client, email.to_owned()).await?;
-    let auth_settings = AuthSettings::new(pre_login, email.to_owned());
-    let password_hash = auth_settings.make_user_password_hash(password)?;
-    client.set_auth_settings(auth_settings);
+async fn determine_password_hash(email: &str, kdf: &Kdf, password: &str) -> Result<String> {
+    use crate::crypto::{HashPurpose, MasterKey};
 
-    Ok(password_hash)
+    let master_key = MasterKey::derive(password.as_bytes(), email.as_bytes(), kdf)?;
+    master_key.derive_master_key_hash(password.as_bytes(), HashPurpose::ServerAuthorization)
 }
 
 #[cfg(feature = "internal")]
-async fn request_prelogin(client: &mut Client, email: String) -> Result<PreloginResponseModel> {
+pub(crate) async fn request_prelogin(
+    client: &mut Client,
+    email: String,
+) -> Result<PreloginResponseModel> {
     let request_model = PreloginRequestModel::new(email);
     let config = client.get_api_configurations().await;
     Ok(accounts_prelogin_post(&config.identity, Some(request_model)).await?)

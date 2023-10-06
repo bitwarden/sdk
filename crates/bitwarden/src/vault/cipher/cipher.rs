@@ -44,7 +44,7 @@ pub struct Cipher {
     pub collection_ids: Vec<Uuid>,
 
     pub name: EncString,
-    pub notes: EncString,
+    pub notes: Option<EncString>,
 
     pub r#type: CipherType,
     pub login: Option<login::Login>,
@@ -59,9 +59,9 @@ pub struct Cipher {
     pub view_password: bool,
     pub local_data: Option<LocalData>,
 
-    pub attachments: Vec<attachment::Attachment>,
-    pub fields: Vec<field::Field>,
-    pub password_history: Vec<password_history::PasswordHistory>,
+    pub attachments: Option<Vec<attachment::Attachment>>,
+    pub fields: Option<Vec<field::Field>>,
+    pub password_history: Option<Vec<password_history::PasswordHistory>>,
 
     pub creation_date: DateTime<Utc>,
     pub deleted_date: Option<DateTime<Utc>>,
@@ -78,7 +78,7 @@ pub struct CipherView {
     pub collection_ids: Vec<Uuid>,
 
     pub name: String,
-    pub notes: String,
+    pub notes: Option<String>,
 
     pub r#type: CipherType,
     pub login: Option<login::LoginView>,
@@ -93,9 +93,9 @@ pub struct CipherView {
     pub view_password: bool,
     pub local_data: Option<LocalDataView>,
 
-    pub attachments: Vec<attachment::AttachmentView>,
-    pub fields: Vec<field::FieldView>,
-    pub password_history: Vec<password_history::PasswordHistoryView>,
+    pub attachments: Option<Vec<attachment::AttachmentView>>,
+    pub fields: Option<Vec<field::FieldView>>,
+    pub password_history: Option<Vec<password_history::PasswordHistoryView>>,
 
     pub creation_date: DateTime<Utc>,
     pub deleted_date: Option<DateTime<Utc>>,
@@ -202,7 +202,7 @@ impl Cipher {
                 let Some(login) = &self.login else {
                     return Ok(String::new());
                 };
-                login.username.decrypt(enc, org_id).unwrap_or_default()
+                login.username.decrypt(enc, org_id)?.unwrap_or_default()
             }
             CipherType::SecureNote => String::new(),
             CipherType::Card => {
@@ -273,7 +273,11 @@ impl Decryptable<CipherListView> for Cipher {
             reprompt: self.reprompt,
             edit: self.edit,
             view_password: self.view_password,
-            attachments: self.attachments.len() as u32,
+            attachments: self
+                .attachments
+                .as_ref()
+                .map(|a| a.len() as u32)
+                .unwrap_or(0),
             creation_date: self.creation_date,
             deleted_date: self.deleted_date,
             revision_date: self.revision_date,

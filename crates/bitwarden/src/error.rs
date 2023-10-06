@@ -40,6 +40,8 @@ pub enum Error {
     Io(#[from] std::io::Error),
     #[error(transparent)]
     InvalidBase64(#[from] base64::DecodeError),
+    #[error(transparent)]
+    Chrono(#[from] chrono::ParseError),
 
     #[error("Received error message from server: [{}] {}", .status, .message)]
     ResponseContent { status: StatusCode, message: String },

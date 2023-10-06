@@ -4,12 +4,12 @@ use rsa::RsaPrivateKey;
 use uuid::Uuid;
 #[cfg(feature = "internal")]
 use {
-    crate::client::auth_settings::AuthSettings,
+    crate::client::UserLoginMethod,
     rsa::{pkcs8::DecodePrivateKey, Oaep},
 };
 
 use crate::{
-    crypto::{encrypt_aes256, EncString, SymmetricCryptoKey},
+    crypto::{encrypt_aes256_hmac, EncString, SymmetricCryptoKey},
     error::{CryptoError, Result},
 };
 
@@ -28,42 +28,38 @@ impl std::fmt::Debug for EncryptionSettings {
 impl EncryptionSettings {
     #[cfg(feature = "internal")]
     pub(crate) fn new(
-        auth: &AuthSettings,
+        login_method: &UserLoginMethod,
         password: &str,
         user_key: EncString,
         private_key: EncString,
     ) -> Result<Self> {
-        use crate::crypto::decrypt_aes256;
+        use crate::crypto::MasterKey;
 
-        // Stretch keys from the provided password
-        let (key, mac_key) = crate::crypto::stretch_key_password(
-            password.as_bytes(),
-            auth.email.as_bytes(),
-            &auth.kdf,
-        )?;
+        match login_method {
+            UserLoginMethod::Username { email, kdf, .. }
+            | UserLoginMethod::ApiKey { email, kdf, .. } => {
+                // Derive master key from password
+                let master_key = MasterKey::derive(password.as_bytes(), email.as_bytes(), kdf)?;
 
-        // Decrypt the user key with the stretched key
-        let user_key = {
-            let (iv, mac, data) = match user_key {
-                EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => (iv, mac, data),
-                _ => return Err(CryptoError::InvalidKey.into()),
-            };
+                // Decrypt the user key
+                let user_key = master_key.decrypt_user_key(user_key)?;
 
-            let dec = decrypt_aes256(&iv, &mac, data, Some(mac_key), key)?;
-            SymmetricCryptoKey::try_from(dec.as_slice())?
-        };
+                // Decrypt the private key with the user key
+                let private_key = {
+                    let dec = private_key.decrypt_with_key(&user_key)?;
+                    Some(
+                        rsa::RsaPrivateKey::from_pkcs8_der(&dec)
+                            .map_err(|_| CryptoError::InvalidKey)?,
+                    )
+                };
 
-        // Decrypt the private key with the user key
-        let private_key = {
-            let dec = private_key.decrypt_with_key(&user_key)?;
-            Some(rsa::RsaPrivateKey::from_pkcs8_der(&dec).map_err(|_| CryptoError::InvalidKey)?)
-        };
-
-        Ok(EncryptionSettings {
-            user_key,
-            private_key,
-            org_keys: HashMap::new(),
-        })
+                Ok(EncryptionSettings {
+                    user_key,
+                    private_key,
+                    org_keys: HashMap::new(),
+                })
+            }
+        }
     }
 
     pub(crate) fn new_single_key(key: SymmetricCryptoKey) -> Self {
@@ -131,7 +127,7 @@ impl EncryptionSettings {
     pub(crate) fn encrypt(&self, data: &[u8], org_id: &Option<Uuid>) -> Result<EncString> {
         let key = self.get_key(org_id).ok_or(CryptoError::NoKeyForOrg)?;
 
-        let dec = encrypt_aes256(data, key.mac_key, key.key)?;
+        let dec = encrypt_aes256_hmac(data, key.mac_key.ok_or(CryptoError::InvalidMac)?, key.key)?;
         Ok(dec)
     }
 }

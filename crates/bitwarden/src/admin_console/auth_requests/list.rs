@@ -57,7 +57,7 @@ pub struct PendingAuthRequestResponse {
     pub user_id: Uuid,
     pub organization_user_id: Uuid,
     pub email: String,
-
+    // TODO: map rest of fields
 }
 
 impl PendingAuthRequestResponse {

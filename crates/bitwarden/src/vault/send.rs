@@ -336,20 +336,11 @@ pub async fn download_send_file_from_url(
     let mut file = std::fs::File::create(path)?;
     let mut file_response = client.get(url).send().await?;
 
-    let initial_chunk = file_response.chunk().await?.unwrap();
-
-    let (mut decryptor, chunk) = crate::crypto::ChunkedDecryptor::new(key, &initial_chunk)?;
-    file.write_all(&chunk)?;
-
+    let mut decryptor = crate::crypto::ChunkedDecryptor::new(&key, &mut file);
     while let Some(chunk) = file_response.chunk().await? {
-        let chunk = decryptor.decrypt_chunk(&chunk)?;
-        file.write_all(&chunk)?;
+        decryptor.write_all(&chunk)?;
     }
-
-    let chunk = decryptor.finalize()?;
-    file.write_all(&chunk)?;
-
-    file.flush()?;
+    decryptor.finalize()?;
 
     Ok(())
 }

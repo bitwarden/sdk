@@ -1,3 +1,5 @@
+use std::io::Write;
+
 use aes::{
     cipher::{generic_array::GenericArray, Unsigned},
     Aes256,
@@ -10,7 +12,6 @@ use crate::{
     error::{EncStringParseError, Error, Result},
 };
 
-#[cfg(feature = "mobile")]
 use {
     crate::error::CryptoError,
     aes::{
@@ -41,57 +42,67 @@ pub enum EncryptionType {
         mac: [u8; 32],
         hmac: PbkdfSha256Hmac,
         decryptor: Decryptor<Aes256>,
+
+        // Buffer for storing the last block from the chunk,
+        // so we can unpad it when hitting the end of the stream
+        last_block: [u8; 16],
+        last_block_filled: bool,
     },
 }
 
-// To avoid issues, we need to make sure this is bigger or equal than all the ciphers block sizes
-#[cfg(feature = "mobile")]
-const MAX_BLOCK_SIZE: usize = 16;
-
-#[cfg(feature = "mobile")]
-pub struct ChunkedDecryptor {
+struct ChunkedDecryptorConfigured {
     enc_type: EncryptionType,
 
     // Block size of the cipher used, the data passed to the decryptor must be exactly this size
     block_size: usize,
-
-    // Buffer for storing the last block from the previous chunk, either partially or in full
-    buf: [u8; MAX_BLOCK_SIZE],
-    buf_len: usize,
 }
 
-#[cfg(feature = "mobile")]
-impl ChunkedDecryptor {
-    /// Creates a new decryptor for a chunked cipher string
-    /// Important: The first chunk must contain the encryption type, MAC and IV (which are contained in the first bytes
-    /// of the encrypted blob) plus at least one block, so make sure that the initial chunk is at least 65 bytes long
-    pub fn new(key: SymmetricCryptoKey, initial_chunk: &[u8]) -> Result<(Self, Vec<u8>)> {
-        let remaining_chunk;
-        let block_size;
+// The second variant is big enough to trigger the lint, but it's not
+// a problem as the first variant is only used briefly during setup
+#[allow(clippy::large_enum_variant)]
+enum ChunkedDecryptorState<'a> {
+    Initial(&'a SymmetricCryptoKey),
+    Configured(ChunkedDecryptorConfigured),
+}
 
+pub struct ChunkedDecryptor<'a, Output: Write> {
+    state: ChunkedDecryptorState<'a>,
+    output: Output,
+    buffer: Vec<u8>,
+}
+
+const INTERNAL_BUFFER_SIZE: usize = 4096;
+const MIN_UNBUFFERED_SIZE: usize = 64;
+
+impl<'a, Output: Write> ChunkedDecryptor<'a, Output> {
+    pub fn new(key: &'a SymmetricCryptoKey, output: Output) -> Self {
+        Self {
+            state: ChunkedDecryptorState::Initial(key),
+            output,
+            buffer: Vec::with_capacity(INTERNAL_BUFFER_SIZE),
+        }
+    }
+
+    fn read_initial(
+        key: &SymmetricCryptoKey,
+        buf: &[u8],
+    ) -> Result<(Option<ChunkedDecryptorConfigured>, usize)> {
         // The first byte of the message indicates the encryption type
-        let Some(&enc_type_num) = initial_chunk.first() else {
-            return Err(EncStringParseError::InvalidType {
-                enc_type: "Missing".to_string(),
-                parts: 1,
-            }
-            .into());
+        let Some(&enc_type_num) = buf.first() else {
+            return Ok((None, 0));
         };
-        let enc_type = match enc_type_num {
+        let (enc_type, block_size, bytes_read) = match enc_type_num {
             0 => unimplemented!(),
             1 | 2 => {
-                if initial_chunk.len() < 49 {
-                    return Err(EncStringParseError::InvalidLength {
-                        expected: 49,
-                        got: initial_chunk.len(),
-                    }
-                    .into());
+                const HEADER_SIZE: usize = 49;
+
+                if buf.len() < HEADER_SIZE {
+                    return Ok((None, 0));
                 }
 
                 // Extract IV and MAC from the initial chunk, and separate the rest of the chunk
-                let iv: [u8; 16] = initial_chunk[1..17].try_into().unwrap();
-                let mac: [u8; 32] = initial_chunk[17..49].try_into().unwrap();
-                remaining_chunk = &initial_chunk[49..];
+                let iv: [u8; 16] = buf[1..17].try_into().unwrap();
+                let mac: [u8; 32] = buf[17..HEADER_SIZE].try_into().unwrap();
                 let Some(mac_key) = &key.mac_key else {
                     return Err(CryptoError::InvalidMac.into());
                 };
@@ -102,20 +113,23 @@ impl ChunkedDecryptor {
                 hmac.update(&iv);
 
                 match enc_type_num {
-                    1 => {
-                        block_size = <Decryptor<Aes128> as BlockSizeUser>::BlockSize::USIZE;
-                        EncryptionType::AesCbc128_HmacSha256_B64 { iv, mac, hmac }
-                    }
-                    2 => {
-                        let decryptor = Decryptor::new(&key.key, GenericArray::from_slice(&iv));
-                        block_size = <Decryptor<Aes256> as BlockSizeUser>::BlockSize::USIZE;
+                    1 => (
+                        EncryptionType::AesCbc128_HmacSha256_B64 { iv, mac, hmac },
+                        <Decryptor<Aes128> as BlockSizeUser>::BlockSize::USIZE,
+                        HEADER_SIZE,
+                    ),
+                    2 => (
                         EncryptionType::AesCbc256_HmacSha256_B64 {
                             iv,
                             mac,
                             hmac,
-                            decryptor,
-                        }
-                    }
+                            decryptor: Decryptor::new(&key.key, (&iv).into()),
+                            last_block: [0u8; 16],
+                            last_block_filled: false,
+                        },
+                        <Decryptor<Aes256> as BlockSizeUser>::BlockSize::USIZE,
+                        HEADER_SIZE,
+                    ),
                     _ => unreachable!(),
                 }
             }
@@ -128,106 +142,103 @@ impl ChunkedDecryptor {
             }
         };
 
-        let mut decryptor = Self {
-            enc_type,
-            block_size,
-            buf: [0u8; MAX_BLOCK_SIZE],
-            buf_len: 0,
-        };
-        // Process the rest of the initial chunk
-        let decrypted_initial_chunk = decryptor.decrypt_chunk(remaining_chunk)?;
-        Ok((decryptor, decrypted_initial_chunk))
+        Ok((
+            Some(ChunkedDecryptorConfigured {
+                enc_type,
+                block_size,
+            }),
+            bytes_read,
+        ))
     }
 
-    /// Decrypts a chunk of data, the chunk size must greater than the cipher's block size (16 bytes)
-    pub fn decrypt_chunk(&mut self, chunk: &[u8]) -> Result<Vec<u8>> {
-        match &mut self.enc_type {
+    fn read_blocks(
+        state: &mut ChunkedDecryptorConfigured,
+        output: &mut Output,
+        buf: &mut [u8],
+    ) -> Result<usize> {
+        match &mut state.enc_type {
             EncryptionType::AesCbc256_B64 { .. } => unimplemented!(),
             EncryptionType::AesCbc128_HmacSha256_B64 { .. } => unimplemented!(),
             EncryptionType::AesCbc256_HmacSha256_B64 {
-                hmac, decryptor, ..
+                hmac,
+                decryptor,
+                last_block,
+                last_block_filled,
+                ..
             } => {
-                // Only work with chunks larger than the block size
-                if chunk.len() < self.block_size {
-                    return Err(Error::Internal("Chunk size too small"));
+                // If we got less than a block, we need to wait for more data
+                if buf.len() < state.block_size {
+                    return Ok(0);
                 }
 
-                // Update HMAC, this doesn't care about block sizes, so just pass the whole chunk
-                hmac.update(chunk);
+                // Make sure we only process full blocks
+                // We decrypt one block less than we have so we can remove the padding in finalize
+                let bytes_to_process = buf.len() - (buf.len() % state.block_size);
+                let bytes_to_decrypt = bytes_to_process - state.block_size;
 
-                // Preallocate the result vector based on the chunk size plus an extra block to account for partial blocks
-                let mut result = Vec::with_capacity(chunk.len() + self.block_size);
+                // Update HMAC value for all the processed bytes
+                hmac.update(&buf[..bytes_to_process]);
 
-                let mut process_block = |block: &[u8]| {
-                    debug_assert_eq!(block.len(), self.block_size);
-
-                    let mut block = GenericArray::clone_from_slice(block);
-                    decryptor.decrypt_block_mut(&mut block);
-                    result.extend_from_slice(&block);
-                };
-
-                let skip_initial_bytes = if self.buf_len > 0 {
-                    // Process partial block if there is one. This will also process a full block if  buf_len == block_size
-                    let bytes_to_complete_partial = self.block_size - self.buf_len;
-
-                    // Fill up the partial block with the first bytes of the chunk
-                    self.buf[self.buf_len..self.block_size]
-                        .copy_from_slice(&chunk[0..bytes_to_complete_partial]);
-
-                    // Process the now filled partial block
-                    process_block(&self.buf[..self.block_size]);
-
-                    bytes_to_complete_partial
+                // Process the last block from the previous call, as we are not at the end of the stream
+                if *last_block_filled {
+                    decryptor.decrypt_block_mut(last_block.into());
+                    output.write_all(last_block)?;
                 } else {
-                    0
-                };
-
-                // Check how many bytes we need to process the previous partial data and the current chunk
-                let full_chunk_size = chunk.len() - skip_initial_bytes;
-                let mut remainder_bytes = full_chunk_size % self.block_size;
-
-                // Make sure we leave at least one block unprocessed, to remove the padding later
-                if remainder_bytes == 0 {
-                    remainder_bytes = self.block_size;
+                    *last_block_filled = true;
                 }
 
-                let chunk_to_process = &chunk[skip_initial_bytes..(chunk.len() - remainder_bytes)];
+                // Store the last block for later, in case this is the end of the stream
+                last_block
+                    .copy_from_slice(&buf[bytes_to_decrypt..bytes_to_decrypt + state.block_size]);
 
-                for block in chunk_to_process.chunks_exact(self.block_size) {
-                    process_block(block)
+                // Split the buffer into blocks and decrypt them in place
+                for block in buf[..bytes_to_decrypt].chunks_exact_mut(state.block_size) {
+                    decryptor.decrypt_block_mut(block.into());
                 }
+                // Write all the decrypted blocks at once
+                output.write_all(&buf[..bytes_to_decrypt])?;
 
-                self.buf[0..remainder_bytes]
-                    .copy_from_slice(&chunk[chunk.len() - remainder_bytes..]);
-                self.buf_len = remainder_bytes;
-
-                Ok(result)
+                Ok(bytes_to_process)
             }
         }
     }
 
-    pub fn finalize(mut self) -> Result<Vec<u8>> {
+    pub fn finalize(mut self) -> Result<()> {
+        // Flush internal buffer before processing last block
+        self.flush()?;
+
+        let ChunkedDecryptorState::Configured(mut state) = self.state else {
+            return Err(Error::Internal("ChunkedDecryptor has not been written to"));
+        };
+
         // Process last block separately and handle it's padding
-        let last_buf = match &mut self.enc_type {
+        match &mut state.enc_type {
             EncryptionType::AesCbc256_B64 { .. } => unimplemented!(),
             EncryptionType::AesCbc128_HmacSha256_B64 { .. } => unimplemented!(),
-            EncryptionType::AesCbc256_HmacSha256_B64 { decryptor, .. } => {
-                if self.buf_len == self.block_size {
-                    let mut block = GenericArray::clone_from_slice(&self.buf[..self.block_size]);
-                    decryptor.decrypt_block_mut(&mut block);
+            EncryptionType::AesCbc256_HmacSha256_B64 {
+                decryptor,
+                last_block,
+                last_block_filled,
+                ..
+            } => {
+                if *last_block_filled {
+                    let block: &mut GenericArray<_, _> = last_block.into();
+                    decryptor.decrypt_block_mut(block);
 
-                    Pkcs7::unpad(&block).unwrap().to_vec()
-                } else if self.buf_len == 0 {
-                    return Err(Error::Internal("Missing block at the end of the data"));
+                    let Ok(block_unpadded) = Pkcs7::unpad(block) else {
+                        return Err(Error::Internal("Invalid padding"));
+                    };
+                    self.output.write_all(block_unpadded)?;
+                    self.output.flush()?;
                 } else {
-                    return Err(Error::Internal("Partial block at the end of the data"));
+                    return Err(Error::Internal("Invalid block at the end of the data"));
                 }
             }
         };
 
         // Validate MAC
-        match self.enc_type {
-            EncryptionType::AesCbc256_B64 { iv: _ } => unimplemented!(),
+        match state.enc_type {
+            EncryptionType::AesCbc256_B64 { iv: _ } => { /* No HMAC, nothing to do */ }
             EncryptionType::AesCbc128_HmacSha256_B64 { mac, hmac, .. }
             | EncryptionType::AesCbc256_HmacSha256_B64 { mac, hmac, .. } => {
                 if hmac.finalize() != CtOutput::new(mac.into()) {
@@ -236,46 +247,103 @@ impl ChunkedDecryptor {
             }
         }
 
-        Ok(last_buf)
+        Ok(())
     }
 }
 
-#[cfg(feature = "mobile")]
+impl<'a, Output: Write> Write for ChunkedDecryptor<'a, Output> {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        // Insert received data into the buffer
+        self.buffer.extend_from_slice(buf);
+        if self.buffer.is_empty() {
+            return Ok(0);
+        }
+
+        // If we have a small amount of bytes and enough space, copy them to the internal buffer and return
+        let incoming_buf_len = buf.len();
+        if incoming_buf_len > 0 && self.buffer.len() < MIN_UNBUFFERED_SIZE {
+            return Ok(incoming_buf_len);
+        }
+
+        let written = match &mut self.state {
+            ChunkedDecryptorState::Initial(key) => {
+                let (state, bytes_read) = Self::read_initial(key, &self.buffer)?;
+                if let Some(state) = state {
+                    self.state = ChunkedDecryptorState::Configured(state);
+                }
+                bytes_read
+            }
+            ChunkedDecryptorState::Configured(state) => {
+                Self::read_blocks(state, &mut self.output, &mut self.buffer)?
+            }
+        };
+
+        // Remove the processed bytes from the internal buffer
+        self.buffer.drain(..written);
+
+        Ok(incoming_buf_len)
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        // Make sure the internal buffer has been processed entirely
+        // Note: We don't need to flush the output here, as that is done in finalize
+        self.write(&[]).map(|_| ())
+    }
+}
+
 pub fn decrypt_file(
     key: SymmetricCryptoKey,
     encrypted_file_path: &std::path::Path,
     decrypted_file_path: &std::path::Path,
 ) -> Result<()> {
-    // TODO: Move to use an async file implementation
-    use std::{
-        fs::File,
-        io::{Read, Write},
-    };
+    use std::fs::File;
 
     let mut encrypted_file = File::open(encrypted_file_path)?;
     let mut decrypted_file = File::create(decrypted_file_path)?;
 
-    let mut buffer = [0; 4096];
-    let bytes_read = encrypted_file.read(&mut buffer)?;
-    if bytes_read == 0 {
-        return Err(Error::Internal("Empty file"));
-    }
-    let (mut decryptor, initial_chunk) = ChunkedDecryptor::new(key, &buffer[..bytes_read])?;
-    decrypted_file.write_all(&initial_chunk)?;
-
-    loop {
-        let bytes_read = encrypted_file.read(&mut buffer)?;
-        if bytes_read == 0 {
-            break;
-        }
-        let chunk = decryptor.decrypt_chunk(&buffer[..bytes_read])?;
-        decrypted_file.write_all(&chunk)?;
-    }
-
-    let chunk = decryptor.finalize()?;
-    decrypted_file.write_all(&chunk)?;
-
-    decrypted_file.flush()?;
+    let mut decryptor = ChunkedDecryptor::new(&key, &mut decrypted_file);
+    std::io::copy(&mut encrypted_file, &mut decryptor)?;
+    decryptor.finalize()?;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io::Write;
+
+    use rand::RngCore;
+
+    use crate::crypto::{encrypt_aes256, SymmetricCryptoKey};
+
+    use super::ChunkedDecryptor;
+
+    #[test]
+    fn test_chunk_decryption() {
+        // Test different combinations of cipher and chunk sizes
+        for size in [64, 500, 100_000, 9_000_000] {
+            let mut initial_buf = Vec::with_capacity(size);
+            initial_buf.resize(size, 0);
+            rand::thread_rng().fill_bytes(&mut initial_buf[..size]);
+            let key: SymmetricCryptoKey = SymmetricCryptoKey::generate("test");
+            let encrypted_buf = encrypt_aes256(&initial_buf, key.mac_key, key.key)
+                .unwrap()
+                .to_buffer()
+                .unwrap();
+
+            let mut decrypted_buf = Vec::with_capacity(size);
+
+            for chunk_size in [1, 15, 16, 64, 1024] {
+                decrypted_buf.clear();
+                let mut cd = ChunkedDecryptor::new(&key, &mut decrypted_buf);
+
+                for chunk in encrypted_buf.chunks(chunk_size) {
+                    cd.write_all(chunk).unwrap();
+                }
+                cd.finalize().unwrap();
+
+                assert_eq!(initial_buf, decrypted_buf);
+            }
+        }
+    }
 }

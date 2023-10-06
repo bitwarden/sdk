@@ -121,7 +121,7 @@ impl FromStr for EncString {
 
 impl EncString {
     #[cfg(feature = "mobile")]
-    pub(crate) fn from_buffer(buf: &[u8]) -> Result<Self> {
+    pub fn from_buffer(buf: &[u8]) -> Result<Self> {
         if buf.is_empty() {
             return Err(EncStringParseError::NoType.into());
         }
@@ -157,7 +157,7 @@ impl EncString {
     }
 
     #[cfg(feature = "mobile")]
-    pub(crate) fn to_buffer(&self) -> Result<Vec<u8>> {
+    pub fn to_buffer(&self) -> Result<Vec<u8>> {
         let mut buf;
 
         match self {

@@ -94,6 +94,15 @@ pub enum EncStringParseError {
     InvalidLength { expected: usize, got: usize },
 }
 
+impl From<Error> for std::io::Error {
+    fn from(e: Error) -> Self {
+        match e {
+            Error::Io(e) => e,
+            e => std::io::Error::new(std::io::ErrorKind::Other, e),
+        }
+    }
+}
+
 // Ensure that the error messages implement Send and Sync
 #[cfg(test)]
 const _: () = {

@@ -59,5 +59,10 @@ bitwarden-api-identity = { path = "../bitwarden-api-identity", version = "=0.2.1
 bitwarden-api-api = { path = "../bitwarden-api-api", version = "=0.2.1" }
 
 [dev-dependencies]
+criterion = { version = "0.5.1", features = ["html_reports"] }
 tokio = { version = "1.28.2", features = ["rt", "macros"] }
 wiremock = "0.5.18"
+
+[[bench]]
+name = "chunked_decryption"
+harness = false

@@ -314,7 +314,7 @@ mod tests {
 
     use rand::RngCore;
 
-    use crate::crypto::{encrypt_aes256, SymmetricCryptoKey};
+    use crate::crypto::{encrypt_aes256_hmac, SymmetricCryptoKey};
 
     use super::ChunkedDecryptor;
 
@@ -326,7 +326,7 @@ mod tests {
             initial_buf.resize(size, 0);
             rand::thread_rng().fill_bytes(&mut initial_buf[..size]);
             let key: SymmetricCryptoKey = SymmetricCryptoKey::generate("test");
-            let encrypted_buf = encrypt_aes256(&initial_buf, key.key)
+            let encrypted_buf = encrypt_aes256_hmac(&initial_buf, key.mac_key.unwrap(), key.key)
                 .unwrap()
                 .to_buffer()
                 .unwrap();

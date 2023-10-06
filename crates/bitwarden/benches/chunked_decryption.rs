@@ -32,7 +32,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         initial_buf.resize(size, 0);
         rand::thread_rng().fill_bytes(&mut initial_buf[..size]);
         let key: SymmetricCryptoKey = SymmetricCryptoKey::generate("test");
-        let enc_str = encrypt_aes256(&initial_buf, key.mac_key, key.key).unwrap();
+        let enc_str = encrypt_aes256(&initial_buf, key.key).unwrap();
         let enc_buf = enc_str.to_buffer().unwrap();
 
         group.bench_with_input(

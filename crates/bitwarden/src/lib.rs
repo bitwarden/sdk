@@ -12,7 +12,7 @@
 //!
 //! # Basic setup
 //!
-//! All operations in this crate are done via a [Client](crate::client::Client):
+//! All operations in this crate are done via a [Client]:
 //!
 //! ```rust
 //! use bitwarden::{

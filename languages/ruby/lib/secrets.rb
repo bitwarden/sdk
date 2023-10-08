@@ -38,7 +38,7 @@ class SecretsClient
             note: note,
             organization_id: organization_id,
             project_ids: project_ids,
-            value: value,
+            value: value
           )
         )
       )

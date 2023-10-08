@@ -1,5 +1,8 @@
 use bitwarden_api_api::models::{PendingOrganizationAuthRequestResponseModelListResponseModel, PendingOrganizationAuthRequestResponseModel, OrganizationUserResetPasswordDetailsResponseModel, AdminAuthRequestUpdateRequestModel};
-use rsa::pkcs8::DecodePrivateKey;
+use rsa::{
+  pkcs8::DecodePrivateKey,
+  Pkcs1v15Encrypt, pkcs1::DecodeRsaPublicKey
+};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -17,28 +20,27 @@ pub struct AuthApproveRequest {
     pub request_id: Uuid,
     pub organization_user_id: Uuid,
     pub organization_id: Uuid,
-    pub device_public_key: Uuid
+    pub device_public_key: String
 }
 
 pub(crate) async fn approve_auth_request(
     client: &mut Client,
     input: &AuthApproveRequest,
 ) -> Result<()> {
-    let config = client.get_api_configurations().await;
-
     // Get user reset password details
     let reset_password_details =
       bitwarden_api_api::apis::organization_users_api::organizations_org_id_users_id_reset_password_details_get(
-        &config.api,
+&client.get_api_configurations().await.api,
         &input.organization_id.to_string(),
         &input.request_id.to_string(),
     )
     .await?;
 
-    let encrypted_user_key = get_encrypted_user_key(client, input, reset_password_details)?;
+    let encrypted_user_key = get_encrypted_user_key(&client, input, reset_password_details)?;
 
+    // Need to create a new mutable borrow
     bitwarden_api_api::apis::organization_auth_requests_api::organizations_org_id_auth_requests_request_id_post(
-        &config.api,
+&client.get_api_configurations().await.api,
         input.organization_id,
         input.request_id,
         Some(AdminAuthRequestUpdateRequestModel {
@@ -70,18 +72,21 @@ fn get_encrypted_user_key(
         .map_err(|_| CryptoError::InvalidKey)?
   };
 
+  // Decrypt user key with org private key
+  let dec_user_key = org_private_key
+    .decrypt(Pkcs1v15Encrypt, &reset_password_details.reset_password_key.ok_or(Error::MissingFields)?.into_bytes())
+    .map_err(|_| CryptoError::InvalidKey)?; // need better error
 
-  // Decrypt user key with decrypted org private key
-  // TODO
-  //   let user_key = user_reset_password_details_res.reset_password_key
-  //     .ok_or(Error::MissingFields)?
-  //     .parse::<EncString>()?
-  // .decrypt_with_key(org_private_key)
-  //     .decrypt(enc, &Some(input.organization_id))?
-  //     .into_bytes();
+  // re-encrypt user key with device public key
+  let device_public_key = rsa::RsaPublicKey::from_pkcs1_der(&input.device_public_key.as_bytes())
+        .map_err(|_| CryptoError::InvalidKey)?;
+  let mut rng = rand::thread_rng();
+  let re_encrypted_user_key = device_public_key.encrypt(&mut rng, Pkcs1v15Encrypt, &dec_user_key)
+        .map_err(|_| CryptoError::InvalidKey)?; // need better error
 
-  // Re-encrypt the User Key with the Device Public Key
-  // return re-encrypted user key
+  String::from_utf8(re_encrypted_user_key)
+    .map_err(|_| CryptoError::InvalidKey)? // need better error
+    .parse()
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

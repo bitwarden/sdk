@@ -1,2 +1,3 @@
 *.lock
 *.gem
+lib/schemas.rb

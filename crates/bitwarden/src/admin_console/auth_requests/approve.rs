@@ -53,6 +53,7 @@ pub(crate) async fn approve_auth_request(
     Ok(())
 }
 
+// TODO: most of this should be moved into crypto::rsa as encrypt/decrypt methods
 fn get_encrypted_user_key(
   client: &Client,
   input: &AuthApproveRequest,

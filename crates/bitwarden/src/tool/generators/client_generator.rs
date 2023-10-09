@@ -1,8 +1,7 @@
 use crate::{
     error::Result,
-    tool::generators::password::{
-        passphrase, password, PassphraseGeneratorRequest, PasswordGeneratorRequest,
-    },
+    tool::generators::passphrase::{passphrase, PassphraseGeneratorRequest},
+    tool::generators::password::{password, PasswordGeneratorRequest},
     Client,
 };
 

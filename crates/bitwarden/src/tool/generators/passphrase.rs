@@ -20,7 +20,7 @@ const DEFAULT_PASSPHRASE_NUM_WORDS: u8 = 3;
 const DEFAULT_PASSPHRASE_SEPARATOR: char = ' ';
 
 pub(super) fn passphrase(input: PassphraseGeneratorRequest) -> Result<String> {
-    let words = input.num_words.unwrap_or(DEFAULT_PASSPHRASE_NUM_WORDS);
+    let num_words = input.num_words.unwrap_or(DEFAULT_PASSPHRASE_NUM_WORDS);
     let separator = input
         .word_separator
         .and_then(|s| s.chars().next())
@@ -30,19 +30,13 @@ pub(super) fn passphrase(input: PassphraseGeneratorRequest) -> Result<String> {
 
     let mut rand = rand::thread_rng();
 
-    let mut passphrase_words = gen_words(&mut rand, words);
+    let mut passphrase_words = gen_words(&mut rand, num_words);
     if include_number {
-        let number_idx = rand.gen_range(0..words as usize);
-        passphrase_words[number_idx].push_str(&rand.gen_range(0..=9).to_string());
+        include_number_in_words(&mut rand, &mut passphrase_words);
     }
-
     if capitalize {
-        passphrase_words = passphrase_words
-            .iter()
-            .map(|w| capitalize_first_letter(w))
-            .collect();
+        capitalize_words(&mut passphrase_words);
     }
-
     Ok(passphrase_words.join(&separator.to_string()))
 }
 
@@ -57,6 +51,17 @@ fn gen_words(mut rng: impl RngCore, num_words: u8) -> Vec<String> {
         .collect()
 }
 
+fn include_number_in_words(mut rng: impl RngCore, words: &mut [String]) {
+    let number_idx = rng.gen_range(0..words.len());
+    words[number_idx].push_str(&rng.gen_range(0..=9).to_string());
+}
+
+fn capitalize_words(words: &mut [String]) {
+    words
+        .iter_mut()
+        .for_each(|w| *w = capitalize_first_letter(w));
+}
+
 fn capitalize_first_letter(s: &str) -> String {
     let mut c = s.chars();
     match c.next() {
@@ -67,16 +72,41 @@ fn capitalize_first_letter(s: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
 
     #[test]
     fn test_capitalize() {
-        assert_eq!(super::capitalize_first_letter("hello"), "Hello");
-        assert_eq!(super::capitalize_first_letter("1ello"), "1ello");
-        assert_eq!(super::capitalize_first_letter("Hello"), "Hello");
-        assert_eq!(super::capitalize_first_letter("h"), "H");
-        assert_eq!(super::capitalize_first_letter(""), "");
+        assert_eq!(capitalize_first_letter("hello"), "Hello");
+        assert_eq!(capitalize_first_letter("1ello"), "1ello");
+        assert_eq!(capitalize_first_letter("Hello"), "Hello");
+        assert_eq!(capitalize_first_letter("h"), "H");
+        assert_eq!(capitalize_first_letter(""), "");
 
         // Also supports non-ascii, though the EFF list doesn't have any
-        assert_eq!(super::capitalize_first_letter("áéíóú"), "Áéíóú");
+        assert_eq!(capitalize_first_letter("áéíóú"), "Áéíóú");
+    }
+
+    #[test]
+    fn test_capitalize_words() {
+        let mut words = vec!["hello".to_string(), "world".to_string()];
+        capitalize_words(&mut words);
+        assert_eq!(words, &["Hello", "World"]);
+    }
+
+    #[test]
+    fn test_include_number() {
+        let mut rng = rand::thread_rng();
+
+        fn count_numbers(words: &[String]) -> usize {
+            words
+                .iter()
+                .map(|w| w.chars().filter(|c| c.is_numeric()).count())
+                .sum()
+        }
+
+        let mut words = vec!["hello".to_string(), "world".to_string()];
+        assert_eq!(count_numbers(&words), 0);
+        include_number_in_words(&mut rng, &mut words);
+        assert_eq!(count_numbers(&words), 1);
     }
 }

@@ -51,6 +51,8 @@ pub struct CipherMiniResponseModel {
     pub deleted_date: Option<String>,
     #[serde(rename = "reprompt", skip_serializing_if = "Option::is_none")]
     pub reprompt: Option<crate::models::CipherRepromptType>,
+    #[serde(rename = "key", skip_serializing_if = "Option::is_none")]
+    pub key: Option<String>,
 }
 
 impl CipherMiniResponseModel {
@@ -75,6 +77,7 @@ impl CipherMiniResponseModel {
             creation_date: None,
             deleted_date: None,
             reprompt: None,
+            key: None,
         }
     }
 }

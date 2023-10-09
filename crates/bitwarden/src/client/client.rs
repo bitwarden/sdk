@@ -1,24 +1,20 @@
 use std::time::{Duration, Instant};
 
+#[cfg(feature = "internal")]
+use crate::{
+    auth::login::{
+        api_key_login, password_login, send_two_factor_email, ApiKeyLoginRequest,
+        ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse, TwoFactorEmailRequest,
+    },
+    client::kdf::Kdf,
+    crypto::EncString,
+    platform::{
+        generate_fingerprint, get_user_api_key, sync, FingerprintRequest, FingerprintResponse,
+        SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,
+    },
+};
 use reqwest::header::{self};
 use uuid::Uuid;
-#[cfg(feature = "internal")]
-use {
-    crate::{
-        auth::login::{
-            api_key_login, password_login, send_two_factor_email, ApiKeyLoginRequest,
-            ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse,
-            TwoFactorEmailRequest,
-        },
-        client::auth_settings::AuthSettings,
-        crypto::EncString,
-        platform::{
-            generate_fingerprint, get_user_api_key, sync, FingerprintRequest, FingerprintResponse,
-            SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,
-        },
-    },
-    log::debug,
-};
 
 #[cfg(feature = "secrets")]
 use crate::auth::login::{access_token_login, AccessTokenLoginRequest, AccessTokenLoginResponse};
@@ -42,12 +38,31 @@ pub(crate) struct ApiConfigurations {
 #[derive(Debug, Clone)]
 pub(crate) enum LoginMethod {
     #[cfg(feature = "internal")]
-    Username { client_id: String },
-    #[cfg(feature = "internal")]
+    User(UserLoginMethod),
+    // TODO: Organizations supports api key
+    // Organization(OrganizationLoginMethod),
+    ServiceAccount(ServiceAccountLoginMethod),
+}
+
+#[derive(Debug, Clone)]
+#[cfg(feature = "internal")]
+pub(crate) enum UserLoginMethod {
+    Username {
+        client_id: String,
+        email: String,
+        kdf: Kdf,
+    },
     ApiKey {
         client_id: String,
         client_secret: String,
+
+        email: String,
+        kdf: Kdf,
     },
+}
+
+#[derive(Debug, Clone)]
+pub(crate) enum ServiceAccountLoginMethod {
     AccessToken {
         service_account_id: Uuid,
         client_secret: String,
@@ -66,9 +81,6 @@ pub struct Client {
     /// It should only be used directly in renew_token
     #[doc(hidden)]
     pub(crate) __api_configurations: ApiConfigurations,
-
-    #[cfg(feature = "internal")]
-    auth_settings: Option<AuthSettings>,
 
     encryption_settings: Option<EncryptionSettings>,
 }
@@ -114,8 +126,6 @@ impl Client {
                 api,
                 device_type: settings.device_type,
             },
-            #[cfg(feature = "internal")]
-            auth_settings: None,
             encryption_settings: None,
         }
     }
@@ -125,6 +135,13 @@ impl Client {
         // the token will end up expiring and the next operation is going to fail anyway.
         self.renew_token().await.ok();
         &self.__api_configurations
+    }
+
+    #[cfg(feature = "internal")]
+    pub async fn prelogin(&mut self, email: String) -> Result<Kdf> {
+        use crate::auth::login::request_prelogin;
+
+        request_prelogin(self, email).await?.try_into()
     }
 
     #[cfg(feature = "internal")]
@@ -165,15 +182,16 @@ impl Client {
     }
 
     #[cfg(feature = "internal")]
-    pub(crate) fn get_auth_settings(&self) -> &Option<AuthSettings> {
-        &self.auth_settings
+    pub(crate) fn get_login_method(&self) -> &Option<LoginMethod> {
+        &self.login_method
     }
 
     pub fn get_access_token_organization(&self) -> Option<Uuid> {
-        match &self.login_method {
-            Some(LoginMethod::AccessToken {
-                organization_id, ..
-            }) => Some(*organization_id),
+        match self.login_method {
+            Some(LoginMethod::ServiceAccount(ServiceAccountLoginMethod::AccessToken {
+                organization_id,
+                ..
+            })) => Some(organization_id),
             _ => None,
         }
     }
@@ -182,10 +200,12 @@ impl Client {
         self.encryption_settings.as_ref().ok_or(Error::VaultLocked)
     }
 
-    #[cfg(feature = "internal")]
-    pub(crate) fn set_auth_settings(&mut self, auth_settings: AuthSettings) {
-        debug! {"setting auth settings: {:#?}", auth_settings}
-        self.auth_settings = Some(auth_settings);
+    #[cfg(feature = "mobile")]
+    pub(crate) fn set_login_method(&mut self, login_method: LoginMethod) {
+        use log::debug;
+
+        debug! {"setting login method: {:#?}", login_method}
+        self.login_method = Some(login_method);
     }
 
     pub(crate) fn set_tokens(
@@ -209,7 +229,7 @@ impl Client {
 
     #[cfg(feature = "internal")]
     pub fn is_authed(&self) -> bool {
-        self.token.is_some() || self.auth_settings.is_some()
+        self.token.is_some() || self.login_method.is_some()
     }
 
     #[cfg(feature = "internal")]
@@ -219,13 +239,13 @@ impl Client {
         user_key: EncString,
         private_key: EncString,
     ) -> Result<&EncryptionSettings> {
-        let auth = match &self.auth_settings {
-            Some(a) => a,
-            None => return Err(Error::NotAuthenticated),
+        let login_method = match &self.login_method {
+            Some(LoginMethod::User(u)) => u,
+            _ => return Err(Error::NotAuthenticated),
         };
 
         self.encryption_settings = Some(EncryptionSettings::new(
-            auth,
+            login_method,
             password,
             user_key,
             private_key,

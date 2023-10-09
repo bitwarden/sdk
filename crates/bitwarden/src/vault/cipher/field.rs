@@ -24,8 +24,8 @@ pub enum FieldType {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Field {
-    name: EncString,
-    value: EncString,
+    name: Option<EncString>,
+    value: Option<EncString>,
     r#type: FieldType,
 
     linked_id: Option<LinkedIdType>,
@@ -35,8 +35,8 @@ pub struct Field {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct FieldView {
-    name: String,
-    value: String,
+    name: Option<String>,
+    value: Option<String>,
     r#type: FieldType,
 
     linked_id: Option<LinkedIdType>,

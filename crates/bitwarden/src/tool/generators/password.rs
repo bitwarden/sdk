@@ -1,5 +1,5 @@
 use crate::error::{Error, Result};
-use rand::seq::SliceRandom;
+use rand::{seq::SliceRandom, RngCore};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -110,6 +110,13 @@ impl PasswordGeneratorCharSet {
 }
 
 pub(super) fn password(input: PasswordGeneratorRequest) -> Result<String> {
+    password_with_rng(rand::thread_rng(), input)
+}
+
+pub(super) fn password_with_rng(
+    mut rng: impl RngCore,
+    input: PasswordGeneratorRequest,
+) -> Result<String> {
     // We always have to have at least one character set enabled
     if !input.lowercase && !input.uppercase && !input.numbers && !input.special {
         return Err(Error::Internal(
@@ -151,25 +158,24 @@ pub(super) fn password(input: PasswordGeneratorRequest) -> Result<String> {
 
     // Generate the minimum chars of each type, then generate the rest to fill the expected length
     let mut buf = Vec::with_capacity(length as usize);
-    let mut rand = rand::thread_rng();
 
     for _ in 0..min_lowercase {
-        buf.push(*chars.lower.choose(&mut rand).expect("slice is not empty"));
+        buf.push(*chars.lower.choose(&mut rng).expect("slice is not empty"));
     }
     for _ in 0..min_uppercase {
-        buf.push(*chars.upper.choose(&mut rand).expect("slice is not empty"));
+        buf.push(*chars.upper.choose(&mut rng).expect("slice is not empty"));
     }
     for _ in 0..min_number {
-        buf.push(*chars.number.choose(&mut rand).expect("slice is not empty"));
+        buf.push(*chars.number.choose(&mut rng).expect("slice is not empty"));
     }
     for _ in 0..min_special {
-        buf.push(*chars.special.choose(&mut rand).expect("slice is not empty"));
+        buf.push(*chars.special.choose(&mut rng).expect("slice is not empty"));
     }
     for _ in min_length..length {
-        buf.push(*chars.all.choose(&mut rand).expect("slice is not empty"));
+        buf.push(*chars.all.choose(&mut rng).expect("slice is not empty"));
     }
 
-    buf.shuffle(&mut rand);
+    buf.shuffle(&mut rng);
     Ok(buf.iter().collect())
 }
 
@@ -179,16 +185,14 @@ pub(super) fn passphrase(_input: PassphraseGeneratorRequest) -> Result<String> {
 
 #[cfg(test)]
 mod test {
+    use rand::SeedableRng;
+
     use super::*;
 
     // We convert the slices to Strings to be able to use `contains`
     // This wouldn't work if the character sets were ordered differently, but that's not the case for us
     fn to_string(chars: &[char]) -> String {
         chars.iter().collect()
-    }
-
-    fn count(chars: &[char], pass: &str) -> usize {
-        pass.chars().filter(|c| chars.contains(c)).count()
     }
 
     #[test]
@@ -230,58 +234,56 @@ mod test {
     }
 
     #[test]
-    fn test_password_gen_all_characters() {
-        let pass = password(PasswordGeneratorRequest {
-            lowercase: true,
-            uppercase: true,
-            numbers: true,
-            special: true,
-            length: Some(100),
-            avoid_ambiguous: Some(true),
-            min_lowercase: Some(1),
-            min_uppercase: Some(1),
-            min_number: Some(1),
-            min_special: Some(1),
-        })
+    fn test_password_gen() {
+        let mut rng = rand_chacha::ChaCha8Rng::from_seed([0u8; 32]);
+
+        let pass = password_with_rng(
+            &mut rng,
+            PasswordGeneratorRequest {
+                lowercase: true,
+                uppercase: true,
+                numbers: true,
+                special: true,
+                ..Default::default()
+            },
+        )
         .unwrap();
+        assert_eq!(pass, "xfZPr&wXCiFta8DM");
 
-        assert_eq!(pass.len(), 100);
-
-        assert!(count(LOWER_CHARS, &pass) > 1);
-        assert!(count(UPPER_CHARS, &pass) > 1);
-        assert!(count(NUMBER_CHARS, &pass) > 1);
-        assert!(count(SPECIAL_CHARS, &pass) > 1);
-
-        assert_eq!(count(LOWER_CHARS_AMBIGUOUS, &pass), 0);
-        assert_eq!(count(UPPER_CHARS_AMBIGUOUS, &pass), 0);
-        assert_eq!(count(NUMBER_CHARS_AMBIGUOUS, &pass), 0);
-    }
-
-    #[test]
-    fn test_password_gen_some_characters() {
-        let pass = password(PasswordGeneratorRequest {
-            lowercase: true,
-            uppercase: false,
-            numbers: false,
-            special: true,
-            length: Some(10),
-            avoid_ambiguous: Some(true),
-            min_lowercase: Some(9),
-            min_uppercase: None,
-            min_number: None,
-            min_special: Some(1),
-        })
+        let pass = password_with_rng(
+            &mut rng,
+            PasswordGeneratorRequest {
+                lowercase: true,
+                uppercase: true,
+                numbers: false,
+                special: false,
+                length: Some(20),
+                avoid_ambiguous: Some(false),
+                min_lowercase: Some(1),
+                min_uppercase: Some(1),
+                min_number: None,
+                min_special: None,
+            },
+        )
         .unwrap();
+        assert_eq!(pass, "jvpFStaIdRUoENAeTmJw");
 
-        assert_eq!(pass.len(), 10);
-
-        assert_eq!(count(LOWER_CHARS, &pass), 9);
-        assert_eq!(count(UPPER_CHARS, &pass), 0);
-        assert_eq!(count(NUMBER_CHARS, &pass), 0);
-        assert_eq!(count(SPECIAL_CHARS, &pass), 1);
-
-        assert_eq!(count(LOWER_CHARS_AMBIGUOUS, &pass), 0);
-        assert_eq!(count(UPPER_CHARS_AMBIGUOUS, &pass), 0);
-        assert_eq!(count(NUMBER_CHARS_AMBIGUOUS, &pass), 0);
+        let pass = password_with_rng(
+            &mut rng,
+            PasswordGeneratorRequest {
+                lowercase: false,
+                uppercase: false,
+                numbers: true,
+                special: true,
+                length: Some(5),
+                avoid_ambiguous: Some(true),
+                min_lowercase: None,
+                min_uppercase: None,
+                min_number: Some(3),
+                min_special: Some(2),
+            },
+        )
+        .unwrap();
+        assert_eq!(pass, "^878%");
     }
 }

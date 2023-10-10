@@ -20,6 +20,10 @@ const DEFAULT_PASSPHRASE_NUM_WORDS: u8 = 3;
 const DEFAULT_PASSPHRASE_SEPARATOR: char = ' ';
 
 pub(super) fn passphrase(input: PassphraseGeneratorRequest) -> Result<String> {
+    passphrase_with_rng(rand::thread_rng(), input)
+}
+
+fn passphrase_with_rng(mut rng: impl RngCore, input: PassphraseGeneratorRequest) -> Result<String> {
     let num_words = input.num_words.unwrap_or(DEFAULT_PASSPHRASE_NUM_WORDS);
     let separator = input
         .word_separator
@@ -28,11 +32,9 @@ pub(super) fn passphrase(input: PassphraseGeneratorRequest) -> Result<String> {
     let capitalize = input.capitalize.unwrap_or(false);
     let include_number = input.include_number.unwrap_or(false);
 
-    let mut rand = rand::thread_rng();
-
-    let mut passphrase_words = gen_words(&mut rand, num_words);
+    let mut passphrase_words = gen_words(&mut rng, num_words);
     if include_number {
-        include_number_in_words(&mut rand, &mut passphrase_words);
+        include_number_in_words(&mut rng, &mut passphrase_words);
     }
     if capitalize {
         capitalize_words(&mut passphrase_words);
@@ -117,5 +119,43 @@ mod tests {
         let mut words = vec!["This".into(), "is".into(), "a".into(), "test".into()];
         include_number_in_words(&mut rng, &mut words);
         assert_eq!(words, &["This", "is", "a1", "test"]);
+    }
+
+    #[test]
+    fn test_passphrase() {
+        let mut rng = rand_chacha::ChaCha8Rng::from_seed([0u8; 32]);
+
+        let input = PassphraseGeneratorRequest {
+            num_words: Some(4),
+            word_separator: Some("-".into()),
+            capitalize: Some(true),
+            include_number: Some(true),
+        };
+        assert_eq!(
+            passphrase_with_rng(&mut rng, input).unwrap(),
+            "Subsystem4-Undertook-Silenced-Dinginess"
+        );
+
+        let input = PassphraseGeneratorRequest {
+            num_words: Some(2),
+            word_separator: Some("".into()),
+            capitalize: Some(false),
+            include_number: Some(true),
+        };
+        assert_eq!(
+            passphrase_with_rng(&mut rng, input).unwrap(),
+            "drew hankering0"
+        );
+
+        let input = PassphraseGeneratorRequest {
+            num_words: Some(5),
+            word_separator: Some(";".into()),
+            capitalize: None,
+            include_number: None,
+        };
+        assert_eq!(
+            passphrase_with_rng(&mut rng, input).unwrap(),
+            "sarcasm;duller;backlight;factual;husked"
+        );
     }
 }

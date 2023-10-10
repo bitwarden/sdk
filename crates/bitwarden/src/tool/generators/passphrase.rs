@@ -72,7 +72,20 @@ fn capitalize_first_letter(s: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    use rand::SeedableRng;
+
     use super::*;
+
+    #[test]
+    fn test_gen_words() {
+        let mut rng = rand_chacha::ChaCha8Rng::from_seed([0u8; 32]);
+        assert_eq!(
+            &gen_words(&mut rng, 4),
+            &["subsystem", "undertook", "silenced", "dinginess"]
+        );
+        assert_eq!(&gen_words(&mut rng, 1), &["numbing"]);
+        assert_eq!(&gen_words(&mut rng, 2), &["catnip", "jokester"]);
+    }
 
     #[test]
     fn test_capitalize() {
@@ -88,25 +101,21 @@ mod tests {
 
     #[test]
     fn test_capitalize_words() {
-        let mut words = vec!["hello".to_string(), "world".to_string()];
+        let mut words = vec!["hello".into(), "world".into()];
         capitalize_words(&mut words);
         assert_eq!(words, &["Hello", "World"]);
     }
 
     #[test]
     fn test_include_number() {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand_chacha::ChaCha8Rng::from_seed([0u8; 32]);
 
-        fn count_numbers(words: &[String]) -> usize {
-            words
-                .iter()
-                .map(|w| w.chars().filter(|c| c.is_numeric()).count())
-                .sum()
-        }
-
-        let mut words = vec!["hello".to_string(), "world".to_string()];
-        assert_eq!(count_numbers(&words), 0);
+        let mut words = vec!["hello".into(), "world".into()];
         include_number_in_words(&mut rng, &mut words);
-        assert_eq!(count_numbers(&words), 1);
+        assert_eq!(words, &["hello", "world7"]);
+
+        let mut words = vec!["This".into(), "is".into(), "a".into(), "test".into()];
+        include_number_in_words(&mut rng, &mut words);
+        assert_eq!(words, &["This", "is", "a1", "test"]);
     }
 }

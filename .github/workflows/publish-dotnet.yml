@@ -2,9 +2,10 @@ name: Deploy NuGet Package
 
 on:
   workflow_dispatch:
-    version_number:
-      description: "New Version"
-      required: true
+    inputs:
+      version_number:
+        description: "New Version"
+        required: true
 
 jobs:
   generate_schemas:

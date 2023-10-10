@@ -19,7 +19,10 @@ pub(crate) async fn send_two_factor_email(
     client: &mut Client,
     input: &TwoFactorEmailRequest,
 ) -> Result<()> {
-    let password_hash = determine_password_hash(client, &input.email, &input.password).await?;
+    // TODO: This should be resolved from the client
+    let kdf = client.prelogin(input.email.clone()).await?;
+
+    let password_hash = determine_password_hash(&input.email, &kdf, &input.password).await?;
 
     let config = client.get_api_configurations().await;
     bitwarden_api_api::apis::two_factor_api::two_factor_send_email_login_post(

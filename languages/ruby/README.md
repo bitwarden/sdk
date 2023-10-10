@@ -4,8 +4,10 @@ Ruby wrapper for Bitwarden SDK by which you can interact with Bitwarden Secrets 
 
 ## Installation
 
-Download Bitwarden SDK and follow instructions, ie, run `cargo build` and generate schemas.
-Install gems from gemspec.
+Requirements: Ruby >= 2.7
+
+Install gem: `gem install ruby-bitwarden-sdk`
+
 
 ## Usage
 

@@ -43,6 +43,8 @@ pub struct Cipher {
     pub folder_id: Option<Uuid>,
     pub collection_ids: Vec<Uuid>,
 
+    pub key: Option<EncString>,
+
     pub name: EncString,
     pub notes: Option<EncString>,
 
@@ -76,6 +78,8 @@ pub struct CipherView {
     pub organization_id: Option<Uuid>,
     pub folder_id: Option<Uuid>,
     pub collection_ids: Vec<Uuid>,
+
+    pub key: Option<EncString>,
 
     pub name: String,
     pub notes: Option<String>,
@@ -131,11 +135,15 @@ pub struct CipherListView {
 
 impl KeyEncryptable<Cipher> for CipherView {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Cipher> {
+        let key_owned = Cipher::get_cipher_key(key, &self.key)?;
+        let key = key_owned.as_ref().unwrap_or(key);
+
         Ok(Cipher {
             id: self.id,
             organization_id: self.organization_id,
             folder_id: self.folder_id,
             collection_ids: self.collection_ids,
+            key: self.key,
             name: self.name.encrypt_with_key(key)?,
             notes: self.notes.encrypt_with_key(key)?,
             r#type: self.r#type,
@@ -161,11 +169,15 @@ impl KeyEncryptable<Cipher> for CipherView {
 
 impl KeyDecryptable<CipherView> for Cipher {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CipherView> {
+        let key_owned = Cipher::get_cipher_key(key, &self.key)?;
+        let key = key_owned.as_ref().unwrap_or(key);
+
         Ok(CipherView {
             id: self.id,
             organization_id: self.organization_id,
             folder_id: self.folder_id,
             collection_ids: self.collection_ids.clone(),
+            key: self.key.clone(),
             name: self.name.decrypt_with_key(key)?,
             notes: self.notes.decrypt_with_key(key)?,
             r#type: self.r#type,
@@ -190,6 +202,19 @@ impl KeyDecryptable<CipherView> for Cipher {
 }
 
 impl Cipher {
+    fn get_cipher_key(
+        key: &SymmetricCryptoKey,
+        inner_key: &Option<EncString>,
+    ) -> Result<Option<SymmetricCryptoKey>> {
+        inner_key
+            .as_ref()
+            .map(|k| {
+                let key: Vec<u8> = k.decrypt_with_key(key)?;
+                SymmetricCryptoKey::try_from(key.as_slice())
+            })
+            .transpose()
+    }
+
     fn get_decrypted_subtitle(&self, key: &SymmetricCryptoKey) -> Result<String> {
         Ok(match self.r#type {
             CipherType::Login => {
@@ -257,6 +282,9 @@ impl Cipher {
 
 impl KeyDecryptable<CipherListView> for Cipher {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CipherListView> {
+        let key_owned = Cipher::get_cipher_key(key, &self.key)?;
+        let key = key_owned.as_ref().unwrap_or(key);
+
         Ok(CipherListView {
             id: self.id,
             organization_id: self.organization_id,

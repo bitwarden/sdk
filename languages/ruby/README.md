@@ -1,6 +1,6 @@
 # Bitwarden Secrets Manager SDK
 
-Ruby wrapper for Bitwarden SDK by which you can interact with Bitwarden Secrets Manager.
+Ruby bindings for interacting with the [Bitwarden Secrets Manager]. This is a beta release and might be missing some functionality.
 
 ## Installation
 

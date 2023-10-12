@@ -413,7 +413,7 @@ dependencies = [
 
 [[package]]
 name = "bitwarden-napi"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "bitwarden-json",
  "env_logger",

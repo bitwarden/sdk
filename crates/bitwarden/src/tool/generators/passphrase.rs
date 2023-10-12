@@ -1,4 +1,7 @@
-use crate::{error::Result, wordlist::EFF_LONG_WORD_LIST};
+use crate::{
+    error::{Error, Result},
+    wordlist::EFF_LONG_WORD_LIST,
+};
 use rand::{seq::SliceRandom, Rng, RngCore};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -10,27 +13,50 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct PassphraseGeneratorRequest {
+    /// Number of words in the generated passphrase.
+    /// This value must be between 3 and 20.
+    /// The default value when unset is 3
     pub num_words: Option<u8>,
+    /// Character separator between words in the generated passphrase.
+    /// If the value is set, it cannot be empty.
+    /// The default value when unset is `-`
     pub word_separator: Option<String>,
+    /// When set to true, capitalize the first letter of each word in the generated passphrase.
+    /// The default value when unset is `false`
     pub capitalize: Option<bool>,
+    /// When set to true, include a number at the end of one of the words in the generated passphrase.
+    /// The default value when unset is `false`
     pub include_number: Option<bool>,
 }
 
 const DEFAULT_PASSPHRASE_NUM_WORDS: u8 = 3;
-const DEFAULT_PASSPHRASE_SEPARATOR: char = ' ';
+const DEFAULT_PASSPHRASE_SEPARATOR: &str = " ";
+
+const MINIMUM_PASSPHRASE_NUM_WORDS: u8 = 3;
+const MAXIMUM_PASSPHRASE_NUM_WORDS: u8 = 20;
 
 pub(super) fn passphrase(input: PassphraseGeneratorRequest) -> Result<String> {
     passphrase_with_rng(rand::thread_rng(), input)
 }
 
 fn passphrase_with_rng(mut rng: impl RngCore, input: PassphraseGeneratorRequest) -> Result<String> {
-    let num_words = input.num_words.unwrap_or(DEFAULT_PASSPHRASE_NUM_WORDS);
-    let separator = input
-        .word_separator
-        .and_then(|s| s.chars().next())
-        .unwrap_or(DEFAULT_PASSPHRASE_SEPARATOR);
     let capitalize = input.capitalize.unwrap_or(false);
     let include_number = input.include_number.unwrap_or(false);
+
+    let num_words = input.num_words.unwrap_or(DEFAULT_PASSPHRASE_NUM_WORDS);
+    if !(MINIMUM_PASSPHRASE_NUM_WORDS..=MAXIMUM_PASSPHRASE_NUM_WORDS).contains(&num_words) {
+        return Err(Error::Internal("'num_words' must be between 3 and 20"));
+    }
+
+    let Some(separator) = input
+        .word_separator
+        .as_deref()
+        .unwrap_or(DEFAULT_PASSPHRASE_SEPARATOR)
+        .chars()
+        .next()
+    else {
+        return Err(Error::Internal("'word_separator' cannot be empty"));
+    };
 
     let mut passphrase_words = gen_words(&mut rng, num_words);
     if include_number {
@@ -65,6 +91,9 @@ fn capitalize_words(words: &mut [String]) {
 }
 
 fn capitalize_first_letter(s: &str) -> String {
+    // Unicode case conversion can change the length of the string, so we can't capitalize in place.
+    // Instead we extract the first character and convert it to uppercase. This returns
+    // an iterator which we collect into a string, and then append the rest of the input.
     let mut c = s.chars();
     match c.next() {
         None => String::new(),
@@ -137,14 +166,14 @@ mod tests {
         );
 
         let input = PassphraseGeneratorRequest {
-            num_words: Some(2),
-            word_separator: Some("".into()),
+            num_words: Some(3),
+            word_separator: Some(" ".into()),
             capitalize: Some(false),
             include_number: Some(true),
         };
         assert_eq!(
             passphrase_with_rng(&mut rng, input).unwrap(),
-            "drew hankering0"
+            "drew7 hankering cabana"
         );
 
         let input = PassphraseGeneratorRequest {
@@ -155,7 +184,7 @@ mod tests {
         };
         assert_eq!(
             passphrase_with_rng(&mut rng, input).unwrap(),
-            "sarcasm;duller;backlight;factual;husked"
+            "duller;backlight;factual;husked;remover"
         );
     }
 }

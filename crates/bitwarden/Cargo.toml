@@ -1,6 +1,6 @@
 [package]
 name = "bitwarden"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Bitwarden Inc"]
 license-file = "LICENSE"
 repository = "https://github.com/bitwarden/sdk"

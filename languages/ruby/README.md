@@ -15,7 +15,7 @@ To interact with client first you need to obtain access token from Bitwarden.
 Client will be initialized with default client settings if they are not provided
 via env variables.
 
-```angular2html
+```ruby
     api_url = ENV['BITWARDEN_API_URL'] || 'https://api.bitwarden.com'
     device_type = ENV['BITWARDEN_DEVICE_TYPE'] || 'MacOsDesktop'
     identity_url = ENV['BITWARDEN_IDENTITY_URL'] || 'https://identity.bitwarden.com'

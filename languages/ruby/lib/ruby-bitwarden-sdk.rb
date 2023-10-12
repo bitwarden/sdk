@@ -17,7 +17,7 @@ class BitwardenClient
     api_url = ENV['BITWARDEN_API_URL'] || 'https://api.bitwarden.com'
     device_type = ENV['BITWARDEN_DEVICE_TYPE'] || 'MacOsDesktop'
     identity_url = ENV['BITWARDEN_IDENTITY_URL'] || 'https://identity.bitwarden.com'
-    user_agent = ENV['BITWARDEN_USER_AGENT'] || 'SDK'
+    user_agent = ENV['BITWARDEN_USER_AGENT'] || 'Bitwarden RUBY-SDK'
 
     client_settings = ClientSettings.new(
       api_url: api_url,

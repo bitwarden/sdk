@@ -70,6 +70,4 @@ secret = client.secrets_client.update("683c25f3-a463-49ba-bed4-b0810134a7b1", "T
 
 ``
 
-## Contributing
-
-Bug reports and pull requests are welcome on GitHub at https://github.com/MaliRobot/ruby-sdk.
+[Bitwarden Secrets Manager]: https://bitwarden.com/products/secrets-manager/

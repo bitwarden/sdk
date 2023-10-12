@@ -1,4 +1,4 @@
-# Ruby::Sdk
+# Bitwarden Secrets Manager SDK
 
 Ruby wrapper for Bitwarden SDK by which you can interact with Bitwarden Secrets Manager.
 

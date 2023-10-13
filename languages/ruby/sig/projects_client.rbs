@@ -1,9 +1,11 @@
+require_once '../schemas.rb'
+
 class ProjectsClient
   @command_runner: CommandRunner
 
-  def create_project: (project_name: String, organization_id: String) -> JSON
-  def delete_projects: (ids: Array[String]) -> JSON
-  def get: (project_id: String) -> JSON
-  def list_projects: (organization_id: String) -> JSON
-  def update_project: (id: String, project_put_request_name: String, organization_id: String) -> JSON
+  def create_project: (project_name: String, organization_id: String) -> Hash
+  def delete_projects: (ids: Array[String]) -> Hash
+  def get: (project_id: String) -> Hash
+  def list_projects: (organization_id: String) -> Hash
+  def update_project: (id: String, project_put_request_name: String, organization_id: String) -> Hash
 end

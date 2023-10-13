@@ -15,7 +15,7 @@ class BitwardenClient
 
   def initialize
     api_url = ENV['BITWARDEN_API_URL'] || 'https://api.bitwarden.com'
-    device_type = ENV['BITWARDEN_DEVICE_TYPE'] || 'MacOsDesktop'
+    device_type = 'SDK'
     identity_url = ENV['BITWARDEN_IDENTITY_URL'] || 'https://identity.bitwarden.com'
     user_agent = ENV['BITWARDEN_USER_AGENT'] || 'Bitwarden RUBY-SDK'
 
@@ -35,7 +35,7 @@ class BitwardenClient
 
   def authorize(access_token)
     access_token_request = AccessTokenLoginRequest.new(access_token: access_token)
-    @command_runner.run( SelectiveCommand.new(access_token_login: access_token_request))
+    @command_runner.run(SelectiveCommand.new(access_token_login: access_token_request))
   end
 
   def free_mem

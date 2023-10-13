@@ -17,19 +17,18 @@ via env variables.
 
 ```ruby
     api_url = ENV['BITWARDEN_API_URL'] || 'https://api.bitwarden.com'
-    device_type = ENV['BITWARDEN_DEVICE_TYPE'] || 'MacOsDesktop'
     identity_url = ENV['BITWARDEN_IDENTITY_URL'] || 'https://identity.bitwarden.com'
     user_agent = ENV['BITWARDEN_USER_AGENT'] || 'SDK'
 ```
 
 Authorization can be performed using access token like so:
-```angular2html
+```ruby
 client = BitwardenClient.new
 client.authorize("<<YOUR ACCESS TOKEN HERE>>")
 ```
 
 After successful authorization you can interact with client to manage your projects and secrets.
-```angular2html
+```ruby
 # get project
 project = client.project_client.get("b23818dd-827b-4a22-b97a-b07e010ae9d4")
 
@@ -37,7 +36,7 @@ project = client.project_client.get("b23818dd-827b-4a22-b97a-b07e010ae9d4")
 project = client.project_client.create_project("new_project", "5688da1f-cc25-41d7-bb9f-b0740144ef1d")
 
 # list projects
-project s= client.project_client.list_projects("5688da1f-cc25-41d7-bb9f-b0740144ef1d")
+project = client.project_client.list_projects("5688da1f-cc25-41d7-bb9f-b0740144ef1d")
 
 # update project
 project = client.project_client.update_project("ef9d3d37-f0dc-4b21-a842-b0810129bf02", "test_project_x", "5688da1f-cc25-41d7-bb9f-b0740144ef1d")
@@ -47,7 +46,7 @@ response = client.project_client.delete_projects(["13a015aa-e3dc-4854-875a-b0810
 ```
 
 Similarly, you interact with secrets:
-```angular2html
+```ruby
 # get secret
 secret = client.secrets_client.get("fa175a5b-da76-48c3-b44b-b0810151638c")
 

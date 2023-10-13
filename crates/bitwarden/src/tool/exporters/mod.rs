@@ -44,7 +44,7 @@ pub(super) async fn export_vault_attachments(client: &mut Client) -> Result<()> 
         })
         .await?;
 
-    debug!("{:?}", sync);
+    debug!("{:#?}", sync);
 
     info!("Vault synced got {} ciphers", sync.ciphers.len());
 

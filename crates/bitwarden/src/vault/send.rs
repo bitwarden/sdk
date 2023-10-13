@@ -1,3 +1,6 @@
+use std::str::FromStr;
+
+use bitwarden_api_api::models::{SendFileModel, SendResponseModel, SendTextModel};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -274,6 +277,58 @@ impl Encryptable<Send> for SendView {
             deletion_date: self.deletion_date,
             expiration_date: self.expiration_date,
         })
+    }
+}
+
+impl From<SendResponseModel> for Send {
+    fn from(send: SendResponseModel) -> Self {
+        Send {
+            id: send.id.unwrap(),
+            access_id: send.access_id.unwrap(),
+            name: EncString::from_str(&send.name.unwrap()).unwrap(),
+            notes: send.notes.map(|s| EncString::from_str(&s).unwrap()),
+            key: EncString::from_str(&send.key.unwrap()).unwrap(),
+            password: send.password,
+            r#type: send.r#type.unwrap().into(),
+            file: send.file.map(|f| Into::<SendFile>::into(*f)),
+            text: send.text.map(|t| Into::<SendText>::into(*t)),
+            max_access_count: send.max_access_count.map(|s| s as u32),
+            access_count: send.access_count.unwrap() as u32,
+            disabled: send.disabled.unwrap_or(false),
+            hide_email: send.hide_email.unwrap_or(false),
+            revision_date: send.revision_date.unwrap().parse().unwrap(),
+            deletion_date: send.deletion_date.unwrap().parse().unwrap(),
+            expiration_date: send.expiration_date.map(|s| s.parse().unwrap()),
+        }
+    }
+}
+
+impl From<bitwarden_api_api::models::SendType> for SendType {
+    fn from(t: bitwarden_api_api::models::SendType) -> Self {
+        match t {
+            bitwarden_api_api::models::SendType::Variant0 => SendType::Text,
+            bitwarden_api_api::models::SendType::Variant1 => SendType::File,
+        }
+    }
+}
+
+impl From<SendFileModel> for SendFile {
+    fn from(file: SendFileModel) -> Self {
+        SendFile {
+            id: file.id.unwrap(),
+            file_name: EncString::from_str(&file.file_name.unwrap()).unwrap(),
+            size: file.size.unwrap().to_string(),
+            size_name: file.size_name.unwrap(),
+        }
+    }
+}
+
+impl From<SendTextModel> for SendText {
+    fn from(text: SendTextModel) -> Self {
+        SendText {
+            text: EncString::from_str(&text.text.unwrap()).unwrap(),
+            hidden: text.hidden.unwrap_or(false),
+        }
     }
 }
 

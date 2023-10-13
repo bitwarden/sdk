@@ -7,6 +7,7 @@ require_relative 'schemas'
 require_relative 'extended_schemas/schemas'
 require_relative 'command_runner'
 require_relative 'bitwarden_lib'
+require_relative 'bitwarden_error'
 require_relative 'projects'
 require_relative 'secrets'
 
@@ -14,16 +15,11 @@ class BitwardenClient
   attr_reader :bitwarden, :project_client, :secrets_client
 
   def initialize
-    api_url = ENV['BITWARDEN_API_URL'] || 'https://api.bitwarden.com'
-    device_type = 'SDK'
-    identity_url = ENV['BITWARDEN_IDENTITY_URL'] || 'https://identity.bitwarden.com'
-    user_agent = ENV['BITWARDEN_USER_AGENT'] || 'Bitwarden RUBY-SDK'
-
     client_settings = ClientSettings.new(
-      api_url: api_url,
-      device_type: device_type,
-      identity_url: identity_url,
-      user_agent: user_agent
+      api_url: ENV['BITWARDEN_API_URL'],
+      identity_url: ENV['BITWARDEN_IDENTITY_URL'],
+      user_agent: 'Bitwarden RUBY-SDK',
+      device_type: nil
     )
 
     @bitwarden = BitwardenLib

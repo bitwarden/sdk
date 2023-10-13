@@ -39,6 +39,7 @@ jobs:
           PLATFORMS=("macos-x64" "macos-arm64" "ubuntu-x64" "windows-x64")
           ARTIFACT_NAMES=("libbitwarden_c_files-x86_64-apple-darwin" "libbitwarden_c_files-aarch64-apple-darwin" "libbitwarden_c_files-x86_64-unknown-linux-gnu" "libbitwarden_c_files-x86_64-pc-windows-msvc")
 
+          mkdir -p temp # Create the temp directory if it doesn't exist
           mkdir -p languages/ruby/lib
 
           for i in {0..3}; do

@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
 
       - name: Set up Ruby
-        uses: ruby/setup-ruby@679e23d4a31bcf7cd0a69acd348e5f79e8c6b443 #
+        uses: ruby/setup-ruby@679e23d4a31bcf7cd0a69acd348e5f79e8c6b443
         with:
           ruby-version: 3.2
 
@@ -48,10 +48,8 @@ jobs:
             echo "Downloading and copying files for $platform"
             run_name="Download and Copy $platform"
 
-            uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-            with:
-              name: "$artifact_name"
-              path: "temp/$platform"
+            curl -L -o "temp/$platform.tar.gz" "https://example.com/$artifact_name.tar.gz"
+            tar -xzf "temp/$platform.tar.gz" -C "temp/"
 
             case "$platform" in
               "macos-x64" | "macos-arm64")
@@ -67,8 +65,6 @@ jobs:
 
             echo "Files for $platform copied successfully"
           done
-        shell: bash
-
 
       - name: Setup gem and release it
         run: |
@@ -81,4 +77,3 @@ jobs:
           chmod 0600 $HOME/.gem/credentials
           printf -- "---\n:rubygems_api_key: ${{ secrets.RUBYGEMS_AUTH_TOKEN }}\n" > $HOME/.gem/credentials
           gem push *.gem
-

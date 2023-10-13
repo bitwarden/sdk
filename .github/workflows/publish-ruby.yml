@@ -67,7 +67,7 @@ jobs:
 
             echo "Files for $platform copied successfully"
           done
-          shell: bash
+        shell: bash
 
 
       - name: Setup gem and release it

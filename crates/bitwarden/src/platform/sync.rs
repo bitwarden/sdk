@@ -12,6 +12,8 @@ use crate::{
     vault::{Cipher, Collection, Folder},
 };
 
+use super::domain::GlobalDomains;
+
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SyncRequest {
@@ -62,7 +64,7 @@ pub struct ProfileOrganizationResponse {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct DomainResponse {
     pub equivalent_domains: Vec<Vec<String>>,
-    pub global_equivalent_domains: Vec<String>,
+    pub global_equivalent_domains: Vec<GlobalDomains>,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -102,7 +104,7 @@ impl SyncResponse {
                 .map(|c| c.into())
                 .collect(),
             ciphers: ciphers.into_iter().map(|c| c.into()).collect(),
-            domains: response.domains.unwrap().into(),
+            domains: (*response.domains.unwrap()).into(),
             policies: response
                 .policies
                 .ok_or(Error::MissingFields)?

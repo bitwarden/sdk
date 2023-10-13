@@ -1,11 +1,17 @@
-require_once '../schemas.rb'
+require_once '../extended_schemas/schemas.rbs'
+require_once '../schemas.rbs'
 
 class ProjectsClient
   @command_runner: CommandRunner
+  def initialize: (command_runner: CommandRunner) -> void
+  def create_project: (project_name: String, organization_id: String) -> ProjectsResponse
+  def get: (project_id: String) -> ProjectsResponse
+  def list_projects: (organization_id: String) -> ProjectsResponse
+  def update_project: (id: String, project_put_request_name: String, organization_id: String) -> ProjectsResponse
+  def delete_projects: (ids: Array[String]) -> ProjectsResponse
 
-  def create_project: (project_name: String, organization_id: String) -> Hash
-  def delete_projects: (ids: Array[String]) -> Hash
-  def get: (project_id: String) -> Hash
-  def list_projects: (organization_id: String) -> Hash
-  def update_project: (id: String, project_put_request_name: String, organization_id: String) -> Hash
+  private
+
+  def create_command: (SelectiveProjectsCommand) -> SelectiveCommand
+  def parse_response: (ResponseForProjectResponse) -> ResponseForProjectResponse
 end

@@ -34,53 +34,41 @@ jobs:
           name: schemas.rb
           path: languages/ruby/lib
 
-      - name: Download x86_64-apple-darwin files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: libbitwarden_c_files-x86_64-apple-darwin
-          path: temp/macos-x64
-
-      - name: Copy MacOS intel lib file
+      - name: Download and Copy Libraries
         run: |
-          mkdir languages/ruby/lib/macos-x64
-          cp temp/macos-x64/libbitwarden_c.dylib languages/ruby/lib/macos-x64/libbitwarden_c.dylib
-        shell: bash
+          PLATFORMS=("macos-x64" "macos-arm64" "ubuntu-x64" "windows-x64")
+          ARTIFACT_NAMES=("libbitwarden_c_files-x86_64-apple-darwin" "libbitwarden_c_files-aarch64-apple-darwin" "libbitwarden_c_files-x86_64-unknown-linux-gnu" "libbitwarden_c_files-x86_64-pc-windows-msvc")
 
-      - name: Download aarch64-apple-darwin files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: libbitwarden_c_files-aarch64-apple-darwin
-          path: temp/macos-arm64
+          mkdir -p languages/ruby/lib
 
-      - name: Copy MacOS arm lib file
-        run: |
-          mkdir languages/ruby/lib/macos-arm64
-          cp temp/macos-arm64/libbitwarden_c.dylib languages/ruby/lib/macos-arm64/libbitwarden_c.dylib
-        shell: bash
+          for i in {0..3}; do
+            artifact_name="${ARTIFACT_NAMES[$i]}"
+            platform="${PLATFORMS[$i]}"
 
-      - name: Download x86_64-unknown-linux-gnu files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: libbitwarden_c_files-x86_64-unknown-linux-gnu
-          path: temp/ubuntu-x64
+            echo "Downloading and copying files for $platform"
+            run_name="Download and Copy $platform"
 
-      - name: Copy Linux lib file
-        run: |
-          mkdir languages/ruby/lib/ubuntu-x64
-          cp temp/ubuntu-x64/libbitwarden_c.so languages/ruby/lib/ubuntu-x64/libbitwarden_c.so
-        shell: bash
+            uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+            with:
+              name: "$artifact_name"
+              path: "temp/$platform"
 
-      - name: Download x86_64-pc-windows-msvc files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: libbitwarden_c_files-x86_64-pc-windows-msvc
-          path: temp/windows-x64
+            case "$platform" in
+              "macos-x64" | "macos-arm64")
+                cp "temp/$platform/libbitwarden_c.dylib" "languages/ruby/lib/$platform/libbitwarden_c.dylib"
+                ;;
+              "ubuntu-x64")
+                cp "temp/$platform/libbitwarden_c.so" "languages/ruby/lib/$platform/libbitwarden_c.so"
+                ;;
+              "windows-x64")
+                cp "temp/$platform/bitwarden_c.dll" "languages/ruby/lib/$platform/bitwarden_c.dll"
+                ;;
+            esac
 
-      - name: Copy Windows lib file
-        run: |
-          mkdir languages/ruby/lib/windows-x64
-          cp temp/windows-x64/bitwarden_c.dll languages/ruby/lib/windows-x64/bitwarden_c.dll
-        shell: bash
+            echo "Files for $platform copied successfully"
+          done
+          shell: bash
+
 
       - name: Setup gem and release it
         run: |

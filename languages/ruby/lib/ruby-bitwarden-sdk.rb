@@ -38,16 +38,3 @@ class BitwardenClient
     @bitwarden.free_mem(@handle)
   end
 end
-
-b = BitwardenClient.new
-c = b.authorize("0.fa60cd1f-f6d8-48d5-81e5-b07e00f98cf0.uUanL2XzWPIclcao1PfJh7O0R9ixs6:+EW/yAt6u70vQTgs+zL5fA==")
-puts c.to_json
-
-# GET project
-# project = b.project_client.get("b23818dd-827b-4a22-b97a-b07e010ae9d4")
-# puts project.class
-# puts 'here'
-# puts project
-# CREATE
-project = b.project_client.create_project("test_project_22", "5688da1f-cc25-41d7-bb9f-b0740144ef1d")
-puts project

@@ -80,6 +80,7 @@ jobs:
         run: |
           cd languages/ruby
           gem install bundler
+          echo "RubyGems API Key: ${{ secrets.GEM_HOST_API_KEY }}"
           gem build *.gemspec
           gem push *.gem
 

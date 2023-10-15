@@ -81,5 +81,5 @@ jobs:
           cd languages/ruby
           gem install bundler
           gem build *.gemspec
-          gem push *.gem --key
+          gem push *.gem
 

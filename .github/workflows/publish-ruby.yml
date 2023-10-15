@@ -15,6 +15,8 @@ jobs:
   build_ruby:
     name: Build Ruby
     runs-on: ubuntu-22.04
+    env:
+      GEM_HOST_API_KEY: ${{ secrets.GEM_HOST_API_KEY }}
     needs:
       - generate_schemas
       - build_rust
@@ -40,23 +42,11 @@ jobs:
           name: libbitwarden_c_files-x86_64-apple-darwin
           path: temp/macos-x64
 
-      - name: Copy MacOS intel lib file
-        run: |
-          mkdir languages/ruby/lib/macos-x64
-          cp temp/macos-x64/libbitwarden_c.dylib languages/ruby/lib/macos-x64/libbitwarden_c.dylib
-        shell: bash
-
       - name: Download aarch64-apple-darwin files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: libbitwarden_c_files-aarch64-apple-darwin
           path: temp/macos-arm64
-
-      - name: Copy MacOS arm lib file
-        run: |
-          mkdir languages/ruby/lib/macos-arm64
-          cp temp/macos-arm64/libbitwarden_c.dylib languages/ruby/lib/macos-arm64/libbitwarden_c.dylib
-        shell: bash
 
       - name: Download x86_64-unknown-linux-gnu files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
@@ -64,32 +54,32 @@ jobs:
           name: libbitwarden_c_files-x86_64-unknown-linux-gnu
           path: temp/ubuntu-x64
 
-      - name: Copy Linux lib file
-        run: |
-          mkdir languages/ruby/lib/ubuntu-x64
-          cp temp/ubuntu-x64/libbitwarden_c.so languages/ruby/lib/ubuntu-x64/libbitwarden_c.so
-        shell: bash
-
       - name: Download x86_64-pc-windows-msvc files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: libbitwarden_c_files-x86_64-pc-windows-msvc
           path: temp/windows-x64
 
-      - name: Copy Windows lib file
+      - name: Copy lib files
         run: |
-          mkdir languages/ruby/lib/windows-x64
-          cp temp/windows-x64/bitwarden_c.dll languages/ruby/lib/windows-x64/bitwarden_c.dll
+          mkdir -p languages/ruby/lib/macos-arm64
+          mkdir -p languages/ruby/lib/ubuntu-x64
+          mkdir -p languages/ruby/lib/macos-x64
+          mkdir -p languages/ruby/lib/windows-x64
+
+          platforms=("macos-arm64" "ubuntu-x64" "macos-x64" "windows-x64")
+          files=("libbitwarden_c.dylib" "libbitwarden_c.so" "libbitwarden_c.dylib" "bitwarden_c.dll")
+
+          for ((i=0; i<${#platforms[@]}; i++)); do
+            cp "temp/${platforms[$i]}/${files[$i]}" "languages/ruby/lib/${platforms[$i]}/${files[$i]}"
+          done
         shell: bash
+
 
       - name: Setup gem and release it
         run: |
           cd languages/ruby
           gem install bundler
           gem build *.gemspec
-          mkdir -p $HOME/.gem
-          touch $HOME/.gem/credentials
-          chmod 0600 $HOME/.gem/credentials
-          printf -- "---\n:rubygems_api_key: ${{ secrets.RUBYGEMS_AUTH_TOKEN }}\n" > $HOME/.gem/credentials
           gem push *.gem
 

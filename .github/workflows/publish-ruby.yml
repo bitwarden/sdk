@@ -15,6 +15,8 @@ jobs:
   build_ruby:
     name: Build Ruby
     runs-on: ubuntu-22.04
+    env:
+      GEM_HOST_API_KEY: ${{ secrets.GEM_HOST_API_KEY }}
     needs:
       - generate_schemas
       - build_rust
@@ -79,9 +81,5 @@ jobs:
           cd languages/ruby
           gem install bundler
           gem build *.gemspec
-          mkdir -p $HOME/.gem
-          touch $HOME/.gem/credentials
-          chmod 0600 $HOME/.gem/credentials
-          printf -- "---\n:rubygems_api_key: ${{ secrets.RUBYGEMS_AUTH_TOKEN }}\n" > $HOME/.gem/credentials
-          gem push *.gem
+          gem push *.gem --key
 

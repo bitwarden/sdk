@@ -62,6 +62,16 @@ async function main() {
 
   writeToFile("./languages/ruby/lib/schemas.rb", ruby.lines);
 
+  const php = await quicktype({
+    inputData,
+    lang: "php",
+    rendererOptions: {
+      "php": "8",
+    },
+  });
+
+  writeToFile("./languages/php/lib/schemas.php", php.lines);
+
   const csharp = await quicktype({
     inputData,
     lang: "csharp",

@@ -15,11 +15,12 @@ jobs:
   build_ruby:
     name: Build Ruby
     runs-on: ubuntu-22.04
-    env:
-      GEM_HOST_API_KEY: ${{ secrets.GEM_HOST_API_KEY }}
     needs:
       - generate_schemas
       - build_rust
+
+    env:
+      RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
 
     steps:
       - name: Checkout Repository
@@ -75,11 +76,16 @@ jobs:
           done
         shell: bash
 
-
       - name: Setup gem and release it
         run: |
+          mkdir -p $HOME/.gem
+          touch $HOME/.gem/credentials
+          chmod 0600 $HOME/.gem/credentials
+          printf -- "---\n:rubygems_api_key: ${RUBYGEMS_API_KEY}\n" > $HOME/.gem/credentials
           cd languages/ruby
           gem install bundler
           gem build *.gemspec
           gem push *.gem
+        env:
+          RUBYGEMS_API_KEY: "${{secrets.RUBYGEMS_API_KEY}}"
 

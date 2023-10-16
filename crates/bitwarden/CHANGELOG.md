@@ -7,10 +7,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.1] - 2023-10-13
+
 ### Changed
 
 - `auth::request::AccessTokenLoginRequest` moved to `auth::login::AccessTokenLoginRequest` (#178)
-
 - Support for fetching multiple secrets by ids (#150)
 
 ## [0.3.0] - 2023-07-26

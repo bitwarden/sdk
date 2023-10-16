@@ -15,7 +15,7 @@ keywords = ["bitwarden", "secrets-manager", "cli"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bat = { version = "0.23.0", features = [
+bat = { version = "0.24.0", features = [
     "regex-onig",
 ], default-features = false }
 chrono = { version = "0.4.26", features = [

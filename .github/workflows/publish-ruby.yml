@@ -76,15 +76,17 @@ jobs:
           done
         shell: bash
 
-      - name: Setup gem and release it
+      - name: Build gem
+        run: |
+          cd languages/ruby
+          gem build *.gemspec
+
+      - name: Push gem to Rubygems
         run: |
           mkdir -p $HOME/.gem
           touch $HOME/.gem/credentials
           chmod 0600 $HOME/.gem/credentials
           printf -- "---\n:rubygems_api_key: ${RUBYGEMS_API_KEY}\n" > $HOME/.gem/credentials
-          cd languages/ruby
-          gem install bundler
-          gem build *.gemspec
           gem push *.gem
         env:
           RUBYGEMS_API_KEY: "${{secrets.RUBYGEMS_API_KEY}}"

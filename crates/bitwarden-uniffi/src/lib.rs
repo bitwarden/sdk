@@ -9,6 +9,7 @@ use bitwarden::{client::client_settings::ClientSettings, mobile::crypto::InitCry
 pub mod auth;
 mod error;
 pub mod tool;
+mod uniffi_support;
 pub mod vault;
 
 #[cfg(feature = "docs")]

@@ -1,6 +1,6 @@
 [package]
 name = "bitwarden-api-identity"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Bitwarden Inc"]
 license-file = "LICENSE"
 repository = "https://github.com/bitwarden/sdk"

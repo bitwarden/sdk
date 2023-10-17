@@ -1283,11 +1283,11 @@ implementations.
 <tr>
     <th>code</th>
     <th>string</th>
-    <th></th>
+    <th>Generated TOTP code</th>
 </tr>
 <tr>
-    <th>interval</th>
+    <th>period</th>
     <th>integer</th>
-    <th></th>
+    <th>Time period</th>
 </tr>
 </table>

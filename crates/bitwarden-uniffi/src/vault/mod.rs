@@ -48,6 +48,6 @@ impl ClientVault {
     /// - OTP Auth URI
     /// - Steam URI
     pub async fn generate_totp(&self, key: String, time: Option<DateTime<Utc>>) -> TotpResponse {
-        self.0 .0.read().await.vault().generate_totp(key).await
+        self.0 .0.read().await.vault().generate_totp(key, time).await
     }
 }

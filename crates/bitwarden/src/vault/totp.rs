@@ -14,7 +14,7 @@ pub struct TotpResponse {
 
 /// Generate a OATH or RFC 6238 TOTP code from a provided key.
 ///
-/// https://datatracker.ietf.org/doc/html/rfc6238
+/// <https://datatracker.ietf.org/doc/html/rfc6238>
 ///
 /// Key can be either:
 /// - A base32 encoded string

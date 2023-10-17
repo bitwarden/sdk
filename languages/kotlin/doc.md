@@ -441,6 +441,23 @@ Sends operations
 
 **Output**: Arc<sends::ClientSends>
 
+### `generate_totp`
+
+Generate a TOTP code from a provided key.
+
+The key can be either:
+
+- A base32 encoded string
+- OTP Auth URI
+- Steam URI
+
+**Arguments**:
+
+- self:
+- key: String
+
+**Output**: [TotpResponse](#totpresponse)
+
 # References
 
 References are generated from the JSON schemas and should mostly match the kotlin and swift
@@ -541,17 +558,17 @@ implementations.
 </tr>
 <tr>
     <th>attachments</th>
-    <th>array</th>
+    <th>array,null</th>
     <th></th>
 </tr>
 <tr>
     <th>fields</th>
-    <th>array</th>
+    <th>array,null</th>
     <th></th>
 </tr>
 <tr>
     <th>passwordHistory</th>
-    <th>array</th>
+    <th>array,null</th>
     <th></th>
 </tr>
 <tr>
@@ -606,7 +623,7 @@ implementations.
 </tr>
 <tr>
     <th>notes</th>
-    <th>string</th>
+    <th>string,null</th>
     <th></th>
 </tr>
 <tr>
@@ -666,17 +683,17 @@ implementations.
 </tr>
 <tr>
     <th>attachments</th>
-    <th>array</th>
+    <th>array,null</th>
     <th></th>
 </tr>
 <tr>
     <th>fields</th>
-    <th>array</th>
+    <th>array,null</th>
     <th></th>
 </tr>
 <tr>
     <th>passwordHistory</th>
-    <th>array</th>
+    <th>array,null</th>
     <th></th>
 </tr>
 <tr>
@@ -1250,6 +1267,26 @@ implementations.
 <tr>
     <th>expirationDate</th>
     <th>string,null</th>
+    <th></th>
+</tr>
+</table>
+
+## `TotpResponse`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>code</th>
+    <th>string</th>
+    <th></th>
+</tr>
+<tr>
+    <th>interval</th>
+    <th>integer</th>
     <th></th>
 </tr>
 </table>

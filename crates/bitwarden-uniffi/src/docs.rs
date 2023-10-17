@@ -3,7 +3,10 @@ use bitwarden::{
     client::kdf::Kdf,
     mobile::crypto::InitCryptoRequest,
     tool::{ExportFormat, PassphraseGeneratorRequest, PasswordGeneratorRequest},
-    vault::{Cipher, CipherView, Collection, Folder, FolderView, Send, SendListView, SendView},
+    vault::{
+        Cipher, CipherView, Collection, Folder, FolderView, Send, SendListView, SendView,
+        TotpResponse,
+    },
 };
 use schemars::JsonSchema;
 
@@ -35,4 +38,7 @@ pub enum DocRef {
 
     // Kdf
     Kdf(Kdf),
+
+    /// TOTP
+    TotpResponse(TotpResponse),
 }

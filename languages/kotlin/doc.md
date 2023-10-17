@@ -455,6 +455,7 @@ The key can be either:
 
 - self:
 - key: String
+- time: Option<DateTime>
 
 **Output**: [TotpResponse](#totpresponse)
 

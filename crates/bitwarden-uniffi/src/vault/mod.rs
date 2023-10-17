@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use bitwarden::vault::TotpResponse;
+use chrono::{DateTime, Utc};
 
 use crate::Client;
 
@@ -46,7 +47,7 @@ impl ClientVault {
     /// - A base32 encoded string
     /// - OTP Auth URI
     /// - Steam URI
-    pub async fn generate_totp(&self, key: String) -> TotpResponse {
+    pub async fn generate_totp(&self, key: String, time: Option<DateTime<Utc>>) -> TotpResponse {
         self.0 .0.read().await.vault().generate_totp(key).await
     }
 }

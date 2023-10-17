@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -9,7 +10,7 @@ pub struct TotpResponse {
     pub interval: u32,
 }
 
-pub async fn generate_totp(_key: String) -> TotpResponse {
+pub async fn generate_totp(_key: String, _time: Option<DateTime<Utc>>) -> TotpResponse {
     TotpResponse {
         code: "000 000".to_string(),
         interval: 30,

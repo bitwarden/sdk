@@ -1,4 +1,4 @@
-package bit.sdk;
+package com.bitwarden.sdk;
 
 @FunctionalInterface
 public interface ThrowingFunction<T, R, E extends Exception> {

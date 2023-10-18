@@ -1,6 +1,6 @@
-package bit.sdk;
+package com.bitwarden.sdk;
 
-import bit.sdk.schema.*;
+import com.bitwarden.sdk.schema.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
@@ -15,7 +15,7 @@ public class BitwardenClient implements AutoCloseable {
             try {
                 return throwingFunction.accept(i);
             } catch (Exception ex) {
-                throw new RuntimeException(ex);
+                throw new BitwardenClientException("Response deserialization failed");
             }
         };
     }
@@ -28,42 +28,46 @@ public class BitwardenClient implements AutoCloseable {
 
     private boolean isClientOpen;
 
-    private Projects projects;
+    private ProjectsClient projects;
 
-    private Secrets secrets;
+    private SecretsClient secrets;
 
     public BitwardenClient(BitwardenSettings bitwardenSettings) {
         ClientSettings clientSettings = new ClientSettings();
         clientSettings.setAPIURL(bitwardenSettings.getApiUrl());
         clientSettings.setIdentityURL(bitwardenSettings.getIdentityUrl());
         clientSettings.setDeviceType(DeviceType.SDK);
-        clientSettings.setUserAgent("Bitwarden Java SDK");
+        clientSettings.setUserAgent("Bitwarden JAVA-SDK");
         library = Native.load("bitwarden_c", BitwardenLibrary.class);
         try {
             client = library.init(Converter.ClientSettingsToJsonString(clientSettings));
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Error while processing client settings", e);
+            throw new BitwardenClientException("Error while processing client settings");
         }
         commandRunner = new CommandRunner(library, client);
-        projects = new Projects(commandRunner);
-        secrets = new Secrets(commandRunner);
+        projects = new ProjectsClient(commandRunner);
+        secrets = new SecretsClient(commandRunner);
         isClientOpen = true;
     }
 
-    public ResponseForAPIKeyLoginResponse accessTokenLogin(String accessToken) {
+    public APIKeyLoginResponse accessTokenLogin(String accessToken) {
         Command command = new Command();
         AccessTokenLoginRequest accessTokenLoginRequest = new AccessTokenLoginRequest();
         accessTokenLoginRequest.setAccessToken(accessToken);
         command.setAccessTokenLogin(accessTokenLoginRequest);
-        return commandRunner.runCommand(command,
+        ResponseForAPIKeyLoginResponse response = commandRunner.runCommand(command,
             throwingFunctionWrapper(Converter::ResponseForAPIKeyLoginResponseFromJsonString));
+        if (response == null || !response.getSuccess()) {
+            throw new BitwardenClientException(response != null ? response.getErrorMessage() : "Login failed");
+        }
+        return response.getData();
     }
 
-    public Projects projects() {
+    public ProjectsClient projects() {
         return projects;
     }
 
-    public Secrets secrets() {
+    public SecretsClient secrets() {
         return secrets;
     }
 

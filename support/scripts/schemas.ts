@@ -68,12 +68,12 @@ async function main() {
     inputData,
     lang: "java",
     rendererOptions: {
-      package: "bit.sdk.schema",
+      package: "com.bitwarden.sdk.schema",
       "java-version": "8",
     },
   });
 
-  const javaDir = "./languages/java/src/main/java/bit/sdk/schema/";
+  const javaDir = "./languages/java/src/main/java/com/bitwarden/sdk/schema/";
   if (!fs.existsSync(javaDir)) {
     fs.mkdirSync(javaDir);
   }

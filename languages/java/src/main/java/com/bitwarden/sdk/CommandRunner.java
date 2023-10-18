@@ -1,7 +1,7 @@
-package bit.sdk;
+package com.bitwarden.sdk;
 
-import bit.sdk.schema.Command;
-import bit.sdk.schema.Converter;
+import com.bitwarden.sdk.schema.Command;
+import com.bitwarden.sdk.schema.Converter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.jna.Pointer;

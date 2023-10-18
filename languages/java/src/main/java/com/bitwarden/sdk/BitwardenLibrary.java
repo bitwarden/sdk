@@ -1,4 +1,4 @@
-package bit.sdk;
+package com.bitwarden.sdk;
 
 import com.sun.jna.Library;
 import com.sun.jna.Pointer;

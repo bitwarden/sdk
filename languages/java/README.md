@@ -1,6 +1,7 @@
 # Bitwarden Secrets Manager SDK
 
-Java bindings for interacting with the [Bitwarden Secrets Manager]. This is a beta release and might be missing some functionality.
+Java bindings for interacting with the [Bitwarden Secrets Manager]. This is a beta release and might be missing some
+functionality.
 
 ## Create access token
 
@@ -34,7 +35,7 @@ var projectsResponse = bitwardenClient.projects().list(organizationId);
 ### Update project
 
 ```java
-UUID projectId = projectResponse.getData().getID();
+UUID projectId = projectResponse.getID();
 projectResponse = bitwardenClient.projects().get(projectId);
 projectResponse = bitwardenClient.projects.update(projectId, organizationId, "TestProjectUpdated");
 ```
@@ -46,10 +47,11 @@ String key = "key";
 String value = "value";
 String note = "note";
 var secretResponse = bitwardenClient.secrets().create(key, value, note, organizationId, new UUID[]{projectId});
-UUID secretId = secretResponse.getData().getID();
+UUID secretId = secretResponse.getID();
 ```
 
 ### Update secret
+
 ```java
 bitwardenClient.secrets().update(secretId, key2, value2, note2, organizationId, new UUID[]{projectId});
 ```
@@ -68,4 +70,5 @@ bitwardenClient.projects().delete(new UUID[]{projectId});
 ```
 
 [Access Tokens]: https://bitwarden.com/help/access-tokens/
+
 [Bitwarden Secrets Manager]: https://bitwarden.com/products/secrets-manager/

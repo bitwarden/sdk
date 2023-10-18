@@ -3,4 +3,5 @@ mod client_collection;
 mod client_folders;
 mod client_password_history;
 mod client_sends;
+mod client_totp;
 mod client_vault;

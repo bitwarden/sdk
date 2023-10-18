@@ -3,29 +3,67 @@ use rand::{seq::SliceRandom, RngCore};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-/// Password generator request. If all options are false, the default is to
+/// Password generator request options. If all options are false, the default is to
 /// generate a password with:
 /// - lowercase
 /// - uppercase
 /// - numbers
 ///
 /// The default length is 16.
-#[derive(Serialize, Deserialize, Debug, JsonSchema, Default)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct PasswordGeneratorRequest {
+    /// When set to true, the generated password will contain lowercase characters (a-z).
     pub lowercase: bool,
+    /// When set to true, the generated password will contain uppercase characters (A-Z).
     pub uppercase: bool,
+    /// When set to true, the generated password will contain numbers (0-9).
     pub numbers: bool,
+    /// When set to true, the generated password will contain special characters.
+    /// The supported characters are: ! @ # $ % ^ & *
     pub special: bool,
 
+    /// The length of the generated password.
+    /// Note that the password length must be greater than the sum of all the minimums.
+    /// The default value when unset is 16.
     pub length: Option<u8>,
 
+    /// When set to true, the generated password will not contain ambiguous characters.
+    /// The ambiguous characters are: I, O, l, 0, 1
     pub avoid_ambiguous: Option<bool>, // TODO: Should we rename this to include_all_characters?
+
+    /// The minimum number of lowercase characters in the generated password.
+    /// When set, the value must be between 1 and 9. This value is ignored is lowercase is false
     pub min_lowercase: Option<u8>,
+    /// The minimum number of uppercase characters in the generated password.
+    /// When set, the value must be between 1 and 9. This value is ignored is uppercase is false  
     pub min_uppercase: Option<u8>,
+    /// The minimum number of numbers in the generated password.
+    /// When set, the value must be between 1 and 9. This value is ignored is numbers is false
     pub min_number: Option<u8>,
+    /// The minimum number of special characters in the generated password.
+    /// When set, the value must be between 1 and 9. This value is ignored is special is false
     pub min_special: Option<u8>,
+}
+
+// We need to implement this manually so we can set one character set to true.
+// Otherwise the default implementation will fail to generate a password.
+impl Default for PasswordGeneratorRequest {
+    fn default() -> Self {
+        Self {
+            lowercase: true,
+            uppercase: false,
+            numbers: false,
+            special: false,
+            length: None,
+            avoid_ambiguous: None,
+            min_lowercase: None,
+            min_uppercase: None,
+            min_number: None,
+            min_special: None,
+        }
+    }
 }
 
 /// Passphrase generator request.
@@ -109,6 +147,8 @@ impl PasswordGeneratorCharSet {
     }
 }
 
+/// Implementation of the random password generator. This is not accessible to the public API.
+/// See [`ClientGenerator::password`](crate::ClientGenerator::password) for the API function.
 pub(super) fn password(input: PasswordGeneratorRequest) -> Result<String> {
     password_with_rng(rand::thread_rng(), input)
 }
@@ -185,14 +225,15 @@ pub(super) fn passphrase(_input: PassphraseGeneratorRequest) -> Result<String> {
 
 #[cfg(test)]
 mod test {
+    use std::collections::HashSet;
+
     use rand::SeedableRng;
 
     use super::*;
 
-    // We convert the slices to Strings to be able to use `contains`
-    // This wouldn't work if the character sets were ordered differently, but that's not the case for us
-    fn to_string(chars: &[char]) -> String {
-        chars.iter().collect()
+    // We convert the slices to HashSets to be able to use `is_subset`
+    fn to_set(chars: &[char]) -> HashSet<char> {
+        chars.iter().copied().collect()
     }
 
     #[test]
@@ -206,12 +247,12 @@ mod test {
     #[test]
     fn test_password_characters_all_ambiguous() {
         let set = PasswordGeneratorCharSet::new(true, true, true, true, false);
-        assert!(to_string(&set.lower).contains(&to_string(LOWER_CHARS)));
-        assert!(to_string(&set.lower).contains(&to_string(LOWER_CHARS_AMBIGUOUS)));
-        assert!(to_string(&set.upper).contains(&to_string(UPPER_CHARS)));
-        assert!(to_string(&set.upper).contains(&to_string(UPPER_CHARS_AMBIGUOUS)));
-        assert!(to_string(&set.number).contains(&to_string(NUMBER_CHARS)));
-        assert!(to_string(&set.number).contains(&to_string(NUMBER_CHARS_AMBIGUOUS)));
+        assert!(to_set(&set.lower).is_superset(&to_set(LOWER_CHARS)));
+        assert!(to_set(&set.lower).is_superset(&to_set(LOWER_CHARS_AMBIGUOUS)));
+        assert!(to_set(&set.upper).is_superset(&to_set(UPPER_CHARS)));
+        assert!(to_set(&set.upper).is_superset(&to_set(UPPER_CHARS_AMBIGUOUS)));
+        assert!(to_set(&set.number).is_superset(&to_set(NUMBER_CHARS)));
+        assert!(to_set(&set.number).is_superset(&to_set(NUMBER_CHARS_AMBIGUOUS)));
         assert_eq!(set.special, SPECIAL_CHARS);
     }
     #[test]
@@ -227,8 +268,8 @@ mod test {
         // Only uppercase including ambiguous
         let set = PasswordGeneratorCharSet::new(false, true, false, false, false);
         assert_eq!(set.lower, Vec::new());
-        assert!(to_string(&set.upper).contains(&to_string(UPPER_CHARS)));
-        assert!(to_string(&set.upper).contains(&to_string(UPPER_CHARS_AMBIGUOUS)));
+        assert!(to_set(&set.upper).is_superset(&to_set(UPPER_CHARS)));
+        assert!(to_set(&set.upper).is_superset(&to_set(UPPER_CHARS_AMBIGUOUS)));
         assert_eq!(set.number, Vec::new());
         assert_eq!(set.special, Vec::new());
     }

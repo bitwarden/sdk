@@ -6,9 +6,10 @@ use rand::{seq::SliceRandom, Rng, RngCore};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-/// Passphrase generator request.
+/// Passphrase generator request options.
 ///
-/// The default separator is `-` and default number of words is 3.
+/// By default, the generated passphrases contain 3 random
+/// lowercase words separated by spaces, and no digits
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Default)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
@@ -19,7 +20,7 @@ pub struct PassphraseGeneratorRequest {
     pub num_words: Option<u8>,
     /// Character separator between words in the generated passphrase.
     /// If the value is set, it cannot be empty.
-    /// The default value when unset is `-`
+    /// The default value when unset is ` `
     pub word_separator: Option<String>,
     /// When set to true, capitalize the first letter of each word in the generated passphrase.
     /// The default value when unset is `false`
@@ -35,6 +36,8 @@ const DEFAULT_PASSPHRASE_SEPARATOR: &str = " ";
 const MINIMUM_PASSPHRASE_NUM_WORDS: u8 = 3;
 const MAXIMUM_PASSPHRASE_NUM_WORDS: u8 = 20;
 
+/// Implementation of the random passphrase generator. This is not accessible to the public API.
+/// See [`ClientGenerator::passphrase`](crate::ClientGenerator::passphrase) for the API function.
 pub(super) fn passphrase(input: PassphraseGeneratorRequest) -> Result<String> {
     passphrase_with_rng(rand::thread_rng(), input)
 }

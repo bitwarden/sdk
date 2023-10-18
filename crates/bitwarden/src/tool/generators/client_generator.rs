@@ -14,6 +14,27 @@ impl<'a> ClientGenerator<'a> {
         password(input)
     }
 
+    /// Generates a random passphrase.
+    /// A passphrase is a combination of random words separated by a character.
+    /// An example of passphrase is `correct horse battery staple`.
+    ///
+    /// By default, the generated passphrases contain 3 random lowercase words
+    /// separated by spaces, but this can be customized using the `input` parameter.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bitwarden::{Client, tool::PassphraseGeneratorRequest, error::Result};
+    /// async fn test() -> Result<()> {
+    ///     let input = PassphraseGeneratorRequest {
+    ///         num_words: Some(4),
+    ///         ..Default::default()
+    ///     };
+    ///     let passphrase = Client::new(None).generator().passphrase(input).await.unwrap();
+    ///     println!("{}", passphrase);
+    ///     Ok(())
+    /// }
+    /// ```
     pub async fn passphrase(&self, input: PassphraseGeneratorRequest) -> Result<String> {
         passphrase(input)
     }

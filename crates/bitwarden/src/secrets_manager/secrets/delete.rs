@@ -79,10 +79,7 @@ impl SecretDeleteResponse {
 
         match response.error {
             Some(error) => Err(Error::ApiError(vec![(id, error)])),
-            None => Ok(SecretDeleteResponse {
-                id: id,
-                error: None,
-            }),
+            None => Ok(SecretDeleteResponse { id, error: None }),
         }
     }
 }

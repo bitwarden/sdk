@@ -39,14 +39,28 @@ impl ProjectsDeleteResponse {
     pub(crate) fn process_response(
         response: BulkDeleteResponseModelListResponseModel,
     ) -> Result<ProjectsDeleteResponse> {
-        Ok(ProjectsDeleteResponse {
-            data: response
-                .data
-                .unwrap_or_default()
-                .into_iter()
-                .map(ProjectDeleteResponse::process_response)
-                .collect::<Result<_, _>>()?,
-        })
+        let mut successes = Vec::new();
+        let mut failures = Vec::new();
+
+        for item in response.data.unwrap_or_default() {
+            match ProjectDeleteResponse::process_response(item) {
+                Ok(data) => {
+                    successes.push(data);
+                }
+                Err(Error::ApiError(error)) => {
+                    failures.extend_from_slice(&error);
+                }
+                Err(_) => {
+                    unreachable!();
+                }
+            }
+        }
+
+        if failures.is_empty() {
+            Ok(ProjectsDeleteResponse { data: successes })
+        } else {
+            Err(Error::ApiError(failures))
+        }
     }
 }
 
@@ -61,9 +75,11 @@ impl ProjectDeleteResponse {
     pub(crate) fn process_response(
         response: BulkDeleteResponseModel,
     ) -> Result<ProjectDeleteResponse> {
-        Ok(ProjectDeleteResponse {
-            id: response.id.ok_or(Error::MissingFields)?,
-            error: response.error,
-        })
+        let id = response.id.ok_or(Error::MissingFields)?;
+
+        match response.error {
+            Some(error) => Err(Error::ApiError(vec![(id, error)])),
+            None => Ok(ProjectDeleteResponse { id, error: None }),
+        }
     }
 }

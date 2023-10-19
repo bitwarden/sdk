@@ -9,7 +9,7 @@ use {
 };
 
 use crate::{
-    crypto::{encrypt_aes256_hmac, EncString, SymmetricCryptoKey},
+    crypto::{encrypt_aes256_hmac, EncString, KeyDecryptable, SymmetricCryptoKey},
     error::{CryptoError, Result},
 };
 
@@ -46,7 +46,7 @@ impl EncryptionSettings {
 
                 // Decrypt the private key with the user key
                 let private_key = {
-                    let dec = private_key.decrypt_with_key(&user_key)?;
+                    let dec: Vec<u8> = private_key.decrypt_with_key(&user_key)?;
                     Some(
                         rsa::RsaPrivateKey::from_pkcs8_der(&dec)
                             .map_err(|_| CryptoError::InvalidKey)?,
@@ -98,7 +98,7 @@ impl EncryptionSettings {
         Ok(self)
     }
 
-    fn get_key(&self, org_id: &Option<Uuid>) -> Option<&SymmetricCryptoKey> {
+    pub(crate) fn get_key(&self, org_id: &Option<Uuid>) -> Option<&SymmetricCryptoKey> {
         // If we don't have a private key set (to decode multiple org keys), we just use the main user key
         if self.private_key.is_none() {
             return Some(&self.user_key);
@@ -108,20 +108,6 @@ impl EncryptionSettings {
             Some(org_id) => self.org_keys.get(org_id),
             None => Some(&self.user_key),
         }
-    }
-
-    pub(crate) fn decrypt_bytes(
-        &self,
-        cipher: &EncString,
-        org_id: &Option<Uuid>,
-    ) -> Result<Vec<u8>> {
-        let key = self.get_key(org_id).ok_or(CryptoError::NoKeyForOrg)?;
-        cipher.decrypt_with_key(key)
-    }
-
-    pub(crate) fn decrypt(&self, cipher: &EncString, org_id: &Option<Uuid>) -> Result<String> {
-        let dec = self.decrypt_bytes(cipher, org_id)?;
-        String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String.into())
     }
 
     pub(crate) fn encrypt(&self, data: &[u8], org_id: &Option<Uuid>) -> Result<EncString> {
@@ -134,18 +120,17 @@ impl EncryptionSettings {
 
 #[cfg(test)]
 mod tests {
-    use super::{EncryptionSettings, SymmetricCryptoKey};
-    use crate::crypto::{Decryptable, Encryptable};
+    use super::SymmetricCryptoKey;
+    use crate::crypto::{KeyDecryptable, KeyEncryptable};
 
     #[test]
     fn test_encryption_settings() {
         let key = SymmetricCryptoKey::generate("test");
-        let settings = EncryptionSettings::new_single_key(key);
 
         let test_string = "encrypted_test_string".to_string();
-        let cipher = test_string.clone().encrypt(&settings, &None).unwrap();
+        let cipher = test_string.clone().encrypt_with_key(&key).unwrap();
 
-        let decrypted_str = cipher.decrypt(&settings, &None).unwrap();
+        let decrypted_str: String = cipher.decrypt_with_key(&key).unwrap();
         assert_eq!(decrypted_str, test_string);
     }
 }

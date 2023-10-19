@@ -2,7 +2,22 @@ use std::{collections::HashMap, hash::Hash};
 
 use uuid::Uuid;
 
-use crate::{client::encryption_settings::EncryptionSettings, error::Result};
+use crate::{
+    client::encryption_settings::EncryptionSettings,
+    error::{Error, Result},
+};
+
+use super::{KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
+
+pub trait LocateKey {
+    fn locate_key<'a>(
+        &self,
+        enc: &'a EncryptionSettings,
+        org_id: &Option<Uuid>,
+    ) -> Option<&'a SymmetricCryptoKey> {
+        enc.get_key(org_id)
+    }
+}
 
 pub trait Encryptable<Output> {
     fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Output>;
@@ -12,15 +27,17 @@ pub trait Decryptable<Output> {
     fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Output>;
 }
 
-impl<T: Encryptable<Output>, Output> Encryptable<Option<Output>> for Option<T> {
-    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Option<Output>> {
-        self.map(|e| e.encrypt(enc, org_id)).transpose()
+impl<T: KeyEncryptable<Output> + LocateKey, Output> Encryptable<Output> for T {
+    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Output> {
+        let key = self.locate_key(enc, org_id).ok_or(Error::VaultLocked)?;
+        self.encrypt_with_key(key)
     }
 }
 
-impl<T: Decryptable<Output>, Output> Decryptable<Option<Output>> for Option<T> {
-    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Option<Output>> {
-        self.as_ref().map(|e| e.decrypt(enc, org_id)).transpose()
+impl<T: KeyDecryptable<Output> + LocateKey, Output> Decryptable<Output> for T {
+    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Output> {
+        let key = self.locate_key(enc, org_id).ok_or(Error::VaultLocked)?;
+        self.decrypt_with_key(key)
     }
 }
 
@@ -46,7 +63,7 @@ impl<T: Encryptable<Output>, Output, Id: Hash + Eq> Encryptable<HashMap<Id, Outp
     ) -> Result<HashMap<Id, Output>> {
         self.into_iter()
             .map(|(id, e)| Ok((id, e.encrypt(enc, org_id)?)))
-            .collect::<Result<HashMap<_, _>>>()
+            .collect()
     }
 }
 
@@ -60,18 +77,6 @@ impl<T: Decryptable<Output>, Output, Id: Hash + Eq + Copy> Decryptable<HashMap<I
     ) -> Result<HashMap<Id, Output>> {
         self.iter()
             .map(|(id, e)| Ok((*id, e.decrypt(enc, org_id)?)))
-            .collect::<Result<HashMap<_, _>>>()
-    }
-}
-
-impl<T: Encryptable<Output>, Output> Encryptable<Output> for Box<T> {
-    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Output> {
-        (*self).encrypt(enc, org_id)
-    }
-}
-
-impl<T: Decryptable<Output>, Output> Decryptable<Output> for Box<T> {
-    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Output> {
-        (**self).decrypt(enc, org_id)
+            .collect()
     }
 }

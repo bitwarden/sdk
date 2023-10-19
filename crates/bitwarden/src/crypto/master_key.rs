@@ -4,8 +4,8 @@ use rand::Rng;
 use sha2::Digest;
 
 use super::{
-    encrypt_aes256, hkdf_expand, EncString, PbkdfSha256Hmac, SymmetricCryptoKey, UserKey,
-    PBKDF_SHA256_HMAC_OUT_SIZE,
+    encrypt_aes256, hkdf_expand, EncString, KeyDecryptable, PbkdfSha256Hmac, SymmetricCryptoKey,
+    UserKey, PBKDF_SHA256_HMAC_OUT_SIZE,
 };
 use crate::{client::kdf::Kdf, error::Result, util::BASE64_ENGINE};
 
@@ -53,7 +53,7 @@ impl MasterKey {
     pub(crate) fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey> {
         let stretched_key = stretch_master_key(self)?;
 
-        let dec = user_key.decrypt_with_key(&stretched_key)?;
+        let dec: Vec<u8> = user_key.decrypt_with_key(&stretched_key)?;
         SymmetricCryptoKey::try_from(dec.as_slice())
     }
 }

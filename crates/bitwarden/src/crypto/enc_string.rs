@@ -2,14 +2,14 @@ use std::{fmt::Display, str::FromStr};
 
 use base64::Engine;
 use serde::{de::Visitor, Deserialize};
-use uuid::Uuid;
 
 use crate::{
-    client::encryption_settings::EncryptionSettings,
-    crypto::{decrypt_aes256_hmac, Decryptable, Encryptable, SymmetricCryptoKey},
+    crypto::{decrypt_aes256_hmac, SymmetricCryptoKey},
     error::{CryptoError, EncStringParseError, Error, Result},
     util::BASE64_ENGINE,
 };
+
+use super::{KeyDecryptable, KeyEncryptable, LocateKey};
 
 #[derive(Clone)]
 #[allow(unused, non_camel_case_types)]
@@ -304,8 +304,24 @@ impl EncString {
             EncString::Rsa2048_OaepSha1_HmacSha256_B64 { .. } => 6,
         }
     }
+}
 
-    pub fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
+fn invalid_len_error(expected: usize) -> impl Fn(Vec<u8>) -> EncStringParseError {
+    move |e: Vec<_>| EncStringParseError::InvalidLength {
+        expected,
+        got: e.len(),
+    }
+}
+
+impl LocateKey for EncString {}
+impl KeyEncryptable<EncString> for &[u8] {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<EncString> {
+        super::encrypt_aes256_hmac(self, key.mac_key.ok_or(CryptoError::InvalidMac)?, key.key)
+    }
+}
+
+impl KeyDecryptable<Vec<u8>> for EncString {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
         match self {
             EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
                 let mac_key = key.mac_key.ok_or(CryptoError::InvalidMac)?;
@@ -317,22 +333,16 @@ impl EncString {
     }
 }
 
-fn invalid_len_error(expected: usize) -> impl Fn(Vec<u8>) -> EncStringParseError {
-    move |e: Vec<_>| EncStringParseError::InvalidLength {
-        expected,
-        got: e.len(),
+impl KeyEncryptable<EncString> for String {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<EncString> {
+        self.as_bytes().encrypt_with_key(key)
     }
 }
 
-impl Encryptable<EncString> for String {
-    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<EncString> {
-        enc.encrypt(self.as_bytes(), org_id)
-    }
-}
-
-impl Decryptable<String> for EncString {
-    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<String> {
-        enc.decrypt(self, org_id)
+impl KeyDecryptable<String> for EncString {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<String> {
+        let dec: Vec<u8> = self.decrypt_with_key(key)?;
+        String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String.into())
     }
 }
 

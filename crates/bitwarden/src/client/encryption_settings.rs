@@ -4,12 +4,12 @@ use rsa::RsaPrivateKey;
 use uuid::Uuid;
 #[cfg(feature = "internal")]
 use {
-    crate::client::UserLoginMethod,
+    crate::{client::UserLoginMethod, crypto::KeyDecryptable},
     rsa::{pkcs8::DecodePrivateKey, Oaep},
 };
 
 use crate::{
-    crypto::{encrypt_aes256_hmac, EncString, KeyDecryptable, SymmetricCryptoKey},
+    crypto::{encrypt_aes256_hmac, EncString, SymmetricCryptoKey},
     error::{CryptoError, Result},
 };
 

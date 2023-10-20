@@ -1,3 +1,6 @@
+use std::str::FromStr;
+
+use bitwarden_api_api::models::CipherIdentityModel;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -103,5 +106,40 @@ impl Decryptable<IdentityView> for Identity {
             passport_number: self.passport_number.decrypt(enc, org_id)?,
             license_number: self.license_number.decrypt(enc, org_id)?,
         })
+    }
+}
+
+impl From<CipherIdentityModel> for Identity {
+    fn from(identity: CipherIdentityModel) -> Self {
+        Self {
+            title: identity.title.map(|s| EncString::from_str(&s).unwrap()),
+            first_name: identity
+                .first_name
+                .map(|s| EncString::from_str(&s).unwrap()),
+            middle_name: identity
+                .middle_name
+                .map(|s| EncString::from_str(&s).unwrap()),
+            last_name: identity.last_name.map(|s| EncString::from_str(&s).unwrap()),
+            address1: identity.address1.map(|s| EncString::from_str(&s).unwrap()),
+            address2: identity.address2.map(|s| EncString::from_str(&s).unwrap()),
+            address3: identity.address3.map(|s| EncString::from_str(&s).unwrap()),
+            city: identity.city.map(|s| EncString::from_str(&s).unwrap()),
+            state: identity.state.map(|s| EncString::from_str(&s).unwrap()),
+            postal_code: identity
+                .postal_code
+                .map(|s| EncString::from_str(&s).unwrap()),
+            country: identity.country.map(|s| EncString::from_str(&s).unwrap()),
+            company: identity.company.map(|s| EncString::from_str(&s).unwrap()),
+            email: identity.email.map(|s| EncString::from_str(&s).unwrap()),
+            phone: identity.phone.map(|s| EncString::from_str(&s).unwrap()),
+            ssn: identity.ssn.map(|s| EncString::from_str(&s).unwrap()),
+            username: identity.username.map(|s| EncString::from_str(&s).unwrap()),
+            passport_number: identity
+                .passport_number
+                .map(|s| EncString::from_str(&s).unwrap()),
+            license_number: identity
+                .license_number
+                .map(|s| EncString::from_str(&s).unwrap()),
+        }
     }
 }

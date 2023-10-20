@@ -1,3 +1,6 @@
+use std::str::FromStr;
+
+use bitwarden_api_api::models::CipherFieldModel;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
@@ -61,5 +64,27 @@ impl Decryptable<FieldView> for Field {
             r#type: self.r#type,
             linked_id: self.linked_id,
         })
+    }
+}
+
+impl From<CipherFieldModel> for Field {
+    fn from(model: CipherFieldModel) -> Self {
+        Self {
+            name: model.name.map(|s| EncString::from_str(&s).unwrap()),
+            value: model.value.map(|s| EncString::from_str(&s).unwrap()),
+            r#type: model.r#type.map(|t| t.into()).unwrap(),
+            linked_id: model.linked_id.map(|id| (id as u32).into()),
+        }
+    }
+}
+
+impl From<bitwarden_api_api::models::FieldType> for FieldType {
+    fn from(model: bitwarden_api_api::models::FieldType) -> Self {
+        match model {
+            bitwarden_api_api::models::FieldType::Variant0 => FieldType::Text,
+            bitwarden_api_api::models::FieldType::Variant1 => FieldType::Hidden,
+            bitwarden_api_api::models::FieldType::Variant2 => FieldType::Boolean,
+            bitwarden_api_api::models::FieldType::Variant3 => FieldType::Linked,
+        }
     }
 }

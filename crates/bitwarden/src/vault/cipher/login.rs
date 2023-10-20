@@ -1,3 +1,6 @@
+use std::str::FromStr;
+
+use bitwarden_api_api::models::{CipherLoginModel, CipherLoginUriModel};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -106,5 +109,42 @@ impl Decryptable<LoginView> for Login {
             totp: self.totp.decrypt(enc, org_id)?,
             autofill_on_page_load: self.autofill_on_page_load,
         })
+    }
+}
+
+impl From<CipherLoginModel> for Login {
+    fn from(login: CipherLoginModel) -> Self {
+        Self {
+            username: login.username.map(|s| EncString::from_str(&s).unwrap()),
+            password: login.password.map(|s| EncString::from_str(&s).unwrap()),
+            password_revision_date: login.password_revision_date.map(|d| d.parse().unwrap()),
+            uris: login
+                .uris
+                .map(|v| v.into_iter().map(|u| u.into()).collect()),
+            totp: login.totp.map(|s| EncString::from_str(&s).unwrap()),
+            autofill_on_page_load: login.autofill_on_page_load,
+        }
+    }
+}
+
+impl From<CipherLoginUriModel> for LoginUri {
+    fn from(uri: CipherLoginUriModel) -> Self {
+        Self {
+            uri: uri.uri.map(|s| EncString::from_str(&s).unwrap()),
+            r#match: uri.r#match.map(|m| m.into()),
+        }
+    }
+}
+
+impl From<bitwarden_api_api::models::UriMatchType> for UriMatchType {
+    fn from(value: bitwarden_api_api::models::UriMatchType) -> Self {
+        match value {
+            bitwarden_api_api::models::UriMatchType::Variant0 => Self::Domain,
+            bitwarden_api_api::models::UriMatchType::Variant1 => Self::Host,
+            bitwarden_api_api::models::UriMatchType::Variant2 => Self::StartsWith,
+            bitwarden_api_api::models::UriMatchType::Variant3 => Self::Exact,
+            bitwarden_api_api::models::UriMatchType::Variant4 => Self::RegularExpression,
+            bitwarden_api_api::models::UriMatchType::Variant5 => Self::Never,
+        }
     }
 }

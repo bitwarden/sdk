@@ -1,3 +1,4 @@
+use bitwarden_api_api::models::CipherSecureNoteModel;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
@@ -43,5 +44,21 @@ impl Decryptable<SecureNoteView> for SecureNote {
         Ok(SecureNoteView {
             r#type: self.r#type,
         })
+    }
+}
+
+impl From<CipherSecureNoteModel> for SecureNote {
+    fn from(model: CipherSecureNoteModel) -> Self {
+        Self {
+            r#type: model.r#type.map(|t| t.into()).unwrap(),
+        }
+    }
+}
+
+impl From<bitwarden_api_api::models::SecureNoteType> for SecureNoteType {
+    fn from(model: bitwarden_api_api::models::SecureNoteType) -> Self {
+        match model {
+            bitwarden_api_api::models::SecureNoteType::Variant0 => SecureNoteType::Generic,
+        }
     }
 }

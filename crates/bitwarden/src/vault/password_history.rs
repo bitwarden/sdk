@@ -1,3 +1,6 @@
+use std::str::FromStr;
+
+use bitwarden_api_api::models::CipherPasswordHistoryModel;
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -44,5 +47,14 @@ impl Decryptable<PasswordHistoryView> for PasswordHistory {
             password: self.password.decrypt(enc, org_id)?,
             last_used_date: self.last_used_date,
         })
+    }
+}
+
+impl From<CipherPasswordHistoryModel> for PasswordHistory {
+    fn from(model: CipherPasswordHistoryModel) -> Self {
+        Self {
+            password: EncString::from_str(&model.password).unwrap(),
+            last_used_date: model.last_used_date.parse().unwrap(),
+        }
     }
 }

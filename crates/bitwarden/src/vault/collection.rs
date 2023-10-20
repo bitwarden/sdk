@@ -1,3 +1,6 @@
+use std::str::FromStr;
+
+use bitwarden_api_api::models::CollectionDetailsResponseModel;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -50,5 +53,18 @@ impl Decryptable<CollectionView> for Collection {
             hide_passwords: self.hide_passwords,
             read_only: self.read_only,
         })
+    }
+}
+
+impl From<CollectionDetailsResponseModel> for Collection {
+    fn from(collection: CollectionDetailsResponseModel) -> Self {
+        Collection {
+            id: collection.id.unwrap(),
+            organization_id: collection.organization_id.unwrap(),
+            name: EncString::from_str(&collection.name.unwrap()).unwrap(),
+            external_id: collection.external_id,
+            hide_passwords: collection.hide_passwords.unwrap_or(false),
+            read_only: collection.read_only.unwrap_or(false),
+        }
     }
 }

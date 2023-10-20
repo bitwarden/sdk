@@ -330,6 +330,12 @@ impl Encryptable<EncString> for String {
     }
 }
 
+impl Encryptable<EncString> for &[u8] {
+    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<EncString> {
+        enc.encrypt(self, org_id)
+    }
+}
+
 impl Decryptable<String> for EncString {
     fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<String> {
         enc.decrypt(self, org_id)

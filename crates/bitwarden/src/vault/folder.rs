@@ -1,3 +1,6 @@
+use std::str::FromStr;
+
+use bitwarden_api_api::models::FolderResponseModel;
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -44,5 +47,15 @@ impl Decryptable<FolderView> for Folder {
             name: self.name.decrypt(enc, &None)?,
             revision_date: self.revision_date,
         })
+    }
+}
+
+impl From<FolderResponseModel> for Folder {
+    fn from(folder: FolderResponseModel) -> Self {
+        Folder {
+            id: folder.id.unwrap(),
+            name: EncString::from_str(&folder.name.unwrap()).unwrap(),
+            revision_date: folder.revision_date.unwrap().parse().unwrap(),
+        }
     }
 }

@@ -1,3 +1,6 @@
+use std::str::FromStr;
+
+use bitwarden_api_api::models::CipherCardModel;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -55,5 +58,20 @@ impl Decryptable<CardView> for Card {
             brand: self.brand.decrypt(enc, org_id)?,
             number: self.number.decrypt(enc, org_id)?,
         })
+    }
+}
+
+impl From<CipherCardModel> for Card {
+    fn from(card: CipherCardModel) -> Self {
+        Self {
+            cardholder_name: card
+                .cardholder_name
+                .map(|s| EncString::from_str(&s).unwrap()),
+            exp_month: card.exp_month.map(|s| EncString::from_str(&s).unwrap()),
+            exp_year: card.exp_year.map(|s| EncString::from_str(&s).unwrap()),
+            code: card.code.map(|s| EncString::from_str(&s).unwrap()),
+            brand: card.brand.map(|s| EncString::from_str(&s).unwrap()),
+            number: card.number.map(|s| EncString::from_str(&s).unwrap()),
+        }
     }
 }

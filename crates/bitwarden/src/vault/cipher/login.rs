@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use bitwarden_api_api::models::{CipherLoginModel, CipherLoginUriModel};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
@@ -10,7 +8,7 @@ use uuid::Uuid;
 use crate::{
     client::encryption_settings::EncryptionSettings,
     crypto::{Decryptable, EncString, Encryptable},
-    error::Result,
+    error::{Error, Result},
 };
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
@@ -112,27 +110,35 @@ impl Decryptable<LoginView> for Login {
     }
 }
 
-impl From<CipherLoginModel> for Login {
-    fn from(login: CipherLoginModel) -> Self {
-        Self {
-            username: login.username.map(|s| EncString::from_str(&s).unwrap()),
-            password: login.password.map(|s| EncString::from_str(&s).unwrap()),
-            password_revision_date: login.password_revision_date.map(|d| d.parse().unwrap()),
+impl TryFrom<CipherLoginModel> for Login {
+    type Error = Error;
+
+    fn try_from(login: CipherLoginModel) -> Result<Self> {
+        Ok(Self {
+            username: EncString::try_from(login.username)?,
+            password: EncString::try_from(login.password)?,
+            password_revision_date: login
+                .password_revision_date
+                .map(|d| d.parse())
+                .transpose()?,
             uris: login
                 .uris
-                .map(|v| v.into_iter().map(|u| u.into()).collect()),
-            totp: login.totp.map(|s| EncString::from_str(&s).unwrap()),
+                .map(|v| v.into_iter().map(|u| u.try_into()).collect())
+                .transpose()?,
+            totp: EncString::try_from(login.totp)?,
             autofill_on_page_load: login.autofill_on_page_load,
-        }
+        })
     }
 }
 
-impl From<CipherLoginUriModel> for LoginUri {
-    fn from(uri: CipherLoginUriModel) -> Self {
-        Self {
-            uri: uri.uri.map(|s| EncString::from_str(&s).unwrap()),
+impl TryFrom<CipherLoginUriModel> for LoginUri {
+    type Error = Error;
+
+    fn try_from(uri: CipherLoginUriModel) -> Result<Self> {
+        Ok(Self {
+            uri: EncString::try_from(uri.uri)?,
             r#match: uri.r#match.map(|m| m.into()),
-        }
+        })
     }
 }
 

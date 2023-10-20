@@ -103,7 +103,10 @@ impl SyncResponse {
                 .into_iter()
                 .map(|c| c.into())
                 .collect(),
-            ciphers: ciphers.into_iter().map(|c| c.into()).collect(),
+            ciphers: ciphers
+                .into_iter()
+                .map(|c| c.try_into())
+                .collect::<Result<Vec<Cipher>>>()?,
             domains: response.domains.map(|d| (*d).into()),
             policies: response
                 .policies

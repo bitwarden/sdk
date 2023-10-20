@@ -124,6 +124,11 @@ impl FromStr for EncString {
 }
 
 impl EncString {
+    /// Synthetic sugar for mapping `Option<String>` to `Result<Option<EncString>>`
+    pub(crate) fn try_from(s: Option<String>) -> Result<Option<EncString>, Error> {
+        Ok(s.map(|s| s.parse()).transpose()?)
+    }
+
     #[cfg(feature = "mobile")]
     pub(crate) fn from_buffer(buf: &[u8]) -> Result<Self> {
         if buf.is_empty() {

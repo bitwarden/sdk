@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use bitwarden_api_api::models::CipherDetailsResponseModel;
 use chrono::{DateTime, Utc};
 use log::debug;
@@ -16,7 +14,7 @@ use super::{
 use crate::{
     client::encryption_settings::EncryptionSettings,
     crypto::{Decryptable, EncString, Encryptable},
-    error::Result,
+    error::{Error, Result},
     vault::password_history,
 };
 
@@ -290,17 +288,19 @@ impl Decryptable<CipherListView> for Cipher {
     }
 }
 
-impl From<CipherDetailsResponseModel> for Cipher {
-    fn from(cipher: CipherDetailsResponseModel) -> Self {
-        Cipher {
+impl TryFrom<CipherDetailsResponseModel> for Cipher {
+    type Error = Error;
+
+    fn try_from(cipher: CipherDetailsResponseModel) -> Result<Self> {
+        Ok(Self {
             id: cipher.id,
             organization_id: cipher.organization_id,
             folder_id: cipher.folder_id,
             collection_ids: cipher.collection_ids.unwrap_or_default(),
-            name: EncString::from_str(&cipher.name.unwrap()).unwrap(),
-            notes: cipher.notes.map(|s| EncString::from_str(&s).unwrap()),
-            r#type: cipher.r#type.unwrap().into(),
-            login: cipher.login.map(|l| (*l).into()),
+            name: EncString::try_from(cipher.name)?.ok_or(Error::MissingFields)?,
+            notes: EncString::try_from(cipher.notes)?,
+            r#type: cipher.r#type.ok_or(Error::MissingFields)?.into(),
+            login: cipher.login.map(|l| (*l).try_into()).transpose()?,
             identity: cipher.identity.map(|i| (*i).into()),
             card: cipher.card.map(|c| (*c).into()),
             secure_note: cipher.secure_note.map(|s| (*s).into()),
@@ -327,10 +327,10 @@ impl From<CipherDetailsResponseModel> for Cipher {
             password_history: cipher
                 .password_history
                 .map(|p| p.into_iter().map(|p| p.into()).collect()),
-            creation_date: cipher.creation_date.unwrap().parse().unwrap(),
+            creation_date: cipher.creation_date.ok_or(Error::MissingFields)?.parse()?,
             deleted_date: cipher.deleted_date.map(|d| d.parse().unwrap()),
-            revision_date: cipher.revision_date.unwrap().parse().unwrap(),
-        }
+            revision_date: cipher.revision_date.ok_or(Error::MissingFields)?.parse()?,
+        })
     }
 }
 

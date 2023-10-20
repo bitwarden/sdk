@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use bitwarden_api_api::models::CipherFieldModel;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -10,7 +8,7 @@ use super::linked_id::LinkedIdType;
 use crate::{
     client::encryption_settings::EncryptionSettings,
     crypto::{Decryptable, EncString, Encryptable},
-    error::Result,
+    error::{Error, Result},
 };
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
@@ -67,14 +65,19 @@ impl Decryptable<FieldView> for Field {
     }
 }
 
-impl From<CipherFieldModel> for Field {
-    fn from(model: CipherFieldModel) -> Self {
-        Self {
-            name: model.name.map(|s| EncString::from_str(&s).unwrap()),
-            value: model.value.map(|s| EncString::from_str(&s).unwrap()),
-            r#type: model.r#type.map(|t| t.into()).unwrap(),
-            linked_id: model.linked_id.map(|id| (id as u32).into()),
-        }
+impl TryFrom<CipherFieldModel> for Field {
+    type Error = Error;
+
+    fn try_from(model: CipherFieldModel) -> Result<Self> {
+        Ok(Self {
+            name: EncString::try_from(model.name)?,
+            value: EncString::try_from(model.value)?,
+            r#type: model.r#type.map(|t| t.into()).ok_or(Error::MissingFields)?,
+            linked_id: model
+                .linked_id
+                .map(|id| (id as u32).try_into())
+                .transpose()?,
+        })
     }
 }
 

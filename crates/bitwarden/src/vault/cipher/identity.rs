@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use bitwarden_api_api::models::CipherIdentityModel;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -8,7 +6,7 @@ use uuid::Uuid;
 use crate::{
     client::encryption_settings::EncryptionSettings,
     crypto::{Decryptable, EncString, Encryptable},
-    error::Result,
+    error::{Error, Result},
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -109,37 +107,29 @@ impl Decryptable<IdentityView> for Identity {
     }
 }
 
-impl From<CipherIdentityModel> for Identity {
-    fn from(identity: CipherIdentityModel) -> Self {
-        Self {
-            title: identity.title.map(|s| EncString::from_str(&s).unwrap()),
-            first_name: identity
-                .first_name
-                .map(|s| EncString::from_str(&s).unwrap()),
-            middle_name: identity
-                .middle_name
-                .map(|s| EncString::from_str(&s).unwrap()),
-            last_name: identity.last_name.map(|s| EncString::from_str(&s).unwrap()),
-            address1: identity.address1.map(|s| EncString::from_str(&s).unwrap()),
-            address2: identity.address2.map(|s| EncString::from_str(&s).unwrap()),
-            address3: identity.address3.map(|s| EncString::from_str(&s).unwrap()),
-            city: identity.city.map(|s| EncString::from_str(&s).unwrap()),
-            state: identity.state.map(|s| EncString::from_str(&s).unwrap()),
-            postal_code: identity
-                .postal_code
-                .map(|s| EncString::from_str(&s).unwrap()),
-            country: identity.country.map(|s| EncString::from_str(&s).unwrap()),
-            company: identity.company.map(|s| EncString::from_str(&s).unwrap()),
-            email: identity.email.map(|s| EncString::from_str(&s).unwrap()),
-            phone: identity.phone.map(|s| EncString::from_str(&s).unwrap()),
-            ssn: identity.ssn.map(|s| EncString::from_str(&s).unwrap()),
-            username: identity.username.map(|s| EncString::from_str(&s).unwrap()),
-            passport_number: identity
-                .passport_number
-                .map(|s| EncString::from_str(&s).unwrap()),
-            license_number: identity
-                .license_number
-                .map(|s| EncString::from_str(&s).unwrap()),
-        }
+impl TryFrom<CipherIdentityModel> for Identity {
+    type Error = Error;
+
+    fn try_from(identity: CipherIdentityModel) -> Result<Self> {
+        Ok(Self {
+            title: EncString::try_from(identity.title)?,
+            first_name: EncString::try_from(identity.first_name)?,
+            middle_name: EncString::try_from(identity.middle_name)?,
+            last_name: EncString::try_from(identity.last_name)?,
+            address1: EncString::try_from(identity.address1)?,
+            address2: EncString::try_from(identity.address2)?,
+            address3: EncString::try_from(identity.address3)?,
+            city: EncString::try_from(identity.city)?,
+            state: EncString::try_from(identity.state)?,
+            postal_code: EncString::try_from(identity.postal_code)?,
+            country: EncString::try_from(identity.country)?,
+            company: EncString::try_from(identity.company)?,
+            email: EncString::try_from(identity.email)?,
+            phone: EncString::try_from(identity.phone)?,
+            ssn: EncString::try_from(identity.ssn)?,
+            username: EncString::try_from(identity.username)?,
+            passport_number: EncString::try_from(identity.passport_number)?,
+            license_number: EncString::try_from(identity.license_number)?,
+        })
     }
 }

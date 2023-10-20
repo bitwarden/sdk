@@ -301,9 +301,9 @@ impl TryFrom<CipherDetailsResponseModel> for Cipher {
             notes: EncString::try_from(cipher.notes)?,
             r#type: cipher.r#type.ok_or(Error::MissingFields)?.into(),
             login: cipher.login.map(|l| (*l).try_into()).transpose()?,
-            identity: cipher.identity.map(|i| (*i).into()),
-            card: cipher.card.map(|c| (*c).into()),
-            secure_note: cipher.secure_note.map(|s| (*s).into()),
+            identity: cipher.identity.map(|i| (*i).try_into()).transpose()?,
+            card: cipher.card.map(|c| (*c).try_into()).transpose()?,
+            secure_note: cipher.secure_note.map(|s| (*s).try_into()).transpose()?,
             favorite: cipher.favorite.unwrap_or(false),
             reprompt: cipher
                 .reprompt
@@ -313,20 +313,18 @@ impl TryFrom<CipherDetailsResponseModel> for Cipher {
             edit: cipher.edit.unwrap_or(true),
             view_password: cipher.view_password.unwrap_or(true),
             local_data: None, // Not sent from server
-            attachments: Some(
-                cipher
-                    .attachments
-                    .unwrap_or_default()
-                    .into_iter()
-                    .map(|a| a.into())
-                    .collect(),
-            ),
+            attachments: cipher
+                .attachments
+                .map(|a| a.into_iter().map(|a| a.try_into()).collect())
+                .transpose()?,
             fields: cipher
                 .fields
-                .map(|f| f.into_iter().map(|f| f.into()).collect()),
+                .map(|f| f.into_iter().map(|f| f.try_into()).collect())
+                .transpose()?,
             password_history: cipher
                 .password_history
-                .map(|p| p.into_iter().map(|p| p.into()).collect()),
+                .map(|p| p.into_iter().map(|p| p.try_into()).collect())
+                .transpose()?,
             creation_date: cipher.creation_date.ok_or(Error::MissingFields)?.parse()?,
             deleted_date: cipher.deleted_date.map(|d| d.parse()).transpose()?,
             revision_date: cipher.revision_date.ok_or(Error::MissingFields)?.parse()?,

@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use bitwarden_api_api::models::CipherCardModel;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -8,7 +6,7 @@ use uuid::Uuid;
 use crate::{
     client::encryption_settings::EncryptionSettings,
     crypto::{Decryptable, EncString, Encryptable},
-    error::Result,
+    error::{Error, Result},
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -61,17 +59,17 @@ impl Decryptable<CardView> for Card {
     }
 }
 
-impl From<CipherCardModel> for Card {
-    fn from(card: CipherCardModel) -> Self {
-        Self {
-            cardholder_name: card
-                .cardholder_name
-                .map(|s| EncString::from_str(&s).unwrap()),
-            exp_month: card.exp_month.map(|s| EncString::from_str(&s).unwrap()),
-            exp_year: card.exp_year.map(|s| EncString::from_str(&s).unwrap()),
-            code: card.code.map(|s| EncString::from_str(&s).unwrap()),
-            brand: card.brand.map(|s| EncString::from_str(&s).unwrap()),
-            number: card.number.map(|s| EncString::from_str(&s).unwrap()),
-        }
+impl TryFrom<CipherCardModel> for Card {
+    type Error = Error;
+
+    fn try_from(card: CipherCardModel) -> Result<Self> {
+        Ok(Self {
+            cardholder_name: EncString::try_from(card.cardholder_name)?,
+            exp_month: EncString::try_from(card.exp_month)?,
+            exp_year: EncString::try_from(card.exp_year)?,
+            code: EncString::try_from(card.code)?,
+            brand: EncString::try_from(card.brand)?,
+            number: EncString::try_from(card.number)?,
+        })
     }
 }

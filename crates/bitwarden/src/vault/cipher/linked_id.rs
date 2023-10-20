@@ -10,6 +10,7 @@ pub enum LinkedIdType {
     Identity(IdentityLinkedIdType),
 }
 
+use crate::error::{Error, Result};
 #[cfg(feature = "mobile")]
 use crate::UniffiCustomTypeConverter;
 #[cfg(feature = "mobile")]
@@ -73,37 +74,39 @@ pub enum IdentityLinkedIdType {
     FullName = 418,
 }
 
-impl From<u32> for LinkedIdType {
-    fn from(value: u32) -> Self {
+impl TryFrom<u32> for LinkedIdType {
+    type Error = Error;
+
+    fn try_from(value: u32) -> Result<Self> {
         match value {
-            100 => LinkedIdType::Login(LoginLinkedIdType::Username),
-            101 => LinkedIdType::Login(LoginLinkedIdType::Password),
-            300 => LinkedIdType::Card(CardLinkedIdType::CardholderName),
-            301 => LinkedIdType::Card(CardLinkedIdType::ExpMonth),
-            302 => LinkedIdType::Card(CardLinkedIdType::ExpYear),
-            303 => LinkedIdType::Card(CardLinkedIdType::Code),
-            304 => LinkedIdType::Card(CardLinkedIdType::Brand),
-            305 => LinkedIdType::Card(CardLinkedIdType::Number),
-            400 => LinkedIdType::Identity(IdentityLinkedIdType::Title),
-            401 => LinkedIdType::Identity(IdentityLinkedIdType::MiddleName),
-            402 => LinkedIdType::Identity(IdentityLinkedIdType::Address1),
-            403 => LinkedIdType::Identity(IdentityLinkedIdType::Address2),
-            404 => LinkedIdType::Identity(IdentityLinkedIdType::Address3),
-            405 => LinkedIdType::Identity(IdentityLinkedIdType::City),
-            406 => LinkedIdType::Identity(IdentityLinkedIdType::State),
-            407 => LinkedIdType::Identity(IdentityLinkedIdType::PostalCode),
-            408 => LinkedIdType::Identity(IdentityLinkedIdType::Country),
-            409 => LinkedIdType::Identity(IdentityLinkedIdType::Company),
-            410 => LinkedIdType::Identity(IdentityLinkedIdType::Email),
-            411 => LinkedIdType::Identity(IdentityLinkedIdType::Phone),
-            412 => LinkedIdType::Identity(IdentityLinkedIdType::Ssn),
-            413 => LinkedIdType::Identity(IdentityLinkedIdType::Username),
-            414 => LinkedIdType::Identity(IdentityLinkedIdType::PassportNumber),
-            415 => LinkedIdType::Identity(IdentityLinkedIdType::LicenseNumber),
-            416 => LinkedIdType::Identity(IdentityLinkedIdType::FirstName),
-            417 => LinkedIdType::Identity(IdentityLinkedIdType::LastName),
-            418 => LinkedIdType::Identity(IdentityLinkedIdType::FullName),
-            _ => panic!("Invalid LinkedIdType value: {}", value),
+            100 => Ok(LinkedIdType::Login(LoginLinkedIdType::Username)),
+            101 => Ok(LinkedIdType::Login(LoginLinkedIdType::Password)),
+            300 => Ok(LinkedIdType::Card(CardLinkedIdType::CardholderName)),
+            301 => Ok(LinkedIdType::Card(CardLinkedIdType::ExpMonth)),
+            302 => Ok(LinkedIdType::Card(CardLinkedIdType::ExpYear)),
+            303 => Ok(LinkedIdType::Card(CardLinkedIdType::Code)),
+            304 => Ok(LinkedIdType::Card(CardLinkedIdType::Brand)),
+            305 => Ok(LinkedIdType::Card(CardLinkedIdType::Number)),
+            400 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::Title)),
+            401 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::MiddleName)),
+            402 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::Address1)),
+            403 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::Address2)),
+            404 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::Address3)),
+            405 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::City)),
+            406 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::State)),
+            407 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::PostalCode)),
+            408 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::Country)),
+            409 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::Company)),
+            410 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::Email)),
+            411 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::Phone)),
+            412 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::Ssn)),
+            413 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::Username)),
+            414 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::PassportNumber)),
+            415 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::LicenseNumber)),
+            416 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::FirstName)),
+            417 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::LastName)),
+            418 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::FullName)),
+            _ => Err(Error::MissingFields),
         }
     }
 }

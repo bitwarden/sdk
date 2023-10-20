@@ -93,16 +93,14 @@ impl SyncResponse {
             profile: ProfileResponse::process_response(profile, enc)?,
             folders: response
                 .folders
-                .ok_or(Error::MissingFields)?
-                .into_iter()
-                .map(|f| f.into())
-                .collect(),
+                .map(|f| f.into_iter().map(|f| f.try_into()).collect())
+                .transpose()?
+                .ok_or(Error::MissingFields)?,
             collections: response
                 .collections
-                .ok_or(Error::MissingFields)?
-                .into_iter()
-                .map(|c| c.into())
-                .collect(),
+                .map(|c| c.into_iter().map(|c| c.try_into()).collect())
+                .transpose()?
+                .ok_or(Error::MissingFields)?,
             ciphers: ciphers
                 .into_iter()
                 .map(|c| c.try_into())
@@ -110,16 +108,14 @@ impl SyncResponse {
             domains: response.domains.map(|d| (*d).try_into()).transpose()?,
             policies: response
                 .policies
-                .ok_or(Error::MissingFields)?
-                .into_iter()
-                .map(|p| p.try_into())
-                .collect::<Result<Vec<Policy>>>()?,
+                .map(|p| p.into_iter().map(|p| p.try_into()).collect())
+                .transpose()?
+                .ok_or(Error::MissingFields)?,
             sends: response
                 .sends
-                .ok_or(Error::MissingFields)?
-                .into_iter()
-                .map(|s| s.into())
-                .collect(),
+                .map(|s| s.into_iter().map(|s| s.try_into()).collect())
+                .transpose()?
+                .ok_or(Error::MissingFields)?,
         })
     }
 }

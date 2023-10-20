@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use bitwarden_api_api::models::CipherPasswordHistoryModel;
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
@@ -9,7 +7,7 @@ use uuid::Uuid;
 use crate::{
     client::encryption_settings::EncryptionSettings,
     crypto::{Decryptable, EncString, Encryptable},
-    error::Result,
+    error::{Error, Result},
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -50,11 +48,13 @@ impl Decryptable<PasswordHistoryView> for PasswordHistory {
     }
 }
 
-impl From<CipherPasswordHistoryModel> for PasswordHistory {
-    fn from(model: CipherPasswordHistoryModel) -> Self {
-        Self {
-            password: EncString::from_str(&model.password).unwrap(),
-            last_used_date: model.last_used_date.parse().unwrap(),
-        }
+impl TryFrom<CipherPasswordHistoryModel> for PasswordHistory {
+    type Error = Error;
+
+    fn try_from(model: CipherPasswordHistoryModel) -> Result<Self> {
+        Ok(Self {
+            password: model.password.parse()?,
+            last_used_date: model.last_used_date.parse()?,
+        })
     }
 }

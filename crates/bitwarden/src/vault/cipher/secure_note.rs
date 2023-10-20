@@ -7,7 +7,7 @@ use uuid::Uuid;
 use crate::{
     client::encryption_settings::EncryptionSettings,
     crypto::{Decryptable, Encryptable},
-    error::Result,
+    error::{Error, Result},
 };
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
@@ -47,11 +47,13 @@ impl Decryptable<SecureNoteView> for SecureNote {
     }
 }
 
-impl From<CipherSecureNoteModel> for SecureNote {
-    fn from(model: CipherSecureNoteModel) -> Self {
-        Self {
-            r#type: model.r#type.map(|t| t.into()).unwrap(),
-        }
+impl TryFrom<CipherSecureNoteModel> for SecureNote {
+    type Error = Error;
+
+    fn try_from(model: CipherSecureNoteModel) -> Result<Self> {
+        Ok(Self {
+            r#type: model.r#type.map(|t| t.into()).ok_or(Error::MissingFields)?,
+        })
     }
 }
 

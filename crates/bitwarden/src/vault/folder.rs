@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use bitwarden_api_api::models::FolderResponseModel;
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
@@ -9,7 +7,7 @@ use uuid::Uuid;
 use crate::{
     client::encryption_settings::EncryptionSettings,
     crypto::{Decryptable, EncString, Encryptable},
-    error::Result,
+    error::{Error, Result},
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -50,12 +48,14 @@ impl Decryptable<FolderView> for Folder {
     }
 }
 
-impl From<FolderResponseModel> for Folder {
-    fn from(folder: FolderResponseModel) -> Self {
-        Folder {
-            id: folder.id.unwrap(),
-            name: EncString::from_str(&folder.name.unwrap()).unwrap(),
-            revision_date: folder.revision_date.unwrap().parse().unwrap(),
-        }
+impl TryFrom<FolderResponseModel> for Folder {
+    type Error = Error;
+
+    fn try_from(folder: FolderResponseModel) -> Result<Self> {
+        Ok(Folder {
+            id: folder.id.ok_or(Error::MissingFields)?,
+            name: EncString::try_from(folder.name)?.ok_or(Error::MissingFields)?,
+            revision_date: folder.revision_date.ok_or(Error::MissingFields)?.parse()?,
+        })
     }
 }

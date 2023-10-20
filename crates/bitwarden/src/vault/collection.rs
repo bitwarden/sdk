@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use bitwarden_api_api::models::CollectionDetailsResponseModel;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -8,7 +6,7 @@ use uuid::Uuid;
 use crate::{
     client::encryption_settings::EncryptionSettings,
     crypto::{Decryptable, EncString},
-    error::Result,
+    error::{Error, Result},
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -56,15 +54,17 @@ impl Decryptable<CollectionView> for Collection {
     }
 }
 
-impl From<CollectionDetailsResponseModel> for Collection {
-    fn from(collection: CollectionDetailsResponseModel) -> Self {
-        Collection {
-            id: collection.id.unwrap(),
-            organization_id: collection.organization_id.unwrap(),
-            name: EncString::from_str(&collection.name.unwrap()).unwrap(),
+impl TryFrom<CollectionDetailsResponseModel> for Collection {
+    type Error = Error;
+
+    fn try_from(collection: CollectionDetailsResponseModel) -> Result<Self> {
+        Ok(Collection {
+            id: collection.id.ok_or(Error::MissingFields)?,
+            organization_id: collection.organization_id.ok_or(Error::MissingFields)?,
+            name: collection.name.ok_or(Error::MissingFields)?.parse()?,
             external_id: collection.external_id,
             hide_passwords: collection.hide_passwords.unwrap_or(false),
             read_only: collection.read_only.unwrap_or(false),
-        }
+        })
     }
 }

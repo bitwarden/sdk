@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -7,7 +5,7 @@ use uuid::Uuid;
 use crate::{
     client::encryption_settings::EncryptionSettings,
     crypto::{Decryptable, EncString, Encryptable},
-    error::Result,
+    error::{Error, Result},
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -55,26 +53,27 @@ impl Decryptable<AttachmentView> for Attachment {
             url: self.url.clone(),
             size: self.size.clone(),
             size_name: self.size_name.clone(),
-            file_name: self.file_name.decrypt(enc, org_id).unwrap(),
+            file_name: self.file_name.decrypt(enc, org_id)?,
             key: self
                 .key
                 .as_ref()
-                .map(|key| enc.decrypt_bytes(key, org_id).unwrap()),
+                .map(|key| enc.decrypt_bytes(key, org_id))
+                .transpose()?,
         })
     }
 }
 
-impl From<bitwarden_api_api::models::AttachmentResponseModel> for Attachment {
-    fn from(attachment: bitwarden_api_api::models::AttachmentResponseModel) -> Self {
-        Self {
+impl TryFrom<bitwarden_api_api::models::AttachmentResponseModel> for Attachment {
+    type Error = Error;
+
+    fn try_from(attachment: bitwarden_api_api::models::AttachmentResponseModel) -> Result<Self> {
+        Ok(Self {
             id: attachment.id,
             url: attachment.url,
             size: attachment.size.map(|s| s.to_string()),
             size_name: attachment.size_name,
-            file_name: attachment
-                .file_name
-                .map(|s| EncString::from_str(&s).unwrap()),
-            key: attachment.key.map(|s| EncString::from_str(&s).unwrap()),
-        }
+            file_name: EncString::try_from(attachment.file_name)?,
+            key: EncString::try_from(attachment.key)?,
+        })
     }
 }

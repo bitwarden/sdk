@@ -46,8 +46,8 @@ pub(crate) async fn password_login(
             }),
         );
 
-        let user_key: EncString = r.key.unwrap().parse().unwrap();
-        let private_key: EncString = r.private_key.unwrap().parse().unwrap();
+        let user_key: EncString = r.key.as_deref().unwrap().parse().unwrap();
+        let private_key: EncString = r.private_key.as_deref().unwrap().parse().unwrap();
 
         client.initialize_user_crypto(&input.password, user_key, private_key)?;
     }

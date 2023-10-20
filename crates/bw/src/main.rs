@@ -224,10 +224,10 @@ async fn process_commands() -> Result<()> {
                 let passphrase = client
                     .generator()
                     .passphrase(PassphraseGeneratorRequest {
-                        num_words: Some(args.words),
-                        word_separator: Some(args.separator.to_string()),
-                        capitalize: Some(args.capitalize),
-                        include_number: Some(args.include_number),
+                        num_words: args.words,
+                        word_separator: args.separator.to_string(),
+                        capitalize: args.capitalize,
+                        include_number: args.include_number,
                     })
                     .await?;
 

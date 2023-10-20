@@ -7,65 +7,59 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 /// Passphrase generator request options.
-///
-/// By default, the generated passphrases contain 3 random
-/// lowercase words separated by spaces, and no digits
-#[derive(Serialize, Deserialize, Debug, JsonSchema, Default)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct PassphraseGeneratorRequest {
     /// Number of words in the generated passphrase.
     /// This value must be between 3 and 20.
-    /// The default value when unset is 3
-    pub num_words: Option<u8>,
+    pub num_words: u8,
     /// Character separator between words in the generated passphrase.
     /// If the value is set, it cannot be empty.
-    /// The default value when unset is ` `
-    pub word_separator: Option<String>,
+    pub word_separator: String,
     /// When set to true, capitalize the first letter of each word in the generated passphrase.
-    /// The default value when unset is `false`
-    pub capitalize: Option<bool>,
+    pub capitalize: bool,
     /// When set to true, include a number at the end of one of the words in the generated passphrase.
-    /// The default value when unset is `false`
-    pub include_number: Option<bool>,
+    pub include_number: bool,
 }
 
-const DEFAULT_PASSPHRASE_NUM_WORDS: u8 = 3;
-const DEFAULT_PASSPHRASE_SEPARATOR: &str = " ";
+impl Default for PassphraseGeneratorRequest {
+    fn default() -> Self {
+        Self {
+            num_words: 3,
+            word_separator: ' '.to_string(),
+            capitalize: false,
+            include_number: false,
+        }
+    }
+}
 
 const MINIMUM_PASSPHRASE_NUM_WORDS: u8 = 3;
 const MAXIMUM_PASSPHRASE_NUM_WORDS: u8 = 20;
 
 /// Implementation of the random passphrase generator. This is not accessible to the public API.
 /// See [`ClientGenerator::passphrase`](crate::ClientGenerator::passphrase) for the API function.
-pub(super) fn passphrase(input: PassphraseGeneratorRequest) -> Result<String> {
-    passphrase_with_rng(rand::thread_rng(), input)
+pub(super) fn passphrase(options: PassphraseGeneratorRequest) -> Result<String> {
+    passphrase_with_rng(rand::thread_rng(), options)
 }
 
-fn passphrase_with_rng(mut rng: impl RngCore, input: PassphraseGeneratorRequest) -> Result<String> {
-    let capitalize = input.capitalize.unwrap_or(false);
-    let include_number = input.include_number.unwrap_or(false);
-
-    let num_words = input.num_words.unwrap_or(DEFAULT_PASSPHRASE_NUM_WORDS);
-    if !(MINIMUM_PASSPHRASE_NUM_WORDS..=MAXIMUM_PASSPHRASE_NUM_WORDS).contains(&num_words) {
+fn passphrase_with_rng(
+    mut rng: impl RngCore,
+    options: PassphraseGeneratorRequest,
+) -> Result<String> {
+    if !(MINIMUM_PASSPHRASE_NUM_WORDS..=MAXIMUM_PASSPHRASE_NUM_WORDS).contains(&options.num_words) {
         return Err(Error::Internal("'num_words' must be between 3 and 20"));
     }
 
-    let Some(separator) = input
-        .word_separator
-        .as_deref()
-        .unwrap_or(DEFAULT_PASSPHRASE_SEPARATOR)
-        .chars()
-        .next()
-    else {
+    let Some(separator) = options.word_separator.chars().next() else {
         return Err(Error::Internal("'word_separator' cannot be empty"));
     };
 
-    let mut passphrase_words = gen_words(&mut rng, num_words);
-    if include_number {
+    let mut passphrase_words = gen_words(&mut rng, options.num_words);
+    if options.include_number {
         include_number_in_words(&mut rng, &mut passphrase_words);
     }
-    if capitalize {
+    if options.capitalize {
         capitalize_words(&mut passphrase_words);
     }
     Ok(passphrase_words.join(&separator.to_string()))
@@ -158,10 +152,10 @@ mod tests {
         let mut rng = rand_chacha::ChaCha8Rng::from_seed([0u8; 32]);
 
         let input = PassphraseGeneratorRequest {
-            num_words: Some(4),
-            word_separator: Some("-".into()),
-            capitalize: Some(true),
-            include_number: Some(true),
+            num_words: 4,
+            word_separator: "-".into(),
+            capitalize: true,
+            include_number: true,
         };
         assert_eq!(
             passphrase_with_rng(&mut rng, input).unwrap(),
@@ -169,10 +163,10 @@ mod tests {
         );
 
         let input = PassphraseGeneratorRequest {
-            num_words: Some(3),
-            word_separator: Some(" ".into()),
-            capitalize: Some(false),
-            include_number: Some(true),
+            num_words: 3,
+            word_separator: " ".into(),
+            capitalize: false,
+            include_number: true,
         };
         assert_eq!(
             passphrase_with_rng(&mut rng, input).unwrap(),
@@ -180,10 +174,10 @@ mod tests {
         );
 
         let input = PassphraseGeneratorRequest {
-            num_words: Some(5),
-            word_separator: Some(";".into()),
-            capitalize: None,
-            include_number: None,
+            num_words: 5,
+            word_separator: ";".into(),
+            capitalize: false,
+            include_number: false,
         };
         assert_eq!(
             passphrase_with_rng(&mut rng, input).unwrap(),

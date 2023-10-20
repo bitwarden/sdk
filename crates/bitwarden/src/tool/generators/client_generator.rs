@@ -27,7 +27,7 @@ impl<'a> ClientGenerator<'a> {
     /// use bitwarden::{Client, tool::PassphraseGeneratorRequest, error::Result};
     /// async fn test() -> Result<()> {
     ///     let input = PassphraseGeneratorRequest {
-    ///         num_words: Some(4),
+    ///         num_words: 4,
     ///         ..Default::default()
     ///     };
     ///     let passphrase = Client::new(None).generator().passphrase(input).await.unwrap();

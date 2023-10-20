@@ -5,6 +5,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::error::{Error, Result};
+
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 pub struct Policy {
     id: Uuid,
@@ -30,15 +32,17 @@ pub enum PolicyType {
     ActivateAutofill = 11, // Activates autofill with page load on the browser extension
 }
 
-impl From<PolicyResponseModel> for Policy {
-    fn from(policy: PolicyResponseModel) -> Self {
-        Policy {
-            id: policy.id.unwrap(),
-            organization_id: policy.organization_id.unwrap(),
-            r#type: policy.r#type.unwrap().into(),
+impl TryFrom<PolicyResponseModel> for Policy {
+    type Error = Error;
+
+    fn try_from(policy: PolicyResponseModel) -> Result<Self> {
+        Ok(Self {
+            id: policy.id.ok_or(Error::MissingFields)?,
+            organization_id: policy.organization_id.ok_or(Error::MissingFields)?,
+            r#type: policy.r#type.ok_or(Error::MissingFields)?.into(),
             data: policy.data,
-            enabled: policy.enabled.unwrap(),
-        }
+            enabled: policy.enabled.ok_or(Error::MissingFields)?,
+        })
     }
 }
 

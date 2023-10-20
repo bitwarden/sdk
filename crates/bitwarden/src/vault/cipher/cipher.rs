@@ -328,7 +328,7 @@ impl TryFrom<CipherDetailsResponseModel> for Cipher {
                 .password_history
                 .map(|p| p.into_iter().map(|p| p.into()).collect()),
             creation_date: cipher.creation_date.ok_or(Error::MissingFields)?.parse()?,
-            deleted_date: cipher.deleted_date.map(|d| d.parse().unwrap()),
+            deleted_date: cipher.deleted_date.map(|d| d.parse()).transpose()?,
             revision_date: cipher.revision_date.ok_or(Error::MissingFields)?.parse()?,
         })
     }

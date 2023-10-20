@@ -107,13 +107,13 @@ impl SyncResponse {
                 .into_iter()
                 .map(|c| c.try_into())
                 .collect::<Result<Vec<Cipher>>>()?,
-            domains: response.domains.map(|d| (*d).into()),
+            domains: response.domains.map(|d| (*d).try_into()).transpose()?,
             policies: response
                 .policies
                 .ok_or(Error::MissingFields)?
                 .into_iter()
-                .map(|p| p.into())
-                .collect(),
+                .map(|p| p.try_into())
+                .collect::<Result<Vec<Policy>>>()?,
             sends: response
                 .sends
                 .ok_or(Error::MissingFields)?
@@ -155,16 +155,17 @@ impl ProfileResponse {
     }
 }
 
-impl From<DomainsResponseModel> for DomainResponse {
-    fn from(value: DomainsResponseModel) -> Self {
-        DomainResponse {
+impl TryFrom<DomainsResponseModel> for DomainResponse {
+    type Error = Error;
+    fn try_from(value: DomainsResponseModel) -> Result<Self> {
+        Ok(Self {
             equivalent_domains: value.equivalent_domains.unwrap_or_default(),
             global_equivalent_domains: value
                 .global_equivalent_domains
                 .unwrap_or_default()
                 .into_iter()
-                .map(|s| s.into())
-                .collect(),
-        }
+                .map(|s| s.try_into())
+                .collect::<Result<Vec<GlobalDomains>>>()?,
+        })
     }
 }

@@ -5,14 +5,13 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use super::domain::GlobalDomains;
 use crate::{
     admin_console::Policy,
     client::{encryption_settings::EncryptionSettings, Client},
     error::{Error, Result},
     vault::{Cipher, Collection, Folder},
 };
-
-use super::domain::GlobalDomains;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

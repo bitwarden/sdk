@@ -70,7 +70,7 @@ impl TryFrom<bitwarden_api_api::models::AttachmentResponseModel> for Attachment 
         Ok(Self {
             id: attachment.id,
             url: attachment.url,
-            size: attachment.size.map(|s| s.to_string()),
+            size: attachment.size,
             size_name: attachment.size_name,
             file_name: EncString::try_from(attachment.file_name)?,
             key: EncString::try_from(attachment.key)?,

@@ -50,10 +50,14 @@ Example of the folder structure (macOS):
 
 $ cd examples
 $ clang++ -std=c++20 -I../include -I/path/to/include/nlohmann  -I/path/to/include/boost -L../build/ -o MyBitwardenApp Wrapper.cpp -lBitwardenClient -ldl
-$ install_name_tool -add_rpath "@executable_path/../build/" MyBitwardenApp
+$ export DYLD_LIBRARY_PATH=/path/to/your/library:$DYLD_LIBRARY_PATH
 
 
-The last step is neccessary to add the path for the dynamic library.
+The last step is neccessary to add the path for the dynamic library (macOS).
+For the Linux one should use:
+$ export LD_LIBRARY_PATH=/path/to/your/library:$LD_LIBRARY_PATH
+For the Windows:
+$ set PATH=%PATH%;C:\path\to\your\library
 
 The result is `MyBitwardenApp` in the `examples` directory, and one can run it from the `examples` directory:
 

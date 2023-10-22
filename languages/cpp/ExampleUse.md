@@ -21,7 +21,7 @@ For Windows: `BitwardeClient.dll` and `bitwarden_c.dll`
 - `CommandRunner.h`
 - `Projejts.h`
 - `Secrets.h`
-- `schemas.cpp`
+- `schemas.hpp`
 
 ### Other libraries
 - `nlohmann-json` (https://github.com/nlohmann/json) 

@@ -34,7 +34,7 @@ std::string CommandRunner::commandToString(const Command& command) {
         nlohmann::json jsonCommand;
         nlohmann::json filteredJsonCommand;
 
-        quicktype::to_json(jsonCommand, command);
+        Bitwarden::Sdk::to_json(jsonCommand, command);
 
         filteredJsonCommand = filterNullObjects(jsonCommand);
         

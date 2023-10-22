@@ -5,7 +5,7 @@
 BitwardenClient::BitwardenClient(ClientSettings clientSettings) : library(nullptr), commandRunner(nullptr), isClientOpen(false), projects(nullptr), secrets(nullptr) {
 
     nlohmann::json jsonClientSettings;
-    quicktype::to_json(jsonClientSettings, clientSettings);
+    Bitwarden::Sdk::to_json(jsonClientSettings, clientSettings);
 
     std::string jsonClientSettingsString = jsonClientSettings.dump();
     const char* jsonClientSettingsCStr = jsonClientSettingsString.c_str();
@@ -41,7 +41,7 @@ ResponseForApiKeyLoginResponse BitwardenClient::accessTokenLogin(const std::stri
     auto deserializer = [](const char* response) -> ResponseForApiKeyLoginResponse {
         nlohmann::json jsonResponse = nlohmann::json::parse(response);
         ResponseForApiKeyLoginResponse loginResponse;
-        quicktype::from_json(jsonResponse, loginResponse);
+        Bitwarden::Sdk::from_json(jsonResponse, loginResponse);
         return loginResponse;
     };
     try {

@@ -4,8 +4,6 @@
 #include <boost/uuid/uuid.hpp>
 #include "CommandRunner.h"
 
-using namespace quicktype;
-
 class Projects {
 public:
     Projects(CommandRunner* commandRunner);

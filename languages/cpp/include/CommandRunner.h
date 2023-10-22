@@ -3,10 +3,10 @@
 #include <string>
 #include <functional>
 #include "BitwardenLibrary.h"
-#include "schemas.cpp"
+#include "schemas.hpp"
 #include <iostream>
 
-using namespace quicktype;
+using namespace Bitwarden::Sdk;
 
 class CommandRunner {
 public:
@@ -40,4 +40,3 @@ T CommandRunner::runCommand(const Command& command, Func deserializer) {
         throw ex;
     }
 }
-

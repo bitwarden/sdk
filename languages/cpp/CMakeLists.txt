@@ -18,9 +18,6 @@ include_directories(include ${NLOHMANN_JSON_INCLUDE_DIR} ${BOOST_INCLUDE_DIR} ${
 # Add library source files
 file(GLOB SOURCES "src/*.cpp")
 
-# Add the schemas.cpp file explicitly from the include directory
-set(SCHEMAS_SOURCE "include/schemas.cpp")
-
 # Add library source files along with the schemas.cpp file
 add_library(BitwardenClient SHARED ${SOURCES} ${SCHEMAS_SOURCE})
 

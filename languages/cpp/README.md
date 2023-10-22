@@ -10,11 +10,15 @@ Review the help documentation on [Access Tokens]
 
 ### CLient settings
 
+boost::optional<std::string> apiUrl("https://api.bitwarden.com");
+boost::optional<std::string> identityUrl("https://identity.bitwarden.com");
+boost::optional<std::string> user_agent("Bitwarden CPP-SDK");
+
 ClientSettings clientSettings;
-clientSettings.set_api_url("https://api.bitwarden.com");
-clientSettings.set_identity_url("https://identity.bitwarden.com");
-clientSettings.set_device_type(quicktype::DeviceType::SDK);
-clientSettings.set_user_agent("Bitwarden CPP-SDK");
+clientSettings.set_api_url(apiUrl);
+clientSettings.set_identity_url(identityUrl);
+clientSettings.set_device_type(Bitwarden::Sdk::DeviceType::SDK);
+clientSettings.set_user_agent(user_agent);
 
 ### Create new Bitwarden client
 

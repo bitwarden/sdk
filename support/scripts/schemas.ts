@@ -73,10 +73,18 @@ async function main() {
   const cpp = await quicktype({
     inputData,
     lang: "cpp",
-    rendererOptions: {},
+    rendererOptions: {
+      namespace: "Bitwarden::Sdk",
+      "include-location": "global-include",
+    },
   });
 
-  writeToFile("./languages/cpp/include/schemas.cpp", cpp.lines);
+  cpp.lines.forEach((line, idx) => {
+    // Replace DOMAIN for URI_DOMAIN, because DOMAIN is an already defined macro
+    cpp.lines[idx] = line.replace(/DOMAIN/g, "URI_DOMAIN");
+  });
+
+  writeToFile("./languages/cpp/include/schemas.hpp", cpp.lines);
 }
 
 main();

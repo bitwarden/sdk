@@ -9,21 +9,21 @@ Secrets::Secrets(CommandRunner* commandRunner) : commandRunner(commandRunner) {}
 auto secretsDeserializer = [](const std::string& response) -> ResponseForSecretResponse {
     nlohmann::json jsonResponse = nlohmann::json::parse(response);
     ResponseForSecretResponse secretResponse;
-    quicktype::from_json(jsonResponse, secretResponse);
+    Bitwarden::Sdk::from_json(jsonResponse, secretResponse);
     return secretResponse;
 };
 
 auto deleteSecretsDeserializer = [](const std::string& response) -> ResponseForSecretsDeleteResponse {
     nlohmann::json jsonResponse = nlohmann::json::parse(response);
     ResponseForSecretsDeleteResponse deleteSecretsResponse;
-    quicktype::from_json(jsonResponse, deleteSecretsResponse);
+    Bitwarden::Sdk::from_json(jsonResponse, deleteSecretsResponse);
     return deleteSecretsResponse;
 };
 
 auto secretListDeserializer = [](const std::string& response) -> ResponseForSecretIdentifiersResponse {
     nlohmann::json jsonResponse = nlohmann::json::parse(response);
     ResponseForSecretIdentifiersResponse listResponse;
-    quicktype::from_json(jsonResponse, listResponse);
+    Bitwarden::Sdk::from_json(jsonResponse, listResponse);
     return listResponse;
 };
 

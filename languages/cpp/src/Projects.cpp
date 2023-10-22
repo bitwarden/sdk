@@ -10,21 +10,21 @@ Projects::Projects(CommandRunner* commandRunner) : commandRunner(commandRunner) 
 auto projectsDeserializer = [](const char* response) -> ResponseForProjectResponse {
     nlohmann::json jsonResponse = nlohmann::json::parse(response);
     ResponseForProjectResponse projectResponse;
-    quicktype::from_json(jsonResponse, projectResponse);
+    Bitwarden::Sdk::from_json(jsonResponse, projectResponse);
     return projectResponse;
 };
 
 auto deleteProjectsDeserializer = [](const char* response) -> ResponseForProjectsDeleteResponse {
     nlohmann::json jsonResponse = nlohmann::json::parse(response);
     ResponseForProjectsDeleteResponse deleteProjectsResponse;
-    quicktype::from_json(jsonResponse, deleteProjectsResponse);
+    Bitwarden::Sdk::from_json(jsonResponse, deleteProjectsResponse);
     return deleteProjectsResponse;
 };
 
 auto projectListDeserializer = [](const char* response) -> ResponseForProjectsResponse {
     nlohmann::json jsonResponse = nlohmann::json::parse(response);
     ResponseForProjectsResponse listResponse;
-    quicktype::from_json(jsonResponse, listResponse);
+    Bitwarden::Sdk::from_json(jsonResponse, listResponse);
     return listResponse;
 };
 

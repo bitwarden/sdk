@@ -4,8 +4,6 @@
 #include <boost/uuid/uuid.hpp>
 #include "CommandRunner.h"
 
-class CommandRunner; // Forward declaration
-
 class Secrets {
 public:
     Secrets(CommandRunner* commandRunner);

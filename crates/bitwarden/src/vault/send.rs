@@ -36,7 +36,7 @@ pub struct SendFileView {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SendText {
-    pub text: EncString,
+    pub text: Option<EncString>,
     pub hidden: bool,
 }
 
@@ -44,7 +44,7 @@ pub struct SendText {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SendTextView {
-    pub text: String,
+    pub text: Option<String>,
     pub hidden: bool,
 }
 
@@ -280,16 +280,14 @@ impl Encryptable<Send> for SendView {
 #[cfg(test)]
 mod tests {
     use super::Send;
-    use crate::client::{
-        auth_settings::{AuthSettings, Kdf},
-        encryption_settings::EncryptionSettings,
-    };
+    use crate::client::{encryption_settings::EncryptionSettings, kdf::Kdf, UserLoginMethod};
 
     #[test]
     fn test_get_send_key() {
         // Initialize user encryption with some test data
         let enc = EncryptionSettings::new(
-            &AuthSettings {
+            &UserLoginMethod::Username {
+                client_id: "test".into(),
                 email: "test@bitwarden.com".into(),
                 kdf: Kdf::PBKDF2 {
                     iterations: 345123.try_into().unwrap(),

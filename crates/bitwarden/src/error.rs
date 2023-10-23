@@ -6,7 +6,6 @@ use bitwarden_api_api::apis::Error as ApiError;
 use bitwarden_api_identity::apis::Error as IdentityError;
 use reqwest::StatusCode;
 use thiserror::Error;
-use uuid::Uuid;
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -46,9 +45,6 @@ pub enum Error {
 
     #[error("Received error message from server: [{}] {}", .status, .message)]
     ResponseContent { status: StatusCode, message: String },
-
-    #[error("Received error messages from the API: {0:?}")]
-    ApiError(Vec<(Uuid, String)>),
 
     #[error("Internal error: {0}")]
     Internal(&'static str),

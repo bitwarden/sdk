@@ -39,28 +39,14 @@ impl SecretsDeleteResponse {
     pub(crate) fn process_response(
         response: BulkDeleteResponseModelListResponseModel,
     ) -> Result<SecretsDeleteResponse> {
-        let mut successes = Vec::new();
-        let mut failures = Vec::new();
-
-        for item in response.data.unwrap_or_default() {
-            match SecretDeleteResponse::process_response(item) {
-                Ok(data) => {
-                    successes.push(data);
-                }
-                Err(Error::ApiError(error)) => {
-                    failures.extend_from_slice(&error);
-                }
-                Err(_) => {
-                    unreachable!();
-                }
-            }
-        }
-
-        if failures.is_empty() {
-            Ok(SecretsDeleteResponse { data: successes })
-        } else {
-            Err(Error::ApiError(failures))
-        }
+        Ok(SecretsDeleteResponse {
+            data: response
+                .data
+                .unwrap_or_default()
+                .into_iter()
+                .map(SecretDeleteResponse::process_response)
+                .collect::<Result<_, _>>()?,
+        })
     }
 }
 
@@ -75,11 +61,9 @@ impl SecretDeleteResponse {
     pub(crate) fn process_response(
         response: BulkDeleteResponseModel,
     ) -> Result<SecretDeleteResponse> {
-        let id = response.id.ok_or(Error::MissingFields)?;
-
-        match response.error {
-            Some(error) => Err(Error::ApiError(vec![(id, error)])),
-            None => Ok(SecretDeleteResponse { id, error: None }),
-        }
+        Ok(SecretDeleteResponse {
+            id: response.id.ok_or(Error::MissingFields)?,
+            error: response.error,
+        })
     }
 }

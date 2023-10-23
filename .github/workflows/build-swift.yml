@@ -27,13 +27,6 @@ jobs:
 
   build:
     runs-on: macos-13
-    strategy:
-      fail-fast: false
-      matrix:
-        settings:
-          - target: aarch64-apple-ios-sim
-          - target: aarch64-apple-ios
-          - target: x86_64-apple-ios
     steps:
       - name: Checkout repo
         uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
@@ -46,98 +39,16 @@ jobs:
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@a95ba195448af2da9b00fb742d14ffaaf3c21f43 # v2.7.0
         with:
-          key: ${{ matrix.settings.target }}-cargo
+          key: sdk-swift-cargo
 
       - name: Rustup target
-        run: rustup target install ${{ matrix.settings.target }}
-
-      - name: Build native library
-        env:
-          IPHONEOS_DEPLOYMENT_TARGET: 13.0
-          RUSTFLAGS: "-C link-arg=-Wl,-application_extension"
-        run: cargo build --package bitwarden-uniffi --target ${{ matrix.settings.target }} --release
-        working-directory: languages/swift
-
-      - name: Upload libbitwarden_uniffi.a artifact
-        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
-        with:
-          name: libbitwarden_uniffi.a-${{ matrix.settings.target }}
-          path: ./target/${{ matrix.settings.target }}/release/libbitwarden_uniffi.a
-          if-no-files-found: error
-
-      - name: Upload libbitwarden_uniffi.dylib artifact
-        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
-        with:
-          name: libbitwarden_uniffi.dylib-${{ matrix.settings.target }}
-          path: ./target/${{ matrix.settings.target }}/release/libbitwarden_uniffi.dylib
-          if-no-files-found: error
-
-  package:
-    name: Package
-    runs-on: macos-13
-    needs:
-      - build
-      - version
-    env:
-      _PKG_VERSION: ${{ needs.version.outputs.package_version }}
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
-
-      - name: Install rust
-        uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # stable
-        with:
-          toolchain: 1.70.0
-
-      - name: Cache cargo registry
-        uses: Swatinem/rust-cache@a95ba195448af2da9b00fb742d14ffaaf3c21f43 # v2.7.0
-        with:
-          key: cargo-combine-cache
-
-      - name: Download artifacts
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          path: ./languages/swift/target
-
-      - name: Create universal libraries
-        working-directory: ./languages/swift
         run: |
-          mkdir -p ${{ github.workspace	}}/universal-ios-sim/release
-          lipo -create -output ${{ github.workspace	}}/universal-ios-sim/release/libbitwarden_uniffi.a \
-            ./target/libbitwarden_uniffi.a-aarch64-apple-ios-sim/libbitwarden_uniffi.a \
-            ./target/libbitwarden_uniffi.a-x86_64-apple-ios/libbitwarden_uniffi.a
+          rustup target install aarch64-apple-ios-sim
+          rustup target install aarch64-apple-ios
+          rustup target install x86_64-apple-ios
 
-      - name: Generate Swift bindings
-        working-directory: ./languages/swift
+      - name: Build
+        shell: bash
         run: |
-          cargo run -p uniffi-bindgen generate \
-            ./target/libbitwarden_uniffi.dylib-aarch64-apple-ios-sim/libbitwarden_uniffi.dylib \
-            --library \
-            --language swift \
-            --no-format \
-            --out-dir ./bindings
-
-      - name: Fit bindings for xcframework
-        working-directory: ./languages/swift
-        run: |
-          mkdir ./Headers
-          mv ./bindings/BitwardenFFI.h ./Headers/
-          mv ./bindings/BitwardenCoreFFI.h ./Headers/
-          cat ./bindings/BitwardenFFI.modulemap ./bindings/BitwardenCoreFFI.modulemap > ./Headers/module.modulemap
-
-      - name: Build xcframework
-        working-directory: ./languages/swift
-        run: |
-          xcodebuild -create-xcframework \
-            -library ./target/libbitwarden_uniffi.a-aarch64-apple-ios/libbitwarden_uniffi.a \
-            -headers ./Headers \
-            -library ${{ github.workspace	}}/universal-ios-sim/release/libbitwarden_uniffi.a \
-            -headers ./Headers \
-            -output ./BitwardenFFI.xcframework
-
-      - name: Upload xcframework artifact
-        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
-        with:
-          name: BitwardenFFI-${{ env._PKG_VERSION }}.xcframework
-          path: ./languages/swift/BitwardenFFI.xcframework
-          if-no-files-found: error
+          chmod +x languages/swift/build.sh
+          ./languages/swift/build.sh

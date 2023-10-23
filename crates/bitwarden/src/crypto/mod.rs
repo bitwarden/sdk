@@ -45,10 +45,11 @@ pub(crate) use master_key::{HashPurpose, MasterKey};
 mod user_key;
 #[cfg(feature = "internal")]
 pub(crate) use user_key::UserKey;
-#[cfg(feature = "internal")]
+// #[cfg(feature = "internal")]
 mod rsa;
 #[cfg(feature = "internal")]
 pub use self::rsa::RsaKeyPair;
+#[cfg(feature = "internal")]
 
 #[cfg(feature = "internal")]
 mod fingerprint;

@@ -1,12 +1,13 @@
 use std::{fmt::Display, str::FromStr};
 
 use base64::Engine;
+use rsa::RsaPrivateKey;
 use serde::{de::Visitor, Deserialize};
 use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{decrypt_aes256_hmac, Decryptable, Encryptable, SymmetricCryptoKey},
+    crypto::{decrypt_aes256_hmac, Decryptable, Encryptable, SymmetricCryptoKey, rsa::decrypt_rsa},
     error::{CryptoError, EncStringParseError, Error, Result},
     util::BASE64_ENGINE,
 };
@@ -312,6 +313,13 @@ impl EncString {
                 let dec = decrypt_aes256_hmac(iv, mac, data.clone(), mac_key, key.key)?;
                 Ok(dec)
             }
+            _ => Err(CryptoError::InvalidKey.into()),
+        }
+    }
+
+    pub fn decrypt_with_rsa_key(&self, key: &RsaPrivateKey) -> Result<Vec<u8>> {
+        match self {
+            EncString::Rsa2048_OaepSha1_B64 { data } => decrypt_rsa(data.clone(), key),
             _ => Err(CryptoError::InvalidKey.into()),
         }
     }

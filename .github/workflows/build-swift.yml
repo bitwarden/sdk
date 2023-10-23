@@ -51,6 +51,7 @@ jobs:
 
       - name: Build
         shell: bash
+        working-directory: languages/swift
         run: |
-          chmod +x languages/swift/build.sh
-          ./languages/swift/build.sh
+          chmod +x build.sh
+          ./build.sh

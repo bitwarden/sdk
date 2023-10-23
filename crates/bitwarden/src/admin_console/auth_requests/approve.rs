@@ -74,9 +74,8 @@ fn get_encrypted_user_key(
   };
 
   // Decrypt user key with org private key
-  let dec_user_key = org_private_key
-    .decrypt(Pkcs1v15Encrypt, &reset_password_details.reset_password_key.ok_or(Error::MissingFields)?.into_bytes())
-    .map_err(|_| CryptoError::InvalidKey)?; // need better error
+  let user_key = &reset_password_details.reset_password_key.ok_or(Error::MissingFields)?.parse::<EncString>()?;
+  let dec_user_key = user_key.decrypt_with_rsa_key(&org_private_key)?;
 
   // re-encrypt user key with device public key
   let device_public_key = rsa::RsaPublicKey::from_pkcs1_der(&input.device_public_key.as_bytes())

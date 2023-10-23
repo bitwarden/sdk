@@ -6,8 +6,10 @@ on:
     branches:
       - "rc"
       - "hotfix-rc-swift"
-    paths:
-      - "languages/swift/**"
+      - "DEVOPS-1525-swift-workflow-for-package-publishing"
+    # paths:
+      # - "languages/swift/**"
+
 
 jobs:
   version:

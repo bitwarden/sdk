@@ -80,6 +80,7 @@ fn get_encrypted_user_key(
   // re-encrypt user key with device public key
   let device_public_key = rsa::RsaPublicKey::from_pkcs1_der(&input.device_public_key.as_bytes())
         .map_err(|_| CryptoError::InvalidKey)?;
+  // TODO: let re_encrypted_user_key = rsa::rsa_encrypt(dec_user_key, device_public_key)
   let mut rng = rand::thread_rng();
   let re_encrypted_user_key = device_public_key.encrypt(&mut rng, Pkcs1v15Encrypt, &dec_user_key)
         .map_err(|_| CryptoError::InvalidKey)?; // need better error

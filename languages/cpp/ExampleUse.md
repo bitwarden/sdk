@@ -43,7 +43,7 @@ Example of the folder structure (macOS):
         --`CommandRunner.h`
         --`Projejts.h`
         --`Secrets.h`
-        --`schemas.cpp`
+        --`schemas.hpp`
     --examples
         --`Wrapper.cpp`
 

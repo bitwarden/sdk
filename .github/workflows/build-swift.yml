@@ -6,6 +6,7 @@ on:
     branches:
       - "rc"
       - "hotfix-rc-swift"
+      - "master"
       - "DEVOPS-1525-swift-workflow-for-package-publishing"
     # paths:
       # - "languages/swift/**"
@@ -62,6 +63,6 @@ jobs:
       - name: Upload BitwardenFFI.xcframework artifact
         uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
         with:
-          name: BitwardenFFI-${{ env._VERSION }}.xcframework
+          name: BitwardenFFI-${{ env._VERSION }}-${GITHUB_SHA:0:7}.xcframework
           path: languages/swift/BitwardenFFI.xcframework
           if-no-files-found: error

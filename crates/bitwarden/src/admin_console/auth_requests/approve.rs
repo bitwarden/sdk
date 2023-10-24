@@ -1,16 +1,22 @@
-use bitwarden_api_api::models::{PendingOrganizationAuthRequestResponseModelListResponseModel, PendingOrganizationAuthRequestResponseModel, OrganizationUserResetPasswordDetailsResponseModel, AdminAuthRequestUpdateRequestModel};
+use base64::Engine;
+use bitwarden_api_api::models::{
+    AdminAuthRequestUpdateRequestModel, OrganizationUserResetPasswordDetailsResponseModel,
+    PendingOrganizationAuthRequestResponseModel,
+    PendingOrganizationAuthRequestResponseModelListResponseModel,
+};
 use rsa::{
-  pkcs8::DecodePrivateKey,
-  Pkcs1v15Encrypt, pkcs1::DecodeRsaPublicKey
+    pkcs8::{der::Decode, DecodePrivateKey, SubjectPublicKeyInfo},
+    RsaPublicKey,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-  client::Client,
-  error::{Result, Error, CryptoError},
-  crypto::{EncString, Decryptable}
+    client::Client,
+    crypto::{encrypt_rsa, Decryptable, EncString},
+    error::{CryptoError, Error, Result},
+    util::BASE64_ENGINE,
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -20,7 +26,7 @@ pub struct AuthApproveRequest {
     pub request_id: Uuid,
     pub organization_user_id: Uuid,
     pub organization_id: Uuid,
-    pub device_public_key: String
+    pub device_public_key: String,
 }
 
 pub(crate) async fn approve_auth_request(
@@ -38,7 +44,6 @@ pub(crate) async fn approve_auth_request(
 
     let encrypted_user_key = get_encrypted_user_key(&client, input, reset_password_details)?;
 
-    // Need to create a new mutable borrow
     bitwarden_api_api::apis::organization_auth_requests_api::organizations_org_id_auth_requests_request_id_post(
 &client.get_api_configurations().await.api,
         input.organization_id,
@@ -53,41 +58,40 @@ pub(crate) async fn approve_auth_request(
     Ok(())
 }
 
-// TODO: most of this should be moved into crypto::rsa as encrypt/decrypt methods
 fn get_encrypted_user_key(
-  client: &Client,
-  input: &AuthApproveRequest,
-  reset_password_details: OrganizationUserResetPasswordDetailsResponseModel) -> Result<EncString> {
+    client: &Client,
+    input: &AuthApproveRequest,
+    reset_password_details: OrganizationUserResetPasswordDetailsResponseModel,
+) -> Result<EncString> {
+    // Decrypt organization's encrypted private key with org key
+    let enc = client.get_encryption_settings()?;
 
-  // Decrypt organization's encrypted private key with org key
-  let enc = client.get_encryption_settings()?;
+    let org_private_key = {
+        let dec = reset_password_details
+            .encrypted_private_key
+            .ok_or(Error::MissingFields)?
+            .parse::<EncString>()?
+            .decrypt(enc, &Some(input.organization_id))?
+            .into_bytes();
 
-  let org_private_key = {
-    let dec = reset_password_details.encrypted_private_key
-      .ok_or(Error::MissingFields)?
-      .parse::<EncString>()?
-      .decrypt(enc, &Some(input.organization_id))?
-      .into_bytes();
+        rsa::RsaPrivateKey::from_pkcs8_der(&dec).map_err(|_| CryptoError::InvalidKey)?
+    };
 
-    rsa::RsaPrivateKey::from_pkcs8_der(&dec)
-        .map_err(|_| CryptoError::InvalidKey)?
-  };
+    // Decrypt user key with org private key
+    let user_key = &reset_password_details
+        .reset_password_key
+        .ok_or(Error::MissingFields)?
+        .parse::<EncString>()?;
+    let dec_user_key = user_key.decrypt_with_rsa_key(&org_private_key)?;
 
-  // Decrypt user key with org private key
-  let user_key = &reset_password_details.reset_password_key.ok_or(Error::MissingFields)?.parse::<EncString>()?;
-  let dec_user_key = user_key.decrypt_with_rsa_key(&org_private_key)?;
+    // re-encrypt user key with device public key
+    let device_public_key_bytes = BASE64_ENGINE.decode(&input.device_public_key)?;
+    let device_public_key_info = SubjectPublicKeyInfo::from_der(&device_public_key_bytes).unwrap(); // TODO: error handling
+    let device_public_key = RsaPublicKey::try_from(device_public_key_info).unwrap(); // TODO: error handling
 
-  // re-encrypt user key with device public key
-  let device_public_key = rsa::RsaPublicKey::from_pkcs1_der(&input.device_public_key.as_bytes())
-        .map_err(|_| CryptoError::InvalidKey)?;
-  // TODO: let re_encrypted_user_key = rsa::rsa_encrypt(dec_user_key, device_public_key)
-  let mut rng = rand::thread_rng();
-  let re_encrypted_user_key = device_public_key.encrypt(&mut rng, Pkcs1v15Encrypt, &dec_user_key)
-        .map_err(|_| CryptoError::InvalidKey)?; // need better error
+    let re_encrypted_user_key = encrypt_rsa(dec_user_key, &device_public_key)?;
 
-  String::from_utf8(re_encrypted_user_key)
-    .map_err(|_| CryptoError::InvalidKey)? // need better error
-    .parse()
+    EncString::from_buffer(&re_encrypted_user_key)
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -98,7 +102,7 @@ pub struct PendingAuthRequestsResponse {
 
 impl PendingAuthRequestsResponse {
     pub(crate) fn process_response(
-        response: PendingOrganizationAuthRequestResponseModelListResponseModel
+        response: PendingOrganizationAuthRequestResponseModelListResponseModel,
     ) -> Result<PendingAuthRequestsResponse> {
         Ok(PendingAuthRequestsResponse {
             data: response
@@ -123,13 +127,13 @@ pub struct PendingAuthRequestResponse {
 
 impl PendingAuthRequestResponse {
     pub(crate) fn process_response(
-        response: PendingOrganizationAuthRequestResponseModel
+        response: PendingOrganizationAuthRequestResponseModel,
     ) -> Result<PendingAuthRequestResponse> {
         Ok(PendingAuthRequestResponse {
-          id: response.id.ok_or(Error::MissingFields)?,
-          user_id: response.user_id.ok_or(Error::MissingFields)?,
-          organization_user_id: response.organization_user_id.ok_or(Error::MissingFields)?,
-          email: response.email.ok_or(Error::MissingFields)?,
+            id: response.id.ok_or(Error::MissingFields)?,
+            user_id: response.user_id.ok_or(Error::MissingFields)?,
+            organization_user_id: response.organization_user_id.ok_or(Error::MissingFields)?,
+            email: response.email.ok_or(Error::MissingFields)?,
         })
     }
 }

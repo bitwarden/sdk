@@ -8,7 +8,8 @@ class SecretsClient
   def get(id)
     command = create_command(get: SecretGetRequest.new(id: id))
     response = parse_response(command)
-    return response['data'] unless response['data'] == false || response.nil?
+
+    return response['data'] unless response['data'].nil? || response.nil?
 
     raise BitwardenError 'Error getting secret' if response.nil?
 
@@ -18,7 +19,10 @@ class SecretsClient
   def get_by_ids(ids)
     command = create_command(get_by_ids: SecretsGetRequest.new(ids: ids))
     response = parse_response(command)
-    return response['data'] unless response['data'] == false || response.nil?
+    puts response
+    puts 'lala'
+
+    return response['data'] unless response['data'].nil? || response.nil?
 
     raise BitwardenError 'Error getting secrets' if response.nil?
 
@@ -27,12 +31,12 @@ class SecretsClient
 
   def create(key, note, organization_id, project_ids, value)
     command = create_command(
-      create: SecretCreateRequest(
+      create: SecretCreateRequest.new(
         key: key, note: note, organization_id: organization_id, project_ids: project_ids, value: value
       )
     )
     response = parse_response(command)
-    return response['data'] unless response['data'] == false || response.nil?
+    return response['data'] unless response['data'].nil? || response.nil?
 
     raise BitwardenError 'Error creating secret' if response.nil?
 
@@ -42,7 +46,7 @@ class SecretsClient
   def list(organization_id)
     command = create_command(list: SecretIdentifiersRequest.new(organization_id: organization_id))
     response = parse_response(command)
-    return response['data'] unless response['data'] == false || response.nil?
+    return response['data'] unless response['data'].nil? || response.nil?
 
     raise BitwardenError 'Error getting secrets list' if response.nil?
 
@@ -51,12 +55,12 @@ class SecretsClient
 
   def update(id, key, note, organization_id, project_ids, value)
     command = create_command(
-      update: SecretPutRequest(
+      update: SecretPutRequest.new(
         id: id, key: key, note: note, organization_id: organization_id, project_ids: project_ids, value: value
       )
     )
     response = parse_response(command)
-    return response['data'] unless response['data'] == false || response.nil?
+    return response['data'] unless response['data'].nil? || response.nil?
 
     raise BitwardenError, 'Error updating secret' if response.nil?
 
@@ -64,9 +68,9 @@ class SecretsClient
   end
 
   def delete_secret(ids)
-    command = create_command(delete: SecretsDeleteRequest(ids: ids))
+    command = create_command(delete: SecretsDeleteRequest.new(ids: ids))
     response = parse_response(command)
-    return response['data'] unless response['data'] == false || response.nil?
+    return response['data'] unless response['data'].nil? || response.nil?
 
     raise BitwardenError, 'Error deleting secret' if response.nil?
 

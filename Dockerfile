@@ -1,7 +1,7 @@
 ARG ARCH=
 FROM ${ARCH}rust:1.73 as builder
-RUN apt update && \
-  apt install --no-install-recommends -y \
+RUN apt-get update && \
+  apt-get install --no-install-recommends -y \
   ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 WORKDIR /app

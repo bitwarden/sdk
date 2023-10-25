@@ -84,7 +84,7 @@ pub(crate) async fn api_key_login(
     mut client: Client,
     client_id: Option<String>,
     client_secret: Option<String>,
-) -> Result<()> {
+) -> Result<Client> {
     let client_id = text_prompt_when_none("Client ID", client_id)?;
     let client_secret = text_prompt_when_none("Client Secret", client_secret)?;
 
@@ -100,5 +100,5 @@ pub(crate) async fn api_key_login(
 
     debug!("{:?}", result);
 
-    Ok(())
+    Ok(client)
 }

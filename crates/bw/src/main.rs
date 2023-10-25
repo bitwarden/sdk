@@ -162,7 +162,9 @@ async fn process_commands() -> Result<()> {
                 LoginCommands::ApiKey {
                     client_id,
                     client_secret,
-                } => auth::api_key_login(client, client_id, client_secret).await?,
+                } => {
+                  auth::api_key_login(client, client_id, client_secret).await?;
+                }
             }
             return Ok(());
         }
@@ -224,6 +226,19 @@ async fn process_commands() -> Result<()> {
         },
         Commands::AdminConsole { command } => match command {
           AdminConsoleCommands::ListDevices { organization_id } => {
+
+            // hack login
+            let server = "https://vault.qa.bitwarden.pw";
+            let settings = ClientSettings {
+                api_url: format!("{}/api", server),
+                identity_url: format!("{}/identity", server),
+                ..Default::default()
+            };
+            let client = bitwarden::Client::new(Some(settings));
+
+            let mut client = auth::api_key_login(client, None, None).await?;
+
+            // continue
             let auth_requests = client
                 .client_auth_requests()
                 .list(&PendingAuthRequestsRequest { organization_id })

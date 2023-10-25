@@ -1,11 +1,13 @@
 use bitwarden::{
     auth::RegisterRequest, client::client_settings::ClientSettings, tool::PasswordGeneratorRequest,
+    admin_console::auth_requests::{PendingAuthRequestsRequest, AuthApproveRequest}
 };
 use bitwarden_cli::{install_color_eyre, text_prompt_when_none, Color};
 use clap::{command, Args, CommandFactory, Parser, Subcommand};
 use color_eyre::eyre::Result;
 use inquire::Password;
-use render::Output;
+use render::{Output, serialize_response};
+use uuid::Uuid;
 
 mod auth;
 mod render;
@@ -55,6 +57,12 @@ enum Commands {
         #[command(subcommand)]
         command: GeneratorCommands,
     },
+
+    #[command(long_about = "Manage your organization")]
+    AdminConsole {
+        #[command(subcommand)]
+        command: AdminConsoleCommands,
+    },
 }
 
 #[derive(Args, Clone)]
@@ -88,6 +96,12 @@ enum ItemCommands {
 enum GeneratorCommands {
     Password(PasswordGeneratorArgs),
     Passphrase {},
+}
+
+#[derive(Subcommand, Clone)]
+enum AdminConsoleCommands {
+  ListDevices { organization_id: Uuid },
+  ApproveDevice { id: Uuid }
 }
 
 #[derive(Args, Clone)]
@@ -182,7 +196,7 @@ async fn process_commands() -> Result<()> {
     }
 
     // Not login, assuming we have a config
-    let client = bitwarden::Client::new(None);
+    let mut client = bitwarden::Client::new(None);
 
     // And finally we process all the commands which require authentication
     match command {
@@ -208,6 +222,22 @@ async fn process_commands() -> Result<()> {
             }
             GeneratorCommands::Passphrase {} => todo!(),
         },
+        Commands::AdminConsole { command } => match command {
+          AdminConsoleCommands::ListDevices { organization_id } => {
+            let auth_requests = client
+                .client_auth_requests()
+                .list(&PendingAuthRequestsRequest { organization_id })
+                .await?;
+
+                serialize_response(auth_requests.data, cli.output, false);
+          },
+          AdminConsoleCommands::ApproveDevice { id } => {
+            todo!()
+            // client
+            //     .client_auth_requests()
+            //     .approve(&AuthApproveRequest { id })
+          }
+        }
     };
 
     Ok(())

@@ -510,15 +510,23 @@ checksum = "7f30e7476521f6f8af1a1c4c0b8cc94f0bee37d91763d0ca2665f299b6cd8aec"
 name = "bw"
 version = "0.0.2"
 dependencies = [
+ "bat",
  "bitwarden",
  "bitwarden-cli",
+ "chrono",
  "clap",
  "color-eyre",
+ "comfy-table",
  "env_logger",
  "inquire",
  "log",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "supports-color",
  "tempfile",
  "tokio",
+ "uuid",
 ]
 
 [[package]]

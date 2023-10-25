@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'json'
+
 class SecretsClient
   def initialize(command_runner)
     @command_runner = command_runner
@@ -7,26 +9,24 @@ class SecretsClient
 
   def get(id)
     command = create_command(get: SecretGetRequest.new(id: id))
-    response = parse_response(command)
+    response = run_command(command)
 
-    return response['data'] unless response['data'].nil? || response.nil?
+    secrets_response = ResponseForSecretResponse.from_json!(response).to_dynamic
 
-    raise BitwardenError 'Error getting secret' if response.nil?
+    raise BitwardenError, secrets_response['errorMessage'] if secrets_response['errorMessage']
 
-    raise BitwardenError, response['errorMessage']
+    secrets_response['data']
   end
 
   def get_by_ids(ids)
     command = create_command(get_by_ids: SecretsGetRequest.new(ids: ids))
-    response = parse_response(command)
-    puts response
-    puts 'lala'
+    response = run_command(command)
 
-    return response['data'] unless response['data'].nil? || response.nil?
+    secrets_response = ResponseForSecretIdentifiersResponse.from_json!(response).to_dynamic
 
-    raise BitwardenError 'Error getting secrets' if response.nil?
+    raise BitwardenError, secrets_response['errorMessage'] if secrets_response['errorMessage']
 
-    raise BitwardenError, response['errorMessage']
+    secrets_response['data']['data']
   end
 
   def create(key, note, organization_id, project_ids, value)
@@ -35,22 +35,24 @@ class SecretsClient
         key: key, note: note, organization_id: organization_id, project_ids: project_ids, value: value
       )
     )
-    response = parse_response(command)
-    return response['data'] unless response['data'].nil? || response.nil?
+    response = run_command(command)
 
-    raise BitwardenError 'Error creating secret' if response.nil?
+    secrets_response = ResponseForSecretResponse.from_json!(response).to_dynamic
 
-    raise BitwardenError, response['errorMessage']
+    raise BitwardenError, 'Error creating secret' if secrets_response['errorMessage']
+
+    secrets_response['data']
   end
 
   def list(organization_id)
     command = create_command(list: SecretIdentifiersRequest.new(organization_id: organization_id))
-    response = parse_response(command)
-    return response['data'] unless response['data'].nil? || response.nil?
+    response = run_command(command)
 
-    raise BitwardenError 'Error getting secrets list' if response.nil?
+    secrets_response = ResponseForSecretIdentifiersResponse.from_json!(response).to_dynamic
 
-    raise BitwardenError, response['errorMessage']
+    raise BitwardenError, 'Error getting list of secrets' if secrets_response['errorMessage']
+
+    secrets_response['data']['data']
   end
 
   def update(id, key, note, organization_id, project_ids, value)
@@ -59,22 +61,24 @@ class SecretsClient
         id: id, key: key, note: note, organization_id: organization_id, project_ids: project_ids, value: value
       )
     )
-    response = parse_response(command)
-    return response['data'] unless response['data'].nil? || response.nil?
+    response = run_command(command)
 
-    raise BitwardenError, 'Error updating secret' if response.nil?
+    secrets_response = ResponseForSecretResponse.from_json!(response).to_dynamic
 
-    raise BitwardenError, response['errorMessage']
+    raise BitwardenError, secrets_response['errorMessage'] if secrets_response['errorMessage']
+
+    secrets_response['data']
   end
 
   def delete_secret(ids)
     command = create_command(delete: SecretsDeleteRequest.new(ids: ids))
-    response = parse_response(command)
-    return response['data'] unless response['data'].nil? || response.nil?
+    response = run_command(command)
 
-    raise BitwardenError, 'Error deleting secret' if response.nil?
+    secrets_response = ResponseForSecretsDeleteResponse.from_json!(response).to_dynamic
 
-    raise BitwardenError, response['errorMessage']
+    raise BitwardenError, secrets_response['errorMessage'] if secrets_response['errorMessage']
+
+    secrets_response['data']['data']
   end
 
   private
@@ -83,10 +87,10 @@ class SecretsClient
     SelectiveCommand.new(secrets: SelectiveSecretsCommand.new(commands))
   end
 
-  def parse_response(command)
+  def run_command(command)
     response = @command_runner.run(command)
     raise BitwardenError, 'Error getting response' if response.nil?
 
-    ResponseForSecretResponse.from_json!(response).to_dynamic
+    response
   end
 end

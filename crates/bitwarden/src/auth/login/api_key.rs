@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -46,8 +44,8 @@ pub(crate) async fn api_key_login(
             }),
         );
 
-        let user_key = EncString::from_str(r.key.as_deref().unwrap()).unwrap();
-        let private_key = EncString::from_str(r.private_key.as_deref().unwrap()).unwrap();
+        let user_key: EncString = r.key.as_deref().unwrap().parse().unwrap();
+        let private_key: EncString = r.private_key.as_deref().unwrap().parse().unwrap();
 
         client.initialize_user_crypto(&input.password, user_key, private_key)?;
     }

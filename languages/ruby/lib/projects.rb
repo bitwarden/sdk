@@ -16,33 +16,36 @@ class ProjectsClient
       create: project_create_request
     )
     response = parse_response(command)
-    return response['data'] unless response['success'] == false || response.nil?
 
-    raise BitwardenError, 'Error creating project' if response.nil?
+    projects_response = ResponseForProjectResponse.from_json!(response).to_dynamic
 
-    raise BitwardenError, response['errorMessage']
+    raise BitwardenError, projects_response['errorMessage'] if projects_response['errorMessage']
+
+    projects_response['data']
   end
 
   def get(project_id)
     project_get_request = ProjectGetRequest.new(id: project_id)
     command = create_command(get: project_get_request)
     response = parse_response(command)
-    return response['data'] unless response['success'] == false || response.nil?
 
-    raise BitwardenError, 'Error getting project' if response.nil?
+    projects_response = ResponseForProjectResponse.from_json!(response).to_dynamic
 
-    raise BitwardenError, response['errorMessage']
+    raise BitwardenError, projects_response['errorMessage'] if projects_response['errorMessage']
+
+    projects_response['data']
   end
 
   def list_projects(organization_id)
     project_list_request = ProjectsListRequest.new(organization_id: organization_id)
     command = create_command(list: project_list_request)
     response = parse_response(command)
-    return response['data'] unless response['success'] == false || response.nil?
 
-    raise BitwardenError, 'Error getting projects for a given organization id' if response.nil?
+    projects_response = ResponseForProjectsResponse.from_json!(response).to_dynamic
 
-    raise BitwardenError, response['errorMessage']
+    raise BitwardenError, projects_response['errorMessage'] if projects_response['errorMessage']
+
+    projects_response['data']['data']
   end
 
   def update_project(id, project_put_request_name, organization_id)
@@ -55,22 +58,24 @@ class ProjectsClient
       update: project_put_request
     )
     response = parse_response(command)
-    return response['data'] unless response['success'] == false || response.nil?
 
-    raise BitwardenError, 'Error updating project' if response.nil?
+    projects_response = ResponseForProjectResponse.from_json!(response).to_dynamic
 
-    raise BitwardenError, response['errorMessage']
+    raise BitwardenError, projects_response['errorMessage'] if projects_response['errorMessage']
+
+    projects_response['data']
   end
 
   def delete_projects(ids)
     project_delete_request = ProjectsDeleteRequest.new(ids: ids)
     command = create_command(delete: project_delete_request)
     response = parse_response(command)
-    return response['data'] unless response['data'] == false || response.nil?
 
-    raise BitwardenError, 'Error delete project' if response.nil?
+    projects_response = ResponseForProjectsDeleteResponse.from_json!(response).to_dynamic
 
-    raise BitwardenError, response['errorMessage']
+    raise BitwardenError, projects_response['errorMessage'] if projects_response['errorMessage']
+
+    projects_response['data']['data']
   end
 
   private
@@ -83,6 +88,6 @@ class ProjectsClient
     response = @command_runner.run(command)
     raise BitwardenError, 'Error getting response' if response.nil?
 
-    ResponseForProjectResponse.from_json!(response).to_dynamic
+    response
   end
 end

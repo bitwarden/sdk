@@ -1,0 +1,2 @@
+go 1.20
+go work use ./go/ ./languages/go/

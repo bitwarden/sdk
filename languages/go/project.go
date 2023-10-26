@@ -6,22 +6,48 @@ import (
 )
 
 type ProjectsInterface interface {
-	Create(organizationID string, name string) (ResponseForProjectResponse, error)
-	List(organizationID string) (ResponseForProjectsResponse, error)
-	Get(projectID string) (ResponseForProjectResponse, error)
-	Update(projectID string, organizationID string, name string) (ResponseForProjectResponse, error)
-	Delete(projectIDs []string) (ResponseForProjectsDeleteResponse, error)
+	Create(organizationID string, name string) (*ProjectResponse, error)
+	List(organizationID string) (*ProjectsResponse, error)
+	Get(projectID string) (*ProjectResponse, error)
+	Update(projectID string, organizationID string, name string) (*ProjectResponse, error)
+	Delete(projectIDs []string) (*ProjectsDeleteResponse, error)
 }
 
 type Projects struct {
 	CommandRunner CommandRunnerInterface
 }
 
+func checkSuccessAndError(responseStr string, v interface{}) error {
+	var wrapper struct {
+		Success      bool    `json:"success"`
+		ErrorMessage *string `json:"errorMessage"`
+	}
+
+	err := json.Unmarshal([]byte(responseStr), &wrapper)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal wrapper response: %v", err)
+	}
+
+	if !wrapper.Success {
+		if wrapper.ErrorMessage != nil {
+			return fmt.Errorf("API error: %s", *wrapper.ErrorMessage)
+		}
+		return fmt.Errorf("API error: unknown")
+	}
+
+	err = json.Unmarshal([]byte(responseStr), &v)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal response: %v", err)
+	}
+
+	return nil
+}
+
 func NewProjects(commandRunner CommandRunnerInterface) *Projects {
 	return &Projects{CommandRunner: commandRunner}
 }
 
-func (p *Projects) Get(id string) (ResponseForProjectResponse, error) {
+func (p *Projects) Get(id string) (*ProjectResponse, error) {
 	command := Command{
 		Projects: &ProjectsCommand{
 			Get: &ProjectGetRequest{
@@ -29,90 +55,81 @@ func (p *Projects) Get(id string) (ResponseForProjectResponse, error) {
 			},
 		},
 	}
-
-	responseStr := p.CommandRunner.RunCommand(command)
-	var response ResponseForProjectResponse
-	err := json.Unmarshal([]byte(responseStr), &response)
-	if err != nil {
-		return ResponseForProjectResponse{}, fmt.Errorf("failed to unmarshal response: %v", err)
+	var response ProjectResponse
+	if err := p.executeCommand(command, &response); err != nil {
+		return nil, err
 	}
-
-	return response, nil
+	return &response, nil
 }
 
-func (p *Projects) Create(organizationId string, name string) (ResponseForProjectResponse, error) {
+func (p *Projects) Create(organizationID string, name string) (*ProjectResponse, error) {
 	command := Command{
 		Projects: &ProjectsCommand{
 			Create: &ProjectCreateRequest{
-				OrganizationID: organizationId,
+				OrganizationID: organizationID,
 				Name:           name,
 			},
 		},
 	}
 
-	return p.executeCommand(command)
+	var response ProjectResponse
+	if err := p.executeCommand(command, &response); err != nil {
+		return nil, err
+	}
+	return &response, nil
 }
 
-func (p *Projects) Update(id, organizationId string, name string) (ResponseForProjectResponse, error) {
-	command := Command{
-		Projects: &ProjectsCommand{
-			Update: &ProjectPutRequest{
-				ID:             id,
-				OrganizationID: organizationId,
-				Name:           name,
-			},
-		},
-	}
-
-	return p.executeCommand(command)
-}
-
-func (p *Projects) Delete(ids []string) (ResponseForProjectsDeleteResponse, error) {
-	command := Command{
-		Projects: &ProjectsCommand{
-			Delete: &ProjectsDeleteRequest{
-				IDS: ids,
-			},
-		},
-	}
-
-	responseStr := p.CommandRunner.RunCommand(command)
-	var response ResponseForProjectsDeleteResponse
-	err := json.Unmarshal([]byte(responseStr), &response)
-	if err != nil {
-		return ResponseForProjectsDeleteResponse{}, fmt.Errorf("failed to unmarshal response: %v", err)
-	}
-
-	return response, nil
-}
-
-func (p *Projects) List(organizationId string) (ResponseForProjectsResponse, error) {
+func (p *Projects) List(organizationID string) (*ProjectsResponse, error) {
 	command := Command{
 		Projects: &ProjectsCommand{
 			List: &ProjectsListRequest{
-				OrganizationID: organizationId,
+				OrganizationID: organizationID,
 			},
 		},
 	}
 
-	responseStr := p.CommandRunner.RunCommand(command)
-	var response ResponseForProjectsResponse
-	err := json.Unmarshal([]byte(responseStr), &response)
-	if err != nil {
-		return ResponseForProjectsResponse{}, fmt.Errorf("failed to unmarshal response: %v", err)
+	var response ProjectResponse
+	if err := p.executeCommand(command, &response); err != nil {
+		return nil, err
 	}
-
-	return response, nil
+	return &response, nil
 }
 
-// Helper method for common command execution and response handling
-func (p *Projects) executeCommand(command Command) (ResponseForProjectResponse, error) {
-	responseStr := p.CommandRunner.RunCommand(command)
-	var response ResponseForProjectResponse
-	err := json.Unmarshal([]byte(responseStr), &response)
-	if err != nil {
-		return ResponseForProjectResponse{}, fmt.Errorf("failed to unmarshal response: %v", err)
+func (p *Projects) Update(projectID, organizationID, name string) (*ProjectResponse, error) {
+	command := Command{
+		Projects: &ProjectsCommand{
+			Update: &ProjectPutRequest{
+				ID:             projectID,
+				OrganizationID: organizationID,
+				Name:           name,
+			},
+		},
 	}
 
-	return response, nil
+	var response ProjectResponse
+	if err := p.executeCommand(command, &response); err != nil {
+		return nil, err
+	}
+	return &response, nil
+}
+
+func (p *Projects) Delete(projectIDs []string) (*ProjectsDeleteResponse, error) {
+	command := Command{
+		Projects: &ProjectsCommand{
+			Delete: &ProjectsDeleteRequest{
+				IDS: projectIDs,
+			},
+		},
+	}
+
+	var response ProjectResponse
+	if err := p.executeCommand(command, &response); err != nil {
+		return nil, err
+	}
+	return &response, nil
+}
+
+func (p *Projects) executeCommand(command Command, target interface{}) error {
+	responseStr := p.CommandRunner.RunCommand(command)
+	return checkSuccessAndError(responseStr, target)
 }

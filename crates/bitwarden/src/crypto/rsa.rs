@@ -1,6 +1,6 @@
 use base64::Engine;
 use rsa::{
-    pkcs8::{EncodePrivateKey, EncodePublicKey},
+    pkcs8::{der::Decode, EncodePrivateKey, EncodePublicKey, SubjectPublicKeyInfo, DecodePrivateKey},
     RsaPrivateKey, RsaPublicKey,
     Oaep
 };
@@ -52,6 +52,16 @@ pub fn encrypt_rsa(data: Vec<u8>, key: &RsaPublicKey) -> Result<Vec<u8>> {
   let mut rng = rand::thread_rng();
   key.encrypt(&mut rng, Oaep::new::<Sha1>(), &data)
     .map_err(|_| CryptoError::InvalidKey.into()) // need better error
+}
+
+pub fn public_key_from_b64(b64: &str) -> Result<RsaPublicKey> {
+    let public_key_bytes = BASE64_ENGINE.decode(b64)?;
+    let public_key_info = SubjectPublicKeyInfo::from_der(&public_key_bytes).unwrap(); // TODO: error handling
+    RsaPublicKey::try_from(public_key_info).map_err(|_| Error::Crypto(CryptoError::InvalidKey))
+}
+
+pub fn private_key_from_bytes(bytes: &Vec<u8>) -> Result<RsaPrivateKey> {
+  rsa::RsaPrivateKey::from_pkcs8_der(bytes).map_err(|_| Error::Crypto(CryptoError::InvalidKey))
 }
 
 #[cfg(test)]

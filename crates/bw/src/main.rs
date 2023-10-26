@@ -1,6 +1,6 @@
 use bitwarden::{
     auth::RegisterRequest, client::client_settings::ClientSettings, tool::PasswordGeneratorRequest,
-    admin_console::auth_requests::{PendingAuthRequestsRequest, AuthApproveRequest}
+    admin_console::auth_requests::{PendingAuthRequestsRequest, AuthApproveRequest}, Client
 };
 use bitwarden_cli::{install_color_eyre, text_prompt_when_none, Color};
 use clap::{command, Args, CommandFactory, Parser, Subcommand};
@@ -101,7 +101,7 @@ enum GeneratorCommands {
 #[derive(Subcommand, Clone)]
 enum AdminConsoleCommands {
   ListDevices { organization_id: Uuid },
-  ApproveDevice { id: Uuid }
+  ApproveDevice { organization_id: Uuid, organization_user_id: Uuid }
 }
 
 #[derive(Args, Clone)]
@@ -132,6 +132,19 @@ async fn main() -> Result<()> {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
     process_commands().await
+}
+
+async fn hack_login() -> Client {
+    // hack login
+    let server = "https://vault.qa.bitwarden.pw";
+    let settings = ClientSettings {
+        api_url: format!("{}/api", server),
+        identity_url: format!("{}/identity", server),
+        ..Default::default()
+    };
+    let client = bitwarden::Client::new(Some(settings));
+
+    auth::api_key_login(client, None, None).await.unwrap()
 }
 
 async fn process_commands() -> Result<()> {
@@ -226,19 +239,7 @@ async fn process_commands() -> Result<()> {
         },
         Commands::AdminConsole { command } => match command {
           AdminConsoleCommands::ListDevices { organization_id } => {
-
-            // hack login
-            let server = "https://vault.qa.bitwarden.pw";
-            let settings = ClientSettings {
-                api_url: format!("{}/api", server),
-                identity_url: format!("{}/identity", server),
-                ..Default::default()
-            };
-            let client = bitwarden::Client::new(Some(settings));
-
-            let mut client = auth::api_key_login(client, None, None).await?;
-
-            // continue
+            let mut client = hack_login().await;
             let auth_requests = client
                 .client_auth_requests()
                 .list(&PendingAuthRequestsRequest { organization_id })
@@ -246,11 +247,13 @@ async fn process_commands() -> Result<()> {
 
                 serialize_response(auth_requests.data, cli.output, false);
           },
-          AdminConsoleCommands::ApproveDevice { id } => {
-            todo!()
-            // client
-            //     .client_auth_requests()
-            //     .approve(&AuthApproveRequest { id })
+          AdminConsoleCommands::ApproveDevice { organization_id, organization_user_id } => {
+            let mut client = hack_login().await;
+            client
+                .client_auth_requests()
+                .approve(&AuthApproveRequest { organization_id, organization_user_id })
+                .await
+                .unwrap();  // error handling?
           }
         }
     };

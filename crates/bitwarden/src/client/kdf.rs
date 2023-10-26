@@ -6,20 +6,9 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "internal")]
-use crate::{
-    crypto::{HashPurpose, MasterKey},
-    error::Result,
-};
+use crate::error::{Error, Result};
 
-#[derive(Debug)]
-pub(crate) struct AuthSettings {
-    #[cfg(feature = "internal")]
-    pub email: String,
-    #[cfg(feature = "internal")]
-    pub(crate) kdf: Kdf,
-}
-
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum Kdf {
@@ -33,15 +22,19 @@ pub enum Kdf {
     },
 }
 
-impl AuthSettings {
-    #[cfg(feature = "internal")]
-    pub fn new(response: PreloginResponseModel, email: String) -> Self {
+#[cfg(feature = "internal")]
+impl TryFrom<PreloginResponseModel> for Kdf {
+    type Error = Error;
+
+    fn try_from(response: PreloginResponseModel) -> Result<Kdf> {
         use crate::util::{
             default_argon2_iterations, default_argon2_memory, default_argon2_parallelism,
             default_pbkdf2_iterations,
         };
 
-        let kdf = match response.kdf.unwrap_or_default() {
+        let kdf = response.kdf.ok_or(Error::Internal("KDF not found"))?;
+
+        Ok(match kdf {
             KdfType::Variant0 => Kdf::PBKDF2 {
                 iterations: response
                     .kdf_iterations
@@ -62,14 +55,6 @@ impl AuthSettings {
                     .and_then(|e| NonZeroU32::new(e as u32))
                     .unwrap_or_else(default_argon2_parallelism),
             },
-        };
-
-        Self { email, kdf }
-    }
-
-    #[cfg(feature = "internal")]
-    pub fn derive_user_password_hash(&self, password: &str) -> Result<String> {
-        let master_key = MasterKey::derive(password.as_bytes(), self.email.as_bytes(), &self.kdf)?;
-        master_key.derive_master_key_hash(password.as_bytes(), HashPurpose::ServerAuthorization)
+        })
     }
 }

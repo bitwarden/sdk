@@ -247,7 +247,7 @@ async fn process_commands() -> Result<()> {
     let Some(command) = cli.command else {
         let mut cmd = Cli::command();
         eprintln!("{}", cmd.render_help().ansi());
-        return Ok(());
+        std::process::exit(1);
     };
 
     // These commands don't require authentication, so we process them first

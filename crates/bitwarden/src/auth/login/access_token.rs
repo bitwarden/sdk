@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use base64::Engine;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -9,7 +7,7 @@ use crate::{
         api::{request::AccessTokenRequest, response::IdentityTokenResponse},
         login::{response::two_factor::TwoFactorProviders, PasswordLoginResponse},
     },
-    client::{AccessToken, LoginMethod},
+    client::{AccessToken, LoginMethod, ServiceAccountLoginMethod},
     crypto::{EncString, SymmetricCryptoKey},
     error::{Error, Result},
     util::{decode_token, BASE64_ENGINE},
@@ -23,13 +21,13 @@ pub(crate) async fn access_token_login(
     //info!("api key logging in");
     //debug!("{:#?}, {:#?}", client, input);
 
-    let access_token = AccessToken::from_str(&input.access_token)?;
+    let access_token: AccessToken = input.access_token.parse()?;
 
     let response = request_access_token(client, &access_token).await?;
 
     if let IdentityTokenResponse::Payload(r) = &response {
         // Extract the encrypted payload and use the access token encryption key to decrypt it
-        let payload = EncString::from_str(&r.encrypted_payload)?;
+        let payload: EncString = r.encrypted_payload.parse()?;
 
         let decrypted_payload = payload.decrypt_with_key(&access_token.encryption_key)?;
 
@@ -59,11 +57,11 @@ pub(crate) async fn access_token_login(
             r.access_token.clone(),
             r.refresh_token.clone(),
             r.expires_in,
-            LoginMethod::AccessToken {
+            LoginMethod::ServiceAccount(ServiceAccountLoginMethod::AccessToken {
                 service_account_id: access_token.service_account_id,
                 client_secret: access_token.client_secret,
                 organization_id,
-            },
+            }),
         );
 
         client.initialize_crypto_single_key(encryption_key);

@@ -1,7 +1,4 @@
 #[cfg(feature = "internal")]
-use std::str::FromStr;
-
-#[cfg(feature = "internal")]
 use log::{debug, info};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -12,7 +9,7 @@ use crate::{
         api::request::PasswordTokenRequest,
         login::{determine_password_hash, TwoFactorRequest},
     },
-    client::LoginMethod,
+    client::{kdf::Kdf, LoginMethod},
     crypto::EncString,
     Client,
 };
@@ -29,10 +26,12 @@ pub(crate) async fn password_login(
     client: &mut Client,
     input: &PasswordLoginRequest,
 ) -> Result<PasswordLoginResponse> {
+    use crate::client::UserLoginMethod;
+
     info!("password logging in");
     debug!("{:#?}, {:#?}", client, input);
 
-    let password_hash = determine_password_hash(client, &input.email, &input.password).await?;
+    let password_hash = determine_password_hash(&input.email, &input.kdf, &input.password).await?;
     let response = request_identity_tokens(client, input, &password_hash).await?;
 
     if let IdentityTokenResponse::Authenticated(r) = &response {
@@ -40,13 +39,15 @@ pub(crate) async fn password_login(
             r.access_token.clone(),
             r.refresh_token.clone(),
             r.expires_in,
-            LoginMethod::Username {
+            LoginMethod::User(UserLoginMethod::Username {
                 client_id: "web".to_owned(),
-            },
+                email: input.email.to_owned(),
+                kdf: input.kdf.to_owned(),
+            }),
         );
 
-        let user_key = EncString::from_str(r.key.as_deref().unwrap()).unwrap();
-        let private_key = EncString::from_str(r.private_key.as_deref().unwrap()).unwrap();
+        let user_key: EncString = r.key.as_deref().unwrap().parse().unwrap();
+        let private_key: EncString = r.private_key.as_deref().unwrap().parse().unwrap();
 
         client.initialize_user_crypto(&input.password, user_key, private_key)?;
     }
@@ -77,6 +78,8 @@ pub struct PasswordLoginRequest {
     pub password: String,
     // Two-factor authentication
     pub two_factor: Option<TwoFactorRequest>,
+    /// Kdf from prelogin
+    pub kdf: Kdf,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

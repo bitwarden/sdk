@@ -1,17 +1,12 @@
-use std::str::FromStr;
-
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
     auth::{
         api::{request::ApiTokenRequest, response::IdentityTokenResponse},
-        login::{
-            determine_password_hash, response::two_factor::TwoFactorProviders,
-            PasswordLoginResponse,
-        },
+        login::{response::two_factor::TwoFactorProviders, PasswordLoginResponse},
     },
-    client::LoginMethod,
+    client::{LoginMethod, UserLoginMethod},
     crypto::EncString,
     error::{Error, Result},
     util::decode_token,
@@ -28,16 +23,6 @@ pub(crate) async fn api_key_login(
     let response = request_api_identity_tokens(client, input).await?;
 
     if let IdentityTokenResponse::Authenticated(r) = &response {
-        client.set_tokens(
-            r.access_token.clone(),
-            r.refresh_token.clone(),
-            r.expires_in,
-            LoginMethod::ApiKey {
-                client_id: input.client_id.to_owned(),
-                client_secret: input.client_secret.to_owned(),
-            },
-        );
-
         let access_token_obj = decode_token(&r.access_token)?;
 
         // This should always be Some() when logging in with an api key
@@ -45,10 +30,22 @@ pub(crate) async fn api_key_login(
             .email
             .ok_or(Error::Internal("Access token doesn't contain email"))?;
 
-        let _ = determine_password_hash(client, &email, &input.password).await?;
+        let kdf = client.prelogin(email.clone()).await?;
 
-        let user_key = EncString::from_str(r.key.as_deref().unwrap()).unwrap();
-        let private_key = EncString::from_str(r.private_key.as_deref().unwrap()).unwrap();
+        client.set_tokens(
+            r.access_token.clone(),
+            r.refresh_token.clone(),
+            r.expires_in,
+            LoginMethod::User(UserLoginMethod::ApiKey {
+                client_id: input.client_id.to_owned(),
+                client_secret: input.client_secret.to_owned(),
+                email,
+                kdf,
+            }),
+        );
+
+        let user_key: EncString = r.key.as_deref().unwrap().parse().unwrap();
+        let private_key: EncString = r.private_key.as_deref().unwrap().parse().unwrap();
 
         client.initialize_user_crypto(&input.password, user_key, private_key)?;
     }

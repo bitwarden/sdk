@@ -15,11 +15,12 @@ type BitwardenClient struct {
 }
 
 func NewBitwardenClient(apiURL *string, identityURL *string, userAgent *string) *BitwardenClient {
-
+	deviceType := DeviceType("SDK")
 	clientSettings := ClientSettings{
 		APIURL:      apiURL,
 		IdentityURL: identityURL,
 		UserAgent:   userAgent,
+		DeviceType:  &deviceType,
 	}
 
 	settingsJSON, err := json.Marshal(clientSettings)

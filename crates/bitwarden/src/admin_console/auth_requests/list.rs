@@ -1,11 +1,15 @@
-use bitwarden_api_api::models::{PendingOrganizationAuthRequestResponseModelListResponseModel, PendingOrganizationAuthRequestResponseModel};
+use bitwarden_api_api::models::{
+    PendingOrganizationAuthRequestResponseModel,
+    PendingOrganizationAuthRequestResponseModelListResponseModel,
+};
+use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-  client::Client,
-  error::{Result, Error}
+    client::Client,
+    error::{Error, Result},
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -37,7 +41,7 @@ pub struct PendingAuthRequestsResponse {
 
 impl PendingAuthRequestsResponse {
     pub(crate) fn process_response(
-        response: PendingOrganizationAuthRequestResponseModelListResponseModel
+        response: PendingOrganizationAuthRequestResponseModelListResponseModel,
     ) -> Result<PendingAuthRequestsResponse> {
         Ok(PendingAuthRequestsResponse {
             data: response
@@ -57,18 +61,32 @@ pub struct PendingAuthRequestResponse {
     pub user_id: Uuid,
     pub organization_user_id: Uuid,
     pub email: String,
-    // TODO: map rest of fields
+    pub public_key_b64: String,
+    pub request_device_identifier: String,
+    pub request_device_type: String,
+    pub request_ip_address: String,
+    pub creation_date: DateTime<Utc>,
 }
 
 impl PendingAuthRequestResponse {
     pub(crate) fn process_response(
-        response: PendingOrganizationAuthRequestResponseModel
-    ) -> Result<PendingAuthRequestResponse> {
+        response: PendingOrganizationAuthRequestResponseModel,
+    ) -> Result<Self> {
         Ok(PendingAuthRequestResponse {
-          id: response.id.ok_or(Error::MissingFields)?,
-          user_id: response.user_id.ok_or(Error::MissingFields)?,
-          organization_user_id: response.organization_user_id.ok_or(Error::MissingFields)?,
-          email: response.email.ok_or(Error::MissingFields)?,
+            id: response.id.ok_or(Error::MissingFields)?,
+            user_id: response.user_id.ok_or(Error::MissingFields)?,
+            organization_user_id: response.organization_user_id.ok_or(Error::MissingFields)?,
+            email: response.email.ok_or(Error::MissingFields)?,
+            public_key_b64: response.public_key.ok_or(Error::MissingFields)?,
+            request_device_identifier: response
+                .request_device_identifier
+                .ok_or(Error::MissingFields)?,
+            request_device_type: response.request_device_type.ok_or(Error::MissingFields)?,
+            request_ip_address: response.request_ip_address.ok_or(Error::MissingFields)?,
+            creation_date: response
+                .creation_date
+                .ok_or(Error::MissingFields)?
+                .parse()?,
         })
     }
 }

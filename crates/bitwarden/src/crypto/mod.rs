@@ -56,7 +56,6 @@ pub use self::rsa::public_key_from_b64;
 #[cfg(feature = "internal")]
 pub use self::rsa::RsaKeyPair;
 #[cfg(feature = "internal")]
-#[cfg(feature = "internal")]
 mod fingerprint;
 #[cfg(feature = "internal")]
 pub(crate) use fingerprint::fingerprint;

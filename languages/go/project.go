@@ -1,46 +1,15 @@
 package sdk
 
-import (
-	"encoding/json"
-	"fmt"
-)
-
 type ProjectsInterface interface {
 	Create(organizationID string, name string) (*ProjectResponse, error)
 	List(organizationID string) (*ProjectsResponse, error)
 	Get(projectID string) (*ProjectResponse, error)
 	Update(projectID string, organizationID string, name string) (*ProjectResponse, error)
-	Delete(projectIDs []string) (*ProjectsDeleteResponse, error)
+	Delete(projectIDs []string) (*ProjectResponse, error)
 }
 
 type Projects struct {
 	CommandRunner CommandRunnerInterface
-}
-
-func checkSuccessAndError(responseStr string, v interface{}) error {
-	var wrapper struct {
-		Success      bool    `json:"success"`
-		ErrorMessage *string `json:"errorMessage"`
-	}
-
-	err := json.Unmarshal([]byte(responseStr), &wrapper)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal wrapper response: %v", err)
-	}
-
-	if !wrapper.Success {
-		if wrapper.ErrorMessage != nil {
-			return fmt.Errorf("API error: %s", *wrapper.ErrorMessage)
-		}
-		return fmt.Errorf("API error: unknown")
-	}
-
-	err = json.Unmarshal([]byte(responseStr), &v)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal response: %v", err)
-	}
-
-	return nil
 }
 
 func NewProjects(commandRunner CommandRunnerInterface) *Projects {
@@ -88,7 +57,7 @@ func (p *Projects) List(organizationID string) (*ProjectsResponse, error) {
 		},
 	}
 
-	var response ProjectResponse
+	var response ProjectsResponse
 	if err := p.executeCommand(command, &response); err != nil {
 		return nil, err
 	}
@@ -113,7 +82,7 @@ func (p *Projects) Update(projectID, organizationID, name string) (*ProjectRespo
 	return &response, nil
 }
 
-func (p *Projects) Delete(projectIDs []string) (*ProjectsDeleteResponse, error) {
+func (p *Projects) Delete(projectIDs []string) (*ProjectResponse, error) {
 	command := Command{
 		Projects: &ProjectsCommand{
 			Delete: &ProjectsDeleteRequest{

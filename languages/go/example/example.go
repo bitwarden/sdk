@@ -31,12 +31,12 @@ func main() {
 		panic(err)
 	}
 
-	responseForProjectResponse, err := bitwardenClient.Projects.Create(organizationID.String(), projectName)
+	projectResponse, err := bitwardenClient.Projects.Create(organizationID.String(), projectName)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(responseForProjectResponse)
-	projectID := responseForProjectResponse.Data.ID
+	fmt.Println(projectResponse)
+	projectID := projectResponse.ID
 	fmt.Println(projectID)
 
 	if _, err = bitwardenClient.Projects.List(organizationID.String()); err != nil {
@@ -55,11 +55,11 @@ func main() {
 	value := "value"
 	note := "note"
 
-	responseForSecretResponse, err := bitwardenClient.Secrets.Create(key, value, note, organizationID.String(), []string{projectID})
+	secretResponse, err := bitwardenClient.Secrets.Create(key, value, note, organizationID.String(), []string{projectID})
 	if err != nil {
 		panic(err)
 	}
-	secretID := responseForSecretResponse.Data.ID
+	secretID := secretResponse.ID
 
 	if _, err = bitwardenClient.Secrets.List(organizationID.String()); err != nil {
 		panic(err)

@@ -1,10 +1,5 @@
 package sdk
 
-import (
-	"encoding/json"
-	"fmt"
-)
-
 type SecretsInterface interface {
 	Create(key, value, note string, organizationID string, projectIDs []string) (*SecretResponse, error)
 	List(organizationID string) (*SecretIdentifiersResponse, error)
@@ -24,32 +19,6 @@ func NewSecrets(commandRunner CommandRunnerInterface) *Secrets {
 func (s *Secrets) executeCommand(command Command, target interface{}) error {
 	responseStr := s.CommandRunner.RunCommand(command)
 	return checkSuccessAndError(responseStr, target)
-}
-
-func checkSuccessAndError(responseStr string, v interface{}) error {
-	var wrapper struct {
-		Success      bool    `json:"success"`
-		ErrorMessage *string `json:"errorMessage"`
-	}
-
-	err := json.Unmarshal([]byte(responseStr), &wrapper)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal wrapper response: %v", err)
-	}
-
-	if !wrapper.Success {
-		if wrapper.ErrorMessage != nil {
-			return fmt.Errorf("API error: %s", *wrapper.ErrorMessage)
-		}
-		return fmt.Errorf("API error: unknown")
-	}
-
-	err = json.Unmarshal([]byte(responseStr), &v)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal response: %v", err)
-	}
-
-	return nil
 }
 
 func (s *Secrets) Create(key, value, note string, organizationID string, projectIDs []string) (*SecretResponse, error) {

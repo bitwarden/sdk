@@ -70,7 +70,7 @@ async function main() {
     inputData,
     lang: "go",
     rendererOptions: {
-      "package": "main",
+      package: "sdk",
     },
   });
   writeToFile("./languages/go/schema.go", go.lines);

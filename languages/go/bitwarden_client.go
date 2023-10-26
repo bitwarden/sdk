@@ -14,8 +14,15 @@ type BitwardenClient struct {
 	Secrets       SecretsInterface
 }
 
-func NewBitwardenClient(settings ClientSettings) *BitwardenClient {
-	settingsJSON, err := json.Marshal(settings)
+func NewBitwardenClient(apiURL *string, identityURL *string, userAgent *string) *BitwardenClient {
+
+	clientSettings := ClientSettings{
+		APIURL:      apiURL,
+		IdentityURL: identityURL,
+		UserAgent:   userAgent,
+	}
+
+	settingsJSON, err := json.Marshal(clientSettings)
 	if err != nil {
 		panic(err)
 	}

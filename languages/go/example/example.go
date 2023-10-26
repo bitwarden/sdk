@@ -1,9 +1,10 @@
-package sdk
+package example
 
 import (
 	"fmt"
 	"os"
 
+	sdk "github.com/bitwarden/sdk/languages/go"
 	"github.com/gofrs/uuid"
 )
 
@@ -12,14 +13,7 @@ func main() {
 	identityURL := os.Getenv("IDENTITY_URL")
 	userAgent := os.Getenv("USER_AGENT")
 
-	clientSettings := ClientSettings{
-		APIURL:      apiURL,
-		IdentityURL: identityURL,
-		DeviceType:  "SDK",
-		UserAgent:   userAgent,
-	}
-
-	bitwardenClient := NewBitwardenClient(clientSettings)
+	bitwardenClient := sdk.NewBitwardenClient(&apiURL, &identityURL, &userAgent)
 
 	accessToken := os.Getenv("ACCESS_TOKEN")
 	organizationIDStr := os.Getenv("ORGANIZATION_ID")

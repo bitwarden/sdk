@@ -1,14 +1,15 @@
 use base64::Engine;
 use rsa::{
-    pkcs8::{der::Decode, EncodePrivateKey, EncodePublicKey, SubjectPublicKeyInfo, DecodePrivateKey},
-    RsaPrivateKey, RsaPublicKey,
-    Oaep
+    pkcs8::{
+        der::Decode, DecodePrivateKey, EncodePrivateKey, EncodePublicKey, SubjectPublicKeyInfo,
+    },
+    Oaep, RsaPrivateKey, RsaPublicKey,
 };
 use sha1::Sha1;
 
 use crate::{
     crypto::{encrypt_aes256_hmac, EncString, SymmetricCryptoKey},
-    error::{Error, Result, CryptoError},
+    error::{CryptoError, Error, Result},
     util::BASE64_ENGINE,
 };
 
@@ -44,14 +45,14 @@ pub(super) fn make_key_pair(key: &SymmetricCryptoKey) -> Result<RsaKeyPair> {
 }
 
 pub(super) fn decrypt_rsa(data: Vec<u8>, key: &RsaPrivateKey) -> Result<Vec<u8>> {
-  key.decrypt(Oaep::new::<Sha1>(), &data)
-    .map_err(|_| CryptoError::InvalidKey.into()) // need better error
+    key.decrypt(Oaep::new::<Sha1>(), &data)
+        .map_err(|_| CryptoError::InvalidKey.into()) // need better error
 }
 
 pub fn encrypt_rsa(data: Vec<u8>, key: &RsaPublicKey) -> Result<Vec<u8>> {
-  let mut rng = rand::thread_rng();
-  key.encrypt(&mut rng, Oaep::new::<Sha1>(), &data)
-    .map_err(|_| CryptoError::InvalidKey.into()) // need better error
+    let mut rng = rand::thread_rng();
+    key.encrypt(&mut rng, Oaep::new::<Sha1>(), &data)
+        .map_err(|_| CryptoError::InvalidKey.into()) // need better error
 }
 
 pub fn public_key_from_b64(b64: &str) -> Result<RsaPublicKey> {
@@ -61,17 +62,17 @@ pub fn public_key_from_b64(b64: &str) -> Result<RsaPublicKey> {
 }
 
 pub fn private_key_from_bytes(bytes: &Vec<u8>) -> Result<RsaPrivateKey> {
-  rsa::RsaPrivateKey::from_pkcs8_der(bytes).map_err(|_| Error::Crypto(CryptoError::InvalidKey))
+    rsa::RsaPrivateKey::from_pkcs8_der(bytes).map_err(|_| Error::Crypto(CryptoError::InvalidKey))
 }
 
 #[cfg(test)]
 mod tests {
-  use base64::Engine;
-  use rsa::pkcs8::{DecodePrivateKey, der::Decode, SubjectPublicKeyInfo};
-  use crate::util::BASE64_ENGINE;
-  use super::*;
+    use super::*;
+    use crate::util::BASE64_ENGINE;
+    use base64::Engine;
+    use rsa::pkcs8::{der::Decode, DecodePrivateKey, SubjectPublicKeyInfo};
 
-  const PRIVATE_KEY_B64: &str = concat!(
+    const PRIVATE_KEY_B64: &str = concat!(
     "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCXRVrCX+2hfOQS8Hz",
     "YUS2oc/jGVTZpv+/Ryuoh9d8ihYX9dd0cYh2tl6KWdFc88lPUH11Oxqy20Rk2e5r/RF6T9yM0Me3NPnaKt+hlhLtfoc0h86L",
     "nhD56A9FDUfuI0dVnPcrwNv0YJIo94LwxtbqBULNvXl6wJ7WAbODrCQy5ZgMVg+iH+gGpwiqsZqHt+KuoHWcN53MSPDfaF4/",
@@ -91,45 +92,45 @@ mod tests {
     "+tPVgppLcG0+tMdLjigFQiDUQk2y3WjyxP5ZvXu7U96jaJRI8PFMoE06WeVYcdIzrID2HvqH+w0UQJFrLJ/0Mn4stFAEzXKZ",
     "BokBGnjFnTnKcs7nv/O8=");
 
-  const PUBLIC_KEY_B64: &str = concat!(
+    const PUBLIC_KEY_B64: &str = concat!(
     "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAl0Vawl/toXzkEvB82FEtqHP",
     "4xlU2ab/v0crqIfXfIoWF/XXdHGIdrZeilnRXPPJT1B9dTsasttEZNnua/0Rek/cjNDHtzT52irfoZYS7X6HNIfOi54Q+egP",
     "RQ1H7iNHVZz3K8Db9GCSKPeC8MbW6gVCzb15esCe1gGzg6wkMuWYDFYPoh/oBqcIqrGah7firqB1nDedzEjw32heP2DAffVN",
     "084iTDjiWrJNUxBJ2pDD5Z9dT3MzQ2s09ew1yMWK2z37rT3YerC7OgEDmo3WYo3xL3qYJznu3EO2nmrYjiRa40wKSjxsTlUc",
     "xDF+F0uMW8oR9EMUHgepdepfAtLsSAQIDAQAB");
 
-  const DATA_B64: &str = concat!(
+    const DATA_B64: &str = concat!(
     "A1/p8BQzN9UrbdYxUY2Va5+kPLyfZXF9JsZrjeEXcaclsnHurdxVAJcnbEqYMP3UXV",
     "4YAS/mpf+Rxe6/X0WS1boQdA0MAHSgx95hIlAraZYpiMLLiJRKeo2u8YivCdTM9V5vuAEJwf9Tof/qFsFci3sApdbATkorCT",
     "zFOIEPF2S1zgperEP23M01mr4dWVdYN18B32YF67xdJHMbFhp5dkQwv9CmscoWq7OE5HIfOb+JAh7BEZb+CmKhM3yWJvoR/D",
     "/5jcercUtK2o+XrzNrL4UQ7yLZcFz6Bfwb/j6ICYvqd/YJwXNE6dwlL57OfwJyCdw2rRYf0/qI00t9u8Iitw==");
 
-  #[test]
-  fn test_decrypt_rsa() {
-    let private_key_bytes = BASE64_ENGINE.decode(PRIVATE_KEY_B64).unwrap();
-    let private_key = rsa::RsaPrivateKey::from_pkcs8_der(&private_key_bytes).unwrap();
-    let data_bytes = BASE64_ENGINE.decode(DATA_B64).unwrap();
+    #[test]
+    fn test_decrypt_rsa() {
+        let private_key_bytes = BASE64_ENGINE.decode(PRIVATE_KEY_B64).unwrap();
+        let private_key = rsa::RsaPrivateKey::from_pkcs8_der(&private_key_bytes).unwrap();
+        let data_bytes = BASE64_ENGINE.decode(DATA_B64).unwrap();
 
-    let result = decrypt_rsa(data_bytes, &private_key).unwrap();
-    let result_string = String::from_utf8(result).unwrap();
+        let result = decrypt_rsa(data_bytes, &private_key).unwrap();
+        let result_string = String::from_utf8(result).unwrap();
 
-    assert_eq!(result_string, "EncryptMe!");
-  }
+        assert_eq!(result_string, "EncryptMe!");
+    }
 
-  #[test]
-  fn test_encrypt_rsa() {
-    let public_key_bytes = BASE64_ENGINE.decode(PUBLIC_KEY_B64).unwrap();
-    let info = SubjectPublicKeyInfo::from_der(&public_key_bytes).unwrap();
-    let public_key = RsaPublicKey::try_from(info).unwrap();
+    #[test]
+    fn test_encrypt_rsa() {
+        let public_key_bytes = BASE64_ENGINE.decode(PUBLIC_KEY_B64).unwrap();
+        let info = SubjectPublicKeyInfo::from_der(&public_key_bytes).unwrap();
+        let public_key = RsaPublicKey::try_from(info).unwrap();
 
-    let private_key_bytes = BASE64_ENGINE.decode(PRIVATE_KEY_B64).unwrap();
-    let private_key = rsa::RsaPrivateKey::from_pkcs8_der(&private_key_bytes).unwrap();
+        let private_key_bytes = BASE64_ENGINE.decode(PRIVATE_KEY_B64).unwrap();
+        let private_key = rsa::RsaPrivateKey::from_pkcs8_der(&private_key_bytes).unwrap();
 
-    let encrypted = encrypt_rsa("EncryptMe!".as_bytes().to_vec(), &public_key).unwrap();
-    let decrypted = decrypt_rsa(encrypted, &private_key).unwrap();
+        let encrypted = encrypt_rsa("EncryptMe!".as_bytes().to_vec(), &public_key).unwrap();
+        let decrypted = decrypt_rsa(encrypted, &private_key).unwrap();
 
-    let result_string = String::from_utf8(decrypted).unwrap();
+        let result_string = String::from_utf8(decrypted).unwrap();
 
-    assert_eq!(result_string, "EncryptMe!");
-  }
+        assert_eq!(result_string, "EncryptMe!");
+    }
 }

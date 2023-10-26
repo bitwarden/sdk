@@ -1,9 +1,9 @@
-mod list;
 mod approve;
+mod list;
 
 pub(crate) use list::list_pending_requests;
 pub use list::{
-    PendingAuthRequestsRequest, PendingAuthRequestsResponse, PendingAuthRequestResponse
+    PendingAuthRequestResponse, PendingAuthRequestsRequest, PendingAuthRequestsResponse,
 };
 
 pub(crate) use approve::approve_auth_request;

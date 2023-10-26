@@ -51,6 +51,7 @@
 #[cfg(feature = "mobile")]
 uniffi::setup_scaffolding!();
 
+pub mod admin_console;
 pub mod auth;
 pub mod client;
 pub mod crypto;
@@ -69,7 +70,6 @@ mod util;
 #[cfg(feature = "mobile")]
 pub mod vault;
 pub mod wordlist;
-pub mod admin_console;
 
 pub use client::Client;
 

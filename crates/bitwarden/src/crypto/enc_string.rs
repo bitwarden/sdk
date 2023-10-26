@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{decrypt_aes256_hmac, Decryptable, Encryptable, SymmetricCryptoKey, rsa::decrypt_rsa},
+    crypto::{decrypt_aes256_hmac, rsa::decrypt_rsa, Decryptable, Encryptable, SymmetricCryptoKey},
     error::{CryptoError, EncStringParseError, Error, Result},
     util::BASE64_ENGINE,
 };

@@ -48,15 +48,14 @@ pub(crate) use user_key::UserKey;
 // #[cfg(feature = "internal")]
 mod rsa;
 #[cfg(feature = "internal")]
-pub use self::rsa::RsaKeyPair;
-#[cfg(feature = "internal")]
 pub use self::rsa::encrypt_rsa;
-#[cfg(feature = "internal")]
-pub use self::rsa::public_key_from_b64;
 #[cfg(feature = "internal")]
 pub use self::rsa::private_key_from_bytes;
 #[cfg(feature = "internal")]
-
+pub use self::rsa::public_key_from_b64;
+#[cfg(feature = "internal")]
+pub use self::rsa::RsaKeyPair;
+#[cfg(feature = "internal")]
 #[cfg(feature = "internal")]
 mod fingerprint;
 #[cfg(feature = "internal")]

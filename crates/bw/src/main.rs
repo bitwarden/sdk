@@ -1,12 +1,15 @@
 use bitwarden::{
-    auth::RegisterRequest, client::client_settings::ClientSettings, tool::PasswordGeneratorRequest,
-    admin_console::auth_requests::{PendingAuthRequestsRequest, AuthApproveRequest}, Client
+    admin_console::auth_requests::{AuthApproveRequest, PendingAuthRequestsRequest},
+    auth::RegisterRequest,
+    client::client_settings::ClientSettings,
+    tool::PasswordGeneratorRequest,
+    Client,
 };
 use bitwarden_cli::{install_color_eyre, text_prompt_when_none, Color};
 use clap::{command, Args, CommandFactory, Parser, Subcommand};
 use color_eyre::eyre::Result;
 use inquire::Password;
-use render::{Output, serialize_response};
+use render::{serialize_response, Output};
 use uuid::Uuid;
 
 mod auth;
@@ -100,8 +103,13 @@ enum GeneratorCommands {
 
 #[derive(Subcommand, Clone)]
 enum AdminConsoleCommands {
-  ListDevices { organization_id: Uuid },
-  ApproveDevice { organization_id: Uuid, organization_user_id: Uuid }
+    ListDevices {
+        organization_id: Uuid,
+    },
+    ApproveDevice {
+        organization_id: Uuid,
+        organization_user_id: Uuid,
+    },
 }
 
 #[derive(Args, Clone)]
@@ -176,7 +184,7 @@ async fn process_commands() -> Result<()> {
                     client_id,
                     client_secret,
                 } => {
-                  auth::api_key_login(client, client_id, client_secret).await?;
+                    auth::api_key_login(client, client_id, client_secret).await?;
                 }
             }
             return Ok(());
@@ -238,24 +246,30 @@ async fn process_commands() -> Result<()> {
             GeneratorCommands::Passphrase {} => todo!(),
         },
         Commands::AdminConsole { command } => match command {
-          AdminConsoleCommands::ListDevices { organization_id } => {
-            let mut client = hack_login().await;
-            let auth_requests = client
-                .client_auth_requests()
-                .list(&PendingAuthRequestsRequest { organization_id })
-                .await?;
+            AdminConsoleCommands::ListDevices { organization_id } => {
+                let mut client = hack_login().await;
+                let auth_requests = client
+                    .client_auth_requests()
+                    .list(&PendingAuthRequestsRequest { organization_id })
+                    .await?;
 
                 serialize_response(auth_requests.data, cli.output, false);
-          },
-          AdminConsoleCommands::ApproveDevice { organization_id, organization_user_id } => {
-            let mut client = hack_login().await;
-            client
-                .client_auth_requests()
-                .approve(&AuthApproveRequest { organization_id, organization_user_id })
-                .await
-                .unwrap();  // error handling?
-          }
-        }
+            }
+            AdminConsoleCommands::ApproveDevice {
+                organization_id,
+                organization_user_id,
+            } => {
+                let mut client = hack_login().await;
+                client
+                    .client_auth_requests()
+                    .approve(&AuthApproveRequest {
+                        organization_id,
+                        organization_user_id,
+                    })
+                    .await
+                    .unwrap(); // error handling?
+            }
+        },
     };
 
     Ok(())

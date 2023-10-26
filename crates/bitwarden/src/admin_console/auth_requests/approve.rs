@@ -26,7 +26,8 @@ pub(crate) async fn approve_auth_request(
     client: &mut Client,
     input: &AuthApproveRequest,
 ) -> Result<()> {
-    let device_request = get_pending_request(input.organization_id, input.organization_user_id, client).await;
+    let device_request =
+        get_pending_request(input.organization_id, input.organization_user_id, client).await;
 
     // Get user reset password details
     let reset_password_details =
@@ -58,7 +59,11 @@ pub(crate) async fn approve_auth_request(
     Ok(())
 }
 
-async fn get_pending_request(organization_id: Uuid, organization_user_id: Uuid, client: &mut Client) -> PendingAuthRequestResponse {
+async fn get_pending_request(
+    organization_id: Uuid,
+    organization_user_id: Uuid,
+    client: &mut Client,
+) -> PendingAuthRequestResponse {
     // hack: get all approval details and then find the one we want
     // when we settle on an identifier then we should just give ourselves a better server API
     // or do we require the caller to pass all this info in?

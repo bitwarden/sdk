@@ -1,4 +1,6 @@
-use bitwarden::admin_console::auth_requests::{PendingAuthRequestsResponse, PendingAuthRequestResponse};
+use bitwarden::admin_console::auth_requests::{
+    PendingAuthRequestResponse, PendingAuthRequestsResponse,
+};
 use chrono::{DateTime, Utc};
 use clap::ValueEnum;
 use comfy_table::Table;
@@ -119,7 +121,7 @@ impl TableSerialize<4> for PendingAuthRequestResponse {
             self.id.to_string(),
             self.user_id.to_string(),
             self.organization_user_id.to_string(),
-            self.email.clone()
+            self.email.clone(),
         ]]
     }
 }

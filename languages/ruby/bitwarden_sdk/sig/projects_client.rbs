@@ -1,4 +1,4 @@
-require_once '../extended_schemas/schemas.rbs'
+require_once '../lib/extended_schemas/schemas.rbs'
 require_once '../schemas.rbs'
 
 class ProjectsClient

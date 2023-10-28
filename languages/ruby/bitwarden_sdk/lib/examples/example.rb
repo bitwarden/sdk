@@ -1,9 +1,9 @@
 # NOTE - for example purpose only - import gem instead
-require_relative '../ruby-bitwarden-sdk'
+require 'bitwarden-sdk'
 
 token = ""
 
-bw_client = BitwardenClient.new
+bw_client = BitwardenSDK::BitwardenClient.new
 response = bw_client.authorize(token)
 puts response
 

@@ -1,4 +1,6 @@
+
+
 class CommandRunner
   @bitwarden_sdk: Module
-  def run: -> JSON
+  def run: -> String
 end

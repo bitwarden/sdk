@@ -56,11 +56,11 @@ async function main() {
     inputData,
     lang: "ruby",
     rendererOptions: {
-      "ruby-version": "3.2",
+      "ruby-version": "3.0",
     },
   });
 
-  writeToFile("./languages/ruby/lib/schemas.rb", ruby.lines);
+  writeToFile("./languages/ruby/bitwarden_sdk/lib/schemas.rb", ruby.lines);
 
   const csharp = await quicktype({
     inputData,

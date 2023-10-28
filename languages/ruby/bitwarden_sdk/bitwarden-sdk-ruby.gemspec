@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
-require_relative 'lib/ruby/sdk/version'
+require_relative 'lib/version'
 
 Gem::Specification.new do |spec|
-  spec.name = 'ruby-bitwarden-sdk'
-  spec.version = Ruby::Bitwarden::Sdk::VERSION
+  spec.name = 'bitwarden-sdk-ruby'
+  spec.version = BitwardenSDK::VERSION
   spec.authors = ['Bitwarden Inc.']
-  spec.email = ['hello@bitwarden.com']
+  spec.email = ['hello@bitwarden_sdk.com']
 
   spec.summary = 'Bitwarden Secrets Manager SDK.'
   spec.description = 'Ruby wrapper for Bitwarden secrets manager SDK.'
-  spec.homepage = 'https://rubygems.org/gems/ruby-bitwarden-sdk'
-  spec.required_ruby_version = '>= 3.2.0'
+  spec.homepage = 'https://rubygems.org/gems/bitwarden-sdk'
+  spec.required_ruby_version = '>= 3.0.0'
 
   spec.metadata['homepage_uri'] = spec.homepage
   spec.metadata['source_code_uri'] = 'https://github.com/MaliRobot/ruby-sdk'

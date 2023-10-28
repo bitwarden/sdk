@@ -19,9 +19,6 @@ jobs:
       - generate_schemas
       - build_rust
 
-    env:
-      RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
@@ -35,7 +32,7 @@ jobs:
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: schemas.rb
-          path: languages/ruby/lib
+          path: languages/ruby/bitwarden_sdk/lib
 
       - name: Download x86_64-apple-darwin files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
@@ -63,32 +60,31 @@ jobs:
 
       - name: Copy lib files
         run: |
-          mkdir -p languages/ruby/lib/macos-arm64
-          mkdir -p languages/ruby/lib/ubuntu-x64
-          mkdir -p languages/ruby/lib/macos-x64
-          mkdir -p languages/ruby/lib/windows-x64
+          mkdir -p languages/ruby/bitwarden_sdk/lib/macos-arm64
+          mkdir -p languages/ruby/bitwarden_sdk/lib/ubuntu-x64
+          mkdir -p languages/ruby/bitwarden_sdk/lib/macos-x64
+          mkdir -p languages/ruby/bitwarden_sdk/lib/windows-x64
 
           platforms=("macos-arm64" "ubuntu-x64" "macos-x64" "windows-x64")
           files=("libbitwarden_c.dylib" "libbitwarden_c.so" "libbitwarden_c.dylib" "bitwarden_c.dll")
 
           for ((i=0; i<${#platforms[@]}; i++)); do
-            cp "temp/${platforms[$i]}/${files[$i]}" "languages/ruby/lib/${platforms[$i]}/${files[$i]}"
+            cp "temp/${platforms[$i]}/${files[$i]}" "languages/ruby/bitwarden_sdk/lib/${platforms[$i]}/${files[$i]}"
           done
         shell: bash
 
       - name: Build gem
         run: |
-          cd languages/ruby
-          gem build *.gemspec
+          cd languages/ruby/bitwarden_sdk
+          gem build bitwarden-sdk-ruby.gemspec
 
       - name: Push gem to Rubygems
         run: |
+          cd languages/ruby/bitwarden_sdk
           mkdir -p $HOME/.gem
           touch $HOME/.gem/credentials
           chmod 0600 $HOME/.gem/credentials
-          printf -- "---\n:rubygems_api_key: ${RUBYGEMS_API_KEY}\n" > $HOME/.gem/credentials
-          cd languages/ruby
+          printf -- "---\n:rubygems_api_key: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
           gem push *.gem
         env:
-          RUBYGEMS_API_KEY: "${{secrets.RUBYGEMS_API_KEY}}"
-
+          GEM_HOST_API_KEY: ${{ secrets.GEM_HOST_API_KEY }}

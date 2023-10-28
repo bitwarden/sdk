@@ -4,9 +4,9 @@ Ruby bindings for interacting with the [Bitwarden Secrets Manager]. This is a be
 
 ## Installation
 
-Requirements: Ruby >= 2.7
+Requirements: Ruby >= 3.0
 
-Install gem: `gem install ruby-bitwarden-sdk`
+Install gem: `gem install bitwarden-sdk`
 
 
 ## Usage
@@ -23,7 +23,7 @@ via env variables.
 
 Authorization can be performed using access token like so:
 ```ruby
-client = BitwardenClient.new
+client = BitwardenSDK::BitwardenClient.new
 client.authorize("<<YOUR ACCESS TOKEN HERE>>")
 ```
 

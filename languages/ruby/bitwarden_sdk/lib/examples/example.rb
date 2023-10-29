@@ -1,5 +1,5 @@
 # NOTE - for example purpose only - import gem instead
-require 'bitwarden-sdk'
+require 'ruby-bitwarden-sdk'
 
 token = ""
 

@@ -8,6 +8,8 @@ Requirements: Ruby >= 3.0
 
 Install gem: `gem install bitwarden-sdk`
 
+Import it: require 'ruby-bitwarden-sdk'
+
 
 ## Usage
 

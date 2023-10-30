@@ -14,9 +14,9 @@ class BitwardenSDK
 
     private ClientSettings $clientSettings;
 
-    private ProjectsClient $projectsClient;
+    public ProjectsClient $projectsClient;
 
-    private SecretsClient $secretsClient;
+    public SecretsClient $secretsClient;
 
     private CommandRunner $commandRunner;
 
@@ -44,7 +44,6 @@ class BitwardenSDK
         $access_token_request->accessToken = $access_token;
         $command = new Command();
         $command->access_token_request = $access_token_request;
-        $this->commandRunner = new CommandRunner($this->bitwarden_lib, $this->handle);
         $this->commandRunner->run($command);
     }
 

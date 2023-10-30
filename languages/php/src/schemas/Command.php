@@ -13,14 +13,14 @@ use Swaggest\JsonSchema\Structure\ClassStructure;
 
 class Command extends ClassStructure
 {
-    /** @var ProjectsCommand */
-    public ProjectsCommand $projects;
+    /** @var ProjectsCommand|null */
+    public ?ProjectsCommand $projects;
 
-    /** @var SecretsCommand */
-    public SecretsCommand $secrets;
+    /** @var SecretsCommand|null */
+    public ?SecretsCommand $secrets;
 
-    /** @var AccessTokenLoginRequest */
-    public AccessTokenLoginRequest $access_token_request;
+    /** @var AccessTokenLoginRequest|null */
+    public ?AccessTokenLoginRequest $access_token_request;
 
     /**
      * @param Properties|static $properties
@@ -36,8 +36,59 @@ class Command extends ClassStructure
         $properties->access_token_request->setFromRef('#/definitions/AccessTokenLoginRequest');
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
-//        $ownerSchema->required = array(
-//            self::names()->projects,
-//        );
+        $ownerSchema->required = array(
+            self::names()->projects,
+        );
+    }
+
+    public function jsonSerialize()
+    {
+        $result = new \stdClass();
+        $schema = static::schema();
+        $properties = $schema->getProperties();
+        $processed = array();
+        if (null !== $properties) {
+            foreach ($properties->getDataKeyMap() as $propertyName => $dataName) {
+                // Get uninitialized properties as null; direct access will throw error on typed properties
+//                $value = isset($this->$propertyName) ? $this->$propertyName : null;
+                $value = $this->$propertyName ?? null;
+//                $value = $this->$propertyName;
+
+                // Value is exported if exists.
+                if (null !== $value || array_key_exists($propertyName, $this->__arrayOfData)) {
+                    $result->$dataName = $value;
+                    $processed[$propertyName] = true;
+                    continue;
+                }
+
+                // Non-existent value is only exported if belongs to nullable property (having 'null' in type array).
+                $property = $schema->getProperty($propertyName);
+                if ($property instanceof Schema) {
+                    $types = $property->type;
+                    if ($types === Schema::NULL || (is_array($types) && in_array(Schema::NULL, $types))) {
+                        $result->$dataName = $value;
+                    }
+                }
+            }
+        }
+        foreach ($schema->getNestedPropertyNames() as $name) {
+            /** @var ObjectItem $nested */
+            $nested = $this->$name;
+            if (null !== $nested) {
+                foreach ((array)$nested->jsonSerialize() as $key => $value) {
+                    $result->$key = $value;
+                }
+            }
+        }
+
+        if (!empty($this->__arrayOfData)) {
+            foreach ($this->__arrayOfData as $name => $value) {
+                if (!isset($processed[$name])) {
+                    $result->$name = $this->{$name};
+                }
+            }
+        }
+
+        return $result;
     }
 }

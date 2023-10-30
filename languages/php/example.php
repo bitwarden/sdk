@@ -1,9 +1,8 @@
 <?php
 
-namespace Bitwarden;
+require_once 'vendor/autoload.php';
 
-use Bitwarden\Sdk\BitwardenSDK;
-
-$access_token = '<your access token goes here>';
-$bitwarden_sdk = new BitwardenSDK();
+$access_token = '';
+$bitwarden_sdk = new \Bitwarden\Sdk\BitwardenSDK();
 $bitwarden_sdk->authorize($access_token);
+$bitwarden_sdk->projectsClient->get("00056058-cc70-4cd2-baea-b0810134a729");

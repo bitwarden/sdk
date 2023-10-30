@@ -18,7 +18,7 @@ class BitwardenLib
             void* init(const char* param);
             char* run_command(void* c_str_ptr, void* client_ptr);
             void free_mem(void* client_ptr);',
-            __DIR__ . '/bitwarden_c.dll'
+            __DIR__ . '/libbitwarden_c.dylib'
         );
     }
 
@@ -30,7 +30,8 @@ class BitwardenLib
 
     public function run_command(Command $command)
     {
-        return $this->ffi->run_command($command->jsonSerialize(), $this->handle);
+        $encoded_json = json_encode($command->jsonSerialize());
+        return $this->ffi->run_command($encoded_json, $this->handle);
     }
 
     public function free_mem()

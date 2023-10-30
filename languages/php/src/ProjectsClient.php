@@ -2,13 +2,13 @@
 
 namespace Bitwarden\Sdk;
 
-use Bitwarden\SDK\Schemas\Command;
-use Bitwarden\SDK\Schemas\ProjectCreateRequest;
-use Bitwarden\SDK\Schemas\ProjectGetRequest;
-use Bitwarden\SDK\Schemas\ProjectPutRequest;
-use Bitwarden\SDK\Schemas\ProjectsCommand;
-use Bitwarden\SDK\Schemas\ProjectsDeleteRequest;
-use Bitwarden\SDK\Schemas\ProjectsListRequest;
+use Bitwarden\Sdk\Schemas\Command;
+use Bitwarden\Sdk\Schemas\ProjectCreateRequest;
+use Bitwarden\Sdk\Schemas\ProjectGetRequest;
+use Bitwarden\Sdk\Schemas\ProjectPutRequest;
+use Bitwarden\Sdk\Schemas\ProjectsCommand;
+use Bitwarden\Sdk\Schemas\ProjectsDeleteRequest;
+use Bitwarden\Sdk\Schemas\ProjectsListRequest;
 
 class ProjectsClient
 {
@@ -22,19 +22,21 @@ class ProjectsClient
     public function get(string $project_id)
     {
         $project_get_request = new ProjectGetRequest();
+        $project_get_request->id = $project_id;
         $project_get_request->validate();
         $project_command = new ProjectsCommand();
         $project_command->get = $project_get_request;
-        $project_command->validate();
+//        $project_command->validate();
         $command = new Command();
         $command->projects = $project_command;
-        $command->validate();
+//        $command->validate();
         $this->commandRunner->run($command);
     }
 
     public function list(string $organization_id)
     {
         $project_list_request = new ProjectsListRequest();
+        $project_list_request->organizationId = $organization_id;
         $project_list_request->validate();
         $project_command = new ProjectsCommand();
         $project_command->list = $project_list_request;

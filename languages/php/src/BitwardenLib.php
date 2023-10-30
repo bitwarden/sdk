@@ -30,7 +30,7 @@ class BitwardenLib
 
     public function run_command(Command $command)
     {
-        return $this->ffi->run_command($command->jsonSerialize());
+        return $this->ffi->run_command($command->jsonSerialize(), $this->handle);
     }
 
     public function free_mem()

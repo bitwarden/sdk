@@ -20,6 +20,6 @@ class CommandRunner
 
     public function run(Command $command)
     {
-        $this->bitwardenLib->run_command($command, $this->handle);
+        $this->bitwardenLib->run_command($command);
     }
 }

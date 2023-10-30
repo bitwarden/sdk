@@ -1,11 +1,9 @@
-name: Deploy NuGet Package
+name: Build .NET SDK
 
 on:
-  workflow_dispatch:
-    inputs:
-      version_number:
-        description: "New Version"
-        required: true
+  pull_request:
+    branches:
+      - master
 
 jobs:
   generate_schemas:
@@ -14,8 +12,8 @@ jobs:
   build_rust:
     uses: ./.github/workflows/build-rust-cross-platform.yml
 
-  deploy:
-    name: Deploy
+  build_dotnet:
+    name: Build .NET
     runs-on: ubuntu-22.04
     needs:
       - generate_schemas
@@ -60,11 +58,21 @@ jobs:
           name: libbitwarden_c_files-x86_64-pc-windows-msvc
           path: languages/csharp/Bitwarden.Sdk/windows-x64
 
+      - name: Build .NET 6 Project
+        working-directory: languages/csharp/Bitwarden.Sdk
+        run: |
+          dotnet restore
+          dotnet build --configuration Release
+
       - name: Pack NuGet Package
         env:
-          VERSION: ${{ github.event.inputs.version_number }}
+          VERSION: 0.0.1
         run: dotnet pack --configuration Release -p:PackageID=Bitwarden.Sdk -p:Version=${VERSION} --output ./nuget-output /nologo /v:n
         working-directory: languages/csharp/Bitwarden.Sdk
 
-      - name: Publish NuGet Package
-        run: dotnet nuget push ./languages/csharp/Bitwarden.Sdk/nuget-output/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
+      - name: Upload NuGet package
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
+        with:
+          name: Bitwarden.Sdk.0.0.1.nupkg
+          path: |
+            ./languages/csharp/Bitwarden.Sdk/nuget-output/*.nupkg

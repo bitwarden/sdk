@@ -1,0 +1,54 @@
+name: Lint
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["master"]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  style:
+    name: Check Style
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # stable
+        with:
+          toolchain: stable
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@3cf7f8cc28d1b4e7d01e3783be10a97d55d483c8 # v2.7.1
+
+      - name: Cargo fmt
+        run: cargo fmt --check
+
+      - name: Set up Node
+        uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
+        with:
+          cache: "npm"
+          cache-dependency-path: "package-lock.json"
+          node-version: "16"
+
+      - name: NPM setup
+        run: npm ci
+
+      - name: Node Lint
+        run: npm run lint
+
+      - name: Verify rust documentation links
+        run: cargo doc --no-deps --features internal
+        env:
+          RUSTDOCFLAGS: "-D warnings"
+
+      - name: Cargo clippy
+        run: cargo clippy --all-features
+        env:
+          RUSTFLAGS: "-D warnings"

@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use base64::Engine;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -10,7 +8,7 @@ use crate::{
         login::{response::two_factor::TwoFactorProviders, PasswordLoginResponse},
     },
     client::{AccessToken, LoginMethod, ServiceAccountLoginMethod},
-    crypto::{EncString, SymmetricCryptoKey},
+    crypto::{EncString, KeyDecryptable, SymmetricCryptoKey},
     error::{Error, Result},
     util::{decode_token, BASE64_ENGINE},
     Client,
@@ -23,15 +21,15 @@ pub(crate) async fn access_token_login(
     //info!("api key logging in");
     //debug!("{:#?}, {:#?}", client, input);
 
-    let access_token = AccessToken::from_str(&input.access_token)?;
+    let access_token: AccessToken = input.access_token.parse()?;
 
     let response = request_access_token(client, &access_token).await?;
 
     if let IdentityTokenResponse::Payload(r) = &response {
         // Extract the encrypted payload and use the access token encryption key to decrypt it
-        let payload = EncString::from_str(&r.encrypted_payload)?;
+        let payload: EncString = r.encrypted_payload.parse()?;
 
-        let decrypted_payload = payload.decrypt_with_key(&access_token.encryption_key)?;
+        let decrypted_payload: Vec<u8> = payload.decrypt_with_key(&access_token.encryption_key)?;
 
         // Once decrypted, we have to JSON decode to extract the organization encryption key
         #[derive(serde::Deserialize)]

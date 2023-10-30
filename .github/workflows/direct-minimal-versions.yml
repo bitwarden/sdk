@@ -1,0 +1,53 @@
+---
+name: Direct Minimum Version
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "master"
+      - "rc"
+      - "hotfix-rc"
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  direct-minimal-versions:
+    name: Check dependencies minimal versions for - ${{ matrix.settings.os }} - ${{ matrix.settings.target }}
+    runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          #- os: macos-12
+          #  target: x86_64-apple-darwin
+
+          #- os: macos-12
+          #  target: aarch64-apple-darwin
+
+          - os: windows-2022
+            target: x86_64-pc-windows-msvc
+
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # stable
+        with:
+          toolchain: nightly
+          targets: ${{ matrix.settings.target }}
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@3cf7f8cc28d1b4e7d01e3783be10a97d55d483c8 # v2.7.1
+        with:
+          key: dmv-${{ matrix.settings.target }}-cargo-${{ matrix.settings.os }}
+
+      - name: cargo check direct-minimal-versions
+        run: cargo check -Z direct-minimal-versions --all-features

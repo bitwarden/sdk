@@ -1,0 +1,184 @@
+---
+name: Build CLI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "master"
+      - "rc"
+      - "hotfix-rc"
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-22.04
+    outputs:
+      package_version: ${{ steps.retrieve-version.outputs.package_version }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Get Package Version
+        id: retrieve-version
+        run: |
+          VERSION=$(grep -o '^version = ".*"' crates/bws/Cargo.toml | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
+          echo "package_version=$VERSION" >> $GITHUB_OUTPUT
+
+  build:
+    name: Building CLI for - ${{ matrix.settings.os }} - ${{ matrix.settings.target }}
+    runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}
+    needs:
+      - setup
+    env:
+      _PACKAGE_VERSION: ${{ needs.setup.outputs.package_version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - os: macos-12
+            target: x86_64-apple-darwin
+
+          - os: macos-12
+            target: aarch64-apple-darwin
+
+          - os: windows-2022
+            target: x86_64-pc-windows-msvc
+
+          - os: windows-2022
+            target: aarch64-pc-windows-msvc
+
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+
+          - os: ubuntu-22.04
+            target: aarch64-unknown-linux-gnu
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.settings.target }}
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@3cf7f8cc28d1b4e7d01e3783be10a97d55d483c8 # v2.7.1
+        with:
+          key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.os }}
+
+      - name: Install Cross (aarch64-unknown-linux-gnu)
+        if: ${{ matrix.settings.target == 'aarch64-unknown-linux-gnu' }}
+        run: cargo install cross
+
+      - name: Build
+        if: ${{ matrix.settings.target != 'aarch64-unknown-linux-gnu' }}
+        env:
+          TARGET: ${{ matrix.settings.target }}
+        run: cargo build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
+
+      - name: Build (aarch64-unknown-linux-gnu)
+        if: ${{ matrix.settings.target == 'aarch64-unknown-linux-gnu' }}
+        env:
+          TARGET: ${{ matrix.settings.target }}
+        run: cross build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
+
+      - name: Zip Windows
+        shell: cmd
+        if: runner.os == 'Windows'
+        run: 7z a ./bws-${{ matrix.settings.target }}-%_PACKAGE_VERSION%.zip ./target/${{ matrix.settings.target }}/release/bws.exe
+
+      - name: Zip Unix
+        if: runner.os != 'Windows'
+        run: zip -j ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip ./target/${{ matrix.settings.target }}/release/bws
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
+        with:
+          name: bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip
+          path: ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip
+          if-no-files-found: error
+
+  macos-universal-binary:
+    name: Generate universal macOS binary
+    runs-on: macos-12
+    needs:
+      - setup
+      - build
+    env:
+      _PACKAGE_VERSION: ${{ needs.setup.outputs.package_version }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Download x86_64-apple-darwin artifact
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: bws-x86_64-apple-darwin-${{ env._PACKAGE_VERSION }}.zip
+
+      - name: Download aarch64-apple-darwin artifact
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: bws-aarch64-apple-darwin-${{ env._PACKAGE_VERSION }}.zip
+
+      - name: Unzip artifacts
+        run: |
+          unzip bws-x86_64-apple-darwin-${{ env._PACKAGE_VERSION }}.zip -d ./bws-x86_64-apple-darwin
+          unzip bws-aarch64-apple-darwin-${{ env._PACKAGE_VERSION }}.zip -d ./bws-aarch64-apple-darwin
+
+      - name: lipo create universal package
+        run: |
+          mkdir ./bws-macos-universal
+
+          lipo -create -output ./bws-macos-universal/bws ./bws-x86_64-apple-darwin/bws ./bws-aarch64-apple-darwin/bws
+
+      - name: Zip universal artifact
+        run: zip ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip ./bws-macos-universal/bws
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
+        with:
+          name: bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip
+          path: ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip
+          if-no-files-found: error
+
+  third_party:
+    name: Generate THIRDPARTY.html
+    runs-on: ubuntu-22.04
+    needs:
+      - setup
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # stable
+        with:
+          toolchain: stable
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@3cf7f8cc28d1b4e7d01e3783be10a97d55d483c8 # v2.7.1
+        with:
+          key: cargo-cli-about
+
+      - name: Install cargo-about
+        run: cargo install cargo-about
+
+      - name: Generate THIRDPARTY.html
+        working-directory: ./crates/bws
+        run: |
+          cargo about generate ../../about.hbs > THIRDPARTY.html
+          sed -i.bak 's/\$NAME\$/Bitwarden Secrets Manager CLI/g' THIRDPARTY.html
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
+        with:
+          name: THIRDPARTY.html
+          path: ./crates/bws/THIRDPARTY.html
+          if-no-files-found: error

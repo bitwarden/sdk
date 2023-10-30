@@ -1,0 +1,82 @@
+---
+name: Build Rust crates
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - "master"
+      - "rc"
+      - "hotfix-rc"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Building ${{matrix.package}} for - ${{ matrix.os }}
+
+    runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+
+        package:
+          - bitwarden
+          - bitwarden-api-api
+          - bitwarden-api-identity
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.settings.target }}
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@3cf7f8cc28d1b4e7d01e3783be10a97d55d483c8 # v2.7.1
+
+      - name: Build
+        run: cargo build -p ${{ matrix.package }} --release
+        env:
+          RUSTFLAGS: "-D warnings"
+
+      - name: Build Internal
+        if: ${{ matrix.package == 'bitwarden' }}
+        run: cargo build -p ${{ matrix.package }} --features internal --release
+        env:
+          RUSTFLAGS: "-D warnings"
+
+  release-dry-run:
+    name: Release dry-run
+    runs-on: ubuntu-latest
+    if: ${{ github.ref == 'refs/head/master' || github.ref == 'refs/head/rc' || github.ref == 'refs/head/hotfix-rc' }}
+    needs:
+      - build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.settings.target }}
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@3cf7f8cc28d1b4e7d01e3783be10a97d55d483c8 # v2.7.1
+
+      - name: Install cargo-release
+        run: cargo install cargo-release
+
+      - name: Cargo release dry run
+        run: cargo-release release publish --no-publish -p bitwarden-api-api -p bitwarden-api-identity -p bitwarden

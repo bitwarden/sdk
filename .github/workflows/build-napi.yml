@@ -1,0 +1,91 @@
+---
+name: Build @bitwarden/sdk-napi
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "master"
+      - "rc"
+      - "hotfix-rc"
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+    working-directory: crates/bitwarden-napi
+
+jobs:
+  generate_schemas:
+    uses: ./.github/workflows/generate_schemas.yml
+
+  build:
+    name: Building @bitwarden/sdk-napi for - ${{ matrix.settings.os }}
+    runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}
+    needs: generate_schemas
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - os: macos-12
+            target: x86_64-apple-darwin
+            build: |
+              npm run build
+              strip -x *.node
+
+          - os: macos-12
+            target: aarch64-apple-darwin
+            build: |
+              npm run build-arm64
+              strip -x *.node
+
+          - os: windows-2022
+            target: x86_64-pc-windows-msvc
+            build: npm run build
+
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            build: |
+              set -e &&
+              npm run build &&
+              strip *.node
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Setup Node
+        uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
+        with:
+          node-version: 18
+          cache: "npm"
+          cache-dependency-path: crates/bitwarden-napi/package-lock.json
+
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.settings.target }}
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@3cf7f8cc28d1b4e7d01e3783be10a97d55d483c8 # v2.7.1
+        with:
+          key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.os }}
+
+      - name: Retrieve schemas
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: schemas.ts
+          path: ${{ github.workspace }}/crates/bitwarden-napi/src-ts/bitwarden_client/
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: ${{ matrix.settings.build }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
+        with:
+          name: sdk-bitwarden-napi-${{ matrix.settings.target }}
+          path: ${{ github.workspace }}/crates/bitwarden-napi/sdk-napi.*.node
+          if-no-files-found: error

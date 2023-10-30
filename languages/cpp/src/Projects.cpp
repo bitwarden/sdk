@@ -42,6 +42,7 @@ ResponseForProjectResponse Projects::get(const boost::uuids::uuid& id) {
     try {
         return commandRunner->runCommand<ResponseForProjectResponse>(command, projectsDeserializer);
     } catch (const std::exception& ex) {
+        std::cerr << "Error in getProject: " << ex.what() << std::endl;
         throw ex;
     }
 }
@@ -61,6 +62,7 @@ ResponseForProjectResponse Projects::create(const boost::uuids::uuid& organizati
     try {
         return commandRunner->runCommand<ResponseForProjectResponse>(command, projectsDeserializer);
     } catch (const std::exception& ex) {
+        std::cerr << "Error in createProject: " << ex.what() << std::endl;
         throw ex;
     }
 }
@@ -83,6 +85,7 @@ ResponseForProjectResponse Projects::update(const boost::uuids::uuid& id, const 
     try {
         return commandRunner->runCommand<ResponseForProjectResponse>(command, projectsDeserializer);
     } catch (const std::exception& ex) {
+        std::cerr << "Error in updateProject: " << ex.what() << std::endl;
         throw ex;
     }
 }
@@ -104,6 +107,7 @@ ResponseForProjectsDeleteResponse Projects::deleteProjects(const std::vector<boo
     try {
         return commandRunner->runCommand<ResponseForProjectsDeleteResponse>(command, deleteProjectsDeserializer);
     } catch (const std::exception& ex) {
+        std::cerr << "Error in deleteProjects: " << ex.what() << std::endl;
         throw ex;
     }
 }
@@ -122,6 +126,7 @@ ResponseForProjectsResponse Projects::list(const boost::uuids::uuid& organizatio
     try {
         return commandRunner->runCommand<ResponseForProjectsResponse>(command, projectListDeserializer);
     } catch (const std::exception& ex) {
+        std::cerr << "Error in listProjects: " << ex.what() << std::endl;
         throw ex;
     }
 }

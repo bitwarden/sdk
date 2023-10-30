@@ -47,6 +47,7 @@ ResponseForApiKeyLoginResponse BitwardenClient::accessTokenLogin(const std::stri
     try {
         return commandRunner->runCommand<ResponseForApiKeyLoginResponse>(command, deserializer);
     } catch (const std::exception& ex) {
+        std::cerr << "Error in accessTokenLogin: " << ex.what() << std::endl;
         throw ex;
     }
 }

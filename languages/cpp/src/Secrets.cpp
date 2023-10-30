@@ -41,6 +41,7 @@ ResponseForSecretResponse Secrets::get(const boost::uuids::uuid& id) {
     try {
         return commandRunner->runCommand<ResponseForSecretResponse>(command, secretsDeserializer);
     } catch (const std::exception& ex) {
+        std::cerr << "Error in getSecret: " << ex.what() << std::endl;
         throw ex;
     }
 }
@@ -69,6 +70,7 @@ ResponseForSecretResponse Secrets::create(const std::string& key, const std::str
     try {
         return commandRunner->runCommand<ResponseForSecretResponse>(command, secretsDeserializer);
     } catch (const std::exception& ex) {
+        std::cerr << "Error in createSecret: " << ex.what() << std::endl;
         throw ex;
     }
 }
@@ -100,6 +102,7 @@ ResponseForSecretResponse Secrets::update(const boost::uuids::uuid& id, const st
     try {
         return commandRunner->runCommand<ResponseForSecretResponse>(command, secretsDeserializer);
     } catch (const std::exception& ex) {
+        std::cerr << "Error in updateSecret: " << ex.what() << std::endl;
         throw ex;
     }
 }
@@ -121,6 +124,7 @@ ResponseForSecretsDeleteResponse Secrets::deleteSecrets(const std::vector<boost:
     try {
         return commandRunner->runCommand<ResponseForSecretsDeleteResponse>(command, deleteSecretsDeserializer);
     } catch (const std::exception& ex) {
+        std::cerr << "Error in deleteSecrets: " << ex.what() << std::endl;
         throw ex;
     }
 }
@@ -139,6 +143,7 @@ ResponseForSecretIdentifiersResponse Secrets::list(const boost::uuids::uuid& org
     try {
         return commandRunner->runCommand<ResponseForSecretIdentifiersResponse>(command, secretListDeserializer);
     } catch (const std::exception& ex) {
+        std::cerr << "Error in listSecret: " << ex.what() << std::endl;
         throw ex;
     }
 }

@@ -117,20 +117,3 @@ impl EncryptionSettings {
         Ok(dec)
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::SymmetricCryptoKey;
-    use crate::crypto::{KeyDecryptable, KeyEncryptable};
-
-    #[test]
-    fn test_encryption_settings() {
-        let key = SymmetricCryptoKey::generate("test");
-
-        let test_string = "encrypted_test_string".to_string();
-        let cipher = test_string.clone().encrypt_with_key(&key).unwrap();
-
-        let decrypted_str: String = cipher.decrypt_with_key(&key).unwrap();
-        assert_eq!(decrypted_str, test_string);
-    }
-}

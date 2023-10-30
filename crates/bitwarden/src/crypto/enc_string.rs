@@ -348,7 +348,20 @@ impl KeyDecryptable<String> for EncString {
 
 #[cfg(test)]
 mod tests {
+    use crate::crypto::{KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
+
     use super::EncString;
+
+    #[test]
+    fn test_enc_string_roundtrip() {
+        let key = SymmetricCryptoKey::generate("test");
+
+        let test_string = "encrypted_test_string".to_string();
+        let cipher = test_string.clone().encrypt_with_key(&key).unwrap();
+
+        let decrypted_str: String = cipher.decrypt_with_key(&key).unwrap();
+        assert_eq!(decrypted_str, test_string);
+    }
 
     #[test]
     fn test_enc_string_serialization() {

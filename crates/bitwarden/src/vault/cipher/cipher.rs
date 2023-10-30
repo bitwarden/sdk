@@ -11,7 +11,7 @@ use super::{
 };
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{Decryptable, EncString, Encryptable},
+    crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey},
     error::Result,
     vault::password_history,
 };
@@ -129,30 +129,29 @@ pub struct CipherListView {
     pub revision_date: DateTime<Utc>,
 }
 
-impl Encryptable<Cipher> for CipherView {
-    fn encrypt(self, enc: &EncryptionSettings, _: &Option<Uuid>) -> Result<Cipher> {
-        let org_id = &self.organization_id;
+impl KeyEncryptable<Cipher> for CipherView {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Cipher> {
         Ok(Cipher {
             id: self.id,
             organization_id: self.organization_id,
             folder_id: self.folder_id,
             collection_ids: self.collection_ids,
-            name: self.name.encrypt(enc, org_id)?,
-            notes: self.notes.encrypt(enc, org_id)?,
+            name: self.name.encrypt_with_key(key)?,
+            notes: self.notes.encrypt_with_key(key)?,
             r#type: self.r#type,
-            login: self.login.encrypt(enc, org_id)?,
-            identity: self.identity.encrypt(enc, org_id)?,
-            card: self.card.encrypt(enc, org_id)?,
-            secure_note: self.secure_note.encrypt(enc, org_id)?,
+            login: self.login.encrypt_with_key(key)?,
+            identity: self.identity.encrypt_with_key(key)?,
+            card: self.card.encrypt_with_key(key)?,
+            secure_note: self.secure_note.encrypt_with_key(key)?,
             favorite: self.favorite,
             reprompt: self.reprompt,
             organization_use_totp: self.organization_use_totp,
             edit: self.edit,
             view_password: self.view_password,
-            local_data: self.local_data.encrypt(enc, org_id)?,
-            attachments: self.attachments.encrypt(enc, org_id)?,
-            fields: self.fields.encrypt(enc, org_id)?,
-            password_history: self.password_history.encrypt(enc, org_id)?,
+            local_data: self.local_data.encrypt_with_key(key)?,
+            attachments: self.attachments.encrypt_with_key(key)?,
+            fields: self.fields.encrypt_with_key(key)?,
+            password_history: self.password_history.encrypt_with_key(key)?,
             creation_date: self.creation_date,
             deleted_date: self.deleted_date,
             revision_date: self.revision_date,
@@ -160,30 +159,29 @@ impl Encryptable<Cipher> for CipherView {
     }
 }
 
-impl Decryptable<CipherView> for Cipher {
-    fn decrypt(&self, enc: &EncryptionSettings, _: &Option<Uuid>) -> Result<CipherView> {
-        let org_id = &self.organization_id;
+impl KeyDecryptable<CipherView> for Cipher {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CipherView> {
         Ok(CipherView {
             id: self.id,
             organization_id: self.organization_id,
             folder_id: self.folder_id,
             collection_ids: self.collection_ids.clone(),
-            name: self.name.decrypt(enc, org_id)?,
-            notes: self.notes.decrypt(enc, org_id)?,
+            name: self.name.decrypt_with_key(key)?,
+            notes: self.notes.decrypt_with_key(key)?,
             r#type: self.r#type,
-            login: self.login.decrypt(enc, org_id)?,
-            identity: self.identity.decrypt(enc, org_id)?,
-            card: self.card.decrypt(enc, org_id)?,
-            secure_note: self.secure_note.decrypt(enc, org_id)?,
+            login: self.login.decrypt_with_key(key)?,
+            identity: self.identity.decrypt_with_key(key)?,
+            card: self.card.decrypt_with_key(key)?,
+            secure_note: self.secure_note.decrypt_with_key(key)?,
             favorite: self.favorite,
             reprompt: self.reprompt,
             organization_use_totp: self.organization_use_totp,
             edit: self.edit,
             view_password: self.view_password,
-            local_data: self.local_data.decrypt(enc, org_id)?,
-            attachments: self.attachments.decrypt(enc, org_id)?,
-            fields: self.fields.decrypt(enc, org_id)?,
-            password_history: self.password_history.decrypt(enc, org_id)?,
+            local_data: self.local_data.decrypt_with_key(key)?,
+            attachments: self.attachments.decrypt_with_key(key)?,
+            fields: self.fields.decrypt_with_key(key)?,
+            password_history: self.password_history.decrypt_with_key(key)?,
             creation_date: self.creation_date,
             deleted_date: self.deleted_date,
             revision_date: self.revision_date,
@@ -192,17 +190,13 @@ impl Decryptable<CipherView> for Cipher {
 }
 
 impl Cipher {
-    fn get_decrypted_subtitle(
-        &self,
-        enc: &EncryptionSettings,
-        org_id: &Option<Uuid>,
-    ) -> Result<String> {
+    fn get_decrypted_subtitle(&self, key: &SymmetricCryptoKey) -> Result<String> {
         Ok(match self.r#type {
             CipherType::Login => {
                 let Some(login) = &self.login else {
                     return Ok(String::new());
                 };
-                login.username.decrypt(enc, org_id)?.unwrap_or_default()
+                login.username.decrypt_with_key(key)?.unwrap_or_default()
             }
             CipherType::SecureNote => String::new(),
             CipherType::Card => {
@@ -212,11 +206,12 @@ impl Cipher {
                 let mut sub_title = String::new();
 
                 if let Some(brand) = &card.brand {
-                    sub_title.push_str(&brand.decrypt(enc, org_id)?);
+                    let brand: String = brand.decrypt_with_key(key)?;
+                    sub_title.push_str(&brand);
                 }
 
                 if let Some(number) = &card.number {
-                    let number = number.decrypt(enc, org_id)?;
+                    let number: String = number.decrypt_with_key(key)?;
                     let number_len = number.len();
                     if number_len > 4 {
                         if !sub_title.is_empty() {
@@ -242,14 +237,16 @@ impl Cipher {
                 let mut sub_title = String::new();
 
                 if let Some(first_name) = &identity.first_name {
-                    sub_title.push_str(&first_name.decrypt(enc, org_id)?);
+                    let first_name: String = first_name.decrypt_with_key(key)?;
+                    sub_title.push_str(&first_name);
                 }
 
                 if let Some(last_name) = &identity.last_name {
                     if !sub_title.is_empty() {
                         sub_title.push(' ');
                     }
-                    sub_title.push_str(&last_name.decrypt(enc, org_id)?);
+                    let last_name: String = last_name.decrypt_with_key(key)?;
+                    sub_title.push_str(&last_name);
                 }
 
                 sub_title
@@ -258,16 +255,15 @@ impl Cipher {
     }
 }
 
-impl Decryptable<CipherListView> for Cipher {
-    fn decrypt(&self, enc: &EncryptionSettings, _: &Option<Uuid>) -> Result<CipherListView> {
-        let org_id = &self.organization_id;
+impl KeyDecryptable<CipherListView> for Cipher {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CipherListView> {
         Ok(CipherListView {
             id: self.id,
             organization_id: self.organization_id,
             folder_id: self.folder_id,
             collection_ids: self.collection_ids.clone(),
-            name: self.name.decrypt(enc, org_id)?,
-            sub_title: self.get_decrypted_subtitle(enc, org_id)?,
+            name: self.name.decrypt_with_key(key)?,
+            sub_title: self.get_decrypted_subtitle(key)?,
             r#type: self.r#type,
             favorite: self.favorite,
             reprompt: self.reprompt,
@@ -282,5 +278,24 @@ impl Decryptable<CipherListView> for Cipher {
             deleted_date: self.deleted_date,
             revision_date: self.revision_date,
         })
+    }
+}
+
+impl LocateKey for Cipher {
+    fn locate_key<'a>(
+        &self,
+        enc: &'a EncryptionSettings,
+        _: &Option<Uuid>,
+    ) -> Option<&'a SymmetricCryptoKey> {
+        enc.get_key(&self.organization_id)
+    }
+}
+impl LocateKey for CipherView {
+    fn locate_key<'a>(
+        &self,
+        enc: &'a EncryptionSettings,
+        _: &Option<Uuid>,
+    ) -> Option<&'a SymmetricCryptoKey> {
+        enc.get_key(&self.organization_id)
     }
 }

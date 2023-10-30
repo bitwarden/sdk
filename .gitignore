@@ -35,6 +35,9 @@ crates/bitwarden-napi/sdk-napi.*.node
 # Complied TypeScript client
 crates/bitwarden-napi/dist
 
+# PHP
+languages/php/vendor
+
 # Uniffi
 languages/swift/BitwardenFFI.xcframework
 languages/swift/tmp

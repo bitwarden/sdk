@@ -1,0 +1,19 @@
+{
+  "name": "bitwarden/sdk",
+  "description": "PHP bindings for interacting with the Bitwarden Secrets Manager. This is a beta release and might be missing some functionality.",
+  "type": "library",
+  "require": {
+    "swaggest/json-schema": "^0.12.42",
+    "ext-ffi": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Bitwarden\\Sdk\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Bitwarden Inc."
+    }
+  ]
+}

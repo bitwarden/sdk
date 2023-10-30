@@ -4,14 +4,15 @@ use rsa::RsaPrivateKey;
 use uuid::Uuid;
 #[cfg(feature = "internal")]
 use {
-    crate::{client::UserLoginMethod, crypto::KeyDecryptable},
+    crate::{
+        client::UserLoginMethod,
+        crypto::{EncString, KeyDecryptable},
+        error::{CryptoError, Result},
+    },
     rsa::{pkcs8::DecodePrivateKey, Oaep},
 };
 
-use crate::{
-    crypto::{EncString, SymmetricCryptoKey},
-    error::{CryptoError, Result},
-};
+use crate::crypto::SymmetricCryptoKey;
 
 pub struct EncryptionSettings {
     user_key: SymmetricCryptoKey,

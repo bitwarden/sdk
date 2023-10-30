@@ -17,7 +17,10 @@ func NewSecrets(commandRunner CommandRunnerInterface) *Secrets {
 }
 
 func (s *Secrets) executeCommand(command Command, target interface{}) error {
-	responseStr := s.CommandRunner.RunCommand(command)
+	responseStr, err := s.CommandRunner.RunCommand(command)
+	if err != nil {
+		return err
+	}
 	return checkSuccessAndError(responseStr, target)
 }
 

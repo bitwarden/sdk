@@ -7,7 +7,7 @@ import (
 )
 
 type CommandRunnerInterface interface {
-	RunCommand(command Command) string
+	RunCommand(command Command) (string, error)
 }
 
 type CommandRunner struct {
@@ -22,16 +22,16 @@ func NewCommandRunner(client cinterface.ClientPointer, lib cinterface.BitwardenL
 	}
 }
 
-func (c *CommandRunner) RunCommand(command Command) string {
+func (c *CommandRunner) RunCommand(command Command) (string, error) {
 	commandJSON, err := json.Marshal(command)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
 	responseStr, err := c.lib.RunCommand(string(commandJSON), c.client)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
-	return responseStr
+	return responseStr, nil
 }

@@ -99,6 +99,9 @@ func (p *Projects) Delete(projectIDs []string) (*ProjectResponse, error) {
 }
 
 func (p *Projects) executeCommand(command Command, target interface{}) error {
-	responseStr := p.CommandRunner.RunCommand(command)
+	responseStr, err := p.CommandRunner.RunCommand(command)
+	if err != nil {
+		return err
+	}
 	return checkSuccessAndError(responseStr, target)
 }

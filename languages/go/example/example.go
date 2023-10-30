@@ -11,9 +11,8 @@ import (
 func main() {
 	apiURL := os.Getenv("API_URL")
 	identityURL := os.Getenv("IDENTITY_URL")
-	userAgent := os.Getenv("USER_AGENT")
 
-	bitwardenClient := sdk.NewBitwardenClient(&apiURL, &identityURL, &userAgent)
+	bitwardenClient, _ := sdk.NewBitwardenClient(&apiURL, &identityURL)
 
 	accessToken := os.Getenv("ACCESS_TOKEN")
 	organizationIDStr := os.Getenv("ORGANIZATION_ID")
@@ -23,20 +22,23 @@ func main() {
 		projectName = "NewTestProject" // default value
 	}
 
-	responseForAPIKeyLoginResponse := bitwardenClient.AccessTokenLogin(accessToken)
-	fmt.Println(responseForAPIKeyLoginResponse)
+	apiKeyLogin, err := bitwardenClient.AccessTokenLogin(accessToken)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(apiKeyLogin)
 
 	organizationID, err := uuid.FromString(organizationIDStr)
 	if err != nil {
 		panic(err)
 	}
 
-	projectResponse, err := bitwardenClient.Projects.Create(organizationID.String(), projectName)
+	project, err := bitwardenClient.Projects.Create(organizationID.String(), projectName)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(projectResponse)
-	projectID := projectResponse.ID
+	fmt.Println(project)
+	projectID := project.ID
 	fmt.Println(projectID)
 
 	if _, err = bitwardenClient.Projects.List(organizationID.String()); err != nil {
@@ -55,11 +57,11 @@ func main() {
 	value := "value"
 	note := "note"
 
-	secretResponse, err := bitwardenClient.Secrets.Create(key, value, note, organizationID.String(), []string{projectID})
+	secret, err := bitwardenClient.Secrets.Create(key, value, note, organizationID.String(), []string{projectID})
 	if err != nil {
 		panic(err)
 	}
-	secretID := secretResponse.ID
+	secretID := secret.ID
 
 	if _, err = bitwardenClient.Secrets.List(organizationID.String()); err != nil {
 		panic(err)
@@ -81,5 +83,5 @@ func main() {
 		panic(err)
 	}
 
-	bitwardenClient.Close()
+	defer bitwardenClient.Close()
 }

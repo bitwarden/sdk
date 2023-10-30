@@ -31,7 +31,7 @@ import "github.com/bitwarden/sdk/languages/go"
 settings := ClientSettings{
   // Your settings here
 }
-client := NewBitwardenClient(settings)
+bitwardenClient, _ := sdk.NewBitwardenClient(&apiURL, &identityURL)
 ```
 
 ---
@@ -41,7 +41,7 @@ client := NewBitwardenClient(settings)
 To login using an access token:
 
 ```go
-response := client.AccessTokenLogin("your_access_token_here")
+apiKeyLogin, err := bitwardenClient.AccessTokenLogin(accessToken)
 ```
 
 ---
@@ -51,25 +51,25 @@ response := client.AccessTokenLogin("your_access_token_here")
 #### Create a Project
 
 ```go
-response, err := client.Projects.Create("organization_id", "project_name")
+project, err := client.Projects.Create("organization_id", "project_name")
 ```
 
 #### List Projects
 
 ```go
-response, err := client.Projects.List("organization_id")
+projects, err := client.Projects.List("organization_id")
 ```
 
 #### Update a Project
 
 ```go
-response, err := client.Projects.Update("project_id", "organization_id", "new_project_name")
+project, err := client.Projects.Update("project_id", "organization_id", "new_project_name")
 ```
 
 #### Delete Projects
 
 ```go
-response, err := client.Projects.Delete([]string{"project_id_1", "project_id_2"})
+project, err := client.Projects.Delete([]string{"project_id_1", "project_id_2"})
 ```
 
 ---
@@ -79,25 +79,25 @@ response, err := client.Projects.Delete([]string{"project_id_1", "project_id_2"}
 #### Create a Secret
 
 ```go
-response, err := client.Secrets.Create("key", "value", "note", "organization_id", []string{"project_id"})
+secret, err := client.Secrets.Create("key", "value", "note", "organization_id", []string{"project_id"})
 ```
 
 #### List Secrets
 
 ```go
-response, err := client.Secrets.List("organization_id")
+secrets, err := client.Secrets.List("organization_id")
 ```
 
 #### Update a Secret
 
 ```go
-response, err := client.Secrets.Update("secret_id", "new_key", "new_value", "new_note", "organization_id", []string{"project_id"})
+secret, err := client.Secrets.Update("secret_id", "new_key", "new_value", "new_note", "organization_id", []string{"project_id"})
 ```
 
 #### Delete Secrets
 
 ```go
-response, err := client.Secrets.Delete([]string{"secret_id_1", "secret_id_2"})
+secret, err := client.Secrets.Delete([]string{"secret_id_1", "secret_id_2"})
 ```
 
 ---
@@ -107,7 +107,7 @@ response, err := client.Secrets.Delete([]string{"secret_id_1", "secret_id_2"})
 To free up resources:
 
 ```go
-client.Close()
+defer bitwardenClient.Close()
 ```
 
 ---

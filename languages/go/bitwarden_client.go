@@ -14,24 +14,25 @@ type BitwardenClient struct {
 	Secrets       SecretsInterface
 }
 
-func NewBitwardenClient(apiURL *string, identityURL *string, userAgent *string) *BitwardenClient {
+func NewBitwardenClient(apiURL *string, identityURL *string) (*BitwardenClient, error) {
 	deviceType := DeviceType("SDK")
+	var userAgent = "GOLANG-SDK"
 	clientSettings := ClientSettings{
 		APIURL:      apiURL,
 		IdentityURL: identityURL,
-		UserAgent:   userAgent,
+		UserAgent:   &userAgent,
 		DeviceType:  &deviceType,
 	}
 
 	settingsJSON, err := json.Marshal(clientSettings)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	lib := cinterface.NewBitwardenLibrary()
 	client, err := lib.Init(string(settingsJSON))
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	runner := NewCommandRunner(client, lib)
 
@@ -41,21 +42,24 @@ func NewBitwardenClient(apiURL *string, identityURL *string, userAgent *string) 
 		commandRunner: runner,
 		Projects:      NewProjects(runner),
 		Secrets:       NewSecrets(runner),
-	}
+	}, nil
 }
 
-func (c *BitwardenClient) AccessTokenLogin(accessToken string) ResponseForAPIKeyLoginResponse {
+func (c *BitwardenClient) AccessTokenLogin(accessToken string) (*ResponseForAPIKeyLoginResponse, error) {
 	req := AccessTokenLoginRequest{AccessToken: accessToken}
 	command := Command{AccessTokenLogin: &req}
 
-	responseStr := c.commandRunner.RunCommand(command)
+	responseStr, err := c.commandRunner.RunCommand(command)
+	if err != nil {
+		return nil, err
+	}
 
 	var response ResponseForAPIKeyLoginResponse
 	if err := json.Unmarshal([]byte(responseStr), &response); err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return response
+	return &response, nil
 }
 
 func (c *BitwardenClient) Close() {

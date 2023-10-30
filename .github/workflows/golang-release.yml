@@ -9,7 +9,7 @@ on:
 
 env:
   GO111MODULE: on
-  GO_VERSION: '^1.18'
+  GO_VERSION: "^1.18"
 
 jobs:
   build_rust:
@@ -17,7 +17,7 @@ jobs:
 
   generate-schemas:
     uses: ./.github/workflows/generate_schemas.yml
-    
+
   build:
     needs: [build_rust, generate-schemas]
     runs-on: ubuntu-latest
@@ -29,7 +29,7 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: ${{ env.GO_VERSION }}
-      
+
       - name: Cache dependencies
         uses: actions/cache@v2
         with:

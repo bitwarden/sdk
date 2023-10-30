@@ -63,7 +63,7 @@ async function main() {
   });
 
   writeToFile("./languages/csharp/Bitwarden.Sdk/schemas.cs", csharp.lines);
-  
+
   writeToFile("./languages/csharp/schemas.cs", csharp.lines);
 
   const go = await quicktype({
@@ -71,10 +71,10 @@ async function main() {
     lang: "go",
     rendererOptions: {
       package: "sdk",
+      "just-types-and-package": true,
     },
   });
   writeToFile("./languages/go/schema.go", go.lines);
-
 }
 
 main();

@@ -111,6 +111,15 @@ jobs:
 
       - name: Update files
         run: |
+          # Update BitwardenFFI path
+          sed -i '' 's|.binaryTarget(name: "BitwardenFFI", path: "BitwardenFFI.xcframework")|.binaryTarget(\
+            name: "BitwardenFFI",\
+            url: "https://github.com/bitwarden/sdk/releases/download/BitwardenFFI-v${{ env._PKG_VERSION }}/BitwardenFFI-${{ env._PKG_VERSION }}.xcframework.zip",|' sdk/languages/swift/Package.swift
+
+          # Run swiftformat
+          swiftformat sdk/languages/swift/Package.swift
+          
+          # Copy files to local sdk-swift repo path
           cp --verbose -rf sdk/languages/swift/README.md sdk-swift/README.md
           cp --verbose -rf sdk/languages/swift/Package.swift sdk-swift/Package.swift
           cp --verbose -rf sdk/languages/swift/Sources sdk-swift/Sources
@@ -137,12 +146,12 @@ jobs:
         working-directory: sdk-swift
         run: |
           # Check if tag exists, set output then exit 0 if true.
-          if git log v${{ env._PKG_VERSION }} >/dev/null 2>&1; then
+          if git log ${{ env._PKG_VERSION }} >/dev/null 2>&1; then
             echo "==================================="
-            echo "[!] Tag v${{ env._PKG_VERSION }} already exists"
+            echo "[!] Tag ${{ env._PKG_VERSION }} already exists"
             echo "==================================="
             exit 1
           fi
 
-          git tag v${{ env._PKG_VERSION }}
-          git push origin v${{ env._PKG_VERSION }}
+          git tag ${{ env._PKG_VERSION }}
+          git push origin ${{ env._PKG_VERSION }}

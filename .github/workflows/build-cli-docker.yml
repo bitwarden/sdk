@@ -5,14 +5,6 @@ on:
   push:
     paths:
       - "crates/bws/**"
-  workflow_call:
-    inputs:
-      sdk_branch:
-        type: string
-        default: master
-      is_workflow_call:
-        type: boolean
-        default: true
   workflow_dispatch:
     inputs:
       sdk_branch:

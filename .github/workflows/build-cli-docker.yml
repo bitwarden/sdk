@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - "crates/bws/**"
+      - "Dockerfile"
   workflow_dispatch:
     inputs:
       sdk_branch:

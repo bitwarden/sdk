@@ -19,7 +19,7 @@ For Windows: `BitwardeClient.dll` and `bitwarden_c.dll`
 - `BitwardenLibrary.h`
 - `BitwardenClient.h`
 - `CommandRunner.h`
-- `Projejts.h`
+- `Projects.h`
 - `Secrets.h`
 - `schemas.hpp`
 
@@ -41,7 +41,7 @@ Example of the folder structure (macOS):
         --`BitwardenLibrary.h`
         --`BitwardenClient.h`
         --`CommandRunner.h`
-        --`Projejts.h`
+        --`Projects.h`
         --`Secrets.h`
         --`schemas.hpp`
     --examples

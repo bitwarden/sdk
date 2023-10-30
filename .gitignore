@@ -1,6 +1,8 @@
 /target
 .DS_Store
 .pytest_cache
+.vscode/c_cpp_properties.json
+.vscode/settings.json
 
 # Build results
 [Dd]ebug/

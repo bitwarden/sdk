@@ -1,10 +1,8 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use crate::{
-    client::encryption_settings::EncryptionSettings,
-    crypto::{Decryptable, EncString, Encryptable},
+    crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
     error::Result,
 };
 
@@ -56,52 +54,52 @@ pub struct IdentityView {
     pub license_number: Option<String>,
 }
 
-impl Encryptable<Identity> for IdentityView {
-    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Identity> {
+impl KeyEncryptable<Identity> for IdentityView {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Identity> {
         Ok(Identity {
-            title: self.title.encrypt(enc, org_id)?,
-            first_name: self.first_name.encrypt(enc, org_id)?,
-            middle_name: self.middle_name.encrypt(enc, org_id)?,
-            last_name: self.last_name.encrypt(enc, org_id)?,
-            address1: self.address1.encrypt(enc, org_id)?,
-            address2: self.address2.encrypt(enc, org_id)?,
-            address3: self.address3.encrypt(enc, org_id)?,
-            city: self.city.encrypt(enc, org_id)?,
-            state: self.state.encrypt(enc, org_id)?,
-            postal_code: self.postal_code.encrypt(enc, org_id)?,
-            country: self.country.encrypt(enc, org_id)?,
-            company: self.company.encrypt(enc, org_id)?,
-            email: self.email.encrypt(enc, org_id)?,
-            phone: self.phone.encrypt(enc, org_id)?,
-            ssn: self.ssn.encrypt(enc, org_id)?,
-            username: self.username.encrypt(enc, org_id)?,
-            passport_number: self.passport_number.encrypt(enc, org_id)?,
-            license_number: self.license_number.encrypt(enc, org_id)?,
+            title: self.title.encrypt_with_key(key)?,
+            first_name: self.first_name.encrypt_with_key(key)?,
+            middle_name: self.middle_name.encrypt_with_key(key)?,
+            last_name: self.last_name.encrypt_with_key(key)?,
+            address1: self.address1.encrypt_with_key(key)?,
+            address2: self.address2.encrypt_with_key(key)?,
+            address3: self.address3.encrypt_with_key(key)?,
+            city: self.city.encrypt_with_key(key)?,
+            state: self.state.encrypt_with_key(key)?,
+            postal_code: self.postal_code.encrypt_with_key(key)?,
+            country: self.country.encrypt_with_key(key)?,
+            company: self.company.encrypt_with_key(key)?,
+            email: self.email.encrypt_with_key(key)?,
+            phone: self.phone.encrypt_with_key(key)?,
+            ssn: self.ssn.encrypt_with_key(key)?,
+            username: self.username.encrypt_with_key(key)?,
+            passport_number: self.passport_number.encrypt_with_key(key)?,
+            license_number: self.license_number.encrypt_with_key(key)?,
         })
     }
 }
 
-impl Decryptable<IdentityView> for Identity {
-    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<IdentityView> {
+impl KeyDecryptable<IdentityView> for Identity {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<IdentityView> {
         Ok(IdentityView {
-            title: self.title.decrypt(enc, org_id)?,
-            first_name: self.first_name.decrypt(enc, org_id)?,
-            middle_name: self.middle_name.decrypt(enc, org_id)?,
-            last_name: self.last_name.decrypt(enc, org_id)?,
-            address1: self.address1.decrypt(enc, org_id)?,
-            address2: self.address2.decrypt(enc, org_id)?,
-            address3: self.address3.decrypt(enc, org_id)?,
-            city: self.city.decrypt(enc, org_id)?,
-            state: self.state.decrypt(enc, org_id)?,
-            postal_code: self.postal_code.decrypt(enc, org_id)?,
-            country: self.country.decrypt(enc, org_id)?,
-            company: self.company.decrypt(enc, org_id)?,
-            email: self.email.decrypt(enc, org_id)?,
-            phone: self.phone.decrypt(enc, org_id)?,
-            ssn: self.ssn.decrypt(enc, org_id)?,
-            username: self.username.decrypt(enc, org_id)?,
-            passport_number: self.passport_number.decrypt(enc, org_id)?,
-            license_number: self.license_number.decrypt(enc, org_id)?,
+            title: self.title.decrypt_with_key(key)?,
+            first_name: self.first_name.decrypt_with_key(key)?,
+            middle_name: self.middle_name.decrypt_with_key(key)?,
+            last_name: self.last_name.decrypt_with_key(key)?,
+            address1: self.address1.decrypt_with_key(key)?,
+            address2: self.address2.decrypt_with_key(key)?,
+            address3: self.address3.decrypt_with_key(key)?,
+            city: self.city.decrypt_with_key(key)?,
+            state: self.state.decrypt_with_key(key)?,
+            postal_code: self.postal_code.decrypt_with_key(key)?,
+            country: self.country.decrypt_with_key(key)?,
+            company: self.company.decrypt_with_key(key)?,
+            email: self.email.decrypt_with_key(key)?,
+            phone: self.phone.decrypt_with_key(key)?,
+            ssn: self.ssn.decrypt_with_key(key)?,
+            username: self.username.decrypt_with_key(key)?,
+            passport_number: self.passport_number.decrypt_with_key(key)?,
+            license_number: self.license_number.decrypt_with_key(key)?,
         })
     }
 }

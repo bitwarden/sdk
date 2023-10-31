@@ -122,7 +122,7 @@ fn stretch_master_key(master_key: &MasterKey) -> Result<SymmetricCryptoKey> {
 mod tests {
     use std::num::NonZeroU32;
 
-    use rand::rngs::mock::StepRng;
+    use rand::SeedableRng;
 
     use super::{make_user_key, stretch_master_key, HashPurpose, MasterKey};
     use crate::{client::kdf::Kdf, crypto::SymmetricCryptoKey};
@@ -240,7 +240,7 @@ mod tests {
 
     #[test]
     fn test_make_user_key() {
-        let mut rng = StepRng::new(2, 1);
+        let mut rng = rand_chacha::ChaCha8Rng::from_seed([0u8; 32]);
 
         let master_key = MasterKey(SymmetricCryptoKey {
             key: [
@@ -256,15 +256,15 @@ mod tests {
         assert_eq!(
             user_key.0.key.as_slice(),
             [
-                2, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0,
-                0, 0, 0, 0
+                62, 0, 239, 47, 137, 95, 64, 214, 127, 91, 184, 232, 31, 9, 165, 161, 44, 132, 14,
+                195, 206, 154, 127, 59, 24, 27, 225, 136, 239, 113, 26, 30
             ]
         );
         assert_eq!(
             user_key.0.mac_key.unwrap().as_slice(),
             [
-                6, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0,
-                0, 0, 0, 0
+                152, 76, 225, 114, 185, 33, 111, 65, 159, 68, 83, 103, 69, 109, 86, 25, 49, 74, 66,
+                163, 218, 134, 176, 1, 56, 123, 253, 184, 14, 12, 254, 66
             ]
         );
 

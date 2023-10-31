@@ -5,8 +5,7 @@ RUN apt-get update && \
   ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY . .
-WORKDIR /app/crates/bws
+COPY ../../ .
 RUN cargo build --release
 FROM ${ARCH}debian:bookworm-slim as runner
 WORKDIR /usr/local/bin

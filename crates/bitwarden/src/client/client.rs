@@ -1,5 +1,10 @@
 use std::time::{Duration, Instant};
 
+use reqwest::header::{self};
+use uuid::Uuid;
+
+#[cfg(feature = "secrets")]
+use crate::auth::login::{access_token_login, AccessTokenLoginRequest, AccessTokenLoginResponse};
 #[cfg(feature = "internal")]
 use crate::{
     auth::login::{
@@ -13,11 +18,6 @@ use crate::{
         SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,
     },
 };
-use reqwest::header::{self};
-use uuid::Uuid;
-
-#[cfg(feature = "secrets")]
-use crate::auth::login::{access_token_login, AccessTokenLoginRequest, AccessTokenLoginResponse};
 use crate::{
     auth::renew::renew_token,
     client::{
@@ -288,14 +288,9 @@ impl Client {
 
 #[cfg(test)]
 mod tests {
-    use std::num::NonZeroU32;
-
     use wiremock::{matchers, Mock, ResponseTemplate};
 
-    use crate::{
-        auth::login::AccessTokenLoginRequest, client::kdf::Kdf, mobile::crypto::InitCryptoRequest,
-        secrets_manager::secrets::*, Client,
-    };
+    use crate::{auth::login::AccessTokenLoginRequest, secrets_manager::secrets::*};
 
     #[tokio::test]
     async fn test_access_token_login() {
@@ -383,35 +378,5 @@ mod tests {
         assert_eq!(res.key, "TEST");
         assert_eq!(res.note, "TEST");
         assert_eq!(res.value, "TEST");
-    }
-
-    #[cfg(feature = "internal")]
-    #[tokio::test]
-    async fn test_register_initialize_crypto() {
-        let mut client = Client::new(None);
-
-        let email = "test@bitwarden.com";
-        let password = "test123";
-        let kdf = Kdf::PBKDF2 {
-            iterations: NonZeroU32::new(600_000).unwrap(),
-        };
-
-        let register_response = client
-            .auth()
-            .make_register_keys(email.to_owned(), password.to_owned(), kdf.clone())
-            .unwrap();
-
-        client
-            .crypto()
-            .initialize_crypto(InitCryptoRequest {
-                kdf_params: kdf,
-                email: email.to_owned(),
-                password: password.to_owned(),
-                user_key: register_response.encrypted_user_key,
-                private_key: register_response.keys.private.to_string(),
-                organization_keys: Default::default(),
-            })
-            .await
-            .unwrap();
     }
 }

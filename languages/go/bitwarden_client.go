@@ -55,11 +55,7 @@ func (c *BitwardenClient) AccessTokenLogin(accessToken string) error {
 	}
 
 	var response ResponseForAPIKeyLoginResponse
-	if err := json.Unmarshal([]byte(responseStr), &response); err != nil {
-		return err
-	}
-
-	return nil
+	return checkSuccessAndError(responseStr, &response)
 }
 
 func (c *BitwardenClient) Close() {

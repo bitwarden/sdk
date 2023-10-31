@@ -7,8 +7,9 @@ import (
 
 func checkSuccessAndError(responseStr string, v interface{}) error {
 	var wrapper struct {
-		Success      bool    `json:"success"`
-		ErrorMessage *string `json:"errorMessage"`
+		Success      bool             `json:"success"`
+		ErrorMessage *string          `json:"errorMessage"`
+		Data         *json.RawMessage `json:"data"`
 	}
 
 	err := json.Unmarshal([]byte(responseStr), &wrapper)
@@ -23,7 +24,7 @@ func checkSuccessAndError(responseStr string, v interface{}) error {
 		return fmt.Errorf("API error: unknown")
 	}
 
-	err = json.Unmarshal([]byte(responseStr), &v)
+	err = json.Unmarshal(*wrapper.Data, &v)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal response: %v", err)
 	}

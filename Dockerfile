@@ -8,7 +8,7 @@ WORKDIR /app
 COPY . .
 WORKDIR /app/crates/bws
 RUN cargo build --release
-FROM ${ARCH}debian:trixie-slim as runner
+FROM ${ARCH}debian:bookworm-slim as runner
 WORKDIR /usr/local/bin
 COPY --from=builder /app/target/release/bws .
 COPY --from=builder /etc/ssl/certs /etc/ssl/certs

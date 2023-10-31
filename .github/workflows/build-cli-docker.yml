@@ -82,10 +82,9 @@ jobs:
       ########## Generate image tag and build Docker image ##########
       - name: Generate Docker image tag
         id: tag
-        env:
-          SDK_BRANCH: ${{ inputs.sdk_branch }}
         run: |
-          IMAGE_TAG=$(echo "${SDK_BRANCH}" | sed "s#/#-#g")  # slash safe branch name
+          REF=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
+          IMAGE_TAG=$(echo "${REF}" | sed "s#/#-#g")  # slash safe branch name
           if [[ "${IMAGE_TAG}" == "master" ]]; then
             IMAGE_TAG=dev
           elif [[ ("${IMAGE_TAG}" == "rc") || ("${IMAGE_TAG}" == "hotfix-rc") ]]; then

@@ -5,7 +5,6 @@ on:
   push:
     paths:
       - "crates/bws/**"
-      - "Dockerfile"
   workflow_dispatch:
     inputs:
       sdk_branch:
@@ -16,7 +15,6 @@ on:
     paths:
       - ".github/workflows/build-cli-docker.yml"
       - "crates/bws/**"
-      - Dockerfile
 
 env:
   _AZ_REGISTRY: bitwardenprod.azurecr.io
@@ -109,7 +107,7 @@ jobs:
         uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671 # v3.2.0
         with:
           context: .
-          file: Dockerfile
+          file: crates/bws/Dockerfile
           platforms: |
             linux/amd64,
             linux/arm/v7,

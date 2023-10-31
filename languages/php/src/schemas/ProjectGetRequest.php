@@ -8,13 +8,12 @@ namespace Bitwarden\Sdk\Schemas;
 
 use Swaggest\JsonSchema\Constraint\Properties;
 use Swaggest\JsonSchema\Schema;
-use Swaggest\JsonSchema\Structure\ClassStructure;
 
 
 /**
  * Built from #/definitions/ProjectGetRequest
  */
-class ProjectGetRequest extends ClassStructure
+class ProjectGetRequest extends BitwardenClassStructure
 {
     /** @var string ID of the project to retrieve */
     public $id;

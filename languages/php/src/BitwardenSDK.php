@@ -6,6 +6,7 @@ use Bitwarden\Sdk\Schemas\AccessTokenLoginRequest;
 use Bitwarden\Sdk\schemas\ClientSettings;
 use Bitwarden\Sdk\Schemas\Command;
 use FFI;
+use Swaggest\JsonDiff\Exception;
 
 
 class BitwardenSDK
@@ -38,13 +39,25 @@ class BitwardenSDK
         $this->secretsClient = new SecretsClient($this->commandRunner);
     }
 
+    /**
+     * @throws \Exception
+     */
     public function authorize(string $access_token)
     {
         $access_token_request = new AccessTokenLoginRequest();
         $access_token_request->accessToken = $access_token;
         $command = new Command();
-        $command->access_token_request = $access_token_request;
-        $this->commandRunner->run($command);
+        $command->accessTokenLogin = $access_token_request->jsonSerialize();
+        $result = $this->commandRunner->run($command);
+        if (!isset($result->authenticated)) {
+            throw new \Exception("Authorization error");
+        }
+
+        if ($result->authenticated == False) {
+            throw new \Exception("Unauthorized");
+        }
+
+        return $result;
     }
 
     public function free_mem()

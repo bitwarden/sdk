@@ -5,6 +5,7 @@ namespace Bitwarden\Sdk;
 use Bitwarden\Sdk\Schemas\ClientSettings;
 use Bitwarden\Sdk\Schemas\Command;
 use FFI;
+use Swaggest\JsonSchema\JsonSchema;
 
 
 class BitwardenLib
@@ -22,19 +23,24 @@ class BitwardenLib
         );
     }
 
-    public function init(ClientSettings $client_settings)
+    public function init(ClientSettings $client_settings): FFI\CData
     {
         $this->handle = $this->ffi->init(json_encode($client_settings->jsonSerialize()));
         return $this->handle;
     }
 
-    public function run_command(Command $command)
+    public function run_command(Command $command): \stdClass
     {
         $encoded_json = json_encode($command->jsonSerialize());
-        return $this->ffi->run_command($encoded_json, $this->handle);
+        try {
+            $result = $this->ffi->run_command($encoded_json, $this->handle);
+            return json_decode(FFI::string($result));
+        } catch (\FFI\Exception $e) {
+            throw new \RuntimeException('Error occurred during FFI operation: ' . $e->getMessage());
+        }
     }
 
-    public function free_mem()
+    public function free_mem(): void
     {
         $this->ffi->free_mem($this->handle);
     }

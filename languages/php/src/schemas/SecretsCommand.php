@@ -8,7 +8,7 @@ namespace Bitwarden\Sdk\Schemas;
 
 use Swaggest\JsonSchema\Constraint\Properties;
 use Swaggest\JsonSchema\Schema;
-use Swaggest\JsonSchema\Structure\ClassStructure;
+//use Swaggest\JsonSchema\Structure\ClassStructure;
 
 
 /**
@@ -16,25 +16,19 @@ use Swaggest\JsonSchema\Structure\ClassStructure;
  *
  * Returns: [SecretsDeleteResponse](bitwarden::secrets_manager::secrets::SecretsDeleteResponse)
  */
-class SecretsCommand extends ClassStructure
+class SecretsCommand extends BitwardenClassStructure
 {
-    /** @var SecretsDeleteRequest */
-    public $delete;
+    public ?\stdClass $delete;
 
-    /** @var SecretGetRequest */
-    public $get;
+    public ?\stdClass $get;
 
-    /** @var SecretsGetRequest */
-    public $get_by_ids;
+    public ?\stdClass $getByIds;
 
-    /** @var SecretIdentifiersRequest */
-    public $list;
+    public ?\stdClass $list;
 
-    /** @var SecretCreateRequest */
-    public $create;
+    public ?\stdClass $create;
 
-    /** @var SecretPutRequest */
-    public $put;
+    public ?\stdClass $put;
 
     /**
      * @param Properties|static $properties
@@ -42,16 +36,20 @@ class SecretsCommand extends ClassStructure
      */
     public static function setUpProperties($properties, Schema $ownerSchema)
     {
-        $properties->delete = SecretsDeleteRequest::schema();
-        $properties->get_by_ids = SecretsGetRequest::schema();
-        $properties->create = SecretCreateRequest::schema();
-        $properties->put = SecretPutRequest::schema();
-        $properties->list = SecretIdentifiersRequest::schema();
-        $properties->get = SecretsGetRequest::schema();
+        $properties->delete = SecretsDeleteRequest::schema() ? SecretsDeleteRequest::schema() : null;
+        $properties->getByIds = SecretsGetRequest::schema() ? SecretGetRequest::schema() : null;
+        $properties->create = SecretCreateRequest::schema() ? SecretCreateRequest::schema() : null;
+        $properties->put = SecretPutRequest::schema() ? SecretPutRequest::schema() : null;
+        $properties->list = SecretIdentifiersRequest::schema() ? SecretIdentifiersRequest::schema() : null;
+        $properties->get = SecretsGetRequest::schema() ? SecretGetRequest::schema() : null;
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
         $ownerSchema->description = "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Deletes all the secrets whose IDs match the provided ones\n\nReturns: [SecretsDeleteResponse](bitwarden::secrets_manager::secrets::SecretsDeleteResponse)";
-        $ownerSchema->required = array(
+        $ownerSchema->oneOf = array(
+            self::names()->create,
+            self::names()->put,
+            self::names()->list,
+            self::names()->getByIds,
             self::names()->delete,
         );
     }

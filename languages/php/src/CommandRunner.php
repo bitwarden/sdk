@@ -18,8 +18,21 @@ class CommandRunner
         $this->handle = $handle;
     }
 
-    public function run(Command $command)
+    /**
+     * @throws \Exception
+     */
+    public function run(Command $command): \stdClass
     {
-        $this->bitwardenLib->run_command($command);
+        $result = $this->bitwardenLib->run_command($command);
+        if (isset($result->data)) {
+            if ($result->success == true) {
+                return $result->data;
+            }
+            if (isset($result->error))
+            {
+                throw new \Exception($result->error);
+            }
+        }
+        throw new \Exception("Unknown error occurred");
     }
 }

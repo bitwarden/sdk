@@ -34,7 +34,7 @@ jobs:
           PUBLISH_BRANCHES: "master,rc,hotfix-rc"
         id: publish-branch-check
         run: |
-          REF=${GITHUB_REF#/refs/heads/}
+          REF=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
 
           IFS="," read -a publish_branches <<< $PUBLISH_BRANCHES
 

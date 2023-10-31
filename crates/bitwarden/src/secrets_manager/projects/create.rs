@@ -29,7 +29,7 @@ pub(crate) async fn create_project(
         .ok_or(Error::VaultLocked)?;
 
     let project = Some(ProjectCreateRequestModel {
-        name: input.name.clone().encrypt_with_key(&key)?.to_string(),
+        name: input.name.clone().encrypt_with_key(key)?.to_string(),
     });
 
     let config = client.get_api_configurations().await;

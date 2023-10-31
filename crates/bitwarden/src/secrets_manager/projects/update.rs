@@ -31,7 +31,7 @@ pub(crate) async fn update_project(
         .ok_or(Error::VaultLocked)?;
 
     let project = Some(ProjectUpdateRequestModel {
-        name: input.name.clone().encrypt_with_key(&key)?.to_string(),
+        name: input.name.clone().encrypt_with_key(key)?.to_string(),
     });
 
     let config = client.get_api_configurations().await;

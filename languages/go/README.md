@@ -28,9 +28,6 @@ To initialize the client, you need to import the SDK and create a new `Bitwarden
 ```go
 import "github.com/bitwarden/sdk/languages/go"
 
-settings := ClientSettings{
-  // Your settings here
-}
 bitwardenClient, _ := sdk.NewBitwardenClient(&apiURL, &identityURL)
 ```
 

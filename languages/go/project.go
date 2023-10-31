@@ -5,7 +5,7 @@ type ProjectsInterface interface {
 	List(organizationID string) (*ProjectsResponse, error)
 	Get(projectID string) (*ProjectResponse, error)
 	Update(projectID string, organizationID string, name string) (*ProjectResponse, error)
-	Delete(projectIDs []string) (*ProjectResponse, error)
+	Delete(projectIDs []string) (*ProjectsDeleteResponse, error)
 }
 
 type Projects struct {
@@ -82,7 +82,7 @@ func (p *Projects) Update(projectID, organizationID, name string) (*ProjectRespo
 	return &response, nil
 }
 
-func (p *Projects) Delete(projectIDs []string) (*ProjectResponse, error) {
+func (p *Projects) Delete(projectIDs []string) (*ProjectsDeleteResponse, error) {
 	command := Command{
 		Projects: &ProjectsCommand{
 			Delete: &ProjectsDeleteRequest{
@@ -91,7 +91,7 @@ func (p *Projects) Delete(projectIDs []string) (*ProjectResponse, error) {
 		},
 	}
 
-	var response ProjectResponse
+	var response ProjectsDeleteResponse
 	if err := p.executeCommand(command, &response); err != nil {
 		return nil, err
 	}

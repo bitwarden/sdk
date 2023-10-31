@@ -16,7 +16,7 @@ type BitwardenClient struct {
 
 func NewBitwardenClient(apiURL *string, identityURL *string) (*BitwardenClient, error) {
 	deviceType := DeviceType("SDK")
-	var userAgent = "GOLANG-SDK"
+	userAgent := "Bitwarden GOLANG-SDK"
 	clientSettings := ClientSettings{
 		APIURL:      apiURL,
 		IdentityURL: identityURL,
@@ -45,21 +45,21 @@ func NewBitwardenClient(apiURL *string, identityURL *string) (*BitwardenClient, 
 	}, nil
 }
 
-func (c *BitwardenClient) AccessTokenLogin(accessToken string) (*ResponseForAPIKeyLoginResponse, error) {
+func (c *BitwardenClient) AccessTokenLogin(accessToken string) error {
 	req := AccessTokenLoginRequest{AccessToken: accessToken}
 	command := Command{AccessTokenLogin: &req}
 
 	responseStr, err := c.commandRunner.RunCommand(command)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	var response ResponseForAPIKeyLoginResponse
 	if err := json.Unmarshal([]byte(responseStr), &response); err != nil {
-		return nil, err
+		return err
 	}
 
-	return &response, nil
+	return nil
 }
 
 func (c *BitwardenClient) Close() {

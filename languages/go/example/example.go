@@ -22,11 +22,10 @@ func main() {
 		projectName = "NewTestProject" // default value
 	}
 
-	apiKeyLogin, err := bitwardenClient.AccessTokenLogin(accessToken)
+	err := bitwardenClient.AccessTokenLogin(accessToken)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(apiKeyLogin)
 
 	organizationID, err := uuid.FromString(organizationIDStr)
 	if err != nil {

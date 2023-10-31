@@ -79,7 +79,7 @@ pub(super) fn make_register_keys(
 
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct RegisterKeyResponse {
-    master_password_hash: String,
-    encrypted_user_key: String,
-    keys: RsaKeyPair,
+    pub master_password_hash: String,
+    pub encrypted_user_key: String,
+    pub keys: RsaKeyPair,
 }

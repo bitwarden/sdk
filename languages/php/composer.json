@@ -3,6 +3,7 @@
   "description": "PHP bindings for interacting with the Bitwarden Secrets Manager. This is a beta release and might be missing some functionality.",
   "type": "library",
   "require": {
+    "php": "^8.0",
     "swaggest/json-schema": "^0.12.42",
     "ext-ffi": "*"
   },

@@ -53,7 +53,7 @@ jobs:
       - name: Login to Azure - Prod Subscription
         uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
         with:
-          creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
+          creds: ${{ secrets.AZURE_PROD_KV_CREDENTIALS }}
 
       - name: Login to Azure ACR
         run: az acr login -n bitwardenprod

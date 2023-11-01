@@ -17,8 +17,8 @@ module BitwardenSDK
 
     def initialize
       client_settings = ClientSettings.new(
-        api_url: ENV['BITWARDEN_API_URL'],
-        identity_url: ENV['BITWARDEN_IDENTITY_URL'],
+        api_url: ENV['BITWARDEN_API_URL'] || 'https://api.bitwarden.com',
+        identity_url: ENV['BITWARDEN_IDENTITY_URL'] || 'https://identity.bitwarden.com/connect/token',
         user_agent: 'Bitwarden RUBY-SDK',
         device_type: nil
       )

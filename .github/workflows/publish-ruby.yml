@@ -74,13 +74,12 @@ jobs:
         shell: bash
 
       - name: Build gem
-        run: |
-          cd languages/ruby/bitwarden_sdk
-          gem build bitwarden-sdk-ruby.gemspec
+        run: gem build bitwarden-sdk-ruby.gemspec
+        working-directory:
+          languages/ruby/bitwarden_sdk
 
       - name: Push gem to Rubygems
         run: |
-          cd languages/ruby/bitwarden_sdk
           mkdir -p $HOME/.gem
           touch $HOME/.gem/credentials
           chmod 0600 $HOME/.gem/credentials
@@ -88,3 +87,5 @@ jobs:
           gem push *.gem
         env:
           GEM_HOST_API_KEY: ${{ secrets.GEM_HOST_API_KEY }}
+        working-directory:
+          languages/ruby/bitwarden_sdk

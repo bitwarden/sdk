@@ -59,5 +59,6 @@ bitwarden-api-identity = { path = "../bitwarden-api-identity", version = "=0.2.2
 bitwarden-api-api = { path = "../bitwarden-api-api", version = "=0.2.2" }
 
 [dev-dependencies]
+rand_chacha = "0.3.1"
 tokio = { version = "1.28.2", features = ["rt", "macros"] }
 wiremock = "0.5.18"

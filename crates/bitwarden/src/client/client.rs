@@ -1,5 +1,10 @@
 use std::time::{Duration, Instant};
 
+use reqwest::header::{self};
+use uuid::Uuid;
+
+#[cfg(feature = "secrets")]
+use crate::auth::login::{access_token_login, AccessTokenLoginRequest, AccessTokenLoginResponse};
 #[cfg(feature = "internal")]
 use crate::{
     auth::login::{
@@ -13,11 +18,6 @@ use crate::{
         SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,
     },
 };
-use reqwest::header::{self};
-use uuid::Uuid;
-
-#[cfg(feature = "secrets")]
-use crate::auth::login::{access_token_login, AccessTokenLoginRequest, AccessTokenLoginResponse};
 use crate::{
     auth::renew::renew_token,
     client::{

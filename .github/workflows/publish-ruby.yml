@@ -86,5 +86,4 @@ jobs:
           gem push *.gem
         env:
           GEM_HOST_API_KEY: ${{ secrets.GEM_HOST_API_KEY }}
-        working-directory:
-          languages/ruby/bitwarden_sdk
+        working-directory: languages/ruby/bitwarden_sdk

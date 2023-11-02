@@ -7,6 +7,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- `client.access_token_login()` moved to `client.auth().access_token_login()`
+
 ## [0.3.1] - 2023-10-13
 
 ### Changed

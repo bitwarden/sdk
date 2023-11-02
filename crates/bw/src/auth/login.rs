@@ -15,9 +15,10 @@ pub(crate) async fn password_login(mut client: Client, email: Option<String>) ->
 
     let password = Password::new("Password").without_confirmation().prompt()?;
 
-    let kdf = client.prelogin(email.clone()).await?;
+    let kdf = client.auth().prelogin(email.clone()).await?;
 
     let result = client
+        .auth()
         .password_login(&PasswordLoginRequest {
             email: email.clone(),
             password: password.clone(),
@@ -45,6 +46,7 @@ pub(crate) async fn password_login(mut client: Client, email: Option<String>) ->
         } else if let Some(tf) = two_factor.email {
             // Send token
             client
+                .auth()
                 .send_two_factor_email(&TwoFactorEmailRequest {
                     email: email.clone(),
                     password: password.clone(),
@@ -64,6 +66,7 @@ pub(crate) async fn password_login(mut client: Client, email: Option<String>) ->
         };
 
         let result = client
+            .auth()
             .password_login(&PasswordLoginRequest {
                 email,
                 password,
@@ -91,6 +94,7 @@ pub(crate) async fn api_key_login(
     let password = Password::new("Password").without_confirmation().prompt()?;
 
     let result = client
+        .auth()
         .api_key_login(&ApiKeyLoginRequest {
             client_id,
             client_secret,

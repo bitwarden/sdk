@@ -30,7 +30,7 @@ pub(crate) async fn api_key_login(
             .email
             .ok_or(Error::Internal("Access token doesn't contain email"))?;
 
-        let kdf = client.prelogin(email.clone()).await?;
+        let kdf = client.auth().prelogin(email.clone()).await?;
 
         client.set_tokens(
             r.access_token.clone(),

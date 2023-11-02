@@ -3,14 +3,8 @@ use std::time::{Duration, Instant};
 use reqwest::header::{self};
 use uuid::Uuid;
 
-#[cfg(feature = "secrets")]
-use crate::auth::login::{access_token_login, AccessTokenLoginRequest, AccessTokenLoginResponse};
 #[cfg(feature = "internal")]
 use crate::{
-    auth::login::{
-        api_key_login, password_login, send_two_factor_email, ApiKeyLoginRequest,
-        ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse, TwoFactorEmailRequest,
-    },
     client::kdf::Kdf,
     crypto::EncString,
     platform::{
@@ -19,7 +13,6 @@ use crate::{
     },
 };
 use crate::{
-    auth::renew::renew_token,
     client::{
         client_settings::{ClientSettings, DeviceType},
         encryption_settings::EncryptionSettings,
@@ -133,39 +126,8 @@ impl Client {
     pub(crate) async fn get_api_configurations(&mut self) -> &ApiConfigurations {
         // At the moment we ignore the error result from the token renewal, if it fails,
         // the token will end up expiring and the next operation is going to fail anyway.
-        self.renew_token().await.ok();
+        self.auth().renew_token().await.ok();
         &self.__api_configurations
-    }
-
-    #[cfg(feature = "internal")]
-    pub async fn prelogin(&mut self, email: String) -> Result<Kdf> {
-        use crate::auth::login::request_prelogin;
-
-        request_prelogin(self, email).await?.try_into()
-    }
-
-    #[cfg(feature = "internal")]
-    pub async fn password_login(
-        &mut self,
-        input: &PasswordLoginRequest,
-    ) -> Result<PasswordLoginResponse> {
-        password_login(self, input).await
-    }
-
-    #[cfg(feature = "internal")]
-    pub async fn api_key_login(
-        &mut self,
-        input: &ApiKeyLoginRequest,
-    ) -> Result<ApiKeyLoginResponse> {
-        api_key_login(self, input).await
-    }
-
-    #[cfg(feature = "secrets")]
-    pub async fn access_token_login(
-        &mut self,
-        input: &AccessTokenLoginRequest,
-    ) -> Result<AccessTokenLoginResponse> {
-        access_token_login(self, input).await
     }
 
     #[cfg(feature = "internal")]
@@ -223,10 +185,6 @@ impl Client {
         self.__api_configurations.api.oauth_access_token = Some(token);
     }
 
-    pub async fn renew_token(&mut self) -> Result<()> {
-        renew_token(self).await
-    }
-
     #[cfg(feature = "internal")]
     pub fn is_authed(&self) -> bool {
         self.token.is_some() || self.login_method.is_some()
@@ -278,11 +236,6 @@ impl Client {
     #[cfg(feature = "internal")]
     pub fn fingerprint(&mut self, input: &FingerprintRequest) -> Result<FingerprintResponse> {
         generate_fingerprint(input)
-    }
-
-    #[cfg(feature = "internal")]
-    pub async fn send_two_factor_email(&mut self, tf: &TwoFactorEmailRequest) -> Result<()> {
-        send_two_factor_email(self, tf).await
     }
 }
 
@@ -347,6 +300,7 @@ mod tests {
 
         // Test the login is correct and we store the returned organization ID correctly
         let res = client
+            .auth()
             .access_token_login(&AccessTokenLoginRequest {
                 access_token: "0.ec2c1d46-6a4b-4751-a310-af9601317f2d.C2IgxjjLF7qSshsbwe8JGcbM075YXw:X8vbvA0bduihIDe/qrzIQQ==".into(),
             })

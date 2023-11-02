@@ -22,6 +22,9 @@ pub struct JWTToken {
 impl FromStr for JWTToken {
     type Err = crate::error::Error;
 
+    /// Parses a JWT token from a string.
+    ///
+    /// **Note:** This function does not validate the token signature.
     fn from_str(s: &str) -> Result<Self> {
         let split = s.split('.').collect::<Vec<_>>();
         if split.len() != 3 {

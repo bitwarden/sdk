@@ -1,4 +1,0 @@
-go 1.20
-
-use ./languages/go
-use ./languages/go/example

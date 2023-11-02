@@ -7,6 +7,11 @@ use crate::{
     wordlist::EFF_LONG_WORD_LIST,
 };
 
+/// Computes a fingerprint of the given `fingerprint_material` using the given `public_key`.
+///
+/// This is commonly used for account fingerprints. With the following arguments:
+/// * `fingerprint_material` - users id.
+/// * `public_key` - users public key.
 pub(crate) fn fingerprint(fingerprint_material: &str, public_key: &[u8]) -> Result<String> {
     let mut h = sha2::Sha256::new();
     h.update(public_key);
@@ -22,6 +27,7 @@ pub(crate) fn fingerprint(fingerprint_material: &str, public_key: &[u8]) -> Resu
     Ok(hash_word(user_fingerprint).unwrap())
 }
 
+/// Derive a 5 word phrase from a 32 byte hash.
 fn hash_word(hash: [u8; 32]) -> Result<String> {
     let minimum_entropy = 64;
 

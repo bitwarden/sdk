@@ -19,19 +19,22 @@ jobs:
     uses: ./.github/workflows/generate_schemas.yml
 
   build:
-    needs: [build_rust, generate-schemas]
-    runs-on: ubuntu-latest
+    name: Build
+    needs:
+      - build_rust
+      - generate-schemas
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Setup Go environment
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
         with:
           go-version: ${{ env.GO_VERSION }}
 
       - name: Cache dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
@@ -45,14 +48,15 @@ jobs:
         run: go test -v ./...
 
   release:
-    needs: [build]
-    runs-on: ubuntu-latest
+    name: Release
+    needs: build
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Setup Go environment
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -60,7 +64,7 @@ jobs:
         run: echo "VERSION=${{ github.event.inputs.version_number }}" >> $GITHUB_ENV
 
       - name: Install Goreleaser
-        run: go install github.com/goreleaser/goreleaser@latest
+        run: go install github.com/goreleaser/goreleaser@v1.21.2
 
       - name: Run Goreleaser
         run: goreleaser release --rm-dist --skip-validate

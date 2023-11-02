@@ -6,11 +6,12 @@ use crate::{
     auth::{
         api::{request::AccessTokenRequest, response::IdentityTokenResponse},
         login::{response::two_factor::TwoFactorProviders, PasswordLoginResponse},
+        JWTToken,
     },
     client::{AccessToken, LoginMethod, ServiceAccountLoginMethod},
     crypto::{EncString, KeyDecryptable, SymmetricCryptoKey},
     error::{Error, Result},
-    util::{decode_token, BASE64_ENGINE},
+    util::BASE64_ENGINE,
     Client,
 };
 
@@ -44,7 +45,7 @@ pub(crate) async fn access_token_login(
 
         let encryption_key = SymmetricCryptoKey::try_from(encryption_key.as_slice())?;
 
-        let access_token_obj = decode_token(&r.access_token)?;
+        let access_token_obj: JWTToken = r.access_token.parse()?;
 
         // This should always be Some() when logging in with an access token
         let organization_id = access_token_obj

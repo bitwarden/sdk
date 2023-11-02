@@ -30,8 +30,8 @@ module BitwardenSDK
       @secrets_client = SecretsClient.new(@command_runner)
     end
 
-    def authorize(access_token)
-      access_token_request = AccessTokenLoginRequest.new(access_token: access_token)
+    def authorize(access_token_login)
+      access_token_request = AccessTokenLoginRequest.new(access_token: access_token_login)
       @command_runner.run(SelectiveCommand.new(access_token_login: access_token_request))
     end
 

@@ -43,6 +43,7 @@ pub struct Cipher {
     pub folder_id: Option<Uuid>,
     pub collection_ids: Vec<Uuid>,
 
+    /// More recent ciphers uses individual encryption keys to encrypt the other fields of the Cipher.
     pub key: Option<EncString>,
 
     pub name: EncString,
@@ -135,8 +136,8 @@ pub struct CipherListView {
 
 impl KeyEncryptable<Cipher> for CipherView {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Cipher> {
-        let key_owned = Cipher::get_cipher_key(key, &self.key)?;
-        let key = key_owned.as_ref().unwrap_or(key);
+        let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
+        let key = ciphers_key.as_ref().unwrap_or(key);
 
         Ok(Cipher {
             id: self.id,
@@ -169,8 +170,8 @@ impl KeyEncryptable<Cipher> for CipherView {
 
 impl KeyDecryptable<CipherView> for Cipher {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CipherView> {
-        let key_owned = Cipher::get_cipher_key(key, &self.key)?;
-        let key = key_owned.as_ref().unwrap_or(key);
+        let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
+        let key = ciphers_key.as_ref().unwrap_or(key);
 
         Ok(CipherView {
             id: self.id,
@@ -202,11 +203,15 @@ impl KeyDecryptable<CipherView> for Cipher {
 }
 
 impl Cipher {
+    /// Get the decrypted individual encryption key for this cipher.
+    /// Note that some ciphers do not have individual encryption keys,
+    /// in which case this will return Ok(None) and the key associated
+    /// with this cipher's user or organization must be used instead
     fn get_cipher_key(
         key: &SymmetricCryptoKey,
-        inner_key: &Option<EncString>,
+        ciphers_key: &Option<EncString>,
     ) -> Result<Option<SymmetricCryptoKey>> {
-        inner_key
+        ciphers_key
             .as_ref()
             .map(|k| {
                 let key: Vec<u8> = k.decrypt_with_key(key)?;
@@ -282,8 +287,8 @@ impl Cipher {
 
 impl KeyDecryptable<CipherListView> for Cipher {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CipherListView> {
-        let key_owned = Cipher::get_cipher_key(key, &self.key)?;
-        let key = key_owned.as_ref().unwrap_or(key);
+        let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
+        let key = ciphers_key.as_ref().unwrap_or(key);
 
         Ok(CipherListView {
             id: self.id,

@@ -67,8 +67,4 @@ secret = client.secrets_client.create("this", "hola!", "5688da1f-cc25-41d7-bb9f-
 # update
 secret = client.secrets_client.update("683c25f3-a463-49ba-bed4-b0810134a7b1", "Title", "my pass", "5688da1f-cc25-41d7-bb9f-b0740144ef1d", ["4647aede-33f1-4ad1-a258-b07a014a48a7"], "supersecret77")
 ```
-
-
-``
-
 [Bitwarden Secrets Manager]: https://bitwarden.com/products/secrets-manager/

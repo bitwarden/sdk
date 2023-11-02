@@ -22,7 +22,7 @@ use crate::{
 
 /// Decrypt using AES-256 in CBC mode.
 ///
-/// Behaves similar to [decrypt_aes256_hmac], but does not validates the MAC.
+/// Behaves similar to [decrypt_aes256_hmac], but does not validate the MAC.
 pub fn decrypt_aes256(iv: &[u8; 16], data: Vec<u8>, key: GenericArray<u8, U32>) -> Result<Vec<u8>> {
     // Decrypt data
     let iv = GenericArray::from_slice(iv);
@@ -57,7 +57,7 @@ pub fn decrypt_aes256_hmac(
 
 /// Encrypt using AES-256 in CBC mode.
 ///
-/// Behaves similar to [encrypt_aes256_hmac], but does not generates a MAC.
+/// Behaves similar to [encrypt_aes256_hmac], but does't generate a MAC.
 ///
 /// ## Returns
 ///
@@ -70,7 +70,7 @@ pub fn encrypt_aes256(data_dec: &[u8], key: GenericArray<u8, U32>) -> Result<Enc
 
 /// Encrypt using AES-256 in CBC mode with MAC.
 ///
-/// Behaves similar to [encrypt_aes256], but also generates a MAC.
+/// Behaves similar to [encrypt_aes256], but also generate a MAC.
 ///
 /// ## Returns
 ///

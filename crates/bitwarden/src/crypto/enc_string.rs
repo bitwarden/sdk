@@ -46,10 +46,10 @@ use super::{KeyDecryptable, KeyEncryptable, LocateKey};
 /// - `[type].[data]`
 ///
 /// Where:
-/// - `[type]` is a single digit number representing the variant
-/// - `[iv]` (optional) is the initialization vector used for encryption
-/// - `[data]` is the encrypted data
-/// - `[mac]` (optional) is the MAC used to validate the integrity of the data
+/// - `[type]`: is a digit number representing the variant.
+/// - `[iv]`: (optional) is the initialization vector used for encryption.
+/// - `[data]`: is the encrypted data.
+/// - `[mac]`: (optional) is the MAC used to validate the integrity of the data.
 #[derive(Clone)]
 #[allow(unused, non_camel_case_types)]
 pub enum EncString {

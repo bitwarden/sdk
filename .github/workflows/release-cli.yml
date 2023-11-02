@@ -58,7 +58,7 @@ jobs:
 
       - name: Download all Release artifacts
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
-        uses: bitwarden/gh-actions/download-artifacts@c970b0fb89bd966749280e832928db62040812bf
+        uses: bitwarden/gh-actions/download-artifacts@ba6a77541fa0732735408d10f3ca1e122221201d
         with:
           workflow: build-cli.yml
           path: packages
@@ -67,7 +67,7 @@ jobs:
 
       - name: Dry Run - Download all artifacts
         if: ${{ github.event.inputs.release_type == 'Dry Run' }}
-        uses: bitwarden/gh-actions/download-artifacts@c970b0fb89bd966749280e832928db62040812bf
+        uses: bitwarden/gh-actions/download-artifacts@ba6a77541fa0732735408d10f3ca1e122221201d
         with:
           workflow: build-cli.yml
           path: packages
@@ -75,7 +75,7 @@ jobs:
           branch: master
 
       - name: Get checksum files
-        uses: bitwarden/gh-actions/get-checksum@c970b0fb89bd966749280e832928db62040812bf
+        uses: bitwarden/gh-actions/get-checksum@ba6a77541fa0732735408d10f3ca1e122221201d
         with:
           packages_dir: "packages"
           file_path: "packages/bws-sha256-checksums-${{ steps.version.outputs.version }}.txt"
@@ -134,7 +134,7 @@ jobs:
 
       - name: Retrieve secrets
         id: retrieve-secrets
-        uses: bitwarden/gh-actions/get-keyvault-secrets@c970b0fb89bd966749280e832928db62040812bf
+        uses: bitwarden/gh-actions/get-keyvault-secrets@ba6a77541fa0732735408d10f3ca1e122221201d
         with:
           keyvault: "bitwarden-ci"
           secrets: "cratesio-api-token"

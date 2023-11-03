@@ -539,6 +539,7 @@ dependencies = [
  "env_logger",
  "log",
  "openssl",
+ "regex",
  "serde",
  "serde_json",
  "serde_yaml",

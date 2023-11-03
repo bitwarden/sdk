@@ -51,16 +51,14 @@ pub(crate) fn serialize_response<T: Serialize + TableSerialize<N>, const N: usiz
             pretty_print("yaml", &text, color);
         }
         Output::Env => {
+            let valid_key_regex = regex::Regex::new("^[a-zA-Z_][a-zA-Z0-9_]*$").unwrap();
+
             let mut commented_out = false;
             let mut text: Vec<String> = data
                 .get_values()
                 .into_iter()
                 .map(|row| {
-                    if row[1]
-                        .chars()
-                        .all(|c| c.is_ascii_alphanumeric() || c == '_')
-                        && !row[1].chars().next().unwrap().is_digit(10)
-                    {
+                    if valid_key_regex.is_match(&row[1]) {
                         format!("{}=\"{}\"", row[1], row[2])
                     } else {
                         commented_out = true;

@@ -29,7 +29,6 @@ bitwarden_settings = BitwardenSDK::BitwardenSettings.new(
 )
 
 By passing these setting you can initialize bitwarden client
-
 ```
 
 Authorization can be performed using access token like so:

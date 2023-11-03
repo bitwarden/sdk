@@ -19,7 +19,7 @@ pub(crate) async fn password_login(mut client: Client, email: Option<String>) ->
 
     let result = client
         .auth()
-        .password_login(&PasswordLoginRequest {
+        .login_password(&PasswordLoginRequest {
             email: email.clone(),
             password: password.clone(),
             two_factor: None,
@@ -67,7 +67,7 @@ pub(crate) async fn password_login(mut client: Client, email: Option<String>) ->
 
         let result = client
             .auth()
-            .password_login(&PasswordLoginRequest {
+            .login_password(&PasswordLoginRequest {
                 email,
                 password,
                 two_factor,

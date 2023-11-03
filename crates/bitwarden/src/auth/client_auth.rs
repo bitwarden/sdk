@@ -1,23 +1,27 @@
-use super::{
-    password::{password_strength, satisfies_policy, MasterPasswordPolicyOptions},
-    register::{make_register_keys, register},
-    renew::renew_token,
-    RegisterKeyResponse, RegisterRequest,
-};
 #[cfg(feature = "secrets")]
-use crate::auth::login::{access_token_login, AccessTokenLoginRequest, AccessTokenLoginResponse};
+use crate::auth::login::{login_access_token, AccessTokenLoginRequest, AccessTokenLoginResponse};
+use crate::{auth::renew::renew_token, error::Result, Client};
 #[cfg(feature = "internal")]
-use crate::auth::login::{
-    api_key_login, password_login, send_two_factor_email, ApiKeyLoginRequest, ApiKeyLoginResponse,
-    PasswordLoginRequest, PasswordLoginResponse, TwoFactorEmailRequest,
+use crate::{
+    auth::{
+        login::{
+            login_api_key, login_password, send_two_factor_email, ApiKeyLoginRequest,
+            ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse,
+            TwoFactorEmailRequest,
+        },
+        password::{password_strength, satisfies_policy, MasterPasswordPolicyOptions},
+        register::{make_register_keys, register},
+        RegisterKeyResponse, RegisterRequest,
+    },
+    client::kdf::Kdf,
 };
-use crate::{client::kdf::Kdf, error::Result, Client};
 
 pub struct ClientAuth<'a> {
     pub(crate) client: &'a mut crate::Client,
 }
 
 impl<'a> ClientAuth<'a> {
+    #[cfg(feature = "internal")]
     pub async fn password_strength(
         &self,
         password: String,
@@ -27,6 +31,7 @@ impl<'a> ClientAuth<'a> {
         password_strength(password, email, additional_inputs)
     }
 
+    #[cfg(feature = "internal")]
     pub async fn satisfies_policy(
         &self,
         password: String,
@@ -36,6 +41,7 @@ impl<'a> ClientAuth<'a> {
         satisfies_policy(password, strength, policy)
     }
 
+    #[cfg(feature = "internal")]
     pub fn make_register_keys(
         &self,
         email: String,
@@ -62,27 +68,27 @@ impl<'a> ClientAuth<'a> {
     }
 
     #[cfg(feature = "internal")]
-    pub async fn password_login(
+    pub async fn login_password(
         &mut self,
         input: &PasswordLoginRequest,
     ) -> Result<PasswordLoginResponse> {
-        password_login(self.client, input).await
+        login_password(self.client, input).await
     }
 
     #[cfg(feature = "internal")]
-    pub async fn api_key_login(
+    pub async fn login_api_key(
         &mut self,
         input: &ApiKeyLoginRequest,
     ) -> Result<ApiKeyLoginResponse> {
-        api_key_login(self.client, input).await
+        login_api_key(self.client, input).await
     }
 
     #[cfg(feature = "secrets")]
-    pub async fn access_token_login(
+    pub async fn login_access_token(
         &mut self,
         input: &AccessTokenLoginRequest,
     ) -> Result<AccessTokenLoginResponse> {
-        access_token_login(self.client, input).await
+        login_access_token(self.client, input).await
     }
 
     #[cfg(feature = "internal")]

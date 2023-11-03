@@ -46,10 +46,10 @@ impl Client {
 
         match cmd {
             #[cfg(feature = "internal")]
-            Command::PasswordLogin(req) => self.0.auth().password_login(&req).await.into_string(),
+            Command::PasswordLogin(req) => self.0.auth().login_password(&req).await.into_string(),
             #[cfg(feature = "secrets")]
             Command::AccessTokenLogin(req) => {
-                self.0.auth().access_token_login(&req).await.into_string()
+                self.0.auth().login_access_token(&req).await.into_string()
             }
             #[cfg(feature = "internal")]
             Command::GetUserApiKey(req) => self.0.get_user_api_key(&req).await.into_string(),

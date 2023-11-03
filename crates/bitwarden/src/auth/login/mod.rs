@@ -14,7 +14,7 @@ pub mod response;
 
 mod password;
 #[cfg(feature = "internal")]
-pub(crate) use password::password_login;
+pub(crate) use password::login_password;
 #[cfg(feature = "internal")]
 pub use password::PasswordLoginRequest;
 pub use password::PasswordLoginResponse;
@@ -28,14 +28,14 @@ pub use two_factor::{TwoFactorEmailRequest, TwoFactorProvider, TwoFactorRequest}
 #[cfg(feature = "internal")]
 mod api_key;
 #[cfg(feature = "internal")]
-pub(crate) use api_key::api_key_login;
+pub(crate) use api_key::login_api_key;
 #[cfg(feature = "internal")]
 pub use api_key::{ApiKeyLoginRequest, ApiKeyLoginResponse};
 
 #[cfg(feature = "secrets")]
 mod access_token;
 #[cfg(feature = "secrets")]
-pub(super) use access_token::access_token_login;
+pub(super) use access_token::login_access_token;
 #[cfg(feature = "secrets")]
 pub use access_token::{AccessTokenLoginRequest, AccessTokenLoginResponse};
 

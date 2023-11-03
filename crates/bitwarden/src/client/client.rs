@@ -3,6 +3,8 @@ use std::time::{Duration, Instant};
 use reqwest::header::{self};
 use uuid::Uuid;
 
+#[cfg(feature = "secrets")]
+use crate::auth::login::{AccessTokenLoginRequest, AccessTokenLoginResponse};
 #[cfg(feature = "internal")]
 use crate::{
     client::kdf::Kdf,
@@ -128,6 +130,15 @@ impl Client {
         // the token will end up expiring and the next operation is going to fail anyway.
         self.auth().renew_token().await.ok();
         &self.__api_configurations
+    }
+
+    #[cfg(feature = "secrets")]
+    #[deprecated(note = "Use auth().login_access_token() instead")]
+    pub async fn access_token_login(
+        &mut self,
+        input: &AccessTokenLoginRequest,
+    ) -> Result<AccessTokenLoginResponse> {
+        self.auth().login_access_token(input).await
     }
 
     #[cfg(feature = "internal")]
@@ -301,7 +312,7 @@ mod tests {
         // Test the login is correct and we store the returned organization ID correctly
         let res = client
             .auth()
-            .access_token_login(&AccessTokenLoginRequest {
+            .login_access_token(&AccessTokenLoginRequest {
                 access_token: "0.ec2c1d46-6a4b-4751-a310-af9601317f2d.C2IgxjjLF7qSshsbwe8JGcbM075YXw:X8vbvA0bduihIDe/qrzIQQ==".into(),
             })
             .await

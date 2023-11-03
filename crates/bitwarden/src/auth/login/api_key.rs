@@ -13,7 +13,7 @@ use crate::{
     Client,
 };
 
-pub(crate) async fn api_key_login(
+pub(crate) async fn login_api_key(
     client: &mut Client,
     input: &ApiKeyLoginRequest,
 ) -> Result<ApiKeyLoginResponse> {

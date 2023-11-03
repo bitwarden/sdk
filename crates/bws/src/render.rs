@@ -9,6 +9,7 @@ use serde::Serialize;
 pub(crate) enum Output {
     JSON,
     YAML,
+    Env,
     Table,
     TSV,
     None,
@@ -48,6 +49,14 @@ pub(crate) fn serialize_response<T: Serialize + TableSerialize<N>, const N: usiz
         Output::YAML => {
             let text = serde_yaml::to_string(&data).unwrap();
             pretty_print("yaml", &text, color);
+        }
+        Output::Env => {
+            let text: Vec<String> = data
+                .get_values()
+                .into_iter()
+                .map(|row| format!("{}=\"{}\"", row[1], row[2]))
+                .collect();
+            println!("{}", text.join("\n"));
         }
         Output::Table => {
             let mut table = Table::new();

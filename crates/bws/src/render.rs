@@ -51,12 +51,31 @@ pub(crate) fn serialize_response<T: Serialize + TableSerialize<N>, const N: usiz
             pretty_print("yaml", &text, color);
         }
         Output::Env => {
-            let text: Vec<String> = data
+            let mut commented_out = false;
+            let mut text: Vec<String> = data
                 .get_values()
                 .into_iter()
-                .map(|row| format!("{}=\"{}\"", row[1], row[2]))
+                .map(|row| {
+                    if row[1]
+                        .chars()
+                        .all(|c| c.is_ascii_alphanumeric() || c == '_')
+                        && !row[1].chars().next().unwrap().is_digit(10)
+                    {
+                        format!("{}=\"{}\"", row[1], row[2])
+                    } else {
+                        commented_out = true;
+                        format!("# {}=\"{}\"", row[1], row[2].replace("\n", "\n# "))
+                    }
+                })
                 .collect();
-            println!("{}", text.join("\n"));
+
+            if commented_out {
+                text.push(String::from(
+                    "\n# one or more secrets have been commented-out due to a problematic key name",
+                ));
+            }
+
+            pretty_print("sh", &format!("{}\n", text.join("\n")), color);
         }
         Output::Table => {
             let mut table = Table::new();

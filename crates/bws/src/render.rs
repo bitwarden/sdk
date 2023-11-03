@@ -62,7 +62,7 @@ pub(crate) fn serialize_response<T: Serialize + TableSerialize<N>, const N: usiz
                         format!("{}=\"{}\"", row[1], row[2])
                     } else {
                         commented_out = true;
-                        format!("# {}=\"{}\"", row[1], row[2].replace("\n", "\n# "))
+                        format!("# {}=\"{}\"", row[1], row[2].replace('\n', "\n# "))
                     }
                 })
                 .collect();

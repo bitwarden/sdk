@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
 
   spec.summary = 'Bitwarden Secrets Manager SDK.'
   spec.description = 'Ruby wrapper for Bitwarden secrets manager SDK.'
-  spec.homepage = 'https://rubygems.org/gems/bitwarden-sdk'
+  spec.homepage = 'https://bitwarden.com/products/secrets-manager/'
   spec.required_ruby_version = '>= 3.0.0'
 
   spec.metadata['homepage_uri'] = spec.homepage

@@ -20,9 +20,9 @@ module BitwardenSDK
 
       projects_response = ResponseForProjectResponse.from_json!(response).to_dynamic
 
-      raise BitwardenError, projects_response['errorMessage'] if projects_response['errorMessage']
+      return projects_response['data'] if projects_response['success'] == true
 
-      projects_response['data']
+      error_response(projects_response)
     end
 
     def get(project_id)
@@ -32,9 +32,9 @@ module BitwardenSDK
 
       projects_response = ResponseForProjectResponse.from_json!(response).to_dynamic
 
-      raise BitwardenError, projects_response['errorMessage'] if projects_response['errorMessage']
+      return projects_response['data'] if projects_response['success'] == true
 
-      projects_response['data']
+      error_response(projects_response)
     end
 
     def list_projects(organization_id)
@@ -44,9 +44,9 @@ module BitwardenSDK
 
       projects_response = ResponseForProjectsResponse.from_json!(response).to_dynamic
 
-      raise BitwardenError, projects_response['errorMessage'] if projects_response['errorMessage']
+      return projects_response['data']['data'] if projects_response['success'] == true
 
-      projects_response['data']['data']
+      error_response(projects_response)
     end
 
     def update_project(id, project_put_request_name, organization_id)
@@ -62,9 +62,9 @@ module BitwardenSDK
 
       projects_response = ResponseForProjectResponse.from_json!(response).to_dynamic
 
-      raise BitwardenError, projects_response['errorMessage'] if projects_response['errorMessage']
+      return projects_response['data'] if projects_response['success'] == true
 
-      projects_response['data']
+      error_response(projects_response)
     end
 
     def delete_projects(ids)
@@ -74,12 +74,20 @@ module BitwardenSDK
 
       projects_response = ResponseForProjectsDeleteResponse.from_json!(response).to_dynamic
 
-      raise BitwardenError, projects_response['errorMessage'] if projects_response['errorMessage']
+      return projects_response['data']['data'] if projects_response['success'] == true
 
-      projects_response['data']['data']
+      error_response(projects_response)
     end
 
     private
+
+    def error_response(response)
+      if response['errorMessage']
+        raise BitwardenError, response['errorMessage']
+      else
+        raise BitwardenError, 'Error while getting response'
+      end
+    end
 
     def create_command(commands)
       SelectiveCommand.new(projects: SelectiveProjectsCommand.new(commands))

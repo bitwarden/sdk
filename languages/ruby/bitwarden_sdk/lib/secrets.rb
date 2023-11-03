@@ -14,9 +14,9 @@ module BitwardenSDK
 
       secrets_response = ResponseForSecretResponse.from_json!(response).to_dynamic
 
-      raise BitwardenError, secrets_response['errorMessage'] if secrets_response['errorMessage']
+      return secrets_response['data'] if secrets_response['success'] == true
 
-      secrets_response['data']
+      error_response(secrets_response)
     end
 
     def get_by_ids(ids)
@@ -25,9 +25,9 @@ module BitwardenSDK
 
       secrets_response = ResponseForSecretIdentifiersResponse.from_json!(response).to_dynamic
 
-      raise BitwardenError, secrets_response['errorMessage'] if secrets_response['errorMessage']
+      return secrets_response['data']['data'] if secrets_response['success'] == true
 
-      secrets_response['data']['data']
+      error_response(secrets_response)
     end
 
     def create(key, note, organization_id, project_ids, value)
@@ -40,9 +40,9 @@ module BitwardenSDK
 
       secrets_response = ResponseForSecretResponse.from_json!(response).to_dynamic
 
-      raise BitwardenError, 'Error creating secret' if secrets_response['errorMessage']
+      return secrets_response['data'] if secrets_response['success'] == true
 
-      secrets_response['data']
+      error_response(secrets_response)
     end
 
     def list(organization_id)
@@ -51,9 +51,9 @@ module BitwardenSDK
 
       secrets_response = ResponseForSecretIdentifiersResponse.from_json!(response).to_dynamic
 
-      raise BitwardenError, 'Error getting list of secrets' if secrets_response['errorMessage']
+      return secrets_response['data']['data'] if secrets_response['success'] == true
 
-      secrets_response['data']['data']
+      error_response(secrets_response)
     end
 
     def update(id, key, note, organization_id, project_ids, value)
@@ -66,9 +66,9 @@ module BitwardenSDK
 
       secrets_response = ResponseForSecretResponse.from_json!(response).to_dynamic
 
-      raise BitwardenError, secrets_response['errorMessage'] if secrets_response['errorMessage']
+      return secrets_response['data'] if secrets_response['success'] == true
 
-      secrets_response['data']
+      error_response(secrets_response)
     end
 
     def delete_secret(ids)
@@ -79,10 +79,20 @@ module BitwardenSDK
 
       raise BitwardenError, secrets_response['errorMessage'] if secrets_response['errorMessage']
 
-      secrets_response['data']['data']
+      return secrets_response['data']['data'] if secrets_response['success'] == true
+
+      error_response(secrets_response)
     end
 
     private
+
+    def error_response(response)
+      if response['errorMessage']
+        raise BitwardenError, response['errorMessage']
+      else
+        raise BitwardenError, 'Error while getting response'
+      end
+    end
 
     def create_command(commands)
       SelectiveCommand.new(secrets: SelectiveSecretsCommand.new(commands))

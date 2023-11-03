@@ -2,7 +2,7 @@
 
 module BitwardenSDK
   class BitwardenError < StandardError
-    def initialize(message = "SDK Error Occurred")
+    def initialize(message = 'Error getting response')
       super(message)
     end
   end

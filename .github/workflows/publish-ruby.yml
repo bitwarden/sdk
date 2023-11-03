@@ -73,7 +73,7 @@ jobs:
         shell: bash
 
       - name: Build gem
-        run: gem build bitwarden-sdk-ruby.gemspec
+        run: gem build bitwarden-sdk.gemspec
         working-directory: languages/ruby/bitwarden_sdk
 
       - name: Push gem to Rubygems

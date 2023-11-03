@@ -21,66 +21,8 @@ pub struct ClientAuth<'a> {
 }
 
 impl<'a> ClientAuth<'a> {
-    #[cfg(feature = "internal")]
-    pub async fn password_strength(
-        &self,
-        password: String,
-        email: String,
-        additional_inputs: Vec<String>,
-    ) -> u8 {
-        password_strength(password, email, additional_inputs)
-    }
-
-    #[cfg(feature = "internal")]
-    pub async fn satisfies_policy(
-        &self,
-        password: String,
-        strength: u8,
-        policy: &MasterPasswordPolicyOptions,
-    ) -> bool {
-        satisfies_policy(password, strength, policy)
-    }
-
-    #[cfg(feature = "internal")]
-    pub fn make_register_keys(
-        &self,
-        email: String,
-        password: String,
-        kdf: Kdf,
-    ) -> Result<RegisterKeyResponse> {
-        make_register_keys(email, password, kdf)
-    }
-
     pub async fn renew_token(&mut self) -> Result<()> {
         renew_token(self.client).await
-    }
-
-    #[cfg(feature = "internal")]
-    pub async fn register(&mut self, input: &RegisterRequest) -> Result<()> {
-        register(self.client, input).await
-    }
-
-    #[cfg(feature = "internal")]
-    pub async fn prelogin(&mut self, email: String) -> Result<Kdf> {
-        use crate::auth::login::request_prelogin;
-
-        request_prelogin(self.client, email).await?.try_into()
-    }
-
-    #[cfg(feature = "internal")]
-    pub async fn login_password(
-        &mut self,
-        input: &PasswordLoginRequest,
-    ) -> Result<PasswordLoginResponse> {
-        login_password(self.client, input).await
-    }
-
-    #[cfg(feature = "internal")]
-    pub async fn login_api_key(
-        &mut self,
-        input: &ApiKeyLoginRequest,
-    ) -> Result<ApiKeyLoginResponse> {
-        login_api_key(self.client, input).await
     }
 
     #[cfg(feature = "secrets")]
@@ -90,8 +32,61 @@ impl<'a> ClientAuth<'a> {
     ) -> Result<AccessTokenLoginResponse> {
         login_access_token(self.client, input).await
     }
+}
 
-    #[cfg(feature = "internal")]
+#[cfg(feature = "internal")]
+impl<'a> ClientAuth<'a> {
+    pub async fn password_strength(
+        &self,
+        password: String,
+        email: String,
+        additional_inputs: Vec<String>,
+    ) -> u8 {
+        password_strength(password, email, additional_inputs)
+    }
+
+    pub async fn satisfies_policy(
+        &self,
+        password: String,
+        strength: u8,
+        policy: &MasterPasswordPolicyOptions,
+    ) -> bool {
+        satisfies_policy(password, strength, policy)
+    }
+
+    pub fn make_register_keys(
+        &self,
+        email: String,
+        password: String,
+        kdf: Kdf,
+    ) -> Result<RegisterKeyResponse> {
+        make_register_keys(email, password, kdf)
+    }
+
+    pub async fn register(&mut self, input: &RegisterRequest) -> Result<()> {
+        register(self.client, input).await
+    }
+
+    pub async fn prelogin(&mut self, email: String) -> Result<Kdf> {
+        use crate::auth::login::request_prelogin;
+
+        request_prelogin(self.client, email).await?.try_into()
+    }
+
+    pub async fn login_password(
+        &mut self,
+        input: &PasswordLoginRequest,
+    ) -> Result<PasswordLoginResponse> {
+        login_password(self.client, input).await
+    }
+
+    pub async fn login_api_key(
+        &mut self,
+        input: &ApiKeyLoginRequest,
+    ) -> Result<ApiKeyLoginResponse> {
+        login_api_key(self.client, input).await
+    }
+
     pub async fn send_two_factor_email(&mut self, tf: &TwoFactorEmailRequest) -> Result<()> {
         send_two_factor_email(self.client, tf).await
     }

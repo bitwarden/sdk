@@ -1,5 +1,3 @@
-
-
 class CommandRunner
   @bitwarden_sdk: Module
   def run: -> String

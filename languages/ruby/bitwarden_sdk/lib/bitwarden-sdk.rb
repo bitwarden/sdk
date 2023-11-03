@@ -12,13 +12,22 @@ require_relative 'projects'
 require_relative 'secrets'
 
 module BitwardenSDK
+  class BitwardenSettings
+    attr_accessor :api_url, :identity_url
+
+    def initialize(api_url, identity_url)
+      @api_url = api_url
+      @identity_url = identity_url
+    end
+  end
+
   class BitwardenClient
     attr_reader :bitwarden, :project_client, :secrets_client
 
-    def initialize
+    def initialize(bitwarden_settings)
       client_settings = ClientSettings.new(
-        api_url: ENV['BITWARDEN_API_URL'] || 'https://api.bitwarden.com',
-        identity_url: ENV['BITWARDEN_IDENTITY_URL'] || 'https://identity.bitwarden.com/connect/token',
+        api_url: bitwarden_settings.api_url,
+        identity_url: bitwarden_settings.identity_url,
         user_agent: 'Bitwarden RUBY-SDK',
         device_type: nil
       )

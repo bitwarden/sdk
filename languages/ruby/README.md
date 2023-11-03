@@ -18,14 +18,23 @@ Client will be initialized with default client settings if they are not provided
 via env variables.
 
 ```ruby
-    api_url = ENV['BITWARDEN_API_URL'] || 'https://api.bitwarden.com'
-    identity_url = ENV['BITWARDEN_IDENTITY_URL'] || 'https://identity.bitwarden.com'
-    user_agent = ENV['BITWARDEN_USER_AGENT'] || 'SDK'
+api_url = ENV['BITWARDEN_API_URL'] || 'https://api.bitwarden.com'
+identity_url = ENV['BITWARDEN_IDENTITY_URL'] || 'https://identity.bitwarden.com'
+user_agent = ENV['BITWARDEN_USER_AGENT'] || 'SDK'
+
+# then tou can initialize BitwardenSettings:
+bitwarden_settings = BitwardenSDK::BitwardenSettings.new(
+  'https://api.bitwarden.com',
+  'https://identity.bitwarden.com/connect/token'
+)
+
+By passing these setting you can initialize bitwarden client
+
 ```
 
 Authorization can be performed using access token like so:
 ```ruby
-client = BitwardenSDK::BitwardenClient.new
+client = BitwardenSDK::BitwardenClient.new(bitwarden_settings)
 client.authorize("<<YOUR ACCESS TOKEN HERE>>")
 ```
 

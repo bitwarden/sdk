@@ -9,9 +9,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Deprecated
 
-- `client.access_token_login()` moved to `client.auth().login_access_token()`.
-  `client.access_token_login()` will continue to work for now, but will be removed in a future
-  release. (#319)
+- `client.access_token_login()` is now deprecated and will be removed in a future release. Please
+  use `client.auth().login_access_token()` instead. (#319)
 
 ## [0.3.1] - 2023-10-13
 

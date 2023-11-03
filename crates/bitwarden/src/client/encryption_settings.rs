@@ -4,14 +4,15 @@ use rsa::RsaPrivateKey;
 use uuid::Uuid;
 #[cfg(feature = "internal")]
 use {
-    crate::{client::UserLoginMethod, crypto::KeyDecryptable},
+    crate::{
+        client::UserLoginMethod,
+        crypto::{EncString, KeyDecryptable},
+        error::{CryptoError, Result},
+    },
     rsa::{pkcs8::DecodePrivateKey, Oaep},
 };
 
-use crate::{
-    crypto::{encrypt_aes256_hmac, EncString, SymmetricCryptoKey},
-    error::{CryptoError, Result},
-};
+use crate::crypto::SymmetricCryptoKey;
 
 pub struct EncryptionSettings {
     user_key: SymmetricCryptoKey,
@@ -108,12 +109,5 @@ impl EncryptionSettings {
             Some(org_id) => self.org_keys.get(org_id),
             None => Some(&self.user_key),
         }
-    }
-
-    pub(crate) fn encrypt(&self, data: &[u8], org_id: &Option<Uuid>) -> Result<EncString> {
-        let key = self.get_key(org_id).ok_or(CryptoError::NoKeyForOrg)?;
-
-        let dec = encrypt_aes256_hmac(data, key.mac_key.ok_or(CryptoError::InvalidMac)?, key.key)?;
-        Ok(dec)
     }
 }

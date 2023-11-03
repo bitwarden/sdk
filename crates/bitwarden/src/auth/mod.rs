@@ -1,5 +1,4 @@
 pub(super) mod api;
-#[cfg(feature = "internal")]
 pub mod client_auth;
 mod jwt_token;
 pub mod login;

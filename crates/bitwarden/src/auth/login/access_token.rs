@@ -15,7 +15,7 @@ use crate::{
     Client,
 };
 
-pub(crate) async fn access_token_login(
+pub(crate) async fn login_access_token(
     client: &mut Client,
     input: &AccessTokenLoginRequest,
 ) -> Result<AccessTokenLoginResponse> {

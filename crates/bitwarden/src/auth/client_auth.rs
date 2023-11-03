@@ -1,18 +1,17 @@
 use super::{
     password::{password_strength, satisfies_policy, MasterPasswordPolicyOptions},
     register::{make_register_keys, register},
-    RegisterKeyResponse, RegisterRequest, renew::renew_token,
+    renew::renew_token,
+    RegisterKeyResponse, RegisterRequest,
 };
-use crate::{client::kdf::Kdf, error::Result, Client};
-
 #[cfg(feature = "secrets")]
 use crate::auth::login::{access_token_login, AccessTokenLoginRequest, AccessTokenLoginResponse};
-
 #[cfg(feature = "internal")]
 use crate::auth::login::{
     api_key_login, password_login, send_two_factor_email, ApiKeyLoginRequest, ApiKeyLoginResponse,
     PasswordLoginRequest, PasswordLoginResponse, TwoFactorEmailRequest,
 };
+use crate::{client::kdf::Kdf, error::Result, Client};
 
 pub struct ClientAuth<'a> {
     pub(crate) client: &'a mut crate::Client,

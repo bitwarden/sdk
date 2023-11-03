@@ -35,7 +35,7 @@ pub use api_key::{ApiKeyLoginRequest, ApiKeyLoginResponse};
 #[cfg(feature = "secrets")]
 mod access_token;
 #[cfg(feature = "secrets")]
-pub(crate) use access_token::access_token_login;
+pub(super) use access_token::access_token_login;
 #[cfg(feature = "secrets")]
 pub use access_token::{AccessTokenLoginRequest, AccessTokenLoginResponse};
 

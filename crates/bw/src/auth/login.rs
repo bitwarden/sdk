@@ -10,7 +10,7 @@ use color_eyre::eyre::{bail, Result};
 use inquire::{Password, Text};
 use log::{debug, error, info};
 
-pub(crate) async fn password_login(mut client: Client, email: Option<String>) -> Result<()> {
+pub(crate) async fn login_password(mut client: Client, email: Option<String>) -> Result<()> {
     let email = text_prompt_when_none("Email", email)?;
 
     let password = Password::new("Password").without_confirmation().prompt()?;
@@ -83,7 +83,7 @@ pub(crate) async fn password_login(mut client: Client, email: Option<String>) ->
     Ok(())
 }
 
-pub(crate) async fn api_key_login(
+pub(crate) async fn login_api_key(
     mut client: Client,
     client_id: Option<String>,
     client_secret: Option<String>,
@@ -95,7 +95,7 @@ pub(crate) async fn api_key_login(
 
     let result = client
         .auth()
-        .api_key_login(&ApiKeyLoginRequest {
+        .login_api_key(&ApiKeyLoginRequest {
             client_id,
             client_secret,
             password,

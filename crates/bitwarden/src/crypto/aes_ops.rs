@@ -62,6 +62,7 @@ pub fn decrypt_aes256_hmac(
 /// ## Returns
 ///
 /// A AesCbc256_B64 EncString
+#[allow(unused)]
 pub fn encrypt_aes256(data_dec: &[u8], key: GenericArray<u8, U32>) -> Result<EncString> {
     let (iv, data) = encrypt_aes256_internal(data_dec, key);
 

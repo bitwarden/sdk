@@ -33,7 +33,7 @@ pub use encryptable::{Decryptable, Encryptable, LocateKey};
 mod key_encryptable;
 pub use key_encryptable::{KeyDecryptable, KeyEncryptable};
 mod aes_ops;
-pub use aes_ops::{decrypt_aes256, decrypt_aes256_hmac, encrypt_aes256, encrypt_aes256_hmac};
+use aes_ops::{decrypt_aes256_hmac, encrypt_aes256_hmac};
 mod symmetric_crypto_key;
 pub use symmetric_crypto_key::SymmetricCryptoKey;
 mod shareable_key;

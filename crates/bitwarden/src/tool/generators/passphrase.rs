@@ -37,24 +37,46 @@ impl Default for PassphraseGeneratorRequest {
 const MINIMUM_PASSPHRASE_NUM_WORDS: u8 = 3;
 const MAXIMUM_PASSPHRASE_NUM_WORDS: u8 = 20;
 
+// We don't want the validated struct to be accessible, yet at the same time it needs to be public
+// to be used as a return type, so we define it in a private module to make it innaccessible.
+mod private {
+    pub struct ValidPassphraseGeneratorOptions {
+        pub(super) num_words: u8,
+        pub(super) word_separator: String,
+        pub(super) capitalize: bool,
+        pub(super) include_number: bool,
+    }
+}
+use private::ValidPassphraseGeneratorOptions;
+
+impl PassphraseGeneratorRequest {
+    // TODO: Add password generator policy checks
+    pub fn validate_options(self) -> Result<ValidPassphraseGeneratorOptions> {
+        if !(MINIMUM_PASSPHRASE_NUM_WORDS..=MAXIMUM_PASSPHRASE_NUM_WORDS).contains(&self.num_words)
+        {
+            return Err(Error::Internal("'num_words' must be between 3 and 20"));
+        }
+
+        if self.word_separator.chars().next().is_none() {
+            return Err(Error::Internal("'word_separator' cannot be empty"));
+        };
+
+        Ok(ValidPassphraseGeneratorOptions {
+            num_words: self.num_words,
+            word_separator: self.word_separator,
+            capitalize: self.capitalize,
+            include_number: self.include_number,
+        })
+    }
+}
+
 /// Implementation of the random passphrase generator. This is not accessible to the public API.
 /// See [`ClientGenerator::passphrase`](crate::ClientGenerator::passphrase) for the API function.
-pub(super) fn passphrase(options: PassphraseGeneratorRequest) -> Result<String> {
+pub(super) fn passphrase(options: ValidPassphraseGeneratorOptions) -> String {
     passphrase_with_rng(rand::thread_rng(), options)
 }
 
-fn passphrase_with_rng(
-    mut rng: impl RngCore,
-    options: PassphraseGeneratorRequest,
-) -> Result<String> {
-    if !(MINIMUM_PASSPHRASE_NUM_WORDS..=MAXIMUM_PASSPHRASE_NUM_WORDS).contains(&options.num_words) {
-        return Err(Error::Internal("'num_words' must be between 3 and 20"));
-    }
-
-    let Some(separator) = options.word_separator.chars().next() else {
-        return Err(Error::Internal("'word_separator' cannot be empty"));
-    };
-
+fn passphrase_with_rng(mut rng: impl RngCore, options: ValidPassphraseGeneratorOptions) -> String {
     let mut passphrase_words = gen_words(&mut rng, options.num_words);
     if options.include_number {
         include_number_in_words(&mut rng, &mut passphrase_words);
@@ -62,7 +84,7 @@ fn passphrase_with_rng(
     if options.capitalize {
         capitalize_words(&mut passphrase_words);
     }
-    Ok(passphrase_words.join(&separator.to_string()))
+    passphrase_words.join(&options.word_separator)
 }
 
 fn gen_words(mut rng: impl RngCore, num_words: u8) -> Vec<String> {
@@ -156,9 +178,11 @@ mod tests {
             word_separator: "-".into(),
             capitalize: true,
             include_number: true,
-        };
+        }
+        .validate_options()
+        .unwrap();
         assert_eq!(
-            passphrase_with_rng(&mut rng, input).unwrap(),
+            passphrase_with_rng(&mut rng, input),
             "Subsystem4-Undertook-Silenced-Dinginess"
         );
 
@@ -167,9 +191,11 @@ mod tests {
             word_separator: " ".into(),
             capitalize: false,
             include_number: true,
-        };
+        }
+        .validate_options()
+        .unwrap();
         assert_eq!(
-            passphrase_with_rng(&mut rng, input).unwrap(),
+            passphrase_with_rng(&mut rng, input),
             "drew7 hankering cabana"
         );
 
@@ -178,9 +204,11 @@ mod tests {
             word_separator: ";".into(),
             capitalize: false,
             include_number: false,
-        };
+        }
+        .validate_options()
+        .unwrap();
         assert_eq!(
-            passphrase_with_rng(&mut rng, input).unwrap(),
+            passphrase_with_rng(&mut rng, input),
             "duller;backlight;factual;husked;remover"
         );
     }

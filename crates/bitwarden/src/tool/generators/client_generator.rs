@@ -27,7 +27,7 @@ impl<'a> ClientGenerator<'a> {
     ///         lowercase: true,
     ///         uppercase: true,
     ///         numbers: true,
-    ///         length: Some(20),
+    ///         length: 20,
     ///         ..Default::default()
     ///     };
     ///     let password = Client::new(None).generator().password(input).await.unwrap();
@@ -36,7 +36,8 @@ impl<'a> ClientGenerator<'a> {
     /// }
     /// ```
     pub async fn password(&self, input: PasswordGeneratorRequest) -> Result<String> {
-        password(input)
+        let charset = input.validate_options()?;
+        Ok(password(charset))
     }
 
     pub async fn passphrase(&self, input: PassphraseGeneratorRequest) -> Result<String> {

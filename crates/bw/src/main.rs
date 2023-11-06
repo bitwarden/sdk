@@ -199,7 +199,7 @@ async fn process_commands() -> Result<()> {
                         uppercase: args.uppercase,
                         numbers: args.numbers,
                         special: args.special,
-                        length: Some(args.length),
+                        length: args.length,
                         ..Default::default()
                     })
                     .await?;

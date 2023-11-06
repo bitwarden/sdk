@@ -18,8 +18,8 @@ impl<'a> ClientGenerator<'a> {
     /// A passphrase is a combination of random words separated by a character.
     /// An example of passphrase is `correct horse battery staple`.
     ///
-    /// By default, the generated passphrases contain 3 random lowercase words
-    /// separated by spaces, but this can be customized using the `input` parameter.
+    /// The number of words and their case, the word separator, and the inclusion of
+    /// a number in the passphrase can be customized using the `input` parameter.
     ///
     /// # Examples
     ///

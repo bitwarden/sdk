@@ -14,8 +14,7 @@ pub struct PassphraseGeneratorRequest {
     /// Number of words in the generated passphrase.
     /// This value must be between 3 and 20.
     pub num_words: u8,
-    /// Character separator between words in the generated passphrase.
-    /// If the value is set, it cannot be empty.
+    /// Character separator between words in the generated passphrase. The value cannot be empty.
     pub word_separator: String,
     /// When set to true, capitalize the first letter of each word in the generated passphrase.
     pub capitalize: bool,
@@ -40,6 +39,8 @@ const MAXIMUM_PASSPHRASE_NUM_WORDS: u8 = 20;
 // We don't want the validated struct to be accessible, yet at the same time it needs to be public
 // to be used as a return type, so we define it in a private module to make it innaccessible.
 mod private {
+    /// Represents a set of valid options to generate a passhprase with.
+    /// To get an instance of it, use [`PassphraseGeneratorRequest::validate_options`](PassphraseGeneratorRequest::validate_options)
     pub struct ValidPassphraseGeneratorOptions {
         pub(super) num_words: u8,
         pub(super) word_separator: String,
@@ -50,8 +51,10 @@ mod private {
 use private::ValidPassphraseGeneratorOptions;
 
 impl PassphraseGeneratorRequest {
-    // TODO: Add password generator policy checks
+    /// Validates the request and returns an immutable struct with valid options to use with [`passphrase`](passphrase).
     pub fn validate_options(self) -> Result<ValidPassphraseGeneratorOptions> {
+        // TODO: Add password generator policy checks
+
         if !(MINIMUM_PASSPHRASE_NUM_WORDS..=MAXIMUM_PASSPHRASE_NUM_WORDS).contains(&self.num_words)
         {
             return Err(Error::Internal("'num_words' must be between 3 and 20"));
@@ -72,6 +75,10 @@ impl PassphraseGeneratorRequest {
 
 /// Implementation of the random passphrase generator. This is not accessible to the public API.
 /// See [`ClientGenerator::passphrase`](crate::ClientGenerator::passphrase) for the API function.
+///
+/// # Arguments:
+/// * `options`: Valid parameters used to generate the passphrase. To create it, use
+///     [`PassphraseGeneratorRequest::validate_options`](PassphraseGeneratorRequest::validate_options).
 pub(super) fn passphrase(options: ValidPassphraseGeneratorOptions) -> String {
     passphrase_with_rng(rand::thread_rng(), options)
 }
@@ -167,6 +174,24 @@ mod tests {
         let mut words = vec!["This".into(), "is".into(), "a".into(), "test".into()];
         include_number_in_words(&mut rng, &mut words);
         assert_eq!(words, &["This", "is", "a1", "test"]);
+    }
+
+    #[test]
+    fn test_separator() {
+        let mut rng = rand_chacha::ChaCha8Rng::from_seed([0u8; 32]);
+
+        let input = PassphraseGeneratorRequest {
+            num_words: 4,
+            word_separator: "👨🏻‍❤️‍💋‍👨🏻".into(), // This emoji is 35 bytes long, but represented as a single character
+            capitalize: false,
+            include_number: true,
+        }
+        .validate_options()
+        .unwrap();
+        assert_eq!(
+            passphrase_with_rng(&mut rng, input),
+            "subsystem4👨🏻‍❤️‍💋‍👨🏻undertook👨🏻‍❤️‍💋‍👨🏻silenced👨🏻‍❤️‍💋‍👨🏻dinginess"
+        );
     }
 
     #[test]

@@ -51,7 +51,7 @@ mod private {
 use private::ValidPassphraseGeneratorOptions;
 
 impl PassphraseGeneratorRequest {
-    /// Validates the request and returns an immutable struct with valid options to use with [`passphrase`](passphrase).
+    /// Validates the request and returns an immutable struct with valid options to use with the passphrase generator.
     pub fn validate_options(self) -> Result<ValidPassphraseGeneratorOptions> {
         // TODO: Add password generator policy checks
 

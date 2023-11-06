@@ -12,11 +12,8 @@ pub struct ClientGenerator<'a> {
 
 impl<'a> ClientGenerator<'a> {
     /// Generates a random password.
-    /// A passphrase is a combination of random words separated by a character.
-    /// An example of passphrase is `correct horse battery staple`.
     ///
-    /// By default, the password contains lowercase 16 characters, but the character
-    /// sets and password length can be customized using the `input` parameter.
+    /// The character sets and password length can be customized using the `input` parameter.
     ///
     /// # Examples
     ///

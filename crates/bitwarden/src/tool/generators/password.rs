@@ -92,14 +92,19 @@ mod private {
 
     use rand::prelude::Distribution;
 
-    // Note: We are using a BTreeSet to have consistent ordering between runs. This is not
-    // important during normal execution, but it's necessary for the tests to be repeatable.
+    /// A set of characters used to generate a password. This set is backed by a BTreeSet
+    /// to have consistent ordering between runs. This is notimportant during normal execution,
+    /// but it's necessary for the tests to be repeatable.
+    /// To create an instance, use [`CharSet::default()`](CharSet::default)
     #[derive(Clone, Default)]
-    pub struct CharSet(pub(super) BTreeSet<char>);
+    pub struct CharSet(BTreeSet<char>);
     impl CharSet {
+        /// Includes the given characters in the set. Any duplicate items will be ignored
         pub fn include(self, other: impl IntoIterator<Item = char>) -> Self {
             self.include_if(true, other)
         }
+
+        /// Includes the given characters in the set if the predicate is true. Any duplicate items will be ignored
         pub fn include_if(
             mut self,
             predicate: bool,
@@ -110,6 +115,8 @@ mod private {
             }
             self
         }
+
+        /// Excludes the given characters from the set. Any missing items will be ignored
         pub fn exclude_if<'a>(
             self,
             predicate: bool,
@@ -137,6 +144,8 @@ mod private {
         }
     }
 
+    /// Represents a set of valid options to generate a password with.
+    /// To get an instance of it, use [`PasswordGeneratorRequest::validate_options`](PasswordGeneratorRequest::validate_options)
     pub struct PasswordGeneratorOptions {
         pub(super) lower: (CharSet, usize),
         pub(super) upper: (CharSet, usize),
@@ -150,8 +159,10 @@ mod private {
 use private::{CharSet, PasswordGeneratorOptions};
 
 impl PasswordGeneratorRequest {
-    // TODO: Add password generator policy checks
+    /// Validates the request and returns an immutable struct with valid options to use with [`password`](password).
     pub fn validate_options(self) -> Result<PasswordGeneratorOptions> {
+        // TODO: Add password generator policy checks
+
         // We always have to have at least one character set enabled
         if !self.lowercase && !self.uppercase && !self.numbers && !self.special {
             return Err(Error::Internal(

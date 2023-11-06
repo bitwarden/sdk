@@ -244,6 +244,7 @@ mod test {
         assert_eq!(set.number, NUMBER_CHARS);
         assert_eq!(set.special, SPECIAL_CHARS);
     }
+
     #[test]
     fn test_password_characters_all_ambiguous() {
         let set = PasswordGeneratorCharSet::new(true, true, true, true, false);
@@ -255,6 +256,7 @@ mod test {
         assert!(to_set(&set.number).is_superset(&to_set(NUMBER_CHARS_AMBIGUOUS)));
         assert_eq!(set.special, SPECIAL_CHARS);
     }
+
     #[test]
     fn test_password_characters_lower() {
         let set = PasswordGeneratorCharSet::new(true, false, false, false, true);
@@ -263,6 +265,7 @@ mod test {
         assert_eq!(set.number, Vec::new());
         assert_eq!(set.special, Vec::new());
     }
+
     #[test]
     fn test_password_characters_upper_ambiguous() {
         // Only uppercase including ambiguous

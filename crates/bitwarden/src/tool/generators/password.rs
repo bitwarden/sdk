@@ -170,6 +170,12 @@ impl PasswordGeneratorRequest {
             ));
         }
 
+        if self.length < 4 {
+            return Err(Error::Internal(
+                "A password must be at least 4 characters long",
+            ));
+        }
+
         // Make sure the minimum values are zero when the character
         // set is disabled, and at least one when it's enabled
         fn get_minimum(min: Option<u8>, enabled: bool) -> usize {

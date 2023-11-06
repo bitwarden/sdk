@@ -159,7 +159,7 @@ mod private {
 use private::{CharSet, PasswordGeneratorOptions};
 
 impl PasswordGeneratorRequest {
-    /// Validates the request and returns an immutable struct with valid options to use with [`password`](password).
+    /// Validates the request and returns an immutable struct with valid options to use with the password generator.
     pub fn validate_options(self) -> Result<PasswordGeneratorOptions> {
         // TODO: Add password generator policy checks
 

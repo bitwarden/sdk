@@ -16,6 +16,10 @@ module BitwardenSDK
     attr_accessor :api_url, :identity_url
 
     def initialize(api_url, identity_url)
+      if api_url.nil? || identity_url.nil?
+        raise ArgumentError, "api_url and identity_url cannot be nil"
+      end
+
       @api_url = api_url
       @identity_url = identity_url
     end

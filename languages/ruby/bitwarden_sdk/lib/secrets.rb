@@ -14,7 +14,10 @@ module BitwardenSDK
 
       secrets_response = ResponseForSecretResponse.from_json!(response).to_dynamic
 
-      return secrets_response['data'] if secrets_response['success'] == true
+      if secrets_response.key?('success') && secrets_response['success'] == true &&
+         secrets_response.key?('data')
+        return secrets_response['data']
+      end
 
       error_response(secrets_response)
     end
@@ -25,7 +28,10 @@ module BitwardenSDK
 
       secrets_response = ResponseForSecretIdentifiersResponse.from_json!(response).to_dynamic
 
-      return secrets_response['data']['data'] if secrets_response['success'] == true
+      if secrets_response.key?('success') && secrets_response['success'] == true &&
+        secrets_response.key?('data') && secrets_response['data'].key?('data')
+        return secrets_response['data']['data']
+      end
 
       error_response(secrets_response)
     end
@@ -40,7 +46,10 @@ module BitwardenSDK
 
       secrets_response = ResponseForSecretResponse.from_json!(response).to_dynamic
 
-      return secrets_response['data'] if secrets_response['success'] == true
+      if secrets_response.key?('success') && secrets_response['success'] == true &&
+         secrets_response.key?('data')
+        return secrets_response['data']
+      end
 
       error_response(secrets_response)
     end
@@ -51,7 +60,10 @@ module BitwardenSDK
 
       secrets_response = ResponseForSecretIdentifiersResponse.from_json!(response).to_dynamic
 
-      return secrets_response['data']['data'] if secrets_response['success'] == true
+      if secrets_response.key?('success') && secrets_response['success'] == true &&
+        secrets_response.key?('data') && secrets_response['data'].key?('data')
+        return secrets_response['data']['data']
+      end
 
       error_response(secrets_response)
     end
@@ -66,7 +78,10 @@ module BitwardenSDK
 
       secrets_response = ResponseForSecretResponse.from_json!(response).to_dynamic
 
-      return secrets_response['data'] if secrets_response['success'] == true
+      if secrets_response.key?('success') && secrets_response['success'] == true &&
+         secrets_response.key?('data')
+        return secrets_response['data']
+      end
 
       error_response(secrets_response)
     end
@@ -77,9 +92,10 @@ module BitwardenSDK
 
       secrets_response = ResponseForSecretsDeleteResponse.from_json!(response).to_dynamic
 
-      raise BitwardenError, secrets_response['errorMessage'] if secrets_response['errorMessage']
-
-      return secrets_response['data']['data'] if secrets_response['success'] == true
+      if secrets_response.key?('success') && secrets_response['success'] == true &&
+         secrets_response.key?('data') && secrets_response['data'].key?('data')
+        return secrets_response['data']['data']
+      end
 
       error_response(secrets_response)
     end
@@ -88,7 +104,7 @@ module BitwardenSDK
 
     def error_response(response)
       if response['errorMessage']
-        raise BitwardenError, response['errorMessage']
+        raise BitwardenError, response['errorMessage'] if response.key?('errorMessage')
       else
         raise BitwardenError, 'Error while getting response'
       end

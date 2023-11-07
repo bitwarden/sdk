@@ -20,7 +20,10 @@ module BitwardenSDK
 
       projects_response = ResponseForProjectResponse.from_json!(response).to_dynamic
 
-      return projects_response['data'] if projects_response['success'] == true
+      if projects_response.key?('success') && projects_response['success'] == true &&
+        projects_response.key?('data')
+        return projects_response['data']
+      end
 
       error_response(projects_response)
     end
@@ -32,7 +35,10 @@ module BitwardenSDK
 
       projects_response = ResponseForProjectResponse.from_json!(response).to_dynamic
 
-      return projects_response['data'] if projects_response['success'] == true
+      if projects_response.key?('success') && projects_response['success'] == true &&
+        projects_response.key?('data')
+        return projects_response['data']
+      end
 
       error_response(projects_response)
     end
@@ -44,7 +50,10 @@ module BitwardenSDK
 
       projects_response = ResponseForProjectsResponse.from_json!(response).to_dynamic
 
-      return projects_response['data']['data'] if projects_response['success'] == true
+      if projects_response.key?('success') && projects_response['success'] == true &&
+         projects_response.key?('data') && projects_response['data'].key?('data')
+        return projects_response['data']['data']
+      end
 
       error_response(projects_response)
     end
@@ -62,7 +71,10 @@ module BitwardenSDK
 
       projects_response = ResponseForProjectResponse.from_json!(response).to_dynamic
 
-      return projects_response['data'] if projects_response['success'] == true
+      if projects_response.key?('success') && projects_response['success'] == true &&
+         projects_response.key?('data')
+        return projects_response['data']
+      end
 
       error_response(projects_response)
     end
@@ -74,7 +86,10 @@ module BitwardenSDK
 
       projects_response = ResponseForProjectsDeleteResponse.from_json!(response).to_dynamic
 
-      return projects_response['data']['data'] if projects_response['success'] == true
+      if projects_response.key?('success') && projects_response['success'] == true &&
+         projects_response.key?('data') && projects_response['data'].key?('data')
+        return projects_response['data']['data']
+      end
 
       error_response(projects_response)
     end
@@ -82,11 +97,9 @@ module BitwardenSDK
     private
 
     def error_response(response)
-      if response['errorMessage']
-        raise BitwardenError, response['errorMessage']
-      else
-        raise BitwardenError, 'Error while getting response'
-      end
+      raise BitwardenError, response['errorMessage'] if response.key?('errorMessage')
+
+      raise BitwardenError, 'Error while getting response'
     end
 
     def create_command(commands)

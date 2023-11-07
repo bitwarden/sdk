@@ -9,4 +9,10 @@ setup(
         "bitwarden_py", path="../../crates/bitwarden-py/Cargo.toml", binding=Binding.PyO3)],
     packages=['BitwardenClient'],
     zip_safe=False,
+    install_requires=[
+        'setuptools',
+        'setuptools_rust',
+        'dateutils',
+        'wheel',
+    ],
 )

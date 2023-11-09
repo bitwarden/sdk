@@ -80,6 +80,9 @@ impl EncryptionSettings {
 
         let private_key = self.private_key.as_ref().ok_or(Error::VaultLocked)?;
 
+        // Clear the previous keys, if there are any
+        self.org_keys.clear();
+
         // Decrypt the org keys with the private key
         for (org_id, org_enc_key) in org_enc_keys {
             let data = match org_enc_key {

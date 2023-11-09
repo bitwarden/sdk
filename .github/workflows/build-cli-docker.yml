@@ -41,7 +41,7 @@ jobs:
           else
             echo "is_publish_branch=false" >> $GITHUB_ENV
           fi
-          
+
       ########## Set up Docker ##########
       - name: Set up QEMU emulators
         uses: docker/setup-qemu-action@e81a89b1732b9c48d79cd809d8d81d79c4647a18 # v2.1.0

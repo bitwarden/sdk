@@ -13,10 +13,9 @@ use aes::cipher::{
     BlockEncryptMut, KeyIvInit,
 };
 use hmac::Mac;
-use rand::RngCore;
 
 use crate::{
-    crypto::{EncString, PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},
+    crypto::{PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},
     error::{CryptoError, Result},
 };
 
@@ -62,10 +61,11 @@ pub fn decrypt_aes256_hmac(
 /// ## Returns
 ///
 /// A AesCbc256_B64 EncString
-pub fn encrypt_aes256(data_dec: &[u8], key: GenericArray<u8, U32>) -> Result<EncString> {
-    let (iv, data) = encrypt_aes256_internal(data_dec, key);
+pub fn encrypt_aes256(data_dec: &[u8], key: GenericArray<u8, U32>) -> ([u8; 16], Vec<u8>) {
+    let rng = rand::thread_rng();
+    let (iv, data) = encrypt_aes256_internal(rng, data_dec, key);
 
-    Ok(EncString::AesCbc256_B64 { iv, data })
+    (iv, data)
 }
 
 /// Encrypt using AES-256 in CBC mode with MAC.
@@ -79,11 +79,12 @@ pub fn encrypt_aes256_hmac(
     data_dec: &[u8],
     mac_key: GenericArray<u8, U32>,
     key: GenericArray<u8, U32>,
-) -> Result<EncString> {
-    let (iv, data) = encrypt_aes256_internal(data_dec, key);
+) -> Result<([u8; 16], [u8; 32], Vec<u8>)> {
+    let rng = rand::thread_rng();
+    let (iv, data) = encrypt_aes256_internal(rng, data_dec, key);
     let mac = validate_mac(&mac_key, &iv, &data)?;
 
-    Ok(EncString::AesCbc256_HmacSha256_B64 { iv, mac, data })
+    Ok((iv, mac, data))
 }
 
 /// Encrypt using AES-256 in CBC mode.
@@ -91,9 +92,13 @@ pub fn encrypt_aes256_hmac(
 /// Used internally by:
 /// - [encrypt_aes256]
 /// - [encrypt_aes256_hmac]
-fn encrypt_aes256_internal(data_dec: &[u8], key: GenericArray<u8, U32>) -> ([u8; 16], Vec<u8>) {
+fn encrypt_aes256_internal(
+    mut rng: impl rand::RngCore,
+    data_dec: &[u8],
+    key: GenericArray<u8, U32>,
+) -> ([u8; 16], Vec<u8>) {
     let mut iv = [0u8; 16];
-    rand::thread_rng().fill_bytes(&mut iv);
+    rng.fill_bytes(&mut iv);
     let data = cbc::Encryptor::<aes::Aes256>::new(&key, &iv.into())
         .encrypt_padded_vec_mut::<Pkcs7>(data_dec);
 
@@ -110,4 +115,49 @@ fn validate_mac(mac_key: &[u8], iv: &[u8], data: &[u8]) -> Result<[u8; 32]> {
         .map_err(|_| CryptoError::InvalidMac)?;
 
     Ok(mac)
+}
+
+#[cfg(test)]
+mod tests {
+    use aes::cipher::generic_array::sequence::GenericSequence;
+    use rand::SeedableRng;
+
+    use super::*;
+
+    fn generate_array(offset: u8, increment: u8) -> GenericArray<u8, U32> {
+        GenericArray::generate(|i| offset + i as u8 * increment)
+    }
+
+    #[test]
+    fn test_encrypt_aes256_internal() {
+        let key = generate_array(0, 1);
+
+        let rng = rand_chacha::ChaCha8Rng::from_seed([0u8; 32]);
+        let result = encrypt_aes256_internal(rng, "EncryptMe!".as_bytes(), key);
+        assert_eq!(
+            result,
+            (
+                [62, 0, 239, 47, 137, 95, 64, 214, 127, 91, 184, 232, 31, 9, 165, 161],
+                vec![214, 76, 187, 97, 58, 146, 212, 140, 95, 164, 177, 204, 179, 133, 172, 148]
+            )
+        );
+    }
+
+    fn generate_array2(length: usize, offset: u8, increment: u8) -> Vec<u8> {
+        (0..length).map(|i| offset + i as u8 * increment).collect()
+    }
+
+    #[test]
+    fn test_validate_mac() {
+        let mac_key = generate_array2(16, 0, 16);
+
+        let iv = generate_array2(16, 0, 16);
+        let data = generate_array2(16, 0, 16);
+
+        let result = validate_mac(&mac_key, &iv, &data);
+
+        assert!(result.is_ok());
+        let mac = result.unwrap();
+        assert_eq!(mac.len(), 32);
+    }
 }

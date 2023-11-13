@@ -42,11 +42,11 @@ pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequ
     });
     client.set_login_method(login_method);
 
-    let private_key = req.private_key.parse::<EncString>()?;
+    let private_key: EncString = req.private_key.parse()?;
 
     match req.method {
         InitUserCryptoMethod::Password { password, user_key } => {
-            let user_key: EncString = user_key.parse::<EncString>()?;
+            let user_key: EncString = user_key.parse()?;
             client.initialize_user_crypto(&password, user_key, private_key)?;
         }
     }

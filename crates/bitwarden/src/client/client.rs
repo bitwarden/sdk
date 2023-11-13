@@ -222,6 +222,17 @@ impl Client {
         Ok(self.encryption_settings.as_ref().unwrap())
     }
 
+    #[cfg(feature = "internal")]
+    pub(crate) fn initialize_user_crypto_decrypted_key(
+        &mut self,
+        decrypted_user_key: &str,
+        private_key: EncString,
+    ) -> Result<&EncryptionSettings> {
+        let user_key = decrypted_user_key.parse::<SymmetricCryptoKey>()?;
+        self.encryption_settings = Some(EncryptionSettings::new_decrypted_key(user_key, private_key)?);
+        Ok(self.encryption_settings.as_ref().unwrap())
+    }
+
     pub(crate) fn initialize_crypto_single_key(
         &mut self,
         key: SymmetricCryptoKey,

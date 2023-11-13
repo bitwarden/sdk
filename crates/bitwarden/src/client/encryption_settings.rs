@@ -45,22 +45,26 @@ impl EncryptionSettings {
                 // Decrypt the user key
                 let user_key = master_key.decrypt_user_key(user_key)?;
 
-                // Decrypt the private key with the user key
-                let private_key = {
-                    let dec: Vec<u8> = private_key.decrypt_with_key(&user_key)?;
-                    Some(
-                        rsa::RsaPrivateKey::from_pkcs8_der(&dec)
-                            .map_err(|_| CryptoError::InvalidKey)?,
-                    )
-                };
-
-                Ok(EncryptionSettings {
-                    user_key,
-                    private_key,
-                    org_keys: HashMap::new(),
-                })
+                Self::new_decrypted_key(user_key, private_key)
             }
         }
+    }
+
+    pub(crate) fn new_decrypted_key(
+        user_key: SymmetricCryptoKey,
+        private_key: EncString,
+    ) -> Result<Self> {
+        // Decrypt the private key with the user key
+        let private_key = {
+            let dec: Vec<u8> = private_key.decrypt_with_key(&user_key)?;
+            Some(rsa::RsaPrivateKey::from_pkcs8_der(&dec).map_err(|_| CryptoError::InvalidKey)?)
+        };
+
+        Ok(EncryptionSettings {
+            user_key,
+            private_key,
+            org_keys: HashMap::new(),
+        })
     }
 
     pub(crate) fn new_single_key(key: SymmetricCryptoKey) -> Self {

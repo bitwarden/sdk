@@ -61,6 +61,7 @@ pub fn decrypt_aes256_hmac(
 /// ## Returns
 ///
 /// A AesCbc256_B64 EncString
+#[allow(unused)]
 pub fn encrypt_aes256(data_dec: &[u8], key: GenericArray<u8, U32>) -> ([u8; 16], Vec<u8>) {
     let rng = rand::thread_rng();
     let (iv, data) = encrypt_aes256_internal(rng, data_dec, key);
@@ -120,17 +121,28 @@ fn validate_mac(mac_key: &[u8], iv: &[u8], data: &[u8]) -> Result<[u8; 32]> {
 #[cfg(test)]
 mod tests {
     use aes::cipher::generic_array::sequence::GenericSequence;
+    use base64::Engine;
     use rand::SeedableRng;
+
+    use crate::util::BASE64_ENGINE;
 
     use super::*;
 
-    fn generate_array(offset: u8, increment: u8) -> GenericArray<u8, U32> {
+    /// Helper function for generating a `GenericArray` of size 32 with each element being
+    /// a multiple of a given increment, starting from a given offset.
+    fn generate_generic_array(offset: u8, increment: u8) -> GenericArray<u8, U32> {
         GenericArray::generate(|i| offset + i as u8 * increment)
+    }
+
+    /// Helper function for generating a vector of a given size with each element being
+    /// a multiple of a given increment, starting from a given offset.
+    fn generate_vec(length: usize, offset: u8, increment: u8) -> Vec<u8> {
+        (0..length).map(|i| offset + i as u8 * increment).collect()
     }
 
     #[test]
     fn test_encrypt_aes256_internal() {
-        let key = generate_array(0, 1);
+        let key = generate_generic_array(0, 1);
 
         let rng = rand_chacha::ChaCha8Rng::from_seed([0u8; 32]);
         let result = encrypt_aes256_internal(rng, "EncryptMe!".as_bytes(), key);
@@ -143,21 +155,40 @@ mod tests {
         );
     }
 
-    fn generate_array2(length: usize, offset: u8, increment: u8) -> Vec<u8> {
-        (0..length).map(|i| offset + i as u8 * increment).collect()
-    }
-
     #[test]
     fn test_validate_mac() {
-        let mac_key = generate_array2(16, 0, 16);
+        let mac_key = generate_vec(16, 0, 16);
 
-        let iv = generate_array2(16, 0, 16);
-        let data = generate_array2(16, 0, 16);
+        let iv = generate_vec(16, 0, 16);
+        let data = generate_vec(16, 0, 16);
 
         let result = validate_mac(&mac_key, &iv, &data);
 
         assert!(result.is_ok());
         let mac = result.unwrap();
         assert_eq!(mac.len(), 32);
+    }
+
+    #[test]
+    fn test_decrypt_aes256() {
+        let iv = generate_vec(16, 0, 1);
+        let iv: &[u8; 16] = iv.as_slice().try_into().unwrap();
+        let key = generate_generic_array(0, 1);
+        let data = BASE64_ENGINE.decode("ByUF8vhyX4ddU9gcooznwA==").unwrap();
+
+        let decrypted = decrypt_aes256(iv, data, key).unwrap();
+
+        assert_eq!(String::from_utf8(decrypted).unwrap(), "EncryptMe!");
+    }
+
+    #[test]
+    fn test_encrypt_decrypt_aes256() {
+        let key = generate_generic_array(0, 1);
+        let data = "EncryptMe!";
+
+        let (iv, encrypted) = encrypt_aes256(data.as_bytes(), key);
+        let decrypted = decrypt_aes256(&iv, encrypted, key).unwrap();
+
+        assert_eq!(String::from_utf8(decrypted).unwrap(), "EncryptMe!");
     }
 }

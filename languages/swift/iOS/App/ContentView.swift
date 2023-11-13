@@ -23,6 +23,8 @@ let IDENTITY_URL = SERVER_URL + "identity/"
 let EMAIL = "test@bitwarden.com"
 let PASSWORD = "asdfasdfasdf"
 
+let PIN = "1234"
+
 struct ContentView: View {
     private var http: URLSession
     
@@ -40,16 +42,18 @@ struct ContentView: View {
     }
     
     @State var setupBiometrics: Bool = true
+    @State var setupPin: Bool = true
     @State var outputText: String = ""
     
     var body: some View {
         VStack {
             Toggle("Setup biometric unlock after login", isOn: $setupBiometrics).padding(.init(top: 0, leading: 20, bottom: 0, trailing: 20))
+            Toggle("Setup PIN unlock after login", isOn: $setupPin).padding(.init(top: 0, leading: 20, bottom: 0, trailing: 20))
             
             Button(action: {
                 Task {
                     do {
-                        try await clientExamplePassword(clientAuth: client.auth(), clientCrypto: client.crypto(), setupBiometrics: setupBiometrics)
+                        try await clientExamplePassword(clientAuth: client.auth(), clientCrypto: client.crypto(), setupBiometrics: setupBiometrics, setupPin: setupPin)
                         try await decryptVault(clientCrypto: client.crypto(), clientVault: client.vault())
                     } catch {
                         print("ERROR:", error)
@@ -75,6 +79,19 @@ struct ContentView: View {
             })
             
             Button(action: {
+                Task {
+                    do {
+                        try await clientExamplePin(clientCrypto: client.crypto())
+                        try await decryptVault(clientCrypto: client.crypto(), clientVault: client.vault())
+                    } catch {
+                        print("ERROR:", error)
+                    }
+                }
+            }, label: {
+                Text("Unlock with PIN")
+            })
+            
+            Button(action: {
                 client = Client(settings: nil)
             }, label: {
                 Text("Lock & reset client")
@@ -85,7 +102,7 @@ struct ContentView: View {
         .padding()
     }
     
-    func clientExamplePassword(clientAuth: ClientAuthProtocol, clientCrypto: ClientCryptoProtocol, setupBiometrics: Bool) async throws {
+    func clientExamplePassword(clientAuth: ClientAuthProtocol, clientCrypto: ClientCryptoProtocol, setupBiometrics: Bool, setupPin: Bool) async throws {
         ////////////////////////////// Get master password hash //////////////////////////////
         
         struct PreloginRequest: Codable { let email: String }
@@ -183,6 +200,22 @@ struct ContentView: View {
             let key = try await clientCrypto.getUserEncryptionKey()
             biometricStoreValue(value: key)
         }
+        
+        if (setupPin) {
+            let pinOptions = try await clientCrypto.derivePinKey(req: DerivePinKeyRequest(pin: PIN))
+            
+            let defaults = UserDefaults.standard
+            defaults.set(loginData.PrivateKey, forKey: "privateKey")
+            defaults.set(preloginData.kdf, forKey: "kdfType")
+            defaults.set(preloginData.kdfIterations, forKey: "kdfIterations")
+            defaults.set(preloginData.kdfMemory, forKey: "kdfMemory")
+            defaults.set(preloginData.kdfParallelism, forKey: "kdfParallelism")
+            
+            defaults.set(pinOptions.encryptedPin, forKey: "encryptedPin")
+            defaults.set(pinOptions.pinProtectedUserKey, forKey: "pinProtectedUserKey")
+            
+            defaults.synchronize()
+        }
     }
     
     func clientExampleBiometrics(clientCrypto: ClientCryptoProtocol) async throws {
@@ -207,6 +240,30 @@ struct ContentView: View {
             method: InitUserCryptoMethod.decryptedKey(
                 decryptedUserKey: key
             )
+        ))
+    }
+    
+    func clientExamplePin(clientCrypto: ClientCryptoProtocol) async throws {
+        let defaults = UserDefaults.standard
+        let privateKey = defaults.string(forKey: "privateKey")!
+        let kdf = if defaults.integer(forKey: "kdfType") == 0 {
+            Kdf.pbkdf2(iterations: UInt32(defaults.integer(forKey: "kdfIterations")))
+        } else {
+            Kdf.argon2id(
+                iterations: UInt32(defaults.integer(forKey: "kdfIterations")),
+                memory: UInt32(defaults.integer(forKey: "kdfMemory")),
+                parallelism: UInt32(defaults.integer(forKey: "kdfParallelism"))
+            )
+        }
+        
+        let encryptedPin = defaults.string(forKey: "encryptedPin")!
+        let pinProtectedUserKey = defaults.string(forKey: "pinProtectedUserKey")!
+        
+        try await clientCrypto.initializeUserCrypto(req: InitUserCryptoRequest(
+            kdfParams: kdf,
+            email: EMAIL,
+            privateKey: privateKey,
+            method: InitUserCryptoMethod.pin(pin: PIN, pinProtectedUserKey: pinProtectedUserKey)
         ))
     }
     

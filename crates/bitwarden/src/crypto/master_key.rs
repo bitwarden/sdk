@@ -5,8 +5,8 @@ use schemars::JsonSchema;
 use sha2::Digest;
 
 use super::{
-    hkdf_expand, EncString, KeyDecryptable, PbkdfSha256Hmac, SymmetricCryptoKey, UserKey,
-    PBKDF_SHA256_HMAC_OUT_SIZE,
+    hkdf_expand, EncString, KeyDecryptable, KeyEncryptable, PbkdfSha256Hmac, SymmetricCryptoKey,
+    UserKey, PBKDF_SHA256_HMAC_OUT_SIZE,
 };
 use crate::{client::kdf::Kdf, error::Result, util::BASE64_ENGINE};
 
@@ -51,6 +51,12 @@ impl MasterKey {
 
         let dec: Vec<u8> = user_key.decrypt_with_key(&stretched_key)?;
         SymmetricCryptoKey::try_from(dec.as_slice())
+    }
+
+    pub(crate) fn encrypt_user_key(&self, user_key: &SymmetricCryptoKey) -> Result<EncString> {
+        let stretched_key = stretch_master_key(self)?;
+
+        (user_key.to_vec().as_slice()).encrypt_with_key(&stretched_key)
     }
 }
 

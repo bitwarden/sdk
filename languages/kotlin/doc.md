@@ -998,6 +998,32 @@ implementations.
         </table>
     </td>
 </tr>
+<tr>
+    <th>pin</th>
+    <th>object</th>
+    <th></th>
+</tr>
+<tr>
+    <td colspan="3">
+        <table>
+        <tr>
+            <th>Key</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+            <tr>
+                <td>pin</td>
+                <td>string</td>
+                <td>The user's PIN</td>
+            </tr>
+            <tr>
+                <td>pin_protected_user_key</td>
+                <td></td>
+                <td>The user's symmetric crypto key, encrypted with the PIN. Use `derive_pin_key` to obtain this.</td>
+            </tr>
+        </table>
+    </td>
+</tr>
 </table>
 
 ## `InitUserCryptoRequest`

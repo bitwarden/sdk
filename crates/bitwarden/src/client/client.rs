@@ -224,10 +224,9 @@ impl Client {
     #[cfg(feature = "mobile")]
     pub(crate) fn initialize_user_crypto_decrypted_key(
         &mut self,
-        decrypted_user_key: &str,
+        user_key: SymmetricCryptoKey,
         private_key: EncString,
     ) -> Result<&EncryptionSettings> {
-        let user_key = decrypted_user_key.parse::<SymmetricCryptoKey>()?;
         self.encryption_settings = Some(EncryptionSettings::new_decrypted_key(
             user_key,
             private_key,
@@ -236,6 +235,27 @@ impl Client {
             .encryption_settings
             .as_ref()
             .expect("It was initialized on the previous line"))
+    }
+
+    #[cfg(feature = "mobile")]
+    pub(crate) fn initialize_user_crypto_pin(
+        &mut self,
+        pin: &str,
+        pin_protected_user_key: EncString,
+        private_key: EncString,
+    ) -> Result<&EncryptionSettings> {
+        use crate::crypto::MasterKey;
+
+        let pin_key = match &self.login_method {
+            Some(LoginMethod::User(
+                UserLoginMethod::Username { email, kdf, .. }
+                | UserLoginMethod::ApiKey { email, kdf, .. },
+            )) => MasterKey::derive(pin.as_bytes(), email.as_bytes(), kdf)?,
+            _ => return Err(Error::NotAuthenticated),
+        };
+
+        let decrypted_user_key = pin_key.decrypt_user_key(pin_protected_user_key)?;
+        self.initialize_user_crypto_decrypted_key(decrypted_user_key, private_key)
     }
 
     pub(crate) fn initialize_crypto_single_key(

@@ -1,0 +1,24 @@
+[build-system]
+build-backend = "maturin"
+requires = ["maturin>=1.0,<2.0", "setuptools_rust>=1.8.1"]
+
+[project]
+authors = [{ name = "Bitwarden", email = "support@bitwarden.com" }]
+classifiers = [
+  # TODO: See https://pypi.org/classifiers/
+]
+dependencies = ["dateutils >= 0.6.6"]
+description = "A Bitwarden Client for python"
+name = "bitwarden_sdk"
+readme = "README.md"
+requires-python = ">=2.7"
+version = "0.1"
+
+[tool.maturin]
+bindings = "pyo3"
+compatibility = "manylinux2014"
+include = [
+  { path = "BitwardenClient/*.py", format = ["sdist", "wheel"] }
+]
+manifest-path = "../../crates/bitwarden-py/Cargo.toml"
+python-packages = ["BitwardenClient"]

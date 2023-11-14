@@ -50,6 +50,7 @@ impl EncryptionSettings {
         }
     }
 
+    #[cfg(feature = "internal")]
     pub(crate) fn new_decrypted_key(
         user_key: SymmetricCryptoKey,
         private_key: EncString,

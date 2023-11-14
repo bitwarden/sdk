@@ -90,14 +90,20 @@ jobs:
           name: schemas.py
           path: ${{ github.workspace }}/languages/python/BitwardenClient/schemas.py
 
+      - name: Ensure schemas # TODO: remove this
+        run: |
+          ls -hal ${{ github.workspace }}/languages/python/BitwardenClient/
+          cat ${{ github.workspace }}/languages/python/BitwardenClient/schemas.py || exit 1
+
       - name: Build wheels
         uses: PyO3/maturin-action@b9e8f88fd4448fdecf5095864cdc7e39a544aa9f # v1.40.7
         with:
           target: ${{ matrix.settings.target }}
-          args: --release --find-interpreter
+          args: --release --find-interpreter --sdist
           sccache: 'true'
           manylinux: auto
           working-directory: ${{ github.workspace }}/languages/python
+          # before-script-linux: |
 
       - name: Upload artifact
         uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3

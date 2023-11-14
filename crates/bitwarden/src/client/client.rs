@@ -229,7 +229,10 @@ impl Client {
         private_key: EncString,
     ) -> Result<&EncryptionSettings> {
         let user_key = decrypted_user_key.parse::<SymmetricCryptoKey>()?;
-        self.encryption_settings = Some(EncryptionSettings::new_decrypted_key(user_key, private_key)?);
+        self.encryption_settings = Some(EncryptionSettings::new_decrypted_key(
+            user_key,
+            private_key,
+        )?);
         Ok(self.encryption_settings.as_ref().unwrap())
     }
 

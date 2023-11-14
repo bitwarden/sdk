@@ -9,7 +9,7 @@ classifiers = [
 ]
 dependencies = ["dateutils >= 0.6.6"]
 description = "A Bitwarden Client for python"
-name = "bitwarden_sdk"
+name = "BitwardenClient"
 readme = "README.md"
 requires-python = ">=2.7"
 version = "0.1"

@@ -222,7 +222,7 @@ impl Client {
         Ok(self.encryption_settings.as_ref().unwrap())
     }
 
-    #[cfg(feature = "internal")]
+    #[cfg(feature = "mobile")]
     pub(crate) fn initialize_user_crypto_decrypted_key(
         &mut self,
         decrypted_user_key: &str,

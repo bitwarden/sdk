@@ -8,6 +8,7 @@ on:
       - "master"
       - "rc"
       - "hotfix-rc"
+      - "SM-989-create-build-and-publish-pipelines-for-the-python-language-wrapper" # TODO: remove this
   workflow_dispatch:
 
 defaults:

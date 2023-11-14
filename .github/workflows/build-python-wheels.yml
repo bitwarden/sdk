@@ -98,7 +98,6 @@ jobs:
           sccache: 'true'
           manylinux: auto
           working-directory: ${{ github.workspace }}/languages/python
-          container: off
           before-script-linux: |
             sudo apt update
             sudo apt-get install libssl-dev -y

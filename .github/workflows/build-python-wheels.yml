@@ -94,9 +94,10 @@ jobs:
         uses: PyO3/maturin-action@b9e8f88fd4448fdecf5095864cdc7e39a544aa9f # v1.40.7
         with:
           target: ${{ matrix.settings.target }}
-          args: --release --out dist --find-interpreter
+          args: --release --find-interpreter
           sccache: 'true'
           manylinux: auto
+          working-directory: ${{ github.workspace }}/languages/python
 
       - name: Upload artifact
         uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3

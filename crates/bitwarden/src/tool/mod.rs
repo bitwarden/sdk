@@ -1,8 +1,8 @@
 mod exporters;
 mod generators;
 
-pub use exporters::ExportFormat;
+pub use exporters::{ClientExporters, ExportFormat};
 pub use generators::{
-    AddressType, ForwarderServiceType, PassphraseGeneratorRequest, PasswordGeneratorRequest,
-    UsernameGeneratorRequest, UsernameGeneratorType,
+    AddressType, ClientGenerator, ForwarderServiceType, PassphraseGeneratorRequest,
+    PasswordGeneratorRequest, UsernameGeneratorRequest, UsernameGeneratorType,
 };

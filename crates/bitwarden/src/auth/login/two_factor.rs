@@ -20,7 +20,7 @@ pub(crate) async fn send_two_factor_email(
     input: &TwoFactorEmailRequest,
 ) -> Result<()> {
     // TODO: This should be resolved from the client
-    let kdf = client.prelogin(input.email.clone()).await?;
+    let kdf = client.auth().prelogin(input.email.clone()).await?;
 
     let password_hash = determine_password_hash(&input.email, &kdf, &input.password).await?;
 

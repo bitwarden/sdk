@@ -18,7 +18,7 @@ pub enum AddressType {
 #[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 /// Configures the email forwarding service to use.
 /// For instructions on how to configure each service, see the documentation:
-/// https://bitwarden.com/help/generator/#username-types
+/// <https://bitwarden.com/help/generator/#username-types>
 pub enum ForwarderServiceType {
     /// Previously known as "AnonAddy"
     AddyIo {

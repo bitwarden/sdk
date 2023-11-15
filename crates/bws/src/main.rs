@@ -247,7 +247,7 @@ async fn process_commands() -> Result<()> {
     let Some(command) = cli.command else {
         let mut cmd = Cli::command();
         eprintln!("{}", cmd.render_help().ansi());
-        return Ok(());
+        std::process::exit(1);
     };
 
     // These commands don't require authentication, so we process them first
@@ -324,7 +324,8 @@ async fn process_commands() -> Result<()> {
 
     // Load session or return if no session exists
     let _ = client
-        .access_token_login(&AccessTokenLoginRequest { access_token })
+        .auth()
+        .login_access_token(&AccessTokenLoginRequest { access_token })
         .await?;
 
     let organization_id = match client.get_access_token_organization() {

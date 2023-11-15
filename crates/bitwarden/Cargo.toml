@@ -1,6 +1,6 @@
 [package]
 name = "bitwarden"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Bitwarden Inc"]
 license-file = "LICENSE"
 repository = "https://github.com/bitwarden/sdk"
@@ -50,13 +50,13 @@ chrono = { version = ">=0.4.26, <0.5", features = [
     "serde",
     "std",
 ], default-features = false }
-uniffi = { version = "=0.24.1", optional = true }
+uniffi = { version = "=0.25.0", optional = true }
 
 # We don't use this directly (it's used by rand), but we need it here to enable WASM support
 getrandom = { version = ">=0.2.9", features = ["js"] }
 
-bitwarden-api-identity = { path = "../bitwarden-api-identity", version = "=0.2.1" }
-bitwarden-api-api = { path = "../bitwarden-api-api", version = "=0.2.1" }
+bitwarden-api-identity = { path = "../bitwarden-api-identity", version = "=0.2.2" }
+bitwarden-api-api = { path = "../bitwarden-api-api", version = "=0.2.2" }
 
 [dev-dependencies]
 rand_chacha = "0.3.1"

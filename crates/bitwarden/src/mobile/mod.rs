@@ -3,8 +3,11 @@ pub mod crypto;
 pub mod kdf;
 pub mod vault;
 
-pub(crate) mod client_crypto;
-pub(crate) mod client_kdf;
+mod client_crypto;
+mod client_kdf;
+
+pub use client_crypto::ClientCrypto;
+pub use client_kdf::ClientKdf;
 
 // Usually we wouldn't want to expose EncStrings in the API or the schemas,
 // but we need them in the mobile API, so define it here to limit the scope

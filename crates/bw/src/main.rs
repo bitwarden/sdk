@@ -143,12 +143,12 @@ async fn process_commands() -> Result<()> {
             match args.command {
                 // FIXME: Rust CLI will not support password login!
                 LoginCommands::Password { email } => {
-                    auth::password_login(client, email).await?;
+                    auth::login_password(client, email).await?;
                 }
                 LoginCommands::ApiKey {
                     client_id,
                     client_secret,
-                } => auth::api_key_login(client, client_id, client_secret).await?,
+                } => auth::login_api_key(client, client_id, client_secret).await?,
             }
             return Ok(());
         }

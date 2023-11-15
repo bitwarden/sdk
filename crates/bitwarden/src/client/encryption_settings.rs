@@ -80,7 +80,8 @@ impl EncryptionSettings {
 
         let private_key = self.private_key.as_ref().ok_or(Error::VaultLocked)?;
 
-        // Clear the previous keys, if there are any
+        // Make sure we only keep the keys given in the arguments and not any of the previous
+        // ones, which might be from organizations that the user is no longer a part of anymore
         self.org_keys.clear();
 
         // Decrypt the org keys with the private key

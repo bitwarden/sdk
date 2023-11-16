@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.DEBUG)
 organization_id = "org_id_here"
 
 # Attempt to authenticate with the Secrets Manager Access Token
-result = client.access_token_login("access_token_here")
+client.access_token_login("access_token_here")
 
 # -- Example Project Commands --
 

@@ -2,15 +2,54 @@ use std::{fmt::Display, str::FromStr};
 
 use base64::Engine;
 use serde::{de::Visitor, Deserialize};
-use uuid::Uuid;
 
 use crate::{
-    client::encryption_settings::EncryptionSettings,
-    crypto::{decrypt_aes256_hmac, Decryptable, Encryptable, SymmetricCryptoKey},
+    crypto::{decrypt_aes256_hmac, SymmetricCryptoKey},
     error::{CryptoError, EncStringParseError, Error, Result},
     util::BASE64_ENGINE,
 };
 
+use super::{KeyDecryptable, KeyEncryptable, LocateKey};
+
+/// # Encrypted string primitive
+///
+/// [EncString] is a Bitwarden specific primitive that represents an encrypted string. They are
+/// are used together with the [KeyDecryptable] and [KeyEncryptable] traits to encrypt and decrypt
+/// data using [SymmetricCryptoKey]s.
+///
+/// The flexibility of the [EncString] type allows for different encryption algorithms to be used
+/// which is represented by the different variants of the enum.
+///
+/// ## Note
+///
+/// We are currently in the progress of splitting the [EncString] into distinct AES and RSA
+/// variants. To provide better control of which encryption algorithm is expected.
+///
+/// For backwards compatibility we will rarely if ever be able to remove support for decrypting old
+/// variants, but we should be opinionated in which variants are used for encrypting.
+///
+/// ## Variants
+/// - [AesCbc256_B64](EncString::AesCbc256_B64)
+/// - [AesCbc128_HmacSha256_B64](EncString::AesCbc128_HmacSha256_B64)
+/// - [AesCbc256_HmacSha256_B64](EncString::AesCbc256_HmacSha256_B64)
+/// - [Rsa2048_OaepSha256_B64](EncString::Rsa2048_OaepSha256_B64)
+/// - [Rsa2048_OaepSha1_B64](EncString::Rsa2048_OaepSha1_B64)
+///
+/// ## Serialization
+///
+/// [EncString] implements [Display] and [FromStr] to allow for easy serialization and uses a
+/// custom scheme to represent the different variants.
+///
+/// The scheme is one of the following schemes:
+/// - `[type].[iv]|[data]`
+/// - `[type].[iv]|[data]|[mac]`
+/// - `[type].[data]`
+///
+/// Where:
+/// - `[type]`: is a digit number representing the variant.
+/// - `[iv]`: (optional) is the initialization vector used for encryption.
+/// - `[data]`: is the encrypted data.
+/// - `[mac]`: (optional) is the MAC used to validate the integrity of the data.
 #[derive(Clone)]
 #[allow(unused, non_camel_case_types)]
 pub enum EncString {
@@ -40,13 +79,14 @@ pub enum EncString {
     Rsa2048_OaepSha1_HmacSha256_B64 { data: Vec<u8> },
 }
 
-// We manually implement these to make sure we don't print any sensitive data
+/// To avoid printing sensitive information, [EncString] debug prints to `EncString`.
 impl std::fmt::Debug for EncString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("EncString").finish()
     }
 }
 
+/// Deserializes an [EncString] from a string.
 impl FromStr for EncString {
     type Err = Error;
 
@@ -291,6 +331,7 @@ impl serde::Serialize for EncString {
 }
 
 impl EncString {
+    /// The numerical representation of the encryption type of the [EncString].
     const fn enc_type(&self) -> u8 {
         match self {
             EncString::AesCbc256_B64 { .. } => 0,
@@ -304,8 +345,24 @@ impl EncString {
             EncString::Rsa2048_OaepSha1_HmacSha256_B64 { .. } => 6,
         }
     }
+}
 
-    pub fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
+fn invalid_len_error(expected: usize) -> impl Fn(Vec<u8>) -> EncStringParseError {
+    move |e: Vec<_>| EncStringParseError::InvalidLength {
+        expected,
+        got: e.len(),
+    }
+}
+
+impl LocateKey for EncString {}
+impl KeyEncryptable<EncString> for &[u8] {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<EncString> {
+        super::encrypt_aes256_hmac(self, key.mac_key.ok_or(CryptoError::InvalidMac)?, key.key)
+    }
+}
+
+impl KeyDecryptable<Vec<u8>> for EncString {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
         match self {
             EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
                 let mac_key = key.mac_key.ok_or(CryptoError::InvalidMac)?;
@@ -317,28 +374,35 @@ impl EncString {
     }
 }
 
-fn invalid_len_error(expected: usize) -> impl Fn(Vec<u8>) -> EncStringParseError {
-    move |e: Vec<_>| EncStringParseError::InvalidLength {
-        expected,
-        got: e.len(),
+impl KeyEncryptable<EncString> for String {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<EncString> {
+        self.as_bytes().encrypt_with_key(key)
     }
 }
 
-impl Encryptable<EncString> for String {
-    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<EncString> {
-        enc.encrypt(self.as_bytes(), org_id)
-    }
-}
-
-impl Decryptable<String> for EncString {
-    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<String> {
-        enc.decrypt(self, org_id)
+impl KeyDecryptable<String> for EncString {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<String> {
+        let dec: Vec<u8> = self.decrypt_with_key(key)?;
+        String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String.into())
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::crypto::{KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
+
     use super::EncString;
+
+    #[test]
+    fn test_enc_string_roundtrip() {
+        let key = SymmetricCryptoKey::generate("test");
+
+        let test_string = "encrypted_test_string".to_string();
+        let cipher = test_string.clone().encrypt_with_key(&key).unwrap();
+
+        let decrypted_str: String = cipher.decrypt_with_key(&key).unwrap();
+        assert_eq!(decrypted_str, test_string);
+    }
 
     #[test]
     fn test_enc_string_serialization() {

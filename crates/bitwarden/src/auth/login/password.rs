@@ -22,7 +22,7 @@ use crate::{
 };
 
 #[cfg(feature = "internal")]
-pub(crate) async fn password_login(
+pub(crate) async fn login_password(
     client: &mut Client,
     input: &PasswordLoginRequest,
 ) -> Result<PasswordLoginResponse> {

@@ -6,7 +6,7 @@ use crate::{
     error::Result,
 };
 
-pub(crate) struct UserKey(SymmetricCryptoKey);
+pub(crate) struct UserKey(pub(super) SymmetricCryptoKey);
 
 impl UserKey {
     pub(crate) fn new(key: SymmetricCryptoKey) -> Self {

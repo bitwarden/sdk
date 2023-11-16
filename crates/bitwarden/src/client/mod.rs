@@ -9,4 +9,6 @@ pub(crate) mod encryption_settings;
 pub mod kdf;
 
 pub use access_token::AccessToken;
+pub use client::AccessTokenState;
 pub use client::Client;
+pub use client::ClientState;

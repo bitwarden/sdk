@@ -12,7 +12,7 @@ pub struct Client(bitwarden::Client);
 impl Client {
     pub fn new(settings_input: Option<String>) -> Self {
         let settings = Self::parse_settings(settings_input);
-        Self(bitwarden::Client::new(settings))
+        Self(bitwarden::Client::new(settings, None))
     }
 
     pub async fn run_command(&mut self, input_str: &str) -> String {

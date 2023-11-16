@@ -13,7 +13,9 @@ use crate::{
         SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,
     },
 };
+use chrono::{DateTime, LocalResult, TimeZone, Utc};
 use reqwest::header::{self};
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[cfg(feature = "secrets")]
@@ -75,6 +77,7 @@ pub struct Client {
     token: Option<String>,
     pub(crate) refresh_token: Option<String>,
     pub(crate) token_expires_in: Option<Instant>,
+    pub(crate) token_expiry_timestamp: Option<i64>,
     pub(crate) login_method: Option<LoginMethod>,
 
     /// Use Client::get_api_configurations() to access this.
@@ -85,8 +88,41 @@ pub struct Client {
     encryption_settings: Option<EncryptionSettings>,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ClientState {
+    pub token: Option<String>,
+    pub token_expiry_timestamp: Option<i64>,
+    pub refresh_token: Option<String>,
+    pub access_token: Option<AccessTokenState>,
+}
+
+impl ClientState {
+    pub fn token_is_valid(&self) -> bool {
+        let now = Utc::now();
+        let token_expiry_timestamp = match self.token_expiry_timestamp {
+            Some(timestamp) => match Utc.timestamp_opt(timestamp, 0) {
+                LocalResult::Single(dt) => dt,
+                _ => return false,
+            },
+            None => return false,
+        };
+        println!(
+            "Now is: {:?}\nToken expires on: {:?}",
+            now, token_expiry_timestamp
+        );
+        !(token_expiry_timestamp - now).is_zero()
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct AccessTokenState {
+    pub service_account_id: Uuid,
+    pub client_secret: String,
+    pub organization_id: Uuid,
+}
+
 impl Client {
-    pub fn new(settings_input: Option<ClientSettings>) -> Self {
+    pub fn new(settings_input: Option<ClientSettings>, client_state: Option<ClientState>) -> Self {
         let settings = settings_input.unwrap_or_default();
 
         let headers = header::HeaderMap::new();
@@ -96,12 +132,56 @@ impl Client {
             .build()
             .unwrap();
 
+        let mut temp_token: Option<String> = None;
+        let mut temp_token_expiry_timestamp: Option<i64> = None;
+        let mut temp_token_expires_in: Option<Instant> = None;
+        let mut temp_refresh_token: Option<String> = None;
+        let mut login_method: Option<LoginMethod> = None;
+
+        if let Some(ClientState {
+            token,
+            token_expiry_timestamp,
+            refresh_token,
+            access_token,
+        }) = client_state
+        {
+            temp_token = token;
+            temp_token_expiry_timestamp = token_expiry_timestamp;
+            temp_token_expires_in = match token_expiry_timestamp {
+                Some(expiry_timestamp) => {
+                    let expiry_seconds = expiry_timestamp - Utc::now().timestamp();
+
+                    match u64::try_from(expiry_seconds) {
+                        Ok(s) => Some(Instant::now() + Duration::from_secs(s)),
+                        Err(_) => None,
+                    }
+                }
+                None => None,
+            };
+            temp_refresh_token = refresh_token;
+
+            if let Some(AccessTokenState {
+                service_account_id,
+                client_secret,
+                organization_id,
+            }) = access_token
+            {
+                login_method = Some(LoginMethod::ServiceAccount(
+                    ServiceAccountLoginMethod::AccessToken {
+                        service_account_id: service_account_id,
+                        client_secret: client_secret,
+                        organization_id: organization_id,
+                    },
+                ));
+            }
+        }
+
         let identity = bitwarden_api_identity::apis::configuration::Configuration {
             base_path: settings.identity_url,
             user_agent: Some(settings.user_agent.clone()),
             client: client.clone(),
             basic_auth: None,
-            oauth_access_token: None,
+            oauth_access_token: temp_token.clone(),
             bearer_access_token: None,
             api_key: None,
         };
@@ -111,16 +191,17 @@ impl Client {
             user_agent: Some(settings.user_agent),
             client,
             basic_auth: None,
-            oauth_access_token: None,
+            oauth_access_token: temp_token.clone(),
             bearer_access_token: None,
             api_key: None,
         };
 
         Self {
-            token: None,
-            refresh_token: None,
-            token_expires_in: None,
-            login_method: None,
+            token: temp_token,
+            refresh_token: temp_refresh_token,
+            token_expires_in: temp_token_expires_in,
+            token_expiry_timestamp: temp_token_expiry_timestamp,
+            login_method: login_method,
             __api_configurations: ApiConfigurations {
                 identity,
                 api,
@@ -218,6 +299,8 @@ impl Client {
         self.token = Some(token.clone());
         self.refresh_token = refresh_token;
         self.token_expires_in = Some(Instant::now() + Duration::from_secs(expires_in));
+        self.token_expiry_timestamp =
+            Some((Utc::now() + Duration::from_secs(expires_in)).timestamp());
         self.login_method = Some(login_method);
         self.__api_configurations.identity.oauth_access_token = Some(token.clone());
         self.__api_configurations.api.oauth_access_token = Some(token);
@@ -283,6 +366,38 @@ impl Client {
     #[cfg(feature = "internal")]
     pub async fn send_two_factor_email(&mut self, tf: &TwoFactorEmailRequest) -> Result<()> {
         send_two_factor_email(self, tf).await
+    }
+
+    // Returns a copy of the token items in Client
+    //   token: Option<String>,
+    //   pub(crate) refresh_token: Option<String>,
+    //   pub(crate) token_expires_in: Option<Instant>,
+    //   pub(crate) login_method: Option<LoginMethod>,
+    //
+    // returns a copy of: token, refresh token, and login method
+    #[cfg(feature = "secrets")]
+    pub fn get_client_state(&self) -> ClientState {
+        let mut access_token: Option<AccessTokenState> = None;
+
+        if let Some(LoginMethod::ServiceAccount(ServiceAccountLoginMethod::AccessToken {
+            service_account_id,
+            client_secret,
+            organization_id,
+        })) = &self.login_method
+        {
+            access_token = Some(AccessTokenState {
+                service_account_id: service_account_id.clone(),
+                client_secret: client_secret.clone(),
+                organization_id: organization_id.clone(),
+            });
+        }
+
+        ClientState {
+            token: self.token.clone(),
+            refresh_token: self.refresh_token.clone(),
+            token_expiry_timestamp: self.token_expiry_timestamp.clone(),
+            access_token: access_token,
+        }
     }
 }
 

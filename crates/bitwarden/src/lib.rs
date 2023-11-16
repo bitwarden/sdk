@@ -26,7 +26,7 @@
 //!
 //! async fn test() -> Result<()> {
 //!     // Use the default values
-//!     let mut client = Client::new(None);
+//!     let mut client = Client::new(None, None);
 //!
 //!     // Or set your own values
 //!     let settings = ClientSettings {
@@ -35,7 +35,7 @@
 //!         user_agent: "Bitwarden Rust-SDK".to_string(),
 //!         device_type: DeviceType::SDK,
 //!     };
-//!     let mut client = Client::new(Some(settings));
+//!     let mut client = Client::new(Some(settings), None);
 //!
 //!     // Before we operate, we need to authenticate with a token
 //!     let token = AccessTokenLoginRequest { access_token: String::from("") };
@@ -61,6 +61,7 @@ pub mod mobile;
 pub mod platform;
 #[cfg(feature = "secrets")]
 pub mod secrets_manager;
+pub mod state;
 #[cfg(feature = "mobile")]
 pub mod tool;
 #[cfg(feature = "mobile")]

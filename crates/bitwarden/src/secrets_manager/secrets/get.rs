@@ -18,7 +18,7 @@ pub(crate) async fn get_secret(
 ) -> Result<SecretResponse> {
     let config = client.get_api_configurations().await;
     let res = bitwarden_api_api::apis::secrets_api::secrets_id_get(&config.api, input.id).await?;
-
+    println!("We have a response!\n{:?}", res);
     let enc = client.get_encryption_settings()?;
 
     SecretResponse::process_response(res, enc)

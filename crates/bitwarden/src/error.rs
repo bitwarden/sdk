@@ -22,6 +22,8 @@ pub enum Error {
     InvalidResponse,
     #[error("The response received was missing some of the required fields")]
     MissingFields,
+    #[error("No data")]
+    NoData,
 
     #[error("Cryptography error, {0}")]
     Crypto(#[from] CryptoError),
@@ -45,6 +47,9 @@ pub enum Error {
 
     #[error("Received error message from server: [{}] {}", .status, .message)]
     ResponseContent { status: StatusCode, message: String },
+
+    #[error("The state manager file version is invalid")]
+    InvalidStateManagerFileVersion,
 
     #[error("Internal error: {0}")]
     Internal(&'static str),

@@ -19,6 +19,7 @@ pub(crate) struct Profile {
     pub server_base: Option<String>,
     pub server_api: Option<String>,
     pub server_identity: Option<String>,
+    pub state_file_path: Option<String>,
 }
 
 // TODO: This could probably be derived with a macro if we start adding more fields
@@ -28,6 +29,7 @@ pub(crate) enum ProfileKey {
     server_base,
     server_api,
     server_identity,
+    state_file,
 }
 
 impl ProfileKey {
@@ -36,6 +38,7 @@ impl ProfileKey {
             ProfileKey::server_base => p.server_base = Some(value),
             ProfileKey::server_api => p.server_api = Some(value),
             ProfileKey::server_identity => p.server_identity = Some(value),
+            ProfileKey::state_file => p.state_file_path = Some(value),
         }
     }
 }
@@ -118,6 +121,7 @@ impl Profile {
             server_base: Some(url.to_string()),
             server_api: None,
             server_identity: None,
+            state_file_path: None,
         })
     }
     pub(crate) fn api_url(&self) -> Result<String> {

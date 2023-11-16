@@ -22,10 +22,10 @@ codegen-units = 1
 # This is fine as long as we don't have any unhandled panics, but let's keep it disabled for now
 # strip = true
 
-# Using master until 0.25.1 is released to fix https://github.com/mozilla/uniffi-rs/issues/1798
+# Using fork temporarily to add support for immutable records in generated code
 [patch.crates-io]
-uniffi = { git = "https://github.com/mozilla/uniffi-rs", rev = "b369e7c15b1b7ebca34de9028209db11b7ff353d" }
-uniffi_build = { git = "https://github.com/mozilla/uniffi-rs", rev = "b369e7c15b1b7ebca34de9028209db11b7ff353d" }
-uniffi_bindgen = { git = "https://github.com/mozilla/uniffi-rs", rev = "b369e7c15b1b7ebca34de9028209db11b7ff353d" }
-uniffi_core = { git = "https://github.com/mozilla/uniffi-rs", rev = "b369e7c15b1b7ebca34de9028209db11b7ff353d" }
-uniffi_macros = { git = "https://github.com/mozilla/uniffi-rs", rev = "b369e7c15b1b7ebca34de9028209db11b7ff353d" }
+uniffi = { git = "https://github.com/dani-garcia/uniffi-rs", rev = "2176a16704d16ec3c3611a30f0f8390b497771e8" }
+uniffi_build = { git = "https://github.com/dani-garcia/uniffi-rs", rev = "2176a16704d16ec3c3611a30f0f8390b497771e8" }
+uniffi_bindgen = { git = "https://github.com/dani-garcia/uniffi-rs", rev = "2176a16704d16ec3c3611a30f0f8390b497771e8" }
+uniffi_core = { git = "https://github.com/dani-garcia/uniffi-rs", rev = "2176a16704d16ec3c3611a30f0f8390b497771e8" }
+uniffi_macros = { git = "https://github.com/dani-garcia/uniffi-rs", rev = "2176a16704d16ec3c3611a30f0f8390b497771e8" }

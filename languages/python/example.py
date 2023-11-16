@@ -19,9 +19,6 @@ organization_id = "org_id_here"
 # Attempt to authenticate with the Secrets Manager Access Token
 result = client.access_token_login("access_token_here")
 
-if result.success == False:
-    sys.exit(result.error_message)
-
 # -- Example Project Commands --
 
 project = client.projects().create("ProjectName", organization_id)

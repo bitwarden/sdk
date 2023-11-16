@@ -26,7 +26,12 @@ class BitwardenClient:
 
     def _run_command(self, command: Command) -> Any:
         response_json = self.inner.run_command(json.dumps(command.to_dict()))
-        return json.loads(response_json)
+        response = json.loads(response_json)
+
+        if response["success"] == False:
+            raise Exception(response["errorMessage"])
+        
+        return response
 
 class SecretsClient:
     def __init__(self, client: BitwardenClient):

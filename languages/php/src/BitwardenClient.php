@@ -9,23 +9,23 @@ use FFI;
 use Swaggest\JsonDiff\Exception;
 
 
-class BitwardenSDK
+class BitwardenClient
 {
     private BitwardenLib $bitwarden_lib;
 
     private ClientSettings $clientSettings;
 
-    public ProjectsClient $projectsClient;
+    public ProjectsClient $projects;
 
-    public SecretsClient $secretsClient;
+    public SecretsClient $secrets;
 
     private CommandRunner $commandRunner;
 
     private FFI\CData $handle;
 
-    public function __construct()
+    public function __construct(ClientSettings $clientSettings)
     {
-        $this->clientSettings = new ClientSettings();
+        $this->clientSettings = $clientSettings;
         $this->clientSettings->apiUrl = getenv('API_URL') ?: 'https://api.bitwarden.com';
         $this->clientSettings->identityUrl = getenv('IDENTITY_URL') ?: 'https://identity.bitwarden.com';
         $this->clientSettings->userAgent = getenv('USER_AGENT') ?: 'SDK';
@@ -35,17 +35,17 @@ class BitwardenSDK
         $this->handle = $this->bitwarden_lib->init($this->clientSettings);
 
         $this->commandRunner = new CommandRunner($this->bitwarden_lib, $this->handle);
-        $this->projectsClient = new ProjectsClient($this->commandRunner);
-        $this->secretsClient = new SecretsClient($this->commandRunner);
+        $this->projects = new ProjectsClient($this->commandRunner);
+        $this->secrets = new SecretsClient($this->commandRunner);
     }
 
     /**
      * @throws \Exception
      */
-    public function authorize(string $access_token)
+    public function authorize(string $accessTokenLogin)
     {
         $access_token_request = new AccessTokenLoginRequest();
-        $access_token_request->accessToken = $access_token;
+        $access_token_request->accessToken = $accessTokenLogin;
         $command = new Command();
         $command->accessTokenLogin = $access_token_request->jsonSerialize();
         $result = $this->commandRunner->run($command);
@@ -60,7 +60,7 @@ class BitwardenSDK
         return $result;
     }
 
-    public function free_mem()
+    public function __destruct()
     {
         $this->bitwarden_lib->free_mem();
     }

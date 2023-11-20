@@ -24,14 +24,13 @@ class CommandRunner
     public function run(Command $command): \stdClass
     {
         $result = $this->bitwardenLib->run_command($command);
-        if (isset($result->data)) {
-            if ($result->success == true) {
-                return $result->data;
-            }
-            if (isset($result->error))
-            {
-                throw new \Exception($result->error);
-            }
+        if ($result->success == true) {
+            return $result->data;
+        }
+
+        if (isset($result->errorMessage))
+        {
+            throw new \Exception($result->errorMessage);
         }
         throw new \Exception("Unknown error occurred");
     }

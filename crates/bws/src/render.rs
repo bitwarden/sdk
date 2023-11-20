@@ -9,6 +9,7 @@ use serde::Serialize;
 pub(crate) enum Output {
     JSON,
     YAML,
+    Env,
     Table,
     TSV,
     None,
@@ -48,6 +49,31 @@ pub(crate) fn serialize_response<T: Serialize + TableSerialize<N>, const N: usiz
         Output::YAML => {
             let text = serde_yaml::to_string(&data).unwrap();
             pretty_print("yaml", &text, color);
+        }
+        Output::Env => {
+            let valid_key_regex = regex::Regex::new("^[a-zA-Z_][a-zA-Z0-9_]*$").unwrap();
+
+            let mut commented_out = false;
+            let mut text: Vec<String> = data
+                .get_values()
+                .into_iter()
+                .map(|row| {
+                    if valid_key_regex.is_match(&row[1]) {
+                        format!("{}=\"{}\"", row[1], row[2])
+                    } else {
+                        commented_out = true;
+                        format!("# {}=\"{}\"", row[1], row[2].replace('\n', "\n# "))
+                    }
+                })
+                .collect();
+
+            if commented_out {
+                text.push(String::from(
+                    "\n# one or more secrets have been commented-out due to a problematic key name",
+                ));
+            }
+
+            pretty_print("sh", &format!("{}\n", text.join("\n")), color);
         }
         Output::Table => {
             let mut table = Table::new();

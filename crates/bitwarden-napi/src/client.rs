@@ -1,7 +1,6 @@
 extern crate log;
 
 use bitwarden_json::client::Client as JsonClient;
-use napi::bindgen_prelude::*;
 use napi_derive::napi;
 
 #[napi]

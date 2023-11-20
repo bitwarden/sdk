@@ -4,14 +4,15 @@ use rsa::RsaPrivateKey;
 use uuid::Uuid;
 #[cfg(feature = "internal")]
 use {
-    crate::{client::UserLoginMethod, crypto::KeyDecryptable},
+    crate::{
+        client::UserLoginMethod,
+        crypto::{EncString, KeyDecryptable},
+        error::{CryptoError, Result},
+    },
     rsa::{pkcs8::DecodePrivateKey, Oaep},
 };
 
-use crate::{
-    crypto::{encrypt_aes256_hmac, EncString, SymmetricCryptoKey},
-    error::{CryptoError, Result},
-};
+use crate::crypto::SymmetricCryptoKey;
 
 pub struct EncryptionSettings {
     user_key: SymmetricCryptoKey,
@@ -79,6 +80,10 @@ impl EncryptionSettings {
 
         let private_key = self.private_key.as_ref().ok_or(Error::VaultLocked)?;
 
+        // Make sure we only keep the keys given in the arguments and not any of the previous
+        // ones, which might be from organizations that the user is no longer a part of anymore
+        self.org_keys.clear();
+
         // Decrypt the org keys with the private key
         for (org_id, org_enc_key) in org_enc_keys {
             let data = match org_enc_key {
@@ -108,12 +113,5 @@ impl EncryptionSettings {
             Some(org_id) => self.org_keys.get(org_id),
             None => Some(&self.user_key),
         }
-    }
-
-    pub(crate) fn encrypt(&self, data: &[u8], org_id: &Option<Uuid>) -> Result<EncString> {
-        let key = self.get_key(org_id).ok_or(CryptoError::NoKeyForOrg)?;
-
-        let dec = encrypt_aes256_hmac(data, key.mac_key.ok_or(CryptoError::InvalidMac)?, key.key)?;
-        Ok(dec)
     }
 }

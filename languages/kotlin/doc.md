@@ -182,14 +182,26 @@ Decrypt collection list
 
 ## ClientCrypto
 
-### `initialize_crypto`
+### `initialize_user_crypto`
 
-Initialization method for the crypto. Needs to be called before any other crypto operations.
+Initialization method for the user crypto. Needs to be called before any other crypto operations.
 
 **Arguments**:
 
 - self:
-- req: [InitCryptoRequest](#initcryptorequest)
+- req: [InitUserCryptoRequest](#initusercryptorequest)
+
+**Output**: std::result::Result<,BitwardenError>
+
+### `initialize_org_crypto`
+
+Initialization method for the organization crypto. Needs to be called after
+&#x60;initialize_user_crypto&#x60; but before any other crypto operations.
+
+**Arguments**:
+
+- self:
+- req: [InitOrgCryptoRequest](#initorgcryptorequest)
 
 **Output**: std::result::Result<,BitwardenError>
 
@@ -493,6 +505,11 @@ implementations.
     <th></th>
 </tr>
 <tr>
+    <th>key</th>
+    <th></th>
+    <th>More recent ciphers uses individual encryption keys to encrypt the other fields of the Cipher.</th>
+</tr>
+<tr>
     <th>name</th>
     <th></th>
     <th></th>
@@ -615,6 +632,11 @@ implementations.
 <tr>
     <th>collectionIds</th>
     <th>array</th>
+    <th></th>
+</tr>
+<tr>
+    <th>key</th>
+    <th></th>
     <th></th>
 </tr>
 <tr>
@@ -835,7 +857,58 @@ implementations.
 </tr>
 </table>
 
-## `InitCryptoRequest`
+## `InitOrgCryptoRequest`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>organizationKeys</th>
+    <th>object</th>
+    <th>The encryption keys for all the organizations the user is a part of</th>
+</tr>
+</table>
+
+## `InitUserCryptoMethod`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>password</th>
+    <th>object</th>
+    <th></th>
+</tr>
+<tr>
+    <td colspan="3">
+        <table>
+        <tr>
+            <th>Key</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+            <tr>
+                <td>password</td>
+                <td>string</td>
+                <td>The user's master password</td>
+            </tr>
+            <tr>
+                <td>user_key</td>
+                <td>string</td>
+                <td>The user's encrypted symmetric crypto key</td>
+            </tr>
+        </table>
+    </td>
+</tr>
+</table>
+
+## `InitUserCryptoRequest`
 
 <table>
 <tr>
@@ -854,24 +927,14 @@ implementations.
     <th>The user&#x27;s email address</th>
 </tr>
 <tr>
-    <th>password</th>
-    <th>string</th>
-    <th>The user&#x27;s master password</th>
-</tr>
-<tr>
-    <th>userKey</th>
-    <th>string</th>
-    <th>The user&#x27;s encrypted symmetric crypto key</th>
-</tr>
-<tr>
     <th>privateKey</th>
     <th>string</th>
-    <th>The user&#x27;s encryptred private key</th>
+    <th>The user&#x27;s encrypted private key</th>
 </tr>
 <tr>
-    <th>organizationKeys</th>
-    <th>object</th>
-    <th>The encryption keys for all the organizations the user is a part of</th>
+    <th>method</th>
+    <th></th>
+    <th>The initialization method to use</th>
 </tr>
 </table>
 

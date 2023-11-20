@@ -1,15 +1,34 @@
-ARG ARCH=
-FROM ${ARCH}rust:1.73 as builder
-RUN apt-get update && \
-  apt-get install --no-install-recommends -y \
+###############################################
+#                 Build stage                 #
+###############################################
+FROM --platform=$BUILDPLATFORM rust:1.73 AS build
+
+# Docker buildx supplies the value for this arg
+ARG TARGETPLATFORM
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
   ca-certificates \
   && rm -rf /var/lib/apt/lists/*
-COPY ../../ /app
+
+# Copy required project files
+COPY . /app
+
+# Build project
 WORKDIR /app/crates/bws
 RUN cargo build --release
-FROM ${ARCH}debian:bookworm-slim as runner
+
+###############################################
+#                  App stage                  #
+###############################################
+FROM debian:bookworm-slim
+
+ARG TARGETPLATFORM
+LABEL com.bitwarden.product="bitwarden"
+
+# Copy built project from the build stage
 WORKDIR /usr/local/bin
-COPY --from=builder /app/target/release/bws .
-COPY --from=builder /etc/ssl/certs /etc/ssl/certs
+COPY --from=build /app/target/release/bws .
+COPY --from=build /etc/ssl/certs /etc/ssl/certs
 
 ENTRYPOINT ["bws"]
+

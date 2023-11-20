@@ -12,7 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.bitwarden.core.DateTime
 import com.bitwarden.core.Folder
-import com.bitwarden.core.InitCryptoRequest
+import com.bitwarden.core.InitOrgCryptoRequest
+import com.bitwarden.core.InitUserCryptoMethod
+import com.bitwarden.core.InitUserCryptoRequest
 import com.bitwarden.core.Kdf
 import com.bitwarden.core.Uuid
 import com.bitwarden.myapplication.ui.theme.MyApplicationTheme
@@ -117,7 +119,7 @@ class MainActivity : ComponentActivity() {
             }.body<JsonObject>()
 
             val folders = (syncBody["folders"] as JsonArray).map {
-                val o = it as JsonObject;
+                val o = it as JsonObject
                 Folder(
                     (o["id"] as JsonPrimitive).content,
                     (o["name"] as JsonPrimitive).content,
@@ -136,13 +138,20 @@ class MainActivity : ComponentActivity() {
                 orgKeys[(o["id"] as JsonPrimitive).content] = (o["key"] as JsonPrimitive).content
             }
 
-            client.crypto().initializeCrypto(
-                InitCryptoRequest(
+            client.crypto().initializeUserCrypto(
+                InitUserCryptoRequest(
                     kdfParams = kdf,
                     email = EMAIL,
-                    password = PASSWORD,
-                    userKey = loginBody.Key,
                     privateKey = loginBody.PrivateKey,
+                    method = InitUserCryptoMethod.Password(
+                        password = PASSWORD,
+                        userKey = loginBody.Key
+                    )
+                )
+            )
+
+            client.crypto().initializeOrgCrypto(
+                InitOrgCryptoRequest(
                     organizationKeys = orgKeys
                 )
             )

@@ -4,7 +4,11 @@
 async fn test_register_initialize_crypto() {
     use std::num::NonZeroU32;
 
-    use bitwarden::{client::kdf::Kdf, mobile::crypto::InitCryptoRequest, Client};
+    use bitwarden::{
+        client::kdf::Kdf,
+        mobile::crypto::{InitUserCryptoMethod, InitUserCryptoRequest},
+        Client,
+    };
 
     let mut client = Client::new(None);
 
@@ -22,13 +26,15 @@ async fn test_register_initialize_crypto() {
     // Ensure we can initialize the crypto with the new keys
     client
         .crypto()
-        .initialize_crypto(InitCryptoRequest {
+        .initialize_user_crypto(InitUserCryptoRequest {
             kdf_params: kdf,
             email: email.to_owned(),
-            password: password.to_owned(),
-            user_key: register_response.encrypted_user_key,
             private_key: register_response.keys.private.to_string(),
-            organization_keys: Default::default(),
+
+            method: InitUserCryptoMethod::Password {
+                password: password.to_owned(),
+                user_key: register_response.encrypted_user_key,
+            },
         })
         .await
         .unwrap();

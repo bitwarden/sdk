@@ -9,23 +9,32 @@ use crate::{client::kdf::Kdf, crypto::EncString, error::Result, Client};
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
-pub struct InitCryptoRequest {
+pub struct InitUserCryptoRequest {
     /// The user's KDF parameters, as received from the prelogin request
     pub kdf_params: Kdf,
     /// The user's email address
     pub email: String,
-    /// The user's master password
-    pub password: String,
-    /// The user's encrypted symmetric crypto key
-    pub user_key: String,
-    /// The user's encryptred private key
+    /// The user's encrypted private key
     pub private_key: String,
-    /// The encryption keys for all the organizations the user is a part of
-    pub organization_keys: HashMap<uuid::Uuid, String>,
+    /// The initialization method to use
+    pub method: InitUserCryptoMethod,
 }
 
 #[cfg(feature = "internal")]
-pub async fn initialize_crypto(client: &mut Client, req: InitCryptoRequest) -> Result<()> {
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+pub enum InitUserCryptoMethod {
+    Password {
+        /// The user's master password
+        password: String,
+        /// The user's encrypted symmetric crypto key
+        user_key: String,
+    },
+}
+
+#[cfg(feature = "internal")]
+pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequest) -> Result<()> {
     let login_method = crate::client::LoginMethod::User(crate::client::UserLoginMethod::Username {
         client_id: "".to_string(),
         email: req.email,
@@ -33,18 +42,30 @@ pub async fn initialize_crypto(client: &mut Client, req: InitCryptoRequest) -> R
     });
     client.set_login_method(login_method);
 
-    let user_key = req.user_key.parse::<EncString>()?;
-    let private_key = req.private_key.parse::<EncString>()?;
+    let private_key: EncString = req.private_key.parse()?;
 
-    client.initialize_user_crypto(&req.password, user_key, private_key)?;
+    match req.method {
+        InitUserCryptoMethod::Password { password, user_key } => {
+            let user_key: EncString = user_key.parse()?;
+            client.initialize_user_crypto(&password, user_key, private_key)?;
+        }
+    }
 
-    let organization_keys = req
-        .organization_keys
-        .into_iter()
-        .map(|(k, v)| Ok((k, v.parse::<EncString>()?)))
-        .collect::<Result<Vec<_>>>()?;
+    Ok(())
+}
 
+#[cfg(feature = "internal")]
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+pub struct InitOrgCryptoRequest {
+    /// The encryption keys for all the organizations the user is a part of
+    pub organization_keys: HashMap<uuid::Uuid, EncString>,
+}
+
+#[cfg(feature = "internal")]
+pub async fn initialize_org_crypto(client: &mut Client, req: InitOrgCryptoRequest) -> Result<()> {
+    let organization_keys = req.organization_keys.into_iter().collect();
     client.initialize_org_crypto(organization_keys)?;
-
     Ok(())
 }

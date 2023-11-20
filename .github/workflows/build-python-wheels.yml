@@ -99,8 +99,8 @@ jobs:
           manylinux: auto
           working-directory: ${{ github.workspace }}/languages/python
           before-script-linux: |
-            sudo apt update
-            sudo apt-get install libssl-dev -y
+            apt-get update
+            apt-get install libssl-dev -y
             export AARCH64_UNKNOWN_LINUX_GNU_OPENSSL_LIB_DIR=/usr/lib/aarch64-linux-gnu
             export X86_64_UNKNOWN_LINUX_GNU_OPENSSL_LIB_DIR=/usr/lib/x86_64-linux-gnu
 

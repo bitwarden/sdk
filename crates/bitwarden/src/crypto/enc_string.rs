@@ -337,13 +337,8 @@ impl EncString {
         mac_key: GenericArray<u8, U32>,
         key: GenericArray<u8, U32>,
     ) -> Result<EncString> {
-        let enc = super::encrypt_aes256_hmac(data_dec, mac_key, key)?;
-
-        Ok(EncString::AesCbc256_HmacSha256_B64 {
-            iv: enc.0,
-            mac: enc.1,
-            data: enc.2,
-        })
+        let (iv, mac, data) = super::encrypt_aes256_hmac(data_dec, mac_key, key)?;
+        Ok(EncString::AesCbc256_HmacSha256_B64 { iv, mac, data })
     }
 
     /// The numerical representation of the encryption type of the [EncString].

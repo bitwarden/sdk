@@ -115,9 +115,8 @@ jobs:
           working-directory: ${{ github.workspace }}/languages/python
           docker-options: -e __ARM_ARCH=armv8-a
           before-script-linux: |
-            yum install -y clang dbus-devel gtk3-devel libnotify-devel \
-              libgnome-keyring-devel libcap-devel \
-              cups-devel libXtst-devel python-dbusmock
+            apt update
+            apt install -y qemu-user gcc-aarch64-linux-gnu libc6-dev-arm64-cross
 
       - name: Upload artifact
         uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3

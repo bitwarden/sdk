@@ -96,12 +96,11 @@ jobs:
         shell: pwsh
         run: |
           # ring crate: add Visual Studio Build Tools "VS 2022 C++ ARM64 build tools" and "clang" components
-          $env:Path += ";C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\Llvm\x64\bin"
+          $env:Path += ";C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\x64\bin
           echo 'Output PowerShell PATH'
           $env:Path
           echo 'Checking if build tools exist'
-          Get-ChildItem -Recurse "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\Llvm\x64\bin"
-          exit 1 # fail because we are testing
+          Get-ChildItem -Recurse "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\x64\bin"
 
       - name: Build wheels
         uses: PyO3/maturin-action@b9e8f88fd4448fdecf5095864cdc7e39a544aa9f # v1.40.7

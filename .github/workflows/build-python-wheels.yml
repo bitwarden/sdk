@@ -110,7 +110,7 @@ jobs:
         with:
           target: ${{ matrix.settings.target }}
           args: --release --find-interpreter --sdist
-          sccache: 'true'
+          sccache: 'false'
           manylinux: auto
           working-directory: ${{ github.workspace }}/languages/python
 

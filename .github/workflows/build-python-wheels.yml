@@ -100,7 +100,7 @@ jobs:
           echo 'Output PowerShell PATH'
           $env:Path
           echo 'Checking if build tools exist'
-          Get-ChildItem -Recurse "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\x64\bin"
+          Get-ChildItem -Recurse 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\x64\bin'
 
       - name: Build wheels
         uses: PyO3/maturin-action@b9e8f88fd4448fdecf5095864cdc7e39a544aa9f # v1.40.7

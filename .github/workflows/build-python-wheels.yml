@@ -96,7 +96,7 @@ jobs:
         shell: pwsh
         run: |
           # ring crate: add Visual Studio Build Tools "VS 2022 C++ ARM64 build tools" and "clang" components
-          $env:Path += ";C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\x64\bin
+          $env:Path += ";C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\x64\bin"
           echo 'Output PowerShell PATH'
           $env:Path
           echo 'Checking if build tools exist'

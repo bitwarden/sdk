@@ -91,19 +91,6 @@ jobs:
           name: schemas.py
           path: ${{ github.workspace }}/languages/python/BitwardenClient/
 
-      - name: Configure aarch64-pc-windows-msvc builder
-        if: ${{ matrix.settings.target == 'aarch64-pc-windows-msvc' }}
-        run: |
-          echo "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\Llvm\x64\bin" >> $GITHUB_PATH
-          echo "RUSTFLAGS=-C target-feature=+crt-static" >> $GITHUB_ENV
-        shell: bash
-
-      # - name: Configure Linux builder
-      #   if: ${{ matrix.settings.target == 'aarch64-unknown-linux-gnu' || 'x86_64-unknown-linux-gnu' }}
-      #   run: |
-      #     echo "TARGET_CC=$(uname -m)-linux-gnu-gcc" >> $GITHUB_ENV
-      #     echo "TARGET_AR=$(uname -m)-linux-gnu-ar" >> $GITHUB_ENV
-
       - name: Build wheels
         uses: PyO3/maturin-action@b9e8f88fd4448fdecf5095864cdc7e39a544aa9f # v1.40.7
         with:
@@ -112,10 +99,6 @@ jobs:
           sccache: 'true'
           manylinux: '2_28'
           working-directory: ${{ github.workspace }}/languages/python
-          docker-options: -e __ARM_ARCH=armv8-a #-e TARGET_CC=$TARGET_CC -e TARGET_AR=$TARGET_AR
-          # before-script-linux: |
-          #   apt update
-          #   apt install -y qemu-user gcc-aarch64-linux-gnu libc6-dev-arm64-cross
 
       - name: Upload artifact
         uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3

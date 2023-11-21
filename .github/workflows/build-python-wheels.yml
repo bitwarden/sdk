@@ -92,7 +92,7 @@ jobs:
           path: ${{ github.workspace }}/languages/python/BitwardenClient/
 
       - name: Setup Windows ARM64
-        if: ${{ contains(matrix.build, 'windows-msvc-arm64') }}
+        if: ${{ matrix.settings.target == 'aarch64-pc-windows-msvc' }}
         run: |
           # ring crate: add Visual Studio Build Tools "VS 2022 C++ ARM64 build tools" and "clang" components
           $env:Path += ";C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\x64\bin"

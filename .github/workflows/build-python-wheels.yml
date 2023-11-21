@@ -58,7 +58,11 @@ jobs:
 
           - os: windows-2022
             target: aarch64-pc-windows-msvc
-            shell: bash
+            build: |
+              [Environment]::SetEnvironmentVariable(
+                "Path",
+                [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::Machine) + ";C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\x64\bin",
+                [EnvironmentVariableTarget]::Machine)
 
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu

@@ -98,9 +98,9 @@ jobs:
           # ring crate: add Visual Studio Build Tools "VS 2022 C++ ARM64 build tools" and "clang" components
           $env:Path += ";C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\Llvm\x64\bin"
           echo 'Output PowerShell PATH'
-          pwsh -c '$env:Path'
+          $env:Path
           echo 'Checking if build tools exist'
-          bash -c 'ls -halR 'C:\Program Files *\Microsoft Visual Studio''
+          Get-ChildItem -Recurse "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\Llvm\x64\bin"
           exit 1 # fail because we are testing
 
       - name: Build wheels

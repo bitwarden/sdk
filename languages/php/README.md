@@ -30,22 +30,22 @@ Authorization can be performed using access token like so:
 
 ```php
 $access_token = '<you access token here>';
-$bitwarden_sdk = new \Bitwarden\Sdk\BitwardenClient($client_settings);
-$result = $bitwarden_sdk->authorize($access_token);
+$bitwarden_client = new \Bitwarden\Sdk\BitwardenClient($client_settings);
+$result = $bitwarden_client->access_token_login($access_token);
 ```
 
 After successful authorization you can interact with client to manage your projects and secrets.
 ```php
 // get project
-$res = $bitwarden_sdk->client->get("00056058-cc70-4cd2-baea-b0810134a729");
+$res = $bitwarden_client->client->get("00056058-cc70-4cd2-baea-b0810134a729");
 // list projects
-$res = $bitwarden_sdk->client->list('5688da1f-cc25-41d7-bb9f-b0740144ef1d');
+$res = $bitwarden_client->client->list('5688da1f-cc25-41d7-bb9f-b0740144ef1d');
 // create project
-$res = $bitwarden_sdk->client->create('php project', '5688da1f-cc25-41d7-bb9f-b0740144ef1d');
+$res = $bitwarden_client->client->create('php project', '5688da1f-cc25-41d7-bb9f-b0740144ef1d');
 // update project
-$res = $bitwarden_sdk->client->put('920fe206-ab3b-429d-a4b7-b0ac00e17acf', 'php project awesome', '5688da1f-cc25-41d7-bb9f-b0740144ef1d');
+$res = $bitwarden_client->client->put('920fe206-ab3b-429d-a4b7-b0ac00e17acf', 'php project awesome', '5688da1f-cc25-41d7-bb9f-b0740144ef1d');
 // delete project
-$res = $bitwarden_sdk->client->delete(['920fe206-ab3b-429d-a4b7-b0ac00e17acf']);
+$res = $bitwarden_client->client->delete(['920fe206-ab3b-429d-a4b7-b0ac00e17acf']);
 ```
 
 Similarly, you interact with secrets:

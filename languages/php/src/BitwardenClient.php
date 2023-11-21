@@ -26,10 +26,6 @@ class BitwardenClient
     public function __construct(ClientSettings $clientSettings)
     {
         $this->clientSettings = $clientSettings;
-        $this->clientSettings->apiUrl = getenv('API_URL') ?: 'https://api.bitwarden.com';
-        $this->clientSettings->identityUrl = getenv('IDENTITY_URL') ?: 'https://identity.bitwarden.com';
-        $this->clientSettings->userAgent = getenv('USER_AGENT') ?: 'SDK';
-        $this->clientSettings->deviceType = getenv('DEVICE_TYPE') ?: 'SDK';
 
         $this->bitwarden_lib = new BitwardenLib();
         $this->handle = $this->bitwarden_lib->init($this->clientSettings);
@@ -42,10 +38,10 @@ class BitwardenClient
     /**
      * @throws \Exception
      */
-    public function authorize(string $accessTokenLogin)
+    public function access_token_login(string $access_token)
     {
         $access_token_request = new AccessTokenLoginRequest();
-        $access_token_request->accessToken = $accessTokenLogin;
+        $access_token_request->accessToken = $access_token;
         $command = new Command();
         $command->accessTokenLogin = $access_token_request->jsonSerialize();
         $result = $this->commandRunner->run($command);

@@ -97,7 +97,7 @@ jobs:
           target: ${{ matrix.settings.target }}
           args: --release --find-interpreter --sdist
           sccache: 'true'
-          manylinux: '2_28'
+          manylinux: '2_28' # https://github.com/pola-rs/polars/pull/12211
           working-directory: ${{ github.workspace }}/languages/python
 
       - name: Upload artifact

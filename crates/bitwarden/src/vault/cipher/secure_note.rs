@@ -1,11 +1,9 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use uuid::Uuid;
 
 use crate::{
-    client::encryption_settings::EncryptionSettings,
-    crypto::{Decryptable, Encryptable},
+    crypto::{KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
     error::Result,
 };
 
@@ -30,16 +28,16 @@ pub struct SecureNoteView {
     r#type: SecureNoteType,
 }
 
-impl Encryptable<SecureNote> for SecureNoteView {
-    fn encrypt(self, _enc: &EncryptionSettings, _org_id: &Option<Uuid>) -> Result<SecureNote> {
+impl KeyEncryptable<SecureNote> for SecureNoteView {
+    fn encrypt_with_key(self, _key: &SymmetricCryptoKey) -> Result<SecureNote> {
         Ok(SecureNote {
             r#type: self.r#type,
         })
     }
 }
 
-impl Decryptable<SecureNoteView> for SecureNote {
-    fn decrypt(&self, _enc: &EncryptionSettings, _org_id: &Option<Uuid>) -> Result<SecureNoteView> {
+impl KeyDecryptable<SecureNoteView> for SecureNote {
+    fn decrypt_with_key(&self, _key: &SymmetricCryptoKey) -> Result<SecureNoteView> {
         Ok(SecureNoteView {
             r#type: self.r#type,
         })

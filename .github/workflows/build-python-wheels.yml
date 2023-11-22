@@ -57,7 +57,7 @@ jobs:
             target: x86_64-pc-windows-msvc
 
           - os: windows-2022
-            target: windows-msvc-arm64
+            target: aarch64-pc-windows-msvc
 
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
@@ -75,11 +75,19 @@ jobs:
           node-version: 18
 
       - name: Install rust
+        if: ${{ matrix.settings.target != 'aarch64-pc-windows-msvc' }}
         uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # stable
         with:
           toolchain: stable
           targets: ${{ matrix.settings.target }}
 
+      - name: Install rust
+        if: ${{ matrix.settings.target == 'aarch64-pc-windows-msvc' }}
+        uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.settings.target }},x86_64-pc-windows-msvc
+  
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@3cf7f8cc28d1b4e7d01e3783be10a97d55d483c8 # v2.7.1
         with:
@@ -92,17 +100,14 @@ jobs:
           path: ${{ github.workspace }}/languages/python/BitwardenClient/
 
       - name: Setup Windows ARM64
-        if: ${{ matrix.settings.target == 'windows-msvc-arm64' }}
+        if: ${{ matrix.settings.target == 'aarch64-pc-windows-msvc' }}
         shell: pwsh
         run: |
           # ring crate: add Visual Studio Build Tools "VS 2022 C++ ARM64 build tools" and "clang" components
           $env:Path += ";C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\x64\bin"
-          echo 'Output PowerShell PATH'
-          $env:Path
-          echo 'Checking if build tools exist'
-          Get-ChildItem -Recurse 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\x64\bin'
 
       - name: Build wheels
+        if: ${{ matrix.settings.target != 'aarch64-pc-windows-msvc' }}
         uses: PyO3/maturin-action@b9e8f88fd4448fdecf5095864cdc7e39a544aa9f # v1.40.7
         with:
           target: ${{ matrix.settings.target }}
@@ -111,6 +116,16 @@ jobs:
           manylinux: '2_28' # https://github.com/pola-rs/polars/pull/12211
           working-directory: ${{ github.workspace }}/languages/python
 
+      - name: Build wheels
+        if: ${{ matrix.settings.target == 'aarch64-pc-windows-msvc' }}
+        uses: PyO3/maturin-action@b9e8f88fd4448fdecf5095864cdc7e39a544aa9f # v1.40.7
+        with:
+          target: 'win32'
+          args: --release --find-interpreter --sdist
+          sccache: 'true'
+          manylinux: '2_28' # https://github.com/pola-rs/polars/pull/12211
+          working-directory: ${{ github.workspace }}/languages/python
+    
       - name: Upload artifact
         uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
         with:

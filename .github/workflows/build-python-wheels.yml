@@ -8,7 +8,6 @@
         - "master"
         - "rc"
         - "hotfix-rc"
-        - "SM-989-create-build-and-publish-pipelines-for-the-python-language-wrapper" # TODO: remove this
     workflow_dispatch:
   
   defaults:
@@ -118,6 +117,6 @@
           if: ${{ matrix.settings.target == 'x86_64-unknown-linux-gnu' }} # we only need one sdist
           uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
           with:
-            name: BitwardenClient-${{ env._PACKAGE_VERSION }}-${{ matrix.settings.target }}
+            name: BitwardenClient-${{ env._PACKAGE_VERSION }}-sdist
             path: ${{ github.workspace }}/target/wheels/BitwardenClient-*.tar.gz
   

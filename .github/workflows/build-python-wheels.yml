@@ -107,20 +107,9 @@ jobs:
           $env:Path += ";C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\x64\bin"
 
       - name: Build wheels
-        if: ${{ matrix.settings.target != 'aarch64-pc-windows-msvc' }}
         uses: PyO3/maturin-action@b9e8f88fd4448fdecf5095864cdc7e39a544aa9f # v1.40.7
         with:
           target: ${{ matrix.settings.target }}
-          args: --release --find-interpreter --sdist
-          sccache: 'true'
-          manylinux: '2_28' # https://github.com/pola-rs/polars/pull/12211
-          working-directory: ${{ github.workspace }}/languages/python
-
-      - name: Build wheels
-        if: ${{ matrix.settings.target == 'aarch64-pc-windows-msvc' }}
-        uses: PyO3/maturin-action@b9e8f88fd4448fdecf5095864cdc7e39a544aa9f # v1.40.7
-        with:
-          target: ${{ matrix.settings.target }} x86_64-pc-windows-msvc
           args: --release --find-interpreter --sdist
           sccache: 'true'
           manylinux: '2_28' # https://github.com/pola-rs/polars/pull/12211

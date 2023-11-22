@@ -136,13 +136,19 @@ struct ContentView: View {
 
             ///////////////////////////// Initialize crypto /////////////////////////////
 
-            try await client.crypto().initializeCrypto(
-                req: InitCryptoRequest(
+            try await client.crypto().initializeUserCrypto(
+                req: InitUserCryptoRequest(
                     kdfParams: kdf,
                     email: EMAIL,
-                    password: PASSWORD,
-                    userKey: loginData.Key,
                     privateKey: loginData.PrivateKey,
+                    method: InitUserCryptoMethod.password(
+                        password: PASSWORD,
+                        userKey: loginData.Key
+                    )
+                ))
+            
+            try await client.crypto().initializeOrgCrypto(
+                req: InitOrgCryptoRequest(
                     organizationKeys: Dictionary.init(
                         uniqueKeysWithValues: syncData.profile.organizations.map { ($0.id, $0.key) }
                     )

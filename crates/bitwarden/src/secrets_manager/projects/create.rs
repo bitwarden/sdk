@@ -4,7 +4,11 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::ProjectResponse;
-use crate::{client::Client, error::Result};
+use crate::{
+    client::Client,
+    crypto::KeyEncryptable,
+    error::{Error, Result},
+};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -19,12 +23,13 @@ pub(crate) async fn create_project(
     client: &mut Client,
     input: &ProjectCreateRequest,
 ) -> Result<ProjectResponse> {
-    let enc = client.get_encryption_settings()?;
-
-    let org_id = Some(input.organization_id);
+    let key = client
+        .get_encryption_settings()?
+        .get_key(&Some(input.organization_id))
+        .ok_or(Error::VaultLocked)?;
 
     let project = Some(ProjectCreateRequestModel {
-        name: enc.encrypt(input.name.as_bytes(), &org_id)?.to_string(),
+        name: input.name.clone().encrypt_with_key(key)?.to_string(),
     });
 
     let config = client.get_api_configurations().await;

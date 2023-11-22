@@ -1,10 +1,11 @@
 pub(super) mod api;
-#[cfg(feature = "internal")]
 pub mod client_auth;
+mod jwt_token;
 pub mod login;
 #[cfg(feature = "internal")]
 pub mod password;
 pub mod renew;
+pub use jwt_token::JWTToken;
 
 #[cfg(feature = "internal")]
 mod register;

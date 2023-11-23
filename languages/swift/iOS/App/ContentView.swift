@@ -8,6 +8,14 @@
 import BitwardenSdk
 import SwiftUI
 
+/**
+ *   IMPORTANT: This file is provided only for the purpose of demostrating the use of the SDK functionality.
+ *   It hasn't gone through a throrough security review and should not be considered production ready. It also doesn't 
+ *   handle a lot of errors and edge cases that a production application would need to deal with. 
+ *   Developers are encouraged to review and improve the code as needed to meet their security requirements. 
+ *   Additionally, we recommend to consult with security experts and conduct thorough testing before using the code in production.
+ */
+
 let SERVER_URL = "https://localhost:8080/"
 let API_URL = SERVER_URL + "api/"
 let IDENTITY_URL = SERVER_URL + "identity/"

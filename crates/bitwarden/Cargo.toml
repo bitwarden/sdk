@@ -33,6 +33,7 @@ bitwarden-api-identity = { path = "../bitwarden-api-identity", version = "=0.2.2
 cbc = { version = ">=0.1.2, <0.2", features = ["alloc"] }
 chrono = { version = ">=0.4.26, <0.5", features = [
     "serde",
+    "std",
 ], default-features = false }
 # We don't use this directly (it's used by rand), but we need it here to enable WASM support
 getrandom = { version = ">=0.2.9", features = ["js"] }

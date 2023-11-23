@@ -233,7 +233,7 @@ impl Client {
             user_key,
             private_key,
         )?);
-        Ok(self.encryption_settings.as_ref().unwrap())
+        Ok(self.encryption_settings.as_ref().expect("It was initialized on the previous line"))
     }
 
     pub(crate) fn initialize_crypto_single_key(

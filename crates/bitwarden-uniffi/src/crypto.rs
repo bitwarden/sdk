@@ -32,4 +32,17 @@ impl ClientCrypto {
             .initialize_org_crypto(req)
             .await?)
     }
+
+    /// Get the uses's decrypted encryption key. Note: It's very important
+    /// to keep this key safe, as it can be used to decrypt all of the user's data
+    pub async fn get_user_encryption_key(&self) -> Result<String> {
+        Ok(self
+            .0
+             .0
+            .write()
+            .await
+            .crypto()
+            .get_user_encryption_key()
+            .await?)
+    }
 }

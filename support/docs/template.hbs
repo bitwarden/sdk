@@ -1,0 +1,91 @@
+# Bitwarden Mobile SDK
+
+Auto generated documentation for the Bitwarden Mobile SDK. For more information please refer to
+the rust crates `bitwarden` and `bitwarden-uniffi`. For code samples check the
+`languages/kotlin/app` and `languages/swift/app` directories.
+
+{{#each sections}}
+
+## {{name}}
+
+{{#each elements}}
+### `{{name}}`
+{{docs}}
+
+**Arguments**:
+{{#each args}}
+- {{name}}: {{{type}}}
+{{/each}}
+
+**Output**: {{{output}}}
+
+{{/each}}
+{{/each}}
+
+# References
+
+References are generated from the JSON schemas and should mostly match the kotlin and swift
+implementations.
+
+{{#each commands}}
+
+## `{{@key}}`
+
+{{#if oneOf}}
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+{{#each oneOf}}
+{{#each properties}}
+<tr>
+    <th>{{@key}}</th>
+    <th>{{type}}</th>
+    <th></th>
+</tr>
+{{#if properties}}
+<tr>
+    <td colspan="3">
+        <table>
+        <tr>
+            <th>Key</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+        {{#each properties}}
+            <tr>
+                <td>{{@key}}</td>
+                <td>{{type}}</td>
+                <td>{{{description}}}</td>
+            </tr>
+        {{/each}}
+        </table>
+    </td>
+</tr>
+{{/if}}
+{{/each}}
+{{/each}}
+</table>
+
+{{/if}}
+
+{{#unless oneOf}}
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+{{#each properties}}
+<tr>
+    <th>{{@key}}</th>
+    <th>{{type}}</th>
+    <th>{{description}}</th>
+</tr>
+{{/each}}
+</table>
+{{/unless}}
+
+{{/each}}

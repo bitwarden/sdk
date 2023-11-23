@@ -3,10 +3,21 @@
     "bindgen",
     "Bitwarden",
     "Cdecl",
+    "chrono",
     "cloc",
+    "decryptable",
     "dylib",
+    "encryptable",
     "Hkdf",
+    "Hmac",
     "Maybeable",
+    "Oaep",
+    "Pbkdf",
+    "PKCS8",
+    "repr",
+    "reqwest",
+    "schemars",
+    "uniffi",
     "wordlist"
   ]
 }

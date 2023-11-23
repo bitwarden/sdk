@@ -9,7 +9,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "buildCsharp",
-      "program": "${workspaceFolder}/languages/csharp/bin/Debug/net6.0/bitwardenSdk.dll",
+      "program": "${workspaceFolder}/languages/csharp/Bitwarden.Sdk/bin/Debug/net6.0/BitwardenSdk.dll",
       "args": [],
       "env": {
         "RUST_LOG": "debug"
@@ -38,6 +38,20 @@
         }
       },
       "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "bw login",
+      "cargo": {
+        "args": ["build", "--package=bw"],
+        "filter": {
+          "name": "bw",
+          "kind": "bin"
+        }
+      },
+      "args": ["login", "api-key", "--server", "https://localhost:8080"],
       "cwd": "${workspaceFolder}"
     }
   ]

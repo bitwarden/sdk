@@ -1,0 +1,25 @@
+---
+name: Delete old packages
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  delete:
+    name: Cleanup Android SDK
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/delete-package-versions@0d39a63126868f5eefaa47169615edd3c0f61e20 # v4.1.1
+        with:
+          package-name: com.bitwarden.sdk-android
+          package-type: maven
+          min-versions-to-keep: 25
+
+          # Ignore versions only containing version numbers
+          ignore-versions: '^\\d*\\.\\d*\\.\\d*(-SNAPSHOT)?$'

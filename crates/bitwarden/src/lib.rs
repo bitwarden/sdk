@@ -12,11 +12,11 @@
 //!
 //! # Basic setup
 //!
-//! All operations in this crate are done via a [Client](crate::client::Client):
+//! All operations in this crate are done via a [Client]:
 //!
 //! ```rust
 //! use bitwarden::{
-//!     auth::request::AccessTokenLoginRequest,
+//!     auth::login::AccessTokenLoginRequest,
 //!     client::client_settings::{ClientSettings, DeviceType},
 //!     error::Result,
 //!     secrets_manager::secrets::SecretIdentifiersRequest,
@@ -39,7 +39,7 @@
 //!
 //!     // Before we operate, we need to authenticate with a token
 //!     let token = AccessTokenLoginRequest { access_token: String::from("") };
-//!     client.access_token_login(&token).await.unwrap();
+//!     client.auth().login_access_token(&token).await.unwrap();
 //!
 //!     let org_id = SecretIdentifiersRequest { organization_id: Uuid::parse_str("00000000-0000-0000-0000-000000000000").unwrap() };
 //!     println!("Stored secrets: {:#?}", client.secrets().list(&org_id).await.unwrap());
@@ -47,6 +47,9 @@
 //! }
 //! ```
 //!
+
+#[cfg(feature = "mobile")]
+uniffi::setup_scaffolding!();
 
 pub mod auth;
 pub mod client;
@@ -58,6 +61,10 @@ pub mod mobile;
 pub mod platform;
 #[cfg(feature = "secrets")]
 pub mod secrets_manager;
+#[cfg(feature = "mobile")]
+pub mod tool;
+#[cfg(feature = "mobile")]
+pub(crate) mod uniffi_support;
 mod util;
 #[cfg(feature = "mobile")]
 pub mod vault;

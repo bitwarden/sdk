@@ -1,12 +1,9 @@
+use super::client_vault::ClientVault;
 use crate::{
     crypto::{Decryptable, Encryptable},
     error::Result,
+    vault::{Folder, FolderView},
     Client,
-};
-
-use super::{
-    client_vault::ClientVault, FolderDecryptListRequest, FolderDecryptListResponse,
-    FolderDecryptRequest, FolderDecryptResponse, FolderEncryptRequest, FolderEncryptResponse,
 };
 
 pub struct ClientFolders<'a> {
@@ -14,31 +11,28 @@ pub struct ClientFolders<'a> {
 }
 
 impl<'a> ClientFolders<'a> {
-    pub async fn encrypt(&self, req: FolderEncryptRequest) -> Result<FolderEncryptResponse> {
+    pub async fn encrypt(&self, folder_view: FolderView) -> Result<Folder> {
         let enc = self.client.get_encryption_settings()?;
 
-        let folder = req.folder.encrypt(enc, &None)?;
+        let folder = folder_view.encrypt(enc, &None)?;
 
-        Ok(FolderEncryptResponse { folder })
+        Ok(folder)
     }
 
-    pub async fn decrypt(&self, req: FolderDecryptRequest) -> Result<FolderDecryptResponse> {
+    pub async fn decrypt(&self, folder: Folder) -> Result<FolderView> {
         let enc = self.client.get_encryption_settings()?;
 
-        let folder = req.folder.decrypt(enc, &None)?;
+        let folder_view = folder.decrypt(enc, &None)?;
 
-        Ok(FolderDecryptResponse { folder })
+        Ok(folder_view)
     }
 
-    pub async fn decrypt_list(
-        &self,
-        req: FolderDecryptListRequest,
-    ) -> Result<FolderDecryptListResponse> {
+    pub async fn decrypt_list(&self, folders: Vec<Folder>) -> Result<Vec<FolderView>> {
         let enc = self.client.get_encryption_settings()?;
 
-        let folders = req.folders.decrypt(enc, &None)?;
+        let views = folders.decrypt(enc, &None)?;
 
-        Ok(FolderDecryptListResponse { folders })
+        Ok(views)
     }
 }
 

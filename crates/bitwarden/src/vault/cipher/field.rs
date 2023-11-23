@@ -2,12 +2,15 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::crypto::CipherString;
-
 use super::linked_id::LinkedIdType;
+use crate::{
+    crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
+    error::Result,
+};
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum FieldType {
     Text = 0,
     Hidden = 1,
@@ -17,9 +20,10 @@ pub enum FieldType {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Field {
-    name: CipherString,
-    value: CipherString,
+    name: Option<EncString>,
+    value: Option<EncString>,
     r#type: FieldType,
 
     linked_id: Option<LinkedIdType>,
@@ -27,10 +31,33 @@ pub struct Field {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct FieldView {
-    name: String,
-    value: String,
+    name: Option<String>,
+    value: Option<String>,
     r#type: FieldType,
 
     linked_id: Option<LinkedIdType>,
+}
+
+impl KeyEncryptable<Field> for FieldView {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Field> {
+        Ok(Field {
+            name: self.name.encrypt_with_key(key)?,
+            value: self.value.encrypt_with_key(key)?,
+            r#type: self.r#type,
+            linked_id: self.linked_id,
+        })
+    }
+}
+
+impl KeyDecryptable<FieldView> for Field {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<FieldView> {
+        Ok(FieldView {
+            name: self.name.decrypt_with_key(key)?,
+            value: self.value.decrypt_with_key(key)?,
+            r#type: self.r#type,
+            linked_id: self.linked_id,
+        })
+    }
 }

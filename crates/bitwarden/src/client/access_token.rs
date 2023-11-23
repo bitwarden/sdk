@@ -4,7 +4,8 @@ use base64::Engine;
 use uuid::Uuid;
 
 use crate::{
-    client::encryption_settings::SymmetricCryptoKey, error::AccessTokenInvalidError,
+    crypto::{derive_shareable_key, SymmetricCryptoKey},
+    error::AccessTokenInvalidError,
     util::BASE64_ENGINE,
 };
 
@@ -31,7 +32,9 @@ impl FromStr for AccessToken {
             return Err(AccessTokenInvalidError::WrongVersion.into());
         }
 
-        let Ok(service_account_id) = service_account_id.parse() else { return Err(AccessTokenInvalidError::InvalidUuid.into()) };
+        let Ok(service_account_id) = service_account_id.parse() else {
+            return Err(AccessTokenInvalidError::InvalidUuid.into());
+        };
 
         let encryption_key = BASE64_ENGINE
             .decode(encryption_key)
@@ -43,10 +46,10 @@ impl FromStr for AccessToken {
             }
         })?;
         let encryption_key =
-            crate::crypto::stretch_key(encryption_key, "accesstoken", Some("sm-access-token"));
+            derive_shareable_key(encryption_key, "accesstoken", Some("sm-access-token"));
 
         Ok(AccessToken {
-            service_account_id: service_account_id,
+            service_account_id,
             client_secret: client_secret.to_owned(),
             encryption_key,
         })

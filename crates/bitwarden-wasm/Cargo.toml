@@ -11,7 +11,7 @@ crate-type = ["cdylib"]
 [dependencies]
 js-sys = "0.3.63"
 serde = {version = "1.0.163", features = ["derive"] }
-wasm-bindgen = { version = "0.2.86", features = ["serde-serialize"] }
+wasm-bindgen = { version = "=0.2.87", features = ["serde-serialize"] }
 wasm-bindgen-futures = "0.4.36"
 console_error_panic_hook = "0.1.7"
 console_log = { version = "1.0.0", features = ["color"] }

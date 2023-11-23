@@ -9,12 +9,11 @@ mod renew_token_request;
 pub(crate) use access_token_request::*;
 #[cfg(feature = "internal")]
 pub(crate) use api_token_request::*;
+use base64::Engine;
 #[cfg(feature = "internal")]
 pub(crate) use password_token_request::*;
 #[cfg(feature = "internal")]
 pub(crate) use renew_token_request::*;
-
-use base64::Engine;
 
 use crate::{
     auth::api::response::{parse_identity_response, IdentityTokenResponse},
@@ -58,5 +57,5 @@ async fn send_identity_connect_request(
     let status = response.status();
     let text = response.text().await?;
 
-    parse_identity_response(status, &text)
+    parse_identity_response(status, text)
 }

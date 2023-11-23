@@ -1,17 +1,11 @@
 use bitwarden::client::client_settings::ClientSettings;
 
+#[cfg(feature = "secrets")]
+use crate::command::{ProjectsCommand, SecretsCommand};
 use crate::{
     command::Command,
     response::{Response, ResponseIntoString},
 };
-
-#[cfg(feature = "secrets")]
-use crate::command::{ProjectsCommand, SecretsCommand};
-
-#[cfg(all(feature = "internal", feature = "mobile"))]
-use crate::command::MobileCryptoCommand;
-#[cfg(feature = "mobile")]
-use crate::command::{MobileCommand, MobileFoldersCommand, MobileKdfCommand, MobileVaultCommand};
 
 pub struct Client(bitwarden::Client);
 
@@ -52,13 +46,15 @@ impl Client {
 
         match cmd {
             #[cfg(feature = "internal")]
-            Command::PasswordLogin(req) => self.0.password_login(&req).await.into_string(),
+            Command::PasswordLogin(req) => self.0.auth().login_password(&req).await.into_string(),
             #[cfg(feature = "secrets")]
-            Command::AccessTokenLogin(req) => self.0.access_token_login(&req).await.into_string(),
+            Command::AccessTokenLogin(req) => {
+                self.0.auth().login_access_token(&req).await.into_string()
+            }
             #[cfg(feature = "internal")]
             Command::GetUserApiKey(req) => self.0.get_user_api_key(&req).await.into_string(),
             #[cfg(feature = "internal")]
-            Command::ApiKeyLogin(req) => self.0.api_key_login(&req).await.into_string(),
+            Command::ApiKeyLogin(req) => self.0.auth().login_api_key(&req).await.into_string(),
             #[cfg(feature = "internal")]
             Command::Sync(req) => self.0.sync(&req).await.into_string(),
             #[cfg(feature = "internal")]
@@ -67,6 +63,9 @@ impl Client {
             #[cfg(feature = "secrets")]
             Command::Secrets(cmd) => match cmd {
                 SecretsCommand::Get(req) => self.0.secrets().get(&req).await.into_string(),
+                SecretsCommand::GetByIds(req) => {
+                    self.0.secrets().get_by_ids(req).await.into_string()
+                }
                 SecretsCommand::Create(req) => self.0.secrets().create(&req).await.into_string(),
                 SecretsCommand::List(req) => self.0.secrets().list(&req).await.into_string(),
                 SecretsCommand::Update(req) => self.0.secrets().update(&req).await.into_string(),
@@ -80,38 +79,6 @@ impl Client {
                 ProjectsCommand::List(req) => self.0.projects().list(&req).await.into_string(),
                 ProjectsCommand::Update(req) => self.0.projects().update(&req).await.into_string(),
                 ProjectsCommand::Delete(req) => self.0.projects().delete(req).await.into_string(),
-            },
-
-            #[cfg(feature = "mobile")]
-            Command::Mobile(cmd) => match cmd {
-                MobileCommand::Kdf(cmd) => match cmd {
-                    MobileKdfCommand::HashPassword(req) => {
-                        self.0.kdf().hash_password(req).await.into_string()
-                    }
-                },
-                MobileCommand::Crypto(cmd) => match cmd {
-                    #[cfg(feature = "internal")]
-                    MobileCryptoCommand::InitCrypto(req) => {
-                        self.0.crypto().initialize_crypto(req).await.into_string()
-                    }
-                },
-                MobileCommand::Vault(cmd) => match cmd {
-                    MobileVaultCommand::Folders(cmd) => match cmd {
-                        MobileFoldersCommand::Encrypt(cmd) => {
-                            self.0.vault().folders().encrypt(cmd).await.into_string()
-                        }
-                        MobileFoldersCommand::Decrypt(cmd) => {
-                            self.0.vault().folders().decrypt(cmd).await.into_string()
-                        }
-                        MobileFoldersCommand::DecryptList(cmd) => self
-                            .0
-                            .vault()
-                            .folders()
-                            .decrypt_list(cmd)
-                            .await
-                            .into_string(),
-                    },
-                },
             },
         }
     }

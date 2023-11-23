@@ -34,16 +34,16 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@0e66bd3e6b38ec0ad5312288c83e47c143e6b09e # stable
+        uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # stable
         with:
           toolchain: stable
           targets: ${{ matrix.settings.target }}
 
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@dd05243424bd5c0e585e4b55eb2d7615cdd32f1f # v2.5.1
+        uses: Swatinem/rust-cache@3cf7f8cc28d1b4e7d01e3783be10a97d55d483c8 # v2.7.1
 
       - name: Build
         run: cargo build -p ${{ matrix.package }} --release
@@ -59,24 +59,24 @@ jobs:
   release-dry-run:
     name: Release dry-run
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'ref/head/master' || github.ref == 'ref/head/rc' || github.ref == 'ref/head/hotfix-rc' }}
+    if: ${{ github.ref == 'refs/head/master' || github.ref == 'refs/head/rc' || github.ref == 'refs/head/hotfix-rc' }}
     needs:
       - build
     steps:
       - name: Checkout
-        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@0e66bd3e6b38ec0ad5312288c83e47c143e6b09e # stable
+        uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # stable
         with:
           toolchain: stable
           targets: ${{ matrix.settings.target }}
 
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@dd05243424bd5c0e585e4b55eb2d7615cdd32f1f # v2.5.1
+        uses: Swatinem/rust-cache@3cf7f8cc28d1b4e7d01e3783be10a97d55d483c8 # v2.7.1
 
       - name: Install cargo-release
         run: cargo install cargo-release
 
       - name: Cargo release dry run
-        run: cargo-release release publish -p bitwarden-api-api -p bitwarden-api-identity -p bitwarden
+        run: cargo-release release publish --no-publish -p bitwarden-api-api -p bitwarden-api-identity -p bitwarden

@@ -1,14 +1,17 @@
-use crate::{error::Result, Client};
-
-use super::kdf::{hash_password, PasswordHashRequest};
+use crate::{client::kdf::Kdf, error::Result, mobile::kdf::hash_password, Client};
 
 pub struct ClientKdf<'a> {
     pub(crate) client: &'a crate::Client,
 }
 
 impl<'a> ClientKdf<'a> {
-    pub async fn hash_password(&self, req: PasswordHashRequest) -> Result<String> {
-        hash_password(self.client, req).await
+    pub async fn hash_password(
+        &self,
+        email: String,
+        password: String,
+        kdf_params: Kdf,
+    ) -> Result<String> {
+        hash_password(self.client, email, password, kdf_params).await
     }
 }
 

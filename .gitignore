@@ -18,6 +18,9 @@ bld/
 [Oo]bj/
 *.wasm
 
+# Editor directories and files
+.idea
+xcuserdata/
 
 # Added by cargo
 #
@@ -27,6 +30,9 @@ bld/
 node_modules/
 clients/python/env/
 
+# Third party license
+THIRDPARTY.html
+
 # Node.js addon binary file, for the current running operating system.
 crates/bitwarden-napi/sdk-napi.*.node
 
@@ -34,10 +40,18 @@ crates/bitwarden-napi/sdk-napi.*.node
 crates/bitwarden-napi/dist
 languages/js/sdk-client/dist/
 
+# Uniffi
+languages/swift/BitwardenFFI.xcframework
+languages/swift/tmp
+languages/swift/.build
+languages/swift/.swiftpm
+languages/kotlin/sdk/src/main/java/com/bitwarden/sdk/bitwarden_uniffi.kt
+languages/kotlin/sdk/src/main/java/com/bitwarden/core/bitwarden.kt
+
 # Schemas
 support/schemas
 crates/bitwarden-napi/src-ts/bitwarden_client/schemas.ts
-languages/csharp/schemas.cs
+languages/csharp/Bitwarden.Sdk/schemas.cs
 languages/js_webassembly/bitwarden_client/schemas.ts
 languages/js/sdk-client/src/schemas.ts
 languages/python/BitwardenClient/schemas.py

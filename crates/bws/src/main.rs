@@ -1,7 +1,7 @@
 use std::{path::PathBuf, process, str::FromStr};
 
 use bitwarden::{
-    auth::request::AccessTokenLoginRequest,
+    auth::login::AccessTokenLoginRequest,
     client::{client_settings::ClientSettings, AccessToken},
     secrets_manager::{
         projects::{
@@ -10,11 +10,12 @@ use bitwarden::{
         },
         secrets::{
             SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
-            SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest,
+            SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest, SecretsGetRequest,
         },
     },
 };
 use clap::{ArgGroup, CommandFactory, Parser, Subcommand};
+use clap_complete::Shell;
 use color_eyre::eyre::{bail, Result};
 use log::error;
 
@@ -26,16 +27,16 @@ use render::{serialize_response, Color, Output};
 use uuid::Uuid;
 
 #[derive(Parser, Debug)]
-#[command(name = "Bitwarden Secrets CLI", version, about = "Bitwarden Secrets CLI", long_about = None)]
+#[command(name = "bws", version, about = "Bitwarden Secrets CLI", long_about = None)]
 struct Cli {
     // Optional as a workaround for https://github.com/clap-rs/clap/issues/3572
     #[command(subcommand)]
     command: Option<Commands>,
 
-    #[arg(short = 'o', long, global = true, value_enum, default_value_t = Output::JSON)]
+    #[arg(short = 'o', long, global = true, value_enum, default_value_t = Output::JSON, help="Output format", hide = true)]
     output: Output,
 
-    #[arg(short = 'c', long, global = true, value_enum, default_value_t = Color::Auto)]
+    #[arg(short = 'c', long, global = true, value_enum, default_value_t = Color::Auto, help="Use colors in the output")]
     color: Color,
 
     #[arg(short = 't', long, global = true, env = ACCESS_TOKEN_KEY_VAR_NAME, hide_env_values = true, help="Specify access token for the service account")]
@@ -66,6 +67,10 @@ enum Commands {
         #[arg(short = 'd', long)]
         delete: bool,
     },
+
+    #[command(long_about = "Generate shell completion files")]
+    Completions { shell: Option<Shell> },
+
     #[command(long_about = "Commands available on Projects")]
     Project {
         #[command(subcommand)]
@@ -225,6 +230,7 @@ const ACCESS_TOKEN_KEY_VAR_NAME: &str = "BWS_ACCESS_TOKEN";
 const PROFILE_KEY_VAR_NAME: &str = "BWS_PROFILE";
 const SERVER_URL_KEY_VAR_NAME: &str = "BWS_SERVER_URL";
 
+#[allow(clippy::comparison_chain)]
 async fn process_commands() -> Result<()> {
     let cli = Cli::parse();
 
@@ -240,43 +246,56 @@ async fn process_commands() -> Result<()> {
 
     let Some(command) = cli.command else {
         let mut cmd = Cli::command();
-        cmd.print_help()?;
-        return Ok(());
+        eprintln!("{}", cmd.render_help().ansi());
+        std::process::exit(1);
     };
 
-    // Modify profile commands
-    if let Commands::Config {
-        name,
-        value,
-        delete,
-    } = command
-    {
-        let profile = if let Some(profile) = cli.profile {
-            profile
-        } else if let Some(access_token) = cli.access_token {
-            AccessToken::from_str(&access_token)?
-                .service_account_id
-                .to_string()
-        } else {
-            String::from("default")
-        };
-
-        if delete {
-            config::delete_profile(cli.config_file.as_deref(), profile)?;
-            println!("Profile deleted successfully!");
-        } else {
-            let (name, value) = match (name, value) {
-                (None, None) => bail!("Missing `name` and `value`"),
-                (None, Some(_)) => bail!("Missing `value`"),
-                (Some(_), None) => bail!("Missing `name`"),
-                (Some(name), Some(value)) => (name, value),
+    // These commands don't require authentication, so we process them first
+    match command {
+        Commands::Completions { shell } => {
+            let Some(shell) = shell.or_else(Shell::from_env) else {
+                eprintln!("Couldn't autodetect a valid shell. Run `bws completions --help` for more info.");
+                std::process::exit(1);
             };
 
-            config::update_profile(cli.config_file.as_deref(), profile, name, value)?;
-            println!("Profile updated successfully!");
-        };
+            let mut cmd = Cli::command();
+            let name = cmd.get_name().to_string();
+            clap_complete::generate(shell, &mut cmd, name, &mut std::io::stdout());
+            return Ok(());
+        }
+        Commands::Config {
+            name,
+            value,
+            delete,
+        } => {
+            let profile = if let Some(profile) = cli.profile {
+                profile
+            } else if let Some(access_token) = cli.access_token {
+                AccessToken::from_str(&access_token)?
+                    .service_account_id
+                    .to_string()
+            } else {
+                String::from("default")
+            };
 
-        return Ok(());
+            if delete {
+                config::delete_profile(cli.config_file.as_deref(), profile)?;
+                println!("Profile deleted successfully!");
+            } else {
+                let (name, value) = match (name, value) {
+                    (None, None) => bail!("Missing `name` and `value`"),
+                    (None, Some(_)) => bail!("Missing `value`"),
+                    (Some(_), None) => bail!("Missing `name`"),
+                    (Some(name), Some(value)) => (name, value),
+                };
+
+                config::update_profile(cli.config_file.as_deref(), profile, name, value)?;
+                println!("Profile updated successfully!");
+            };
+
+            return Ok(());
+        }
+        _ => (),
     }
 
     let access_token = match cli.access_token {
@@ -305,9 +324,8 @@ async fn process_commands() -> Result<()> {
 
     // Load session or return if no session exists
     let _ = client
-        .access_token_login(&AccessTokenLoginRequest {
-            access_token: access_token,
-        })
+        .auth()
+        .login_access_token(&AccessTokenLoginRequest { access_token })
         .await?;
 
     let organization_id = match client.get_access_token_organization() {
@@ -328,9 +346,7 @@ async fn process_commands() -> Result<()> {
         } => {
             let projects = client
                 .projects()
-                .list(&ProjectsListRequest {
-                    organization_id: organization_id.clone(),
-                })
+                .list(&ProjectsListRequest { organization_id })
                 .await?
                 .data;
             serialize_response(projects, cli.output, color);
@@ -418,7 +434,7 @@ async fn process_commands() -> Result<()> {
                 eprintln!("{}: {}", project.0, project.1);
             }
 
-            if projects_failed.len() > 0 {
+            if !projects_failed.is_empty() {
                 process::exit(1);
             }
         }
@@ -432,25 +448,21 @@ async fn process_commands() -> Result<()> {
             let res = if let Some(project_id) = project_id {
                 client
                     .secrets()
-                    .list_by_project(&SecretIdentifiersByProjectRequest {
-                        project_id: project_id,
-                    })
+                    .list_by_project(&SecretIdentifiersByProjectRequest { project_id })
                     .await?
             } else {
                 client
                     .secrets()
-                    .list(&SecretIdentifiersRequest {
-                        organization_id: organization_id.clone(),
-                    })
+                    .list(&SecretIdentifiersRequest { organization_id })
                     .await?
             };
 
-            let mut secrets = Vec::new();
-
-            for s in res.data {
-                let secret = client.secrets().get(&SecretGetRequest { id: s.id }).await?;
-                secrets.push(secret);
-            }
+            let secret_ids = res.data.into_iter().map(|e| e.id).collect();
+            let secrets = client
+                .secrets()
+                .get_by_ids(SecretsGetRequest { ids: secret_ids })
+                .await?
+                .data;
             serialize_response(secrets, cli.output, color);
         }
 
@@ -520,9 +532,7 @@ async fn process_commands() -> Result<()> {
         } => {
             let old_secret = client
                 .secrets()
-                .get(&SecretGetRequest {
-                    id: secret_id.clone(),
-                })
+                .get(&SecretGetRequest { id: secret_id })
                 .await?;
 
             let secret = client
@@ -581,12 +591,12 @@ async fn process_commands() -> Result<()> {
                 eprintln!("{}: {}", secret.0, secret.1);
             }
 
-            if secrets_failed.len() > 0 {
+            if !secrets_failed.is_empty() {
                 process::exit(1);
             }
         }
 
-        Commands::Config { .. } => {
+        Commands::Config { .. } | Commands::Completions { .. } => {
             unreachable!()
         }
     }
@@ -598,7 +608,7 @@ fn get_config_profile(
     server_url: &Option<String>,
     profile: &Option<String>,
     config_file: &Option<PathBuf>,
-    access_token: &String,
+    access_token: &str,
 ) -> Result<Option<config::Profile>, color_eyre::Report> {
     let profile = if let Some(server_url) = server_url {
         Some(config::Profile::from_url(server_url)?)

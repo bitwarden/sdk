@@ -1,4 +1,9 @@
 target
-languages
+languages/*
+!/languages/kotlin
+languages/kotlin/*
+!/languages/kotlin/doc.md
 schemas
 /crates/bitwarden-napi/src-ts/bitwarden_client/schemas.ts
+about.hbs
+support/docs/template.hbs

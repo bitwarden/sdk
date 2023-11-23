@@ -19,7 +19,7 @@ repositories {
         api 'net.java.dev.jna:jna-platform:5.12.1'
     }
 
-    description = 'JavaWrapper'
+    description = 'BitwardenSDK'
     java.sourceCompatibility = JavaVersion.VERSION_1_8
 
     publishing {

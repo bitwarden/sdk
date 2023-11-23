@@ -13,7 +13,6 @@ use aes::cipher::{
     BlockEncryptMut, KeyIvInit,
 };
 use hmac::Mac;
-use rand::RngCore;
 use subtle::ConstantTimeEq;
 
 use crate::{

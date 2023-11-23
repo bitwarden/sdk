@@ -42,6 +42,7 @@ pbkdf2 = { version = ">=0.12.1, <0.13", default-features = false }
 argon2 = { version = ">=0.5.0, <0.6", features = [
     "alloc",
 ], default-features = false }
+subtle = ">=2.5.0, <3.0"
 rand = ">=0.8.5, <0.9"
 num-bigint = ">=0.4, <0.5"
 num-traits = ">=0.2.15, <0.3"

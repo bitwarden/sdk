@@ -13,6 +13,7 @@ use aes::cipher::{
     BlockEncryptMut, KeyIvInit,
 };
 use hmac::Mac;
+use subtle::ConstantTimeEq;
 
 use crate::{
     crypto::{PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},
@@ -47,8 +48,8 @@ pub fn decrypt_aes256_hmac(
     mac_key: GenericArray<u8, U32>,
     key: GenericArray<u8, U32>,
 ) -> Result<Vec<u8>> {
-    let res = validate_mac(&mac_key, iv, &data)?;
-    if res != *mac {
+    let res = generate_mac(&mac_key, iv, &data)?;
+    if res.ct_ne(mac).into() {
         return Err(CryptoError::InvalidMac.into());
     }
     decrypt_aes256(iv, data, key)
@@ -83,7 +84,7 @@ pub fn encrypt_aes256_hmac(
 ) -> Result<([u8; 16], [u8; 32], Vec<u8>)> {
     let rng = rand::thread_rng();
     let (iv, data) = encrypt_aes256_internal(rng, data_dec, key);
-    let mac = validate_mac(&mac_key, &iv, &data)?;
+    let mac = generate_mac(&mac_key, &iv, &data)?;
 
     Ok((iv, mac, data))
 }
@@ -106,8 +107,8 @@ fn encrypt_aes256_internal(
     (iv, data)
 }
 
-/// Validate a MAC using HMAC-SHA256.
-fn validate_mac(mac_key: &[u8], iv: &[u8], data: &[u8]) -> Result<[u8; 32]> {
+/// Generate a MAC using HMAC-SHA256.
+fn generate_mac(mac_key: &[u8], iv: &[u8], data: &[u8]) -> Result<[u8; 32]> {
     let mut hmac = PbkdfSha256Hmac::new_from_slice(mac_key).expect("HMAC can take key of any size");
     hmac.update(iv);
     hmac.update(data);
@@ -156,13 +157,13 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_mac() {
+    fn test_generate_mac() {
         let mac_key = generate_vec(16, 0, 16);
 
         let iv = generate_vec(16, 0, 16);
         let data = generate_vec(16, 0, 16);
 
-        let result = validate_mac(&mac_key, &iv, &data);
+        let result = generate_mac(&mac_key, &iv, &data);
 
         assert!(result.is_ok());
         let mac = result.unwrap();

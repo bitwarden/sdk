@@ -2,43 +2,25 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:base",
-    "schedule:weekends",
     ":combinePatchMinorReleases",
     ":dependencyDashboard",
     ":maintainLockFilesWeekly",
     ":prConcurrentLimit10",
     ":rebaseStalePrs",
-    ":separateMajorReleases"
+    ":separateMajorReleases",
+    "group:monorepos",
+    "schedule:weekends"
   ],
   "separateMajorMinor": true,
   "enabledManagers": ["cargo", "github-actions", "npm", "nuget"],
+  "commitMessagePrefix": "[deps]:",
+  "commitMessageTopic": "{{depName}}",
   "packageRules": [
-    {
-      "groupName": "npm minor",
-      "matchManagers": ["npm"],
-      "matchUpdateTypes": ["minor", "patch"]
-    },
-    {
-      "matchManagers": ["cargo"],
-      "matchUpdateTypes": ["patch"],
-      "enabled": false
-    },
-    {
-      "matchManagers": ["cargo"],
-      "matchUpdateTypes": ["minor"],
-      "matchCurrentVersion": ">=1.0.0",
-      "enabled": false
-    },
     {
       "matchManagers": ["cargo"],
       "matchPackagePatterns": ["pyo3*"],
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "pyo3 non-major"
-    },
-    {
-      "groupName": "nuget minor",
-      "matchManagers": ["nuget"],
-      "matchUpdateTypes": ["minor", "patch"]
     },
     {
       "groupName": "gh minor",

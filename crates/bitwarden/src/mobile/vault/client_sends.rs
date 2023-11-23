@@ -2,8 +2,8 @@ use std::path::Path;
 
 use super::client_vault::ClientVault;
 use crate::{
-    crypto::{Decryptable, EncString, Encryptable},
-    error::Result,
+    crypto::{Decryptable, EncString, Encryptable, KeyDecryptable, KeyEncryptable},
+    error::{Error, Result},
     vault::{Send, SendListView, SendView},
     Client,
 };
@@ -43,11 +43,11 @@ impl<'a> ClientSends<'a> {
 
     pub async fn decrypt_buffer(&self, send: Send, encrypted_buffer: &[u8]) -> Result<Vec<u8>> {
         let enc = self.client.get_encryption_settings()?;
-        let enc = Send::get_encryption(&send.key, enc, &None)?;
+        let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
+        let key = Send::get_key(&send.key, key)?;
 
         let buf = EncString::from_buffer(encrypted_buffer)?;
-
-        enc.decrypt_bytes(&buf, &None)
+        buf.decrypt_with_key(&key)
     }
 
     pub async fn encrypt(&self, send_view: SendView) -> Result<Send> {
@@ -71,10 +71,14 @@ impl<'a> ClientSends<'a> {
     }
 
     pub async fn encrypt_buffer(&self, send: Send, buffer: &[u8]) -> Result<Vec<u8>> {
-        let enc = self.client.get_encryption_settings()?;
-        let enc = Send::get_encryption(&send.key, enc, &None)?;
+        let key = self
+            .client
+            .get_encryption_settings()?
+            .get_key(&None)
+            .ok_or(Error::VaultLocked)?;
+        let key = Send::get_key(&send.key, key)?;
 
-        let enc = enc.encrypt(buffer, &None)?;
+        let enc = buffer.encrypt_with_key(&key)?;
         enc.to_buffer()
     }
 }

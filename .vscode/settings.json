@@ -15,6 +15,7 @@
     "Pbkdf",
     "PKCS8",
     "repr",
+    "reqwest",
     "schemars",
     "uniffi",
     "wordlist"

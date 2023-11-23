@@ -19,7 +19,6 @@ secrets = []                    # Secrets manager API
 internal = []                   # Internal testing methods
 mobile = ["uniffi", "internal"] # Mobile-specific features
 
-stdweb = ["instant/stdweb"]
 wasm-bindgen = ["instant/wasm-bindgen"]
 
 [dependencies]

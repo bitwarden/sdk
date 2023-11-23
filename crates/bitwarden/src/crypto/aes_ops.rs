@@ -17,7 +17,7 @@ use rand::RngCore;
 use subtle::ConstantTimeEq;
 
 use crate::{
-    crypto::{EncString, PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},
+    crypto::{PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},
     error::{CryptoError, Result},
 };
 
@@ -64,10 +64,11 @@ pub fn decrypt_aes256_hmac(
 ///
 /// A AesCbc256_B64 EncString
 #[allow(unused)]
-pub fn encrypt_aes256(data_dec: &[u8], key: GenericArray<u8, U32>) -> Result<EncString> {
-    let (iv, data) = encrypt_aes256_internal(data_dec, key);
+pub fn encrypt_aes256(data_dec: &[u8], key: GenericArray<u8, U32>) -> ([u8; 16], Vec<u8>) {
+    let rng = rand::thread_rng();
+    let (iv, data) = encrypt_aes256_internal(rng, data_dec, key);
 
-    Ok(EncString::AesCbc256_B64 { iv, data })
+    (iv, data)
 }
 
 /// Encrypt using AES-256 in CBC mode with MAC.
@@ -81,11 +82,12 @@ pub fn encrypt_aes256_hmac(
     data_dec: &[u8],
     mac_key: GenericArray<u8, U32>,
     key: GenericArray<u8, U32>,
-) -> Result<EncString> {
-    let (iv, data) = encrypt_aes256_internal(data_dec, key);
+) -> Result<([u8; 16], [u8; 32], Vec<u8>)> {
+    let rng = rand::thread_rng();
+    let (iv, data) = encrypt_aes256_internal(rng, data_dec, key);
     let mac = generate_mac(&mac_key, &iv, &data)?;
 
-    Ok(EncString::AesCbc256_HmacSha256_B64 { iv, mac, data })
+    Ok((iv, mac, data))
 }
 
 /// Encrypt using AES-256 in CBC mode.
@@ -93,9 +95,13 @@ pub fn encrypt_aes256_hmac(
 /// Used internally by:
 /// - [encrypt_aes256]
 /// - [encrypt_aes256_hmac]
-fn encrypt_aes256_internal(data_dec: &[u8], key: GenericArray<u8, U32>) -> ([u8; 16], Vec<u8>) {
+fn encrypt_aes256_internal(
+    mut rng: impl rand::RngCore,
+    data_dec: &[u8],
+    key: GenericArray<u8, U32>,
+) -> ([u8; 16], Vec<u8>) {
     let mut iv = [0u8; 16];
-    rand::thread_rng().fill_bytes(&mut iv);
+    rng.fill_bytes(&mut iv);
     let data = cbc::Encryptor::<aes::Aes256>::new(&key, &iv.into())
         .encrypt_padded_vec_mut::<Pkcs7>(data_dec);
 
@@ -116,28 +122,75 @@ fn generate_mac(mac_key: &[u8], iv: &[u8], data: &[u8]) -> Result<[u8; 32]> {
 
 #[cfg(test)]
 mod tests {
+    use aes::cipher::generic_array::sequence::GenericSequence;
+    use base64::Engine;
+    use rand::SeedableRng;
+
+    use crate::util::BASE64_ENGINE;
+
     use super::*;
+
+    /// Helper function for generating a `GenericArray` of size 32 with each element being
+    /// a multiple of a given increment, starting from a given offset.
+    fn generate_generic_array(offset: u8, increment: u8) -> GenericArray<u8, U32> {
+        GenericArray::generate(|i| offset + i as u8 * increment)
+    }
+
+    /// Helper function for generating a vector of a given size with each element being
+    /// a multiple of a given increment, starting from a given offset.
+    fn generate_vec(length: usize, offset: u8, increment: u8) -> Vec<u8> {
+        (0..length).map(|i| offset + i as u8 * increment).collect()
+    }
+
+    #[test]
+    fn test_encrypt_aes256_internal() {
+        let key = generate_generic_array(0, 1);
+
+        let rng = rand_chacha::ChaCha8Rng::from_seed([0u8; 32]);
+        let result = encrypt_aes256_internal(rng, "EncryptMe!".as_bytes(), key);
+        assert_eq!(
+            result,
+            (
+                [62, 0, 239, 47, 137, 95, 64, 214, 127, 91, 184, 232, 31, 9, 165, 161],
+                vec![214, 76, 187, 97, 58, 146, 212, 140, 95, 164, 177, 204, 179, 133, 172, 148]
+            )
+        );
+    }
 
     #[test]
     fn test_generate_mac() {
-        let key = &[
-            195, 14, 183, 53, 190, 121, 107, 16, 20, 192, 149, 196, 224, 9, 130, 104, 238, 8, 50,
-            45,
-        ];
-        let iv = &[
-            226, 6, 27, 67, 114, 12, 246, 255, 192, 90, 129, 21, 247, 200, 238, 154,
-        ];
-        let data = &[
-            153, 234, 143, 119, 19, 195, 39, 51, 7, 16, 185, 219, 162, 85, 48, 247, 21, 126, 142,
-            37, 0, 157, 107, 216, 98, 218, 128, 173, 18, 126, 0, 254, 87, 178, 169,
-        ];
-        let mac = generate_mac(key, iv, data).unwrap();
-        assert_eq!(
-            mac,
-            [
-                186, 117, 103, 89, 51, 36, 29, 13, 170, 14, 241, 155, 239, 212, 159, 78, 157, 45,
-                165, 62, 233, 108, 125, 175, 153, 49, 110, 184, 74, 226, 77, 1
-            ]
-        );
+        let mac_key = generate_vec(16, 0, 16);
+
+        let iv = generate_vec(16, 0, 16);
+        let data = generate_vec(16, 0, 16);
+
+        let result = generate_mac(&mac_key, &iv, &data);
+
+        assert!(result.is_ok());
+        let mac = result.unwrap();
+        assert_eq!(mac.len(), 32);
+    }
+
+    #[test]
+    fn test_decrypt_aes256() {
+        let iv = generate_vec(16, 0, 1);
+        let iv: &[u8; 16] = iv.as_slice().try_into().unwrap();
+        let key = generate_generic_array(0, 1);
+        let data = BASE64_ENGINE.decode("ByUF8vhyX4ddU9gcooznwA==").unwrap();
+
+        let decrypted = decrypt_aes256(iv, data, key).unwrap();
+
+        assert_eq!(String::from_utf8(decrypted).unwrap(), "EncryptMe!");
+    }
+
+    #[test]
+    fn test_encrypt_decrypt_aes256() {
+        let key = generate_generic_array(0, 1);
+        let data = "EncryptMe!";
+
+        let (iv, encrypted) = encrypt_aes256(data.as_bytes(), key);
+        let decrypted = decrypt_aes256(&iv, encrypted, key).unwrap();
+
+        assert_eq!(String::from_utf8(decrypted).unwrap(), "EncryptMe!");
     }
 }

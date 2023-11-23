@@ -5,7 +5,7 @@ use rsa::{
 };
 
 use crate::{
-    crypto::{encrypt_aes256_hmac, EncString, SymmetricCryptoKey},
+    crypto::{EncString, SymmetricCryptoKey},
     error::{Error, Result},
     util::BASE64_ENGINE,
 };
@@ -33,7 +33,7 @@ pub(super) fn make_key_pair(key: &SymmetricCryptoKey) -> Result<RsaKeyPair> {
         .to_pkcs8_der()
         .map_err(|_| Error::Internal("unable to create private key"))?;
 
-    let protected = encrypt_aes256_hmac(pkcs.as_bytes(), key.mac_key.unwrap(), key.key)?;
+    let protected = EncString::encrypt_aes256_hmac(pkcs.as_bytes(), key.mac_key.unwrap(), key.key)?;
 
     Ok(RsaKeyPair {
         public: b64,

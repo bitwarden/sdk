@@ -2,9 +2,6 @@
 .DS_Store
 .pytest_cache
 
-# IDEs
-.idea
-
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/

@@ -20,7 +20,7 @@ export class BitwardenClient {
     this.client = client;
   }
 
-  async login(email: string, password: string): Promise<ResponseForPasswordLoginResponse> {
+  async login(email: string, password: string, pbkdf_iter: number): Promise<ResponseForPasswordLoginResponse> {
     const response = await this.client.run_command(
       Convert.commandToJson({
         passwordLogin: {
@@ -28,7 +28,7 @@ export class BitwardenClient {
           password: password,
           kdf: {
             pBKDF2: {
-              iterations: 100_000,
+              iterations: pbkdf_iter,
             }
           },
         },

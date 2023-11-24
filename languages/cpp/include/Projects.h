@@ -8,11 +8,11 @@ class Projects {
 public:
     Projects(CommandRunner* commandRunner);
 
-    ResponseForProjectResponse get(const boost::uuids::uuid& id);
-    ResponseForProjectResponse create(const boost::uuids::uuid& organizationId, const std::string& name);
-    ResponseForProjectResponse update(const boost::uuids::uuid& id, const boost::uuids::uuid& organizationId, const std::string& name);
-    ResponseForProjectsDeleteResponse deleteProjects(const std::vector<boost::uuids::uuid>& ids);
-    ResponseForProjectsResponse list(const boost::uuids::uuid& organizationId);
+    ProjectResponse get(const boost::uuids::uuid& id);
+    ProjectResponse create(const boost::uuids::uuid& organizationId, const std::string& name);
+    ProjectResponse update(const boost::uuids::uuid& id, const boost::uuids::uuid& organizationId, const std::string& name);
+    ProjectsDeleteResponse deleteProjects(const std::vector<boost::uuids::uuid>& ids);
+    ProjectsResponse list(const boost::uuids::uuid& organizationId);
 
 private:
     CommandRunner* commandRunner;

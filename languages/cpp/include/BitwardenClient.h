@@ -11,17 +11,17 @@ public:
     BitwardenClient(ClientSettings clientSettings);
     ~BitwardenClient();
     
-    ResponseForApiKeyLoginResponse accessTokenLogin(const std::string& accessToken);
-    ResponseForProjectResponse getProject(const boost::uuids::uuid& id);
-    ResponseForProjectResponse createProject(const boost::uuids::uuid& organizationId, const std::string& name);
-    ResponseForProjectResponse updateProject(const boost::uuids::uuid& id, const boost::uuids::uuid& organizationId, const std::string& name);
-    ResponseForProjectsDeleteResponse deleteProjects(const std::vector<boost::uuids::uuid>& ids);
-    ResponseForProjectsResponse listProjects(const boost::uuids::uuid &organizationId);
-    ResponseForSecretResponse getSecret(const boost::uuids::uuid& id);
-    ResponseForSecretResponse createSecret(const std::string& key, const std::string& value, const std::string& note, const boost::uuids::uuid& organizationId, const std::vector<boost::uuids::uuid>& projectIds);
-    ResponseForSecretResponse updateSecret(const boost::uuids::uuid& id, const std::string& key, const std::string& value, const std::string& note, const boost::uuids::uuid& organizationId, const std::vector<boost::uuids::uuid>& projectIds);
-    ResponseForSecretsDeleteResponse deleteSecrets(const std::vector<boost::uuids::uuid>& ids);
-    ResponseForSecretIdentifiersResponse listSecrets(const boost::uuids::uuid& organizationId);
+    void accessTokenLogin(const std::string& accessToken);
+    ProjectResponse getProject(const boost::uuids::uuid& id);
+    ProjectResponse createProject(const boost::uuids::uuid& organizationId, const std::string& name);
+    ProjectResponse updateProject(const boost::uuids::uuid& id, const boost::uuids::uuid& organizationId, const std::string& name);
+    ProjectsDeleteResponse deleteProjects(const std::vector<boost::uuids::uuid>& ids);
+    ProjectsResponse listProjects(const boost::uuids::uuid &organizationId);
+    SecretResponse getSecret(const boost::uuids::uuid& id);
+    SecretResponse createSecret(const std::string& key, const std::string& value, const std::string& note, const boost::uuids::uuid& organizationId, const std::vector<boost::uuids::uuid>& projectIds);
+    SecretResponse updateSecret(const boost::uuids::uuid& id, const std::string& key, const std::string& value, const std::string& note, const boost::uuids::uuid& organizationId, const std::vector<boost::uuids::uuid>& projectIds);
+    SecretsDeleteResponse deleteSecrets(const std::vector<boost::uuids::uuid>& ids);
+    SecretIdentifiersResponse listSecrets(const boost::uuids::uuid& organizationId);
 
 private:
     BitwardenLibrary* library;

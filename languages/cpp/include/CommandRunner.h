@@ -12,8 +12,8 @@ class CommandRunner {
 public:
     CommandRunner(BitwardenLibrary* library, void* client);
 
-    template <typename T, typename Func>
-    T runCommand(const Command& command, Func deserializer);
+    template <typename T, typename R, typename Func>
+    R runCommand(const Command& command, Func deserializer);
 
 
 
@@ -25,8 +25,8 @@ private:
     nlohmann::json filterNullObjects(const nlohmann::json& input);
 };
 
-template <typename T, typename Func>
-T CommandRunner::runCommand(const Command& command, Func deserializer) {
+template <typename T, typename R, typename Func>
+R CommandRunner::runCommand(const Command& command, Func deserializer) {
     // Serialize the Command object to a JSON string
     std::string jsonString = commandToString(command);
     const char* jsonCStr = jsonString.c_str();
@@ -40,6 +40,6 @@ T CommandRunner::runCommand(const Command& command, Func deserializer) {
         throw std::runtime_error(*deserialized.get_error_message());
     }
 
-    return deserialized;
+    return deserialized.get_data().get();
 }
 

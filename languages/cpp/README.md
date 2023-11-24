@@ -25,40 +25,40 @@ clientSettings.set_user_agent(user_agent);
 ```c++
 std::string accessToken = "<access-token>";
 BitwardenClient bitwardenClient = BitwardenClient(clientSettings);
-ResponseForApiKeyLoginResponse responseForApiKeyLoginResponse = bitwardenClient.accessTokenLogin(accessToken);
+bitwardenClient.accessTokenLogin(accessToken);
 ```
 
 ### Create new project
 
 ```c++
 boost::uuids::uuid organizationUuid = boost::uuids::string_generator()("<organization-id>");
-ResponseForProjectResponse responseForProjectResponseCreate = bitwardenClient.createProject(organizationUuid, "TestProject");
+ProjectResponse projectResponseCreate = bitwardenClient.createProject(organizationUuid, "TestProject");
 ```
 
 ### List all projects
 
 ```c++
-ResponseForProjectsResponse responseForProjectResponseList = bitwardenClient.listProjects(organizationUuid);
+ProjectsResponse projectResponseList = bitwardenClient.listProjects(organizationUuid);
 ```
 
 ### Get project details
 
 ```c++
-boost::uuids::uuid projectId = boost::uuids::string_generator()(responseForProjectResponseCreate.get_data()->get_id());
-ResponseForProjectResponse responseForProjectResponseGet = bitwardenClient.getProject(projectId);
+boost::uuids::uuid projectId = boost::uuids::string_generator()(projectResponseCreate.get_id());
+ProjectResponse projectResponseGet = bitwardenClient.getProject(projectId);
 ```
 
 ### Update project
 
 ```c++
-boost::uuids::uuid projectId = boost::uuids::string_generator()(responseForProjectResponseCreate.get_data()->get_id());
-ResponseForProjectResponse responseForProjectResponseUpdate = bitwardenClient.updateProject(projectId, organizationUuid, "TestProjectUpdated");
+boost::uuids::uuid projectId = boost::uuids::string_generator()(projectResponseCreate.get_id());
+ProjectResponse projectResponseUpdate = bitwardenClient.updateProject(projectId, organizationUuid, "TestProjectUpdated");
 ```
 
 ### Delete projects
 
 ```c++
-ResponseForSecretsDeleteResponse responseForSecretsDeleteResponse = bitwardenClient.deleteSecrets({secretId});
+SecretsDeleteResponse secretsDeleteResponse = bitwardenClient.deleteSecrets({secretId});
 ```
 
 ### Add new secret
@@ -67,31 +67,31 @@ ResponseForSecretsDeleteResponse responseForSecretsDeleteResponse = bitwardenCli
 std::string key = "key";
 std::string value = "value";
 std::string note = "note";
-ResponseForSecretResponse responseForSecretResponseCreate = bitwardenClient.createSecret(key, value, note, organizationUuid, {projectId});
+SecretResponse secretResponseCreate = bitwardenClient.createSecret(key, value, note, organizationUuid, {projectId});
 ```
 
 ### List secrets
 
 ```c++
-ResponseForSecretIdentifiersResponse responseForSecretIdentifiersResponse = bitwardenClient.listSecrets(organizationUuid);
+SecretIdentifiersResponse secretIdentifiersResponse = bitwardenClient.listSecrets(organizationUuid);
 ```
 
 ### Get secret details
 
 ```
-boost::uuids::uuid secretId = boost::uuids::string_generator()(responseForSecretResponseCreate.get_data()->get_id());
-ResponseForSecretResponse responseForSecretResponseGet = bitwardenClient.getSecret(secretId);
+boost::uuids::uuid secretId = boost::uuids::string_generator()(secretResponseCreate.get_id());
+SecretResponse secretResponseGet = bitwardenClient.getSecret(secretId);
 ```
 
 ### Update secret
 ```c++
-ResponseForSecretResponse responseForSecretResponseUpdate = bitwardenClient.updateSecret(secretId, "key2", "value2", "note2", organizationUuid, {projectId});
+SecretResponse secretResponseUpdate = bitwardenClient.updateSecret(secretId, "key2", "value2", "note2", organizationUuid, {projectId});
 ```
 
 # Delete secrets
 
 ```c++
-ResponseForSecretsDeleteResponse responseForSecretsDeleteResponse = bitwardenClient.deleteSecrets({secretId});
+SecretsDeleteResponse secretsDeleteResponse = bitwardenClient.deleteSecrets({secretId});
 ```
 
 [Access Tokens]: https://bitwarden.com/help/access-tokens/

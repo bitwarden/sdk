@@ -28,7 +28,7 @@ auto projectListDeserializer = [](const char* response) -> ResponseForProjectsRe
     return listResponse;
 };
 
-ResponseForProjectResponse Projects::get(const boost::uuids::uuid& id) {
+ProjectResponse Projects::get(const boost::uuids::uuid& id) {
     Command command;
     ProjectsCommand projectsCommand;
     ProjectGetRequest projectGetRequest;
@@ -40,14 +40,14 @@ ResponseForProjectResponse Projects::get(const boost::uuids::uuid& id) {
     command.set_projects(projectsCommand);
 
     try {
-        return commandRunner->runCommand<ResponseForProjectResponse>(command, projectsDeserializer);
+        return commandRunner->runCommand<ResponseForProjectResponse, ProjectResponse>(command, projectsDeserializer);
     } catch (const std::exception& ex) {
         std::cerr << "Error in getProject: " << ex.what() << std::endl;
         throw ex;
     }
 }
 
-ResponseForProjectResponse Projects::create(const boost::uuids::uuid& organizationId, const std::string& name) {
+ProjectResponse Projects::create(const boost::uuids::uuid& organizationId, const std::string& name) {
     Command command;
     ProjectsCommand projectsCommand;
     ProjectCreateRequest projectCreateRequest;
@@ -60,14 +60,14 @@ ResponseForProjectResponse Projects::create(const boost::uuids::uuid& organizati
     command.set_projects(projectsCommand);
 
     try {
-        return commandRunner->runCommand<ResponseForProjectResponse>(command, projectsDeserializer);
+        return commandRunner->runCommand<ResponseForProjectResponse, ProjectResponse>(command, projectsDeserializer);
     } catch (const std::exception& ex) {
         std::cerr << "Error in createProject: " << ex.what() << std::endl;
         throw ex;
     }
 }
 
-ResponseForProjectResponse Projects::update(const boost::uuids::uuid& id, const boost::uuids::uuid& organizationId, const std::string& name) {
+ProjectResponse Projects::update(const boost::uuids::uuid& id, const boost::uuids::uuid& organizationId, const std::string& name) {
     Command command;
     ProjectsCommand projectsCommand;
     ProjectPutRequest projectPutRequest;
@@ -83,14 +83,14 @@ ResponseForProjectResponse Projects::update(const boost::uuids::uuid& id, const 
     command.set_projects(projectsCommand);
 
     try {
-        return commandRunner->runCommand<ResponseForProjectResponse>(command, projectsDeserializer);
+        return commandRunner->runCommand<ResponseForProjectResponse, ProjectResponse>(command, projectsDeserializer);
     } catch (const std::exception& ex) {
         std::cerr << "Error in updateProject: " << ex.what() << std::endl;
         throw ex;
     }
 }
 
-ResponseForProjectsDeleteResponse Projects::deleteProjects(const std::vector<boost::uuids::uuid>& ids) {
+ProjectsDeleteResponse Projects::deleteProjects(const std::vector<boost::uuids::uuid>& ids) {
     Command command;
     ProjectsCommand projectsCommand;
     ProjectsDeleteRequest projectsDeleteRequest;
@@ -105,14 +105,14 @@ ResponseForProjectsDeleteResponse Projects::deleteProjects(const std::vector<boo
     command.set_projects(projectsCommand);
 
     try {
-        return commandRunner->runCommand<ResponseForProjectsDeleteResponse>(command, deleteProjectsDeserializer);
+        return commandRunner->runCommand<ResponseForProjectsDeleteResponse, ProjectsDeleteResponse>(command, deleteProjectsDeserializer);
     } catch (const std::exception& ex) {
         std::cerr << "Error in deleteProjects: " << ex.what() << std::endl;
         throw ex;
     }
 }
 
-ResponseForProjectsResponse Projects::list(const boost::uuids::uuid& organizationId) {
+ProjectsResponse Projects::list(const boost::uuids::uuid& organizationId) {
     Command command;
     ProjectsCommand projectsCommand;
     ProjectsListRequest projectsListRequest;
@@ -124,7 +124,7 @@ ResponseForProjectsResponse Projects::list(const boost::uuids::uuid& organizatio
     command.set_projects(projectsCommand);
 
     try {
-        return commandRunner->runCommand<ResponseForProjectsResponse>(command, projectListDeserializer);
+        return commandRunner->runCommand<ResponseForProjectsResponse, ProjectsResponse>(command, projectListDeserializer);
     } catch (const std::exception& ex) {
         std::cerr << "Error in listProjects: " << ex.what() << std::endl;
         throw ex;

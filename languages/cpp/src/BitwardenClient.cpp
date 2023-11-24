@@ -32,7 +32,7 @@ BitwardenClient::~BitwardenClient() {
     }
 }
 
-ResponseForApiKeyLoginResponse BitwardenClient::accessTokenLogin(const std::string& accessToken) {
+void BitwardenClient::accessTokenLogin(const std::string& accessToken) {
     Command command;
     AccessTokenLoginRequest accessTokenLoginRequest;
     accessTokenLoginRequest.set_access_token(accessToken);
@@ -45,35 +45,35 @@ ResponseForApiKeyLoginResponse BitwardenClient::accessTokenLogin(const std::stri
         return loginResponse;
     };
     try {
-        return commandRunner->runCommand<ResponseForApiKeyLoginResponse>(command, deserializer);
+        commandRunner->runCommand<ResponseForApiKeyLoginResponse, ApiKeyLoginResponse>(command, deserializer);
     } catch (const std::exception& ex) {
         std::cerr << "Error in accessTokenLogin: " << ex.what() << std::endl;
         throw ex;
     }
 }
 
-ResponseForProjectResponse BitwardenClient::getProject(const boost::uuids::uuid& id){
+ProjectResponse BitwardenClient::getProject(const boost::uuids::uuid& id){
     if (!isClientOpen) {
         throw std::runtime_error("Client is not open.");
     }
     return projects.get(id);
 }
 
-ResponseForProjectResponse BitwardenClient::createProject(const boost::uuids::uuid& organizationId, const std::string& name){
+ProjectResponse BitwardenClient::createProject(const boost::uuids::uuid& organizationId, const std::string& name){
     if (!isClientOpen) {
         throw std::runtime_error("Client is not open.");
     }
     return projects.create(organizationId, name);
 }
 
-ResponseForProjectResponse BitwardenClient::updateProject(const boost::uuids::uuid& id, const boost::uuids::uuid& organizationId, const std::string& name){
+ProjectResponse BitwardenClient::updateProject(const boost::uuids::uuid& id, const boost::uuids::uuid& organizationId, const std::string& name){
     if (!isClientOpen) {
         throw std::runtime_error("Client is not open.");
     }
     return projects.update(id, organizationId, name);
 }
 
-ResponseForProjectsDeleteResponse BitwardenClient::deleteProjects(const std::vector<boost::uuids::uuid>& ids) {
+ProjectsDeleteResponse BitwardenClient::deleteProjects(const std::vector<boost::uuids::uuid>& ids) {
     if (!isClientOpen) {
         throw std::runtime_error("Client is not open.");
     }
@@ -81,7 +81,7 @@ ResponseForProjectsDeleteResponse BitwardenClient::deleteProjects(const std::vec
 
 }
 
-ResponseForProjectsResponse BitwardenClient::listProjects(const boost::uuids::uuid &organizationId) {
+ProjectsResponse BitwardenClient::listProjects(const boost::uuids::uuid &organizationId) {
     if (!isClientOpen) {
         throw std::runtime_error("Client is not open.");
     }
@@ -89,28 +89,28 @@ ResponseForProjectsResponse BitwardenClient::listProjects(const boost::uuids::uu
 
 }
 
-ResponseForSecretResponse BitwardenClient::getSecret(const boost::uuids::uuid& id){
+SecretResponse BitwardenClient::getSecret(const boost::uuids::uuid& id){
     if (!isClientOpen) {
         throw std::runtime_error("Client is not open.");
     }
     return secrets.get(id);
 }
 
-ResponseForSecretResponse BitwardenClient::createSecret(const std::string& key, const std::string& value, const std::string& note, const boost::uuids::uuid& organizationId, const std::vector<boost::uuids::uuid>& projectIds){
+SecretResponse BitwardenClient::createSecret(const std::string& key, const std::string& value, const std::string& note, const boost::uuids::uuid& organizationId, const std::vector<boost::uuids::uuid>& projectIds){
     if (!isClientOpen) {
         throw std::runtime_error("Client is not open.");
     }
     return secrets.create(key, value, note, organizationId, projectIds);
 }
 
-ResponseForSecretResponse BitwardenClient::updateSecret(const boost::uuids::uuid& id, const std::string& key, const std::string& value, const std::string& note, const boost::uuids::uuid& organizationId, const std::vector<boost::uuids::uuid>& projectIds){
+SecretResponse BitwardenClient::updateSecret(const boost::uuids::uuid& id, const std::string& key, const std::string& value, const std::string& note, const boost::uuids::uuid& organizationId, const std::vector<boost::uuids::uuid>& projectIds){
     if (!isClientOpen) {
         throw std::runtime_error("Client is not open.");
     }
     return secrets.update(id, key, value, note, organizationId, projectIds);
 }
 
-ResponseForSecretsDeleteResponse BitwardenClient::deleteSecrets(const std::vector<boost::uuids::uuid>& ids) {
+SecretsDeleteResponse BitwardenClient::deleteSecrets(const std::vector<boost::uuids::uuid>& ids) {
     if (!isClientOpen) {
         throw std::runtime_error("Client is not open.");
     }
@@ -118,7 +118,7 @@ ResponseForSecretsDeleteResponse BitwardenClient::deleteSecrets(const std::vecto
 
 }
 
-ResponseForSecretIdentifiersResponse BitwardenClient::listSecrets(const boost::uuids::uuid &organizationId) {
+SecretIdentifiersResponse BitwardenClient::listSecrets(const boost::uuids::uuid &organizationId) {
     if (!isClientOpen) {
         throw std::runtime_error("Client is not open.");
     }

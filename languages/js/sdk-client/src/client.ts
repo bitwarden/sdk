@@ -26,6 +26,11 @@ export class BitwardenClient {
         passwordLogin: {
           email: email,
           password: password,
+          kdf: {
+            pBKDF2: {
+              iterations: 100_000,
+            }
+          },
         },
       })
     );

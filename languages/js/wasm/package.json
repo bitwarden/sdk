@@ -12,7 +12,7 @@
     "node/bitwarden_wasm.js"
   ],
   "main": "node/bitwarden_wasm.js",
-  "module": "bitwarden_wasm.js",
+  "module": "index.js",
   "types": "bitwarden_wasm.d.ts",
   "sideEffects": [
     "./bitwarden_wasm.js",

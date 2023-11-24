@@ -3,7 +3,12 @@ use std::collections::HashMap;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{client::kdf::Kdf, crypto::EncString, error::Result, Client};
+use crate::{
+    client::kdf::Kdf,
+    crypto::EncString,
+    error::{Error, Result},
+    Client,
+};
 
 #[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -31,6 +36,10 @@ pub enum InitUserCryptoMethod {
         /// The user's encrypted symmetric crypto key
         user_key: String,
     },
+    DecryptedKey {
+        /// The user's decrypted encryption key, obtained using `get_user_encryption_key`
+        decrypted_user_key: String,
+    },
 }
 
 #[cfg(feature = "internal")]
@@ -48,6 +57,9 @@ pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequ
         InitUserCryptoMethod::Password { password, user_key } => {
             let user_key: EncString = user_key.parse()?;
             client.initialize_user_crypto(&password, user_key, private_key)?;
+        }
+        InitUserCryptoMethod::DecryptedKey { decrypted_user_key } => {
+            client.initialize_user_crypto_decrypted_key(&decrypted_user_key, private_key)?;
         }
     }
 
@@ -68,4 +80,14 @@ pub async fn initialize_org_crypto(client: &mut Client, req: InitOrgCryptoReques
     let organization_keys = req.organization_keys.into_iter().collect();
     client.initialize_org_crypto(organization_keys)?;
     Ok(())
+}
+
+#[cfg(feature = "internal")]
+pub async fn get_user_encryption_key(client: &mut Client) -> Result<String> {
+    let user_key = client
+        .get_encryption_settings()?
+        .get_key(&None)
+        .ok_or(Error::VaultLocked)?;
+
+    Ok(user_key.to_base64())
 }

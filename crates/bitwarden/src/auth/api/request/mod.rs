@@ -35,10 +35,10 @@ async fn send_identity_connect_request(
             &configurations.identity.base_path
         ))
         .header(
-            "Content-Type",
+            reqwest::header::CONTENT_TYPE,
             "application/x-www-form-urlencoded; charset=utf-8",
         )
-        .header("Accept", "application/json")
+        .header(reqwest::header::ACCEPT, "application/json")
         .header("Device-Type", configurations.device_type as usize);
 
     if let Some(ref user_agent) = configurations.identity.user_agent {

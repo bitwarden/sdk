@@ -205,6 +205,17 @@ Initialization method for the organization crypto. Needs to be called after
 
 **Output**: std::result::Result<,BitwardenError>
 
+### `get_user_encryption_key`
+
+Get the uses&#x27;s decrypted encryption key. Note: It&#x27;s very important to keep this key safe,
+as it can be used to decrypt all of the user&#x27;s data
+
+**Arguments**:
+
+- self:
+
+**Output**: std::result::Result<String,BitwardenError>
+
 ## ClientExporters
 
 ### `export_vault`
@@ -902,6 +913,27 @@ implementations.
                 <td>user_key</td>
                 <td>string</td>
                 <td>The user's encrypted symmetric crypto key</td>
+            </tr>
+        </table>
+    </td>
+</tr>
+<tr>
+    <th>decryptedKey</th>
+    <th>object</th>
+    <th></th>
+</tr>
+<tr>
+    <td colspan="3">
+        <table>
+        <tr>
+            <th>Key</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+            <tr>
+                <td>decrypted_user_key</td>
+                <td>string</td>
+                <td>The user's decrypted encryption key, obtained using `get_user_encryption_key`</td>
             </tr>
         </table>
     </td>

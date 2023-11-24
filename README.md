@@ -100,16 +100,16 @@ intervention.
 
 ### WASM - WebAssembly
 
-Install `wasm32-unknown-unknown` rust target.
+Requirements:
+
+- `wasm32-unknown-unknown` rust target.
+- `wasm-bindgen-cli` installed.
+- `binaryen` installed for `wasm-opt` and `wasm2js`.
 
 ```bash
 rustup target add wasm32-unknown-unknown
-```
-
-Install wasm-bindgen-cli
-
-```bash
 cargo install -f wasm-bindgen-cli
+brew install binaryen
 ```
 
 #### Build

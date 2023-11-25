@@ -34,7 +34,7 @@ chrono = { version = ">=0.4.26, <0.5", features = [
     "std",
 ], default-features = false }
 # We don't use this directly (it's used by rand), but we need it here to enable WASM support
-getrandom = { version = ">=0.2.9", features = ["js"] }
+getrandom = { version = ">=0.2.11", features = ["js"] }
 hkdf = ">=0.12.3, <0.13"
 hmac = ">=0.12.1, <0.13"
 lazy_static = ">=1.4.0, <2.0"

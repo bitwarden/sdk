@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public class ProjectsClient {
 
-    private CommandRunner commandRunner;
+    private final CommandRunner commandRunner;
 
     ProjectsClient(CommandRunner commandRunner) {
         this.commandRunner = commandRunner;
@@ -19,11 +19,14 @@ public class ProjectsClient {
         projectGetRequest.setID(id);
         projectsCommand.setGet(projectGetRequest);
         command.setProjects(projectsCommand);
+
         ResponseForProjectResponse response = commandRunner.runCommand(command,
             BitwardenClient.throwingFunctionWrapper(Converter::ResponseForProjectResponseFromJsonString));
+
         if (response == null || !response.getSuccess()) {
             throw new BitwardenClientException(response != null ? response.getErrorMessage() : "Project not found");
         }
+
         return response.getData();
     }
 
@@ -35,11 +38,14 @@ public class ProjectsClient {
         projectCreateRequest.setName(name);
         projectsCommand.setCreate(projectCreateRequest);
         command.setProjects(projectsCommand);
+
         ResponseForProjectResponse response = commandRunner.runCommand(command,
             BitwardenClient.throwingFunctionWrapper(Converter::ResponseForProjectResponseFromJsonString));
+
         if (response == null || !response.getSuccess()) {
             throw new BitwardenClientException(response != null ? response.getErrorMessage() : "Project create failed");
         }
+
         return response.getData();
     }
 
@@ -52,11 +58,14 @@ public class ProjectsClient {
         projectPutRequest.setName(name);
         projectsCommand.setUpdate(projectPutRequest);
         command.setProjects(projectsCommand);
+
         ResponseForProjectResponse response = commandRunner.runCommand(command,
             BitwardenClient.throwingFunctionWrapper(Converter::ResponseForProjectResponseFromJsonString));
+
         if (response == null || !response.getSuccess()) {
             throw new BitwardenClientException(response != null ? response.getErrorMessage() : "Project update failed");
         }
+
         return response.getData();
     }
 
@@ -67,12 +76,15 @@ public class ProjectsClient {
         projectsDeleteRequest.setIDS(ids);
         projectsCommand.setDelete(projectsDeleteRequest);
         command.setProjects(projectsCommand);
+
         ResponseForProjectsDeleteResponse response = commandRunner.runCommand(command,
             BitwardenClient.throwingFunctionWrapper(Converter::ResponseForProjectsDeleteResponseFromJsonString));
+
         if (response == null || !response.getSuccess()) {
             throw new BitwardenClientException(response != null ?
                 response.getErrorMessage() : "Projects update failed");
         }
+
         return response.getData();
     }
 
@@ -83,12 +95,15 @@ public class ProjectsClient {
         projectsListRequest.setOrganizationID(organizationId);
         projectsCommand.setList(projectsListRequest);
         command.setProjects(projectsCommand);
+
         ResponseForProjectsResponse response = commandRunner.runCommand(command,
             BitwardenClient.throwingFunctionWrapper(Converter::ResponseForProjectsResponseFromJsonString));
+
         if (response == null || !response.getSuccess()) {
             throw new BitwardenClientException(response != null ?
                 response.getErrorMessage() : "No projects for given organization");
         }
+
         return response.getData();
     }
 }

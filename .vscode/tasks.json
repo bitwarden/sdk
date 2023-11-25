@@ -53,7 +53,10 @@
       "command": "gradle",
       "args": ["build"],
       "dependsOrder": "sequence",
-      "dependsOn": ["rust: bitwarden-c build"]
-  }
+      "dependsOn": ["rust: bitwarden-c build"],
+      "options": {
+        "cwd": "${workspaceFolder}/languages/java"
+      }
+    }
   ]
 }

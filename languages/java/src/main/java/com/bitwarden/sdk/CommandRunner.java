@@ -5,14 +5,15 @@ import com.bitwarden.sdk.schema.Converter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.jna.Pointer;
+
 import java.io.IOException;
 import java.util.function.Function;
 
 class CommandRunner {
 
-    private BitwardenLibrary library;
+    private final BitwardenLibrary library;
 
-    private Pointer client;
+    private final Pointer client;
 
     CommandRunner(BitwardenLibrary library, Pointer client) {
         this.library = library;
@@ -21,11 +22,13 @@ class CommandRunner {
 
     <T> T runCommand(Command command, Function<String, T> deserializer) {
         String response = null;
+
         try {
             response = library.run_command(commandToString(command), client);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
         return deserializer.apply(response);
     }
 

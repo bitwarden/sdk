@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public class SecretsClient {
 
-    private CommandRunner commandRunner;
+    private final CommandRunner commandRunner;
 
     SecretsClient(CommandRunner commandRunner) {
         this.commandRunner = commandRunner;
@@ -19,16 +19,18 @@ public class SecretsClient {
         secretGetRequest.setID(id);
         secretsCommand.setGet(secretGetRequest);
         command.setSecrets(secretsCommand);
+
         ResponseForSecretResponse response = commandRunner.runCommand(command,
             BitwardenClient.throwingFunctionWrapper(Converter::ResponseForSecretResponseFromJsonString));
+
         if (response == null || !response.getSuccess()) {
             throw new BitwardenClientException(response != null ? response.getErrorMessage() : "Secret not found");
         }
+
         return response.getData();
     }
 
-    public SecretResponse create(String key, String value, String note, UUID organizationId,
-                                 UUID[] projectIds) {
+    public SecretResponse create(String key, String value, String note, UUID organizationId, UUID[] projectIds) {
         Command command = new Command();
         SecretsCommand secretsCommand = new SecretsCommand();
         SecretCreateRequest secretCreateRequest = new SecretCreateRequest();
@@ -39,11 +41,14 @@ public class SecretsClient {
         secretCreateRequest.setProjectIDS(projectIds);
         secretsCommand.setCreate(secretCreateRequest);
         command.setSecrets(secretsCommand);
+
         ResponseForSecretResponse response = commandRunner.runCommand(command,
             BitwardenClient.throwingFunctionWrapper(Converter::ResponseForSecretResponseFromJsonString));
+
         if (response == null || !response.getSuccess()) {
             throw new BitwardenClientException(response != null ? response.getErrorMessage() : "Secret create failed");
         }
+
         return response.getData();
     }
 
@@ -60,11 +65,14 @@ public class SecretsClient {
         secretPutRequest.setProjectIDS(projectIds);
         secretsCommand.setUpdate(secretPutRequest);
         command.setSecrets(secretsCommand);
+
         ResponseForSecretResponse response = commandRunner.runCommand(command,
             BitwardenClient.throwingFunctionWrapper(Converter::ResponseForSecretResponseFromJsonString));
+
         if (response == null || !response.getSuccess()) {
             throw new BitwardenClientException(response != null ? response.getErrorMessage() : "Secret update failed");
         }
+
         return response.getData();
     }
 
@@ -75,11 +83,14 @@ public class SecretsClient {
         secretsDeleteRequest.setIDS(ids);
         secretsCommand.setDelete(secretsDeleteRequest);
         command.setSecrets(secretsCommand);
+
         ResponseForSecretsDeleteResponse response = commandRunner.runCommand(command,
             BitwardenClient.throwingFunctionWrapper(Converter::ResponseForSecretsDeleteResponseFromJsonString));
+
         if (response == null || !response.getSuccess()) {
             throw new BitwardenClientException(response != null ? response.getErrorMessage() : "Secrets delete failed");
         }
+
         return response.getData();
     }
 
@@ -90,12 +101,15 @@ public class SecretsClient {
         secretIdentifiersRequest.setOrganizationID(organizationId);
         secretsCommand.setList(secretIdentifiersRequest);
         command.setSecrets(secretsCommand);
+
         ResponseForSecretIdentifiersResponse response = commandRunner.runCommand(command,
             BitwardenClient.throwingFunctionWrapper(Converter::ResponseForSecretIdentifiersResponseFromJsonString));
+
         if (response == null || !response.getSuccess()) {
             throw new BitwardenClientException(response != null ?
                 response.getErrorMessage() : "No secrets for given organization");
         }
+
         return response.getData();
     }
 }

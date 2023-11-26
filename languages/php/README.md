@@ -36,30 +36,64 @@ $result = $bitwarden_client->access_token_login($access_token);
 
 After successful authorization you can interact with client to manage your projects and secrets.
 ```php
-// get project
-$res = $bitwarden_client->client->get("00056058-cc70-4cd2-baea-b0810134a729");
-// list projects
-$res = $bitwarden_client->client->list('5688da1f-cc25-41d7-bb9f-b0740144ef1d');
+$organization_id = "<your organization id here>";
+
+$client_settings = new \Bitwarden\Sdk\Schemas\ClientSettings();
+
+$bitwarden_client = new \Bitwarden\Sdk\BitwardenClient($client_settings);
+$res = $bitwarden_client->access_token_login($access_token);
+
 // create project
-$res = $bitwarden_client->client->create('php project', '5688da1f-cc25-41d7-bb9f-b0740144ef1d');
+$name = "PHP project"
+$res = $bitwarden_client->projects->create($name, $organization_id);
+$project_id = $res->id;
+
+// get project
+$res = $bitwarden_client->projects->get($project_id);
+
+// list projects
+$res = $bitwarden_client->projects->list($organization_id);
+
 // update project
-$res = $bitwarden_client->client->put('920fe206-ab3b-429d-a4b7-b0ac00e17acf', 'php project awesome', '5688da1f-cc25-41d7-bb9f-b0740144ef1d');
+$name = "Updated PHP project"
+$res = $bitwarden_client->projects->put($project_id, $name, $organization_id);
+
+// get secret
+$res = $bitwarden_client->secrets->get($secret_id);
+
+// list secrets
+$res = $bitwarden_client->secrets->list($organization_id);
+
 // delete project
-$res = $bitwarden_client->client->delete(['920fe206-ab3b-429d-a4b7-b0ac00e17acf']);
+$res = $bitwarden_client->projects->delete([$project_id]);
+
 ```
 
 Similarly, you interact with secrets:
 ```php
-// get secret
-$res = $bitwarden_sdk->secrets->get("75d3a7ff-30ed-433a-91aa-b099016e4833");
-// list secrets
-$res = $bitwarden_sdk->secrets->list("5688da1f-cc25-41d7-bb9f-b0740144ef1d");
+$organization_id = "<your organization id here>";
+
 // create secret
-$res = $bitwarden_sdk->secrets->create("New Key", "hello world", "5688da1f-cc25-41d7-bb9f-b0740144ef1d", ["b23818dd-827b-4a22-b97a-b07e010ae9d4"], "123");
+$key = "AWS secret key";
+$note = "Private account";
+$secret = "76asaj,Is_)"
+$res = $bitwarden_client->secrets->create($key, $note, $organization_id, [$project_id], $secret);
+$secret_id = $res->id;
+
+// get secret
+$res = $bitwarden_sdk->secrets->get($secret_id);
+
+// list secrets
+$res = $bitwarden_client->secrets->list($organization_id);
+
 // update secret
-$res = $bitwarden_sdk->secrets->update("901d102d-af7d-46a1-99f5-b0a6017e2f07", "hello world 2", "hello", "5688da1f-cc25-41d7-bb9f-b0740144ef1d", ["b23818dd-827b-4a22-b97a-b07e010ae9d4"], "123");
+$note = "Updated account";
+$key = "AWS private updated"
+$secret = "7uYTE,:Aer"
+$res = $bitwarden_client->secrets->update($secret_id, $key, $note, $organization_id, [$project_id], $secret);
+
 // delete secret
-$res = $bitwarden_sdk->secrets->delete(["380b5c30-d8fc-472d-a514-b0ac00f17071"]);
+$res = $bitwarden_sdk->secrets->delete([$secret_id]);
 ```
 
 

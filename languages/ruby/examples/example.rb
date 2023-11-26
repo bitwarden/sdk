@@ -9,7 +9,7 @@ bitwarden_settings = BitwardenSDK::BitwardenSettings.new(
 )
 
 bw_client = BitwardenSDK::BitwardenClient.new(bitwarden_settings)
-response = bw_client.authorize(token)
+response = bw_client.access_token_login(token)
 puts response
 
 # GET project

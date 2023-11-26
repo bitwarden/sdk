@@ -1,57 +1,64 @@
 # NOTE - for example purpose only - import gem instead
 require 'bitwarden-sdk'
 
-token = ""
+token = '<insert access token here>'
+organization_id = '<organization id here>'
 
-bitwarden_settings = BitwardenSDK::BitwardenSettings.new(
-  'https://api.bitwarden.com',
-  'https://identity.bitwarden.com/connect/token'
-)
+client_settings = ClientSettings.new({ 'api_url': 'https://api.bitwarden.com', 'identity_url': 'https://identity.bitwarden.com', device_type: 'SDK', user_agent: nil})
 
-bw_client = BitwardenSDK::BitwardenClient.new(bitwarden_settings)
+bw_client = BitwardenSDK::BitwardenClient.new(client_settings)
 response = bw_client.access_token_login(token)
 puts response
 
-# GET project
-response = bw_client.project_client.get("b23818dd-827b-4a22-b97a-b07e010ae9d4")
-puts response
-
 # CREATE project
-response = bw_client.project_client.create_project("test_project_1", "5688da1f-cc25-41d7-bb9f-b0740144ef1d")
+project_name = 'Test project 1'
+response = bw_client.project_client.create_project(project_name, organization_id)
+puts response
+project_id = response['id']
+
+# GET project
+response = bw_client.project_client.get(project_id)
 puts response
 
 # LIST projects
-response = bw_client.project_client.list_projects("5688da1f-cc25-41d7-bb9f-b0740144ef1d")
+response = bw_client.project_client.list_projects(organization_id)
 puts response
 
 # UPDATE projects
-response = bw_client.project_client.update_project("ef9d3d37-f0dc-4b21-a842-b0810129bf02", "test_project_1", "5688da1f-cc25-41d7-bb9f-b0740144ef1d")
-puts response
-
-# DELETE
-response = bw_client.project_client.delete_projects(["13a015aa-e3dc-4854-875a-b08101512d2f"])
+name = 'Updated test project 1'
+response = bw_client.project_client.update_project(project_id, name, organization_id)
 puts response
 
 # CREATE secret
-response = bw_client.secrets_client.create("AWS-SES", "important!", "5688da1f-cc25-41d7-bb9f-b0740144ef1d", ["ef9d3d37-f0dc-4b21-a842-b0810129bf02"], "8t27.dfj;")
+key = 'AWS-SES'
+note = 'Private account'
+value = '8t27.dfj;'
+response = bw_client.secrets_client.create(key, note, organization_id, [project_id], value)
 puts response
+secret_id = response['id']
 
 # GET secret
-response = bw_client.secrets_client.get("fa175a5b-da76-48c3-b44b-b0810151638c")
+response = bw_client.secrets_client.get(secret_id)
 puts response
 
 # GET secret by ids
-response = bw_client.secrets_client.get_by_ids(["e8561721-0455-438c-bbbe-b0810152f534"])
+response = bw_client.secrets_client.get_by_ids([secret_id])
 puts response
 
 # LIST secrets
-response = bw_client.secrets_client.list("5688da1f-cc25-41d7-bb9f-b0740144ef1d")
-puts response
-
-# DELETE secret
-response = bw_client.secrets_client.delete_secret(["b03cf64b-e894-4675-9f59-b0810152abe6"])
+response = bw_client.secrets_client.list(organization_id)
 puts response
 
 # UPDATE secret
-response = bw_client.secrets_client.update("683c25f3-a463-49ba-bed4-b0810134a7b1", "AWS-SES", "very important!","5688da1f-cc25-41d7-bb9f-b0740144ef1d", ["4647aede-33f1-4ad1-a258-b07a014a48a7"], "7I.ert10AjK")
+note = 'updated password'
+value = '7I.ert10AjK'
+response = bw_client.secrets_client.update(secret_id, key, note,organization_id, [project_id], value)
+puts response
+
+# DELETE secret
+response = bw_client.secrets_client.delete_secret([secret_id])
+puts response
+
+# DELETE project
+response = bw_client.project_client.delete_projects([project_id])
 puts response

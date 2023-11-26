@@ -14,66 +14,81 @@ Import it: require 'bitwarden-sdk'
 ## Usage
 
 To interact with client first you need to obtain access token from Bitwarden.
-Client will be initialized with default client settings if they are not provided
-via env variables.
+The you need to instantate ClientSettings object with api_url, identity_url and user_agent.
+You can now initialize BitwardenSDK by passing client settings.
+Finally, authorize by passing access token to access_token_login method.
 
 ```ruby
+require 'bitwarden-sdk'
+
 api_url = ENV['BITWARDEN_API_URL'] || 'https://api.bitwarden.com'
 identity_url = ENV['BITWARDEN_IDENTITY_URL'] || 'https://identity.bitwarden.com'
 user_agent = ENV['BITWARDEN_USER_AGENT'] || 'SDK'
 
-# then tou can initialize BitwardenSettings:
-bitwarden_settings = BitwardenSDK::BitwardenSettings.new(
-  'https://api.bitwarden.com',
-  'https://identity.bitwarden.com/connect/token'
-)
+client_settings = ClientSettings.new({'api_url': api_url, 'identity_url': identity_url, device_type: user_agent, user_agent: nil})
 
-By passing these setting you can initialize bitwarden client
-
-```
-
-Authorization can be performed using access token like so:
-```ruby
-client = BitwardenSDK::BitwardenClient.new(bitwarden_settings)
-client.access_token_login("<<YOUR ACCESS TOKEN HERE>>")
+bw_client = BitwardenSDK::BitwardenClient.new(client_settings)
+response = bw_client.access_token_login(token)
+puts response
 ```
 
 After successful authorization you can interact with client to manage your projects and secrets.
 ```ruby
-# get project
-project = client.project_client.get("b23818dd-827b-4a22-b97a-b07e010ae9d4")
 
-# Create project
-project = client.project_client.create_project("new_project", "5688da1f-cc25-41d7-bb9f-b0740144ef1d")
+# CREATE project
+project_name = 'Test project 1'
+response = bw_client.project_client.create_project(project_name, organization_id)
+puts response
+project_id = response['id']
 
-# list projects
-project = client.project_client.list_projects("5688da1f-cc25-41d7-bb9f-b0740144ef1d")
+# GET project
+response = bw_client.project_client.get(project_id)
+puts response
 
-# update project
-project = client.project_client.update_project("ef9d3d37-f0dc-4b21-a842-b0810129bf02", "test_project_x", "5688da1f-cc25-41d7-bb9f-b0740144ef1d")
+# LIST projects
+response = bw_client.project_client.list_projects(organization_id)
+puts response
 
-# delete projects
-response = client.project_client.delete_projects(["13a015aa-e3dc-4854-875a-b08101512d2f"])
+# UPDATE projects
+name = 'Updated test project 1'
+response = bw_client.project_client.update_project(project_id, name, organization_id)
+puts response
+
+# DELETE project
+response = bw_client.project_client.delete_projects([project_id])
+puts response
 ```
 
 Similarly, you interact with secrets:
 ```ruby
-# get secret
-secret = client.secrets_client.get("fa175a5b-da76-48c3-b44b-b0810151638c")
+# CREATE secret
+key = 'AWS-SES'
+note = 'Private account'
+value = '8t27.dfj;'
+response = bw_client.secrets_client.create(key, note, organization_id, [project_id], value)
+puts response
+secret_id = response['id']
 
-# get by ids
-secrets = client.secrets_client.get_by_ids(["e8561721-0455-438c-bbbe-b0810152f534"])
+# GET secret
+response = bw_client.secrets_client.get(secret_id)
+puts response
 
-# list
-secrets = client.secrets_client.list("5688da1f-cc25-41d7-bb9f-b0740144ef1d")
+# GET secret by ids
+response = bw_client.secrets_client.get_by_ids([secret_id])
+puts response
 
-# delete
-result = client.secrets_client.delete_secret(["b03cf64b-e894-4675-9f59-b0810152abe6", "e8561721-0455-438c-bbbe-b0810152f534"])
+# LIST secrets
+response = bw_client.secrets_client.list(organization_id)
+puts response
 
-# create
-secret = client.secrets_client.create("this", "hola!", "5688da1f-cc25-41d7-bb9f-b0740144ef1d", ["ef9d3d37-f0dc-4b21-a842-b0810129bf02"], "blah")
+# UPDATE secret
+note = 'updated password'
+value = '7I.ert10AjK'
+response = bw_client.secrets_client.update(secret_id, key, note,organization_id, [project_id], value)
+puts response
 
-# update
-secret = client.secrets_client.update("683c25f3-a463-49ba-bed4-b0810134a7b1", "Title", "my pass", "5688da1f-cc25-41d7-bb9f-b0740144ef1d", ["4647aede-33f1-4ad1-a258-b07a014a48a7"], "supersecret77")
+# DELETE secret
+response = bw_client.secrets_client.delete_secret([secret_id])
+puts response
 ```
 [Bitwarden Secrets Manager]: https://bitwarden.com/products/secrets-manager/

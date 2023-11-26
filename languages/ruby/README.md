@@ -35,7 +35,7 @@ By passing these setting you can initialize bitwarden client
 Authorization can be performed using access token like so:
 ```ruby
 client = BitwardenSDK::BitwardenClient.new(bitwarden_settings)
-client.authorize("<<YOUR ACCESS TOKEN HERE>>")
+client.access_token_login("<<YOUR ACCESS TOKEN HERE>>")
 ```
 
 After successful authorization you can interact with client to manage your projects and secrets.

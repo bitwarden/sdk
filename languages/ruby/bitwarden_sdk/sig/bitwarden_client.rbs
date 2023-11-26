@@ -8,6 +8,6 @@ class BitwardenClient
   attr_reader secrets_client: SecretsClient
 
   def initialize: (String, String) -> void
-  def authorize: () -> JSON
+  def access_token_login: () -> JSON
   def free_mem: () -> nil
 end

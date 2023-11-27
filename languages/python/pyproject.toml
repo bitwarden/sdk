@@ -12,7 +12,7 @@ description = "A Bitwarden Client for python"
 name = "BitwardenClient"
 readme = "README.md"
 requires-python = ">=2.7"
-version = "0.1"
+version = "0.1.0"
 
 [tool.maturin]
 bindings = "pyo3"

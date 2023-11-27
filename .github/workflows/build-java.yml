@@ -12,8 +12,8 @@ jobs:
   build_rust:
     uses: ./.github/workflows/build-rust-cross-platform.yml
 
-  build_dotnet:
-    name: Build .NET
+  build_java:
+    name: Build Java
     runs-on: ubuntu-22.04
     needs:
       - generate_schemas

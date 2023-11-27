@@ -1,8 +1,6 @@
-import json
 import logging
 import os
-import sys
-import bitwarden_py
+
 from BitwardenClient import BitwardenClient, DeviceType, client_settings_from_dict
 
 client = BitwardenClient(client_settings_from_dict({
@@ -33,9 +31,14 @@ print(client.projects().list(organization_id))
 
 # -- Example Secret Commands --
 
-secret = client.secrets().create("TEST_SECRET", "This is a test secret", organization_id, "Secret1234!", [project2.data.id])
-secret2 = client.secrets().create("Secret - Don't Delete Me!", "This is a test secret that will stay", organization_id, "Secret1234!", [project2.data.id])
-secret_updated = client.secrets().update(secret.data.id, "TEST_SECRET_UPDATED", "This as an updated test secret", organization_id, "Secret1234!_updated", [project2.data.id])
+secret = client.secrets().create(
+    "TEST_SECRET", "This is a test secret", organization_id, "Secret1234!", [project2.data.id])
+secret2 = client.secrets().create(
+    "Secret - Don't Delete Me!", "This is a test secret that will stay", organization_id, "Secret1234!",
+    [project2.data.id])
+secret_updated = client.secrets().update(
+    secret.data.id, "TEST_SECRET_UPDATED", "This as an updated test secret", organization_id, "Secret1234!_updated",
+    [project2.data.id])
 secret_retrieved = client.secrets().get(secret.data.id)
 
 input("Press Enter to delete the secret...")

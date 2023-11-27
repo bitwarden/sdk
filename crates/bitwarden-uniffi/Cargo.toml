@@ -12,7 +12,7 @@ crate-type = ["lib", "staticlib", "cdylib"]
 bench = false
 
 [dependencies]
-async-lock = "3.0.0"
+async-lock = "3.1.2"
 chrono = { version = ">=0.4.26, <0.5", features = [
     "serde",
     "std",

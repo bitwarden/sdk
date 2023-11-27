@@ -70,5 +70,4 @@ bitwardenClient.projects().delete(new UUID[]{projectId});
 ```
 
 [Access Tokens]: https://bitwarden.com/help/access-tokens/
-
 [Bitwarden Secrets Manager]: https://bitwarden.com/products/secrets-manager/

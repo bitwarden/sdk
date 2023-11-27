@@ -15,7 +15,7 @@ cd languages/python/
 maturin develop
 ```
 
-You can now import `BitwardenClient` and `bitwarden_py` in your Python code.
+You can now import `BitwardenClient` in your Python code.
 
 # Use without building locally
 

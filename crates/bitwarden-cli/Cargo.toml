@@ -8,4 +8,4 @@ rust-version = "1.57"
 clap = { version = "4.3.0", features = ["derive"] }
 color-eyre = "0.6"
 inquire = "0.6.2"
-supports-color = "2.0.0"
+supports-color = "2.1.0"

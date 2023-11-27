@@ -3,6 +3,7 @@ import os
 
 from BitwardenClient import BitwardenClient, DeviceType, client_settings_from_dict
 
+# Create the BitwardenClient, which is used to interact with the SDK
 client = BitwardenClient(client_settings_from_dict({
     "apiUrl": "http://localhost:4000",
     "deviceType": DeviceType.SDK,

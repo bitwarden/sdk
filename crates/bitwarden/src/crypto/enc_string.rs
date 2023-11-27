@@ -1,5 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
+use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::Engine;
 use serde::{de::Visitor, Deserialize};
 
@@ -331,6 +332,15 @@ impl serde::Serialize for EncString {
 }
 
 impl EncString {
+    pub(crate) fn encrypt_aes256_hmac(
+        data_dec: &[u8],
+        mac_key: GenericArray<u8, U32>,
+        key: GenericArray<u8, U32>,
+    ) -> Result<EncString> {
+        let (iv, mac, data) = super::encrypt_aes256_hmac(data_dec, mac_key, key)?;
+        Ok(EncString::AesCbc256_HmacSha256_B64 { iv, mac, data })
+    }
+
     /// The numerical representation of the encryption type of the [EncString].
     const fn enc_type(&self) -> u8 {
         match self {
@@ -357,7 +367,7 @@ fn invalid_len_error(expected: usize) -> impl Fn(Vec<u8>) -> EncStringParseError
 impl LocateKey for EncString {}
 impl KeyEncryptable<EncString> for &[u8] {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<EncString> {
-        super::encrypt_aes256_hmac(self, key.mac_key.ok_or(CryptoError::InvalidMac)?, key.key)
+        EncString::encrypt_aes256_hmac(self, key.mac_key.ok_or(CryptoError::InvalidMac)?, key.key)
     }
 }
 

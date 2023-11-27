@@ -12,14 +12,14 @@ crate-type = ["lib", "staticlib", "cdylib"]
 bench = false
 
 [dependencies]
-async-lock = "3.0.0"
+async-lock = "3.1.2"
 chrono = { version = ">=0.4.26, <0.5", features = [
     "serde",
     "std",
 ], default-features = false }
-env_logger = "0.10.0"
-uniffi = "=0.25.1"
+env_logger = "0.10.1"
 schemars = { version = ">=0.8, <0.9", optional = true }
+uniffi = "=0.25.1"
 
 bitwarden = { path = "../bitwarden", features = ["mobile", "internal"] }
 

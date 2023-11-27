@@ -16,22 +16,23 @@ If you are not using the standalone version of this library, file will be placed
 ## Usage
 
 To interact with the client first you need to obtain the access token from Bitwarden.
-You can initialize ClientSettings and its setting before passing it to the BitwardenClient.
+You can then initialize BitwardenSettings passing $api_url and $identity_url if needed. These parameteres are
+optional and if they are not defined, BitwardenSettings instance will try to get these values from ENV, and
+if they are not defined there as well, it will use defaults: `https://api.bitwarden.com` as api_url and
+`https://identity.bitwarden.com` as identity_url. You can also pass device type as argument but that is entirely
+optional.
+
+Passing BitwardenSettings instance to BitwardenClient will initialize it. Before using the client you must
+be authorized by calling the access_token_login method passing your Bitwarden access token to it.
+
 
 ```php
-$client_settings = new \Bitwarden\Sdk\Schemas\ClientSettings()
-$client_settings->apiUrl = getenv('API_URL') ?: 'https://api.bitwarden.com';
-$client_settings->identityUrl = getenv('IDENTITY_URL') ?: 'https://identity.bitwarden.com';
-$client_settings->userAgent = getenv('USER_AGENT') ?: 'SDK';
-$client_settings->deviceType = getenv('DEVICE_TYPE') ?: 'SDK';
-```
+$api_url = "";
+$identity_url = "";
+$client_settings = new \Bitwarden\Sdk\BitwardenSettings();
 
-Authorization can be performed using access token like so:
-
-```php
-$access_token = '<you access token here>';
 $bitwarden_client = new \Bitwarden\Sdk\BitwardenClient($client_settings);
-$result = $bitwarden_client->access_token_login($access_token);
+$res = $bitwarden_client->access_token_login($access_token);
 ```
 
 After successful authorization you can interact with client to manage your projects and secrets.

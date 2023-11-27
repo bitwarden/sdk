@@ -23,9 +23,11 @@ class BitwardenClient
 
     private FFI\CData $handle;
 
-    public function __construct(ClientSettings $clientSettings)
+    public function __construct(BitwardenSettings $bitwardenSettings)
     {
-        $this->clientSettings = $clientSettings;
+        $this->clientSettings = new ClientSettings();
+        $this->clientSettings->apiUrl = $bitwardenSettings->get_api_url();
+        $this->clientSettings->identityUrl = $bitwardenSettings->get_identity_url();
 
         $this->bitwarden_lib = new BitwardenLib();
         $this->handle = $this->bitwarden_lib->init($this->clientSettings);

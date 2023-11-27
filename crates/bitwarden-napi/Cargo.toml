@@ -16,7 +16,7 @@ rust-version = "1.57"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-env_logger = "0.10.0"
+env_logger = "0.10.1"
 log = "0.4.20"
 napi = { version = "2", features = ["async"] }
 napi-derive = "2"

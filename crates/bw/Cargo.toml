@@ -13,7 +13,7 @@ Bitwarden Password Manager CLI
 keywords = ["bitwarden", "password-manager", "cli"]
 
 [dependencies]
-clap = { version = "4.3.0", features = ["derive", "env"] }
+clap = { version = "4.4.8", features = ["derive", "env"] }
 color-eyre = "0.6"
 env_logger = "0.10.1"
 inquire = "0.6.2"

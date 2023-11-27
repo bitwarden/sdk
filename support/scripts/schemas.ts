@@ -1,4 +1,10 @@
-import { quicktype, quicktypeMultiFile, InputData, JSONSchemaInput, FetchingJSONSchemaStore } from "quicktype-core";
+import {
+  quicktype,
+  quicktypeMultiFile,
+  InputData,
+  JSONSchemaInput,
+  FetchingJSONSchemaStore,
+} from "quicktype-core";
 
 import fs from "fs";
 import path from "path";
@@ -79,7 +85,7 @@ async function main() {
   }
   java.forEach((file, path) => {
     writeToFile(javaDir + path, file.lines);
-  })
+  });
 }
 
 main();

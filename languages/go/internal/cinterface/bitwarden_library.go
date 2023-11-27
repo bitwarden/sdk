@@ -1,6 +1,3 @@
-//go:build !custom
-// +build !custom
-
 package cinterface
 
 import (

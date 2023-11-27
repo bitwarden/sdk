@@ -73,6 +73,8 @@ tasks.withType(Javadoc) {
     options.encoding = 'UTF-8'
 }
 
+//  Gradle build requires GitHub workflow to copy native library to resources
+//  Uncomment copyNativeLib and jar tasks to use the local build (modify architecture if needed)
 //tasks.register('copyNativeLib', Copy) {
 //    delete 'src/main/resources/darwin-aarch64'
 //    from '../../target/debug'
@@ -81,21 +83,8 @@ tasks.withType(Javadoc) {
 //    include '*bitwarden_c*.dll'
 //    into 'src/main/resources/darwin-aarch64'
 //}
-
-jar {
-//  Requires GitHub workflow to copy native library to resources
-//  Uncomment the line below and copyNativeLib task above to use the local build (modify architecture if needed)
-//    dependsOn tasks.named("copyNativeLib")
-    into('darwin-aarch64') {
-        from 'src/main/resources/darwin-aarch64'
-    }
-    into('darwin-x64') {
-        from 'src/main/resources/darwin-x64'
-    }
-    into('ubuntu-x64') {
-        from 'src/main/resources/ubuntu-x64'
-    }
-    into('windows-x64') {
-        from 'src/main/resources/windows-x64'
-    }
-}
+//
+//jar {
+//    dependsOn tasks.named("copyNativeLib").get()
+//    from 'src/main/resources'
+//}

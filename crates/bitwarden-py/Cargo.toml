@@ -18,7 +18,7 @@ bitwarden-json = { path = "../bitwarden-json", features = ["secrets"] }
 pyo3-build-config = { version = "0.20.0" }
 
 [target.'cfg(not(target_arch="wasm32"))'.dependencies]
-tokio = { version = "1.28.2", features = ["rt-multi-thread", "macros"] }
+tokio = { version = "1.34.0", features = ["rt-multi-thread", "macros"] }
 pyo3-asyncio = { version = "0.20.0", features = [
     "attributes",
     "tokio-runtime",

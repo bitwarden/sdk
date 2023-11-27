@@ -11,7 +11,7 @@ dependencies = ["dateutils >= 0.6.6"]
 description = "A Bitwarden Client for python"
 name = "BitwardenClient"
 readme = "README.md"
-requires-python = ">=2.7"
+requires-python = ">=3.0"
 version = "0.1.0"
 
 [tool.maturin]

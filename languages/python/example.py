@@ -3,11 +3,11 @@ import logging
 import os
 import sys
 import bitwarden_py
-import BitwardenClient as bw
+from BitwardenClient import BitwardenClient, DeviceType, client_settings_from_dict
 
-client = bw.BitwardenClient(bw.client_settings_from_dict({
+client = BitwardenClient(client_settings_from_dict({
     "apiUrl": "http://localhost:4000",
-    "deviceType": bw.DeviceType.SDK,
+    "deviceType": DeviceType.SDK,
     "identityUrl": "http://localhost:33656",
     "userAgent": "Python",
 }))

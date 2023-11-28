@@ -7,10 +7,6 @@ int main() {
     const char* accessTokenEnv = std::getenv("ACCESS_TOKEN");
     const char* organizationIdEnv = std::getenv("ORGANIZATION_ID");
 
-    boost::optional<std::string> apiUrl("https://api.bitwarden.com");
-    boost::optional<std::string> identityUrl("https://identity.bitwarden.com");
-    boost::optional<std::string> user_agent("Bitwarden CPP-SDK");
-
     if (!accessTokenEnv || !organizationIdEnv) {
         std::cerr << "Error: Environment variables ACCESS_TOKEN or ORGANIZATION_ID not set." << std::endl;
         return 1;
@@ -19,15 +15,14 @@ int main() {
     std::string accessToken = accessTokenEnv;
     std::string organizationId = organizationIdEnv;
 
-    ClientSettings clientSettings;
-    // Initialize ClientSettings with default values
-    clientSettings.set_api_url(apiUrl);
-    clientSettings.set_identity_url(identityUrl);
-    clientSettings.set_device_type(Bitwarden::Sdk::DeviceType::SDK);
-    clientSettings.set_user_agent(user_agent);
+    BitwardenSettings bitwardenSettings;
+
+    // Optional - commented to use default values
+    // bitwardenSettings.set_api_url("<bitwarden-url>");
+    // bitwardenSettings.set_identity_url("<bitwarden-identity>");
 
     // Create a Bitwarden client instance
-    BitwardenClient bitwardenClient = BitwardenClient(clientSettings);
+    BitwardenClient bitwardenClient = BitwardenClient(bitwardenSettings);
     // // Access token login
     bitwardenClient.accessTokenLogin(accessToken);
     // Organization ID

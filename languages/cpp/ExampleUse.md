@@ -18,6 +18,7 @@ For Windows: `BitwardeClient.dll` and `bitwarden_c.dll`
 `include` directory contains:
 - `BitwardenLibrary.h`
 - `BitwardenClient.h`
+- `BitwardenSettings.h`
 - `CommandRunner.h`
 - `Projects.h`
 - `Secrets.h`
@@ -40,6 +41,7 @@ Example of the folder structure (macOS):
     --include
         --`BitwardenLibrary.h`
         --`BitwardenClient.h`
+        --`BitwardenSettings.h`
         --`CommandRunner.h`
         --`Projects.h`
         --`Secrets.h`

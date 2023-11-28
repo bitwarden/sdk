@@ -8,23 +8,21 @@ Review the help documentation on [Access Tokens]
 
 ## Usage code snippets
 
-### CLient settings
+### Client settings
 
-boost::optional<std::string> apiUrl("https://api.bitwarden.com");
-boost::optional<std::string> identityUrl("https://identity.bitwarden.com");
-boost::optional<std::string> user_agent("Bitwarden CPP-SDK");
+```c++
+BitwardenSettings bitwardenSettings;
+// Optional - if not stressed,then default values are used
+bitwardenSettings.set_api_url("<bitwarden-url>");
+bitwardenSettings.set_identity_url("<bitwarden-identity>");
+```
 
-ClientSettings clientSettings;
-clientSettings.set_api_url(apiUrl);
-clientSettings.set_identity_url(identityUrl);
-clientSettings.set_device_type(Bitwarden::Sdk::DeviceType::SDK);
-clientSettings.set_user_agent(user_agent);
 
 ### Create new Bitwarden client
 
 ```c++
 std::string accessToken = "<access-token>";
-BitwardenClient bitwardenClient = BitwardenClient(clientSettings);
+BitwardenClient bitwardenClient = BitwardenClient(bitwardenSettings);
 bitwardenClient.accessTokenLogin(accessToken);
 ```
 

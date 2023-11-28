@@ -2,7 +2,24 @@
 #include <iostream>
 #include <string>
 
-BitwardenClient::BitwardenClient(ClientSettings clientSettings) : library(nullptr), commandRunner(nullptr), isClientOpen(false), projects(nullptr), secrets(nullptr) {
+BitwardenClient::BitwardenClient(const BitwardenSettings& bitwardenSettings) : library(nullptr), commandRunner(nullptr), isClientOpen(false), projects(nullptr), secrets(nullptr) {
+
+    // Set default values for optional strings
+    boost::optional<std::string> apiUrl = bitwardenSettings.get_api_url().empty()
+        ? boost::optional<std::string>("https://api.bitwarden.com")
+        : boost::optional<std::string>(bitwardenSettings.get_api_url());
+
+    boost::optional<std::string> identityUrl = bitwardenSettings.get_identity_url().empty()
+        ? boost::optional<std::string>("https://identity.bitwarden.com")
+        : boost::optional<std::string>(bitwardenSettings.get_identity_url());
+
+    boost::optional<std::string> user_agent = boost::optional<std::string>("Bitwarden CPP-SDK");
+
+    // Set values in clientSettings
+    clientSettings.set_device_type(Bitwarden::Sdk::DeviceType::SDK);
+    clientSettings.set_user_agent(user_agent);
+    clientSettings.set_api_url(apiUrl);
+    clientSettings.set_identity_url(identityUrl);
 
     nlohmann::json jsonClientSettings;
     Bitwarden::Sdk::to_json(jsonClientSettings, clientSettings);

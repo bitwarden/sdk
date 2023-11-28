@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CommandRunner.h"
+#include "BitwardenSettings.h"
 #include "Projects.h"
 #include "Secrets.h"
 #include <functional>
@@ -8,7 +9,7 @@
 
 class BitwardenClient {
 public:
-    BitwardenClient(ClientSettings clientSettings);
+    BitwardenClient(const BitwardenSettings& bitwardenSettings);
     ~BitwardenClient();
     
     void accessTokenLogin(const std::string& accessToken);

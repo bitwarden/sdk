@@ -1,6 +1,7 @@
 # Bitwarden SDK in Go
 
-This SDK is designed to interact with Bitwarden services in Go. It includes implementations for managing projects and secrets, as well as a client interface to facilitate operations like login.
+This SDK is designed to interact with Bitwarden services in Go. It includes implementations for
+managing projects and secrets, as well as a client interface to facilitate operations like login.
 
 ## Prerequisites
 

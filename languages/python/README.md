@@ -9,6 +9,10 @@
   ```bash
   pip install setuptools_rust
   ```
+- dateutil
+  ```bash
+  pip install python-dateutil
+  ```
 
 # Installation
 
@@ -18,7 +22,7 @@ From the `languages/python/` directory,
 python3 ./setup.py develop
 ```
 
-Move the the resulting `.so` file to `bitwarden_py.so`, if it isn't already there.
+Rename the the resulting `.so` file to `bitwarden_py.so`, if it isn't already there.
 
 # Run
 

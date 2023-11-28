@@ -10,26 +10,21 @@ class BitwardenSettings
 
     private string $user_agent = "Bitwarden PHP SDK";
 
-    private string $device_type;
+//    private string $device_type;
 
     public function __construct($api_url = null, $identity_url = null, $device_type = null)
     {
         if (is_null($api_url))
         {
-            $this->api_url = getenv('API_URL') ?: 'https://api.bitwarden.com';
-            $this->identity_url = getenv('IDENTITY_URL') ?: 'https://identity.bitwarden.com';
-        } else {
-            $this->api_url = $api_url;
+            $this->api_url = 'https://api.bitwarden.com';
         }
 
         if (is_null($identity_url))
         {
-            $this->identity_url = getenv('IDENTITY_URL') ?: 'https://identity.bitwarden.com';
-        } else {
-            $this->identity_url = $identity_url;
+            $this->identity_url = 'https://identity.bitwarden.com';
         }
 
-        $this->device_type = $device_type ? isset($device_type) : "";
+//        $this->device_type = $device_type ? isset($device_type) : "";
     }
 
     public function get_api_url(): string

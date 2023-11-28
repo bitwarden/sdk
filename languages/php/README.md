@@ -27,11 +27,12 @@ be authorized by calling the access_token_login method passing your Bitwarden ac
 
 
 ```php
-$api_url = "";
-$identity_url = "";
-$client_settings = new \Bitwarden\Sdk\BitwardenSettings();
+$access_token = '<your token here>';
+$api_url = "<api url>";
+$identity_url = "<identity url>";
+$bitwarden_settings = new \Bitwarden\Sdk\BitwardenSettings($api_url, $identity_url);
 
-$bitwarden_client = new \Bitwarden\Sdk\BitwardenClient($client_settings);
+$bitwarden_client = new \Bitwarden\Sdk\BitwardenClient($bitwarden_settings);
 $res = $bitwarden_client->access_token_login($access_token);
 ```
 
@@ -39,9 +40,7 @@ After successful authorization you can interact with client to manage your proje
 ```php
 $organization_id = "<your organization id here>";
 
-$client_settings = new \Bitwarden\Sdk\Schemas\ClientSettings();
-
-$bitwarden_client = new \Bitwarden\Sdk\BitwardenClient($client_settings);
+$bitwarden_client = new \Bitwarden\Sdk\BitwardenClient($bitwarden_settings);
 $res = $bitwarden_client->access_token_login($access_token);
 
 // create project

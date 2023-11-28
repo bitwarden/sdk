@@ -14,20 +14,21 @@ Import it: require 'bitwarden-sdk'
 ## Usage
 
 To interact with client first you need to obtain access token from Bitwarden.
-The you need to instantate ClientSettings object with api_url, identity_url and user_agent.
-You can now initialize BitwardenSDK by passing client settings.
-Finally, authorize by passing access token to access_token_login method.
+Client will be initialized with default client settings if they are not provided
+via env variables.
 
 ```ruby
 require 'bitwarden-sdk'
 
-api_url = ENV['BITWARDEN_API_URL'] || 'https://api.bitwarden.com'
-identity_url = ENV['BITWARDEN_IDENTITY_URL'] || 'https://identity.bitwarden.com'
-user_agent = ENV['BITWARDEN_USER_AGENT'] || 'SDK'
+# then you can initialize BitwardenSettings:
+bitwarden_settings = BitwardenSDK::BitwardenSettings.new(
+  'https://api.bitwarden.com',
+  'https://identity.bitwarden.com/connect/token'
+)
 
-client_settings = ClientSettings.new({'api_url': api_url, 'identity_url': identity_url, device_type: user_agent, user_agent: nil})
+# By passing these setting you can initialize BitwardenClient
 
-bw_client = BitwardenSDK::BitwardenClient.new(client_settings)
+bw_client = BitwardenSDK::BitwardenClient.new(bitwarden_settings)
 response = bw_client.access_token_login(token)
 puts response
 ```

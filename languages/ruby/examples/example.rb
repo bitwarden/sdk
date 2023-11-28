@@ -4,9 +4,12 @@ require 'bitwarden-sdk'
 token = '<insert access token here>'
 organization_id = '<organization id here>'
 
-client_settings = ClientSettings.new({ 'api_url': 'https://api.bitwarden.com', 'identity_url': 'https://identity.bitwarden.com', device_type: 'SDK', user_agent: nil})
+bitwarden_settings = BitwardenSDK::BitwardenSettings.new(
+  'https://api.bitwarden.com',
+  'https://identity.bitwarden.com/connect/token'
+)
 
-bw_client = BitwardenSDK::BitwardenClient.new(client_settings)
+bw_client = BitwardenSDK::BitwardenClient.new(bitwarden_settings)
 response = bw_client.access_token_login(token)
 puts response
 

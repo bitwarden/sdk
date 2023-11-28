@@ -12,10 +12,30 @@ require_relative 'projects'
 require_relative 'secrets'
 
 module BitwardenSDK
+  class BitwardenSettings
+    attr_accessor :api_url, :identity_url
+
+    def initialize(api_url, identity_url)
+      # if api_url.nil? || identity_url.nil?
+      #   raise ArgumentError, "api_url and identity_url cannot be nil"
+      # end
+
+      @api_url = api_url
+      @identity_url = identity_url
+    end
+  end
+
   class BitwardenClient
     attr_reader :bitwarden, :project_client, :secrets_client
 
-    def initialize(client_settings)
+    def initialize(bitwarden_settings)
+      client_settings = ClientSettings.new(
+        api_url: bitwarden_settings.api_url,
+        identity_url: bitwarden_settings.identity_url,
+        user_agent: 'Bitwarden RUBY-SDK',
+        device_type: nil
+      )
+
       @bitwarden = BitwardenLib
       @handle = @bitwarden.init(client_settings.to_json)
       @command_runner = CommandRunner.new(@bitwarden, @handle)

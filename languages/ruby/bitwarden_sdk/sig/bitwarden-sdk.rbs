@@ -7,7 +7,7 @@ class BitwardenClient
   attr_reader project_client: ProjectsClient
   attr_reader secrets_client: SecretsClient
 
-  def initialize: (ClientSettings) -> void
+  def initialize: (BitwardenSettings) -> void
   def access_token_login: (String) -> JSON
   def free_mem: () -> nil
 end

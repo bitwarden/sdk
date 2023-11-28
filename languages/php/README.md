@@ -33,7 +33,7 @@ $identity_url = "<identity url>";
 $bitwarden_settings = new \Bitwarden\Sdk\BitwardenSettings($api_url, $identity_url);
 
 $bitwarden_client = new \Bitwarden\Sdk\BitwardenClient($bitwarden_settings);
-$res = $bitwarden_client->access_token_login($access_token);
+$bitwarden_client->access_token_login($access_token);
 ```
 
 After successful authorization you can interact with client to manage your projects and secrets.

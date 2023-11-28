@@ -28,6 +28,7 @@ class BitwardenClient
         $this->clientSettings = new ClientSettings();
         $this->clientSettings->apiUrl = $bitwardenSettings->get_api_url();
         $this->clientSettings->identityUrl = $bitwardenSettings->get_identity_url();
+        $this->clientSettings->userAgent = "Bitwarden PHP-SDK";
 
         $this->bitwarden_lib = new BitwardenLib();
         $this->handle = $this->bitwarden_lib->init($this->clientSettings);
@@ -54,8 +55,6 @@ class BitwardenClient
         if ($result->authenticated == False) {
             throw new \Exception("Unauthorized");
         }
-
-        return $result;
     }
 
     public function __destruct()

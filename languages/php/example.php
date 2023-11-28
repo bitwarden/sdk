@@ -8,7 +8,7 @@ $organization_id = "<your organization id here>";
 $client_settings = new \Bitwarden\Sdk\BitwardenSettings();
 
 $bitwarden_client = new \Bitwarden\Sdk\BitwardenClient($client_settings);
-$res = $bitwarden_client->access_token_login($access_token);
+$bitwarden_client->access_token_login($access_token);
 
 // create project
 $res = $bitwarden_client->projects->create('php project', $organization_id);

@@ -5,6 +5,7 @@ requires = ["maturin>=1.0,<2.0", "setuptools_rust>=1.8.1"]
 [project]
 authors = [{ name = "Bitwarden", email = "support@bitwarden.com" }]
 classifiers = [
+  "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
   "License :: Other/Proprietary License",
   "Programming Language :: Python :: 3 :: Only",

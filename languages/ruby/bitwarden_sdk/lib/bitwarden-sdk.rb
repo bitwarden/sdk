@@ -46,6 +46,7 @@ module BitwardenSDK
     def access_token_login(access_token)
       access_token_request = AccessTokenLoginRequest.new(access_token: access_token)
       @command_runner.run(SelectiveCommand.new(access_token_login: access_token_request))
+      nil
     end
 
     def free_mem

@@ -8,7 +8,7 @@ class BitwardenSettings
 
     private ?string $identity_url;
 
-    public function __construct($api_url = null, $identity_url = null, $device_type = null)
+    public function __construct($api_url = null, $identity_url = null)
     {
         $this->api_url = $api_url;
         $this->identity_url = $identity_url;

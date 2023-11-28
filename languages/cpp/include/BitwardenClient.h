@@ -9,7 +9,7 @@
 
 class BitwardenClient {
 public:
-    BitwardenClient(const BitwardenSettings& bitwardenSettings);
+    BitwardenClient(const BitwardenSettings& bitwardenSettings = BitwardenSettings());
     ~BitwardenClient();
     
     void accessTokenLogin(const std::string& accessToken);

@@ -2,7 +2,8 @@
 #include <iostream>
 #include <string>
 
-BitwardenClient::BitwardenClient(const BitwardenSettings& bitwardenSettings) : library(nullptr), commandRunner(nullptr), isClientOpen(false), projects(nullptr), secrets(nullptr) {
+BitwardenClient::BitwardenClient(const BitwardenSettings& bitwardenSettings)
+    : library(nullptr), commandRunner(nullptr), isClientOpen(false), projects(nullptr), secrets(nullptr) {
 
     // Set default values for optional strings
     boost::optional<std::string> apiUrl = bitwardenSettings.get_api_url().empty()

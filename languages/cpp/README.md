@@ -11,8 +11,8 @@ Review the help documentation on [Access Tokens]
 ### Client settings
 
 ```c++
+// Optional - if not stressed, then default values are used
 BitwardenSettings bitwardenSettings;
-// Optional - if not stressed,then default values are used
 bitwardenSettings.set_api_url("<bitwarden-url>");
 bitwardenSettings.set_identity_url("<bitwarden-identity>");
 ```
@@ -22,6 +22,7 @@ bitwardenSettings.set_identity_url("<bitwarden-identity>");
 
 ```c++
 std::string accessToken = "<access-token>";
+// Optional - argument in BitwardenClient
 BitwardenClient bitwardenClient = BitwardenClient(bitwardenSettings);
 bitwardenClient.accessTokenLogin(accessToken);
 ```

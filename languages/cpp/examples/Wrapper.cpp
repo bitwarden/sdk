@@ -15,14 +15,15 @@ int main() {
     std::string accessToken = accessTokenEnv;
     std::string organizationId = organizationIdEnv;
 
-    BitwardenSettings bitwardenSettings;
+    
 
     // Optional - commented to use default values
+    // BitwardenSettings bitwardenSettings;
     // bitwardenSettings.set_api_url("<bitwarden-url>");
     // bitwardenSettings.set_identity_url("<bitwarden-identity>");
 
     // Create a Bitwarden client instance
-    BitwardenClient bitwardenClient = BitwardenClient(bitwardenSettings);
+    BitwardenClient bitwardenClient = BitwardenClient();
     // // Access token login
     bitwardenClient.accessTokenLogin(accessToken);
     // Organization ID

@@ -44,10 +44,7 @@
       "groupName": "gh minor",
       "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["minor", "patch"]
-    },
-    {
-      "matchPackageNames": ["dotnet-sdk"],
-      "enabled": false
     }
-  ]
+  ],
+  "ignoreDeps": ["dotnet-sdk"]
 }

@@ -85,6 +85,23 @@ async function main() {
   });
 
   writeToFile("./languages/cpp/include/schemas.hpp", cpp.lines);
+
+  const java = await quicktypeMultiFile({
+    inputData,
+    lang: "java",
+    rendererOptions: {
+      package: "com.bitwarden.sdk.schema",
+      "java-version": "8",
+    },
+  });
+
+  const javaDir = "./languages/java/src/main/java/com/bitwarden/sdk/schema/";
+  if (!fs.existsSync(javaDir)) {
+    fs.mkdirSync(javaDir);
+  }
+  java.forEach((file, path) => {
+    writeToFile(javaDir + path, file.lines);
+  });
 }
 
 main();

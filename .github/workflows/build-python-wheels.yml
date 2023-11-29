@@ -106,6 +106,9 @@ jobs:
           sccache: "true"
           manylinux: "2_28" # https://github.com/pola-rs/polars/pull/12211
           working-directory: ${{ github.workspace }}/languages/python
+          before-script-linux: |
+            apt update
+            apt install python3-pip
 
       - name: Upload wheels
         uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3

@@ -44,3 +44,6 @@ bitwarden = { path = "../bitwarden", version = "0.3.1", features = ["secrets"] }
 
 [dev-dependencies]
 tempfile = "3.8.1"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+openssl = { version = "0.10", features = ["vendored"] }

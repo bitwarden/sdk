@@ -46,6 +46,17 @@
       "options": {
         "cwd": "${workspaceFolder}/languages/python"
       }
+    },
+    {
+      "label": "buildJava",
+      "type": "shell",
+      "command": "gradle",
+      "args": ["build"],
+      "dependsOrder": "sequence",
+      "dependsOn": ["rust: bitwarden-c build"],
+      "options": {
+        "cwd": "${workspaceFolder}/languages/java"
+      }
     }
   ]
 }

@@ -99,6 +99,7 @@ jobs:
       #     $env:Path += ";C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\x64\bin"
 
       - name: Build wheels
+        if: ${{ matrix.settings.target != 'x86_64-unknown-linux-gnu' }}
         uses: PyO3/maturin-action@b9e8f88fd4448fdecf5095864cdc7e39a544aa9f # v1.40.7
         with:
           target: ${{ matrix.settings.target }}
@@ -106,6 +107,18 @@ jobs:
           sccache: "true"
           manylinux: "2_28" # https://github.com/pola-rs/polars/pull/12211
           working-directory: ${{ github.workspace }}/languages/python
+
+      - name: Build wheels (Linux - x86_64)
+        if: ${{ matrix.settings.target == 'x86_64-unknown-linux-gnu' }}
+        uses: PyO3/maturin-action@b9e8f88fd4448fdecf5095864cdc7e39a544aa9f # v1.40.7
+        with:
+          target: ${{ matrix.settings.target }}
+          args: --release --find-interpreter --sdist
+          sccache: "true"
+          manylinux: "2_28" # https://github.com/pola-rs/polars/pull/12211
+          working-directory: ${{ github.workspace }}/languages/python
+          before-linux-script: |
+            dnf install python3-pip -y
 
       - name: Upload wheels
         uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3

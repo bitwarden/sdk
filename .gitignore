@@ -48,5 +48,5 @@ support/schemas
 crates/bitwarden-napi/src-ts/bitwarden_client/schemas.ts
 languages/csharp/Bitwarden.Sdk/schemas.cs
 languages/js_webassembly/bitwarden_client/schemas.ts
-languages/python/BitwardenClient/schemas.py
+languages/python/bitwarden_sdk/schemas.py
 languages/java/src/main/java/com/bitwarden/sdk/schema

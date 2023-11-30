@@ -14,7 +14,7 @@ classifiers = [
 ]
 dependencies = ["dateutils >= 0.6.6"]
 description = "A Bitwarden Client for python"
-name = "BitwardenClient"
+name = "bitwarden_sdk"
 readme = "README.md"
 requires-python = ">=3.0"
 version = "0.1.0"
@@ -23,7 +23,7 @@ version = "0.1.0"
 bindings = "pyo3"
 compatibility = "manylinux2014"
 include = [
-  { path = "BitwardenClient/*.py", format = ["sdist", "wheel"] }
+  { path = "bitwarden_sdk/*.py", format = ["sdist", "wheel"] }
 ]
 manifest-path = "../../crates/bitwarden-py/Cargo.toml"
-python-packages = ["BitwardenClient"]
+python-packages = ["bitwarden_sdk"]

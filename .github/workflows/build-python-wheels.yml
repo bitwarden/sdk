@@ -89,7 +89,7 @@ jobs:
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: schemas.py
-          path: ${{ github.workspace }}/languages/python/BitwardenClient/
+          path: ${{ github.workspace }}/languages/python/bitwarden_sdk/
 
       # - name: Setup Windows ARM64
       #   if: ${{ matrix.settings.target == 'aarch64-pc-windows-msvc' }}
@@ -122,12 +122,12 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
         with:
-          name: BitwardenClient-${{ env._PACKAGE_VERSION }}-${{ matrix.settings.target }}
-          path: ${{ github.workspace }}/target/wheels/BitwardenClient*.whl
+          name: bitwarden_sdk-${{ env._PACKAGE_VERSION }}-${{ matrix.settings.target }}
+          path: ${{ github.workspace }}/target/wheels/bitwarden_sdk*.whl
 
       - name: Upload sdists
         if: ${{ matrix.settings.target == 'x86_64-unknown-linux-gnu' }} # we only need one sdist
         uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
         with:
-          name: BitwardenClient-${{ env._PACKAGE_VERSION }}-sdist
-          path: ${{ github.workspace }}/target/wheels/BitwardenClient-*.tar.gz
+          name: bitwarden_sdk-${{ env._PACKAGE_VERSION }}-sdist
+          path: ${{ github.workspace }}/target/wheels/bitwarden_sdk-*.tar.gz

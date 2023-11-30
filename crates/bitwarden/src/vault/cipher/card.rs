@@ -1,10 +1,8 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use crate::{
-    client::encryption_settings::EncryptionSettings,
-    crypto::{Decryptable, EncString, Encryptable},
+    crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
     error::Result,
 };
 
@@ -32,28 +30,28 @@ pub struct CardView {
     pub number: Option<String>,
 }
 
-impl Encryptable<Card> for CardView {
-    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Card> {
+impl KeyEncryptable<Card> for CardView {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Card> {
         Ok(Card {
-            cardholder_name: self.cardholder_name.encrypt(enc, org_id)?,
-            exp_month: self.exp_month.encrypt(enc, org_id)?,
-            exp_year: self.exp_year.encrypt(enc, org_id)?,
-            code: self.code.encrypt(enc, org_id)?,
-            brand: self.brand.encrypt(enc, org_id)?,
-            number: self.number.encrypt(enc, org_id)?,
+            cardholder_name: self.cardholder_name.encrypt_with_key(key)?,
+            exp_month: self.exp_month.encrypt_with_key(key)?,
+            exp_year: self.exp_year.encrypt_with_key(key)?,
+            code: self.code.encrypt_with_key(key)?,
+            brand: self.brand.encrypt_with_key(key)?,
+            number: self.number.encrypt_with_key(key)?,
         })
     }
 }
 
-impl Decryptable<CardView> for Card {
-    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<CardView> {
+impl KeyDecryptable<CardView> for Card {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CardView> {
         Ok(CardView {
-            cardholder_name: self.cardholder_name.decrypt(enc, org_id)?,
-            exp_month: self.exp_month.decrypt(enc, org_id)?,
-            exp_year: self.exp_year.decrypt(enc, org_id)?,
-            code: self.code.decrypt(enc, org_id)?,
-            brand: self.brand.decrypt(enc, org_id)?,
-            number: self.number.decrypt(enc, org_id)?,
+            cardholder_name: self.cardholder_name.decrypt_with_key(key)?,
+            exp_month: self.exp_month.decrypt_with_key(key)?,
+            exp_year: self.exp_year.decrypt_with_key(key)?,
+            code: self.code.decrypt_with_key(key)?,
+            brand: self.brand.decrypt_with_key(key)?,
+            number: self.number.decrypt_with_key(key)?,
         })
     }
 }

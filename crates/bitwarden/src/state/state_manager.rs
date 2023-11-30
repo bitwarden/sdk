@@ -22,30 +22,19 @@ pub struct StateManager {
 
 impl StateManager {
     pub fn new(path: &Path) -> Result<Self> {
-        match fs::canonicalize(path) {
-            Ok(p) => {
-                match p.try_exists() {
-                    Ok(exists) => {
-                        if exists {
-                            println!("Path: {:?}", path);
-                            println!("Path attempt: {:?}", p);
-                            let file_content = fs::read_to_string(&p)?;
-                            let file_state: Self = serde_json::from_str(file_content.as_str())?;
-        
-                            if file_state.version != STATE_VERSION {
-                                return Err(Error::InvalidStateManagerFileVersion);
-                            }
-        
-                            return Ok(file_state);
-                        }
+        if let Ok(p) = fs::canonicalize(path) {
+            if let Ok(exists) = p.try_exists() {
+                if exists {
+                    let file_content = fs::read_to_string(&p)?;
+                    let file_state: Self = serde_json::from_str(file_content.as_str())?;
+
+                    if file_state.version != STATE_VERSION {
+                        return Err(Error::InvalidStateManagerFileVersion);
                     }
-                    Err(e) => return Err(Error::Io(e)),
+
+                    return Ok(file_state);
                 }
-            },
-            Err(e) => {
-                println!("Error attempting to canonicalize... {:?}", e);
-                return Err(Error::Io(e))
-            },
+            }
         }
 
         Ok(Self {
@@ -71,18 +60,15 @@ impl StateManager {
         self.data != serde_json::Value::Null
     }
 
-    pub fn get_client_state(&self) -> Result<ClientState> {
-        if !self.has_data() {
-            return Err(Error::NoData);
-        }
-
-        Ok(ClientState {
-            token: serde_json::from_value(self.data["token"].clone())?,
+    pub fn get_client_state(&self) -> ClientState {
+        ClientState {
+            token: serde_json::from_value(self.data["token"].clone()).ok(),
             token_expiry_timestamp: serde_json::from_value(
                 self.data["token_expiry_timestamp"].clone(),
-            )?,
-            refresh_token: serde_json::from_value(self.data["refresh_token"].clone())?,
-            access_token: serde_json::from_value(self.data["access_token"].clone())?,
-        })
+            )
+            .ok(),
+            refresh_token: serde_json::from_value(self.data["refresh_token"].clone()).ok(),
+            access_token: serde_json::from_value(self.data["access_token"].clone()).ok(),
+        }
     }
 }

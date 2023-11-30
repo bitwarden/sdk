@@ -29,7 +29,7 @@ pub(crate) enum ProfileKey {
     server_base,
     server_api,
     server_identity,
-    state_file,
+    state_file_path,
 }
 
 impl ProfileKey {
@@ -38,7 +38,7 @@ impl ProfileKey {
             ProfileKey::server_base => p.server_base = Some(value),
             ProfileKey::server_api => p.server_api = Some(value),
             ProfileKey::server_identity => p.server_identity = Some(value),
-            ProfileKey::state_file => p.state_file_path = Some(value),
+            ProfileKey::state_file_path => p.state_file_path = Some(value),
         }
     }
 }
@@ -46,7 +46,7 @@ impl ProfileKey {
 pub(crate) const FILENAME: &str = "config";
 pub(crate) const DIRECTORY: &str = ".bws";
 
-fn get_config_path(config_file: Option<&Path>, ensure_folder_exists: bool) -> PathBuf {
+pub(crate) fn get_config_path(config_file: Option<&Path>, ensure_folder_exists: bool) -> PathBuf {
     let config_file = config_file.map(ToOwned::to_owned).unwrap_or_else(|| {
         let base_dirs = BaseDirs::new().unwrap();
         base_dirs.home_dir().join(DIRECTORY).join(FILENAME)

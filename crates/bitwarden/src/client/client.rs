@@ -106,10 +106,10 @@ impl ClientState {
             },
             None => return false,
         };
-        println!(
-            "Now is: {:?}\nToken expires on: {:?}",
-            now, token_expiry_timestamp
-        );
+        // println!(
+        //     "Now is: {:?}\nToken expires on: {:?}",
+        //     now, token_expiry_timestamp
+        // );
         !(token_expiry_timestamp - now).is_zero()
     }
 }

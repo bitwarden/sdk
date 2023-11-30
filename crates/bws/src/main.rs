@@ -236,8 +236,6 @@ async fn main() -> Result<()> {
 const ACCESS_TOKEN_KEY_VAR_NAME: &str = "BWS_ACCESS_TOKEN";
 const PROFILE_KEY_VAR_NAME: &str = "BWS_PROFILE";
 const SERVER_URL_KEY_VAR_NAME: &str = "BWS_SERVER_URL";
-const DEFAULT_STATE_FILE_PATH: &str = "~/.bws/";
-const DEFAULT_STATE_FILENAME: &str = "state-default"; // convention: state-{profile}
 
 #[allow(clippy::comparison_chain)]
 async fn process_commands() -> Result<()> {
@@ -330,54 +328,33 @@ async fn process_commands() -> Result<()> {
         })
         .transpose()?;
 
-    /*
-        let file = get_config_path(config_file, false);
-
-        let content = match file.exists() {
-            true => read_to_string(file),
-            false if must_exist => bail!("Config file doesn't exist"),
-            false => return Ok(Config::default()),
-        };
-
-        let config: Config = toml::from_str(&content?)?;
-        Ok(config)
-    */
-
-    let default_state_file_path = DEFAULT_STATE_FILE_PATH.to_owned() + DEFAULT_STATE_FILENAME;
-    let default_state_file_path = get_config_path(config_file, false);
-    let state_path = match profile {
-        Some(p) => match p.state_file_path {
-            Some(sfp) => sfp,
-            None => default_state_file_path,
+    let state_file_path = state::get_state_file_path(
+        match profile {
+            Some(p) => match p.state_file_path {
+                Some(sp) => Some(PathBuf::from(sp.clone())),
+                None => None,
+            },
+            None => None,
         },
-        None => default_state_file_path,
-    };
-    let state_path = Path::new(&state_path);
-    println!("{:?}", state_path);
+        cli.profile,
+        true,
+    );
 
-    let mut state = StateManager::new(state_path)?;
-    let mut token_valid = false;
-    let client_state = match state.get_client_state() {
-        Ok(s) => {
-            token_valid = s.token_is_valid();
-            Some(s)
-        }
-        Err(_) => None,
-    };
-    println!("Token validity: {:?}", token_valid);
+    let mut state = StateManager::new(&state_file_path)?;
+    let client_state = state.get_client_state();
+    let valid_token = client_state.token_is_valid();
 
-    let mut client = bitwarden::Client::new(settings, client_state);
+    let mut client = bitwarden::Client::new(settings, Some(client_state));
 
-    // If the token is no longer valid, load a session or return if no session exists
-    // Update the state data & save
-    if !token_valid {
+    if !valid_token {
+        println!("calling access_token_login...");
         let _ = client
             .access_token_login(&AccessTokenLoginRequest { access_token })
             .await?;
 
         state.data = json!(client.get_client_state());
         println!("state data: {:?}", state.data);
-        let r = state.save(state_path);
+        let r = state.save(&state_file_path);
         println!("save result: {:?}", r);
     }
 

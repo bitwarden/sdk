@@ -24,16 +24,10 @@ impl Client {
             }
         };
 
-        if let Some(cmd_value_map) = cmd_value.as_object_mut() {
-            cmd_value_map.retain(|_, v| !v.is_null());
-
-            for &subcommand in SUBCOMMANDS_TO_CLEAN {
-                if let Some(cmd_value_secrets) = cmd_value_map
-                    .get_mut(subcommand)
-                    .and_then(|v| v.as_object_mut())
-                {
-                    cmd_value_secrets.retain(|_, v| !v.is_null());
-                }
+        clean_null_fields(&mut cmd_value);
+        for &subcommand in SUBCOMMANDS_TO_CLEAN {
+            if let Some(v) = cmd_value.get_mut(subcommand) {
+                clean_null_fields(v)
             }
         }
 
@@ -85,7 +79,17 @@ impl Client {
 
     fn parse_settings(settings_input: Option<String>) -> Option<ClientSettings> {
         if let Some(input) = settings_input.as_ref() {
-            match serde_json::from_str(input) {
+            let mut value: serde_json::Value = match serde_json::from_str(input) {
+                Ok(value) => value,
+                Err(e) => {
+                    log::error!("Failed to parse settings: {}", e);
+                    return None;
+                }
+            };
+
+            clean_null_fields(&mut value);
+
+            match serde_json::from_value(value) {
                 Ok(settings) => return Some(settings),
                 Err(e) => {
                     log::error!("Failed to parse settings: {}", e);
@@ -93,5 +97,24 @@ impl Client {
             }
         }
         None
+    }
+}
+
+/// Removes null fields from a json object value, note that this isn't recursive.
+/// This is needed because some of the language bindings will send null values when a value is not set,
+/// and this causes problems with some deserializations, for example:
+///
+/// ClientSettings is using #[serde(default)] and non-optional fields, which means any missing
+/// field will be deserialized as the value from ClientSettings::default(). This does not work if the value
+/// is explicitly defined as null, which will produce a deserialization error.
+///
+/// The Command enum is serialized/deserialized as '{ "variant_name": {/* Variant contents */} }', serde
+/// is expecting only a single variant field in the root object, but some of the bindings are sending the
+/// rest of fields with null values, which will produce a deserialization error.
+/// '{ "other_variant": null, "variant_name": {/* Variant contents */}, "another_variant": null }'
+///
+fn clean_null_fields(value: &mut serde_json::Value) {
+    if let Some(object) = value.as_object_mut() {
+        object.retain(|_, v| !v.is_null());
     }
 }

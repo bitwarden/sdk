@@ -51,4 +51,5 @@ languages/csharp/Bitwarden.Sdk/schemas.cs
 languages/js_webassembly/bitwarden_client/schemas.ts
 languages/python/BitwardenClient/schemas.py
 languages/cpp/include/schemas.hpp
+languages/go/schema.go
 languages/java/src/main/java/com/bitwarden/sdk/schema

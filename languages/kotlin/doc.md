@@ -327,6 +327,19 @@ Decrypt password history
 
 **Output**: std::result::Result<Vec,BitwardenError>
 
+## ClientPlatform
+
+### `fingerprint`
+
+Fingerprint
+
+**Arguments**:
+
+- self:
+- req: [FingerprintRequest](#fingerprintrequest)
+
+**Output**: std::result::Result<String,BitwardenError>
+
 ## ClientSends
 
 ### `encrypt`
@@ -815,6 +828,26 @@ implementations.
             </tr>
         </table>
     </td>
+</tr>
+</table>
+
+## `FingerprintRequest`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>fingerprintMaterial</th>
+    <th>string</th>
+    <th>The input material, used in the fingerprint generation process.</th>
+</tr>
+<tr>
+    <th>publicKey</th>
+    <th>string</th>
+    <th>The user&#x27;s public key encoded with base64.</th>
 </tr>
 </table>
 

@@ -1,11 +1,12 @@
 use std::time::{Duration, Instant};
 
+use reqwest::header::{self};
+use uuid::Uuid;
+
+#[cfg(feature = "secrets")]
+use crate::auth::login::{AccessTokenLoginRequest, AccessTokenLoginResponse};
 #[cfg(feature = "internal")]
 use crate::{
-    auth::login::{
-        api_key_login, password_login, send_two_factor_email, ApiKeyLoginRequest,
-        ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse, TwoFactorEmailRequest,
-    },
     client::kdf::Kdf,
     crypto::EncString,
     platform::{
@@ -13,13 +14,7 @@ use crate::{
         SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,
     },
 };
-use reqwest::header::{self};
-use uuid::Uuid;
-
-#[cfg(feature = "secrets")]
-use crate::auth::login::{access_token_login, AccessTokenLoginRequest, AccessTokenLoginResponse};
 use crate::{
-    auth::renew::renew_token,
     client::{
         client_settings::{ClientSettings, DeviceType},
         encryption_settings::EncryptionSettings,
@@ -133,39 +128,17 @@ impl Client {
     pub(crate) async fn get_api_configurations(&mut self) -> &ApiConfigurations {
         // At the moment we ignore the error result from the token renewal, if it fails,
         // the token will end up expiring and the next operation is going to fail anyway.
-        self.renew_token().await.ok();
+        self.auth().renew_token().await.ok();
         &self.__api_configurations
     }
 
-    #[cfg(feature = "internal")]
-    pub async fn prelogin(&mut self, email: String) -> Result<Kdf> {
-        use crate::auth::login::request_prelogin;
-
-        request_prelogin(self, email).await?.try_into()
-    }
-
-    #[cfg(feature = "internal")]
-    pub async fn password_login(
-        &mut self,
-        input: &PasswordLoginRequest,
-    ) -> Result<PasswordLoginResponse> {
-        password_login(self, input).await
-    }
-
-    #[cfg(feature = "internal")]
-    pub async fn api_key_login(
-        &mut self,
-        input: &ApiKeyLoginRequest,
-    ) -> Result<ApiKeyLoginResponse> {
-        api_key_login(self, input).await
-    }
-
     #[cfg(feature = "secrets")]
+    #[deprecated(note = "Use auth().login_access_token() instead")]
     pub async fn access_token_login(
         &mut self,
         input: &AccessTokenLoginRequest,
     ) -> Result<AccessTokenLoginResponse> {
-        access_token_login(self, input).await
+        self.auth().login_access_token(input).await
     }
 
     #[cfg(feature = "internal")]
@@ -223,10 +196,6 @@ impl Client {
         self.__api_configurations.api.oauth_access_token = Some(token);
     }
 
-    pub async fn renew_token(&mut self) -> Result<()> {
-        renew_token(self).await
-    }
-
     #[cfg(feature = "internal")]
     pub fn is_authed(&self) -> bool {
         self.token.is_some() || self.login_method.is_some()
@@ -253,6 +222,23 @@ impl Client {
         Ok(self.encryption_settings.as_ref().unwrap())
     }
 
+    #[cfg(feature = "mobile")]
+    pub(crate) fn initialize_user_crypto_decrypted_key(
+        &mut self,
+        decrypted_user_key: &str,
+        private_key: EncString,
+    ) -> Result<&EncryptionSettings> {
+        let user_key = decrypted_user_key.parse::<SymmetricCryptoKey>()?;
+        self.encryption_settings = Some(EncryptionSettings::new_decrypted_key(
+            user_key,
+            private_key,
+        )?);
+        Ok(self
+            .encryption_settings
+            .as_ref()
+            .expect("It was initialized on the previous line"))
+    }
+
     pub(crate) fn initialize_crypto_single_key(
         &mut self,
         key: SymmetricCryptoKey,
@@ -276,107 +262,7 @@ impl Client {
     }
 
     #[cfg(feature = "internal")]
-    pub fn fingerprint(&mut self, input: &FingerprintRequest) -> Result<FingerprintResponse> {
+    pub fn fingerprint(&self, input: &FingerprintRequest) -> Result<FingerprintResponse> {
         generate_fingerprint(input)
-    }
-
-    #[cfg(feature = "internal")]
-    pub async fn send_two_factor_email(&mut self, tf: &TwoFactorEmailRequest) -> Result<()> {
-        send_two_factor_email(self, tf).await
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use wiremock::{matchers, Mock, ResponseTemplate};
-
-    use crate::{auth::login::AccessTokenLoginRequest, secrets_manager::secrets::*};
-
-    #[tokio::test]
-    async fn test_access_token_login() {
-        // Create the mock server with the necessary routes for this test
-        let (_server, mut client) = crate::util::start_mock(vec![
-            Mock::given(matchers::path("/identity/connect/token"))
-            .respond_with(ResponseTemplate::new(200).set_body_json(
-                serde_json::json!({
-                    "access_token":"eyJhbGciOiJSUzI1NiIsImtpZCI6IjMwMURENkE1MEU4NEUxRDA5MUM4MUQzQjAwQkY5MDEwQzg1REJEOUFSUzI1NiIsInR5cCI6\
-                    ImF0K2p3dCIsIng1dCI6Ik1CM1dwUTZFNGRDUnlCMDdBTC1RRU1oZHZabyJ9.eyJuYmYiOjE2NzUxMDM3ODEsImV4cCI6MTY3NTEwNzM4MSwiaXNzIjo\
-                    iaHR0cDovL2xvY2FsaG9zdCIsImNsaWVudF9pZCI6ImVjMmMxZDQ2LTZhNGItNDc1MS1hMzEwLWFmOTYwMTMxN2YyZCIsInN1YiI6ImQzNDgwNGNhLTR\
-                    mNmMtNDM5Mi04NmI3LWFmOTYwMTMxNzVkMCIsIm9yZ2FuaXphdGlvbiI6ImY0ZTQ0YTdmLTExOTAtNDMyYS05ZDRhLWFmOTYwMTMxMjdjYiIsImp0aSI\
-                    6IjU3QUU0NzQ0MzIwNzk1RThGQkQ4MUIxNDA2RDQyNTQyIiwiaWF0IjoxNjc1MTAzNzgxLCJzY29wZSI6WyJhcGkuc2VjcmV0cyJdfQ.GRKYzqgJZHEE\
-                    ZHsJkhVZH8zjYhY3hUvM4rhdV3FU10WlCteZdKHrPIadCUh-Oz9DxIAA2HfALLhj1chL4JgwPmZgPcVS2G8gk8XeBmZXowpVWJ11TXS1gYrM9syXbv9j\
-                    0JUCdpeshH7e56WnlpVynyUwIum9hmYGZ_XJUfmGtlKLuNjYnawTwLEeR005uEjxq3qI1kti-WFnw8ciL4a6HLNulgiFw1dAvs4c7J0souShMfrnFO3g\
-                    SOHff5kKD3hBB9ynDBnJQSFYJ7dFWHIjhqs0Vj-9h0yXXCcHvu7dVGpaiNjNPxbh6YeXnY6UWcmHLDtFYsG2BWcNvVD4-VgGxXt3cMhrn7l3fSYuo32Z\
-                    Yk4Wop73XuxqF2fmfmBdZqGI1BafhENCcZw_bpPSfK2uHipfztrgYnrzwvzedz0rjFKbhDyrjzuRauX5dqVJ4ntPeT9g_I5n71gLxiP7eClyAx5RxdF6\
-                    He87NwC8i-hLBhugIvLTiDj-Sk9HvMth6zaD0ebxd56wDjq8-CMG_WcgusDqNzKFHqWNDHBXt8MLeTgZAR2rQMIMFZqFgsJlRflbig8YewmNUA9wAU74\
-                    TfxLY1foO7Xpg49vceB7C-PlvGi1VtX6F2i0tc_67lA5kWXnnKBPBUyspoIrmAUCwfms5nTTqA9xXAojMhRHAos_OdM",
-                    "expires_in":3600,
-                    "token_type":"Bearer",
-                    "scope":"api.secrets",
-                    "encrypted_payload":"2.E9fE8+M/VWMfhhim1KlCbQ==|eLsHR484S/tJbIkM6spnG/HP65tj9A6Tba7kAAvUp+rYuQmGLixiOCfMsqt5OvBctDfvvr/Aes\
-                    Bu7cZimPLyOEhqEAjn52jF0eaI38XZfeOG2VJl0LOf60Wkfh3ryAMvfvLj3G4ZCNYU8sNgoC2+IQ==|lNApuCQ4Pyakfo/wwuuajWNaEX/2MW8/3rjXB/V7n+k="})
-            )),
-            Mock::given(matchers::path("/api/organizations/f4e44a7f-1190-432a-9d4a-af96013127cb/secrets"))
-            .respond_with(ResponseTemplate::new(200).set_body_json(
-                serde_json::json!({
-                    "secrets":[{
-                            "id":"15744a66-341a-4c62-af50-af960166b6bc",
-                            "organizationId":"f4e44a7f-1190-432a-9d4a-af96013127cb",
-                            "key":"2.pMS6/icTQABtulw52pq2lg==|XXbxKxDTh+mWiN1HjH2N1w==|Q6PkuT+KX/axrgN9ubD5Ajk2YNwxQkgs3WJM0S0wtG8=",
-                            "creationDate":"2023-01-26T21:46:02.2182556Z",
-                            "revisionDate":"2023-01-26T21:46:02.2182557Z"
-                    }],
-                    "projects":[],
-                    "object":"SecretsWithProjectsList"
-                })
-            )),
-            Mock::given(matchers::path("/api/secrets/15744a66-341a-4c62-af50-af960166b6bc"))
-            .respond_with(ResponseTemplate::new(200).set_body_json(
-                serde_json::json!({
-                    "id":"15744a66-341a-4c62-af50-af960166b6bc",
-                    "organizationId":"f4e44a7f-1190-432a-9d4a-af96013127cb",
-                    "key":"2.pMS6/icTQABtulw52pq2lg==|XXbxKxDTh+mWiN1HjH2N1w==|Q6PkuT+KX/axrgN9ubD5Ajk2YNwxQkgs3WJM0S0wtG8=",
-                    "value":"2.Gl34n9JYABC7V21qHcBzHg==|c1Ds244pob7i+8+MXe4++w==|Shimz/qKMYZmzSFWdeBzFb9dFz7oF6Uv9oqkws7rEe0=",
-                    "note":"2.Cn9ABJy7+WfR4uUHwdYepg==|+nbJyU/6hSknoa5dcEJEUg==|1DTp/ZbwGO3L3RN+VMsCHz8XDr8egn/M5iSitGGysPA=",
-                    "creationDate":"2023-01-26T21:46:02.2182556Z",
-                    "revisionDate":"2023-01-26T21:46:02.2182557Z",
-                    "object":"secret"
-                })
-            ))
-        ]).await;
-
-        // Test the login is correct and we store the returned organization ID correctly
-        let res = client
-            .access_token_login(&AccessTokenLoginRequest {
-                access_token: "0.ec2c1d46-6a4b-4751-a310-af9601317f2d.C2IgxjjLF7qSshsbwe8JGcbM075YXw:X8vbvA0bduihIDe/qrzIQQ==".into(),
-            })
-            .await
-            .unwrap();
-        assert!(res.authenticated);
-        let organization_id = client.get_access_token_organization().unwrap();
-        assert_eq!(
-            organization_id.to_string(),
-            "f4e44a7f-1190-432a-9d4a-af96013127cb"
-        );
-
-        // Test that we can retrieve the list of secrets correctly
-        let mut res = client
-            .secrets()
-            .list(&SecretIdentifiersRequest { organization_id })
-            .await
-            .unwrap();
-        assert_eq!(res.data.len(), 1);
-
-        // Test that given a secret ID we can get it's data
-        let res = client
-            .secrets()
-            .get(&SecretGetRequest {
-                id: res.data.remove(0).id,
-            })
-            .await
-            .unwrap();
-        assert_eq!(res.key, "TEST");
-        assert_eq!(res.note, "TEST");
-        assert_eq!(res.value, "TEST");
     }
 }

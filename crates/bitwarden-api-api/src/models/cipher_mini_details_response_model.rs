@@ -51,6 +51,8 @@ pub struct CipherMiniDetailsResponseModel {
     pub deleted_date: Option<String>,
     #[serde(rename = "reprompt", skip_serializing_if = "Option::is_none")]
     pub reprompt: Option<crate::models::CipherRepromptType>,
+    #[serde(rename = "key", skip_serializing_if = "Option::is_none")]
+    pub key: Option<String>,
     #[serde(rename = "collectionIds", skip_serializing_if = "Option::is_none")]
     pub collection_ids: Option<Vec<uuid::Uuid>>,
 }
@@ -77,6 +79,7 @@ impl CipherMiniDetailsResponseModel {
             creation_date: None,
             deleted_date: None,
             reprompt: None,
+            key: None,
             collection_ids: None,
         }
     }

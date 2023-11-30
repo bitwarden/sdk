@@ -22,15 +22,8 @@ pub struct DeviceResponseModel {
     pub identifier: Option<String>,
     #[serde(rename = "creationDate", skip_serializing_if = "Option::is_none")]
     pub creation_date: Option<String>,
-    #[serde(rename = "encryptedUserKey", skip_serializing_if = "Option::is_none")]
-    pub encrypted_user_key: Option<String>,
-    #[serde(rename = "encryptedPublicKey", skip_serializing_if = "Option::is_none")]
-    pub encrypted_public_key: Option<String>,
-    #[serde(
-        rename = "encryptedPrivateKey",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub encrypted_private_key: Option<String>,
+    #[serde(rename = "isTrusted", skip_serializing_if = "Option::is_none")]
+    pub is_trusted: Option<bool>,
 }
 
 impl DeviceResponseModel {
@@ -42,9 +35,7 @@ impl DeviceResponseModel {
             r#type: None,
             identifier: None,
             creation_date: None,
-            encrypted_user_key: None,
-            encrypted_public_key: None,
-            encrypted_private_key: None,
+            is_trusted: None,
         }
     }
 }

@@ -19,10 +19,12 @@ pub trait LocateKey {
     }
 }
 
+/// Deprecated: please use LocateKey and KeyDecryptable instead
 pub trait Encryptable<Output> {
     fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Output>;
 }
 
+/// Deprecated: please use LocateKey and KeyDecryptable instead
 pub trait Decryptable<Output> {
     fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Output>;
 }

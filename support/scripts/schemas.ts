@@ -1,4 +1,10 @@
-import { quicktype, InputData, JSONSchemaInput, FetchingJSONSchemaStore } from "quicktype-core";
+import {
+  quicktype,
+  quicktypeMultiFile,
+  InputData,
+  JSONSchemaInput,
+  FetchingJSONSchemaStore,
+} from "quicktype-core";
 
 import fs from "fs";
 import path from "path";
@@ -75,6 +81,23 @@ async function main() {
     },
   });
   writeToFile("./languages/go/schema.go", go.lines);
+  
+  const java = await quicktypeMultiFile({
+    inputData,
+    lang: "java",
+    rendererOptions: {
+      package: "com.bitwarden.sdk.schema",
+      "java-version": "8",
+    },
+  });
+
+  const javaDir = "./languages/java/src/main/java/com/bitwarden/sdk/schema/";
+  if (!fs.existsSync(javaDir)) {
+    fs.mkdirSync(javaDir);
+  }
+  java.forEach((file, path) => {
+    writeToFile(javaDir + path, file.lines);
+  });
 }
 
 main();

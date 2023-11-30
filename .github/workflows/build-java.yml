@@ -1,0 +1,68 @@
+name: Build Java SDK
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  generate_schemas:
+    uses: ./.github/workflows/generate_schemas.yml
+
+  build_rust:
+    uses: ./.github/workflows/build-rust-cross-platform.yml
+
+  build_java:
+    name: Build Java
+    runs-on: ubuntu-22.04
+    needs:
+      - generate_schemas
+      - build_rust
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+
+      - name: Download Java schemas artifact
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: sdk-schemas-java
+          path: languages/java/src/main/java/bit/sdk/schema/
+
+      - name: Setup Java
+        uses: actions/setup-java@0ab4596768b603586c0de567f2430c30f5b0d2b0 # v3.13.0
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Download x86_64-apple-darwin files
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: libbitwarden_c_files-x86_64-apple-darwin
+          path: languages/java/src/main/resources/darwin-x64
+
+      - name: Download aarch64-apple-darwin files
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: libbitwarden_c_files-aarch64-apple-darwin
+          path: languages/java/src/main/resources/darwin-aarch64
+
+      - name: Download x86_64-unknown-linux-gnu files
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: libbitwarden_c_files-x86_64-unknown-linux-gnu
+          path: languages/java/src/main/resources/ubuntu-x64
+
+      - name: Download x86_64-pc-windows-msvc files
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: libbitwarden_c_files-x86_64-pc-windows-msvc
+          path: languages/java/src/main/resources/windows-x64
+
+      - name: Publish Maven
+        uses: gradle/gradle-build-action@b5126f31dbc19dd434c3269bf8c28c315e121da2 # v2.8.1
+        with:
+          arguments: publish
+          build-root-directory: languages/java
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

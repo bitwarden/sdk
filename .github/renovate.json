@@ -27,5 +27,6 @@
       "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["minor", "patch"]
     }
-  ]
+  ],
+  "ignoreDeps": ["dotnet-sdk"]
 }

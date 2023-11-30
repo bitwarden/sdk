@@ -23,7 +23,7 @@ require 'bitwarden-sdk'
 # then you can initialize BitwardenSettings:
 bitwarden_settings = BitwardenSDK::BitwardenSettings.new(
   'https://api.bitwarden.com',
-  'https://identity.bitwarden.com/connect/token'
+  'https://identity.bitwarden.com'
 )
 
 # By passing these setting you can initialize BitwardenClient

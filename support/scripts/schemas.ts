@@ -70,6 +70,17 @@ async function main() {
 
   writeToFile("./languages/csharp/Bitwarden.Sdk/schemas.cs", csharp.lines);
 
+  const go = await quicktype({
+    inputData,
+    lang: "go",
+    rendererOptions: {
+      package: "sdk",
+      "just-types-and-package": true,
+    },
+  });
+
+  writeToFile("./languages/go/schema.go", go.lines);
+
   const java = await quicktypeMultiFile({
     inputData,
     lang: "java",

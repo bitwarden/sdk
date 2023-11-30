@@ -1,4 +1,10 @@
-import { quicktype, InputData, JSONSchemaInput, FetchingJSONSchemaStore } from "quicktype-core";
+import {
+  quicktype,
+  quicktypeMultiFile,
+  InputData,
+  JSONSchemaInput,
+  FetchingJSONSchemaStore,
+} from "quicktype-core";
 
 import fs from "fs";
 import path from "path";
@@ -63,6 +69,50 @@ async function main() {
   });
 
   writeToFile("./languages/csharp/Bitwarden.Sdk/schemas.cs", csharp.lines);
+
+  const cpp = await quicktype({
+    inputData,
+    lang: "cpp",
+    rendererOptions: {
+      namespace: "Bitwarden::Sdk",
+      "include-location": "global-include",
+    },
+  });
+
+  cpp.lines.forEach((line, idx) => {
+    // Replace DOMAIN for URI_DOMAIN, because DOMAIN is an already defined macro
+    cpp.lines[idx] = line.replace(/DOMAIN/g, "URI_DOMAIN");
+  });
+
+  writeToFile("./languages/cpp/include/schemas.hpp", cpp.lines);
+
+  const go = await quicktype({
+    inputData,
+    lang: "go",
+    rendererOptions: {
+      package: "sdk",
+      "just-types-and-package": true,
+    },
+  });
+
+  writeToFile("./languages/go/schema.go", go.lines);
+
+  const java = await quicktypeMultiFile({
+    inputData,
+    lang: "java",
+    rendererOptions: {
+      package: "com.bitwarden.sdk.schema",
+      "java-version": "8",
+    },
+  });
+
+  const javaDir = "./languages/java/src/main/java/com/bitwarden/sdk/schema/";
+  if (!fs.existsSync(javaDir)) {
+    fs.mkdirSync(javaDir);
+  }
+  java.forEach((file, path) => {
+    writeToFile(javaDir + path, file.lines);
+  });
 }
 
 main();

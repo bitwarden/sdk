@@ -1,10 +1,8 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use crate::{
-    client::encryption_settings::EncryptionSettings,
-    crypto::{Decryptable, Encryptable},
+    crypto::{KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
     error::Result,
 };
 
@@ -24,8 +22,8 @@ pub struct LocalDataView {
     last_launched: Option<u32>,
 }
 
-impl Encryptable<LocalData> for LocalDataView {
-    fn encrypt(self, _enc: &EncryptionSettings, _org_id: &Option<Uuid>) -> Result<LocalData> {
+impl KeyEncryptable<LocalData> for LocalDataView {
+    fn encrypt_with_key(self, _key: &SymmetricCryptoKey) -> Result<LocalData> {
         Ok(LocalData {
             last_used_date: self.last_used_date,
             last_launched: self.last_launched,
@@ -33,8 +31,8 @@ impl Encryptable<LocalData> for LocalDataView {
     }
 }
 
-impl Decryptable<LocalDataView> for LocalData {
-    fn decrypt(&self, _enc: &EncryptionSettings, _org_id: &Option<Uuid>) -> Result<LocalDataView> {
+impl KeyDecryptable<LocalDataView> for LocalData {
+    fn decrypt_with_key(&self, _key: &SymmetricCryptoKey) -> Result<LocalDataView> {
         Ok(LocalDataView {
             last_used_date: self.last_used_date,
             last_launched: self.last_launched,

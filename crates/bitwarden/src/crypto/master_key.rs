@@ -4,7 +4,7 @@ use rand::Rng;
 use sha2::Digest;
 
 use super::{
-    encrypt_aes256, hkdf_expand, EncString, PbkdfSha256Hmac, SymmetricCryptoKey, UserKey,
+    hkdf_expand, EncString, KeyDecryptable, PbkdfSha256Hmac, SymmetricCryptoKey, UserKey,
     PBKDF_SHA256_HMAC_OUT_SIZE,
 };
 use crate::{client::kdf::Kdf, error::Result, util::BASE64_ENGINE};
@@ -41,21 +41,34 @@ impl MasterKey {
     }
 
     pub(crate) fn make_user_key(&self) -> Result<(UserKey, EncString)> {
-        let mut user_key = [0u8; 64];
-        rand::thread_rng().fill(&mut user_key);
-
-        let protected = encrypt_aes256(&user_key, self.0.key)?;
-
-        let u: &[u8] = &user_key;
-        Ok((UserKey::new(SymmetricCryptoKey::try_from(u)?), protected))
+        make_user_key(rand::thread_rng(), self)
     }
 
     pub(crate) fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey> {
         let stretched_key = stretch_master_key(self)?;
 
-        let dec = user_key.decrypt_with_key(&stretched_key)?;
+        let dec: Vec<u8> = user_key.decrypt_with_key(&stretched_key)?;
         SymmetricCryptoKey::try_from(dec.as_slice())
     }
+}
+
+/// Generate a new random user key and encrypt it with the master key.
+fn make_user_key(
+    mut rng: impl rand::RngCore,
+    master_key: &MasterKey,
+) -> Result<(UserKey, EncString)> {
+    let mut user_key = [0u8; 64];
+    rng.fill(&mut user_key);
+
+    let stretched_key = stretch_master_key(master_key)?;
+    let protected = EncString::encrypt_aes256_hmac(
+        &user_key,
+        stretched_key.mac_key.unwrap(),
+        stretched_key.key,
+    )?;
+
+    let u: &[u8] = &user_key;
+    Ok((UserKey::new(SymmetricCryptoKey::try_from(u)?), protected))
 }
 
 /// Derive a generic key from a secret and salt using the provided KDF.
@@ -112,7 +125,9 @@ fn stretch_master_key(master_key: &MasterKey) -> Result<SymmetricCryptoKey> {
 mod tests {
     use std::num::NonZeroU32;
 
-    use super::{stretch_master_key, HashPurpose, MasterKey};
+    use rand::SeedableRng;
+
+    use super::{make_user_key, stretch_master_key, HashPurpose, MasterKey};
     use crate::{client::kdf::Kdf, crypto::SymmetricCryptoKey};
 
     #[test]
@@ -223,6 +238,49 @@ mod tests {
             master_key
                 .derive_master_key_hash(password, HashPurpose::ServerAuthorization)
                 .unwrap(),
+        );
+    }
+
+    #[test]
+    fn test_make_user_key() {
+        let mut rng = rand_chacha::ChaCha8Rng::from_seed([0u8; 32]);
+
+        let master_key = MasterKey(SymmetricCryptoKey {
+            key: [
+                31, 79, 104, 226, 150, 71, 177, 90, 194, 80, 172, 209, 17, 129, 132, 81, 138, 167,
+                69, 167, 254, 149, 2, 27, 39, 197, 64, 42, 22, 195, 86, 75,
+            ]
+            .into(),
+            mac_key: None,
+        });
+
+        let (user_key, protected) = make_user_key(&mut rng, &master_key).unwrap();
+
+        assert_eq!(
+            user_key.0.key.as_slice(),
+            [
+                62, 0, 239, 47, 137, 95, 64, 214, 127, 91, 184, 232, 31, 9, 165, 161, 44, 132, 14,
+                195, 206, 154, 127, 59, 24, 27, 225, 136, 239, 113, 26, 30
+            ]
+        );
+        assert_eq!(
+            user_key.0.mac_key.unwrap().as_slice(),
+            [
+                152, 76, 225, 114, 185, 33, 111, 65, 159, 68, 83, 103, 69, 109, 86, 25, 49, 74, 66,
+                163, 218, 134, 176, 1, 56, 123, 253, 184, 14, 12, 254, 66
+            ]
+        );
+
+        // Ensure we can decrypt the key and get back the same key
+        let decrypted = master_key.decrypt_user_key(protected).unwrap();
+
+        assert_eq!(
+            decrypted.key, user_key.0.key,
+            "Decrypted key doesn't match user key"
+        );
+        assert_eq!(
+            decrypted.mac_key, user_key.0.mac_key,
+            "Decrypted key doesn't match user key"
         );
     }
 }

@@ -182,16 +182,39 @@ Decrypt collection list
 
 ## ClientCrypto
 
-### `initialize_crypto`
+### `initialize_user_crypto`
 
-Initialization method for the crypto. Needs to be called before any other crypto operations.
+Initialization method for the user crypto. Needs to be called before any other crypto operations.
 
 **Arguments**:
 
 - self:
-- req: [InitCryptoRequest](#initcryptorequest)
+- req: [InitUserCryptoRequest](#initusercryptorequest)
 
 **Output**: std::result::Result<,BitwardenError>
+
+### `initialize_org_crypto`
+
+Initialization method for the organization crypto. Needs to be called after
+&#x60;initialize_user_crypto&#x60; but before any other crypto operations.
+
+**Arguments**:
+
+- self:
+- req: [InitOrgCryptoRequest](#initorgcryptorequest)
+
+**Output**: std::result::Result<,BitwardenError>
+
+### `get_user_encryption_key`
+
+Get the uses&#x27;s decrypted encryption key. Note: It&#x27;s very important to keep this key safe,
+as it can be used to decrypt all of the user&#x27;s data
+
+**Arguments**:
+
+- self:
+
+**Output**: std::result::Result<String,BitwardenError>
 
 ## ClientExporters
 
@@ -441,6 +464,24 @@ Sends operations
 
 **Output**: Arc<sends::ClientSends>
 
+### `generate_totp`
+
+Generate a TOTP code from a provided key.
+
+The key can be either:
+
+- A base32 encoded string
+- OTP Auth URI
+- Steam URI
+
+**Arguments**:
+
+- self:
+- key: String
+- time: Option<DateTime>
+
+**Output**: [TotpResponse](#totpresponse)
+
 # References
 
 References are generated from the JSON schemas and should mostly match the kotlin and swift
@@ -473,6 +514,11 @@ implementations.
     <th>collectionIds</th>
     <th>array</th>
     <th></th>
+</tr>
+<tr>
+    <th>key</th>
+    <th></th>
+    <th>More recent ciphers uses individual encryption keys to encrypt the other fields of the Cipher.</th>
 </tr>
 <tr>
     <th>name</th>
@@ -541,17 +587,17 @@ implementations.
 </tr>
 <tr>
     <th>attachments</th>
-    <th>array</th>
+    <th>array,null</th>
     <th></th>
 </tr>
 <tr>
     <th>fields</th>
-    <th>array</th>
+    <th>array,null</th>
     <th></th>
 </tr>
 <tr>
     <th>passwordHistory</th>
-    <th>array</th>
+    <th>array,null</th>
     <th></th>
 </tr>
 <tr>
@@ -600,13 +646,18 @@ implementations.
     <th></th>
 </tr>
 <tr>
+    <th>key</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
     <th>name</th>
     <th>string</th>
     <th></th>
 </tr>
 <tr>
     <th>notes</th>
-    <th>string</th>
+    <th>string,null</th>
     <th></th>
 </tr>
 <tr>
@@ -666,17 +717,17 @@ implementations.
 </tr>
 <tr>
     <th>attachments</th>
-    <th>array</th>
+    <th>array,null</th>
     <th></th>
 </tr>
 <tr>
     <th>fields</th>
-    <th>array</th>
+    <th>array,null</th>
     <th></th>
 </tr>
 <tr>
     <th>passwordHistory</th>
-    <th>array</th>
+    <th>array,null</th>
     <th></th>
 </tr>
 <tr>
@@ -817,7 +868,79 @@ implementations.
 </tr>
 </table>
 
-## `InitCryptoRequest`
+## `InitOrgCryptoRequest`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>organizationKeys</th>
+    <th>object</th>
+    <th>The encryption keys for all the organizations the user is a part of</th>
+</tr>
+</table>
+
+## `InitUserCryptoMethod`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>password</th>
+    <th>object</th>
+    <th></th>
+</tr>
+<tr>
+    <td colspan="3">
+        <table>
+        <tr>
+            <th>Key</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+            <tr>
+                <td>password</td>
+                <td>string</td>
+                <td>The user's master password</td>
+            </tr>
+            <tr>
+                <td>user_key</td>
+                <td>string</td>
+                <td>The user's encrypted symmetric crypto key</td>
+            </tr>
+        </table>
+    </td>
+</tr>
+<tr>
+    <th>decryptedKey</th>
+    <th>object</th>
+    <th></th>
+</tr>
+<tr>
+    <td colspan="3">
+        <table>
+        <tr>
+            <th>Key</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+            <tr>
+                <td>decrypted_user_key</td>
+                <td>string</td>
+                <td>The user's decrypted encryption key, obtained using `get_user_encryption_key`</td>
+            </tr>
+        </table>
+    </td>
+</tr>
+</table>
+
+## `InitUserCryptoRequest`
 
 <table>
 <tr>
@@ -836,24 +959,14 @@ implementations.
     <th>The user&#x27;s email address</th>
 </tr>
 <tr>
-    <th>password</th>
-    <th>string</th>
-    <th>The user&#x27;s master password</th>
-</tr>
-<tr>
-    <th>userKey</th>
-    <th>string</th>
-    <th>The user&#x27;s encrypted symmetric crypto key</th>
-</tr>
-<tr>
     <th>privateKey</th>
     <th>string</th>
-    <th>The user&#x27;s encryptred private key</th>
+    <th>The user&#x27;s encrypted private key</th>
 </tr>
 <tr>
-    <th>organizationKeys</th>
-    <th>object</th>
-    <th>The encryption keys for all the organizations the user is a part of</th>
+    <th>method</th>
+    <th></th>
+    <th>The initialization method to use</th>
 </tr>
 </table>
 
@@ -1251,5 +1364,25 @@ implementations.
     <th>expirationDate</th>
     <th>string,null</th>
     <th></th>
+</tr>
+</table>
+
+## `TotpResponse`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>code</th>
+    <th>string</th>
+    <th>Generated TOTP code</th>
+</tr>
+<tr>
+    <th>period</th>
+    <th>integer</th>
+    <th>Time period</th>
 </tr>
 </table>

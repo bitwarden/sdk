@@ -1,8 +1,8 @@
 import json
-from typing import Any, List
+from typing import Any, List, Optional
+from uuid import UUID
 import bitwarden_py
-from .schemas import ClientSettings, Command, PasswordLoginRequest, PasswordLoginResponse, ResponseForPasswordLoginResponse, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsDeleteResponse, ResponseForSyncResponse, ResponseForUserAPIKeyResponse, SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretIdentifiersResponse, SecretPutRequest, SecretResponse, SecretVerificationRequest, SecretsCommand, SecretsDeleteRequest, SecretsDeleteResponse, SyncRequest, SyncResponse, UserAPIKeyResponse
-
+from .schemas import ClientSettings, Command, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsDeleteResponse, SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretIdentifiersResponse, SecretPutRequest, SecretResponse, SecretsCommand, SecretsDeleteRequest, SecretsDeleteResponse, AccessTokenLoginRequest, AccessTokenLoginResponse, ResponseForAccessTokenLoginResponse, ResponseForProjectResponse, ProjectsCommand, ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsListRequest, ResponseForProjectsResponse, ResponseForProjectsDeleteResponse, ProjectsDeleteRequest
 
 class BitwardenClient:
     def __init__(self, settings: ClientSettings = None):
@@ -12,32 +12,25 @@ class BitwardenClient:
             settings_json = json.dumps(settings.to_dict())
             self.inner = bitwarden_py.BitwardenClient(settings_json)
 
-    def password_login(self, email: str, password: str) -> ResponseForPasswordLoginResponse:
-        result = self._run_command(
-            Command(password_login=PasswordLoginRequest(email, password))
+    def access_token_login(self, access_token: str):
+        self._run_command(
+            Command(access_token_login=AccessTokenLoginRequest(access_token))
         )
-        return ResponseForPasswordLoginResponse.from_dict(result)
-
-    def get_user_api_key(self, secret: str, is_otp: bool = False) -> ResponseForUserAPIKeyResponse:
-        result = self._run_command(
-            Command(get_user_api_key=SecretVerificationRequest(
-                secret if not is_otp else None, secret if is_otp else None))
-        )
-        return ResponseForUserAPIKeyResponse.from_dict(result)
-
-    def sync(self, exclude_subdomains: bool = False) -> ResponseForSyncResponse:
-        result = self._run_command(
-            Command(sync=SyncRequest(exclude_subdomains))
-        )
-        return ResponseForSyncResponse.from_dict(result)
 
     def secrets(self):
         return SecretsClient(self)
 
+    def projects(self):
+        return ProjectsClient(self)
+
     def _run_command(self, command: Command) -> Any:
         response_json = self.inner.run_command(json.dumps(command.to_dict()))
-        return json.loads(response_json)
+        response = json.loads(response_json)
 
+        if response["success"] == False:
+            raise Exception(response["errorMessage"])
+        
+        return response
 
 class SecretsClient:
     def __init__(self, client: BitwardenClient):
@@ -52,10 +45,12 @@ class SecretsClient:
     def create(self, key: str,
                note: str,
                organization_id: str,
-               value: str) -> ResponseForSecretResponse:
+               value: str,
+               project_ids: Optional[List[UUID]] = None
+               ) -> ResponseForSecretResponse:
         result = self.client._run_command(
             Command(secrets=SecretsCommand(
-                create=SecretCreateRequest(key, note, organization_id, value)))
+                create=SecretCreateRequest(key, note, organization_id, value, project_ids)))
         )
         return ResponseForSecretResponse.from_dict(result)
 
@@ -70,10 +65,12 @@ class SecretsClient:
                key: str,
                note: str,
                organization_id: str,
-               value: str) -> ResponseForSecretResponse:
+               value: str,
+               project_ids: Optional[List[UUID]] = None
+               ) -> ResponseForSecretResponse:
         result = self.client._run_command(
             Command(secrets=SecretsCommand(update=SecretPutRequest(
-                id, key, note, organization_id, value)))
+                id, key, note, organization_id, value, project_ids)))
         )
         return ResponseForSecretResponse.from_dict(result)
 
@@ -82,3 +79,46 @@ class SecretsClient:
             Command(secrets=SecretsCommand(delete=SecretsDeleteRequest(ids)))
         )
         return ResponseForSecretsDeleteResponse.from_dict(result)
+
+class ProjectsClient:
+    def __init__(self, client: BitwardenClient):
+        self.client = client
+
+    def get(self, id: str) -> ResponseForProjectResponse:
+        result = self.client._run_command(
+            Command(projects=ProjectsCommand(get=ProjectGetRequest(id)))
+        )
+        return ResponseForProjectResponse.from_dict(result)
+
+    def create(self,
+               name: str,
+               organization_id: str,
+               ) -> ResponseForProjectResponse:
+        result = self.client._run_command(
+            Command(projects=ProjectsCommand(
+                create=ProjectCreateRequest(name, organization_id)))
+        )
+        return ResponseForProjectResponse.from_dict(result)
+
+    def list(self, organization_id: str) -> ResponseForProjectsResponse:
+        result = self.client._run_command(
+            Command(projects=ProjectsCommand(
+                list=ProjectsListRequest(organization_id)))
+        )
+        return ResponseForProjectsResponse.from_dict(result)
+
+    def update(self, id: str,
+               name: str,
+               organization_id: str,
+               ) -> ResponseForProjectResponse:
+        result = self.client._run_command(
+            Command(projects=ProjectsCommand(update=ProjectPutRequest(
+                id, name, organization_id)))
+        )
+        return ResponseForProjectResponse.from_dict(result)
+
+    def delete(self, ids: List[str]) -> ResponseForProjectsDeleteResponse:
+        result = self.client._run_command(
+            Command(projects=ProjectsCommand(delete=ProjectsDeleteRequest(ids)))
+        )
+        return ResponseForProjectsDeleteResponse.from_dict(result)

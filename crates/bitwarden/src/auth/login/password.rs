@@ -1,7 +1,4 @@
 #[cfg(feature = "internal")]
-use std::str::FromStr;
-
-#[cfg(feature = "internal")]
 use log::{debug, info};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -25,7 +22,7 @@ use crate::{
 };
 
 #[cfg(feature = "internal")]
-pub(crate) async fn password_login(
+pub(crate) async fn login_password(
     client: &mut Client,
     input: &PasswordLoginRequest,
 ) -> Result<PasswordLoginResponse> {
@@ -49,8 +46,8 @@ pub(crate) async fn password_login(
             }),
         );
 
-        let user_key = EncString::from_str(r.key.as_deref().unwrap()).unwrap();
-        let private_key = EncString::from_str(r.private_key.as_deref().unwrap()).unwrap();
+        let user_key: EncString = r.key.as_deref().unwrap().parse().unwrap();
+        let private_key: EncString = r.private_key.as_deref().unwrap().parse().unwrap();
 
         client.initialize_user_crypto(&input.password, user_key, private_key)?;
     }

@@ -2978,6 +2978,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4dccd0940a2dcdf68d092b8cbab7dc0ad8fa938bf95787e1b916b0e3d0e8e970"
 
 [[package]]
+name = "smawk"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b7c388c1b5e93756d0c740965c41e8822f866621d41acbdf6336a6a168f8840c"
+
+[[package]]
 name = "socket2"
 version = "0.4.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3154,6 +3160,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ff1bc3d3f05aff0403e8ac0d92ced918ec05b666a43f83297ccef5bea8a3d449"
 dependencies = [
  "winapi-util",
+]
+
+[[package]]
+name = "textwrap"
+version = "0.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "222a222a5bfe1bba4a77b45ec488a741b3cb8872e5e499451fd7d0129c9c7c3d"
+dependencies = [
+ "smawk",
+ "unicode-linebreak",
+ "unicode-width",
 ]
 
 [[package]]
@@ -3436,6 +3453,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b"
 
 [[package]]
+name = "unicode-linebreak"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3b09c83c3c29d37506a3e260c08c03743a6bb66a9cd432c6934ab501a190571f"
+
+[[package]]
 name = "unicode-normalization"
 version = "0.1.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3458,8 +3481,8 @@ checksum = "e51733f11c9c4f72aa0c160008246859e340b00807569a0da0e7a1079b27ba85"
 
 [[package]]
 name = "uniffi"
-version = "0.25.1"
-source = "git+https://github.com/mozilla/uniffi-rs?rev=0a03b713306d6ce3de033157fc2ce92a238c2e24#0a03b713306d6ce3de033157fc2ce92a238c2e24"
+version = "0.25.2"
+source = "git+https://github.com/mozilla/uniffi-rs?rev=23711c8151bbb794369aa1f9d383db386792dff9#23711c8151bbb794369aa1f9d383db386792dff9"
 dependencies = [
  "anyhow",
  "camino",
@@ -3479,8 +3502,8 @@ dependencies = [
 
 [[package]]
 name = "uniffi_bindgen"
-version = "0.25.1"
-source = "git+https://github.com/mozilla/uniffi-rs?rev=0a03b713306d6ce3de033157fc2ce92a238c2e24#0a03b713306d6ce3de033157fc2ce92a238c2e24"
+version = "0.25.2"
+source = "git+https://github.com/mozilla/uniffi-rs?rev=23711c8151bbb794369aa1f9d383db386792dff9#23711c8151bbb794369aa1f9d383db386792dff9"
 dependencies = [
  "anyhow",
  "askama",
@@ -3494,6 +3517,7 @@ dependencies = [
  "once_cell",
  "paste",
  "serde",
+ "textwrap",
  "toml 0.5.11",
  "uniffi_meta",
  "uniffi_testing",
@@ -3502,8 +3526,8 @@ dependencies = [
 
 [[package]]
 name = "uniffi_build"
-version = "0.25.1"
-source = "git+https://github.com/mozilla/uniffi-rs?rev=0a03b713306d6ce3de033157fc2ce92a238c2e24#0a03b713306d6ce3de033157fc2ce92a238c2e24"
+version = "0.25.2"
+source = "git+https://github.com/mozilla/uniffi-rs?rev=23711c8151bbb794369aa1f9d383db386792dff9#23711c8151bbb794369aa1f9d383db386792dff9"
 dependencies = [
  "anyhow",
  "camino",
@@ -3512,8 +3536,8 @@ dependencies = [
 
 [[package]]
 name = "uniffi_checksum_derive"
-version = "0.25.1"
-source = "git+https://github.com/mozilla/uniffi-rs?rev=0a03b713306d6ce3de033157fc2ce92a238c2e24#0a03b713306d6ce3de033157fc2ce92a238c2e24"
+version = "0.25.2"
+source = "git+https://github.com/mozilla/uniffi-rs?rev=23711c8151bbb794369aa1f9d383db386792dff9#23711c8151bbb794369aa1f9d383db386792dff9"
 dependencies = [
  "quote",
  "syn 2.0.39",
@@ -3521,8 +3545,8 @@ dependencies = [
 
 [[package]]
 name = "uniffi_core"
-version = "0.25.1"
-source = "git+https://github.com/mozilla/uniffi-rs?rev=0a03b713306d6ce3de033157fc2ce92a238c2e24#0a03b713306d6ce3de033157fc2ce92a238c2e24"
+version = "0.25.2"
+source = "git+https://github.com/mozilla/uniffi-rs?rev=23711c8151bbb794369aa1f9d383db386792dff9#23711c8151bbb794369aa1f9d383db386792dff9"
 dependencies = [
  "anyhow",
  "bytes",
@@ -3536,8 +3560,8 @@ dependencies = [
 
 [[package]]
 name = "uniffi_macros"
-version = "0.25.1"
-source = "git+https://github.com/mozilla/uniffi-rs?rev=0a03b713306d6ce3de033157fc2ce92a238c2e24#0a03b713306d6ce3de033157fc2ce92a238c2e24"
+version = "0.25.2"
+source = "git+https://github.com/mozilla/uniffi-rs?rev=23711c8151bbb794369aa1f9d383db386792dff9#23711c8151bbb794369aa1f9d383db386792dff9"
 dependencies = [
  "bincode",
  "camino",
@@ -3554,8 +3578,8 @@ dependencies = [
 
 [[package]]
 name = "uniffi_meta"
-version = "0.25.1"
-source = "git+https://github.com/mozilla/uniffi-rs?rev=0a03b713306d6ce3de033157fc2ce92a238c2e24#0a03b713306d6ce3de033157fc2ce92a238c2e24"
+version = "0.25.2"
+source = "git+https://github.com/mozilla/uniffi-rs?rev=23711c8151bbb794369aa1f9d383db386792dff9#23711c8151bbb794369aa1f9d383db386792dff9"
 dependencies = [
  "anyhow",
  "bytes",
@@ -3565,8 +3589,8 @@ dependencies = [
 
 [[package]]
 name = "uniffi_testing"
-version = "0.25.1"
-source = "git+https://github.com/mozilla/uniffi-rs?rev=0a03b713306d6ce3de033157fc2ce92a238c2e24#0a03b713306d6ce3de033157fc2ce92a238c2e24"
+version = "0.25.2"
+source = "git+https://github.com/mozilla/uniffi-rs?rev=23711c8151bbb794369aa1f9d383db386792dff9#23711c8151bbb794369aa1f9d383db386792dff9"
 dependencies = [
  "anyhow",
  "camino",
@@ -3577,10 +3601,11 @@ dependencies = [
 
 [[package]]
 name = "uniffi_udl"
-version = "0.25.1"
-source = "git+https://github.com/mozilla/uniffi-rs?rev=0a03b713306d6ce3de033157fc2ce92a238c2e24#0a03b713306d6ce3de033157fc2ce92a238c2e24"
+version = "0.25.2"
+source = "git+https://github.com/mozilla/uniffi-rs?rev=23711c8151bbb794369aa1f9d383db386792dff9#23711c8151bbb794369aa1f9d383db386792dff9"
 dependencies = [
  "anyhow",
+ "textwrap",
  "uniffi_meta",
  "uniffi_testing",
  "weedle2",
@@ -3785,7 +3810,7 @@ dependencies = [
 [[package]]
 name = "weedle2"
 version = "4.0.0"
-source = "git+https://github.com/mozilla/uniffi-rs?rev=0a03b713306d6ce3de033157fc2ce92a238c2e24#0a03b713306d6ce3de033157fc2ce92a238c2e24"
+source = "git+https://github.com/mozilla/uniffi-rs?rev=23711c8151bbb794369aa1f9d383db386792dff9#23711c8151bbb794369aa1f9d383db386792dff9"
 dependencies = [
  "nom",
 ]

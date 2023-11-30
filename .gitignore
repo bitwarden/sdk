@@ -1,6 +1,7 @@
 /target
 .DS_Store
 .pytest_cache
+.vscode/c_cpp_properties.json
 
 # Build results
 [Dd]ebug/
@@ -49,4 +50,6 @@ crates/bitwarden-napi/src-ts/bitwarden_client/schemas.ts
 languages/csharp/Bitwarden.Sdk/schemas.cs
 languages/js_webassembly/bitwarden_client/schemas.ts
 languages/python/bitwarden_sdk/schemas.py
+languages/cpp/include/schemas.hpp
+languages/go/schema.go
 languages/java/src/main/java/com/bitwarden/sdk/schema

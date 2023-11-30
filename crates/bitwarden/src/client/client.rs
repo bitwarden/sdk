@@ -262,7 +262,7 @@ impl Client {
     }
 
     #[cfg(feature = "internal")]
-    pub fn fingerprint(&mut self, input: &FingerprintRequest) -> Result<FingerprintResponse> {
+    pub fn fingerprint(&self, input: &FingerprintRequest) -> Result<FingerprintResponse> {
         generate_fingerprint(input)
     }
 }

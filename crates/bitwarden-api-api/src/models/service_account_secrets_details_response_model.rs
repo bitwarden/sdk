@@ -9,33 +9,33 @@
  */
 
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
-pub struct DeviceResponseModel {
+pub struct ServiceAccountSecretsDetailsResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
     #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
     pub id: Option<uuid::Uuid>,
+    #[serde(rename = "organizationId", skip_serializing_if = "Option::is_none")]
+    pub organization_id: Option<uuid::Uuid>,
     #[serde(rename = "name", skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
-    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-    pub r#type: Option<crate::models::DeviceType>,
-    #[serde(rename = "identifier", skip_serializing_if = "Option::is_none")]
-    pub identifier: Option<String>,
     #[serde(rename = "creationDate", skip_serializing_if = "Option::is_none")]
     pub creation_date: Option<String>,
-    #[serde(rename = "isTrusted", skip_serializing_if = "Option::is_none")]
-    pub is_trusted: Option<bool>,
+    #[serde(rename = "revisionDate", skip_serializing_if = "Option::is_none")]
+    pub revision_date: Option<String>,
+    #[serde(rename = "accessToSecrets", skip_serializing_if = "Option::is_none")]
+    pub access_to_secrets: Option<i32>,
 }
 
-impl DeviceResponseModel {
-    pub fn new() -> DeviceResponseModel {
-        DeviceResponseModel {
+impl ServiceAccountSecretsDetailsResponseModel {
+    pub fn new() -> ServiceAccountSecretsDetailsResponseModel {
+        ServiceAccountSecretsDetailsResponseModel {
             object: None,
             id: None,
+            organization_id: None,
             name: None,
-            r#type: None,
-            identifier: None,
             creation_date: None,
-            is_trusted: None,
+            revision_date: None,
+            access_to_secrets: None,
         }
     }
 }

@@ -9,7 +9,7 @@
  */
 
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
-pub struct DeviceResponseModel {
+pub struct ProtectedDeviceResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
     #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
@@ -22,20 +22,23 @@ pub struct DeviceResponseModel {
     pub identifier: Option<String>,
     #[serde(rename = "creationDate", skip_serializing_if = "Option::is_none")]
     pub creation_date: Option<String>,
-    #[serde(rename = "isTrusted", skip_serializing_if = "Option::is_none")]
-    pub is_trusted: Option<bool>,
+    #[serde(rename = "encryptedUserKey", skip_serializing_if = "Option::is_none")]
+    pub encrypted_user_key: Option<String>,
+    #[serde(rename = "encryptedPublicKey", skip_serializing_if = "Option::is_none")]
+    pub encrypted_public_key: Option<String>,
 }
 
-impl DeviceResponseModel {
-    pub fn new() -> DeviceResponseModel {
-        DeviceResponseModel {
+impl ProtectedDeviceResponseModel {
+    pub fn new() -> ProtectedDeviceResponseModel {
+        ProtectedDeviceResponseModel {
             object: None,
             id: None,
             name: None,
             r#type: None,
             identifier: None,
             creation_date: None,
-            is_trusted: None,
+            encrypted_user_key: None,
+            encrypted_public_key: None,
         }
     }
 }

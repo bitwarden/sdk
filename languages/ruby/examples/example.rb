@@ -1,13 +1,13 @@
 # NOTE - for example purpose only - import gem instead
 require 'bitwarden-sdk'
 
-token = '<insert access token here>'
-organization_id = '<organization id here>'
+token = ENV['ACCESS_TOKEN']
+organization_id = ENV['ORGANIZATION_ID']
 
-bitwarden_settings = BitwardenSDK::BitwardenSettings.new(
-  'https://api.bitwarden.com',
-  'https://identity.bitwarden.com/connect/token'
-)
+api_url = ENV['API_URL']
+identity_url = ENV['IDENTITY_URL']
+
+bitwarden_settings = BitwardenSDK::BitwardenSettings.new(api_url, identity_url)
 
 bw_client = BitwardenSDK::BitwardenClient.new(bitwarden_settings)
 response = bw_client.access_token_login(token)

@@ -1,4 +1,4 @@
-name: Publish Ruby SDK
+name: Publish PHP SDK
 
 on:
   push:
@@ -6,32 +6,31 @@ on:
       - master
 
 jobs:
-  generate_schemas:
-    uses: ./.github/workflows/generate_schemas.yml
-
   build_rust:
     uses: ./.github/workflows/build-rust-cross-platform.yml
 
-  build_ruby:
-    name: Build Ruby
+  setup_php:
+    name: Setup PHP
     runs-on: ubuntu-22.04
     needs:
-      - generate_schemas
       - build_rust
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@54a18e26dbbb1eabc604f317ade9a5788dddef81 # v1.159.0
+      - name: Setup PHP with PECL extension
+        uses: shivammathur/setup-php@7fdd3ece872ec7ec4c098ae5ab7637d5e0a96067 # 2.26.0
         with:
-          ruby-version: 3.2
+          php-version: "8.0"
+          tools: composer
+          extensions: ext-ffi
 
-      - name: Download Ruby schemas artifact
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: schemas.rb
-          path: languages/ruby/bitwarden_sdk/lib
+      - name: Composer check
+        run: |
+          composer install
+          composer validate
+        working-directory: languages/php/
 
       - name: Download x86_64-apple-darwin files
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
@@ -59,30 +58,18 @@ jobs:
 
       - name: Copy lib files
         run: |
-          mkdir -p languages/ruby/bitwarden_sdk/lib/macos-arm64
-          mkdir -p languages/ruby/bitwarden_sdk/lib/ubuntu-x64
-          mkdir -p languages/ruby/bitwarden_sdk/lib/macos-x64
-          mkdir -p languages/ruby/bitwarden_sdk/lib/windows-x64
+          mkdir -p languages/php/src/lib/macos-arm64
+          mkdir -p languages/php/src/lib/ubuntu-x64
+          mkdir -p languages/php/src/lib/macos-x64
+          mkdir -p languages/php/src/lib/windows-x64
 
           platforms=("macos-arm64" "ubuntu-x64" "macos-x64" "windows-x64")
           files=("libbitwarden_c.dylib" "libbitwarden_c.so" "libbitwarden_c.dylib" "bitwarden_c.dll")
 
           for ((i=0; i<${#platforms[@]}; i++)); do
-            cp "temp/${platforms[$i]}/${files[$i]}" "languages/ruby/bitwarden_sdk/lib/${platforms[$i]}/${files[$i]}"
+            cp "temp/${platforms[$i]}/${files[$i]}" "languages/php/src/lib/${platforms[$i]}/${files[$i]}"
           done
-        shell: bash
 
-      - name: Build gem
-        run: gem build bitwarden-sdk.gemspec
-        working-directory: languages/ruby/bitwarden_sdk
-
-      - name: Push gem to Rubygems
-        run: |
-          mkdir -p $HOME/.gem
-          touch $HOME/.gem/credentials
-          chmod 0600 $HOME/.gem/credentials
-          printf -- "---\n:rubygems_api_key: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
-          gem push *.gem
-        env:
-          GEM_HOST_API_KEY: ${{ secrets.GEM_HOST_API_KEY }}
-        working-directory: languages/ruby/bitwarden_sdk
+      - name: Publish version
+        run: curl -XPOST -H'content-type:application/json' 'https://packagist.org/api/update-package?username=malirobot&apiToken=${{secrets.PACKAGIST_KEY}}' -d'{"repository":{"url":"https://packagist.org/packages/bitwarden/sdk"}}'
+        working-directory: languages/php/

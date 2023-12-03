@@ -1,3 +1,4 @@
+use base64::Engine;
 use std::time::{Duration, Instant};
 
 #[cfg(feature = "internal")]
@@ -6,29 +7,27 @@ use crate::{
         api_key_login, password_login, send_two_factor_email, ApiKeyLoginRequest,
         ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse, TwoFactorEmailRequest,
     },
+    auth::renew::renew_token,
     client::kdf::Kdf,
-    crypto::EncString,
+    client::{
+        client_settings::{ClientSettings, DeviceType},
+        encryption_settings::EncryptionSettings,
+    },
+    crypto::{EncString, SymmetricCryptoKey},
+    error::{Error, Result},
     platform::{
         generate_fingerprint, get_user_api_key, sync, FingerprintRequest, FingerprintResponse,
         SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,
     },
+    util::BASE64_ENGINE,
 };
-use chrono::{DateTime, LocalResult, TimeZone, Utc};
+use chrono::Utc;
 use reqwest::header::{self};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[cfg(feature = "secrets")]
 use crate::auth::login::{access_token_login, AccessTokenLoginRequest, AccessTokenLoginResponse};
-use crate::{
-    auth::renew::renew_token,
-    client::{
-        client_settings::{ClientSettings, DeviceType},
-        encryption_settings::EncryptionSettings,
-    },
-    crypto::SymmetricCryptoKey,
-    error::{Error, Result},
-};
 
 #[derive(Debug)]
 pub(crate) struct ApiConfigurations {
@@ -86,31 +85,24 @@ pub struct Client {
     pub(crate) __api_configurations: ApiConfigurations,
 
     encryption_settings: Option<EncryptionSettings>,
+    pub encryption_key: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ClientState {
+    pub access_token: Option<AccessTokenState>,
     pub token: Option<String>,
     pub token_expiry_timestamp: Option<i64>,
     pub refresh_token: Option<String>,
-    pub access_token: Option<AccessTokenState>,
+    pub encryption_key: Option<String>,
 }
 
 impl ClientState {
     pub fn token_is_valid(&self) -> bool {
-        let now = Utc::now();
-        let token_expiry_timestamp = match self.token_expiry_timestamp {
-            Some(timestamp) => match Utc.timestamp_opt(timestamp, 0) {
-                LocalResult::Single(dt) => dt,
-                _ => return false,
-            },
-            None => return false,
-        };
-        // println!(
-        //     "Now is: {:?}\nToken expires on: {:?}",
-        //     now, token_expiry_timestamp
-        // );
-        !(token_expiry_timestamp - now).is_zero()
+        match self.token_expiry_timestamp {
+            Some(expiry_timestamp) => (expiry_timestamp - Utc::now().timestamp()) > 0,
+            None => false,
+        }
     }
 }
 
@@ -136,13 +128,16 @@ impl Client {
         let mut temp_token_expiry_timestamp: Option<i64> = None;
         let mut temp_token_expires_in: Option<Instant> = None;
         let mut temp_refresh_token: Option<String> = None;
-        let mut login_method: Option<LoginMethod> = None;
+        let mut temp_login_method: Option<LoginMethod> = None;
+        let mut temp_encryption_key: Option<String> = None;
+        let mut temp_encryption_settings: Option<EncryptionSettings> = None;
 
         if let Some(ClientState {
             token,
             token_expiry_timestamp,
             refresh_token,
             access_token,
+            encryption_key,
         }) = client_state
         {
             temp_token = token;
@@ -159,6 +154,27 @@ impl Client {
                 None => None,
             };
             temp_refresh_token = refresh_token;
+            temp_encryption_key = match encryption_key {
+                Some(enc_key) => {
+                    match BASE64_ENGINE.decode(enc_key.clone()) {
+                        Ok(key) => {
+                            let encryption_key = match SymmetricCryptoKey::try_from(key.as_slice())
+                            {
+                                Ok(t) => t,
+                                Err(_) => panic!(
+                                    "Failure to convert encryption key into SymmetricCryptoKey"
+                                ),
+                            };
+                            temp_encryption_settings =
+                                Some(EncryptionSettings::new_single_key(encryption_key));
+                        }
+                        Err(_) => panic!("Failure trying to decode encryption key"),
+                    }
+
+                    Some(enc_key)
+                }
+                None => None,
+            };
 
             if let Some(AccessTokenState {
                 service_account_id,
@@ -166,7 +182,7 @@ impl Client {
                 organization_id,
             }) = access_token
             {
-                login_method = Some(LoginMethod::ServiceAccount(
+                temp_login_method = Some(LoginMethod::ServiceAccount(
                     ServiceAccountLoginMethod::AccessToken {
                         service_account_id: service_account_id,
                         client_secret: client_secret,
@@ -201,13 +217,14 @@ impl Client {
             refresh_token: temp_refresh_token,
             token_expires_in: temp_token_expires_in,
             token_expiry_timestamp: temp_token_expiry_timestamp,
-            login_method: login_method,
+            login_method: temp_login_method,
             __api_configurations: ApiConfigurations {
                 identity,
                 api,
                 device_type: settings.device_type,
             },
-            encryption_settings: None,
+            encryption_settings: temp_encryption_settings,
+            encryption_key: temp_encryption_key,
         }
     }
 
@@ -397,6 +414,7 @@ impl Client {
             refresh_token: self.refresh_token.clone(),
             token_expiry_timestamp: self.token_expiry_timestamp.clone(),
             access_token: access_token,
+            encryption_key: self.encryption_key.clone(),
         }
     }
 }

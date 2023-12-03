@@ -1,8 +1,7 @@
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use crate::{
-    client::{AccessToken, AccessTokenState, ClientState},
+    client::ClientState,
     error::{Error, Result},
 };
 use std::{
@@ -45,8 +44,6 @@ impl StateManager {
 
     pub fn save(&self, path: &Path) -> Result<()> {
         let file_content = serde_json::to_string(&self)?;
-        println!("save is hit, here is the path: {:?}", path);
-        println!("save is hit, here is the data: {:?}", file_content);
         let mut file = OpenOptions::new()
             .write(true)
             .truncate(true)
@@ -69,6 +66,7 @@ impl StateManager {
             .ok(),
             refresh_token: serde_json::from_value(self.data["refresh_token"].clone()).ok(),
             access_token: serde_json::from_value(self.data["access_token"].clone()).ok(),
+            encryption_key: serde_json::from_value(self.data["encryption_key"].clone()).ok(),
         }
     }
 }

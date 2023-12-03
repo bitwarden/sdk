@@ -39,11 +39,9 @@ pub(crate) async fn access_token_login(
         }
 
         let payload: Payload = serde_json::from_slice(&decrypted_payload)?;
-
+        client.encryption_key = Some(payload.encryption_key.clone());
         let encryption_key = BASE64_ENGINE.decode(payload.encryption_key)?;
-
         let encryption_key = SymmetricCryptoKey::try_from(encryption_key.as_slice())?;
-
         let access_token_obj = decode_token(&r.access_token)?;
 
         // This should always be Some() when logging in with an access token

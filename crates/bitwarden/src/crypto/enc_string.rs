@@ -1,5 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
+use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::Engine;
 use serde::{de::Visitor, Deserialize};
 
@@ -11,6 +12,45 @@ use crate::{
 
 use super::{KeyDecryptable, KeyEncryptable, LocateKey};
 
+/// # Encrypted string primitive
+///
+/// [EncString] is a Bitwarden specific primitive that represents an encrypted string. They are
+/// are used together with the [KeyDecryptable] and [KeyEncryptable] traits to encrypt and decrypt
+/// data using [SymmetricCryptoKey]s.
+///
+/// The flexibility of the [EncString] type allows for different encryption algorithms to be used
+/// which is represented by the different variants of the enum.
+///
+/// ## Note
+///
+/// We are currently in the progress of splitting the [EncString] into distinct AES and RSA
+/// variants. To provide better control of which encryption algorithm is expected.
+///
+/// For backwards compatibility we will rarely if ever be able to remove support for decrypting old
+/// variants, but we should be opinionated in which variants are used for encrypting.
+///
+/// ## Variants
+/// - [AesCbc256_B64](EncString::AesCbc256_B64)
+/// - [AesCbc128_HmacSha256_B64](EncString::AesCbc128_HmacSha256_B64)
+/// - [AesCbc256_HmacSha256_B64](EncString::AesCbc256_HmacSha256_B64)
+/// - [Rsa2048_OaepSha256_B64](EncString::Rsa2048_OaepSha256_B64)
+/// - [Rsa2048_OaepSha1_B64](EncString::Rsa2048_OaepSha1_B64)
+///
+/// ## Serialization
+///
+/// [EncString] implements [Display] and [FromStr] to allow for easy serialization and uses a
+/// custom scheme to represent the different variants.
+///
+/// The scheme is one of the following schemes:
+/// - `[type].[iv]|[data]`
+/// - `[type].[iv]|[data]|[mac]`
+/// - `[type].[data]`
+///
+/// Where:
+/// - `[type]`: is a digit number representing the variant.
+/// - `[iv]`: (optional) is the initialization vector used for encryption.
+/// - `[data]`: is the encrypted data.
+/// - `[mac]`: (optional) is the MAC used to validate the integrity of the data.
 #[derive(Clone)]
 #[allow(unused, non_camel_case_types)]
 pub enum EncString {
@@ -40,13 +80,14 @@ pub enum EncString {
     Rsa2048_OaepSha1_HmacSha256_B64 { data: Vec<u8> },
 }
 
-// We manually implement these to make sure we don't print any sensitive data
+/// To avoid printing sensitive information, [EncString] debug prints to `EncString`.
 impl std::fmt::Debug for EncString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("EncString").finish()
     }
 }
 
+/// Deserializes an [EncString] from a string.
 impl FromStr for EncString {
     type Err = Error;
 
@@ -291,6 +332,16 @@ impl serde::Serialize for EncString {
 }
 
 impl EncString {
+    pub(crate) fn encrypt_aes256_hmac(
+        data_dec: &[u8],
+        mac_key: GenericArray<u8, U32>,
+        key: GenericArray<u8, U32>,
+    ) -> Result<EncString> {
+        let (iv, mac, data) = super::encrypt_aes256_hmac(data_dec, mac_key, key)?;
+        Ok(EncString::AesCbc256_HmacSha256_B64 { iv, mac, data })
+    }
+
+    /// The numerical representation of the encryption type of the [EncString].
     const fn enc_type(&self) -> u8 {
         match self {
             EncString::AesCbc256_B64 { .. } => 0,
@@ -316,7 +367,7 @@ fn invalid_len_error(expected: usize) -> impl Fn(Vec<u8>) -> EncStringParseError
 impl LocateKey for EncString {}
 impl KeyEncryptable<EncString> for &[u8] {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<EncString> {
-        super::encrypt_aes256_hmac(self, key.mac_key.ok_or(CryptoError::InvalidMac)?, key.key)
+        EncString::encrypt_aes256_hmac(self, key.mac_key.ok_or(CryptoError::InvalidMac)?, key.key)
     }
 }
 

@@ -6,6 +6,7 @@ use crate::{
 };
 
 mod client_exporter;
+pub use client_exporter::ClientExporters;
 
 #[derive(JsonSchema)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Enum))]

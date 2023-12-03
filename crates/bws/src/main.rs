@@ -345,7 +345,8 @@ async fn process_commands() -> Result<()> {
     if !valid_token {
         println!("calling access_token_login...");
         let _ = client
-            .access_token_login(&AccessTokenLoginRequest { access_token })
+            .auth()
+            .login_access_token(&AccessTokenLoginRequest { access_token })
             .await?;
 
         state.data = json!(client.get_client_state());

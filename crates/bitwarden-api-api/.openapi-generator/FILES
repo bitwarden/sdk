@@ -69,6 +69,7 @@ src/models/authenticator_attestation_raw_response.rs
 src/models/base_access_policy_response_model.rs
 src/models/base_secret_response_model.rs
 src/models/base_secret_response_model_list_response_model.rs
+src/models/billing_customer_discount.rs
 src/models/billing_history_response_model.rs
 src/models/billing_invoice.rs
 src/models/billing_payment_response_model.rs
@@ -122,6 +123,7 @@ src/models/collection_with_id_request_model.rs
 src/models/config_response_model.rs
 src/models/delete_recover_request_model.rs
 src/models/device_keys_request_model.rs
+src/models/device_keys_update_request_model.rs
 src/models/device_request_model.rs
 src/models/device_response_model.rs
 src/models/device_response_model_list_response_model.rs
@@ -201,10 +203,10 @@ src/models/organization_domain_response_model.rs
 src/models/organization_domain_response_model_list_response_model.rs
 src/models/organization_domain_sso_details_request_model.rs
 src/models/organization_domain_sso_details_response_model.rs
-src/models/organization_enroll_secrets_manager_request_model.rs
 src/models/organization_keys_request_model.rs
 src/models/organization_keys_response_model.rs
 src/models/organization_license.rs
+src/models/organization_public_key_response_model.rs
 src/models/organization_response_model.rs
 src/models/organization_seat_request_model.rs
 src/models/organization_sponsorship_create_request_model.rs
@@ -241,6 +243,7 @@ src/models/organization_user_update_request_model.rs
 src/models/organization_user_user_details_response_model.rs
 src/models/organization_user_user_details_response_model_list_response_model.rs
 src/models/organization_verify_bank_request_model.rs
+src/models/other_device_keys_update_request_model.rs
 src/models/password_hint_request_model.rs
 src/models/password_request_model.rs
 src/models/payment_method_type.rs
@@ -272,6 +275,7 @@ src/models/project_create_request_model.rs
 src/models/project_response_model.rs
 src/models/project_response_model_list_response_model.rs
 src/models/project_update_request_model.rs
+src/models/protected_device_response_model.rs
 src/models/provider_organization_add_request_model.rs
 src/models/provider_organization_create_request_model.rs
 src/models/provider_organization_organization_details_response_model.rs
@@ -316,6 +320,7 @@ src/models/secret_update_request_model.rs
 src/models/secret_verification_request_model.rs
 src/models/secret_with_projects_inner_project.rs
 src/models/secret_with_projects_list_response_model.rs
+src/models/secrets_manager_subscribe_request_model.rs
 src/models/secrets_manager_subscription_update_request_model.rs
 src/models/secrets_with_projects_inner_secret.rs
 src/models/secure_note_type.rs
@@ -337,7 +342,8 @@ src/models/service_account_create_request_model.rs
 src/models/service_account_project_access_policy_response_model.rs
 src/models/service_account_project_access_policy_response_model_list_response_model.rs
 src/models/service_account_response_model.rs
-src/models/service_account_response_model_list_response_model.rs
+src/models/service_account_secrets_details_response_model.rs
+src/models/service_account_secrets_details_response_model_list_response_model.rs
 src/models/service_account_update_request_model.rs
 src/models/set_key_connector_key_request_model.rs
 src/models/set_password_request_model.rs
@@ -370,6 +376,7 @@ src/models/two_factor_web_authn_request_model.rs
 src/models/two_factor_web_authn_response_model.rs
 src/models/two_factor_yubi_key_response_model.rs
 src/models/update_avatar_request_model.rs
+src/models/update_devices_trust_request_model.rs
 src/models/update_domains_request_model.rs
 src/models/update_key_request_model.rs
 src/models/update_profile_request_model.rs

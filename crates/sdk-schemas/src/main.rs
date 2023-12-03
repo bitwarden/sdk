@@ -99,6 +99,7 @@ fn main() -> Result<()> {
     write_schema_for_response! {
         bitwarden::auth::login::ApiKeyLoginResponse,
         bitwarden::auth::login::PasswordLoginResponse,
+        bitwarden::auth::login::AccessTokenLoginResponse,
         bitwarden::secrets_manager::secrets::SecretIdentifiersResponse,
         bitwarden::secrets_manager::secrets::SecretResponse,
         bitwarden::secrets_manager::secrets::SecretsResponse,

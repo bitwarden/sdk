@@ -28,6 +28,7 @@ const rootElements = [
   "ClientFolders",
   "ClientGenerators",
   "ClientPasswordHistory",
+  "ClientPlatform",
   "ClientSends",
   "ClientVault",
 ];

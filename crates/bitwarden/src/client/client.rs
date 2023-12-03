@@ -385,13 +385,6 @@ impl Client {
         send_two_factor_email(self, tf).await
     }
 
-    // Returns a copy of the token items in Client
-    //   token: Option<String>,
-    //   pub(crate) refresh_token: Option<String>,
-    //   pub(crate) token_expires_in: Option<Instant>,
-    //   pub(crate) login_method: Option<LoginMethod>,
-    //
-    // returns a copy of: token, refresh token, and login method
     #[cfg(feature = "secrets")]
     pub fn get_client_state(&self) -> ClientState {
         let mut access_token: Option<AccessTokenState> = None;

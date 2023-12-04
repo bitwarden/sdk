@@ -14,6 +14,10 @@ type HmacSha512 = Hmac<sha2::Sha512>;
 
 const STEAM_CHARS: &str = "23456789BCDFGHJKMNPQRTVWXY";
 
+const DEFAULT_ALGORITHM: Algorithm = Algorithm::Sha1;
+const DEFAULT_DIGITS: u32 = 6;
+const DEFAULT_PERIOD: u32 = 30;
+
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
@@ -95,17 +99,6 @@ struct Totp {
     secret: Vec<u8>,
 }
 
-impl Default for Totp {
-    fn default() -> Self {
-        Self {
-            algorithm: Algorithm::Sha1,
-            digits: 6,
-            period: 30,
-            secret: vec![],
-        }
-    }
-}
-
 impl Totp {
     fn derive_otp(&self, time: i64) -> String {
         let time = time / self.period as i64;
@@ -144,8 +137,6 @@ impl FromStr for Totp {
             let url = Url::parse(key).map_err(|_| Error::Internal("Unable to parse URL"))?;
             let parts: HashMap<_, _> = url.query_pairs().collect();
 
-            let defaults = Totp::default();
-
             Totp {
                 algorithm: parts
                     .get("algorithm")
@@ -155,17 +146,17 @@ impl FromStr for Totp {
                         "SHA512" => Some(Algorithm::Sha512),
                         _ => None,
                     })
-                    .unwrap_or(defaults.algorithm),
+                    .unwrap_or(DEFAULT_ALGORITHM),
                 digits: parts
                     .get("digits")
                     .and_then(|v| v.parse().ok())
                     .map(|v: u32| v.clamp(0, 10))
-                    .unwrap_or(defaults.digits),
+                    .unwrap_or(DEFAULT_DIGITS),
                 period: parts
                     .get("period")
                     .and_then(|v| v.parse().ok())
                     .map(|v: u32| v.max(1))
-                    .unwrap_or(defaults.period),
+                    .unwrap_or(DEFAULT_PERIOD),
                 secret: decode_secret(
                     &parts
                         .get("secret")
@@ -173,17 +164,19 @@ impl FromStr for Totp {
                         .ok_or(Error::Internal("Missing secret in otpauth URI"))?,
                 )?,
             }
-        } else if key.starts_with("steam://") {
+        } else if let Some(secret) = key.strip_prefix("steam://") {
             Totp {
                 algorithm: Algorithm::Steam,
                 digits: 5,
-                secret: decode_secret(key.strip_prefix("steam://").expect("Prefix is defined"))?,
-                ..Totp::default()
+                period: DEFAULT_PERIOD,
+                secret: decode_secret(secret)?,
             }
         } else {
             Totp {
+                algorithm: DEFAULT_ALGORITHM,
+                digits: DEFAULT_DIGITS,
+                period: DEFAULT_PERIOD,
                 secret: decode_secret(key)?,
-                ..Totp::default()
             }
         };
 

@@ -121,7 +121,7 @@ impl Totp {
 impl FromStr for Totp {
     type Err = Error;
 
-    /// Parses the provided key and returns the corresponding `TotpParams`.
+    /// Parses the provided key and returns the corresponding `Totp`.
     ///
     /// Key can be either:
     /// - A base32 encoded string

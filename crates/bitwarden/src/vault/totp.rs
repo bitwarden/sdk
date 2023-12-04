@@ -99,10 +99,9 @@ impl Totp {
     fn derive_otp(&self, time: i64) -> Result<String> {
         let time = time / self.period as i64;
 
-        let secret = BASE32.decode(self.secret.as_ref()).map_err(|e| {
-            println!("{:?}", e);
-            Error::Internal("Unable to decode secret")
-        })?;
+        let secret = BASE32
+            .decode(self.secret.as_ref())
+            .map_err(|e| Error::Internal("Unable to decode secret"))?;
 
         let hash = self
             .algorithm

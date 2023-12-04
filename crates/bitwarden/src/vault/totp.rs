@@ -101,7 +101,7 @@ impl Totp {
 
         let secret = BASE32
             .decode(self.secret.as_ref())
-            .map_err(|e| Error::Internal("Unable to decode secret"))?;
+            .map_err(|_| Error::Internal("Unable to decode secret"))?;
 
         let hash = self
             .algorithm

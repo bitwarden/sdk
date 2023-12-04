@@ -70,19 +70,6 @@ impl Default for PasswordGeneratorRequest {
     }
 }
 
-/// Passphrase generator request.
-///
-/// The default separator is `-` and default number of words is 3.
-#[derive(Serialize, Deserialize, Debug, JsonSchema, Default)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
-pub struct PassphraseGeneratorRequest {
-    pub num_words: Option<u8>,
-    pub word_separator: Option<String>,
-    pub capitalize: Option<bool>,
-    pub include_number: Option<bool>,
-}
-
 const UPPER_CHARS_AMBIGUOUS: &[char] = &['I', 'O'];
 const LOWER_CHARS_AMBIGUOUS: &[char] = &['l'];
 const NUMBER_CHARS_AMBIGUOUS: &[char] = &['0', '1'];
@@ -264,10 +251,6 @@ fn password_with_rng(mut rng: impl RngCore, options: PasswordGeneratorOptions) -
     buf.shuffle(&mut rng);
 
     buf.iter().collect()
-}
-
-pub(super) fn passphrase(_input: PassphraseGeneratorRequest) -> Result<String> {
-    Ok("correct-horse-battery-staple".to_string())
 }
 
 #[cfg(test)]

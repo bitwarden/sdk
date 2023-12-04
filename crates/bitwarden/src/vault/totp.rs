@@ -38,12 +38,15 @@ pub struct TotpResponse {
 /// Arguments:
 /// - `key` - The key to generate the TOTP code from
 /// - `time` - The time in UTC to generate the TOTP code for, defaults to current system time
-pub async fn generate_totp(key: String, time: Option<DateTime<Utc>>) -> Result<TotpResponse> {
+pub(crate) async fn generate_totp(
+    key: String,
+    time: Option<DateTime<Utc>>,
+) -> Result<TotpResponse> {
     let params: Totp = key.parse()?;
 
     let time = time.unwrap_or_else(Utc::now);
 
-    let otp = params.derive_otp(time.timestamp())?;
+    let otp = params.derive_otp(time.timestamp());
 
     Ok(TotpResponse {
         code: otp,
@@ -61,18 +64,29 @@ enum Algorithm {
 
 impl Algorithm {
     // Derive the HMAC hash for the given algorithm
-    fn derive_hash(&self, key: &[u8], time: &[u8]) -> Result<Vec<u8>> {
-        fn compute_digest<D: Mac>(mut digest: D, time: &[u8]) -> Vec<u8> {
-            digest.update(time);
-            digest.finalize().into_bytes().to_vec()
+    fn derive_hash(&self, key: &[u8], time: &[u8]) -> Vec<u8> {
+        fn compute_digest<D: Mac>(digest: D, time: &[u8]) -> Vec<u8> {
+            digest.chain_update(time).finalize().into_bytes().to_vec()
         }
 
-        Ok(match self {
-            Algorithm::Sha1 => compute_digest(HmacSha1::new_from_slice(key)?, time),
-            Algorithm::Sha256 => compute_digest(HmacSha256::new_from_slice(key)?, time),
-            Algorithm::Sha512 => compute_digest(HmacSha512::new_from_slice(key)?, time),
-            Algorithm::Steam => compute_digest(HmacSha1::new_from_slice(key)?, time),
-        })
+        match self {
+            Algorithm::Sha1 => compute_digest(
+                HmacSha1::new_from_slice(key).expect("hmac new_from_slice should not fail"),
+                time,
+            ),
+            Algorithm::Sha256 => compute_digest(
+                HmacSha256::new_from_slice(key).expect("hmac new_from_slice should not fail"),
+                time,
+            ),
+            Algorithm::Sha512 => compute_digest(
+                HmacSha512::new_from_slice(key).expect("hmac new_from_slice should not fail"),
+                time,
+            ),
+            Algorithm::Steam => compute_digest(
+                HmacSha1::new_from_slice(key).expect("hmac new_from_slice should not fail"),
+                time,
+            ),
+        }
     }
 }
 
@@ -81,7 +95,7 @@ struct Totp {
     algorithm: Algorithm,
     digits: u32,
     period: u32,
-    secret: String,
+    secret: Vec<u8>,
 }
 
 impl Default for Totp {
@@ -90,30 +104,26 @@ impl Default for Totp {
             algorithm: Algorithm::Sha1,
             digits: 6,
             period: 30,
-            secret: "".to_string(),
+            secret: vec![],
         }
     }
 }
 
 impl Totp {
-    fn derive_otp(&self, time: i64) -> Result<String> {
+    fn derive_otp(&self, time: i64) -> String {
         let time = time / self.period as i64;
-
-        let secret = BASE32
-            .decode(self.secret.as_ref())
-            .map_err(|_| Error::Internal("Unable to decode secret"))?;
 
         let hash = self
             .algorithm
-            .derive_hash(&secret, time.to_be_bytes().as_ref())?;
+            .derive_hash(&self.secret, time.to_be_bytes().as_ref());
         let binary = derive_binary(hash);
 
-        Ok(if let Algorithm::Steam = self.algorithm {
+        if let Algorithm::Steam = self.algorithm {
             derive_steam_otp(binary, self.digits)
         } else {
             let otp = binary % 10_u32.pow(self.digits);
             format!("{1:00$}", self.digits as usize, otp)
-        })
+        }
     }
 }
 
@@ -127,6 +137,12 @@ impl FromStr for Totp {
     /// - OTP Auth URI
     /// - Steam URI
     fn from_str(key: &str) -> Result<Self> {
+        fn decode_secret(secret: &str) -> Result<Vec<u8>> {
+            BASE32
+                .decode(secret.as_bytes())
+                .map_err(|_| Error::Internal("Unable to decode secret"))
+        }
+
         let params = if key.starts_with("otpauth://") {
             let url = Url::parse(key).map_err(|_| Error::Internal("Unable to parse URL"))?;
             let parts: HashMap<_, _> = url.query_pairs().collect();
@@ -153,24 +169,23 @@ impl FromStr for Totp {
                     .and_then(|v| v.parse().ok())
                     .map(|v: u32| v.max(1))
                     .unwrap_or(defaults.period),
-                secret: parts
-                    .get("secret")
-                    .map(|v| v.to_string())
-                    .unwrap_or(defaults.secret),
+                secret: decode_secret(
+                    &parts
+                        .get("secret")
+                        .map(|v| v.to_string())
+                        .ok_or(Error::Internal("Missing secret in otpauth URI"))?,
+                )?,
             }
         } else if key.starts_with("steam://") {
             Totp {
                 algorithm: Algorithm::Steam,
                 digits: 5,
-                secret: key
-                    .strip_prefix("steam://")
-                    .expect("Prefix is defined")
-                    .to_string(),
+                secret: decode_secret(key.strip_prefix("steam://").expect("Prefix is defined"))?,
                 ..Totp::default()
             }
         } else {
             Totp {
-                secret: key.to_string(),
+                secret: decode_secret(key)?,
                 ..Totp::default()
             }
         };
@@ -181,20 +196,19 @@ impl FromStr for Totp {
 
 /// Derive the Steam OTP from the hash with the given number of digits.
 fn derive_steam_otp(binary: u32, digits: u32) -> String {
-    let mut otp = String::new();
-
     let mut full_code = binary & 0x7fffffff;
-    for _ in 0..digits {
-        otp.push(
-            STEAM_CHARS
-                .chars()
-                .nth(full_code as usize % STEAM_CHARS.len())
-                .expect("Should always be within range"),
-        );
-        full_code /= STEAM_CHARS.len() as u32;
-    }
 
-    otp
+    (0..digits)
+        .map(|_| {
+            let index = full_code as usize % STEAM_CHARS.len();
+            let char = STEAM_CHARS
+                .chars()
+                .nth(index)
+                .expect("Should always be within range");
+            full_code /= STEAM_CHARS.len() as u32;
+            char
+        })
+        .collect()
 }
 
 /// Derive the OTP from the hash with the given number of digits.
@@ -205,13 +219,6 @@ fn derive_binary(hash: Vec<u8>) -> u32 {
         | (hash[offset + 1] as u32) << 16
         | (hash[offset + 2] as u32) << 8
         | hash[offset + 3] as u32
-}
-
-/// Convert from the dependency `InvalidLength` error into this crate's `Error`.
-impl From<aes::cipher::InvalidLength> for Error {
-    fn from(_: aes::cipher::InvalidLength) -> Self {
-        Error::Internal("Invalid length")
-    }
 }
 
 #[cfg(test)]

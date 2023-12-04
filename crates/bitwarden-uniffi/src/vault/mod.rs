@@ -3,7 +3,7 @@ use std::sync::Arc;
 use bitwarden::vault::TotpResponse;
 use chrono::{DateTime, Utc};
 
-use crate::Client;
+use crate::{error::Result, Client};
 
 pub mod ciphers;
 pub mod collections;
@@ -47,13 +47,18 @@ impl ClientVault {
     /// - A base32 encoded string
     /// - OTP Auth URI
     /// - Steam URI
-    pub async fn generate_totp(&self, key: String, time: Option<DateTime<Utc>>) -> TotpResponse {
-        self.0
+    pub async fn generate_totp(
+        &self,
+        key: String,
+        time: Option<DateTime<Utc>>,
+    ) -> Result<TotpResponse> {
+        Ok(self
+            .0
              .0
             .read()
             .await
             .vault()
             .generate_totp(key, time)
-            .await
+            .await?)
     }
 }

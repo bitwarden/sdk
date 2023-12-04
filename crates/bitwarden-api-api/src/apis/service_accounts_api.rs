@@ -72,8 +72,9 @@ pub enum ServiceAccountsIdPutError {
 pub async fn organizations_organization_id_service_accounts_get(
     configuration: &configuration::Configuration,
     organization_id: uuid::Uuid,
+    include_access_to_secrets: Option<bool>,
 ) -> Result<
-    crate::models::ServiceAccountResponseModelListResponseModel,
+    crate::models::ServiceAccountSecretsDetailsResponseModelListResponseModel,
     Error<OrganizationsOrganizationIdServiceAccountsGetError>,
 > {
     let local_var_configuration = configuration;
@@ -88,6 +89,10 @@ pub async fn organizations_organization_id_service_accounts_get(
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
 
+    if let Some(ref local_var_str) = include_access_to_secrets {
+        local_var_req_builder =
+            local_var_req_builder.query(&[("includeAccessToSecrets", &local_var_str.to_string())]);
+    }
     if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
         local_var_req_builder =
             local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());

@@ -1,7 +1,8 @@
 use bitwarden::{
     auth::password::MasterPasswordPolicyOptions,
     client::kdf::Kdf,
-    mobile::crypto::InitCryptoRequest,
+    mobile::crypto::{InitOrgCryptoRequest, InitUserCryptoRequest},
+    platform::FingerprintRequest,
     tool::{ExportFormat, PassphraseGeneratorRequest, PasswordGeneratorRequest},
     vault::{
         Cipher, CipherView, Collection, Folder, FolderView, Send, SendListView, SendView,
@@ -24,7 +25,8 @@ pub enum DocRef {
     SendListView(SendListView),
 
     // Crypto
-    InitCryptoRequest(InitCryptoRequest),
+    InitUserCryptoRequest(InitUserCryptoRequest),
+    InitOrgCryptoRequest(InitOrgCryptoRequest),
 
     // Generators
     PasswordGeneratorRequest(PasswordGeneratorRequest),
@@ -32,6 +34,9 @@ pub enum DocRef {
 
     // Exporters
     ExportFormat(ExportFormat),
+
+    // Platform
+    FingerprintRequest(FingerprintRequest),
 
     // Auth
     MasterPasswordPolicyOptions(MasterPasswordPolicyOptions),

@@ -1,6 +1,5 @@
 use base64::Engine;
-use std::time::{Duration, Instant};
-
+use chrono::Utc;
 use reqwest::header::{self};
 use uuid::Uuid;
 
@@ -24,7 +23,6 @@ use crate::{
     error::{Error, Result},
     util::BASE64_ENGINE,
 };
-use chrono::Utc;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]
@@ -73,7 +71,7 @@ pub(crate) enum ServiceAccountLoginMethod {
 pub struct Client {
     token: Option<String>,
     pub(crate) refresh_token: Option<String>,
-    pub(crate) token_expires_in: Option<Instant>,
+    pub(crate) token_expires_in: Option<i64>,
     pub(crate) token_expiry_timestamp: Option<i64>,
     pub(crate) login_method: Option<LoginMethod>,
 
@@ -124,7 +122,7 @@ impl Client {
 
         let mut temp_token: Option<String> = None;
         let mut temp_token_expiry_timestamp: Option<i64> = None;
-        let mut temp_token_expires_in: Option<Instant> = None;
+        let mut temp_token_expires_in: Option<i64> = None;
         let mut temp_refresh_token: Option<String> = None;
         let mut temp_login_method: Option<LoginMethod> = None;
         let mut temp_encryption_key: Option<String> = None;
@@ -140,17 +138,7 @@ impl Client {
         {
             temp_token = token;
             temp_token_expiry_timestamp = token_expiry_timestamp;
-            temp_token_expires_in = match token_expiry_timestamp {
-                Some(expiry_timestamp) => {
-                    let expiry_seconds = expiry_timestamp - Utc::now().timestamp();
-
-                    match u64::try_from(expiry_seconds) {
-                        Ok(s) => Some(Instant::now() + Duration::from_secs(s)),
-                        Err(_) => None,
-                    }
-                }
-                None => None,
-            };
+            temp_token_expires_in = token_expiry_timestamp;
             temp_refresh_token = refresh_token;
             temp_encryption_key = match encryption_key {
                 Some(enc_key) => {
@@ -291,9 +279,8 @@ impl Client {
     ) {
         self.token = Some(token.clone());
         self.refresh_token = refresh_token;
-        self.token_expires_in = Some(Instant::now() + Duration::from_secs(expires_in));
-        self.token_expiry_timestamp =
-            Some((Utc::now() + Duration::from_secs(expires_in)).timestamp());
+        self.token_expires_in = Some(Utc::now().timestamp() + expires_in as i64);
+        self.token_expiry_timestamp = Some(Utc::now().timestamp() + expires_in as i64);
         self.login_method = Some(login_method);
         self.__api_configurations.identity.oauth_access_token = Some(token.clone());
         self.__api_configurations.api.oauth_access_token = Some(token);

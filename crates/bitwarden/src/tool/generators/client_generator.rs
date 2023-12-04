@@ -36,8 +36,7 @@ impl<'a> ClientGenerator<'a> {
     /// }
     /// ```
     pub async fn passphrase(&self, input: PassphraseGeneratorRequest) -> Result<String> {
-        let options = input.validate_options()?;
-        Ok(passphrase(options))
+        passphrase(input)
     }
 }
 

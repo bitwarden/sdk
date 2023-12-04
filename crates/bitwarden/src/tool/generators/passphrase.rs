@@ -36,23 +36,18 @@ impl Default for PassphraseGeneratorRequest {
 const MINIMUM_PASSPHRASE_NUM_WORDS: u8 = 3;
 const MAXIMUM_PASSPHRASE_NUM_WORDS: u8 = 20;
 
-// We don't want the validated struct to be accessible, yet at the same time it needs to be public
-// to be used as a return type, so we define it in a private module to make it innaccessible.
-mod private {
-    /// Represents a set of valid options to generate a passhprase with.
-    /// To get an instance of it, use [`PassphraseGeneratorRequest::validate_options`](PassphraseGeneratorRequest::validate_options)
-    pub struct ValidPassphraseGeneratorOptions {
-        pub(super) num_words: u8,
-        pub(super) word_separator: String,
-        pub(super) capitalize: bool,
-        pub(super) include_number: bool,
-    }
+/// Represents a set of valid options to generate a passhprase with.
+/// To get an instance of it, use [`PassphraseGeneratorRequest::validate_options`](PassphraseGeneratorRequest::validate_options)
+struct ValidPassphraseGeneratorOptions {
+    pub(super) num_words: u8,
+    pub(super) word_separator: String,
+    pub(super) capitalize: bool,
+    pub(super) include_number: bool,
 }
-use private::ValidPassphraseGeneratorOptions;
 
 impl PassphraseGeneratorRequest {
     /// Validates the request and returns an immutable struct with valid options to use with the passphrase generator.
-    pub fn validate_options(self) -> Result<ValidPassphraseGeneratorOptions> {
+    fn validate_options(self) -> Result<ValidPassphraseGeneratorOptions> {
         // TODO: Add password generator policy checks
 
         if !(MINIMUM_PASSPHRASE_NUM_WORDS..=MAXIMUM_PASSPHRASE_NUM_WORDS).contains(&self.num_words)
@@ -79,8 +74,9 @@ impl PassphraseGeneratorRequest {
 /// # Arguments:
 /// * `options`: Valid parameters used to generate the passphrase. To create it, use
 ///     [`PassphraseGeneratorRequest::validate_options`](PassphraseGeneratorRequest::validate_options).
-pub(super) fn passphrase(options: ValidPassphraseGeneratorOptions) -> String {
-    passphrase_with_rng(rand::thread_rng(), options)
+pub(super) fn passphrase(request: PassphraseGeneratorRequest) -> Result<String> {
+    let options = request.validate_options()?;
+    Ok(passphrase_with_rng(rand::thread_rng(), options))
 }
 
 fn passphrase_with_rng(mut rng: impl RngCore, options: ValidPassphraseGeneratorOptions) -> String {

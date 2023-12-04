@@ -57,7 +57,7 @@ impl State {
                 let decrypted_data: Result<String> =
                     encrypted_data.decrypt_with_key(&self.access_token.encryption_key);
                 match decrypted_data {
-                    Ok(decrypted_data) => match serde_json::from_str(decrypted_data.as_str()) {
+                    Ok(data) => match serde_json::from_str(data.as_str()) {
                         Ok(state) => Some(Ok(state)),
                         Err(e) => Some(Err(Error::Serde(e))),
                     },

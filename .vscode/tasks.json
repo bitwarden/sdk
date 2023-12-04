@@ -6,7 +6,7 @@
       "command": "build",
       "problemMatcher": ["$rustc"],
       "options": {
-        "cwd": "${workspaceFolder}/bitwarden-c/"
+        "cwd": "${workspaceFolder}/crates/bitwarden-c/"
       },
       "group": {
         "kind": "build",
@@ -19,7 +19,7 @@
       "command": "build",
       "args": ["--release"],
       "options": {
-        "cwd": "${workspaceFolder}/bitwarden-c/"
+        "cwd": "${workspaceFolder}/crates/bitwarden-c/"
       },
       "problemMatcher": ["$rustc"],
       "label": "rust: bitwarden-c release build"
@@ -45,6 +45,17 @@
       "args": ["setup.py", "develop"],
       "options": {
         "cwd": "${workspaceFolder}/languages/python"
+      }
+    },
+    {
+      "label": "buildJava",
+      "type": "shell",
+      "command": "gradle",
+      "args": ["build"],
+      "dependsOrder": "sequence",
+      "dependsOn": ["rust: bitwarden-c build"],
+      "options": {
+        "cwd": "${workspaceFolder}/languages/java"
       }
     }
   ]

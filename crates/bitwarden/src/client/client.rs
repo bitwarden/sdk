@@ -222,6 +222,23 @@ impl Client {
         Ok(self.encryption_settings.as_ref().unwrap())
     }
 
+    #[cfg(feature = "mobile")]
+    pub(crate) fn initialize_user_crypto_decrypted_key(
+        &mut self,
+        decrypted_user_key: &str,
+        private_key: EncString,
+    ) -> Result<&EncryptionSettings> {
+        let user_key = decrypted_user_key.parse::<SymmetricCryptoKey>()?;
+        self.encryption_settings = Some(EncryptionSettings::new_decrypted_key(
+            user_key,
+            private_key,
+        )?);
+        Ok(self
+            .encryption_settings
+            .as_ref()
+            .expect("It was initialized on the previous line"))
+    }
+
     pub(crate) fn initialize_crypto_single_key(
         &mut self,
         key: SymmetricCryptoKey,
@@ -245,7 +262,7 @@ impl Client {
     }
 
     #[cfg(feature = "internal")]
-    pub fn fingerprint(&mut self, input: &FingerprintRequest) -> Result<FingerprintResponse> {
+    pub fn fingerprint(&self, input: &FingerprintRequest) -> Result<FingerprintResponse> {
         generate_fingerprint(input)
     }
 }

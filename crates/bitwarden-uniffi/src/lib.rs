@@ -4,10 +4,12 @@ use std::sync::Arc;
 
 use async_lock::RwLock;
 use auth::ClientAuth;
-use bitwarden::{client::client_settings::ClientSettings, mobile::crypto::InitCryptoRequest};
+use bitwarden::client::client_settings::ClientSettings;
 
 pub mod auth;
+pub mod crypto;
 mod error;
+pub mod platform;
 pub mod tool;
 mod uniffi_support;
 pub mod vault;
@@ -15,15 +17,14 @@ pub mod vault;
 #[cfg(feature = "docs")]
 pub mod docs;
 
+use crypto::ClientCrypto;
 use error::Result;
+use platform::ClientPlatform;
 use tool::ClientGenerators;
 use vault::ClientVault;
 
 #[derive(uniffi::Object)]
 pub struct Client(RwLock<bitwarden::Client>);
-
-#[derive(uniffi::Object)]
-pub struct ClientCrypto(Arc<Client>);
 
 #[uniffi::export]
 impl Client {
@@ -43,6 +44,10 @@ impl Client {
         Arc::new(ClientVault(self))
     }
 
+    pub fn platform(self: Arc<Self>) -> Arc<ClientPlatform> {
+        Arc::new(ClientPlatform(self))
+    }
+
     /// Generator operations
     pub fn generators(self: Arc<Self>) -> Arc<ClientGenerators> {
         Arc::new(ClientGenerators(self))
@@ -56,20 +61,5 @@ impl Client {
     /// Test method, echoes back the input
     pub fn echo(&self, msg: String) -> String {
         msg
-    }
-}
-
-#[uniffi::export]
-impl ClientCrypto {
-    /// Initialization method for the crypto. Needs to be called before any other crypto operations.
-    pub async fn initialize_crypto(&self, req: InitCryptoRequest) -> Result<()> {
-        Ok(self
-            .0
-             .0
-            .write()
-            .await
-            .crypto()
-            .initialize_crypto(req)
-            .await?)
     }
 }

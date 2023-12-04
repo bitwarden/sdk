@@ -52,13 +52,6 @@ impl ClientVault {
         key: String,
         time: Option<DateTime<Utc>>,
     ) -> Result<TotpResponse> {
-        Ok(self
-            .0
-             .0
-            .read()
-            .await
-            .vault()
-            .generate_totp(key, time)
-            .await?)
+        Ok(self.0 .0.read().await.vault().generate_totp(key, time)?)
     }
 }

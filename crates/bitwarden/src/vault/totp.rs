@@ -38,10 +38,7 @@ pub struct TotpResponse {
 /// Arguments:
 /// - `key` - The key to generate the TOTP code from
 /// - `time` - The time in UTC to generate the TOTP code for, defaults to current system time
-pub(crate) async fn generate_totp(
-    key: String,
-    time: Option<DateTime<Utc>>,
-) -> Result<TotpResponse> {
+pub(crate) fn generate_totp(key: String, time: Option<DateTime<Utc>>) -> Result<TotpResponse> {
     let params: Totp = key.parse()?;
 
     let time = time.unwrap_or_else(Utc::now);
@@ -226,57 +223,57 @@ mod tests {
     use super::*;
     use chrono::Utc;
 
-    #[tokio::test]
-    async fn test_generate_totp() {
+    #[test]
+    fn test_generate_totp() {
         let key = "WQIQ25BRKZYCJVYP".to_string();
         let time = Some(
             DateTime::parse_from_rfc3339("2023-01-01T00:00:00.000Z")
                 .unwrap()
                 .with_timezone(&Utc),
         );
-        let response = generate_totp(key, time).await.unwrap();
+        let response = generate_totp(key, time).unwrap();
 
         assert_eq!(response.code, "194506".to_string());
         assert_eq!(response.period, 30);
     }
 
-    #[tokio::test]
-    async fn test_generate_otpauth() {
+    #[test]
+    fn test_generate_otpauth() {
         let key = "otpauth://totp/test-account?secret=WQIQ25BRKZYCJVYP".to_string();
         let time = Some(
             DateTime::parse_from_rfc3339("2023-01-01T00:00:00.000Z")
                 .unwrap()
                 .with_timezone(&Utc),
         );
-        let response = generate_totp(key, time).await.unwrap();
+        let response = generate_totp(key, time).unwrap();
 
         assert_eq!(response.code, "194506".to_string());
         assert_eq!(response.period, 30);
     }
 
-    #[tokio::test]
-    async fn test_generate_otpauth_period() {
+    #[test]
+    fn test_generate_otpauth_period() {
         let key = "otpauth://totp/test-account?secret=WQIQ25BRKZYCJVYP&period=60".to_string();
         let time = Some(
             DateTime::parse_from_rfc3339("2023-01-01T00:00:00.000Z")
                 .unwrap()
                 .with_timezone(&Utc),
         );
-        let response = generate_totp(key, time).await.unwrap();
+        let response = generate_totp(key, time).unwrap();
 
         assert_eq!(response.code, "730364".to_string());
         assert_eq!(response.period, 60);
     }
 
-    #[tokio::test]
-    async fn test_generate_steam() {
+    #[test]
+    fn test_generate_steam() {
         let key = "steam://HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ".to_string();
         let time = Some(
             DateTime::parse_from_rfc3339("2023-01-01T00:00:00.000Z")
                 .unwrap()
                 .with_timezone(&Utc),
         );
-        let response = generate_totp(key, time).await.unwrap();
+        let response = generate_totp(key, time).unwrap();
 
         assert_eq!(response.code, "7W6CJ".to_string());
         assert_eq!(response.period, 30);

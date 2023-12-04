@@ -13,11 +13,11 @@ impl<'a> ClientVault<'a> {
     /// - OTP Auth URI
     /// - Steam URI
     ///
-    pub async fn generate_totp(
+    pub fn generate_totp(
         &'a self,
         key: String,
         time: Option<DateTime<Utc>>,
     ) -> Result<TotpResponse> {
-        generate_totp(key, time).await
+        generate_totp(key, time)
     }
 }

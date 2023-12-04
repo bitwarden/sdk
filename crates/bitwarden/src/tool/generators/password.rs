@@ -27,23 +27,6 @@ pub struct PasswordGeneratorRequest {
     pub min_special: Option<bool>,
 }
 
-/// Passphrase generator request.
-///
-/// The default separator is `-` and default number of words is 3.
-#[derive(Serialize, Deserialize, Debug, JsonSchema, Default)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
-pub struct PassphraseGeneratorRequest {
-    pub num_words: Option<u8>,
-    pub word_separator: Option<String>,
-    pub capitalize: Option<bool>,
-    pub include_number: Option<bool>,
-}
-
 pub(super) fn password(_input: PasswordGeneratorRequest) -> Result<String> {
     Ok("pa11w0rd".to_string())
-}
-
-pub(super) fn passphrase(_input: PassphraseGeneratorRequest) -> Result<String> {
-    Ok("correct-horse-battery-staple".to_string())
 }

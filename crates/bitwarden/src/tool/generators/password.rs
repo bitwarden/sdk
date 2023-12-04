@@ -17,13 +17,13 @@ use crate::error::{Error, Result};
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct PasswordGeneratorRequest {
-    /// When set to true, the generated password will contain lowercase characters (a-z).
+    /// Include lowercase characters (a-z).
     pub lowercase: bool,
-    /// When set to true, the generated password will contain uppercase characters (A-Z).
+    /// Include uppercase characters (A-Z).
     pub uppercase: bool,
-    /// When set to true, the generated password will contain numbers (0-9).
+    /// Include numbers (0-9).
     pub numbers: bool,
-    /// When set to true, the generated password will contain special characters.
+    /// Include special characters.
     /// The supported characters are: ! @ # $ % ^ & *
     pub special: bool,
 
@@ -233,20 +233,16 @@ pub(super) fn password(input: PasswordGeneratorRequest) -> Result<String> {
 fn password_with_rng(mut rng: impl RngCore, options: PasswordGeneratorOptions) -> String {
     let mut buf: Vec<char> = Vec::with_capacity(options.length);
 
-    let (set, qty) = &options.all;
-    buf.extend(set.sample_iter(&mut rng).take(*qty));
-
-    let (set, qty) = &options.upper;
-    buf.extend(set.sample_iter(&mut rng).take(*qty));
-
-    let (set, qty) = &options.lower;
-    buf.extend(set.sample_iter(&mut rng).take(*qty));
-
-    let (set, qty) = &options.number;
-    buf.extend(set.sample_iter(&mut rng).take(*qty));
-
-    let (set, qty) = &options.special;
-    buf.extend(set.sample_iter(&mut rng).take(*qty));
+    let opts = [
+        &options.all,
+        &options.upper,
+        &options.lower,
+        &options.number,
+        &options.special,
+    ];
+    for (set, qty) in opts {
+        buf.extend(set.sample_iter(&mut rng).take(*qty));
+    }
 
     buf.shuffle(&mut rng);
 

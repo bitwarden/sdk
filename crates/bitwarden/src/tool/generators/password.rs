@@ -1,7 +1,10 @@
-use crate::error::{Error, Result};
+use std::collections::BTreeSet;
+
 use rand::{distributions::Distribution, seq::SliceRandom, RngCore};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+
+use crate::error::{Error, Result};
 
 /// Password generator request options. If all options are false, the default is to
 /// generate a password with:
@@ -85,82 +88,69 @@ const LOWER_CHARS_AMBIGUOUS: &[char] = &['l'];
 const NUMBER_CHARS_AMBIGUOUS: &[char] = &['0', '1'];
 const SPECIAL_CHARS: &[char] = &['!', '@', '#', '$', '%', '^', '&', '*'];
 
-// We don't want the validated struct to be accessible, yet at the same time it needs to be public
-// to be used as a return type, so we define it in a private module to make it innaccessible.
-mod private {
-    use std::collections::BTreeSet;
+/// A set of characters used to generate a password. This set is backed by a BTreeSet
+/// to have consistent ordering between runs. This is not important during normal execution,
+/// but it's necessary for the tests to be repeatable.
+/// To create an instance, use [`CharSet::default()`](CharSet::default)
+#[derive(Clone, Default)]
+struct CharSet(BTreeSet<char>);
+impl CharSet {
+    /// Includes the given characters in the set. Any duplicate items will be ignored
+    pub fn include(self, other: impl IntoIterator<Item = char>) -> Self {
+        self.include_if(true, other)
+    }
 
-    use rand::prelude::Distribution;
-
-    /// A set of characters used to generate a password. This set is backed by a BTreeSet
-    /// to have consistent ordering between runs. This is notimportant during normal execution,
-    /// but it's necessary for the tests to be repeatable.
-    /// To create an instance, use [`CharSet::default()`](CharSet::default)
-    #[derive(Clone, Default)]
-    pub struct CharSet(BTreeSet<char>);
-    impl CharSet {
-        /// Includes the given characters in the set. Any duplicate items will be ignored
-        pub fn include(self, other: impl IntoIterator<Item = char>) -> Self {
-            self.include_if(true, other)
+    /// Includes the given characters in the set if the predicate is true. Any duplicate items will be ignored
+    pub fn include_if(mut self, predicate: bool, other: impl IntoIterator<Item = char>) -> Self {
+        if predicate {
+            self.0.extend(other);
         }
+        self
+    }
 
-        /// Includes the given characters in the set if the predicate is true. Any duplicate items will be ignored
-        pub fn include_if(
-            mut self,
-            predicate: bool,
-            other: impl IntoIterator<Item = char>,
-        ) -> Self {
-            if predicate {
-                self.0.extend(other);
-            }
+    /// Excludes the given characters from the set. Any missing items will be ignored
+    pub fn exclude_if<'a>(
+        self,
+        predicate: bool,
+        other: impl IntoIterator<Item = &'a char>,
+    ) -> Self {
+        if predicate {
+            let other: BTreeSet<_> = other.into_iter().copied().collect();
+            Self(self.0.difference(&other).copied().collect())
+        } else {
             self
         }
-
-        /// Excludes the given characters from the set. Any missing items will be ignored
-        pub fn exclude_if<'a>(
-            self,
-            predicate: bool,
-            other: impl IntoIterator<Item = &'a char>,
-        ) -> Self {
-            if predicate {
-                let other: BTreeSet<_> = other.into_iter().copied().collect();
-                Self(self.0.difference(&other).copied().collect())
-            } else {
-                self
-            }
-        }
-    }
-    impl<'a> IntoIterator for &'a CharSet {
-        type Item = char;
-        type IntoIter = std::iter::Copied<std::collections::btree_set::Iter<'a, char>>;
-        fn into_iter(self) -> Self::IntoIter {
-            self.0.iter().copied()
-        }
-    }
-    impl Distribution<char> for CharSet {
-        fn sample<R: rand::Rng + ?Sized>(&self, rng: &mut R) -> char {
-            let idx = rng.gen_range(0..self.0.len());
-            *self.0.iter().nth(idx).expect("Valid index")
-        }
-    }
-
-    /// Represents a set of valid options to generate a password with.
-    /// To get an instance of it, use [`PasswordGeneratorRequest::validate_options`](PasswordGeneratorRequest::validate_options)
-    pub struct PasswordGeneratorOptions {
-        pub(super) lower: (CharSet, usize),
-        pub(super) upper: (CharSet, usize),
-        pub(super) number: (CharSet, usize),
-        pub(super) special: (CharSet, usize),
-        pub(super) all: (CharSet, usize),
-
-        pub(super) length: usize,
     }
 }
-use private::{CharSet, PasswordGeneratorOptions};
+impl<'a> IntoIterator for &'a CharSet {
+    type Item = char;
+    type IntoIter = std::iter::Copied<std::collections::btree_set::Iter<'a, char>>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.iter().copied()
+    }
+}
+impl Distribution<char> for CharSet {
+    fn sample<R: rand::Rng + ?Sized>(&self, rng: &mut R) -> char {
+        let idx = rng.gen_range(0..self.0.len());
+        *self.0.iter().nth(idx).expect("Valid index")
+    }
+}
+
+/// Represents a set of valid options to generate a password with.
+/// To get an instance of it, use [`PasswordGeneratorRequest::validate_options`](PasswordGeneratorRequest::validate_options)
+struct PasswordGeneratorOptions {
+    pub(super) lower: (CharSet, usize),
+    pub(super) upper: (CharSet, usize),
+    pub(super) number: (CharSet, usize),
+    pub(super) special: (CharSet, usize),
+    pub(super) all: (CharSet, usize),
+
+    pub(super) length: usize,
+}
 
 impl PasswordGeneratorRequest {
     /// Validates the request and returns an immutable struct with valid options to use with the password generator.
-    pub fn validate_options(self) -> Result<PasswordGeneratorOptions> {
+    fn validate_options(self) -> Result<PasswordGeneratorOptions> {
         // TODO: Add password generator policy checks
 
         // We always have to have at least one character set enabled
@@ -248,26 +238,27 @@ impl PasswordGeneratorRequest {
 
 /// Implementation of the random password generator. This is not accessible to the public API.
 /// See [`ClientGenerator::password`](crate::ClientGenerator::password) for the API function.
-pub(super) fn password(input: PasswordGeneratorOptions) -> String {
-    password_with_rng(rand::thread_rng(), input)
+pub(super) fn password(input: PasswordGeneratorRequest) -> Result<String> {
+    let options = input.validate_options()?;
+    Ok(password_with_rng(rand::thread_rng(), options))
 }
 
-pub(super) fn password_with_rng(mut rng: impl RngCore, input: PasswordGeneratorOptions) -> String {
-    let mut buf: Vec<char> = Vec::with_capacity(input.length);
+fn password_with_rng(mut rng: impl RngCore, options: PasswordGeneratorOptions) -> String {
+    let mut buf: Vec<char> = Vec::with_capacity(options.length);
 
-    let (set, qty) = &input.all;
+    let (set, qty) = &options.all;
     buf.extend(set.sample_iter(&mut rng).take(*qty));
 
-    let (set, qty) = &input.upper;
+    let (set, qty) = &options.upper;
     buf.extend(set.sample_iter(&mut rng).take(*qty));
 
-    let (set, qty) = &input.lower;
+    let (set, qty) = &options.lower;
     buf.extend(set.sample_iter(&mut rng).take(*qty));
 
-    let (set, qty) = &input.number;
+    let (set, qty) = &options.number;
     buf.extend(set.sample_iter(&mut rng).take(*qty));
 
-    let (set, qty) = &input.special;
+    let (set, qty) = &options.special;
     buf.extend(set.sample_iter(&mut rng).take(*qty));
 
     buf.shuffle(&mut rng);

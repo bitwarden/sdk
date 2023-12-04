@@ -30,6 +30,7 @@ bitwarden-api-api = { path = "../bitwarden-api-api", version = "=0.2.2" }
 bitwarden-api-identity = { path = "../bitwarden-api-identity", version = "=0.2.2" }
 cbc = { version = ">=0.1.2, <0.2", features = ["alloc"] }
 chrono = { version = ">=0.4.26, <0.5", features = [
+    "clock",
     "serde",
     "std",
 ], default-features = false }

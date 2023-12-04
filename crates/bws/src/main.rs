@@ -326,10 +326,7 @@ async fn process_commands() -> Result<()> {
 
     let state_file_path = state::get_state_file_path(
         match profile {
-            Some(p) => match p.state_file_path {
-                Some(sp) => Some(PathBuf::from(sp.clone())),
-                None => None,
-            },
+            Some(p) => p.state_file_path.map(|sp| PathBuf::from(sp.clone())),
             None => None,
         },
         cli.profile,
@@ -342,6 +339,7 @@ async fn process_commands() -> Result<()> {
 
     let mut client = bitwarden::Client::new(settings, Some(client_state));
 
+    // TODO: Remove println! commands below
     if !valid_token {
         println!("calling access_token_login...");
         let _ = client

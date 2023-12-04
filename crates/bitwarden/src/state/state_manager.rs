@@ -49,7 +49,7 @@ impl StateManager {
             .truncate(true)
             .create(true)
             .open(path)?;
-        file.write_all(&file_content.as_bytes())?;
+        file.write_all(file_content.as_bytes())?;
         Ok(())
     }
 

@@ -181,9 +181,9 @@ impl Client {
             {
                 temp_login_method = Some(LoginMethod::ServiceAccount(
                     ServiceAccountLoginMethod::AccessToken {
-                        service_account_id: service_account_id,
-                        client_secret: client_secret,
-                        organization_id: organization_id,
+                        service_account_id,
+                        client_secret,
+                        organization_id,
                     },
                 ));
             }
@@ -379,17 +379,17 @@ impl Client {
         })) = &self.login_method
         {
             access_token = Some(AccessTokenState {
-                service_account_id: service_account_id.clone(),
+                service_account_id: *service_account_id,
                 client_secret: client_secret.clone(),
-                organization_id: organization_id.clone(),
+                organization_id: *organization_id,
             });
         }
 
         ClientState {
             token: self.token.clone(),
             refresh_token: self.refresh_token.clone(),
-            token_expiry_timestamp: self.token_expiry_timestamp.clone(),
-            access_token: access_token,
+            token_expiry_timestamp: self.token_expiry_timestamp,
+            access_token,
             encryption_key: self.encryption_key.clone(),
         }
     }

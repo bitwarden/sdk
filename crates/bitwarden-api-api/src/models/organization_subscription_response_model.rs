@@ -102,6 +102,8 @@ pub struct OrganizationSubscriptionResponseModel {
     pub storage_name: Option<String>,
     #[serde(rename = "storageGb", skip_serializing_if = "Option::is_none")]
     pub storage_gb: Option<f64>,
+    #[serde(rename = "discount", skip_serializing_if = "Option::is_none")]
+    pub discount: Option<Box<crate::models::BillingCustomerDiscount>>,
     #[serde(rename = "subscription", skip_serializing_if = "Option::is_none")]
     pub subscription: Option<Box<crate::models::BillingSubscription>>,
     #[serde(rename = "upcomingInvoice", skip_serializing_if = "Option::is_none")]
@@ -162,6 +164,7 @@ impl OrganizationSubscriptionResponseModel {
             max_autoscale_sm_service_accounts: None,
             storage_name: None,
             storage_gb: None,
+            discount: None,
             subscription: None,
             upcoming_invoice: None,
             expiration_without_grace_period: None,

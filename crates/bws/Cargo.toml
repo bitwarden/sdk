@@ -39,6 +39,7 @@ thiserror = "1.0.50"
 tokio = { version = "1.34.0", features = ["rt-multi-thread", "macros"] }
 toml = "0.8.8"
 uuid = { version = "^1.6.1", features = ["serde"] }
+sha2 = ">=0.10.6, <0.11"
 
 bitwarden = { path = "../bitwarden", version = "0.3.1", features = ["secrets"] }
 

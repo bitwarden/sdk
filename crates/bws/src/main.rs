@@ -13,7 +13,6 @@ use bitwarden::{
             SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest, SecretsGetRequest,
         },
     },
-    state::StateManager,
 };
 use clap::{ArgGroup, CommandFactory, Parser, Subcommand};
 use clap_complete::Shell;
@@ -26,7 +25,7 @@ mod state;
 
 use config::ProfileKey;
 use render::{serialize_response, Color, Output};
-use serde_json::json;
+use state::State;
 use uuid::Uuid;
 
 #[derive(Parser, Debug)]
@@ -333,24 +332,36 @@ async fn process_commands() -> Result<()> {
         true,
     );
 
-    let mut state = StateManager::new(&state_file_path)?;
-    let client_state = state.get_client_state();
-    let valid_token = client_state.token_is_valid();
+    let mut state = State::new(&state_file_path, access_token.clone())?;
+    let mut valid_token = false;
+    let client_state = match state.get() {
+        Some(state) => match state {
+            Ok(client_state) => {
+                valid_token = client_state.token_is_valid();
+                Some(client_state)
+            }
+            Err(_) => {
+                println!("Error decrypting the client state. Proceeding without state, it might be overwritten!");
+                None
+            }
+        },
+        None => None,
+    };
 
-    let mut client = bitwarden::Client::new(settings, Some(client_state));
+    let mut client = bitwarden::Client::new(settings, client_state);
 
-    // TODO: Remove println! commands below
     if !valid_token {
-        println!("calling access_token_login...");
         let _ = client
             .auth()
             .login_access_token(&AccessTokenLoginRequest { access_token })
             .await?;
 
-        state.data = json!(client.get_client_state());
-        println!("state data: {:?}", state.data);
-        let r = state.save(&state_file_path);
-        println!("save result: {:?}", r);
+        if state.upsert(client.get_client_state()).is_err() {
+            println!("Failure to update the in-memory state.")
+        }
+        if state.save(&state_file_path).is_err() {
+            println!("Failure to save the state.")
+        }
     }
 
     let organization_id = match client.get_access_token_organization() {

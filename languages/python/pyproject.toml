@@ -21,7 +21,7 @@ version = "0.1.0"
 
 [tool.maturin]
 bindings = "pyo3"
-compatibility = "manylinux2014"
+compatibility = "2_28"
 include = [
   { path = "BitwardenClient/*.py", format = ["sdist", "wheel"] }
 ]

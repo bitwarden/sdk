@@ -1,10 +1,11 @@
+use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{EncString, KeyDecryptable, LocateKey, SymmetricCryptoKey},
+    crypto::{EncString, KeyDecryptable, LocateKey},
     error::Result,
 };
 

@@ -1,11 +1,12 @@
 use base64::Engine;
+use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
 use rsa::{
     pkcs8::{EncodePrivateKey, EncodePublicKey},
     RsaPrivateKey, RsaPublicKey,
 };
 
 use crate::{
-    crypto::{EncString, SymmetricCryptoKey},
+    crypto::EncString,
     error::{Error, Result},
     util::BASE64_ENGINE,
 };

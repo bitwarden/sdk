@@ -25,6 +25,8 @@ pub enum Error {
 
     #[error("Cryptography error, {0}")]
     Crypto(#[from] CryptoError),
+    #[error("Cryptography error, {0}")]
+    Crypto2(#[from] bitwarden_crypto::CryptoError),
 
     #[error("Error parsing EncString: {0}")]
     InvalidEncString(#[from] EncStringParseError),

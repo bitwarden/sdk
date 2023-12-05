@@ -1,8 +1,7 @@
+use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
+
 use crate::{
-    crypto::{
-        rsa::{make_key_pair, RsaKeyPair},
-        SymmetricCryptoKey,
-    },
+    crypto::rsa::{make_key_pair, RsaKeyPair},
     error::Result,
 };
 

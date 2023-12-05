@@ -330,6 +330,7 @@ dependencies = [
  "base64 0.21.5",
  "bitwarden-api-api",
  "bitwarden-api-identity",
+ "bitwarden-crypto",
  "cbc",
  "chrono",
  "data-encoding",
@@ -403,6 +404,37 @@ dependencies = [
  "color-eyre",
  "inquire",
  "supports-color",
+]
+
+[[package]]
+name = "bitwarden-crypto"
+version = "0.1.0"
+dependencies = [
+ "aes",
+ "argon2",
+ "assert_matches",
+ "base64 0.21.5",
+ "cbc",
+ "chrono",
+ "hkdf",
+ "hmac",
+ "lazy_static",
+ "log",
+ "num-bigint",
+ "num-traits",
+ "pbkdf2",
+ "rand 0.8.5",
+ "rand_chacha 0.3.1",
+ "rsa",
+ "schemars",
+ "serde",
+ "sha1",
+ "sha2",
+ "subtle",
+ "thiserror",
+ "tokio",
+ "uniffi",
+ "wiremock",
 ]
 
 [[package]]

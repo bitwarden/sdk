@@ -3,11 +3,7 @@ use std::str::FromStr;
 use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::Engine;
 
-use crate::{
-    crypto::derive_shareable_key,
-    error::{CryptoError, Error},
-    util::BASE64_ENGINE,
-};
+use crate::{shareable_key::derive_shareable_key, CryptoError, BASE64_ENGINE};
 
 /// A symmetric encryption key. Used to encrypt and decrypt [`EncString`](crate::crypto::EncString)
 pub struct SymmetricCryptoKey {
@@ -38,7 +34,7 @@ impl SymmetricCryptoKey {
 }
 
 impl FromStr for SymmetricCryptoKey {
-    type Err = Error;
+    type Err = CryptoError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let bytes = BASE64_ENGINE
@@ -49,7 +45,7 @@ impl FromStr for SymmetricCryptoKey {
 }
 
 impl TryFrom<&[u8]> for SymmetricCryptoKey {
-    type Error = Error;
+    type Error = CryptoError;
 
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
         if value.len() == Self::KEY_LEN + Self::MAC_LEN {

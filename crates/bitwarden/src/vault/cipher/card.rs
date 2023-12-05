@@ -1,8 +1,9 @@
+use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
+    crypto::{EncString, KeyDecryptable, KeyEncryptable},
     error::Result,
 };
 

@@ -1,13 +1,13 @@
 use std::{collections::HashMap, hash::Hash};
 
+use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
 use uuid::Uuid;
 
+use super::{KeyDecryptable, KeyEncryptable};
 use crate::{
     client::encryption_settings::EncryptionSettings,
     error::{Error, Result},
 };
-
-use super::{KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
 
 pub trait LocateKey {
     fn locate_key<'a>(

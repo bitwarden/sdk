@@ -1,3 +1,4 @@
+use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
 use chrono::Utc;
 use reqwest::header::{self};
 use uuid::Uuid;
@@ -18,7 +19,6 @@ use crate::{
         client_settings::{ClientSettings, DeviceType},
         encryption_settings::EncryptionSettings,
     },
-    crypto::SymmetricCryptoKey,
     error::{Error, Result},
 };
 

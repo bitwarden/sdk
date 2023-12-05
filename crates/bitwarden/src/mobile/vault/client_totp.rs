@@ -1,9 +1,10 @@
 use chrono::{DateTime, Utc};
 
-use crate::error::Result;
-use crate::vault::{generate_totp, TotpResponse};
-
 use super::client_vault::ClientVault;
+use crate::{
+    error::Result,
+    vault::{generate_totp, TotpResponse},
+};
 
 impl<'a> ClientVault<'a> {
     /// Generate a TOTP code from a provided key.

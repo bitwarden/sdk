@@ -1,9 +1,10 @@
+use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey},
+    crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey},
     error::Result,
 };
 

@@ -1,11 +1,11 @@
 use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::Engine;
+use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
 use rand::Rng;
 use sha2::Digest;
 
 use super::{
-    hkdf_expand, EncString, KeyDecryptable, PbkdfSha256Hmac, SymmetricCryptoKey, UserKey,
-    PBKDF_SHA256_HMAC_OUT_SIZE,
+    hkdf_expand, EncString, KeyDecryptable, PbkdfSha256Hmac, UserKey, PBKDF_SHA256_HMAC_OUT_SIZE,
 };
 use crate::{client::kdf::Kdf, error::Result, util::BASE64_ENGINE};
 
@@ -48,7 +48,7 @@ impl MasterKey {
         let stretched_key = stretch_master_key(self)?;
 
         let dec: Vec<u8> = user_key.decrypt_with_key(&stretched_key)?;
-        SymmetricCryptoKey::try_from(dec.as_slice())
+        Ok(SymmetricCryptoKey::try_from(dec.as_slice())?)
     }
 }
 
@@ -108,7 +108,7 @@ fn derive_key(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<SymmetricCryptoKe
             hash
         }
     };
-    SymmetricCryptoKey::try_from(hash.as_slice())
+    Ok(SymmetricCryptoKey::try_from(hash.as_slice())?)
 }
 
 fn stretch_master_key(master_key: &MasterKey) -> Result<SymmetricCryptoKey> {
@@ -125,10 +125,11 @@ fn stretch_master_key(master_key: &MasterKey) -> Result<SymmetricCryptoKey> {
 mod tests {
     use std::num::NonZeroU32;
 
+    use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
     use rand::SeedableRng;
 
     use super::{make_user_key, stretch_master_key, HashPurpose, MasterKey};
-    use crate::{client::kdf::Kdf, crypto::SymmetricCryptoKey};
+    use crate::client::kdf::Kdf;
 
     #[test]
     fn test_master_key_derive_pbkdf2() {

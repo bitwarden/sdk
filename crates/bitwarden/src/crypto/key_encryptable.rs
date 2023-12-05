@@ -1,8 +1,8 @@
 use std::{collections::HashMap, hash::Hash};
 
-use crate::error::Result;
+use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
 
-use super::SymmetricCryptoKey;
+use crate::error::Result;
 
 pub trait KeyEncryptable<Output> {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Output>;

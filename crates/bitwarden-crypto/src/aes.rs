@@ -16,8 +16,8 @@ use hmac::Mac;
 use subtle::ConstantTimeEq;
 
 use crate::{
-    crypto::{PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},
     error::{CryptoError, Result},
+    PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE,
 };
 
 /// Decrypt using AES-256 in CBC mode.
@@ -50,7 +50,7 @@ pub fn decrypt_aes256_hmac(
 ) -> Result<Vec<u8>> {
     let res = generate_mac(&mac_key, iv, &data)?;
     if res.ct_ne(mac).into() {
-        return Err(CryptoError::InvalidMac.into());
+        return Err(CryptoError::InvalidMac);
     }
     decrypt_aes256(iv, data, key)
 }
@@ -125,9 +125,8 @@ mod tests {
     use base64::Engine;
     use rand::SeedableRng;
 
-    use crate::util::BASE64_ENGINE;
-
     use super::*;
+    use crate::BASE64_ENGINE;
 
     /// Helper function for generating a `GenericArray` of size 32 with each element being
     /// a multiple of a given increment, starting from a given offset.

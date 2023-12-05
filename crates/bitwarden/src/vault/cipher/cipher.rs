@@ -1,3 +1,4 @@
+use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -11,7 +12,7 @@ use super::{
 };
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey},
+    crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey},
     error::Result,
     vault::password_history,
 };
@@ -215,7 +216,7 @@ impl Cipher {
             .as_ref()
             .map(|k| {
                 let key: Vec<u8> = k.decrypt_with_key(key)?;
-                SymmetricCryptoKey::try_from(key.as_slice())
+                Ok(SymmetricCryptoKey::try_from(key.as_slice())?)
             })
             .transpose()
     }

@@ -32,12 +32,6 @@ mod encryptable;
 pub use encryptable::{Decryptable, Encryptable, LocateKey};
 mod key_encryptable;
 pub use key_encryptable::{KeyDecryptable, KeyEncryptable};
-mod aes_ops;
-use aes_ops::{decrypt_aes256_hmac, encrypt_aes256_hmac};
-mod symmetric_crypto_key;
-pub use symmetric_crypto_key::SymmetricCryptoKey;
-mod shareable_key;
-pub(crate) use shareable_key::derive_shareable_key;
 
 #[cfg(feature = "internal")]
 mod master_key;

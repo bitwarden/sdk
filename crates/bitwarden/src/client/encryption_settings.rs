@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
 use rsa::RsaPrivateKey;
 use uuid::Uuid;
 #[cfg(feature = "internal")]
@@ -11,8 +12,6 @@ use {
     },
     rsa::{pkcs8::DecodePrivateKey, Oaep},
 };
-
-use crate::crypto::SymmetricCryptoKey;
 
 pub struct EncryptionSettings {
     user_key: SymmetricCryptoKey,

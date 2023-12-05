@@ -2,15 +2,14 @@ use std::{fmt::Display, str::FromStr};
 
 use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::Engine;
+use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
 use serde::{de::Visitor, Deserialize};
 
+use super::{KeyDecryptable, KeyEncryptable, LocateKey};
 use crate::{
-    crypto::{decrypt_aes256_hmac, SymmetricCryptoKey},
     error::{CryptoError, EncStringParseError, Error, Result},
     util::BASE64_ENGINE,
 };
-
-use super::{KeyDecryptable, KeyEncryptable, LocateKey};
 
 /// # Encrypted string primitive
 ///
@@ -337,7 +336,7 @@ impl EncString {
         mac_key: GenericArray<u8, U32>,
         key: GenericArray<u8, U32>,
     ) -> Result<EncString> {
-        let (iv, mac, data) = super::encrypt_aes256_hmac(data_dec, mac_key, key)?;
+        let (iv, mac, data) = bitwarden_crypto::aes::encrypt_aes256_hmac(data_dec, mac_key, key)?;
         Ok(EncString::AesCbc256_HmacSha256_B64 { iv, mac, data })
     }
 
@@ -376,7 +375,13 @@ impl KeyDecryptable<Vec<u8>> for EncString {
         match self {
             EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
                 let mac_key = key.mac_key.ok_or(CryptoError::InvalidMac)?;
-                let dec = decrypt_aes256_hmac(iv, mac, data.clone(), mac_key, key.key)?;
+                let dec = bitwarden_crypto::aes::decrypt_aes256_hmac(
+                    iv,
+                    mac,
+                    data.clone(),
+                    mac_key,
+                    key.key,
+                )?;
                 Ok(dec)
             }
             _ => Err(CryptoError::InvalidKey.into()),
@@ -399,9 +404,10 @@ impl KeyDecryptable<String> for EncString {
 
 #[cfg(test)]
 mod tests {
-    use crate::crypto::{KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
+    use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
 
     use super::EncString;
+    use crate::crypto::{KeyDecryptable, KeyEncryptable};
 
     #[test]
     fn test_enc_string_roundtrip() {

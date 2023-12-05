@@ -1,4 +1,12 @@
+use crate::{
+    client::{LoginMethod, UserLoginMethod},
+    crypto::HashPurpose,
+    error::{Error, Result},
+    Client,
+};
 use schemars::JsonSchema;
+
+use super::determine_password_hash;
 
 pub(super) fn password_strength(
     _password: String,
@@ -14,6 +22,33 @@ pub(super) fn satisfies_policy(
     _policy: &MasterPasswordPolicyOptions,
 ) -> bool {
     true
+}
+
+/// Validate if the provided password matches the password hash stored in the client.
+pub(super) async fn validate_password(
+    client: &Client,
+    password: String,
+    password_hash: String,
+) -> Result<bool> {
+    let login_method = client
+        .login_method
+        .as_ref()
+        .ok_or(Error::NotAuthenticated)?;
+
+    if let LoginMethod::User(login_method) = login_method {
+        match login_method {
+            UserLoginMethod::Username { email, kdf, .. }
+            | UserLoginMethod::ApiKey { email, kdf, .. } => {
+                let hash =
+                    determine_password_hash(email, kdf, &password, HashPurpose::LocalAuthorization)
+                        .await?;
+
+                Ok(hash == password_hash)
+            }
+        }
+    } else {
+        Ok(false)
+    }
 }
 
 #[derive(Debug, JsonSchema)]

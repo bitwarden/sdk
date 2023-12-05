@@ -3,6 +3,7 @@ use std::sync::Arc;
 use bitwarden::{
     auth::{password::MasterPasswordPolicyOptions, RegisterKeyResponse},
     client::kdf::Kdf,
+    crypto::HashPurpose,
 };
 
 use crate::{error::Result, Client};
@@ -50,6 +51,7 @@ impl ClientAuth {
         email: String,
         password: String,
         kdf_params: Kdf,
+        purpose: HashPurpose,
     ) -> Result<String> {
         Ok(self
             .0
@@ -57,7 +59,7 @@ impl ClientAuth {
             .read()
             .await
             .kdf()
-            .hash_password(email, password, kdf_params)
+            .hash_password(email, password, kdf_params, purpose)
             .await?)
     }
 
@@ -75,5 +77,17 @@ impl ClientAuth {
             .await
             .auth()
             .make_register_keys(email, password, kdf)?)
+    }
+
+    /// Validate the user password
+    pub async fn validate_password(&self, password: String) -> Result<bool> {
+        Ok(self
+            .0
+             .0
+            .write()
+            .await
+            .auth()
+            .validate_password(password, "".to_string())
+            .await?)
     }
 }

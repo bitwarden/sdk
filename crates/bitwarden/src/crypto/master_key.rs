@@ -10,9 +10,10 @@ use super::{
 use crate::{client::kdf::Kdf, error::Result, util::BASE64_ENGINE};
 
 #[derive(Copy, Clone)]
-pub(crate) enum HashPurpose {
+#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+pub enum HashPurpose {
     ServerAuthorization = 1,
-    // LocalAuthorization = 2,
+    LocalAuthorization = 2,
 }
 
 /// A Master Key.

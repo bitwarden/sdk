@@ -121,6 +121,17 @@ Generate keys needed for registration process
 
 **Output**: std::result::Result<RegisterKeyResponse,BitwardenError>
 
+### `validate_password`
+
+Validate the user password
+
+**Arguments**:
+
+- self:
+- password: String
+
+**Output**: std::result::Result<,BitwardenError>
+
 ## ClientCiphers
 
 ### `encrypt`
@@ -493,7 +504,7 @@ The key can be either:
 - key: String
 - time: Option<DateTime>
 
-**Output**: [TotpResponse](#totpresponse)
+**Output**: std::result::Result<TotpResponse,BitwardenError>
 
 # References
 
@@ -1126,7 +1137,7 @@ implementations.
 <tr>
     <th>wordSeparator</th>
     <th>string</th>
-    <th>Character separator between words in the generated passphrase. If the value is set, it cannot be empty.</th>
+    <th>Character separator between words in the generated passphrase. The value cannot be empty.</th>
 </tr>
 <tr>
     <th>capitalize</th>
@@ -1397,25 +1408,5 @@ implementations.
     <th>expirationDate</th>
     <th>string,null</th>
     <th></th>
-</tr>
-</table>
-
-## `TotpResponse`
-
-<table>
-<tr>
-    <th>Key</th>
-    <th>Type</th>
-    <th>Description</th>
-</tr>
-<tr>
-    <th>code</th>
-    <th>string</th>
-    <th>Generated TOTP code</th>
-</tr>
-<tr>
-    <th>period</th>
-    <th>integer</th>
-    <th>Time period</th>
 </tr>
 </table>

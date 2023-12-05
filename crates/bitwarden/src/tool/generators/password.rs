@@ -6,13 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::error::{Error, Result};
 
-/// Password generator request options. If all options are false, the default is to
-/// generate a password with:
-/// - lowercase
-/// - uppercase
-/// - numbers
-///
-/// The default length is 16.
+/// Password generator request options.
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
@@ -23,8 +17,7 @@ pub struct PasswordGeneratorRequest {
     pub uppercase: bool,
     /// Include numbers (0-9).
     pub numbers: bool,
-    /// Include special characters.
-    /// The supported characters are: ! @ # $ % ^ & *
+    /// Include special characters: ! @ # $ % ^ & *
     pub special: bool,
 
     /// The length of the generated password.
@@ -51,14 +44,12 @@ pub struct PasswordGeneratorRequest {
 
 const DEFAULT_PASSWORD_LENGTH: u8 = 16;
 
-// We need to implement this manually so we can set one character set to true.
-// Otherwise the default implementation will fail to generate a password.
 impl Default for PasswordGeneratorRequest {
     fn default() -> Self {
         Self {
             lowercase: true,
-            uppercase: false,
-            numbers: false,
+            uppercase: true,
+            numbers: true,
             special: false,
             length: DEFAULT_PASSWORD_LENGTH,
             avoid_ambiguous: false,

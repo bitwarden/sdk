@@ -10,7 +10,7 @@ async fn test_register_initialize_crypto() {
         Client,
     };
 
-    let mut client = Client::new(None, None);
+    let mut client = Client::new(None);
 
     let email = "test@bitwarden.com";
     let password = "test123";

@@ -22,8 +22,6 @@ pub enum Error {
     InvalidResponse,
     #[error("The response received was missing some of the required fields")]
     MissingFields,
-    #[error("No data")]
-    NoData,
 
     #[error("Cryptography error, {0}")]
     Crypto(#[from] CryptoError),

@@ -31,7 +31,7 @@ impl Client {
     /// Initialize a new instance of the SDK client
     #[uniffi::constructor]
     pub fn new(settings: Option<ClientSettings>) -> Arc<Self> {
-        Arc::new(Self(RwLock::new(bitwarden::Client::new(settings, None))))
+        Arc::new(Self(RwLock::new(bitwarden::Client::new(settings))))
     }
 
     /// Crypto operations

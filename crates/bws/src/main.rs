@@ -323,46 +323,60 @@ async fn process_commands() -> Result<()> {
         })
         .transpose()?;
 
-    let state_file_path = state::get_state_file_path(
-        match profile {
-            Some(p) => p.state_file_path.map(|sp| PathBuf::from(sp.clone())),
-            None => None,
-        },
-        cli.profile,
-        true,
-    );
+    // let state_file_path = state::get_state_file_path(
+    //     match profile {
+    //         Some(p) => p.state_file_path.map(|sp| PathBuf::from(sp.clone())),
+    //         None => None,
+    //     },
+    //     cli.profile,
+    //     true,
+    // );
 
-    let mut state = State::new(&state_file_path, access_token.clone())?;
-    let mut valid_token = false;
-    let client_state = match state.get() {
-        Some(state) => match state {
-            Ok(client_state) => {
-                valid_token = client_state.token_is_valid();
-                Some(client_state)
-            }
-            Err(_) => {
-                println!("Error decrypting the client state. Proceeding without state, it might be overwritten!");
-                None
-            }
-        },
-        None => None,
-    };
+    // let mut state = State::new(&state_file_path, access_token.clone())?;
+    // let client_state = match state.get() {
+    //     Some(state) => match state {
+    //         Ok(client_state) => {
+    //             Some(client_state)
+    //         }
+    //         Err(_) => {
+    //             println!("Error decrypting the client state. Proceeding without state, it might be overwritten!");
+    //             None
+    //         }
+    //     },
+    //     None => None,
+    // };
 
-    let mut client = bitwarden::Client::new(settings, client_state);
+    let mut client = bitwarden::Client::new(settings.clone());
+    let _ = client
+        .auth()
+        .login_access_token(&AccessTokenLoginRequest { access_token })
+        .await?;
 
-    if !valid_token {
-        let _ = client
-            .auth()
-            .login_access_token(&AccessTokenLoginRequest { access_token })
-            .await?;
-
-        if state.upsert(client.get_client_state()).is_err() {
-            println!("Failure to update the in-memory state.")
-        }
-        if state.save(&state_file_path).is_err() {
-            println!("Failure to save the state.")
-        }
+    let client_state = client.get_client_state().unwrap();
+    let mut another_client = bitwarden::Client::new(settings);
+    if let Err(e) = another_client
+        .auth()
+        .login_access_token_from_state(client_state)
+        .await
+    {
+        println!("{:?}", e);
     }
+
+    println!("this works!");
+
+    // if !valid_token {
+    //     let _ = client
+    //         .auth()
+    //         .login_access_token(&AccessTokenLoginRequest { access_token })
+    //         .await?;
+
+    //     if state.upsert(client.get_client_state()).is_err() {
+    //         println!("Failure to update the in-memory state.")
+    //     }
+    //     if state.save(&state_file_path).is_err() {
+    //         println!("Failure to save the state.")
+    //     }
+    // }
 
     let organization_id = match client.get_access_token_organization() {
         Some(id) => id,

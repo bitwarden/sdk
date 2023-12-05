@@ -1,6 +1,13 @@
 #[cfg(feature = "secrets")]
-use crate::auth::login::{login_access_token, AccessTokenLoginRequest, AccessTokenLoginResponse};
+use crate::{
+    auth::login::{
+        login_access_token, login_access_token_from_state, AccessTokenLoginRequest,
+        AccessTokenLoginResponse,
+    },
+    client::ClientState,
+};
 use crate::{auth::renew::renew_token, error::Result, Client};
+
 #[cfg(feature = "internal")]
 use crate::{
     auth::{
@@ -31,6 +38,11 @@ impl<'a> ClientAuth<'a> {
         input: &AccessTokenLoginRequest,
     ) -> Result<AccessTokenLoginResponse> {
         login_access_token(self.client, input).await
+    }
+
+    #[cfg(feature = "secrets")]
+    pub async fn login_access_token_from_state(&mut self, state: ClientState) -> Result<()> {
+        login_access_token_from_state(self.client, state).await
     }
 }
 

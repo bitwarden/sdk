@@ -11,7 +11,7 @@ use crate::{
 pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
     const TOKEN_RENEW_MARGIN_SECONDS: i64 = 5 * 60;
 
-    if let (Some(expires), Some(login_method)) = (&client.token_expires_in, &client.login_method) {
+    if let (Some(expires), Some(login_method)) = (&client.token_expires_on, &client.login_method) {
         if Utc::now().timestamp() < expires - TOKEN_RENEW_MARGIN_SECONDS {
             return Ok(());
         }

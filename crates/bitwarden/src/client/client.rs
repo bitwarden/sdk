@@ -1,4 +1,3 @@
-use base64::Engine;
 use chrono::Utc;
 use reqwest::header::{self};
 use uuid::Uuid;
@@ -21,7 +20,6 @@ use crate::{
     },
     crypto::SymmetricCryptoKey,
     error::{Error, Result},
-    util::BASE64_ENGINE,
 };
 use serde::{Deserialize, Serialize};
 
@@ -71,8 +69,7 @@ pub(crate) enum ServiceAccountLoginMethod {
 pub struct Client {
     token: Option<String>,
     pub(crate) refresh_token: Option<String>,
-    pub(crate) token_expires_in: Option<i64>,
-    pub(crate) token_expiry_timestamp: Option<i64>,
+    pub(crate) token_expires_on: Option<i64>,
     pub(crate) login_method: Option<LoginMethod>,
 
     /// Use Client::get_api_configurations() to access this.
@@ -86,20 +83,11 @@ pub struct Client {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ClientState {
-    pub access_token: Option<AccessTokenState>,
-    pub token: Option<String>,
-    pub token_expiry_timestamp: Option<i64>,
+    pub token: String,
+    pub token_expiry_timestamp: i64,
     pub refresh_token: Option<String>,
-    pub encryption_key: Option<String>,
-}
-
-impl ClientState {
-    pub fn token_is_valid(&self) -> bool {
-        match self.token_expiry_timestamp {
-            Some(expiry_timestamp) => (expiry_timestamp - Utc::now().timestamp()) > 0,
-            None => false,
-        }
-    }
+    pub access_token: AccessTokenState,
+    pub encryption_key: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -110,7 +98,7 @@ pub struct AccessTokenState {
 }
 
 impl Client {
-    pub fn new(settings_input: Option<ClientSettings>, client_state: Option<ClientState>) -> Self {
+    pub fn new(settings_input: Option<ClientSettings>) -> Self {
         let settings = settings_input.unwrap_or_default();
 
         let headers = header::HeaderMap::new();
@@ -120,70 +108,12 @@ impl Client {
             .build()
             .unwrap();
 
-        let mut temp_token: Option<String> = None;
-        let mut temp_token_expiry_timestamp: Option<i64> = None;
-        let mut temp_token_expires_in: Option<i64> = None;
-        let mut temp_refresh_token: Option<String> = None;
-        let mut temp_login_method: Option<LoginMethod> = None;
-        let mut temp_encryption_key: Option<String> = None;
-        let mut temp_encryption_settings: Option<EncryptionSettings> = None;
-
-        if let Some(ClientState {
-            token,
-            token_expiry_timestamp,
-            refresh_token,
-            access_token,
-            encryption_key,
-        }) = client_state
-        {
-            temp_token = token;
-            temp_token_expiry_timestamp = token_expiry_timestamp;
-            temp_token_expires_in = token_expiry_timestamp;
-            temp_refresh_token = refresh_token;
-            temp_encryption_key = match encryption_key {
-                Some(enc_key) => {
-                    match BASE64_ENGINE.decode(enc_key.clone()) {
-                        Ok(key) => {
-                            let encryption_key = match SymmetricCryptoKey::try_from(key.as_slice())
-                            {
-                                Ok(t) => t,
-                                Err(_) => panic!(
-                                    "Failure to convert encryption key into SymmetricCryptoKey"
-                                ),
-                            };
-                            temp_encryption_settings =
-                                Some(EncryptionSettings::new_single_key(encryption_key));
-                        }
-                        Err(_) => panic!("Failure trying to decode encryption key"),
-                    }
-
-                    Some(enc_key)
-                }
-                None => None,
-            };
-
-            if let Some(AccessTokenState {
-                service_account_id,
-                client_secret,
-                organization_id,
-            }) = access_token
-            {
-                temp_login_method = Some(LoginMethod::ServiceAccount(
-                    ServiceAccountLoginMethod::AccessToken {
-                        service_account_id,
-                        client_secret,
-                        organization_id,
-                    },
-                ));
-            }
-        }
-
         let identity = bitwarden_api_identity::apis::configuration::Configuration {
             base_path: settings.identity_url,
             user_agent: Some(settings.user_agent.clone()),
             client: client.clone(),
             basic_auth: None,
-            oauth_access_token: temp_token.clone(),
+            oauth_access_token: None,
             bearer_access_token: None,
             api_key: None,
         };
@@ -193,24 +123,23 @@ impl Client {
             user_agent: Some(settings.user_agent),
             client,
             basic_auth: None,
-            oauth_access_token: temp_token.clone(),
+            oauth_access_token: None,
             bearer_access_token: None,
             api_key: None,
         };
 
         Self {
-            token: temp_token,
-            refresh_token: temp_refresh_token,
-            token_expires_in: temp_token_expires_in,
-            token_expiry_timestamp: temp_token_expiry_timestamp,
-            login_method: temp_login_method,
+            token: None,
+            refresh_token: None,
+            token_expires_on: None,
+            login_method: None,
             __api_configurations: ApiConfigurations {
                 identity,
                 api,
                 device_type: settings.device_type,
             },
-            encryption_settings: temp_encryption_settings,
-            encryption_key: temp_encryption_key,
+            encryption_settings: None,
+            encryption_key: None,
         }
     }
 
@@ -279,8 +208,7 @@ impl Client {
     ) {
         self.token = Some(token.clone());
         self.refresh_token = refresh_token;
-        self.token_expires_in = Some(Utc::now().timestamp() + expires_in as i64);
-        self.token_expiry_timestamp = Some(Utc::now().timestamp() + expires_in as i64);
+        self.token_expires_on = Some(Utc::now().timestamp() + expires_in as i64);
         self.login_method = Some(login_method);
         self.__api_configurations.identity.oauth_access_token = Some(token.clone());
         self.__api_configurations.api.oauth_access_token = Some(token);
@@ -357,28 +285,33 @@ impl Client {
     }
 
     #[cfg(feature = "secrets")]
-    pub fn get_client_state(&self) -> ClientState {
-        let mut access_token: Option<AccessTokenState> = None;
+    pub fn get_client_state(&self) -> Option<ClientState> {
+        let access_token =
+            if let Some(LoginMethod::ServiceAccount(ServiceAccountLoginMethod::AccessToken {
+                service_account_id,
+                client_secret,
+                organization_id,
+            })) = &self.login_method
+            {
+                AccessTokenState {
+                    service_account_id: *service_account_id,
+                    client_secret: client_secret.clone(),
+                    organization_id: *organization_id,
+                }
+            } else {
+                return None;
+            };
 
-        if let Some(LoginMethod::ServiceAccount(ServiceAccountLoginMethod::AccessToken {
-            service_account_id,
-            client_secret,
-            organization_id,
-        })) = &self.login_method
-        {
-            access_token = Some(AccessTokenState {
-                service_account_id: *service_account_id,
-                client_secret: client_secret.clone(),
-                organization_id: *organization_id,
-            });
-        }
-
-        ClientState {
-            token: self.token.clone(),
+        Some(ClientState {
+            token: self.token.clone()?,
+            token_expiry_timestamp: self.token_expires_on?,
             refresh_token: self.refresh_token.clone(),
-            token_expiry_timestamp: self.token_expiry_timestamp,
             access_token,
-            encryption_key: self.encryption_key.clone(),
-        }
+            encryption_key: self
+                .get_encryption_settings()
+                .ok()?
+                .get_key(&None)?
+                .to_base64(),
+        })
     }
 }

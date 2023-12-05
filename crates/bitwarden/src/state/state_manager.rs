@@ -57,16 +57,16 @@ impl StateManager {
         self.data != serde_json::Value::Null
     }
 
-    pub fn get_client_state(&self) -> ClientState {
-        ClientState {
-            token: serde_json::from_value(self.data["token"].clone()).ok(),
-            token_expiry_timestamp: serde_json::from_value(
-                self.data["token_expiry_timestamp"].clone(),
-            )
-            .ok(),
-            refresh_token: serde_json::from_value(self.data["refresh_token"].clone()).ok(),
-            access_token: serde_json::from_value(self.data["access_token"].clone()).ok(),
-            encryption_key: serde_json::from_value(self.data["encryption_key"].clone()).ok(),
-        }
-    }
+    // pub fn get_client_state(&self) -> ClientState {
+    //     ClientState {
+    //         token: serde_json::from_value(self.data["token"].clone()).ok(),
+    //         token_expiry_timestamp: serde_json::from_value(
+    //             self.data["token_expiry_timestamp"].clone(),
+    //         )
+    //         .ok(),
+    //         refresh_token: serde_json::from_value(self.data["refresh_token"].clone()).ok(),
+    //         access_token: serde_json::from_value(self.data["access_token"].clone()).ok(),
+    //         encryption_key: serde_json::from_value(self.data["encryption_key"].clone()).ok(),
+    //     }
+    // }
 }

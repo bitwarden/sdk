@@ -1,4 +1,7 @@
+use std::str::FromStr;
+
 use base64::Engine;
+use chrono::Utc;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -8,12 +11,43 @@ use crate::{
         login::{response::two_factor::TwoFactorProviders, PasswordLoginResponse},
         JWTToken,
     },
-    client::{AccessToken, LoginMethod, ServiceAccountLoginMethod},
+    client::{AccessToken, ClientState, LoginMethod, ServiceAccountLoginMethod},
     crypto::{EncString, KeyDecryptable, SymmetricCryptoKey},
     error::{Error, Result},
     util::BASE64_ENGINE,
     Client,
 };
+
+pub(crate) async fn login_access_token_from_state(
+    client: &mut Client,
+    state: ClientState,
+) -> Result<()> {
+    let time_till_expiration = state.token_expiry_timestamp - Utc::now().timestamp();
+
+    if time_till_expiration < 0 {
+        return Err(Error::Internal("Expired token error."));
+    }
+
+    client.set_tokens(
+        state.token,
+        state.refresh_token,
+        time_till_expiration as u64,
+        LoginMethod::ServiceAccount(ServiceAccountLoginMethod::AccessToken {
+            service_account_id: state.access_token.service_account_id,
+            client_secret: state.access_token.client_secret,
+            organization_id: state.access_token.organization_id,
+        }),
+    );
+
+    let encryption_key = match SymmetricCryptoKey::from_str(&state.encryption_key) {
+        Ok(t) => t,
+        Err(_) => panic!("Failure to convert encryption key into SymmetricCryptoKey"),
+    };
+
+    client.initialize_crypto_single_key(encryption_key);
+
+    Ok(())
+}
 
 pub(crate) async fn login_access_token(
     client: &mut Client,

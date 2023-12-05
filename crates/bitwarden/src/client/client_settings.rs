@@ -20,7 +20,7 @@ use serde::{Deserialize, Serialize};
 /// ```
 ///
 /// Targets `localhost:8080` for debug builds.
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(default, rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct ClientSettings {

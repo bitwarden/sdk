@@ -35,7 +35,7 @@ pub use api_key::{ApiKeyLoginRequest, ApiKeyLoginResponse};
 #[cfg(feature = "secrets")]
 mod access_token;
 #[cfg(feature = "secrets")]
-pub(super) use access_token::login_access_token;
+pub(super) use access_token::{login_access_token, login_access_token_from_state};
 #[cfg(feature = "secrets")]
 pub use access_token::{AccessTokenLoginRequest, AccessTokenLoginResponse};
 

@@ -15,6 +15,13 @@ bld/
 [Bb]in/
 [Oo]bj/
 
+# Binary files
+*.dylib
+*.a
+*.so
+*.dll
+*.class
+
 # Editor directories and files
 .idea
 xcuserdata/

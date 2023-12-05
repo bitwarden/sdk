@@ -24,7 +24,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="7.0.3" />
+    <PackageReference Include="System.Text.Json" Version="7.0.4" />
     <None Include="bitwarden.png" Pack="true" PackagePath="\" />
     <None Include="../README.md" Pack="true" PackagePath="\" />
     <None Include="../LICENSE.txt" Pack="true" PackagePath="\" />

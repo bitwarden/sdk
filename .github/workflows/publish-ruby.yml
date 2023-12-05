@@ -1,9 +1,9 @@
 name: Publish Ruby SDK
 
-on:
-  push:
-    branches:
-      - master
+#on:
+#  push:
+#    branches:
+#      - master
 
 jobs:
   generate_schemas:

@@ -78,7 +78,6 @@ pub struct Client {
     pub(crate) __api_configurations: ApiConfigurations,
 
     encryption_settings: Option<EncryptionSettings>,
-    pub encryption_key: Option<String>,
 }
 
 #[cfg(feature = "secrets")]
@@ -147,7 +146,6 @@ impl Client {
                 device_type: settings.device_type,
             },
             encryption_settings: None,
-            encryption_key: None,
         }
     }
 

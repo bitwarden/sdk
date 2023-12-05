@@ -81,6 +81,7 @@ pub struct Client {
     pub encryption_key: Option<String>,
 }
 
+#[cfg(feature = "secrets")]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ClientState {
     pub token: String,
@@ -90,6 +91,13 @@ pub struct ClientState {
     pub encryption_key: String,
 }
 
+impl ClientState {
+    pub fn is_expired(&self) -> bool {
+        Utc::now().timestamp() > self.token_expiry_timestamp
+    }
+}
+
+#[cfg(feature = "secrets")]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AccessTokenState {
     pub service_account_id: Uuid,

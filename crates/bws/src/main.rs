@@ -13,19 +13,19 @@ use bitwarden::{
             SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest, SecretsGetRequest,
         },
     },
+    state::StateManager,
+    Client,
 };
 use clap::{ArgGroup, CommandFactory, Parser, Subcommand};
 use clap_complete::Shell;
 use color_eyre::eyre::{bail, Result};
-use log::error;
+use log::{error, warn};
 
 mod config;
 mod render;
-mod state;
 
 use config::ProfileKey;
 use render::{serialize_response, Color, Output};
-use state::State;
 use uuid::Uuid;
 
 #[derive(Parser, Debug)]
@@ -48,7 +48,7 @@ struct Cli {
         short = 'f',
         long,
         global = true,
-        help = format!("[default: ~/{}/{}] Config file to use", config::DIRECTORY, config::FILENAME)
+        help = format!("[default: ~/{}/{}] Config file to use", config::BWS_DIRECTORY, config::CONFIG_FILENAME)
     )]
     config_file: Option<PathBuf>,
 
@@ -323,60 +323,31 @@ async fn process_commands() -> Result<()> {
         })
         .transpose()?;
 
-    // let state_file_path = state::get_state_file_path(
-    //     match profile {
-    //         Some(p) => p.state_file_path.map(|sp| PathBuf::from(sp.clone())),
-    //         None => None,
-    //     },
-    //     cli.profile,
-    //     true,
-    // );
-
-    // let mut state = State::new(&state_file_path, access_token.clone())?;
-    // let client_state = match state.get() {
-    //     Some(state) => match state {
-    //         Ok(client_state) => {
-    //             Some(client_state)
-    //         }
-    //         Err(_) => {
-    //             println!("Error decrypting the client state. Proceeding without state, it might be overwritten!");
-    //             None
-    //         }
-    //     },
-    //     None => None,
-    // };
+    let state_file_path = config::get_state_file_path(
+        profile.and_then(|p| p.state_file_path.map(|sp| PathBuf::from(sp.clone()))),
+        cli.profile,
+        true,
+    );
 
     let mut client = bitwarden::Client::new(settings.clone());
-    let _ = client
-        .auth()
-        .login_access_token(&AccessTokenLoginRequest { access_token })
-        .await?;
+    let state = StateManager::new(state_file_path)?;
 
-    let client_state = client.get_client_state().unwrap();
-    let mut another_client = bitwarden::Client::new(settings);
-    if let Err(e) = another_client
-        .auth()
-        .login_access_token_from_state(client_state)
+    if try_login_from_state(&mut client, &state, &access_token)
         .await
+        .is_err()
     {
-        println!("{:?}", e);
+        client
+            .auth()
+            .login_access_token(&AccessTokenLoginRequest {
+                access_token: access_token.clone(),
+            })
+            .await?;
+        if let Some(client_state) = client.get_client_state() {
+            if state.insert(&access_token, client_state).is_err() {
+                warn!("Failed to update state file.");
+            }
+        }
     }
-
-    println!("this works!");
-
-    // if !valid_token {
-    //     let _ = client
-    //         .auth()
-    //         .login_access_token(&AccessTokenLoginRequest { access_token })
-    //         .await?;
-
-    //     if state.upsert(client.get_client_state()).is_err() {
-    //         println!("Failure to update the in-memory state.")
-    //     }
-    //     if state.save(&state_file_path).is_err() {
-    //         println!("Failure to save the state.")
-    //     }
-    // }
 
     let organization_id = match client.get_access_token_organization() {
         Some(id) => id,
@@ -677,4 +648,22 @@ fn get_config_profile(
         config.select_profile(&profile_key, profile_defined)?
     };
     Ok(profile)
+}
+
+async fn try_login_from_state(
+    client: &mut Client,
+    state: &StateManager,
+    access_token: &String,
+) -> Result<()> {
+    match state.get(access_token)? {
+        Some(client_state) => {
+            client
+                .auth()
+                .login_access_token_from_state(client_state)
+                .await?;
+
+            Ok(())
+        }
+        None => bail!("No state saved."),
+    }
 }

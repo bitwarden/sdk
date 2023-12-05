@@ -1,72 +1,123 @@
+use base64::Engine;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    client::ClientState,
+    client::{AccessToken, ClientState},
+    crypto::{EncString, KeyDecryptable, KeyEncryptable},
     error::{Error, Result},
+    util::BASE64_ENGINE,
 };
+use sha2::Digest;
 use std::{
+    collections::HashMap,
     fmt::Debug,
-    fs::{self, OpenOptions},
-    io::Write,
-    path::Path,
+    fs::OpenOptions,
+    io::{Read, Seek, Write},
+    path::PathBuf,
 };
+
+type AccessTokenHash = String;
+type EncClientState = EncString;
 
 const STATE_VERSION: u32 = 1;
 
 #[derive(Serialize, Debug, Deserialize)]
-pub struct StateManager {
+pub struct StateFileData {
     pub version: u32,
-    pub data: serde_json::Value,
+    data: HashMap<AccessTokenHash, EncClientState>,
+}
+
+impl StateFileData {
+    pub fn new() -> Self {
+        StateFileData {
+            version: STATE_VERSION,
+            data: Default::default(),
+        }
+    }
+
+    fn get(&self, access_token: &String) -> Result<Option<ClientState>> {
+        let access_token_hash: String =
+            BASE64_ENGINE.encode(sha2::Sha256::new().chain_update(access_token).finalize());
+        let access_token: AccessToken = access_token.parse()?;
+
+        let Some(enc_data) = self.data.get(&access_token_hash) else {
+            return Ok(None);
+        };
+        let decrypted_data: String = enc_data.decrypt_with_key(&access_token.encryption_key)?;
+        let state: ClientState = serde_json::from_str(&decrypted_data)?;
+
+        if state.is_expired() {
+            return Ok(None);
+        }
+
+        Ok(Some(state))
+    }
+
+    fn insert(&mut self, access_token: &String, state: ClientState) -> Result<()> {
+        let access_token_hash: String =
+            BASE64_ENGINE.encode(sha2::Sha256::new().chain_update(access_token).finalize());
+        let access_token: AccessToken = access_token.parse()?;
+
+        let serialized_state: String = serde_json::to_string(&state)?;
+        let enc_state: EncClientState =
+            serialized_state.encrypt_with_key(&access_token.encryption_key)?;
+
+        self.data.insert(access_token_hash, enc_state);
+
+        Ok(())
+    }
+}
+
+pub struct StateManager {
+    path: PathBuf,
 }
 
 impl StateManager {
-    pub fn new(path: &Path) -> Result<Self> {
-        if let Ok(p) = fs::canonicalize(path) {
-            if let Ok(exists) = p.try_exists() {
-                if exists {
-                    let file_content = fs::read_to_string(&p)?;
-                    let file_state: Self = serde_json::from_str(file_content.as_str())?;
-
-                    if file_state.version != STATE_VERSION {
-                        return Err(Error::InvalidStateManagerFileVersion);
-                    }
-
-                    return Ok(file_state);
-                }
-            }
+    pub fn new(path: PathBuf) -> Result<Self> {
+        if let Some(parent_folder) = path.parent() {
+            std::fs::create_dir_all(parent_folder)?;
         }
 
-        Ok(Self {
-            version: STATE_VERSION,
-            data: serde_json::Value::Null,
-        })
+        Ok(Self { path })
     }
 
-    pub fn save(&self, path: &Path) -> Result<()> {
-        let file_content = serde_json::to_string(&self)?;
+    pub fn get(&self, access_token: &String) -> Result<Option<ClientState>> {
+        let file_content = std::fs::read_to_string(&self.path)?;
+        let state_data: StateFileData = serde_json::from_str(&file_content)?;
+
+        if state_data.version != STATE_VERSION {
+            return Err(Error::InvalidStateManagerFileVersion);
+        }
+
+        state_data.get(access_token)
+    }
+
+    pub fn insert(&self, access_token: &String, state: ClientState) -> Result<()> {
         let mut file = OpenOptions::new()
+            .read(true)
             .write(true)
-            .truncate(true)
             .create(true)
-            .open(path)?;
-        file.write_all(file_content.as_bytes())?;
+            .open(&self.path)?;
+
+        // TODO: lock the file (SM-1028)
+
+        let mut file_content = String::new();
+        file.read_to_string(&mut file_content)?;
+
+        let mut state_data: StateFileData = match serde_json::from_str(&file_content) {
+            Ok(data) => data,
+            Err(_) => StateFileData::new(),
+        };
+
+        state_data.insert(access_token, state)?;
+
+        let serialized_state = serde_json::to_string(&state_data)?;
+
+        // Truncate the file and overwrite
+        file.rewind()?;
+        file.set_len(0)?;
+        file.write_all(serialized_state.as_bytes())?;
+
         Ok(())
     }
-
-    pub fn has_data(&self) -> bool {
-        self.data != serde_json::Value::Null
-    }
-
-    // pub fn get_client_state(&self) -> ClientState {
-    //     ClientState {
-    //         token: serde_json::from_value(self.data["token"].clone()).ok(),
-    //         token_expiry_timestamp: serde_json::from_value(
-    //             self.data["token_expiry_timestamp"].clone(),
-    //         )
-    //         .ok(),
-    //         refresh_token: serde_json::from_value(self.data["refresh_token"].clone()).ok(),
-    //         access_token: serde_json::from_value(self.data["access_token"].clone()).ok(),
-    //         encryption_key: serde_json::from_value(self.data["encryption_key"].clone()).ok(),
-    //     }
-    // }
 }

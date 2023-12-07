@@ -1,10 +1,11 @@
+use rand::{seq::SliceRandom, Rng, RngCore};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+
 use crate::{
     error::{Error, Result},
     wordlist::EFF_LONG_WORD_LIST,
 };
-use rand::{seq::SliceRandom, Rng, RngCore};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 /// Passphrase generator request options.
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

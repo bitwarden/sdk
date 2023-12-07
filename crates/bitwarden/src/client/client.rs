@@ -1,4 +1,4 @@
-use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
+use bitwarden_crypto::{EncString, SymmetricCryptoKey};
 use chrono::Utc;
 use reqwest::header::{self};
 use uuid::Uuid;
@@ -8,7 +8,6 @@ use crate::auth::login::{AccessTokenLoginRequest, AccessTokenLoginResponse};
 #[cfg(feature = "internal")]
 use crate::{
     client::kdf::Kdf,
-    crypto::EncString,
     platform::{
         generate_fingerprint, get_user_api_key, sync, FingerprintRequest, FingerprintResponse,
         SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,

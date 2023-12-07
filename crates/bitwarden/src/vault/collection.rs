@@ -1,13 +1,7 @@
-use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
+use bitwarden_crypto::{EncString, KeyContainer, KeyDecryptable, LocateKey, SymmetricCryptoKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-
-use crate::{
-    client::encryption_settings::EncryptionSettings,
-    crypto::{EncString, KeyDecryptable, LocateKey},
-    error::Result,
-};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -40,14 +34,17 @@ pub struct CollectionView {
 impl LocateKey for Collection {
     fn locate_key<'a>(
         &self,
-        enc: &'a EncryptionSettings,
+        enc: &'a dyn KeyContainer,
         _: &Option<Uuid>,
     ) -> Option<&'a SymmetricCryptoKey> {
         enc.get_key(&Some(self.organization_id))
     }
 }
 impl KeyDecryptable<CollectionView> for Collection {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CollectionView> {
+    fn decrypt_with_key(
+        &self,
+        key: &SymmetricCryptoKey,
+    ) -> bitwarden_crypto::Result<CollectionView> {
         Ok(CollectionView {
             id: self.id,
             organization_id: self.organization_id,

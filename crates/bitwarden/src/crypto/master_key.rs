@@ -1,12 +1,10 @@
 use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::Engine;
-use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
+use bitwarden_crypto::{EncString, KeyDecryptable, SymmetricCryptoKey, UserKey};
 use rand::Rng;
 use sha2::Digest;
 
-use super::{
-    hkdf_expand, EncString, KeyDecryptable, PbkdfSha256Hmac, UserKey, PBKDF_SHA256_HMAC_OUT_SIZE,
-};
+use super::{hkdf_expand, PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE};
 use crate::{client::kdf::Kdf, error::Result, util::BASE64_ENGINE};
 
 #[derive(Copy, Clone)]
@@ -125,7 +123,7 @@ fn stretch_master_key(master_key: &MasterKey) -> Result<SymmetricCryptoKey> {
 mod tests {
     use std::num::NonZeroU32;
 
-    use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
+    use bitwarden_crypto::SymmetricCryptoKey;
     use rand::SeedableRng;
 
     use super::{make_user_key, stretch_master_key, HashPurpose, MasterKey};

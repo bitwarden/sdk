@@ -26,25 +26,10 @@ use hmac::digest::OutputSizeUser;
 
 use crate::error::{Error, Result};
 
-mod enc_string;
-pub use enc_string::EncString;
-mod encryptable;
-pub use encryptable::{Decryptable, Encryptable, LocateKey};
-mod key_encryptable;
-pub use key_encryptable::{KeyDecryptable, KeyEncryptable};
-
 #[cfg(feature = "internal")]
 mod master_key;
 #[cfg(feature = "internal")]
 pub(crate) use master_key::{HashPurpose, MasterKey};
-#[cfg(feature = "internal")]
-mod user_key;
-#[cfg(feature = "internal")]
-pub(crate) use user_key::UserKey;
-#[cfg(feature = "internal")]
-mod rsa;
-#[cfg(feature = "internal")]
-pub use self::rsa::RsaKeyPair;
 
 #[cfg(feature = "internal")]
 mod fingerprint;

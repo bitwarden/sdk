@@ -1,14 +1,12 @@
 use base64::Engine;
-use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
 use rsa::{
     pkcs8::{EncodePrivateKey, EncodePublicKey},
     RsaPrivateKey, RsaPublicKey,
 };
 
 use crate::{
-    crypto::EncString,
-    error::{Error, Result},
-    util::BASE64_ENGINE,
+    error::{Result, RsaError},
+    EncString, SymmetricCryptoKey, BASE64_ENGINE,
 };
 
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
@@ -19,7 +17,7 @@ pub struct RsaKeyPair {
     pub private: EncString,
 }
 
-pub(super) fn make_key_pair(key: &SymmetricCryptoKey) -> Result<RsaKeyPair> {
+pub fn make_key_pair(key: &SymmetricCryptoKey) -> Result<RsaKeyPair> {
     let mut rng = rand::thread_rng();
     let bits = 2048;
     let priv_key = RsaPrivateKey::new(&mut rng, bits).expect("failed to generate a key");
@@ -27,12 +25,12 @@ pub(super) fn make_key_pair(key: &SymmetricCryptoKey) -> Result<RsaKeyPair> {
 
     let spki = pub_key
         .to_public_key_der()
-        .map_err(|_| Error::Internal("unable to create public key"))?;
+        .map_err(|_| RsaError::CreatePublicKey)?;
 
     let b64 = BASE64_ENGINE.encode(spki.as_bytes());
     let pkcs = priv_key
         .to_pkcs8_der()
-        .map_err(|_| Error::Internal("unable to create private key"))?;
+        .map_err(|_| RsaError::CreatePrivateKey)?;
 
     let protected = EncString::encrypt_aes256_hmac(pkcs.as_bytes(), key.mac_key.unwrap(), key.key)?;
 

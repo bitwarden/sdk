@@ -1,13 +1,8 @@
-use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
+use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-
-use crate::{
-    crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey},
-    error::Result,
-};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -29,7 +24,7 @@ pub struct FolderView {
 
 impl LocateKey for FolderView {}
 impl KeyEncryptable<Folder> for FolderView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Folder> {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<Folder> {
         Ok(Folder {
             id: self.id,
             name: self.name.encrypt_with_key(key)?,
@@ -40,7 +35,7 @@ impl KeyEncryptable<Folder> for FolderView {
 
 impl LocateKey for Folder {}
 impl KeyDecryptable<FolderView> for Folder {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<FolderView> {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<FolderView> {
         Ok(FolderView {
             id: self.id,
             name: self.name.decrypt_with_key(key)?,

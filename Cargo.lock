@@ -428,12 +428,14 @@ dependencies = [
  "rsa",
  "schemars",
  "serde",
+ "serde_json",
  "sha1",
  "sha2",
  "subtle",
  "thiserror",
  "tokio",
  "uniffi",
+ "uuid",
  "wiremock",
 ]
 

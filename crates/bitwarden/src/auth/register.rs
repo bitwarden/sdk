@@ -2,12 +2,13 @@ use bitwarden_api_identity::{
     apis::accounts_api::accounts_register_post,
     models::{KeysRequestModel, RegisterRequestModel},
 };
+use bitwarden_crypto::rsa::RsaKeyPair;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
     client::kdf::Kdf,
-    crypto::{HashPurpose, MasterKey, RsaKeyPair},
+    crypto::{HashPurpose, MasterKey},
     error::Result,
     util::default_pbkdf2_iterations,
     Client,

@@ -1,9 +1,7 @@
 use std::str::FromStr;
 
 use base64::Engine;
-use bitwarden_crypto::{
-    shareable_key::derive_shareable_key, symmetric_crypto_key::SymmetricCryptoKey,
-};
+use bitwarden_crypto::{derive_shareable_key, SymmetricCryptoKey};
 use uuid::Uuid;
 
 use crate::{error::AccessTokenInvalidError, util::BASE64_ENGINE};

@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
+use bitwarden_crypto::EncString;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
     client::kdf::Kdf,
-    crypto::EncString,
     error::{Error, Result},
     Client,
 };

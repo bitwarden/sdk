@@ -1,4 +1,6 @@
-use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
+use bitwarden_crypto::{
+    EncString, KeyContainer, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey,
+};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -10,12 +12,7 @@ use super::{
     local_data::{LocalData, LocalDataView},
     login, secure_note,
 };
-use crate::{
-    client::encryption_settings::EncryptionSettings,
-    crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey},
-    error::Result,
-    vault::password_history,
-};
+use crate::vault::password_history;
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
@@ -136,7 +133,7 @@ pub struct CipherListView {
 }
 
 impl KeyEncryptable<Cipher> for CipherView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Cipher> {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<Cipher> {
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let key = ciphers_key.as_ref().unwrap_or(key);
 
@@ -170,7 +167,7 @@ impl KeyEncryptable<Cipher> for CipherView {
 }
 
 impl KeyDecryptable<CipherView> for Cipher {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CipherView> {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<CipherView> {
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let key = ciphers_key.as_ref().unwrap_or(key);
 
@@ -211,7 +208,7 @@ impl Cipher {
     fn get_cipher_key(
         key: &SymmetricCryptoKey,
         ciphers_key: &Option<EncString>,
-    ) -> Result<Option<SymmetricCryptoKey>> {
+    ) -> bitwarden_crypto::Result<Option<SymmetricCryptoKey>> {
         ciphers_key
             .as_ref()
             .map(|k| {
@@ -221,7 +218,7 @@ impl Cipher {
             .transpose()
     }
 
-    fn get_decrypted_subtitle(&self, key: &SymmetricCryptoKey) -> Result<String> {
+    fn get_decrypted_subtitle(&self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<String> {
         Ok(match self.r#type {
             CipherType::Login => {
                 let Some(login) = &self.login else {
@@ -287,7 +284,10 @@ impl Cipher {
 }
 
 impl KeyDecryptable<CipherListView> for Cipher {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CipherListView> {
+    fn decrypt_with_key(
+        &self,
+        key: &SymmetricCryptoKey,
+    ) -> bitwarden_crypto::Result<CipherListView> {
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let key = ciphers_key.as_ref().unwrap_or(key);
 
@@ -318,7 +318,7 @@ impl KeyDecryptable<CipherListView> for Cipher {
 impl LocateKey for Cipher {
     fn locate_key<'a>(
         &self,
-        enc: &'a EncryptionSettings,
+        enc: &'a dyn KeyContainer,
         _: &Option<Uuid>,
     ) -> Option<&'a SymmetricCryptoKey> {
         enc.get_key(&self.organization_id)
@@ -327,7 +327,7 @@ impl LocateKey for Cipher {
 impl LocateKey for CipherView {
     fn locate_key<'a>(
         &self,
-        enc: &'a EncryptionSettings,
+        enc: &'a dyn KeyContainer,
         _: &Option<Uuid>,
     ) -> Option<&'a SymmetricCryptoKey> {
         enc.get_key(&self.organization_id)

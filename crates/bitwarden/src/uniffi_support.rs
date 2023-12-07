@@ -1,8 +1,9 @@
 use std::{num::NonZeroU32, str::FromStr};
 
+use bitwarden_crypto::EncString;
 use uuid::Uuid;
 
-use crate::{crypto::EncString, error::Error, UniffiCustomTypeConverter};
+use crate::{error::Error, UniffiCustomTypeConverter};
 
 uniffi::custom_type!(NonZeroU32, u32);
 

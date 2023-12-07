@@ -1,12 +1,13 @@
 use std::{collections::HashMap, str::FromStr};
 
-use crate::error::{Error, Result};
 use chrono::{DateTime, Utc};
 use data_encoding::BASE32;
 use hmac::{Hmac, Mac};
 use reqwest::Url;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+
+use crate::error::{Error, Result};
 
 type HmacSha1 = Hmac<sha1::Sha1>;
 type HmacSha256 = Hmac<sha2::Sha256>;
@@ -213,8 +214,9 @@ fn derive_binary(hash: Vec<u8>) -> u32 {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use chrono::Utc;
+
+    use super::*;
 
     #[test]
     fn test_generate_totp() {

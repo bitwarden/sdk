@@ -1,13 +1,9 @@
-use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
+use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use super::linked_id::LinkedIdType;
-use crate::{
-    crypto::{EncString, KeyDecryptable, KeyEncryptable},
-    error::Result,
-};
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
@@ -42,7 +38,7 @@ pub struct FieldView {
 }
 
 impl KeyEncryptable<Field> for FieldView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Field> {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<Field> {
         Ok(Field {
             name: self.name.encrypt_with_key(key)?,
             value: self.value.encrypt_with_key(key)?,
@@ -53,7 +49,7 @@ impl KeyEncryptable<Field> for FieldView {
 }
 
 impl KeyDecryptable<FieldView> for Field {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<FieldView> {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<FieldView> {
         Ok(FieldView {
             name: self.name.decrypt_with_key(key)?,
             value: self.value.decrypt_with_key(key)?,

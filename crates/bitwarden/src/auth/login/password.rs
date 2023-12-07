@@ -10,7 +10,6 @@ use crate::{
         login::{determine_password_hash, TwoFactorRequest},
     },
     client::{kdf::Kdf, LoginMethod},
-    crypto::EncString,
     Client,
 };
 use crate::{
@@ -26,6 +25,8 @@ pub(crate) async fn login_password(
     client: &mut Client,
     input: &PasswordLoginRequest,
 ) -> Result<PasswordLoginResponse> {
+    use bitwarden_crypto::EncString;
+
     use crate::client::UserLoginMethod;
 
     info!("password logging in");

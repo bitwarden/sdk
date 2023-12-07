@@ -15,9 +15,13 @@ rust-version = "1.57"
 [features]
 default = ["secrets"]
 
-secrets = []                    # Secrets manager API
-internal = []                   # Internal testing methods
-mobile = ["uniffi", "internal"] # Mobile-specific features
+secrets = [] # Secrets manager API
+internal = [] # Internal testing methods
+mobile = [
+    "uniffi",
+    "internal",
+    "bitwarden-crypto/mobile",
+] # Mobile-specific features
 
 [dependencies]
 aes = ">=0.8.2, <0.9"

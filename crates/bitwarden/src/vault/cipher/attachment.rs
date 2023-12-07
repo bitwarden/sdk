@@ -1,11 +1,6 @@
-use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
+use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
-use crate::{
-    crypto::{EncString, KeyDecryptable, KeyEncryptable},
-    error::Result,
-};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -33,7 +28,7 @@ pub struct AttachmentView {
 }
 
 impl KeyEncryptable<Attachment> for AttachmentView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Attachment> {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<Attachment> {
         Ok(Attachment {
             id: self.id,
             url: self.url,
@@ -46,7 +41,10 @@ impl KeyEncryptable<Attachment> for AttachmentView {
 }
 
 impl KeyDecryptable<AttachmentView> for Attachment {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<AttachmentView> {
+    fn decrypt_with_key(
+        &self,
+        key: &SymmetricCryptoKey,
+    ) -> bitwarden_crypto::Result<AttachmentView> {
         Ok(AttachmentView {
             id: self.id.clone(),
             url: self.url.clone(),

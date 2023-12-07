@@ -1,13 +1,8 @@
-use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
+use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-
-use crate::{
-    crypto::{EncString, KeyDecryptable, KeyEncryptable},
-    error::Result,
-};
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
@@ -65,7 +60,7 @@ pub struct LoginView {
 }
 
 impl KeyEncryptable<LoginUri> for LoginUriView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<LoginUri> {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<LoginUri> {
         Ok(LoginUri {
             uri: self.uri.encrypt_with_key(key)?,
             r#match: self.r#match,
@@ -74,7 +69,7 @@ impl KeyEncryptable<LoginUri> for LoginUriView {
 }
 
 impl KeyEncryptable<Login> for LoginView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Login> {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<Login> {
         Ok(Login {
             username: self.username.encrypt_with_key(key)?,
             password: self.password.encrypt_with_key(key)?,
@@ -87,7 +82,7 @@ impl KeyEncryptable<Login> for LoginView {
 }
 
 impl KeyDecryptable<LoginUriView> for LoginUri {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<LoginUriView> {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<LoginUriView> {
         Ok(LoginUriView {
             uri: self.uri.decrypt_with_key(key)?,
             r#match: self.r#match,
@@ -96,7 +91,7 @@ impl KeyDecryptable<LoginUriView> for LoginUri {
 }
 
 impl KeyDecryptable<LoginView> for Login {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<LoginView> {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<LoginView> {
         Ok(LoginView {
             username: self.username.decrypt_with_key(key)?,
             password: self.password.decrypt_with_key(key)?,

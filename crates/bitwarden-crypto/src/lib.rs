@@ -5,13 +5,27 @@ use base64::{
 };
 use hmac::digest::OutputSizeUser;
 
+#[cfg(feature = "mobile")]
+uniffi::setup_scaffolding!();
+
 pub mod aes;
 mod error;
-pub mod shareable_key;
-pub mod symmetric_crypto_key;
-
-pub use error::CryptoError;
-use error::Result;
+mod key_encryptable;
+pub use key_encryptable::{KeyDecryptable, KeyEncryptable};
+mod shareable_key;
+mod symmetric_crypto_key;
+pub use error::{CryptoError, Result};
+pub use shareable_key::derive_shareable_key;
+pub use symmetric_crypto_key::SymmetricCryptoKey;
+mod encryptable;
+pub use encryptable::{Decryptable, Encryptable, KeyContainer, LocateKey};
+mod enc_string;
+pub use enc_string::EncString;
+pub mod rsa;
+mod user_key;
+pub use user_key::UserKey;
+mod uniffi_support;
+pub use uniffi_support::*;
 
 // TODO: Move into a util crate
 const BASE64_ENGINE_CONFIG: GeneralPurposeConfig = GeneralPurposeConfig::new()

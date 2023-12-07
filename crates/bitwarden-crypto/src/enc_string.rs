@@ -2,13 +2,11 @@ use std::{fmt::Display, str::FromStr};
 
 use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::Engine;
-use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
 use serde::{de::Visitor, Deserialize};
 
-use super::{KeyDecryptable, KeyEncryptable, LocateKey};
 use crate::{
-    error::{CryptoError, EncStringParseError, Error, Result},
-    util::BASE64_ENGINE,
+    error::EncStringParseError, CryptoError, KeyDecryptable, KeyEncryptable, LocateKey, Result,
+    SymmetricCryptoKey, BASE64_ENGINE,
 };
 
 /// # Encrypted string primitive
@@ -88,7 +86,7 @@ impl std::fmt::Debug for EncString {
 
 /// Deserializes an [EncString] from a string.
 impl FromStr for EncString {
-    type Err = Error;
+    type Err = CryptoError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (enc_type, parts): (&str, Vec<_>) = {
@@ -164,8 +162,7 @@ impl FromStr for EncString {
 }
 
 impl EncString {
-    #[cfg(feature = "mobile")]
-    pub(crate) fn from_buffer(buf: &[u8]) -> Result<Self> {
+    pub fn from_buffer(buf: &[u8]) -> Result<Self> {
         if buf.is_empty() {
             return Err(EncStringParseError::NoType.into());
         }
@@ -232,8 +229,7 @@ impl EncString {
         }
     }
 
-    #[cfg(feature = "mobile")]
-    pub(crate) fn to_buffer(&self) -> Result<Vec<u8>> {
+    pub fn to_buffer(&self) -> Result<Vec<u8>> {
         let mut buf;
 
         match self {
@@ -331,12 +327,12 @@ impl serde::Serialize for EncString {
 }
 
 impl EncString {
-    pub(crate) fn encrypt_aes256_hmac(
+    pub fn encrypt_aes256_hmac(
         data_dec: &[u8],
         mac_key: GenericArray<u8, U32>,
         key: GenericArray<u8, U32>,
     ) -> Result<EncString> {
-        let (iv, mac, data) = bitwarden_crypto::aes::encrypt_aes256_hmac(data_dec, mac_key, key)?;
+        let (iv, mac, data) = crate::aes::encrypt_aes256_hmac(data_dec, mac_key, key)?;
         Ok(EncString::AesCbc256_HmacSha256_B64 { iv, mac, data })
     }
 
@@ -375,16 +371,10 @@ impl KeyDecryptable<Vec<u8>> for EncString {
         match self {
             EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
                 let mac_key = key.mac_key.ok_or(CryptoError::InvalidMac)?;
-                let dec = bitwarden_crypto::aes::decrypt_aes256_hmac(
-                    iv,
-                    mac,
-                    data.clone(),
-                    mac_key,
-                    key.key,
-                )?;
+                let dec = crate::aes::decrypt_aes256_hmac(iv, mac, data.clone(), mac_key, key.key)?;
                 Ok(dec)
             }
-            _ => Err(CryptoError::InvalidKey.into()),
+            _ => Err(CryptoError::InvalidKey),
         }
     }
 }
@@ -398,16 +388,26 @@ impl KeyEncryptable<EncString> for String {
 impl KeyDecryptable<String> for EncString {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<String> {
         let dec: Vec<u8> = self.decrypt_with_key(key)?;
-        String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String.into())
+        String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String)
+    }
+}
+
+// Usually we wouldn't want to expose EncStrings in the API or the schemas,
+// but we need them in the mobile API, so define it here to limit the scope
+impl schemars::JsonSchema for EncString {
+    fn schema_name() -> String {
+        "EncString".to_string()
+    }
+
+    fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+        gen.subschema_for::<String>()
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
-
     use super::EncString;
-    use crate::crypto::{KeyDecryptable, KeyEncryptable};
+    use crate::{KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
 
     #[test]
     fn test_enc_string_roundtrip() {

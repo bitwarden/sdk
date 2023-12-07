@@ -1,11 +1,6 @@
-use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
+use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
-use crate::{
-    crypto::{EncString, KeyDecryptable, KeyEncryptable},
-    error::Result,
-};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -56,7 +51,7 @@ pub struct IdentityView {
 }
 
 impl KeyEncryptable<Identity> for IdentityView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Identity> {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<Identity> {
         Ok(Identity {
             title: self.title.encrypt_with_key(key)?,
             first_name: self.first_name.encrypt_with_key(key)?,
@@ -81,7 +76,7 @@ impl KeyEncryptable<Identity> for IdentityView {
 }
 
 impl KeyDecryptable<IdentityView> for Identity {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<IdentityView> {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<IdentityView> {
         Ok(IdentityView {
             title: self.title.decrypt_with_key(key)?,
             first_name: self.first_name.decrypt_with_key(key)?,

@@ -1,6 +1,7 @@
+use bitwarden_crypto::Decryptable;
+
 use super::client_vault::ClientVault;
 use crate::{
-    crypto::Decryptable,
     error::Result,
     vault::{Collection, CollectionView},
     Client,

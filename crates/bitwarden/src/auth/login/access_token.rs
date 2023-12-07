@@ -1,5 +1,5 @@
 use base64::Engine;
-use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
+use bitwarden_crypto::{EncString, KeyDecryptable, SymmetricCryptoKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -10,7 +10,6 @@ use crate::{
         JWTToken,
     },
     client::{AccessToken, LoginMethod, ServiceAccountLoginMethod},
-    crypto::{EncString, KeyDecryptable},
     error::{Error, Result},
     util::BASE64_ENGINE,
     Client,

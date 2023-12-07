@@ -1,13 +1,12 @@
 use std::collections::HashMap;
 
-use bitwarden_crypto::symmetric_crypto_key::SymmetricCryptoKey;
+use bitwarden_crypto::{EncString, KeyContainer, SymmetricCryptoKey};
 use rsa::RsaPrivateKey;
 use uuid::Uuid;
 #[cfg(feature = "internal")]
 use {
     crate::{
         client::UserLoginMethod,
-        crypto::{EncString, KeyDecryptable},
         error::{CryptoError, Result},
     },
     rsa::{pkcs8::DecodePrivateKey, Oaep},
@@ -58,6 +57,8 @@ impl EncryptionSettings {
         user_key: SymmetricCryptoKey,
         private_key: EncString,
     ) -> Result<Self> {
+        use bitwarden_crypto::KeyDecryptable;
+
         let private_key = {
             let dec: Vec<u8> = private_key.decrypt_with_key(&user_key)?;
             Some(rsa::RsaPrivateKey::from_pkcs8_der(&dec).map_err(|_| CryptoError::InvalidKey)?)
@@ -122,5 +123,11 @@ impl EncryptionSettings {
             Some(org_id) => self.org_keys.get(org_id),
             None => Some(&self.user_key),
         }
+    }
+}
+
+impl KeyContainer for EncryptionSettings {
+    fn get_key(&self, org_id: &Option<Uuid>) -> Option<&SymmetricCryptoKey> {
+        EncryptionSettings::get_key(self, org_id)
     }
 }

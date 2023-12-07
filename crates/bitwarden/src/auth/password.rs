@@ -1,12 +1,12 @@
+use schemars::JsonSchema;
+
+use super::determine_password_hash;
 use crate::{
     client::{LoginMethod, UserLoginMethod},
     crypto::HashPurpose,
     error::{Error, Result},
     Client,
 };
-use schemars::JsonSchema;
-
-use super::determine_password_hash;
 
 pub(super) fn password_strength(
     _password: String,
@@ -77,9 +77,8 @@ mod tests {
     async fn test_validate_password() {
         use std::num::NonZeroU32;
 
-        use crate::client::{kdf::Kdf, Client, LoginMethod, UserLoginMethod};
-
         use super::validate_password;
+        use crate::client::{kdf::Kdf, Client, LoginMethod, UserLoginMethod};
 
         let mut client = Client::new(None);
         client.set_login_method(LoginMethod::User(UserLoginMethod::Username {

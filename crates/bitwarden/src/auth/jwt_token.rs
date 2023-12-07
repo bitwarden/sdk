@@ -13,6 +13,7 @@ use crate::{error::Result, util::BASE64_ENGINE};
 /// TODO: We need to expand this to support user based JWT tokens.
 #[derive(serde::Deserialize)]
 pub struct JWTToken {
+    pub exp: u64,
     pub sub: String,
     pub email: Option<String>,
     pub organization: Option<String>,
@@ -62,6 +63,7 @@ mod tests {
         f3LEddAPV8cAFza4DjA8pZJLFrMyRvMXcL_PjKF8qPVzqVWh03lfJ4clOIxR2gOuWIc902Y5E";
 
         let token: JWTToken = jwt.parse().unwrap();
+        assert_eq!(token.exp, 1675107177);
         assert_eq!(token.sub, "e25d37f3-b603-40de-84ba-af96012f5a42");
         assert_eq!(token.email.as_deref(), Some("test@bitwarden.com"));
         assert_eq!(token.organization.as_deref(), None);

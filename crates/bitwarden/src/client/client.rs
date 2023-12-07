@@ -58,7 +58,7 @@ pub(crate) enum UserLoginMethod {
 #[derive(Debug, Clone)]
 pub(crate) enum ServiceAccountLoginMethod {
     AccessToken {
-        service_account_id: Uuid,
+        access_token_id: Uuid,
         client_secret: String,
         organization_id: Uuid,
     },

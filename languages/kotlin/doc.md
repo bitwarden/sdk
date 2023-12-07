@@ -105,6 +105,7 @@ Hash the user password
 - email: String
 - password: String
 - kdf_params: [Kdf](#kdf)
+- purpose: [HashPurpose](#hashpurpose)
 
 **Output**: std::result::Result<String,BitwardenError>
 
@@ -120,6 +121,22 @@ Generate keys needed for registration process
 - kdf: [Kdf](#kdf)
 
 **Output**: std::result::Result<RegisterKeyResponse,BitwardenError>
+
+### `validate_password`
+
+Validate the user password
+
+To retrieve the user&#x27;s password hash, use [&#x60;ClientAuth::hash_password&#x60;] with
+&#x60;HashPurpose::LocalAuthentication&#x60; during login and persist it. If the login method has no
+password, use the email OTP.
+
+**Arguments**:
+
+- self:
+- password: String
+- password_hash: String
+
+**Output**: std::result::Result<,BitwardenError>
 
 ## ClientCiphers
 
@@ -493,7 +510,7 @@ The key can be either:
 - key: String
 - time: Option<DateTime>
 
-**Output**: [TotpResponse](#totpresponse)
+**Output**: std::result::Result<TotpResponse,BitwardenError>
 
 # References
 
@@ -901,6 +918,16 @@ implementations.
 </tr>
 </table>
 
+## `HashPurpose`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+</table>
+
 ## `InitOrgCryptoRequest`
 
 <table>
@@ -1126,7 +1153,7 @@ implementations.
 <tr>
     <th>wordSeparator</th>
     <th>string</th>
-    <th>Character separator between words in the generated passphrase. If the value is set, it cannot be empty.</th>
+    <th>Character separator between words in the generated passphrase. The value cannot be empty.</th>
 </tr>
 <tr>
     <th>capitalize</th>
@@ -1151,52 +1178,52 @@ implementations.
 <tr>
     <th>lowercase</th>
     <th>boolean</th>
-    <th></th>
+    <th>Include lowercase characters (a-z).</th>
 </tr>
 <tr>
     <th>uppercase</th>
     <th>boolean</th>
-    <th></th>
+    <th>Include uppercase characters (A-Z).</th>
 </tr>
 <tr>
     <th>numbers</th>
     <th>boolean</th>
-    <th></th>
+    <th>Include numbers (0-9).</th>
 </tr>
 <tr>
     <th>special</th>
     <th>boolean</th>
-    <th></th>
+    <th>Include special characters: ! @ # $ % ^ &amp; *</th>
 </tr>
 <tr>
     <th>length</th>
-    <th>integer,null</th>
-    <th></th>
+    <th>integer</th>
+    <th>The length of the generated password. Note that the password length must be greater than the sum of all the minimums.</th>
 </tr>
 <tr>
     <th>avoidAmbiguous</th>
-    <th>boolean,null</th>
-    <th></th>
+    <th>boolean</th>
+    <th>When set to true, the generated password will not contain ambiguous characters. The ambiguous characters are: I, O, l, 0, 1</th>
 </tr>
 <tr>
     <th>minLowercase</th>
-    <th>boolean,null</th>
-    <th></th>
+    <th>integer,null</th>
+    <th>The minimum number of lowercase characters in the generated password. When set, the value must be between 1 and 9. This value is ignored is lowercase is false</th>
 </tr>
 <tr>
     <th>minUppercase</th>
-    <th>boolean,null</th>
-    <th></th>
+    <th>integer,null</th>
+    <th>The minimum number of uppercase characters in the generated password. When set, the value must be between 1 and 9. This value is ignored is uppercase is false</th>
 </tr>
 <tr>
     <th>minNumber</th>
-    <th>boolean,null</th>
-    <th></th>
+    <th>integer,null</th>
+    <th>The minimum number of numbers in the generated password. When set, the value must be between 1 and 9. This value is ignored is numbers is false</th>
 </tr>
 <tr>
     <th>minSpecial</th>
-    <th>boolean,null</th>
-    <th></th>
+    <th>integer,null</th>
+    <th>The minimum number of special characters in the generated password. When set, the value must be between 1 and 9. This value is ignored is special is false</th>
 </tr>
 </table>
 
@@ -1397,25 +1424,5 @@ implementations.
     <th>expirationDate</th>
     <th>string,null</th>
     <th></th>
-</tr>
-</table>
-
-## `TotpResponse`
-
-<table>
-<tr>
-    <th>Key</th>
-    <th>Type</th>
-    <th>Description</th>
-</tr>
-<tr>
-    <th>code</th>
-    <th>string</th>
-    <th>Generated TOTP code</th>
-</tr>
-<tr>
-    <th>period</th>
-    <th>integer</th>
-    <th>Time period</th>
 </tr>
 </table>

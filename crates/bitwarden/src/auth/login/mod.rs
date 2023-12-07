@@ -1,9 +1,6 @@
 #[cfg(feature = "internal")]
 use {
-    crate::{
-        client::{kdf::Kdf, Client},
-        error::Result,
-    },
+    crate::{client::Client, error::Result},
     bitwarden_api_identity::{
         apis::accounts_api::accounts_prelogin_post,
         models::{PreloginRequestModel, PreloginResponseModel},
@@ -38,14 +35,6 @@ mod access_token;
 pub(super) use access_token::login_access_token;
 #[cfg(feature = "secrets")]
 pub use access_token::{AccessTokenLoginRequest, AccessTokenLoginResponse};
-
-#[cfg(feature = "internal")]
-async fn determine_password_hash(email: &str, kdf: &Kdf, password: &str) -> Result<String> {
-    use crate::crypto::{HashPurpose, MasterKey};
-
-    let master_key = MasterKey::derive(password.as_bytes(), email.as_bytes(), kdf)?;
-    master_key.derive_master_key_hash(password.as_bytes(), HashPurpose::ServerAuthorization)
-}
 
 #[cfg(feature = "internal")]
 pub(crate) async fn request_prelogin(

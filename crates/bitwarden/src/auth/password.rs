@@ -67,3 +67,34 @@ pub struct MasterPasswordPolicyOptions {
     /// the user will be forced to update their password.
     enforce_on_login: bool,
 }
+
+#[cfg(test)]
+
+mod tests {
+
+    #[cfg(feature = "mobile")]
+    #[tokio::test]
+    async fn test_validate_password() {
+        use std::num::NonZeroU32;
+
+        use crate::client::{kdf::Kdf, Client, LoginMethod, UserLoginMethod};
+
+        use super::validate_password;
+
+        let mut client = Client::new(None);
+        client.set_login_method(LoginMethod::User(UserLoginMethod::Username {
+            email: "test@bitwarden.com".to_string(),
+            kdf: Kdf::PBKDF2 {
+                iterations: NonZeroU32::new(100_000).unwrap(),
+            },
+            client_id: "1".to_string(),
+        }));
+
+        let password = "password123".to_string();
+        let password_hash = "7kTqkF1pY/3JeOu73N9kR99fDDe9O1JOZaVc7KH3lsU=".to_string();
+
+        let result = validate_password(&client, password, password_hash).await;
+
+        assert!(result.unwrap());
+    }
+}

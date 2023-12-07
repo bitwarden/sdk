@@ -80,14 +80,18 @@ impl ClientAuth {
     }
 
     /// Validate the user password
-    pub async fn validate_password(&self, password: String) -> Result<bool> {
+    ///
+    /// To retrieve the user's password hash, use [`ClientAuth::hash_password`] with
+    /// `HashPurpose::LocalAuthentication` during login and persist it. If the login method has no
+    /// password, use the email OTP.
+    pub async fn validate_password(&self, password: String, password_hash: String) -> Result<bool> {
         Ok(self
             .0
              .0
             .write()
             .await
             .auth()
-            .validate_password(password, "".to_string())
+            .validate_password(password, password_hash.to_string())
             .await?)
     }
 }

@@ -126,10 +126,15 @@ Generate keys needed for registration process
 
 Validate the user password
 
+To retrieve the user&#x27;s password hash, use [&#x60;ClientAuth::hash_password&#x60;] with
+&#x60;HashPurpose::LocalAuthentication&#x60; during login and persist it. If the login method has no
+password, use the email OTP.
+
 **Arguments**:
 
 - self:
 - password: String
+- password_hash: String
 
 **Output**: std::result::Result<,BitwardenError>
 

@@ -47,7 +47,7 @@ pub(super) async fn validate_password(
             }
         }
     } else {
-        Ok(false)
+        Err(Error::NotAuthenticated)
     }
 }
 

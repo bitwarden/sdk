@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 
+use crate::error::Result;
 use crate::vault::{generate_totp, TotpResponse};
 
 use super::client_vault::ClientVault;
@@ -12,7 +13,11 @@ impl<'a> ClientVault<'a> {
     /// - OTP Auth URI
     /// - Steam URI
     ///
-    pub async fn generate_totp(&'a self, key: String, time: Option<DateTime<Utc>>) -> TotpResponse {
-        generate_totp(key, time).await
+    pub fn generate_totp(
+        &'a self,
+        key: String,
+        time: Option<DateTime<Utc>>,
+    ) -> Result<TotpResponse> {
+        generate_totp(key, time)
     }
 }

@@ -327,6 +327,19 @@ Decrypt password history
 
 **Output**: std::result::Result<Vec,BitwardenError>
 
+## ClientPlatform
+
+### `fingerprint`
+
+Fingerprint
+
+**Arguments**:
+
+- self:
+- req: [FingerprintRequest](#fingerprintrequest)
+
+**Output**: std::result::Result<String,BitwardenError>
+
 ## ClientSends
 
 ### `encrypt`
@@ -818,6 +831,26 @@ implementations.
 </tr>
 </table>
 
+## `FingerprintRequest`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>fingerprintMaterial</th>
+    <th>string</th>
+    <th>The input material, used in the fingerprint generation process.</th>
+</tr>
+<tr>
+    <th>publicKey</th>
+    <th>string</th>
+    <th>The user&#x27;s public key encoded with base64.</th>
+</tr>
+</table>
+
 ## `Folder`
 
 <table>
@@ -1087,23 +1120,23 @@ implementations.
 </tr>
 <tr>
     <th>numWords</th>
-    <th>integer,null</th>
-    <th></th>
+    <th>integer</th>
+    <th>Number of words in the generated passphrase. This value must be between 3 and 20.</th>
 </tr>
 <tr>
     <th>wordSeparator</th>
-    <th>string,null</th>
-    <th></th>
+    <th>string</th>
+    <th>Character separator between words in the generated passphrase. If the value is set, it cannot be empty.</th>
 </tr>
 <tr>
     <th>capitalize</th>
-    <th>boolean,null</th>
-    <th></th>
+    <th>boolean</th>
+    <th>When set to true, capitalize the first letter of each word in the generated passphrase.</th>
 </tr>
 <tr>
     <th>includeNumber</th>
-    <th>boolean,null</th>
-    <th></th>
+    <th>boolean</th>
+    <th>When set to true, include a number at the end of one of the words in the generated passphrase.</th>
 </tr>
 </table>
 

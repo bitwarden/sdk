@@ -9,6 +9,7 @@ use bitwarden::client::client_settings::ClientSettings;
 pub mod auth;
 pub mod crypto;
 mod error;
+pub mod platform;
 pub mod tool;
 mod uniffi_support;
 pub mod vault;
@@ -18,6 +19,7 @@ pub mod docs;
 
 use crypto::ClientCrypto;
 use error::Result;
+use platform::ClientPlatform;
 use tool::ClientGenerators;
 use vault::ClientVault;
 
@@ -40,6 +42,10 @@ impl Client {
     /// Vault item operations
     pub fn vault(self: Arc<Self>) -> Arc<ClientVault> {
         Arc::new(ClientVault(self))
+    }
+
+    pub fn platform(self: Arc<Self>) -> Arc<ClientPlatform> {
+        Arc::new(ClientPlatform(self))
     }
 
     /// Generator operations

@@ -1,5 +1,4 @@
-use std::time::{Duration, Instant};
-
+use chrono::Utc;
 use reqwest::header::{self};
 use uuid::Uuid;
 
@@ -69,7 +68,7 @@ pub(crate) enum ServiceAccountLoginMethod {
 pub struct Client {
     token: Option<String>,
     pub(crate) refresh_token: Option<String>,
-    pub(crate) token_expires_in: Option<Instant>,
+    pub(crate) token_expires_in: Option<i64>,
     pub(crate) login_method: Option<LoginMethod>,
 
     /// Use Client::get_api_configurations() to access this.
@@ -190,7 +189,7 @@ impl Client {
     ) {
         self.token = Some(token.clone());
         self.refresh_token = refresh_token;
-        self.token_expires_in = Some(Instant::now() + Duration::from_secs(expires_in));
+        self.token_expires_in = Some(Utc::now().timestamp() + expires_in as i64);
         self.login_method = Some(login_method);
         self.__api_configurations.identity.oauth_access_token = Some(token.clone());
         self.__api_configurations.api.oauth_access_token = Some(token);

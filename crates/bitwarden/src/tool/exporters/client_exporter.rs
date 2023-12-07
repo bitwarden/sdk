@@ -10,6 +10,7 @@ pub struct ClientExporters<'a> {
 }
 
 impl<'a> ClientExporters<'a> {
+    /// **Draft:** Export the vault as a CSV, JSON, or encrypted JSON file.
     pub async fn export_vault(
         &self,
         folders: Vec<Folder>,

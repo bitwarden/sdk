@@ -88,8 +88,8 @@ pub struct UsernameGeneratorRequest {
 }
 
 pub(super) async fn username(input: UsernameGeneratorRequest) -> Result<String> {
+    use rand::thread_rng;
     use UsernameGeneratorType::*;
-    let mut rng = rand::thread_rng();
 
     match input.r#type {
         Word {
@@ -98,10 +98,10 @@ pub(super) async fn username(input: UsernameGeneratorRequest) -> Result<String> 
         } => {
             let capitalize = capitalize.unwrap_or(true);
             let include_number = include_number.unwrap_or(true);
-            Ok(username_word(&mut rng, capitalize, include_number))
+            Ok(username_word(&mut thread_rng(), capitalize, include_number))
         }
-        Subaddress { r#type, email } => Ok(username_subaddress(&mut rng, r#type, email)),
-        Catchall { r#type, domain } => Ok(username_catchall(&mut rng, r#type, domain)),
+        Subaddress { r#type, email } => Ok(username_subaddress(&mut thread_rng(), r#type, email)),
+        Catchall { r#type, domain } => Ok(username_catchall(&mut thread_rng(), r#type, domain)),
         Forwarded { service, website } => {
             use crate::tool::generators::username_forwarders::*;
             use ForwarderServiceType::*;

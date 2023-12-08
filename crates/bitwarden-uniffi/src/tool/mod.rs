@@ -1,7 +1,10 @@
 use std::sync::Arc;
 
 use bitwarden::{
-    tool::{ExportFormat, PassphraseGeneratorRequest, PasswordGeneratorRequest},
+    tool::{
+        ExportFormat, PassphraseGeneratorRequest, PasswordGeneratorRequest,
+        UsernameGeneratorRequest,
+    },
     vault::{Cipher, Collection, Folder},
 };
 
@@ -33,6 +36,18 @@ impl ClientGenerators {
             .await
             .generator()
             .passphrase(settings)
+            .await?)
+    }
+
+    /// **API Draft:** Generate Username
+    pub async fn username(&self, settings: UsernameGeneratorRequest) -> Result<String> {
+        Ok(self
+            .0
+             .0
+            .read()
+            .await
+            .generator()
+            .username(settings)
             .await?)
     }
 }

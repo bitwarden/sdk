@@ -63,6 +63,26 @@ impl<'a> ClientGenerator<'a> {
         passphrase(input)
     }
 
+    /// Generates a random username.
+    /// There are different username generation strategies, which can be customized using the `input` parameter.
+    ///
+    /// Note that most generation strategies will be executed on the client side, but `Forwarded` will use third-party
+    /// services, which may require a specific setup or API key.
+    ///
+    /// ```
+    /// use bitwarden::{Client, tool::{UsernameGeneratorRequest, UsernameGeneratorType}, error::Result};
+    /// async fn test() -> Result<()> {
+    ///     let input = UsernameGeneratorRequest {
+    ///         r#type: UsernameGeneratorType::Word {
+    ///             capitalize: Some(true),
+    ///             include_number: Some(true),
+    ///         }
+    ///     };
+    ///     let username = Client::new(None).generator().username(input).await.unwrap();
+    ///     println!("{}", username);
+    ///     Ok(())
+    /// }
+    /// ```
     pub async fn username(&self, input: UsernameGeneratorRequest) -> Result<String> {
         username(input).await
     }

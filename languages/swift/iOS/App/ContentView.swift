@@ -10,9 +10,9 @@ import SwiftUI
 
 /**
  *   IMPORTANT: This file is provided only for the purpose of demostrating the use of the SDK functionality.
- *   It hasn't gone through a throrough security review and should not be considered production ready. It also doesn't 
- *   handle a lot of errors and edge cases that a production application would need to deal with. 
- *   Developers are encouraged to review and improve the code as needed to meet their security requirements. 
+ *   It hasn't gone through a throrough security review and should not be considered production ready. It also doesn't
+ *   handle a lot of errors and edge cases that a production application would need to deal with.
+ *   Developers are encouraged to review and improve the code as needed to meet their security requirements.
  *   Additionally, we recommend to consult with security experts and conduct thorough testing before using the code in production.
  */
 
@@ -49,8 +49,8 @@ struct ContentView: View {
             Button(action: {
                 Task {
                     do {
-                    try await clientExamplePassword(clientAuth: client.auth(), clientCrypto: client.crypto(), setupBiometrics: setupBiometrics)
-                    try await decryptVault(clientCrypto: client.crypto(), clientVault: client.vault())
+                        try await clientExamplePassword(clientAuth: client.auth(), clientCrypto: client.crypto(), setupBiometrics: setupBiometrics)
+                        try await decryptVault(clientCrypto: client.crypto(), clientVault: client.vault())
                     } catch {
                         print("ERROR:", error)
                     }
@@ -64,7 +64,7 @@ struct ContentView: View {
             Button(action: {
                 Task {
                     do {
-                    try await clientExampleBiometrics(clientCrypto: client.crypto())
+                        try await clientExampleBiometrics(clientCrypto: client.crypto())
                         try await decryptVault(clientCrypto: client.crypto(), clientVault: client.vault())
                     } catch {
                         print("ERROR:", error)
@@ -117,7 +117,7 @@ struct ContentView: View {
         }
         
         let passwordHash = try await clientAuth.hashPassword(
-            email: EMAIL, password: PASSWORD, kdfParams: kdf)
+            email: EMAIL, password: PASSWORD, kdfParams: kdf, purpose: .serverAuthorization)
         
         ///////////////////////////// Login /////////////////////////////
         

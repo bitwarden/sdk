@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import com.bitwarden.core.DateTime
 import com.bitwarden.core.Folder
+import com.bitwarden.core.HashPurpose
 import com.bitwarden.core.InitOrgCryptoRequest
 import com.bitwarden.core.InitUserCryptoMethod
 import com.bitwarden.core.InitUserCryptoRequest
@@ -58,9 +59,9 @@ import javax.net.ssl.X509TrustManager
 
 /**
  *   IMPORTANT: This file is provided only for the purpose of demostrating the use of the SDK functionality.
- *   It hasn't gone through a throrough security review and should not be considered production ready. It also doesn't 
- *   handle a lot of errors and edge cases that a production application would need to deal with. 
- *   Developers are encouraged to review and improve the code as needed to meet their security requirements. 
+ *   It hasn't gone through a throrough security review and should not be considered production ready. It also doesn't
+ *   handle a lot of errors and edge cases that a production application would need to deal with.
+ *   Developers are encouraged to review and improve the code as needed to meet their security requirements.
  *   Additionally, we recommend to consult with security experts and conduct thorough testing before using the code in production.
  */
 
@@ -181,7 +182,8 @@ class MainActivity : FragmentActivity() {
                 prelogin_body.kdfParallelism!!
             )
         }
-        val masterPasswordHash = client.auth().hashPassword(EMAIL, PASSWORD, kdf)
+        val masterPasswordHash =
+            client.auth().hashPassword(EMAIL, PASSWORD, kdf, HashPurpose.SERVER_AUTHORIZATION)
 
         ///////////////////////////// Login /////////////////////////////
 

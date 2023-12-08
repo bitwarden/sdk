@@ -3,8 +3,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use super::determine_password_hash;
-use crate::{error::Result, Client};
+use crate::{auth::determine_password_hash, crypto::HashPurpose, error::Result, Client};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -22,7 +21,13 @@ pub(crate) async fn send_two_factor_email(
     // TODO: This should be resolved from the client
     let kdf = client.auth().prelogin(input.email.clone()).await?;
 
-    let password_hash = determine_password_hash(&input.email, &kdf, &input.password).await?;
+    let password_hash = determine_password_hash(
+        &input.email,
+        &kdf,
+        &input.password,
+        HashPurpose::ServerAuthorization,
+    )
+    .await?;
 
     let config = client.get_api_configurations().await;
     bitwarden_api_api::apis::two_factor_api::two_factor_send_email_login_post(

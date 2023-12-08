@@ -11,7 +11,7 @@ use crate::{error::Result, Client};
 #[derive(uniffi::Object)]
 pub struct ClientAuth(pub(crate) Arc<Client>);
 
-#[uniffi::export]
+#[uniffi::export(async_runtime = "tokio")]
 impl ClientAuth {
     /// **API Draft:** Calculate Password Strength
     pub async fn password_strength(

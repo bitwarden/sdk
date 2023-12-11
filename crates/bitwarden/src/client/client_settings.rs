@@ -8,7 +8,6 @@ use serde::{Deserialize, Serialize};
 ///
 /// ```
 /// # use bitwarden::client::client_settings::{ClientSettings, DeviceType};
-/// # use assert_matches::assert_matches;
 /// let settings = ClientSettings {
 ///     identity_url: "https://identity.bitwarden.com".to_string(),
 ///     api_url: "https://api.bitwarden.com".to_string(),
@@ -16,7 +15,6 @@ use serde::{Deserialize, Serialize};
 ///     device_type: DeviceType::SDK,
 /// };
 /// let default = ClientSettings::default();
-/// assert_matches!(settings, default);
 /// ```
 ///
 /// Targets `localhost:8080` for debug builds.

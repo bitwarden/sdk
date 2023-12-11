@@ -3,7 +3,7 @@ name: Build Java SDK
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   generate_schemas:

@@ -6,7 +6,7 @@ on:
   pull_request:
   push:
     branches:
-      - "master"
+      - "main"
       - "rc"
       - "hotfix-rc"
 
@@ -59,7 +59,7 @@ jobs:
   release-dry-run:
     name: Release dry-run
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/head/master' || github.ref == 'refs/head/rc' || github.ref == 'refs/head/hotfix-rc' }}
+    if: ${{ github.ref == 'refs/head/main' || github.ref == 'refs/head/rc' || github.ref == 'refs/head/hotfix-rc' }}
     needs:
       - build
     steps:

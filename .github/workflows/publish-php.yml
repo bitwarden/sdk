@@ -3,7 +3,7 @@ name: Publish PHP SDK
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   build_rust:

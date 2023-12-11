@@ -16,8 +16,6 @@ use serde::{Deserialize, Serialize};
 /// };
 /// let default = ClientSettings::default();
 /// ```
-///
-/// Targets `localhost:8080` for debug builds.
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(default, rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]

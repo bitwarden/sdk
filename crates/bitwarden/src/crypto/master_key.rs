@@ -53,7 +53,6 @@ impl MasterKey {
         SymmetricCryptoKey::try_from(dec.as_slice())
     }
 
-    #[cfg(feature = "mobile")]
     pub(crate) fn encrypt_user_key(&self, user_key: &SymmetricCryptoKey) -> Result<EncString> {
         use super::KeyEncryptable;
 

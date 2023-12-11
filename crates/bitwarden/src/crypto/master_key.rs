@@ -71,15 +71,9 @@ fn make_user_key(
     let mut user_key = [0u8; 64];
     rng.fill(&mut user_key);
 
-    let stretched_key = stretch_master_key(master_key)?;
-    let protected = EncString::encrypt_aes256_hmac(
-        &user_key,
-        stretched_key.mac_key.unwrap(),
-        stretched_key.key,
-    )?;
-
-    let u: &[u8] = &user_key;
-    Ok((UserKey::new(SymmetricCryptoKey::try_from(u)?), protected))
+    let user_key = SymmetricCryptoKey::try_from(user_key.as_slice())?;
+    let protected = master_key.encrypt_user_key(&user_key)?;
+    Ok((UserKey::new(user_key), protected))
 }
 
 /// Derive a generic key from a secret and salt using the provided KDF.

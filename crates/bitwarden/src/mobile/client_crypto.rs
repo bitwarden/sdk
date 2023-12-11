@@ -4,7 +4,7 @@ use crate::{
     error::Result,
     mobile::crypto::{
         derive_pin_key, get_user_encryption_key, initialize_org_crypto, initialize_user_crypto,
-        DerivePinKeyRequest, DerivePinKeyResponse, InitOrgCryptoRequest, InitUserCryptoRequest,
+        DerivePinKeyResponse, InitOrgCryptoRequest, InitUserCryptoRequest,
     },
 };
 
@@ -29,11 +29,8 @@ impl<'a> ClientCrypto<'a> {
     }
 
     #[cfg(feature = "internal")]
-    pub async fn derive_pin_key(
-        &mut self,
-        req: DerivePinKeyRequest,
-    ) -> Result<DerivePinKeyResponse> {
-        derive_pin_key(self.client, req)
+    pub async fn derive_pin_key(&mut self, pin: String) -> Result<DerivePinKeyResponse> {
+        derive_pin_key(self.client, pin)
     }
 }
 

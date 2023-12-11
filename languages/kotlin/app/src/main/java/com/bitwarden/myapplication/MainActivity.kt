@@ -23,7 +23,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import com.bitwarden.core.DateTime
-import com.bitwarden.core.DerivePinKeyRequest
 import com.bitwarden.core.Folder
 import com.bitwarden.core.HashPurpose
 import com.bitwarden.core.InitOrgCryptoRequest
@@ -277,7 +276,7 @@ class MainActivity : FragmentActivity() {
         }
 
         if (setupPin) {
-            val pinOptions = client.crypto().derivePinKey(DerivePinKeyRequest(pin = PIN));
+            val pinOptions = client.crypto().derivePinKey(PIN);
 
             val sharedPref = getPreferences(Context.MODE_PRIVATE)
             with(sharedPref.edit()) {

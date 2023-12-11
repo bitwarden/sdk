@@ -111,25 +111,13 @@ pub async fn get_user_encryption_key(client: &mut Client) -> Result<String> {
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
-pub struct DerivePinKeyRequest {
-    /// The user's PIN
-    pub pin: String,
-}
-
-#[cfg(feature = "internal")]
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct DerivePinKeyResponse {
     pin_protected_user_key: EncString,
     encrypted_pin: EncString,
 }
 
 #[cfg(feature = "internal")]
-pub fn derive_pin_key(
-    client: &mut Client,
-    req: DerivePinKeyRequest,
-) -> Result<DerivePinKeyResponse> {
+pub fn derive_pin_key(client: &mut Client, pin: String) -> Result<DerivePinKeyResponse> {
     use crate::{
         client::{LoginMethod, UserLoginMethod},
         crypto::{KeyEncryptable, MasterKey},
@@ -139,7 +127,7 @@ pub fn derive_pin_key(
         Some(LoginMethod::User(
             UserLoginMethod::Username { email, kdf, .. }
             | UserLoginMethod::ApiKey { email, kdf, .. },
-        )) => MasterKey::derive(req.pin.as_bytes(), email.as_bytes(), kdf)?,
+        )) => MasterKey::derive(pin.as_bytes(), email.as_bytes(), kdf)?,
         _ => return Err(Error::NotAuthenticated),
     };
 
@@ -150,6 +138,6 @@ pub fn derive_pin_key(
 
     Ok(DerivePinKeyResponse {
         pin_protected_user_key: derived_key.encrypt_user_key(user_key)?,
-        encrypted_pin: req.pin.encrypt_with_key(user_key)?,
+        encrypted_pin: pin.encrypt_with_key(user_key)?,
     })
 }

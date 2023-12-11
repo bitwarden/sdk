@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use bitwarden::mobile::crypto::{
-    DerivePinKeyRequest, DerivePinKeyResponse, InitOrgCryptoRequest, InitUserCryptoRequest,
+    DerivePinKeyResponse, InitOrgCryptoRequest, InitUserCryptoRequest,
 };
 
 use crate::{error::Result, Client};
@@ -48,7 +48,7 @@ impl ClientCrypto {
             .await?)
     }
 
-    pub async fn derive_pin_key(&self, req: DerivePinKeyRequest) -> Result<DerivePinKeyResponse> {
-        Ok(self.0 .0.write().await.crypto().derive_pin_key(req).await?)
+    pub async fn derive_pin_key(&self, pin: String) -> Result<DerivePinKeyResponse> {
+        Ok(self.0 .0.write().await.crypto().derive_pin_key(pin).await?)
     }
 }

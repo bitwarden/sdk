@@ -36,7 +36,7 @@ impl SymmetricCryptoKey {
         BASE64_ENGINE.encode(&buf)
     }
 
-    #[cfg(feature = "internal")]
+    #[cfg(feature = "mobile")]
     pub(super) fn to_vec(&self) -> Vec<u8> {
         let mut buf = Vec::new();
         buf.extend_from_slice(&self.key);

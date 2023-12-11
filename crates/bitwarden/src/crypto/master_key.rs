@@ -54,11 +54,13 @@ impl MasterKey {
     }
 
     pub(crate) fn encrypt_user_key(&self, user_key: &SymmetricCryptoKey) -> Result<EncString> {
-        use super::KeyEncryptable;
-
         let stretched_key = stretch_master_key(self)?;
 
-        (user_key.to_vec().as_slice()).encrypt_with_key(&stretched_key)
+        EncString::encrypt_aes256_hmac(
+            user_key.to_vec().as_slice(),
+            stretched_key.mac_key.unwrap(),
+            stretched_key.key,
+        )
     }
 }
 
@@ -284,6 +286,25 @@ mod tests {
         );
         assert_eq!(
             decrypted.mac_key, user_key.0.mac_key,
+            "Decrypted key doesn't match user key"
+        );
+    }
+
+    #[test]
+    fn test_make_user_key2() {
+        let master_key = MasterKey(SymmetricCryptoKey::generate("test1"));
+
+        let user_key = SymmetricCryptoKey::generate("test2");
+
+        let encrypted = master_key.encrypt_user_key(&user_key).unwrap();
+        let decrypted = master_key.decrypt_user_key(encrypted).unwrap();
+
+        assert_eq!(
+            decrypted.key, user_key.key,
+            "Decrypted key doesn't match user key"
+        );
+        assert_eq!(
+            decrypted.mac_key, user_key.mac_key,
             "Decrypted key doesn't match user key"
         );
     }

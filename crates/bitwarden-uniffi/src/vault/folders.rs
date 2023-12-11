@@ -7,7 +7,7 @@ use crate::{Client, Result};
 #[derive(uniffi::Object)]
 pub struct ClientFolders(pub Arc<Client>);
 
-#[uniffi::export]
+#[uniffi::export(async_runtime = "tokio")]
 impl ClientFolders {
     /// Encrypt folder
     pub async fn encrypt(&self, folder: FolderView) -> Result<Folder> {

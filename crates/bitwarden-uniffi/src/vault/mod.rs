@@ -14,7 +14,7 @@ pub mod sends;
 #[derive(uniffi::Object)]
 pub struct ClientVault(pub(crate) Arc<Client>);
 
-#[uniffi::export]
+#[uniffi::export(async_runtime = "tokio")]
 impl ClientVault {
     /// Folder operations
     pub fn folders(self: Arc<Self>) -> Arc<folders::ClientFolders> {

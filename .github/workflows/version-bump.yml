@@ -1,7 +1,18 @@
 ---
 name: Version Bump
+run-name: Version Bump - v${{ inputs.version_number }}
 
 on:
+  workflow_call:
+    inputs:
+      project:
+        description: "Project"
+        required: true
+        type: string
+      version_number:
+        description: "New version (example: '2024.1.0')"
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       project:
@@ -16,16 +27,12 @@ on:
           - cli
           - bitwarden-json
       version_number:
-        description: "New Version"
+        description: "New version (example: '2024.1.0')"
         required: true
-
-defaults:
-  run:
-    shell: bash
 
 jobs:
   bump_version:
-    name: "Bump ${{ github.event.inputs.project }} Version"
+    name: "Bump ${{ inputs.project }} Version to v${{ inputs.version_number }}"
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout Branch
@@ -42,7 +49,7 @@ jobs:
       - name: Install cargo-release
         run: cargo install cargo-edit
 
-      - name: Login to Azure - Prod Subscription
+      - name: Login to Azure - CI Subscription
         uses: Azure/login@de95379fe4dadc2defb305917eaa7e5dde727294 # v1.5.1
         with:
           creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
@@ -52,7 +59,9 @@ jobs:
         uses: bitwarden/gh-actions/get-keyvault-secrets@main
         with:
           keyvault: "bitwarden-ci"
-          secrets: "github-gpg-private-key, github-gpg-private-key-passphrase"
+          secrets: "github-gpg-private-key,
+            github-gpg-private-key-passphrase,
+            github-pat-bitwarden-devops-bot-repo-scope"
 
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@82a020f1f7f605c65dd2449b392a52c3fcfef7ef # v6.0.0
@@ -65,9 +74,16 @@ jobs:
       - name: Create Version Branch
         id: branch
         env:
-          VERSION: ${{ github.event.inputs.version_number }}
-          PROJECT: ${{ github.event.inputs.project }}
+          VERSION: ${{ inputs.version_number }}
+          PROJECT: ${{ inputs.project }}
         run: git switch -c sdk-${PROJECT}_version_bump_${VERSION}
+
+      - name: Create Version Branch
+        id: create-branch
+        run: |
+          NAME=version_bump_${{ github.ref_name }}_${{ inputs.project }}_${{ inputs.version_number }}
+          git switch -c $NAME
+          echo "name=$NAME" >> $GITHUB_OUTPUT
 
       ########################
       # VERSION BUMP SECTION #
@@ -75,59 +91,45 @@ jobs:
 
       ### napi
       - name: Bump @bitwarden/sdk-napi Version
-        if: ${{ github.event.inputs.project == 'napi' }}
-        env:
-          VERSION: ${{ github.event.inputs.version_number }}
+        if: ${{ inputs.project == 'napi' }}
         working-directory: "crates/bitwarden-napi"
         run: |
           npm ci
-          npm version ${VERSION}
+          npm version ${{ inputs.version_number }}
 
       - name: Bump napi crate Version
-        if: ${{ github.event.inputs.project == 'napi' }}
-        env:
-          VERSION: ${{ github.event.inputs.version_number }}
-        run: cargo-set-version set-version -p bitwarden-napi ${VERSION}
+        if: ${{ inputs.project == 'napi' }}
+        run: cargo-set-version set-version -p bitwarden-napi ${{ inputs.version_number }}
 
       ### bitwarden
 
       - name: Bump bitwarden crate Version
-        if: ${{ github.event.inputs.project == 'bitwarden' }}
-        env:
-          VERSION: ${{ github.event.inputs.version_number }}
-        run: cargo-set-version set-version -p bitwarden ${VERSION}
+        if: ${{ inputs.project == 'bitwarden' }}
+        run: cargo-set-version set-version -p bitwarden ${{ inputs.version_number }}
 
       ### bitwarden-api-api
 
       - name: Bump bitwarden-api-api crate Version
-        if: ${{ github.event.inputs.project == 'bitwarden-api-api' }}
-        env:
-          VERSION: ${{ github.event.inputs.version_number }}
-        run: cargo-set-version set-version -p bitwarden-api-api ${VERSION}
+        if: ${{ inputs.project == 'bitwarden-api-api' }}
+        run: cargo-set-version set-version -p bitwarden-api-api ${{ inputs.version_number }}
 
       ### bitwarden-api-identity
 
       - name: Bump bitwarden-api-identity crate Version
-        if: ${{ github.event.inputs.project == 'bitwarden-api-identity' }}
-        env:
-          VERSION: ${{ github.event.inputs.version_number }}
-        run: cargo-set-version set-version -p bitwarden-api-identity ${VERSION}
+        if: ${{ inputs.project == 'bitwarden-api-identity' }}
+        run: cargo-set-version set-version -p bitwarden-api-identity ${{ inputs.version_number }}
 
       ### cli
 
       - name: Bump cli Version
-        if: ${{ github.event.inputs.project == 'cli' }}
-        env:
-          VERSION: ${{ github.event.inputs.version_number }}
-        run: cargo-set-version set-version -p bws ${VERSION}
+        if: ${{ inputs.project == 'cli' }}
+        run: cargo-set-version set-version -p bws ${{ inputs.version_number }}
 
       ### bitwarden-json
 
       - name: Bump bitwarden-json crate Version
-        if: ${{ github.event.inputs.project == 'bitwarden-json' }}
-        env:
-          VERSION: ${{ github.event.inputs.version_number }}
-        run: cargo-set-version set-version -p bitwarden-json ${VERSION}
+        if: ${{ inputs.project == 'bitwarden-json' }}
+        run: cargo-set-version set-version -p bitwarden-json ${{ inputs.version_number }}
 
       ############################
       # VERSION BUMP SECTION END #
@@ -156,28 +158,24 @@ jobs:
 
       - name: Commit files
         if: ${{ steps.version-changed.outputs.changes_to_commit == 'TRUE' }}
-        env:
-          VERSION: ${{ github.event.inputs.version_number }}
-          PROJECT: ${{ github.event.inputs.project }}
-        run: git commit -m "Bumped sdk-${PROJECT} version to ${VERSION}" -a
+        run: git commit -m "Bumped sdk-${{ inputs.project }} version to ${{ inputs.version_number }}" -a
 
       - name: Push changes
         if: ${{ steps.version-changed.outputs.changes_to_commit == 'TRUE' }}
         env:
-          VERSION: ${{ github.event.inputs.version_number }}
-          PROJECT: ${{ github.event.inputs.project }}
-        run: git push -u origin sdk-${PROJECT}_version_bump_${VERSION}
+          PR_BRANCH: ${{ steps.create-branch.outputs.name }}
+        run: git push -u origin $PR_BRANCH
 
-      - name: Create Bump Version PR
+      - name: Create Version PR
         if: ${{ steps.version-changed.outputs.changes_to_commit == 'TRUE' }}
+        id: create-pr
         env:
-          PR_BRANCH: "sdk-${{ github.event.inputs.project }}_version_bump_${{ github.event.inputs.version_number }}"
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          BASE_BRANCH: master
-          TITLE: "Bump ${{ github.event.inputs.project }} version to ${{ github.event.inputs.version_number }}"
+          PR_BRANCH: ${{ steps.create-branch.outputs.name }}
+          GH_TOKEN: ${{ steps.retrieve-secrets.outputs.github-pat-bitwarden-devops-bot-repo-scope }}
+          TITLE: "Bump version to ${{ inputs.version_number }}"
         run: |
-          gh pr create --title "$TITLE" \
-            --base "$BASE" \
+          PR_URL=$(gh pr create --title "$TITLE" \
+            --base "$GITHUB_REF" \
             --head "$PR_BRANCH" \
             --label "version update" \
             --label "automated pr" \
@@ -190,4 +188,17 @@ jobs:
               - [X] Other
 
               ## Objective
-              Automated ${{ github.event.inputs.project }} version bump to ${{ github.event.inputs.version_number }}"
+              Automated ${{ inputs.project }} version bump to ${{ inputs.version_number }}")
+          echo "pr_number=${PR_URL##*/}" >> $GITHUB_OUTPUT
+
+      - name: Approve PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.create-pr.outputs.pr_number }}
+        run: gh pr review $PR_NUMBER --approve
+
+      - name: Merge PR
+        env:
+          GH_TOKEN: ${{ steps.retrieve-secrets.outputs.github-pat-bitwarden-devops-bot-repo-scope }}
+          PR_NUMBER: ${{ steps.create-pr.outputs.pr_number }}
+        run: gh pr merge $PR_NUMBER --squash --auto --delete-branch

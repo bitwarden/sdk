@@ -166,6 +166,7 @@ impl FromStr for EncString {
 
 impl EncString {
     /// Synthetic sugar for mapping `Option<String>` to `Result<Option<EncString>>`
+    #[cfg(feature = "mobile")]
     pub(crate) fn try_from(s: Option<String>) -> Result<Option<EncString>, Error> {
         s.map(|s| s.parse()).transpose()
     }

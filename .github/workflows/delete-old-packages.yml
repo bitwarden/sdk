@@ -22,4 +22,4 @@ jobs:
           min-versions-to-keep: 25
 
           # Ignore versions only containing version numbers
-          ignore-versions: '^\\d*\\.\\d*\\.\\d*$'
+          ignore-versions: '^\d*\.\d*\.\d*(-SNAPSHOT)?$'

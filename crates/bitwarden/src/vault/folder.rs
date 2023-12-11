@@ -5,8 +5,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-    client::encryption_settings::EncryptionSettings,
-    crypto::{Decryptable, EncString, Encryptable},
+    crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey},
     error::{Error, Result},
 };
 
@@ -28,21 +27,23 @@ pub struct FolderView {
     revision_date: DateTime<Utc>,
 }
 
-impl Encryptable<Folder> for FolderView {
-    fn encrypt(self, enc: &EncryptionSettings, _org: &Option<Uuid>) -> Result<Folder> {
+impl LocateKey for FolderView {}
+impl KeyEncryptable<Folder> for FolderView {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Folder> {
         Ok(Folder {
             id: self.id,
-            name: self.name.encrypt(enc, &None)?,
+            name: self.name.encrypt_with_key(key)?,
             revision_date: self.revision_date,
         })
     }
 }
 
-impl Decryptable<FolderView> for Folder {
-    fn decrypt(&self, enc: &EncryptionSettings, _org: &Option<Uuid>) -> Result<FolderView> {
+impl LocateKey for Folder {}
+impl KeyDecryptable<FolderView> for Folder {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<FolderView> {
         Ok(FolderView {
             id: self.id,
-            name: self.name.decrypt(enc, &None)?,
+            name: self.name.decrypt_with_key(key)?,
             revision_date: self.revision_date,
         })
     }

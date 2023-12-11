@@ -3,11 +3,9 @@ use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use uuid::Uuid;
 
 use crate::{
-    client::encryption_settings::EncryptionSettings,
-    crypto::{Decryptable, EncString, Encryptable},
+    crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
     error::{Error, Result},
 };
 
@@ -66,45 +64,45 @@ pub struct LoginView {
     pub autofill_on_page_load: Option<bool>,
 }
 
-impl Encryptable<LoginUri> for LoginUriView {
-    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<LoginUri> {
+impl KeyEncryptable<LoginUri> for LoginUriView {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<LoginUri> {
         Ok(LoginUri {
-            uri: self.uri.encrypt(enc, org_id)?,
+            uri: self.uri.encrypt_with_key(key)?,
             r#match: self.r#match,
         })
     }
 }
 
-impl Encryptable<Login> for LoginView {
-    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Login> {
+impl KeyEncryptable<Login> for LoginView {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Login> {
         Ok(Login {
-            username: self.username.encrypt(enc, org_id)?,
-            password: self.password.encrypt(enc, org_id)?,
+            username: self.username.encrypt_with_key(key)?,
+            password: self.password.encrypt_with_key(key)?,
             password_revision_date: self.password_revision_date,
-            uris: self.uris.encrypt(enc, org_id)?,
-            totp: self.totp.encrypt(enc, org_id)?,
+            uris: self.uris.encrypt_with_key(key)?,
+            totp: self.totp.encrypt_with_key(key)?,
             autofill_on_page_load: self.autofill_on_page_load,
         })
     }
 }
 
-impl Decryptable<LoginUriView> for LoginUri {
-    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<LoginUriView> {
+impl KeyDecryptable<LoginUriView> for LoginUri {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<LoginUriView> {
         Ok(LoginUriView {
-            uri: self.uri.decrypt(enc, org_id)?,
+            uri: self.uri.decrypt_with_key(key)?,
             r#match: self.r#match,
         })
     }
 }
 
-impl Decryptable<LoginView> for Login {
-    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<LoginView> {
+impl KeyDecryptable<LoginView> for Login {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<LoginView> {
         Ok(LoginView {
-            username: self.username.decrypt(enc, org_id)?,
-            password: self.password.decrypt(enc, org_id)?,
+            username: self.username.decrypt_with_key(key)?,
+            password: self.password.decrypt_with_key(key)?,
             password_revision_date: self.password_revision_date,
-            uris: self.uris.decrypt(enc, org_id)?,
-            totp: self.totp.decrypt(enc, org_id)?,
+            uris: self.uris.decrypt_with_key(key)?,
+            totp: self.totp.decrypt_with_key(key)?,
             autofill_on_page_load: self.autofill_on_page_load,
         })
     }

@@ -25,7 +25,7 @@ jobs:
           - target: i686-linux-android
     steps:
       - name: Checkout repo
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Install rust
         uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # stable
@@ -33,7 +33,7 @@ jobs:
           toolchain: 1.67.0 # https://github.com/cross-rs/cross/issues/1222
 
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@a95ba195448af2da9b00fb742d14ffaaf3c21f43 # v2.7.0
+        uses: Swatinem/rust-cache@3cf7f8cc28d1b4e7d01e3783be10a97d55d483c8 # v2.7.1
         with:
           key: ${{ matrix.settings.target }}-cargo
 
@@ -57,14 +57,14 @@ jobs:
     needs: build
     steps:
       - name: Checkout repo (PR)
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         if: github.event_name == 'pull_request'
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Checkout repo (Push)
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         if: github.event_name == 'push'
         with:
           fetch-depth: 0
@@ -75,12 +75,12 @@ jobs:
           toolchain: stable
 
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@a95ba195448af2da9b00fb742d14ffaaf3c21f43 # v2.7.0
+        uses: Swatinem/rust-cache@3cf7f8cc28d1b4e7d01e3783be10a97d55d483c8 # v2.7.1
         with:
           key: cargo-combine-cache
 
       - name: Setup Java
-        uses: actions/setup-java@0ab4596768b603586c0de567f2430c30f5b0d2b0 # v3.13.0
+        uses: actions/setup-java@387ac29b308b003ca37ba93a6cab5eb57c8f5f93 # v4.0.0
         with:
           distribution: temurin
           java-version: 17
@@ -102,7 +102,7 @@ jobs:
         run: ./build-schemas.sh
 
       - name: Publish
-        uses: gradle/gradle-build-action@842c587ad8aa4c68eeba24c396e15af4c2e9f30a # v2.9.0
+        uses: gradle/gradle-build-action@87a9a15658c426a54dd469d4fc7dc1a73ca9d4a6 # v2.10.0
         with:
           arguments: sdk:publish
           build-root-directory: languages/kotlin

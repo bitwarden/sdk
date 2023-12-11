@@ -1,7 +1,7 @@
 name: Build .NET SDK
 
 on:
-  pull_request:
+  push:
     branches:
       - master
 
@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Download C# schemas artifact
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
@@ -30,7 +30,7 @@ jobs:
           path: languages/csharp/Bitwarden.Sdk
 
       - name: Set up .NET Core
-        uses: actions/setup-dotnet@3447fd6a9f9e57506b15f895c5b76d3b197dc7c2 # v3.2.0
+        uses: actions/setup-dotnet@4d6c8fcf3c8f7a60068d26b594648e99df24cee3 # v4.0.0
         with:
           global-json-file: languages/csharp/global.json
 

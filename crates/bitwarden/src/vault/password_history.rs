@@ -2,11 +2,9 @@ use bitwarden_api_api::models::CipherPasswordHistoryModel;
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use crate::{
-    client::encryption_settings::EncryptionSettings,
-    crypto::{Decryptable, EncString, Encryptable},
+    crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey},
     error::{Error, Result},
 };
 
@@ -26,23 +24,21 @@ pub struct PasswordHistoryView {
     last_used_date: DateTime<Utc>,
 }
 
-impl Encryptable<PasswordHistory> for PasswordHistoryView {
-    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<PasswordHistory> {
+impl LocateKey for PasswordHistoryView {}
+impl KeyEncryptable<PasswordHistory> for PasswordHistoryView {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<PasswordHistory> {
         Ok(PasswordHistory {
-            password: self.password.encrypt(enc, org_id)?,
+            password: self.password.encrypt_with_key(key)?,
             last_used_date: self.last_used_date,
         })
     }
 }
 
-impl Decryptable<PasswordHistoryView> for PasswordHistory {
-    fn decrypt(
-        &self,
-        enc: &EncryptionSettings,
-        org_id: &Option<Uuid>,
-    ) -> Result<PasswordHistoryView> {
+impl LocateKey for PasswordHistory {}
+impl KeyDecryptable<PasswordHistoryView> for PasswordHistory {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<PasswordHistoryView> {
         Ok(PasswordHistoryView {
-            password: self.password.decrypt(enc, org_id)?,
+            password: self.password.decrypt_with_key(key)?,
             last_used_date: self.last_used_date,
         })
     }

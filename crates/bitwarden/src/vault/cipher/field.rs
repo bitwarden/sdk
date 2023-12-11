@@ -2,12 +2,10 @@ use bitwarden_api_api::models::CipherFieldModel;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use uuid::Uuid;
 
 use super::linked_id::LinkedIdType;
 use crate::{
-    client::encryption_settings::EncryptionSettings,
-    crypto::{Decryptable, EncString, Encryptable},
+    crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
     error::{Error, Result},
 };
 
@@ -43,22 +41,22 @@ pub struct FieldView {
     linked_id: Option<LinkedIdType>,
 }
 
-impl Encryptable<Field> for FieldView {
-    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Field> {
+impl KeyEncryptable<Field> for FieldView {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Field> {
         Ok(Field {
-            name: self.name.encrypt(enc, org_id)?,
-            value: self.value.encrypt(enc, org_id)?,
+            name: self.name.encrypt_with_key(key)?,
+            value: self.value.encrypt_with_key(key)?,
             r#type: self.r#type,
             linked_id: self.linked_id,
         })
     }
 }
 
-impl Decryptable<FieldView> for Field {
-    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<FieldView> {
+impl KeyDecryptable<FieldView> for Field {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<FieldView> {
         Ok(FieldView {
-            name: self.name.decrypt(enc, org_id)?,
-            value: self.value.decrypt(enc, org_id)?,
+            name: self.name.decrypt_with_key(key)?,
+            value: self.value.decrypt_with_key(key)?,
             r#type: self.r#type,
             linked_id: self.linked_id,
         })

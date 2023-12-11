@@ -1,4 +1,10 @@
-import { quicktype, InputData, JSONSchemaInput, FetchingJSONSchemaStore } from "quicktype-core";
+import {
+  quicktype,
+  quicktypeMultiFile,
+  InputData,
+  JSONSchemaInput,
+  FetchingJSONSchemaStore,
+} from "quicktype-core";
 
 import fs from "fs";
 import path from "path";
@@ -16,22 +22,16 @@ async function* walk(dir: string): AsyncIterable<string> {
 
 async function main() {
   const schemaInput = new JSONSchemaInput(new FetchingJSONSchemaStore());
-
-  const filenames: string[] = [];
-  for await (const p of walk("./support/schemas")) {
-    filenames.push(p);
-  }
-
-  filenames.sort();
-
-  for (const f of filenames) {
-    const buffer = fs.readFileSync(f);
-    const relative = path.relative(path.join(process.cwd(), "support/schemas"), f);
-    await schemaInput.addSource({ name: relative, schema: buffer.toString() });
-  }
-
   const inputData = new InputData();
   inputData.addInput(schemaInput);
+  inputData.addSource(
+    "schema",
+    {
+      name: "SchemaTypes",
+      uris: ["support/schemas/schema_types/SchemaTypes.json#/definitions/"],
+    },
+    () => new JSONSchemaInput(new FetchingJSONSchemaStore()),
+  );
 
   const ts = await quicktype({
     inputData,
@@ -50,7 +50,17 @@ async function main() {
     },
   });
 
-  writeToFile("./languages/python/BitwardenClient/schemas.py", python.lines);
+  writeToFile("./languages/python/bitwarden_sdk/schemas.py", python.lines);
+
+  const ruby = await quicktype({
+    inputData,
+    lang: "ruby",
+    rendererOptions: {
+      "ruby-version": "3.0",
+    },
+  });
+
+  writeToFile("./languages/ruby/bitwarden_sdk/lib/schemas.rb", ruby.lines);
 
   const csharp = await quicktype({
     inputData,
@@ -63,6 +73,50 @@ async function main() {
   });
 
   writeToFile("./languages/csharp/Bitwarden.Sdk/schemas.cs", csharp.lines);
+
+  const cpp = await quicktype({
+    inputData,
+    lang: "cpp",
+    rendererOptions: {
+      namespace: "Bitwarden::Sdk",
+      "include-location": "global-include",
+    },
+  });
+
+  cpp.lines.forEach((line, idx) => {
+    // Replace DOMAIN for URI_DOMAIN, because DOMAIN is an already defined macro
+    cpp.lines[idx] = line.replace(/DOMAIN/g, "URI_DOMAIN");
+  });
+
+  writeToFile("./languages/cpp/include/schemas.hpp", cpp.lines);
+
+  const go = await quicktype({
+    inputData,
+    lang: "go",
+    rendererOptions: {
+      package: "sdk",
+      "just-types-and-package": true,
+    },
+  });
+
+  writeToFile("./languages/go/schema.go", go.lines);
+
+  const java = await quicktypeMultiFile({
+    inputData,
+    lang: "java",
+    rendererOptions: {
+      package: "com.bitwarden.sdk.schema",
+      "java-version": "8",
+    },
+  });
+
+  const javaDir = "./languages/java/src/main/java/com/bitwarden/sdk/schema/";
+  if (!fs.existsSync(javaDir)) {
+    fs.mkdirSync(javaDir);
+  }
+  java.forEach((file, path) => {
+    writeToFile(javaDir + path, file.lines);
+  });
 }
 
 main();

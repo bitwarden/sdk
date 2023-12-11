@@ -272,7 +272,7 @@ async fn process_commands() -> Result<()> {
                 profile
             } else if let Some(access_token) = cli.access_token {
                 AccessToken::from_str(&access_token)?
-                    .service_account_id
+                    .access_token_id
                     .to_string()
             } else {
                 String::from("default")
@@ -324,7 +324,8 @@ async fn process_commands() -> Result<()> {
 
     // Load session or return if no session exists
     let _ = client
-        .access_token_login(&AccessTokenLoginRequest { access_token })
+        .auth()
+        .login_access_token(&AccessTokenLoginRequest { access_token })
         .await?;
 
     let organization_id = match client.get_access_token_organization() {
@@ -618,7 +619,7 @@ fn get_config_profile(
             profile.to_owned()
         } else {
             AccessToken::from_str(access_token)?
-                .service_account_id
+                .access_token_id
                 .to_string()
         };
 

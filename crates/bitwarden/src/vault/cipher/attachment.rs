@@ -1,10 +1,8 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use crate::{
-    client::encryption_settings::EncryptionSettings,
-    crypto::{Decryptable, EncString, Encryptable},
+    crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
     error::{Error, Result},
 };
 
@@ -33,32 +31,28 @@ pub struct AttachmentView {
     pub key: Option<Vec<u8>>, // TODO: Should be made into SymmetricCryptoKey
 }
 
-impl Encryptable<Attachment> for AttachmentView {
-    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Attachment> {
+impl KeyEncryptable<Attachment> for AttachmentView {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Attachment> {
         Ok(Attachment {
             id: self.id,
             url: self.url,
             size: self.size,
             size_name: self.size_name,
-            file_name: self.file_name.encrypt(enc, org_id)?,
-            key: self.key.map(|k| k.encrypt(enc, org_id)).transpose()?,
+            file_name: self.file_name.encrypt_with_key(key)?,
+            key: self.key.map(|k| k.encrypt_with_key(key)).transpose()?,
         })
     }
 }
 
-impl Decryptable<AttachmentView> for Attachment {
-    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<AttachmentView> {
+impl KeyDecryptable<AttachmentView> for Attachment {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<AttachmentView> {
         Ok(AttachmentView {
             id: self.id.clone(),
             url: self.url.clone(),
             size: self.size.clone(),
             size_name: self.size_name.clone(),
-            file_name: self.file_name.decrypt(enc, org_id)?,
-            key: self
-                .key
-                .as_ref()
-                .map(|key| enc.decrypt_bytes(key, org_id))
-                .transpose()?,
+            file_name: self.file_name.decrypt_with_key(key)?,
+            key: self.key.decrypt_with_key(key)?,
         })
     }
 }

@@ -29,9 +29,11 @@ use crate::error::{Error, Result};
 mod enc_string;
 pub use enc_string::EncString;
 mod encryptable;
-pub use encryptable::{Decryptable, Encryptable};
+pub use encryptable::{Decryptable, Encryptable, LocateKey};
+mod key_encryptable;
+pub use key_encryptable::{KeyDecryptable, KeyEncryptable};
 mod aes_ops;
-pub use aes_ops::{decrypt_aes256, decrypt_aes256_hmac, encrypt_aes256, encrypt_aes256_hmac};
+use aes_ops::{decrypt_aes256_hmac, encrypt_aes256_hmac};
 mod symmetric_crypto_key;
 pub use symmetric_crypto_key::SymmetricCryptoKey;
 mod shareable_key;
@@ -40,7 +42,9 @@ pub(crate) use shareable_key::derive_shareable_key;
 #[cfg(feature = "internal")]
 mod master_key;
 #[cfg(feature = "internal")]
-pub(crate) use master_key::{HashPurpose, MasterKey};
+pub use master_key::HashPurpose;
+#[cfg(feature = "internal")]
+pub(crate) use master_key::MasterKey;
 #[cfg(feature = "internal")]
 mod user_key;
 #[cfg(feature = "internal")]

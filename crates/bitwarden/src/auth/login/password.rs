@@ -1,17 +1,11 @@
 #[cfg(feature = "internal")]
-use std::str::FromStr;
-
-#[cfg(feature = "internal")]
 use log::{debug, info};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "internal")]
 use crate::{
-    auth::{
-        api::request::PasswordTokenRequest,
-        login::{determine_password_hash, TwoFactorRequest},
-    },
+    auth::{api::request::PasswordTokenRequest, login::TwoFactorRequest},
     client::{kdf::Kdf, LoginMethod},
     crypto::EncString,
     Client,
@@ -25,16 +19,22 @@ use crate::{
 };
 
 #[cfg(feature = "internal")]
-pub(crate) async fn password_login(
+pub(crate) async fn login_password(
     client: &mut Client,
     input: &PasswordLoginRequest,
 ) -> Result<PasswordLoginResponse> {
-    use crate::client::UserLoginMethod;
+    use crate::{auth::determine_password_hash, client::UserLoginMethod, crypto::HashPurpose};
 
     info!("password logging in");
     debug!("{:#?}, {:#?}", client, input);
 
-    let password_hash = determine_password_hash(&input.email, &input.kdf, &input.password).await?;
+    let password_hash = determine_password_hash(
+        &input.email,
+        &input.kdf,
+        &input.password,
+        HashPurpose::ServerAuthorization,
+    )
+    .await?;
     let response = request_identity_tokens(client, input, &password_hash).await?;
 
     if let IdentityTokenResponse::Authenticated(r) = &response {
@@ -49,8 +49,8 @@ pub(crate) async fn password_login(
             }),
         );
 
-        let user_key = EncString::from_str(r.key.as_deref().unwrap()).unwrap();
-        let private_key = EncString::from_str(r.private_key.as_deref().unwrap()).unwrap();
+        let user_key: EncString = r.key.as_deref().unwrap().parse().unwrap();
+        let private_key: EncString = r.private_key.as_deref().unwrap().parse().unwrap();
 
         client.initialize_user_crypto(&input.password, user_key, private_key)?;
     }

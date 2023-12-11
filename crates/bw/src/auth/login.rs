@@ -11,15 +11,16 @@ use color_eyre::eyre::{bail, Result};
 use inquire::{Password, Text};
 use log::{debug, error, info};
 
-pub(crate) async fn password_login(mut client: Client, email: Option<String>) -> Result<()> {
+pub(crate) async fn login_password(mut client: Client, email: Option<String>) -> Result<()> {
     let email = text_prompt_when_none("Email", email)?;
 
     let password = Password::new("Password").without_confirmation().prompt()?;
 
-    let kdf = client.prelogin(email.clone()).await?;
+    let kdf = client.auth().prelogin(email.clone()).await?;
 
     let result = client
-        .password_login(&PasswordLoginRequest {
+        .auth()
+        .login_password(&PasswordLoginRequest {
             email: email.clone(),
             password: password.clone(),
             two_factor: None,
@@ -46,6 +47,7 @@ pub(crate) async fn password_login(mut client: Client, email: Option<String>) ->
         } else if let Some(tf) = two_factor.email {
             // Send token
             client
+                .auth()
                 .send_two_factor_email(&TwoFactorEmailRequest {
                     email: email.clone(),
                     password: password.clone(),
@@ -65,7 +67,8 @@ pub(crate) async fn password_login(mut client: Client, email: Option<String>) ->
         };
 
         let result = client
-            .password_login(&PasswordLoginRequest {
+            .auth()
+            .login_password(&PasswordLoginRequest {
                 email,
                 password,
                 two_factor,
@@ -88,7 +91,7 @@ pub(crate) async fn password_login(mut client: Client, email: Option<String>) ->
     Ok(())
 }
 
-pub(crate) async fn api_key_login(
+pub(crate) async fn login_api_key(
     mut client: Client,
     client_id: Option<String>,
     client_secret: Option<String>,
@@ -99,7 +102,8 @@ pub(crate) async fn api_key_login(
     let password = Password::new("Password").without_confirmation().prompt()?;
 
     let result = client
-        .api_key_login(&ApiKeyLoginRequest {
+        .auth()
+        .login_api_key(&ApiKeyLoginRequest {
             client_id,
             client_secret,
             password,

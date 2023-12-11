@@ -68,8 +68,8 @@ impl TryFrom<CipherFieldModel> for Field {
 
     fn try_from(model: CipherFieldModel) -> Result<Self> {
         Ok(Self {
-            name: EncString::try_from(model.name)?,
-            value: EncString::try_from(model.value)?,
+            name: EncString::try_from_optional(model.name)?,
+            value: EncString::try_from_optional(model.value)?,
             r#type: model.r#type.map(|t| t.into()).ok_or(Error::MissingFields)?,
             linked_id: model
                 .linked_id

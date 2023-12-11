@@ -88,33 +88,23 @@ impl SyncResponse {
         let profile = *response.profile.ok_or(Error::MissingFields)?;
         let ciphers = response.ciphers.ok_or(Error::MissingFields)?;
 
+        fn try_into_iter<In, InItem, Out, OutItem>(iter: In) -> Result<Out, InItem::Error>
+        where
+            In: IntoIterator<Item = InItem>,
+            InItem: TryInto<OutItem>,
+            Out: FromIterator<OutItem>,
+        {
+            iter.into_iter().map(|i| i.try_into()).collect()
+        }
+
         Ok(SyncResponse {
             profile: ProfileResponse::process_response(profile, enc)?,
-            folders: response
-                .folders
-                .map(|f| f.into_iter().map(|f| f.try_into()).collect())
-                .transpose()?
-                .ok_or(Error::MissingFields)?,
-            collections: response
-                .collections
-                .map(|c| c.into_iter().map(|c| c.try_into()).collect())
-                .transpose()?
-                .ok_or(Error::MissingFields)?,
-            ciphers: ciphers
-                .into_iter()
-                .map(|c| c.try_into())
-                .collect::<Result<Vec<Cipher>>>()?,
+            folders: try_into_iter(response.folders.ok_or(Error::MissingFields)?)?,
+            collections: try_into_iter(response.collections.ok_or(Error::MissingFields)?)?,
+            ciphers: try_into_iter(ciphers)?,
             domains: response.domains.map(|d| (*d).try_into()).transpose()?,
-            policies: response
-                .policies
-                .map(|p| p.into_iter().map(|p| p.try_into()).collect())
-                .transpose()?
-                .ok_or(Error::MissingFields)?,
-            sends: response
-                .sends
-                .map(|s| s.into_iter().map(|s| s.try_into()).collect())
-                .transpose()?
-                .ok_or(Error::MissingFields)?,
+            policies: try_into_iter(response.policies.ok_or(Error::MissingFields)?)?,
+            sends: try_into_iter(response.sends.ok_or(Error::MissingFields)?)?,
         })
     }
 }

@@ -62,12 +62,12 @@ impl TryFrom<CipherCardModel> for Card {
 
     fn try_from(card: CipherCardModel) -> Result<Self> {
         Ok(Self {
-            cardholder_name: EncString::try_from(card.cardholder_name)?,
-            exp_month: EncString::try_from(card.exp_month)?,
-            exp_year: EncString::try_from(card.exp_year)?,
-            code: EncString::try_from(card.code)?,
-            brand: EncString::try_from(card.brand)?,
-            number: EncString::try_from(card.number)?,
+            cardholder_name: EncString::try_from_optional(card.cardholder_name)?,
+            exp_month: EncString::try_from_optional(card.exp_month)?,
+            exp_year: EncString::try_from_optional(card.exp_year)?,
+            code: EncString::try_from_optional(card.code)?,
+            brand: EncString::try_from_optional(card.brand)?,
+            number: EncString::try_from_optional(card.number)?,
         })
     }
 }

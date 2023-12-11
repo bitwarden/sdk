@@ -113,8 +113,8 @@ impl TryFrom<CipherLoginModel> for Login {
 
     fn try_from(login: CipherLoginModel) -> Result<Self> {
         Ok(Self {
-            username: EncString::try_from(login.username)?,
-            password: EncString::try_from(login.password)?,
+            username: EncString::try_from_optional(login.username)?,
+            password: EncString::try_from_optional(login.password)?,
             password_revision_date: login
                 .password_revision_date
                 .map(|d| d.parse())
@@ -123,7 +123,7 @@ impl TryFrom<CipherLoginModel> for Login {
                 .uris
                 .map(|v| v.into_iter().map(|u| u.try_into()).collect())
                 .transpose()?,
-            totp: EncString::try_from(login.totp)?,
+            totp: EncString::try_from_optional(login.totp)?,
             autofill_on_page_load: login.autofill_on_page_load,
         })
     }
@@ -134,7 +134,7 @@ impl TryFrom<CipherLoginUriModel> for LoginUri {
 
     fn try_from(uri: CipherLoginUriModel) -> Result<Self> {
         Ok(Self {
-            uri: EncString::try_from(uri.uri)?,
+            uri: EncString::try_from_optional(uri.uri)?,
             r#match: uri.r#match.map(|m| m.into()),
         })
     }

@@ -343,8 +343,8 @@ impl TryFrom<CipherDetailsResponseModel> for Cipher {
             organization_id: cipher.organization_id,
             folder_id: cipher.folder_id,
             collection_ids: cipher.collection_ids.unwrap_or_default(),
-            name: EncString::try_from(cipher.name)?.ok_or(Error::MissingFields)?,
-            notes: EncString::try_from(cipher.notes)?,
+            name: EncString::try_from_optional(cipher.name)?.ok_or(Error::MissingFields)?,
+            notes: EncString::try_from_optional(cipher.notes)?,
             r#type: cipher.r#type.ok_or(Error::MissingFields)?.into(),
             login: cipher.login.map(|l| (*l).try_into()).transpose()?,
             identity: cipher.identity.map(|i| (*i).try_into()).transpose()?,
@@ -374,7 +374,7 @@ impl TryFrom<CipherDetailsResponseModel> for Cipher {
             creation_date: cipher.creation_date.ok_or(Error::MissingFields)?.parse()?,
             deleted_date: cipher.deleted_date.map(|d| d.parse()).transpose()?,
             revision_date: cipher.revision_date.ok_or(Error::MissingFields)?.parse()?,
-            key: EncString::try_from(cipher.key)?,
+            key: EncString::try_from_optional(cipher.key)?,
         })
     }
 }

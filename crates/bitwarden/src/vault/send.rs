@@ -273,7 +273,7 @@ impl TryFrom<SendResponseModel> for Send {
             id: send.id.ok_or(Error::MissingFields)?,
             access_id: send.access_id.ok_or(Error::MissingFields)?,
             name: send.name.ok_or(Error::MissingFields)?.parse()?,
-            notes: EncString::try_from(send.notes)?,
+            notes: EncString::try_from_optional(send.notes)?,
             key: send.key.ok_or(Error::MissingFields)?.parse()?,
             password: send.password,
             r#type: send.r#type.ok_or(Error::MissingFields)?.into(),
@@ -317,7 +317,7 @@ impl TryFrom<SendTextModel> for SendText {
 
     fn try_from(text: SendTextModel) -> Result<Self> {
         Ok(SendText {
-            text: EncString::try_from(text.text)?,
+            text: EncString::try_from_optional(text.text)?,
             hidden: text.hidden.unwrap_or(false),
         })
     }

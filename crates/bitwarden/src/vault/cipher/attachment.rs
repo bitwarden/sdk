@@ -39,7 +39,7 @@ impl KeyEncryptable<Attachment> for AttachmentView {
             size: self.size,
             size_name: self.size_name,
             file_name: self.file_name.encrypt_with_key(key)?,
-            key: self.key.map(|k| k.encrypt_with_key(key)).transpose()?,
+            key: self.key.as_deref().encrypt_with_key(key)?,
         })
     }
 }
@@ -66,8 +66,8 @@ impl TryFrom<bitwarden_api_api::models::AttachmentResponseModel> for Attachment 
             url: attachment.url,
             size: attachment.size,
             size_name: attachment.size_name,
-            file_name: EncString::try_from(attachment.file_name)?,
-            key: EncString::try_from(attachment.key)?,
+            file_name: EncString::try_from_optional(attachment.file_name)?,
+            key: EncString::try_from_optional(attachment.key)?,
         })
     }
 }

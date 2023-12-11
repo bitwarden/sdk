@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use bitwarden_api_api::models::PolicyResponseModel;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 use uuid::Uuid;
 
 use crate::error::{Error, Result};
@@ -16,7 +17,8 @@ pub struct Policy {
     enabled: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
+#[repr(u8)]
 pub enum PolicyType {
     TwoFactorAuthentication = 0,     // Requires users to have 2fa enabled
     MasterPassword = 1,              // Sets minimum requirements for master password complexity

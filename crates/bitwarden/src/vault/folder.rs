@@ -55,7 +55,7 @@ impl TryFrom<FolderResponseModel> for Folder {
     fn try_from(folder: FolderResponseModel) -> Result<Self> {
         Ok(Folder {
             id: folder.id.ok_or(Error::MissingFields)?,
-            name: EncString::try_from(folder.name)?.ok_or(Error::MissingFields)?,
+            name: EncString::try_from_optional(folder.name)?.ok_or(Error::MissingFields)?,
             revision_date: folder.revision_date.ok_or(Error::MissingFields)?.parse()?,
         })
     }

@@ -140,7 +140,7 @@ jobs:
           secrets: "cratesio-api-token"
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # stable
+        uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248 # stable
         with:
           toolchain: stable
 

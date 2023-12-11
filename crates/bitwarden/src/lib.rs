@@ -51,7 +51,7 @@
 #[cfg(feature = "mobile")]
 uniffi::setup_scaffolding!();
 
-#[cfg(feature = "mobile")]
+#[cfg(feature = "internal")]
 pub mod admin_console;
 pub mod auth;
 pub mod client;
@@ -68,7 +68,7 @@ pub mod tool;
 #[cfg(feature = "mobile")]
 pub(crate) mod uniffi_support;
 mod util;
-#[cfg(feature = "mobile")]
+#[cfg(feature = "internal")]
 pub mod vault;
 pub mod wordlist;
 

@@ -166,7 +166,7 @@ impl FromStr for EncString {
 
 impl EncString {
     /// Synthetic sugar for mapping `Option<String>` to `Result<Option<EncString>>`
-    #[cfg(feature = "mobile")]
+    #[cfg(feature = "internal")]
     pub(crate) fn try_from(s: Option<String>) -> Result<Option<EncString>, Error> {
         s.map(|s| s.parse()).transpose()
     }
@@ -400,6 +400,18 @@ impl KeyDecryptable<String> for EncString {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<String> {
         let dec: Vec<u8> = self.decrypt_with_key(key)?;
         String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String.into())
+    }
+}
+
+/// Usually we wouldn't want to expose EncStrings in the API or the schemas.
+/// But during the transition phase we will expose endpoints using the EncString type.
+impl schemars::JsonSchema for crate::crypto::EncString {
+    fn schema_name() -> String {
+        "EncString".to_string()
+    }
+
+    fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+        gen.subschema_for::<String>()
     }
 }
 

@@ -43,14 +43,13 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
                 }
             },
             LoginMethod::ServiceAccount(s) => match s {
-                ServiceAccountLoginMethod::AccessToken {
-                    access_token_id,
-                    client_secret,
-                    ..
-                } => {
-                    AccessTokenRequest::new(*access_token_id, client_secret)
-                        .send(&client.__api_configurations)
-                        .await?
+                ServiceAccountLoginMethod::AccessToken { access_token, .. } => {
+                    AccessTokenRequest::new(
+                        access_token.access_token_id,
+                        &access_token.client_secret,
+                    )
+                    .send(&client.__api_configurations)
+                    .await?
                 }
             },
         };

@@ -22,6 +22,8 @@ use crate::{
     error::{Error, Result},
 };
 
+use super::AccessToken;
+
 #[derive(Debug)]
 pub(crate) struct ApiConfigurations {
     pub identity: bitwarden_api_identity::apis::configuration::Configuration,
@@ -58,8 +60,7 @@ pub(crate) enum UserLoginMethod {
 #[derive(Debug)]
 pub(crate) enum ServiceAccountLoginMethod {
     AccessToken {
-        access_token_id: Uuid,
-        client_secret: String,
+        access_token: AccessToken,
         organization_id: Uuid,
     },
 }

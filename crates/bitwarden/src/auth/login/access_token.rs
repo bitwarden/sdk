@@ -31,7 +31,14 @@ pub(crate) async fn login_access_token(
     let access_token: AccessToken = input.access_token.parse()?;
 
     if let Some(state_file) = state_file {
-        if login_from_state(client, state_file, &access_token).is_ok() {
+        if let Ok(organization_id) = load_tokens_from_state(client, state_file, &access_token) {
+            client.set_login_method(LoginMethod::ServiceAccount(
+                ServiceAccountLoginMethod::AccessToken {
+                    access_token,
+                    organization_id,
+                },
+            ));
+
             return Ok(AccessTokenLoginResponse {
                 authenticated: true,
                 reset_master_password: false,
@@ -69,6 +76,11 @@ pub(crate) async fn login_access_token(
             .parse()
             .map_err(|_| Error::InvalidResponse)?;
 
+        if let Some(state_file) = state_file {
+            let state = state::ClientState::new(r.access_token.clone(), payload.encryption_key);
+            _ = state::set(state_file, &access_token, state);
+        }
+
         client.set_tokens(
             r.access_token.clone(),
             r.refresh_token.clone(),
@@ -76,18 +88,12 @@ pub(crate) async fn login_access_token(
         );
         client.set_login_method(LoginMethod::ServiceAccount(
             ServiceAccountLoginMethod::AccessToken {
-                access_token_id: access_token.access_token_id,
-                client_secret: access_token.client_secret.clone(),
+                access_token,
                 organization_id,
             },
         ));
 
         client.initialize_crypto_single_key(encryption_key);
-
-        if let Some(state_file) = state_file {
-            let state = state::ClientState::new(r.access_token.clone(), payload.encryption_key);
-            _ = state::set(state_file, &access_token, state);
-        }
     }
 
     AccessTokenLoginResponse::process_response(response)
@@ -103,11 +109,11 @@ async fn request_access_token(
         .await
 }
 
-fn login_from_state(
+fn load_tokens_from_state(
     client: &mut Client,
     state_file: &Path,
     access_token: &AccessToken,
-) -> Result<()> {
+) -> Result<Uuid> {
     let client_state = state::get(state_file, access_token)?;
 
     if let Some(client_state) = client_state {
@@ -124,16 +130,9 @@ fn login_from_state(
                 let encryption_key = SymmetricCryptoKey::try_from(encryption_key.as_slice())?;
 
                 client.set_tokens(client_state.token, None, time_till_expiration as u64);
-                client.set_login_method(LoginMethod::ServiceAccount(
-                    ServiceAccountLoginMethod::AccessToken {
-                        access_token_id: access_token.access_token_id,
-                        client_secret: access_token.client_secret.clone(),
-                        organization_id,
-                    },
-                ));
-
                 client.initialize_crypto_single_key(encryption_key);
-                return Ok(());
+
+                return Ok(organization_id);
             }
         }
     }

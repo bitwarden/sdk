@@ -36,6 +36,7 @@ pub(crate) async fn login_access_token(
                 ServiceAccountLoginMethod::AccessToken {
                     access_token,
                     organization_id,
+                    state_file: Some(state_file.to_path_buf()),
                 },
             ));
 
@@ -90,6 +91,7 @@ pub(crate) async fn login_access_token(
             ServiceAccountLoginMethod::AccessToken {
                 access_token,
                 organization_id,
+                state_file: state_file.and_then(|sf| Some(sf.to_path_buf())),
             },
         ));
 

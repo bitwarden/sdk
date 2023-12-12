@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use chrono::Utc;
 use reqwest::header::{self};
 use uuid::Uuid;
@@ -62,6 +64,7 @@ pub(crate) enum ServiceAccountLoginMethod {
     AccessToken {
         access_token: AccessToken,
         organization_id: Uuid,
+        state_file: Option<PathBuf>,
     },
 }
 

@@ -37,6 +37,9 @@ jobs:
     steps:
       - name: Checkout Branch
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          repository: bitwarden/sdk
+          ref: master
 
       - name: Install rust
         uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248 # stable
@@ -175,7 +178,7 @@ jobs:
           TITLE: "Bump version to ${{ inputs.version_number }}"
         run: |
           PR_URL=$(gh pr create --title "$TITLE" \
-            --base "$GITHUB_REF" \
+            --base "master" \
             --head "$PR_BRANCH" \
             --label "version update" \
             --label "automated pr" \

@@ -44,9 +44,7 @@ impl ProfileKey {
 }
 
 pub(crate) const BWS_DIRECTORY: &str = ".bws";
-pub(crate) const STATE_DIRECTORY: &str = "state";
 pub(crate) const CONFIG_FILENAME: &str = "config";
-pub(crate) const STATE_FILENAME: &str = "state";
 
 pub(crate) fn get_config_path(config_file: Option<&Path>, ensure_folder_exists: bool) -> PathBuf {
     let config_file = config_file.map(ToOwned::to_owned).unwrap_or_else(|| {
@@ -64,34 +62,6 @@ pub(crate) fn get_config_path(config_file: Option<&Path>, ensure_folder_exists: 
     }
 
     config_file
-}
-
-pub(crate) fn get_state_file_path(
-    state_file: Option<PathBuf>,
-    profile: Option<String>,
-    ensure_folder_exists: bool,
-) -> PathBuf {
-    let state_file = state_file.unwrap_or_else(|| {
-        let base_dirs = BaseDirs::new().unwrap();
-        let state_filename = match profile {
-            Some(p) => p + "-" + STATE_FILENAME,
-            None => "default-".to_string() + STATE_FILENAME,
-        };
-
-        base_dirs
-            .home_dir()
-            .join(BWS_DIRECTORY)
-            .join(STATE_DIRECTORY)
-            .join(state_filename)
-    });
-
-    if ensure_folder_exists {
-        if let Some(parent_folder) = state_file.parent() {
-            std::fs::create_dir_all(parent_folder).unwrap();
-        }
-    }
-
-    state_file
 }
 
 pub(crate) fn load_config(config_file: Option<&Path>, must_exist: bool) -> Result<Config> {

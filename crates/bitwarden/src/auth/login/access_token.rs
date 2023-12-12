@@ -1,9 +1,10 @@
-use std::str::FromStr;
+use std::path::Path;
 
 use base64::Engine;
 use chrono::Utc;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::{
     auth::{
@@ -11,52 +12,34 @@ use crate::{
         login::{response::two_factor::TwoFactorProviders, PasswordLoginResponse},
         JWTToken,
     },
-    client::{AccessToken, ClientState, LoginMethod, ServiceAccountLoginMethod},
+    client::{AccessToken, LoginMethod, ServiceAccountLoginMethod},
     crypto::{EncString, KeyDecryptable, SymmetricCryptoKey},
     error::{Error, Result},
+    secrets_manager::state,
     util::BASE64_ENGINE,
     Client,
 };
 
-pub(crate) async fn login_access_token_from_state(
-    client: &mut Client,
-    state: ClientState,
-) -> Result<()> {
-    let time_till_expiration = state.token_expiry_timestamp - Utc::now().timestamp();
-
-    if time_till_expiration < 0 {
-        return Err(Error::Internal("Expired token error."));
-    }
-
-    client.set_tokens(
-        state.token,
-        state.refresh_token,
-        time_till_expiration as u64,
-        LoginMethod::ServiceAccount(ServiceAccountLoginMethod::AccessToken {
-            service_account_id: state.access_token.service_account_id,
-            client_secret: state.access_token.client_secret,
-            organization_id: state.access_token.organization_id,
-        }),
-    );
-
-    let encryption_key = match SymmetricCryptoKey::from_str(&state.encryption_key) {
-        Ok(t) => t,
-        Err(_) => panic!("Failure to convert encryption key into SymmetricCryptoKey"),
-    };
-
-    client.initialize_crypto_single_key(encryption_key);
-
-    Ok(())
-}
-
 pub(crate) async fn login_access_token(
     client: &mut Client,
     input: &AccessTokenLoginRequest,
+    state_file: Option<&Path>,
 ) -> Result<AccessTokenLoginResponse> {
     //info!("api key logging in");
     //debug!("{:#?}, {:#?}", client, input);
 
     let access_token: AccessToken = input.access_token.parse()?;
+
+    if let Some(state_file) = state_file {
+        if login_from_state(client, state_file, &access_token).is_ok() {
+            return Ok(AccessTokenLoginResponse {
+                authenticated: true,
+                reset_master_password: false,
+                force_password_reset: false,
+                two_factor: None,
+            });
+        }
+    }
 
     let response = request_access_token(client, &access_token).await?;
 
@@ -74,7 +57,7 @@ pub(crate) async fn login_access_token(
         }
 
         let payload: Payload = serde_json::from_slice(&decrypted_payload)?;
-        let encryption_key = BASE64_ENGINE.decode(payload.encryption_key)?;
+        let encryption_key = BASE64_ENGINE.decode(payload.encryption_key.clone())?;
         let encryption_key = SymmetricCryptoKey::try_from(encryption_key.as_slice())?;
 
         let access_token_obj: JWTToken = r.access_token.parse()?;
@@ -92,12 +75,17 @@ pub(crate) async fn login_access_token(
             r.expires_in,
             LoginMethod::ServiceAccount(ServiceAccountLoginMethod::AccessToken {
                 access_token_id: access_token.access_token_id,
-                client_secret: access_token.client_secret,
+                client_secret: access_token.client_secret.clone(),
                 organization_id,
             }),
         );
 
         client.initialize_crypto_single_key(encryption_key);
+
+        if let Some(state_file) = state_file {
+            let state = state::ClientState::new(r.access_token.clone(), payload.encryption_key);
+            _ = state::set(state_file, &access_token, state);
+        }
     }
 
     AccessTokenLoginResponse::process_response(response)
@@ -111,6 +99,46 @@ async fn request_access_token(
     AccessTokenRequest::new(input.access_token_id, &input.client_secret)
         .send(config)
         .await
+}
+
+fn login_from_state(
+    client: &mut Client,
+    state_file: &Path,
+    access_token: &AccessToken,
+) -> Result<()> {
+    let client_state = state::get(state_file, access_token)?;
+
+    if let Some(client_state) = client_state {
+        let token: JWTToken = client_state.token.parse()?;
+
+        if let Some(organization_id) = token.organization {
+            let time_till_expiration = (token.exp as i64) - Utc::now().timestamp();
+
+            if time_till_expiration > 0 {
+                let organization_id: Uuid = organization_id
+                    .parse()
+                    .map_err(|_| Error::Internal("Bad organization id."))?;
+                let encryption_key = BASE64_ENGINE.decode(client_state.encryption_key)?;
+                let encryption_key = SymmetricCryptoKey::try_from(encryption_key.as_slice())?;
+
+                client.set_tokens(
+                    client_state.token,
+                    None,
+                    time_till_expiration as u64,
+                    LoginMethod::ServiceAccount(ServiceAccountLoginMethod::AccessToken {
+                        access_token_id: access_token.access_token_id,
+                        client_secret: access_token.client_secret.clone(),
+                        organization_id,
+                    }),
+                );
+
+                client.initialize_crypto_single_key(encryption_key);
+                return Ok(());
+            }
+        }
+    }
+
+    Err(Error::Internal("Could not log in from state."))
 }
 
 /// Login to Bitwarden with access token

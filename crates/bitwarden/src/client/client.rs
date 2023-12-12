@@ -21,7 +21,6 @@ use crate::{
     crypto::SymmetricCryptoKey,
     error::{Error, Result},
 };
-use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]
 pub(crate) struct ApiConfigurations {
@@ -78,30 +77,6 @@ pub struct Client {
     pub(crate) __api_configurations: ApiConfigurations,
 
     encryption_settings: Option<EncryptionSettings>,
-}
-
-#[cfg(feature = "secrets")]
-#[derive(Serialize, Deserialize, Debug)]
-pub struct ClientState {
-    pub token: String,
-    pub token_expiry_timestamp: i64,
-    pub refresh_token: Option<String>,
-    pub access_token: AccessTokenState,
-    pub encryption_key: String,
-}
-
-impl ClientState {
-    pub fn is_expired(&self) -> bool {
-        Utc::now().timestamp() > self.token_expiry_timestamp
-    }
-}
-
-#[cfg(feature = "secrets")]
-#[derive(Serialize, Deserialize, Debug)]
-pub struct AccessTokenState {
-    pub service_account_id: Uuid,
-    pub client_secret: String,
-    pub organization_id: Uuid,
 }
 
 impl Client {
@@ -162,7 +137,7 @@ impl Client {
         &mut self,
         input: &AccessTokenLoginRequest,
     ) -> Result<AccessTokenLoginResponse> {
-        self.auth().login_access_token(input).await
+        self.auth().login_access_token(input, None).await
     }
 
     #[cfg(feature = "internal")]
@@ -288,36 +263,5 @@ impl Client {
     #[cfg(feature = "internal")]
     pub fn fingerprint(&self, input: &FingerprintRequest) -> Result<FingerprintResponse> {
         generate_fingerprint(input)
-    }
-
-    #[cfg(feature = "secrets")]
-    pub fn get_client_state(&self) -> Option<ClientState> {
-        let access_token =
-            if let Some(LoginMethod::ServiceAccount(ServiceAccountLoginMethod::AccessToken {
-                service_account_id,
-                client_secret,
-                organization_id,
-            })) = &self.login_method
-            {
-                AccessTokenState {
-                    service_account_id: *service_account_id,
-                    client_secret: client_secret.clone(),
-                    organization_id: *organization_id,
-                }
-            } else {
-                return None;
-            };
-
-        Some(ClientState {
-            token: self.token.clone()?,
-            token_expiry_timestamp: self.token_expires_on?,
-            refresh_token: self.refresh_token.clone(),
-            access_token,
-            encryption_key: self
-                .get_encryption_settings()
-                .ok()?
-                .get_key(&None)?
-                .to_base64(),
-        })
     }
 }

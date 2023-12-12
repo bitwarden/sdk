@@ -13,16 +13,15 @@ use bitwarden::{
             SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest, SecretsGetRequest,
         },
     },
-    state::StateManager,
-    Client,
 };
 use clap::{ArgGroup, CommandFactory, Parser, Subcommand};
 use clap_complete::Shell;
 use color_eyre::eyre::{bail, Result};
-use log::{error, warn};
+use log::error;
 
 mod config;
 mod render;
+mod state;
 
 use config::ProfileKey;
 use render::{serialize_response, Color, Output};
@@ -323,31 +322,21 @@ async fn process_commands() -> Result<()> {
         })
         .transpose()?;
 
-    let state_file_path = config::get_state_file_path(
+    let state_file_path = state::get_state_file_path(
         profile.and_then(|p| p.state_file_path.map(|sp| PathBuf::from(sp.clone()))),
         cli.profile,
-        true,
     );
 
-    let mut client = bitwarden::Client::new(settings.clone());
-    let state = StateManager::new(state_file_path)?;
+    let mut client = bitwarden::Client::new(settings);
 
-    if try_login_from_state(&mut client, &state, &access_token)
-        .await
-        .is_err()
-    {
-        client
-            .auth()
-            .login_access_token(&AccessTokenLoginRequest {
-                access_token: access_token.clone(),
-            })
-            .await?;
-        if let Some(client_state) = client.get_client_state() {
-            if state.insert(&access_token, client_state).is_err() {
-                warn!("Failed to update state file.");
-            }
-        }
-    }
+    // Load session or return if no session exists
+    let _ = client
+        .auth()
+        .login_access_token(
+            &AccessTokenLoginRequest { access_token },
+            Some(&state_file_path),
+        )
+        .await?;
 
     let organization_id = match client.get_access_token_organization() {
         Some(id) => id,
@@ -648,22 +637,4 @@ fn get_config_profile(
         config.select_profile(&profile_key, profile_defined)?
     };
     Ok(profile)
-}
-
-async fn try_login_from_state(
-    client: &mut Client,
-    state: &StateManager,
-    access_token: &String,
-) -> Result<()> {
-    match state.get(access_token)? {
-        Some(client_state) => {
-            client
-                .auth()
-                .login_access_token_from_state(client_state)
-                .await?;
-
-            Ok(())
-        }
-        None => bail!("No state saved."),
-    }
 }

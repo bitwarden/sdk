@@ -1,11 +1,8 @@
 #[cfg(feature = "secrets")]
-use crate::{
-    auth::login::{
-        login_access_token, login_access_token_from_state, AccessTokenLoginRequest,
-        AccessTokenLoginResponse,
-    },
-    client::ClientState,
-};
+use crate::auth::login::{login_access_token, AccessTokenLoginRequest, AccessTokenLoginResponse};
+#[cfg(feature = "secrets")]
+use std::path::Path;
+
 use crate::{auth::renew::renew_token, error::Result, Client};
 
 #[cfg(feature = "internal")]
@@ -38,13 +35,9 @@ impl<'a> ClientAuth<'a> {
     pub async fn login_access_token(
         &mut self,
         input: &AccessTokenLoginRequest,
+        state_file: Option<&Path>,
     ) -> Result<AccessTokenLoginResponse> {
-        login_access_token(self.client, input).await
-    }
-
-    #[cfg(feature = "secrets")]
-    pub async fn login_access_token_from_state(&mut self, state: ClientState) -> Result<()> {
-        login_access_token_from_state(self.client, state).await
+        login_access_token(self.client, input, state_file).await
     }
 }
 
@@ -182,7 +175,7 @@ mod tests {
             .auth()
             .login_access_token(&AccessTokenLoginRequest {
                 access_token: "0.ec2c1d46-6a4b-4751-a310-af9601317f2d.C2IgxjjLF7qSshsbwe8JGcbM075YXw:X8vbvA0bduihIDe/qrzIQQ==".into(),
-            })
+            }, None,)
             .await
             .unwrap();
         assert!(res.authenticated);

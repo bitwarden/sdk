@@ -27,8 +27,8 @@ impl ClientState {
     }
 }
 
-pub fn get(state_path: &Path, access_token: &AccessToken) -> Result<Option<ClientState>> {
-    let file_content = std::fs::read_to_string(state_path)?;
+pub fn get(state_file: &Path, access_token: &AccessToken) -> Result<Option<ClientState>> {
+    let file_content = std::fs::read_to_string(state_file)?;
 
     let encrypted_state: EncString = file_content.parse()?;
     let decrypted_state: String = encrypted_state.decrypt_with_key(&access_token.encryption_key)?;
@@ -41,12 +41,12 @@ pub fn get(state_path: &Path, access_token: &AccessToken) -> Result<Option<Clien
     Ok(Some(client_state))
 }
 
-pub fn set(state_path: &Path, access_token: &AccessToken, state: ClientState) -> Result<()> {
+pub fn set(state_file: &Path, access_token: &AccessToken, state: ClientState) -> Result<()> {
     let serialized_state: String = serde_json::to_string(&state)?;
     let encrypted_state: EncString =
         serialized_state.encrypt_with_key(&access_token.encryption_key)?;
     let state_string: String = encrypted_state.to_string();
 
-    std::fs::write(state_path, state_string)
+    std::fs::write(state_file, state_string)
         .map_err(|_| Error::Internal("Failure writing to the state file."))
 }

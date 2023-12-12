@@ -4,7 +4,7 @@
     "build:watch": "npm run build && webpack serve"
   },
   "devDependencies": {
-    "html-webpack-plugin": "5.5.3",
+    "html-webpack-plugin": "5.5.4",
     "text-encoding": "0.7.0",
     "ts-loader": "9.5.1",
     "wasm-pack": "0.12.1",

@@ -172,7 +172,6 @@ impl Client {
         self.encryption_settings.as_ref().ok_or(Error::VaultLocked)
     }
 
-    #[cfg(feature = "mobile")]
     pub(crate) fn set_login_method(&mut self, login_method: LoginMethod) {
         use log::debug;
 

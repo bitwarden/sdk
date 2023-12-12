@@ -61,8 +61,7 @@ pub(crate) async fn login_access_token(
         );
         client.set_login_method(LoginMethod::ServiceAccount(
             ServiceAccountLoginMethod::AccessToken {
-                access_token_id: access_token.access_token_id,
-                client_secret: access_token.client_secret,
+                access_token,
                 organization_id,
             },
         ));

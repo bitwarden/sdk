@@ -4,27 +4,32 @@ use directories::BaseDirs;
 
 pub(crate) const BWS_DIRECTORY: &str = ".bws";
 pub(crate) const STATE_DIRECTORY: &str = "state";
-pub(crate) const STATE_SUFFIX: &str = "-state";
-pub(crate) const DEFAULT_STATE_FILENAME: &str = "default-state";
 
-pub(crate) fn get_state_file_path(state_file: Option<PathBuf>, profile: Option<String>) -> PathBuf {
-    let state_file = state_file.unwrap_or_else(|| {
-        let base_dirs = BaseDirs::new().unwrap();
-        let state_filename = match profile {
-            Some(p) => p + STATE_SUFFIX,
-            None => DEFAULT_STATE_FILENAME.to_string(),
-        };
+pub(crate) fn get_state_file_path(
+    state_file_dir: Option<PathBuf>,
+    access_token_id: String,
+) -> PathBuf {
+    let state_file_path = match state_file_dir {
+        Some(sfd) => {
+            let mut state_file_path = sfd;
+            state_file_path.push(access_token_id);
 
-        base_dirs
-            .home_dir()
-            .join(BWS_DIRECTORY)
-            .join(STATE_DIRECTORY)
-            .join(state_filename)
-    });
+            state_file_path
+        }
+        None => {
+            let base_dirs = BaseDirs::new().unwrap();
 
-    if let Some(parent_folder) = state_file.parent() {
+            base_dirs
+                .home_dir()
+                .join(BWS_DIRECTORY)
+                .join(STATE_DIRECTORY)
+                .join(access_token_id)
+        }
+    };
+
+    if let Some(parent_folder) = state_file_path.parent() {
         std::fs::create_dir_all(parent_folder).unwrap();
     }
 
-    state_file
+    state_file_path
 }

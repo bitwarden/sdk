@@ -303,6 +303,7 @@ async fn process_commands() -> Result<()> {
         Some(key) => key,
         None => bail!("Missing access token"),
     };
+    let access_token_obj: AccessToken = access_token.parse()?;
 
     let profile = get_config_profile(
         &cli.server_url,
@@ -323,8 +324,8 @@ async fn process_commands() -> Result<()> {
         .transpose()?;
 
     let state_file_path = state::get_state_file_path(
-        profile.and_then(|p| p.state_file_path.map(|sp| PathBuf::from(sp.clone()))),
-        cli.profile,
+        profile.and_then(|p| p.state_file_dir.map(|sfd| PathBuf::from(sfd.clone()))),
+        access_token_obj.access_token_id.to_string(),
     );
 
     let mut client = bitwarden::Client::new(settings);

@@ -42,7 +42,6 @@ pub fn get(state_path: &Path, access_token: &AccessToken) -> Result<Option<Clien
 }
 
 pub fn set(state_path: &Path, access_token: &AccessToken, state: ClientState) -> Result<()> {
-    println!("state::set");
     let serialized_state: String = serde_json::to_string(&state)?;
     let encrypted_state: EncString =
         serialized_state.encrypt_with_key(&access_token.encryption_key)?;

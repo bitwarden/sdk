@@ -172,10 +172,10 @@ mod tests {
 
         let pin_key = derive_pin_key(&mut client, "1234".into()).unwrap();
 
-        let mut client = Client::new(None);
+        let mut client2 = Client::new(None);
 
         initialize_user_crypto(
-            &mut client,
+            &mut client2,
             InitUserCryptoRequest {
                 kdf_params: Kdf::PBKDF2 {
                     iterations: 100_000.try_into().unwrap(),
@@ -190,5 +190,20 @@ mod tests {
         )
         .await
         .unwrap();
+
+        assert_eq!(
+            client
+                .get_encryption_settings()
+                .unwrap()
+                .get_key(&None)
+                .unwrap()
+                .to_base64(),
+            client2
+                .get_encryption_settings()
+                .unwrap()
+                .get_key(&None)
+                .unwrap()
+                .to_base64()
+        );
     }
 }

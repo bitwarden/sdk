@@ -5,7 +5,7 @@ use crate::{
     crypto::{EncString, KeyDecryptable, KeyEncryptable},
     error::{Error, Result},
 };
-use std::{fmt::Debug, fs::OpenOptions, io::Write, path::Path};
+use std::{fmt::Debug, path::Path};
 
 const STATE_VERSION: u32 = 1;
 
@@ -47,17 +47,6 @@ pub fn set(state_path: &Path, access_token: &AccessToken, state: ClientState) ->
         serialized_state.encrypt_with_key(&access_token.encryption_key)?;
     let state_string: String = encrypted_state.to_string();
 
-    let mut file = OpenOptions::new()
-        .read(true)
-        .write(true)
-        .create(true)
-        .open(state_path)?;
-
-    // TODO: lock the file (SM-1028)
-
-    // Truncate the file and overwrite
-    file.set_len(0)?;
-    file.write_all(state_string.as_bytes())?;
-
-    Ok(())
+    std::fs::write(state_path, state_string)
+        .map_err(|_| Error::Internal("Failure writing to the state file."))
 }

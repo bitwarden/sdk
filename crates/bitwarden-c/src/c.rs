@@ -12,7 +12,6 @@ pub async extern "C" fn run_command(
 ) -> *mut c_char {
     let client = unsafe { ffi_ref!(client_ptr) };
     let input_str = str::from_utf8(unsafe { CStr::from_ptr(c_str_ptr).to_bytes() }).unwrap();
-    println!("{}", input_str);
 
     let result = client.run_command(input_str).await;
     match std::ffi::CString::new(result) {

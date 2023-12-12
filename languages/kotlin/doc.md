@@ -233,6 +233,19 @@ as it can be used to decrypt all of the user&#x27;s data
 
 **Output**: std::result::Result<String,BitwardenError>
 
+### `derive_pin_key`
+
+Generates a PIN protected user key from the provided PIN. The result can be stored and later used to
+initialize another client instance by using the PIN and the PIN key with
+&#x60;initialize_user_crypto&#x60;.
+
+**Arguments**:
+
+- self:
+- pin: String
+
+**Output**: std::result::Result<DerivePinKeyResponse,BitwardenError>
+
 ## ClientExporters
 
 ### `export_vault`
@@ -994,6 +1007,32 @@ implementations.
                 <td>decrypted_user_key</td>
                 <td>string</td>
                 <td>The user's decrypted encryption key, obtained using `get_user_encryption_key`</td>
+            </tr>
+        </table>
+    </td>
+</tr>
+<tr>
+    <th>pin</th>
+    <th>object</th>
+    <th></th>
+</tr>
+<tr>
+    <td colspan="3">
+        <table>
+        <tr>
+            <th>Key</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+            <tr>
+                <td>pin</td>
+                <td>string</td>
+                <td>The user's PIN</td>
+            </tr>
+            <tr>
+                <td>pin_protected_user_key</td>
+                <td></td>
+                <td>The user's symmetric crypto key, encrypted with the PIN. Use `derive_pin_key` to obtain this.</td>
             </tr>
         </table>
     </td>

@@ -233,6 +233,19 @@ as it can be used to decrypt all of the user&#x27;s data
 
 **Output**: std::result::Result<String,BitwardenError>
 
+### `derive_pin_key`
+
+Generates a PIN protected user key from the provided PIN. The result can be stored and later used to
+initialize another client instance by using the PIN and the PIN key with
+&#x60;initialize_user_crypto&#x60;.
+
+**Arguments**:
+
+- self:
+- pin: String
+
+**Output**: std::result::Result<DerivePinKeyResponse,BitwardenError>
+
 ## ClientExporters
 
 ### `export_vault`

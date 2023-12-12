@@ -48,6 +48,8 @@ impl ClientCrypto {
             .await?)
     }
 
+    /// Generates a PIN protected user key from the provided PIN. The result can be stored and later used
+    /// to initialize another client instance by using the PIN and the PIN key with `initialize_user_crypto`.
     pub async fn derive_pin_key(&self, pin: String) -> Result<DerivePinKeyResponse> {
         Ok(self.0 .0.write().await.crypto().derive_pin_key(pin).await?)
     }

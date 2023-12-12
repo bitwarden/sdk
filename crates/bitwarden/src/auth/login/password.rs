@@ -42,12 +42,12 @@ pub(crate) async fn login_password(
             r.access_token.clone(),
             r.refresh_token.clone(),
             r.expires_in,
-            LoginMethod::User(UserLoginMethod::Username {
-                client_id: "web".to_owned(),
-                email: input.email.to_owned(),
-                kdf: input.kdf.to_owned(),
-            }),
         );
+        client.set_login_method(LoginMethod::User(UserLoginMethod::Username {
+            client_id: "web".to_owned(),
+            email: input.email.to_owned(),
+            kdf: input.kdf.to_owned(),
+        }));
 
         let user_key: EncString = r.key.as_deref().unwrap().parse().unwrap();
         let private_key: EncString = r.private_key.as_deref().unwrap().parse().unwrap();

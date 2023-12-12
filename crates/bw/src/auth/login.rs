@@ -3,6 +3,7 @@ use bitwarden::{
         ApiKeyLoginRequest, PasswordLoginRequest, TwoFactorEmailRequest, TwoFactorProvider,
         TwoFactorRequest,
     },
+    platform::SyncRequest,
     Client,
 };
 use bitwarden_cli::text_prompt_when_none;
@@ -79,6 +80,13 @@ pub(crate) async fn login_password(mut client: Client, email: Option<String>) ->
     } else {
         debug!("{:?}", result);
     }
+
+    let res = client
+        .sync(&SyncRequest {
+            exclude_subdomains: Some(true),
+        })
+        .await?;
+    info!("{:#?}", res);
 
     Ok(())
 }

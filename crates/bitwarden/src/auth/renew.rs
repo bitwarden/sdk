@@ -57,13 +57,11 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
 
         match res {
             IdentityTokenResponse::Refreshed(r) => {
-                let login_method = login_method.to_owned();
-                client.set_tokens(r.access_token, r.refresh_token, r.expires_in, login_method);
+                client.set_tokens(r.access_token, r.refresh_token, r.expires_in);
                 return Ok(());
             }
             IdentityTokenResponse::Authenticated(r) => {
-                let login_method = login_method.to_owned();
-                client.set_tokens(r.access_token, r.refresh_token, r.expires_in, login_method);
+                client.set_tokens(r.access_token, r.refresh_token, r.expires_in);
                 return Ok(());
             }
             _ => {

@@ -1,14 +1,16 @@
 use bitwarden_api_api::models::{
-    CipherDetailsResponseModel, ProfileOrganizationResponseModel, ProfileResponseModel,
-    SyncResponseModel,
+    DomainsResponseModel, ProfileOrganizationResponseModel, ProfileResponseModel, SyncResponseModel,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use super::domain::GlobalDomains;
 use crate::{
+    admin_console::Policy,
     client::{encryption_settings::EncryptionSettings, Client},
     error::{Error, Result},
+    vault::{Cipher, Collection, Folder},
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -59,15 +61,23 @@ pub struct ProfileOrganizationResponse {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct CipherDetailsResponse {}
+pub struct DomainResponse {
+    pub equivalent_domains: Vec<Vec<String>>,
+    pub global_equivalent_domains: Vec<GlobalDomains>,
+}
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SyncResponse {
     /// Data about the user, including their encryption keys and the organizations they are a part of
     pub profile: ProfileResponse,
-    /// List of ciphers accesible by the user
-    pub ciphers: Vec<CipherDetailsResponse>,
+    pub folders: Vec<Folder>,
+    pub collections: Vec<Collection>,
+    /// List of ciphers accessible by the user
+    pub ciphers: Vec<Cipher>,
+    pub domains: Option<DomainResponse>,
+    pub policies: Vec<Policy>,
+    pub sends: Vec<crate::vault::Send>,
 }
 
 impl SyncResponse {
@@ -78,19 +88,24 @@ impl SyncResponse {
         let profile = *response.profile.ok_or(Error::MissingFields)?;
         let ciphers = response.ciphers.ok_or(Error::MissingFields)?;
 
+        fn try_into_iter<In, InItem, Out, OutItem>(iter: In) -> Result<Out, InItem::Error>
+        where
+            In: IntoIterator<Item = InItem>,
+            InItem: TryInto<OutItem>,
+            Out: FromIterator<OutItem>,
+        {
+            iter.into_iter().map(|i| i.try_into()).collect()
+        }
+
         Ok(SyncResponse {
             profile: ProfileResponse::process_response(profile, enc)?,
-            ciphers: ciphers
-                .into_iter()
-                .map(CipherDetailsResponse::process_response)
-                .collect::<Result<_, _>>()?,
+            folders: try_into_iter(response.folders.ok_or(Error::MissingFields)?)?,
+            collections: try_into_iter(response.collections.ok_or(Error::MissingFields)?)?,
+            ciphers: try_into_iter(ciphers)?,
+            domains: response.domains.map(|d| (*d).try_into()).transpose()?,
+            policies: try_into_iter(response.policies.ok_or(Error::MissingFields)?)?,
+            sends: try_into_iter(response.sends.ok_or(Error::MissingFields)?)?,
         })
-    }
-}
-
-impl CipherDetailsResponse {
-    fn process_response(_response: CipherDetailsResponseModel) -> Result<CipherDetailsResponse> {
-        Ok(CipherDetailsResponse {})
     }
 }
 
@@ -121,6 +136,21 @@ impl ProfileResponse {
                 .into_iter()
                 .map(ProfileOrganizationResponse::process_response)
                 .collect::<Result<_, _>>()?,
+        })
+    }
+}
+
+impl TryFrom<DomainsResponseModel> for DomainResponse {
+    type Error = Error;
+    fn try_from(value: DomainsResponseModel) -> Result<Self> {
+        Ok(Self {
+            equivalent_domains: value.equivalent_domains.unwrap_or_default(),
+            global_equivalent_domains: value
+                .global_equivalent_domains
+                .unwrap_or_default()
+                .into_iter()
+                .map(|s| s.try_into())
+                .collect::<Result<Vec<GlobalDomains>>>()?,
         })
     }
 }

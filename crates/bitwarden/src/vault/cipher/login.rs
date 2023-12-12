@@ -1,3 +1,4 @@
+use bitwarden_api_api::models::{CipherLoginModel, CipherLoginUriModel};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -5,7 +6,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::{
     crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
-    error::Result,
+    error::{Error, Result},
 };
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
@@ -104,5 +105,50 @@ impl KeyDecryptable<LoginView> for Login {
             totp: self.totp.decrypt_with_key(key)?,
             autofill_on_page_load: self.autofill_on_page_load,
         })
+    }
+}
+
+impl TryFrom<CipherLoginModel> for Login {
+    type Error = Error;
+
+    fn try_from(login: CipherLoginModel) -> Result<Self> {
+        Ok(Self {
+            username: EncString::try_from_optional(login.username)?,
+            password: EncString::try_from_optional(login.password)?,
+            password_revision_date: login
+                .password_revision_date
+                .map(|d| d.parse())
+                .transpose()?,
+            uris: login
+                .uris
+                .map(|v| v.into_iter().map(|u| u.try_into()).collect())
+                .transpose()?,
+            totp: EncString::try_from_optional(login.totp)?,
+            autofill_on_page_load: login.autofill_on_page_load,
+        })
+    }
+}
+
+impl TryFrom<CipherLoginUriModel> for LoginUri {
+    type Error = Error;
+
+    fn try_from(uri: CipherLoginUriModel) -> Result<Self> {
+        Ok(Self {
+            uri: EncString::try_from_optional(uri.uri)?,
+            r#match: uri.r#match.map(|m| m.into()),
+        })
+    }
+}
+
+impl From<bitwarden_api_api::models::UriMatchType> for UriMatchType {
+    fn from(value: bitwarden_api_api::models::UriMatchType) -> Self {
+        match value {
+            bitwarden_api_api::models::UriMatchType::Variant0 => Self::Domain,
+            bitwarden_api_api::models::UriMatchType::Variant1 => Self::Host,
+            bitwarden_api_api::models::UriMatchType::Variant2 => Self::StartsWith,
+            bitwarden_api_api::models::UriMatchType::Variant3 => Self::Exact,
+            bitwarden_api_api::models::UriMatchType::Variant4 => Self::RegularExpression,
+            bitwarden_api_api::models::UriMatchType::Variant5 => Self::Never,
+        }
     }
 }

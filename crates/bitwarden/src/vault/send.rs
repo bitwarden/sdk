@@ -1,3 +1,4 @@
+use bitwarden_api_api::models::{SendFileModel, SendResponseModel, SendTextModel};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -9,7 +10,7 @@ use crate::{
         derive_shareable_key, EncString, KeyDecryptable, KeyEncryptable, LocateKey,
         SymmetricCryptoKey,
     },
-    error::Result,
+    error::{Error, Result},
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -260,6 +261,64 @@ impl KeyEncryptable<Send> for SendView {
             revision_date: self.revision_date,
             deletion_date: self.deletion_date,
             expiration_date: self.expiration_date,
+        })
+    }
+}
+
+impl TryFrom<SendResponseModel> for Send {
+    type Error = Error;
+
+    fn try_from(send: SendResponseModel) -> Result<Self> {
+        Ok(Send {
+            id: send.id.ok_or(Error::MissingFields)?,
+            access_id: send.access_id.ok_or(Error::MissingFields)?,
+            name: send.name.ok_or(Error::MissingFields)?.parse()?,
+            notes: EncString::try_from_optional(send.notes)?,
+            key: send.key.ok_or(Error::MissingFields)?.parse()?,
+            password: send.password,
+            r#type: send.r#type.ok_or(Error::MissingFields)?.into(),
+            file: send.file.map(|f| (*f).try_into()).transpose()?,
+            text: send.text.map(|t| (*t).try_into()).transpose()?,
+            max_access_count: send.max_access_count.map(|s| s as u32),
+            access_count: send.access_count.ok_or(Error::MissingFields)? as u32,
+            disabled: send.disabled.unwrap_or(false),
+            hide_email: send.hide_email.unwrap_or(false),
+            revision_date: send.revision_date.ok_or(Error::MissingFields)?.parse()?,
+            deletion_date: send.deletion_date.ok_or(Error::MissingFields)?.parse()?,
+            expiration_date: send.expiration_date.map(|s| s.parse()).transpose()?,
+        })
+    }
+}
+
+impl From<bitwarden_api_api::models::SendType> for SendType {
+    fn from(t: bitwarden_api_api::models::SendType) -> Self {
+        match t {
+            bitwarden_api_api::models::SendType::Variant0 => SendType::Text,
+            bitwarden_api_api::models::SendType::Variant1 => SendType::File,
+        }
+    }
+}
+
+impl TryFrom<SendFileModel> for SendFile {
+    type Error = Error;
+
+    fn try_from(file: SendFileModel) -> Result<Self> {
+        Ok(SendFile {
+            id: file.id.ok_or(Error::MissingFields)?,
+            file_name: file.file_name.ok_or(Error::MissingFields)?.parse()?,
+            size: file.size.ok_or(Error::MissingFields)?.to_string(),
+            size_name: file.size_name.ok_or(Error::MissingFields)?,
+        })
+    }
+}
+
+impl TryFrom<SendTextModel> for SendText {
+    type Error = Error;
+
+    fn try_from(text: SendTextModel) -> Result<Self> {
+        Ok(SendText {
+            text: EncString::try_from_optional(text.text)?,
+            hidden: text.hidden.unwrap_or(false),
         })
     }
 }

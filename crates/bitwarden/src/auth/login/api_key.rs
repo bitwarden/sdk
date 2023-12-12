@@ -36,13 +36,13 @@ pub(crate) async fn login_api_key(
             r.access_token.clone(),
             r.refresh_token.clone(),
             r.expires_in,
-            LoginMethod::User(UserLoginMethod::ApiKey {
-                client_id: input.client_id.to_owned(),
-                client_secret: input.client_secret.to_owned(),
-                email,
-                kdf,
-            }),
         );
+        client.set_login_method(LoginMethod::User(UserLoginMethod::ApiKey {
+            client_id: input.client_id.to_owned(),
+            client_secret: input.client_secret.to_owned(),
+            email,
+            kdf,
+        }));
 
         let user_key: EncString = r.key.as_deref().unwrap().parse().unwrap();
         let private_key: EncString = r.private_key.as_deref().unwrap().parse().unwrap();

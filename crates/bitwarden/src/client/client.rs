@@ -29,7 +29,7 @@ pub(crate) struct ApiConfigurations {
     pub device_type: DeviceType,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub(crate) enum LoginMethod {
     #[cfg(feature = "internal")]
     User(UserLoginMethod),
@@ -38,7 +38,7 @@ pub(crate) enum LoginMethod {
     ServiceAccount(ServiceAccountLoginMethod),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 #[cfg(feature = "internal")]
 pub(crate) enum UserLoginMethod {
     Username {
@@ -55,7 +55,7 @@ pub(crate) enum UserLoginMethod {
     },
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub(crate) enum ServiceAccountLoginMethod {
     AccessToken {
         access_token_id: Uuid,
@@ -172,7 +172,6 @@ impl Client {
         self.encryption_settings.as_ref().ok_or(Error::VaultLocked)
     }
 
-    #[cfg(feature = "mobile")]
     pub(crate) fn set_login_method(&mut self, login_method: LoginMethod) {
         use log::debug;
 
@@ -185,12 +184,10 @@ impl Client {
         token: String,
         refresh_token: Option<String>,
         expires_in: u64,
-        login_method: LoginMethod,
     ) {
         self.token = Some(token.clone());
         self.refresh_token = refresh_token;
         self.token_expires_on = Some(Utc::now().timestamp() + expires_in as i64);
-        self.login_method = Some(login_method);
         self.__api_configurations.identity.oauth_access_token = Some(token.clone());
         self.__api_configurations.api.oauth_access_token = Some(token);
     }

@@ -72,7 +72,7 @@ jobs:
           workflow: build-cli.yml
           path: packages
           workflow_conclusion: success
-          branch: master
+          branch: main
 
       - name: Get checksum files
         uses: bitwarden/gh-actions/get-checksum@main

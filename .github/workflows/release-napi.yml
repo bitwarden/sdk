@@ -117,7 +117,7 @@ jobs:
           artifacts: schemas.ts
           path: ${{ github.workspace }}/crates/bitwarden-napi/src-ts/bitwarden_client/
           workflow_conclusion: success
-          branch: master
+          branch: main
 
       - name: Install dependencies
         run: npm ci
@@ -153,7 +153,7 @@ jobs:
           workflow: build-napi.yml
           path: ${{ github.workspace }}/crates/bitwarden-napi/artifacts
           workflow_conclusion: success
-          branch: master
+          branch: main
 
       - name: Move artifacts
         run: npm run artifacts

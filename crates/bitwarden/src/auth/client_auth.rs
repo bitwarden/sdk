@@ -1,8 +1,6 @@
 #[cfg(feature = "secrets")]
 use crate::auth::login::{login_access_token, AccessTokenLoginRequest, AccessTokenLoginResponse};
-
 use crate::{auth::renew::renew_token, error::Result, Client};
-
 #[cfg(feature = "internal")]
 use crate::{
     auth::{

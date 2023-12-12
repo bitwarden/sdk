@@ -137,7 +137,7 @@ fn load_tokens_from_state(
         }
     }
 
-    Err(Error::Internal("Could not log in from state."))
+    Err(Error::Internal("Could not load tokens from state."))
 }
 
 /// Login to Bitwarden with access token

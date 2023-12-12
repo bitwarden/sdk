@@ -58,12 +58,14 @@ pub(crate) async fn login_access_token(
             r.access_token.clone(),
             r.refresh_token.clone(),
             r.expires_in,
-            LoginMethod::ServiceAccount(ServiceAccountLoginMethod::AccessToken {
+        );
+        client.set_login_method(LoginMethod::ServiceAccount(
+            ServiceAccountLoginMethod::AccessToken {
                 access_token_id: access_token.access_token_id,
                 client_secret: access_token.client_secret,
                 organization_id,
-            }),
-        );
+            },
+        ));
 
         client.initialize_crypto_single_key(encryption_key);
     }

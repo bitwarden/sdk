@@ -141,7 +141,7 @@ impl Client {
         &mut self,
         input: &AccessTokenLoginRequest,
     ) -> Result<AccessTokenLoginResponse> {
-        self.auth().login_access_token(input, None).await
+        self.auth().login_access_token(input).await
     }
 
     #[cfg(feature = "internal")]

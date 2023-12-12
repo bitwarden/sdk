@@ -333,10 +333,10 @@ async fn process_commands() -> Result<()> {
     // Load session or return if no session exists
     let _ = client
         .auth()
-        .login_access_token(
-            &AccessTokenLoginRequest { access_token },
-            Some(&state_file_path),
-        )
+        .login_access_token(&AccessTokenLoginRequest {
+            access_token,
+            state_file: Some(state_file_path),
+        })
         .await?;
 
     let organization_id = match client.get_access_token_organization() {

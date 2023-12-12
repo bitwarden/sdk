@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use base64::Engine;
 use chrono::Utc;
@@ -23,15 +23,14 @@ use crate::{
 pub(crate) async fn login_access_token(
     client: &mut Client,
     input: &AccessTokenLoginRequest,
-    state_file: Option<&Path>,
 ) -> Result<AccessTokenLoginResponse> {
     //info!("api key logging in");
     //debug!("{:#?}, {:#?}", client, input);
 
     let access_token: AccessToken = input.access_token.parse()?;
 
-    if let Some(state_file) = state_file {
-        if let Ok(organization_id) = load_tokens_from_state(client, state_file, &access_token) {
+    if let Some(state_file) = input.state_file.clone() {
+        if let Ok(organization_id) = load_tokens_from_state(client, &state_file, &access_token) {
             client.set_login_method(LoginMethod::ServiceAccount(
                 ServiceAccountLoginMethod::AccessToken {
                     access_token,
@@ -77,9 +76,9 @@ pub(crate) async fn login_access_token(
             .parse()
             .map_err(|_| Error::InvalidResponse)?;
 
-        if let Some(state_file) = state_file {
+        if let Some(state_file) = input.state_file.clone() {
             let state = state::ClientState::new(r.access_token.clone(), payload.encryption_key);
-            _ = state::set(state_file, &access_token, state);
+            _ = state::set(&state_file, &access_token, state);
         }
 
         client.set_tokens(
@@ -91,7 +90,7 @@ pub(crate) async fn login_access_token(
             ServiceAccountLoginMethod::AccessToken {
                 access_token,
                 organization_id,
-                state_file: state_file.map(|sf| sf.to_path_buf()),
+                state_file: input.state_file.clone().map(|sf| sf.to_path_buf()),
             },
         ));
 
@@ -147,6 +146,7 @@ fn load_tokens_from_state(
 pub struct AccessTokenLoginRequest {
     /// Bitwarden service API access token
     pub access_token: String,
+    pub state_file: Option<PathBuf>,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

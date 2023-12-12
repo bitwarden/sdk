@@ -10,11 +10,10 @@ pub(crate) fn get_state_file_path(
     access_token_id: String,
 ) -> PathBuf {
     let state_file_path = match state_file_dir {
-        Some(sfd) => {
-            let mut state_file_path = sfd;
-            state_file_path.push(access_token_id);
+        Some(mut sfd) => {
+            sfd.push(access_token_id);
 
-            state_file_path
+            sfd
         }
         None => {
             let base_dirs = BaseDirs::new().unwrap();

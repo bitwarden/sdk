@@ -128,8 +128,7 @@ fn load_tokens_from_state(
                 let organization_id: Uuid = organization_id
                     .parse()
                     .map_err(|_| Error::Internal("Bad organization id."))?;
-                let encryption_key = BASE64_ENGINE.decode(client_state.encryption_key)?;
-                let encryption_key = SymmetricCryptoKey::try_from(encryption_key.as_slice())?;
+                let encryption_key: SymmetricCryptoKey = client_state.encryption_key.parse()?;
 
                 client.set_tokens(client_state.token, None, time_till_expiration as u64);
                 client.initialize_crypto_single_key(encryption_key);

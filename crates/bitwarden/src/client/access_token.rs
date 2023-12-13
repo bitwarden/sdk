@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{fmt::Debug, str::FromStr};
 
 use base64::Engine;
 use uuid::Uuid;
@@ -13,6 +13,15 @@ pub struct AccessToken {
     pub access_token_id: Uuid,
     pub client_secret: String,
     pub encryption_key: SymmetricCryptoKey,
+}
+
+// We don't want to log the more sensitive fields from an AccessToken
+impl Debug for AccessToken {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AccessToken")
+            .field("access_token_id", &self.access_token_id)
+            .finish()
+    }
 }
 
 impl FromStr for AccessToken {

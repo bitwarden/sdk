@@ -1,3 +1,4 @@
+use bitwarden_api_api::models::{SendFileModel, SendResponseModel, SendTextModel};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -9,7 +10,7 @@ use crate::{
         derive_shareable_key, EncString, KeyDecryptable, KeyEncryptable, LocateKey,
         SymmetricCryptoKey,
     },
-    error::Result,
+    error::{Error, Result},
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -264,6 +265,64 @@ impl KeyEncryptable<Send> for SendView {
     }
 }
 
+impl TryFrom<SendResponseModel> for Send {
+    type Error = Error;
+
+    fn try_from(send: SendResponseModel) -> Result<Self> {
+        Ok(Send {
+            id: send.id.ok_or(Error::MissingFields)?,
+            access_id: send.access_id.ok_or(Error::MissingFields)?,
+            name: send.name.ok_or(Error::MissingFields)?.parse()?,
+            notes: EncString::try_from_optional(send.notes)?,
+            key: send.key.ok_or(Error::MissingFields)?.parse()?,
+            password: send.password,
+            r#type: send.r#type.ok_or(Error::MissingFields)?.into(),
+            file: send.file.map(|f| (*f).try_into()).transpose()?,
+            text: send.text.map(|t| (*t).try_into()).transpose()?,
+            max_access_count: send.max_access_count.map(|s| s as u32),
+            access_count: send.access_count.ok_or(Error::MissingFields)? as u32,
+            disabled: send.disabled.unwrap_or(false),
+            hide_email: send.hide_email.unwrap_or(false),
+            revision_date: send.revision_date.ok_or(Error::MissingFields)?.parse()?,
+            deletion_date: send.deletion_date.ok_or(Error::MissingFields)?.parse()?,
+            expiration_date: send.expiration_date.map(|s| s.parse()).transpose()?,
+        })
+    }
+}
+
+impl From<bitwarden_api_api::models::SendType> for SendType {
+    fn from(t: bitwarden_api_api::models::SendType) -> Self {
+        match t {
+            bitwarden_api_api::models::SendType::Variant0 => SendType::Text,
+            bitwarden_api_api::models::SendType::Variant1 => SendType::File,
+        }
+    }
+}
+
+impl TryFrom<SendFileModel> for SendFile {
+    type Error = Error;
+
+    fn try_from(file: SendFileModel) -> Result<Self> {
+        Ok(SendFile {
+            id: file.id.ok_or(Error::MissingFields)?,
+            file_name: file.file_name.ok_or(Error::MissingFields)?.parse()?,
+            size: file.size.ok_or(Error::MissingFields)?.to_string(),
+            size_name: file.size_name.ok_or(Error::MissingFields)?,
+        })
+    }
+}
+
+impl TryFrom<SendTextModel> for SendText {
+    type Error = Error;
+
+    fn try_from(text: SendTextModel) -> Result<Self> {
+        Ok(SendText {
+            text: EncString::try_from_optional(text.text)?,
+            hidden: text.hidden.unwrap_or(false),
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::Send;
@@ -280,7 +339,7 @@ mod tests {
                     iterations: 345123.try_into().unwrap(),
                 },
             },
-            "asdfasdfasdf".into(),
+            "asdfasdfasdf",
             "2.majkL1/hNz9yptLqNAUSnw==|RiOzMTTJMG948qu8O3Zm1EQUO2E8BuTwFKnO9LWQjMzxMWJM5GbyOq2/A+tumPbTERt4JWur/FKfgHb+gXuYiEYlXPMuVBvT7nv4LPytJuM=|IVqMxHJeR1ZXY0sGngTC0x+WqbG8p6V+BTrdgBbQXjM=".parse().unwrap(),
             "2.kmLY8NJVuiKBFJtNd/ZFpA==|qOodlRXER+9ogCe3yOibRHmUcSNvjSKhdDuztLlucs10jLiNoVVVAc+9KfNErLSpx5wmUF1hBOJM8zwVPjgQTrmnNf/wuDpwiaCxNYb/0v4FygPy7ccAHK94xP1lfqq7U9+tv+/yiZSwgcT+xF0wFpoxQeNdNRFzPTuD9o4134n8bzacD9DV/WjcrXfRjbBCzzuUGj1e78+A7BWN7/5IWLz87KWk8G7O/W4+8PtEzlwkru6Wd1xO19GYU18oArCWCNoegSmcGn7w7NDEXlwD403oY8Oa7ylnbqGE28PVJx+HLPNIdSC6YKXeIOMnVs7Mctd/wXC93zGxAWD6ooTCzHSPVV50zKJmWIG2cVVUS7j35H3rGDtUHLI+ASXMEux9REZB8CdVOZMzp2wYeiOpggebJy6MKOZqPT1R3X0fqF2dHtRFPXrNsVr1Qt6bS9qTyO4ag1/BCvXF3P1uJEsI812BFAne3cYHy5bIOxuozPfipJrTb5WH35bxhElqwT3y/o/6JWOGg3HLDun31YmiZ2HScAsUAcEkA4hhoTNnqy4O2s3yVbCcR7jF7NLsbQc0MDTbnjxTdI4VnqUIn8s2c9hIJy/j80pmO9Bjxp+LQ9a2hUkfHgFhgHxZUVaeGVth8zG2kkgGdrp5VHhxMVFfvB26Ka6q6qE/UcS2lONSv+4T8niVRJz57qwctj8MNOkA3PTEfe/DP/LKMefke31YfT0xogHsLhDkx+mS8FCc01HReTjKLktk/Jh9mXwC5oKwueWWwlxI935ecn+3I2kAuOfMsgPLkoEBlwgiREC1pM7VVX1x8WmzIQVQTHd4iwnX96QewYckGRfNYWz/zwvWnjWlfcg8kRSe+68EHOGeRtC5r27fWLqRc0HNcjwpgHkI/b6czerCe8+07TWql4keJxJxhBYj3iOH7r9ZS8ck51XnOb8tGL1isimAJXodYGzakwktqHAD7MZhS+P02O+6jrg7d+yPC2ZCuS/3TOplYOCHQIhnZtR87PXTUwr83zfOwAwCyv6KP84JUQ45+DItrXLap7nOVZKQ5QxYIlbThAO6eima6Zu5XHfqGPMNWv0bLf5+vAjIa5np5DJrSwz9no/hj6CUh0iyI+SJq4RGI60lKtypMvF6MR3nHLEHOycRUQbZIyTHWl4QQLdHzuwN9lv10ouTEvNr6sFflAX2yb6w3hlCo7oBytH3rJekjb3IIOzBpeTPIejxzVlh0N9OT5MZdh4sNKYHUoWJ8mnfjdM+L4j5Q2Kgk/XiGDgEebkUxiEOQUdVpePF5uSCE+TPav/9FIRGXGiFn6NJMaU7aBsDTFBLloffFLYDpd8/bTwoSvifkj7buwLYM+h/qcnfdy5FWau1cKav+Blq/ZC0qBpo658RTC8ZtseAFDgXoQZuksM10hpP9bzD04Bx30xTGX81QbaSTNwSEEVrOtIhbDrj9OI43KH4O6zLzK+t30QxAv5zjk10RZ4+5SAdYndIlld9Y62opCfPDzRy3ubdve4ZEchpIKWTQvIxq3T5ogOhGaWBVYnkMtM2GVqvWV//46gET5SH/MdcwhACUcZ9kCpMnWH9CyyUwYvTT3UlNyV+DlS27LMPvaw7tx7qa+GfNCoCBd8S4esZpQYK/WReiS8=|pc7qpD42wxyXemdNPuwxbh8iIaryrBPu8f/DGwYdHTw=".parse().unwrap(),
         ).unwrap();

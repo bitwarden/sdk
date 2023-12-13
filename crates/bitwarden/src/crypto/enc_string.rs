@@ -4,13 +4,12 @@ use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::Engine;
 use serde::{de::Visitor, Deserialize};
 
+use super::{KeyDecryptable, KeyEncryptable, LocateKey};
 use crate::{
     crypto::{decrypt_aes256_hmac, SymmetricCryptoKey},
     error::{CryptoError, EncStringParseError, Error, Result},
     util::BASE64_ENGINE,
 };
-
-use super::{KeyDecryptable, KeyEncryptable, LocateKey};
 
 /// # Encrypted string primitive
 ///
@@ -165,6 +164,12 @@ impl FromStr for EncString {
 }
 
 impl EncString {
+    /// Synthetic sugar for mapping `Option<String>` to `Result<Option<EncString>>`
+    #[cfg(feature = "internal")]
+    pub(crate) fn try_from_optional(s: Option<String>) -> Result<Option<EncString>, Error> {
+        s.map(|s| s.parse()).transpose()
+    }
+
     #[cfg(feature = "mobile")]
     pub(crate) fn from_buffer(buf: &[u8]) -> Result<Self> {
         if buf.is_empty() {
@@ -397,11 +402,22 @@ impl KeyDecryptable<String> for EncString {
     }
 }
 
+/// Usually we wouldn't want to expose EncStrings in the API or the schemas.
+/// But during the transition phase we will expose endpoints using the EncString type.
+impl schemars::JsonSchema for crate::crypto::EncString {
+    fn schema_name() -> String {
+        "EncString".to_string()
+    }
+
+    fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+        gen.subschema_for::<String>()
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::crypto::{KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
-
     use super::EncString;
+    use crate::crypto::{KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
 
     #[test]
     fn test_enc_string_roundtrip() {

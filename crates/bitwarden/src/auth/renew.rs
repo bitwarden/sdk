@@ -43,27 +43,24 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
                 }
             },
             LoginMethod::ServiceAccount(s) => match s {
-                ServiceAccountLoginMethod::AccessToken {
-                    access_token_id,
-                    client_secret,
-                    ..
-                } => {
-                    AccessTokenRequest::new(*access_token_id, client_secret)
-                        .send(&client.__api_configurations)
-                        .await?
+                ServiceAccountLoginMethod::AccessToken { access_token, .. } => {
+                    AccessTokenRequest::new(
+                        access_token.access_token_id,
+                        &access_token.client_secret,
+                    )
+                    .send(&client.__api_configurations)
+                    .await?
                 }
             },
         };
 
         match res {
             IdentityTokenResponse::Refreshed(r) => {
-                let login_method = login_method.to_owned();
-                client.set_tokens(r.access_token, r.refresh_token, r.expires_in, login_method);
+                client.set_tokens(r.access_token, r.refresh_token, r.expires_in);
                 return Ok(());
             }
             IdentityTokenResponse::Authenticated(r) => {
-                let login_method = login_method.to_owned();
-                client.set_tokens(r.access_token, r.refresh_token, r.expires_in, login_method);
+                client.set_tokens(r.access_token, r.refresh_token, r.expires_in);
                 return Ok(());
             }
             _ => {

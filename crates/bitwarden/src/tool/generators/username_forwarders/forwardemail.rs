@@ -6,6 +6,7 @@ use crate::{
     util::BASE64_ENGINE,
 };
 pub async fn generate(
+    http: &reqwest::Client,
     api_token: String,
     domain: String,
     website: Option<String>,
@@ -31,7 +32,7 @@ pub async fn generate(
         description: String,
     }
 
-    let response = reqwest::Client::new()
+    let response = http
         .post(format!(
             "https://api.forwardemail.net/v1/domains/${domain}/aliases"
         ))

@@ -87,7 +87,10 @@ pub struct UsernameGeneratorRequest {
     pub r#type: UsernameGeneratorType,
 }
 
-pub(super) async fn username(input: UsernameGeneratorRequest) -> Result<String> {
+pub(super) async fn username(
+    input: UsernameGeneratorRequest,
+    http: &reqwest::Client,
+) -> Result<String> {
     use rand::thread_rng;
     use UsernameGeneratorType::*;
 
@@ -110,14 +113,14 @@ pub(super) async fn username(input: UsernameGeneratorRequest) -> Result<String> 
                     api_token,
                     domain,
                     base_url,
-                } => addyio::generate(api_token, domain, base_url, website).await,
-                DuckDuckGo { token } => duckduckgo::generate(token).await,
-                Firefox { api_token } => firefox::generate(api_token, website).await,
-                Fastmail { api_token } => fastmail::generate(api_token, website).await,
+                } => addyio::generate(http, api_token, domain, base_url, website).await,
+                DuckDuckGo { token } => duckduckgo::generate(http, token).await,
+                Firefox { api_token } => firefox::generate(http, api_token, website).await,
+                Fastmail { api_token } => fastmail::generate(http, api_token, website).await,
                 ForwardEmail { api_token, domain } => {
-                    forwardemail::generate(api_token, domain, website).await
+                    forwardemail::generate(http, api_token, domain, website).await
                 }
-                SimpleLogin { api_key } => simplelogin::generate(api_key, website).await,
+                SimpleLogin { api_key } => simplelogin::generate(http, api_key, website).await,
             }
         }
     }

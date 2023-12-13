@@ -4,16 +4,18 @@ use reqwest::{header::CONTENT_TYPE, StatusCode};
 use serde_json::json;
 
 use crate::error::{Error, Result};
-pub async fn generate(api_token: String, website: Option<String>) -> Result<String> {
+pub async fn generate(
+    http: &reqwest::Client,
+    api_token: String,
+    website: Option<String>,
+) -> Result<String> {
     if api_token.is_empty() {
         return Err(Error::Internal("Invalid Fastmail API token"));
     }
 
-    let mut client = reqwest::Client::new();
+    let account_id = get_account_id(http, &api_token).await?;
 
-    let account_id = get_account_id(&mut client, &api_token).await?;
-
-    let response = reqwest::Client::new()
+    let response = http
         .post("https://api.fastmail.com/jmap/api/")
         .header(CONTENT_TYPE, "application/json")
         .bearer_auth(api_token)
@@ -82,7 +84,7 @@ pub async fn generate(api_token: String, website: Option<String>) -> Result<Stri
     Err(Error::Internal("Unknown Fastmail error occurred."))
 }
 
-async fn get_account_id(client: &mut reqwest::Client, api_token: &str) -> Result<String> {
+async fn get_account_id(client: &reqwest::Client, api_token: &str) -> Result<String> {
     #[derive(serde::Deserialize)]
     struct Response {
         #[serde(rename = "primaryAccounts")]

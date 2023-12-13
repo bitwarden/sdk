@@ -9,7 +9,7 @@ use crate::{
 };
 
 pub struct ClientGenerator<'a> {
-    pub(crate) _client: &'a crate::Client,
+    pub(crate) client: &'a crate::Client,
 }
 
 impl<'a> ClientGenerator<'a> {
@@ -84,12 +84,12 @@ impl<'a> ClientGenerator<'a> {
     /// }
     /// ```
     pub async fn username(&self, input: UsernameGeneratorRequest) -> Result<String> {
-        username(input).await
+        username(input, self.client.get_http_client()).await
     }
 }
 
 impl<'a> Client {
     pub fn generator(&'a self) -> ClientGenerator<'a> {
-        ClientGenerator { _client: self }
+        ClientGenerator { client: self }
     }
 }

@@ -1,7 +1,11 @@
 use reqwest::{header::CONTENT_TYPE, StatusCode};
 
 use crate::error::{Error, Result};
-pub async fn generate(api_key: String, website: Option<String>) -> Result<String> {
+pub async fn generate(
+    http: &reqwest::Client,
+    api_key: String,
+    website: Option<String>,
+) -> Result<String> {
     if api_key.is_empty() {
         return Err(Error::Internal("Invalid SimpleLogin API key."));
     }
@@ -22,7 +26,7 @@ pub async fn generate(api_key: String, website: Option<String>) -> Result<String
         note: String,
     }
 
-    let response = reqwest::Client::new()
+    let response = http
         .post(format!(
             "https://app.simplelogin.io/api/alias/random/new{query}"
         ))

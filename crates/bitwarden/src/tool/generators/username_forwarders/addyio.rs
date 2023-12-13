@@ -2,6 +2,7 @@ use reqwest::{header::CONTENT_TYPE, StatusCode};
 
 use crate::error::{Error, Result};
 pub async fn generate(
+    http: &reqwest::Client,
     api_token: String,
     domain: String,
     base_url: String,
@@ -29,7 +30,7 @@ pub async fn generate(
         description: String,
     }
 
-    let response = reqwest::Client::new()
+    let response = http
         .post(format!("{base_url}/api/v1/aliases"))
         .header(CONTENT_TYPE, "application/json")
         .bearer_auth(api_token)

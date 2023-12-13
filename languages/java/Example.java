@@ -12,6 +12,7 @@ class Example {
         String apiUrl = System.getenv("API_URL");
         String identityUrl = System.getenv("IDENTITY_URL");
 
+        // Configuring the URLS is optional, remove them to use the default values
         BitwardenSettings bitwardenSettings = new BitwardenSettings();
         bitwardenSettings.setApiUrl(apiUrl);
         bitwardenSettings.setIdentityUrl(identityUrl);

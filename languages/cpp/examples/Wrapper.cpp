@@ -18,7 +18,7 @@ int main() {
     std::string accessToken = accessTokenEnv;
     std::string organizationId = organizationIdEnv;
 
-    // Optional - Remove it to use default values
+    // Configuring the URLS is optional, remove them to use the default values
     BitwardenSettings bitwardenSettings;
     bitwardenSettings.set_api_url(apiUrl);
     bitwardenSettings.set_identity_url(identityUrl);

@@ -5,6 +5,7 @@ require_once 'vendor/autoload.php';
 $access_token = getenv('ACCESS_TOKEN');
 $organization_id = getenv('ORGANIZATION_ID');
 
+// Configuring the URLS is optional, set them to null to use the default values
 $api_url = getenv('API_URL');
 $identity_url = getenv('IDENTITY_URL');
 

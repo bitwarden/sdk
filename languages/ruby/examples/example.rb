@@ -4,6 +4,7 @@ require 'bitwarden-sdk'
 token = ENV['ACCESS_TOKEN']
 organization_id = ENV['ORGANIZATION_ID']
 
+# Configuring the URLS is optional, set them to nil to use the default values
 api_url = ENV['API_URL']
 identity_url = ENV['IDENTITY_URL']
 

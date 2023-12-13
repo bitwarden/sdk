@@ -1,8 +1,8 @@
 import json
 import logging
 import sys
-from BitwardenClient.bitwarden_client import BitwardenClient
-from BitwardenClient.schemas import client_settings_from_dict, DeviceType
+from bitwarden_sdk.bitwarden_client import BitwardenClient
+from bitwarden_sdk.schemas import client_settings_from_dict, DeviceType
 
 # Create the BitwardenClient, which is used to interact with the SDK
 client = BitwardenClient(client_settings_from_dict({

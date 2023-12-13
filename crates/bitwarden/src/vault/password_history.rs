@@ -1,10 +1,11 @@
+use bitwarden_api_api::models::CipherPasswordHistoryModel;
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
     crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey},
-    error::Result,
+    error::{Error, Result},
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -39,6 +40,17 @@ impl KeyDecryptable<PasswordHistoryView> for PasswordHistory {
         Ok(PasswordHistoryView {
             password: self.password.decrypt_with_key(key)?,
             last_used_date: self.last_used_date,
+        })
+    }
+}
+
+impl TryFrom<CipherPasswordHistoryModel> for PasswordHistory {
+    type Error = Error;
+
+    fn try_from(model: CipherPasswordHistoryModel) -> Result<Self> {
+        Ok(Self {
+            password: model.password.parse()?,
+            last_used_date: model.last_used_date.parse()?,
         })
     }
 }

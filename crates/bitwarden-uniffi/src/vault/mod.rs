@@ -3,7 +3,7 @@ use std::sync::Arc;
 use bitwarden::vault::TotpResponse;
 use chrono::{DateTime, Utc};
 
-use crate::Client;
+use crate::{error::Result, Client};
 
 pub mod ciphers;
 pub mod collections;
@@ -14,7 +14,7 @@ pub mod sends;
 #[derive(uniffi::Object)]
 pub struct ClientVault(pub(crate) Arc<Client>);
 
-#[uniffi::export]
+#[uniffi::export(async_runtime = "tokio")]
 impl ClientVault {
     /// Folder operations
     pub fn folders(self: Arc<Self>) -> Arc<folders::ClientFolders> {
@@ -47,13 +47,11 @@ impl ClientVault {
     /// - A base32 encoded string
     /// - OTP Auth URI
     /// - Steam URI
-    pub async fn generate_totp(&self, key: String, time: Option<DateTime<Utc>>) -> TotpResponse {
-        self.0
-             .0
-            .read()
-            .await
-            .vault()
-            .generate_totp(key, time)
-            .await
+    pub async fn generate_totp(
+        &self,
+        key: String,
+        time: Option<DateTime<Utc>>,
+    ) -> Result<TotpResponse> {
+        Ok(self.0 .0.read().await.vault().generate_totp(key, time)?)
     }
 }

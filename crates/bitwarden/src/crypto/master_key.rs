@@ -1,6 +1,7 @@
 use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::Engine;
 use rand::Rng;
+use schemars::JsonSchema;
 use sha2::Digest;
 
 use super::{
@@ -9,10 +10,11 @@ use super::{
 };
 use crate::{client::kdf::Kdf, error::Result, util::BASE64_ENGINE};
 
-#[derive(Copy, Clone)]
-pub(crate) enum HashPurpose {
+#[derive(Copy, Clone, JsonSchema)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+pub enum HashPurpose {
     ServerAuthorization = 1,
-    // LocalAuthorization = 2,
+    LocalAuthorization = 2,
 }
 
 /// A Master Key.
@@ -50,6 +52,16 @@ impl MasterKey {
         let dec: Vec<u8> = user_key.decrypt_with_key(&stretched_key)?;
         SymmetricCryptoKey::try_from(dec.as_slice())
     }
+
+    pub(crate) fn encrypt_user_key(&self, user_key: &SymmetricCryptoKey) -> Result<EncString> {
+        let stretched_key = stretch_master_key(self)?;
+
+        EncString::encrypt_aes256_hmac(
+            user_key.to_vec().as_slice(),
+            stretched_key.mac_key.unwrap(),
+            stretched_key.key,
+        )
+    }
 }
 
 /// Generate a new random user key and encrypt it with the master key.
@@ -60,15 +72,9 @@ fn make_user_key(
     let mut user_key = [0u8; 64];
     rng.fill(&mut user_key);
 
-    let stretched_key = stretch_master_key(master_key)?;
-    let protected = EncString::encrypt_aes256_hmac(
-        &user_key,
-        stretched_key.mac_key.unwrap(),
-        stretched_key.key,
-    )?;
-
-    let u: &[u8] = &user_key;
-    Ok((UserKey::new(SymmetricCryptoKey::try_from(u)?), protected))
+    let user_key = SymmetricCryptoKey::try_from(user_key.as_slice())?;
+    let protected = master_key.encrypt_user_key(&user_key)?;
+    Ok((UserKey::new(user_key), protected))
 }
 
 /// Derive a generic key from a secret and salt using the provided KDF.
@@ -280,6 +286,25 @@ mod tests {
         );
         assert_eq!(
             decrypted.mac_key, user_key.0.mac_key,
+            "Decrypted key doesn't match user key"
+        );
+    }
+
+    #[test]
+    fn test_make_user_key2() {
+        let master_key = MasterKey(SymmetricCryptoKey::generate("test1"));
+
+        let user_key = SymmetricCryptoKey::generate("test2");
+
+        let encrypted = master_key.encrypt_user_key(&user_key).unwrap();
+        let decrypted = master_key.decrypt_user_key(encrypted).unwrap();
+
+        assert_eq!(
+            decrypted.key, user_key.key,
+            "Decrypted key doesn't match user key"
+        );
+        assert_eq!(
+            decrypted.mac_key, user_key.mac_key,
             "Decrypted key doesn't match user key"
         );
     }

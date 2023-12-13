@@ -1,4 +1,4 @@
-use std::time::{Duration, Instant};
+use chrono::Utc;
 
 #[cfg(feature = "internal")]
 use crate::{auth::api::request::ApiTokenRequest, client::UserLoginMethod};
@@ -9,10 +9,10 @@ use crate::{
 };
 
 pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
-    const TOKEN_RENEW_MARGIN: Duration = Duration::from_secs(5 * 60);
+    const TOKEN_RENEW_MARGIN_SECONDS: i64 = 5 * 60;
 
     if let (Some(expires), Some(login_method)) = (&client.token_expires_in, &client.login_method) {
-        if expires > &(Instant::now() + TOKEN_RENEW_MARGIN) {
+        if Utc::now().timestamp() < expires - TOKEN_RENEW_MARGIN_SECONDS {
             return Ok(());
         }
 
@@ -43,27 +43,24 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
                 }
             },
             LoginMethod::ServiceAccount(s) => match s {
-                ServiceAccountLoginMethod::AccessToken {
-                    service_account_id,
-                    client_secret,
-                    ..
-                } => {
-                    AccessTokenRequest::new(*service_account_id, client_secret)
-                        .send(&client.__api_configurations)
-                        .await?
+                ServiceAccountLoginMethod::AccessToken { access_token, .. } => {
+                    AccessTokenRequest::new(
+                        access_token.access_token_id,
+                        &access_token.client_secret,
+                    )
+                    .send(&client.__api_configurations)
+                    .await?
                 }
             },
         };
 
         match res {
             IdentityTokenResponse::Refreshed(r) => {
-                let login_method = login_method.to_owned();
-                client.set_tokens(r.access_token, r.refresh_token, r.expires_in, login_method);
+                client.set_tokens(r.access_token, r.refresh_token, r.expires_in);
                 return Ok(());
             }
             IdentityTokenResponse::Authenticated(r) => {
-                let login_method = login_method.to_owned();
-                client.set_tokens(r.access_token, r.refresh_token, r.expires_in, login_method);
+                client.set_tokens(r.access_token, r.refresh_token, r.expires_in);
                 return Ok(());
             }
             _ => {

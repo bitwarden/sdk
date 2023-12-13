@@ -10,7 +10,7 @@ use crate::{error::Result, Client};
 #[derive(uniffi::Object)]
 pub struct ClientGenerators(pub(crate) Arc<Client>);
 
-#[uniffi::export]
+#[uniffi::export(async_runtime = "tokio")]
 impl ClientGenerators {
     /// **API Draft:** Generate Password
     pub async fn password(&self, settings: PasswordGeneratorRequest) -> Result<String> {
@@ -40,7 +40,7 @@ impl ClientGenerators {
 #[derive(uniffi::Object)]
 pub struct ClientExporters(pub(crate) Arc<Client>);
 
-#[uniffi::export]
+#[uniffi::export(async_runtime = "tokio")]
 impl ClientExporters {
     /// **API Draft:** Export user vault
     pub async fn export_vault(

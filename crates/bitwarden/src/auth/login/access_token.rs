@@ -58,12 +58,13 @@ pub(crate) async fn login_access_token(
             r.access_token.clone(),
             r.refresh_token.clone(),
             r.expires_in,
-            LoginMethod::ServiceAccount(ServiceAccountLoginMethod::AccessToken {
-                service_account_id: access_token.service_account_id,
-                client_secret: access_token.client_secret,
-                organization_id,
-            }),
         );
+        client.set_login_method(LoginMethod::ServiceAccount(
+            ServiceAccountLoginMethod::AccessToken {
+                access_token,
+                organization_id,
+            },
+        ));
 
         client.initialize_crypto_single_key(encryption_key);
     }
@@ -76,7 +77,7 @@ async fn request_access_token(
     input: &AccessToken,
 ) -> Result<IdentityTokenResponse> {
     let config = client.get_api_configurations().await;
-    AccessTokenRequest::new(input.service_account_id, &input.client_secret)
+    AccessTokenRequest::new(input.access_token_id, &input.client_secret)
         .send(config)
         .await
 }

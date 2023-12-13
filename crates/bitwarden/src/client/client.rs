@@ -86,8 +86,14 @@ impl Client {
 
         let headers = header::HeaderMap::new();
 
+        #[allow(unused_mut)]
         let mut client_builder = reqwest::Client::builder().default_headers(headers);
-        #[cfg(all(not(target_os = "windows"), not(target_os = "android")))]
+
+        #[cfg(all(
+            not(target_os = "windows"),
+            not(target_os = "android"),
+            not(target_arch = "wasm32")
+        ))]
         {
             client_builder =
                 client_builder.use_preconfigured_tls(rustls_platform_verifier::tls_config());

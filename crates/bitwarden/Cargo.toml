@@ -62,8 +62,12 @@ thiserror = ">=1.0.40, <2.0"
 uniffi = { version = "=0.25.2", optional = true, features = ["tokio"] }
 uuid = { version = ">=1.3.3, <2.0", features = ["serde"] }
 
-[target.'cfg(all(not(target_os = "windows"), not(target_os = "android")))'.dependencies]
-# On non-windows/android platforms, we use rustls as the TLS stack, and rust-platform-verifier to support user-installed root certificates
+[target.'cfg(all(not(target_os = "windows"), not(target_os = "android"), not(target_arch="wasm32")))'.dependencies]
+# By default, we use rustls as the TLS stack and rust-platform-verifier to support user-installed root certificates
+# There are a few exceptions to this:
+# - Windows uses the native TLS stack
+# - WASM doesn't require a TLS stack, as it just uses the browsers/node fetch
+# - Android uses webpki-roots for the moment
 reqwest = { version = "*", features = [
     "rustls-tls-manual-roots",
 ], default-features = false }

@@ -272,7 +272,7 @@ async fn process_commands() -> Result<()> {
                 profile
             } else if let Some(access_token) = cli.access_token {
                 AccessToken::from_str(&access_token)?
-                    .service_account_id
+                    .access_token_id
                     .to_string()
             } else {
                 String::from("default")
@@ -619,7 +619,7 @@ fn get_config_profile(
             profile.to_owned()
         } else {
             AccessToken::from_str(access_token)?
-                .service_account_id
+                .access_token_id
                 .to_string()
         };
 

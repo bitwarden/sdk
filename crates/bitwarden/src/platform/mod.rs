@@ -1,3 +1,4 @@
+mod domain;
 mod generate_fingerprint;
 mod get_user_api_key;
 mod secret_verification_request;

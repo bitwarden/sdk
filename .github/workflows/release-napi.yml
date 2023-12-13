@@ -117,7 +117,7 @@ jobs:
           artifacts: schemas.ts
           path: ${{ github.workspace }}/crates/bitwarden-napi/src-ts/bitwarden_client/
           workflow_conclusion: success
-          branch: master
+          branch: main
 
       - name: Install dependencies
         run: npm ci
@@ -126,7 +126,7 @@ jobs:
         run: npm run tsc
 
       - name: Login to Azure
-        uses: Azure/login@4c88f01b0e3a5600e08a37889921afd060f75cf0 # v1.5.0
+        uses: Azure/login@de95379fe4dadc2defb305917eaa7e5dde727294 # v1.5.1
         with:
           creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
 
@@ -153,7 +153,7 @@ jobs:
           workflow: build-napi.yml
           path: ${{ github.workspace }}/crates/bitwarden-napi/artifacts
           workflow_conclusion: success
-          branch: master
+          branch: main
 
       - name: Move artifacts
         run: npm run artifacts

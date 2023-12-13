@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import com.bitwarden.core.DateTime
 import com.bitwarden.core.Folder
+import com.bitwarden.core.HashPurpose
 import com.bitwarden.core.InitOrgCryptoRequest
 import com.bitwarden.core.InitUserCryptoMethod
 import com.bitwarden.core.InitUserCryptoRequest
@@ -58,9 +59,9 @@ import javax.net.ssl.X509TrustManager
 
 /**
  *   IMPORTANT: This file is provided only for the purpose of demostrating the use of the SDK functionality.
- *   It hasn't gone through a throrough security review and should not be considered production ready. It also doesn't 
- *   handle a lot of errors and edge cases that a production application would need to deal with. 
- *   Developers are encouraged to review and improve the code as needed to meet their security requirements. 
+ *   It hasn't gone through a throrough security review and should not be considered production ready. It also doesn't
+ *   handle a lot of errors and edge cases that a production application would need to deal with.
+ *   Developers are encouraged to review and improve the code as needed to meet their security requirements.
  *   Additionally, we recommend to consult with security experts and conduct thorough testing before using the code in production.
  */
 
@@ -70,6 +71,8 @@ const val IDENTITY_URL = SERVER_URL + "identity/"
 
 const val EMAIL = "test@bitwarden.com"
 const val PASSWORD = "asdfasdfasdf"
+
+const val PIN = "1234"
 
 // We should separate keys for each user by appending the user_id
 const val BIOMETRIC_KEY = "biometric_key"
@@ -98,10 +101,12 @@ class MainActivity : FragmentActivity() {
                     ) {
 
                         val setupBiometrics = remember { mutableStateOf(true) }
+                        val setupPin = remember { mutableStateOf(true) }
                         val outputText = remember { mutableStateOf("") }
 
                         Row {
-                            Checkbox(checked = setupBiometrics.value,
+                            Checkbox(
+                                checked = setupBiometrics.value,
                                 onCheckedChange = { isChecked ->
                                     setupBiometrics.value = isChecked
                                 })
@@ -111,10 +116,20 @@ class MainActivity : FragmentActivity() {
                             )
                         }
 
+                        Row {
+                            Checkbox(checked = setupPin.value, onCheckedChange = { isChecked ->
+                                setupPin.value = isChecked
+                            })
+                            Text(
+                                "Setup pin unlock after login",
+                                modifier = Modifier.align(CenterVertically)
+                            )
+                        }
+
                         Button({
                             GlobalScope.launch {
                                 clientExamplePassword(
-                                    client, http, outputText, setupBiometrics.value
+                                    client, http, outputText, setupBiometrics.value, setupPin.value
                                 )
                             }
                         }) {
@@ -133,6 +148,14 @@ class MainActivity : FragmentActivity() {
                             }
                         }) {
                             Text("Unlock with biometrics")
+                        }
+
+                        Button({
+                            GlobalScope.launch {
+                                clientExamplePin(client, http, outputText)
+                            }
+                        }) {
+                            Text("Unlock with PIN")
                         }
 
                         Button({
@@ -156,7 +179,11 @@ class MainActivity : FragmentActivity() {
     }
 
     private suspend fun clientExamplePassword(
-        client: Client, http: HttpClient, outputText: MutableState<String>, setupBiometrics: Boolean
+        client: Client,
+        http: HttpClient,
+        outputText: MutableState<String>,
+        setupBiometrics: Boolean,
+        setupPin: Boolean
     ) {
         println("### Logging in with username and password ###")
         ///////////////////////////// Get master password hash /////////////////////////////
@@ -181,7 +208,8 @@ class MainActivity : FragmentActivity() {
                 prelogin_body.kdfParallelism!!
             )
         }
-        val masterPasswordHash = client.auth().hashPassword(EMAIL, PASSWORD, kdf)
+        val masterPasswordHash =
+            client.auth().hashPassword(EMAIL, PASSWORD, kdf, HashPurpose.SERVER_AUTHORIZATION)
 
         ///////////////////////////// Login /////////////////////////////
 
@@ -246,6 +274,25 @@ class MainActivity : FragmentActivity() {
                 }
             }
         }
+
+        if (setupPin) {
+            val pinOptions = client.crypto().derivePinKey(PIN);
+
+            val sharedPref = getPreferences(Context.MODE_PRIVATE)
+            with(sharedPref.edit()) {
+                putString("accessToken", accessToken)
+                putString("privateKey", loginBody.PrivateKey)
+
+                putInt("kdfType", prelogin_body.kdf.toInt())
+                putInt("kdfIterations", prelogin_body.kdfIterations.toInt())
+                putInt("kdfMemory", (prelogin_body.kdfMemory ?: 0u).toInt())
+                putInt("kdfParallelism", (prelogin_body.kdfParallelism ?: 0u).toInt())
+
+                putString("encryptedPin", pinOptions.encryptedPin)
+                putString("pinProtectedUserKey", pinOptions.pinProtectedUserKey)
+                apply()
+            }
+        }
     }
 
     private suspend fun clientExampleBiometrics(
@@ -285,6 +332,44 @@ class MainActivity : FragmentActivity() {
 
                 decryptVault(client, http, outputText)
             }
+        }
+    }
+
+    private suspend fun clientExamplePin(
+        client: Client, http: HttpClient, outputText: MutableState<String>
+    ) {
+        println("### Unlocking with PIN ###")
+
+        val pref = getPreferences(Context.MODE_PRIVATE)
+        accessToken = pref.getString("accessToken", "").orEmpty()
+        val privateKey = pref.getString("privateKey", "")
+
+        val kdf = if (pref.getInt("kdfType", 0) == 0) {
+            Kdf.Pbkdf2(pref.getInt("kdfIterations", 0).toUInt())
+        } else {
+            Kdf.Argon2id(
+                pref.getInt("kdfIterations", 0).toUInt(),
+                pref.getInt("kdfMemory", 0).toUInt(),
+                pref.getInt("kdfParallelism", 0).toUInt()
+            )
+        }
+
+        val encryptedPin = pref.getString("encryptedPin", "")!!
+        val pinProtectedUserKey = pref.getString("pinProtectedUserKey", "")!!
+
+        GlobalScope.launch {
+            client.crypto().initializeUserCrypto(
+                InitUserCryptoRequest(
+                    kdfParams = kdf,
+                    email = EMAIL,
+                    privateKey = privateKey!!,
+                    method = InitUserCryptoMethod.Pin(
+                        pinProtectedUserKey = pinProtectedUserKey, pin = PIN
+                    )
+                )
+            )
+
+            decryptVault(client, http, outputText)
         }
     }
 

@@ -42,7 +42,9 @@ pub(crate) use shareable_key::derive_shareable_key;
 #[cfg(feature = "internal")]
 mod master_key;
 #[cfg(feature = "internal")]
-pub(crate) use master_key::{HashPurpose, MasterKey};
+pub use master_key::HashPurpose;
+#[cfg(feature = "internal")]
+pub(crate) use master_key::MasterKey;
 #[cfg(feature = "internal")]
 mod user_key;
 #[cfg(feature = "internal")]

@@ -22,22 +22,16 @@ async function* walk(dir: string): AsyncIterable<string> {
 
 async function main() {
   const schemaInput = new JSONSchemaInput(new FetchingJSONSchemaStore());
-
-  const filenames: string[] = [];
-  for await (const p of walk("./support/schemas")) {
-    filenames.push(p);
-  }
-
-  filenames.sort();
-
-  for (const f of filenames) {
-    const buffer = fs.readFileSync(f);
-    const relative = path.relative(path.join(process.cwd(), "support/schemas"), f);
-    await schemaInput.addSource({ name: relative, schema: buffer.toString() });
-  }
-
   const inputData = new InputData();
   inputData.addInput(schemaInput);
+  inputData.addSource(
+    "schema",
+    {
+      name: "SchemaTypes",
+      uris: ["support/schemas/schema_types/SchemaTypes.json#/definitions/"],
+    },
+    () => new JSONSchemaInput(new FetchingJSONSchemaStore()),
+  );
 
   const ts = await quicktype({
     inputData,
@@ -45,7 +39,7 @@ async function main() {
     rendererOptions: {},
   });
 
-  writeToFile("./languages/js_webassembly/bitwarden_client/schemas.ts", ts.lines);
+  writeToFile("./languages/js/sdk-client/src/schemas.ts", ts.lines);
   writeToFile("./crates/bitwarden-napi/src-ts/bitwarden_client/schemas.ts", ts.lines);
 
   const python = await quicktype({
@@ -56,7 +50,7 @@ async function main() {
     },
   });
 
-  writeToFile("./languages/python/BitwardenClient/schemas.py", python.lines);
+  writeToFile("./languages/python/bitwarden_sdk/schemas.py", python.lines);
 
   const ruby = await quicktype({
     inputData,

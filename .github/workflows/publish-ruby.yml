@@ -3,7 +3,7 @@ name: Publish Ruby SDK
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   generate_schemas:
@@ -20,10 +20,10 @@ jobs:
       - build_rust
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Set up Ruby
-        uses: ruby/setup-ruby@54a18e26dbbb1eabc604f317ade9a5788dddef81 # v1.159.0
+        uses: ruby/setup-ruby@8575951200e472d5f2d95c625da0c7bec8217c42 # v1.161.0
         with:
           ruby-version: 3.2
 

@@ -1,6 +1,7 @@
 use bitwarden::{
     auth::password::MasterPasswordPolicyOptions,
     client::kdf::Kdf,
+    crypto::HashPurpose,
     mobile::crypto::{InitOrgCryptoRequest, InitUserCryptoRequest},
     platform::FingerprintRequest,
     tool::{ExportFormat, PassphraseGeneratorRequest, PasswordGeneratorRequest},
@@ -27,6 +28,7 @@ pub enum DocRef {
     // Crypto
     InitUserCryptoRequest(InitUserCryptoRequest),
     InitOrgCryptoRequest(InitOrgCryptoRequest),
+    HashPurpose(HashPurpose),
 
     // Generators
     PasswordGeneratorRequest(PasswordGeneratorRequest),

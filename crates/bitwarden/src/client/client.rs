@@ -86,10 +86,14 @@ impl Client {
 
         let headers = header::HeaderMap::new();
 
-        let client = reqwest::Client::builder()
-            .default_headers(headers)
-            .build()
-            .unwrap();
+        let mut client_builder = reqwest::Client::builder().default_headers(headers);
+        #[cfg(all(not(target_os = "windows"), not(target_os = "android")))]
+        {
+            client_builder =
+                client_builder.use_preconfigured_tls(rustls_platform_verifier::tls_config());
+        }
+
+        let client = client_builder.build().unwrap();
 
         let identity = bitwarden_api_identity::apis::configuration::Configuration {
             base_path: settings.identity_url,

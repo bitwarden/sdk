@@ -14,7 +14,6 @@ pyo3-log = "0.9.0"
 
 bitwarden-json = { path = "../bitwarden-json", features = [
     "secrets",
-    "use_rustls",
 ], default-features = false }
 
 [build-dependencies]

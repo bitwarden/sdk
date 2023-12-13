@@ -14,14 +14,8 @@ edition = "2021"
 rust-version = "1.57"
 
 [features]
-default = ["use_native_tls"]
-
 internal = ["bitwarden/internal"] # Internal testing methods
 secrets = ["bitwarden/secrets"]   # Secrets manager API
-
-# TLS backend selection
-use_native_tls = ["bitwarden/use_native_tls"]
-use_rustls = ["bitwarden/use_rustls"]
 
 [dependencies]
 log = ">=0.4.18, <0.5"

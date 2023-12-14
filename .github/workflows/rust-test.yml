@@ -49,6 +49,34 @@ jobs:
       - name: Test
         run: cargo test --all-features
 
+  coverage:
+    name: Coverage
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248 # stable
+        with:
+          toolchain: stable
+          components: llvm-tools
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@3cf7f8cc28d1b4e7d01e3783be10a97d55d483c8 # v2.7.1
+
+      - name: Install cargo-llvm-cov
+        run: cargo install cargo-llvm-cov --version 0.5.38
+
+      - name: Generate coverage
+        run: cargo llvm-cov --all-features --lcov --output-path lcov.info
+
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # v3.1.4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
   wasm:
     name: WASM
 

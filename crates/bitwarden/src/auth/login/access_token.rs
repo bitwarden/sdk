@@ -54,11 +54,7 @@ pub(crate) async fn login_access_token(
             .parse()
             .map_err(|_| Error::InvalidResponse)?;
 
-        client.set_tokens(
-            r.access_token.clone(),
-            r.refresh_token.clone(),
-            r.expires_in,
-        );
+        client.set_tokens(r.access_token.clone(), r.expires_in);
         client.set_login_method(LoginMethod::ServiceAccount(
             ServiceAccountLoginMethod::AccessToken {
                 access_token,

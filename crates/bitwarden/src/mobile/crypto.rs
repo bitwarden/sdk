@@ -56,6 +56,7 @@ pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequ
         client_id: "".to_string(),
         email: req.email,
         kdf: req.kdf_params,
+        refresh_token: None,
     });
     client.set_login_method(login_method);
 

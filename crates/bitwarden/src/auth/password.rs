@@ -87,6 +87,7 @@ mod tests {
                 iterations: NonZeroU32::new(100_000).unwrap(),
             },
             client_id: "1".to_string(),
+            refresh_token: None,
         }));
 
         let password = "password123".to_string();

@@ -47,6 +47,7 @@ pub(crate) enum UserLoginMethod {
         client_id: String,
         email: String,
         kdf: Kdf,
+        refresh_token: Option<String>,
     },
     ApiKey {
         client_id: String,
@@ -67,8 +68,6 @@ pub(crate) enum ServiceAccountLoginMethod {
 
 #[derive(Debug)]
 pub struct Client {
-    token: Option<String>,
-    pub(crate) refresh_token: Option<String>,
     pub(crate) token_expires_in: Option<i64>,
     pub(crate) login_method: Option<LoginMethod>,
 
@@ -112,8 +111,6 @@ impl Client {
         };
 
         Self {
-            token: None,
-            refresh_token: None,
             token_expires_in: None,
             login_method: None,
             __api_configurations: ApiConfigurations {
@@ -180,14 +177,7 @@ impl Client {
         self.login_method = Some(login_method);
     }
 
-    pub(crate) fn set_tokens(
-        &mut self,
-        token: String,
-        refresh_token: Option<String>,
-        expires_in: u64,
-    ) {
-        self.token = Some(token.clone());
-        self.refresh_token = refresh_token;
+    pub(crate) fn set_tokens(&mut self, token: String, expires_in: u64) {
         self.token_expires_in = Some(Utc::now().timestamp() + expires_in as i64);
         self.__api_configurations.identity.oauth_access_token = Some(token.clone());
         self.__api_configurations.api.oauth_access_token = Some(token);
@@ -195,7 +185,7 @@ impl Client {
 
     #[cfg(feature = "internal")]
     pub fn is_authed(&self) -> bool {
-        self.token.is_some() || self.login_method.is_some()
+        self.login_method.is_some()
     }
 
     #[cfg(feature = "internal")]

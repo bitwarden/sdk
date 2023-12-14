@@ -19,18 +19,16 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
         let res = match login_method {
             #[cfg(feature = "internal")]
             LoginMethod::User(u) => match u {
-                UserLoginMethod::Username { client_id, .. } => {
-                    let refresh = client
-                        .refresh_token
-                        .as_deref()
-                        .ok_or(Error::NotAuthenticated)?;
+                UserLoginMethod::Username {
+                    client_id,
+                    refresh_token,
+                    ..
+                } => {
+                    let refresh = refresh_token.clone().ok_or(Error::NotAuthenticated)?;
 
-                    crate::auth::api::request::RenewTokenRequest::new(
-                        refresh.to_owned(),
-                        client_id.to_owned(),
-                    )
-                    .send(&client.__api_configurations)
-                    .await?
+                    crate::auth::api::request::RenewTokenRequest::new(refresh, client_id.to_owned())
+                        .send(&client.__api_configurations)
+                        .await?
                 }
                 UserLoginMethod::ApiKey {
                     client_id,
@@ -56,11 +54,11 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
 
         match res {
             IdentityTokenResponse::Refreshed(r) => {
-                client.set_tokens(r.access_token, r.refresh_token, r.expires_in);
+                client.set_tokens(r.access_token, r.expires_in);
                 return Ok(());
             }
             IdentityTokenResponse::Authenticated(r) => {
-                client.set_tokens(r.access_token, r.refresh_token, r.expires_in);
+                client.set_tokens(r.access_token, r.expires_in);
                 return Ok(());
             }
             _ => {

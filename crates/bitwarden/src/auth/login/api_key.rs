@@ -32,11 +32,7 @@ pub(crate) async fn login_api_key(
 
         let kdf = client.auth().prelogin(email.clone()).await?;
 
-        client.set_tokens(
-            r.access_token.clone(),
-            r.refresh_token.clone(),
-            r.expires_in,
-        );
+        client.set_tokens(r.access_token.clone(), r.expires_in);
         client.set_login_method(LoginMethod::User(UserLoginMethod::ApiKey {
             client_id: input.client_id.to_owned(),
             client_secret: input.client_secret.to_owned(),

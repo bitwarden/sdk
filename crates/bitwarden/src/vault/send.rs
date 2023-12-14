@@ -338,6 +338,7 @@ mod tests {
                 kdf: Kdf::PBKDF2 {
                     iterations: 345123.try_into().unwrap(),
                 },
+                refresh_token: None,
             },
             "asdfasdfasdf",
             "2.majkL1/hNz9yptLqNAUSnw==|RiOzMTTJMG948qu8O3Zm1EQUO2E8BuTwFKnO9LWQjMzxMWJM5GbyOq2/A+tumPbTERt4JWur/FKfgHb+gXuYiEYlXPMuVBvT7nv4LPytJuM=|IVqMxHJeR1ZXY0sGngTC0x+WqbG8p6V+BTrdgBbQXjM=".parse().unwrap(),

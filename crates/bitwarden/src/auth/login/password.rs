@@ -38,15 +38,12 @@ pub(crate) async fn login_password(
     let response = request_identity_tokens(client, input, &password_hash).await?;
 
     if let IdentityTokenResponse::Authenticated(r) = &response {
-        client.set_tokens(
-            r.access_token.clone(),
-            r.refresh_token.clone(),
-            r.expires_in,
-        );
+        client.set_tokens(r.access_token.clone(), r.expires_in);
         client.set_login_method(LoginMethod::User(UserLoginMethod::Username {
             client_id: "web".to_owned(),
             email: input.email.to_owned(),
             kdf: input.kdf.to_owned(),
+            refresh_token: r.refresh_token.clone(),
         }));
 
         let user_key: EncString = r.key.as_deref().unwrap().parse().unwrap();

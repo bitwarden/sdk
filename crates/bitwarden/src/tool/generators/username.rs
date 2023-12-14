@@ -1,5 +1,5 @@
 use crate::{error::Result, util::capitalize_first_letter, wordlist::EFF_LONG_WORD_LIST};
-use rand::{seq::SliceRandom, Rng, RngCore};
+use rand::{distributions::Distribution, seq::SliceRandom, Rng, RngCore};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -47,13 +47,13 @@ pub enum ForwarderServiceType {
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
-pub enum UsernameGeneratorType {
+pub enum UsernameGeneratorRequest {
     /// Generates a single word username
     Word {
-        /// When set to true, capitalizes the first letter of the word. Defaults to false
-        capitalize: Option<bool>,
-        /// When set to true, includes a 4 digit number at the end of the word. Defaults to false
-        include_number: Option<bool>,
+        /// Capitalize the first letter of the word
+        capitalize: bool,
+        /// Include a 4 digit number at the end of the word
+        include_number: bool,
     },
     /// Generates an email using your provider's subaddressing capabilities.
     /// Note that not all providers support this functionality.
@@ -80,49 +80,48 @@ pub enum UsernameGeneratorType {
     },
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
-pub struct UsernameGeneratorRequest {
-    pub r#type: UsernameGeneratorType,
+impl ForwarderServiceType {
+    // Generate a username using the specified email forwarding service
+    // This requires an HTTP client to be passed in, as the service will need to make API calls
+    pub async fn generate(self, http: &reqwest::Client, website: Option<String>) -> Result<String> {
+        use crate::tool::generators::username_forwarders::*;
+        use ForwarderServiceType::*;
+
+        match self {
+            AddyIo {
+                api_token,
+                domain,
+                base_url,
+            } => addyio::generate(http, api_token, domain, base_url, website).await,
+            DuckDuckGo { token } => duckduckgo::generate(http, token).await,
+            Firefox { api_token } => firefox::generate(http, api_token, website).await,
+            Fastmail { api_token } => fastmail::generate(http, api_token, website).await,
+            ForwardEmail { api_token, domain } => {
+                forwardemail::generate(http, api_token, domain, website).await
+            }
+            SimpleLogin { api_key } => simplelogin::generate(http, api_key, website).await,
+        }
+    }
 }
 
+/// Implementation of the username generator. This is not accessible to the public API.
+/// See [`ClientGenerator::username`](crate::ClientGenerator::username) for the API function.
+/// Note: The HTTP client is passed in as a required parameter for convenience,
+/// as some username generators require making API calls.
 pub(super) async fn username(
     input: UsernameGeneratorRequest,
     http: &reqwest::Client,
 ) -> Result<String> {
     use rand::thread_rng;
-    use UsernameGeneratorType::*;
-
-    match input.r#type {
+    use UsernameGeneratorRequest::*;
+    match input {
         Word {
             capitalize,
             include_number,
-        } => {
-            let capitalize = capitalize.unwrap_or(true);
-            let include_number = include_number.unwrap_or(true);
-            Ok(username_word(&mut thread_rng(), capitalize, include_number))
-        }
+        } => Ok(username_word(&mut thread_rng(), capitalize, include_number)),
         Subaddress { r#type, email } => Ok(username_subaddress(&mut thread_rng(), r#type, email)),
         Catchall { r#type, domain } => Ok(username_catchall(&mut thread_rng(), r#type, domain)),
-        Forwarded { service, website } => {
-            use crate::tool::generators::username_forwarders::*;
-            use ForwarderServiceType::*;
-            match service {
-                AddyIo {
-                    api_token,
-                    domain,
-                    base_url,
-                } => addyio::generate(http, api_token, domain, base_url, website).await,
-                DuckDuckGo { token } => duckduckgo::generate(http, token).await,
-                Firefox { api_token } => firefox::generate(http, api_token, website).await,
-                Fastmail { api_token } => fastmail::generate(http, api_token, website).await,
-                ForwardEmail { api_token, domain } => {
-                    forwardemail::generate(http, api_token, domain, website).await
-                }
-                SimpleLogin { api_key } => simplelogin::generate(http, api_key, website).await,
-            }
-        }
+        Forwarded { service, website } => service.generate(http, website).await,
     }
 }
 
@@ -144,6 +143,14 @@ fn username_word(mut rng: impl RngCore, capitalize: bool, include_number: bool) 
     word
 }
 
+/// Generate a random 4 digit number, including leading zeros
+fn random_number(mut rng: impl RngCore) -> String {
+    let num = rng.gen_range(0..=9999);
+    format!("{num:0>4}")
+}
+
+/// Generate a username using a plus addressed email address
+/// The format is <username>+<random-or-website>@<domain>
 fn username_subaddress(mut rng: impl RngCore, r#type: AddressType, email: String) -> String {
     if email.len() < 3 {
         return email;
@@ -164,6 +171,8 @@ fn username_subaddress(mut rng: impl RngCore, r#type: AddressType, email: String
     format!("{}+{}@{}", email_begin, email_middle, email_end)
 }
 
+/// Generate a username using a catchall email address
+/// The format is <random-or-website>@<domain>
 fn username_catchall(mut rng: impl RngCore, r#type: AddressType, domain: String) -> String {
     if domain.is_empty() {
         return domain;
@@ -177,15 +186,13 @@ fn username_catchall(mut rng: impl RngCore, r#type: AddressType, domain: String)
     format!("{}@{}", email_start, domain)
 }
 
-fn random_number(mut rng: impl RngCore) -> String {
-    let num = rng.gen_range(0..=9999);
-    format!("{num:0>4}")
-}
-
 fn random_lowercase_string(mut rng: impl RngCore, length: usize) -> String {
-    const CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyz1234567890";
-    (0..length)
-        .map(|_| (*CHARSET.choose(&mut rng).expect("slice is not empty")) as char)
+    let dist = rand::distributions::Slice::new(b"abcdefghijklmnopqrstuvwxyz1234567890")
+        .expect("Non-empty slice");
+
+    dist.sample_iter(&mut rng)
+        .take(length)
+        .map(|&b| b as char)
         .collect()
 }
 
@@ -207,7 +214,7 @@ mod tests {
     fn test_username_subaddress() {
         let mut rng = rand_chacha::ChaCha8Rng::from_seed([0u8; 32]);
         let user = username_subaddress(&mut rng, AddressType::Random, "demo@test.com".into());
-        assert_eq!(user, "demo+52iteqjo@test.com");
+        assert_eq!(user, "demo+5wiejdaj@test.com");
 
         let user = username_subaddress(
             &mut rng,
@@ -221,9 +228,9 @@ mod tests {
 
     #[test]
     fn test_username_catchall() {
-        let mut rng = rand_chacha::ChaCha8Rng::from_seed([0u8; 32]);
+        let mut rng = rand_chacha::ChaCha8Rng::from_seed([1u8; 32]);
         let user = username_catchall(&mut rng, AddressType::Random, "test.com".into());
-        assert_eq!(user, "52iteqjo@test.com");
+        assert_eq!(user, "k9y6yw7j@test.com");
 
         let user = username_catchall(
             &mut rng,

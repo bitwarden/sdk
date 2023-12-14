@@ -70,13 +70,11 @@ impl<'a> ClientGenerator<'a> {
     /// services, which may require a specific setup or API key.
     ///
     /// ```
-    /// use bitwarden::{Client, tool::{UsernameGeneratorRequest, UsernameGeneratorType}, error::Result};
+    /// use bitwarden::{Client, tool::{UsernameGeneratorRequest}, error::Result};
     /// async fn test() -> Result<()> {
-    ///     let input = UsernameGeneratorRequest {
-    ///         r#type: UsernameGeneratorType::Word {
-    ///             capitalize: Some(true),
-    ///             include_number: Some(true),
-    ///         }
+    ///     let input = UsernameGeneratorRequest::Word {
+    ///         capitalize: true,
+    ///         include_number: true,
     ///     };
     ///     let username = Client::new(None).generator().username(input).await.unwrap();
     ///     println!("{}", username);

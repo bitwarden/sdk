@@ -9,14 +9,19 @@ pub async fn generate(
     api_token: String,
     website: Option<String>,
 ) -> Result<String> {
-    if api_token.is_empty() {
-        return Err(Error::Internal("Invalid Fastmail API token"));
-    }
+    generate_with_api_url(http, api_token, website, "https://api.fastmail.com".into()).await
+}
 
-    let account_id = get_account_id(http, &api_token).await?;
+pub async fn generate_with_api_url(
+    http: &reqwest::Client,
+    api_token: String,
+    website: Option<String>,
+    api_url: String,
+) -> Result<String> {
+    let account_id = get_account_id(http, &api_token, &api_url).await?;
 
     let response = http
-        .post("https://api.fastmail.com/jmap/api/")
+        .post(format!("{api_url}/jmap/api/"))
         .header(CONTENT_TYPE, "application/json")
         .bearer_auth(api_token)
         .json(&json!({
@@ -40,7 +45,7 @@ pub async fn generate(
         .await?;
 
     if response.status() == StatusCode::UNAUTHORIZED {
-        return Err(Error::Internal("Invalid DuckDuckGo API token"));
+        return Err(Error::Internal("Invalid Fastmail API token"));
     }
 
     // Throw any other errors
@@ -84,14 +89,18 @@ pub async fn generate(
     Err(Error::Internal("Unknown Fastmail error occurred."))
 }
 
-async fn get_account_id(client: &reqwest::Client, api_token: &str) -> Result<String> {
+async fn get_account_id(
+    client: &reqwest::Client,
+    api_token: &str,
+    api_url: &str,
+) -> Result<String> {
     #[derive(serde::Deserialize)]
     struct Response {
         #[serde(rename = "primaryAccounts")]
         primary_accounts: HashMap<String, String>,
     }
     let mut response: Response = client
-        .get("https://api.fastmail.com/.well-known/jmap")
+        .get(format!("{api_url}/.well-known/jmap"))
         .bearer_auth(api_token)
         .send()
         .await?
@@ -103,4 +112,49 @@ async fn get_account_id(client: &reqwest::Client, api_token: &str) -> Result<Str
         .primary_accounts
         .remove("https://www.fastmail.com/dev/maskedemail")
         .unwrap_or_default())
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+    #[tokio::test]
+    async fn test_mock_server() {
+        use wiremock::{matchers, Mock, ResponseTemplate};
+
+        let (server, _client) = crate::util::start_mock(vec![
+            Mock::given(matchers::path("/.well-known/jmap"))
+                .and(matchers::method("GET"))
+                .and(matchers::header("Authorization", "Bearer MY_TOKEN"))
+                .respond_with(ResponseTemplate::new(201).set_body_json(json!({
+                    "primaryAccounts": {
+                        "https://www.fastmail.com/dev/maskedemail": "ca0a4e09-c266-4f6f-845c-958db5090f09"
+                    }
+                })))
+                .expect(1),
+
+            Mock::given(matchers::path("/jmap/api/"))
+                .and(matchers::method("POST"))
+                .and(matchers::header("Content-Type", "application/json"))
+                .and(matchers::header("Authorization", "Bearer MY_TOKEN"))
+                .respond_with(ResponseTemplate::new(201).set_body_json(json!({
+                    "methodResponses": [
+                        ["MaskedEmail/set", {"created": {"new-masked-email": {"email": "9f823dq23d123ds@mydomain.com"}}}]
+                    ]
+                })))
+                .expect(1),
+        ])
+        .await;
+
+        let address = super::generate_with_api_url(
+            &reqwest::Client::new(),
+            "MY_TOKEN".into(),
+            Some("example.com".into()),
+            format!("http://{}", server.address()),
+        )
+        .await
+        .unwrap();
+
+        server.verify().await;
+        assert_eq!(address, "9f823dq23d123ds@mydomain.com");
+    }
 }

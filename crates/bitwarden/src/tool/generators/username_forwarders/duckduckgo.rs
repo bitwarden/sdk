@@ -2,12 +2,16 @@ use reqwest::{header::CONTENT_TYPE, StatusCode};
 
 use crate::error::{Error, Result};
 pub async fn generate(http: &reqwest::Client, token: String) -> Result<String> {
-    if token.is_empty() {
-        return Err(Error::Internal("Invalid DuckDuckGo API token"));
-    }
+    generate_with_api_url(http, token, "https://quack.duckduckgo.com".into()).await
+}
 
+async fn generate_with_api_url(
+    http: &reqwest::Client,
+    token: String,
+    api_url: String,
+) -> Result<String> {
     let response = http
-        .post("https://quack.duckduckgo.com/api/email/addresses")
+        .post(format!("{api_url}/api/email/addresses"))
         .header(CONTENT_TYPE, "application/json")
         .bearer_auth(token)
         .send()
@@ -27,4 +31,37 @@ pub async fn generate(http: &reqwest::Client, token: String) -> Result<String> {
     let response: Response = response.json().await?;
 
     Ok(format!("{}@duck.com", response.address))
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+    #[tokio::test]
+    async fn test_mock_server() {
+        use wiremock::{matchers, Mock, ResponseTemplate};
+
+        let (server, _client) = crate::util::start_mock(vec![
+            // Mock the request to the DDG API, and verify that the correct request is made
+            Mock::given(matchers::path("/api/email/addresses"))
+                .and(matchers::method("POST"))
+                .and(matchers::header("Content-Type", "application/json"))
+                .and(matchers::header("Authorization", "Bearer MY_TOKEN"))
+                .respond_with(ResponseTemplate::new(201).set_body_json(json!({
+                    "address": "bw7prt"
+                })))
+                .expect(1),
+        ])
+        .await;
+
+        let address = super::generate_with_api_url(
+            &reqwest::Client::new(),
+            "MY_TOKEN".into(),
+            format!("http://{}", server.address()),
+        )
+        .await
+        .unwrap();
+
+        server.verify().await;
+        assert_eq!(address, "bw7prt@duck.com");
+    }
 }

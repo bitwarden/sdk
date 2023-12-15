@@ -144,12 +144,12 @@ impl FromStr for EncString {
                 Ok(EncString::Rsa2048_OaepSha1_B64 { data })
             }
             #[allow(deprecated)]
-            ("5", 1) => {
+            ("5", 2) => {
                 let data = from_b64_vec(parts[0])?;
                 Ok(EncString::Rsa2048_OaepSha256_HmacSha256_B64 { data })
             }
             #[allow(deprecated)]
-            ("6", 1) => {
+            ("6", 2) => {
                 let data = from_b64_vec(parts[0])?;
                 Ok(EncString::Rsa2048_OaepSha1_HmacSha256_B64 { data })
             }
@@ -428,6 +428,14 @@ mod tests {
 
         let decrypted_str: String = cipher.decrypt_with_key(&key).unwrap();
         assert_eq!(decrypted_str, test_string);
+    }
+
+    #[test]
+    fn test_enc_string_rsa2048_oaep_sha1_hmac_sha256_b64() {
+        let enc_str: &str = "6.ThnNc67nNr7GELyuhGGfsXNP2zJnNqhrIsjntEQ27r2qmn8vwdHbTbfO0cwt6YgSibDN0PjiCZ1O3Wb/IFq+vwvyRwFqF9145wBF8CQCbkhV+M0XvO99kh0daovtt120Nve/5ETI5PbPag9VdalKRQWZypJaqQHm5TAQVf4F5wtLlCLMBkzqTk+wkFe7BPMTGn07T+O3eJbTxXvyMZewQ7icJF0MZVA7VyWX9qElmZ89FCKowbf1BMr5pbcQ+0KdXcSVW3to43VkTp7k7COwsuH3M/i1AuVP5YN8ixjyRpvaeGqX/ap2nCHK2Wj5VxgCGT7XEls6ZknnAp9nB9qVjQ==|s3ntw5H/KKD/qsS0lUghTHl5Sm9j6m7YEdNHf0OeAFQ=";
+        let enc_string: EncString = enc_str.parse().unwrap();
+
+        assert_eq!(enc_string.enc_type(), 6);
     }
 
     #[test]

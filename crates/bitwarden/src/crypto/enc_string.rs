@@ -2,6 +2,8 @@ use std::{fmt::Display, str::FromStr};
 
 use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::Engine;
+#[cfg(feature = "internal")]
+use rsa::{Oaep, RsaPrivateKey};
 use serde::{de::Visitor, Deserialize};
 
 use super::{KeyDecryptable, KeyEncryptable, LocateKey};
@@ -168,6 +170,29 @@ impl EncString {
     #[cfg(feature = "internal")]
     pub(crate) fn try_from_optional(s: Option<String>) -> Result<Option<EncString>, Error> {
         s.map(|s| s.parse()).transpose()
+    }
+
+    /// TODO: Convert this to a trait method
+    #[cfg(feature = "internal")]
+    pub(crate) fn decrypt_with_private_key(&self, key: &RsaPrivateKey) -> Result<Vec<u8>> {
+        Ok(match self {
+            EncString::Rsa2048_OaepSha256_B64 { data } => {
+                key.decrypt(Oaep::new::<sha2::Sha256>(), data)
+            }
+            EncString::Rsa2048_OaepSha1_B64 { data } => {
+                key.decrypt(Oaep::new::<sha1::Sha1>(), data)
+            }
+            #[allow(deprecated)]
+            EncString::Rsa2048_OaepSha256_HmacSha256_B64 { data } => {
+                key.decrypt(Oaep::new::<sha2::Sha256>(), data)
+            }
+            #[allow(deprecated)]
+            EncString::Rsa2048_OaepSha1_HmacSha256_B64 { data } => {
+                key.decrypt(Oaep::new::<sha1::Sha1>(), data)
+            }
+            _ => return Err(CryptoError::InvalidKey.into()),
+        }
+        .map_err(|_| CryptoError::KeyDecrypt)?)
     }
 
     #[cfg(feature = "mobile")]

@@ -49,7 +49,7 @@ impl PassphraseGeneratorRequest {
 
         if !(MINIMUM_PASSPHRASE_NUM_WORDS..=MAXIMUM_PASSPHRASE_NUM_WORDS).contains(&self.num_words)
         {
-            return Err("'num_words' must be between 3 and 20".into());
+            return Err(format!("'num_words' must be between {MINIMUM_PASSPHRASE_NUM_WORDS} and {MAXIMUM_PASSPHRASE_NUM_WORDS}").into());
         }
 
         if self.word_separator.chars().next().is_none() {

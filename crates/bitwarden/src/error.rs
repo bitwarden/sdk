@@ -1,6 +1,6 @@
 //! Errors that can occur when using this SDK
 
-use std::fmt::Debug;
+use std::{borrow::Cow, fmt::Debug};
 
 use bitwarden_api_api::apis::Error as ApiError;
 use bitwarden_api_identity::apis::Error as IdentityError;
@@ -47,7 +47,19 @@ pub enum Error {
     ResponseContent { status: StatusCode, message: String },
 
     #[error("Internal error: {0}")]
-    Internal(&'static str),
+    Internal(Cow<'static, str>),
+}
+
+impl From<String> for Error {
+    fn from(s: String) -> Self {
+        Self::Internal(s.into())
+    }
+}
+
+impl From<&'static str> for Error {
+    fn from(s: &'static str) -> Self {
+        Self::Internal(s.into())
+    }
 }
 
 #[derive(Debug, Error)]

@@ -15,7 +15,7 @@ env:
 jobs:
   ci-pass:
     name: CI is green
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs:
       - test
       - wasm
@@ -25,14 +25,14 @@ jobs:
   test:
     name: ${{ matrix.os }} / ${{matrix.target || 'default' }}
 
-    runs-on: ${{ matrix.os || 'ubuntu-latest' }}
+    runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
 
     strategy:
       matrix:
         os:
-          - ubuntu-latest
-          - macOS-latest
-          - windows-latest
+          - ubuntu-22.04
+          - macOS-12
+          - windows-2022
 
     steps:
       - name: Checkout
@@ -51,7 +51,7 @@ jobs:
 
   coverage:
     name: Coverage
-    runs-on: "ubuntu-latest"
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
@@ -80,7 +80,7 @@ jobs:
   wasm:
     name: WASM
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout

@@ -1,22 +1,18 @@
 use std::collections::HashMap;
 
-use rsa::RsaPrivateKey;
-use uuid::Uuid;
 #[cfg(feature = "internal")]
-use {
-    crate::{
-        client::UserLoginMethod,
-        crypto::{EncString, KeyDecryptable},
-        error::{CryptoError, Result},
-    },
-    rsa::pkcs8::DecodePrivateKey,
+use crate::{
+    client::UserLoginMethod,
+    crypto::{EncString, KeyDecryptable},
+    error::Result,
 };
+use uuid::Uuid;
 
-use crate::crypto::SymmetricCryptoKey;
+use crate::crypto::{AsymmetricCryptoKey, SymmetricCryptoKey};
 
 pub struct EncryptionSettings {
     user_key: SymmetricCryptoKey,
-    private_key: Option<RsaPrivateKey>,
+    private_key: Option<AsymmetricCryptoKey>,
     org_keys: HashMap<Uuid, SymmetricCryptoKey>,
 }
 
@@ -61,7 +57,7 @@ impl EncryptionSettings {
     ) -> Result<Self> {
         let private_key = {
             let dec: Vec<u8> = private_key.decrypt_with_key(&user_key)?;
-            Some(rsa::RsaPrivateKey::from_pkcs8_der(&dec).map_err(|_| CryptoError::InvalidKey)?)
+            Some(AsymmetricCryptoKey::try_from(dec.as_slice())?)
         };
 
         Ok(EncryptionSettings {
@@ -96,7 +92,7 @@ impl EncryptionSettings {
 
         // Decrypt the org keys with the private key
         for (org_id, org_enc_key) in org_enc_keys {
-            let dec = org_enc_key.decrypt_with_private_key(private_key)?;
+            let dec: Vec<u8> = org_enc_key.decrypt_with_key(private_key)?;
 
             let org_key = SymmetricCryptoKey::try_from(dec.as_slice())?;
 

@@ -2,13 +2,10 @@ use std::{fmt::Display, str::FromStr};
 
 use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::Engine;
-#[cfg(feature = "internal")]
-use rsa::{Oaep, RsaPrivateKey};
 use serde::{de::Visitor, Deserialize};
 
-use super::{KeyDecryptable, KeyEncryptable, LocateKey};
+use super::{CryptoKey, KeyDecryptable, KeyEncryptable, LocateKey};
 use crate::{
-    crypto::{decrypt_aes256_hmac, SymmetricCryptoKey},
     error::{CryptoError, EncStringParseError, Error, Result},
     util::BASE64_ENGINE,
 };
@@ -17,7 +14,7 @@ use crate::{
 ///
 /// [EncString] is a Bitwarden specific primitive that represents an encrypted string. They are
 /// are used together with the [KeyDecryptable] and [KeyEncryptable] traits to encrypt and decrypt
-/// data using [SymmetricCryptoKey]s.
+/// data using [CryptoKey]s.
 ///
 /// The flexibility of the [EncString] type allows for different encryption algorithms to be used
 /// which is represented by the different variants of the enum.
@@ -170,29 +167,6 @@ impl EncString {
     #[cfg(feature = "internal")]
     pub(crate) fn try_from_optional(s: Option<String>) -> Result<Option<EncString>, Error> {
         s.map(|s| s.parse()).transpose()
-    }
-
-    /// TODO: Convert this to a trait method
-    #[cfg(feature = "internal")]
-    pub(crate) fn decrypt_with_private_key(&self, key: &RsaPrivateKey) -> Result<Vec<u8>> {
-        Ok(match self {
-            EncString::Rsa2048_OaepSha256_B64 { data } => {
-                key.decrypt(Oaep::new::<sha2::Sha256>(), data)
-            }
-            EncString::Rsa2048_OaepSha1_B64 { data } => {
-                key.decrypt(Oaep::new::<sha1::Sha1>(), data)
-            }
-            #[allow(deprecated)]
-            EncString::Rsa2048_OaepSha256_HmacSha256_B64 { data } => {
-                key.decrypt(Oaep::new::<sha2::Sha256>(), data)
-            }
-            #[allow(deprecated)]
-            EncString::Rsa2048_OaepSha1_HmacSha256_B64 { data } => {
-                key.decrypt(Oaep::new::<sha1::Sha1>(), data)
-            }
-            _ => return Err(CryptoError::InvalidKey.into()),
-        }
-        .map_err(|_| CryptoError::KeyDecrypt)?)
     }
 
     #[cfg(feature = "mobile")]
@@ -395,33 +369,26 @@ fn invalid_len_error(expected: usize) -> impl Fn(Vec<u8>) -> EncStringParseError
 }
 
 impl LocateKey for EncString {}
-impl KeyEncryptable<EncString> for &[u8] {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<EncString> {
-        EncString::encrypt_aes256_hmac(self, key.mac_key.ok_or(CryptoError::InvalidMac)?, key.key)
+impl<Key: CryptoKey> KeyEncryptable<Key, EncString> for &[u8] {
+    fn encrypt_with_key(self, key: &Key) -> Result<EncString> {
+        key.encrypt(self)
     }
 }
 
-impl KeyDecryptable<Vec<u8>> for EncString {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
-        match self {
-            EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
-                let mac_key = key.mac_key.ok_or(CryptoError::InvalidMac)?;
-                let dec = decrypt_aes256_hmac(iv, mac, data.clone(), mac_key, key.key)?;
-                Ok(dec)
-            }
-            _ => Err(CryptoError::InvalidKey.into()),
-        }
+impl<Key: CryptoKey> KeyDecryptable<Key, Vec<u8>> for EncString {
+    fn decrypt_with_key(&self, key: &Key) -> Result<Vec<u8>> {
+        key.decrypt(self)
     }
 }
 
-impl KeyEncryptable<EncString> for String {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<EncString> {
+impl<Key: CryptoKey> KeyEncryptable<Key, EncString> for String {
+    fn encrypt_with_key(self, key: &Key) -> Result<EncString> {
         self.as_bytes().encrypt_with_key(key)
     }
 }
 
-impl KeyDecryptable<String> for EncString {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<String> {
+impl<Key: CryptoKey> KeyDecryptable<Key, String> for EncString {
+    fn decrypt_with_key(&self, key: &Key) -> Result<String> {
         let dec: Vec<u8> = self.decrypt_with_key(key)?;
         String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String.into())
     }
@@ -458,7 +425,7 @@ mod tests {
     #[cfg(feature = "internal")]
     #[test]
     fn test_enc_string_rsa2048_oaep_sha1_hmac_sha256_b64() {
-        use rsa::{pkcs8::DecodePrivateKey, RsaPrivateKey};
+        use crate::crypto::AsymmetricCryptoKey;
 
         let rsa_private_key: &str = "-----BEGIN PRIVATE KEY-----
 MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCXRVrCX+2hfOQS
@@ -488,13 +455,13 @@ Is3v1kkf5I0X8DnOhwb+HPxNaiEdmO7ckm8+tPVgppLcG0+tMdLjigFQiDUQk2y3
 WjyxP5ZvXu7U96jaJRI8PFMoE06WeVYcdIzrID2HvqH+w0UQJFrLJ/0Mn4stFAEz
 XKZBokBGnjFnTnKcs7nv/O8=
 -----END PRIVATE KEY-----";
-        let private_key = RsaPrivateKey::from_pkcs8_pem(rsa_private_key).unwrap();
+        let private_key = AsymmetricCryptoKey::from_pem(rsa_private_key).unwrap();
         let enc_str: &str = "6.ThnNc67nNr7GELyuhGGfsXNP2zJnNqhrIsjntEQ27r2qmn8vwdHbTbfO0cwt6YgSibDN0PjiCZ1O3Wb/IFq+vwvyRwFqF9145wBF8CQCbkhV+M0XvO99kh0daovtt120Nve/5ETI5PbPag9VdalKRQWZypJaqQHm5TAQVf4F5wtLlCLMBkzqTk+wkFe7BPMTGn07T+O3eJbTxXvyMZewQ7icJF0MZVA7VyWX9qElmZ89FCKowbf1BMr5pbcQ+0KdXcSVW3to43VkTp7k7COwsuH3M/i1AuVP5YN8ixjyRpvaeGqX/ap2nCHK2Wj5VxgCGT7XEls6ZknnAp9nB9qVjQ==|s3ntw5H/KKD/qsS0lUghTHl5Sm9j6m7YEdNHf0OeAFQ=";
         let enc_string: EncString = enc_str.parse().unwrap();
 
         assert_eq!(enc_string.enc_type(), 6);
 
-        let res = enc_string.decrypt_with_private_key(&private_key).unwrap();
+        let res: Vec<u8> = enc_string.decrypt_with_key(&private_key).unwrap();
 
         assert_eq!(std::str::from_utf8(&res).unwrap(), "EncryptMe!");
     }

@@ -139,7 +139,7 @@ impl Send {
     }
 }
 
-impl KeyDecryptable<SendTextView> for SendText {
+impl KeyDecryptable<SymmetricCryptoKey, SendTextView> for SendText {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendTextView> {
         Ok(SendTextView {
             text: self.text.decrypt_with_key(key)?,
@@ -148,7 +148,7 @@ impl KeyDecryptable<SendTextView> for SendText {
     }
 }
 
-impl KeyEncryptable<SendText> for SendTextView {
+impl KeyEncryptable<SymmetricCryptoKey, SendText> for SendTextView {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<SendText> {
         Ok(SendText {
             text: self.text.encrypt_with_key(key)?,
@@ -157,7 +157,7 @@ impl KeyEncryptable<SendText> for SendTextView {
     }
 }
 
-impl KeyDecryptable<SendFileView> for SendFile {
+impl KeyDecryptable<SymmetricCryptoKey, SendFileView> for SendFile {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendFileView> {
         Ok(SendFileView {
             id: self.id.clone(),
@@ -168,7 +168,7 @@ impl KeyDecryptable<SendFileView> for SendFile {
     }
 }
 
-impl KeyEncryptable<SendFile> for SendFileView {
+impl KeyEncryptable<SymmetricCryptoKey, SendFile> for SendFileView {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<SendFile> {
         Ok(SendFile {
             id: self.id.clone(),
@@ -180,7 +180,7 @@ impl KeyEncryptable<SendFile> for SendFileView {
 }
 
 impl LocateKey for Send {}
-impl KeyDecryptable<SendView> for Send {
+impl KeyDecryptable<SymmetricCryptoKey, SendView> for Send {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendView> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
         // For the rest of the fields, we ignore the provided SymmetricCryptoKey and the stretched key
@@ -211,7 +211,7 @@ impl KeyDecryptable<SendView> for Send {
     }
 }
 
-impl KeyDecryptable<SendListView> for Send {
+impl KeyDecryptable<SymmetricCryptoKey, SendListView> for Send {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendListView> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
         // For the rest of the fields, we ignore the provided SymmetricCryptoKey and the stretched key
@@ -234,7 +234,7 @@ impl KeyDecryptable<SendListView> for Send {
 }
 
 impl LocateKey for SendView {}
-impl KeyEncryptable<Send> for SendView {
+impl KeyEncryptable<SymmetricCryptoKey, Send> for SendView {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Send> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
         // For the rest of the fields, we ignore the provided SymmetricCryptoKey and the stretched key

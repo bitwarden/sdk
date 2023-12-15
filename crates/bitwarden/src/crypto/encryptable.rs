@@ -29,14 +29,14 @@ pub trait Decryptable<Output> {
     fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Output>;
 }
 
-impl<T: KeyEncryptable<Output> + LocateKey, Output> Encryptable<Output> for T {
+impl<T: KeyEncryptable<SymmetricCryptoKey, Output> + LocateKey, Output> Encryptable<Output> for T {
     fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Output> {
         let key = self.locate_key(enc, org_id).ok_or(Error::VaultLocked)?;
         self.encrypt_with_key(key)
     }
 }
 
-impl<T: KeyDecryptable<Output> + LocateKey, Output> Decryptable<Output> for T {
+impl<T: KeyDecryptable<SymmetricCryptoKey, Output> + LocateKey, Output> Decryptable<Output> for T {
     fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Output> {
         let key = self.locate_key(enc, org_id).ok_or(Error::VaultLocked)?;
         self.decrypt_with_key(key)

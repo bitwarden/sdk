@@ -25,7 +25,7 @@ pub struct PasswordHistoryView {
 }
 
 impl LocateKey for PasswordHistoryView {}
-impl KeyEncryptable<PasswordHistory> for PasswordHistoryView {
+impl KeyEncryptable<SymmetricCryptoKey, PasswordHistory> for PasswordHistoryView {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<PasswordHistory> {
         Ok(PasswordHistory {
             password: self.password.encrypt_with_key(key)?,
@@ -35,7 +35,7 @@ impl KeyEncryptable<PasswordHistory> for PasswordHistoryView {
 }
 
 impl LocateKey for PasswordHistory {}
-impl KeyDecryptable<PasswordHistoryView> for PasswordHistory {
+impl KeyDecryptable<SymmetricCryptoKey, PasswordHistoryView> for PasswordHistory {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<PasswordHistoryView> {
         Ok(PasswordHistoryView {
             password: self.password.decrypt_with_key(key)?,

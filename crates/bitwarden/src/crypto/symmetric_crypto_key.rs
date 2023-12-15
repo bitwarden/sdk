@@ -4,15 +4,15 @@ use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::Engine;
 
 use crate::{
-    crypto::derive_shareable_key,
-    error::{CryptoError, Error},
+    crypto::{derive_shareable_key, CryptoKey},
+    error::{CryptoError, Error, Result},
     util::BASE64_ENGINE,
 };
 
 /// A symmetric encryption key. Used to encrypt and decrypt [`EncString`](crate::crypto::EncString)
 pub struct SymmetricCryptoKey {
-    pub key: GenericArray<u8, U32>,
-    pub mac_key: Option<GenericArray<u8, U32>>,
+    pub(in crate::crypto) key: GenericArray<u8, U32>,
+    pub(in crate::crypto) mac_key: Option<GenericArray<u8, U32>>,
 }
 
 impl SymmetricCryptoKey {
@@ -78,10 +78,32 @@ impl TryFrom<&[u8]> for SymmetricCryptoKey {
     }
 }
 
+impl CryptoKey for SymmetricCryptoKey {
+    fn decrypt(&self, e: &crate::crypto::EncString) -> Result<Vec<u8>> {
+        match e {
+            crate::crypto::EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
+                let mac_key = self.mac_key.ok_or(CryptoError::InvalidMac)?;
+                let dec =
+                    crate::crypto::decrypt_aes256_hmac(iv, mac, data.clone(), mac_key, self.key)?;
+                Ok(dec)
+            }
+            _ => Err(CryptoError::InvalidKey.into()),
+        }
+    }
+
+    fn encrypt(&self, data: &[u8]) -> Result<crate::crypto::EncString> {
+        crate::crypto::EncString::encrypt_aes256_hmac(
+            data,
+            self.mac_key.ok_or(CryptoError::InvalidMac)?,
+            self.key,
+        )
+    }
+}
+
 // We manually implement these to make sure we don't print any sensitive data
 impl std::fmt::Debug for SymmetricCryptoKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Key").finish()
+        f.debug_struct("SymmetricCryptoKey").finish()
     }
 }
 

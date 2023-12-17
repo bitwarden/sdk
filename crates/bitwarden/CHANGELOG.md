@@ -9,7 +9,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- Support for basic state to avoid reauthenticating when creating a new `Client`. This is a breaking change because of adding `state_file` to the `AccessTokenLoginRequest` struct. (#388)
+- Support for basic state to avoid reauthenticating when creating a new `Client`. This is a breaking
+  change because of adding `state_file` to the `AccessTokenLoginRequest` struct. (#388)
 
 ### Deprecated
 

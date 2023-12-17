@@ -1,34 +1,18 @@
 use std::path::PathBuf;
 
-use directories::BaseDirs;
-
-pub(crate) const BWS_DIRECTORY: &str = ".bws";
-pub(crate) const STATE_DIRECTORY: &str = "state";
-
 pub(crate) fn get_state_file_path(
     state_file_dir: Option<PathBuf>,
     access_token_id: String,
-) -> PathBuf {
-    let state_file_path = match state_file_dir {
-        Some(mut sfd) => {
-            sfd.push(access_token_id);
+) -> Option<PathBuf> {
+    if let Some(mut state_file_path) = state_file_dir {
+        state_file_path.push(access_token_id);
 
-            sfd
+        if let Some(parent_folder) = state_file_path.parent() {
+            std::fs::create_dir_all(parent_folder).unwrap();
         }
-        None => {
-            let base_dirs = BaseDirs::new().unwrap();
 
-            base_dirs
-                .home_dir()
-                .join(BWS_DIRECTORY)
-                .join(STATE_DIRECTORY)
-                .join(access_token_id)
-        }
-    };
-
-    if let Some(parent_folder) = state_file_path.parent() {
-        std::fs::create_dir_all(parent_folder).unwrap();
+        return Some(state_file_path);
     }
 
-    state_file_path
+    None
 }

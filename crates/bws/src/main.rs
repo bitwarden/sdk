@@ -335,7 +335,7 @@ async fn process_commands() -> Result<()> {
         .auth()
         .login_access_token(&AccessTokenLoginRequest {
             access_token,
-            state_file: Some(state_file_path),
+            state_file: state_file_path,
         })
         .await?;
 

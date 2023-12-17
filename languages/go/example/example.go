@@ -9,6 +9,7 @@ import (
 )
 
 func main() {
+	// Configuring the URLS is optional, set them to nil to use the default values
 	apiURL := os.Getenv("API_URL")
 	identityURL := os.Getenv("IDENTITY_URL")
 

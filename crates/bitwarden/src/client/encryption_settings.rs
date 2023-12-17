@@ -9,7 +9,7 @@ use {
         crypto::{EncString, KeyDecryptable},
         error::{CryptoError, Result},
     },
-    rsa::{pkcs8::DecodePrivateKey, Oaep},
+    rsa::pkcs8::DecodePrivateKey,
 };
 
 use crate::crypto::SymmetricCryptoKey;
@@ -96,14 +96,7 @@ impl EncryptionSettings {
 
         // Decrypt the org keys with the private key
         for (org_id, org_enc_key) in org_enc_keys {
-            let data = match org_enc_key {
-                EncString::Rsa2048_OaepSha1_B64 { data } => data,
-                _ => return Err(CryptoError::InvalidKey.into()),
-            };
-
-            let dec = private_key
-                .decrypt(Oaep::new::<sha1::Sha1>(), &data)
-                .map_err(|_| CryptoError::KeyDecrypt)?;
+            let dec = org_enc_key.decrypt_with_private_key(private_key)?;
 
             let org_key = SymmetricCryptoKey::try_from(dec.as_slice())?;
 

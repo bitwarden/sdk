@@ -2,10 +2,14 @@
 
 require_once 'vendor/autoload.php';
 
-$access_token = '<you access token here>';
-$organization_id = "<your organization id here>";
+$access_token = getenv('ACCESS_TOKEN');
+$organization_id = getenv('ORGANIZATION_ID');
 
-$client_settings = new \Bitwarden\Sdk\BitwardenSettings();
+// Configuring the URLS is optional, set them to null to use the default values
+$api_url = getenv('API_URL');
+$identity_url = getenv('IDENTITY_URL');
+
+$client_settings = new \Bitwarden\Sdk\BitwardenSettings($api_url, $identity_url);
 
 $bitwarden_client = new \Bitwarden\Sdk\BitwardenClient($client_settings);
 $bitwarden_client->access_token_login($access_token);

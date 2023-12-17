@@ -15,7 +15,7 @@ use crate::{
     client::{AccessToken, LoginMethod, ServiceAccountLoginMethod},
     crypto::{EncString, KeyDecryptable, SymmetricCryptoKey},
     error::{Error, Result},
-    secrets_manager::state,
+    secrets_manager::state::{self, ClientState},
     util::BASE64_ENGINE,
     Client,
 };
@@ -77,7 +77,7 @@ pub(crate) async fn login_access_token(
             .map_err(|_| Error::InvalidResponse)?;
 
         if let Some(state_file) = &input.state_file {
-            let state = state::ClientState::new(r.access_token.clone(), payload.encryption_key);
+            let state = ClientState::new(r.access_token.clone(), payload.encryption_key);
             _ = state::set(state_file, &access_token, state);
         }
 
@@ -117,27 +117,25 @@ fn load_tokens_from_state(
 ) -> Result<Uuid> {
     let client_state = state::get(state_file, access_token)?;
 
-    if let Some(client_state) = client_state {
-        let token: JWTToken = client_state.token.parse()?;
+    let token: JWTToken = client_state.token.parse()?;
 
-        if let Some(organization_id) = token.organization {
-            let time_till_expiration = (token.exp as i64) - Utc::now().timestamp();
+    if let Some(organization_id) = token.organization {
+        let time_till_expiration = (token.exp as i64) - Utc::now().timestamp();
 
-            if time_till_expiration > 0 {
-                let organization_id: Uuid = organization_id
-                    .parse()
-                    .map_err(|_| Error::Internal("Bad organization id."))?;
-                let encryption_key: SymmetricCryptoKey = client_state.encryption_key.parse()?;
+        if time_till_expiration > 0 {
+            let organization_id: Uuid = organization_id
+                .parse()
+                .map_err(|_| Error::Internal("Bad organization id."))?;
+            let encryption_key: SymmetricCryptoKey = client_state.encryption_key.parse()?;
 
-                client.set_tokens(client_state.token, None, time_till_expiration as u64);
-                client.initialize_crypto_single_key(encryption_key);
+            client.set_tokens(client_state.token, None, time_till_expiration as u64);
+            client.initialize_crypto_single_key(encryption_key);
 
-                return Ok(organization_id);
-            }
+            return Ok(organization_id);
         }
     }
 
-    Err(Error::Internal("Could not load tokens from state."))
+    Err(Error::InvalidStateFile)
 }
 
 /// Login to Bitwarden with access token

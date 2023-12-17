@@ -13,8 +13,8 @@ const STATE_VERSION: u32 = 1;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ClientState {
     pub(crate) version: u32,
-    pub token: String,
-    pub encryption_key: String,
+    pub(crate) token: String,
+    pub(crate) encryption_key: String,
 }
 
 impl ClientState {
@@ -27,7 +27,7 @@ impl ClientState {
     }
 }
 
-pub fn get(state_file: &Path, access_token: &AccessToken) -> Result<Option<ClientState>> {
+pub fn get(state_file: &Path, access_token: &AccessToken) -> Result<ClientState> {
     let file_content = std::fs::read_to_string(state_file)?;
 
     let encrypted_state: EncString = file_content.parse()?;
@@ -35,10 +35,10 @@ pub fn get(state_file: &Path, access_token: &AccessToken) -> Result<Option<Clien
     let client_state: ClientState = serde_json::from_str(&decrypted_state)?;
 
     if client_state.version != STATE_VERSION {
-        return Err(Error::InvalidStateManagerFileVersion);
+        return Err(Error::InvalidStateFileVersion);
     }
 
-    Ok(Some(client_state))
+    Ok(client_state)
 }
 
 pub fn set(state_file: &Path, access_token: &AccessToken, state: ClientState) -> Result<()> {

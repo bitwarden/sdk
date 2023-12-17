@@ -47,7 +47,7 @@ struct Cli {
         short = 'f',
         long,
         global = true,
-        help = format!("[default: ~/{}/{}] Config file to use", config::BWS_DIRECTORY, config::CONFIG_FILENAME)
+        help = format!("[default: ~/{}/{}] Config file to use", config::DIRECTORY, config::FILENAME)
     )]
     config_file: Option<PathBuf>,
 

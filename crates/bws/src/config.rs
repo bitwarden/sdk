@@ -43,16 +43,13 @@ impl ProfileKey {
     }
 }
 
-pub(crate) const BWS_DIRECTORY: &str = ".bws";
-pub(crate) const CONFIG_FILENAME: &str = "config";
+pub(crate) const FILENAME: &str = "config";
+pub(crate) const DIRECTORY: &str = ".bws";
 
 pub(crate) fn get_config_path(config_file: Option<&Path>, ensure_folder_exists: bool) -> PathBuf {
     let config_file = config_file.map(ToOwned::to_owned).unwrap_or_else(|| {
         let base_dirs = BaseDirs::new().unwrap();
-        base_dirs
-            .home_dir()
-            .join(BWS_DIRECTORY)
-            .join(CONFIG_FILENAME)
+        base_dirs.home_dir().join(DIRECTORY).join(FILENAME)
     });
 
     if ensure_folder_exists {

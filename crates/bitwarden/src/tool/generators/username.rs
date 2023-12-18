@@ -187,8 +187,8 @@ fn username_catchall(mut rng: impl RngCore, r#type: AppendType, domain: String) 
 }
 
 fn random_lowercase_string(mut rng: impl RngCore, length: usize) -> String {
-    let dist = rand::distributions::Slice::new(b"abcdefghijklmnopqrstuvwxyz1234567890")
-        .expect("Non-empty slice");
+    const LOWERCASE_ALPHANUMERICAL: &[u8] = b"abcdefghijklmnopqrstuvwxyz1234567890";
+    let dist = rand::distributions::Slice::new(LOWERCASE_ALPHANUMERICAL).expect("Non-empty slice");
 
     dist.sample_iter(&mut rng)
         .take(length)

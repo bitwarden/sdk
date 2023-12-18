@@ -130,11 +130,11 @@ impl FromStr for Totp {
         fn decode_secret(secret: &str) -> Result<Vec<u8>> {
             BASE32
                 .decode(secret.as_bytes())
-                .map_err(|_| Error::Internal("Unable to decode secret"))
+                .map_err(|_| "Unable to decode secret".into())
         }
 
         let params = if key.starts_with("otpauth://") {
-            let url = Url::parse(key).map_err(|_| Error::Internal("Unable to parse URL"))?;
+            let url = Url::parse(key).map_err(|_| "Unable to parse URL")?;
             let parts: HashMap<_, _> = url.query_pairs().collect();
 
             Totp {
@@ -161,7 +161,7 @@ impl FromStr for Totp {
                     &parts
                         .get("secret")
                         .map(|v| v.to_string())
-                        .ok_or(Error::Internal("Missing secret in otpauth URI"))?,
+                        .ok_or("Missing secret in otpauth URI")?,
                 )?,
             }
         } else if let Some(secret) = key.strip_prefix("steam://") {

@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
-pub enum AddressType {
+pub enum AppendType {
     /// Generates a random string of 8 lowercase characters as part of your username
     Random,
     /// Uses the websitename as part of your username
@@ -60,13 +60,13 @@ pub enum UsernameGeneratorRequest {
     /// This will generate an address of the format `youremail+generated@domain.tld`
     Subaddress {
         /// The type of subaddress to add to the base email
-        r#type: AddressType,
+        r#type: AppendType,
         /// The full email address to use as the base for the subaddress
         email: String,
     },
     Catchall {
         /// The type of username to use with the catchall email domain
-        r#type: AddressType,
+        r#type: AppendType,
         /// The domain to use for the catchall email address
         domain: String,
     },
@@ -151,7 +151,7 @@ fn random_number(mut rng: impl RngCore) -> String {
 
 /// Generate a username using a plus addressed email address
 /// The format is <username>+<random-or-website>@<domain>
-fn username_subaddress(mut rng: impl RngCore, r#type: AddressType, email: String) -> String {
+fn username_subaddress(mut rng: impl RngCore, r#type: AppendType, email: String) -> String {
     if email.len() < 3 {
         return email;
     }
@@ -164,8 +164,8 @@ fn username_subaddress(mut rng: impl RngCore, r#type: AddressType, email: String
     };
 
     let email_middle = match r#type {
-        AddressType::Random => random_lowercase_string(&mut rng, 8),
-        AddressType::WebsiteName { website } => website,
+        AppendType::Random => random_lowercase_string(&mut rng, 8),
+        AppendType::WebsiteName { website } => website,
     };
 
     format!("{}+{}@{}", email_begin, email_middle, email_end)
@@ -173,14 +173,14 @@ fn username_subaddress(mut rng: impl RngCore, r#type: AddressType, email: String
 
 /// Generate a username using a catchall email address
 /// The format is <random-or-website>@<domain>
-fn username_catchall(mut rng: impl RngCore, r#type: AddressType, domain: String) -> String {
+fn username_catchall(mut rng: impl RngCore, r#type: AppendType, domain: String) -> String {
     if domain.is_empty() {
         return domain;
     }
 
     let email_start = match r#type {
-        AddressType::Random => random_lowercase_string(&mut rng, 8),
-        AddressType::WebsiteName { website } => website,
+        AppendType::Random => random_lowercase_string(&mut rng, 8),
+        AppendType::WebsiteName { website } => website,
     };
 
     format!("{}@{}", email_start, domain)
@@ -213,12 +213,12 @@ mod tests {
     #[test]
     fn test_username_subaddress() {
         let mut rng = rand_chacha::ChaCha8Rng::from_seed([0u8; 32]);
-        let user = username_subaddress(&mut rng, AddressType::Random, "demo@test.com".into());
+        let user = username_subaddress(&mut rng, AppendType::Random, "demo@test.com".into());
         assert_eq!(user, "demo+5wiejdaj@test.com");
 
         let user = username_subaddress(
             &mut rng,
-            AddressType::WebsiteName {
+            AppendType::WebsiteName {
                 website: "bitwarden.com".into(),
             },
             "demo@test.com".into(),
@@ -229,12 +229,12 @@ mod tests {
     #[test]
     fn test_username_catchall() {
         let mut rng = rand_chacha::ChaCha8Rng::from_seed([1u8; 32]);
-        let user = username_catchall(&mut rng, AddressType::Random, "test.com".into());
+        let user = username_catchall(&mut rng, AppendType::Random, "test.com".into());
         assert_eq!(user, "k9y6yw7j@test.com");
 
         let user = username_catchall(
             &mut rng,
-            AddressType::WebsiteName {
+            AppendType::WebsiteName {
                 website: "bitwarden.com".into(),
             },
             "test.com".into(),

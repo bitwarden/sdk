@@ -135,6 +135,11 @@ impl Client {
         &self.__api_configurations
     }
 
+    #[cfg(feature = "mobile")]
+    pub(crate) fn get_http_client(&self) -> &reqwest::Client {
+        &self.__api_configurations.api.client
+    }
+
     #[cfg(feature = "secrets")]
     #[deprecated(note = "Use auth().login_access_token() instead")]
     pub async fn access_token_login(

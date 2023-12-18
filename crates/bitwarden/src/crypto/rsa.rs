@@ -6,7 +6,7 @@ use rsa::{
 
 use crate::{
     crypto::{EncString, SymmetricCryptoKey},
-    error::{Error, Result},
+    error::Result,
     util::BASE64_ENGINE,
 };
 
@@ -26,12 +26,12 @@ pub(super) fn make_key_pair(key: &SymmetricCryptoKey) -> Result<RsaKeyPair> {
 
     let spki = pub_key
         .to_public_key_der()
-        .map_err(|_| Error::Internal("unable to create public key"))?;
+        .map_err(|_| "unable to create public key")?;
 
     let b64 = BASE64_ENGINE.encode(spki.as_bytes());
     let pkcs = priv_key
         .to_pkcs8_der()
-        .map_err(|_| Error::Internal("unable to create private key"))?;
+        .map_err(|_| "unable to create private key")?;
 
     let protected = EncString::encrypt_aes256_hmac(pkcs.as_bytes(), key.mac_key.unwrap(), key.key)?;
 

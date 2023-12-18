@@ -10,7 +10,7 @@ impl UniffiCustomTypeConverter for NonZeroU32 {
     type Builtin = u32;
 
     fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Self::new(val).ok_or(Error::Internal("Number is zero").into())
+        Self::new(val).ok_or(Error::from("Number is zero").into())
     }
 
     fn from_custom(obj: Self) -> Self::Builtin {

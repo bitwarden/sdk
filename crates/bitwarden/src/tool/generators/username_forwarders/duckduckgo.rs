@@ -1,6 +1,6 @@
 use reqwest::{header::CONTENT_TYPE, StatusCode};
 
-use crate::error::{Error, Result};
+use crate::error::Result;
 pub async fn generate(http: &reqwest::Client, token: String) -> Result<String> {
     generate_with_api_url(http, token, "https://quack.duckduckgo.com".into()).await
 }
@@ -18,7 +18,7 @@ async fn generate_with_api_url(
         .await?;
 
     if response.status() == StatusCode::UNAUTHORIZED {
-        return Err(Error::Internal("Invalid DuckDuckGo API token"));
+        return Err("Invalid DuckDuckGo API token".into());
     }
 
     // Throw any other errors

@@ -51,7 +51,7 @@ async fn generate_with_api_url(
         .await?;
 
     if response.status() == StatusCode::UNAUTHORIZED {
-        return Err(Error::Internal("Invalid Forward Email API key."));
+        return Err("Invalid Forward Email API key.".into());
     }
 
     // Throw any other errors

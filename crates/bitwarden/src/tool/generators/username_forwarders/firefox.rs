@@ -3,7 +3,7 @@ use reqwest::{
     StatusCode,
 };
 
-use crate::error::{Error, Result};
+use crate::error::Result;
 
 pub async fn generate(
     http: &reqwest::Client,
@@ -40,7 +40,7 @@ async fn generate_with_api_url(
         .await?;
 
     if response.status() == StatusCode::UNAUTHORIZED {
-        return Err(Error::Internal("Invalid Firefox Relay API API key"));
+        return Err("Invalid Firefox Relay API API key".into());
     }
 
     // Throw any other errors

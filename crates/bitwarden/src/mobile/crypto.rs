@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     client::kdf::Kdf,
-    crypto::EncString,
+    crypto::{AsymmEncString, EncString},
     error::{Error, Result},
     Client,
 };
@@ -87,7 +87,7 @@ pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequ
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct InitOrgCryptoRequest {
     /// The encryption keys for all the organizations the user is a part of
-    pub organization_keys: HashMap<uuid::Uuid, EncString>,
+    pub organization_keys: HashMap<uuid::Uuid, AsymmEncString>,
 }
 
 #[cfg(feature = "internal")]

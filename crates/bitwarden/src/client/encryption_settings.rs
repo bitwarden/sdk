@@ -6,7 +6,7 @@ use uuid::Uuid;
 use {
     crate::{
         client::UserLoginMethod,
-        crypto::{EncString, KeyDecryptable},
+        crypto::{AsymmEncString, EncString, KeyDecryptable},
         error::{CryptoError, Result},
     },
     rsa::pkcs8::DecodePrivateKey,
@@ -84,7 +84,7 @@ impl EncryptionSettings {
     #[cfg(feature = "internal")]
     pub(crate) fn set_org_keys(
         &mut self,
-        org_enc_keys: Vec<(Uuid, EncString)>,
+        org_enc_keys: Vec<(Uuid, AsymmEncString)>,
     ) -> Result<&mut Self> {
         use crate::error::Error;
 

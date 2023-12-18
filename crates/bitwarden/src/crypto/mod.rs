@@ -27,7 +27,7 @@ use hmac::digest::OutputSizeUser;
 use crate::error::Result;
 
 mod enc_string;
-pub use enc_string::EncString;
+pub use enc_string::{AsymmEncString, EncString};
 mod encryptable;
 pub use encryptable::{Decryptable, Encryptable, LocateKey};
 mod key_encryptable;

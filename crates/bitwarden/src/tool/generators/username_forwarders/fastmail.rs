@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use reqwest::{header::CONTENT_TYPE, StatusCode};
 use serde_json::json;
 
-use crate::error::{Error, Result};
+use crate::error::Result;
 pub async fn generate(
     http: &reqwest::Client,
     api_token: String,
@@ -45,7 +45,7 @@ pub async fn generate_with_api_url(
         .await?;
 
     if response.status() == StatusCode::UNAUTHORIZED {
-        return Err(Error::Internal("Invalid Fastmail API token"));
+        return Err("Invalid Fastmail API token".into());
     }
 
     // Throw any other errors
@@ -53,7 +53,7 @@ pub async fn generate_with_api_url(
 
     let response: serde_json::Value = response.json().await?;
     let Some(r) = response.get("methodResponses").and_then(|r| r.get(0)) else {
-        return Err(Error::Internal("Unknown Fastmail error occurred."));
+        return Err("Unknown Fastmail error occurred.".into());
     };
     let method_response = r.get(0).and_then(|r| r.as_str());
     let response_value = r.get(1);
@@ -68,25 +68,24 @@ pub async fn generate_with_api_url(
             return Ok(email.to_owned());
         };
 
-        if let Some(_error_description) = response_value
+        let error_description = response_value
             .and_then(|r| r.get("notCreated"))
             .and_then(|r| r.get("new-masked-email"))
             .and_then(|r| r.get("description"))
             .and_then(|r| r.as_str())
-        {
-            // TODO: Once we have a more flexible type of error, we can return this error_description
-            return Err(Error::Internal("Unknown Fastmail error occurred."));
-        };
-    } else if method_response == Some("error") {
-        let _description = response_value
-            .and_then(|r| r.get("description"))
-            .and_then(|r| r.as_str());
+            .unwrap_or("Unknown error");
 
-        // TODO: Once we have a more flexible type of error, we can return this error_description
-        return Err(Error::Internal("Unknown Fastmail error occurred."));
+        return Err(format!("Fastmail error: {error_description}").into());
+    } else if method_response == Some("error") {
+        let error_description = response_value
+            .and_then(|r| r.get("description"))
+            .and_then(|r| r.as_str())
+            .unwrap_or("Unknown error");
+
+        return Err(format!("Fastmail error: {error_description}").into());
     }
 
-    Err(Error::Internal("Unknown Fastmail error occurred."))
+    Err("Unknown Fastmail error occurred.".into())
 }
 
 async fn get_account_id(

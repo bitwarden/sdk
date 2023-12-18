@@ -50,6 +50,13 @@ mod tests {
                     "address": "bw7prt"
                 })))
                 .expect(1),
+            // Mock an invalid token request
+            Mock::given(matchers::path("/api/email/addresses"))
+                .and(matchers::method("POST"))
+                .and(matchers::header("Content-Type", "application/json"))
+                .and(matchers::header("Authorization", "Bearer MY_FAKE_TOKEN"))
+                .respond_with(ResponseTemplate::new(401))
+                .expect(1),
         ])
         .await;
 
@@ -60,8 +67,20 @@ mod tests {
         )
         .await
         .unwrap();
+        assert_eq!(address, "bw7prt@duck.com");
+
+        let fake_token_error = super::generate_with_api_url(
+            &reqwest::Client::new(),
+            "MY_FAKE_TOKEN".into(),
+            format!("http://{}", server.address()),
+        )
+        .await
+        .unwrap_err();
+
+        assert!(fake_token_error
+            .to_string()
+            .contains("Invalid DuckDuckGo API token"));
 
         server.verify().await;
-        assert_eq!(address, "bw7prt@duck.com");
     }
 }

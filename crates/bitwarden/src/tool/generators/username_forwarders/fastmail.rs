@@ -48,9 +48,6 @@ pub async fn generate_with_api_url(
         return Err("Invalid Fastmail API token".into());
     }
 
-    // Throw any other errors
-    response.error_for_status_ref()?;
-
     let response: serde_json::Value = response.json().await?;
     let Some(r) = response.get("methodResponses").and_then(|r| r.get(0)) else {
         return Err("Unknown Fastmail error occurred.".into());
@@ -98,14 +95,18 @@ async fn get_account_id(
         #[serde(rename = "primaryAccounts")]
         primary_accounts: HashMap<String, String>,
     }
-    let mut response: Response = client
+    let response = client
         .get(format!("{api_url}/.well-known/jmap"))
         .bearer_auth(api_token)
         .send()
-        .await?
-        .error_for_status()?
-        .json()
         .await?;
+
+    if response.status() == StatusCode::UNAUTHORIZED {
+        return Err("Invalid Fastmail API token".into());
+    }
+
+    response.error_for_status_ref()?;
+    let mut response: Response = response.json().await?;
 
     Ok(response
         .primary_accounts
@@ -121,6 +122,7 @@ mod tests {
         use wiremock::{matchers, Mock, ResponseTemplate};
 
         let (server, _client) = crate::util::start_mock(vec![
+            // Mock a valid request to FastMail API
             Mock::given(matchers::path("/.well-known/jmap"))
                 .and(matchers::method("GET"))
                 .and(matchers::header("Authorization", "Bearer MY_TOKEN"))
@@ -141,6 +143,20 @@ mod tests {
                     ]
                 })))
                 .expect(1),
+
+            // Mock an invalid token request
+            Mock::given(matchers::path("/.well-known/jmap"))
+            .and(matchers::method("GET"))
+            .and(matchers::header("Authorization", "Bearer MY_FAKE_TOKEN"))
+            .respond_with(ResponseTemplate::new(401))
+            .expect(1),
+
+        Mock::given(matchers::path("/jmap/api/"))
+            .and(matchers::method("POST"))
+            .and(matchers::header("Content-Type", "application/json"))
+            .and(matchers::header("Authorization", "Bearer MY_FAKE_TOKEN"))
+            .respond_with(ResponseTemplate::new(201))
+            .expect(0),
         ])
         .await;
 
@@ -152,8 +168,21 @@ mod tests {
         )
         .await
         .unwrap();
+        assert_eq!(address, "9f823dq23d123ds@mydomain.com");
+
+        let fake_token_error = super::generate_with_api_url(
+            &reqwest::Client::new(),
+            "MY_FAKE_TOKEN".into(),
+            Some("example.com".into()),
+            format!("http://{}", server.address()),
+        )
+        .await
+        .unwrap_err();
+
+        assert!(fake_token_error
+            .to_string()
+            .contains("Invalid Fastmail API token"));
 
         server.verify().await;
-        assert_eq!(address, "9f823dq23d123ds@mydomain.com");
     }
 }

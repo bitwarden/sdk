@@ -46,6 +46,12 @@ pub enum Error {
     #[error("Received error message from server: [{}] {}", .status, .message)]
     ResponseContent { status: StatusCode, message: String },
 
+    #[error("The state file version is invalid")]
+    InvalidStateFileVersion,
+
+    #[error("The state file could not be read")]
+    InvalidStateFile,
+
     #[error("Internal error: {0}")]
     Internal(Cow<'static, str>),
 }

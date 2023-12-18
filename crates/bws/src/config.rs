@@ -19,6 +19,7 @@ pub(crate) struct Profile {
     pub server_base: Option<String>,
     pub server_api: Option<String>,
     pub server_identity: Option<String>,
+    pub state_file_dir: Option<String>,
 }
 
 // TODO: This could probably be derived with a macro if we start adding more fields
@@ -28,6 +29,7 @@ pub(crate) enum ProfileKey {
     server_base,
     server_api,
     server_identity,
+    state_file_dir,
 }
 
 impl ProfileKey {
@@ -36,6 +38,7 @@ impl ProfileKey {
             ProfileKey::server_base => p.server_base = Some(value),
             ProfileKey::server_api => p.server_api = Some(value),
             ProfileKey::server_identity => p.server_identity = Some(value),
+            ProfileKey::state_file_dir => p.state_file_dir = Some(value),
         }
     }
 }
@@ -43,7 +46,7 @@ impl ProfileKey {
 pub(crate) const FILENAME: &str = "config";
 pub(crate) const DIRECTORY: &str = ".bws";
 
-fn get_config_path(config_file: Option<&Path>, ensure_folder_exists: bool) -> PathBuf {
+pub(crate) fn get_config_path(config_file: Option<&Path>, ensure_folder_exists: bool) -> PathBuf {
     let config_file = config_file.map(ToOwned::to_owned).unwrap_or_else(|| {
         let base_dirs = BaseDirs::new().unwrap();
         base_dirs.home_dir().join(DIRECTORY).join(FILENAME)
@@ -118,6 +121,7 @@ impl Profile {
             server_base: Some(url.to_string()),
             server_api: None,
             server_identity: None,
+            state_file_dir: None,
         })
     }
     pub(crate) fn api_url(&self) -> Result<String> {

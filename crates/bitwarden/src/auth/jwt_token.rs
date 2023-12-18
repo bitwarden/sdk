@@ -29,9 +29,7 @@ impl FromStr for JWTToken {
     fn from_str(s: &str) -> Result<Self> {
         let split = s.split('.').collect::<Vec<_>>();
         if split.len() != 3 {
-            return Err(crate::error::Error::Internal(
-                "JWT token has an invalid number of parts",
-            ));
+            return Err("JWT token has an invalid number of parts".into());
         }
         let decoded = BASE64_ENGINE.decode(split[1])?;
         Ok(serde_json::from_slice(&decoded)?)

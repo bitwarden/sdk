@@ -1,7 +1,4 @@
-use crate::{
-    error::{Error, Result},
-    wordlist::EFF_LONG_WORD_LIST,
-};
+use crate::{error::Result, wordlist::EFF_LONG_WORD_LIST};
 use rand::{seq::SliceRandom, Rng, RngCore};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -52,11 +49,11 @@ impl PassphraseGeneratorRequest {
 
         if !(MINIMUM_PASSPHRASE_NUM_WORDS..=MAXIMUM_PASSPHRASE_NUM_WORDS).contains(&self.num_words)
         {
-            return Err(Error::Internal("'num_words' must be between 3 and 20"));
+            return Err(format!("'num_words' must be between {MINIMUM_PASSPHRASE_NUM_WORDS} and {MAXIMUM_PASSPHRASE_NUM_WORDS}").into());
         }
 
         if self.word_separator.chars().next().is_none() {
-            return Err(Error::Internal("'word_separator' cannot be empty"));
+            return Err("'word_separator' cannot be empty".into());
         };
 
         Ok(ValidPassphraseGeneratorOptions {

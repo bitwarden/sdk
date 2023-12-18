@@ -125,7 +125,7 @@ fn load_tokens_from_state(
         if time_till_expiration > 0 {
             let organization_id: Uuid = organization_id
                 .parse()
-                .map_err(|_| Error::Internal("Bad organization id."))?;
+                .map_err(|_| "Bad organization id.")?;
             let encryption_key: SymmetricCryptoKey = client_state.encryption_key.parse()?;
 
             client.set_tokens(client_state.token, None, time_till_expiration as u64);

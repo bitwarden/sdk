@@ -47,6 +47,5 @@ pub fn set(state_file: &Path, access_token: &AccessToken, state: ClientState) ->
         serialized_state.encrypt_with_key(&access_token.encryption_key)?;
     let state_string: String = encrypted_state.to_string();
 
-    std::fs::write(state_file, state_string)
-        .map_err(|_| Error::Internal("Failure writing to the state file."))
+    std::fs::write(state_file, state_string).map_err(|_| "Failure writing to the state file.".into())
 }

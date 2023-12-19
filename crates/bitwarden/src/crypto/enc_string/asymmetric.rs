@@ -3,7 +3,7 @@ use std::{fmt::Display, str::FromStr};
 use base64::Engine;
 #[cfg(feature = "internal")]
 use rsa::{Oaep, RsaPrivateKey};
-use serde::{de::Visitor, Deserialize};
+use serde::Deserialize;
 
 use crate::{
     error::{EncStringParseError, Error, Result},
@@ -94,7 +94,7 @@ impl FromStr for AsymmEncString {
                 Ok(AsymmEncString::Rsa2048_OaepSha1_HmacSha256_B64 { data, mac })
             }
 
-            (enc_type, parts) => Err(EncStringParseError::InvalidType {
+            (enc_type, parts) => Err(EncStringParseError::InvalidTypeAsymm {
                 enc_type: enc_type.to_string(),
                 parts,
             }
@@ -107,7 +107,7 @@ impl FromStr for AsymmEncString {
 impl AsymmEncString {
     /// TODO: Convert this to a trait method
     #[cfg(feature = "internal")]
-    pub(crate) fn decrypt_with_private_key(&self, key: &RsaPrivateKey) -> Result<Vec<u8>> {
+    pub(crate) fn decrypt(&self, key: &RsaPrivateKey) -> Result<Vec<u8>> {
         Ok(match self {
             Self::Rsa2048_OaepSha256_B64 { data } => key.decrypt(Oaep::new::<sha2::Sha256>(), data),
             Self::Rsa2048_OaepSha1_B64 { data } => key.decrypt(Oaep::new::<sha1::Sha1>(), data),
@@ -151,23 +151,7 @@ impl<'de> Deserialize<'de> for AsymmEncString {
     where
         D: serde::Deserializer<'de>,
     {
-        struct CSVisitor;
-        impl Visitor<'_> for CSVisitor {
-            type Value = AsymmEncString;
-
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                write!(f, "a valid string")
-            }
-
-            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-            where
-                E: serde::de::Error,
-            {
-                AsymmEncString::from_str(v).map_err(|e| E::custom(format!("{:?}", e)))
-            }
-        }
-
-        deserializer.deserialize_str(CSVisitor)
+        deserializer.deserialize_str(super::FromStrVisitor::new())
     }
 }
 
@@ -249,7 +233,7 @@ XKZBokBGnjFnTnKcs7nv/O8=
 
         assert_eq!(enc_string.enc_type(), 6);
 
-        let res = enc_string.decrypt_with_private_key(&private_key).unwrap();
+        let res = enc_string.decrypt(&private_key).unwrap();
 
         assert_eq!(std::str::from_utf8(&res).unwrap(), "EncryptMe!");
     }

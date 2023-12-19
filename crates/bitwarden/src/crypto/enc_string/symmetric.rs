@@ -2,7 +2,7 @@ use std::{fmt::Display, str::FromStr};
 
 use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::Engine;
-use serde::{de::Visitor, Deserialize};
+use serde::Deserialize;
 
 #[cfg(feature = "mobile")]
 use super::check_length;
@@ -97,7 +97,7 @@ impl FromStr for EncString {
                 }
             }
 
-            (enc_type, parts) => Err(EncStringParseError::InvalidType {
+            (enc_type, parts) => Err(EncStringParseError::InvalidTypeSymm {
                 enc_type: enc_type.to_string(),
                 parts,
             }
@@ -140,7 +140,7 @@ impl EncString {
                     Ok(EncString::AesCbc256_HmacSha256_B64 { iv, mac, data })
                 }
             }
-            _ => Err(EncStringParseError::InvalidType {
+            _ => Err(EncStringParseError::InvalidTypeSymm {
                 enc_type: enc_type.to_string(),
                 parts: 1,
             }
@@ -197,23 +197,7 @@ impl<'de> Deserialize<'de> for EncString {
     where
         D: serde::Deserializer<'de>,
     {
-        struct CSVisitor;
-        impl Visitor<'_> for CSVisitor {
-            type Value = EncString;
-
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                write!(f, "a valid string")
-            }
-
-            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-            where
-                E: serde::de::Error,
-            {
-                EncString::from_str(v).map_err(|e| E::custom(format!("{:?}", e)))
-            }
-        }
-
-        deserializer.deserialize_str(CSVisitor)
+        deserializer.deserialize_str(super::FromStrVisitor::new())
     }
 }
 

@@ -1,6 +1,8 @@
 mod asymmetric;
 mod symmetric;
 
+use std::str::FromStr;
+
 pub use asymmetric::AsymmEncString;
 use base64::Engine;
 pub use symmetric::EncString;
@@ -50,5 +52,29 @@ fn split_enc_string(s: &str) -> (&str, Vec<&str>) {
         } else {
             ("0", parts) // AesCbc256_B64
         }
+    }
+}
+
+struct FromStrVisitor<T>(std::marker::PhantomData<T>);
+impl<T> FromStrVisitor<T> {
+    fn new() -> Self {
+        Self(Default::default())
+    }
+}
+impl<T: FromStr> serde::de::Visitor<'_> for FromStrVisitor<T>
+where
+    T::Err: std::fmt::Debug,
+{
+    type Value = T;
+
+    fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "a valid string")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        T::from_str(v).map_err(|e| E::custom(format!("{:?}", e)))
     }
 }

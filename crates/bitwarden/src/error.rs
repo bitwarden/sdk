@@ -106,8 +106,10 @@ pub enum CryptoError {
 pub enum EncStringParseError {
     #[error("No type detected, missing '.' separator")]
     NoType,
-    #[error("Invalid type, got {enc_type} with {parts} parts")]
-    InvalidType { enc_type: String, parts: usize },
+    #[error("Invalid symmetric type, got type {enc_type} with {parts} parts")]
+    InvalidTypeSymm { enc_type: String, parts: usize },
+    #[error("Invalid asymmetric type, got type {enc_type} with {parts} parts")]
+    InvalidTypeAsymm { enc_type: String, parts: usize },
     #[error("Error decoding base64: {0}")]
     InvalidBase64(#[from] base64::DecodeError),
     #[error("Invalid length: expected {expected}, got {got}")]

@@ -122,10 +122,8 @@ fn generate_mac(mac_key: &[u8], iv: &[u8], data: &[u8]) -> Result<[u8; 32]> {
 #[cfg(test)]
 mod tests {
     use aes::cipher::generic_array::sequence::GenericSequence;
-    use base64::Engine;
+    use base64::{engine::general_purpose::STANDARD, Engine};
     use rand::SeedableRng;
-
-    use crate::util::BASE64_ENGINE;
 
     use super::*;
 
@@ -175,7 +173,7 @@ mod tests {
         let iv = generate_vec(16, 0, 1);
         let iv: &[u8; 16] = iv.as_slice().try_into().unwrap();
         let key = generate_generic_array(0, 1);
-        let data = BASE64_ENGINE.decode("ByUF8vhyX4ddU9gcooznwA==").unwrap();
+        let data = STANDARD.decode("ByUF8vhyX4ddU9gcooznwA==").unwrap();
 
         let decrypted = decrypt_aes256(iv, data, key).unwrap();
 

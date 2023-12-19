@@ -1,9 +1,9 @@
-use base64::Engine;
+use base64::{engine::general_purpose::STANDARD, Engine};
 use log::{debug, info};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{crypto::fingerprint, error::Result, util::BASE64_ENGINE};
+use crate::{crypto::fingerprint, error::Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -25,7 +25,7 @@ pub(crate) fn generate_fingerprint(input: &FingerprintRequest) -> Result<Fingerp
     info!("Generating fingerprint");
     debug!("{:?}", input);
 
-    let key = BASE64_ENGINE.decode(&input.public_key)?;
+    let key = STANDARD.decode(&input.public_key)?;
 
     Ok(FingerprintResponse {
         fingerprint: fingerprint(&input.fingerprint_material, &key)?,

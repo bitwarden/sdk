@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use base64::Engine;
+use base64::{engine::general_purpose::STANDARD, Engine};
 use chrono::Utc;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -16,7 +16,6 @@ use crate::{
     crypto::{EncString, KeyDecryptable, SymmetricCryptoKey},
     error::{Error, Result},
     secrets_manager::state::{self, ClientState},
-    util::BASE64_ENGINE,
     Client,
 };
 
@@ -64,7 +63,7 @@ pub(crate) async fn login_access_token(
         }
 
         let payload: Payload = serde_json::from_slice(&decrypted_payload)?;
-        let encryption_key = BASE64_ENGINE.decode(payload.encryption_key.clone())?;
+        let encryption_key = STANDARD.decode(payload.encryption_key.clone())?;
         let encryption_key = SymmetricCryptoKey::try_from(encryption_key.as_slice())?;
 
         let access_token_obj: JWTToken = r.access_token.parse()?;

@@ -1,12 +1,11 @@
 use std::{fmt::Debug, str::FromStr};
 
-use base64::Engine;
+use base64::{engine::general_purpose::STANDARD, Engine};
 use uuid::Uuid;
 
 use crate::{
     crypto::{derive_shareable_key, SymmetricCryptoKey},
     error::AccessTokenInvalidError,
-    util::BASE64_ENGINE,
 };
 
 pub struct AccessToken {
@@ -45,7 +44,7 @@ impl FromStr for AccessToken {
             return Err(AccessTokenInvalidError::InvalidUuid.into());
         };
 
-        let encryption_key = BASE64_ENGINE
+        let encryption_key = STANDARD
             .decode(encryption_key)
             .map_err(AccessTokenInvalidError::InvalidBase64)?;
         let encryption_key: [u8; 16] = encryption_key.try_into().map_err(|e: Vec<_>| {

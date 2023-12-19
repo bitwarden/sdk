@@ -2,20 +2,20 @@ use std::{fmt::Display, str::FromStr};
 
 use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::Engine;
-#[cfg(feature = "internal")]
-use rsa::{Oaep, RsaPrivateKey};
-use serde::{de::Visitor, Deserialize};
+use serde::Deserialize;
 
-use super::{KeyDecryptable, KeyEncryptable, LocateKey};
+#[cfg(feature = "mobile")]
+use super::check_length;
+use super::{from_b64, from_b64_vec, split_enc_string};
 use crate::{
-    crypto::{decrypt_aes256_hmac, SymmetricCryptoKey},
+    crypto::{decrypt_aes256_hmac, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey},
     error::{CryptoError, EncStringParseError, Error, Result},
     util::BASE64_ENGINE,
 };
 
 /// # Encrypted string primitive
 ///
-/// [EncString] is a Bitwarden specific primitive that represents an encrypted string. They are
+/// [EncString] is a Bitwarden specific primitive that represents a symmetrically encrypted string. They are
 /// are used together with the [KeyDecryptable] and [KeyEncryptable] traits to encrypt and decrypt
 /// data using [SymmetricCryptoKey]s.
 ///
@@ -24,9 +24,6 @@ use crate::{
 ///
 /// ## Note
 ///
-/// We are currently in the progress of splitting the [EncString] into distinct AES and RSA
-/// variants. To provide better control of which encryption algorithm is expected.
-///
 /// For backwards compatibility we will rarely if ever be able to remove support for decrypting old
 /// variants, but we should be opinionated in which variants are used for encrypting.
 ///
@@ -34,8 +31,6 @@ use crate::{
 /// - [AesCbc256_B64](EncString::AesCbc256_B64)
 /// - [AesCbc128_HmacSha256_B64](EncString::AesCbc128_HmacSha256_B64)
 /// - [AesCbc256_HmacSha256_B64](EncString::AesCbc256_HmacSha256_B64)
-/// - [Rsa2048_OaepSha256_B64](EncString::Rsa2048_OaepSha256_B64)
-/// - [Rsa2048_OaepSha1_B64](EncString::Rsa2048_OaepSha1_B64)
 ///
 /// ## Serialization
 ///
@@ -45,7 +40,6 @@ use crate::{
 /// The scheme is one of the following schemes:
 /// - `[type].[iv]|[data]`
 /// - `[type].[iv]|[data]|[mac]`
-/// - `[type].[data]`
 ///
 /// Where:
 /// - `[type]`: is a digit number representing the variant.
@@ -69,16 +63,6 @@ pub enum EncString {
         mac: [u8; 32],
         data: Vec<u8>,
     },
-    /// 3
-    Rsa2048_OaepSha256_B64 { data: Vec<u8> },
-    /// 4
-    Rsa2048_OaepSha1_B64 { data: Vec<u8> },
-    /// 5
-    #[deprecated]
-    Rsa2048_OaepSha256_HmacSha256_B64 { data: Vec<u8> },
-    /// 6
-    #[deprecated]
-    Rsa2048_OaepSha1_HmacSha256_B64 { data: Vec<u8> },
 }
 
 /// To avoid printing sensitive information, [EncString] debug prints to `EncString`.
@@ -93,32 +77,7 @@ impl FromStr for EncString {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (enc_type, parts): (&str, Vec<_>) = {
-            let header_parts: Vec<_> = s.split('.').collect();
-
-            if header_parts.len() == 2 {
-                (header_parts[0], header_parts[1].split('|').collect())
-            } else {
-                // Support legacy format with no header
-                let parts: Vec<_> = s.split('|').collect();
-                if parts.len() == 3 {
-                    ("1", parts) // AesCbc128_HmacSha256_B64
-                } else {
-                    ("0", parts) // AesCbc256_B64
-                }
-            }
-        };
-
-        fn from_b64_vec(s: &str) -> Result<Vec<u8>> {
-            Ok(BASE64_ENGINE
-                .decode(s)
-                .map_err(EncStringParseError::InvalidBase64)?)
-        }
-
-        fn from_b64<const N: usize>(s: &str) -> Result<[u8; N]> {
-            Ok(from_b64_vec(s)?.try_into().map_err(invalid_len_error(N))?)
-        }
-
+        let (enc_type, parts) = split_enc_string(s);
         match (enc_type, parts.len()) {
             ("0", 2) => {
                 let iv = from_b64(parts[0])?;
@@ -137,26 +96,8 @@ impl FromStr for EncString {
                     Ok(EncString::AesCbc256_HmacSha256_B64 { iv, mac, data })
                 }
             }
-            ("3", 1) => {
-                let data = from_b64_vec(parts[0])?;
-                Ok(EncString::Rsa2048_OaepSha256_B64 { data })
-            }
-            ("4", 1) => {
-                let data = from_b64_vec(parts[0])?;
-                Ok(EncString::Rsa2048_OaepSha1_B64 { data })
-            }
-            #[allow(deprecated)]
-            ("5", 2) => {
-                let data = from_b64_vec(parts[0])?;
-                Ok(EncString::Rsa2048_OaepSha256_HmacSha256_B64 { data })
-            }
-            #[allow(deprecated)]
-            ("6", 2) => {
-                let data = from_b64_vec(parts[0])?;
-                Ok(EncString::Rsa2048_OaepSha1_HmacSha256_B64 { data })
-            }
 
-            (enc_type, parts) => Err(EncStringParseError::InvalidType {
+            (enc_type, parts) => Err(EncStringParseError::InvalidTypeSymm {
                 enc_type: enc_type.to_string(),
                 parts,
             }
@@ -172,46 +113,12 @@ impl EncString {
         s.map(|s| s.parse()).transpose()
     }
 
-    /// TODO: Convert this to a trait method
-    #[cfg(feature = "internal")]
-    pub(crate) fn decrypt_with_private_key(&self, key: &RsaPrivateKey) -> Result<Vec<u8>> {
-        Ok(match self {
-            EncString::Rsa2048_OaepSha256_B64 { data } => {
-                key.decrypt(Oaep::new::<sha2::Sha256>(), data)
-            }
-            EncString::Rsa2048_OaepSha1_B64 { data } => {
-                key.decrypt(Oaep::new::<sha1::Sha1>(), data)
-            }
-            #[allow(deprecated)]
-            EncString::Rsa2048_OaepSha256_HmacSha256_B64 { data } => {
-                key.decrypt(Oaep::new::<sha2::Sha256>(), data)
-            }
-            #[allow(deprecated)]
-            EncString::Rsa2048_OaepSha1_HmacSha256_B64 { data } => {
-                key.decrypt(Oaep::new::<sha1::Sha1>(), data)
-            }
-            _ => return Err(CryptoError::InvalidKey.into()),
-        }
-        .map_err(|_| CryptoError::KeyDecrypt)?)
-    }
-
     #[cfg(feature = "mobile")]
     pub(crate) fn from_buffer(buf: &[u8]) -> Result<Self> {
         if buf.is_empty() {
             return Err(EncStringParseError::NoType.into());
         }
         let enc_type = buf[0];
-
-        fn check_length(buf: &[u8], expected: usize) -> Result<()> {
-            if buf.len() < expected {
-                return Err(EncStringParseError::InvalidLength {
-                    expected,
-                    got: buf.len(),
-                }
-                .into());
-            }
-            Ok(())
-        }
 
         match enc_type {
             0 => {
@@ -233,29 +140,7 @@ impl EncString {
                     Ok(EncString::AesCbc256_HmacSha256_B64 { iv, mac, data })
                 }
             }
-            3 => {
-                check_length(buf, 2)?;
-                let data = buf[1..].to_vec();
-                Ok(EncString::Rsa2048_OaepSha256_B64 { data })
-            }
-            4 => {
-                check_length(buf, 2)?;
-                let data = buf[1..].to_vec();
-                Ok(EncString::Rsa2048_OaepSha1_B64 { data })
-            }
-            #[allow(deprecated)]
-            5 => {
-                check_length(buf, 2)?;
-                let data = buf[1..].to_vec();
-                Ok(EncString::Rsa2048_OaepSha256_HmacSha256_B64 { data })
-            }
-            #[allow(deprecated)]
-            6 => {
-                check_length(buf, 2)?;
-                let data = buf[1..].to_vec();
-                Ok(EncString::Rsa2048_OaepSha1_HmacSha256_B64 { data })
-            }
-            _ => Err(EncStringParseError::InvalidType {
+            _ => Err(EncStringParseError::InvalidTypeSymm {
                 enc_type: enc_type.to_string(),
                 parts: 1,
             }
@@ -282,20 +167,6 @@ impl EncString {
                 buf.extend_from_slice(mac);
                 buf.extend_from_slice(data);
             }
-
-            EncString::Rsa2048_OaepSha256_B64 { data }
-            | EncString::Rsa2048_OaepSha1_B64 { data } => {
-                buf = Vec::with_capacity(1 + data.len());
-                buf.push(self.enc_type());
-                buf.extend_from_slice(data);
-            }
-            #[allow(deprecated)]
-            EncString::Rsa2048_OaepSha256_HmacSha256_B64 { data }
-            | EncString::Rsa2048_OaepSha1_HmacSha256_B64 { data } => {
-                buf = Vec::with_capacity(1 + data.len());
-                buf.push(self.enc_type());
-                buf.extend_from_slice(data);
-            }
         }
 
         Ok(buf)
@@ -308,12 +179,6 @@ impl Display for EncString {
             EncString::AesCbc256_B64 { iv, data } => vec![iv, data],
             EncString::AesCbc128_HmacSha256_B64 { iv, mac, data } => vec![iv, data, mac],
             EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => vec![iv, data, mac],
-            EncString::Rsa2048_OaepSha256_B64 { data } => vec![data],
-            EncString::Rsa2048_OaepSha1_B64 { data } => vec![data],
-            #[allow(deprecated)]
-            EncString::Rsa2048_OaepSha256_HmacSha256_B64 { data } => vec![data],
-            #[allow(deprecated)]
-            EncString::Rsa2048_OaepSha1_HmacSha256_B64 { data } => vec![data],
         };
 
         let encoded_parts: Vec<String> = parts
@@ -332,23 +197,7 @@ impl<'de> Deserialize<'de> for EncString {
     where
         D: serde::Deserializer<'de>,
     {
-        struct CSVisitor;
-        impl Visitor<'_> for CSVisitor {
-            type Value = EncString;
-
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                write!(f, "a valid string")
-            }
-
-            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-            where
-                E: serde::de::Error,
-            {
-                EncString::from_str(v).map_err(|e| E::custom(format!("{:?}", e)))
-            }
-        }
-
-        deserializer.deserialize_str(CSVisitor)
+        deserializer.deserialize_str(super::FromStrVisitor::new())
     }
 }
 
@@ -367,7 +216,7 @@ impl EncString {
         mac_key: GenericArray<u8, U32>,
         key: GenericArray<u8, U32>,
     ) -> Result<EncString> {
-        let (iv, mac, data) = super::encrypt_aes256_hmac(data_dec, mac_key, key)?;
+        let (iv, mac, data) = crate::crypto::encrypt_aes256_hmac(data_dec, mac_key, key)?;
         Ok(EncString::AesCbc256_HmacSha256_B64 { iv, mac, data })
     }
 
@@ -377,20 +226,7 @@ impl EncString {
             EncString::AesCbc256_B64 { .. } => 0,
             EncString::AesCbc128_HmacSha256_B64 { .. } => 1,
             EncString::AesCbc256_HmacSha256_B64 { .. } => 2,
-            EncString::Rsa2048_OaepSha256_B64 { .. } => 3,
-            EncString::Rsa2048_OaepSha1_B64 { .. } => 4,
-            #[allow(deprecated)]
-            EncString::Rsa2048_OaepSha256_HmacSha256_B64 { .. } => 5,
-            #[allow(deprecated)]
-            EncString::Rsa2048_OaepSha1_HmacSha256_B64 { .. } => 6,
         }
-    }
-}
-
-fn invalid_len_error(expected: usize) -> impl Fn(Vec<u8>) -> EncStringParseError {
-    move |e: Vec<_>| EncStringParseError::InvalidLength {
-        expected,
-        got: e.len(),
     }
 }
 
@@ -429,7 +265,7 @@ impl KeyDecryptable<String> for EncString {
 
 /// Usually we wouldn't want to expose EncStrings in the API or the schemas.
 /// But during the transition phase we will expose endpoints using the EncString type.
-impl schemars::JsonSchema for crate::crypto::EncString {
+impl schemars::JsonSchema for EncString {
     fn schema_name() -> String {
         "EncString".to_string()
     }
@@ -453,50 +289,6 @@ mod tests {
 
         let decrypted_str: String = cipher.decrypt_with_key(&key).unwrap();
         assert_eq!(decrypted_str, test_string);
-    }
-
-    #[cfg(feature = "internal")]
-    #[test]
-    fn test_enc_string_rsa2048_oaep_sha1_hmac_sha256_b64() {
-        use rsa::{pkcs8::DecodePrivateKey, RsaPrivateKey};
-
-        let rsa_private_key: &str = "-----BEGIN PRIVATE KEY-----
-MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCXRVrCX+2hfOQS
-8HzYUS2oc/jGVTZpv+/Ryuoh9d8ihYX9dd0cYh2tl6KWdFc88lPUH11Oxqy20Rk2
-e5r/RF6T9yM0Me3NPnaKt+hlhLtfoc0h86LnhD56A9FDUfuI0dVnPcrwNv0YJIo9
-4LwxtbqBULNvXl6wJ7WAbODrCQy5ZgMVg+iH+gGpwiqsZqHt+KuoHWcN53MSPDfa
-F4/YMB99U3TziJMOOJask1TEEnakMPln11PczNDazT17DXIxYrbPfutPdh6sLs6A
-QOajdZijfEvepgnOe7cQ7aeatiOJFrjTApKPGxOVRzEMX4XS4xbyhH0QxQeB6l16
-l8C0uxIBAgMBAAECggEASaWfeVDA3cVzOPFSpvJm20OTE+R6uGOU+7vh36TX/POq
-92qBuwbd0h0oMD32FxsXywd2IxtBDUSiFM9699qufTVuM0Q3tZw6lHDTOVG08+tP
-dr8qSbMtw7PGFxN79fHLBxejjO4IrM9lapjWpxEF+11x7r+wM+0xRZQ8sNFYG46a
-PfIaty4BGbL0I2DQ2y8I57iBCAy69eht59NLMm27fRWGJIWCuBIjlpfzET1j2HLX
-UIh5bTBNzqaN039WH49HczGE3mQKVEJZc/efk3HaVd0a1Sjzyn0QY+N1jtZN3jTR
-buDWA1AknkX1LX/0tUhuS3/7C3ejHxjw4Dk1ZLo5/QKBgQDIWvqFn0+IKRSu6Ua2
-hDsufIHHUNLelbfLUMmFthxabcUn4zlvIscJO00Tq/ezopSRRvbGiqnxjv/mYxuc
-vOUBeZtlus0Q9RTACBtw9TGoNTmQbEunJ2FOSlqbQxkBBAjgGEppRPt30iGj/VjA
-hCATq2MYOa/X4dVR51BqQAFIEwKBgQDBSIfTFKC/hDk6FKZlgwvupWYJyU9Rkyfs
-tPErZFmzoKhPkQ3YORo2oeAYmVUbS9I2iIYpYpYQJHX8jMuCbCz4ONxTCuSIXYQY
-UcUq4PglCKp31xBAE6TN8SvhfME9/MvuDssnQinAHuF0GDAhF646T3LLS1not6Vs
-zv7brwSoGwKBgQC88v/8cGfi80ssQZeMnVvq1UTXIeQcQnoY5lGHJl3K8mbS3TnX
-E6c9j417Fdz+rj8KWzBzwWXQB5pSPflWcdZO886Xu/mVGmy9RWgLuVFhXwCwsVEP
-jNX5ramRb0/vY0yzenUCninBsIxFSbIfrPtLUYCc4hpxr+sr2Mg/y6jpvQKBgBez
-MRRs3xkcuXepuI2R+BCXL1/b02IJTUf1F+1eLLGd7YV0H+J3fgNc7gGWK51hOrF9
-JBZHBGeOUPlaukmPwiPdtQZpu4QNE3l37VlIpKTF30E6mb+BqR+nht3rUjarnMXg
-AoEZ18y6/KIjpSMpqC92Nnk/EBM9EYe6Cf4eA9ApAoGAeqEUg46UTlJySkBKURGp
-Is3v1kkf5I0X8DnOhwb+HPxNaiEdmO7ckm8+tPVgppLcG0+tMdLjigFQiDUQk2y3
-WjyxP5ZvXu7U96jaJRI8PFMoE06WeVYcdIzrID2HvqH+w0UQJFrLJ/0Mn4stFAEz
-XKZBokBGnjFnTnKcs7nv/O8=
------END PRIVATE KEY-----";
-        let private_key = RsaPrivateKey::from_pkcs8_pem(rsa_private_key).unwrap();
-        let enc_str: &str = "6.ThnNc67nNr7GELyuhGGfsXNP2zJnNqhrIsjntEQ27r2qmn8vwdHbTbfO0cwt6YgSibDN0PjiCZ1O3Wb/IFq+vwvyRwFqF9145wBF8CQCbkhV+M0XvO99kh0daovtt120Nve/5ETI5PbPag9VdalKRQWZypJaqQHm5TAQVf4F5wtLlCLMBkzqTk+wkFe7BPMTGn07T+O3eJbTxXvyMZewQ7icJF0MZVA7VyWX9qElmZ89FCKowbf1BMr5pbcQ+0KdXcSVW3to43VkTp7k7COwsuH3M/i1AuVP5YN8ixjyRpvaeGqX/ap2nCHK2Wj5VxgCGT7XEls6ZknnAp9nB9qVjQ==|s3ntw5H/KKD/qsS0lUghTHl5Sm9j6m7YEdNHf0OeAFQ=";
-        let enc_string: EncString = enc_str.parse().unwrap();
-
-        assert_eq!(enc_string.enc_type(), 6);
-
-        let res = enc_string.decrypt_with_private_key(&private_key).unwrap();
-
-        assert_eq!(std::str::from_utf8(&res).unwrap(), "EncryptMe!");
     }
 
     #[test]

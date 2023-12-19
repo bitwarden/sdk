@@ -9,7 +9,7 @@ mod renew_token_request;
 pub(crate) use access_token_request::*;
 #[cfg(feature = "internal")]
 pub(crate) use api_token_request::*;
-use base64::{engine::general_purpose::STANDARD, Engine};
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 #[cfg(feature = "internal")]
 pub(crate) use password_token_request::*;
 #[cfg(feature = "internal")]
@@ -45,7 +45,7 @@ async fn send_identity_connect_request(
     }
 
     if let Some(email) = email {
-        request = request.header("Auth-Email", STANDARD.encode(email.as_bytes()));
+        request = request.header("Auth-Email", URL_SAFE_NO_PAD.encode(email.as_bytes()));
     }
 
     let response = request

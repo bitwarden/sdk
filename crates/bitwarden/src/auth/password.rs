@@ -99,6 +99,23 @@ mod tests {
         use crate::auth::password::{satisfies_policy, MasterPasswordPolicyOptions};
 
         #[test]
+        fn satisfies_policy_gives_success() {
+            let password = "lkasfo!icbb$2323ALKJCO22".to_string();
+            let options = MasterPasswordPolicyOptions {
+                min_complexity: 3,
+                min_length: 5,
+                require_upper: true,
+                require_lower: true,
+                require_numbers: true,
+                require_special: true,
+                enforce_on_login: false,
+            };
+
+            let result = satisfies_policy(password, 4, &options);
+            assert!(result);
+        }
+
+        #[test]
         fn satisfies_policy_evaluates_strength() {
             let password = "password123".to_string();
             let options = MasterPasswordPolicyOptions {

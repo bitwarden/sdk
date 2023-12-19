@@ -16,6 +16,7 @@ pub(super) fn password_strength(
     2
 }
 
+/// Validate the provided password passes the provided Master Password Requirements Policy.
 pub(super) fn satisfies_policy(
     password: String,
     strength: u8,

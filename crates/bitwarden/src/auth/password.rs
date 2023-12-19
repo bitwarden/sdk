@@ -112,7 +112,7 @@ mod tests {
             };
 
             let result = satisfies_policy(password, 0, &options);
-            assert_eq!(result, false);
+            assert!(!result);
         }
 
         #[test]
@@ -129,7 +129,7 @@ mod tests {
             };
 
             let result = satisfies_policy(password, 0, &options);
-            assert_eq!(result, false);
+            assert!(!result);
         }
 
         #[test]
@@ -146,7 +146,7 @@ mod tests {
             };
 
             let result = satisfies_policy(password, 0, &options);
-            assert_eq!(result, false);
+            assert!(!result);
         }
 
         #[test]
@@ -163,7 +163,7 @@ mod tests {
             };
 
             let result = satisfies_policy(password, 0, &options);
-            assert_eq!(result, false);
+            assert!(!result);
         }
 
         #[test]
@@ -180,7 +180,7 @@ mod tests {
             };
 
             let result = satisfies_policy(password, 0, &options);
-            assert_eq!(result, false);
+            assert!(!result);
         }
 
         #[test]
@@ -197,7 +197,7 @@ mod tests {
             };
 
             let result = satisfies_policy(password, 0, &options);
-            assert_eq!(result, false);
+            assert!(!result);
         }
     }
 

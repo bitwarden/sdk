@@ -57,7 +57,7 @@ impl EncryptionSettings {
     ) -> Result<Self> {
         let private_key = {
             let dec: Vec<u8> = private_key.decrypt_with_key(&user_key)?;
-            Some(AsymmetricCryptoKey::try_from(dec.as_slice())?)
+            Some(AsymmetricCryptoKey::from_der(&dec)?)
         };
 
         Ok(EncryptionSettings {

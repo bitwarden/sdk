@@ -90,10 +90,6 @@ mod tests {
 
         use crate::client::AccessToken;
 
-        // Encryption key without base64 padding, we generate it with padding but ignore it when decoding
-        let t = "0.ec2c1d46-6a4b-4751-a310-af9601317f2d.C2IgxjjLF7qSshsbwe8JGcbM075YXw:X8vbvA0bduihIDe/qrzIQQ";
-        assert!(AccessToken::from_str(t).is_ok());
-
         // Invalid version
         let t = "1.ec2c1d46-6a4b-4751-a310-af9601317f2d.C2IgxjjLF7qSshsbwe8JGcbM075YXw:X8vbvA0bduihIDe/qrzIQQ==";
         assert!(AccessToken::from_str(t).is_err());

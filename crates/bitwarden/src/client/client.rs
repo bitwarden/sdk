@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use chrono::Utc;
 use reqwest::header::{self};
 use uuid::Uuid;
@@ -7,7 +9,7 @@ use crate::auth::login::{AccessTokenLoginRequest, AccessTokenLoginResponse};
 #[cfg(feature = "internal")]
 use crate::{
     client::kdf::Kdf,
-    crypto::EncString,
+    crypto::{AsymmEncString, EncString},
     platform::{
         generate_fingerprint, get_user_api_key, sync, FingerprintRequest, FingerprintResponse,
         SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,
@@ -62,6 +64,7 @@ pub(crate) enum ServiceAccountLoginMethod {
     AccessToken {
         access_token: AccessToken,
         organization_id: Uuid,
+        state_file: Option<PathBuf>,
     },
 }
 
@@ -69,7 +72,7 @@ pub(crate) enum ServiceAccountLoginMethod {
 pub struct Client {
     token: Option<String>,
     pub(crate) refresh_token: Option<String>,
-    pub(crate) token_expires_in: Option<i64>,
+    pub(crate) token_expires_on: Option<i64>,
     pub(crate) login_method: Option<LoginMethod>,
 
     /// Use Client::get_api_configurations() to access this.
@@ -114,7 +117,7 @@ impl Client {
         Self {
             token: None,
             refresh_token: None,
-            token_expires_in: None,
+            token_expires_on: None,
             login_method: None,
             __api_configurations: ApiConfigurations {
                 identity,
@@ -130,6 +133,11 @@ impl Client {
         // the token will end up expiring and the next operation is going to fail anyway.
         self.auth().renew_token().await.ok();
         &self.__api_configurations
+    }
+
+    #[cfg(feature = "mobile")]
+    pub(crate) fn get_http_client(&self) -> &reqwest::Client {
+        &self.__api_configurations.api.client
     }
 
     #[cfg(feature = "secrets")]
@@ -188,7 +196,7 @@ impl Client {
     ) {
         self.token = Some(token.clone());
         self.refresh_token = refresh_token;
-        self.token_expires_in = Some(Utc::now().timestamp() + expires_in as i64);
+        self.token_expires_on = Some(Utc::now().timestamp() + expires_in as i64);
         self.__api_configurations.identity.oauth_access_token = Some(token.clone());
         self.__api_configurations.api.oauth_access_token = Some(token);
     }
@@ -267,7 +275,7 @@ impl Client {
     #[cfg(feature = "internal")]
     pub(crate) fn initialize_org_crypto(
         &mut self,
-        org_keys: Vec<(Uuid, EncString)>,
+        org_keys: Vec<(Uuid, AsymmEncString)>,
     ) -> Result<&EncryptionSettings> {
         let enc = self
             .encryption_settings

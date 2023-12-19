@@ -1,6 +1,8 @@
 use std::{collections::HashMap, hash::Hash};
 
-use crate::{crypto::CryptoKey, error::Result};
+use crate::error::Result;
+
+pub trait CryptoKey {}
 
 pub trait KeyEncryptable<Key: CryptoKey, Output> {
     fn encrypt_with_key(self, key: &Key) -> Result<Output>;

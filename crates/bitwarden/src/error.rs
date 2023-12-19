@@ -1,6 +1,6 @@
 //! Errors that can occur when using this SDK
 
-use std::fmt::Debug;
+use std::{borrow::Cow, fmt::Debug};
 
 use bitwarden_api_api::apis::Error as ApiError;
 use bitwarden_api_identity::apis::Error as IdentityError;
@@ -46,8 +46,26 @@ pub enum Error {
     #[error("Received error message from server: [{}] {}", .status, .message)]
     ResponseContent { status: StatusCode, message: String },
 
+    #[error("The state file version is invalid")]
+    InvalidStateFileVersion,
+
+    #[error("The state file could not be read")]
+    InvalidStateFile,
+
     #[error("Internal error: {0}")]
-    Internal(&'static str),
+    Internal(Cow<'static, str>),
+}
+
+impl From<String> for Error {
+    fn from(s: String) -> Self {
+        Self::Internal(s.into())
+    }
+}
+
+impl From<&'static str> for Error {
+    fn from(s: &'static str) -> Self {
+        Self::Internal(s.into())
+    }
 }
 
 #[derive(Debug, Error)]
@@ -88,8 +106,10 @@ pub enum CryptoError {
 pub enum EncStringParseError {
     #[error("No type detected, missing '.' separator")]
     NoType,
-    #[error("Invalid type, got {enc_type} with {parts} parts")]
-    InvalidType { enc_type: String, parts: usize },
+    #[error("Invalid symmetric type, got type {enc_type} with {parts} parts")]
+    InvalidTypeSymm { enc_type: String, parts: usize },
+    #[error("Invalid asymmetric type, got type {enc_type} with {parts} parts")]
+    InvalidTypeAsymm { enc_type: String, parts: usize },
     #[error("Error decoding base64: {0}")]
     InvalidBase64(#[from] base64::DecodeError),
     #[error("Invalid length: expected {expected}, got {got}")]

@@ -24,22 +24,20 @@
 use aes::cipher::{generic_array::GenericArray, ArrayLength, Unsigned};
 use hmac::digest::OutputSizeUser;
 
-use crate::error::{Error, Result};
+use crate::error::Result;
 
 mod enc_string;
-pub use enc_string::EncString;
+pub use enc_string::{AsymmEncString, EncString};
 mod encryptable;
 pub use encryptable::{Decryptable, Encryptable, LocateKey};
 mod key_encryptable;
-pub use key_encryptable::{KeyDecryptable, KeyEncryptable};
+pub use key_encryptable::{CryptoKey, KeyDecryptable, KeyEncryptable};
 mod aes_ops;
 use aes_ops::{decrypt_aes256_hmac, encrypt_aes256_hmac};
 mod symmetric_crypto_key;
 pub use symmetric_crypto_key::SymmetricCryptoKey;
 mod asymmetric_crypto_key;
 pub use asymmetric_crypto_key::AsymmetricCryptoKey;
-mod crypto_key;
-pub use crypto_key::CryptoKey;
 
 mod shareable_key;
 pub(crate) use shareable_key::derive_shareable_key;
@@ -70,13 +68,11 @@ pub(crate) const PBKDF_SHA256_HMAC_OUT_SIZE: usize =
 
 /// RFC5869 HKDF-Expand operation
 fn hkdf_expand<T: ArrayLength<u8>>(prk: &[u8], info: Option<&str>) -> Result<GenericArray<u8, T>> {
-    let hkdf = hkdf::Hkdf::<sha2::Sha256>::from_prk(prk)
-        .map_err(|_| Error::Internal("invalid prk length"))?;
+    let hkdf = hkdf::Hkdf::<sha2::Sha256>::from_prk(prk).map_err(|_| "invalid prk length")?;
     let mut key = GenericArray::<u8, T>::default();
 
     let i = info.map(|i| i.as_bytes()).unwrap_or(&[]);
-    hkdf.expand(i, &mut key)
-        .map_err(|_| Error::Internal("invalid length"))?;
+    hkdf.expand(i, &mut key).map_err(|_| "invalid length")?;
 
     Ok(key)
 }

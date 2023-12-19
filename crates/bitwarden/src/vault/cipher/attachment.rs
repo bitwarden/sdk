@@ -28,7 +28,7 @@ pub struct AttachmentView {
     pub size: Option<String>,
     pub size_name: Option<String>,
     pub file_name: Option<String>,
-    pub key: Option<Vec<u8>>, // TODO: Should be made into SymmetricCryptoKey
+    pub key: Option<EncString>,
 }
 
 impl KeyEncryptable<SymmetricCryptoKey, Attachment> for AttachmentView {
@@ -39,7 +39,7 @@ impl KeyEncryptable<SymmetricCryptoKey, Attachment> for AttachmentView {
             size: self.size,
             size_name: self.size_name,
             file_name: self.file_name.encrypt_with_key(key)?,
-            key: self.key.as_deref().encrypt_with_key(key)?,
+            key: self.key,
         })
     }
 }
@@ -52,7 +52,7 @@ impl KeyDecryptable<SymmetricCryptoKey, AttachmentView> for Attachment {
             size: self.size.clone(),
             size_name: self.size_name.clone(),
             file_name: self.file_name.decrypt_with_key(key)?,
-            key: self.key.decrypt_with_key(key)?,
+            key: self.key.clone(),
         })
     }
 }

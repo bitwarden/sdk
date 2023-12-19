@@ -45,30 +45,7 @@ impl TryFrom<&[u8]> for AsymmetricCryptoKey {
     }
 }
 
-impl CryptoKey for AsymmetricCryptoKey {
-    fn decrypt(&self, e: &crate::crypto::EncString) -> Result<Vec<u8>> {
-        use crate::crypto::EncString::*;
-        use rsa::Oaep;
-        Ok(match e {
-            Rsa2048_OaepSha256_B64 { data } => self.key.decrypt(Oaep::new::<sha2::Sha256>(), data),
-            Rsa2048_OaepSha1_B64 { data } => self.key.decrypt(Oaep::new::<sha1::Sha1>(), data),
-            #[allow(deprecated)]
-            Rsa2048_OaepSha256_HmacSha256_B64 { data } => {
-                self.key.decrypt(Oaep::new::<sha2::Sha256>(), data)
-            }
-            #[allow(deprecated)]
-            Rsa2048_OaepSha1_HmacSha256_B64 { data } => {
-                self.key.decrypt(Oaep::new::<sha1::Sha1>(), data)
-            }
-            _ => return Err(CryptoError::InvalidKey.into()),
-        }
-        .map_err(|_| CryptoError::KeyDecrypt)?)
-    }
-
-    fn encrypt(&self, _data: &[u8]) -> Result<crate::crypto::EncString> {
-        todo!("implement encrypt")
-    }
-}
+impl CryptoKey for AsymmetricCryptoKey {}
 
 // We manually implement these to make sure we don't print any sensitive data
 impl std::fmt::Debug for AsymmetricCryptoKey {

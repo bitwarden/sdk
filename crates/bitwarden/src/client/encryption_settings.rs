@@ -3,7 +3,7 @@ use std::collections::HashMap;
 #[cfg(feature = "internal")]
 use crate::{
     client::UserLoginMethod,
-    crypto::{EncString, KeyDecryptable},
+    crypto::{AsymmEncString, EncString, KeyDecryptable},
     error::Result,
 };
 use uuid::Uuid;
@@ -80,7 +80,7 @@ impl EncryptionSettings {
     #[cfg(feature = "internal")]
     pub(crate) fn set_org_keys(
         &mut self,
-        org_enc_keys: Vec<(Uuid, EncString)>,
+        org_enc_keys: Vec<(Uuid, AsymmEncString)>,
     ) -> Result<&mut Self> {
         use crate::error::Error;
 

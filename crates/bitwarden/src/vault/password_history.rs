@@ -12,16 +12,16 @@ use crate::{
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct PasswordHistory {
-    password: EncString,
-    last_used_date: DateTime<Utc>,
+    pub password: EncString,
+    pub last_used_date: DateTime<Utc>,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct PasswordHistoryView {
-    password: String,
-    last_used_date: DateTime<Utc>,
+    pub password: String,
+    pub last_used_date: DateTime<Utc>,
 }
 
 impl LocateKey for PasswordHistoryView {}

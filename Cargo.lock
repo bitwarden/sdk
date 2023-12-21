@@ -368,7 +368,7 @@ dependencies = [
 
 [[package]]
 name = "bitwarden-api-api"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "reqwest",
  "serde",

@@ -27,7 +27,7 @@ argon2 = { version = ">=0.5.0, <0.6", features = [
     "alloc",
 ], default-features = false }
 base64 = ">=0.21.2, <0.22"
-bitwarden-api-api = { path = "../bitwarden-api-api", version = "=0.2.2" }
+bitwarden-api-api = { path = "../bitwarden-api-api", version = "=0.2.3" }
 bitwarden-api-identity = { path = "../bitwarden-api-identity", version = "=0.2.2" }
 cbc = { version = ">=0.1.2, <0.2", features = ["alloc"] }
 chrono = { version = ">=0.4.26, <0.5", features = [

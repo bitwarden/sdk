@@ -40,7 +40,7 @@ tokio = { version = "1.35.0", features = ["rt-multi-thread", "macros"] }
 toml = "0.8.8"
 uuid = { version = "^1.6.1", features = ["serde"] }
 
-bitwarden = { path = "../bitwarden", version = "0.3.1", features = ["secrets"] }
+bitwarden = { path = "../bitwarden", version = "0.4.0", features = ["secrets"] }
 
 [dev-dependencies]
 tempfile = "3.8.1"

@@ -2,6 +2,10 @@ use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCrypt
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use bitwarden_api_api::models::CipherIdentityModel;
+
+use crate::error::{Error, Result};
+
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
@@ -96,6 +100,33 @@ impl KeyDecryptable<IdentityView> for Identity {
             username: self.username.decrypt_with_key(key)?,
             passport_number: self.passport_number.decrypt_with_key(key)?,
             license_number: self.license_number.decrypt_with_key(key)?,
+        })
+    }
+}
+
+impl TryFrom<CipherIdentityModel> for Identity {
+    type Error = Error;
+
+    fn try_from(identity: CipherIdentityModel) -> Result<Self> {
+        Ok(Self {
+            title: EncString::try_from_optional(identity.title)?,
+            first_name: EncString::try_from_optional(identity.first_name)?,
+            middle_name: EncString::try_from_optional(identity.middle_name)?,
+            last_name: EncString::try_from_optional(identity.last_name)?,
+            address1: EncString::try_from_optional(identity.address1)?,
+            address2: EncString::try_from_optional(identity.address2)?,
+            address3: EncString::try_from_optional(identity.address3)?,
+            city: EncString::try_from_optional(identity.city)?,
+            state: EncString::try_from_optional(identity.state)?,
+            postal_code: EncString::try_from_optional(identity.postal_code)?,
+            country: EncString::try_from_optional(identity.country)?,
+            company: EncString::try_from_optional(identity.company)?,
+            email: EncString::try_from_optional(identity.email)?,
+            phone: EncString::try_from_optional(identity.phone)?,
+            ssn: EncString::try_from_optional(identity.ssn)?,
+            username: EncString::try_from_optional(identity.username)?,
+            passport_number: EncString::try_from_optional(identity.passport_number)?,
+            license_number: EncString::try_from_optional(identity.license_number)?,
         })
     }
 }

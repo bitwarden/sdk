@@ -1,9 +1,11 @@
+use bitwarden_api_api::models::CipherFieldModel;
 use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use super::linked_id::LinkedIdType;
+use crate::error::{Error, Result};
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
@@ -56,5 +58,32 @@ impl KeyDecryptable<FieldView> for Field {
             r#type: self.r#type,
             linked_id: self.linked_id,
         })
+    }
+}
+
+impl TryFrom<CipherFieldModel> for Field {
+    type Error = Error;
+
+    fn try_from(model: CipherFieldModel) -> Result<Self> {
+        Ok(Self {
+            name: EncString::try_from_optional(model.name)?,
+            value: EncString::try_from_optional(model.value)?,
+            r#type: model.r#type.map(|t| t.into()).ok_or(Error::MissingFields)?,
+            linked_id: model
+                .linked_id
+                .map(|id| (id as u32).try_into())
+                .transpose()?,
+        })
+    }
+}
+
+impl From<bitwarden_api_api::models::FieldType> for FieldType {
+    fn from(model: bitwarden_api_api::models::FieldType) -> Self {
+        match model {
+            bitwarden_api_api::models::FieldType::Variant0 => FieldType::Text,
+            bitwarden_api_api::models::FieldType::Variant1 => FieldType::Hidden,
+            bitwarden_api_api::models::FieldType::Variant2 => FieldType::Boolean,
+            bitwarden_api_api::models::FieldType::Variant3 => FieldType::Linked,
+        }
     }
 }

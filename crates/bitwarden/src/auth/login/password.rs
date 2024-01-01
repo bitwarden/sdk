@@ -5,10 +5,7 @@ use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "internal")]
 use crate::{
-    auth::{
-        api::request::PasswordTokenRequest,
-        login::{determine_password_hash, TwoFactorRequest},
-    },
+    auth::{api::request::PasswordTokenRequest, login::TwoFactorRequest},
     client::{kdf::Kdf, LoginMethod},
     Client,
 };
@@ -25,14 +22,20 @@ pub(crate) async fn login_password(
     client: &mut Client,
     input: &PasswordLoginRequest,
 ) -> Result<PasswordLoginResponse> {
-    use bitwarden_crypto::EncString;
+    use bitwarden_crypto::{EncString, HashPurpose};
 
-    use crate::client::UserLoginMethod;
+    use crate::{auth::determine_password_hash, client::UserLoginMethod};
 
     info!("password logging in");
     debug!("{:#?}, {:#?}", client, input);
 
-    let password_hash = determine_password_hash(&input.email, &input.kdf, &input.password).await?;
+    let password_hash = determine_password_hash(
+        &input.email,
+        &input.kdf,
+        &input.password,
+        HashPurpose::ServerAuthorization,
+    )
+    .await?;
     let response = request_identity_tokens(client, input, &password_hash).await?;
 
     if let IdentityTokenResponse::Authenticated(r) = &response {
@@ -40,12 +43,12 @@ pub(crate) async fn login_password(
             r.access_token.clone(),
             r.refresh_token.clone(),
             r.expires_in,
-            LoginMethod::User(UserLoginMethod::Username {
-                client_id: "web".to_owned(),
-                email: input.email.to_owned(),
-                kdf: input.kdf.to_owned(),
-            }),
         );
+        client.set_login_method(LoginMethod::User(UserLoginMethod::Username {
+            client_id: "web".to_owned(),
+            email: input.email.to_owned(),
+            kdf: input.kdf.to_owned(),
+        }));
 
         let user_key: EncString = r.key.as_deref().unwrap().parse().unwrap();
         let private_key: EncString = r.private_key.as_deref().unwrap().parse().unwrap();

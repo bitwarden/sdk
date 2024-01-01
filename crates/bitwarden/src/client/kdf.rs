@@ -22,6 +22,31 @@ pub enum Kdf {
     },
 }
 
+impl From<Kdf> for bitwarden_crypto::Kdf {
+    fn from(kdf: Kdf) -> Self {
+        kdf.into()
+    }
+}
+
+impl From<&Kdf> for bitwarden_crypto::Kdf {
+    fn from(kdf: &Kdf) -> Self {
+        match kdf {
+            Kdf::PBKDF2 { iterations } => bitwarden_crypto::Kdf::PBKDF2 {
+                iterations: *iterations,
+            },
+            Kdf::Argon2id {
+                iterations,
+                memory,
+                parallelism,
+            } => bitwarden_crypto::Kdf::Argon2id {
+                iterations: *iterations,
+                memory: *memory,
+                parallelism: *parallelism,
+            },
+        }
+    }
+}
+
 #[cfg(feature = "internal")]
 impl TryFrom<PreloginResponseModel> for Kdf {
     type Error = Error;
@@ -32,7 +57,7 @@ impl TryFrom<PreloginResponseModel> for Kdf {
             default_pbkdf2_iterations,
         };
 
-        let kdf = response.kdf.ok_or(Error::Internal("KDF not found"))?;
+        let kdf = response.kdf.ok_or("KDF not found")?;
 
         Ok(match kdf {
             KdfType::Variant0 => Kdf::PBKDF2 {

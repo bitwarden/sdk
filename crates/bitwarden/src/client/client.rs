@@ -1,10 +1,16 @@
-use bitwarden_crypto::{EncString, SymmetricCryptoKey};
+use bitwarden_crypto::SymmetricCryptoKey;
+use std::path::PathBuf;
+
 use chrono::Utc;
 use reqwest::header::{self};
 use uuid::Uuid;
 
 #[cfg(feature = "secrets")]
 use crate::auth::login::{AccessTokenLoginRequest, AccessTokenLoginResponse};
+
+#[cfg(feature = "internal")]
+use bitwarden_crypto::{AsymmEncString, EncString};
+
 #[cfg(feature = "internal")]
 use crate::{
     client::kdf::Kdf,
@@ -21,6 +27,8 @@ use crate::{
     error::{Error, Result},
 };
 
+use super::AccessToken;
+
 #[derive(Debug)]
 pub(crate) struct ApiConfigurations {
     pub identity: bitwarden_api_identity::apis::configuration::Configuration,
@@ -28,7 +36,7 @@ pub(crate) struct ApiConfigurations {
     pub device_type: DeviceType,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub(crate) enum LoginMethod {
     #[cfg(feature = "internal")]
     User(UserLoginMethod),
@@ -37,7 +45,7 @@ pub(crate) enum LoginMethod {
     ServiceAccount(ServiceAccountLoginMethod),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 #[cfg(feature = "internal")]
 pub(crate) enum UserLoginMethod {
     Username {
@@ -54,12 +62,12 @@ pub(crate) enum UserLoginMethod {
     },
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub(crate) enum ServiceAccountLoginMethod {
     AccessToken {
-        service_account_id: Uuid,
-        client_secret: String,
+        access_token: AccessToken,
         organization_id: Uuid,
+        state_file: Option<PathBuf>,
     },
 }
 
@@ -67,7 +75,7 @@ pub(crate) enum ServiceAccountLoginMethod {
 pub struct Client {
     token: Option<String>,
     pub(crate) refresh_token: Option<String>,
-    pub(crate) token_expires_in: Option<i64>,
+    pub(crate) token_expires_on: Option<i64>,
     pub(crate) login_method: Option<LoginMethod>,
 
     /// Use Client::get_api_configurations() to access this.
@@ -112,7 +120,7 @@ impl Client {
         Self {
             token: None,
             refresh_token: None,
-            token_expires_in: None,
+            token_expires_on: None,
             login_method: None,
             __api_configurations: ApiConfigurations {
                 identity,
@@ -128,6 +136,11 @@ impl Client {
         // the token will end up expiring and the next operation is going to fail anyway.
         self.auth().renew_token().await.ok();
         &self.__api_configurations
+    }
+
+    #[cfg(feature = "mobile")]
+    pub(crate) fn get_http_client(&self) -> &reqwest::Client {
+        &self.__api_configurations.api.client
     }
 
     #[cfg(feature = "secrets")]
@@ -171,7 +184,6 @@ impl Client {
         self.encryption_settings.as_ref().ok_or(Error::VaultLocked)
     }
 
-    #[cfg(feature = "mobile")]
     pub(crate) fn set_login_method(&mut self, login_method: LoginMethod) {
         use log::debug;
 
@@ -184,12 +196,10 @@ impl Client {
         token: String,
         refresh_token: Option<String>,
         expires_in: u64,
-        login_method: LoginMethod,
     ) {
         self.token = Some(token.clone());
         self.refresh_token = refresh_token;
-        self.token_expires_in = Some(Utc::now().timestamp() + expires_in as i64);
-        self.login_method = Some(login_method);
+        self.token_expires_on = Some(Utc::now().timestamp() + expires_in as i64);
         self.__api_configurations.identity.oauth_access_token = Some(token.clone());
         self.__api_configurations.api.oauth_access_token = Some(token);
     }
@@ -223,10 +233,9 @@ impl Client {
     #[cfg(feature = "mobile")]
     pub(crate) fn initialize_user_crypto_decrypted_key(
         &mut self,
-        decrypted_user_key: &str,
+        user_key: SymmetricCryptoKey,
         private_key: EncString,
     ) -> Result<&EncryptionSettings> {
-        let user_key = decrypted_user_key.parse::<SymmetricCryptoKey>()?;
         self.encryption_settings = Some(EncryptionSettings::new_decrypted_key(
             user_key,
             private_key,
@@ -235,6 +244,27 @@ impl Client {
             .encryption_settings
             .as_ref()
             .expect("It was initialized on the previous line"))
+    }
+
+    #[cfg(feature = "mobile")]
+    pub(crate) fn initialize_user_crypto_pin(
+        &mut self,
+        pin: &str,
+        pin_protected_user_key: EncString,
+        private_key: EncString,
+    ) -> Result<&EncryptionSettings> {
+        use bitwarden_crypto::MasterKey;
+
+        let pin_key = match &self.login_method {
+            Some(LoginMethod::User(
+                UserLoginMethod::Username { email, kdf, .. }
+                | UserLoginMethod::ApiKey { email, kdf, .. },
+            )) => MasterKey::derive(pin.as_bytes(), email.as_bytes(), &kdf.into())?,
+            _ => return Err(Error::NotAuthenticated),
+        };
+
+        let decrypted_user_key = pin_key.decrypt_user_key(pin_protected_user_key)?;
+        self.initialize_user_crypto_decrypted_key(decrypted_user_key, private_key)
     }
 
     pub(crate) fn initialize_crypto_single_key(
@@ -248,7 +278,7 @@ impl Client {
     #[cfg(feature = "internal")]
     pub(crate) fn initialize_org_crypto(
         &mut self,
-        org_keys: Vec<(Uuid, EncString)>,
+        org_keys: Vec<(Uuid, AsymmEncString)>,
     ) -> Result<&EncryptionSettings> {
         let enc = self
             .encryption_settings

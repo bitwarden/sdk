@@ -2,6 +2,9 @@ use std::fmt::Debug;
 
 use thiserror::Error;
 
+#[cfg(feature = "internal")]
+use crate::fingerprint::FingerprintError;
+
 #[derive(Debug, Error)]
 pub enum CryptoError {
     #[error("The provided key is not the expected type")]
@@ -19,19 +22,31 @@ pub enum CryptoError {
     #[error("Missing Key")]
     MissingKey,
 
+    #[error("Invalid length")]
+    InvalidLen,
+
     #[error("EncString error, {0}")]
     EncString(#[from] EncStringParseError),
 
     #[error("Rsa error, {0}")]
     RsaError(#[from] RsaError),
+
+    #[cfg(feature = "internal")]
+    #[error("Fingerprint error, {0}")]
+    FingerprintError(#[from] FingerprintError),
+
+    #[error("Number is zero")]
+    ZeroNumber,
 }
 
 #[derive(Debug, Error)]
 pub enum EncStringParseError {
     #[error("No type detected, missing '.' separator")]
     NoType,
-    #[error("Invalid type, got {enc_type} with {parts} parts")]
-    InvalidType { enc_type: String, parts: usize },
+    #[error("Invalid symmetric type, got type {enc_type} with {parts} parts")]
+    InvalidTypeSymm { enc_type: String, parts: usize },
+    #[error("Invalid asymmetric type, got type {enc_type} with {parts} parts")]
+    InvalidTypeAsymm { enc_type: String, parts: usize },
     #[error("Error decoding base64: {0}")]
     InvalidBase64(#[from] base64::DecodeError),
     #[error("Invalid length: expected {expected}, got {got}")]

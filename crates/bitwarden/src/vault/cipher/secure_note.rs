@@ -1,7 +1,10 @@
+use bitwarden_api_api::models::CipherSecureNoteModel;
 use bitwarden_crypto::{KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
+
+use crate::error::{Error, Result};
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
@@ -40,5 +43,23 @@ impl KeyDecryptable<SecureNoteView> for SecureNote {
         Ok(SecureNoteView {
             r#type: self.r#type,
         })
+    }
+}
+
+impl TryFrom<CipherSecureNoteModel> for SecureNote {
+    type Error = Error;
+
+    fn try_from(model: CipherSecureNoteModel) -> Result<Self> {
+        Ok(Self {
+            r#type: model.r#type.map(|t| t.into()).ok_or(Error::MissingFields)?,
+        })
+    }
+}
+
+impl From<bitwarden_api_api::models::SecureNoteType> for SecureNoteType {
+    fn from(model: bitwarden_api_api::models::SecureNoteType) -> Self {
+        match model {
+            bitwarden_api_api::models::SecureNoteType::Variant0 => SecureNoteType::Generic,
+        }
     }
 }

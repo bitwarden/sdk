@@ -1,9 +1,29 @@
-use ::aes::cipher::{generic_array::GenericArray, ArrayLength, Unsigned};
+//! # Bitwarden Cryptographic primitives
+//!
+//! This module contains the cryptographic primitives used throughout the SDK. The module makes a
+//! best effort to abstract away cryptographic concepts into concepts such as
+//! [`EncString`] and [`SymmetricCryptoKey`].
+//!
+//! ## Conventions:
+//!
+//! - Pure Functions that deterministically "derive" keys from input are prefixed with `derive_`.
+//! - Functions that generate new keys are prefixed with `make_`.
+//!
+//! ## Differences from [`clients`](https://github.com/bitwarden/clients)
+//!
+//! There are some noteworthy differences compared to the other Bitwarden clients. These changes
+//! are made in an effort to introduce conventions in how we name things, improve best practices
+//! and abstracting away internal complexity.
+//!
+//! - `CryptoService.makeSendKey` & `AccessService.createAccessToken` are replaced by the generic
+//!   `derive_shareable_key`
+//! - MasterKey operations such as `makeMasterKey` and `hashMasterKey` are moved to the MasterKey
+//!   struct.
+
 use base64::{
     alphabet,
     engine::{DecodePaddingMode, GeneralPurpose, GeneralPurposeConfig},
 };
-use hmac::digest::OutputSizeUser;
 
 #[cfg(feature = "mobile")]
 uniffi::setup_scaffolding!();
@@ -20,33 +40,37 @@ pub use symmetric_crypto_key::SymmetricCryptoKey;
 mod encryptable;
 pub use encryptable::{Decryptable, Encryptable, KeyContainer, LocateKey};
 mod enc_string;
-pub use enc_string::EncString;
+pub use enc_string::{AsymmEncString, EncString};
 pub mod rsa;
 mod user_key;
 pub use user_key::UserKey;
+
+mod util;
+
+#[cfg(feature = "internal")]
+mod wordlist;
+#[cfg(feature = "internal")]
+pub use wordlist::EFF_LONG_WORD_LIST;
+
+#[cfg(feature = "internal")]
+mod fingerprint;
+#[cfg(feature = "internal")]
+pub use fingerprint::fingerprint;
+
+#[cfg(feature = "internal")]
+mod master_key;
+#[cfg(feature = "internal")]
+pub use master_key::{HashPurpose, Kdf, MasterKey};
+
+#[cfg(feature = "mobile")]
 mod uniffi_support;
+#[cfg(feature = "mobile")]
 pub use uniffi_support::*;
 
-// TODO: Move into a util crate
+// TODO: Replace with standard base64 engine
 const BASE64_ENGINE_CONFIG: GeneralPurposeConfig = GeneralPurposeConfig::new()
     .with_encode_padding(true)
     .with_decode_padding_mode(DecodePaddingMode::Indifferent);
 
 pub const BASE64_ENGINE: GeneralPurpose =
     GeneralPurpose::new(&alphabet::STANDARD, BASE64_ENGINE_CONFIG);
-
-pub(crate) type PbkdfSha256Hmac = hmac::Hmac<sha2::Sha256>;
-pub(crate) const PBKDF_SHA256_HMAC_OUT_SIZE: usize =
-    <<PbkdfSha256Hmac as OutputSizeUser>::OutputSize as Unsigned>::USIZE;
-
-/// RFC5869 HKDF-Expand operation
-fn hkdf_expand<T: ArrayLength<u8>>(prk: &[u8], info: Option<&str>) -> Result<GenericArray<u8, T>> {
-    let hkdf = hkdf::Hkdf::<sha2::Sha256>::from_prk(prk).map_err(|_| CryptoError::InvalidKeyLen)?;
-    let mut key = GenericArray::<u8, T>::default();
-
-    let i = info.map(|i| i.as_bytes()).unwrap_or(&[]);
-    hkdf.expand(i, &mut key)
-        .map_err(|_| CryptoError::InvalidKeyLen)?;
-
-    Ok(key)
-}

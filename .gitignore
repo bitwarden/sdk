@@ -14,6 +14,7 @@ build/
 bld/
 [Bb]in/
 [Oo]bj/
+*.wasm
 
 # Binary files
 *.dylib
@@ -42,6 +43,7 @@ crates/bitwarden-napi/sdk-napi.*.node
 
 # Complied TypeScript client
 crates/bitwarden-napi/dist
+languages/js/sdk-client/dist/
 
 # Uniffi
 languages/swift/BitwardenFFI.xcframework
@@ -52,11 +54,11 @@ languages/kotlin/sdk/src/main/java/com/bitwarden/sdk/bitwarden_uniffi.kt
 languages/kotlin/sdk/src/main/java/com/bitwarden/core/bitwarden.kt
 
 # Schemas
-support/schemas
 crates/bitwarden-napi/src-ts/bitwarden_client/schemas.ts
-languages/csharp/Bitwarden.Sdk/schemas.cs
-languages/js_webassembly/bitwarden_client/schemas.ts
-languages/python/BitwardenClient/schemas.py
 languages/cpp/include/schemas.hpp
+languages/csharp/Bitwarden.Sdk/schemas.cs
 languages/go/schema.go
 languages/java/src/main/java/com/bitwarden/sdk/schema
+languages/js/sdk-client/src/schemas.ts
+languages/python/bitwarden_sdk/schemas.py
+support/schemas

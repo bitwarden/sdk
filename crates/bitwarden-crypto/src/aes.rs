@@ -17,13 +17,17 @@ use subtle::ConstantTimeEq;
 
 use crate::{
     error::{CryptoError, Result},
-    PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE,
+    util::{PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},
 };
 
 /// Decrypt using AES-256 in CBC mode.
 ///
 /// Behaves similar to [decrypt_aes256_hmac], but does not validate the MAC.
-pub fn decrypt_aes256(iv: &[u8; 16], data: Vec<u8>, key: GenericArray<u8, U32>) -> Result<Vec<u8>> {
+pub(crate) fn decrypt_aes256(
+    iv: &[u8; 16],
+    data: Vec<u8>,
+    key: GenericArray<u8, U32>,
+) -> Result<Vec<u8>> {
     // Decrypt data
     let iv = GenericArray::from_slice(iv);
     let mut data = data;
@@ -41,7 +45,7 @@ pub fn decrypt_aes256(iv: &[u8; 16], data: Vec<u8>, key: GenericArray<u8, U32>) 
 /// Decrypt using AES-256 in CBC mode with MAC.
 ///
 /// Behaves similar to [decrypt_aes256], but also validates the MAC.
-pub fn decrypt_aes256_hmac(
+pub(crate) fn decrypt_aes256_hmac(
     iv: &[u8; 16],
     mac: &[u8; 32],
     data: Vec<u8>,
@@ -63,7 +67,7 @@ pub fn decrypt_aes256_hmac(
 ///
 /// A AesCbc256_B64 EncString
 #[allow(unused)]
-pub fn encrypt_aes256(data_dec: &[u8], key: GenericArray<u8, U32>) -> ([u8; 16], Vec<u8>) {
+pub(crate) fn encrypt_aes256(data_dec: &[u8], key: GenericArray<u8, U32>) -> ([u8; 16], Vec<u8>) {
     let rng = rand::thread_rng();
     let (iv, data) = encrypt_aes256_internal(rng, data_dec, key);
 
@@ -77,7 +81,7 @@ pub fn encrypt_aes256(data_dec: &[u8], key: GenericArray<u8, U32>) -> ([u8; 16],
 /// ## Returns
 ///
 /// A AesCbc256_HmacSha256_B64 EncString
-pub fn encrypt_aes256_hmac(
+pub(crate) fn encrypt_aes256_hmac(
     data_dec: &[u8],
     mac_key: GenericArray<u8, U32>,
     key: GenericArray<u8, U32>,

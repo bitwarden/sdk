@@ -1,9 +1,10 @@
 use base64::Engine;
+use bitwarden_crypto::fingerprint;
 use log::{debug, info};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{crypto::fingerprint, error::Result, util::BASE64_ENGINE};
+use crate::{error::Result, util::BASE64_ENGINE};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

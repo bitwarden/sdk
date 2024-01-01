@@ -3,12 +3,13 @@ use crate::{
     tool::generators::{
         passphrase::{passphrase, PassphraseGeneratorRequest},
         password::{password, PasswordGeneratorRequest},
+        username::{username, UsernameGeneratorRequest},
     },
     Client,
 };
 
 pub struct ClientGenerator<'a> {
-    pub(crate) _client: &'a crate::Client,
+    pub(crate) client: &'a crate::Client,
 }
 
 impl<'a> ClientGenerator<'a> {
@@ -61,10 +62,32 @@ impl<'a> ClientGenerator<'a> {
     pub async fn passphrase(&self, input: PassphraseGeneratorRequest) -> Result<String> {
         passphrase(input)
     }
+
+    /// Generates a random username.
+    /// There are different username generation strategies, which can be customized using the `input` parameter.
+    ///
+    /// Note that most generation strategies will be executed on the client side, but `Forwarded` will use third-party
+    /// services, which may require a specific setup or API key.
+    ///
+    /// ```
+    /// use bitwarden::{Client, tool::{UsernameGeneratorRequest}, error::Result};
+    /// async fn test() -> Result<()> {
+    ///     let input = UsernameGeneratorRequest::Word {
+    ///         capitalize: true,
+    ///         include_number: true,
+    ///     };
+    ///     let username = Client::new(None).generator().username(input).await.unwrap();
+    ///     println!("{}", username);
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn username(&self, input: UsernameGeneratorRequest) -> Result<String> {
+        username(input, self.client.get_http_client()).await
+    }
 }
 
 impl<'a> Client {
     pub fn generator(&'a self) -> ClientGenerator<'a> {
-        ClientGenerator { _client: self }
+        ClientGenerator { client: self }
     }
 }

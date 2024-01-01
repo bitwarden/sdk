@@ -2,6 +2,7 @@ use bitwarden_api_api::{
     apis::accounts_api::accounts_api_key_post,
     models::{ApiKeyResponseModel, SecretVerificationRequestModel},
 };
+use bitwarden_crypto::{HashPurpose, MasterKey};
 use log::{debug, info};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -9,7 +10,6 @@ use serde::{Deserialize, Serialize};
 use super::SecretVerificationRequest;
 use crate::{
     client::{LoginMethod, UserLoginMethod},
-    crypto::{HashPurpose, MasterKey},
     error::{Error, Result},
     Client,
 };
@@ -50,7 +50,7 @@ fn get_secret_verification_request(
             .master_password
             .as_ref()
             .map(|p| {
-                let master_key = MasterKey::derive(p.as_bytes(), email.as_bytes(), kdf)?;
+                let master_key = MasterKey::derive(p.as_bytes(), email.as_bytes(), &kdf.into())?;
 
                 master_key.derive_master_key_hash(p.as_bytes(), HashPurpose::ServerAuthorization)
             })
@@ -62,7 +62,7 @@ fn get_secret_verification_request(
             auth_request_access_code: None,
         })
     } else {
-        Err(Error::Internal("Unsupported login method"))
+        Err("Unsupported login method".into())
     }
 }
 

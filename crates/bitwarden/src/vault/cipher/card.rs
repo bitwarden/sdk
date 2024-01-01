@@ -2,6 +2,10 @@ use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCrypt
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use bitwarden_api_api::models::CipherCardModel;
+
+use crate::error::{Error, Result};
+
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
@@ -48,6 +52,21 @@ impl KeyDecryptable<CardView> for Card {
             code: self.code.decrypt_with_key(key)?,
             brand: self.brand.decrypt_with_key(key)?,
             number: self.number.decrypt_with_key(key)?,
+        })
+    }
+}
+
+impl TryFrom<CipherCardModel> for Card {
+    type Error = Error;
+
+    fn try_from(card: CipherCardModel) -> Result<Self> {
+        Ok(Self {
+            cardholder_name: EncString::try_from_optional(card.cardholder_name)?,
+            exp_month: EncString::try_from_optional(card.exp_month)?,
+            exp_year: EncString::try_from_optional(card.exp_year)?,
+            code: EncString::try_from_optional(card.code)?,
+            brand: EncString::try_from_optional(card.brand)?,
+            number: EncString::try_from_optional(card.number)?,
         })
     }
 }

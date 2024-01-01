@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use bitwarden_crypto::{EncString, KeyContainer, SymmetricCryptoKey};
+use bitwarden_crypto::{KeyContainer, SymmetricCryptoKey};
 use rsa::RsaPrivateKey;
 use uuid::Uuid;
 #[cfg(feature = "internal")]
@@ -9,8 +9,11 @@ use {
         client::UserLoginMethod,
         error::{CryptoError, Result},
     },
-    rsa::{pkcs8::DecodePrivateKey, Oaep},
+    rsa::pkcs8::DecodePrivateKey,
 };
+
+#[cfg(feature = "internal")]
+use bitwarden_crypto::{AsymmEncString, EncString};
 
 pub struct EncryptionSettings {
     user_key: SymmetricCryptoKey,
@@ -33,13 +36,14 @@ impl EncryptionSettings {
         user_key: EncString,
         private_key: EncString,
     ) -> Result<Self> {
-        use crate::crypto::MasterKey;
+        use bitwarden_crypto::MasterKey;
 
         match login_method {
             UserLoginMethod::Username { email, kdf, .. }
             | UserLoginMethod::ApiKey { email, kdf, .. } => {
                 // Derive master key from password
-                let master_key = MasterKey::derive(password.as_bytes(), email.as_bytes(), kdf)?;
+                let master_key =
+                    MasterKey::derive(password.as_bytes(), email.as_bytes(), &kdf.into())?;
 
                 // Decrypt the user key
                 let user_key = master_key.decrypt_user_key(user_key)?;
@@ -84,7 +88,7 @@ impl EncryptionSettings {
     #[cfg(feature = "internal")]
     pub(crate) fn set_org_keys(
         &mut self,
-        org_enc_keys: Vec<(Uuid, EncString)>,
+        org_enc_keys: Vec<(Uuid, AsymmEncString)>,
     ) -> Result<&mut Self> {
         use crate::error::Error;
 
@@ -96,14 +100,7 @@ impl EncryptionSettings {
 
         // Decrypt the org keys with the private key
         for (org_id, org_enc_key) in org_enc_keys {
-            let data = match org_enc_key {
-                EncString::Rsa2048_OaepSha1_B64 { data } => data,
-                _ => return Err(CryptoError::InvalidKey.into()),
-            };
-
-            let dec = private_key
-                .decrypt(Oaep::new::<sha1::Sha1>(), &data)
-                .map_err(|_| CryptoError::KeyDecrypt)?;
+            let dec = org_enc_key.decrypt(private_key)?;
 
             let org_key = SymmetricCryptoKey::try_from(dec.as_slice())?;
 

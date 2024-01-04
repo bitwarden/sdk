@@ -24,7 +24,7 @@ pub enum Error {
     MissingFields,
 
     #[error("Cryptography error, {0}")]
-    Crypto2(#[from] bitwarden_crypto::CryptoError),
+    Crypto(#[from] bitwarden_crypto::CryptoError),
 
     #[error("Error parsing Identity response: {0}")]
     IdentityFail(crate::auth::api::response::IdentityTokenFailResponse),

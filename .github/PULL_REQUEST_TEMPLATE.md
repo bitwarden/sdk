@@ -21,10 +21,6 @@
 
 - **file.ext:** Description of what was changed and why
 
-## Screenshots
-
-<!--Required for any UI changes. Delete if not applicable-->
-
 ## Before you submit
 
 - Please add **unit tests** where it makes sense to do so (encouraged but not required)

@@ -2,7 +2,6 @@ use std::fmt::Debug;
 
 use thiserror::Error;
 
-#[cfg(feature = "internal")]
 use crate::fingerprint::FingerprintError;
 
 #[derive(Debug, Error)]
@@ -15,8 +14,6 @@ pub enum CryptoError {
     KeyDecrypt,
     #[error("The cipher key has an invalid length")]
     InvalidKeyLen,
-    #[error("There is no encryption key for the provided organization")]
-    NoKeyForOrg,
     #[error("The value is not a valid UTF8 String")]
     InvalidUtf8String,
     #[error("Missing Key")]
@@ -31,7 +28,6 @@ pub enum CryptoError {
     #[error("Rsa error, {0}")]
     RsaError(#[from] RsaError),
 
-    #[cfg(feature = "internal")]
     #[error("Fingerprint error, {0}")]
     FingerprintError(#[from] FingerprintError),
 
@@ -61,4 +57,5 @@ pub enum RsaError {
     CreatePrivateKey,
 }
 
-pub type Result<T, E = CryptoError> = std::result::Result<T, E>;
+/// Alias for `Result<T, CryptoError>`.
+pub(crate) type Result<T, E = CryptoError> = std::result::Result<T, E>;

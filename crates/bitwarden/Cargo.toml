@@ -16,7 +16,7 @@ rust-version = "1.57"
 default = ["secrets"]
 
 secrets = [] # Secrets manager API
-internal = ["bitwarden-crypto/internal"] # Internal testing methods
+internal = [] # Internal testing methods
 mobile = [
     "uniffi",
     "internal",

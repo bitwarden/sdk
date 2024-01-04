@@ -15,7 +15,6 @@ rust-version = "1.57"
 [features]
 default = []
 
-internal = []
 mobile = ["uniffi"]
 
 [dependencies]

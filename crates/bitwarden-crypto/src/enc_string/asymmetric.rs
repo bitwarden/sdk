@@ -1,16 +1,14 @@
 use std::{fmt::Display, str::FromStr};
 
-use base64::Engine;
-#[cfg(feature = "internal")]
+use base64::{engine::general_purpose::STANDARD, Engine};
 use rsa::{Oaep, RsaPrivateKey};
 use serde::Deserialize;
 
+use super::{from_b64_vec, split_enc_string};
 use crate::{
     error::{EncStringParseError, Result},
-    CryptoError, BASE64_ENGINE,
+    CryptoError,
 };
-
-use super::{from_b64_vec, split_enc_string};
 
 /// # Encrypted string primitive
 ///
@@ -103,7 +101,6 @@ impl FromStr for AsymmEncString {
 #[allow(unused)]
 impl AsymmEncString {
     /// TODO: Convert this to a trait method
-    #[cfg(feature = "internal")]
     pub fn decrypt(&self, key: &RsaPrivateKey) -> Result<Vec<u8>> {
         match self {
             Self::Rsa2048_OaepSha256_B64 { data } => key.decrypt(Oaep::new::<sha2::Sha256>(), data),
@@ -132,10 +129,7 @@ impl Display for AsymmEncString {
             AsymmEncString::Rsa2048_OaepSha1_HmacSha256_B64 { data, mac } => vec![data, mac],
         };
 
-        let encoded_parts: Vec<String> = parts
-            .iter()
-            .map(|part| BASE64_ENGINE.encode(part))
-            .collect();
+        let encoded_parts: Vec<String> = parts.iter().map(|part| STANDARD.encode(part)).collect();
 
         write!(f, "{}.{}", self.enc_type(), encoded_parts.join("|"))?;
 
@@ -191,7 +185,6 @@ impl schemars::JsonSchema for AsymmEncString {
 mod tests {
     use super::AsymmEncString;
 
-    #[cfg(feature = "internal")]
     #[test]
     fn test_enc_string_rsa2048_oaep_sha1_hmac_sha256_b64() {
         use rsa::{pkcs8::DecodePrivateKey, RsaPrivateKey};

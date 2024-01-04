@@ -1,17 +1,14 @@
 use std::{fmt::Display, str::FromStr};
 
 use aes::cipher::{generic_array::GenericArray, typenum::U32};
-use base64::Engine;
+use base64::{engine::general_purpose::STANDARD, Engine};
 use serde::Deserialize;
 
+use super::{check_length, from_b64, from_b64_vec, split_enc_string};
 use crate::{
     error::EncStringParseError, CryptoError, KeyDecryptable, KeyEncryptable, LocateKey, Result,
-    SymmetricCryptoKey, BASE64_ENGINE,
+    SymmetricCryptoKey,
 };
-
-#[cfg(feature = "mobile")]
-use super::check_length;
-use super::{from_b64, from_b64_vec, split_enc_string};
 
 /// # Encrypted string primitive
 ///
@@ -108,12 +105,10 @@ impl FromStr for EncString {
 
 impl EncString {
     /// Synthetic sugar for mapping `Option<String>` to `Result<Option<EncString>>`
-    #[cfg(feature = "internal")]
     pub fn try_from_optional(s: Option<String>) -> Result<Option<EncString>, CryptoError> {
         s.map(|s| s.parse()).transpose()
     }
 
-    #[cfg(feature = "mobile")]
     pub fn from_buffer(buf: &[u8]) -> Result<Self> {
         if buf.is_empty() {
             return Err(EncStringParseError::NoType.into());
@@ -180,10 +175,7 @@ impl Display for EncString {
             EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => vec![iv, data, mac],
         };
 
-        let encoded_parts: Vec<String> = parts
-            .iter()
-            .map(|part| BASE64_ENGINE.encode(part))
-            .collect();
+        let encoded_parts: Vec<String> = parts.iter().map(|part| STANDARD.encode(part)).collect();
 
         write!(f, "{}.{}", self.enc_type(), encoded_parts.join("|"))?;
 
@@ -306,7 +298,6 @@ mod tests {
         assert_eq!(serde_json::to_string(&t).unwrap(), serialized);
     }
 
-    #[cfg(feature = "mobile")]
     #[test]
     fn test_enc_from_to_buffer() {
         let enc_str: &str = "2.pMS6/icTQABtulw52pq2lg==|XXbxKxDTh+mWiN1HjH2N1w==|Q6PkuT+KX/axrgN9ubD5Ajk2YNwxQkgs3WJM0S0wtG8=";

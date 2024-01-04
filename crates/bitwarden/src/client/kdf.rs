@@ -24,7 +24,20 @@ pub enum Kdf {
 
 impl From<Kdf> for bitwarden_crypto::Kdf {
     fn from(kdf: Kdf) -> Self {
-        kdf.into()
+        match kdf {
+            Kdf::PBKDF2 { iterations } => bitwarden_crypto::Kdf::PBKDF2 {
+                iterations: iterations.get(),
+            },
+            Kdf::Argon2id {
+                iterations,
+                memory,
+                parallelism,
+            } => bitwarden_crypto::Kdf::Argon2id {
+                iterations: iterations.get(),
+                memory: memory.get(),
+                parallelism: parallelism.get(),
+            },
+        }
     }
 }
 

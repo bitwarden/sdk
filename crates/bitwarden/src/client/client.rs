@@ -1,16 +1,15 @@
-use bitwarden_crypto::SymmetricCryptoKey;
 use std::path::PathBuf;
 
+use bitwarden_crypto::SymmetricCryptoKey;
+#[cfg(feature = "internal")]
+use bitwarden_crypto::{AsymmEncString, EncString};
 use chrono::Utc;
 use reqwest::header::{self};
 use uuid::Uuid;
 
+use super::AccessToken;
 #[cfg(feature = "secrets")]
 use crate::auth::login::{AccessTokenLoginRequest, AccessTokenLoginResponse};
-
-#[cfg(feature = "internal")]
-use bitwarden_crypto::{AsymmEncString, EncString};
-
 #[cfg(feature = "internal")]
 use crate::{
     client::kdf::Kdf,
@@ -26,8 +25,6 @@ use crate::{
     },
     error::{Error, Result},
 };
-
-use super::AccessToken;
 
 #[derive(Debug)]
 pub(crate) struct ApiConfigurations {

@@ -1,14 +1,15 @@
 use std::num::NonZeroU32;
 
 use aes::cipher::{generic_array::GenericArray, typenum::U32};
-use base64::Engine;
+use base64::{engine::general_purpose::STANDARD, Engine};
 use rand::Rng;
 use schemars::JsonSchema;
 use sha2::Digest;
 
-use crate::{EncString, KeyDecryptable, Result, SymmetricCryptoKey, UserKey, BASE64_ENGINE};
-
-use crate::util::{hkdf_expand, PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE};
+use crate::{
+    util::{hkdf_expand, PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},
+    EncString, KeyDecryptable, Result, SymmetricCryptoKey, UserKey,
+};
 
 #[derive(Debug, Clone)]
 pub enum Kdf {
@@ -47,7 +48,7 @@ impl MasterKey {
         )
         .expect("hash is a valid fixed size");
 
-        Ok(BASE64_ENGINE.encode(hash))
+        Ok(STANDARD.encode(hash))
     }
 
     pub fn make_user_key(&self) -> Result<(UserKey, EncString)> {
@@ -141,9 +142,8 @@ mod tests {
 
     use rand::SeedableRng;
 
-    use crate::SymmetricCryptoKey;
-
     use super::{make_user_key, stretch_master_key, HashPurpose, Kdf, MasterKey};
+    use crate::SymmetricCryptoKey;
 
     #[test]
     fn test_master_key_derive_pbkdf2() {

@@ -2,11 +2,8 @@
 //!
 //! Contains low level AES operations used by the rest of the library.
 //!
-//! **Warning**: Consider carefully if you have to use these functions directly, as generally we
-//! expose higher level functions that are easier to use and more secure.
-//!
-//! In most cases you should use the [EncString] with [KeyEncryptable][super::KeyEncryptable] &
-//! [KeyDecryptable][super::KeyDecryptable] instead.
+//! In most cases you should use the [EncString][crate::EncString] with
+//! [KeyEncryptable][crate::KeyEncryptable] & [KeyDecryptable][crate::KeyDecryptable] instead.
 
 use aes::cipher::{
     block_padding::Pkcs7, generic_array::GenericArray, typenum::U32, BlockDecryptMut,
@@ -126,11 +123,10 @@ fn generate_mac(mac_key: &[u8], iv: &[u8], data: &[u8]) -> Result<[u8; 32]> {
 #[cfg(test)]
 mod tests {
     use aes::cipher::generic_array::sequence::GenericSequence;
-    use base64::Engine;
+    use base64::{engine::general_purpose::STANDARD, Engine};
     use rand::SeedableRng;
 
     use super::*;
-    use crate::BASE64_ENGINE;
 
     /// Helper function for generating a `GenericArray` of size 32 with each element being
     /// a multiple of a given increment, starting from a given offset.
@@ -178,7 +174,7 @@ mod tests {
         let iv = generate_vec(16, 0, 1);
         let iv: &[u8; 16] = iv.as_slice().try_into().unwrap();
         let key = generate_generic_array(0, 1);
-        let data = BASE64_ENGINE.decode("ByUF8vhyX4ddU9gcooznwA==").unwrap();
+        let data = STANDARD.decode("ByUF8vhyX4ddU9gcooznwA==").unwrap();
 
         let decrypted = decrypt_aes256(iv, data, key).unwrap();
 

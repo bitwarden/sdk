@@ -1,8 +1,7 @@
+use bitwarden_api_api::models::CipherCardModel;
 use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
-use bitwarden_api_api::models::CipherCardModel;
 
 use crate::error::{Error, Result};
 

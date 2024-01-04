@@ -1,7 +1,7 @@
 use aes::cipher::{generic_array::GenericArray, typenum::U64};
 use hmac::{Hmac, Mac};
 
-use crate::{symmetric_crypto_key::SymmetricCryptoKey, util::hkdf_expand};
+use crate::{keys::SymmetricCryptoKey, util::hkdf_expand};
 
 /// Derive a shareable key using hkdf from secret and name.
 ///

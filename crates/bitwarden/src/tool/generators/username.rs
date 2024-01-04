@@ -1,8 +1,9 @@
-use crate::{error::Result, util::capitalize_first_letter};
 use bitwarden_crypto::EFF_LONG_WORD_LIST;
 use rand::{distributions::Distribution, seq::SliceRandom, Rng, RngCore};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+
+use crate::{error::Result, util::capitalize_first_letter};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -85,8 +86,9 @@ impl ForwarderServiceType {
     // Generate a username using the specified email forwarding service
     // This requires an HTTP client to be passed in, as the service will need to make API calls
     pub async fn generate(self, http: &reqwest::Client, website: Option<String>) -> Result<String> {
-        use crate::tool::generators::username_forwarders::*;
         use ForwarderServiceType::*;
+
+        use crate::tool::generators::username_forwarders::*;
 
         match self {
             AddyIo {

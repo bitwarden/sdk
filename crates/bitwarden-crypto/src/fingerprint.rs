@@ -1,3 +1,9 @@
+//! # Fingerprint
+//!
+//! Provides a way to derive fingerprints from fingerprint material and public keys. This is most
+//! commonly used for account fingerprints, where the fingerprint material is the user's id and the
+//! public key is the user's public key.
+
 use num_bigint::BigUint;
 use num_traits::cast::ToPrimitive;
 use sha2::Digest;

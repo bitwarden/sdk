@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+#[cfg(feature = "internal")]
+use bitwarden_crypto::{AsymmEncString, EncString};
 use bitwarden_crypto::{KeyContainer, SymmetricCryptoKey};
 use rsa::RsaPrivateKey;
 use uuid::Uuid;
@@ -11,9 +13,6 @@ use {
     },
     rsa::pkcs8::DecodePrivateKey,
 };
-
-#[cfg(feature = "internal")]
-use bitwarden_crypto::{AsymmEncString, EncString};
 
 pub struct EncryptionSettings {
     user_key: SymmetricCryptoKey,

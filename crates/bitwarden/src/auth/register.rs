@@ -2,7 +2,7 @@ use bitwarden_api_identity::{
     apis::accounts_api::accounts_register_post,
     models::{KeysRequestModel, RegisterRequestModel},
 };
-use bitwarden_crypto::{rsa::RsaKeyPair, HashPurpose, MasterKey};
+use bitwarden_crypto::{HashPurpose, MasterKey, RsaKeyPair};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

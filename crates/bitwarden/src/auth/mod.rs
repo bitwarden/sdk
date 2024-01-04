@@ -10,13 +10,12 @@ pub use jwt_token::JWTToken;
 #[cfg(feature = "internal")]
 mod register;
 #[cfg(feature = "internal")]
+use bitwarden_crypto::{HashPurpose, MasterKey};
+#[cfg(feature = "internal")]
 pub use register::{RegisterKeyResponse, RegisterRequest};
 
 #[cfg(feature = "internal")]
 use crate::{client::kdf::Kdf, error::Result};
-
-#[cfg(feature = "internal")]
-use bitwarden_crypto::{HashPurpose, MasterKey};
 
 #[cfg(feature = "internal")]
 async fn determine_password_hash(

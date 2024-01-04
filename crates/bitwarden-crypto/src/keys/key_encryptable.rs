@@ -1,6 +1,6 @@
 use std::{collections::HashMap, hash::Hash};
 
-use crate::{error::Result, symmetric_crypto_key::SymmetricCryptoKey};
+use crate::{error::Result, keys::SymmetricCryptoKey};
 
 pub trait KeyEncryptable<Output> {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Output>;

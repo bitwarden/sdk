@@ -20,7 +20,7 @@ chrono = { version = "0.4.31", features = [
     "clock",
     "std",
 ], default-features = false }
-clap = { version = "4.4.11", features = ["derive", "env", "string"] }
+clap = { version = "4.4.12", features = ["derive", "env", "string"] }
 clap_complete = "4.4.6"
 color-eyre = "0.6"
 comfy-table = "^7.1.0"

@@ -5,7 +5,6 @@ mod get_user_api_key;
 mod secret_verification_request;
 mod sync;
 
-pub(crate) use generate_fingerprint::generate_fingerprint;
 pub use generate_fingerprint::{FingerprintRequest, FingerprintResponse};
 pub(crate) use get_user_api_key::get_user_api_key;
 pub use get_user_api_key::UserApiKeyResponse;

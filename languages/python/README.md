@@ -14,6 +14,15 @@
   pip install python-dateutil
   ```
 
+# Build
+
+From the `languages/python/` directory,
+
+```bash
+# Maturin currently only supports a single source file, so we need to manually build the library
+uniffi-bindgen generate ../../target/debug/libbitwarden_uniffi.dylib --library --language python --out-dir .
+```
+
 # Installation
 
 From the `languages/python/` directory,

@@ -7,3 +7,6 @@ generate_immutable_records = true
 ffi_module_name = "BitwardenFFI"
 module_name = "BitwardenSDK"
 generate_immutable_records = true
+
+[bindings.python]
+cdylib_name = "bitwarden_uniffi"

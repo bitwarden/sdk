@@ -1,0 +1,36 @@
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "bitwarden-sdk"
+version = "0.1.0"
+requires-python = ">=3.8"
+classifiers = [
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: 3",
+]
+description = "Bitwarden Secrets Manager SDK'"
+readme = "README.md"
+license = { file = "LICENSE" }
+maintainers = [{ name = "Bitwarden Inc.", email = "hello@bitwarden.com" }]
+
+[project.urls]
+homepage = "https://bitwarden.com/products/secrets-manager"
+repository = "https://github.com/bitwarden/sdk"
+
+[tool.maturin]
+module-name = "bitwarden_sdk"
+bindings = "uniffi"
+manifest-path = "../../crates/bitwarden-uniffi/Cargo.toml"
+#include = ["bitwarden_sdk/bitwarden.py"]
+
+#[tool.flake8]
+#max-line-length = 100
+#exclude = ["glean-core/python/glean/_uniffi/glean.py"]
+#ignore = [
+#    "W503", # line break before binary operator - black formats it that way
+#]

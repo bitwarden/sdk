@@ -15,9 +15,10 @@ rust-version = "1.57"
 [features]
 default = ["secrets"]
 
-secrets = []                    # Secrets manager API
-internal = []                   # Internal testing methods
-mobile = ["uniffi", "internal"] # Mobile-specific features
+secrets = []                           # Secrets manager API
+secrets_uniffi = ["uniffi", "secrets"] # Uniffi-bindings for secrets manager API
+internal = []                          # Internal testing methods
+mobile = ["uniffi", "internal"]        # Mobile-specific features
 
 wasm-bindgen = ["chrono/wasmbind"]
 

@@ -1,5 +1,5 @@
 use super::{
-    generate_fingerprint::{generate_fingerprint, generate_users_fingerprint},
+    generate_fingerprint::{generate_fingerprint, generate_user_fingerprint},
     FingerprintRequest, FingerprintResponse,
 };
 use crate::{error::Result, Client};
@@ -14,8 +14,8 @@ impl<'a> ClientPlatform<'a> {
         generate_fingerprint(input)
     }
 
-    pub fn users_fingerprint(self, fingerprint_material: String) -> Result<String> {
-        generate_users_fingerprint(self.client, fingerprint_material)
+    pub fn user_fingerprint(self, fingerprint_material: String) -> Result<String> {
+        generate_user_fingerprint(self.client, fingerprint_material)
     }
 }
 

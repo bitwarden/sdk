@@ -26,13 +26,13 @@ impl ClientPlatform {
     /// Arguments:
     /// - `fingerprint_material` - The input material, used in the fingerprint generation process.
     /// - `private_key` - The user's encrypted private key.
-    pub async fn users_fingerprint(&self, fingerprint_material: String) -> Result<String> {
+    pub async fn user_fingerprint(&self, fingerprint_material: String) -> Result<String> {
         Ok(self
             .0
              .0
             .write()
             .await
             .platform()
-            .users_fingerprint(fingerprint_material)?)
+            .user_fingerprint(fingerprint_material)?)
     }
 }

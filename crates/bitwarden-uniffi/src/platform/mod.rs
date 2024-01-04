@@ -21,11 +21,7 @@ impl ClientPlatform {
             .fingerprint)
     }
 
-    /// Fingerprint (private key)
-    ///
-    /// Arguments:
-    /// - `fingerprint_material` - The input material, used in the fingerprint generation process.
-    /// - `private_key` - The user's encrypted private key.
+    /// Fingerprint using logged in user's public key
     pub async fn user_fingerprint(&self, fingerprint_material: String) -> Result<String> {
         Ok(self
             .0

@@ -383,12 +383,7 @@ Fingerprint (public key)
 
 ### `user_fingerprint`
 
-Fingerprint (private key)
-
-Arguments:
-
-- &#x60;fingerprint_material&#x60; - The input material, used in the fingerprint generation process.
-- &#x60;private_key&#x60; - The user&#x27;s encrypted private key.
+Fingerprint using logged in user&#x27;s public key
 
 **Arguments**:
 

@@ -5,7 +5,6 @@ use super::{
 use crate::{error::Result, Client};
 
 pub struct ClientPlatform<'a> {
-    #[allow(dead_code)]
     pub(crate) client: &'a mut Client,
 }
 

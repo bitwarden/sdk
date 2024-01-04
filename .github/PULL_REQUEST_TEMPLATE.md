@@ -23,4 +23,4 @@
 
 ## Before you submit
 
-- Please add **unit tests** where it makes sense to do so (encouraged but not required)
+- Please add **unit tests** where it makes sense to do so

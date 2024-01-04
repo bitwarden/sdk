@@ -23,6 +23,7 @@ From the `languages/python/` directory,
 uniffi-bindgen generate ../../target/debug/libbitwarden_uniffi.dylib \
   --library \
   --language python \
+  --no-format \
   --out-dir ./bitwarden_sdk/bitwarden_sdk
 
 maturin build

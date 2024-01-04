@@ -8,7 +8,6 @@ rust-version = "1.57"
 docs = ["dep:schemars"] # Docs
 
 [lib]
-name = "bitwarden_uniffi"
 crate-type = ["lib", "staticlib", "cdylib"]
 bench = false
 

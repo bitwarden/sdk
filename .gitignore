@@ -62,4 +62,3 @@ languages/java/src/main/java/com/bitwarden/sdk/schema
 languages/js/sdk-client/src/schemas.ts
 languages/python/bitwarden_sdk/schemas.py
 support/schemas
-languages/python/venv

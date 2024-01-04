@@ -1,6 +1,7 @@
 *.egg-info
 bitwarden_py*.so
 __pycache__
+venv
 
 bitwarden_sdk/bitwarden_sdk/bitwarden.py
 bitwarden_sdk/bitwarden_sdk/bitwarden_uniffi.py

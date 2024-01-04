@@ -44,5 +44,3 @@ uniffi::setup_scaffolding!();
 
 #[cfg(feature = "mobile")]
 mod uniffi_support;
-#[cfg(feature = "mobile")]
-pub use uniffi_support::*;

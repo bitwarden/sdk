@@ -38,7 +38,7 @@ jobs:
           key: ${{ matrix.settings.target }}-cargo
 
       - name: Install Cross
-        run: cargo install cross
+        run: cargo install cross --locked
 
       - name: Build
         env:

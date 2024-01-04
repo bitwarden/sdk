@@ -1,3 +1,4 @@
+pub mod client_platform;
 mod domain;
 mod generate_fingerprint;
 mod get_user_api_key;

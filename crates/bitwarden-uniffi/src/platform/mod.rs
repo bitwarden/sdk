@@ -11,6 +11,13 @@ pub struct ClientPlatform(pub(crate) Arc<Client>);
 impl ClientPlatform {
     /// Fingerprint
     pub async fn fingerprint(&self, req: FingerprintRequest) -> Result<String> {
-        Ok(self.0 .0.read().await.fingerprint(&req)?.fingerprint)
+        Ok(self
+            .0
+             .0
+            .write()
+            .await
+            .platform()
+            .fingerprint(&req)?
+            .fingerprint)
     }
 }

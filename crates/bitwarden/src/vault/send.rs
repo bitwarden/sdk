@@ -1,6 +1,7 @@
 use bitwarden_api_api::models::{SendFileModel, SendResponseModel, SendTextModel};
 use bitwarden_crypto::{
-    derive_shareable_key, EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey,
+    derive_shareable_key, CryptoError, EncString, KeyDecryptable, KeyEncryptable, LocateKey,
+    SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
@@ -129,7 +130,7 @@ impl Send {
     pub(crate) fn get_key(
         send_key: &EncString,
         enc_key: &SymmetricCryptoKey,
-    ) -> bitwarden_crypto::Result<SymmetricCryptoKey> {
+    ) -> Result<SymmetricCryptoKey, CryptoError> {
         let key: Vec<u8> = send_key.decrypt_with_key(enc_key)?;
         let key = derive_shareable_key(key.try_into().unwrap(), "send", Some("send"));
         Ok(key)
@@ -137,7 +138,7 @@ impl Send {
 }
 
 impl KeyDecryptable<SendTextView> for SendText {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<SendTextView> {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendTextView, CryptoError> {
         Ok(SendTextView {
             text: self.text.decrypt_with_key(key)?,
             hidden: self.hidden,
@@ -146,7 +147,7 @@ impl KeyDecryptable<SendTextView> for SendText {
 }
 
 impl KeyEncryptable<SendText> for SendTextView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<SendText> {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<SendText, CryptoError> {
         Ok(SendText {
             text: self.text.encrypt_with_key(key)?,
             hidden: self.hidden,
@@ -155,7 +156,7 @@ impl KeyEncryptable<SendText> for SendTextView {
 }
 
 impl KeyDecryptable<SendFileView> for SendFile {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<SendFileView> {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendFileView, CryptoError> {
         Ok(SendFileView {
             id: self.id.clone(),
             file_name: self.file_name.decrypt_with_key(key)?,
@@ -166,7 +167,7 @@ impl KeyDecryptable<SendFileView> for SendFile {
 }
 
 impl KeyEncryptable<SendFile> for SendFileView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<SendFile> {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<SendFile, CryptoError> {
         Ok(SendFile {
             id: self.id.clone(),
             file_name: self.file_name.encrypt_with_key(key)?,
@@ -178,7 +179,7 @@ impl KeyEncryptable<SendFile> for SendFileView {
 
 impl LocateKey for Send {}
 impl KeyDecryptable<SendView> for Send {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<SendView> {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendView, CryptoError> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
         // For the rest of the fields, we ignore the provided SymmetricCryptoKey and the stretched key
         let key = Send::get_key(&self.key, key)?;
@@ -209,7 +210,7 @@ impl KeyDecryptable<SendView> for Send {
 }
 
 impl KeyDecryptable<SendListView> for Send {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<SendListView> {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendListView, CryptoError> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
         // For the rest of the fields, we ignore the provided SymmetricCryptoKey and the stretched key
         let key = Send::get_key(&self.key, key)?;
@@ -232,7 +233,7 @@ impl KeyDecryptable<SendListView> for Send {
 
 impl LocateKey for SendView {}
 impl KeyEncryptable<Send> for SendView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<Send> {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Send, CryptoError> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
         // For the rest of the fields, we ignore the provided SymmetricCryptoKey and the stretched key
         let key = Send::get_key(&self.key, key)?;

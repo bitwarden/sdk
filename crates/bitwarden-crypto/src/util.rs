@@ -24,8 +24,9 @@ pub(crate) fn hkdf_expand<T: ArrayLength<u8>>(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use aes::cipher::typenum::U64;
+
+    use super::*;
 
     #[test]
     fn test_hkdf_expand() {

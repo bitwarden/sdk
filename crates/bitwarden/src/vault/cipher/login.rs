@@ -1,5 +1,7 @@
 use bitwarden_api_api::models::{CipherLoginModel, CipherLoginUriModel};
-use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
+use bitwarden_crypto::{
+    CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
+};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -63,7 +65,7 @@ pub struct LoginView {
 }
 
 impl KeyEncryptable<LoginUri> for LoginUriView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<LoginUri> {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<LoginUri, CryptoError> {
         Ok(LoginUri {
             uri: self.uri.encrypt_with_key(key)?,
             r#match: self.r#match,
@@ -72,7 +74,7 @@ impl KeyEncryptable<LoginUri> for LoginUriView {
 }
 
 impl KeyEncryptable<Login> for LoginView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<Login> {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Login, CryptoError> {
         Ok(Login {
             username: self.username.encrypt_with_key(key)?,
             password: self.password.encrypt_with_key(key)?,
@@ -85,7 +87,7 @@ impl KeyEncryptable<Login> for LoginView {
 }
 
 impl KeyDecryptable<LoginUriView> for LoginUri {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<LoginUriView> {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<LoginUriView, CryptoError> {
         Ok(LoginUriView {
             uri: self.uri.decrypt_with_key(key)?,
             r#match: self.r#match,
@@ -94,7 +96,7 @@ impl KeyDecryptable<LoginUriView> for LoginUri {
 }
 
 impl KeyDecryptable<LoginView> for Login {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<LoginView> {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<LoginView, CryptoError> {
         Ok(LoginView {
             username: self.username.decrypt_with_key(key)?,
             password: self.password.decrypt_with_key(key)?,

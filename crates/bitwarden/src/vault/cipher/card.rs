@@ -1,5 +1,7 @@
 use bitwarden_api_api::models::CipherCardModel;
-use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
+use bitwarden_crypto::{
+    CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
+};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -30,7 +32,7 @@ pub struct CardView {
 }
 
 impl KeyEncryptable<Card> for CardView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<Card> {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Card, CryptoError> {
         Ok(Card {
             cardholder_name: self.cardholder_name.encrypt_with_key(key)?,
             exp_month: self.exp_month.encrypt_with_key(key)?,
@@ -43,7 +45,7 @@ impl KeyEncryptable<Card> for CardView {
 }
 
 impl KeyDecryptable<CardView> for Card {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<CardView> {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CardView, CryptoError> {
         Ok(CardView {
             cardholder_name: self.cardholder_name.decrypt_with_key(key)?,
             exp_month: self.exp_month.decrypt_with_key(key)?,

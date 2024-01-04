@@ -1,5 +1,7 @@
 use bitwarden_api_api::models::FolderResponseModel;
-use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey};
+use bitwarden_crypto::{
+    CryptoError, EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey,
+};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -27,7 +29,7 @@ pub struct FolderView {
 
 impl LocateKey for FolderView {}
 impl KeyEncryptable<Folder> for FolderView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<Folder> {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Folder, CryptoError> {
         Ok(Folder {
             id: self.id,
             name: self.name.encrypt_with_key(key)?,
@@ -38,7 +40,7 @@ impl KeyEncryptable<Folder> for FolderView {
 
 impl LocateKey for Folder {}
 impl KeyDecryptable<FolderView> for Folder {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> bitwarden_crypto::Result<FolderView> {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<FolderView, CryptoError> {
         Ok(FolderView {
             id: self.id,
             name: self.name.decrypt_with_key(key)?,

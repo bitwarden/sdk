@@ -1,5 +1,7 @@
 use bitwarden_api_api::models::CipherPasswordHistoryModel;
-use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey};
+use bitwarden_crypto::{
+    CryptoError, EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey,
+};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -24,10 +26,7 @@ pub struct PasswordHistoryView {
 
 impl LocateKey for PasswordHistoryView {}
 impl KeyEncryptable<PasswordHistory> for PasswordHistoryView {
-    fn encrypt_with_key(
-        self,
-        key: &SymmetricCryptoKey,
-    ) -> bitwarden_crypto::Result<PasswordHistory> {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<PasswordHistory, CryptoError> {
         Ok(PasswordHistory {
             password: self.password.encrypt_with_key(key)?,
             last_used_date: self.last_used_date,
@@ -40,7 +39,7 @@ impl KeyDecryptable<PasswordHistoryView> for PasswordHistory {
     fn decrypt_with_key(
         &self,
         key: &SymmetricCryptoKey,
-    ) -> bitwarden_crypto::Result<PasswordHistoryView> {
+    ) -> Result<PasswordHistoryView, CryptoError> {
         Ok(PasswordHistoryView {
             password: self.password.decrypt_with_key(key)?,
             last_used_date: self.last_used_date,

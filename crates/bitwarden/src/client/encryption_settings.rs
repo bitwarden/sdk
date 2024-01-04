@@ -7,10 +7,7 @@ use rsa::RsaPrivateKey;
 use uuid::Uuid;
 #[cfg(feature = "internal")]
 use {
-    crate::{
-        client::UserLoginMethod,
-        error::{CryptoError, Result},
-    },
+    crate::{client::UserLoginMethod, error::Result},
     rsa::pkcs8::DecodePrivateKey,
 };
 
@@ -60,7 +57,7 @@ impl EncryptionSettings {
         user_key: SymmetricCryptoKey,
         private_key: EncString,
     ) -> Result<Self> {
-        use bitwarden_crypto::KeyDecryptable;
+        use bitwarden_crypto::{CryptoError, KeyDecryptable};
 
         let private_key = {
             let dec: Vec<u8> = private_key.decrypt_with_key(&user_key)?;

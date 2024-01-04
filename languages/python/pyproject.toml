@@ -26,11 +26,3 @@ repository = "https://github.com/bitwarden/sdk"
 module-name = "bitwarden_sdk"
 bindings = "uniffi"
 manifest-path = "../../crates/bitwarden-uniffi/Cargo.toml"
-#include = ["bitwarden_sdk/bitwarden.py"]
-
-#[tool.flake8]
-#max-line-length = 100
-#exclude = ["glean-core/python/glean/_uniffi/glean.py"]
-#ignore = [
-#    "W503", # line break before binary operator - black formats it that way
-#]

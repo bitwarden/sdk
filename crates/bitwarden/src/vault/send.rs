@@ -63,8 +63,8 @@ pub enum SendType {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Send {
-    pub id: Uuid,
-    pub access_id: String,
+    pub id: Option<Uuid>,
+    pub access_id: Option<String>,
 
     pub name: EncString,
     pub notes: Option<EncString>,
@@ -89,8 +89,8 @@ pub struct Send {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SendView {
-    pub id: Uuid,
-    pub access_id: String,
+    pub id: Option<Uuid>,
+    pub access_id: Option<String>,
 
     pub name: String,
     pub notes: Option<String>,
@@ -115,8 +115,8 @@ pub struct SendView {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SendListView {
-    pub id: Uuid,
-    pub access_id: String,
+    pub id: Option<Uuid>,
+    pub access_id: Option<String>,
 
     pub name: String,
 
@@ -270,8 +270,8 @@ impl TryFrom<SendResponseModel> for Send {
 
     fn try_from(send: SendResponseModel) -> Result<Self> {
         Ok(Send {
-            id: send.id.ok_or(Error::MissingFields)?,
-            access_id: send.access_id.ok_or(Error::MissingFields)?,
+            id: send.id,
+            access_id: send.access_id,
             name: send.name.ok_or(Error::MissingFields)?.parse()?,
             notes: EncString::try_from_optional(send.notes)?,
             key: send.key.ok_or(Error::MissingFields)?.parse()?,
@@ -348,8 +348,8 @@ mod tests {
 
         // Create a send object, the only value we really care about here is the key
         let send = Send {
-            id: "d7fb1e7f-9053-43c0-a02c-b0690098685a".parse().unwrap(),
-            access_id: "fx7711OQwEOgLLBpAJhoWg".into(),
+            id: Some("d7fb1e7f-9053-43c0-a02c-b0690098685a".parse().unwrap()),
+            access_id: Some("fx7711OQwEOgLLBpAJhoWg".into()),
             name: "2.u5vXPAepUZ+4lI2vGGKiGg==|hEouC4SvCCb/ifzZzLcfSw==|E2VZUVffehczfIuRSlX2vnPRfflBtXef5tzsWvRrtfM="
                 .parse()
                 .unwrap(),

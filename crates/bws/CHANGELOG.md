@@ -7,6 +7,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.4.0] - 2023-12-21
+
 ### Added
 
 - Ability to output secrets in an `env` format with `bws` (#320)

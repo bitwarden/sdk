@@ -4,6 +4,7 @@ use chrono::Utc;
 use reqwest::header::{self};
 use uuid::Uuid;
 
+use super::AccessToken;
 #[cfg(feature = "secrets")]
 use crate::auth::login::{AccessTokenLoginRequest, AccessTokenLoginResponse};
 #[cfg(feature = "internal")]
@@ -11,8 +12,8 @@ use crate::{
     client::kdf::Kdf,
     crypto::{AsymmEncString, EncString},
     platform::{
-        generate_fingerprint, get_user_api_key, sync, FingerprintRequest, FingerprintResponse,
-        SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,
+        get_user_api_key, sync, SecretVerificationRequest, SyncRequest, SyncResponse,
+        UserApiKeyResponse,
     },
 };
 use crate::{
@@ -23,8 +24,6 @@ use crate::{
     crypto::SymmetricCryptoKey,
     error::{Error, Result},
 };
-
-use super::AccessToken;
 
 #[derive(Debug)]
 pub(crate) struct ApiConfigurations {
@@ -284,10 +283,5 @@ impl Client {
 
         enc.set_org_keys(org_keys)?;
         Ok(self.encryption_settings.as_ref().unwrap())
-    }
-
-    #[cfg(feature = "internal")]
-    pub fn fingerprint(&self, input: &FingerprintRequest) -> Result<FingerprintResponse> {
-        generate_fingerprint(input)
     }
 }

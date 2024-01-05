@@ -58,7 +58,7 @@ impl Client {
             #[cfg(feature = "internal")]
             Command::Sync(req) => self.0.sync(&req).await.into_string(),
             #[cfg(feature = "internal")]
-            Command::Fingerprint(req) => self.0.fingerprint(&req).into_string(),
+            Command::Fingerprint(req) => self.0.platform().fingerprint(&req).into_string(),
 
             #[cfg(feature = "secrets")]
             Command::Secrets(cmd) => match cmd {

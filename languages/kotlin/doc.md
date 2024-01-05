@@ -84,7 +84,7 @@ Test method, echoes back the input
 
 ### `satisfies_policy`
 
-**API Draft:** Evaluate if the provided password satisfies the provided policy
+Evaluate if the provided password satisfies the provided policy
 
 **Arguments**:
 
@@ -333,6 +333,17 @@ Decrypt folder list
 
 **Output**: std::result::Result<String,BitwardenError>
 
+### `username`
+
+**API Draft:** Generate Username
+
+**Arguments**:
+
+- self:
+- settings: UsernameGeneratorRequest
+
+**Output**: std::result::Result<String,BitwardenError>
+
 ## ClientPasswordHistory
 
 ### `encrypt`
@@ -361,12 +372,23 @@ Decrypt password history
 
 ### `fingerprint`
 
-Fingerprint
+Fingerprint (public key)
 
 **Arguments**:
 
 - self:
 - req: [FingerprintRequest](#fingerprintrequest)
+
+**Output**: std::result::Result<String,BitwardenError>
+
+### `user_fingerprint`
+
+Fingerprint using logged in user&#x27;s public key
+
+**Arguments**:
+
+- self:
+- fingerprint_material: String
 
 **Output**: std::result::Result<String,BitwardenError>
 
@@ -800,7 +822,7 @@ implementations.
 </tr>
 <tr>
     <th>id</th>
-    <th>string</th>
+    <th>string,null</th>
     <th></th>
 </tr>
 <tr>
@@ -891,7 +913,7 @@ implementations.
 </tr>
 <tr>
     <th>id</th>
-    <th>string</th>
+    <th>string,null</th>
     <th></th>
 </tr>
 <tr>
@@ -916,7 +938,7 @@ implementations.
 </tr>
 <tr>
     <th>id</th>
-    <th>string</th>
+    <th>string,null</th>
     <th></th>
 </tr>
 <tr>
@@ -1296,12 +1318,12 @@ implementations.
 </tr>
 <tr>
     <th>id</th>
-    <th>string</th>
+    <th>string,null</th>
     <th></th>
 </tr>
 <tr>
     <th>accessId</th>
-    <th>string</th>
+    <th>string,null</th>
     <th></th>
 </tr>
 <tr>
@@ -1386,12 +1408,12 @@ implementations.
 </tr>
 <tr>
     <th>id</th>
-    <th>string</th>
+    <th>string,null</th>
     <th></th>
 </tr>
 <tr>
     <th>accessId</th>
-    <th>string</th>
+    <th>string,null</th>
     <th></th>
 </tr>
 <tr>

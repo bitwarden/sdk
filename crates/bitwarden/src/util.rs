@@ -1,5 +1,10 @@
 use std::num::NonZeroU32;
 
+use base64::{
+    alphabet,
+    engine::{DecodePaddingMode, GeneralPurpose, GeneralPurposeConfig},
+};
+
 pub fn default_pbkdf2_iterations() -> NonZeroU32 {
     NonZeroU32::new(600_000).unwrap()
 }
@@ -15,6 +20,12 @@ pub fn default_argon2_memory() -> NonZeroU32 {
 pub fn default_argon2_parallelism() -> NonZeroU32 {
     NonZeroU32::new(4).unwrap()
 }
+
+const INDIFFERENT: GeneralPurposeConfig =
+    GeneralPurposeConfig::new().with_decode_padding_mode(DecodePaddingMode::Indifferent);
+
+pub const STANDARD_INDIFFERENT: GeneralPurpose =
+    GeneralPurpose::new(&alphabet::STANDARD, INDIFFERENT);
 
 #[cfg(feature = "mobile")]
 pub(crate) fn capitalize_first_letter(s: &str) -> String {

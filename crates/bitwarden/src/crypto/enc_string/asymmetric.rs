@@ -2,12 +2,10 @@ use std::{fmt::Display, str::FromStr};
 
 use base64::Engine;
 use rsa::Oaep;
-#[cfg(feature = "internal")]
-use rsa::RsaPrivateKey;
 use serde::Deserialize;
 
 use crate::{
-    crypto::{AsymmetricCryptoKey, KeyDecryptable, KeyEncryptable},
+    crypto::{AsymmetricCryptoKey, KeyDecryptable},
     error::{CryptoError, EncStringParseError, Error, Result},
     util::BASE64_ENGINE,
 };
@@ -102,27 +100,6 @@ impl FromStr for AsymmEncString {
     }
 }
 
-#[allow(unused)]
-impl AsymmEncString {
-    /// TODO: Convert this to a trait method
-    #[cfg(feature = "internal")]
-    pub(crate) fn decrypt(&self, key: &RsaPrivateKey) -> Result<Vec<u8>> {
-        Ok(match self {
-            Self::Rsa2048_OaepSha256_B64 { data } => key.decrypt(Oaep::new::<sha2::Sha256>(), data),
-            Self::Rsa2048_OaepSha1_B64 { data } => key.decrypt(Oaep::new::<sha1::Sha1>(), data),
-            #[allow(deprecated)]
-            Self::Rsa2048_OaepSha256_HmacSha256_B64 { data, mac: _ } => {
-                key.decrypt(Oaep::new::<sha2::Sha256>(), data)
-            }
-            #[allow(deprecated)]
-            Self::Rsa2048_OaepSha1_HmacSha256_B64 { data, mac: _ } => {
-                key.decrypt(Oaep::new::<sha1::Sha1>(), data)
-            }
-        }
-        .map_err(|_| CryptoError::KeyDecrypt)?)
-    }
-}
-
 impl Display for AsymmEncString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let parts: Vec<&[u8]> = match self {
@@ -177,12 +154,6 @@ impl AsymmEncString {
     }
 }
 
-impl KeyEncryptable<AsymmetricCryptoKey, AsymmEncString> for &[u8] {
-    fn encrypt_with_key(self, _key: &AsymmetricCryptoKey) -> Result<AsymmEncString> {
-        todo!("implement encrypt")
-    }
-}
-
 impl KeyDecryptable<AsymmetricCryptoKey, Vec<u8>> for AsymmEncString {
     fn decrypt_with_key(&self, key: &AsymmetricCryptoKey) -> Result<Vec<u8>> {
         use AsymmEncString::*;
@@ -199,12 +170,6 @@ impl KeyDecryptable<AsymmetricCryptoKey, Vec<u8>> for AsymmEncString {
             }
         }
         .map_err(|_| CryptoError::KeyDecrypt)?)
-    }
-}
-
-impl KeyEncryptable<AsymmetricCryptoKey, AsymmEncString> for String {
-    fn encrypt_with_key(self, key: &AsymmetricCryptoKey) -> Result<AsymmEncString> {
-        self.as_bytes().encrypt_with_key(key)
     }
 }
 
@@ -234,7 +199,7 @@ mod tests {
     #[cfg(feature = "internal")]
     #[test]
     fn test_enc_string_rsa2048_oaep_sha1_hmac_sha256_b64() {
-        use rsa::{pkcs8::DecodePrivateKey, RsaPrivateKey};
+        use crate::crypto::{AsymmetricCryptoKey, KeyDecryptable};
 
         let rsa_private_key: &str = "-----BEGIN PRIVATE KEY-----
 MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCXRVrCX+2hfOQS
@@ -264,13 +229,13 @@ Is3v1kkf5I0X8DnOhwb+HPxNaiEdmO7ckm8+tPVgppLcG0+tMdLjigFQiDUQk2y3
 WjyxP5ZvXu7U96jaJRI8PFMoE06WeVYcdIzrID2HvqH+w0UQJFrLJ/0Mn4stFAEz
 XKZBokBGnjFnTnKcs7nv/O8=
 -----END PRIVATE KEY-----";
-        let private_key = RsaPrivateKey::from_pkcs8_pem(rsa_private_key).unwrap();
+        let private_key = AsymmetricCryptoKey::from_pem(rsa_private_key).unwrap();
         let enc_str: &str = "6.ThnNc67nNr7GELyuhGGfsXNP2zJnNqhrIsjntEQ27r2qmn8vwdHbTbfO0cwt6YgSibDN0PjiCZ1O3Wb/IFq+vwvyRwFqF9145wBF8CQCbkhV+M0XvO99kh0daovtt120Nve/5ETI5PbPag9VdalKRQWZypJaqQHm5TAQVf4F5wtLlCLMBkzqTk+wkFe7BPMTGn07T+O3eJbTxXvyMZewQ7icJF0MZVA7VyWX9qElmZ89FCKowbf1BMr5pbcQ+0KdXcSVW3to43VkTp7k7COwsuH3M/i1AuVP5YN8ixjyRpvaeGqX/ap2nCHK2Wj5VxgCGT7XEls6ZknnAp9nB9qVjQ==|s3ntw5H/KKD/qsS0lUghTHl5Sm9j6m7YEdNHf0OeAFQ=";
         let enc_string: AsymmEncString = enc_str.parse().unwrap();
 
         assert_eq!(enc_string.enc_type(), 6);
 
-        let res = enc_string.decrypt(&private_key).unwrap();
+        let res: Vec<u8> = enc_string.decrypt_with_key(&private_key).unwrap();
 
         assert_eq!(std::str::from_utf8(&res).unwrap(), "EncryptMe!");
     }

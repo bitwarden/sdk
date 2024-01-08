@@ -1,6 +1,7 @@
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use bitwarden_api_api::models::{SendFileModel, SendResponseModel, SendTextModel};
 use chrono::{DateTime, Utc};
+use rand::Rng;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
@@ -245,9 +246,15 @@ impl KeyEncryptable<Send> for SendView {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Send> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
         // For the rest of the fields, we ignore the provided SymmetricCryptoKey and the stretched key
-        let k = URL_SAFE_NO_PAD
-            .decode(self.key.ok_or(CryptoError::MissingKey)?)
-            .map_err(|_| CryptoError::InvalidKey)?;
+        let k = match self.key {
+            Some(k) => URL_SAFE_NO_PAD
+                .decode(k)
+                .map_err(|_| CryptoError::InvalidKey)?,
+            None => {
+                let r: [u8; 16] = rand::thread_rng().gen();
+                r.to_vec()
+            }
+        };
         let send_key = Send::derive_shareable_key(&k)?;
 
         Ok(Send {
@@ -502,5 +509,45 @@ mod tests {
             .decrypt_with_key(key)
             .unwrap();
         assert_eq!(v, view);
+    }
+
+    #[test]
+    pub fn test_encrypt_no_key() {
+        let enc = build_encryption_settings();
+        let key = enc.get_key(&None).unwrap();
+
+        let view = SendView {
+            id: "3d80dd72-2d14-4f26-812c-b0f0018aa144".parse().ok(),
+            access_id: Some("ct2APRQtJk-BLLDwAYqhRA".to_owned()),
+            name: "Test".to_string(),
+            notes: None,
+            key: None,
+            password: None,
+            r#type: SendType::Text,
+            file: None,
+            text: Some(SendTextView {
+                text: Some("This is a test".to_owned()),
+                hidden: false,
+            }),
+            max_access_count: None,
+            access_count: 0,
+            disabled: false,
+            hide_email: false,
+            revision_date: "2024-01-07T23:56:48.207363Z".parse().unwrap(),
+            deletion_date: "2024-01-14T23:56:48Z".parse().unwrap(),
+            expiration_date: None,
+        };
+
+        // Re-encrypt and decrypt again to ensure encrypt works
+        let v: SendView = view
+            .clone()
+            .encrypt_with_key(key)
+            .unwrap()
+            .decrypt_with_key(key)
+            .unwrap();
+
+        // Ignore key when comparing
+        let t = SendView { key: None, ..v };
+        assert_eq!(t, view);
     }
 }

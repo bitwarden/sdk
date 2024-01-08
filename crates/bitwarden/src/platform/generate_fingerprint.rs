@@ -59,12 +59,11 @@ pub(crate) fn generate_user_fingerprint(
 mod tests {
     use std::num::NonZeroU32;
 
+    use super::*;
     use crate::{
         client::{kdf::Kdf, LoginMethod, UserLoginMethod},
         Client,
     };
-
-    use super::*;
 
     #[test]
     fn test_generate_user_fingerprint() {

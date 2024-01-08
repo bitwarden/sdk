@@ -89,7 +89,7 @@ jobs:
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: schemas.py
-          path: ${{ github.workspace }}/languages/python/bitwarden_sdk/schemas.py
+          path: ${{ github.workspace }}/languages/python/bitwarden_sdk/
 
       # - name: Setup Windows ARM64
       #   if: ${{ matrix.settings.target == 'aarch64-pc-windows-msvc' }}

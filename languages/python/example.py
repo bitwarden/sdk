@@ -5,19 +5,23 @@ import os
 from bitwarden_sdk import BitwardenClient, DeviceType, client_settings_from_dict
 
 # Create the BitwardenClient, which is used to interact with the SDK
-client = BitwardenClient(client_settings_from_dict({
-    "apiUrl": "http://localhost:4000",
-    "deviceType": DeviceType.SDK,
-    "identityUrl": "http://localhost:33656",
-    "userAgent": "Python",
-}))
+client = BitwardenClient(
+    client_settings_from_dict(
+        {
+            "apiUrl": os.getenv("API_URL", "http://localhost:4000"),
+            "deviceType": DeviceType.SDK,
+            "identityUrl": os.getenv("IDENTITY_URL", "http://localhost:33656"),
+            "userAgent": "Python",
+        }
+    )
+)
 
 # Add some logging & set the org id
 logging.basicConfig(level=logging.DEBUG)
-organization_id = os.getenv("BWS_ORG_ID")
+organization_id = os.getenv("ORGANIZATION_ID")
 
 # Attempt to authenticate with the Secrets Manager Access Token
-client.access_token_login(os.getenv("BWS_ACCESS_TOKEN"))
+client.access_token_login(os.getenv("ACCESS_TOKEN"))
 
 # -- Example Project Commands --
 

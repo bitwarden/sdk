@@ -34,7 +34,7 @@ pub use fingerprint::fingerprint;
 mod keys;
 pub use keys::*;
 mod rsa;
-pub use rsa::RsaKeyPair;
+pub use crate::rsa::RsaKeyPair;
 mod util;
 mod wordlist;
 pub use wordlist::EFF_LONG_WORD_LIST;

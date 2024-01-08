@@ -1,8 +1,8 @@
 use std::str::FromStr;
 
-use base64::Engine;
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 
-use crate::{error::Result, util::BASE64_ENGINE};
+use crate::error::Result;
 
 /// A Bitwarden secrets manager JWT Token.
 ///
@@ -13,6 +13,7 @@ use crate::{error::Result, util::BASE64_ENGINE};
 /// TODO: We need to expand this to support user based JWT tokens.
 #[derive(serde::Deserialize)]
 pub struct JWTToken {
+    pub exp: u64,
     pub sub: String,
     pub email: Option<String>,
     pub organization: Option<String>,
@@ -28,11 +29,9 @@ impl FromStr for JWTToken {
     fn from_str(s: &str) -> Result<Self> {
         let split = s.split('.').collect::<Vec<_>>();
         if split.len() != 3 {
-            return Err(crate::error::Error::Internal(
-                "JWT token has an invalid number of parts",
-            ));
+            return Err("JWT token has an invalid number of parts".into());
         }
-        let decoded = BASE64_ENGINE.decode(split[1])?;
+        let decoded = URL_SAFE_NO_PAD.decode(split[1])?;
         Ok(serde_json::from_slice(&decoded)?)
     }
 }
@@ -62,6 +61,7 @@ mod tests {
         f3LEddAPV8cAFza4DjA8pZJLFrMyRvMXcL_PjKF8qPVzqVWh03lfJ4clOIxR2gOuWIc902Y5E";
 
         let token: JWTToken = jwt.parse().unwrap();
+        assert_eq!(token.exp, 1675107177);
         assert_eq!(token.sub, "e25d37f3-b603-40de-84ba-af96012f5a42");
         assert_eq!(token.email.as_deref(), Some("test@bitwarden.com"));
         assert_eq!(token.organization.as_deref(), None);

@@ -57,7 +57,7 @@ mod test {
 
     #[test]
     fn two_factor() {
-        let expected = Box::new(IdentityTwoFactorResponse::default());
+        let expected = Box::<IdentityTwoFactorResponse>::default();
         let two_factor = serde_json::to_string(&expected).unwrap();
         let expected = IdentityTokenResponse::TwoFactorRequired(expected);
         let actual = parse_identity_response(StatusCode::BAD_REQUEST, two_factor).unwrap();

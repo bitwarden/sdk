@@ -9,7 +9,7 @@ use crate::{
     },
     client::{LoginMethod, UserLoginMethod},
     crypto::EncString,
-    error::{Error, Result},
+    error::Result,
     Client,
 };
 
@@ -28,7 +28,7 @@ pub(crate) async fn login_api_key(
         // This should always be Some() when logging in with an api key
         let email = access_token_obj
             .email
-            .ok_or(Error::Internal("Access token doesn't contain email"))?;
+            .ok_or("Access token doesn't contain email")?;
 
         let kdf = client.auth().prelogin(email.clone()).await?;
 
@@ -36,13 +36,13 @@ pub(crate) async fn login_api_key(
             r.access_token.clone(),
             r.refresh_token.clone(),
             r.expires_in,
-            LoginMethod::User(UserLoginMethod::ApiKey {
-                client_id: input.client_id.to_owned(),
-                client_secret: input.client_secret.to_owned(),
-                email,
-                kdf,
-            }),
         );
+        client.set_login_method(LoginMethod::User(UserLoginMethod::ApiKey {
+            client_id: input.client_id.to_owned(),
+            client_secret: input.client_secret.to_owned(),
+            email,
+            kdf,
+        }));
 
         let user_key: EncString = r.key.as_deref().unwrap().parse().unwrap();
         let private_key: EncString = r.private_key.as_deref().unwrap().parse().unwrap();

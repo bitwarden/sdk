@@ -9,7 +9,9 @@ use crate::{
             ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse,
             TwoFactorEmailRequest,
         },
-        password::{password_strength, satisfies_policy, MasterPasswordPolicyOptions},
+        password::{
+            password_strength, satisfies_policy, validate_password, MasterPasswordPolicyOptions,
+        },
         register::{make_register_keys, register},
         RegisterKeyResponse, RegisterRequest,
     },
@@ -90,6 +92,10 @@ impl<'a> ClientAuth<'a> {
     pub async fn send_two_factor_email(&mut self, tf: &TwoFactorEmailRequest) -> Result<()> {
         send_two_factor_email(self.client, tf).await
     }
+
+    pub async fn validate_password(&self, password: String, password_hash: String) -> Result<bool> {
+        validate_password(self.client, password, password_hash).await
+    }
 }
 
 impl<'a> Client {
@@ -164,7 +170,8 @@ mod tests {
             .auth()
             .login_access_token(&AccessTokenLoginRequest {
                 access_token: "0.ec2c1d46-6a4b-4751-a310-af9601317f2d.C2IgxjjLF7qSshsbwe8JGcbM075YXw:X8vbvA0bduihIDe/qrzIQQ==".into(),
-            })
+                state_file: None,
+            },)
             .await
             .unwrap();
         assert!(res.authenticated);

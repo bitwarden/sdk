@@ -3,7 +3,7 @@ name: Build Java SDK
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   generate_schemas:
@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Download Java schemas artifact
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
         with:
           name: sdk-schemas-java
           path: languages/java/src/main/java/bit/sdk/schema/
@@ -36,31 +36,31 @@ jobs:
           java-version: 17
 
       - name: Download x86_64-apple-darwin files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
         with:
           name: libbitwarden_c_files-x86_64-apple-darwin
           path: languages/java/src/main/resources/darwin-x64
 
       - name: Download aarch64-apple-darwin files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
         with:
           name: libbitwarden_c_files-aarch64-apple-darwin
           path: languages/java/src/main/resources/darwin-aarch64
 
       - name: Download x86_64-unknown-linux-gnu files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
         with:
           name: libbitwarden_c_files-x86_64-unknown-linux-gnu
           path: languages/java/src/main/resources/ubuntu-x64
 
       - name: Download x86_64-pc-windows-msvc files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
         with:
           name: libbitwarden_c_files-x86_64-pc-windows-msvc
           path: languages/java/src/main/resources/windows-x64
 
       - name: Publish Maven
-        uses: gradle/gradle-build-action@87a9a15658c426a54dd469d4fc7dc1a73ca9d4a6 # v2.10.0
+        uses: gradle/gradle-build-action@982da8e78c05368c70dac0351bb82647a9e9a5d2 # v2.11.1
         with:
           arguments: publish
           build-root-directory: languages/java

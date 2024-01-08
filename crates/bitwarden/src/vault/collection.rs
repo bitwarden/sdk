@@ -1,3 +1,4 @@
+use bitwarden_api_api::models::CollectionDetailsResponseModel;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -5,14 +6,14 @@ use uuid::Uuid;
 use crate::{
     client::encryption_settings::EncryptionSettings,
     crypto::{EncString, KeyDecryptable, LocateKey, SymmetricCryptoKey},
-    error::Result,
+    error::{Error, Result},
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Collection {
-    id: Uuid,
+    id: Option<Uuid>,
     organization_id: Uuid,
 
     name: EncString,
@@ -26,7 +27,7 @@ pub struct Collection {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct CollectionView {
-    id: Uuid,
+    id: Option<Uuid>,
     organization_id: Uuid,
 
     name: String,
@@ -56,6 +57,21 @@ impl KeyDecryptable<CollectionView> for Collection {
             external_id: self.external_id.clone(),
             hide_passwords: self.hide_passwords,
             read_only: self.read_only,
+        })
+    }
+}
+
+impl TryFrom<CollectionDetailsResponseModel> for Collection {
+    type Error = Error;
+
+    fn try_from(collection: CollectionDetailsResponseModel) -> Result<Self> {
+        Ok(Collection {
+            id: collection.id,
+            organization_id: collection.organization_id.ok_or(Error::MissingFields)?,
+            name: collection.name.ok_or(Error::MissingFields)?.parse()?,
+            external_id: collection.external_id,
+            hide_passwords: collection.hide_passwords.unwrap_or(false),
+            read_only: collection.read_only.unwrap_or(false),
         })
     }
 }

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
-    error::Result,
+    error::{Error, Result},
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -28,7 +28,7 @@ pub struct AttachmentView {
     pub size: Option<String>,
     pub size_name: Option<String>,
     pub file_name: Option<String>,
-    pub key: Option<String>,
+    pub key: Option<EncString>,
 }
 
 impl KeyEncryptable<Attachment> for AttachmentView {
@@ -39,7 +39,7 @@ impl KeyEncryptable<Attachment> for AttachmentView {
             size: self.size,
             size_name: self.size_name,
             file_name: self.file_name.encrypt_with_key(key)?,
-            key: self.key.encrypt_with_key(key)?,
+            key: self.key,
         })
     }
 }
@@ -52,7 +52,22 @@ impl KeyDecryptable<AttachmentView> for Attachment {
             size: self.size.clone(),
             size_name: self.size_name.clone(),
             file_name: self.file_name.decrypt_with_key(key)?,
-            key: self.key.decrypt_with_key(key)?,
+            key: self.key.clone(),
+        })
+    }
+}
+
+impl TryFrom<bitwarden_api_api::models::AttachmentResponseModel> for Attachment {
+    type Error = Error;
+
+    fn try_from(attachment: bitwarden_api_api::models::AttachmentResponseModel) -> Result<Self> {
+        Ok(Self {
+            id: attachment.id,
+            url: attachment.url,
+            size: attachment.size,
+            size_name: attachment.size_name,
+            file_name: EncString::try_from_optional(attachment.file_name)?,
+            key: EncString::try_from_optional(attachment.key)?,
         })
     }
 }

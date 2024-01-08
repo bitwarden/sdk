@@ -4,7 +4,7 @@ use rand::{distributions::Distribution, seq::SliceRandom, RngCore};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::error::{Error, Result};
+use crate::error::Result;
 
 /// Password generator request options.
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -133,15 +133,11 @@ impl PasswordGeneratorRequest {
 
         // We always have to have at least one character set enabled
         if !self.lowercase && !self.uppercase && !self.numbers && !self.special {
-            return Err(Error::Internal(
-                "At least one character set must be enabled",
-            ));
+            return Err("At least one character set must be enabled".into());
         }
 
         if self.length < 4 {
-            return Err(Error::Internal(
-                "A password must be at least 4 characters long",
-            ));
+            return Err("A password must be at least 4 characters long".into());
         }
 
         // Make sure the minimum values are zero when the character
@@ -163,9 +159,7 @@ impl PasswordGeneratorRequest {
         // Check that the minimum lengths aren't larger than the password length
         let minimum_length = min_lowercase + min_uppercase + min_number + min_special;
         if minimum_length > length {
-            return Err(Error::Internal(
-                "Password length can't be less than the sum of the minimums",
-            ));
+            return Err("Password length can't be less than the sum of the minimums".into());
         }
 
         let lower = (

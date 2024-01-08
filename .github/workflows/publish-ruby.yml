@@ -3,7 +3,7 @@ name: Publish Ruby SDK
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   generate_schemas:
@@ -23,36 +23,36 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Set up Ruby
-        uses: ruby/setup-ruby@8575951200e472d5f2d95c625da0c7bec8217c42 # v1.161.0
+        uses: ruby/setup-ruby@360dc864d5da99d54fcb8e9148c14a84b90d3e88 # v1.165.1
         with:
           ruby-version: 3.2
 
       - name: Download Ruby schemas artifact
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
         with:
           name: schemas.rb
           path: languages/ruby/bitwarden_sdk/lib
 
       - name: Download x86_64-apple-darwin files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
         with:
           name: libbitwarden_c_files-x86_64-apple-darwin
           path: temp/macos-x64
 
       - name: Download aarch64-apple-darwin files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
         with:
           name: libbitwarden_c_files-aarch64-apple-darwin
           path: temp/macos-arm64
 
       - name: Download x86_64-unknown-linux-gnu files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
         with:
           name: libbitwarden_c_files-x86_64-unknown-linux-gnu
           path: temp/ubuntu-x64
 
       - name: Download x86_64-pc-windows-msvc files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
         with:
           name: libbitwarden_c_files-x86_64-pc-windows-msvc
           path: temp/windows-x64

@@ -6,17 +6,17 @@ use uuid::Uuid;
 use {
     crate::{
         client::UserLoginMethod,
-        crypto::{EncString, KeyDecryptable},
+        crypto::{AsymmEncString, EncString, KeyDecryptable},
         error::{CryptoError, Result},
     },
-    rsa::{pkcs8::DecodePrivateKey, Oaep},
+    rsa::pkcs8::DecodePrivateKey,
 };
 
 use crate::crypto::SymmetricCryptoKey;
 
 pub struct EncryptionSettings {
     user_key: SymmetricCryptoKey,
-    private_key: Option<RsaPrivateKey>,
+    pub(crate) private_key: Option<RsaPrivateKey>,
     org_keys: HashMap<Uuid, SymmetricCryptoKey>,
 }
 
@@ -84,7 +84,7 @@ impl EncryptionSettings {
     #[cfg(feature = "internal")]
     pub(crate) fn set_org_keys(
         &mut self,
-        org_enc_keys: Vec<(Uuid, EncString)>,
+        org_enc_keys: Vec<(Uuid, AsymmEncString)>,
     ) -> Result<&mut Self> {
         use crate::error::Error;
 
@@ -96,14 +96,7 @@ impl EncryptionSettings {
 
         // Decrypt the org keys with the private key
         for (org_id, org_enc_key) in org_enc_keys {
-            let data = match org_enc_key {
-                EncString::Rsa2048_OaepSha1_B64 { data } => data,
-                _ => return Err(CryptoError::InvalidKey.into()),
-            };
-
-            let dec = private_key
-                .decrypt(Oaep::new::<sha1::Sha1>(), &data)
-                .map_err(|_| CryptoError::KeyDecrypt)?;
+            let dec = org_enc_key.decrypt(private_key)?;
 
             let org_key = SymmetricCryptoKey::try_from(dec.as_slice())?;
 

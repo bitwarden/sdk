@@ -1,13 +1,15 @@
 use std::sync::Arc;
 
-use bitwarden::mobile::crypto::{InitOrgCryptoRequest, InitUserCryptoRequest};
+use bitwarden::mobile::crypto::{
+    DerivePinKeyResponse, InitOrgCryptoRequest, InitUserCryptoRequest,
+};
 
 use crate::{error::Result, Client};
 
 #[derive(uniffi::Object)]
 pub struct ClientCrypto(pub(crate) Arc<Client>);
 
-#[uniffi::export]
+#[uniffi::export(async_runtime = "tokio")]
 impl ClientCrypto {
     /// Initialization method for the user crypto. Needs to be called before any other crypto operations.
     pub async fn initialize_user_crypto(&self, req: InitUserCryptoRequest) -> Result<()> {
@@ -44,5 +46,11 @@ impl ClientCrypto {
             .crypto()
             .get_user_encryption_key()
             .await?)
+    }
+
+    /// Generates a PIN protected user key from the provided PIN. The result can be stored and later used
+    /// to initialize another client instance by using the PIN and the PIN key with `initialize_user_crypto`.
+    pub async fn derive_pin_key(&self, pin: String) -> Result<DerivePinKeyResponse> {
+        Ok(self.0 .0.write().await.crypto().derive_pin_key(pin).await?)
     }
 }

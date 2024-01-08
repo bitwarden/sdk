@@ -49,6 +49,9 @@ pub enum Error {
     #[error("The state file could not be read")]
     InvalidStateFile,
 
+    #[error("Number is zero")]
+    ZeroNumber,
+
     #[error("Internal error: {0}")]
     Internal(Cow<'static, str>),
 }

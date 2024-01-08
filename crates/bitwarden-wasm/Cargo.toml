@@ -12,7 +12,7 @@ console_error_panic_hook = "0.1.7"
 console_log = { version = "1.0.0", features = ["color"] }
 js-sys = "0.3.66"
 log = "0.4.20"
-serde = { version = "1.0.193", features = ["derive"] }
+serde = { version = "1.0.195", features = ["derive"] }
 wasm-bindgen = { version = "0.2.89", features = ["serde-serialize"] }
 wasm-bindgen-futures = "0.4.39"
 

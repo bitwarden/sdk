@@ -136,10 +136,10 @@ impl Send {
         enc_key: &SymmetricCryptoKey,
     ) -> Result<SymmetricCryptoKey> {
         let key: Vec<u8> = send_key.decrypt_with_key(enc_key)?;
-        Self::derive_shareable_key(key)
+        Self::derive_shareable_key(&key)
     }
 
-    fn derive_shareable_key(key: Vec<u8>) -> Result<SymmetricCryptoKey, Error> {
+    fn derive_shareable_key(key: &[u8]) -> Result<SymmetricCryptoKey, Error> {
         let key = key.try_into().map_err(|_| CryptoError::InvalidKeyLen)?;
         Ok(derive_shareable_key(key, "send", Some("send")))
     }
@@ -191,7 +191,7 @@ impl KeyDecryptable<SendView> for Send {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
         // For the rest of the fields, we ignore the provided SymmetricCryptoKey and the stretched key
         let k: Vec<u8> = self.key.decrypt_with_key(key)?;
-        let key = Send::derive_shareable_key(k.clone())?;
+        let key = Send::derive_shareable_key(&k)?;
 
         Ok(SendView {
             id: self.id,
@@ -248,7 +248,7 @@ impl KeyEncryptable<Send> for SendView {
         let k = URL_SAFE_NO_PAD
             .decode(self.key.ok_or(CryptoError::MissingKey)?)
             .map_err(|_| CryptoError::InvalidKey)?;
-        let send_key = Send::derive_shareable_key(k.clone())?;
+        let send_key = Send::derive_shareable_key(&k)?;
 
         Ok(Send {
             id: self.id,

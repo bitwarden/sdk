@@ -25,7 +25,7 @@ pip install BitwardenClient
 
 # Run
 
-Set the `BWS_ORG_ID` and `BWS_ACCESS_TOKEN` environment variables to your organization ID and access token, respectively.
+Set the `ORGANIZATION_ID` and `ACCESS_TOKEN` environment variables to your organization ID and access token, respectively.
 
 ```bash
 python3 ./example.py

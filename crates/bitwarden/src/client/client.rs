@@ -14,8 +14,8 @@ use crate::auth::login::{AccessTokenLoginRequest, AccessTokenLoginResponse};
 use crate::{
     client::kdf::Kdf,
     platform::{
-        generate_fingerprint, get_user_api_key, sync, FingerprintRequest, FingerprintResponse,
-        SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,
+        get_user_api_key, sync, SecretVerificationRequest, SyncRequest, SyncResponse,
+        UserApiKeyResponse,
     },
 };
 use crate::{
@@ -284,10 +284,5 @@ impl Client {
 
         enc.set_org_keys(org_keys)?;
         Ok(self.encryption_settings.as_ref().unwrap())
-    }
-
-    #[cfg(feature = "internal")]
-    pub fn fingerprint(&self, input: &FingerprintRequest) -> Result<FingerprintResponse> {
-        generate_fingerprint(input)
     }
 }

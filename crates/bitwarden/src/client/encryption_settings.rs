@@ -13,7 +13,7 @@ use {
 
 pub struct EncryptionSettings {
     user_key: SymmetricCryptoKey,
-    private_key: Option<RsaPrivateKey>,
+    pub(crate) private_key: Option<RsaPrivateKey>,
     org_keys: HashMap<Uuid, SymmetricCryptoKey>,
 }
 

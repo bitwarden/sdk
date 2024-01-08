@@ -1,6 +1,6 @@
-use std::{num::NonZeroU32, str::FromStr};
+use std::num::NonZeroU32;
 
-use crate::{AsymmEncString, CryptoError, EncString, UniffiCustomTypeConverter};
+use crate::{CryptoError, EncString, UniffiCustomTypeConverter};
 
 uniffi::custom_type!(NonZeroU32, u32);
 
@@ -23,20 +23,6 @@ impl UniffiCustomTypeConverter for EncString {
 
     fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
         val.parse().map_err(|e: CryptoError| e.into())
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_string()
-    }
-}
-
-uniffi::custom_type!(AsymmEncString, String);
-
-impl UniffiCustomTypeConverter for AsymmEncString {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Self::from_str(&val).map_err(|e| e.into())
     }
 
     fn from_custom(obj: Self) -> Self::Builtin {

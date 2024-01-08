@@ -1,4 +1,4 @@
-use std::num::NonZeroU32;
+use std::{num::NonZeroU32, str::FromStr};
 
 use bitwarden_crypto::{AsymmEncString, EncString};
 use uuid::Uuid;
@@ -7,11 +7,6 @@ use crate::UniffiCustomTypeConverter;
 
 uniffi::ffi_converter_forward!(NonZeroU32, bitwarden_crypto::UniFfiTag, crate::UniFfiTag);
 uniffi::ffi_converter_forward!(EncString, bitwarden_crypto::UniFfiTag, crate::UniFfiTag);
-uniffi::ffi_converter_forward!(
-    AsymmEncString,
-    bitwarden_crypto::UniFfiTag,
-    crate::UniFfiTag
-);
 
 type DateTime = chrono::DateTime<chrono::Utc>;
 uniffi::custom_type!(DateTime, std::time::SystemTime);
@@ -35,6 +30,20 @@ impl UniffiCustomTypeConverter for Uuid {
 
     fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
         Uuid::parse_str(val.as_str()).map_err(|e| e.into())
+    }
+
+    fn from_custom(obj: Self) -> Self::Builtin {
+        obj.to_string()
+    }
+}
+
+uniffi::custom_type!(AsymmEncString, String);
+
+impl UniffiCustomTypeConverter for AsymmEncString {
+    type Builtin = String;
+
+    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
+        Self::from_str(&val).map_err(|e| e.into())
     }
 
     fn from_custom(obj: Self) -> Self::Builtin {

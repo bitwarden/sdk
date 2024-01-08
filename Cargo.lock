@@ -2658,7 +2658,8 @@ dependencies = [
 [[package]]
 name = "rustls-platform-verifier"
 version = "0.1.0"
-source = "git+https://github.com/rustls/rustls-platform-verifier/?rev=e4194174f2b4b235ed13fc057ce89b19894321e6#e4194174f2b4b235ed13fc057ce89b19894321e6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c573e165e19be8c9fc0264ee041d66292d4ee0439949af61d71fa747bf5df082"
 dependencies = [
  "core-foundation",
  "core-foundation-sys",
@@ -2667,12 +2668,19 @@ dependencies = [
  "once_cell",
  "rustls",
  "rustls-native-certs",
+ "rustls-platform-verifier-android",
  "rustls-webpki",
  "security-framework",
  "security-framework-sys",
  "webpki-roots",
  "winapi",
 ]
+
+[[package]]
+name = "rustls-platform-verifier-android"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "84e217e7fdc8466b5b35d30f8c0a30febd29173df4a3a0c2115d306b9c4117ad"
 
 [[package]]
 name = "rustls-webpki"

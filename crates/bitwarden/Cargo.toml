@@ -70,7 +70,7 @@ uuid = { version = ">=1.3.3, <2.0", features = ["serde"] }
 reqwest = { version = "*", features = [
     "rustls-tls-manual-roots",
 ], default-features = false }
-rustls-platform-verifier = { git = "https://github.com/rustls/rustls-platform-verifier/", rev = "e4194174f2b4b235ed13fc057ce89b19894321e6" }
+rustls-platform-verifier = "0.1.0"
 
 [target.'cfg(target_os = "android")'.dependencies]
 # On android, the use of rustls-platform-verifier is more complicated and going through some changes at the moment, so we fall back to using webpki-roots

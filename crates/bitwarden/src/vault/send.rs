@@ -333,10 +333,11 @@ impl TryFrom<SendTextModel> for SendText {
 
 #[cfg(test)]
 mod tests {
+    use bitwarden_crypto::{KeyDecryptable, KeyEncryptable};
+
     use super::{Send, SendText, SendTextView, SendType};
     use crate::{
         client::{encryption_settings::EncryptionSettings, kdf::Kdf, UserLoginMethod},
-        crypto::{KeyDecryptable, KeyEncryptable},
         vault::SendView,
     };
 

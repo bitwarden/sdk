@@ -8,7 +8,7 @@ use uuid::Uuid;
 
 use crate::{
     crypto::{
-        derive_shareable_key, generate_16_bytes, EncString, KeyDecryptable, KeyEncryptable,
+        derive_shareable_key, generate_random_bytes, EncString, KeyDecryptable, KeyEncryptable,
         LocateKey, SymmetricCryptoKey,
     },
     error::{CryptoError, Error, Result},
@@ -249,7 +249,10 @@ impl KeyEncryptable<Send> for SendView {
             Some(k) => URL_SAFE_NO_PAD
                 .decode(k)
                 .map_err(|_| CryptoError::InvalidKey)?,
-            None => generate_16_bytes().to_vec(),
+            None => {
+                let key: [u8; 16] = generate_random_bytes();
+                key.to_vec()
+            }
         };
         let send_key = Send::derive_shareable_key(&k)?;
 

@@ -23,7 +23,10 @@
 
 use aes::cipher::{generic_array::GenericArray, ArrayLength, Unsigned};
 use hmac::digest::OutputSizeUser;
-use rand::Rng;
+use rand::{
+    distributions::{Distribution, Standard},
+    Rng,
+};
 
 use crate::error::Result;
 
@@ -76,6 +79,9 @@ fn hkdf_expand<T: ArrayLength<u8>>(prk: &[u8], info: Option<&str>) -> Result<Gen
 }
 
 /// Generate 16 bytes that are cryptographically secure
-pub(crate) fn generate_16_bytes() -> [u8; 16] {
+pub(crate) fn generate_random_bytes<T>() -> T
+where
+    Standard: Distribution<T>,
+{
     rand::thread_rng().gen()
 }

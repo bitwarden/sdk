@@ -269,11 +269,11 @@ impl schemars::JsonSchema for EncString {
 #[cfg(test)]
 mod tests {
     use super::EncString;
-    use crate::{KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
+    use crate::{generate_symmetric_key, KeyDecryptable, KeyEncryptable};
 
     #[test]
     fn test_enc_string_roundtrip() {
-        let key = SymmetricCryptoKey::generate("test");
+        let key = generate_symmetric_key("test");
 
         let test_string = "encrypted_test_string".to_string();
         let cipher = test_string.clone().encrypt_with_key(&key).unwrap();

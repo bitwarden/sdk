@@ -3,6 +3,9 @@ use crate::{
     Result, SymmetricCryptoKey,
 };
 
+/// User Key
+///
+/// The User Key is the symmetric encryption key used to decrypt the user's vault.
 pub struct UserKey(pub SymmetricCryptoKey);
 
 impl UserKey {

@@ -218,7 +218,7 @@ impl Cipher {
             .as_ref()
             .map(|k| {
                 let key: Vec<u8> = k.decrypt_with_key(key)?;
-                Ok(SymmetricCryptoKey::try_from(key.as_slice())?)
+                SymmetricCryptoKey::try_from(key.as_slice())
             })
             .transpose()
     }

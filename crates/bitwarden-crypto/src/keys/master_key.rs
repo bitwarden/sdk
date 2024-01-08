@@ -30,7 +30,9 @@ pub enum HashPurpose {
     LocalAuthorization = 2,
 }
 
-/// A Master Key.
+/// Master Key.
+///
+/// Derived from the users master password, used to protect the [UserKey].
 pub struct MasterKey(SymmetricCryptoKey);
 
 impl MasterKey {
@@ -39,7 +41,7 @@ impl MasterKey {
         derive_key(password, email, kdf).map(Self)
     }
 
-    /// Derive the master key hash, used for server authorization.
+    /// Derive the master key hash, used for local and remote password validation.
     pub fn derive_master_key_hash(&self, password: &[u8], purpose: HashPurpose) -> Result<String> {
         let hash = pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(
             &self.0.key,
@@ -51,10 +53,12 @@ impl MasterKey {
         Ok(STANDARD.encode(hash))
     }
 
+    /// Generate a new random user key and encrypt it with the master key.
     pub fn make_user_key(&self) -> Result<(UserKey, EncString)> {
         make_user_key(rand::thread_rng(), self)
     }
 
+    /// Decrypt the users user key
     pub fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey> {
         let stretched_key = stretch_master_key(self)?;
 
@@ -143,7 +147,7 @@ mod tests {
     use rand::SeedableRng;
 
     use super::{make_user_key, stretch_master_key, HashPurpose, Kdf, MasterKey};
-    use crate::SymmetricCryptoKey;
+    use crate::{keys::symmetric_crypto_key::generate_symmetric_key, SymmetricCryptoKey};
 
     #[test]
     fn test_master_key_derive_pbkdf2() {
@@ -301,9 +305,9 @@ mod tests {
 
     #[test]
     fn test_make_user_key2() {
-        let master_key = MasterKey(SymmetricCryptoKey::generate("test1"));
+        let master_key = MasterKey(generate_symmetric_key("test1"));
 
-        let user_key = SymmetricCryptoKey::generate("test2");
+        let user_key = generate_symmetric_key("test2");
 
         let encrypted = master_key.encrypt_user_key(&user_key).unwrap();
         let decrypted = master_key.decrypt_user_key(encrypted).unwrap();

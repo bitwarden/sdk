@@ -23,7 +23,7 @@
     "@openapitools/openapi-generator-cli": "2.7.0",
     "handlebars": "^4.7.8",
     "prettier": "3.1.1",
-    "quicktype-core": "23.0.80",
+    "quicktype-core": "23.0.81",
     "rimraf": "5.0.5",
     "ts-node": "10.9.2",
     "typescript": "5.3.3"

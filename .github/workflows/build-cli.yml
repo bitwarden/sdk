@@ -75,7 +75,7 @@ jobs:
 
       - name: Install Cross (aarch64-unknown-linux-gnu)
         if: ${{ matrix.settings.target == 'aarch64-unknown-linux-gnu' }}
-        run: cargo install cross
+        run: cargo install cross --locked
 
       - name: Build
         if: ${{ matrix.settings.target != 'aarch64-unknown-linux-gnu' }}

@@ -34,6 +34,17 @@ impl AsymmetricCryptoKey {
             .as_bytes()
             .to_owned())
     }
+
+    pub fn to_public_der(&self) -> Result<Vec<u8>> {
+        use rsa::pkcs8::EncodePublicKey;
+        Ok(self
+            .key
+            .to_public_key()
+            .to_public_key_der()
+            .map_err(|_| CryptoError::InvalidKey)?
+            .as_bytes()
+            .to_owned())
+    }
 }
 
 impl CryptoKey for AsymmetricCryptoKey {}

@@ -100,6 +100,8 @@ pub enum CryptoError {
     NoKeyForOrg,
     #[error("The value is not a valid UTF8 String")]
     InvalidUtf8String,
+    #[error("Missing key")]
+    MissingKey,
 }
 
 #[derive(Debug, Error)]

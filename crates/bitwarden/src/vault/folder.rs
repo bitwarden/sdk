@@ -13,7 +13,7 @@ use crate::{
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Folder {
-    id: Uuid,
+    id: Option<Uuid>,
     name: EncString,
     revision_date: DateTime<Utc>,
 }
@@ -22,7 +22,7 @@ pub struct Folder {
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct FolderView {
-    id: Uuid,
+    id: Option<Uuid>,
     name: String,
     revision_date: DateTime<Utc>,
 }
@@ -54,7 +54,7 @@ impl TryFrom<FolderResponseModel> for Folder {
 
     fn try_from(folder: FolderResponseModel) -> Result<Self> {
         Ok(Folder {
-            id: folder.id.ok_or(Error::MissingFields)?,
+            id: folder.id,
             name: EncString::try_from_optional(folder.name)?.ok_or(Error::MissingFields)?,
             revision_date: folder.revision_date.ok_or(Error::MissingFields)?.parse()?,
         })

@@ -1,3 +1,4 @@
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use bitwarden_api_api::models::{SendFileModel, SendResponseModel, SendTextModel};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
@@ -10,29 +11,29 @@ use crate::{
         derive_shareable_key, EncString, KeyDecryptable, KeyEncryptable, LocateKey,
         SymmetricCryptoKey,
     },
-    error::{Error, Result},
+    error::{CryptoError, Error, Result},
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SendFile {
-    pub id: String,
+    pub id: Option<String>,
     pub file_name: EncString,
-    pub size: String,
+    pub size: Option<String>,
     /// Readable size, ex: "4.2 KB" or "1.43 GB"
-    pub size_name: String,
+    pub size_name: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, PartialEq, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SendFileView {
-    pub id: String,
+    pub id: Option<String>,
     pub file_name: String,
-    pub size: String,
+    pub size: Option<String>,
     /// Readable size, ex: "4.2 KB" or "1.43 GB"
-    pub size_name: String,
+    pub size_name: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -43,7 +44,7 @@ pub struct SendText {
     pub hidden: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, PartialEq, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SendTextView {
@@ -51,7 +52,7 @@ pub struct SendTextView {
     pub hidden: bool,
 }
 
-#[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
+#[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema, PartialEq)]
 #[repr(u8)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum SendType {
@@ -63,8 +64,8 @@ pub enum SendType {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Send {
-    pub id: Uuid,
-    pub access_id: String,
+    pub id: Option<Uuid>,
+    pub access_id: Option<String>,
 
     pub name: EncString,
     pub notes: Option<EncString>,
@@ -85,16 +86,17 @@ pub struct Send {
     pub expiration_date: Option<DateTime<Utc>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, PartialEq, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SendView {
-    pub id: Uuid,
-    pub access_id: String,
+    pub id: Option<Uuid>,
+    pub access_id: Option<String>,
 
     pub name: String,
     pub notes: Option<String>,
-    pub key: EncString,
+    /// Base64 encoded key
+    pub key: Option<String>,
     pub password: Option<String>,
 
     pub r#type: SendType,
@@ -115,8 +117,8 @@ pub struct SendView {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SendListView {
-    pub id: Uuid,
-    pub access_id: String,
+    pub id: Option<Uuid>,
+    pub access_id: Option<String>,
 
     pub name: String,
 
@@ -134,8 +136,12 @@ impl Send {
         enc_key: &SymmetricCryptoKey,
     ) -> Result<SymmetricCryptoKey> {
         let key: Vec<u8> = send_key.decrypt_with_key(enc_key)?;
-        let key = derive_shareable_key(key.try_into().unwrap(), "send", Some("send"));
-        Ok(key)
+        Self::derive_shareable_key(&key)
+    }
+
+    fn derive_shareable_key(key: &[u8]) -> Result<SymmetricCryptoKey, Error> {
+        let key = key.try_into().map_err(|_| CryptoError::InvalidKeyLen)?;
+        Ok(derive_shareable_key(key, "send", Some("send")))
     }
 }
 
@@ -184,7 +190,8 @@ impl KeyDecryptable<SymmetricCryptoKey, SendView> for Send {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendView> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
         // For the rest of the fields, we ignore the provided SymmetricCryptoKey and the stretched key
-        let key = Send::get_key(&self.key, key)?;
+        let k: Vec<u8> = self.key.decrypt_with_key(key)?;
+        let key = Send::derive_shareable_key(&k)?;
 
         Ok(SendView {
             id: self.id,
@@ -192,7 +199,7 @@ impl KeyDecryptable<SymmetricCryptoKey, SendView> for Send {
 
             name: self.name.decrypt_with_key(&key)?,
             notes: self.notes.decrypt_with_key(&key)?,
-            key: self.key.clone(),
+            key: Some(URL_SAFE_NO_PAD.encode(k)),
             password: self.password.clone(),
 
             r#type: self.r#type,
@@ -238,20 +245,23 @@ impl KeyEncryptable<SymmetricCryptoKey, Send> for SendView {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Send> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
         // For the rest of the fields, we ignore the provided SymmetricCryptoKey and the stretched key
-        let key = Send::get_key(&self.key, key)?;
+        let k = URL_SAFE_NO_PAD
+            .decode(self.key.ok_or(CryptoError::MissingKey)?)
+            .map_err(|_| CryptoError::InvalidKey)?;
+        let send_key = Send::derive_shareable_key(&k)?;
 
         Ok(Send {
             id: self.id,
             access_id: self.access_id,
 
-            name: self.name.encrypt_with_key(&key)?,
-            notes: self.notes.encrypt_with_key(&key)?,
-            key: self.key.clone(),
+            name: self.name.encrypt_with_key(&send_key)?,
+            notes: self.notes.encrypt_with_key(&send_key)?,
+            key: k.encrypt_with_key(key)?,
             password: self.password.clone(),
 
             r#type: self.r#type,
-            file: self.file.encrypt_with_key(&key)?,
-            text: self.text.encrypt_with_key(&key)?,
+            file: self.file.encrypt_with_key(&send_key)?,
+            text: self.text.encrypt_with_key(&send_key)?,
 
             max_access_count: self.max_access_count,
             access_count: self.access_count,
@@ -270,8 +280,8 @@ impl TryFrom<SendResponseModel> for Send {
 
     fn try_from(send: SendResponseModel) -> Result<Self> {
         Ok(Send {
-            id: send.id.ok_or(Error::MissingFields)?,
-            access_id: send.access_id.ok_or(Error::MissingFields)?,
+            id: send.id,
+            access_id: send.access_id,
             name: send.name.ok_or(Error::MissingFields)?.parse()?,
             notes: EncString::try_from_optional(send.notes)?,
             key: send.key.ok_or(Error::MissingFields)?.parse()?,
@@ -304,10 +314,10 @@ impl TryFrom<SendFileModel> for SendFile {
 
     fn try_from(file: SendFileModel) -> Result<Self> {
         Ok(SendFile {
-            id: file.id.ok_or(Error::MissingFields)?,
+            id: file.id,
             file_name: file.file_name.ok_or(Error::MissingFields)?.parse()?,
-            size: file.size.ok_or(Error::MissingFields)?.to_string(),
-            size_name: file.size_name.ok_or(Error::MissingFields)?,
+            size: file.size.map(|v| v.to_string()),
+            size_name: file.size_name,
         })
     }
 }
@@ -325,8 +335,12 @@ impl TryFrom<SendTextModel> for SendText {
 
 #[cfg(test)]
 mod tests {
-    use super::Send;
-    use crate::client::{encryption_settings::EncryptionSettings, kdf::Kdf, UserLoginMethod};
+    use super::{Send, SendText, SendTextView, SendType};
+    use crate::{
+        client::{encryption_settings::EncryptionSettings, kdf::Kdf, UserLoginMethod},
+        crypto::{KeyDecryptable, KeyEncryptable},
+        vault::SendView,
+    };
 
     #[test]
     fn test_get_send_key() {
@@ -348,8 +362,8 @@ mod tests {
 
         // Create a send object, the only value we really care about here is the key
         let send = Send {
-            id: "d7fb1e7f-9053-43c0-a02c-b0690098685a".parse().unwrap(),
-            access_id: "fx7711OQwEOgLLBpAJhoWg".into(),
+            id: Some("d7fb1e7f-9053-43c0-a02c-b0690098685a".parse().unwrap()),
+            access_id: Some("fx7711OQwEOgLLBpAJhoWg".into()),
             name: "2.u5vXPAepUZ+4lI2vGGKiGg==|hEouC4SvCCb/ifzZzLcfSw==|E2VZUVffehczfIuRSlX2vnPRfflBtXef5tzsWvRrtfM="
                 .parse()
                 .unwrap(),
@@ -360,12 +374,12 @@ mod tests {
             password: None,
             r#type: super::SendType::File,
             file: Some(super::SendFile {
-                id: "7f129hzwu0umkmnmsghkt486w96p749c".into(),
+                id: Some("7f129hzwu0umkmnmsghkt486w96p749c".into()),
                 file_name: "2.pnszM3slsCVlOIzuWrfCpA==|85zCg+X8GODvIAPf1Yt3K75YP+ub3wVAi1UvwOVXhPgUo9Gsu23FJgYSOkyKu3Vr|OvTrOugwRH7Mp2BWSuPlfxovoWt9oDRdi1Qo3xHUcdQ="
                     .parse()
                     .unwrap(),
-                size: "1251825".into(),
-                size_name: "1.19 MB".into(),
+                size: Some("1251825".into()),
+                size_name: Some("1.19 MB".into()),
             }),
             text: None,
             max_access_count: None,
@@ -381,5 +395,112 @@ mod tests {
         let send_key = Send::get_key(&send.key, k).unwrap();
         let send_key_b64 = send_key.to_base64();
         assert_eq!(send_key_b64, "IR9ImHGm6rRuIjiN7csj94bcZR5WYTJj5GtNfx33zm6tJCHUl+QZlpNPba8g2yn70KnOHsAODLcR0um6E3MAlg==");
+    }
+
+    fn build_encryption_settings() -> EncryptionSettings {
+        EncryptionSettings::new(
+            &UserLoginMethod::Username {
+                client_id: "test".into(),
+                email: "test@bitwarden.com".into(),
+                kdf: Kdf::PBKDF2 {
+                    iterations: 600_000.try_into().unwrap(),
+                },
+            },
+            "asdfasdfasdf",
+            "2.Q/2PhzcC7GdeiMHhWguYAQ==|GpqzVdr0go0ug5cZh1n+uixeBC3oC90CIe0hd/HWA/pTRDZ8ane4fmsEIcuc8eMKUt55Y2q/fbNzsYu41YTZzzsJUSeqVjT8/iTQtgnNdpo=|dwI+uyvZ1h/iZ03VQ+/wrGEFYVewBUUl/syYgjsNMbE=".parse().unwrap(),
+            "2.yN7l00BOlUE0Sb0M//Q53w==|EwKG/BduQRQ33Izqc/ogoBROIoI5dmgrxSo82sgzgAMIBt3A2FZ9vPRMY+GWT85JiqytDitGR3TqwnFUBhKUpRRAq4x7rA6A1arHrFp5Tp1p21O3SfjtvB3quiOKbqWk6ZaU1Np9HwqwAecddFcB0YyBEiRX3VwF2pgpAdiPbSMuvo2qIgyob0CUoC/h4Bz1be7Qa7B0Xw9/fMKkB1LpOm925lzqosyMQM62YpMGkjMsbZz0uPopu32fxzDWSPr+kekNNyLt9InGhTpxLmq1go/pXR2uw5dfpXc5yuta7DB0EGBwnQ8Vl5HPdDooqOTD9I1jE0mRyuBpWTTI3FRnu3JUh3rIyGBJhUmHqGZvw2CKdqHCIrQeQkkEYqOeJRJVdBjhv5KGJifqT3BFRwX/YFJIChAQpebNQKXe/0kPivWokHWwXlDB7S7mBZzhaAPidZvnuIhalE2qmTypDwHy22FyqV58T8MGGMchcASDi/QXI6kcdpJzPXSeU9o+NC68QDlOIrMVxKFeE7w7PvVmAaxEo0YwmuAzzKy9QpdlK0aab/xEi8V4iXj4hGepqAvHkXIQd+r3FNeiLfllkb61p6WTjr5urcmDQMR94/wYoilpG5OlybHdbhsYHvIzYoLrC7fzl630gcO6t4nM24vdB6Ymg9BVpEgKRAxSbE62Tqacxqnz9AcmgItb48NiR/He3n3ydGjPYuKk/ihZMgEwAEZvSlNxYONSbYrIGDtOY+8Nbt6KiH3l06wjZW8tcmFeVlWv+tWotnTY9IqlAfvNVTjtsobqtQnvsiDjdEVtNy/s2ci5TH+NdZluca2OVEr91Wayxh70kpM6ib4UGbfdmGgCo74gtKvKSJU0rTHakQ5L9JlaSDD5FamBRyI0qfL43Ad9qOUZ8DaffDCyuaVyuqk7cz9HwmEmvWU3VQ+5t06n/5kRDXttcw8w+3qClEEdGo1KeENcnXCB32dQe3tDTFpuAIMLqwXs6FhpawfZ5kPYvLPczGWaqftIs/RXJ/EltGc0ugw2dmTLpoQhCqrcKEBDoYVk0LDZKsnzitOGdi9mOWse7Se8798ib1UsHFUjGzISEt6upestxOeupSTOh0v4+AjXbDzRUyogHww3V+Bqg71bkcMxtB+WM+pn1XNbVTyl9NR040nhP7KEf6e9ruXAtmrBC2ah5cFEpLIot77VFZ9ilLuitSz+7T8n1yAh1IEG6xxXxninAZIzi2qGbH69O5RSpOJuJTv17zTLJQIIc781JwQ2TTwTGnx5wZLbffhCasowJKd2EVcyMJyhz6ru0PvXWJ4hUdkARJs3Xu8dus9a86N8Xk6aAPzBDqzYb1vyFIfBxP0oO8xFHgd30Cgmz8UrSE3qeWRrF8ftrI6xQnFjHBGWD/JWSvd6YMcQED0aVuQkuNW9ST/DzQThPzRfPUoiL10yAmV7Ytu4fR3x2sF0Yfi87YhHFuCMpV/DsqxmUizyiJuD938eRcH8hzR/VO53Qo3UIsqOLcyXtTv6THjSlTopQ+JOLOnHm1w8dzYbLN44OG44rRsbihMUQp+wUZ6bsI8rrOnm9WErzkbQFbrfAINdoCiNa6cimYIjvvnMTaFWNymqY1vZxGztQiMiHiHYwTfwHTXrb9j0uPM=|09J28iXv9oWzYtzK2LBT6Yht4IT4MijEkk0fwFdrVQ4=".parse().unwrap(),
+        ).unwrap()
+    }
+
+    #[test]
+    pub fn test_decrypt() {
+        let enc = build_encryption_settings();
+        let key = enc.get_key(&None).unwrap();
+
+        let send = Send {
+            id: "3d80dd72-2d14-4f26-812c-b0f0018aa144".parse().ok(),
+            access_id: Some("ct2APRQtJk-BLLDwAYqhRA".to_owned()),
+            r#type: SendType::Text,
+            name: "2.STIyTrfDZN/JXNDN9zNEMw==|NDLum8BHZpPNYhJo9ggSkg==|UCsCLlBO3QzdPwvMAWs2VVwuE6xwOx/vxOooPObqnEw=".parse()
+                .unwrap(),
+            notes: None,
+            file: None,
+            text: Some(SendText {
+                text: "2.2VPyLzk1tMLug0X3x7RkaQ==|mrMt9vbZsCJhJIj4eebKyg==|aZ7JeyndytEMR1+uEBupEvaZuUE69D/ejhfdJL8oKq0=".parse().ok(),
+                hidden: false,
+            }),
+            key: "2.KLv/j0V4Ebs0dwyPdtt4vw==|jcrFuNYN1Qb3onBlwvtxUV/KpdnR1LPRL4EsCoXNAt4=|gHSywGy4Rj/RsCIZFwze4s2AACYKBtqDXTrQXjkgtIE=".parse().unwrap(),
+            max_access_count: None,
+            access_count: 0,
+            password: None,
+            disabled: false,
+            revision_date: "2024-01-07T23:56:48.207363Z".parse().unwrap(),
+            expiration_date: None,
+            deletion_date: "2024-01-14T23:56:48Z".parse().unwrap(),
+            hide_email: false,
+        };
+
+        let view: SendView = send.decrypt_with_key(key).unwrap();
+
+        let expected = SendView {
+            id: "3d80dd72-2d14-4f26-812c-b0f0018aa144".parse().ok(),
+            access_id: Some("ct2APRQtJk-BLLDwAYqhRA".to_owned()),
+            name: "Test".to_string(),
+            notes: None,
+            key: Some("Pgui0FK85cNhBGWHAlBHBw".to_owned()),
+            password: None,
+            r#type: SendType::Text,
+            file: None,
+            text: Some(SendTextView {
+                text: Some("This is a test".to_owned()),
+                hidden: false,
+            }),
+            max_access_count: None,
+            access_count: 0,
+            disabled: false,
+            hide_email: false,
+            revision_date: "2024-01-07T23:56:48.207363Z".parse().unwrap(),
+            deletion_date: "2024-01-14T23:56:48Z".parse().unwrap(),
+            expiration_date: None,
+        };
+
+        assert_eq!(view, expected);
+    }
+
+    #[test]
+    pub fn test_encrypt() {
+        let enc = build_encryption_settings();
+        let key = enc.get_key(&None).unwrap();
+
+        let view = SendView {
+            id: "3d80dd72-2d14-4f26-812c-b0f0018aa144".parse().ok(),
+            access_id: Some("ct2APRQtJk-BLLDwAYqhRA".to_owned()),
+            name: "Test".to_string(),
+            notes: None,
+            key: Some("Pgui0FK85cNhBGWHAlBHBw".to_owned()),
+            password: None,
+            r#type: SendType::Text,
+            file: None,
+            text: Some(SendTextView {
+                text: Some("This is a test".to_owned()),
+                hidden: false,
+            }),
+            max_access_count: None,
+            access_count: 0,
+            disabled: false,
+            hide_email: false,
+            revision_date: "2024-01-07T23:56:48.207363Z".parse().unwrap(),
+            deletion_date: "2024-01-14T23:56:48Z".parse().unwrap(),
+            expiration_date: None,
+        };
+
+        // Re-encrypt and decrypt again to ensure encrypt works
+        let v: SendView = view
+            .clone()
+            .encrypt_with_key(key)
+            .unwrap()
+            .decrypt_with_key(key)
+            .unwrap();
+        assert_eq!(v, view);
     }
 }

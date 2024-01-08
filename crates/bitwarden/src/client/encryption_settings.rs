@@ -12,7 +12,7 @@ use crate::crypto::{AsymmetricCryptoKey, SymmetricCryptoKey};
 
 pub struct EncryptionSettings {
     user_key: SymmetricCryptoKey,
-    private_key: Option<AsymmetricCryptoKey>,
+    pub(crate) private_key: Option<AsymmetricCryptoKey>,
     org_keys: HashMap<Uuid, SymmetricCryptoKey>,
 }
 

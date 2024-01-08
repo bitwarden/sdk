@@ -7,6 +7,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.4.0] - 2023-12-21
+
+### Added
+
+- Ability to output secrets in an `env` format with `bws` (#320)
+- Basic state to avoid reauthenticating every run, used when setting the `state_file_dir` key in the
+  config (#388)
+
 ## [0.3.1] - 2023-10-13
 
 ### Added

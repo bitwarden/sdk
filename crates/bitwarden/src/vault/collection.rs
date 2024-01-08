@@ -13,7 +13,7 @@ use crate::{
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Collection {
-    id: Uuid,
+    id: Option<Uuid>,
     organization_id: Uuid,
 
     name: EncString,
@@ -27,7 +27,7 @@ pub struct Collection {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct CollectionView {
-    id: Uuid,
+    id: Option<Uuid>,
     organization_id: Uuid,
 
     name: String,
@@ -66,7 +66,7 @@ impl TryFrom<CollectionDetailsResponseModel> for Collection {
 
     fn try_from(collection: CollectionDetailsResponseModel) -> Result<Self> {
         Ok(Collection {
-            id: collection.id.ok_or(Error::MissingFields)?,
+            id: collection.id,
             organization_id: collection.organization_id.ok_or(Error::MissingFields)?,
             name: collection.name.ok_or(Error::MissingFields)?.parse()?,
             external_id: collection.external_id,

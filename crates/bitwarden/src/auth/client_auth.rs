@@ -170,7 +170,8 @@ mod tests {
             .auth()
             .login_access_token(&AccessTokenLoginRequest {
                 access_token: "0.ec2c1d46-6a4b-4751-a310-af9601317f2d.C2IgxjjLF7qSshsbwe8JGcbM075YXw:X8vbvA0bduihIDe/qrzIQQ==".into(),
-            })
+                state_file: None,
+            },)
             .await
             .unwrap();
         assert!(res.authenticated);

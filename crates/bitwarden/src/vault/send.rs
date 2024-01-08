@@ -1,7 +1,6 @@
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use bitwarden_api_api::models::{SendFileModel, SendResponseModel, SendTextModel};
 use chrono::{DateTime, Utc};
-use rand::Rng;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
@@ -9,8 +8,8 @@ use uuid::Uuid;
 
 use crate::{
     crypto::{
-        derive_shareable_key, EncString, KeyDecryptable, KeyEncryptable, LocateKey,
-        SymmetricCryptoKey,
+        derive_shareable_key, generate_16_bytes, EncString, KeyDecryptable, KeyEncryptable,
+        LocateKey, SymmetricCryptoKey,
     },
     error::{CryptoError, Error, Result},
 };
@@ -250,10 +249,7 @@ impl KeyEncryptable<Send> for SendView {
             Some(k) => URL_SAFE_NO_PAD
                 .decode(k)
                 .map_err(|_| CryptoError::InvalidKey)?,
-            None => {
-                let r: [u8; 16] = rand::thread_rng().gen();
-                r.to_vec()
-            }
+            None => generate_16_bytes().to_vec(),
         };
         let send_key = Send::derive_shareable_key(&k)?;
 

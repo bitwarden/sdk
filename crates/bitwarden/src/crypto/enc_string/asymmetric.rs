@@ -236,9 +236,8 @@ XKZBokBGnjFnTnKcs7nv/O8=
 
         assert_eq!(enc_string.enc_type(), 3);
 
-        let res: Vec<u8> = enc_string.decrypt_with_key(&private_key).unwrap();
-
-        assert_eq!(std::str::from_utf8(&res).unwrap(), "EncryptMe!");
+        let res: String = enc_string.decrypt_with_key(&private_key).unwrap();
+        assert_eq!(res, "EncryptMe!");
     }
 
     #[cfg(feature = "internal")]
@@ -252,9 +251,8 @@ XKZBokBGnjFnTnKcs7nv/O8=
 
         assert_eq!(enc_string.enc_type(), 4);
 
-        let res: Vec<u8> = enc_string.decrypt_with_key(&private_key).unwrap();
-
-        assert_eq!(std::str::from_utf8(&res).unwrap(), "EncryptMe!");
+        let res: String = enc_string.decrypt_with_key(&private_key).unwrap();
+        assert_eq!(res, "EncryptMe!");
     }
 
     #[cfg(feature = "internal")]
@@ -268,9 +266,8 @@ XKZBokBGnjFnTnKcs7nv/O8=
 
         assert_eq!(enc_string.enc_type(), 6);
 
-        let res: Vec<u8> = enc_string.decrypt_with_key(&private_key).unwrap();
-
-        assert_eq!(std::str::from_utf8(&res).unwrap(), "EncryptMe!");
+        let res: String = enc_string.decrypt_with_key(&private_key).unwrap();
+        assert_eq!(res, "EncryptMe!");
     }
 
     #[test]

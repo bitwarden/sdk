@@ -28,6 +28,3 @@ bitwarden-crypto = { path = "../bitwarden-crypto", version = "=0.1.0", features 
 
 [build-dependencies]
 uniffi = { version = "=0.25.2", features = ["build"] }
-
-[target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
-openssl = { version = "0.10", features = ["vendored"] }

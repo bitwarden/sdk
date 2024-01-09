@@ -1,5 +1,9 @@
 use ::aes::cipher::{generic_array::GenericArray, ArrayLength, Unsigned};
 use hmac::digest::OutputSizeUser;
+use rand::{
+    distributions::{Distribution, Standard},
+    Rng,
+};
 
 use crate::{CryptoError, Result};
 
@@ -20,6 +24,14 @@ pub(crate) fn hkdf_expand<T: ArrayLength<u8>>(
         .map_err(|_| CryptoError::InvalidKeyLen)?;
 
     Ok(key)
+}
+
+/// Generate random bytes that are cryptographically secure
+pub fn generate_random_bytes<T>() -> T
+where
+    Standard: Distribution<T>,
+{
+    rand::thread_rng().gen()
 }
 
 #[cfg(test)]

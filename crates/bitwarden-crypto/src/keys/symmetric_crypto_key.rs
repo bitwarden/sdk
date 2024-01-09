@@ -74,11 +74,9 @@ impl std::fmt::Debug for SymmetricCryptoKey {
 
 #[cfg(test)]
 pub fn generate_symmetric_key(name: &str) -> SymmetricCryptoKey {
-    use rand::Rng;
+    use crate::{derive_shareable_key, generate_random_bytes};
 
-    use crate::derive_shareable_key;
-
-    let secret: [u8; 16] = rand::thread_rng().gen();
+    let secret: [u8; 16] = generate_random_bytes();
     derive_shareable_key(secret, name, None)
 }
 

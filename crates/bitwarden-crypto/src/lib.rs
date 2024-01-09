@@ -36,6 +36,7 @@ pub use keys::*;
 mod rsa;
 pub use crate::rsa::RsaKeyPair;
 mod util;
+pub use util::generate_random_bytes;
 mod wordlist;
 pub use wordlist::EFF_LONG_WORD_LIST;
 

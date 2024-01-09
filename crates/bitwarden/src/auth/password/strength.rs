@@ -46,39 +46,19 @@ mod tests {
     use super::{email_to_user_inputs, password_strength};
 
     #[test]
-    fn test_password_strength_0() {
-        let password = "password";
-        let email = "random@bitwarden.com";
+    fn test_password_strength() {
+        let cases = vec![
+            ("password", "random@bitwarden.com", 0),
+            ("password11", "random@bitwarden.com", 1),
+            ("Weakpass2", "random@bitwarden.com", 2),
+            ("GoodPass3!", "random@bitwarden.com", 3),
+            ("VeryStrong123@#", "random@bitwarden.com", 4),
+        ];
 
-        let result = password_strength(password.to_owned(), email.to_owned(), vec![]);
-        assert_eq!(result, 0);
-    }
-
-    #[test]
-    fn test_password_strength_1() {
-        let password = "password11";
-        let email = "random@bitwarden.com";
-
-        let result = password_strength(password.to_owned(), email.to_owned(), vec![]);
-        assert_eq!(result, 1);
-    }
-
-    #[test]
-    fn test_password_strength_2() {
-        let password = "Weakpass2";
-        let email = "random@bitwarden.com";
-
-        let result = password_strength(password.to_owned(), email.to_owned(), vec![]);
-        assert_eq!(result, 2);
-    }
-
-    #[test]
-    fn test_password_strength_3() {
-        let password = "GoodPass3!";
-        let email = "random@bitwarden.com";
-
-        let result = password_strength(password.to_owned(), email.to_owned(), vec![]);
-        assert_eq!(result, 3);
+        for (password, email, expected) in cases {
+            let result = password_strength(password.to_owned(), email.to_owned(), vec![]);
+            assert_eq!(expected, result, "{email}: {password}");
+        }
     }
 
     #[test]
@@ -88,6 +68,25 @@ mod tests {
 
         let result = password_strength(password.to_owned(), email.to_owned(), vec![]);
         assert_eq!(result, 4);
+    }
+
+    #[test]
+    fn test_penalize_email() {
+        let password = "asdfjkhkjwer!";
+
+        let result = password_strength(
+            password.to_owned(),
+            "random@bitwarden.com".to_owned(),
+            vec![],
+        );
+        assert_eq!(result, 4);
+
+        let result = password_strength(
+            password.to_owned(),
+            "asdfjkhkjwer@bitwarden.com".to_owned(),
+            vec![],
+        );
+        assert_eq!(result, 1);
     }
 
     #[test]

@@ -17,12 +17,7 @@ pub(crate) fn password_strength(
     additional_inputs.extend(&email_ref);
     let arr: Vec<_> = additional_inputs.into_iter().collect();
 
-    let estimate = zxcvbn(&password, &arr);
-
-    match estimate {
-        Ok(estimate) => estimate.score(),
-        _ => 0,
-    }
+    zxcvbn(&password, &arr).map_or(0, |e| e.score())
 }
 
 fn email_to_user_inputs(email: &str) -> Vec<String> {

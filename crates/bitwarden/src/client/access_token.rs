@@ -4,7 +4,7 @@ use base64::Engine;
 use bitwarden_crypto::{derive_shareable_key, SymmetricCryptoKey};
 use uuid::Uuid;
 
-use crate::{error::AccessTokenInvalidError, util::BASE64_ENGINE};
+use crate::{error::AccessTokenInvalidError, util::STANDARD_INDIFFERENT};
 
 pub struct AccessToken {
     pub access_token_id: Uuid,
@@ -42,7 +42,7 @@ impl FromStr for AccessToken {
             return Err(AccessTokenInvalidError::InvalidUuid.into());
         };
 
-        let encryption_key = BASE64_ENGINE
+        let encryption_key = STANDARD_INDIFFERENT
             .decode(encryption_key)
             .map_err(AccessTokenInvalidError::InvalidBase64)?;
         let encryption_key: [u8; 16] = encryption_key.try_into().map_err(|e: Vec<_>| {

@@ -5,10 +5,7 @@ use rsa::{Oaep, RsaPrivateKey};
 use serde::Deserialize;
 
 use super::{from_b64_vec, split_enc_string};
-use crate::{
-    error::{EncStringParseError, Result},
-    CryptoError,
-};
+use crate::error::{CryptoError, EncStringParseError, Result};
 
 /// # Encrypted string primitive
 ///

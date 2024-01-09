@@ -61,6 +61,7 @@ subtle = ">=2.5.0, <3.0"
 thiserror = ">=1.0.40, <2.0"
 uniffi = { version = "=0.25.2", optional = true, features = ["tokio"] }
 uuid = { version = ">=1.3.3, <2.0", features = ["serde"] }
+zxcvbn = ">= 2.2.2, <3.0"
 
 [target.'cfg(all(not(target_os = "android"), not(target_arch="wasm32")))'.dependencies]
 # By default, we use rustls as the TLS stack and rust-platform-verifier to support user-installed root certificates

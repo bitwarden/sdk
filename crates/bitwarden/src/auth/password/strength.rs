@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use zxcvbn::zxcvbn;
 
-const GLOBAL_INPUTS: [&str; 3] = ["bitwarden", "BW", "Bitwarden"];
+const GLOBAL_INPUTS: [&str; 3] = ["bitwarden", "bit", "warden"];
 
 pub(crate) fn password_strength(
     password: String,
@@ -26,9 +26,6 @@ pub(crate) fn password_strength(
 }
 
 fn email_to_user_inputs(email: &str) -> Vec<String> {
-    if email.is_empty() {
-        return vec![];
-    }
     let parts = email.split_once('@');
     match parts {
         Some((prefix, _)) => prefix

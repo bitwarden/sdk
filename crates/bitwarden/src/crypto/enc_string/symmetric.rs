@@ -1,7 +1,7 @@
 use std::{fmt::Display, str::FromStr};
 
 use aes::cipher::{generic_array::GenericArray, typenum::U32};
-use base64::Engine;
+use base64::{engine::general_purpose::STANDARD, Engine};
 use serde::Deserialize;
 
 #[cfg(feature = "mobile")]
@@ -10,7 +10,6 @@ use super::{from_b64, from_b64_vec, split_enc_string};
 use crate::{
     crypto::{decrypt_aes256_hmac, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey},
     error::{CryptoError, EncStringParseError, Error, Result},
-    util::BASE64_ENGINE,
 };
 
 /// # Encrypted string primitive
@@ -181,10 +180,7 @@ impl Display for EncString {
             EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => vec![iv, data, mac],
         };
 
-        let encoded_parts: Vec<String> = parts
-            .iter()
-            .map(|part| BASE64_ENGINE.encode(part))
-            .collect();
+        let encoded_parts: Vec<String> = parts.iter().map(|part| STANDARD.encode(part)).collect();
 
         write!(f, "{}.{}", self.enc_type(), encoded_parts.join("|"))?;
 

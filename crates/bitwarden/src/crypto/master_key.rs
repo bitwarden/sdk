@@ -1,5 +1,5 @@
 use aes::cipher::{generic_array::GenericArray, typenum::U32};
-use base64::Engine;
+use base64::{engine::general_purpose::STANDARD, Engine};
 use rand::Rng;
 use schemars::JsonSchema;
 use sha2::Digest;
@@ -8,7 +8,7 @@ use super::{
     hkdf_expand, EncString, KeyDecryptable, PbkdfSha256Hmac, SymmetricCryptoKey, UserKey,
     PBKDF_SHA256_HMAC_OUT_SIZE,
 };
-use crate::{client::kdf::Kdf, error::Result, util::BASE64_ENGINE};
+use crate::{client::kdf::Kdf, error::Result};
 
 #[derive(Copy, Clone, JsonSchema)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
@@ -39,7 +39,7 @@ impl MasterKey {
         )
         .expect("hash is a valid fixed size");
 
-        Ok(BASE64_ENGINE.encode(hash))
+        Ok(STANDARD.encode(hash))
     }
 
     pub(crate) fn make_user_key(&self) -> Result<(UserKey, EncString)> {

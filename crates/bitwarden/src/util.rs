@@ -21,12 +21,11 @@ pub fn default_argon2_parallelism() -> NonZeroU32 {
     NonZeroU32::new(4).unwrap()
 }
 
-const BASE64_ENGINE_CONFIG: GeneralPurposeConfig = GeneralPurposeConfig::new()
-    .with_encode_padding(true)
-    .with_decode_padding_mode(DecodePaddingMode::Indifferent);
+const INDIFFERENT: GeneralPurposeConfig =
+    GeneralPurposeConfig::new().with_decode_padding_mode(DecodePaddingMode::Indifferent);
 
-pub const BASE64_ENGINE: GeneralPurpose =
-    GeneralPurpose::new(&alphabet::STANDARD, BASE64_ENGINE_CONFIG);
+pub const STANDARD_INDIFFERENT: GeneralPurpose =
+    GeneralPurpose::new(&alphabet::STANDARD, INDIFFERENT);
 
 #[cfg(feature = "mobile")]
 pub(crate) fn capitalize_first_letter(s: &str) -> String {

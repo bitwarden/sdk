@@ -254,7 +254,7 @@ impl KeyEncryptable<Send> for SendView {
                 key.to_vec()
             }
             // Existing send without key
-            _ => return Err(CryptoError::InvalidKey.into()),
+            _ => return Err(CryptoError::InvalidKey),
         };
         let send_key = Send::derive_shareable_key(&k)?;
 

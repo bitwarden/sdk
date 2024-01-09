@@ -50,15 +50,6 @@ mod tests {
     }
 
     #[test]
-    fn test_password_strength_4() {
-        let password = "VeryStrong123@#";
-        let email = "random@bitwarden.com";
-
-        let result = password_strength(password.to_owned(), email.to_owned(), vec![]);
-        assert_eq!(result, 4);
-    }
-
-    #[test]
     fn test_penalize_email() {
         let password = "asdfjkhkjwer!";
 

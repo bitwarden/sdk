@@ -6,7 +6,10 @@ mod send;
 #[cfg(feature = "mobile")]
 mod totp;
 
-pub use cipher::{Cipher, CipherListView, CipherView};
+pub use cipher::{
+    attachment::{Attachment, AttachmentView},
+    Cipher, CipherListView, CipherView,
+};
 pub use collection::{Collection, CollectionView};
 pub use folder::{Folder, FolderView};
 pub use password_history::{PasswordHistory, PasswordHistoryView};

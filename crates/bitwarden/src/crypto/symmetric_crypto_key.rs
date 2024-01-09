@@ -4,7 +4,7 @@ use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::Engine;
 
 use crate::{
-    crypto::{derive_shareable_key, CryptoKey},
+    crypto::{derive_shareable_key, generate_random_bytes, CryptoKey},
     error::{CryptoError, Error, Result},
     util::BASE64_ENGINE,
 };
@@ -20,8 +20,7 @@ impl SymmetricCryptoKey {
     const MAC_LEN: usize = 32;
 
     pub fn generate(name: &str) -> Self {
-        use rand::Rng;
-        let secret: [u8; 16] = rand::thread_rng().gen();
+        let secret: [u8; 16] = generate_random_bytes();
         derive_shareable_key(secret, name, None)
     }
 

@@ -8,8 +8,8 @@ use uuid::Uuid;
 
 use crate::{
     crypto::{
-        derive_shareable_key, EncString, KeyDecryptable, KeyEncryptable, LocateKey,
-        SymmetricCryptoKey,
+        derive_shareable_key, generate_random_bytes, EncString, KeyDecryptable, KeyEncryptable,
+        LocateKey, SymmetricCryptoKey,
     },
     error::{CryptoError, Error, Result},
 };
@@ -245,9 +245,19 @@ impl KeyEncryptable<SymmetricCryptoKey, Send> for SendView {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Send> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
         // For the rest of the fields, we ignore the provided SymmetricCryptoKey and the stretched key
-        let k = URL_SAFE_NO_PAD
-            .decode(self.key.ok_or(CryptoError::MissingKey)?)
-            .map_err(|_| CryptoError::InvalidKey)?;
+        let k = match (self.key, self.id) {
+            // Existing send, decrypt key
+            (Some(k), _) => URL_SAFE_NO_PAD
+                .decode(k)
+                .map_err(|_| CryptoError::InvalidKey)?,
+            // New send, generate random key
+            (None, None) => {
+                let key: [u8; 16] = generate_random_bytes();
+                key.to_vec()
+            }
+            // Existing send without key
+            _ => return Err(CryptoError::InvalidKey.into()),
+        };
         let send_key = Send::derive_shareable_key(&k)?;
 
         Ok(Send {
@@ -502,5 +512,45 @@ mod tests {
             .decrypt_with_key(key)
             .unwrap();
         assert_eq!(v, view);
+    }
+
+    #[test]
+    pub fn test_encrypt_no_key() {
+        let enc = build_encryption_settings();
+        let key = enc.get_key(&None).unwrap();
+
+        let view = SendView {
+            id: None,
+            access_id: Some("ct2APRQtJk-BLLDwAYqhRA".to_owned()),
+            name: "Test".to_string(),
+            notes: None,
+            key: None,
+            password: None,
+            r#type: SendType::Text,
+            file: None,
+            text: Some(SendTextView {
+                text: Some("This is a test".to_owned()),
+                hidden: false,
+            }),
+            max_access_count: None,
+            access_count: 0,
+            disabled: false,
+            hide_email: false,
+            revision_date: "2024-01-07T23:56:48.207363Z".parse().unwrap(),
+            deletion_date: "2024-01-14T23:56:48Z".parse().unwrap(),
+            expiration_date: None,
+        };
+
+        // Re-encrypt and decrypt again to ensure encrypt works
+        let v: SendView = view
+            .clone()
+            .encrypt_with_key(key)
+            .unwrap()
+            .decrypt_with_key(key)
+            .unwrap();
+
+        // Ignore key when comparing
+        let t = SendView { key: None, ..v };
+        assert_eq!(t, view);
     }
 }

@@ -1,12 +1,11 @@
 use std::str::FromStr;
 
 use aes::cipher::{generic_array::GenericArray, typenum::U32};
-use base64::Engine;
+use base64::{engine::general_purpose::STANDARD, Engine};
 
 use crate::{
-    crypto::derive_shareable_key,
+    crypto::{derive_shareable_key, generate_random_bytes},
     error::{CryptoError, Error},
-    util::BASE64_ENGINE,
 };
 
 /// A symmetric encryption key. Used to encrypt and decrypt [`EncString`](crate::crypto::EncString)
@@ -20,8 +19,7 @@ impl SymmetricCryptoKey {
     const MAC_LEN: usize = 32;
 
     pub fn generate(name: &str) -> Self {
-        use rand::Rng;
-        let secret: [u8; 16] = rand::thread_rng().gen();
+        let secret: [u8; 16] = generate_random_bytes();
         derive_shareable_key(secret, name, None)
     }
 
@@ -33,7 +31,7 @@ impl SymmetricCryptoKey {
             buf.extend_from_slice(&mac);
         }
 
-        BASE64_ENGINE.encode(&buf)
+        STANDARD.encode(&buf)
     }
 
     #[cfg(feature = "internal")]
@@ -51,9 +49,7 @@ impl FromStr for SymmetricCryptoKey {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let bytes = BASE64_ENGINE
-            .decode(s)
-            .map_err(|_| CryptoError::InvalidKey)?;
+        let bytes = STANDARD.decode(s).map_err(|_| CryptoError::InvalidKey)?;
         SymmetricCryptoKey::try_from(bytes.as_slice())
     }
 }

@@ -1,4 +1,4 @@
-use base64::Engine;
+use base64::{engine::general_purpose::STANDARD, Engine};
 use rsa::{
     pkcs8::{EncodePrivateKey, EncodePublicKey},
     RsaPrivateKey, RsaPublicKey,
@@ -7,7 +7,6 @@ use rsa::{
 use crate::{
     crypto::{EncString, SymmetricCryptoKey},
     error::Result,
-    util::BASE64_ENGINE,
 };
 
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
@@ -28,7 +27,7 @@ pub(super) fn make_key_pair(key: &SymmetricCryptoKey) -> Result<RsaKeyPair> {
         .to_public_key_der()
         .map_err(|_| "unable to create public key")?;
 
-    let b64 = BASE64_ENGINE.encode(spki.as_bytes());
+    let b64 = STANDARD.encode(spki.as_bytes());
     let pkcs = priv_key
         .to_pkcs8_der()
         .map_err(|_| "unable to create private key")?;

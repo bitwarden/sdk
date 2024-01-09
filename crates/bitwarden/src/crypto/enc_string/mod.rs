@@ -4,13 +4,10 @@ mod symmetric;
 use std::str::FromStr;
 
 pub use asymmetric::AsymmEncString;
-use base64::Engine;
+use base64::{engine::general_purpose::STANDARD, Engine};
 pub use symmetric::EncString;
 
-use crate::{
-    error::{EncStringParseError, Result},
-    util::BASE64_ENGINE,
-};
+use crate::error::{EncStringParseError, Result};
 
 #[cfg(feature = "mobile")]
 fn check_length(buf: &[u8], expected: usize) -> Result<()> {
@@ -25,7 +22,7 @@ fn check_length(buf: &[u8], expected: usize) -> Result<()> {
 }
 
 fn from_b64_vec(s: &str) -> Result<Vec<u8>> {
-    Ok(BASE64_ENGINE
+    Ok(STANDARD
         .decode(s)
         .map_err(EncStringParseError::InvalidBase64)?)
 }

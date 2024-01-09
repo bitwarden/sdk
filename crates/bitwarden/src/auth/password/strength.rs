@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use zxcvbn::zxcvbn;
 
 const GLOBAL_INPUTS: [&str; 3] = ["bitwarden", "bit", "warden"];
@@ -9,13 +7,11 @@ pub(crate) fn password_strength(
     email: String,
     additional_inputs: Vec<String>,
 ) -> u8 {
-    let email_parts = email_to_user_inputs(&email);
-    let email_ref: Vec<_> = email_parts.iter().map(String::as_str).collect();
+    let mut inputs = email_to_user_inputs(&email);
+    inputs.extend(additional_inputs);
 
-    let mut additional_inputs: HashSet<_> = additional_inputs.iter().map(String::as_str).collect();
-    additional_inputs.extend(&GLOBAL_INPUTS);
-    additional_inputs.extend(&email_ref);
-    let arr: Vec<_> = additional_inputs.into_iter().collect();
+    let mut arr: Vec<_> = inputs.iter().map(String::as_str).collect();
+    arr.extend(GLOBAL_INPUTS);
 
     zxcvbn(&password, &arr).map_or(0, |e| e.score())
 }

@@ -78,7 +78,7 @@ fn hkdf_expand<T: ArrayLength<u8>>(prk: &[u8], info: Option<&str>) -> Result<Gen
     Ok(key)
 }
 
-/// Generate 16 bytes that are cryptographically secure
+/// Generate random bytes that are cryptographically secure
 pub(crate) fn generate_random_bytes<T>() -> T
 where
     Standard: Distribution<T>,

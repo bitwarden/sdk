@@ -245,14 +245,18 @@ impl KeyEncryptable<Send> for SendView {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Send> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
         // For the rest of the fields, we ignore the provided SymmetricCryptoKey and the stretched key
-        let k = match self.key {
-            Some(k) => URL_SAFE_NO_PAD
+        let k = match (self.key, self.id) {
+            // Existing send, decrypt key
+            (Some(k), _) => URL_SAFE_NO_PAD
                 .decode(k)
                 .map_err(|_| CryptoError::InvalidKey)?,
-            None => {
+            // New send, generate random key
+            (None, None) => {
                 let key: [u8; 16] = generate_random_bytes();
                 key.to_vec()
             }
+            // Existing send without key
+            _ => return Err(CryptoError::InvalidKey.into()),
         };
         let send_key = Send::derive_shareable_key(&k)?;
 
@@ -516,7 +520,7 @@ mod tests {
         let key = enc.get_key(&None).unwrap();
 
         let view = SendView {
-            id: "3d80dd72-2d14-4f26-812c-b0f0018aa144".parse().ok(),
+            id: None,
             access_id: Some("ct2APRQtJk-BLLDwAYqhRA".to_owned()),
             name: "Test".to_string(),
             notes: None,

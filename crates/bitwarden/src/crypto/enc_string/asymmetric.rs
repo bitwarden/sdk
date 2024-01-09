@@ -196,12 +196,7 @@ impl schemars::JsonSchema for AsymmEncString {
 mod tests {
     use super::AsymmEncString;
 
-    #[cfg(feature = "internal")]
-    #[test]
-    fn test_enc_string_rsa2048_oaep_sha1_hmac_sha256_b64() {
-        use crate::crypto::{AsymmetricCryptoKey, KeyDecryptable};
-
-        let rsa_private_key: &str = "-----BEGIN PRIVATE KEY-----
+    const RSA_PRIVATE_KEY: &str = "-----BEGIN PRIVATE KEY-----
 MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCXRVrCX+2hfOQS
 8HzYUS2oc/jGVTZpv+/Ryuoh9d8ihYX9dd0cYh2tl6KWdFc88lPUH11Oxqy20Rk2
 e5r/RF6T9yM0Me3NPnaKt+hlhLtfoc0h86LnhD56A9FDUfuI0dVnPcrwNv0YJIo9
@@ -229,7 +224,45 @@ Is3v1kkf5I0X8DnOhwb+HPxNaiEdmO7ckm8+tPVgppLcG0+tMdLjigFQiDUQk2y3
 WjyxP5ZvXu7U96jaJRI8PFMoE06WeVYcdIzrID2HvqH+w0UQJFrLJ/0Mn4stFAEz
 XKZBokBGnjFnTnKcs7nv/O8=
 -----END PRIVATE KEY-----";
-        let private_key = AsymmetricCryptoKey::from_pem(rsa_private_key).unwrap();
+
+    #[cfg(feature = "internal")]
+    #[test]
+    fn test_enc_string_rsa2048_oaep_sha256_b64() {
+        use crate::crypto::{AsymmetricCryptoKey, KeyDecryptable};
+
+        let private_key = AsymmetricCryptoKey::from_pem(RSA_PRIVATE_KEY).unwrap();
+        let enc_str: &str = "3.YFqzW9LL/uLjCnl0RRLtndzGJ1FV27mcwQwGjfJPOVrgCX9nJSUYCCDd0iTIyOZ/zRxG47b6L1Z3qgkEfcxjmrSBq60gijc3E2TBMAg7OCLVcjORZ+i1sOVOudmOPWro6uA8refMrg4lqbieDlbLMzjVEwxfi5WpcL876cD0vYyRwvLO3bzFrsE7x33HHHtZeOPW79RqMn5efsB5Dj9wVheC9Ix9AYDjbo+rjg9qR6guwKmS7k2MSaIQlrDR7yu8LP+ePtiSjx+gszJV5jQGfcx60dtiLQzLS/mUD+RmU7B950Bpx0H7x56lT5yXZbWK5YkoP6qd8B8D2aKbP68Ywg==";
+        let enc_string: AsymmEncString = enc_str.parse().unwrap();
+
+        assert_eq!(enc_string.enc_type(), 3);
+
+        let res: Vec<u8> = enc_string.decrypt_with_key(&private_key).unwrap();
+
+        assert_eq!(std::str::from_utf8(&res).unwrap(), "EncryptMe!");
+    }
+
+    #[cfg(feature = "internal")]
+    #[test]
+    fn test_enc_string_rsa2048_oaep_sha1_b64() {
+        use crate::crypto::{AsymmetricCryptoKey, KeyDecryptable};
+
+        let private_key = AsymmetricCryptoKey::from_pem(RSA_PRIVATE_KEY).unwrap();
+        let enc_str: &str = "4.ZheRb3PCfAunyFdQYPfyrFqpuvmln9H9w5nDjt88i5A7ug1XE0LJdQHCIYJl0YOZ1gCOGkhFu/CRY2StiLmT3iRKrrVBbC1+qRMjNNyDvRcFi91LWsmRXhONVSPjywzrJJXglsztDqGkLO93dKXNhuKpcmtBLsvgkphk/aFvxbaOvJ/FHdK/iV0dMGNhc/9tbys8laTdwBlI5xIChpRcrfH+XpSFM88+Bu03uK67N9G6eU1UmET+pISJwJvMuIDMqH+qkT7OOzgL3t6I0H2LDj+CnsumnQmDsvQzDiNfTR0IgjpoE9YH2LvPXVP2wVUkiTwXD9cG/E7XeoiduHyHjw==";
+        let enc_string: AsymmEncString = enc_str.parse().unwrap();
+
+        assert_eq!(enc_string.enc_type(), 4);
+
+        let res: Vec<u8> = enc_string.decrypt_with_key(&private_key).unwrap();
+
+        assert_eq!(std::str::from_utf8(&res).unwrap(), "EncryptMe!");
+    }
+
+    #[cfg(feature = "internal")]
+    #[test]
+    fn test_enc_string_rsa2048_oaep_sha1_hmac_sha256_b64() {
+        use crate::crypto::{AsymmetricCryptoKey, KeyDecryptable};
+
+        let private_key = AsymmetricCryptoKey::from_pem(RSA_PRIVATE_KEY).unwrap();
         let enc_str: &str = "6.ThnNc67nNr7GELyuhGGfsXNP2zJnNqhrIsjntEQ27r2qmn8vwdHbTbfO0cwt6YgSibDN0PjiCZ1O3Wb/IFq+vwvyRwFqF9145wBF8CQCbkhV+M0XvO99kh0daovtt120Nve/5ETI5PbPag9VdalKRQWZypJaqQHm5TAQVf4F5wtLlCLMBkzqTk+wkFe7BPMTGn07T+O3eJbTxXvyMZewQ7icJF0MZVA7VyWX9qElmZ89FCKowbf1BMr5pbcQ+0KdXcSVW3to43VkTp7k7COwsuH3M/i1AuVP5YN8ixjyRpvaeGqX/ap2nCHK2Wj5VxgCGT7XEls6ZknnAp9nB9qVjQ==|s3ntw5H/KKD/qsS0lUghTHl5Sm9j6m7YEdNHf0OeAFQ=";
         let enc_string: AsymmEncString = enc_str.parse().unwrap();
 

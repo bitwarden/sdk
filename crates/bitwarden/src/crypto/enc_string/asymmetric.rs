@@ -1,14 +1,11 @@
 use std::{fmt::Display, str::FromStr};
 
-use base64::Engine;
+use base64::{engine::general_purpose::STANDARD, Engine};
 #[cfg(feature = "internal")]
 use rsa::{Oaep, RsaPrivateKey};
 use serde::Deserialize;
 
-use crate::{
-    error::{EncStringParseError, Error, Result},
-    util::BASE64_ENGINE,
-};
+use crate::error::{EncStringParseError, Error, Result};
 
 #[cfg(feature = "internal")]
 use crate::error::CryptoError;
@@ -135,10 +132,7 @@ impl Display for AsymmEncString {
             AsymmEncString::Rsa2048_OaepSha1_HmacSha256_B64 { data, mac } => vec![data, mac],
         };
 
-        let encoded_parts: Vec<String> = parts
-            .iter()
-            .map(|part| BASE64_ENGINE.encode(part))
-            .collect();
+        let encoded_parts: Vec<String> = parts.iter().map(|part| STANDARD.encode(part)).collect();
 
         write!(f, "{}.{}", self.enc_type(), encoded_parts.join("|"))?;
 

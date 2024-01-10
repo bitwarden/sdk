@@ -1,4 +1,7 @@
-use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
+use base64::{
+    engine::general_purpose::{STANDARD, URL_SAFE_NO_PAD},
+    Engine,
+};
 use bitwarden_api_api::models::{SendFileModel, SendResponseModel, SendTextModel};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
@@ -13,6 +16,8 @@ use crate::{
     },
     error::{CryptoError, Error, Result},
 };
+
+const SEND_ITERATIONS: u32 = 100_000;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -267,7 +272,10 @@ impl KeyEncryptable<Send> for SendView {
             name: self.name.encrypt_with_key(&send_key)?,
             notes: self.notes.encrypt_with_key(&send_key)?,
             key: k.encrypt_with_key(key)?,
-            password: self.password.clone(),
+            password: self.password.map(|password| {
+                let password = crate::crypto::pbkdf2(password.as_bytes(), &k, SEND_ITERATIONS);
+                STANDARD.encode(password)
+            }),
 
             r#type: self.r#type,
             file: self.file.encrypt_with_key(&send_key)?,

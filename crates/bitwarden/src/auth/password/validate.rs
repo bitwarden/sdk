@@ -1,31 +1,13 @@
-use schemars::JsonSchema;
-
-use super::determine_password_hash;
 use crate::{
+    auth::determine_password_hash,
     client::{LoginMethod, UserLoginMethod},
     crypto::HashPurpose,
     error::{Error, Result},
     Client,
 };
 
-pub(super) fn password_strength(
-    _password: String,
-    _email: String,
-    _additional_inputs: Vec<String>,
-) -> u8 {
-    2
-}
-
-pub(super) fn satisfies_policy(
-    _password: String,
-    _strength: u8,
-    _policy: &MasterPasswordPolicyOptions,
-) -> bool {
-    true
-}
-
 /// Validate if the provided password matches the password hash stored in the client.
-pub(super) async fn validate_password(
+pub(crate) async fn validate_password(
     client: &Client,
     password: String,
     password_hash: String,
@@ -51,28 +33,8 @@ pub(super) async fn validate_password(
     }
 }
 
-#[derive(Debug, JsonSchema)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
-#[allow(dead_code)]
-pub struct MasterPasswordPolicyOptions {
-    min_complexity: u8,
-    min_length: u8,
-    require_upper: bool,
-    require_lower: bool,
-    require_numbers: bool,
-    require_special: bool,
-
-    /// Flag to indicate if the policy should be enforced on login.
-    /// If true, and the user's password does not meet the policy requirements,
-    /// the user will be forced to update their password.
-    enforce_on_login: bool,
-}
-
 #[cfg(test)]
-
 mod tests {
-
-    #[cfg(feature = "mobile")]
     #[tokio::test]
     async fn test_validate_password() {
         use std::num::NonZeroU32;

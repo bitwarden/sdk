@@ -1,7 +1,4 @@
-use crate::{
-    error::{Error, Result},
-    wordlist::EFF_LONG_WORD_LIST,
-};
+use crate::{error::Result, util::capitalize_first_letter, wordlist::EFF_LONG_WORD_LIST};
 use rand::{seq::SliceRandom, Rng, RngCore};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -52,11 +49,11 @@ impl PassphraseGeneratorRequest {
 
         if !(MINIMUM_PASSPHRASE_NUM_WORDS..=MAXIMUM_PASSPHRASE_NUM_WORDS).contains(&self.num_words)
         {
-            return Err(Error::Internal("'num_words' must be between 3 and 20"));
+            return Err(format!("'num_words' must be between {MINIMUM_PASSPHRASE_NUM_WORDS} and {MAXIMUM_PASSPHRASE_NUM_WORDS}").into());
         }
 
         if self.word_separator.chars().next().is_none() {
-            return Err(Error::Internal("'word_separator' cannot be empty"));
+            return Err("'word_separator' cannot be empty".into());
         };
 
         Ok(ValidPassphraseGeneratorOptions {
@@ -110,17 +107,6 @@ fn capitalize_words(words: &mut [String]) {
     words
         .iter_mut()
         .for_each(|w| *w = capitalize_first_letter(w));
-}
-
-fn capitalize_first_letter(s: &str) -> String {
-    // Unicode case conversion can change the length of the string, so we can't capitalize in place.
-    // Instead we extract the first character and convert it to uppercase. This returns
-    // an iterator which we collect into a string, and then append the rest of the input.
-    let mut c = s.chars();
-    match c.next() {
-        None => String::new(),
-        Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
-    }
 }
 
 #[cfg(test)]

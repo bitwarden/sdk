@@ -38,7 +38,7 @@ jobs:
           key: ${{ matrix.settings.target }}-cargo
 
       - name: Install Cross
-        run: cargo install cross
+        run: cargo install cross --locked
 
       - name: Build
         env:
@@ -46,7 +46,7 @@ jobs:
         run: cross build -p bitwarden-uniffi --release --target=${{ matrix.settings.target }}
 
       - name: Upload artifact
-        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
+        uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v4.0.0
         with:
           name: android-${{ matrix.settings.target }}
           path: ./target/${{ matrix.settings.target }}/release/libbitwarden_uniffi.so
@@ -86,7 +86,7 @@ jobs:
           java-version: 17
 
       - name: Download Artifacts
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
 
       - name: Move artifacts
         working-directory: languages/kotlin/sdk/src/main/jniLibs
@@ -102,7 +102,7 @@ jobs:
         run: ./build-schemas.sh
 
       - name: Publish
-        uses: gradle/gradle-build-action@87a9a15658c426a54dd469d4fc7dc1a73ca9d4a6 # v2.10.0
+        uses: gradle/gradle-build-action@982da8e78c05368c70dac0351bb82647a9e9a5d2 # v2.11.1
         with:
           arguments: sdk:publish
           build-root-directory: languages/kotlin

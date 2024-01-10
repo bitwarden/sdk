@@ -62,7 +62,7 @@ fn get_secret_verification_request(
             auth_request_access_code: None,
         })
     } else {
-        Err(Error::Internal("Unsupported login method"))
+        Err("Unsupported login method".into())
     }
 }
 

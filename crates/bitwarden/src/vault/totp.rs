@@ -129,12 +129,12 @@ impl FromStr for Totp {
     fn from_str(key: &str) -> Result<Self> {
         fn decode_secret(secret: &str) -> Result<Vec<u8>> {
             BASE32
-                .decode(secret.as_bytes())
-                .map_err(|_| Error::Internal("Unable to decode secret"))
+                .decode(secret.to_uppercase().as_bytes())
+                .map_err(|_| "Unable to decode secret".into())
         }
 
         let params = if key.starts_with("otpauth://") {
-            let url = Url::parse(key).map_err(|_| Error::Internal("Unable to parse URL"))?;
+            let url = Url::parse(key).map_err(|_| "Unable to parse URL")?;
             let parts: HashMap<_, _> = url.query_pairs().collect();
 
             Totp {
@@ -161,7 +161,7 @@ impl FromStr for Totp {
                     &parts
                         .get("secret")
                         .map(|v| v.to_string())
-                        .ok_or(Error::Internal("Missing secret in otpauth URI"))?,
+                        .ok_or("Missing secret in otpauth URI")?,
                 )?,
             }
         } else if let Some(secret) = key.strip_prefix("steam://") {
@@ -219,6 +219,20 @@ mod tests {
     #[test]
     fn test_generate_totp() {
         let key = "WQIQ25BRKZYCJVYP".to_string();
+        let time = Some(
+            DateTime::parse_from_rfc3339("2023-01-01T00:00:00.000Z")
+                .unwrap()
+                .with_timezone(&Utc),
+        );
+        let response = generate_totp(key, time).unwrap();
+
+        assert_eq!(response.code, "194506".to_string());
+        assert_eq!(response.period, 30);
+    }
+
+    #[test]
+    fn test_lowercase_secret() {
+        let key = "wqiq25brkzycjvyp".to_string();
         let time = Some(
             DateTime::parse_from_rfc3339("2023-01-01T00:00:00.000Z")
                 .unwrap()

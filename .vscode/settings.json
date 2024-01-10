@@ -18,6 +18,7 @@
     "reqwest",
     "schemars",
     "uniffi",
-    "wordlist"
+    "wordlist",
+    "zxcvbn"
   ]
 }

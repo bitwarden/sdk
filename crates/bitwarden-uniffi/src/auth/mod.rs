@@ -29,7 +29,7 @@ impl ClientAuth {
             .await
     }
 
-    /// **API Draft:** Evaluate if the provided password satisfies the provided policy
+    /// Evaluate if the provided password satisfies the provided policy
     pub async fn satisfies_policy(
         &self,
         password: String,

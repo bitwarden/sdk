@@ -23,11 +23,15 @@
 
 use aes::cipher::{generic_array::GenericArray, ArrayLength, Unsigned};
 use hmac::digest::OutputSizeUser;
+use rand::{
+    distributions::{Distribution, Standard},
+    Rng,
+};
 
-use crate::error::{Error, Result};
+use crate::error::Result;
 
 mod enc_string;
-pub use enc_string::EncString;
+pub use enc_string::{AsymmEncString, EncString};
 mod encryptable;
 pub use encryptable::{Decryptable, Encryptable, LocateKey};
 mod key_encryptable;
@@ -65,13 +69,19 @@ pub(crate) const PBKDF_SHA256_HMAC_OUT_SIZE: usize =
 
 /// RFC5869 HKDF-Expand operation
 fn hkdf_expand<T: ArrayLength<u8>>(prk: &[u8], info: Option<&str>) -> Result<GenericArray<u8, T>> {
-    let hkdf = hkdf::Hkdf::<sha2::Sha256>::from_prk(prk)
-        .map_err(|_| Error::Internal("invalid prk length"))?;
+    let hkdf = hkdf::Hkdf::<sha2::Sha256>::from_prk(prk).map_err(|_| "invalid prk length")?;
     let mut key = GenericArray::<u8, T>::default();
 
     let i = info.map(|i| i.as_bytes()).unwrap_or(&[]);
-    hkdf.expand(i, &mut key)
-        .map_err(|_| Error::Internal("invalid length"))?;
+    hkdf.expand(i, &mut key).map_err(|_| "invalid length")?;
 
     Ok(key)
+}
+
+/// Generate random bytes that are cryptographically secure
+pub(crate) fn generate_random_bytes<T>() -> T
+where
+    Standard: Distribution<T>,
+{
+    rand::thread_rng().gen()
 }

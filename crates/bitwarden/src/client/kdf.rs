@@ -32,7 +32,7 @@ impl TryFrom<PreloginResponseModel> for Kdf {
             default_pbkdf2_iterations,
         };
 
-        let kdf = response.kdf.ok_or(Error::Internal("KDF not found"))?;
+        let kdf = response.kdf.ok_or("KDF not found")?;
 
         Ok(match kdf {
             KdfType::Variant0 => Kdf::PBKDF2 {

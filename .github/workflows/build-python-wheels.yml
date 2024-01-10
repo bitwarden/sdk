@@ -55,10 +55,6 @@ jobs:
           - os: windows-2022
             target: x86_64-pc-windows-msvc
 
-          # # Win ARM builds fail: https://github.com/bitwarden/sdk/actions/runs/6960684148/job/18940738400#step:9:175
-          # - os: windows-2022
-          #   target: aarch64-pc-windows-msvc
-
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
 
@@ -90,13 +86,6 @@ jobs:
         with:
           name: schemas.py
           path: ${{ github.workspace }}/languages/python/bitwarden_sdk
-
-      # - name: Setup Windows ARM64
-      #   if: ${{ matrix.settings.target == 'aarch64-pc-windows-msvc' }}
-      #   shell: pwsh
-      #   run: |
-      #     # ring crate: add Visual Studio Build Tools "VS 2022 C++ ARM64 build tools" and "clang" components
-      #     $env:Path += ";C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\x64\bin"
 
       - name: Build wheels
         if: ${{ matrix.settings.target != 'x86_64-unknown-linux-gnu' }}

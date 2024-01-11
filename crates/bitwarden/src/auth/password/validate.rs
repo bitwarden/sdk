@@ -1,7 +1,8 @@
+use bitwarden_crypto::HashPurpose;
+
 use crate::{
     auth::determine_password_hash,
     client::{LoginMethod, UserLoginMethod},
-    crypto::HashPurpose,
     error::{Error, Result},
     Client,
 };

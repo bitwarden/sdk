@@ -70,10 +70,6 @@ mod util;
 #[cfg(feature = "internal")]
 pub mod vault;
 
-pub mod crypto {
-    pub use bitwarden_crypto::HashPurpose;
-}
-
 pub use client::Client;
 
 // Ensure the readme docs compile

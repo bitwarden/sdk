@@ -34,7 +34,7 @@ struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
 
-    #[arg(short = 'o', long, global = true, value_enum, default_value_t = Output::JSON, help="Output format", hide = true)]
+    #[arg(short = 'o', long, global = true, value_enum, default_value_t = Output::JSON, help="Output format")]
     output: Output,
 
     #[arg(short = 'c', long, global = true, value_enum, default_value_t = Color::Auto, help="Use colors in the output")]

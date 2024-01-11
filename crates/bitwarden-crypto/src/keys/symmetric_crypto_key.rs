@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::{engine::general_purpose::STANDARD, Engine};
+use rand::Rng;
 
 use crate::CryptoError;
 
@@ -14,6 +15,20 @@ pub struct SymmetricCryptoKey {
 impl SymmetricCryptoKey {
     const KEY_LEN: usize = 32;
     const MAC_LEN: usize = 32;
+
+    /// Generate a new random [SymmetricCryptoKey]
+    pub fn generate(mut rng: impl rand::RngCore) -> Self {
+        let mut key = [0u8; Self::KEY_LEN];
+        let mut mac_key = [0u8; Self::MAC_LEN];
+
+        rng.fill(&mut key);
+        rng.fill(&mut mac_key);
+
+        SymmetricCryptoKey {
+            key: key.into(),
+            mac_key: Some(mac_key.into()),
+        }
+    }
 
     pub fn to_base64(&self) -> String {
         let mut buf = Vec::new();
@@ -73,7 +88,7 @@ impl std::fmt::Debug for SymmetricCryptoKey {
 }
 
 #[cfg(test)]
-pub fn generate_symmetric_key(name: &str) -> SymmetricCryptoKey {
+pub fn derive_symmetric_key(name: &str) -> SymmetricCryptoKey {
     use crate::{derive_shareable_key, generate_random_bytes};
 
     let secret: [u8; 16] = generate_random_bytes();
@@ -84,11 +99,11 @@ pub fn generate_symmetric_key(name: &str) -> SymmetricCryptoKey {
 mod tests {
     use std::str::FromStr;
 
-    use super::{generate_symmetric_key, SymmetricCryptoKey};
+    use super::{derive_symmetric_key, SymmetricCryptoKey};
 
     #[test]
     fn test_symmetric_crypto_key() {
-        let key = generate_symmetric_key("test");
+        let key = derive_symmetric_key("test");
         let key2 = SymmetricCryptoKey::from_str(&key.to_base64()).unwrap();
         assert_eq!(key.key, key2.key);
         assert_eq!(key.mac_key, key2.mac_key);

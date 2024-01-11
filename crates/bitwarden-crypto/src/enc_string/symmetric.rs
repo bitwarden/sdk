@@ -268,12 +268,13 @@ impl schemars::JsonSchema for EncString {
 
 #[cfg(test)]
 mod tests {
+    use crate::{derive_symmetric_key, KeyDecryptable, KeyEncryptable};
+
     use super::EncString;
-    use crate::{generate_symmetric_key, KeyDecryptable, KeyEncryptable};
 
     #[test]
     fn test_enc_string_roundtrip() {
-        let key = generate_symmetric_key("test");
+        let key = derive_symmetric_key("test");
 
         let test_string = "encrypted_test_string".to_string();
         let cipher = test_string.clone().encrypt_with_key(&key).unwrap();

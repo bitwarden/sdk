@@ -1,7 +1,7 @@
 use std::{collections::HashMap, str::FromStr};
 
 use chrono::{DateTime, Utc};
-use data_encoding::BASE32;
+use data_encoding::BASE32_NOPAD;
 use hmac::{Hmac, Mac};
 use reqwest::Url;
 use schemars::JsonSchema;
@@ -13,6 +13,7 @@ type HmacSha1 = Hmac<sha1::Sha1>;
 type HmacSha256 = Hmac<sha2::Sha256>;
 type HmacSha512 = Hmac<sha2::Sha512>;
 
+const BASE32_CHARS: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 const STEAM_CHARS: &str = "23456789BCDFGHJKMNPQRTVWXY";
 
 const DEFAULT_ALGORITHM: Algorithm = Algorithm::Sha1;
@@ -129,9 +130,16 @@ impl FromStr for Totp {
     /// - Steam URI
     fn from_str(key: &str) -> Result<Self> {
         fn decode_secret(secret: &str) -> Result<Vec<u8>> {
-            BASE32
-                .decode(secret.to_uppercase().as_bytes())
-                .map_err(|_| "Unable to decode secret".into())
+            // Sanitize the secret to only contain allowed characters
+            let secret = secret
+                .to_uppercase()
+                .chars()
+                .filter(|c| BASE32_CHARS.contains(*c))
+                .collect::<String>();
+
+            BASE32_NOPAD
+                .decode(secret.as_bytes())
+                .map_err(|e| e.to_string().into())
         }
 
         let params = if key.starts_with("otpauth://") {
@@ -220,30 +228,26 @@ mod tests {
 
     #[test]
     fn test_generate_totp() {
-        let key = "WQIQ25BRKZYCJVYP".to_string();
+        let cases = vec![
+            ("WQIQ25BRKZYCJVYP", "194506"), // valid base32
+            ("wqiq25brkzycjvyp", "194506"), // lowercase
+            ("PIUDISEQYA", "829846"),       // non padded
+            ("PIUDISEQYA======", "829846"), // padded
+            ("PIUD1IS!EQYA=", "829846"),    // sanitized
+        ];
+
         let time = Some(
             DateTime::parse_from_rfc3339("2023-01-01T00:00:00.000Z")
                 .unwrap()
                 .with_timezone(&Utc),
         );
-        let response = generate_totp(key, time).unwrap();
 
-        assert_eq!(response.code, "194506".to_string());
-        assert_eq!(response.period, 30);
-    }
+        for (key, expected_code) in cases {
+            let response = generate_totp(key.to_string(), time).unwrap();
 
-    #[test]
-    fn test_lowercase_secret() {
-        let key = "wqiq25brkzycjvyp".to_string();
-        let time = Some(
-            DateTime::parse_from_rfc3339("2023-01-01T00:00:00.000Z")
-                .unwrap()
-                .with_timezone(&Utc),
-        );
-        let response = generate_totp(key, time).unwrap();
-
-        assert_eq!(response.code, "194506".to_string());
-        assert_eq!(response.period, 30);
+            assert_eq!(response.code, expected_code, "wrong code for key: {key}");
+            assert_eq!(response.period, 30);
+        }
     }
 
     #[test]

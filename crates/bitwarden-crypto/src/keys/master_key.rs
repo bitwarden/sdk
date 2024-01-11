@@ -2,7 +2,6 @@ use std::num::NonZeroU32;
 
 use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::{engine::general_purpose::STANDARD, Engine};
-use rand::Rng;
 use schemars::JsonSchema;
 use sha2::Digest;
 
@@ -82,10 +81,7 @@ fn make_user_key(
     mut rng: impl rand::RngCore,
     master_key: &MasterKey,
 ) -> Result<(UserKey, EncString)> {
-    let mut user_key = [0u8; 64];
-    rng.fill(&mut user_key);
-
-    let user_key = SymmetricCryptoKey::try_from(user_key.as_slice())?;
+    let user_key = SymmetricCryptoKey::generate(&mut rng);
     let protected = master_key.encrypt_user_key(&user_key)?;
     Ok((UserKey::new(user_key), protected))
 }
@@ -146,8 +142,9 @@ mod tests {
 
     use rand::SeedableRng;
 
+    use crate::{keys::symmetric_crypto_key::derive_symmetric_key, SymmetricCryptoKey};
+
     use super::{make_user_key, stretch_master_key, HashPurpose, Kdf, MasterKey};
-    use crate::{keys::symmetric_crypto_key::generate_symmetric_key, SymmetricCryptoKey};
 
     #[test]
     fn test_master_key_derive_pbkdf2() {
@@ -305,9 +302,9 @@ mod tests {
 
     #[test]
     fn test_make_user_key2() {
-        let master_key = MasterKey(generate_symmetric_key("test1"));
+        let master_key = MasterKey(derive_symmetric_key("test1"));
 
-        let user_key = generate_symmetric_key("test2");
+        let user_key = derive_symmetric_key("test2");
 
         let encrypted = master_key.encrypt_user_key(&user_key).unwrap();
         let decrypted = master_key.decrypt_user_key(encrypted).unwrap();

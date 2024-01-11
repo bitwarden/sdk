@@ -4,7 +4,7 @@ use super::client_vault::ClientVault;
 use crate::{
     crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey},
     error::{Error, Result},
-    vault::{Attachment, Cipher},
+    vault::{Attachment, AttachmentFile, AttachmentFileView, Cipher},
     Client,
 };
 
@@ -33,12 +33,14 @@ impl<'a> ClientAttachments<'a> {
         encrypted_buffer: &[u8],
     ) -> Result<Vec<u8>> {
         let enc = self.client.get_encryption_settings()?;
-
         let key = cipher.locate_key(enc, &None).ok_or(Error::VaultLocked)?;
-        let attachment_key = attachment.get_attachment_file_key(key, &cipher)?;
 
-        let buf = EncString::from_buffer(encrypted_buffer)?;
-        buf.decrypt_with_key(&attachment_key)
+        AttachmentFile {
+            cipher,
+            attachment,
+            contents: EncString::from_buffer(encrypted_buffer)?,
+        }
+        .decrypt_with_key(key)
     }
 
     pub async fn encrypt_file(
@@ -61,12 +63,15 @@ impl<'a> ClientAttachments<'a> {
         buffer: &[u8],
     ) -> Result<Vec<u8>> {
         let enc = self.client.get_encryption_settings()?;
-
         let key = cipher.locate_key(enc, &None).ok_or(Error::VaultLocked)?;
-        let attachment_key = attachment.get_attachment_file_key(key, &cipher)?;
 
-        let enc = buffer.encrypt_with_key(&attachment_key)?;
-        enc.to_buffer()
+        AttachmentFileView {
+            cipher,
+            attachment,
+            contents: buffer,
+        }
+        .encrypt_with_key(key)?
+        .to_buffer()
     }
 }
 

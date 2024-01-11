@@ -33,11 +33,37 @@ pub struct AttachmentView {
     pub key: Option<EncString>,
 }
 
+pub struct AttachmentFile {
+    pub cipher: Cipher,
+    pub attachment: Attachment,
+    pub contents: EncString,
+}
+
+pub struct AttachmentFileView<'a> {
+    pub cipher: Cipher,
+    pub attachment: Attachment,
+    pub contents: &'a [u8],
+}
+
+impl<'a> KeyEncryptable<EncString> for AttachmentFileView<'a> {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<EncString> {
+        let file_key = Attachment::get_attachment_file_key(&self.attachment, &self.cipher, key)?;
+        self.contents.encrypt_with_key(&file_key)
+    }
+}
+
+impl KeyDecryptable<Vec<u8>> for AttachmentFile {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
+        let file_key = Attachment::get_attachment_file_key(&self.attachment, &self.cipher, key)?;
+        self.contents.decrypt_with_key(&file_key)
+    }
+}
+
 impl Attachment {
-    pub fn get_attachment_file_key(
+    fn get_attachment_file_key(
         &self,
-        key: &SymmetricCryptoKey,
         cipher: &Cipher,
+        key: &SymmetricCryptoKey,
     ) -> Result<SymmetricCryptoKey> {
         let ciphers_key = Cipher::get_cipher_key(key, &cipher.key)?;
         let ciphers_key = ciphers_key.as_ref().unwrap_or(key);
@@ -101,7 +127,7 @@ mod tests {
         crypto::{EncString, KeyDecryptable, SymmetricCryptoKey},
         vault::{
             cipher::cipher::{CipherRepromptType, CipherType},
-            Attachment, Cipher,
+            Attachment, AttachmentFile, Cipher,
         },
     };
 
@@ -145,17 +171,16 @@ mod tests {
             revision_date: "2023-07-27T19:28:05.240Z".parse().unwrap(),
         };
 
-        let file_key = attachment
-            .get_attachment_file_key(&user_key, &cipher)
-            .unwrap();
-
         let enc_file = BASE64.decode(b"Ao00qr1xLsV+ZNQpYZ/UwEwOWo3hheKwCYcOGIbsorZ6JIG2vLWfWEXCVqP0hDuzRvmx8otApNZr8pJYLNwCe1aQ+ySHQYGkdubFjoMojulMbQ959Y4SJ6Its/EnVvpbDnxpXTDpbutDxyhxfq1P3lstL2G9rObJRrxiwdGlRGu1h94UA1fCCkIUQux5LcqUee6W4MyQmRnsUziH8gGzmtI=").unwrap();
         let original = BASE64.decode(b"rMweTemxOL9D0iWWfRxiY3enxiZ5IrwWD6ef2apGO6MvgdGhy2fpwmATmn7BpSj9lRumddLLXm7u8zSp6hnXt1hS71YDNh78LjGKGhGL4sbg8uNnpa/I6GK/83jzqGYN7+ESbg==").unwrap();
 
-        let dec: Vec<u8> = EncString::from_buffer(&enc_file)
-            .unwrap()
-            .decrypt_with_key(&file_key)
-            .unwrap();
+        let dec = AttachmentFile {
+            cipher,
+            attachment,
+            contents: EncString::from_buffer(&enc_file).unwrap(),
+        }
+        .decrypt_with_key(&user_key)
+        .unwrap();
 
         assert_eq!(dec, original);
     }

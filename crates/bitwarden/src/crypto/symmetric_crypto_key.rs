@@ -83,17 +83,18 @@ impl std::fmt::Debug for SymmetricCryptoKey {
 }
 
 #[cfg(test)]
+pub fn derive_symmetric_key(name: &str) -> SymmetricCryptoKey {
+    use crate::crypto::{derive_shareable_key, generate_random_bytes};
+
+    let secret: [u8; 16] = generate_random_bytes();
+    derive_shareable_key(secret, name, None)
+}
+
+#[cfg(test)]
 mod tests {
     use std::str::FromStr;
 
-    use super::SymmetricCryptoKey;
-
-    pub fn derive_symmetric_key(name: &str) -> SymmetricCryptoKey {
-        use crate::crypto::{derive_shareable_key, generate_random_bytes};
-
-        let secret: [u8; 16] = generate_random_bytes();
-        derive_shareable_key(secret, name, None)
-    }
+    use super::{derive_symmetric_key, SymmetricCryptoKey};
 
     #[test]
     fn test_symmetric_crypto_key() {

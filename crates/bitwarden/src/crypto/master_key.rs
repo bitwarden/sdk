@@ -130,7 +130,10 @@ mod tests {
     use rand::SeedableRng;
 
     use super::{make_user_key, stretch_master_key, HashPurpose, MasterKey};
-    use crate::{client::kdf::Kdf, crypto::SymmetricCryptoKey};
+    use crate::{
+        client::kdf::Kdf,
+        crypto::{symmetric_crypto_key::derive_symmetric_key, SymmetricCryptoKey},
+    };
 
     #[test]
     fn test_master_key_derive_pbkdf2() {
@@ -288,9 +291,9 @@ mod tests {
 
     #[test]
     fn test_make_user_key2() {
-        let master_key = MasterKey(SymmetricCryptoKey::generate("test1"));
+        let master_key = MasterKey(derive_symmetric_key("test1"));
 
-        let user_key = SymmetricCryptoKey::generate("test2");
+        let user_key = derive_symmetric_key("test2");
 
         let encrypted = master_key.encrypt_user_key(&user_key).unwrap();
         let decrypted = master_key.decrypt_user_key(encrypted).unwrap();

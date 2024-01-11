@@ -19,9 +19,6 @@ pub enum CryptoError {
     #[error("Missing Key")]
     MissingKey,
 
-    #[error("Invalid length")]
-    InvalidLen,
-
     #[error("EncString error, {0}")]
     EncString(#[from] EncStringParseError),
 

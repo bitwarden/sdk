@@ -26,7 +26,7 @@ pub fn fingerprint(fingerprint_material: &str, public_key: &[u8]) -> Result<Stri
 
     let mut user_fingerprint = [0u8; 32];
     hkdf.expand(fingerprint_material.as_bytes(), &mut user_fingerprint)
-        .map_err(|_| CryptoError::InvalidLen)?;
+        .map_err(|_| CryptoError::InvalidKeyLen)?;
 
     hash_word(user_fingerprint)
 }

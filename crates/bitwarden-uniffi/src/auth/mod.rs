@@ -3,8 +3,8 @@ use std::sync::Arc;
 use bitwarden::{
     auth::{password::MasterPasswordPolicyOptions, RegisterKeyResponse},
     client::kdf::Kdf,
-    crypto::HashPurpose,
 };
+use bitwarden_crypto::HashPurpose;
 
 use crate::{error::Result, Client};
 

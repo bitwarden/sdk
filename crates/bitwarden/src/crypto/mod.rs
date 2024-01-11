@@ -23,6 +23,7 @@
 
 use aes::cipher::{generic_array::GenericArray, ArrayLength, Unsigned};
 use hmac::digest::OutputSizeUser;
+#[cfg(any(test, feature = "internal"))]
 use rand::{
     distributions::{Distribution, Standard},
     Rng,

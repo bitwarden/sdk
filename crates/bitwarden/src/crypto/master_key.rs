@@ -1,6 +1,5 @@
 use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::{engine::general_purpose::STANDARD, Engine};
-use rand::Rng;
 use schemars::JsonSchema;
 use sha2::Digest;
 
@@ -69,10 +68,7 @@ fn make_user_key(
     mut rng: impl rand::RngCore,
     master_key: &MasterKey,
 ) -> Result<(UserKey, EncString)> {
-    let mut user_key = [0u8; 64];
-    rng.fill(&mut user_key);
-
-    let user_key = SymmetricCryptoKey::try_from(user_key.as_slice())?;
+    let user_key = SymmetricCryptoKey::generate_random(&mut rng)?;
     let protected = master_key.encrypt_user_key(&user_key)?;
     Ok((UserKey::new(user_key), protected))
 }

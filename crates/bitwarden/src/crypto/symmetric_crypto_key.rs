@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::{engine::general_purpose::STANDARD, Engine};
+use rand::Rng;
 
 use crate::{
     crypto::{derive_shareable_key, generate_random_bytes},
@@ -17,6 +18,14 @@ pub struct SymmetricCryptoKey {
 impl SymmetricCryptoKey {
     const KEY_LEN: usize = 32;
     const MAC_LEN: usize = 32;
+
+    /// Generate a new random [SymmetricCryptoKey]
+    pub fn generate_random(mut rng: impl rand::RngCore) -> Result<Self, Error> {
+        let mut key: [u8; 64] = [0u8; 64];
+        rng.fill(&mut key);
+
+        SymmetricCryptoKey::try_from(key.as_slice())
+    }
 
     pub fn generate(name: &str) -> Self {
         let secret: [u8; 16] = generate_random_bytes();

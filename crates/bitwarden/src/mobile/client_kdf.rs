@@ -14,7 +14,7 @@ impl<'a> ClientKdf<'a> {
         kdf_params: Kdf,
         purpose: HashPurpose,
     ) -> Result<String> {
-        hash_password(self.client, email, password, kdf_params.into(), purpose).await
+        hash_password(self.client, email, password, kdf_params, purpose).await
     }
 }
 

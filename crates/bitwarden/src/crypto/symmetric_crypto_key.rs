@@ -17,11 +17,17 @@ impl SymmetricCryptoKey {
     const MAC_LEN: usize = 32;
 
     /// Generate a new random [SymmetricCryptoKey]
-    pub fn generate(mut rng: impl rand::RngCore) -> Result<Self, Error> {
-        let mut key: [u8; 64] = [0u8; 64];
-        rng.fill(&mut key);
+    pub fn generate(mut rng: impl rand::RngCore) -> Self {
+        let mut key = [0u8; Self::KEY_LEN];
+        let mut mac_key = [0u8; Self::MAC_LEN];
 
-        SymmetricCryptoKey::try_from(key.as_slice())
+        rng.fill(&mut key);
+        rng.fill(&mut mac_key);
+
+        SymmetricCryptoKey {
+            key: key.into(),
+            mac_key: Some(mac_key.into()),
+        }
     }
 
     pub fn to_base64(&self) -> String {

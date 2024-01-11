@@ -1,6 +1,6 @@
 #[cfg(feature = "internal")]
 use {
-    crate::{client::Client, error::Result},
+    crate::{client::Kdf, error::Result, Client},
     bitwarden_api_identity::{
         apis::accounts_api::accounts_prelogin_post,
         models::{PreloginRequestModel, PreloginResponseModel},
@@ -45,9 +45,6 @@ pub(crate) async fn request_prelogin(
     let config = client.get_api_configurations().await;
     Ok(accounts_prelogin_post(&config.identity, Some(request_model)).await?)
 }
-
-#[cfg(feature = "internal")]
-use bitwarden_crypto::Kdf;
 
 #[cfg(feature = "internal")]
 pub(crate) fn parse_prelogin(response: PreloginResponseModel) -> Result<Kdf> {

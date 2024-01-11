@@ -1,5 +1,3 @@
-use bitwarden_crypto::Kdf;
-
 #[cfg(feature = "secrets")]
 use crate::auth::login::{login_access_token, AccessTokenLoginRequest, AccessTokenLoginResponse};
 #[cfg(feature = "internal")]
@@ -14,7 +12,7 @@ use crate::auth::{
     register::{make_register_keys, register},
     RegisterKeyResponse, RegisterRequest,
 };
-use crate::{auth::renew::renew_token, error::Result, Client};
+use crate::{auth::renew::renew_token, client::Kdf, error::Result, Client};
 
 pub struct ClientAuth<'a> {
     pub(crate) client: &'a mut crate::Client,

@@ -1,15 +1,11 @@
 import {
-  AccessTokenLoginResponse,
   Convert,
-  PasswordLoginResponse,
   ProjectResponse,
   ProjectsDeleteResponse,
   ProjectsResponse,
   SecretIdentifiersResponse,
   SecretResponse,
   SecretsDeleteResponse,
-  SyncResponse,
-  UserAPIKeyResponse,
 } from "./schemas";
 
 interface BitwardenSDKClient {
@@ -30,7 +26,7 @@ export class BitwardenClient {
     this.client = client;
   }
 
-  async accessTokenLogin(accessToken: string): Promise<AccessTokenLoginResponse> {
+  async accessTokenLogin(accessToken: string): Promise<void> {
     const response = await this.client.run_command(
       Convert.commandToJson({
         accessTokenLogin: {
@@ -39,67 +35,8 @@ export class BitwardenClient {
       }),
     );
 
-    return handleResponse(Convert.toResponseForAccessTokenLoginResponse(response));
+    handleResponse(Convert.toResponseForAccessTokenLoginResponse(response));
   }
-
-  async login(email: string, password: string, pbkdf_iter: number): Promise<PasswordLoginResponse> {
-    const response = await this.client.run_command(
-      Convert.commandToJson({
-        passwordLogin: {
-          email: email,
-          password: password,
-          kdf: {
-            pBKDF2: {
-              iterations: pbkdf_iter,
-            }
-          },
-        },
-      })
-    );
-
-    return handleResponse(Convert.toResponseForPasswordLoginResponse(response));
-  }
-
-  async getUserApiKey(
-    secret: string,
-    isOtp: boolean = false
-  ): Promise<UserAPIKeyResponse> {
-    const response = await this.client.run_command(
-      Convert.commandToJson({
-        getUserApiKey: {
-          masterPassword: isOtp ? null : secret,
-          otp: isOtp ? secret : null,
-        },
-      })
-    );
-
-    return handleResponse(Convert.toResponseForUserAPIKeyResponse(response));
-  }
-
-  async sync(excludeSubdomains: boolean = false): Promise<SyncResponse> {
-    const response = await this.client.run_command(
-      Convert.commandToJson({
-        sync: {
-          excludeSubdomains,
-        },
-      })
-    );
-
-    return handleResponse(Convert.toResponseForSyncResponse(response));
-  }
-
-  async fingerprint(fingerprintMaterial: string, publicKey: string): Promise<string> {
-    const response = await this.client.run_command(
-      Convert.commandToJson({
-        fingerprint: {
-          fingerprintMaterial: fingerprintMaterial,
-          publicKey: publicKey,
-        }
-      })
-    )
-
-    return handleResponse(Convert.toResponseForFingerprintResponse(response)).fingerprint;
-  };
 
   secrets(): SecretsClient {
     return new SecretsClient(this.client);

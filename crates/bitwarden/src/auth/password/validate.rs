@@ -41,7 +41,7 @@ mod tests {
         use std::num::NonZeroU32;
 
         use super::validate_password;
-        use crate::client::{kdf::Kdf, Client, LoginMethod, UserLoginMethod};
+        use crate::client::{Client, Kdf, LoginMethod, UserLoginMethod};
 
         let mut client = Client::new(None);
         client.set_login_method(LoginMethod::User(UserLoginMethod::Username {

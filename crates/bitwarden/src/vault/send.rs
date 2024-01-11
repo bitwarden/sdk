@@ -347,7 +347,7 @@ mod tests {
 
     use super::{Send, SendText, SendTextView, SendType};
     use crate::{
-        client::{encryption_settings::EncryptionSettings, kdf::Kdf, UserLoginMethod},
+        client::{encryption_settings::EncryptionSettings, Kdf, UserLoginMethod},
         vault::SendView,
     };
 

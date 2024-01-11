@@ -38,8 +38,7 @@ impl EncryptionSettings {
             UserLoginMethod::Username { email, kdf, .. }
             | UserLoginMethod::ApiKey { email, kdf, .. } => {
                 // Derive master key from password
-                let master_key =
-                    MasterKey::derive(password.as_bytes(), email.as_bytes(), &kdf.into())?;
+                let master_key = MasterKey::derive(password.as_bytes(), email.as_bytes(), kdf)?;
 
                 // Decrypt the user key
                 let user_key = master_key.decrypt_user_key(user_key)?;

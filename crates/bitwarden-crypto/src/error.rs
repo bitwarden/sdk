@@ -30,6 +30,9 @@ pub enum CryptoError {
 
     #[error("Fingerprint error, {0}")]
     FingerprintError(#[from] FingerprintError),
+
+    #[error("Number is zero")]
+    ZeroNumber,
 }
 
 #[derive(Debug, Error)]

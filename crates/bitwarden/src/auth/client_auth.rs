@@ -1,22 +1,20 @@
+use bitwarden_crypto::Kdf;
+
 #[cfg(feature = "secrets")]
 use crate::auth::login::{login_access_token, AccessTokenLoginRequest, AccessTokenLoginResponse};
-use crate::{auth::renew::renew_token, error::Result, Client};
 #[cfg(feature = "internal")]
-use crate::{
-    auth::{
-        login::{
-            login_api_key, login_password, send_two_factor_email, ApiKeyLoginRequest,
-            ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse,
-            TwoFactorEmailRequest,
-        },
-        password::{
-            password_strength, satisfies_policy, validate_password, MasterPasswordPolicyOptions,
-        },
-        register::{make_register_keys, register},
-        RegisterKeyResponse, RegisterRequest,
+use crate::auth::{
+    login::{
+        login_api_key, login_password, send_two_factor_email, ApiKeyLoginRequest,
+        ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse, TwoFactorEmailRequest,
     },
-    client::kdf::Kdf,
+    password::{
+        password_strength, satisfies_policy, validate_password, MasterPasswordPolicyOptions,
+    },
+    register::{make_register_keys, register},
+    RegisterKeyResponse, RegisterRequest,
 };
+use crate::{auth::renew::renew_token, error::Result, Client};
 
 pub struct ClientAuth<'a> {
     pub(crate) client: &'a mut crate::Client,
@@ -70,9 +68,10 @@ impl<'a> ClientAuth<'a> {
     }
 
     pub async fn prelogin(&mut self, email: String) -> Result<Kdf> {
-        use crate::auth::login::request_prelogin;
+        use crate::auth::login::{parse_prelogin, request_prelogin};
 
-        request_prelogin(self.client, email).await?.try_into()
+        let response = request_prelogin(self.client, email).await?;
+        parse_prelogin(response)
     }
 
     pub async fn login_password(

@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+pub use bitwarden_crypto::Kdf;
 use bitwarden_crypto::SymmetricCryptoKey;
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{AsymmEncString, EncString};
@@ -11,12 +12,9 @@ use super::AccessToken;
 #[cfg(feature = "secrets")]
 use crate::auth::login::{AccessTokenLoginRequest, AccessTokenLoginResponse};
 #[cfg(feature = "internal")]
-use crate::{
-    client::kdf::Kdf,
-    platform::{
-        get_user_api_key, sync, SecretVerificationRequest, SyncRequest, SyncResponse,
-        UserApiKeyResponse,
-    },
+use crate::platform::{
+    get_user_api_key, sync, SecretVerificationRequest, SyncRequest, SyncResponse,
+    UserApiKeyResponse,
 };
 use crate::{
     client::{
@@ -262,7 +260,7 @@ impl Client {
             Some(LoginMethod::User(
                 UserLoginMethod::Username { email, kdf, .. }
                 | UserLoginMethod::ApiKey { email, kdf, .. },
-            )) => MasterKey::derive(pin.as_bytes(), email.as_bytes(), &kdf.into())?,
+            )) => MasterKey::derive(pin.as_bytes(), email.as_bytes(), kdf)?,
             _ => return Err(Error::NotAuthenticated),
         };
 

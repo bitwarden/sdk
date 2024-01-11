@@ -6,7 +6,7 @@ use bitwarden_crypto::{HashPurpose, MasterKey, RsaKeyPair};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{client::kdf::Kdf, error::Result, util::default_pbkdf2_iterations, Client};
+use crate::{client::Kdf, error::Result, util::default_pbkdf2_iterations, Client};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

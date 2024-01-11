@@ -3,6 +3,7 @@ use std::num::NonZeroU32;
 use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::{engine::general_purpose::STANDARD, Engine};
 use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 use sha2::Digest;
 
 use crate::{
@@ -10,7 +11,9 @@ use crate::{
     EncString, KeyDecryptable, Result, SymmetricCryptoKey, UserKey,
 };
 
-#[derive(Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum Kdf {
     PBKDF2 {
         iterations: NonZeroU32,

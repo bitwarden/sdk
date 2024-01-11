@@ -61,7 +61,7 @@ mod tests {
 
     use super::*;
     use crate::{
-        client::{kdf::Kdf, LoginMethod, UserLoginMethod},
+        client::{Kdf, LoginMethod, UserLoginMethod},
         Client,
     };
 

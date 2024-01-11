@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "internal")]
 use crate::{
     auth::{api::request::PasswordTokenRequest, login::TwoFactorRequest},
-    client::{kdf::Kdf, LoginMethod},
+    client::{Kdf, LoginMethod},
     Client,
 };
 use crate::{

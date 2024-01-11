@@ -5,7 +5,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    client::kdf::Kdf,
+    client::Kdf,
     error::{Error, Result},
     Client,
 };
@@ -126,7 +126,7 @@ pub fn derive_pin_key(client: &mut Client, pin: String) -> Result<DerivePinKeyRe
         Some(LoginMethod::User(
             UserLoginMethod::Username { email, kdf, .. }
             | UserLoginMethod::ApiKey { email, kdf, .. },
-        )) => MasterKey::derive(pin.as_bytes(), email.as_bytes(), &kdf.into())?,
+        )) => MasterKey::derive(pin.as_bytes(), email.as_bytes(), kdf)?,
         _ => return Err(Error::NotAuthenticated),
     };
 
@@ -144,7 +144,7 @@ pub fn derive_pin_key(client: &mut Client, pin: String) -> Result<DerivePinKeyRe
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{client::kdf::Kdf, Client};
+    use crate::{client::Kdf, Client};
 
     #[tokio::test]
     async fn test_initialize_user_crypto_pin() {

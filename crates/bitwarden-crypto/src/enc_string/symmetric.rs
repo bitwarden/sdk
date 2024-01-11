@@ -268,9 +268,8 @@ impl schemars::JsonSchema for EncString {
 
 #[cfg(test)]
 mod tests {
-    use crate::{derive_symmetric_key, KeyDecryptable, KeyEncryptable};
-
     use super::EncString;
+    use crate::{derive_symmetric_key, KeyDecryptable, KeyEncryptable};
 
     #[test]
     fn test_enc_string_roundtrip() {

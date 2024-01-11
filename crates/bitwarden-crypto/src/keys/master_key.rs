@@ -142,9 +142,8 @@ mod tests {
 
     use rand::SeedableRng;
 
-    use crate::{keys::symmetric_crypto_key::derive_symmetric_key, SymmetricCryptoKey};
-
     use super::{make_user_key, stretch_master_key, HashPurpose, Kdf, MasterKey};
+    use crate::{keys::symmetric_crypto_key::derive_symmetric_key, SymmetricCryptoKey};
 
     #[test]
     fn test_master_key_derive_pbkdf2() {

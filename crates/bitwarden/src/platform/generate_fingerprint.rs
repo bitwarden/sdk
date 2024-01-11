@@ -1,10 +1,11 @@
-use crate::error::Result;
 use base64::{engine::general_purpose::STANDARD, Engine};
 use bitwarden_crypto::fingerprint;
 use log::info;
 use rsa::pkcs8::EncodePublicKey;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+
+use crate::error::Result;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

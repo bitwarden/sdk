@@ -1,13 +1,9 @@
 use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::{engine::general_purpose::STANDARD, Engine};
-use rand::Rng;
 use schemars::JsonSchema;
 use sha2::Digest;
 
-use super::{
-    hkdf_expand, EncString, KeyDecryptable, PbkdfSha256Hmac, SymmetricCryptoKey, UserKey,
-    PBKDF_SHA256_HMAC_OUT_SIZE,
-};
+use super::{hkdf_expand, EncString, KeyDecryptable, SymmetricCryptoKey, UserKey};
 use crate::{client::kdf::Kdf, error::Result};
 
 #[derive(Copy, Clone, JsonSchema)]
@@ -32,12 +28,7 @@ impl MasterKey {
         password: &[u8],
         purpose: HashPurpose,
     ) -> Result<String> {
-        let hash = pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(
-            &self.0.key,
-            password,
-            purpose as u32,
-        )
-        .expect("hash is a valid fixed size");
+        let hash = super::pbkdf2(&self.0.key, password, purpose as u32);
 
         Ok(STANDARD.encode(hash))
     }
@@ -69,10 +60,7 @@ fn make_user_key(
     mut rng: impl rand::RngCore,
     master_key: &MasterKey,
 ) -> Result<(UserKey, EncString)> {
-    let mut user_key = [0u8; 64];
-    rng.fill(&mut user_key);
-
-    let user_key = SymmetricCryptoKey::try_from(user_key.as_slice())?;
+    let user_key = SymmetricCryptoKey::generate(&mut rng);
     let protected = master_key.encrypt_user_key(&user_key)?;
     Ok((UserKey::new(user_key), protected))
 }
@@ -80,11 +68,7 @@ fn make_user_key(
 /// Derive a generic key from a secret and salt using the provided KDF.
 fn derive_key(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<SymmetricCryptoKey> {
     let hash = match kdf {
-        Kdf::PBKDF2 { iterations } => pbkdf2::pbkdf2_array::<
-            PbkdfSha256Hmac,
-            PBKDF_SHA256_HMAC_OUT_SIZE,
-        >(secret, salt, iterations.get())
-        .unwrap(),
+        Kdf::PBKDF2 { iterations } => super::pbkdf2(secret, salt, iterations.get()),
 
         Kdf::Argon2id {
             iterations,
@@ -134,7 +118,10 @@ mod tests {
     use rand::SeedableRng;
 
     use super::{make_user_key, stretch_master_key, HashPurpose, MasterKey};
-    use crate::{client::kdf::Kdf, crypto::SymmetricCryptoKey};
+    use crate::{
+        client::kdf::Kdf,
+        crypto::{symmetric_crypto_key::derive_symmetric_key, SymmetricCryptoKey},
+    };
 
     #[test]
     fn test_master_key_derive_pbkdf2() {
@@ -292,9 +279,9 @@ mod tests {
 
     #[test]
     fn test_make_user_key2() {
-        let master_key = MasterKey(SymmetricCryptoKey::generate("test1"));
+        let master_key = MasterKey(derive_symmetric_key("test1"));
 
-        let user_key = SymmetricCryptoKey::generate("test2");
+        let user_key = derive_symmetric_key("test2");
 
         let encrypted = master_key.encrypt_user_key(&user_key).unwrap();
         let decrypted = master_key.decrypt_user_key(encrypted).unwrap();

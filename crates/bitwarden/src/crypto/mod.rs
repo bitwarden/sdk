@@ -23,6 +23,7 @@
 
 use aes::cipher::{generic_array::GenericArray, ArrayLength, Unsigned};
 use hmac::digest::OutputSizeUser;
+#[cfg(any(test, feature = "internal"))]
 use rand::{
     distributions::{Distribution, Standard},
     Rng,
@@ -82,9 +83,15 @@ fn hkdf_expand<T: ArrayLength<u8>>(prk: &[u8], info: Option<&str>) -> Result<Gen
 }
 
 /// Generate random bytes that are cryptographically secure
+#[cfg(any(test, feature = "internal"))]
 pub(crate) fn generate_random_bytes<T>() -> T
 where
     Standard: Distribution<T>,
 {
     rand::thread_rng().gen()
+}
+
+pub fn pbkdf2(password: &[u8], salt: &[u8], rounds: u32) -> [u8; PBKDF_SHA256_HMAC_OUT_SIZE] {
+    pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(password, salt, rounds)
+        .expect("hash is a valid fixed size")
 }

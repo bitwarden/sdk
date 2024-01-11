@@ -38,6 +38,7 @@ pub use crate::rsa::RsaKeyPair;
 mod util;
 pub use util::generate_random_bytes;
 mod wordlist;
+pub use util::pbkdf2;
 pub use wordlist::EFF_LONG_WORD_LIST;
 
 #[cfg(feature = "mobile")]

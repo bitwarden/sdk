@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use sha2::Digest;
 
 use crate::{
-    util::{hkdf_expand, PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},
+    util::{self, hkdf_expand},
     EncString, KeyDecryptable, Result, SymmetricCryptoKey, UserKey,
 };
 
@@ -45,12 +45,7 @@ impl MasterKey {
 
     /// Derive the master key hash, used for local and remote password validation.
     pub fn derive_master_key_hash(&self, password: &[u8], purpose: HashPurpose) -> Result<String> {
-        let hash = pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(
-            &self.0.key,
-            password,
-            purpose as u32,
-        )
-        .expect("hash is a valid fixed size");
+        let hash = util::pbkdf2(&self.0.key, password, purpose as u32);
 
         Ok(STANDARD.encode(hash))
     }
@@ -92,11 +87,7 @@ fn make_user_key(
 /// Derive a generic key from a secret and salt using the provided KDF.
 fn derive_key(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<SymmetricCryptoKey> {
     let hash = match kdf {
-        Kdf::PBKDF2 { iterations } => pbkdf2::pbkdf2_array::<
-            PbkdfSha256Hmac,
-            PBKDF_SHA256_HMAC_OUT_SIZE,
-        >(secret, salt, iterations.get())
-        .unwrap(),
+        Kdf::PBKDF2 { iterations } => crate::util::pbkdf2(secret, salt, iterations.get()),
 
         Kdf::Argon2id {
             iterations,

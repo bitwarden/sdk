@@ -102,8 +102,10 @@ pub struct SendView {
     pub notes: Option<String>,
     /// Base64 encoded key
     pub key: Option<String>,
-    /// Acts as input only, the SDK will always return None
-    pub password: Option<String>,
+    /// Replace or add a password to an existing send. The SDK will always return None when
+    /// decrypting a [Send]
+    /// TODO: We should revisit this, one variant is to have `[Create, Update]SendView` DTOs.
+    pub new_password: Option<String>,
     /// Denote if an existing send has a password. The SDK will ignore this value when creating or
     /// updating sends.
     pub has_password: bool,
@@ -209,7 +211,7 @@ impl KeyDecryptable<SendView> for Send {
             name: self.name.decrypt_with_key(&key)?,
             notes: self.notes.decrypt_with_key(&key)?,
             key: Some(URL_SAFE_NO_PAD.encode(k)),
-            password: None,
+            new_password: None,
             has_password: self.password.is_some(),
 
             r#type: self.r#type,
@@ -277,7 +279,7 @@ impl KeyEncryptable<Send> for SendView {
             name: self.name.encrypt_with_key(&send_key)?,
             notes: self.notes.encrypt_with_key(&send_key)?,
             key: k.encrypt_with_key(key)?,
-            password: self.password.map(|password| {
+            password: self.new_password.map(|password| {
                 let password = crate::crypto::pbkdf2(password.as_bytes(), &k, SEND_ITERATIONS);
                 STANDARD.encode(password)
             }),
@@ -444,7 +446,7 @@ mod tests {
             name: "Test".to_string(),
             notes: None,
             key: Some("Pgui0FK85cNhBGWHAlBHBw".to_owned()),
-            password: None,
+            new_password: None,
             has_password: false,
             r#type: SendType::Text,
             file: None,
@@ -475,7 +477,7 @@ mod tests {
             name: "Test".to_string(),
             notes: None,
             key: Some("Pgui0FK85cNhBGWHAlBHBw".to_owned()),
-            password: None,
+            new_password: None,
             has_password: false,
             r#type: SendType::Text,
             file: None,
@@ -513,7 +515,7 @@ mod tests {
             name: "Test".to_string(),
             notes: None,
             key: None,
-            password: None,
+            new_password: None,
             has_password: false,
             r#type: SendType::Text,
             file: None,
@@ -554,7 +556,7 @@ mod tests {
             name: "Test".to_owned(),
             notes: None,
             key: Some("Pgui0FK85cNhBGWHAlBHBw".to_owned()),
-            password: Some("abc123".to_owned()),
+            new_password: Some("abc123".to_owned()),
             has_password: false,
             r#type: SendType::Text,
             file: None,
@@ -579,7 +581,7 @@ mod tests {
         );
 
         let v: SendView = send.decrypt_with_key(key).unwrap();
-        assert_eq!(v.password, None);
+        assert_eq!(v.new_password, None);
         assert!(v.has_password);
     }
 }

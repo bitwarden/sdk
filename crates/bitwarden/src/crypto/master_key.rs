@@ -68,7 +68,7 @@ fn make_user_key(
     mut rng: impl rand::RngCore,
     master_key: &MasterKey,
 ) -> Result<(UserKey, EncString)> {
-    let user_key = SymmetricCryptoKey::generate_random(&mut rng)?;
+    let user_key = SymmetricCryptoKey::generate(&mut rng)?;
     let protected = master_key.encrypt_user_key(&user_key)?;
     Ok((UserKey::new(user_key), protected))
 }

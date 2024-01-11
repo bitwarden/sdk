@@ -4,10 +4,7 @@ use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::{engine::general_purpose::STANDARD, Engine};
 use rand::Rng;
 
-use crate::{
-    crypto::{derive_shareable_key, generate_random_bytes},
-    error::{CryptoError, Error},
-};
+use crate::error::{CryptoError, Error};
 
 /// A symmetric encryption key. Used to encrypt and decrypt [`EncString`](crate::crypto::EncString)
 pub struct SymmetricCryptoKey {
@@ -20,16 +17,11 @@ impl SymmetricCryptoKey {
     const MAC_LEN: usize = 32;
 
     /// Generate a new random [SymmetricCryptoKey]
-    pub fn generate_random(mut rng: impl rand::RngCore) -> Result<Self, Error> {
+    pub fn generate(mut rng: impl rand::RngCore) -> Result<Self, Error> {
         let mut key: [u8; 64] = [0u8; 64];
         rng.fill(&mut key);
 
         SymmetricCryptoKey::try_from(key.as_slice())
-    }
-
-    pub fn generate(name: &str) -> Self {
-        let secret: [u8; 16] = generate_random_bytes();
-        derive_shareable_key(secret, name, None)
     }
 
     pub fn to_base64(&self) -> String {
@@ -96,9 +88,16 @@ mod tests {
 
     use super::SymmetricCryptoKey;
 
+    pub fn derive_symmetric_key(name: &str) -> SymmetricCryptoKey {
+        use crate::crypto::{derive_shareable_key, generate_random_bytes};
+
+        let secret: [u8; 16] = generate_random_bytes();
+        derive_shareable_key(secret, name, None)
+    }
+
     #[test]
     fn test_symmetric_crypto_key() {
-        let key = SymmetricCryptoKey::generate("test");
+        let key = derive_symmetric_key("test");
         let key2 = SymmetricCryptoKey::from_str(&key.to_base64()).unwrap();
         assert_eq!(key.key, key2.key);
         assert_eq!(key.mac_key, key2.mac_key);

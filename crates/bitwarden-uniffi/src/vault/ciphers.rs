@@ -7,7 +7,7 @@ use crate::{Client, Result};
 #[derive(uniffi::Object)]
 pub struct ClientCiphers(pub Arc<Client>);
 
-#[uniffi::export]
+#[uniffi::export(async_runtime = "tokio")]
 impl ClientCiphers {
     /// Encrypt cipher
     pub async fn encrypt(&self, cipher_view: CipherView) -> Result<Cipher> {

@@ -23,17 +23,22 @@
 
 use aes::cipher::{generic_array::GenericArray, ArrayLength, Unsigned};
 use hmac::digest::OutputSizeUser;
+#[cfg(any(test, feature = "internal"))]
+use rand::{
+    distributions::{Distribution, Standard},
+    Rng,
+};
 
-use crate::error::{Error, Result};
+use crate::error::Result;
 
 mod enc_string;
-pub use enc_string::EncString;
+pub use enc_string::{AsymmEncString, EncString};
 mod encryptable;
 pub use encryptable::{Decryptable, Encryptable, LocateKey};
 mod key_encryptable;
 pub use key_encryptable::{KeyDecryptable, KeyEncryptable};
 mod aes_ops;
-pub use aes_ops::{decrypt_aes256, decrypt_aes256_hmac, encrypt_aes256, encrypt_aes256_hmac};
+use aes_ops::{decrypt_aes256_hmac, encrypt_aes256_hmac};
 mod symmetric_crypto_key;
 pub use symmetric_crypto_key::SymmetricCryptoKey;
 mod shareable_key;
@@ -42,7 +47,9 @@ pub(crate) use shareable_key::derive_shareable_key;
 #[cfg(feature = "internal")]
 mod master_key;
 #[cfg(feature = "internal")]
-pub(crate) use master_key::{HashPurpose, MasterKey};
+pub use master_key::HashPurpose;
+#[cfg(feature = "internal")]
+pub(crate) use master_key::MasterKey;
 #[cfg(feature = "internal")]
 mod user_key;
 #[cfg(feature = "internal")]
@@ -63,13 +70,25 @@ pub(crate) const PBKDF_SHA256_HMAC_OUT_SIZE: usize =
 
 /// RFC5869 HKDF-Expand operation
 fn hkdf_expand<T: ArrayLength<u8>>(prk: &[u8], info: Option<&str>) -> Result<GenericArray<u8, T>> {
-    let hkdf = hkdf::Hkdf::<sha2::Sha256>::from_prk(prk)
-        .map_err(|_| Error::Internal("invalid prk length"))?;
+    let hkdf = hkdf::Hkdf::<sha2::Sha256>::from_prk(prk).map_err(|_| "invalid prk length")?;
     let mut key = GenericArray::<u8, T>::default();
 
     let i = info.map(|i| i.as_bytes()).unwrap_or(&[]);
-    hkdf.expand(i, &mut key)
-        .map_err(|_| Error::Internal("invalid length"))?;
+    hkdf.expand(i, &mut key).map_err(|_| "invalid length")?;
 
     Ok(key)
+}
+
+/// Generate random bytes that are cryptographically secure
+#[cfg(any(test, feature = "internal"))]
+pub(crate) fn generate_random_bytes<T>() -> T
+where
+    Standard: Distribution<T>,
+{
+    rand::thread_rng().gen()
+}
+
+pub fn pbkdf2(password: &[u8], salt: &[u8], rounds: u32) -> [u8; PBKDF_SHA256_HMAC_OUT_SIZE] {
+    pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(password, salt, rounds)
+        .expect("hash is a valid fixed size")
 }

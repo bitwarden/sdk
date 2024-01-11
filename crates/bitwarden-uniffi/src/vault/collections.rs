@@ -7,7 +7,7 @@ use crate::{Client, Result};
 #[derive(uniffi::Object)]
 pub struct ClientCollections(pub Arc<Client>);
 
-#[uniffi::export]
+#[uniffi::export(async_runtime = "tokio")]
 impl ClientCollections {
     /// Decrypt collection
     pub async fn decrypt(&self, collection: Collection) -> Result<CollectionView> {

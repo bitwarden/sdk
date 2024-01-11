@@ -20,6 +20,8 @@ pub struct CipherRequestModel {
     pub favorite: Option<bool>,
     #[serde(rename = "reprompt", skip_serializing_if = "Option::is_none")]
     pub reprompt: Option<crate::models::CipherRepromptType>,
+    #[serde(rename = "key", skip_serializing_if = "Option::is_none")]
+    pub key: Option<String>,
     #[serde(rename = "name")]
     pub name: String,
     #[serde(rename = "notes", skip_serializing_if = "Option::is_none")]
@@ -56,6 +58,7 @@ impl CipherRequestModel {
             folder_id: None,
             favorite: None,
             reprompt: None,
+            key: None,
             name,
             notes: None,
             fields: None,

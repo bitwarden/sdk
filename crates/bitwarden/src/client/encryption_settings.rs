@@ -6,17 +6,17 @@ use uuid::Uuid;
 use {
     crate::{
         client::UserLoginMethod,
-        crypto::{EncString, KeyDecryptable},
+        crypto::{AsymmEncString, EncString, KeyDecryptable},
         error::{CryptoError, Result},
     },
-    rsa::{pkcs8::DecodePrivateKey, Oaep},
+    rsa::pkcs8::DecodePrivateKey,
 };
 
 use crate::crypto::SymmetricCryptoKey;
 
 pub struct EncryptionSettings {
     user_key: SymmetricCryptoKey,
-    private_key: Option<RsaPrivateKey>,
+    pub(crate) private_key: Option<RsaPrivateKey>,
     org_keys: HashMap<Uuid, SymmetricCryptoKey>,
 }
 
@@ -27,6 +27,7 @@ impl std::fmt::Debug for EncryptionSettings {
 }
 
 impl EncryptionSettings {
+    /// Initialize the encryption settings with the user password and their encrypted keys
     #[cfg(feature = "internal")]
     pub(crate) fn new(
         login_method: &UserLoginMethod,
@@ -45,24 +46,33 @@ impl EncryptionSettings {
                 // Decrypt the user key
                 let user_key = master_key.decrypt_user_key(user_key)?;
 
-                // Decrypt the private key with the user key
-                let private_key = {
-                    let dec: Vec<u8> = private_key.decrypt_with_key(&user_key)?;
-                    Some(
-                        rsa::RsaPrivateKey::from_pkcs8_der(&dec)
-                            .map_err(|_| CryptoError::InvalidKey)?,
-                    )
-                };
-
-                Ok(EncryptionSettings {
-                    user_key,
-                    private_key,
-                    org_keys: HashMap::new(),
-                })
+                Self::new_decrypted_key(user_key, private_key)
             }
         }
     }
 
+    /// Initialize the encryption settings with the decrypted user key and the encrypted user private key
+    /// This should only be used when unlocking the vault via biometrics or when the vault is set to lock: "never"
+    /// Otherwise handling the decrypted user key is dangerous and discouraged
+    #[cfg(feature = "internal")]
+    pub(crate) fn new_decrypted_key(
+        user_key: SymmetricCryptoKey,
+        private_key: EncString,
+    ) -> Result<Self> {
+        let private_key = {
+            let dec: Vec<u8> = private_key.decrypt_with_key(&user_key)?;
+            Some(rsa::RsaPrivateKey::from_pkcs8_der(&dec).map_err(|_| CryptoError::InvalidKey)?)
+        };
+
+        Ok(EncryptionSettings {
+            user_key,
+            private_key,
+            org_keys: HashMap::new(),
+        })
+    }
+
+    /// Initialize the encryption settings with only a single decrypted key.
+    /// This is used only for logging in Secrets Manager with an access token
     pub(crate) fn new_single_key(key: SymmetricCryptoKey) -> Self {
         EncryptionSettings {
             user_key: key,
@@ -74,22 +84,19 @@ impl EncryptionSettings {
     #[cfg(feature = "internal")]
     pub(crate) fn set_org_keys(
         &mut self,
-        org_enc_keys: Vec<(Uuid, EncString)>,
+        org_enc_keys: Vec<(Uuid, AsymmEncString)>,
     ) -> Result<&mut Self> {
         use crate::error::Error;
 
         let private_key = self.private_key.as_ref().ok_or(Error::VaultLocked)?;
 
+        // Make sure we only keep the keys given in the arguments and not any of the previous
+        // ones, which might be from organizations that the user is no longer a part of anymore
+        self.org_keys.clear();
+
         // Decrypt the org keys with the private key
         for (org_id, org_enc_key) in org_enc_keys {
-            let data = match org_enc_key {
-                EncString::Rsa2048_OaepSha1_B64 { data } => data,
-                _ => return Err(CryptoError::InvalidKey.into()),
-            };
-
-            let dec = private_key
-                .decrypt(Oaep::new::<sha1::Sha1>(), &data)
-                .map_err(|_| CryptoError::KeyDecrypt)?;
+            let dec = org_enc_key.decrypt(private_key)?;
 
             let org_key = SymmetricCryptoKey::try_from(dec.as_slice())?;
 

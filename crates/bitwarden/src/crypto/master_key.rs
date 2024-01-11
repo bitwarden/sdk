@@ -1,18 +1,16 @@
 use aes::cipher::{generic_array::GenericArray, typenum::U32};
-use base64::Engine;
-use rand::Rng;
+use base64::{engine::general_purpose::STANDARD, Engine};
+use schemars::JsonSchema;
 use sha2::Digest;
 
-use super::{
-    encrypt_aes256_hmac, hkdf_expand, EncString, KeyDecryptable, PbkdfSha256Hmac,
-    SymmetricCryptoKey, UserKey, PBKDF_SHA256_HMAC_OUT_SIZE,
-};
-use crate::{client::kdf::Kdf, error::Result, util::BASE64_ENGINE};
+use super::{hkdf_expand, EncString, KeyDecryptable, SymmetricCryptoKey, UserKey};
+use crate::{client::kdf::Kdf, error::Result};
 
-#[derive(Copy, Clone)]
-pub(crate) enum HashPurpose {
+#[derive(Copy, Clone, JsonSchema)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+pub enum HashPurpose {
     ServerAuthorization = 1,
-    // LocalAuthorization = 2,
+    LocalAuthorization = 2,
 }
 
 /// A Master Key.
@@ -30,14 +28,9 @@ impl MasterKey {
         password: &[u8],
         purpose: HashPurpose,
     ) -> Result<String> {
-        let hash = pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(
-            &self.0.key,
-            password,
-            purpose as u32,
-        )
-        .expect("hash is a valid fixed size");
+        let hash = super::pbkdf2(&self.0.key, password, purpose as u32);
 
-        Ok(BASE64_ENGINE.encode(hash))
+        Ok(STANDARD.encode(hash))
     }
 
     pub(crate) fn make_user_key(&self) -> Result<(UserKey, EncString)> {
@@ -50,6 +43,16 @@ impl MasterKey {
         let dec: Vec<u8> = user_key.decrypt_with_key(&stretched_key)?;
         SymmetricCryptoKey::try_from(dec.as_slice())
     }
+
+    pub(crate) fn encrypt_user_key(&self, user_key: &SymmetricCryptoKey) -> Result<EncString> {
+        let stretched_key = stretch_master_key(self)?;
+
+        EncString::encrypt_aes256_hmac(
+            user_key.to_vec().as_slice(),
+            stretched_key.mac_key.unwrap(),
+            stretched_key.key,
+        )
+    }
 }
 
 /// Generate a new random user key and encrypt it with the master key.
@@ -57,25 +60,15 @@ fn make_user_key(
     mut rng: impl rand::RngCore,
     master_key: &MasterKey,
 ) -> Result<(UserKey, EncString)> {
-    let mut user_key = [0u8; 64];
-    rng.fill(&mut user_key);
-
-    let stretched_key = stretch_master_key(master_key)?;
-    let protected =
-        encrypt_aes256_hmac(&user_key, stretched_key.mac_key.unwrap(), stretched_key.key)?;
-
-    let u: &[u8] = &user_key;
-    Ok((UserKey::new(SymmetricCryptoKey::try_from(u)?), protected))
+    let user_key = SymmetricCryptoKey::generate(&mut rng);
+    let protected = master_key.encrypt_user_key(&user_key)?;
+    Ok((UserKey::new(user_key), protected))
 }
 
 /// Derive a generic key from a secret and salt using the provided KDF.
 fn derive_key(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<SymmetricCryptoKey> {
     let hash = match kdf {
-        Kdf::PBKDF2 { iterations } => pbkdf2::pbkdf2_array::<
-            PbkdfSha256Hmac,
-            PBKDF_SHA256_HMAC_OUT_SIZE,
-        >(secret, salt, iterations.get())
-        .unwrap(),
+        Kdf::PBKDF2 { iterations } => super::pbkdf2(secret, salt, iterations.get()),
 
         Kdf::Argon2id {
             iterations,
@@ -125,7 +118,10 @@ mod tests {
     use rand::SeedableRng;
 
     use super::{make_user_key, stretch_master_key, HashPurpose, MasterKey};
-    use crate::{client::kdf::Kdf, crypto::SymmetricCryptoKey};
+    use crate::{
+        client::kdf::Kdf,
+        crypto::{symmetric_crypto_key::derive_symmetric_key, SymmetricCryptoKey},
+    };
 
     #[test]
     fn test_master_key_derive_pbkdf2() {
@@ -277,6 +273,25 @@ mod tests {
         );
         assert_eq!(
             decrypted.mac_key, user_key.0.mac_key,
+            "Decrypted key doesn't match user key"
+        );
+    }
+
+    #[test]
+    fn test_make_user_key2() {
+        let master_key = MasterKey(derive_symmetric_key("test1"));
+
+        let user_key = derive_symmetric_key("test2");
+
+        let encrypted = master_key.encrypt_user_key(&user_key).unwrap();
+        let decrypted = master_key.decrypt_user_key(encrypted).unwrap();
+
+        assert_eq!(
+            decrypted.key, user_key.key,
+            "Decrypted key doesn't match user key"
+        );
+        assert_eq!(
+            decrypted.mac_key, user_key.mac_key,
             "Decrypted key doesn't match user key"
         );
     }

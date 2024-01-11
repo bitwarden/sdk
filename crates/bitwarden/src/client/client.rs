@@ -1,17 +1,19 @@
-use std::time::{Duration, Instant};
+use std::path::PathBuf;
 
+use chrono::Utc;
 use reqwest::header::{self};
 use uuid::Uuid;
 
+use super::AccessToken;
 #[cfg(feature = "secrets")]
 use crate::auth::login::{AccessTokenLoginRequest, AccessTokenLoginResponse};
 #[cfg(feature = "internal")]
 use crate::{
     client::kdf::Kdf,
-    crypto::EncString,
+    crypto::{AsymmEncString, EncString},
     platform::{
-        generate_fingerprint, get_user_api_key, sync, FingerprintRequest, FingerprintResponse,
-        SecretVerificationRequest, SyncRequest, SyncResponse, UserApiKeyResponse,
+        get_user_api_key, sync, SecretVerificationRequest, SyncRequest, SyncResponse,
+        UserApiKeyResponse,
     },
 };
 use crate::{
@@ -30,7 +32,7 @@ pub(crate) struct ApiConfigurations {
     pub device_type: DeviceType,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub(crate) enum LoginMethod {
     #[cfg(feature = "internal")]
     User(UserLoginMethod),
@@ -39,7 +41,7 @@ pub(crate) enum LoginMethod {
     ServiceAccount(ServiceAccountLoginMethod),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 #[cfg(feature = "internal")]
 pub(crate) enum UserLoginMethod {
     Username {
@@ -56,12 +58,12 @@ pub(crate) enum UserLoginMethod {
     },
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub(crate) enum ServiceAccountLoginMethod {
     AccessToken {
-        service_account_id: Uuid,
-        client_secret: String,
+        access_token: AccessToken,
         organization_id: Uuid,
+        state_file: Option<PathBuf>,
     },
 }
 
@@ -69,7 +71,7 @@ pub(crate) enum ServiceAccountLoginMethod {
 pub struct Client {
     token: Option<String>,
     pub(crate) refresh_token: Option<String>,
-    pub(crate) token_expires_in: Option<Instant>,
+    pub(crate) token_expires_on: Option<i64>,
     pub(crate) login_method: Option<LoginMethod>,
 
     /// Use Client::get_api_configurations() to access this.
@@ -86,10 +88,16 @@ impl Client {
 
         let headers = header::HeaderMap::new();
 
-        let client = reqwest::Client::builder()
-            .default_headers(headers)
-            .build()
-            .unwrap();
+        #[allow(unused_mut)]
+        let mut client_builder = reqwest::Client::builder().default_headers(headers);
+
+        #[cfg(all(not(target_os = "android"), not(target_arch = "wasm32")))]
+        {
+            client_builder =
+                client_builder.use_preconfigured_tls(rustls_platform_verifier::tls_config());
+        }
+
+        let client = client_builder.build().unwrap();
 
         let identity = bitwarden_api_identity::apis::configuration::Configuration {
             base_path: settings.identity_url,
@@ -114,7 +122,7 @@ impl Client {
         Self {
             token: None,
             refresh_token: None,
-            token_expires_in: None,
+            token_expires_on: None,
             login_method: None,
             __api_configurations: ApiConfigurations {
                 identity,
@@ -130,6 +138,11 @@ impl Client {
         // the token will end up expiring and the next operation is going to fail anyway.
         self.auth().renew_token().await.ok();
         &self.__api_configurations
+    }
+
+    #[cfg(feature = "mobile")]
+    pub(crate) fn get_http_client(&self) -> &reqwest::Client {
+        &self.__api_configurations.api.client
     }
 
     #[cfg(feature = "secrets")]
@@ -173,7 +186,6 @@ impl Client {
         self.encryption_settings.as_ref().ok_or(Error::VaultLocked)
     }
 
-    #[cfg(feature = "mobile")]
     pub(crate) fn set_login_method(&mut self, login_method: LoginMethod) {
         use log::debug;
 
@@ -186,12 +198,10 @@ impl Client {
         token: String,
         refresh_token: Option<String>,
         expires_in: u64,
-        login_method: LoginMethod,
     ) {
         self.token = Some(token.clone());
         self.refresh_token = refresh_token;
-        self.token_expires_in = Some(Instant::now() + Duration::from_secs(expires_in));
-        self.login_method = Some(login_method);
+        self.token_expires_on = Some(Utc::now().timestamp() + expires_in as i64);
         self.__api_configurations.identity.oauth_access_token = Some(token.clone());
         self.__api_configurations.api.oauth_access_token = Some(token);
     }
@@ -222,6 +232,43 @@ impl Client {
         Ok(self.encryption_settings.as_ref().unwrap())
     }
 
+    #[cfg(feature = "mobile")]
+    pub(crate) fn initialize_user_crypto_decrypted_key(
+        &mut self,
+        user_key: SymmetricCryptoKey,
+        private_key: EncString,
+    ) -> Result<&EncryptionSettings> {
+        self.encryption_settings = Some(EncryptionSettings::new_decrypted_key(
+            user_key,
+            private_key,
+        )?);
+        Ok(self
+            .encryption_settings
+            .as_ref()
+            .expect("It was initialized on the previous line"))
+    }
+
+    #[cfg(feature = "mobile")]
+    pub(crate) fn initialize_user_crypto_pin(
+        &mut self,
+        pin: &str,
+        pin_protected_user_key: EncString,
+        private_key: EncString,
+    ) -> Result<&EncryptionSettings> {
+        use crate::crypto::MasterKey;
+
+        let pin_key = match &self.login_method {
+            Some(LoginMethod::User(
+                UserLoginMethod::Username { email, kdf, .. }
+                | UserLoginMethod::ApiKey { email, kdf, .. },
+            )) => MasterKey::derive(pin.as_bytes(), email.as_bytes(), kdf)?,
+            _ => return Err(Error::NotAuthenticated),
+        };
+
+        let decrypted_user_key = pin_key.decrypt_user_key(pin_protected_user_key)?;
+        self.initialize_user_crypto_decrypted_key(decrypted_user_key, private_key)
+    }
+
     pub(crate) fn initialize_crypto_single_key(
         &mut self,
         key: SymmetricCryptoKey,
@@ -233,7 +280,7 @@ impl Client {
     #[cfg(feature = "internal")]
     pub(crate) fn initialize_org_crypto(
         &mut self,
-        org_keys: Vec<(Uuid, EncString)>,
+        org_keys: Vec<(Uuid, AsymmEncString)>,
     ) -> Result<&EncryptionSettings> {
         let enc = self
             .encryption_settings
@@ -242,10 +289,5 @@ impl Client {
 
         enc.set_org_keys(org_keys)?;
         Ok(self.encryption_settings.as_ref().unwrap())
-    }
-
-    #[cfg(feature = "internal")]
-    pub fn fingerprint(&mut self, input: &FingerprintRequest) -> Result<FingerprintResponse> {
-        generate_fingerprint(input)
     }
 }

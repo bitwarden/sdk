@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{fmt::Debug, str::FromStr};
 
 use base64::Engine;
 use uuid::Uuid;
@@ -6,13 +6,22 @@ use uuid::Uuid;
 use crate::{
     crypto::{derive_shareable_key, SymmetricCryptoKey},
     error::AccessTokenInvalidError,
-    util::BASE64_ENGINE,
+    util::STANDARD_INDIFFERENT,
 };
 
 pub struct AccessToken {
-    pub service_account_id: Uuid,
+    pub access_token_id: Uuid,
     pub client_secret: String,
     pub encryption_key: SymmetricCryptoKey,
+}
+
+// We don't want to log the more sensitive fields from an AccessToken
+impl Debug for AccessToken {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AccessToken")
+            .field("access_token_id", &self.access_token_id)
+            .finish()
+    }
 }
 
 impl FromStr for AccessToken {
@@ -22,7 +31,7 @@ impl FromStr for AccessToken {
         let (first_part, encryption_key) =
             key.split_once(':').ok_or(AccessTokenInvalidError::NoKey)?;
 
-        let [version, service_account_id, client_secret]: [&str; 3] = first_part
+        let [version, access_token_id, client_secret]: [&str; 3] = first_part
             .split('.')
             .collect::<Vec<_>>()
             .try_into()
@@ -32,11 +41,11 @@ impl FromStr for AccessToken {
             return Err(AccessTokenInvalidError::WrongVersion.into());
         }
 
-        let Ok(service_account_id) = service_account_id.parse() else {
+        let Ok(access_token_id) = access_token_id.parse() else {
             return Err(AccessTokenInvalidError::InvalidUuid.into());
         };
 
-        let encryption_key = BASE64_ENGINE
+        let encryption_key = STANDARD_INDIFFERENT
             .decode(encryption_key)
             .map_err(AccessTokenInvalidError::InvalidBase64)?;
         let encryption_key: [u8; 16] = encryption_key.try_into().map_err(|e: Vec<_>| {
@@ -49,7 +58,7 @@ impl FromStr for AccessToken {
             derive_shareable_key(encryption_key, "accesstoken", Some("sm-access-token"));
 
         Ok(AccessToken {
-            service_account_id,
+            access_token_id,
             client_secret: client_secret.to_owned(),
             encryption_key,
         })
@@ -69,7 +78,7 @@ mod tests {
         let token = AccessToken::from_str(access_token).unwrap();
 
         assert_eq!(
-            &token.service_account_id.to_string(),
+            &token.access_token_id.to_string(),
             "ec2c1d46-6a4b-4751-a310-af9601317f2d"
         );
         assert_eq!(token.client_secret, "C2IgxjjLF7qSshsbwe8JGcbM075YXw");

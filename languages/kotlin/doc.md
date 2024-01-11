@@ -84,7 +84,7 @@ Test method, echoes back the input
 
 ### `satisfies_policy`
 
-**API Draft:** Evaluate if the provided password satisfies the provided policy
+Evaluate if the provided password satisfies the provided policy
 
 **Arguments**:
 
@@ -105,6 +105,7 @@ Hash the user password
 - email: String
 - password: String
 - kdf_params: [Kdf](#kdf)
+- purpose: [HashPurpose](#hashpurpose)
 
 **Output**: std::result::Result<String,BitwardenError>
 
@@ -120,6 +121,22 @@ Generate keys needed for registration process
 - kdf: [Kdf](#kdf)
 
 **Output**: std::result::Result<RegisterKeyResponse,BitwardenError>
+
+### `validate_password`
+
+Validate the user password
+
+To retrieve the user&#x27;s password hash, use [&#x60;ClientAuth::hash_password&#x60;] with
+&#x60;HashPurpose::LocalAuthentication&#x60; during login and persist it. If the login method has no
+password, use the email OTP.
+
+**Arguments**:
+
+- self:
+- password: String
+- password_hash: String
+
+**Output**: std::result::Result<,BitwardenError>
 
 ## ClientCiphers
 
@@ -182,16 +199,52 @@ Decrypt collection list
 
 ## ClientCrypto
 
-### `initialize_crypto`
+### `initialize_user_crypto`
 
-Initialization method for the crypto. Needs to be called before any other crypto operations.
+Initialization method for the user crypto. Needs to be called before any other crypto operations.
 
 **Arguments**:
 
 - self:
-- req: [InitCryptoRequest](#initcryptorequest)
+- req: [InitUserCryptoRequest](#initusercryptorequest)
 
 **Output**: std::result::Result<,BitwardenError>
+
+### `initialize_org_crypto`
+
+Initialization method for the organization crypto. Needs to be called after
+&#x60;initialize_user_crypto&#x60; but before any other crypto operations.
+
+**Arguments**:
+
+- self:
+- req: [InitOrgCryptoRequest](#initorgcryptorequest)
+
+**Output**: std::result::Result<,BitwardenError>
+
+### `get_user_encryption_key`
+
+Get the uses&#x27;s decrypted encryption key. Note: It&#x27;s very important to keep this key safe,
+as it can be used to decrypt all of the user&#x27;s data
+
+**Arguments**:
+
+- self:
+
+**Output**: std::result::Result<String,BitwardenError>
+
+### `derive_pin_key`
+
+Generates a PIN protected user key from the provided PIN. The result can be stored and later used to
+initialize another client instance by using the PIN and the PIN key with
+&#x60;initialize_user_crypto&#x60;.
+
+**Arguments**:
+
+- self:
+- pin: String
+
+**Output**: std::result::Result<DerivePinKeyResponse,BitwardenError>
 
 ## ClientExporters
 
@@ -280,6 +333,17 @@ Decrypt folder list
 
 **Output**: std::result::Result<String,BitwardenError>
 
+### `username`
+
+**API Draft:** Generate Username
+
+**Arguments**:
+
+- self:
+- settings: UsernameGeneratorRequest
+
+**Output**: std::result::Result<String,BitwardenError>
+
 ## ClientPasswordHistory
 
 ### `encrypt`
@@ -303,6 +367,30 @@ Decrypt password history
 - list: Vec<PasswordHistory>
 
 **Output**: std::result::Result<Vec,BitwardenError>
+
+## ClientPlatform
+
+### `fingerprint`
+
+Fingerprint (public key)
+
+**Arguments**:
+
+- self:
+- req: [FingerprintRequest](#fingerprintrequest)
+
+**Output**: std::result::Result<String,BitwardenError>
+
+### `user_fingerprint`
+
+Fingerprint using logged in user&#x27;s public key
+
+**Arguments**:
+
+- self:
+- fingerprint_material: String
+
+**Output**: std::result::Result<String,BitwardenError>
 
 ## ClientSends
 
@@ -457,7 +545,7 @@ The key can be either:
 - key: String
 - time: Option<DateTime>
 
-**Output**: [TotpResponse](#totpresponse)
+**Output**: std::result::Result<TotpResponse,BitwardenError>
 
 # References
 
@@ -491,6 +579,11 @@ implementations.
     <th>collectionIds</th>
     <th>array</th>
     <th></th>
+</tr>
+<tr>
+    <th>key</th>
+    <th></th>
+    <th>More recent ciphers uses individual encryption keys to encrypt the other fields of the Cipher.</th>
 </tr>
 <tr>
     <th>name</th>
@@ -618,6 +711,11 @@ implementations.
     <th></th>
 </tr>
 <tr>
+    <th>key</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
     <th>name</th>
     <th>string</th>
     <th></th>
@@ -724,7 +822,7 @@ implementations.
 </tr>
 <tr>
     <th>id</th>
-    <th>string</th>
+    <th>string,null</th>
     <th></th>
 </tr>
 <tr>
@@ -785,6 +883,26 @@ implementations.
 </tr>
 </table>
 
+## `FingerprintRequest`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>fingerprintMaterial</th>
+    <th>string</th>
+    <th>The input material, used in the fingerprint generation process.</th>
+</tr>
+<tr>
+    <th>publicKey</th>
+    <th>string</th>
+    <th>The user&#x27;s public key encoded with base64.</th>
+</tr>
+</table>
+
 ## `Folder`
 
 <table>
@@ -795,7 +913,7 @@ implementations.
 </tr>
 <tr>
     <th>id</th>
-    <th>string</th>
+    <th>string,null</th>
     <th></th>
 </tr>
 <tr>
@@ -820,7 +938,7 @@ implementations.
 </tr>
 <tr>
     <th>id</th>
-    <th>string</th>
+    <th>string,null</th>
     <th></th>
 </tr>
 <tr>
@@ -835,7 +953,115 @@ implementations.
 </tr>
 </table>
 
-## `InitCryptoRequest`
+## `HashPurpose`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+</table>
+
+## `InitOrgCryptoRequest`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>organizationKeys</th>
+    <th>object</th>
+    <th>The encryption keys for all the organizations the user is a part of</th>
+</tr>
+</table>
+
+## `InitUserCryptoMethod`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>password</th>
+    <th>object</th>
+    <th></th>
+</tr>
+<tr>
+    <td colspan="3">
+        <table>
+        <tr>
+            <th>Key</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+            <tr>
+                <td>password</td>
+                <td>string</td>
+                <td>The user's master password</td>
+            </tr>
+            <tr>
+                <td>user_key</td>
+                <td>string</td>
+                <td>The user's encrypted symmetric crypto key</td>
+            </tr>
+        </table>
+    </td>
+</tr>
+<tr>
+    <th>decryptedKey</th>
+    <th>object</th>
+    <th></th>
+</tr>
+<tr>
+    <td colspan="3">
+        <table>
+        <tr>
+            <th>Key</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+            <tr>
+                <td>decrypted_user_key</td>
+                <td>string</td>
+                <td>The user's decrypted encryption key, obtained using `get_user_encryption_key`</td>
+            </tr>
+        </table>
+    </td>
+</tr>
+<tr>
+    <th>pin</th>
+    <th>object</th>
+    <th></th>
+</tr>
+<tr>
+    <td colspan="3">
+        <table>
+        <tr>
+            <th>Key</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+            <tr>
+                <td>pin</td>
+                <td>string</td>
+                <td>The user's PIN</td>
+            </tr>
+            <tr>
+                <td>pin_protected_user_key</td>
+                <td></td>
+                <td>The user's symmetric crypto key, encrypted with the PIN. Use `derive_pin_key` to obtain this.</td>
+            </tr>
+        </table>
+    </td>
+</tr>
+</table>
+
+## `InitUserCryptoRequest`
 
 <table>
 <tr>
@@ -854,24 +1080,14 @@ implementations.
     <th>The user&#x27;s email address</th>
 </tr>
 <tr>
-    <th>password</th>
-    <th>string</th>
-    <th>The user&#x27;s master password</th>
-</tr>
-<tr>
-    <th>userKey</th>
-    <th>string</th>
-    <th>The user&#x27;s encrypted symmetric crypto key</th>
-</tr>
-<tr>
     <th>privateKey</th>
     <th>string</th>
-    <th>The user&#x27;s encryptred private key</th>
+    <th>The user&#x27;s encrypted private key</th>
 </tr>
 <tr>
-    <th>organizationKeys</th>
-    <th>object</th>
-    <th>The encryption keys for all the organizations the user is a part of</th>
+    <th>method</th>
+    <th></th>
+    <th>The initialization method to use</th>
 </tr>
 </table>
 
@@ -992,23 +1208,23 @@ implementations.
 </tr>
 <tr>
     <th>numWords</th>
-    <th>integer,null</th>
-    <th></th>
+    <th>integer</th>
+    <th>Number of words in the generated passphrase. This value must be between 3 and 20.</th>
 </tr>
 <tr>
     <th>wordSeparator</th>
-    <th>string,null</th>
-    <th></th>
+    <th>string</th>
+    <th>Character separator between words in the generated passphrase. The value cannot be empty.</th>
 </tr>
 <tr>
     <th>capitalize</th>
-    <th>boolean,null</th>
-    <th></th>
+    <th>boolean</th>
+    <th>When set to true, capitalize the first letter of each word in the generated passphrase.</th>
 </tr>
 <tr>
     <th>includeNumber</th>
-    <th>boolean,null</th>
-    <th></th>
+    <th>boolean</th>
+    <th>When set to true, include a number at the end of one of the words in the generated passphrase.</th>
 </tr>
 </table>
 
@@ -1023,52 +1239,52 @@ implementations.
 <tr>
     <th>lowercase</th>
     <th>boolean</th>
-    <th></th>
+    <th>Include lowercase characters (a-z).</th>
 </tr>
 <tr>
     <th>uppercase</th>
     <th>boolean</th>
-    <th></th>
+    <th>Include uppercase characters (A-Z).</th>
 </tr>
 <tr>
     <th>numbers</th>
     <th>boolean</th>
-    <th></th>
+    <th>Include numbers (0-9).</th>
 </tr>
 <tr>
     <th>special</th>
     <th>boolean</th>
-    <th></th>
+    <th>Include special characters: ! @ # $ % ^ &amp; *</th>
 </tr>
 <tr>
     <th>length</th>
-    <th>integer,null</th>
-    <th></th>
+    <th>integer</th>
+    <th>The length of the generated password. Note that the password length must be greater than the sum of all the minimums.</th>
 </tr>
 <tr>
     <th>avoidAmbiguous</th>
-    <th>boolean,null</th>
-    <th></th>
+    <th>boolean</th>
+    <th>When set to true, the generated password will not contain ambiguous characters. The ambiguous characters are: I, O, l, 0, 1</th>
 </tr>
 <tr>
     <th>minLowercase</th>
-    <th>boolean,null</th>
-    <th></th>
+    <th>integer,null</th>
+    <th>The minimum number of lowercase characters in the generated password. When set, the value must be between 1 and 9. This value is ignored is lowercase is false</th>
 </tr>
 <tr>
     <th>minUppercase</th>
-    <th>boolean,null</th>
-    <th></th>
+    <th>integer,null</th>
+    <th>The minimum number of uppercase characters in the generated password. When set, the value must be between 1 and 9. This value is ignored is uppercase is false</th>
 </tr>
 <tr>
     <th>minNumber</th>
-    <th>boolean,null</th>
-    <th></th>
+    <th>integer,null</th>
+    <th>The minimum number of numbers in the generated password. When set, the value must be between 1 and 9. This value is ignored is numbers is false</th>
 </tr>
 <tr>
     <th>minSpecial</th>
-    <th>boolean,null</th>
-    <th></th>
+    <th>integer,null</th>
+    <th>The minimum number of special characters in the generated password. When set, the value must be between 1 and 9. This value is ignored is special is false</th>
 </tr>
 </table>
 
@@ -1102,12 +1318,12 @@ implementations.
 </tr>
 <tr>
     <th>id</th>
-    <th>string</th>
+    <th>string,null</th>
     <th></th>
 </tr>
 <tr>
     <th>accessId</th>
-    <th>string</th>
+    <th>string,null</th>
     <th></th>
 </tr>
 <tr>
@@ -1192,12 +1408,12 @@ implementations.
 </tr>
 <tr>
     <th>id</th>
-    <th>string</th>
+    <th>string,null</th>
     <th></th>
 </tr>
 <tr>
     <th>accessId</th>
-    <th>string</th>
+    <th>string,null</th>
     <th></th>
 </tr>
 <tr>
@@ -1269,25 +1485,5 @@ implementations.
     <th>expirationDate</th>
     <th>string,null</th>
     <th></th>
-</tr>
-</table>
-
-## `TotpResponse`
-
-<table>
-<tr>
-    <th>Key</th>
-    <th>Type</th>
-    <th>Description</th>
-</tr>
-<tr>
-    <th>code</th>
-    <th>string</th>
-    <th>Generated TOTP code</th>
-</tr>
-<tr>
-    <th>period</th>
-    <th>integer</th>
-    <th>Time period</th>
 </tr>
 </table>

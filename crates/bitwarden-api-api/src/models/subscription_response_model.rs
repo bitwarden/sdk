@@ -22,6 +22,8 @@ pub struct SubscriptionResponseModel {
     pub upcoming_invoice: Option<Box<crate::models::BillingSubscriptionUpcomingInvoice>>,
     #[serde(rename = "subscription", skip_serializing_if = "Option::is_none")]
     pub subscription: Option<Box<crate::models::BillingSubscription>>,
+    #[serde(rename = "discount", skip_serializing_if = "Option::is_none")]
+    pub discount: Option<Box<crate::models::BillingCustomerDiscount>>,
     #[serde(rename = "license", skip_serializing_if = "Option::is_none")]
     pub license: Option<Box<crate::models::UserLicense>>,
     #[serde(rename = "expiration", skip_serializing_if = "Option::is_none")]
@@ -39,6 +41,7 @@ impl SubscriptionResponseModel {
             max_storage_gb: None,
             upcoming_invoice: None,
             subscription: None,
+            discount: None,
             license: None,
             expiration: None,
             using_in_app_purchase: None,

@@ -13,10 +13,10 @@ pub struct AccessTokenRequest {
 }
 
 impl AccessTokenRequest {
-    pub fn new(service_account_id: Uuid, client_secret: &String) -> Self {
+    pub fn new(access_token_id: Uuid, client_secret: &String) -> Self {
         let obj = Self {
             scope: "api.secrets".to_string(),
-            client_id: service_account_id.to_string(),
+            client_id: access_token_id.to_string(),
             client_secret: client_secret.to_string(),
             grant_type: "client_credentials".to_string(),
         };

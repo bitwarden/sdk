@@ -21,7 +21,7 @@ pub struct AttachmentResponseModel {
     #[serde(rename = "key", skip_serializing_if = "Option::is_none")]
     pub key: Option<String>,
     #[serde(rename = "size", skip_serializing_if = "Option::is_none")]
-    pub size: Option<i64>,
+    pub size: Option<String>,
     #[serde(rename = "sizeName", skip_serializing_if = "Option::is_none")]
     pub size_name: Option<String>,
 }

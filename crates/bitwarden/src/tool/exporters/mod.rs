@@ -6,6 +6,7 @@ use crate::{
 };
 
 mod client_exporter;
+pub use client_exporter::ClientExporters;
 
 #[derive(JsonSchema)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
@@ -19,9 +20,14 @@ pub enum ExportFormat {
 pub(super) fn export_vault(
     _folders: Vec<Folder>,
     _ciphers: Vec<Cipher>,
-    _format: ExportFormat,
+    format: ExportFormat,
 ) -> Result<String> {
-    todo!();
+    Ok(match format {
+        ExportFormat::Csv => "Csv".to_owned(),
+        ExportFormat::Json => "Json".to_owned(),
+        ExportFormat::AccountEncryptedJson => "AccountEncryptedJson".to_owned(),
+        ExportFormat::EncryptedJson { .. } => "EncryptedJson".to_owned(),
+    })
 }
 
 pub(super) fn export_organization_vault(

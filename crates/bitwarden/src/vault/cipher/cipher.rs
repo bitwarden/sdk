@@ -1,3 +1,4 @@
+use bitwarden_api_api::models::CipherDetailsResponseModel;
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -12,7 +13,7 @@ use super::{
 use crate::{
     client::encryption_settings::EncryptionSettings,
     crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey},
-    error::Result,
+    error::{Error, Result},
     vault::password_history,
 };
 
@@ -330,5 +331,70 @@ impl LocateKey for CipherView {
         _: &Option<Uuid>,
     ) -> Option<&'a SymmetricCryptoKey> {
         enc.get_key(&self.organization_id)
+    }
+}
+
+impl TryFrom<CipherDetailsResponseModel> for Cipher {
+    type Error = Error;
+
+    fn try_from(cipher: CipherDetailsResponseModel) -> Result<Self> {
+        Ok(Self {
+            id: cipher.id,
+            organization_id: cipher.organization_id,
+            folder_id: cipher.folder_id,
+            collection_ids: cipher.collection_ids.unwrap_or_default(),
+            name: EncString::try_from_optional(cipher.name)?.ok_or(Error::MissingFields)?,
+            notes: EncString::try_from_optional(cipher.notes)?,
+            r#type: cipher.r#type.ok_or(Error::MissingFields)?.into(),
+            login: cipher.login.map(|l| (*l).try_into()).transpose()?,
+            identity: cipher.identity.map(|i| (*i).try_into()).transpose()?,
+            card: cipher.card.map(|c| (*c).try_into()).transpose()?,
+            secure_note: cipher.secure_note.map(|s| (*s).try_into()).transpose()?,
+            favorite: cipher.favorite.unwrap_or(false),
+            reprompt: cipher
+                .reprompt
+                .map(|r| r.into())
+                .unwrap_or(CipherRepromptType::None),
+            organization_use_totp: cipher.organization_use_totp.unwrap_or(true),
+            edit: cipher.edit.unwrap_or(true),
+            view_password: cipher.view_password.unwrap_or(true),
+            local_data: None, // Not sent from server
+            attachments: cipher
+                .attachments
+                .map(|a| a.into_iter().map(|a| a.try_into()).collect())
+                .transpose()?,
+            fields: cipher
+                .fields
+                .map(|f| f.into_iter().map(|f| f.try_into()).collect())
+                .transpose()?,
+            password_history: cipher
+                .password_history
+                .map(|p| p.into_iter().map(|p| p.try_into()).collect())
+                .transpose()?,
+            creation_date: cipher.creation_date.ok_or(Error::MissingFields)?.parse()?,
+            deleted_date: cipher.deleted_date.map(|d| d.parse()).transpose()?,
+            revision_date: cipher.revision_date.ok_or(Error::MissingFields)?.parse()?,
+            key: EncString::try_from_optional(cipher.key)?,
+        })
+    }
+}
+
+impl From<bitwarden_api_api::models::CipherType> for CipherType {
+    fn from(t: bitwarden_api_api::models::CipherType) -> Self {
+        match t {
+            bitwarden_api_api::models::CipherType::Variant1 => CipherType::Login,
+            bitwarden_api_api::models::CipherType::Variant2 => CipherType::SecureNote,
+            bitwarden_api_api::models::CipherType::Variant3 => CipherType::Card,
+            bitwarden_api_api::models::CipherType::Variant4 => CipherType::Identity,
+        }
+    }
+}
+
+impl From<bitwarden_api_api::models::CipherRepromptType> for CipherRepromptType {
+    fn from(t: bitwarden_api_api::models::CipherRepromptType) -> Self {
+        match t {
+            bitwarden_api_api::models::CipherRepromptType::Variant0 => CipherRepromptType::None,
+            bitwarden_api_api::models::CipherRepromptType::Variant1 => CipherRepromptType::Password,
+        }
     }
 }

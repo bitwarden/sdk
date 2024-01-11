@@ -12,9 +12,10 @@ class BitwardenClient:
             settings_json = json.dumps(settings.to_dict())
             self.inner = bitwarden_py.BitwardenClient(settings_json)
 
-    def access_token_login(self, access_token: str):
+    def access_token_login(self, access_token: str,
+                           state_file_path: str = None) -> ResponseForAccessTokenLoginResponse:
         self._run_command(
-            Command(access_token_login=AccessTokenLoginRequest(access_token))
+            Command(access_token_login=AccessTokenLoginRequest(access_token, state_file_path))
         )
 
     def secrets(self):

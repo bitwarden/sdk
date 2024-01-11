@@ -23,6 +23,7 @@
 
 use aes::cipher::{generic_array::GenericArray, ArrayLength, Unsigned};
 use hmac::digest::OutputSizeUser;
+#[cfg(any(test, feature = "internal"))]
 use rand::{
     distributions::{Distribution, Standard},
     Rng,
@@ -79,6 +80,7 @@ fn hkdf_expand<T: ArrayLength<u8>>(prk: &[u8], info: Option<&str>) -> Result<Gen
 }
 
 /// Generate random bytes that are cryptographically secure
+#[cfg(any(test, feature = "internal"))]
 pub(crate) fn generate_random_bytes<T>() -> T
 where
     Standard: Distribution<T>,

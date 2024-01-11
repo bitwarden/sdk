@@ -87,3 +87,8 @@ where
 {
     rand::thread_rng().gen()
 }
+
+pub fn pbkdf2(password: &[u8], salt: &[u8], rounds: u32) -> [u8; PBKDF_SHA256_HMAC_OUT_SIZE] {
+    pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(password, salt, rounds)
+        .expect("hash is a valid fixed size")
+}

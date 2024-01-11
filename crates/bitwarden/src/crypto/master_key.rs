@@ -3,10 +3,7 @@ use base64::{engine::general_purpose::STANDARD, Engine};
 use schemars::JsonSchema;
 use sha2::Digest;
 
-use super::{
-    hkdf_expand, EncString, KeyDecryptable, PbkdfSha256Hmac, SymmetricCryptoKey, UserKey,
-    PBKDF_SHA256_HMAC_OUT_SIZE,
-};
+use super::{hkdf_expand, EncString, KeyDecryptable, SymmetricCryptoKey, UserKey};
 use crate::{client::kdf::Kdf, error::Result};
 
 #[derive(Copy, Clone, JsonSchema)]
@@ -31,12 +28,7 @@ impl MasterKey {
         password: &[u8],
         purpose: HashPurpose,
     ) -> Result<String> {
-        let hash = pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(
-            &self.0.key,
-            password,
-            purpose as u32,
-        )
-        .expect("hash is a valid fixed size");
+        let hash = super::pbkdf2(&self.0.key, password, purpose as u32);
 
         Ok(STANDARD.encode(hash))
     }
@@ -76,11 +68,7 @@ fn make_user_key(
 /// Derive a generic key from a secret and salt using the provided KDF.
 fn derive_key(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<SymmetricCryptoKey> {
     let hash = match kdf {
-        Kdf::PBKDF2 { iterations } => pbkdf2::pbkdf2_array::<
-            PbkdfSha256Hmac,
-            PBKDF_SHA256_HMAC_OUT_SIZE,
-        >(secret, salt, iterations.get())
-        .unwrap(),
+        Kdf::PBKDF2 { iterations } => super::pbkdf2(secret, salt, iterations.get()),
 
         Kdf::Argon2id {
             iterations,

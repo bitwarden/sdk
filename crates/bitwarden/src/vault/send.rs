@@ -1,4 +1,7 @@
-use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
+use base64::{
+    engine::general_purpose::{STANDARD, URL_SAFE_NO_PAD},
+    Engine,
+};
 use bitwarden_api_api::models::{SendFileModel, SendResponseModel, SendTextModel};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
@@ -13,6 +16,8 @@ use crate::{
     },
     error::{CryptoError, Error, Result},
 };
+
+const SEND_ITERATIONS: u32 = 100_000;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -97,7 +102,13 @@ pub struct SendView {
     pub notes: Option<String>,
     /// Base64 encoded key
     pub key: Option<String>,
-    pub password: Option<String>,
+    /// Replace or add a password to an existing send. The SDK will always return None when
+    /// decrypting a [Send]
+    /// TODO: We should revisit this, one variant is to have `[Create, Update]SendView` DTOs.
+    pub new_password: Option<String>,
+    /// Denote if an existing send has a password. The SDK will ignore this value when creating or
+    /// updating sends.
+    pub has_password: bool,
 
     pub r#type: SendType,
     pub file: Option<SendFileView>,
@@ -200,7 +211,8 @@ impl KeyDecryptable<SendView> for Send {
             name: self.name.decrypt_with_key(&key)?,
             notes: self.notes.decrypt_with_key(&key)?,
             key: Some(URL_SAFE_NO_PAD.encode(k)),
-            password: self.password.clone(),
+            new_password: None,
+            has_password: self.password.is_some(),
 
             r#type: self.r#type,
             file: self.file.decrypt_with_key(&key)?,
@@ -267,7 +279,10 @@ impl KeyEncryptable<Send> for SendView {
             name: self.name.encrypt_with_key(&send_key)?,
             notes: self.notes.encrypt_with_key(&send_key)?,
             key: k.encrypt_with_key(key)?,
-            password: self.password.clone(),
+            password: self.new_password.map(|password| {
+                let password = crate::crypto::pbkdf2(password.as_bytes(), &k, SEND_ITERATIONS);
+                STANDARD.encode(password)
+            }),
 
             r#type: self.r#type,
             file: self.file.encrypt_with_key(&send_key)?,
@@ -370,39 +385,12 @@ mod tests {
 
         let k = enc.get_key(&None).unwrap();
 
-        // Create a send object, the only value we really care about here is the key
-        let send = Send {
-            id: Some("d7fb1e7f-9053-43c0-a02c-b0690098685a".parse().unwrap()),
-            access_id: Some("fx7711OQwEOgLLBpAJhoWg".into()),
-            name: "2.u5vXPAepUZ+4lI2vGGKiGg==|hEouC4SvCCb/ifzZzLcfSw==|E2VZUVffehczfIuRSlX2vnPRfflBtXef5tzsWvRrtfM="
-                .parse()
-                .unwrap(),
-            notes: None,
-            key: "2.+1KUfOX8A83Xkwk1bumo/w==|Nczvv+DTkeP466cP/wMDnGK6W9zEIg5iHLhcuQG6s+M=|SZGsfuIAIaGZ7/kzygaVUau3LeOvJUlolENBOU+LX7g="
-                .parse()
-                .unwrap(),
-            password: None,
-            r#type: super::SendType::File,
-            file: Some(super::SendFile {
-                id: Some("7f129hzwu0umkmnmsghkt486w96p749c".into()),
-                file_name: "2.pnszM3slsCVlOIzuWrfCpA==|85zCg+X8GODvIAPf1Yt3K75YP+ub3wVAi1UvwOVXhPgUo9Gsu23FJgYSOkyKu3Vr|OvTrOugwRH7Mp2BWSuPlfxovoWt9oDRdi1Qo3xHUcdQ="
-                    .parse()
-                    .unwrap(),
-                size: Some("1251825".into()),
-                size_name: Some("1.19 MB".into()),
-            }),
-            text: None,
-            max_access_count: None,
-            access_count: 0,
-            disabled: false,
-            hide_email: false,
-            revision_date: "2023-08-25T09:14:53Z".parse().unwrap(),
-            deletion_date: "2023-09-25T09:14:53Z".parse().unwrap(),
-            expiration_date: None,
-        };
+        let send_key = "2.+1KUfOX8A83Xkwk1bumo/w==|Nczvv+DTkeP466cP/wMDnGK6W9zEIg5iHLhcuQG6s+M=|SZGsfuIAIaGZ7/kzygaVUau3LeOvJUlolENBOU+LX7g="
+            .parse()
+            .unwrap();
 
         // Get the send key
-        let send_key = Send::get_key(&send.key, k).unwrap();
+        let send_key = Send::get_key(&send_key, k).unwrap();
         let send_key_b64 = send_key.to_base64();
         assert_eq!(send_key_b64, "IR9ImHGm6rRuIjiN7csj94bcZR5WYTJj5GtNfx33zm6tJCHUl+QZlpNPba8g2yn70KnOHsAODLcR0um6E3MAlg==");
     }
@@ -458,7 +446,8 @@ mod tests {
             name: "Test".to_string(),
             notes: None,
             key: Some("Pgui0FK85cNhBGWHAlBHBw".to_owned()),
-            password: None,
+            new_password: None,
+            has_password: false,
             r#type: SendType::Text,
             file: None,
             text: Some(SendTextView {
@@ -488,7 +477,8 @@ mod tests {
             name: "Test".to_string(),
             notes: None,
             key: Some("Pgui0FK85cNhBGWHAlBHBw".to_owned()),
-            password: None,
+            new_password: None,
+            has_password: false,
             r#type: SendType::Text,
             file: None,
             text: Some(SendTextView {
@@ -515,7 +505,7 @@ mod tests {
     }
 
     #[test]
-    pub fn test_encrypt_no_key() {
+    pub fn test_create() {
         let enc = build_encryption_settings();
         let key = enc.get_key(&None).unwrap();
 
@@ -525,7 +515,8 @@ mod tests {
             name: "Test".to_string(),
             notes: None,
             key: None,
-            password: None,
+            new_password: None,
+            has_password: false,
             r#type: SendType::Text,
             file: None,
             text: Some(SendTextView {
@@ -552,5 +543,45 @@ mod tests {
         // Ignore key when comparing
         let t = SendView { key: None, ..v };
         assert_eq!(t, view);
+    }
+
+    #[test]
+    pub fn test_create_password() {
+        let enc = build_encryption_settings();
+        let key = enc.get_key(&None).unwrap();
+
+        let view = SendView {
+            id: None,
+            access_id: Some("ct2APRQtJk-BLLDwAYqhRA".to_owned()),
+            name: "Test".to_owned(),
+            notes: None,
+            key: Some("Pgui0FK85cNhBGWHAlBHBw".to_owned()),
+            new_password: Some("abc123".to_owned()),
+            has_password: false,
+            r#type: SendType::Text,
+            file: None,
+            text: Some(SendTextView {
+                text: Some("This is a test".to_owned()),
+                hidden: false,
+            }),
+            max_access_count: None,
+            access_count: 0,
+            disabled: false,
+            hide_email: false,
+            revision_date: "2024-01-07T23:56:48.207363Z".parse().unwrap(),
+            deletion_date: "2024-01-14T23:56:48Z".parse().unwrap(),
+            expiration_date: None,
+        };
+
+        let send: Send = view.encrypt_with_key(key).unwrap();
+
+        assert_eq!(
+            send.password,
+            Some("vTIDfdj3FTDbejmMf+mJWpYdMXsxfeSd1Sma3sjCtiQ=".to_owned())
+        );
+
+        let v: SendView = send.decrypt_with_key(key).unwrap();
+        assert_eq!(v.new_password, None);
+        assert!(v.has_password);
     }
 }

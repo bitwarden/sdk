@@ -26,14 +26,10 @@ mobile = [
 wasm-bindgen = ["chrono/wasmbind"]
 
 [dependencies]
-argon2 = { version = ">=0.5.0, <0.6", features = [
-    "alloc",
-], default-features = false }
 base64 = ">=0.21.2, <0.22"
 bitwarden-api-api = { path = "../bitwarden-api-api", version = "=0.2.3" }
 bitwarden-api-identity = { path = "../bitwarden-api-identity", version = "=0.2.3" }
 bitwarden-crypto = { path = "../bitwarden-crypto", version = "=0.1.0" }
-cbc = { version = ">=0.1.2, <0.2", features = ["alloc"] }
 chrono = { version = ">=0.4.26, <0.5", features = [
     "clock",
     "serde",
@@ -43,10 +39,7 @@ data-encoding = ">=2.5.0, <3.0"
 # We don't use this directly (it's used by rand), but we need it here to enable WASM support
 getrandom = { version = ">=0.2.9, <0.3", features = ["js"] }
 hmac = ">=0.12.1, <0.13"
-lazy_static = ">=1.4.0, <2.0"
 log = ">=0.4.18, <0.5"
-num-bigint = ">=0.4, <0.5"
-num-traits = ">=0.2.15, <0.3"
 rand = ">=0.8.5, <0.9"
 reqwest = { version = ">=0.11, <0.12", features = [
     "json",

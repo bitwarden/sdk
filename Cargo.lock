@@ -346,20 +346,15 @@ checksum = "327762f6e5a765692301e5bb513e0d9fef63be86bbc14528052b1cd3e6f03e07"
 name = "bitwarden"
 version = "0.4.0"
 dependencies = [
- "argon2",
  "base64 0.21.5",
  "bitwarden-api-api",
  "bitwarden-api-identity",
  "bitwarden-crypto",
- "cbc",
  "chrono",
  "data-encoding",
  "getrandom 0.2.11",
  "hmac",
- "lazy_static",
  "log",
- "num-bigint",
- "num-traits",
  "rand 0.8.5",
  "rand_chacha 0.3.1",
  "reqwest",
@@ -448,10 +443,8 @@ dependencies = [
  "sha2",
  "subtle",
  "thiserror",
- "tokio",
  "uniffi",
  "uuid",
- "wiremock",
 ]
 
 [[package]]

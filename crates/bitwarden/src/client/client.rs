@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+#[cfg(feature = "internal")]
 pub use bitwarden_crypto::Kdf;
 use bitwarden_crypto::SymmetricCryptoKey;
 #[cfg(feature = "internal")]

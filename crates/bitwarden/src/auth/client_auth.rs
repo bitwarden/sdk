@@ -1,18 +1,22 @@
 #[cfg(feature = "secrets")]
 use crate::auth::login::{login_access_token, AccessTokenLoginRequest, AccessTokenLoginResponse};
+use crate::{auth::renew::renew_token, error::Result, Client};
 #[cfg(feature = "internal")]
-use crate::auth::{
-    login::{
-        login_api_key, login_password, send_two_factor_email, ApiKeyLoginRequest,
-        ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse, TwoFactorEmailRequest,
+use crate::{
+    auth::{
+        login::{
+            login_api_key, login_password, send_two_factor_email, ApiKeyLoginRequest,
+            ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse,
+            TwoFactorEmailRequest,
+        },
+        password::{
+            password_strength, satisfies_policy, validate_password, MasterPasswordPolicyOptions,
+        },
+        register::{make_register_keys, register},
+        RegisterKeyResponse, RegisterRequest,
     },
-    password::{
-        password_strength, satisfies_policy, validate_password, MasterPasswordPolicyOptions,
-    },
-    register::{make_register_keys, register},
-    RegisterKeyResponse, RegisterRequest,
+    client::Kdf,
 };
-use crate::{auth::renew::renew_token, client::Kdf, error::Result, Client};
 
 pub struct ClientAuth<'a> {
     pub(crate) client: &'a mut crate::Client,

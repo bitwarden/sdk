@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - ps/fix-arch
   workflow_dispatch:
 
 jobs:

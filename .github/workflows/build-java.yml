@@ -39,7 +39,7 @@ jobs:
         uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
         with:
           name: libbitwarden_c_files-x86_64-apple-darwin
-          path: languages/java/src/main/resources/darwin-x64
+          path: languages/java/src/main/resources/darwin-x86-64
 
       - name: Download aarch64-apple-darwin files
         uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
@@ -51,13 +51,13 @@ jobs:
         uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
         with:
           name: libbitwarden_c_files-x86_64-unknown-linux-gnu
-          path: languages/java/src/main/resources/ubuntu-x64
+          path: languages/java/src/main/resources/linux-x86-64
 
       - name: Download x86_64-pc-windows-msvc files
         uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
         with:
           name: libbitwarden_c_files-x86_64-pc-windows-msvc
-          path: languages/java/src/main/resources/windows-x64
+          path: languages/java/src/main/resources/win32-x86-64
 
       - name: Publish Maven
         uses: gradle/gradle-build-action@982da8e78c05368c70dac0351bb82647a9e9a5d2 # v2.11.1

@@ -2,7 +2,7 @@
 //!
 //! This module contains the cryptographic primitives used throughout the SDK. The module makes a
 //! best effort to abstract away cryptographic concepts into concepts such as
-//! [`EncString`] and [`SymmetricCryptoKey`].
+//! [`EncString`], [`SymmetricCryptoKey`] and [`AsymmetricCryptoKey`].
 //!
 //! ## Conventions:
 //!
@@ -36,11 +36,14 @@ pub use enc_string::{AsymmEncString, EncString};
 mod encryptable;
 pub use encryptable::{Decryptable, Encryptable, LocateKey};
 mod key_encryptable;
-pub use key_encryptable::{KeyDecryptable, KeyEncryptable};
+pub use key_encryptable::{CryptoKey, KeyDecryptable, KeyEncryptable};
 mod aes_ops;
 use aes_ops::{decrypt_aes256_hmac, encrypt_aes256_hmac};
 mod symmetric_crypto_key;
 pub use symmetric_crypto_key::SymmetricCryptoKey;
+mod asymmetric_crypto_key;
+pub use asymmetric_crypto_key::AsymmetricCryptoKey;
+
 mod shareable_key;
 pub(crate) use shareable_key::derive_shareable_key;
 

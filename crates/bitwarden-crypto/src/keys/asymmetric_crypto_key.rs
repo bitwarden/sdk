@@ -1,8 +1,7 @@
 use rsa::RsaPrivateKey;
 
-use crate::error::{CryptoError, Result};
-
 use super::key_encryptable::CryptoKey;
+use crate::error::{CryptoError, Result};
 
 /// An asymmetric encryption key. Used to encrypt and decrypt [`EncString`](crate::crypto::EncString)
 pub struct AsymmetricCryptoKey {

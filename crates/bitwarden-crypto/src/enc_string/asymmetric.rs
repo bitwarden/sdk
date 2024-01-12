@@ -152,7 +152,7 @@ impl AsymmEncString {
 impl KeyDecryptable<AsymmetricCryptoKey, Vec<u8>> for AsymmEncString {
     fn decrypt_with_key(&self, key: &AsymmetricCryptoKey) -> Result<Vec<u8>> {
         use AsymmEncString::*;
-        Ok(match self {
+        match self {
             Rsa2048_OaepSha256_B64 { data } => key.key.decrypt(Oaep::new::<sha2::Sha256>(), data),
             Rsa2048_OaepSha1_B64 { data } => key.key.decrypt(Oaep::new::<sha1::Sha1>(), data),
             #[allow(deprecated)]
@@ -164,14 +164,14 @@ impl KeyDecryptable<AsymmetricCryptoKey, Vec<u8>> for AsymmEncString {
                 key.key.decrypt(Oaep::new::<sha1::Sha1>(), data)
             }
         }
-        .map_err(|_| CryptoError::KeyDecrypt)?)
+        .map_err(|_| CryptoError::KeyDecrypt)
     }
 }
 
 impl KeyDecryptable<AsymmetricCryptoKey, String> for AsymmEncString {
     fn decrypt_with_key(&self, key: &AsymmetricCryptoKey) -> Result<String> {
         let dec: Vec<u8> = self.decrypt_with_key(key)?;
-        String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String.into())
+        String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String)
     }
 }
 

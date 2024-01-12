@@ -4,9 +4,8 @@ use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::{engine::general_purpose::STANDARD, Engine};
 use rand::Rng;
 
-use crate::CryptoError;
-
 use super::key_encryptable::CryptoKey;
+use crate::CryptoError;
 
 /// A symmetric encryption key. Used to encrypt and decrypt [`EncString`](crate::EncString)
 pub struct SymmetricCryptoKey {

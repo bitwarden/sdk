@@ -1,11 +1,12 @@
 use std::collections::HashMap;
 
 #[cfg(feature = "internal")]
-use crate::{client::UserLoginMethod, error::Result};
-#[cfg(feature = "internal")]
 use bitwarden_crypto::{AsymmEncString, EncString};
 use bitwarden_crypto::{AsymmetricCryptoKey, KeyContainer, SymmetricCryptoKey};
 use uuid::Uuid;
+
+#[cfg(feature = "internal")]
+use crate::{client::UserLoginMethod, error::Result};
 
 pub struct EncryptionSettings {
     user_key: SymmetricCryptoKey,

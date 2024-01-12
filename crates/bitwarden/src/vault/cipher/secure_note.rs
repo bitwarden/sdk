@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::{
-    crypto::{KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
+    crypto::{purpose, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
     error::{Error, Result},
 };
 
@@ -29,16 +29,34 @@ pub struct SecureNoteView {
     r#type: SecureNoteType,
 }
 
-impl KeyEncryptable<SymmetricCryptoKey, SecureNote> for SecureNoteView {
-    fn encrypt_with_key(self, _key: &SymmetricCryptoKey) -> Result<SecureNote> {
+impl
+    KeyEncryptable<
+        SymmetricCryptoKey<purpose::CipherEncryption>,
+        purpose::CipherEncryption,
+        SecureNote,
+    > for SecureNoteView
+{
+    fn encrypt_with_key(
+        self,
+        _key: &SymmetricCryptoKey<purpose::CipherEncryption>,
+    ) -> Result<SecureNote> {
         Ok(SecureNote {
             r#type: self.r#type,
         })
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, SecureNoteView> for SecureNote {
-    fn decrypt_with_key(&self, _key: &SymmetricCryptoKey) -> Result<SecureNoteView> {
+impl
+    KeyDecryptable<
+        SymmetricCryptoKey<purpose::CipherEncryption>,
+        purpose::CipherEncryption,
+        SecureNoteView,
+    > for SecureNote
+{
+    fn decrypt_with_key(
+        &self,
+        _key: &SymmetricCryptoKey<purpose::CipherEncryption>,
+    ) -> Result<SecureNoteView> {
         Ok(SecureNoteView {
             r#type: self.r#type,
         })

@@ -67,7 +67,7 @@ pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequ
             client.initialize_user_crypto(&password, user_key, private_key)?;
         }
         InitUserCryptoMethod::DecryptedKey { decrypted_user_key } => {
-            let user_key = decrypted_user_key.parse::<SymmetricCryptoKey>()?;
+            let user_key = decrypted_user_key.parse::<SymmetricCryptoKey<_>>()?;
             client.initialize_user_crypto_decrypted_key(user_key, private_key)?;
         }
         InitUserCryptoMethod::Pin {
@@ -101,7 +101,7 @@ pub async fn initialize_org_crypto(client: &mut Client, req: InitOrgCryptoReques
 pub async fn get_user_encryption_key(client: &mut Client) -> Result<String> {
     let user_key = client
         .get_encryption_settings()?
-        .get_key(&None)
+        .get_user_key()
         .ok_or(Error::VaultLocked)?;
 
     Ok(user_key.to_base64())
@@ -133,7 +133,7 @@ pub fn derive_pin_key(client: &mut Client, pin: String) -> Result<DerivePinKeyRe
 
     let user_key = client
         .get_encryption_settings()?
-        .get_key(&None)
+        .get_user_key()
         .ok_or(Error::VaultLocked)?;
 
     Ok(DerivePinKeyResponse {
@@ -195,13 +195,13 @@ mod tests {
             client
                 .get_encryption_settings()
                 .unwrap()
-                .get_key(&None)
+                .get_user_key()
                 .unwrap()
                 .to_base64(),
             client2
                 .get_encryption_settings()
                 .unwrap()
-                .get_key(&None)
+                .get_user_key()
                 .unwrap()
                 .to_base64()
         );

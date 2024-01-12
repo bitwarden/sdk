@@ -9,6 +9,8 @@ use crate::{
     error::Result,
 };
 
+use super::purpose;
+
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct RsaKeyPair {
     /// Base64 encoded DER representation of the public key
@@ -17,7 +19,9 @@ pub struct RsaKeyPair {
     pub private: EncString,
 }
 
-pub(super) fn make_key_pair(key: &SymmetricCryptoKey) -> Result<RsaKeyPair> {
+pub(super) fn make_key_pair(
+    key: &SymmetricCryptoKey<purpose::UserEncryption>,
+) -> Result<RsaKeyPair> {
     let mut rng = rand::thread_rng();
     let bits = 2048;
     let priv_key = RsaPrivateKey::new(&mut rng, bits).expect("failed to generate a key");

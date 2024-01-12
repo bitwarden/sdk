@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{EncString, KeyDecryptable, LocateKey, SymmetricCryptoKey},
+    crypto::{purpose, EncString, KeyDecryptable, LocateKey, SymmetricCryptoKey},
     error::{Error, Result},
 };
 
@@ -37,17 +37,25 @@ pub struct CollectionView {
     read_only: bool,
 }
 
-impl LocateKey for Collection {
+impl LocateKey<purpose::OrgEncryption> for Collection {
     fn locate_key<'a>(
         &self,
         enc: &'a EncryptionSettings,
-        _: &Option<Uuid>,
-    ) -> Option<&'a SymmetricCryptoKey> {
-        enc.get_key(&Some(self.organization_id))
+    ) -> Option<&'a SymmetricCryptoKey<purpose::OrgEncryption>> {
+        enc.get_org_key(self.organization_id)
     }
 }
-impl KeyDecryptable<SymmetricCryptoKey, CollectionView> for Collection {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CollectionView> {
+impl
+    KeyDecryptable<
+        SymmetricCryptoKey<purpose::OrgEncryption>,
+        purpose::OrgEncryption,
+        CollectionView,
+    > for Collection
+{
+    fn decrypt_with_key(
+        &self,
+        key: &SymmetricCryptoKey<purpose::OrgEncryption>,
+    ) -> Result<CollectionView> {
         Ok(CollectionView {
             id: self.id,
             organization_id: self.organization_id,

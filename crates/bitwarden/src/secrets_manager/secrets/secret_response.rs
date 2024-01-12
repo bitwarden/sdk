@@ -8,7 +8,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{Decryptable, EncString},
+    crypto::{EncString, KeyDecryptable},
     error::{Error, Result},
 };
 
@@ -49,23 +49,24 @@ impl SecretResponse {
         response: BaseSecretResponseModel,
         enc: &EncryptionSettings,
     ) -> Result<SecretResponse> {
-        let org_id = response.organization_id;
+        let org_id = response.organization_id.ok_or(Error::MissingFields)?;
+        let key = enc.get_org_key(org_id).ok_or(Error::VaultLocked)?;
 
-        let key = response
+        let secret_key = response
             .key
             .ok_or(Error::MissingFields)?
             .parse::<EncString>()?
-            .decrypt(enc, &org_id)?;
+            .decrypt_with_key(key)?;
         let value = response
             .value
             .ok_or(Error::MissingFields)?
             .parse::<EncString>()?
-            .decrypt(enc, &org_id)?;
+            .decrypt_with_key(key)?;
         let note = response
             .note
             .ok_or(Error::MissingFields)?
             .parse::<EncString>()?
-            .decrypt(enc, &org_id)?;
+            .decrypt_with_key(key)?;
 
         let project = response
             .projects
@@ -74,9 +75,9 @@ impl SecretResponse {
 
         Ok(SecretResponse {
             id: response.id.ok_or(Error::MissingFields)?,
-            organization_id: org_id.ok_or(Error::MissingFields)?,
+            organization_id: org_id,
             project_id: project,
-            key,
+            key: secret_key,
             value,
             note,
 

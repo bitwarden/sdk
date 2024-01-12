@@ -2,7 +2,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
+    crypto::{purpose, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
     error::{Error, Result},
 };
 
@@ -31,8 +31,17 @@ pub struct AttachmentView {
     pub key: Option<EncString>,
 }
 
-impl KeyEncryptable<SymmetricCryptoKey, Attachment> for AttachmentView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Attachment> {
+impl
+    KeyEncryptable<
+        SymmetricCryptoKey<purpose::CipherEncryption>,
+        purpose::CipherEncryption,
+        Attachment,
+    > for AttachmentView
+{
+    fn encrypt_with_key(
+        self,
+        key: &SymmetricCryptoKey<purpose::CipherEncryption>,
+    ) -> Result<Attachment> {
         Ok(Attachment {
             id: self.id,
             url: self.url,
@@ -44,8 +53,17 @@ impl KeyEncryptable<SymmetricCryptoKey, Attachment> for AttachmentView {
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, AttachmentView> for Attachment {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<AttachmentView> {
+impl
+    KeyDecryptable<
+        SymmetricCryptoKey<purpose::CipherEncryption>,
+        purpose::CipherEncryption,
+        AttachmentView,
+    > for Attachment
+{
+    fn decrypt_with_key(
+        &self,
+        key: &SymmetricCryptoKey<purpose::CipherEncryption>,
+    ) -> Result<AttachmentView> {
         Ok(AttachmentView {
             id: self.id.clone(),
             url: self.url.clone(),

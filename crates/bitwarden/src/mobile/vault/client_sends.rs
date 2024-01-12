@@ -16,7 +16,7 @@ impl<'a> ClientSends<'a> {
     pub async fn decrypt(&self, send: Send) -> Result<SendView> {
         let enc = self.client.get_encryption_settings()?;
 
-        let send_view = send.decrypt(enc, &None)?;
+        let send_view = send.decrypt(enc)?;
 
         Ok(send_view)
     }
@@ -24,9 +24,9 @@ impl<'a> ClientSends<'a> {
     pub async fn decrypt_list(&self, sends: Vec<Send>) -> Result<Vec<SendListView>> {
         let enc = self.client.get_encryption_settings()?;
 
-        let send_views = sends.decrypt(enc, &None)?;
+        let send_views: Result<_> = sends.into_iter().map(|s| s.decrypt(enc)).collect();
 
-        Ok(send_views)
+        send_views
     }
 
     pub async fn decrypt_file(
@@ -43,7 +43,7 @@ impl<'a> ClientSends<'a> {
 
     pub async fn decrypt_buffer(&self, send: Send, encrypted_buffer: &[u8]) -> Result<Vec<u8>> {
         let enc = self.client.get_encryption_settings()?;
-        let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
+        let key = enc.get_user_key().ok_or(Error::VaultLocked)?;
         let key = Send::get_key(&send.key, key)?;
 
         let buf = EncString::from_buffer(encrypted_buffer)?;
@@ -53,7 +53,7 @@ impl<'a> ClientSends<'a> {
     pub async fn encrypt(&self, send_view: SendView) -> Result<Send> {
         let enc = self.client.get_encryption_settings()?;
 
-        let send = send_view.encrypt(enc, &None)?;
+        let send = send_view.encrypt(enc)?;
 
         Ok(send)
     }
@@ -74,7 +74,7 @@ impl<'a> ClientSends<'a> {
         let key = self
             .client
             .get_encryption_settings()?
-            .get_key(&None)
+            .get_user_key()
             .ok_or(Error::VaultLocked)?;
         let key = Send::get_key(&send.key, key)?;
 

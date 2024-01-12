@@ -21,7 +21,7 @@ use crate::{
         client_settings::{ClientSettings, DeviceType},
         encryption_settings::EncryptionSettings,
     },
-    crypto::SymmetricCryptoKey,
+    crypto::{purpose, SymmetricCryptoKey},
     error::{Error, Result},
 };
 
@@ -235,7 +235,7 @@ impl Client {
     #[cfg(feature = "mobile")]
     pub(crate) fn initialize_user_crypto_decrypted_key(
         &mut self,
-        user_key: SymmetricCryptoKey,
+        user_key: SymmetricCryptoKey<purpose::UserEncryption>,
         private_key: EncString,
     ) -> Result<&EncryptionSettings> {
         self.encryption_settings = Some(EncryptionSettings::new_decrypted_key(
@@ -271,7 +271,7 @@ impl Client {
 
     pub(crate) fn initialize_crypto_single_key(
         &mut self,
-        key: SymmetricCryptoKey,
+        key: SymmetricCryptoKey<purpose::UserEncryption>,
     ) -> &EncryptionSettings {
         self.encryption_settings = Some(EncryptionSettings::new_single_key(key));
         self.encryption_settings.as_ref().unwrap()

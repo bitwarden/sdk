@@ -5,7 +5,7 @@ use rsa::Oaep;
 use serde::Deserialize;
 
 use crate::{
-    crypto::{AsymmetricCryptoKey, KeyDecryptable},
+    crypto::{AsymmetricCryptoKey, KeyDecryptable, KeyPurpose},
     error::{CryptoError, EncStringParseError, Error, Result},
 };
 
@@ -150,8 +150,10 @@ impl AsymmEncString {
     }
 }
 
-impl KeyDecryptable<AsymmetricCryptoKey, Vec<u8>> for AsymmEncString {
-    fn decrypt_with_key(&self, key: &AsymmetricCryptoKey) -> Result<Vec<u8>> {
+impl<Purpose: KeyPurpose> KeyDecryptable<AsymmetricCryptoKey<Purpose>, Purpose, Vec<u8>>
+    for AsymmEncString
+{
+    fn decrypt_with_key(&self, key: &AsymmetricCryptoKey<Purpose>) -> Result<Vec<u8>> {
         use AsymmEncString::*;
         Ok(match self {
             Rsa2048_OaepSha256_B64 { data } => key.key.decrypt(Oaep::new::<sha2::Sha256>(), data),
@@ -169,8 +171,10 @@ impl KeyDecryptable<AsymmetricCryptoKey, Vec<u8>> for AsymmEncString {
     }
 }
 
-impl KeyDecryptable<AsymmetricCryptoKey, String> for AsymmEncString {
-    fn decrypt_with_key(&self, key: &AsymmetricCryptoKey) -> Result<String> {
+impl<Purpose: KeyPurpose> KeyDecryptable<AsymmetricCryptoKey<Purpose>, Purpose, String>
+    for AsymmEncString
+{
+    fn decrypt_with_key(&self, key: &AsymmetricCryptoKey<Purpose>) -> Result<String> {
         let dec: Vec<u8> = self.decrypt_with_key(key)?;
         String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String.into())
     }
@@ -190,7 +194,8 @@ impl schemars::JsonSchema for AsymmEncString {
 
 #[cfg(test)]
 mod tests {
-    use super::AsymmEncString;
+    use super::{AsymmEncString, AsymmetricCryptoKey, KeyDecryptable};
+    use crate::crypto::purpose;
 
     const RSA_PRIVATE_KEY: &str = "-----BEGIN PRIVATE KEY-----
 MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCXRVrCX+2hfOQS
@@ -224,9 +229,8 @@ XKZBokBGnjFnTnKcs7nv/O8=
     #[cfg(feature = "internal")]
     #[test]
     fn test_enc_string_rsa2048_oaep_sha256_b64() {
-        use crate::crypto::{AsymmetricCryptoKey, KeyDecryptable};
-
-        let private_key = AsymmetricCryptoKey::from_pem(RSA_PRIVATE_KEY).unwrap();
+        let private_key =
+            AsymmetricCryptoKey::<purpose::UserOrOrgEncryption>::from_pem(RSA_PRIVATE_KEY).unwrap();
         let enc_str: &str = "3.YFqzW9LL/uLjCnl0RRLtndzGJ1FV27mcwQwGjfJPOVrgCX9nJSUYCCDd0iTIyOZ/zRxG47b6L1Z3qgkEfcxjmrSBq60gijc3E2TBMAg7OCLVcjORZ+i1sOVOudmOPWro6uA8refMrg4lqbieDlbLMzjVEwxfi5WpcL876cD0vYyRwvLO3bzFrsE7x33HHHtZeOPW79RqMn5efsB5Dj9wVheC9Ix9AYDjbo+rjg9qR6guwKmS7k2MSaIQlrDR7yu8LP+ePtiSjx+gszJV5jQGfcx60dtiLQzLS/mUD+RmU7B950Bpx0H7x56lT5yXZbWK5YkoP6qd8B8D2aKbP68Ywg==";
         let enc_string: AsymmEncString = enc_str.parse().unwrap();
 
@@ -239,9 +243,8 @@ XKZBokBGnjFnTnKcs7nv/O8=
     #[cfg(feature = "internal")]
     #[test]
     fn test_enc_string_rsa2048_oaep_sha1_b64() {
-        use crate::crypto::{AsymmetricCryptoKey, KeyDecryptable};
-
-        let private_key = AsymmetricCryptoKey::from_pem(RSA_PRIVATE_KEY).unwrap();
+        let private_key =
+            AsymmetricCryptoKey::<purpose::UserOrOrgEncryption>::from_pem(RSA_PRIVATE_KEY).unwrap();
         let enc_str: &str = "4.ZheRb3PCfAunyFdQYPfyrFqpuvmln9H9w5nDjt88i5A7ug1XE0LJdQHCIYJl0YOZ1gCOGkhFu/CRY2StiLmT3iRKrrVBbC1+qRMjNNyDvRcFi91LWsmRXhONVSPjywzrJJXglsztDqGkLO93dKXNhuKpcmtBLsvgkphk/aFvxbaOvJ/FHdK/iV0dMGNhc/9tbys8laTdwBlI5xIChpRcrfH+XpSFM88+Bu03uK67N9G6eU1UmET+pISJwJvMuIDMqH+qkT7OOzgL3t6I0H2LDj+CnsumnQmDsvQzDiNfTR0IgjpoE9YH2LvPXVP2wVUkiTwXD9cG/E7XeoiduHyHjw==";
         let enc_string: AsymmEncString = enc_str.parse().unwrap();
 
@@ -254,9 +257,8 @@ XKZBokBGnjFnTnKcs7nv/O8=
     #[cfg(feature = "internal")]
     #[test]
     fn test_enc_string_rsa2048_oaep_sha1_hmac_sha256_b64() {
-        use crate::crypto::{AsymmetricCryptoKey, KeyDecryptable};
-
-        let private_key = AsymmetricCryptoKey::from_pem(RSA_PRIVATE_KEY).unwrap();
+        let private_key =
+            AsymmetricCryptoKey::<purpose::UserOrOrgEncryption>::from_pem(RSA_PRIVATE_KEY).unwrap();
         let enc_str: &str = "6.ThnNc67nNr7GELyuhGGfsXNP2zJnNqhrIsjntEQ27r2qmn8vwdHbTbfO0cwt6YgSibDN0PjiCZ1O3Wb/IFq+vwvyRwFqF9145wBF8CQCbkhV+M0XvO99kh0daovtt120Nve/5ETI5PbPag9VdalKRQWZypJaqQHm5TAQVf4F5wtLlCLMBkzqTk+wkFe7BPMTGn07T+O3eJbTxXvyMZewQ7icJF0MZVA7VyWX9qElmZ89FCKowbf1BMr5pbcQ+0KdXcSVW3to43VkTp7k7COwsuH3M/i1AuVP5YN8ixjyRpvaeGqX/ap2nCHK2Wj5VxgCGT7XEls6ZknnAp9nB9qVjQ==|s3ntw5H/KKD/qsS0lUghTHl5Sm9j6m7YEdNHf0OeAFQ=";
         let enc_string: AsymmEncString = enc_str.parse().unwrap();
 

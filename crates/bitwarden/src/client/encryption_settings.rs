@@ -8,12 +8,12 @@ use crate::{
 };
 use uuid::Uuid;
 
-use crate::crypto::{AsymmetricCryptoKey, SymmetricCryptoKey};
+use crate::crypto::{purpose, AsymmetricCryptoKey, SymmetricCryptoKey};
 
 pub struct EncryptionSettings {
-    user_key: SymmetricCryptoKey,
-    pub(crate) private_key: Option<AsymmetricCryptoKey>,
-    org_keys: HashMap<Uuid, SymmetricCryptoKey>,
+    user_key: SymmetricCryptoKey<purpose::UserEncryption>,
+    pub(crate) private_key: Option<AsymmetricCryptoKey<purpose::OrgEncryption>>,
+    org_keys: HashMap<Uuid, SymmetricCryptoKey<purpose::OrgEncryption>>,
 }
 
 impl std::fmt::Debug for EncryptionSettings {
@@ -52,7 +52,7 @@ impl EncryptionSettings {
     /// Otherwise handling the decrypted user key is dangerous and discouraged
     #[cfg(feature = "internal")]
     pub(crate) fn new_decrypted_key(
-        user_key: SymmetricCryptoKey,
+        user_key: SymmetricCryptoKey<purpose::UserEncryption>,
         private_key: EncString,
     ) -> Result<Self> {
         let private_key = {
@@ -69,7 +69,7 @@ impl EncryptionSettings {
 
     /// Initialize the encryption settings with only a single decrypted key.
     /// This is used only for logging in Secrets Manager with an access token
-    pub(crate) fn new_single_key(key: SymmetricCryptoKey) -> Self {
+    pub(crate) fn new_single_key(key: SymmetricCryptoKey<purpose::UserEncryption>) -> Self {
         EncryptionSettings {
             user_key: key,
             private_key: None,
@@ -102,15 +102,18 @@ impl EncryptionSettings {
         Ok(self)
     }
 
-    pub(crate) fn get_key(&self, org_id: &Option<Uuid>) -> Option<&SymmetricCryptoKey> {
-        // If we don't have a private key set (to decode multiple org keys), we just use the main user key
-        if self.private_key.is_none() {
-            return Some(&self.user_key);
-        }
+    pub(crate) fn get_user_key(&self) -> Option<&SymmetricCryptoKey<purpose::UserEncryption>> {
+        Some(&self.user_key)
+    }
 
-        match org_id {
-            Some(org_id) => self.org_keys.get(org_id),
-            None => Some(&self.user_key),
+    pub(crate) fn get_org_key(
+        &self,
+        org_id: Uuid,
+    ) -> Option<&SymmetricCryptoKey<purpose::OrgEncryption>> {
+        // TODO: This hack is needed because EncryptionSettings mixes the concept of the single org key in secrets manager as the user key
+        if self.private_key.is_none() {
+            return Some((&self.user_key).into());
         }
+        self.org_keys.get(&org_id)
     }
 }

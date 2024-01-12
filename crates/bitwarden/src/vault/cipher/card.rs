@@ -3,7 +3,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
+    crypto::{purpose, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
     error::{Error, Result},
 };
 
@@ -31,8 +31,10 @@ pub struct CardView {
     pub number: Option<String>,
 }
 
-impl KeyEncryptable<SymmetricCryptoKey, Card> for CardView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Card> {
+impl KeyEncryptable<SymmetricCryptoKey<purpose::CipherEncryption>, purpose::CipherEncryption, Card>
+    for CardView
+{
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey<purpose::CipherEncryption>) -> Result<Card> {
         Ok(Card {
             cardholder_name: self.cardholder_name.encrypt_with_key(key)?,
             exp_month: self.exp_month.encrypt_with_key(key)?,
@@ -44,8 +46,17 @@ impl KeyEncryptable<SymmetricCryptoKey, Card> for CardView {
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, CardView> for Card {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CardView> {
+impl
+    KeyDecryptable<
+        SymmetricCryptoKey<purpose::CipherEncryption>,
+        purpose::CipherEncryption,
+        CardView,
+    > for Card
+{
+    fn decrypt_with_key(
+        &self,
+        key: &SymmetricCryptoKey<purpose::CipherEncryption>,
+    ) -> Result<CardView> {
         Ok(CardView {
             cardholder_name: self.cardholder_name.decrypt_with_key(key)?,
             exp_month: self.exp_month.decrypt_with_key(key)?,

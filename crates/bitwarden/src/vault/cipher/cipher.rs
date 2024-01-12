@@ -12,7 +12,7 @@ use super::{
 };
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey},
+    crypto::{purpose, EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey},
     error::{Error, Result},
     vault::password_history,
 };
@@ -135,10 +135,19 @@ pub struct CipherListView {
     pub revision_date: DateTime<Utc>,
 }
 
-impl KeyEncryptable<SymmetricCryptoKey, Cipher> for CipherView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Cipher> {
+impl
+    KeyEncryptable<
+        SymmetricCryptoKey<purpose::UserOrOrgEncryption>,
+        purpose::UserOrOrgEncryption,
+        Cipher,
+    > for CipherView
+{
+    fn encrypt_with_key(
+        self,
+        key: &SymmetricCryptoKey<purpose::UserOrOrgEncryption>,
+    ) -> Result<Cipher> {
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
-        let key = ciphers_key.as_ref().unwrap_or(key);
+        let key = ciphers_key.as_ref().unwrap_or_else(|| key.into());
 
         Ok(Cipher {
             id: self.id,
@@ -169,10 +178,19 @@ impl KeyEncryptable<SymmetricCryptoKey, Cipher> for CipherView {
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, CipherView> for Cipher {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CipherView> {
+impl
+    KeyDecryptable<
+        SymmetricCryptoKey<purpose::UserOrOrgEncryption>,
+        purpose::UserOrOrgEncryption,
+        CipherView,
+    > for Cipher
+{
+    fn decrypt_with_key(
+        &self,
+        key: &SymmetricCryptoKey<purpose::UserOrOrgEncryption>,
+    ) -> Result<CipherView> {
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
-        let key = ciphers_key.as_ref().unwrap_or(key);
+        let key = ciphers_key.as_ref().unwrap_or_else(|| key.into());
 
         Ok(CipherView {
             id: self.id,
@@ -209,9 +227,9 @@ impl Cipher {
     /// in which case this will return Ok(None) and the key associated
     /// with this cipher's user or organization must be used instead
     fn get_cipher_key(
-        key: &SymmetricCryptoKey,
+        key: &SymmetricCryptoKey<purpose::UserOrOrgEncryption>,
         ciphers_key: &Option<EncString>,
-    ) -> Result<Option<SymmetricCryptoKey>> {
+    ) -> Result<Option<SymmetricCryptoKey<purpose::CipherEncryption>>> {
         ciphers_key
             .as_ref()
             .map(|k| {
@@ -221,7 +239,10 @@ impl Cipher {
             .transpose()
     }
 
-    fn get_decrypted_subtitle(&self, key: &SymmetricCryptoKey) -> Result<String> {
+    fn get_decrypted_subtitle(
+        &self,
+        key: &SymmetricCryptoKey<purpose::CipherEncryption>,
+    ) -> Result<String> {
         Ok(match self.r#type {
             CipherType::Login => {
                 let Some(login) = &self.login else {
@@ -286,10 +307,19 @@ impl Cipher {
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, CipherListView> for Cipher {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CipherListView> {
+impl
+    KeyDecryptable<
+        SymmetricCryptoKey<purpose::UserOrOrgEncryption>,
+        purpose::UserOrOrgEncryption,
+        CipherListView,
+    > for Cipher
+{
+    fn decrypt_with_key(
+        &self,
+        key: &SymmetricCryptoKey<purpose::UserOrOrgEncryption>,
+    ) -> Result<CipherListView> {
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
-        let key = ciphers_key.as_ref().unwrap_or(key);
+        let key = ciphers_key.as_ref().unwrap_or_else(|| key.into());
 
         Ok(CipherListView {
             id: self.id,
@@ -315,22 +345,26 @@ impl KeyDecryptable<SymmetricCryptoKey, CipherListView> for Cipher {
     }
 }
 
-impl LocateKey for Cipher {
+impl LocateKey<purpose::UserOrOrgEncryption> for Cipher {
     fn locate_key<'a>(
         &self,
         enc: &'a EncryptionSettings,
-        _: &Option<Uuid>,
-    ) -> Option<&'a SymmetricCryptoKey> {
-        enc.get_key(&self.organization_id)
+    ) -> Option<&'a SymmetricCryptoKey<purpose::UserOrOrgEncryption>> {
+        match self.organization_id {
+            Some(org_id) => enc.get_org_key(org_id).map(|k| k.into()),
+            None => enc.get_user_key().map(|k| k.into()),
+        }
     }
 }
-impl LocateKey for CipherView {
+impl LocateKey<purpose::UserOrOrgEncryption> for CipherView {
     fn locate_key<'a>(
         &self,
         enc: &'a EncryptionSettings,
-        _: &Option<Uuid>,
-    ) -> Option<&'a SymmetricCryptoKey> {
-        enc.get_key(&self.organization_id)
+    ) -> Option<&'a SymmetricCryptoKey<purpose::UserOrOrgEncryption>> {
+        match self.organization_id {
+            Some(org_id) => enc.get_org_key(org_id).map(|k| k.into()),
+            None => enc.get_user_key().map(|k| k.into()),
+        }
     }
 }
 

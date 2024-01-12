@@ -2,7 +2,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    crypto::{KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
+    crypto::{purpose, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
     error::Result,
 };
 
@@ -22,8 +22,17 @@ pub struct LocalDataView {
     last_launched: Option<u32>,
 }
 
-impl KeyEncryptable<SymmetricCryptoKey, LocalData> for LocalDataView {
-    fn encrypt_with_key(self, _key: &SymmetricCryptoKey) -> Result<LocalData> {
+impl
+    KeyEncryptable<
+        SymmetricCryptoKey<purpose::CipherEncryption>,
+        purpose::CipherEncryption,
+        LocalData,
+    > for LocalDataView
+{
+    fn encrypt_with_key(
+        self,
+        _key: &SymmetricCryptoKey<purpose::CipherEncryption>,
+    ) -> Result<LocalData> {
         Ok(LocalData {
             last_used_date: self.last_used_date,
             last_launched: self.last_launched,
@@ -31,8 +40,17 @@ impl KeyEncryptable<SymmetricCryptoKey, LocalData> for LocalDataView {
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, LocalDataView> for LocalData {
-    fn decrypt_with_key(&self, _key: &SymmetricCryptoKey) -> Result<LocalDataView> {
+impl
+    KeyDecryptable<
+        SymmetricCryptoKey<purpose::CipherEncryption>,
+        purpose::CipherEncryption,
+        LocalDataView,
+    > for LocalData
+{
+    fn decrypt_with_key(
+        &self,
+        _key: &SymmetricCryptoKey<purpose::CipherEncryption>,
+    ) -> Result<LocalDataView> {
         Ok(LocalDataView {
             last_used_date: self.last_used_date,
             last_launched: self.last_launched,

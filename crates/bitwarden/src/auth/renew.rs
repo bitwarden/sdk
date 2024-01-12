@@ -62,7 +62,7 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
                         Ok(enc_settings),
                     ) = (&result, state_file, client.get_encryption_settings())
                     {
-                        if let Some(enc_key) = enc_settings.get_key(&None) {
+                        if let Some(enc_key) = enc_settings.get_user_key() {
                             let state =
                                 ClientState::new(r.access_token.clone(), enc_key.to_base64());
                             _ = state::set(state_file, access_token, state);

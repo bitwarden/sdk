@@ -6,10 +6,12 @@ use crate::{
     error::Result,
 };
 
-pub(crate) struct UserKey(pub(super) SymmetricCryptoKey);
+use super::purpose;
+
+pub(crate) struct UserKey(pub(super) SymmetricCryptoKey<purpose::UserEncryption>);
 
 impl UserKey {
-    pub(crate) fn new(key: SymmetricCryptoKey) -> Self {
+    pub(crate) fn new(key: SymmetricCryptoKey<purpose::UserEncryption>) -> Self {
         Self(key)
     }
 

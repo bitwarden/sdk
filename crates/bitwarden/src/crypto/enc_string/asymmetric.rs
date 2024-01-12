@@ -5,7 +5,7 @@ use rsa::Oaep;
 use serde::Deserialize;
 
 use crate::{
-    crypto::{AsymmetricCryptoKey, KeyDecryptable},
+    crypto::{rsa::encrypt_rsa2048_oaep_sha1, AsymmetricCryptoKey, KeyDecryptable},
     error::{CryptoError, EncStringParseError, Error, Result},
 };
 
@@ -137,6 +137,14 @@ impl serde::Serialize for AsymmEncString {
 }
 
 impl AsymmEncString {
+    pub(crate) fn encrypt_rsa2048_oaep_sha1(
+        data_dec: &[u8],
+        key: AsymmetricCryptoKey,
+    ) -> Result<AsymmEncString> {
+        let enc = encrypt_rsa2048_oaep_sha1(key.key, data_dec)?;
+        Ok(AsymmEncString::Rsa2048_OaepSha1_B64 { data: enc })
+    }
+
     /// The numerical representation of the encryption type of the [AsymmEncString].
     const fn enc_type(&self) -> u8 {
         match self {

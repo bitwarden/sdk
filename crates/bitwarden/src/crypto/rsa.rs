@@ -18,9 +18,7 @@ pub struct RsaKeyPair {
 }
 
 pub(super) fn make_key_pair(key: &SymmetricCryptoKey) -> Result<RsaKeyPair> {
-    let mut rng = rand::thread_rng();
-    let bits = 2048;
-    let priv_key = RsaPrivateKey::new(&mut rng, bits).expect("failed to generate a key");
+    let priv_key = generate_rsa();
     let pub_key = RsaPublicKey::from(&priv_key);
 
     let spki = pub_key
@@ -38,4 +36,12 @@ pub(super) fn make_key_pair(key: &SymmetricCryptoKey) -> Result<RsaKeyPair> {
         public: b64,
         private: protected,
     })
+}
+
+// TODO: Move this to AsymmCryptoKey
+/// Generate a new random AsymmetricCryptoKey (RSA-2048)
+pub(crate) fn generate_rsa() -> RsaPrivateKey {
+    let mut rng = rand::thread_rng();
+    let bits = 2048;
+    RsaPrivateKey::new(&mut rng, bits).expect("failed to generate a key")
 }

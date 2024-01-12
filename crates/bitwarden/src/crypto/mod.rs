@@ -45,6 +45,8 @@ mod shareable_key;
 pub(crate) use shareable_key::derive_shareable_key;
 
 #[cfg(feature = "internal")]
+mod device_key;
+#[cfg(feature = "internal")]
 mod master_key;
 #[cfg(feature = "internal")]
 pub use master_key::HashPurpose;
@@ -58,7 +60,6 @@ pub(crate) use user_key::UserKey;
 mod rsa;
 #[cfg(feature = "internal")]
 pub use self::rsa::RsaKeyPair;
-
 #[cfg(feature = "internal")]
 mod fingerprint;
 #[cfg(feature = "internal")]

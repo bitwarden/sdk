@@ -18,7 +18,7 @@ pub struct LocalDataView {
     last_launched: Option<u32>,
 }
 
-impl KeyEncryptable<LocalData> for LocalDataView {
+impl KeyEncryptable<SymmetricCryptoKey, LocalData> for LocalDataView {
     fn encrypt_with_key(self, _key: &SymmetricCryptoKey) -> Result<LocalData, CryptoError> {
         Ok(LocalData {
             last_used_date: self.last_used_date,
@@ -27,7 +27,7 @@ impl KeyEncryptable<LocalData> for LocalDataView {
     }
 }
 
-impl KeyDecryptable<LocalDataView> for LocalData {
+impl KeyDecryptable<SymmetricCryptoKey, LocalDataView> for LocalData {
     fn decrypt_with_key(&self, _key: &SymmetricCryptoKey) -> Result<LocalDataView, CryptoError> {
         Ok(LocalDataView {
             last_used_date: self.last_used_date,

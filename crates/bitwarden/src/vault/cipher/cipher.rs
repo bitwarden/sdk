@@ -137,7 +137,7 @@ pub struct CipherListView {
     pub revision_date: DateTime<Utc>,
 }
 
-impl KeyEncryptable<Cipher> for CipherView {
+impl KeyEncryptable<SymmetricCryptoKey, Cipher> for CipherView {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Cipher, CryptoError> {
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let key = ciphers_key.as_ref().unwrap_or(key);
@@ -171,7 +171,7 @@ impl KeyEncryptable<Cipher> for CipherView {
     }
 }
 
-impl KeyDecryptable<CipherView> for Cipher {
+impl KeyDecryptable<SymmetricCryptoKey, CipherView> for Cipher {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CipherView, CryptoError> {
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let key = ciphers_key.as_ref().unwrap_or(key);
@@ -288,7 +288,7 @@ impl Cipher {
     }
 }
 
-impl KeyDecryptable<CipherListView> for Cipher {
+impl KeyDecryptable<SymmetricCryptoKey, CipherListView> for Cipher {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CipherListView, CryptoError> {
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let key = ciphers_key.as_ref().unwrap_or(key);

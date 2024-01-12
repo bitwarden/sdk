@@ -28,7 +28,7 @@ pub trait Decryptable<Output> {
     fn decrypt(&self, enc: &dyn KeyContainer, org_id: &Option<Uuid>) -> Result<Output>;
 }
 
-impl<T: KeyEncryptable<Output> + LocateKey, Output> Encryptable<Output> for T {
+impl<T: KeyEncryptable<SymmetricCryptoKey, Output> + LocateKey, Output> Encryptable<Output> for T {
     fn encrypt(self, enc: &dyn KeyContainer, org_id: &Option<Uuid>) -> Result<Output> {
         let key = self
             .locate_key(enc, org_id)
@@ -37,7 +37,7 @@ impl<T: KeyEncryptable<Output> + LocateKey, Output> Encryptable<Output> for T {
     }
 }
 
-impl<T: KeyDecryptable<Output> + LocateKey, Output> Decryptable<Output> for T {
+impl<T: KeyDecryptable<SymmetricCryptoKey, Output> + LocateKey, Output> Decryptable<Output> for T {
     fn decrypt(&self, enc: &dyn KeyContainer, org_id: &Option<Uuid>) -> Result<Output> {
         let key = self
             .locate_key(enc, org_id)

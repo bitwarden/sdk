@@ -1,17 +1,20 @@
 use std::{fmt::Display, str::FromStr};
 
 use base64::{engine::general_purpose::STANDARD, Engine};
-use rsa::{Oaep, RsaPrivateKey};
+use rsa::Oaep;
 use serde::Deserialize;
 
 use super::{from_b64_vec, split_enc_string};
-use crate::error::{CryptoError, EncStringParseError, Result};
+use crate::{
+    error::{CryptoError, EncStringParseError, Result},
+    AsymmetricCryptoKey, KeyDecryptable,
+};
 
 /// # Encrypted string primitive
 ///
 /// [AsymmEncString] is a Bitwarden specific primitive that represents an asymmetrically encrypted string. They are
 /// are used together with the KeyDecryptable and KeyEncryptable traits to encrypt and decrypt
-/// data using AsymmetricCryptoKeys.
+/// data using [AsymmetricCryptoKey]s.
 ///
 /// The flexibility of the [AsymmEncString] type allows for different encryption algorithms to be used
 /// which is represented by the different variants of the enum.
@@ -95,26 +98,6 @@ impl FromStr for AsymmEncString {
     }
 }
 
-#[allow(unused)]
-impl AsymmEncString {
-    /// TODO: Convert this to a trait method
-    pub fn decrypt(&self, key: &RsaPrivateKey) -> Result<Vec<u8>> {
-        match self {
-            Self::Rsa2048_OaepSha256_B64 { data } => key.decrypt(Oaep::new::<sha2::Sha256>(), data),
-            Self::Rsa2048_OaepSha1_B64 { data } => key.decrypt(Oaep::new::<sha1::Sha1>(), data),
-            #[allow(deprecated)]
-            Self::Rsa2048_OaepSha256_HmacSha256_B64 { data, mac: _ } => {
-                key.decrypt(Oaep::new::<sha2::Sha256>(), data)
-            }
-            #[allow(deprecated)]
-            Self::Rsa2048_OaepSha1_HmacSha256_B64 { data, mac: _ } => {
-                key.decrypt(Oaep::new::<sha1::Sha1>(), data)
-            }
-        }
-        .map_err(|_| CryptoError::KeyDecrypt)
-    }
-}
-
 impl Display for AsymmEncString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let parts: Vec<&[u8]> = match self {
@@ -166,6 +149,32 @@ impl AsymmEncString {
     }
 }
 
+impl KeyDecryptable<AsymmetricCryptoKey, Vec<u8>> for AsymmEncString {
+    fn decrypt_with_key(&self, key: &AsymmetricCryptoKey) -> Result<Vec<u8>> {
+        use AsymmEncString::*;
+        Ok(match self {
+            Rsa2048_OaepSha256_B64 { data } => key.key.decrypt(Oaep::new::<sha2::Sha256>(), data),
+            Rsa2048_OaepSha1_B64 { data } => key.key.decrypt(Oaep::new::<sha1::Sha1>(), data),
+            #[allow(deprecated)]
+            Rsa2048_OaepSha256_HmacSha256_B64 { data, .. } => {
+                key.key.decrypt(Oaep::new::<sha2::Sha256>(), data)
+            }
+            #[allow(deprecated)]
+            Rsa2048_OaepSha1_HmacSha256_B64 { data, .. } => {
+                key.key.decrypt(Oaep::new::<sha1::Sha1>(), data)
+            }
+        }
+        .map_err(|_| CryptoError::KeyDecrypt)?)
+    }
+}
+
+impl KeyDecryptable<AsymmetricCryptoKey, String> for AsymmEncString {
+    fn decrypt_with_key(&self, key: &AsymmetricCryptoKey) -> Result<String> {
+        let dec: Vec<u8> = self.decrypt_with_key(key)?;
+        String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String.into())
+    }
+}
+
 /// Usually we wouldn't want to expose AsymmEncStrings in the API or the schemas.
 /// But during the transition phase we will expose endpoints using the AsymmEncString type.
 impl schemars::JsonSchema for AsymmEncString {
@@ -182,11 +191,7 @@ impl schemars::JsonSchema for AsymmEncString {
 mod tests {
     use super::AsymmEncString;
 
-    #[test]
-    fn test_enc_string_rsa2048_oaep_sha1_hmac_sha256_b64() {
-        use rsa::{pkcs8::DecodePrivateKey, RsaPrivateKey};
-
-        let rsa_private_key: &str = "-----BEGIN PRIVATE KEY-----
+    const RSA_PRIVATE_KEY: &str = "-----BEGIN PRIVATE KEY-----
 MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCXRVrCX+2hfOQS
 8HzYUS2oc/jGVTZpv+/Ryuoh9d8ihYX9dd0cYh2tl6KWdFc88lPUH11Oxqy20Rk2
 e5r/RF6T9yM0Me3NPnaKt+hlhLtfoc0h86LnhD56A9FDUfuI0dVnPcrwNv0YJIo9
@@ -214,15 +219,50 @@ Is3v1kkf5I0X8DnOhwb+HPxNaiEdmO7ckm8+tPVgppLcG0+tMdLjigFQiDUQk2y3
 WjyxP5ZvXu7U96jaJRI8PFMoE06WeVYcdIzrID2HvqH+w0UQJFrLJ/0Mn4stFAEz
 XKZBokBGnjFnTnKcs7nv/O8=
 -----END PRIVATE KEY-----";
-        let private_key = RsaPrivateKey::from_pkcs8_pem(rsa_private_key).unwrap();
+
+    #[cfg(feature = "internal")]
+    #[test]
+    fn test_enc_string_rsa2048_oaep_sha256_b64() {
+        use crate::crypto::{AsymmetricCryptoKey, KeyDecryptable};
+
+        let private_key = AsymmetricCryptoKey::from_pem(RSA_PRIVATE_KEY).unwrap();
+        let enc_str: &str = "3.YFqzW9LL/uLjCnl0RRLtndzGJ1FV27mcwQwGjfJPOVrgCX9nJSUYCCDd0iTIyOZ/zRxG47b6L1Z3qgkEfcxjmrSBq60gijc3E2TBMAg7OCLVcjORZ+i1sOVOudmOPWro6uA8refMrg4lqbieDlbLMzjVEwxfi5WpcL876cD0vYyRwvLO3bzFrsE7x33HHHtZeOPW79RqMn5efsB5Dj9wVheC9Ix9AYDjbo+rjg9qR6guwKmS7k2MSaIQlrDR7yu8LP+ePtiSjx+gszJV5jQGfcx60dtiLQzLS/mUD+RmU7B950Bpx0H7x56lT5yXZbWK5YkoP6qd8B8D2aKbP68Ywg==";
+        let enc_string: AsymmEncString = enc_str.parse().unwrap();
+
+        assert_eq!(enc_string.enc_type(), 3);
+
+        let res: String = enc_string.decrypt_with_key(&private_key).unwrap();
+        assert_eq!(res, "EncryptMe!");
+    }
+
+    #[cfg(feature = "internal")]
+    #[test]
+    fn test_enc_string_rsa2048_oaep_sha1_b64() {
+        use crate::crypto::{AsymmetricCryptoKey, KeyDecryptable};
+
+        let private_key = AsymmetricCryptoKey::from_pem(RSA_PRIVATE_KEY).unwrap();
+        let enc_str: &str = "4.ZheRb3PCfAunyFdQYPfyrFqpuvmln9H9w5nDjt88i5A7ug1XE0LJdQHCIYJl0YOZ1gCOGkhFu/CRY2StiLmT3iRKrrVBbC1+qRMjNNyDvRcFi91LWsmRXhONVSPjywzrJJXglsztDqGkLO93dKXNhuKpcmtBLsvgkphk/aFvxbaOvJ/FHdK/iV0dMGNhc/9tbys8laTdwBlI5xIChpRcrfH+XpSFM88+Bu03uK67N9G6eU1UmET+pISJwJvMuIDMqH+qkT7OOzgL3t6I0H2LDj+CnsumnQmDsvQzDiNfTR0IgjpoE9YH2LvPXVP2wVUkiTwXD9cG/E7XeoiduHyHjw==";
+        let enc_string: AsymmEncString = enc_str.parse().unwrap();
+
+        assert_eq!(enc_string.enc_type(), 4);
+
+        let res: String = enc_string.decrypt_with_key(&private_key).unwrap();
+        assert_eq!(res, "EncryptMe!");
+    }
+
+    #[cfg(feature = "internal")]
+    #[test]
+    fn test_enc_string_rsa2048_oaep_sha1_hmac_sha256_b64() {
+        use crate::crypto::{AsymmetricCryptoKey, KeyDecryptable};
+
+        let private_key = AsymmetricCryptoKey::from_pem(RSA_PRIVATE_KEY).unwrap();
         let enc_str: &str = "6.ThnNc67nNr7GELyuhGGfsXNP2zJnNqhrIsjntEQ27r2qmn8vwdHbTbfO0cwt6YgSibDN0PjiCZ1O3Wb/IFq+vwvyRwFqF9145wBF8CQCbkhV+M0XvO99kh0daovtt120Nve/5ETI5PbPag9VdalKRQWZypJaqQHm5TAQVf4F5wtLlCLMBkzqTk+wkFe7BPMTGn07T+O3eJbTxXvyMZewQ7icJF0MZVA7VyWX9qElmZ89FCKowbf1BMr5pbcQ+0KdXcSVW3to43VkTp7k7COwsuH3M/i1AuVP5YN8ixjyRpvaeGqX/ap2nCHK2Wj5VxgCGT7XEls6ZknnAp9nB9qVjQ==|s3ntw5H/KKD/qsS0lUghTHl5Sm9j6m7YEdNHf0OeAFQ=";
         let enc_string: AsymmEncString = enc_str.parse().unwrap();
 
         assert_eq!(enc_string.enc_type(), 6);
 
-        let res = enc_string.decrypt(&private_key).unwrap();
-
-        assert_eq!(std::str::from_utf8(&res).unwrap(), "EncryptMe!");
+        let res: String = enc_string.decrypt_with_key(&private_key).unwrap();
+        assert_eq!(res, "EncryptMe!");
     }
 
     #[test]

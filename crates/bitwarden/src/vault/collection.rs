@@ -45,7 +45,7 @@ impl LocateKey for Collection {
         enc.get_key(&Some(self.organization_id))
     }
 }
-impl KeyDecryptable<CollectionView> for Collection {
+impl KeyDecryptable<SymmetricCryptoKey, CollectionView> for Collection {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CollectionView, CryptoError> {
         Ok(CollectionView {
             id: self.id,

@@ -6,10 +6,12 @@ use rand::Rng;
 
 use crate::CryptoError;
 
+use super::key_encryptable::CryptoKey;
+
 /// A symmetric encryption key. Used to encrypt and decrypt [`EncString`](crate::EncString)
 pub struct SymmetricCryptoKey {
-    pub key: GenericArray<u8, U32>,
-    pub mac_key: Option<GenericArray<u8, U32>>,
+    pub(crate) key: GenericArray<u8, U32>,
+    pub(crate) mac_key: Option<GenericArray<u8, U32>>,
 }
 
 impl SymmetricCryptoKey {
@@ -80,10 +82,12 @@ impl TryFrom<&[u8]> for SymmetricCryptoKey {
     }
 }
 
+impl CryptoKey for SymmetricCryptoKey {}
+
 // We manually implement these to make sure we don't print any sensitive data
 impl std::fmt::Debug for SymmetricCryptoKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Key").finish()
+        f.debug_struct("SymmetricCryptoKey").finish()
     }
 }
 

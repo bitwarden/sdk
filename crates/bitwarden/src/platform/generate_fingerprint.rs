@@ -1,7 +1,6 @@
 use base64::{engine::general_purpose::STANDARD, Engine};
 use bitwarden_crypto::fingerprint;
 use log::info;
-use rsa::pkcs8::EncodePublicKey;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -45,12 +44,8 @@ pub(crate) fn generate_user_fingerprint(
         .as_ref()
         .ok_or("Missing private key")?;
 
-    let public_key = private_key
-        .to_public_key()
-        .to_public_key_der()
-        .map_err(|_| "Invalid key")?;
-
-    let fingerprint = fingerprint(&fingerprint_material, public_key.as_bytes())?;
+    let public_key = private_key.to_public_der()?;
+    let fingerprint = fingerprint(&fingerprint_material, &public_key)?;
 
     Ok(fingerprint)
 }

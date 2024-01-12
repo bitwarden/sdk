@@ -27,7 +27,7 @@ pub struct SecureNoteView {
     r#type: SecureNoteType,
 }
 
-impl KeyEncryptable<SecureNote> for SecureNoteView {
+impl KeyEncryptable<SymmetricCryptoKey, SecureNote> for SecureNoteView {
     fn encrypt_with_key(self, _key: &SymmetricCryptoKey) -> Result<SecureNote, CryptoError> {
         Ok(SecureNote {
             r#type: self.r#type,
@@ -35,7 +35,7 @@ impl KeyEncryptable<SecureNote> for SecureNoteView {
     }
 }
 
-impl KeyDecryptable<SecureNoteView> for SecureNote {
+impl KeyDecryptable<SymmetricCryptoKey, SecureNoteView> for SecureNote {
     fn decrypt_with_key(&self, _key: &SymmetricCryptoKey) -> Result<SecureNoteView, CryptoError> {
         Ok(SecureNoteView {
             r#type: self.r#type,

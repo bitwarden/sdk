@@ -11,6 +11,8 @@ mod symmetric_crypto_key;
 #[cfg(test)]
 pub use symmetric_crypto_key::derive_symmetric_key;
 pub use symmetric_crypto_key::SymmetricCryptoKey;
+mod asymmetric_crypto_key;
+pub use asymmetric_crypto_key::AsymmetricCryptoKey;
 
 mod user_key;
 pub use user_key::UserKey;

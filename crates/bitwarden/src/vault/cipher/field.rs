@@ -41,7 +41,7 @@ pub struct FieldView {
     linked_id: Option<LinkedIdType>,
 }
 
-impl KeyEncryptable<Field> for FieldView {
+impl KeyEncryptable<SymmetricCryptoKey, Field> for FieldView {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Field> {
         Ok(Field {
             name: self.name.encrypt_with_key(key)?,
@@ -52,7 +52,7 @@ impl KeyEncryptable<Field> for FieldView {
     }
 }
 
-impl KeyDecryptable<FieldView> for Field {
+impl KeyDecryptable<SymmetricCryptoKey, FieldView> for Field {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<FieldView> {
         Ok(FieldView {
             name: self.name.decrypt_with_key(key)?,

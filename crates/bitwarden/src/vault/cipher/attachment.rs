@@ -45,14 +45,14 @@ pub struct AttachmentFileView<'a> {
     pub contents: &'a [u8],
 }
 
-impl<'a> KeyEncryptable<EncString> for AttachmentFileView<'a> {
+impl<'a> KeyEncryptable<SymmetricCryptoKey, EncString> for AttachmentFileView<'a> {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<EncString> {
         let file_key = Attachment::get_attachment_file_key(&self.attachment, &self.cipher, key)?;
         self.contents.encrypt_with_key(&file_key)
     }
 }
 
-impl KeyDecryptable<Vec<u8>> for AttachmentFile {
+impl KeyDecryptable<SymmetricCryptoKey, Vec<u8>> for AttachmentFile {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
         let file_key = Attachment::get_attachment_file_key(&self.attachment, &self.cipher, key)?;
         self.contents.decrypt_with_key(&file_key)
@@ -78,7 +78,7 @@ impl Attachment {
     }
 }
 
-impl KeyEncryptable<Attachment> for AttachmentView {
+impl KeyEncryptable<SymmetricCryptoKey, Attachment> for AttachmentView {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Attachment> {
         Ok(Attachment {
             id: self.id,
@@ -91,7 +91,7 @@ impl KeyEncryptable<Attachment> for AttachmentView {
     }
 }
 
-impl KeyDecryptable<AttachmentView> for Attachment {
+impl KeyDecryptable<SymmetricCryptoKey, AttachmentView> for Attachment {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<AttachmentView> {
         Ok(AttachmentView {
             id: self.id.clone(),

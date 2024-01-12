@@ -64,7 +64,7 @@ pub struct LoginView {
     pub autofill_on_page_load: Option<bool>,
 }
 
-impl KeyEncryptable<LoginUri> for LoginUriView {
+impl KeyEncryptable<SymmetricCryptoKey, LoginUri> for LoginUriView {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<LoginUri> {
         Ok(LoginUri {
             uri: self.uri.encrypt_with_key(key)?,
@@ -73,7 +73,7 @@ impl KeyEncryptable<LoginUri> for LoginUriView {
     }
 }
 
-impl KeyEncryptable<Login> for LoginView {
+impl KeyEncryptable<SymmetricCryptoKey, Login> for LoginView {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Login> {
         Ok(Login {
             username: self.username.encrypt_with_key(key)?,
@@ -86,7 +86,7 @@ impl KeyEncryptable<Login> for LoginView {
     }
 }
 
-impl KeyDecryptable<LoginUriView> for LoginUri {
+impl KeyDecryptable<SymmetricCryptoKey, LoginUriView> for LoginUri {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<LoginUriView> {
         Ok(LoginUriView {
             uri: self.uri.decrypt_with_key(key)?,
@@ -95,7 +95,7 @@ impl KeyDecryptable<LoginUriView> for LoginUri {
     }
 }
 
-impl KeyDecryptable<LoginView> for Login {
+impl KeyDecryptable<SymmetricCryptoKey, LoginView> for Login {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<LoginView> {
         Ok(LoginView {
             username: self.username.decrypt_with_key(key)?,

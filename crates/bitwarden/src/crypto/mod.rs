@@ -2,7 +2,7 @@
 //!
 //! This module contains the cryptographic primitives used throughout the SDK. The module makes a
 //! best effort to abstract away cryptographic concepts into concepts such as
-//! [`EncString`] and [`SymmetricCryptoKey`].
+//! [`EncString`], [`SymmetricCryptoKey`] and [`AsymmetricCryptoKey`].
 //!
 //! ## Conventions:
 //!
@@ -23,6 +23,7 @@
 
 use aes::cipher::{generic_array::GenericArray, ArrayLength, Unsigned};
 use hmac::digest::OutputSizeUser;
+#[cfg(any(test, feature = "internal"))]
 use rand::{
     distributions::{Distribution, Standard},
     Rng,
@@ -35,11 +36,14 @@ pub use enc_string::{AsymmEncString, EncString};
 mod encryptable;
 pub use encryptable::{Decryptable, Encryptable, LocateKey};
 mod key_encryptable;
-pub use key_encryptable::{KeyDecryptable, KeyEncryptable};
+pub use key_encryptable::{CryptoKey, KeyDecryptable, KeyEncryptable};
 mod aes_ops;
 use aes_ops::{decrypt_aes256_hmac, encrypt_aes256_hmac};
 mod symmetric_crypto_key;
 pub use symmetric_crypto_key::SymmetricCryptoKey;
+mod asymmetric_crypto_key;
+pub use asymmetric_crypto_key::AsymmetricCryptoKey;
+
 mod shareable_key;
 pub(crate) use shareable_key::derive_shareable_key;
 
@@ -79,9 +83,15 @@ fn hkdf_expand<T: ArrayLength<u8>>(prk: &[u8], info: Option<&str>) -> Result<Gen
 }
 
 /// Generate random bytes that are cryptographically secure
+#[cfg(any(test, feature = "internal"))]
 pub(crate) fn generate_random_bytes<T>() -> T
 where
     Standard: Distribution<T>,
 {
     rand::thread_rng().gen()
+}
+
+pub fn pbkdf2(password: &[u8], salt: &[u8], rounds: u32) -> [u8; PBKDF_SHA256_HMAC_OUT_SIZE] {
+    pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(password, salt, rounds)
+        .expect("hash is a valid fixed size")
 }

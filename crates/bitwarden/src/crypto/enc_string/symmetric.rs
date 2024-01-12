@@ -227,13 +227,13 @@ impl EncString {
 }
 
 impl LocateKey for EncString {}
-impl KeyEncryptable<EncString> for &[u8] {
+impl KeyEncryptable<SymmetricCryptoKey, EncString> for &[u8] {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<EncString> {
         EncString::encrypt_aes256_hmac(self, key.mac_key.ok_or(CryptoError::InvalidMac)?, key.key)
     }
 }
 
-impl KeyDecryptable<Vec<u8>> for EncString {
+impl KeyDecryptable<SymmetricCryptoKey, Vec<u8>> for EncString {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
         match self {
             EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
@@ -246,13 +246,13 @@ impl KeyDecryptable<Vec<u8>> for EncString {
     }
 }
 
-impl KeyEncryptable<EncString> for String {
+impl KeyEncryptable<SymmetricCryptoKey, EncString> for String {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<EncString> {
         self.as_bytes().encrypt_with_key(key)
     }
 }
 
-impl KeyDecryptable<String> for EncString {
+impl KeyDecryptable<SymmetricCryptoKey, String> for EncString {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<String> {
         let dec: Vec<u8> = self.decrypt_with_key(key)?;
         String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String.into())

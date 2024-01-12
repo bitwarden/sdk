@@ -31,7 +31,7 @@ pub struct AttachmentView {
     pub key: Option<EncString>,
 }
 
-impl KeyEncryptable<Attachment> for AttachmentView {
+impl KeyEncryptable<SymmetricCryptoKey, Attachment> for AttachmentView {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Attachment> {
         Ok(Attachment {
             id: self.id,
@@ -44,7 +44,7 @@ impl KeyEncryptable<Attachment> for AttachmentView {
     }
 }
 
-impl KeyDecryptable<AttachmentView> for Attachment {
+impl KeyDecryptable<SymmetricCryptoKey, AttachmentView> for Attachment {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<AttachmentView> {
         Ok(AttachmentView {
             id: self.id.clone(),

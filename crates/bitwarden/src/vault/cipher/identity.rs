@@ -55,7 +55,7 @@ pub struct IdentityView {
     pub license_number: Option<String>,
 }
 
-impl KeyEncryptable<Identity> for IdentityView {
+impl KeyEncryptable<SymmetricCryptoKey, Identity> for IdentityView {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Identity> {
         Ok(Identity {
             title: self.title.encrypt_with_key(key)?,
@@ -80,7 +80,7 @@ impl KeyEncryptable<Identity> for IdentityView {
     }
 }
 
-impl KeyDecryptable<IdentityView> for Identity {
+impl KeyDecryptable<SymmetricCryptoKey, IdentityView> for Identity {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<IdentityView> {
         Ok(IdentityView {
             title: self.title.decrypt_with_key(key)?,

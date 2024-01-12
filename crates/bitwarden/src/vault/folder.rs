@@ -28,7 +28,7 @@ pub struct FolderView {
 }
 
 impl LocateKey for FolderView {}
-impl KeyEncryptable<Folder> for FolderView {
+impl KeyEncryptable<SymmetricCryptoKey, Folder> for FolderView {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Folder> {
         Ok(Folder {
             id: self.id,
@@ -39,7 +39,7 @@ impl KeyEncryptable<Folder> for FolderView {
 }
 
 impl LocateKey for Folder {}
-impl KeyDecryptable<FolderView> for Folder {
+impl KeyDecryptable<SymmetricCryptoKey, FolderView> for Folder {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<FolderView> {
         Ok(FolderView {
             id: self.id,

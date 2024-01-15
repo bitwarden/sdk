@@ -28,14 +28,16 @@ cargo run -p uniffi-bindgen generate \
   --out-dir tmp/bindings
 
 # Move generated swift bindings
-mv ./tmp/bindings/BitwardenSDK.swift ./Sources/BitwardenSdk/
 mv ./tmp/bindings/BitwardenCore.swift ./Sources/BitwardenSdk/
+mv ./tmp/bindings/BitwardenCrypto.swift ./Sources/BitwardenSdk/
+mv ./tmp/bindings/BitwardenSDK.swift ./Sources/BitwardenSdk/
 
 # Massage the generated files to fit xcframework
 mkdir tmp/Headers
-mv ./tmp/bindings/BitwardenFFI.h ./tmp/Headers/
 mv ./tmp/bindings/BitwardenCoreFFI.h ./tmp/Headers/
-cat ./tmp/bindings/BitwardenFFI.modulemap ./tmp/bindings/BitwardenCoreFFI.modulemap > ./tmp/Headers/module.modulemap
+mv ./tmp/bindings/BitwardenCryptoFFI.h ./tmp/Headers/
+mv ./tmp/bindings/BitwardenFFI.h ./tmp/Headers/
+cat ./tmp/bindings/BitwardenFFI.modulemap ./tmp/bindings/BitwardenCoreFFI.modulemap ./tmp/bindings/BitwardenCryptoFFI.modulemap > ./tmp/Headers/module.modulemap
 
 # Build xcframework
 xcodebuild -create-xcframework \

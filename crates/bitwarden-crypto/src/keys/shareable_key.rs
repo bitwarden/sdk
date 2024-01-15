@@ -1,13 +1,13 @@
 use aes::cipher::{generic_array::GenericArray, typenum::U64};
 use hmac::{Hmac, Mac};
 
-use crate::crypto::{hkdf_expand, SymmetricCryptoKey};
+use crate::{keys::SymmetricCryptoKey, util::hkdf_expand};
 
 /// Derive a shareable key using hkdf from secret and name.
 ///
 /// A specialized variant of this function was called `CryptoService.makeSendKey` in the Bitwarden
 /// `clients` repository.
-pub(crate) fn derive_shareable_key(
+pub fn derive_shareable_key(
     secret: [u8; 16],
     name: &str,
     info: Option<&str>,

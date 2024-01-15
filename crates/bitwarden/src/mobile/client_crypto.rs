@@ -1,13 +1,14 @@
 use crate::Client;
 #[cfg(feature = "internal")]
 use crate::{
-    crypto::EncString,
     error::Result,
     mobile::crypto::{
         derive_pin_key, derive_pin_user_key, get_user_encryption_key, initialize_org_crypto,
         initialize_user_crypto, DerivePinKeyResponse, InitOrgCryptoRequest, InitUserCryptoRequest,
     },
 };
+#[cfg(feature = "internal")]
+use bitwarden_crypto::EncString;
 
 pub struct ClientCrypto<'a> {
     pub(crate) client: &'a mut crate::Client,

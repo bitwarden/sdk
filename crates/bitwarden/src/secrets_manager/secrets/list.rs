@@ -1,13 +1,13 @@
 use bitwarden_api_api::models::{
     SecretWithProjectsListResponseModel, SecretsWithProjectsInnerSecret,
 };
+use bitwarden_crypto::{Decryptable, EncString};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
     client::{encryption_settings::EncryptionSettings, Client},
-    crypto::{Decryptable, EncString},
     error::{Error, Result},
 };
 

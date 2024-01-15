@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
-use bitwarden::{
-    crypto::EncString,
-    mobile::crypto::{DerivePinKeyResponse, InitOrgCryptoRequest, InitUserCryptoRequest},
+use bitwarden::mobile::crypto::{
+    DerivePinKeyResponse, InitOrgCryptoRequest, InitUserCryptoRequest,
 };
+use bitwarden_crypto::EncString;
 
 use crate::{error::Result, Client};
 

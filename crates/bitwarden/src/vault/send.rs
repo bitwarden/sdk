@@ -3,19 +3,17 @@ use base64::{
     Engine,
 };
 use bitwarden_api_api::models::{SendFileModel, SendResponseModel, SendTextModel};
+use bitwarden_crypto::{
+    derive_shareable_key, generate_random_bytes, CryptoError, EncString, KeyDecryptable,
+    KeyEncryptable, LocateKey, SymmetricCryptoKey,
+};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use uuid::Uuid;
 
-use crate::{
-    crypto::{
-        derive_shareable_key, generate_random_bytes, EncString, KeyDecryptable, KeyEncryptable,
-        LocateKey, SymmetricCryptoKey,
-    },
-    error::{CryptoError, Error, Result},
-};
+use crate::error::{Error, Result};
 
 const SEND_ITERATIONS: u32 = 100_000;
 
@@ -145,19 +143,19 @@ impl Send {
     pub(crate) fn get_key(
         send_key: &EncString,
         enc_key: &SymmetricCryptoKey,
-    ) -> Result<SymmetricCryptoKey> {
+    ) -> Result<SymmetricCryptoKey, CryptoError> {
         let key: Vec<u8> = send_key.decrypt_with_key(enc_key)?;
         Self::derive_shareable_key(&key)
     }
 
-    fn derive_shareable_key(key: &[u8]) -> Result<SymmetricCryptoKey, Error> {
+    fn derive_shareable_key(key: &[u8]) -> Result<SymmetricCryptoKey, CryptoError> {
         let key = key.try_into().map_err(|_| CryptoError::InvalidKeyLen)?;
         Ok(derive_shareable_key(key, "send", Some("send")))
     }
 }
 
 impl KeyDecryptable<SymmetricCryptoKey, SendTextView> for SendText {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendTextView> {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendTextView, CryptoError> {
         Ok(SendTextView {
             text: self.text.decrypt_with_key(key)?,
             hidden: self.hidden,
@@ -166,7 +164,7 @@ impl KeyDecryptable<SymmetricCryptoKey, SendTextView> for SendText {
 }
 
 impl KeyEncryptable<SymmetricCryptoKey, SendText> for SendTextView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<SendText> {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<SendText, CryptoError> {
         Ok(SendText {
             text: self.text.encrypt_with_key(key)?,
             hidden: self.hidden,
@@ -175,7 +173,7 @@ impl KeyEncryptable<SymmetricCryptoKey, SendText> for SendTextView {
 }
 
 impl KeyDecryptable<SymmetricCryptoKey, SendFileView> for SendFile {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendFileView> {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendFileView, CryptoError> {
         Ok(SendFileView {
             id: self.id.clone(),
             file_name: self.file_name.decrypt_with_key(key)?,
@@ -186,7 +184,7 @@ impl KeyDecryptable<SymmetricCryptoKey, SendFileView> for SendFile {
 }
 
 impl KeyEncryptable<SymmetricCryptoKey, SendFile> for SendFileView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<SendFile> {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<SendFile, CryptoError> {
         Ok(SendFile {
             id: self.id.clone(),
             file_name: self.file_name.encrypt_with_key(key)?,
@@ -198,7 +196,7 @@ impl KeyEncryptable<SymmetricCryptoKey, SendFile> for SendFileView {
 
 impl LocateKey for Send {}
 impl KeyDecryptable<SymmetricCryptoKey, SendView> for Send {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendView> {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendView, CryptoError> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
         // For the rest of the fields, we ignore the provided SymmetricCryptoKey and the stretched key
         let k: Vec<u8> = self.key.decrypt_with_key(key)?;
@@ -231,7 +229,7 @@ impl KeyDecryptable<SymmetricCryptoKey, SendView> for Send {
 }
 
 impl KeyDecryptable<SymmetricCryptoKey, SendListView> for Send {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendListView> {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendListView, CryptoError> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
         // For the rest of the fields, we ignore the provided SymmetricCryptoKey and the stretched key
         let key = Send::get_key(&self.key, key)?;
@@ -254,7 +252,7 @@ impl KeyDecryptable<SymmetricCryptoKey, SendListView> for Send {
 
 impl LocateKey for SendView {}
 impl KeyEncryptable<SymmetricCryptoKey, Send> for SendView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Send> {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Send, CryptoError> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
         // For the rest of the fields, we ignore the provided SymmetricCryptoKey and the stretched key
         let k = match (self.key, self.id) {
@@ -268,7 +266,7 @@ impl KeyEncryptable<SymmetricCryptoKey, Send> for SendView {
                 key.to_vec()
             }
             // Existing send without key
-            _ => return Err(CryptoError::InvalidKey.into()),
+            _ => return Err(CryptoError::InvalidKey),
         };
         let send_key = Send::derive_shareable_key(&k)?;
 
@@ -280,7 +278,7 @@ impl KeyEncryptable<SymmetricCryptoKey, Send> for SendView {
             notes: self.notes.encrypt_with_key(&send_key)?,
             key: k.encrypt_with_key(key)?,
             password: self.new_password.map(|password| {
-                let password = crate::crypto::pbkdf2(password.as_bytes(), &k, SEND_ITERATIONS);
+                let password = bitwarden_crypto::pbkdf2(password.as_bytes(), &k, SEND_ITERATIONS);
                 STANDARD.encode(password)
             }),
 
@@ -360,10 +358,11 @@ impl TryFrom<SendTextModel> for SendText {
 
 #[cfg(test)]
 mod tests {
+    use bitwarden_crypto::{KeyDecryptable, KeyEncryptable};
+
     use super::{Send, SendText, SendTextView, SendType};
     use crate::{
-        client::{encryption_settings::EncryptionSettings, kdf::Kdf, UserLoginMethod},
-        crypto::{KeyDecryptable, KeyEncryptable},
+        client::{encryption_settings::EncryptionSettings, Kdf, UserLoginMethod},
         vault::SendView,
     };
 

@@ -12,13 +12,13 @@ pub struct DeviceKey(SymmetricCryptoKey);
 
 #[derive(Debug)]
 pub struct CreateDeviceKey {
-    device_key: DeviceKey,
+    pub device_key: DeviceKey,
     /// UserKey encrypted with DevicePublicKey
-    protected_user_key: AsymmEncString,
+    pub protected_user_key: AsymmEncString,
     /// DevicePrivateKey encrypted with [DeviceKey]
-    protected_device_private_key: EncString,
+    pub protected_device_private_key: EncString,
     /// DevicePublicKey encrypted with [UserKey](super::UserKey)
-    protected_device_public_key: EncString,
+    pub protected_device_public_key: EncString,
 }
 
 // We need to support the following scenarios:

@@ -1,8 +1,9 @@
 use std::path::Path;
 
+use bitwarden_crypto::{Decryptable, EncString, Encryptable, KeyDecryptable, KeyEncryptable};
+
 use super::client_vault::ClientVault;
 use crate::{
-    crypto::{Decryptable, EncString, Encryptable, KeyDecryptable, KeyEncryptable},
     error::{Error, Result},
     vault::{Send, SendListView, SendView},
     Client,
@@ -47,7 +48,7 @@ impl<'a> ClientSends<'a> {
         let key = Send::get_key(&send.key, key)?;
 
         let buf = EncString::from_buffer(encrypted_buffer)?;
-        buf.decrypt_with_key(&key)
+        Ok(buf.decrypt_with_key(&key)?)
     }
 
     pub async fn encrypt(&self, send_view: SendView) -> Result<Send> {
@@ -79,7 +80,7 @@ impl<'a> ClientSends<'a> {
         let key = Send::get_key(&send.key, key)?;
 
         let enc = buffer.encrypt_with_key(&key)?;
-        enc.to_buffer()
+        Ok(enc.to_buffer()?)
     }
 }
 

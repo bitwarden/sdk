@@ -1,3 +1,4 @@
+/// Encrypted string types
 mod asymmetric;
 mod symmetric;
 
@@ -9,7 +10,6 @@ pub use symmetric::EncString;
 
 use crate::error::{EncStringParseError, Result};
 
-#[cfg(feature = "mobile")]
 fn check_length(buf: &[u8], expected: usize) -> Result<()> {
     if buf.len() < expected {
         return Err(EncStringParseError::InvalidLength {

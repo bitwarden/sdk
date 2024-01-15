@@ -346,26 +346,18 @@ checksum = "327762f6e5a765692301e5bb513e0d9fef63be86bbc14528052b1cd3e6f03e07"
 name = "bitwarden"
 version = "0.4.0"
 dependencies = [
- "aes",
- "argon2",
  "base64 0.21.5",
  "bitwarden-api-api",
  "bitwarden-api-identity",
- "cbc",
+ "bitwarden-crypto",
  "chrono",
  "data-encoding",
  "getrandom 0.2.11",
- "hkdf",
  "hmac",
- "lazy_static",
  "log",
- "num-bigint",
- "num-traits",
- "pbkdf2",
  "rand 0.8.5",
  "rand_chacha 0.3.1",
  "reqwest",
- "rsa",
  "rustls-platform-verifier",
  "schemars",
  "serde",
@@ -374,7 +366,6 @@ dependencies = [
  "serde_repr",
  "sha1",
  "sha2",
- "subtle",
  "thiserror",
  "tokio",
  "uniffi",
@@ -429,6 +420,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "bitwarden-crypto"
+version = "0.1.0"
+dependencies = [
+ "aes",
+ "argon2",
+ "base64 0.21.5",
+ "cbc",
+ "hkdf",
+ "hmac",
+ "num-bigint",
+ "num-traits",
+ "pbkdf2",
+ "rand 0.8.5",
+ "rand_chacha 0.3.1",
+ "rsa",
+ "schemars",
+ "serde",
+ "serde_json",
+ "sha1",
+ "sha2",
+ "subtle",
+ "thiserror",
+ "uniffi",
+ "uuid",
+]
+
+[[package]]
 name = "bitwarden-json"
 version = "0.3.0"
 dependencies = [
@@ -469,6 +487,7 @@ version = "0.1.0"
 dependencies = [
  "async-lock",
  "bitwarden",
+ "bitwarden-crypto",
  "chrono",
  "env_logger",
  "schemars",

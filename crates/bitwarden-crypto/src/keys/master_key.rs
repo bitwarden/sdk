@@ -1,10 +1,29 @@
+use std::num::NonZeroU32;
+
 use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::{engine::general_purpose::STANDARD, Engine};
 use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 use sha2::Digest;
 
-use super::{hkdf_expand, EncString, KeyDecryptable, SymmetricCryptoKey, UserKey};
-use crate::{client::kdf::Kdf, error::Result};
+use crate::{
+    util::{self, hkdf_expand},
+    EncString, KeyDecryptable, Result, SymmetricCryptoKey, UserKey,
+};
+
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+pub enum Kdf {
+    PBKDF2 {
+        iterations: NonZeroU32,
+    },
+    Argon2id {
+        iterations: NonZeroU32,
+        memory: NonZeroU32,
+        parallelism: NonZeroU32,
+    },
+}
 
 #[derive(Copy, Clone, JsonSchema)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
@@ -13,8 +32,10 @@ pub enum HashPurpose {
     LocalAuthorization = 2,
 }
 
-/// A Master Key.
-pub(crate) struct MasterKey(SymmetricCryptoKey);
+/// Master Key.
+///
+/// Derived from the users master password, used to protect the [UserKey].
+pub struct MasterKey(SymmetricCryptoKey);
 
 impl MasterKey {
     /// Derives a users master key from their password, email and KDF.
@@ -22,29 +43,27 @@ impl MasterKey {
         derive_key(password, email, kdf).map(Self)
     }
 
-    /// Derive the master key hash, used for server authorization.
-    pub(crate) fn derive_master_key_hash(
-        &self,
-        password: &[u8],
-        purpose: HashPurpose,
-    ) -> Result<String> {
-        let hash = super::pbkdf2(&self.0.key, password, purpose as u32);
+    /// Derive the master key hash, used for local and remote password validation.
+    pub fn derive_master_key_hash(&self, password: &[u8], purpose: HashPurpose) -> Result<String> {
+        let hash = util::pbkdf2(&self.0.key, password, purpose as u32);
 
         Ok(STANDARD.encode(hash))
     }
 
-    pub(crate) fn make_user_key(&self) -> Result<(UserKey, EncString)> {
+    /// Generate a new random user key and encrypt it with the master key.
+    pub fn make_user_key(&self) -> Result<(UserKey, EncString)> {
         make_user_key(rand::thread_rng(), self)
     }
 
-    pub(crate) fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey> {
+    /// Decrypt the users user key
+    pub fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey> {
         let stretched_key = stretch_master_key(self)?;
 
         let dec: Vec<u8> = user_key.decrypt_with_key(&stretched_key)?;
         SymmetricCryptoKey::try_from(dec.as_slice())
     }
 
-    pub(crate) fn encrypt_user_key(&self, user_key: &SymmetricCryptoKey) -> Result<EncString> {
+    pub fn encrypt_user_key(&self, user_key: &SymmetricCryptoKey) -> Result<EncString> {
         let stretched_key = stretch_master_key(self)?;
 
         EncString::encrypt_aes256_hmac(
@@ -68,7 +87,7 @@ fn make_user_key(
 /// Derive a generic key from a secret and salt using the provided KDF.
 fn derive_key(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<SymmetricCryptoKey> {
     let hash = match kdf {
-        Kdf::PBKDF2 { iterations } => super::pbkdf2(secret, salt, iterations.get()),
+        Kdf::PBKDF2 { iterations } => crate::util::pbkdf2(secret, salt, iterations.get()),
 
         Kdf::Argon2id {
             iterations,
@@ -117,11 +136,8 @@ mod tests {
 
     use rand::SeedableRng;
 
-    use super::{make_user_key, stretch_master_key, HashPurpose, MasterKey};
-    use crate::{
-        client::kdf::Kdf,
-        crypto::{symmetric_crypto_key::derive_symmetric_key, SymmetricCryptoKey},
-    };
+    use super::{make_user_key, stretch_master_key, HashPurpose, Kdf, MasterKey};
+    use crate::{keys::symmetric_crypto_key::derive_symmetric_key, SymmetricCryptoKey};
 
     #[test]
     fn test_master_key_derive_pbkdf2() {

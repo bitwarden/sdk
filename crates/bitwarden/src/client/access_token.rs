@@ -1,13 +1,10 @@
 use std::{fmt::Debug, str::FromStr};
 
 use base64::Engine;
+use bitwarden_crypto::{derive_shareable_key, SymmetricCryptoKey};
 use uuid::Uuid;
 
-use crate::{
-    crypto::{derive_shareable_key, SymmetricCryptoKey},
-    error::AccessTokenInvalidError,
-    util::STANDARD_INDIFFERENT,
-};
+use crate::{error::AccessTokenInvalidError, util::STANDARD_INDIFFERENT};
 
 pub struct AccessToken {
     pub access_token_id: Uuid,

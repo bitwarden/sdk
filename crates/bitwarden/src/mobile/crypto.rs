@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
+use bitwarden_crypto::{AsymmEncString, EncString};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    client::kdf::Kdf,
-    crypto::{AsymmEncString, EncString},
+    client::Kdf,
     error::{Error, Result},
     Client,
 };
@@ -50,7 +50,7 @@ pub enum InitUserCryptoMethod {
 
 #[cfg(feature = "internal")]
 pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequest) -> Result<()> {
-    use crate::crypto::SymmetricCryptoKey;
+    use bitwarden_crypto::SymmetricCryptoKey;
 
     let login_method = crate::client::LoginMethod::User(crate::client::UserLoginMethod::Username {
         client_id: "".to_string(),
@@ -118,10 +118,9 @@ pub struct DerivePinKeyResponse {
 
 #[cfg(feature = "internal")]
 pub fn derive_pin_key(client: &mut Client, pin: String) -> Result<DerivePinKeyResponse> {
-    use crate::{
-        client::{LoginMethod, UserLoginMethod},
-        crypto::{KeyEncryptable, MasterKey},
-    };
+    use bitwarden_crypto::{KeyEncryptable, MasterKey};
+
+    use crate::client::{LoginMethod, UserLoginMethod};
 
     let derived_key = match &client.login_method {
         Some(LoginMethod::User(
@@ -145,7 +144,7 @@ pub fn derive_pin_key(client: &mut Client, pin: String) -> Result<DerivePinKeyRe
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{client::kdf::Kdf, Client};
+    use crate::{client::Kdf, Client};
 
     #[tokio::test]
     async fn test_initialize_user_crypto_pin() {

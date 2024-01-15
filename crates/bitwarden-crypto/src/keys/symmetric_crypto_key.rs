@@ -4,15 +4,13 @@ use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::{engine::general_purpose::STANDARD, Engine};
 use rand::Rng;
 
-use crate::{
-    crypto::CryptoKey,
-    error::{CryptoError, Error},
-};
+use super::key_encryptable::CryptoKey;
+use crate::CryptoError;
 
-/// A symmetric encryption key. Used to encrypt and decrypt [`EncString`](crate::crypto::EncString)
+/// A symmetric encryption key. Used to encrypt and decrypt [`EncString`](crate::EncString)
 pub struct SymmetricCryptoKey {
-    pub(super) key: GenericArray<u8, U32>,
-    pub(super) mac_key: Option<GenericArray<u8, U32>>,
+    pub(crate) key: GenericArray<u8, U32>,
+    pub(crate) mac_key: Option<GenericArray<u8, U32>>,
 }
 
 impl SymmetricCryptoKey {
@@ -44,8 +42,7 @@ impl SymmetricCryptoKey {
         STANDARD.encode(&buf)
     }
 
-    #[cfg(feature = "internal")]
-    pub(super) fn to_vec(&self) -> Vec<u8> {
+    pub fn to_vec(&self) -> Vec<u8> {
         let mut buf = Vec::new();
         buf.extend_from_slice(&self.key);
         if let Some(mac) = self.mac_key {
@@ -56,7 +53,7 @@ impl SymmetricCryptoKey {
 }
 
 impl FromStr for SymmetricCryptoKey {
-    type Err = Error;
+    type Err = CryptoError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let bytes = STANDARD.decode(s).map_err(|_| CryptoError::InvalidKey)?;
@@ -65,7 +62,7 @@ impl FromStr for SymmetricCryptoKey {
 }
 
 impl TryFrom<&[u8]> for SymmetricCryptoKey {
-    type Error = Error;
+    type Error = CryptoError;
 
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
         if value.len() == Self::KEY_LEN + Self::MAC_LEN {
@@ -79,7 +76,7 @@ impl TryFrom<&[u8]> for SymmetricCryptoKey {
                 mac_key: None,
             })
         } else {
-            Err(CryptoError::InvalidKeyLen.into())
+            Err(CryptoError::InvalidKeyLen)
         }
     }
 }
@@ -95,7 +92,7 @@ impl std::fmt::Debug for SymmetricCryptoKey {
 
 #[cfg(test)]
 pub fn derive_symmetric_key(name: &str) -> SymmetricCryptoKey {
-    use crate::crypto::{derive_shareable_key, generate_random_bytes};
+    use crate::{derive_shareable_key, generate_random_bytes};
 
     let secret: [u8; 16] = generate_random_bytes();
     derive_shareable_key(secret, name, None)

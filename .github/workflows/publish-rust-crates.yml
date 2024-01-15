@@ -29,6 +29,11 @@ on:
         required: true
         default: true
         type: boolean
+      publish_bitwarden-crypto:
+        description: "Publish bitwarden-crypto crate"
+        required: true
+        default: true
+        type: boolean
 
 defaults:
   run:
@@ -61,6 +66,7 @@ jobs:
           PUBLISH_BITWARDEN: ${{ github.event.inputs.publish_bitwarden }}
           PUBLISH_BITWARDEN_API_API: ${{ github.event.inputs.publish_bitwarden-api-api }}
           PUBLISH_BITWARDEN_API_IDENTITY: ${{ github.event.inputs.publish_bitwarden-api-identity }}
+          PUBLISH_BITWARDEN_CRYPTO: ${{ github.event.inputs.publish_bitwarden-crypto }}
         run: |
           if [[ "$PUBLISH_BITWARDEN" == "false" ]] && [[ "$PUBLISH_BITWARDEN_API_API" == "false" ]] && [[ "$PUBLISH_BITWARDEN_API_IDENTITY" == "false" ]]; then
             echo "==================================="
@@ -85,6 +91,11 @@ jobs:
           if [[ "$PUBLISH_BITWARDEN_API_IDENTITY" == "true" ]]; then
             PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-api-identity"
             PACKAGES_LIST="$PACKAGES_LIST bitwarden-api-identity"
+          fi
+
+          if [[ "$PUBLISH_BITWARDEN_CRYPTO" == "true" ]]; then
+            PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-crypto"
+            PACKAGES_LIST="$PACKAGES_LIST bitwarden-crypto"
           fi
 
           echo "Packages command: " $PACKAGES_COMMAND

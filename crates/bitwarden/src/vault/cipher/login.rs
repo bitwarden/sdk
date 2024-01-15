@@ -1,13 +1,13 @@
 use bitwarden_api_api::models::{CipherLoginModel, CipherLoginUriModel};
+use bitwarden_crypto::{
+    CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
+};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::{
-    crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
-    error::{Error, Result},
-};
+use crate::error::{Error, Result};
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
@@ -65,7 +65,7 @@ pub struct LoginView {
 }
 
 impl KeyEncryptable<SymmetricCryptoKey, LoginUri> for LoginUriView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<LoginUri> {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<LoginUri, CryptoError> {
         Ok(LoginUri {
             uri: self.uri.encrypt_with_key(key)?,
             r#match: self.r#match,
@@ -74,7 +74,7 @@ impl KeyEncryptable<SymmetricCryptoKey, LoginUri> for LoginUriView {
 }
 
 impl KeyEncryptable<SymmetricCryptoKey, Login> for LoginView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Login> {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Login, CryptoError> {
         Ok(Login {
             username: self.username.encrypt_with_key(key)?,
             password: self.password.encrypt_with_key(key)?,
@@ -87,7 +87,7 @@ impl KeyEncryptable<SymmetricCryptoKey, Login> for LoginView {
 }
 
 impl KeyDecryptable<SymmetricCryptoKey, LoginUriView> for LoginUri {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<LoginUriView> {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<LoginUriView, CryptoError> {
         Ok(LoginUriView {
             uri: self.uri.decrypt_with_key(key)?,
             r#match: self.r#match,
@@ -96,7 +96,7 @@ impl KeyDecryptable<SymmetricCryptoKey, LoginUriView> for LoginUri {
 }
 
 impl KeyDecryptable<SymmetricCryptoKey, LoginView> for Login {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<LoginView> {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<LoginView, CryptoError> {
         Ok(LoginView {
             username: self.username.decrypt_with_key(key)?,
             password: self.password.decrypt_with_key(key)?,

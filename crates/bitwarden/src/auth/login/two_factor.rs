@@ -1,9 +1,10 @@
 use bitwarden_api_api::models::TwoFactorEmailRequestModel;
+use bitwarden_crypto::HashPurpose;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::{auth::determine_password_hash, crypto::HashPurpose, error::Result, Client};
+use crate::{auth::determine_password_hash, error::Result, Client};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

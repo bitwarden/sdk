@@ -1,12 +1,12 @@
 use bitwarden_api_api::models::CipherPasswordHistoryModel;
+use bitwarden_crypto::{
+    CryptoError, EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey,
+};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey},
-    error::{Error, Result},
-};
+use crate::error::{Error, Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -26,7 +26,7 @@ pub struct PasswordHistoryView {
 
 impl LocateKey for PasswordHistoryView {}
 impl KeyEncryptable<SymmetricCryptoKey, PasswordHistory> for PasswordHistoryView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<PasswordHistory> {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<PasswordHistory, CryptoError> {
         Ok(PasswordHistory {
             password: self.password.encrypt_with_key(key)?,
             last_used_date: self.last_used_date,
@@ -36,7 +36,10 @@ impl KeyEncryptable<SymmetricCryptoKey, PasswordHistory> for PasswordHistoryView
 
 impl LocateKey for PasswordHistory {}
 impl KeyDecryptable<SymmetricCryptoKey, PasswordHistoryView> for PasswordHistory {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<PasswordHistoryView> {
+    fn decrypt_with_key(
+        &self,
+        key: &SymmetricCryptoKey,
+    ) -> Result<PasswordHistoryView, CryptoError> {
         Ok(PasswordHistoryView {
             password: self.password.decrypt_with_key(key)?,
             last_used_date: self.last_used_date,

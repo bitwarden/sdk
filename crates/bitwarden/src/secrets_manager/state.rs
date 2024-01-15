@@ -1,11 +1,12 @@
+use std::{fmt::Debug, path::Path};
+
+use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     client::AccessToken,
-    crypto::{EncString, KeyDecryptable, KeyEncryptable},
     error::{Error, Result},
 };
-use std::{fmt::Debug, path::Path};
 
 const STATE_VERSION: u32 = 1;
 

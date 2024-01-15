@@ -1,4 +1,5 @@
 use bitwarden_api_api::models::ProjectCreateRequestModel;
+use bitwarden_crypto::KeyEncryptable;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -6,7 +7,6 @@ use uuid::Uuid;
 use super::ProjectResponse;
 use crate::{
     client::Client,
-    crypto::KeyEncryptable,
     error::{Error, Result},
 };
 

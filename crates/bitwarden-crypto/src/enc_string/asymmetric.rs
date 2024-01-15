@@ -220,7 +220,6 @@ WjyxP5ZvXu7U96jaJRI8PFMoE06WeVYcdIzrID2HvqH+w0UQJFrLJ/0Mn4stFAEz
 XKZBokBGnjFnTnKcs7nv/O8=
 -----END PRIVATE KEY-----";
 
-    #[cfg(feature = "internal")]
     #[test]
     fn test_enc_string_rsa2048_oaep_sha256_b64() {
         use crate::crypto::{AsymmetricCryptoKey, KeyDecryptable};
@@ -235,7 +234,6 @@ XKZBokBGnjFnTnKcs7nv/O8=
         assert_eq!(res, "EncryptMe!");
     }
 
-    #[cfg(feature = "internal")]
     #[test]
     fn test_enc_string_rsa2048_oaep_sha1_b64() {
         use crate::crypto::{AsymmetricCryptoKey, KeyDecryptable};
@@ -250,7 +248,6 @@ XKZBokBGnjFnTnKcs7nv/O8=
         assert_eq!(res, "EncryptMe!");
     }
 
-    #[cfg(feature = "internal")]
     #[test]
     fn test_enc_string_rsa2048_oaep_sha1_hmac_sha256_b64() {
         use crate::crypto::{AsymmetricCryptoKey, KeyDecryptable};

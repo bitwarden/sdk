@@ -3,7 +3,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
+    crypto::{purpose, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
     error::{Error, Result},
 };
 
@@ -55,8 +55,17 @@ pub struct IdentityView {
     pub license_number: Option<String>,
 }
 
-impl KeyEncryptable<SymmetricCryptoKey, Identity> for IdentityView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Identity> {
+impl
+    KeyEncryptable<
+        SymmetricCryptoKey<purpose::CipherEncryption>,
+        purpose::CipherEncryption,
+        Identity,
+    > for IdentityView
+{
+    fn encrypt_with_key(
+        self,
+        key: &SymmetricCryptoKey<purpose::CipherEncryption>,
+    ) -> Result<Identity> {
         Ok(Identity {
             title: self.title.encrypt_with_key(key)?,
             first_name: self.first_name.encrypt_with_key(key)?,
@@ -80,8 +89,17 @@ impl KeyEncryptable<SymmetricCryptoKey, Identity> for IdentityView {
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, IdentityView> for Identity {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<IdentityView> {
+impl
+    KeyDecryptable<
+        SymmetricCryptoKey<purpose::CipherEncryption>,
+        purpose::CipherEncryption,
+        IdentityView,
+    > for Identity
+{
+    fn decrypt_with_key(
+        &self,
+        key: &SymmetricCryptoKey<purpose::CipherEncryption>,
+    ) -> Result<IdentityView> {
         Ok(IdentityView {
             title: self.title.decrypt_with_key(key)?,
             first_name: self.first_name.decrypt_with_key(key)?,

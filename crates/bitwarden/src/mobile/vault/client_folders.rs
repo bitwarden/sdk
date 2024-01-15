@@ -14,7 +14,7 @@ impl<'a> ClientFolders<'a> {
     pub async fn encrypt(&self, folder_view: FolderView) -> Result<Folder> {
         let enc = self.client.get_encryption_settings()?;
 
-        let folder = folder_view.encrypt(enc, &None)?;
+        let folder = folder_view.encrypt(enc)?;
 
         Ok(folder)
     }
@@ -22,7 +22,7 @@ impl<'a> ClientFolders<'a> {
     pub async fn decrypt(&self, folder: Folder) -> Result<FolderView> {
         let enc = self.client.get_encryption_settings()?;
 
-        let folder_view = folder.decrypt(enc, &None)?;
+        let folder_view = folder.decrypt(enc)?;
 
         Ok(folder_view)
     }
@@ -30,9 +30,9 @@ impl<'a> ClientFolders<'a> {
     pub async fn decrypt_list(&self, folders: Vec<Folder>) -> Result<Vec<FolderView>> {
         let enc = self.client.get_encryption_settings()?;
 
-        let views = folders.decrypt(enc, &None)?;
+        let views: Result<_> = folders.into_iter().map(|f| f.decrypt(enc)).collect();
 
-        Ok(views)
+        views
     }
 }
 

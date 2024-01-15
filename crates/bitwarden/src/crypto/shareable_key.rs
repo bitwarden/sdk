@@ -3,6 +3,8 @@ use hmac::{Hmac, Mac};
 
 use crate::crypto::{hkdf_expand, SymmetricCryptoKey};
 
+use super::purpose;
+
 /// Derive a shareable key using hkdf from secret and name.
 ///
 /// A specialized variant of this function was called `CryptoService.makeSendKey` in the Bitwarden
@@ -11,7 +13,7 @@ pub(crate) fn derive_shareable_key(
     secret: [u8; 16],
     name: &str,
     info: Option<&str>,
-) -> SymmetricCryptoKey {
+) -> SymmetricCryptoKey<purpose::Shareable> {
     // Because all inputs are fixed size, we can unwrap all errors here without issue
 
     // TODO: Are these the final `key` and `info` parameters or should we change them? I followed the pattern used for sends

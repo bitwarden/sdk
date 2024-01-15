@@ -36,7 +36,7 @@ pub use enc_string::{AsymmEncString, EncString};
 mod encryptable;
 pub use encryptable::{Decryptable, Encryptable, LocateKey};
 mod key_encryptable;
-pub use key_encryptable::{CryptoKey, KeyDecryptable, KeyEncryptable};
+pub use key_encryptable::{purpose, CryptoKey, KeyDecryptable, KeyEncryptable, KeyPurpose};
 mod aes_ops;
 use aes_ops::{decrypt_aes256_hmac, encrypt_aes256_hmac};
 mod symmetric_crypto_key;

@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 use crate::{
     client::{encryption_settings::EncryptionSettings, Client},
-    crypto::{Decryptable, EncString},
+    crypto::{EncString, KeyDecryptable},
     error::{Error, Result},
 };
 
@@ -94,12 +94,13 @@ impl SecretIdentifierResponse {
         enc: &EncryptionSettings,
     ) -> Result<SecretIdentifierResponse> {
         let organization_id = response.organization_id.ok_or(Error::MissingFields)?;
+        let key = enc.get_org_key(organization_id).ok_or(Error::VaultLocked)?;
 
         let key = response
             .key
             .ok_or(Error::MissingFields)?
             .parse::<EncString>()?
-            .decrypt(enc, &Some(organization_id))?;
+            .decrypt_with_key(key)?;
 
         Ok(SecretIdentifierResponse {
             id: response.id.ok_or(Error::MissingFields)?,

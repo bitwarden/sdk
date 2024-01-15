@@ -10,9 +10,10 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 use uuid::Uuid;
 
 use crate::{
+    client::encryption_settings::EncryptionSettings,
     crypto::{
-        derive_shareable_key, generate_random_bytes, EncString, KeyDecryptable, KeyEncryptable,
-        LocateKey, SymmetricCryptoKey,
+        derive_shareable_key, generate_random_bytes, purpose, EncString, KeyDecryptable,
+        KeyEncryptable, LocateKey, SymmetricCryptoKey,
     },
     error::{CryptoError, Error, Result},
 };
@@ -144,20 +145,31 @@ pub struct SendListView {
 impl Send {
     pub(crate) fn get_key(
         send_key: &EncString,
-        enc_key: &SymmetricCryptoKey,
-    ) -> Result<SymmetricCryptoKey> {
+        enc_key: &SymmetricCryptoKey<purpose::UserEncryption>,
+    ) -> Result<SymmetricCryptoKey<purpose::SendEncryption>> {
         let key: Vec<u8> = send_key.decrypt_with_key(enc_key)?;
         Self::derive_shareable_key(&key)
     }
 
-    fn derive_shareable_key(key: &[u8]) -> Result<SymmetricCryptoKey, Error> {
+    fn derive_shareable_key(
+        key: &[u8],
+    ) -> Result<SymmetricCryptoKey<purpose::SendEncryption>, Error> {
         let key = key.try_into().map_err(|_| CryptoError::InvalidKeyLen)?;
-        Ok(derive_shareable_key(key, "send", Some("send")))
+        Ok(derive_shareable_key(key, "send", Some("send")).into())
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, SendTextView> for SendText {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendTextView> {
+impl
+    KeyDecryptable<
+        SymmetricCryptoKey<purpose::SendEncryption>,
+        purpose::SendEncryption,
+        SendTextView,
+    > for SendText
+{
+    fn decrypt_with_key(
+        &self,
+        key: &SymmetricCryptoKey<purpose::SendEncryption>,
+    ) -> Result<SendTextView> {
         Ok(SendTextView {
             text: self.text.decrypt_with_key(key)?,
             hidden: self.hidden,
@@ -165,8 +177,13 @@ impl KeyDecryptable<SymmetricCryptoKey, SendTextView> for SendText {
     }
 }
 
-impl KeyEncryptable<SymmetricCryptoKey, SendText> for SendTextView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<SendText> {
+impl KeyEncryptable<SymmetricCryptoKey<purpose::SendEncryption>, purpose::SendEncryption, SendText>
+    for SendTextView
+{
+    fn encrypt_with_key(
+        self,
+        key: &SymmetricCryptoKey<purpose::SendEncryption>,
+    ) -> Result<SendText> {
         Ok(SendText {
             text: self.text.encrypt_with_key(key)?,
             hidden: self.hidden,
@@ -174,8 +191,17 @@ impl KeyEncryptable<SymmetricCryptoKey, SendText> for SendTextView {
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, SendFileView> for SendFile {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendFileView> {
+impl
+    KeyDecryptable<
+        SymmetricCryptoKey<purpose::SendEncryption>,
+        purpose::SendEncryption,
+        SendFileView,
+    > for SendFile
+{
+    fn decrypt_with_key(
+        &self,
+        key: &SymmetricCryptoKey<purpose::SendEncryption>,
+    ) -> Result<SendFileView> {
         Ok(SendFileView {
             id: self.id.clone(),
             file_name: self.file_name.decrypt_with_key(key)?,
@@ -185,8 +211,13 @@ impl KeyDecryptable<SymmetricCryptoKey, SendFileView> for SendFile {
     }
 }
 
-impl KeyEncryptable<SymmetricCryptoKey, SendFile> for SendFileView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<SendFile> {
+impl KeyEncryptable<SymmetricCryptoKey<purpose::SendEncryption>, purpose::SendEncryption, SendFile>
+    for SendFileView
+{
+    fn encrypt_with_key(
+        self,
+        key: &SymmetricCryptoKey<purpose::SendEncryption>,
+    ) -> Result<SendFile> {
         Ok(SendFile {
             id: self.id.clone(),
             file_name: self.file_name.encrypt_with_key(key)?,
@@ -196,9 +227,21 @@ impl KeyEncryptable<SymmetricCryptoKey, SendFile> for SendFileView {
     }
 }
 
-impl LocateKey for Send {}
-impl KeyDecryptable<SymmetricCryptoKey, SendView> for Send {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendView> {
+impl LocateKey<purpose::UserEncryption> for Send {
+    fn locate_key<'a>(
+        &self,
+        enc: &'a EncryptionSettings,
+    ) -> Option<&'a SymmetricCryptoKey<purpose::UserEncryption>> {
+        enc.get_user_key()
+    }
+}
+impl KeyDecryptable<SymmetricCryptoKey<purpose::UserEncryption>, purpose::UserEncryption, SendView>
+    for Send
+{
+    fn decrypt_with_key(
+        &self,
+        key: &SymmetricCryptoKey<purpose::UserEncryption>,
+    ) -> Result<SendView> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
         // For the rest of the fields, we ignore the provided SymmetricCryptoKey and the stretched key
         let k: Vec<u8> = self.key.decrypt_with_key(key)?;
@@ -230,8 +273,17 @@ impl KeyDecryptable<SymmetricCryptoKey, SendView> for Send {
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, SendListView> for Send {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendListView> {
+impl
+    KeyDecryptable<
+        SymmetricCryptoKey<purpose::UserEncryption>,
+        purpose::UserEncryption,
+        SendListView,
+    > for Send
+{
+    fn decrypt_with_key(
+        &self,
+        key: &SymmetricCryptoKey<purpose::UserEncryption>,
+    ) -> Result<SendListView> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
         // For the rest of the fields, we ignore the provided SymmetricCryptoKey and the stretched key
         let key = Send::get_key(&self.key, key)?;
@@ -252,9 +304,18 @@ impl KeyDecryptable<SymmetricCryptoKey, SendListView> for Send {
     }
 }
 
-impl LocateKey for SendView {}
-impl KeyEncryptable<SymmetricCryptoKey, Send> for SendView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Send> {
+impl LocateKey<purpose::UserEncryption> for SendView {
+    fn locate_key<'a>(
+        &self,
+        enc: &'a EncryptionSettings,
+    ) -> Option<&'a SymmetricCryptoKey<purpose::UserEncryption>> {
+        enc.get_user_key()
+    }
+}
+impl KeyEncryptable<SymmetricCryptoKey<purpose::UserEncryption>, purpose::UserEncryption, Send>
+    for SendView
+{
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey<purpose::UserEncryption>) -> Result<Send> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
         // For the rest of the fields, we ignore the provided SymmetricCryptoKey and the stretched key
         let k = match (self.key, self.id) {
@@ -383,7 +444,7 @@ mod tests {
             "2.kmLY8NJVuiKBFJtNd/ZFpA==|qOodlRXER+9ogCe3yOibRHmUcSNvjSKhdDuztLlucs10jLiNoVVVAc+9KfNErLSpx5wmUF1hBOJM8zwVPjgQTrmnNf/wuDpwiaCxNYb/0v4FygPy7ccAHK94xP1lfqq7U9+tv+/yiZSwgcT+xF0wFpoxQeNdNRFzPTuD9o4134n8bzacD9DV/WjcrXfRjbBCzzuUGj1e78+A7BWN7/5IWLz87KWk8G7O/W4+8PtEzlwkru6Wd1xO19GYU18oArCWCNoegSmcGn7w7NDEXlwD403oY8Oa7ylnbqGE28PVJx+HLPNIdSC6YKXeIOMnVs7Mctd/wXC93zGxAWD6ooTCzHSPVV50zKJmWIG2cVVUS7j35H3rGDtUHLI+ASXMEux9REZB8CdVOZMzp2wYeiOpggebJy6MKOZqPT1R3X0fqF2dHtRFPXrNsVr1Qt6bS9qTyO4ag1/BCvXF3P1uJEsI812BFAne3cYHy5bIOxuozPfipJrTb5WH35bxhElqwT3y/o/6JWOGg3HLDun31YmiZ2HScAsUAcEkA4hhoTNnqy4O2s3yVbCcR7jF7NLsbQc0MDTbnjxTdI4VnqUIn8s2c9hIJy/j80pmO9Bjxp+LQ9a2hUkfHgFhgHxZUVaeGVth8zG2kkgGdrp5VHhxMVFfvB26Ka6q6qE/UcS2lONSv+4T8niVRJz57qwctj8MNOkA3PTEfe/DP/LKMefke31YfT0xogHsLhDkx+mS8FCc01HReTjKLktk/Jh9mXwC5oKwueWWwlxI935ecn+3I2kAuOfMsgPLkoEBlwgiREC1pM7VVX1x8WmzIQVQTHd4iwnX96QewYckGRfNYWz/zwvWnjWlfcg8kRSe+68EHOGeRtC5r27fWLqRc0HNcjwpgHkI/b6czerCe8+07TWql4keJxJxhBYj3iOH7r9ZS8ck51XnOb8tGL1isimAJXodYGzakwktqHAD7MZhS+P02O+6jrg7d+yPC2ZCuS/3TOplYOCHQIhnZtR87PXTUwr83zfOwAwCyv6KP84JUQ45+DItrXLap7nOVZKQ5QxYIlbThAO6eima6Zu5XHfqGPMNWv0bLf5+vAjIa5np5DJrSwz9no/hj6CUh0iyI+SJq4RGI60lKtypMvF6MR3nHLEHOycRUQbZIyTHWl4QQLdHzuwN9lv10ouTEvNr6sFflAX2yb6w3hlCo7oBytH3rJekjb3IIOzBpeTPIejxzVlh0N9OT5MZdh4sNKYHUoWJ8mnfjdM+L4j5Q2Kgk/XiGDgEebkUxiEOQUdVpePF5uSCE+TPav/9FIRGXGiFn6NJMaU7aBsDTFBLloffFLYDpd8/bTwoSvifkj7buwLYM+h/qcnfdy5FWau1cKav+Blq/ZC0qBpo658RTC8ZtseAFDgXoQZuksM10hpP9bzD04Bx30xTGX81QbaSTNwSEEVrOtIhbDrj9OI43KH4O6zLzK+t30QxAv5zjk10RZ4+5SAdYndIlld9Y62opCfPDzRy3ubdve4ZEchpIKWTQvIxq3T5ogOhGaWBVYnkMtM2GVqvWV//46gET5SH/MdcwhACUcZ9kCpMnWH9CyyUwYvTT3UlNyV+DlS27LMPvaw7tx7qa+GfNCoCBd8S4esZpQYK/WReiS8=|pc7qpD42wxyXemdNPuwxbh8iIaryrBPu8f/DGwYdHTw=".parse().unwrap(),
         ).unwrap();
 
-        let k = enc.get_key(&None).unwrap();
+        let k = enc.get_user_key().unwrap();
 
         let send_key = "2.+1KUfOX8A83Xkwk1bumo/w==|Nczvv+DTkeP466cP/wMDnGK6W9zEIg5iHLhcuQG6s+M=|SZGsfuIAIaGZ7/kzygaVUau3LeOvJUlolENBOU+LX7g="
             .parse()
@@ -413,7 +474,7 @@ mod tests {
     #[test]
     pub fn test_decrypt() {
         let enc = build_encryption_settings();
-        let key = enc.get_key(&None).unwrap();
+        let key = enc.get_user_key().unwrap();
 
         let send = Send {
             id: "3d80dd72-2d14-4f26-812c-b0f0018aa144".parse().ok(),
@@ -469,7 +530,7 @@ mod tests {
     #[test]
     pub fn test_encrypt() {
         let enc = build_encryption_settings();
-        let key = enc.get_key(&None).unwrap();
+        let key = enc.get_user_key().unwrap();
 
         let view = SendView {
             id: "3d80dd72-2d14-4f26-812c-b0f0018aa144".parse().ok(),
@@ -507,7 +568,7 @@ mod tests {
     #[test]
     pub fn test_create() {
         let enc = build_encryption_settings();
-        let key = enc.get_key(&None).unwrap();
+        let key = enc.get_user_key().unwrap();
 
         let view = SendView {
             id: None,
@@ -548,7 +609,7 @@ mod tests {
     #[test]
     pub fn test_create_password() {
         let enc = build_encryption_settings();
-        let key = enc.get_key(&None).unwrap();
+        let key = enc.get_user_key().unwrap();
 
         let view = SendView {
             id: None,

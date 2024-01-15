@@ -14,7 +14,7 @@ impl<'a> ClientPasswordHistory<'a> {
     pub async fn encrypt(&self, history_view: PasswordHistoryView) -> Result<PasswordHistory> {
         let enc = self.client.get_encryption_settings()?;
 
-        let history = history_view.encrypt(enc, &None)?;
+        let history = history_view.encrypt(enc)?;
 
         Ok(history)
     }
@@ -25,9 +25,9 @@ impl<'a> ClientPasswordHistory<'a> {
     ) -> Result<Vec<PasswordHistoryView>> {
         let enc = self.client.get_encryption_settings()?;
 
-        let history_view = history.decrypt(enc, &None)?;
+        let history_view: Result<_> = history.into_iter().map(|h| h.decrypt(enc)).collect();
 
-        Ok(history_view)
+        history_view
     }
 }
 

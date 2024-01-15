@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::{
-    crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
+    crypto::{purpose, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
     error::{Error, Result},
 };
 
@@ -64,8 +64,17 @@ pub struct LoginView {
     pub autofill_on_page_load: Option<bool>,
 }
 
-impl KeyEncryptable<SymmetricCryptoKey, LoginUri> for LoginUriView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<LoginUri> {
+impl
+    KeyEncryptable<
+        SymmetricCryptoKey<purpose::CipherEncryption>,
+        purpose::CipherEncryption,
+        LoginUri,
+    > for LoginUriView
+{
+    fn encrypt_with_key(
+        self,
+        key: &SymmetricCryptoKey<purpose::CipherEncryption>,
+    ) -> Result<LoginUri> {
         Ok(LoginUri {
             uri: self.uri.encrypt_with_key(key)?,
             r#match: self.r#match,
@@ -73,8 +82,13 @@ impl KeyEncryptable<SymmetricCryptoKey, LoginUri> for LoginUriView {
     }
 }
 
-impl KeyEncryptable<SymmetricCryptoKey, Login> for LoginView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Login> {
+impl KeyEncryptable<SymmetricCryptoKey<purpose::CipherEncryption>, purpose::CipherEncryption, Login>
+    for LoginView
+{
+    fn encrypt_with_key(
+        self,
+        key: &SymmetricCryptoKey<purpose::CipherEncryption>,
+    ) -> Result<Login> {
         Ok(Login {
             username: self.username.encrypt_with_key(key)?,
             password: self.password.encrypt_with_key(key)?,
@@ -86,8 +100,17 @@ impl KeyEncryptable<SymmetricCryptoKey, Login> for LoginView {
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, LoginUriView> for LoginUri {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<LoginUriView> {
+impl
+    KeyDecryptable<
+        SymmetricCryptoKey<purpose::CipherEncryption>,
+        purpose::CipherEncryption,
+        LoginUriView,
+    > for LoginUri
+{
+    fn decrypt_with_key(
+        &self,
+        key: &SymmetricCryptoKey<purpose::CipherEncryption>,
+    ) -> Result<LoginUriView> {
         Ok(LoginUriView {
             uri: self.uri.decrypt_with_key(key)?,
             r#match: self.r#match,
@@ -95,8 +118,17 @@ impl KeyDecryptable<SymmetricCryptoKey, LoginUriView> for LoginUri {
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, LoginView> for Login {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<LoginView> {
+impl
+    KeyDecryptable<
+        SymmetricCryptoKey<purpose::CipherEncryption>,
+        purpose::CipherEncryption,
+        LoginView,
+    > for Login
+{
+    fn decrypt_with_key(
+        &self,
+        key: &SymmetricCryptoKey<purpose::CipherEncryption>,
+    ) -> Result<LoginView> {
         Ok(LoginView {
             username: self.username.decrypt_with_key(key)?,
             password: self.password.decrypt_with_key(key)?,

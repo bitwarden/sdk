@@ -5,7 +5,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use super::linked_id::LinkedIdType;
 use crate::{
-    crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
+    crypto::{purpose, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
     error::{Error, Result},
 };
 
@@ -41,8 +41,13 @@ pub struct FieldView {
     linked_id: Option<LinkedIdType>,
 }
 
-impl KeyEncryptable<SymmetricCryptoKey, Field> for FieldView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Field> {
+impl KeyEncryptable<SymmetricCryptoKey<purpose::CipherEncryption>, purpose::CipherEncryption, Field>
+    for FieldView
+{
+    fn encrypt_with_key(
+        self,
+        key: &SymmetricCryptoKey<purpose::CipherEncryption>,
+    ) -> Result<Field> {
         Ok(Field {
             name: self.name.encrypt_with_key(key)?,
             value: self.value.encrypt_with_key(key)?,
@@ -52,8 +57,17 @@ impl KeyEncryptable<SymmetricCryptoKey, Field> for FieldView {
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, FieldView> for Field {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<FieldView> {
+impl
+    KeyDecryptable<
+        SymmetricCryptoKey<purpose::CipherEncryption>,
+        purpose::CipherEncryption,
+        FieldView,
+    > for Field
+{
+    fn decrypt_with_key(
+        &self,
+        key: &SymmetricCryptoKey<purpose::CipherEncryption>,
+    ) -> Result<FieldView> {
         Ok(FieldView {
             name: self.name.decrypt_with_key(key)?,
             value: self.value.decrypt_with_key(key)?,

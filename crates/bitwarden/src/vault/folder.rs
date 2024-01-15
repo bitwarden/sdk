@@ -5,7 +5,8 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-    crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey},
+    client::encryption_settings::EncryptionSettings,
+    crypto::{purpose, EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey},
     error::{Error, Result},
 };
 
@@ -27,9 +28,18 @@ pub struct FolderView {
     revision_date: DateTime<Utc>,
 }
 
-impl LocateKey for FolderView {}
-impl KeyEncryptable<SymmetricCryptoKey, Folder> for FolderView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Folder> {
+impl LocateKey<purpose::UserEncryption> for FolderView {
+    fn locate_key<'a>(
+        &self,
+        enc: &'a EncryptionSettings,
+    ) -> Option<&'a SymmetricCryptoKey<purpose::UserEncryption>> {
+        enc.get_user_key()
+    }
+}
+impl KeyEncryptable<SymmetricCryptoKey<purpose::UserEncryption>, purpose::UserEncryption, Folder>
+    for FolderView
+{
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey<purpose::UserEncryption>) -> Result<Folder> {
         Ok(Folder {
             id: self.id,
             name: self.name.encrypt_with_key(key)?,
@@ -38,9 +48,22 @@ impl KeyEncryptable<SymmetricCryptoKey, Folder> for FolderView {
     }
 }
 
-impl LocateKey for Folder {}
-impl KeyDecryptable<SymmetricCryptoKey, FolderView> for Folder {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<FolderView> {
+impl LocateKey<purpose::UserEncryption> for Folder {
+    fn locate_key<'a>(
+        &self,
+        enc: &'a EncryptionSettings,
+    ) -> Option<&'a SymmetricCryptoKey<purpose::UserEncryption>> {
+        enc.get_user_key()
+    }
+}
+impl
+    KeyDecryptable<SymmetricCryptoKey<purpose::UserEncryption>, purpose::UserEncryption, FolderView>
+    for Folder
+{
+    fn decrypt_with_key(
+        &self,
+        key: &SymmetricCryptoKey<purpose::UserEncryption>,
+    ) -> Result<FolderView> {
         Ok(FolderView {
             id: self.id,
             name: self.name.decrypt_with_key(key)?,

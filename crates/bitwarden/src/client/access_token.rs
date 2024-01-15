@@ -4,7 +4,7 @@ use base64::Engine;
 use uuid::Uuid;
 
 use crate::{
-    crypto::{derive_shareable_key, SymmetricCryptoKey},
+    crypto::{derive_shareable_key, purpose, SymmetricCryptoKey},
     error::AccessTokenInvalidError,
     util::STANDARD_INDIFFERENT,
 };
@@ -12,7 +12,7 @@ use crate::{
 pub struct AccessToken {
     pub access_token_id: Uuid,
     pub client_secret: String,
-    pub encryption_key: SymmetricCryptoKey,
+    pub encryption_key: SymmetricCryptoKey<purpose::PayloadEncryption>,
 }
 
 // We don't want to log the more sensitive fields from an AccessToken
@@ -55,7 +55,7 @@ impl FromStr for AccessToken {
             }
         })?;
         let encryption_key =
-            derive_shareable_key(encryption_key, "accesstoken", Some("sm-access-token"));
+            derive_shareable_key(encryption_key, "accesstoken", Some("sm-access-token")).into();
 
         Ok(AccessToken {
             access_token_id,

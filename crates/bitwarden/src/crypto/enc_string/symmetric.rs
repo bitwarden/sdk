@@ -8,7 +8,7 @@ use serde::Deserialize;
 use super::check_length;
 use super::{from_b64, from_b64_vec, split_enc_string};
 use crate::{
-    crypto::{decrypt_aes256_hmac, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey},
+    crypto::{decrypt_aes256_hmac, KeyDecryptable, KeyEncryptable, KeyPurpose, SymmetricCryptoKey},
     error::{CryptoError, EncStringParseError, Error, Result},
 };
 
@@ -226,15 +226,18 @@ impl EncString {
     }
 }
 
-impl LocateKey for EncString {}
-impl KeyEncryptable<SymmetricCryptoKey, EncString> for &[u8] {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<EncString> {
+impl<Purpose: KeyPurpose> KeyEncryptable<SymmetricCryptoKey<Purpose>, Purpose, EncString>
+    for &[u8]
+{
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey<Purpose>) -> Result<EncString> {
         EncString::encrypt_aes256_hmac(self, key.mac_key.ok_or(CryptoError::InvalidMac)?, key.key)
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, Vec<u8>> for EncString {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
+impl<Purpose: KeyPurpose> KeyDecryptable<SymmetricCryptoKey<Purpose>, Purpose, Vec<u8>>
+    for EncString
+{
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey<Purpose>) -> Result<Vec<u8>> {
         match self {
             EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
                 let mac_key = key.mac_key.ok_or(CryptoError::InvalidMac)?;
@@ -246,14 +249,18 @@ impl KeyDecryptable<SymmetricCryptoKey, Vec<u8>> for EncString {
     }
 }
 
-impl KeyEncryptable<SymmetricCryptoKey, EncString> for String {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<EncString> {
+impl<Purpose: KeyPurpose> KeyEncryptable<SymmetricCryptoKey<Purpose>, Purpose, EncString>
+    for String
+{
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey<Purpose>) -> Result<EncString> {
         self.as_bytes().encrypt_with_key(key)
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, String> for EncString {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<String> {
+impl<Purpose: KeyPurpose> KeyDecryptable<SymmetricCryptoKey<Purpose>, Purpose, String>
+    for EncString
+{
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey<Purpose>) -> Result<String> {
         let dec: Vec<u8> = self.decrypt_with_key(key)?;
         String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String.into())
     }

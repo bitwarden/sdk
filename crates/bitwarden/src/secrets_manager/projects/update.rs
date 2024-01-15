@@ -27,7 +27,7 @@ pub(crate) async fn update_project(
 ) -> Result<ProjectResponse> {
     let key = client
         .get_encryption_settings()?
-        .get_key(&Some(input.organization_id))
+        .get_org_key(input.organization_id)
         .ok_or(Error::VaultLocked)?;
 
     let project = Some(ProjectUpdateRequestModel {

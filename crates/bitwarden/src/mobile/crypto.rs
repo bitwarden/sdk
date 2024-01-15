@@ -1,19 +1,18 @@
 use std::collections::HashMap;
 
 use bitwarden_crypto::{AsymmEncString, EncString};
+#[cfg(feature = "internal")]
+use bitwarden_crypto::{KeyDecryptable, KeyEncryptable, MasterKey, SymmetricCryptoKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "internal")]
+use crate::client::{LoginMethod, UserLoginMethod};
 use crate::{
     client::Kdf,
     error::{Error, Result},
     Client,
 };
-
-#[cfg(feature = "internal")]
-use crate::client::{LoginMethod, UserLoginMethod};
-#[cfg(feature = "internal")]
-use bitwarden_crypto::{KeyDecryptable, KeyEncryptable, MasterKey, SymmetricCryptoKey};
 
 #[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

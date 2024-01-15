@@ -1,3 +1,6 @@
+#[cfg(feature = "internal")]
+use bitwarden_crypto::EncString;
+
 use crate::Client;
 #[cfg(feature = "internal")]
 use crate::{
@@ -7,8 +10,6 @@ use crate::{
         initialize_user_crypto, DerivePinKeyResponse, InitOrgCryptoRequest, InitUserCryptoRequest,
     },
 };
-#[cfg(feature = "internal")]
-use bitwarden_crypto::EncString;
 
 pub struct ClientCrypto<'a> {
     pub(crate) client: &'a mut crate::Client,

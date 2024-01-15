@@ -114,7 +114,7 @@ fn trust_device(client: &Client) -> Result<CreateDeviceKey> {
 
     let user_key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
 
-    Ok(DeviceKey::trust_device(UserKey::new(user_key))?)
+    Ok(DeviceKey::trust_device(UserKey::new(user_key.clone()))?)
 }
 
 impl<'a> Client {

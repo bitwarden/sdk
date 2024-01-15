@@ -33,16 +33,19 @@ impl DeviceKey {
 
         let device_private_key = AsymmetricCryptoKey::generate();
 
+        // Encrypt both the key and mac_key of the user key
+        let data = [user_key.0.key, user_key.0.mac_key.unwrap_or_default()].concat();
+
         let protected_user_key =
-            AsymmEncString::encrypt_rsa2048_oaep_sha1(&user_key.0.key, &device_private_key)?;
+            AsymmEncString::encrypt_rsa2048_oaep_sha1(&data, &device_private_key)?;
 
-        let spki = device_private_key.to_public_der()?;
+        let protected_device_public_key = device_private_key
+            .to_public_der()?
+            .encrypt_with_key(&user_key.0)?;
 
-        let protected_device_public_key = spki.encrypt_with_key(&user_key.0)?;
-
-        let pkcs8 = device_private_key.to_der()?;
-
-        let protected_device_private_key = pkcs8.encrypt_with_key(&device_key.0)?;
+        let protected_device_private_key = device_private_key
+            .to_der()?
+            .encrypt_with_key(&device_key.0)?;
 
         Ok(CreateDeviceKey {
             device_key,
@@ -53,7 +56,7 @@ impl DeviceKey {
     }
 
     /// Decrypt the user key using the device key
-    async fn decrypt_user_key(
+    pub fn decrypt_user_key(
         &self,
         protected_device_private_key: EncString,
         protected_user_key: AsymmEncString,
@@ -76,11 +79,21 @@ mod tests {
 
     #[test]
     fn test_trust_device() {
-        let user_key = UserKey(derive_symmetric_key("test"));
+        let key = derive_symmetric_key("test");
+        let user_key = UserKey(key.clone());
 
         // Call trust_device function
         let result = DeviceKey::trust_device(user_key).unwrap();
 
-        println!("result: {:?}", result);
+        let decrypted = result
+            .device_key
+            .decrypt_user_key(
+                result.protected_device_private_key,
+                result.protected_user_key,
+            )
+            .unwrap();
+
+        assert_eq!(key.key, decrypted.0.key);
+        assert_eq!(key.mac_key, decrypted.0.mac_key);
     }
 }

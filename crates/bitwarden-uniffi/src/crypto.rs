@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
-use bitwarden::mobile::crypto::{
-    DerivePinKeyResponse, InitOrgCryptoRequest, InitUserCryptoRequest,
+use bitwarden::{
+    crypto::EncString,
+    mobile::crypto::{DerivePinKeyResponse, InitOrgCryptoRequest, InitUserCryptoRequest},
 };
 
 use crate::{error::Result, Client};
@@ -52,5 +53,18 @@ impl ClientCrypto {
     /// to initialize another client instance by using the PIN and the PIN key with `initialize_user_crypto`.
     pub async fn derive_pin_key(&self, pin: String) -> Result<DerivePinKeyResponse> {
         Ok(self.0 .0.write().await.crypto().derive_pin_key(pin).await?)
+    }
+
+    ///
+    /// to initialize another client instance by using the PIN and the PIN key with `initialize_user_crypto`.
+    pub async fn derive_protected_pin_key(&self, encrypted_pin: EncString) -> Result<EncString> {
+        Ok(self
+            .0
+             .0
+            .write()
+            .await
+            .crypto()
+            .derive_protected_pin_key(encrypted_pin)
+            .await?)
     }
 }

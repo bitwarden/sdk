@@ -11,6 +11,12 @@ use crate::{
 };
 
 #[cfg(feature = "internal")]
+use crate::{
+    client::{LoginMethod, UserLoginMethod},
+    crypto::{KeyEncryptable, MasterKey, SymmetricCryptoKey},
+};
+
+#[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
@@ -50,8 +56,6 @@ pub enum InitUserCryptoMethod {
 
 #[cfg(feature = "internal")]
 pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequest) -> Result<()> {
-    use crate::crypto::SymmetricCryptoKey;
-
     let login_method = crate::client::LoginMethod::User(crate::client::UserLoginMethod::Username {
         client_id: "".to_string(),
         email: req.email,
@@ -112,34 +116,68 @@ pub async fn get_user_encryption_key(client: &mut Client) -> Result<String> {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct DerivePinKeyResponse {
+    /// [UserKey] protected by PIN
     pin_protected_user_key: EncString,
+    /// PIN protected [UserKey]
     encrypted_pin: EncString,
 }
 
 #[cfg(feature = "internal")]
 pub fn derive_pin_key(client: &mut Client, pin: String) -> Result<DerivePinKeyResponse> {
-    use crate::{
-        client::{LoginMethod, UserLoginMethod},
-        crypto::{KeyEncryptable, MasterKey},
-    };
+    let user_key = client
+        .get_encryption_settings()?
+        .get_key(&None)
+        .ok_or(Error::VaultLocked)?;
 
-    let derived_key = match &client.login_method {
-        Some(LoginMethod::User(
-            UserLoginMethod::Username { email, kdf, .. }
-            | UserLoginMethod::ApiKey { email, kdf, .. },
-        )) => MasterKey::derive(pin.as_bytes(), email.as_bytes(), kdf)?,
-        _ => return Err(Error::NotAuthenticated),
-    };
+    let login_method = client
+        .login_method
+        .as_ref()
+        .ok_or(Error::NotAuthenticated)?;
+
+    let pin_protected_user_key = derive_pin_protected_user_key(&pin, login_method, user_key)?;
+
+    Ok(DerivePinKeyResponse {
+        pin_protected_user_key,
+        encrypted_pin: pin.encrypt_with_key(user_key)?,
+    })
+}
+
+#[cfg(feature = "internal")]
+pub fn derive_protected_pin_key(
+    client: &mut Client,
+    encrypted_pin: EncString,
+) -> Result<EncString> {
+    use crate::crypto::KeyDecryptable;
 
     let user_key = client
         .get_encryption_settings()?
         .get_key(&None)
         .ok_or(Error::VaultLocked)?;
 
-    Ok(DerivePinKeyResponse {
-        pin_protected_user_key: derived_key.encrypt_user_key(user_key)?,
-        encrypted_pin: pin.encrypt_with_key(user_key)?,
-    })
+    let pin: String = encrypted_pin.decrypt_with_key(user_key)?;
+    let login_method = client
+        .login_method
+        .as_ref()
+        .ok_or(Error::NotAuthenticated)?;
+
+    derive_pin_protected_user_key(&pin, login_method, user_key)
+}
+
+#[cfg(feature = "internal")]
+fn derive_pin_protected_user_key(
+    pin: &str,
+    login_method: &LoginMethod,
+    user_key: &SymmetricCryptoKey,
+) -> Result<EncString> {
+    let derived_key = match login_method {
+        LoginMethod::User(
+            UserLoginMethod::Username { email, kdf, .. }
+            | UserLoginMethod::ApiKey { email, kdf, .. },
+        ) => MasterKey::derive(pin.as_bytes(), email.as_bytes(), kdf)?,
+        _ => return Err(Error::NotAuthenticated),
+    };
+
+    derived_key.encrypt_user_key(user_key)
 }
 
 #[cfg(test)]

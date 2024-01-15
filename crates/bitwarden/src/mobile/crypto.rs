@@ -207,8 +207,8 @@ mod tests {
 
         let pin_key = derive_pin_key(&mut client, "1234".into()).unwrap();
 
+        // Verify we can unlock with the pin
         let mut client2 = Client::new(None);
-
         initialize_user_crypto(
             &mut client2,
             InitUserCryptoRequest {
@@ -234,6 +234,44 @@ mod tests {
                 .unwrap()
                 .to_base64(),
             client2
+                .get_encryption_settings()
+                .unwrap()
+                .get_key(&None)
+                .unwrap()
+                .to_base64()
+        );
+
+        // Verify we can derive the pin protected user key from the encrypted pin
+        let pin_protected_user_key =
+            derive_pin_user_key(&mut client, pin_key.encrypted_pin).unwrap();
+
+        let mut client3 = Client::new(None);
+
+        initialize_user_crypto(
+            &mut client3,
+            InitUserCryptoRequest {
+                kdf_params: Kdf::PBKDF2 {
+                    iterations: 100_000.try_into().unwrap(),
+                },
+                email: "test@bitwarden.com".into(),
+                private_key: priv_key.to_owned(),
+                method: InitUserCryptoMethod::Pin {
+                    pin: "1234".into(),
+                    pin_protected_user_key,
+                },
+            },
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(
+            client
+                .get_encryption_settings()
+                .unwrap()
+                .get_key(&None)
+                .unwrap()
+                .to_base64(),
+            client3
                 .get_encryption_settings()
                 .unwrap()
                 .get_key(&None)

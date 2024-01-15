@@ -40,7 +40,7 @@ pub(super) fn make_key_pair(key: &SymmetricCryptoKey) -> Result<RsaKeyPair> {
 }
 
 pub(super) fn encrypt_rsa2048_oaep_sha1(
-    private_key: RsaPrivateKey,
+    private_key: &RsaPrivateKey,
     data: &[u8],
 ) -> Result<Vec<u8>> {
     let mut rng = rand::thread_rng();

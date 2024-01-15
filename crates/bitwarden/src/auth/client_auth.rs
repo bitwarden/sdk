@@ -1,6 +1,11 @@
 #[cfg(feature = "secrets")]
 use crate::auth::login::{login_access_token, AccessTokenLoginRequest, AccessTokenLoginResponse};
-use crate::{auth::renew::renew_token, error::Result, Client};
+use crate::{
+    auth::renew::renew_token,
+    crypto::{CreateDeviceKey, DeviceKey, UserKey},
+    error::{Error, Result},
+    Client,
+};
 #[cfg(feature = "internal")]
 use crate::{
     auth::{
@@ -96,6 +101,18 @@ impl<'a> ClientAuth<'a> {
     pub async fn validate_password(&self, password: String, password_hash: String) -> Result<bool> {
         validate_password(self.client, password, password_hash).await
     }
+
+    pub async fn trust_device(&self) -> Result<CreateDeviceKey> {
+        trust_device(self.client)
+    }
+}
+
+fn trust_device(client: &Client) -> Result<CreateDeviceKey> {
+    let enc = client.get_encryption_settings()?;
+
+    let user_key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
+
+    DeviceKey::trust_device(UserKey::new(user_key))
 }
 
 impl<'a> Client {

@@ -1,12 +1,5 @@
-use rsa::{
-    pkcs8::{DecodePrivateKey, EncodePrivateKey, EncodePublicKey},
-    Oaep, RsaPrivateKey,
-};
-
-use sha1::Sha1;
-
 use super::{
-    rsa::generate_rsa, AsymmEncString, EncString, KeyDecryptable, KeyEncryptable,
+    AsymmEncString, AsymmetricCryptoKey, EncString, KeyDecryptable, KeyEncryptable,
     SymmetricCryptoKey, UserKey,
 };
 use crate::error::Result;
@@ -19,7 +12,7 @@ use crate::error::Result;
 pub(crate) struct DeviceKey(SymmetricCryptoKey);
 
 #[derive(Debug)]
-struct CreateDeviceKey {
+pub struct CreateDeviceKey {
     device_key: DeviceKey,
     /// UserKey encrypted with DevicePublicKey
     protected_user_key: AsymmEncString,
@@ -36,33 +29,23 @@ struct CreateDeviceKey {
 
 impl DeviceKey {
     /// Generate a new device key
-    fn trust_device(user_key: UserKey) -> Result<CreateDeviceKey> {
+    pub fn trust_device(user_key: UserKey) -> Result<CreateDeviceKey> {
         let device_key = DeviceKey(SymmetricCryptoKey::generate(rand::thread_rng()));
 
-        let device_private_key = generate_rsa();
+        let device_private_key = AsymmetricCryptoKey::generate();
 
-        let mut rng = rand::thread_rng();
-        let padding = Oaep::new::<Sha1>();
-
-        let protected_user_key = AsymmEncString::Rsa2048_OaepSha1_B64 {
-            data: device_private_key
-                .to_public_key()
-                .encrypt(&mut rng, padding, &user_key.0.key)
-                .map_err(|e| e.to_string())?,
-        };
+        let protected_user_key =
+            AsymmEncString::encrypt_rsa2048_oaep_sha1(&user_key.0.key, &device_private_key)?;
 
         let spki = device_private_key
-            .to_public_key()
-            .to_public_key_der()
+            .to_public_der()
             .map_err(|_| "Invalid key")?;
 
-        let protected_device_public_key = spki.as_bytes().encrypt_with_key(&user_key.0)?;
+        let protected_device_public_key = spki.encrypt_with_key(&user_key.0)?;
 
-        let pkcs8 = device_private_key
-            .to_pkcs8_der()
-            .map_err(|_| "Invalid key")?;
+        let pkcs8 = device_private_key.to_der().map_err(|_| "Invalid key")?;
 
-        let protected_device_private_key = pkcs8.as_bytes().encrypt_with_key(&device_key.0)?;
+        let protected_device_private_key = pkcs8.encrypt_with_key(&device_key.0)?;
 
         Ok(CreateDeviceKey {
             device_key,
@@ -79,13 +62,10 @@ impl DeviceKey {
         protected_user_key: AsymmEncString,
     ) -> Result<UserKey> {
         let device_private_key: Vec<u8> = protected_device_private_key.decrypt_with_key(&self.0)?;
-        let device_private_key = RsaPrivateKey::from_pkcs8_der(device_private_key.as_slice())
-            .map_err(|e| e.to_string())?;
+        let device_private_key = AsymmetricCryptoKey::from_der(device_private_key.as_slice())?;
 
-        let user_key: SymmetricCryptoKey = protected_user_key
-            .decrypt(&device_private_key)?
-            .as_slice()
-            .try_into()?;
+        let dec: Vec<u8> = protected_user_key.decrypt_with_key(&device_private_key)?;
+        let user_key: SymmetricCryptoKey = dec.as_slice().try_into()?;
 
         Ok(UserKey(user_key))
     }

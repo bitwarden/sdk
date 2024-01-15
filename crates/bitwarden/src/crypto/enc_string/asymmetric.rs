@@ -139,9 +139,9 @@ impl serde::Serialize for AsymmEncString {
 impl AsymmEncString {
     pub(crate) fn encrypt_rsa2048_oaep_sha1(
         data_dec: &[u8],
-        key: AsymmetricCryptoKey,
+        key: &AsymmetricCryptoKey,
     ) -> Result<AsymmEncString> {
-        let enc = encrypt_rsa2048_oaep_sha1(key.key, data_dec)?;
+        let enc = encrypt_rsa2048_oaep_sha1(&key.key, data_dec)?;
         Ok(AsymmEncString::Rsa2048_OaepSha1_B64 { data: enc })
     }
 

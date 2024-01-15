@@ -50,6 +50,10 @@ pub(crate) use shareable_key::derive_shareable_key;
 #[cfg(feature = "internal")]
 mod device_key;
 #[cfg(feature = "internal")]
+pub use device_key::CreateDeviceKey;
+#[cfg(feature = "internal")]
+pub(crate) use device_key::DeviceKey;
+#[cfg(feature = "internal")]
 mod master_key;
 #[cfg(feature = "internal")]
 pub use master_key::HashPurpose;

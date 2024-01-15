@@ -10,12 +10,13 @@ on:
         required: true
         type: choice
         options:
-          - napi
           - bitwarden
           - bitwarden-api-api
           - bitwarden-api-identity
-          - cli
+          - bitwarden-crypto
           - bitwarden-json
+          - cli
+          - napi
       version_number:
         description: "New version (example: '2024.1.0')"
         required: true
@@ -115,6 +116,12 @@ jobs:
       - name: Bump bitwarden-api-identity crate Version
         if: ${{ inputs.project == 'bitwarden-api-identity' }}
         run: cargo-set-version set-version -p bitwarden-api-identity ${{ inputs.version_number }}
+
+      ### bitwarden-crypto
+
+      - name: Bump bitwarden-crypto crate Version
+        if: ${{ inputs.project == 'bitwarden-crypto' }}
+        run: cargo-set-version set-version -p bitwarden-crypto ${{ inputs.version_number }}
 
       ### cli
 

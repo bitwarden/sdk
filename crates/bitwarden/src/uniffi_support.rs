@@ -1,6 +1,6 @@
 use std::{num::NonZeroU32, str::FromStr};
 
-use bitwarden_crypto::{AsymmEncString, EncString};
+use bitwarden_crypto::{AsymmetricEncString, EncString};
 use uuid::Uuid;
 
 use crate::UniffiCustomTypeConverter;
@@ -8,9 +8,9 @@ use crate::UniffiCustomTypeConverter;
 uniffi::ffi_converter_forward!(NonZeroU32, bitwarden_crypto::UniFfiTag, crate::UniFfiTag);
 uniffi::ffi_converter_forward!(EncString, bitwarden_crypto::UniFfiTag, crate::UniFfiTag);
 
-uniffi::custom_type!(AsymmEncString, String);
+uniffi::custom_type!(AsymmetricEncString, String);
 
-impl UniffiCustomTypeConverter for AsymmEncString {
+impl UniffiCustomTypeConverter for AsymmetricEncString {
     type Builtin = String;
 
     fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {

@@ -116,7 +116,7 @@ pub async fn get_user_encryption_key(client: &mut Client) -> Result<String> {
 pub struct DerivePinKeyResponse {
     /// [UserKey] protected by PIN
     pin_protected_user_key: EncString,
-    /// PIN protected [UserKey]
+    /// PIN protected by [UserKey]
     encrypted_pin: EncString,
 }
 

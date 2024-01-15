@@ -1,14 +1,12 @@
 use std::collections::HashMap;
 
 #[cfg(feature = "internal")]
-use crate::{
-    client::UserLoginMethod,
-    crypto::{AsymmEncString, EncString, KeyDecryptable},
-    error::Result,
-};
+use bitwarden_crypto::{AsymmEncString, EncString};
+use bitwarden_crypto::{AsymmetricCryptoKey, KeyContainer, SymmetricCryptoKey};
 use uuid::Uuid;
 
-use crate::crypto::{AsymmetricCryptoKey, SymmetricCryptoKey};
+#[cfg(feature = "internal")]
+use crate::{client::UserLoginMethod, error::Result};
 
 pub struct EncryptionSettings {
     user_key: SymmetricCryptoKey,
@@ -31,7 +29,7 @@ impl EncryptionSettings {
         user_key: EncString,
         private_key: EncString,
     ) -> Result<Self> {
-        use crate::crypto::MasterKey;
+        use bitwarden_crypto::MasterKey;
 
         match login_method {
             UserLoginMethod::Username { email, kdf, .. }
@@ -55,6 +53,8 @@ impl EncryptionSettings {
         user_key: SymmetricCryptoKey,
         private_key: EncString,
     ) -> Result<Self> {
+        use bitwarden_crypto::KeyDecryptable;
+
         let private_key = {
             let dec: Vec<u8> = private_key.decrypt_with_key(&user_key)?;
             Some(AsymmetricCryptoKey::from_der(&dec)?)
@@ -82,6 +82,8 @@ impl EncryptionSettings {
         &mut self,
         org_enc_keys: Vec<(Uuid, AsymmEncString)>,
     ) -> Result<&mut Self> {
+        use bitwarden_crypto::KeyDecryptable;
+
         use crate::error::Error;
 
         let private_key = self.private_key.as_ref().ok_or(Error::VaultLocked)?;
@@ -112,5 +114,11 @@ impl EncryptionSettings {
             Some(org_id) => self.org_keys.get(org_id),
             None => Some(&self.user_key),
         }
+    }
+}
+
+impl KeyContainer for EncryptionSettings {
+    fn get_key(&self, org_id: &Option<Uuid>) -> Option<&SymmetricCryptoKey> {
+        EncryptionSettings::get_key(self, org_id)
     }
 }

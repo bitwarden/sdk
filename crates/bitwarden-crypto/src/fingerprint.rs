@@ -1,27 +1,34 @@
+//! # Fingerprint
+//!
+//! Provides a way to derive fingerprints from fingerprint material and public keys. This is most
+//! commonly used for account fingerprints, where the fingerprint material is the user's id and the
+//! public key is the user's public key.
+
 use num_bigint::BigUint;
 use num_traits::cast::ToPrimitive;
 use sha2::Digest;
+use thiserror::Error;
 
-use crate::{error::Result, wordlist::EFF_LONG_WORD_LIST};
+use crate::{error::Result, wordlist::EFF_LONG_WORD_LIST, CryptoError};
 
 /// Computes a fingerprint of the given `fingerprint_material` using the given `public_key`.
 ///
 /// This is commonly used for account fingerprints. With the following arguments:
 /// - `fingerprint_material`: user's id.
 /// - `public_key`: user's public key.
-pub(crate) fn fingerprint(fingerprint_material: &str, public_key: &[u8]) -> Result<String> {
+pub fn fingerprint(fingerprint_material: &str, public_key: &[u8]) -> Result<String> {
     let mut h = sha2::Sha256::new();
     h.update(public_key);
     h.finalize();
 
     let hkdf =
-        hkdf::Hkdf::<sha2::Sha256>::from_prk(public_key).map_err(|_| "hkdf::InvalidLength")?;
+        hkdf::Hkdf::<sha2::Sha256>::from_prk(public_key).map_err(|_| CryptoError::InvalidKeyLen)?;
 
     let mut user_fingerprint = [0u8; 32];
     hkdf.expand(fingerprint_material.as_bytes(), &mut user_fingerprint)
-        .map_err(|_| "hkdf::expand")?;
+        .map_err(|_| CryptoError::InvalidKeyLen)?;
 
-    Ok(hash_word(user_fingerprint).unwrap())
+    hash_word(user_fingerprint)
 }
 
 /// Derive a 5 word phrase from a 32 byte hash.
@@ -34,7 +41,7 @@ fn hash_word(hash: [u8; 32]) -> Result<String> {
     let hash_arr: Vec<u8> = hash.to_vec();
     let entropy_available = hash_arr.len() * 4;
     if num_words as f64 * entropy_per_word > entropy_available as f64 {
-        return Err("Output entropy of hash function is too small".into());
+        return Err(FingerprintError::EntropyTooSmall.into());
     }
 
     let mut phrase = Vec::new();
@@ -48,6 +55,12 @@ fn hash_word(hash: [u8; 32]) -> Result<String> {
     }
 
     Ok(phrase.join("-"))
+}
+
+#[derive(Debug, Error)]
+pub enum FingerprintError {
+    #[error("Entropy is too small")]
+    EntropyTooSmall,
 }
 
 #[cfg(test)]

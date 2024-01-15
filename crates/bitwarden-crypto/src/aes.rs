@@ -2,11 +2,8 @@
 //!
 //! Contains low level AES operations used by the rest of the library.
 //!
-//! **Warning**: Consider carefully if you have to use these functions directly, as generally we
-//! expose higher level functions that are easier to use and more secure.
-//!
-//! In most cases you should use the [EncString] with [KeyEncryptable][super::KeyEncryptable] &
-//! [KeyDecryptable][super::KeyDecryptable] instead.
+//! In most cases you should use the [EncString][crate::EncString] with
+//! [KeyEncryptable][crate::KeyEncryptable] & [KeyDecryptable][crate::KeyDecryptable] instead.
 
 use aes::cipher::{
     block_padding::Pkcs7, generic_array::GenericArray, typenum::U32, BlockDecryptMut,
@@ -16,14 +13,18 @@ use hmac::Mac;
 use subtle::ConstantTimeEq;
 
 use crate::{
-    crypto::{PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},
     error::{CryptoError, Result},
+    util::{PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE},
 };
 
 /// Decrypt using AES-256 in CBC mode.
 ///
 /// Behaves similar to [decrypt_aes256_hmac], but does not validate the MAC.
-pub fn decrypt_aes256(iv: &[u8; 16], data: Vec<u8>, key: GenericArray<u8, U32>) -> Result<Vec<u8>> {
+pub(crate) fn decrypt_aes256(
+    iv: &[u8; 16],
+    data: Vec<u8>,
+    key: GenericArray<u8, U32>,
+) -> Result<Vec<u8>> {
     // Decrypt data
     let iv = GenericArray::from_slice(iv);
     let mut data = data;
@@ -41,7 +42,7 @@ pub fn decrypt_aes256(iv: &[u8; 16], data: Vec<u8>, key: GenericArray<u8, U32>) 
 /// Decrypt using AES-256 in CBC mode with MAC.
 ///
 /// Behaves similar to [decrypt_aes256], but also validates the MAC.
-pub fn decrypt_aes256_hmac(
+pub(crate) fn decrypt_aes256_hmac(
     iv: &[u8; 16],
     mac: &[u8; 32],
     data: Vec<u8>,
@@ -50,7 +51,7 @@ pub fn decrypt_aes256_hmac(
 ) -> Result<Vec<u8>> {
     let res = generate_mac(&mac_key, iv, &data)?;
     if res.ct_ne(mac).into() {
-        return Err(CryptoError::InvalidMac.into());
+        return Err(CryptoError::InvalidMac);
     }
     decrypt_aes256(iv, data, key)
 }
@@ -63,7 +64,7 @@ pub fn decrypt_aes256_hmac(
 ///
 /// A AesCbc256_B64 EncString
 #[allow(unused)]
-pub fn encrypt_aes256(data_dec: &[u8], key: GenericArray<u8, U32>) -> ([u8; 16], Vec<u8>) {
+pub(crate) fn encrypt_aes256(data_dec: &[u8], key: GenericArray<u8, U32>) -> ([u8; 16], Vec<u8>) {
     let rng = rand::thread_rng();
     let (iv, data) = encrypt_aes256_internal(rng, data_dec, key);
 
@@ -77,7 +78,7 @@ pub fn encrypt_aes256(data_dec: &[u8], key: GenericArray<u8, U32>) -> ([u8; 16],
 /// ## Returns
 ///
 /// A AesCbc256_HmacSha256_B64 EncString
-pub fn encrypt_aes256_hmac(
+pub(crate) fn encrypt_aes256_hmac(
     data_dec: &[u8],
     mac_key: GenericArray<u8, U32>,
     key: GenericArray<u8, U32>,

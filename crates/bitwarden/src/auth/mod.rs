@@ -10,14 +10,12 @@ pub use jwt_token::JWTToken;
 #[cfg(feature = "internal")]
 mod register;
 #[cfg(feature = "internal")]
+use bitwarden_crypto::{HashPurpose, MasterKey};
+#[cfg(feature = "internal")]
 pub use register::{RegisterKeyResponse, RegisterRequest};
 
 #[cfg(feature = "internal")]
-use crate::{
-    client::kdf::Kdf,
-    crypto::{HashPurpose, MasterKey},
-    error::Result,
-};
+use crate::{client::Kdf, error::Result};
 
 #[cfg(feature = "internal")]
 async fn determine_password_hash(
@@ -27,7 +25,7 @@ async fn determine_password_hash(
     purpose: HashPurpose,
 ) -> Result<String> {
     let master_key = MasterKey::derive(password.as_bytes(), email.as_bytes(), kdf)?;
-    master_key.derive_master_key_hash(password.as_bytes(), purpose)
+    Ok(master_key.derive_master_key_hash(password.as_bytes(), purpose)?)
 }
 
 #[cfg(test)]

@@ -1,13 +1,11 @@
 use rsa::RsaPrivateKey;
 
-use crate::{
-    crypto::CryptoKey,
-    error::{CryptoError, Result},
-};
+use super::key_encryptable::CryptoKey;
+use crate::error::{CryptoError, Result};
 
-/// An asymmetric encryption key. Used to encrypt and decrypt [`EncString`](crate::crypto::EncString)
+/// An asymmetric encryption key. Used to encrypt and decrypt [`EncString`](crate::EncString)
 pub struct AsymmetricCryptoKey {
-    pub(in crate::crypto) key: RsaPrivateKey,
+    pub(crate) key: RsaPrivateKey,
 }
 
 impl AsymmetricCryptoKey {

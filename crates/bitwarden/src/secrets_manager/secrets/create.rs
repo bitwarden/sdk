@@ -1,11 +1,11 @@
 use bitwarden_api_api::models::SecretCreateRequestModel;
+use bitwarden_crypto::KeyEncryptable;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::SecretResponse;
 use crate::{
-    crypto::KeyEncryptable,
     error::{Error, Result},
     Client,
 };

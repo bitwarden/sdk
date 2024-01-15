@@ -1,10 +1,7 @@
 use std::sync::Arc;
 
-use bitwarden::{
-    auth::{password::MasterPasswordPolicyOptions, RegisterKeyResponse},
-    client::kdf::Kdf,
-    crypto::HashPurpose,
-};
+use bitwarden::auth::{password::MasterPasswordPolicyOptions, RegisterKeyResponse};
+use bitwarden_crypto::{HashPurpose, Kdf};
 
 use crate::{error::Result, Client};
 

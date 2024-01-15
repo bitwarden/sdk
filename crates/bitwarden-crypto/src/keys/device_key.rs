@@ -1,15 +1,14 @@
-use super::{
-    AsymmEncString, AsymmetricCryptoKey, EncString, KeyDecryptable, KeyEncryptable,
+use crate::{
+    error::Result, AsymmEncString, AsymmetricCryptoKey, EncString, KeyDecryptable, KeyEncryptable,
     SymmetricCryptoKey, UserKey,
 };
-use crate::error::Result;
 
 /// Device Key
 ///
 /// Encrypts the DevicePrivateKey
 /// Allows the device to decrypt the UserKey, via the DevicePrivateKey.
 #[derive(Debug)]
-pub(crate) struct DeviceKey(SymmetricCryptoKey);
+pub struct DeviceKey(SymmetricCryptoKey);
 
 #[derive(Debug)]
 pub struct CreateDeviceKey {
@@ -37,13 +36,11 @@ impl DeviceKey {
         let protected_user_key =
             AsymmEncString::encrypt_rsa2048_oaep_sha1(&user_key.0.key, &device_private_key)?;
 
-        let spki = device_private_key
-            .to_public_der()
-            .map_err(|_| "Invalid key")?;
+        let spki = device_private_key.to_public_der()?;
 
         let protected_device_public_key = spki.encrypt_with_key(&user_key.0)?;
 
-        let pkcs8 = device_private_key.to_der().map_err(|_| "Invalid key")?;
+        let pkcs8 = device_private_key.to_der()?;
 
         let protected_device_private_key = pkcs8.encrypt_with_key(&device_key.0)?;
 
@@ -73,7 +70,7 @@ impl DeviceKey {
 
 #[cfg(test)]
 mod tests {
-    use crate::crypto::symmetric_crypto_key::derive_symmetric_key;
+    use crate::derive_symmetric_key;
 
     use super::*;
 

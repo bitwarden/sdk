@@ -1,4 +1,5 @@
 use bitwarden_api_api::models::ProjectResponseModel;
+use bitwarden_crypto::{Decryptable, EncString};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -6,7 +7,6 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    crypto::{Decryptable, EncString},
     error::{Error, Result},
 };
 

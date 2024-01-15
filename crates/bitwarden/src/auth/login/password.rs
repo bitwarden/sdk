@@ -6,8 +6,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "internal")]
 use crate::{
     auth::{api::request::PasswordTokenRequest, login::TwoFactorRequest},
-    client::{kdf::Kdf, LoginMethod},
-    crypto::EncString,
+    client::{Kdf, LoginMethod},
     Client,
 };
 use crate::{
@@ -23,7 +22,9 @@ pub(crate) async fn login_password(
     client: &mut Client,
     input: &PasswordLoginRequest,
 ) -> Result<PasswordLoginResponse> {
-    use crate::{auth::determine_password_hash, client::UserLoginMethod, crypto::HashPurpose};
+    use bitwarden_crypto::{EncString, HashPurpose};
+
+    use crate::{auth::determine_password_hash, client::UserLoginMethod};
 
     info!("password logging in");
     debug!("{:#?}, {:#?}", client, input);

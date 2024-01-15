@@ -1,8 +1,9 @@
+use bitwarden_crypto::{CreateDeviceKey, DeviceKey, UserKey};
+
 #[cfg(feature = "secrets")]
 use crate::auth::login::{login_access_token, AccessTokenLoginRequest, AccessTokenLoginResponse};
 use crate::{
     auth::renew::renew_token,
-    crypto::{CreateDeviceKey, DeviceKey, UserKey},
     error::{Error, Result},
     Client,
 };
@@ -20,7 +21,7 @@ use crate::{
         register::{make_register_keys, register},
         RegisterKeyResponse, RegisterRequest,
     },
-    client::kdf::Kdf,
+    client::Kdf,
 };
 
 pub struct ClientAuth<'a> {
@@ -75,9 +76,10 @@ impl<'a> ClientAuth<'a> {
     }
 
     pub async fn prelogin(&mut self, email: String) -> Result<Kdf> {
-        use crate::auth::login::request_prelogin;
+        use crate::auth::login::{parse_prelogin, request_prelogin};
 
-        request_prelogin(self.client, email).await?.try_into()
+        let response = request_prelogin(self.client, email).await?;
+        parse_prelogin(response)
     }
 
     pub async fn login_password(
@@ -112,7 +114,7 @@ fn trust_device(client: &Client) -> Result<CreateDeviceKey> {
 
     let user_key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
 
-    DeviceKey::trust_device(UserKey::new(user_key))
+    Ok(DeviceKey::trust_device(UserKey::new(user_key))?)
 }
 
 impl<'a> Client {

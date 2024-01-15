@@ -1,4 +1,4 @@
-use bitwarden::crypto::EncString;
+use bitwarden_crypto::EncString;
 
 // Forward the type definitions to the main bitwarden crate
 type DateTime = chrono::DateTime<chrono::Utc>;

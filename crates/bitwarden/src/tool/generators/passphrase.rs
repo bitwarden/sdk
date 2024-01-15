@@ -1,7 +1,9 @@
-use crate::{error::Result, util::capitalize_first_letter, wordlist::EFF_LONG_WORD_LIST};
+use bitwarden_crypto::EFF_LONG_WORD_LIST;
 use rand::{seq::SliceRandom, Rng, RngCore};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+
+use crate::{error::Result, util::capitalize_first_letter};
 
 /// Passphrase generator request options.
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

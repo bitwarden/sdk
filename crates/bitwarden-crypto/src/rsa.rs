@@ -6,10 +6,13 @@ use rsa::{
 use sha1::Sha1;
 
 use crate::{
-    crypto::{EncString, SymmetricCryptoKey},
-    error::Result,
+    error::{Result, RsaError},
+    CryptoError, EncString, SymmetricCryptoKey,
 };
 
+/// RSA Key Pair
+///
+/// Consists of a public key and an encrypted private key.
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct RsaKeyPair {
     /// Base64 encoded DER representation of the public key
@@ -24,12 +27,12 @@ pub(super) fn make_key_pair(key: &SymmetricCryptoKey) -> Result<RsaKeyPair> {
 
     let spki = pub_key
         .to_public_key_der()
-        .map_err(|_| "unable to create public key")?;
+        .map_err(|_| RsaError::CreatePublicKey)?;
 
     let b64 = STANDARD.encode(spki.as_bytes());
     let pkcs = priv_key
         .to_pkcs8_der()
-        .map_err(|_| "unable to create private key")?;
+        .map_err(|_| RsaError::CreatePrivateKey)?;
 
     let protected = EncString::encrypt_aes256_hmac(pkcs.as_bytes(), key.mac_key.unwrap(), key.key)?;
 
@@ -49,7 +52,7 @@ pub(super) fn encrypt_rsa2048_oaep_sha1(
     private_key
         .to_public_key()
         .encrypt(&mut rng, padding, data)
-        .map_err(|e| e.to_string().into())
+        .map_err(|e| CryptoError::RsaError(e.into()))
 }
 
 // TODO: Move this to AsymmCryptoKey

@@ -4,12 +4,10 @@ use aes::cipher::{generic_array::GenericArray, typenum::U32};
 use base64::{engine::general_purpose::STANDARD, Engine};
 use serde::Deserialize;
 
-#[cfg(feature = "mobile")]
-use super::check_length;
-use super::{from_b64, from_b64_vec, split_enc_string};
+use super::{check_length, from_b64, from_b64_vec, split_enc_string};
 use crate::{
-    crypto::{decrypt_aes256_hmac, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey},
-    error::{CryptoError, EncStringParseError, Error, Result},
+    error::{CryptoError, EncStringParseError, Result},
+    KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey,
 };
 
 /// # Encrypted string primitive
@@ -73,7 +71,7 @@ impl std::fmt::Debug for EncString {
 
 /// Deserializes an [EncString] from a string.
 impl FromStr for EncString {
-    type Err = Error;
+    type Err = CryptoError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (enc_type, parts) = split_enc_string(s);
@@ -107,13 +105,11 @@ impl FromStr for EncString {
 
 impl EncString {
     /// Synthetic sugar for mapping `Option<String>` to `Result<Option<EncString>>`
-    #[cfg(feature = "internal")]
-    pub(crate) fn try_from_optional(s: Option<String>) -> Result<Option<EncString>, Error> {
+    pub fn try_from_optional(s: Option<String>) -> Result<Option<EncString>, CryptoError> {
         s.map(|s| s.parse()).transpose()
     }
 
-    #[cfg(feature = "mobile")]
-    pub(crate) fn from_buffer(buf: &[u8]) -> Result<Self> {
+    pub fn from_buffer(buf: &[u8]) -> Result<Self> {
         if buf.is_empty() {
             return Err(EncStringParseError::NoType.into());
         }
@@ -147,8 +143,7 @@ impl EncString {
         }
     }
 
-    #[cfg(feature = "mobile")]
-    pub(crate) fn to_buffer(&self) -> Result<Vec<u8>> {
+    pub fn to_buffer(&self) -> Result<Vec<u8>> {
         let mut buf;
 
         match self {
@@ -207,12 +202,12 @@ impl serde::Serialize for EncString {
 }
 
 impl EncString {
-    pub(crate) fn encrypt_aes256_hmac(
+    pub fn encrypt_aes256_hmac(
         data_dec: &[u8],
         mac_key: GenericArray<u8, U32>,
         key: GenericArray<u8, U32>,
     ) -> Result<EncString> {
-        let (iv, mac, data) = crate::crypto::encrypt_aes256_hmac(data_dec, mac_key, key)?;
+        let (iv, mac, data) = crate::aes::encrypt_aes256_hmac(data_dec, mac_key, key)?;
         Ok(EncString::AesCbc256_HmacSha256_B64 { iv, mac, data })
     }
 
@@ -238,10 +233,10 @@ impl KeyDecryptable<SymmetricCryptoKey, Vec<u8>> for EncString {
         match self {
             EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
                 let mac_key = key.mac_key.ok_or(CryptoError::InvalidMac)?;
-                let dec = decrypt_aes256_hmac(iv, mac, data.clone(), mac_key, key.key)?;
+                let dec = crate::aes::decrypt_aes256_hmac(iv, mac, data.clone(), mac_key, key.key)?;
                 Ok(dec)
             }
-            _ => Err(CryptoError::InvalidKey.into()),
+            _ => Err(CryptoError::InvalidKey),
         }
     }
 }
@@ -255,7 +250,7 @@ impl KeyEncryptable<SymmetricCryptoKey, EncString> for String {
 impl KeyDecryptable<SymmetricCryptoKey, String> for EncString {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<String> {
         let dec: Vec<u8> = self.decrypt_with_key(key)?;
-        String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String.into())
+        String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String)
     }
 }
 
@@ -274,9 +269,7 @@ impl schemars::JsonSchema for EncString {
 #[cfg(test)]
 mod tests {
     use super::EncString;
-    use crate::crypto::{
-        symmetric_crypto_key::derive_symmetric_key, KeyDecryptable, KeyEncryptable,
-    };
+    use crate::{derive_symmetric_key, KeyDecryptable, KeyEncryptable};
 
     #[test]
     fn test_enc_string_roundtrip() {
@@ -305,7 +298,6 @@ mod tests {
         assert_eq!(serde_json::to_string(&t).unwrap(), serialized);
     }
 
-    #[cfg(feature = "mobile")]
     #[test]
     fn test_enc_from_to_buffer() {
         let enc_str: &str = "2.pMS6/icTQABtulw52pq2lg==|XXbxKxDTh+mWiN1HjH2N1w==|Q6PkuT+KX/axrgN9ubD5Ajk2YNwxQkgs3WJM0S0wtG8=";

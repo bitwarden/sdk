@@ -143,10 +143,7 @@ pub fn derive_pin_key(client: &mut Client, pin: String) -> Result<DerivePinKeyRe
 }
 
 #[cfg(feature = "internal")]
-pub fn derive_protected_pin_key(
-    client: &mut Client,
-    encrypted_pin: EncString,
-) -> Result<EncString> {
+pub fn derive_pin_user_key(client: &mut Client, encrypted_pin: EncString) -> Result<EncString> {
     use crate::crypto::KeyDecryptable;
 
     let user_key = client

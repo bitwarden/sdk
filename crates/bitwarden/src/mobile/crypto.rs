@@ -1,9 +1,13 @@
 use std::collections::HashMap;
 
 use bitwarden_crypto::{AsymmEncString, EncString};
+#[cfg(feature = "internal")]
+use bitwarden_crypto::{KeyDecryptable, KeyEncryptable, MasterKey, SymmetricCryptoKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "internal")]
+use crate::client::{LoginMethod, UserLoginMethod};
 use crate::{
     client::Kdf,
     error::{Error, Result},
@@ -50,8 +54,6 @@ pub enum InitUserCryptoMethod {
 
 #[cfg(feature = "internal")]
 pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequest) -> Result<()> {
-    use bitwarden_crypto::SymmetricCryptoKey;
-
     let login_method = crate::client::LoginMethod::User(crate::client::UserLoginMethod::Username {
         client_id: "".to_string(),
         email: req.email,
@@ -112,33 +114,63 @@ pub async fn get_user_encryption_key(client: &mut Client) -> Result<String> {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct DerivePinKeyResponse {
+    /// [UserKey] protected by PIN
     pin_protected_user_key: EncString,
+    /// PIN protected by [UserKey]
     encrypted_pin: EncString,
 }
 
 #[cfg(feature = "internal")]
 pub fn derive_pin_key(client: &mut Client, pin: String) -> Result<DerivePinKeyResponse> {
-    use bitwarden_crypto::{KeyEncryptable, MasterKey};
-
-    use crate::client::{LoginMethod, UserLoginMethod};
-
-    let derived_key = match &client.login_method {
-        Some(LoginMethod::User(
-            UserLoginMethod::Username { email, kdf, .. }
-            | UserLoginMethod::ApiKey { email, kdf, .. },
-        )) => MasterKey::derive(pin.as_bytes(), email.as_bytes(), kdf)?,
-        _ => return Err(Error::NotAuthenticated),
-    };
-
     let user_key = client
         .get_encryption_settings()?
         .get_key(&None)
         .ok_or(Error::VaultLocked)?;
 
+    let login_method = client
+        .login_method
+        .as_ref()
+        .ok_or(Error::NotAuthenticated)?;
+
+    let pin_protected_user_key = derive_pin_protected_user_key(&pin, login_method, user_key)?;
+
     Ok(DerivePinKeyResponse {
-        pin_protected_user_key: derived_key.encrypt_user_key(user_key)?,
+        pin_protected_user_key,
         encrypted_pin: pin.encrypt_with_key(user_key)?,
     })
+}
+
+#[cfg(feature = "internal")]
+pub fn derive_pin_user_key(client: &mut Client, encrypted_pin: EncString) -> Result<EncString> {
+    let user_key = client
+        .get_encryption_settings()?
+        .get_key(&None)
+        .ok_or(Error::VaultLocked)?;
+
+    let pin: String = encrypted_pin.decrypt_with_key(user_key)?;
+    let login_method = client
+        .login_method
+        .as_ref()
+        .ok_or(Error::NotAuthenticated)?;
+
+    derive_pin_protected_user_key(&pin, login_method, user_key)
+}
+
+#[cfg(feature = "internal")]
+fn derive_pin_protected_user_key(
+    pin: &str,
+    login_method: &LoginMethod,
+    user_key: &SymmetricCryptoKey,
+) -> Result<EncString> {
+    let derived_key = match login_method {
+        LoginMethod::User(
+            UserLoginMethod::Username { email, kdf, .. }
+            | UserLoginMethod::ApiKey { email, kdf, .. },
+        ) => MasterKey::derive(pin.as_bytes(), email.as_bytes(), kdf)?,
+        _ => return Err(Error::NotAuthenticated),
+    };
+
+    Ok(derived_key.encrypt_user_key(user_key)?)
 }
 
 #[cfg(test)]
@@ -171,8 +203,8 @@ mod tests {
 
         let pin_key = derive_pin_key(&mut client, "1234".into()).unwrap();
 
+        // Verify we can unlock with the pin
         let mut client2 = Client::new(None);
-
         initialize_user_crypto(
             &mut client2,
             InitUserCryptoRequest {
@@ -198,6 +230,44 @@ mod tests {
                 .unwrap()
                 .to_base64(),
             client2
+                .get_encryption_settings()
+                .unwrap()
+                .get_key(&None)
+                .unwrap()
+                .to_base64()
+        );
+
+        // Verify we can derive the pin protected user key from the encrypted pin
+        let pin_protected_user_key =
+            derive_pin_user_key(&mut client, pin_key.encrypted_pin).unwrap();
+
+        let mut client3 = Client::new(None);
+
+        initialize_user_crypto(
+            &mut client3,
+            InitUserCryptoRequest {
+                kdf_params: Kdf::PBKDF2 {
+                    iterations: 100_000.try_into().unwrap(),
+                },
+                email: "test@bitwarden.com".into(),
+                private_key: priv_key.to_owned(),
+                method: InitUserCryptoMethod::Pin {
+                    pin: "1234".into(),
+                    pin_protected_user_key,
+                },
+            },
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(
+            client
+                .get_encryption_settings()
+                .unwrap()
+                .get_key(&None)
+                .unwrap()
+                .to_base64(),
+            client3
                 .get_encryption_settings()
                 .unwrap()
                 .get_key(&None)

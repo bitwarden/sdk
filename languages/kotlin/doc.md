@@ -246,6 +246,18 @@ initialize another client instance by using the PIN and the PIN key with
 
 **Output**: std::result::Result<DerivePinKeyResponse,BitwardenError>
 
+### `derive_pin_user_key`
+
+Derives the pin protected user key from encrypted pin. Used when pin requires master password on
+first unlock.
+
+**Arguments**:
+
+- self:
+- encrypted_pin: [EncString](#encstring)
+
+**Output**: std::result::Result<EncString,BitwardenError>
+
 ## ClientExporters
 
 ### `export_vault`
@@ -852,6 +864,16 @@ implementations.
 </tr>
 </table>
 
+## `EncString`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+</table>
+
 ## `ExportFormat`
 
 <table>
@@ -1428,13 +1450,18 @@ implementations.
 </tr>
 <tr>
     <th>key</th>
-    <th></th>
-    <th></th>
+    <th>string,null</th>
+    <th>Base64 encoded key</th>
 </tr>
 <tr>
-    <th>password</th>
+    <th>newPassword</th>
     <th>string,null</th>
-    <th></th>
+    <th>Replace or add a password to an existing send. The SDK will always return None when decrypting a [Send] TODO: We should revisit this, one variant is to have &#x60;[Create, Update]SendView&#x60; DTOs.</th>
+</tr>
+<tr>
+    <th>hasPassword</th>
+    <th>boolean</th>
+    <th>Denote if an existing send has a password. The SDK will ignore this value when creating or updating sends.</th>
 </tr>
 <tr>
     <th>type</th>

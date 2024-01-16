@@ -1,5 +1,10 @@
 use std::path::PathBuf;
 
+#[cfg(feature = "internal")]
+pub use bitwarden_crypto::Kdf;
+use bitwarden_crypto::SymmetricCryptoKey;
+#[cfg(feature = "internal")]
+use bitwarden_crypto::{AsymmEncString, EncString};
 use chrono::Utc;
 use reqwest::header::{self};
 use uuid::Uuid;
@@ -8,20 +13,15 @@ use super::AccessToken;
 #[cfg(feature = "secrets")]
 use crate::auth::login::{AccessTokenLoginRequest, AccessTokenLoginResponse};
 #[cfg(feature = "internal")]
-use crate::{
-    client::kdf::Kdf,
-    crypto::{AsymmEncString, EncString},
-    platform::{
-        get_user_api_key, sync, SecretVerificationRequest, SyncRequest, SyncResponse,
-        UserApiKeyResponse,
-    },
+use crate::platform::{
+    get_user_api_key, sync, SecretVerificationRequest, SyncRequest, SyncResponse,
+    UserApiKeyResponse,
 };
 use crate::{
     client::{
         client_settings::{ClientSettings, DeviceType},
         encryption_settings::EncryptionSettings,
     },
-    crypto::SymmetricCryptoKey,
     error::{Error, Result},
 };
 
@@ -255,7 +255,7 @@ impl Client {
         pin_protected_user_key: EncString,
         private_key: EncString,
     ) -> Result<&EncryptionSettings> {
-        use crate::crypto::MasterKey;
+        use bitwarden_crypto::MasterKey;
 
         let pin_key = match &self.login_method {
             Some(LoginMethod::User(

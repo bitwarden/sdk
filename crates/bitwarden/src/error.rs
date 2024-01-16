@@ -24,10 +24,7 @@ pub enum Error {
     MissingFields,
 
     #[error("Cryptography error, {0}")]
-    Crypto(#[from] CryptoError),
-
-    #[error("Error parsing EncString: {0}")]
-    InvalidEncString(#[from] EncStringParseError),
+    Crypto(#[from] bitwarden_crypto::CryptoError),
 
     #[error("Error parsing Identity response: {0}")]
     IdentityFail(crate::auth::api::response::IdentityTokenFailResponse),
@@ -84,38 +81,6 @@ pub enum AccessTokenInvalidError {
 
     #[error("Invalid base64 length: expected {expected}, got {got}")]
     InvalidBase64Length { expected: usize, got: usize },
-}
-
-#[derive(Debug, Error)]
-pub enum CryptoError {
-    #[error("The provided key is not the expected type")]
-    InvalidKey,
-    #[error("The cipher's MAC doesn't match the expected value")]
-    InvalidMac,
-    #[error("Error while decrypting EncString")]
-    KeyDecrypt,
-    #[error("The cipher key has an invalid length")]
-    InvalidKeyLen,
-    #[error("There is no encryption key for the provided organization")]
-    NoKeyForOrg,
-    #[error("The value is not a valid UTF8 String")]
-    InvalidUtf8String,
-    #[error("Missing key")]
-    MissingKey,
-}
-
-#[derive(Debug, Error)]
-pub enum EncStringParseError {
-    #[error("No type detected, missing '.' separator")]
-    NoType,
-    #[error("Invalid symmetric type, got type {enc_type} with {parts} parts")]
-    InvalidTypeSymm { enc_type: String, parts: usize },
-    #[error("Invalid asymmetric type, got type {enc_type} with {parts} parts")]
-    InvalidTypeAsymm { enc_type: String, parts: usize },
-    #[error("Error decoding base64: {0}")]
-    InvalidBase64(#[from] base64::DecodeError),
-    #[error("Invalid length: expected {expected}, got {got}")]
-    InvalidLength { expected: usize, got: usize },
 }
 
 // Ensure that the error messages implement Send and Sync

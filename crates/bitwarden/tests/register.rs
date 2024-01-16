@@ -5,10 +5,10 @@ async fn test_register_initialize_crypto() {
     use std::num::NonZeroU32;
 
     use bitwarden::{
-        client::kdf::Kdf,
         mobile::crypto::{InitUserCryptoMethod, InitUserCryptoRequest},
         Client,
     };
+    use bitwarden_crypto::Kdf;
 
     let mut client = Client::new(None);
 

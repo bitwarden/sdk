@@ -1,6 +1,6 @@
-use crate::{
-    client::kdf::Kdf, crypto::HashPurpose, error::Result, mobile::kdf::hash_password, Client,
-};
+use bitwarden_crypto::HashPurpose;
+
+use crate::{client::Kdf, error::Result, mobile::kdf::hash_password, Client};
 
 pub struct ClientKdf<'a> {
     pub(crate) client: &'a crate::Client,

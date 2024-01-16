@@ -1,6 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use base64::{engine::general_purpose::STANDARD, Engine};
+use bitwarden_crypto::{EncString, KeyDecryptable, SymmetricCryptoKey};
 use chrono::Utc;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -13,7 +14,6 @@ use crate::{
         JWTToken,
     },
     client::{AccessToken, LoginMethod, ServiceAccountLoginMethod},
-    crypto::{EncString, KeyDecryptable, SymmetricCryptoKey},
     error::{Error, Result},
     secrets_manager::state::{self, ClientState},
     Client,

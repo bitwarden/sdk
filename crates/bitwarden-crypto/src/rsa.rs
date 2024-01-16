@@ -5,10 +5,13 @@ use rsa::{
 };
 
 use crate::{
-    crypto::{EncString, SymmetricCryptoKey},
-    error::Result,
+    error::{Result, RsaError},
+    EncString, SymmetricCryptoKey,
 };
 
+/// RSA Key Pair
+///
+/// Consists of a public key and an encrypted private key.
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct RsaKeyPair {
     /// Base64 encoded DER representation of the public key
@@ -17,7 +20,7 @@ pub struct RsaKeyPair {
     pub private: EncString,
 }
 
-pub(super) fn make_key_pair(key: &SymmetricCryptoKey) -> Result<RsaKeyPair> {
+pub(crate) fn make_key_pair(key: &SymmetricCryptoKey) -> Result<RsaKeyPair> {
     let mut rng = rand::thread_rng();
     let bits = 2048;
     let priv_key = RsaPrivateKey::new(&mut rng, bits).expect("failed to generate a key");
@@ -25,12 +28,12 @@ pub(super) fn make_key_pair(key: &SymmetricCryptoKey) -> Result<RsaKeyPair> {
 
     let spki = pub_key
         .to_public_key_der()
-        .map_err(|_| "unable to create public key")?;
+        .map_err(|_| RsaError::CreatePublicKey)?;
 
     let b64 = STANDARD.encode(spki.as_bytes());
     let pkcs = priv_key
         .to_pkcs8_der()
-        .map_err(|_| "unable to create private key")?;
+        .map_err(|_| RsaError::CreatePrivateKey)?;
 
     let protected = EncString::encrypt_aes256_hmac(pkcs.as_bytes(), key.mac_key.unwrap(), key.key)?;
 

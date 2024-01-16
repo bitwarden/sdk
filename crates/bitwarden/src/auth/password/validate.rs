@@ -1,7 +1,8 @@
+use bitwarden_crypto::HashPurpose;
+
 use crate::{
     auth::determine_password_hash,
     client::{LoginMethod, UserLoginMethod},
-    crypto::HashPurpose,
     error::{Error, Result},
     Client,
 };
@@ -40,7 +41,7 @@ mod tests {
         use std::num::NonZeroU32;
 
         use super::validate_password;
-        use crate::client::{kdf::Kdf, Client, LoginMethod, UserLoginMethod};
+        use crate::client::{Client, Kdf, LoginMethod, UserLoginMethod};
 
         let mut client = Client::new(None);
         client.set_login_method(LoginMethod::User(UserLoginMethod::Username {

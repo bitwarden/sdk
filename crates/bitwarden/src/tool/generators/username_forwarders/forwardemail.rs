@@ -94,7 +94,8 @@ mod tests {
         use wiremock::{matchers, Mock, ResponseTemplate};
 
         let (server, _client) = crate::util::start_mock(vec![
-            // Mock the request to the ForwardEmail API, and verify that the correct request is made
+            // Mock the request to the ForwardEmail API, and verify that the correct request is
+            // made
             Mock::given(matchers::path("/v1/domains/mydomain.com/aliases"))
                 .and(matchers::method("POST"))
                 .and(matchers::header("Content-Type", "application/json"))

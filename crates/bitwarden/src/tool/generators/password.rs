@@ -78,7 +78,8 @@ impl CharSet {
         self.include_if(true, other)
     }
 
-    /// Includes the given characters in the set if the predicate is true. Any duplicate items will be ignored
+    /// Includes the given characters in the set if the predicate is true. Any duplicate items will
+    /// be ignored
     pub fn include_if(mut self, predicate: bool, other: impl IntoIterator<Item = char>) -> Self {
         if predicate {
             self.0.extend(other);
@@ -115,7 +116,8 @@ impl Distribution<char> for CharSet {
 }
 
 /// Represents a set of valid options to generate a password with.
-/// To get an instance of it, use [`PasswordGeneratorRequest::validate_options`](PasswordGeneratorRequest::validate_options)
+/// To get an instance of it, use
+/// [`PasswordGeneratorRequest::validate_options`](PasswordGeneratorRequest::validate_options)
 struct PasswordGeneratorOptions {
     pub(super) lower: (CharSet, usize),
     pub(super) upper: (CharSet, usize),
@@ -127,7 +129,8 @@ struct PasswordGeneratorOptions {
 }
 
 impl PasswordGeneratorRequest {
-    /// Validates the request and returns an immutable struct with valid options to use with the password generator.
+    /// Validates the request and returns an immutable struct with valid options to use with the
+    /// password generator.
     fn validate_options(self) -> Result<PasswordGeneratorOptions> {
         // TODO: Add password generator policy checks
 

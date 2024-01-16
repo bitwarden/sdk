@@ -64,10 +64,11 @@ impl<'a> ClientGenerator<'a> {
     }
 
     /// Generates a random username.
-    /// There are different username generation strategies, which can be customized using the `input` parameter.
+    /// There are different username generation strategies, which can be customized using the
+    /// `input` parameter.
     ///
-    /// Note that most generation strategies will be executed on the client side, but `Forwarded` will use third-party
-    /// services, which may require a specific setup or API key.
+    /// Note that most generation strategies will be executed on the client side, but `Forwarded`
+    /// will use third-party services, which may require a specific setup or API key.
     ///
     /// ```
     /// use bitwarden::{Client, tool::{UsernameGeneratorRequest}, error::Result};

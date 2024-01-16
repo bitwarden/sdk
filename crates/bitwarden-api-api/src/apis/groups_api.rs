@@ -48,7 +48,8 @@ pub enum OrganizationsOrgIdGroupsIdDeletePostError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`organizations_org_id_groups_id_delete_user_org_user_id_post`]
+/// struct for typed errors of method
+/// [`organizations_org_id_groups_id_delete_user_org_user_id_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationsOrgIdGroupsIdDeleteUserOrgUserIdPostError {

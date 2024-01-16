@@ -46,7 +46,6 @@
 //!     Ok(())
 //! }
 //! ```
-//!
 
 #[cfg(feature = "mobile")]
 uniffi::setup_scaffolding!();

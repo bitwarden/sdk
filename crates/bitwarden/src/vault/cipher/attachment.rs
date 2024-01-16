@@ -46,14 +46,14 @@ pub struct AttachmentFileView<'a> {
 }
 
 impl<'a> KeyEncryptable<SymmetricCryptoKey, EncString> for AttachmentFileView<'a> {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<EncString> {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<EncString, CryptoError> {
         let file_key = Attachment::get_attachment_file_key(&self.attachment, &self.cipher, key)?;
         self.contents.encrypt_with_key(&file_key)
     }
 }
 
 impl KeyDecryptable<SymmetricCryptoKey, Vec<u8>> for AttachmentFile {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Vec<u8>, CryptoError> {
         let file_key = Attachment::get_attachment_file_key(&self.attachment, &self.cipher, key)?;
         self.contents.decrypt_with_key(&file_key)
     }
@@ -64,14 +64,14 @@ impl Attachment {
         &self,
         cipher: &Cipher,
         key: &SymmetricCryptoKey,
-    ) -> Result<SymmetricCryptoKey> {
+    ) -> Result<SymmetricCryptoKey, CryptoError> {
         let ciphers_key = Cipher::get_cipher_key(key, &cipher.key)?;
         let ciphers_key = ciphers_key.as_ref().unwrap_or(key);
 
         let attachment_key: Vec<u8> = self
             .key
             .as_ref()
-            .ok_or(Error::VaultLocked)?
+            .ok_or(CryptoError::MissingKey)?
             .decrypt_with_key(ciphers_key)?;
 
         SymmetricCryptoKey::try_from(attachment_key.as_slice())
@@ -123,12 +123,11 @@ impl TryFrom<bitwarden_api_api::models::AttachmentResponseModel> for Attachment 
 mod tests {
     use base64::{engine::general_purpose::STANDARD, Engine};
 
-    use crate::{
-        crypto::{EncString, KeyDecryptable, SymmetricCryptoKey},
-        vault::{
-            cipher::cipher::{CipherRepromptType, CipherType},
-            Attachment, AttachmentFile, Cipher,
-        },
+    use bitwarden_crypto::{EncString, KeyDecryptable, SymmetricCryptoKey};
+
+    use crate::vault::{
+        cipher::cipher::{CipherRepromptType, CipherType},
+        Attachment, AttachmentFile, Cipher,
     };
 
     #[test]

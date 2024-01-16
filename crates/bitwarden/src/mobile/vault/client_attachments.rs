@@ -1,8 +1,9 @@
 use std::path::Path;
 
+use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey};
+
 use super::client_vault::ClientVault;
 use crate::{
-    crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey},
     error::{Error, Result},
     vault::{Attachment, AttachmentFile, AttachmentFileView, Cipher},
     Client,
@@ -41,6 +42,7 @@ impl<'a> ClientAttachments<'a> {
             contents: EncString::from_buffer(encrypted_buffer)?,
         }
         .decrypt_with_key(key)
+        .map_err(Error::Crypto)
     }
 
     pub async fn encrypt_file(
@@ -72,6 +74,7 @@ impl<'a> ClientAttachments<'a> {
         }
         .encrypt_with_key(key)?
         .to_buffer()
+        .map_err(Error::Crypto)
     }
 }
 

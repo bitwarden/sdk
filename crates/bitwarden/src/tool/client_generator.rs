@@ -17,7 +17,7 @@ impl<'a> ClientGenerator<'a> {
     /// # Examples
     ///
     /// ```
-    /// use bitwarden::{Client, tool::PasswordGeneratorRequest, error::Result};
+    /// use bitwarden::{Client, generators::PasswordGeneratorRequest, error::Result};
     /// async fn test() -> Result<()> {
     ///     let input = PasswordGeneratorRequest {
     ///         lowercase: true,
@@ -45,7 +45,7 @@ impl<'a> ClientGenerator<'a> {
     /// # Examples
     ///
     /// ```
-    /// use bitwarden::{Client, tool::PassphraseGeneratorRequest, error::Result};
+    /// use bitwarden::{Client, generators::PassphraseGeneratorRequest, error::Result};
     /// async fn test() -> Result<()> {
     ///     let input = PassphraseGeneratorRequest {
     ///         num_words: 4,
@@ -67,7 +67,7 @@ impl<'a> ClientGenerator<'a> {
     /// services, which may require a specific setup or API key.
     ///
     /// ```
-    /// use bitwarden::{Client, tool::{UsernameGeneratorRequest}, error::Result};
+    /// use bitwarden::{Client, generators::{UsernameGeneratorRequest}, error::Result};
     /// async fn test() -> Result<()> {
     ///     let input = UsernameGeneratorRequest::Word {
     ///         capitalize: true,

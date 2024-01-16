@@ -89,7 +89,7 @@ async fn generate_with_api_url(
 mod tests {
     use serde_json::json;
 
-    use crate::{username::UsernameError, GeneratorError};
+    use crate::username::UsernameError;
 
     #[tokio::test]
     async fn test_mock_server() {

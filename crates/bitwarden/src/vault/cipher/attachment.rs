@@ -80,13 +80,13 @@ impl KeyDecryptable<SymmetricCryptoKey, Vec<u8>> for AttachmentFile {
         let ciphers_key = Cipher::get_cipher_key(key, &self.cipher.key)?;
         let ciphers_key = ciphers_key.as_ref().unwrap_or(key);
 
-        let attachment_key: Vec<u8> = self
+        let mut attachment_key: Vec<u8> = self
             .attachment
             .key
             .as_ref()
             .ok_or(CryptoError::MissingKey)?
             .decrypt_with_key(ciphers_key)?;
-        let attachment_key = SymmetricCryptoKey::try_from(attachment_key.as_slice())?;
+        let attachment_key = SymmetricCryptoKey::try_from(attachment_key.as_mut_slice())?;
 
         self.contents.decrypt_with_key(&attachment_key)
     }

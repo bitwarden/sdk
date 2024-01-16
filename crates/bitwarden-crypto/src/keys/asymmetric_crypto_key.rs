@@ -1,3 +1,5 @@
+use std::pin::Pin;
+
 use rsa::RsaPrivateKey;
 
 use super::key_encryptable::CryptoKey;
@@ -5,21 +7,32 @@ use crate::error::{CryptoError, Result};
 
 /// An asymmetric encryption key. Used to encrypt and decrypt [`EncString`](crate::EncString)
 pub struct AsymmetricCryptoKey {
-    pub(crate) key: RsaPrivateKey,
+    pub(crate) key: Pin<Box<RsaPrivateKey>>,
 }
+
+// Note that RsaPrivateKey already implements ZeroizeOnDrop, so we don't need to do anything
+// We add this assertion to make sure that this is still true in the future
+const _: () = {
+    fn assert_zeroize_on_drop<T: zeroize::ZeroizeOnDrop>() {}
+    fn assert_all() {
+        assert_zeroize_on_drop::<RsaPrivateKey>();
+    }
+};
+
+impl zeroize::ZeroizeOnDrop for AsymmetricCryptoKey {}
 
 impl AsymmetricCryptoKey {
     pub fn from_pem(pem: &str) -> Result<Self> {
         use rsa::pkcs8::DecodePrivateKey;
         Ok(Self {
-            key: rsa::RsaPrivateKey::from_pkcs8_pem(pem).map_err(|_| CryptoError::InvalidKey)?,
+            key: Box::pin(RsaPrivateKey::from_pkcs8_pem(pem).map_err(|_| CryptoError::InvalidKey)?),
         })
     }
 
     pub fn from_der(der: &[u8]) -> Result<Self> {
         use rsa::pkcs8::DecodePrivateKey;
         Ok(Self {
-            key: rsa::RsaPrivateKey::from_pkcs8_der(der).map_err(|_| CryptoError::InvalidKey)?,
+            key: Box::pin(RsaPrivateKey::from_pkcs8_der(der).map_err(|_| CryptoError::InvalidKey)?),
         })
     }
 

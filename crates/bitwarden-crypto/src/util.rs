@@ -1,4 +1,7 @@
-use ::aes::cipher::{generic_array::GenericArray, ArrayLength, Unsigned};
+use std::pin::Pin;
+
+use ::aes::cipher::{ArrayLength, Unsigned};
+use generic_array::GenericArray;
 use hmac::digest::OutputSizeUser;
 use rand::{
     distributions::{Distribution, Standard},
@@ -15,15 +18,15 @@ pub(crate) const PBKDF_SHA256_HMAC_OUT_SIZE: usize =
 pub(crate) fn hkdf_expand<T: ArrayLength<u8>>(
     prk: &[u8],
     info: Option<&str>,
-) -> Result<GenericArray<u8, T>> {
+) -> Result<Pin<Box<GenericArray<u8, T>>>> {
     let hkdf = hkdf::Hkdf::<sha2::Sha256>::from_prk(prk).map_err(|_| CryptoError::InvalidKeyLen)?;
-    let mut key = GenericArray::<u8, T>::default();
+    let mut key = Box::<GenericArray<u8, T>>::default();
 
     let i = info.map(|i| i.as_bytes()).unwrap_or(&[]);
     hkdf.expand(i, &mut key)
         .map_err(|_| CryptoError::InvalidKeyLen)?;
 
-    Ok(key)
+    Ok(key.into())
 }
 
 /// Generate random bytes that are cryptographically secure
@@ -53,7 +56,7 @@ mod tests {
         ];
         let info = Some("info");
 
-        let result: GenericArray<u8, U64> = hkdf_expand(prk, info).unwrap();
+        let result: Pin<Box<GenericArray<u8, U64>>> = hkdf_expand(prk, info).unwrap();
 
         let expected_output: [u8; 64] = [
             6, 114, 42, 38, 87, 231, 30, 109, 30, 255, 104, 129, 255, 94, 92, 108, 124, 145, 215,

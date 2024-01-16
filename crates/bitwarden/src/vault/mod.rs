@@ -7,7 +7,9 @@ mod send;
 mod totp;
 
 pub use cipher::{
-    attachment::{Attachment, AttachmentFile, AttachmentFileView, AttachmentView},
+    attachment::{
+        Attachment, AttachmentEncryptResult, AttachmentFile, AttachmentFileView, AttachmentView,
+    },
     Cipher, CipherListView, CipherView,
 };
 pub use collection::{Collection, CollectionView};

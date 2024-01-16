@@ -5,7 +5,10 @@ use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey};
 use super::client_vault::ClientVault;
 use crate::{
     error::{Error, Result},
-    vault::{Attachment, AttachmentFile, AttachmentFileView, Cipher},
+    vault::{
+        Attachment, AttachmentEncryptResult, AttachmentFile, AttachmentFileView, AttachmentView,
+        Cipher,
+    },
     Client,
 };
 
@@ -48,33 +51,34 @@ impl<'a> ClientAttachments<'a> {
     pub async fn encrypt_file(
         &self,
         cipher: Cipher,
-        attachment: Attachment,
+        attachment: AttachmentView,
         decrypted_file_path: &Path,
         encrypted_file_path: &Path,
-    ) -> Result<()> {
+    ) -> Result<Attachment> {
         let data = std::fs::read(decrypted_file_path).unwrap();
-        let encrypted = self.encrypt_buffer(cipher, attachment, &data).await?;
-        std::fs::write(encrypted_file_path, encrypted)?;
-        Ok(())
+        let AttachmentEncryptResult {
+            attachment,
+            contents,
+        } = self.encrypt_buffer(cipher, attachment, &data).await?;
+        std::fs::write(encrypted_file_path, contents)?;
+        Ok(attachment)
     }
 
     pub async fn encrypt_buffer(
         &self,
         cipher: Cipher,
-        attachment: Attachment,
+        attachment: AttachmentView,
         buffer: &[u8],
-    ) -> Result<Vec<u8>> {
+    ) -> Result<AttachmentEncryptResult> {
         let enc = self.client.get_encryption_settings()?;
         let key = cipher.locate_key(enc, &None).ok_or(Error::VaultLocked)?;
 
-        AttachmentFileView {
+        Ok(AttachmentFileView {
             cipher,
             attachment,
             contents: buffer,
         }
-        .encrypt_with_key(key)?
-        .to_buffer()
-        .map_err(Error::Crypto)
+        .encrypt_with_key(key)?)
     }
 }
 

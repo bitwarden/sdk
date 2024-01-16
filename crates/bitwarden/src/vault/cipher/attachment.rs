@@ -33,6 +33,14 @@ pub struct AttachmentView {
     pub key: Option<EncString>,
 }
 
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+pub struct AttachmentEncryptResult {
+    pub attachment: Attachment,
+    pub contents: Vec<u8>,
+}
+
 pub struct AttachmentFile {
     pub cipher: Cipher,
     pub attachment: Attachment,
@@ -41,40 +49,46 @@ pub struct AttachmentFile {
 
 pub struct AttachmentFileView<'a> {
     pub cipher: Cipher,
-    pub attachment: Attachment,
+    pub attachment: AttachmentView,
     pub contents: &'a [u8],
 }
 
-impl<'a> KeyEncryptable<SymmetricCryptoKey, EncString> for AttachmentFileView<'a> {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<EncString, CryptoError> {
-        let file_key = Attachment::get_attachment_file_key(&self.attachment, &self.cipher, key)?;
-        self.contents.encrypt_with_key(&file_key)
+impl<'a> KeyEncryptable<SymmetricCryptoKey, AttachmentEncryptResult> for AttachmentFileView<'a> {
+    fn encrypt_with_key(
+        self,
+        key: &SymmetricCryptoKey,
+    ) -> Result<AttachmentEncryptResult, CryptoError> {
+        let ciphers_key = Cipher::get_cipher_key(key, &self.cipher.key)?;
+        let ciphers_key = ciphers_key.as_ref().unwrap_or(key);
+
+        let mut attachment = self.attachment;
+
+        // Because this is a new attachment, we have to generate a key for it, encrypt the contents with it, and then encrypt the key with the cipher key
+        let attachment_key = SymmetricCryptoKey::generate(rand::thread_rng());
+        let encrypted_contents = self.contents.encrypt_with_key(&attachment_key)?;
+        attachment.key = Some(attachment_key.to_vec().encrypt_with_key(ciphers_key)?);
+
+        Ok(AttachmentEncryptResult {
+            attachment: attachment.encrypt_with_key(ciphers_key)?,
+            contents: encrypted_contents.to_buffer()?,
+        })
     }
 }
 
 impl KeyDecryptable<SymmetricCryptoKey, Vec<u8>> for AttachmentFile {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Vec<u8>, CryptoError> {
-        let file_key = Attachment::get_attachment_file_key(&self.attachment, &self.cipher, key)?;
-        self.contents.decrypt_with_key(&file_key)
-    }
-}
-
-impl Attachment {
-    fn get_attachment_file_key(
-        &self,
-        cipher: &Cipher,
-        key: &SymmetricCryptoKey,
-    ) -> Result<SymmetricCryptoKey, CryptoError> {
-        let ciphers_key = Cipher::get_cipher_key(key, &cipher.key)?;
+        let ciphers_key = Cipher::get_cipher_key(key, &self.cipher.key)?;
         let ciphers_key = ciphers_key.as_ref().unwrap_or(key);
 
         let attachment_key: Vec<u8> = self
+            .attachment
             .key
             .as_ref()
             .ok_or(CryptoError::MissingKey)?
             .decrypt_with_key(ciphers_key)?;
+        let attachment_key = SymmetricCryptoKey::try_from(attachment_key.as_slice())?;
 
-        SymmetricCryptoKey::try_from(attachment_key.as_slice())
+        self.contents.decrypt_with_key(&attachment_key)
     }
 }
 

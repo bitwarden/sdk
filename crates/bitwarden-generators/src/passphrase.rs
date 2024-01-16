@@ -3,7 +3,7 @@ use rand::{seq::SliceRandom, Rng, RngCore};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{error::Result, util::capitalize_first_letter};
+use crate::{error::GeneratorError, util::capitalize_first_letter};
 
 /// Passphrase generator request options.
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -46,16 +46,16 @@ struct ValidPassphraseGeneratorOptions {
 
 impl PassphraseGeneratorRequest {
     /// Validates the request and returns an immutable struct with valid options to use with the passphrase generator.
-    fn validate_options(self) -> Result<ValidPassphraseGeneratorOptions> {
+    fn validate_options(self) -> Result<ValidPassphraseGeneratorOptions, GeneratorError> {
         // TODO: Add password generator policy checks
 
         if !(MINIMUM_PASSPHRASE_NUM_WORDS..=MAXIMUM_PASSPHRASE_NUM_WORDS).contains(&self.num_words)
         {
-            return Err(format!("'num_words' must be between {MINIMUM_PASSPHRASE_NUM_WORDS} and {MAXIMUM_PASSPHRASE_NUM_WORDS}").into());
+            return Err(GeneratorError::Random);
         }
 
         if self.word_separator.chars().next().is_none() {
-            return Err("'word_separator' cannot be empty".into());
+            return Err(GeneratorError::Random);
         };
 
         Ok(ValidPassphraseGeneratorOptions {
@@ -73,7 +73,7 @@ impl PassphraseGeneratorRequest {
 /// # Arguments:
 /// * `options`: Valid parameters used to generate the passphrase. To create it, use
 ///     [`PassphraseGeneratorRequest::validate_options`](PassphraseGeneratorRequest::validate_options).
-pub(super) fn passphrase(request: PassphraseGeneratorRequest) -> Result<String> {
+pub fn passphrase(request: PassphraseGeneratorRequest) -> Result<String, GeneratorError> {
     let options = request.validate_options()?;
     Ok(passphrase_with_rng(rand::thread_rng(), options))
 }

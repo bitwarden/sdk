@@ -1,12 +1,9 @@
-use crate::{
-    error::Result,
-    tool::generators::{
-        passphrase::{passphrase, PassphraseGeneratorRequest},
-        password::{password, PasswordGeneratorRequest},
-        username::{username, UsernameGeneratorRequest},
-    },
-    Client,
+use bitwarden_generators::{
+    passphrase, password, username, PassphraseGeneratorRequest, PasswordGeneratorRequest,
+    UsernameGeneratorRequest,
 };
+
+use crate::{error::Result, Client};
 
 pub struct ClientGenerator<'a> {
     pub(crate) client: &'a crate::Client,
@@ -35,7 +32,7 @@ impl<'a> ClientGenerator<'a> {
     /// }
     /// ```
     pub async fn password(&self, input: PasswordGeneratorRequest) -> Result<String> {
-        password(input)
+        Ok(password(input)?)
     }
 
     /// Generates a random passphrase.
@@ -60,7 +57,7 @@ impl<'a> ClientGenerator<'a> {
     /// }
     /// ```
     pub async fn passphrase(&self, input: PassphraseGeneratorRequest) -> Result<String> {
-        passphrase(input)
+        Ok(passphrase(input)?)
     }
 
     /// Generates a random username.
@@ -82,7 +79,7 @@ impl<'a> ClientGenerator<'a> {
     /// }
     /// ```
     pub async fn username(&self, input: UsernameGeneratorRequest) -> Result<String> {
-        username(input, self.client.get_http_client()).await
+        Ok(username(input, self.client.get_http_client()).await?)
     }
 }
 

@@ -3,7 +3,7 @@ use rand::{distributions::Distribution, seq::SliceRandom, Rng, RngCore};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{error::Result, util::capitalize_first_letter};
+use crate::{util::capitalize_first_letter, GeneratorError};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -85,10 +85,14 @@ pub enum UsernameGeneratorRequest {
 impl ForwarderServiceType {
     // Generate a username using the specified email forwarding service
     // This requires an HTTP client to be passed in, as the service will need to make API calls
-    pub async fn generate(self, http: &reqwest::Client, website: Option<String>) -> Result<String> {
+    pub async fn generate(
+        self,
+        http: &reqwest::Client,
+        website: Option<String>,
+    ) -> Result<String, GeneratorError> {
         use ForwarderServiceType::*;
 
-        use crate::tool::generators::username_forwarders::*;
+        use crate::username_forwarders::*;
 
         match self {
             AddyIo {
@@ -111,10 +115,10 @@ impl ForwarderServiceType {
 /// See [`ClientGenerator::username`](crate::ClientGenerator::username) for the API function.
 /// Note: The HTTP client is passed in as a required parameter for convenience,
 /// as some username generators require making API calls.
-pub(super) async fn username(
+pub async fn username(
     input: UsernameGeneratorRequest,
     http: &reqwest::Client,
-) -> Result<String> {
+) -> Result<String, GeneratorError> {
     use rand::thread_rng;
     use UsernameGeneratorRequest::*;
     match input {

@@ -3,12 +3,13 @@ use std::collections::HashMap;
 use reqwest::{header::CONTENT_TYPE, StatusCode};
 use serde_json::json;
 
-use crate::error::Result;
+use crate::GeneratorError;
+
 pub async fn generate(
     http: &reqwest::Client,
     api_token: String,
     website: Option<String>,
-) -> Result<String> {
+) -> Result<String, GeneratorError> {
     generate_with_api_url(http, api_token, website, "https://api.fastmail.com".into()).await
 }
 
@@ -17,7 +18,7 @@ pub async fn generate_with_api_url(
     api_token: String,
     website: Option<String>,
     api_url: String,
-) -> Result<String> {
+) -> Result<String, GeneratorError> {
     let account_id = get_account_id(http, &api_token, &api_url).await?;
 
     let response = http
@@ -44,13 +45,14 @@ pub async fn generate_with_api_url(
         .send()
         .await?;
 
-    if response.status() == StatusCode::UNAUTHORIZED {
-        return Err("Invalid Fastmail API token".into());
+    let status_code = response.status();
+    if status_code == StatusCode::UNAUTHORIZED {
+        return Err(GeneratorError::InvalidApiKey);
     }
 
-    let response: serde_json::Value = response.json().await?;
-    let Some(r) = response.get("methodResponses").and_then(|r| r.get(0)) else {
-        return Err("Unknown Fastmail error occurred.".into());
+    let response_json: serde_json::Value = response.json().await?;
+    let Some(r) = response_json.get("methodResponses").and_then(|r| r.get(0)) else {
+        return Err(GeneratorError::Unknown);
     };
     let method_response = r.get(0).and_then(|r| r.as_str());
     let response_value = r.get(1);
@@ -72,24 +74,30 @@ pub async fn generate_with_api_url(
             .and_then(|r| r.as_str())
             .unwrap_or("Unknown error");
 
-        return Err(format!("Fastmail error: {error_description}").into());
+        return Err(GeneratorError::ResponseContent {
+            status: status_code,
+            message: error_description.to_owned(),
+        });
     } else if method_response == Some("error") {
         let error_description = response_value
             .and_then(|r| r.get("description"))
             .and_then(|r| r.as_str())
             .unwrap_or("Unknown error");
 
-        return Err(format!("Fastmail error: {error_description}").into());
+        return Err(GeneratorError::ResponseContent {
+            status: status_code,
+            message: error_description.to_owned(),
+        });
     }
 
-    Err("Unknown Fastmail error occurred.".into())
+    Err(GeneratorError::Unknown)
 }
 
 async fn get_account_id(
     client: &reqwest::Client,
     api_token: &str,
     api_url: &str,
-) -> Result<String> {
+) -> Result<String, GeneratorError> {
     #[derive(serde::Deserialize)]
     struct Response {
         #[serde(rename = "primaryAccounts")]
@@ -102,7 +110,7 @@ async fn get_account_id(
         .await?;
 
     if response.status() == StatusCode::UNAUTHORIZED {
-        return Err("Invalid Fastmail API token".into());
+        return Err(GeneratorError::InvalidApiKey);
     }
 
     response.error_for_status_ref()?;
@@ -117,13 +125,16 @@ async fn get_account_id(
 #[cfg(test)]
 mod tests {
     use serde_json::json;
+
+    use crate::GeneratorError;
     #[tokio::test]
     async fn test_mock_server() {
         use wiremock::{matchers, Mock, ResponseTemplate};
 
-        let (server, _client) = crate::util::start_mock(vec![
-            // Mock a valid request to FastMail API
-            Mock::given(matchers::path("/.well-known/jmap"))
+        let server = wiremock::MockServer::start().await;
+
+        // Mock a valid request to FastMail API
+        server.register(Mock::given(matchers::path("/.well-known/jmap"))
                 .and(matchers::method("GET"))
                 .and(matchers::header("Authorization", "Bearer MY_TOKEN"))
                 .respond_with(ResponseTemplate::new(201).set_body_json(json!({
@@ -131,9 +142,9 @@ mod tests {
                         "https://www.fastmail.com/dev/maskedemail": "ca0a4e09-c266-4f6f-845c-958db5090f09"
                     }
                 })))
-                .expect(1),
+                .expect(1)).await;
 
-            Mock::given(matchers::path("/jmap/api/"))
+        server.register(Mock::given(matchers::path("/jmap/api/"))
                 .and(matchers::method("POST"))
                 .and(matchers::header("Content-Type", "application/json"))
                 .and(matchers::header("Authorization", "Bearer MY_TOKEN"))
@@ -142,23 +153,29 @@ mod tests {
                         ["MaskedEmail/set", {"created": {"new-masked-email": {"email": "9f823dq23d123ds@mydomain.com"}}}]
                     ]
                 })))
-                .expect(1),
+                .expect(1)).await;
 
-            // Mock an invalid token request
-            Mock::given(matchers::path("/.well-known/jmap"))
-            .and(matchers::method("GET"))
-            .and(matchers::header("Authorization", "Bearer MY_FAKE_TOKEN"))
-            .respond_with(ResponseTemplate::new(401))
-            .expect(1),
+        // Mock an invalid token request
+        server
+            .register(
+                Mock::given(matchers::path("/.well-known/jmap"))
+                    .and(matchers::method("GET"))
+                    .and(matchers::header("Authorization", "Bearer MY_FAKE_TOKEN"))
+                    .respond_with(ResponseTemplate::new(401))
+                    .expect(1),
+            )
+            .await;
 
-        Mock::given(matchers::path("/jmap/api/"))
-            .and(matchers::method("POST"))
-            .and(matchers::header("Content-Type", "application/json"))
-            .and(matchers::header("Authorization", "Bearer MY_FAKE_TOKEN"))
-            .respond_with(ResponseTemplate::new(201))
-            .expect(0),
-        ])
-        .await;
+        server
+            .register(
+                Mock::given(matchers::path("/jmap/api/"))
+                    .and(matchers::method("POST"))
+                    .and(matchers::header("Content-Type", "application/json"))
+                    .and(matchers::header("Authorization", "Bearer MY_FAKE_TOKEN"))
+                    .respond_with(ResponseTemplate::new(201))
+                    .expect(0),
+            )
+            .await;
 
         let address = super::generate_with_api_url(
             &reqwest::Client::new(),
@@ -179,9 +196,10 @@ mod tests {
         .await
         .unwrap_err();
 
-        assert!(fake_token_error
-            .to_string()
-            .contains("Invalid Fastmail API token"));
+        assert_eq!(
+            fake_token_error.to_string(),
+            GeneratorError::InvalidApiKey.to_string()
+        );
 
         server.verify().await;
     }

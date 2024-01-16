@@ -1,13 +1,13 @@
 use reqwest::{header::CONTENT_TYPE, StatusCode};
 
-use crate::GeneratorError;
+use crate::username::UsernameError;
 
 pub async fn generate(
     http: &reqwest::Client,
     api_token: String,
     domain: String,
     website: Option<String>,
-) -> Result<String, GeneratorError> {
+) -> Result<String, UsernameError> {
     generate_with_api_url(
         http,
         api_token,
@@ -24,7 +24,7 @@ async fn generate_with_api_url(
     domain: String,
     website: Option<String>,
     api_url: String,
-) -> Result<String, GeneratorError> {
+) -> Result<String, UsernameError> {
     let description = super::format_description(&website);
 
     #[derive(serde::Serialize)]
@@ -45,7 +45,7 @@ async fn generate_with_api_url(
         .await?;
 
     if response.status() == StatusCode::UNAUTHORIZED {
-        return Err(GeneratorError::InvalidApiKey);
+        return Err(UsernameError::InvalidApiKey);
     }
 
     #[derive(serde::Deserialize)]
@@ -76,20 +76,20 @@ async fn generate_with_api_url(
     }
 
     if let Some(message) = response.message {
-        return Err(GeneratorError::ResponseContent { status, message });
+        return Err(UsernameError::ResponseContent { status, message });
     }
     if let Some(message) = response.error {
-        return Err(GeneratorError::ResponseContent { status, message });
+        return Err(UsernameError::ResponseContent { status, message });
     }
 
-    Err(GeneratorError::Unknown)
+    Err(UsernameError::Unknown)
 }
 
 #[cfg(test)]
 mod tests {
     use serde_json::json;
 
-    use crate::GeneratorError;
+    use crate::{username::UsernameError, GeneratorError};
 
     #[tokio::test]
     async fn test_mock_server() {
@@ -187,7 +187,7 @@ mod tests {
 
         assert_eq!(
             invalid_token_error.to_string(),
-            GeneratorError::InvalidApiKey.to_string()
+            UsernameError::InvalidApiKey.to_string()
         );
 
         let free_token_error = super::generate_with_api_url(

@@ -1,18 +1,13 @@
-use reqwest::StatusCode;
 use thiserror::Error;
+
+use crate::{passphrase::PassphraseError, password::PasswordError, username::UsernameError};
 
 #[derive(Debug, Error)]
 pub enum GeneratorError {
-    #[error("todo")]
-    Random,
-    #[error("Invalid API Key")]
-    InvalidApiKey,
-    #[error("Unknown error")]
-    Unknown,
-
-    #[error("Received error message from server: [{}] {}", .status, .message)]
-    ResponseContent { status: StatusCode, message: String },
-
     #[error(transparent)]
-    Reqwest(#[from] reqwest::Error),
+    PassphraseErrors(#[from] PassphraseError),
+    #[error(transparent)]
+    PasswordError(#[from] PasswordError),
+    #[error(transparent)]
+    UsernameError(#[from] UsernameError),
 }

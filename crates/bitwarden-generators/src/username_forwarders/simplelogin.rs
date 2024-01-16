@@ -1,12 +1,12 @@
 use reqwest::{header::CONTENT_TYPE, StatusCode};
 
-use crate::GeneratorError;
+use crate::username::UsernameError;
 
 pub async fn generate(
     http: &reqwest::Client,
     api_key: String,
     website: Option<String>,
-) -> Result<String, GeneratorError> {
+) -> Result<String, UsernameError> {
     generate_with_api_url(http, api_key, website, "https://app.simplelogin.io".into()).await
 }
 
@@ -15,7 +15,7 @@ async fn generate_with_api_url(
     api_key: String,
     website: Option<String>,
     api_url: String,
-) -> Result<String, GeneratorError> {
+) -> Result<String, UsernameError> {
     let query = website
         .as_ref()
         .map(|w| format!("?hostname={}", w))
@@ -37,7 +37,7 @@ async fn generate_with_api_url(
         .await?;
 
     if response.status() == StatusCode::UNAUTHORIZED {
-        return Err(GeneratorError::InvalidApiKey);
+        return Err(UsernameError::InvalidApiKey);
     }
 
     // Throw any other errors
@@ -56,7 +56,7 @@ async fn generate_with_api_url(
 mod tests {
     use serde_json::json;
 
-    use crate::GeneratorError;
+    use crate::username::UsernameError;
     #[tokio::test]
     async fn test_mock_server() {
         use wiremock::{matchers, Mock, ResponseTemplate};
@@ -117,7 +117,7 @@ mod tests {
 
         assert_eq!(
             fake_token_error.to_string(),
-            GeneratorError::InvalidApiKey.to_string()
+            UsernameError::InvalidApiKey.to_string()
         );
 
         server.verify().await;

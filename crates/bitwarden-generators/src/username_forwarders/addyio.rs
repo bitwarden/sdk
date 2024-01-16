@@ -1,6 +1,6 @@
 use reqwest::{header::CONTENT_TYPE, StatusCode};
 
-use crate::GeneratorError;
+use crate::username::UsernameError;
 
 pub async fn generate(
     http: &reqwest::Client,
@@ -8,7 +8,7 @@ pub async fn generate(
     domain: String,
     base_url: String,
     website: Option<String>,
-) -> Result<String, GeneratorError> {
+) -> Result<String, UsernameError> {
     let description = super::format_description(&website);
 
     #[derive(serde::Serialize)]
@@ -30,7 +30,7 @@ pub async fn generate(
         .await?;
 
     if response.status() == StatusCode::UNAUTHORIZED {
-        return Err(GeneratorError::InvalidApiKey);
+        return Err(UsernameError::InvalidApiKey);
     }
 
     // Throw any other errors
@@ -53,7 +53,7 @@ pub async fn generate(
 mod tests {
     use serde_json::json;
 
-    use crate::GeneratorError;
+    use crate::username::UsernameError;
     #[tokio::test]
     async fn test_mock_server() {
         use wiremock::{matchers, Mock, ResponseTemplate};
@@ -137,7 +137,7 @@ mod tests {
 
         assert_eq!(
             fake_token_error.to_string(),
-            GeneratorError::InvalidApiKey.to_string()
+            UsernameError::InvalidApiKey.to_string()
         );
 
         let fake_domain_error = super::generate(

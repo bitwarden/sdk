@@ -3,13 +3,13 @@ use reqwest::{
     StatusCode,
 };
 
-use crate::GeneratorError;
+use crate::username::UsernameError;
 
 pub async fn generate(
     http: &reqwest::Client,
     api_token: String,
     website: Option<String>,
-) -> Result<String, GeneratorError> {
+) -> Result<String, UsernameError> {
     generate_with_api_url(http, api_token, website, "https://relay.firefox.com".into()).await
 }
 
@@ -18,7 +18,7 @@ async fn generate_with_api_url(
     api_token: String,
     website: Option<String>,
     api_url: String,
-) -> Result<String, GeneratorError> {
+) -> Result<String, UsernameError> {
     #[derive(serde::Serialize)]
     struct Request {
         enabled: bool,
@@ -41,7 +41,7 @@ async fn generate_with_api_url(
         .await?;
 
     if response.status() == StatusCode::UNAUTHORIZED {
-        return Err(GeneratorError::InvalidApiKey);
+        return Err(UsernameError::InvalidApiKey);
     }
 
     // Throw any other errors
@@ -60,7 +60,7 @@ async fn generate_with_api_url(
 mod tests {
     use serde_json::json;
 
-    use crate::GeneratorError;
+    use crate::username::UsernameError;
 
     #[tokio::test]
     async fn test_mock_success() {
@@ -166,7 +166,7 @@ mod tests {
         .await
         .unwrap_err();
 
-        assert_eq!(error.to_string(), GeneratorError::InvalidApiKey.to_string());
+        assert_eq!(error.to_string(), UsernameError::InvalidApiKey.to_string());
 
         server.verify().await;
     }

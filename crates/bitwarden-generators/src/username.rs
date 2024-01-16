@@ -1,9 +1,25 @@
 use bitwarden_crypto::EFF_LONG_WORD_LIST;
 use rand::{distributions::Distribution, seq::SliceRandom, Rng, RngCore};
+use reqwest::StatusCode;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 use crate::{util::capitalize_first_letter, GeneratorError};
+
+#[derive(Debug, Error)]
+pub enum UsernameError {
+    #[error("Invalid API Key")]
+    InvalidApiKey,
+    #[error("Unknown error")]
+    Unknown,
+
+    #[error("Received error message from server: [{}] {}", .status, .message)]
+    ResponseContent { status: StatusCode, message: String },
+
+    #[error(transparent)]
+    Reqwest(#[from] reqwest::Error),
+}
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -89,7 +105,7 @@ impl ForwarderServiceType {
         self,
         http: &reqwest::Client,
         website: Option<String>,
-    ) -> Result<String, GeneratorError> {
+    ) -> Result<String, UsernameError> {
         use ForwarderServiceType::*;
 
         use crate::username_forwarders::*;
@@ -128,7 +144,7 @@ pub async fn username(
         } => Ok(username_word(&mut thread_rng(), capitalize, include_number)),
         Subaddress { r#type, email } => Ok(username_subaddress(&mut thread_rng(), r#type, email)),
         Catchall { r#type, domain } => Ok(username_catchall(&mut thread_rng(), r#type, domain)),
-        Forwarded { service, website } => service.generate(http, website).await,
+        Forwarded { service, website } => Ok(service.generate(http, website).await?),
     }
 }
 

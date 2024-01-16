@@ -3,8 +3,17 @@ use std::collections::BTreeSet;
 use rand::{distributions::Distribution, seq::SliceRandom, RngCore};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 use crate::GeneratorError;
+
+#[derive(Debug, Error)]
+pub enum PasswordError {
+    #[error("No character set enabled")]
+    NoCharacterSetEnabled,
+    #[error("Invalid password length")]
+    InvalidLength,
+}
 
 /// Password generator request options.
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -128,16 +137,16 @@ struct PasswordGeneratorOptions {
 
 impl PasswordGeneratorRequest {
     /// Validates the request and returns an immutable struct with valid options to use with the password generator.
-    fn validate_options(self) -> Result<PasswordGeneratorOptions, GeneratorError> {
+    fn validate_options(self) -> Result<PasswordGeneratorOptions, PasswordError> {
         // TODO: Add password generator policy checks
 
         // We always have to have at least one character set enabled
         if !self.lowercase && !self.uppercase && !self.numbers && !self.special {
-            return Err(GeneratorError::Random);
+            return Err(PasswordError::NoCharacterSetEnabled);
         }
 
         if self.length < 4 {
-            return Err(GeneratorError::Random);
+            return Err(PasswordError::InvalidLength);
         }
 
         // Make sure the minimum values are zero when the character
@@ -159,7 +168,7 @@ impl PasswordGeneratorRequest {
         // Check that the minimum lengths aren't larger than the password length
         let minimum_length = min_lowercase + min_uppercase + min_number + min_special;
         if minimum_length > length {
-            return Err(GeneratorError::Random);
+            return Err(PasswordError::InvalidLength);
         }
 
         let lower = (

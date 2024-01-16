@@ -2,8 +2,17 @@ use bitwarden_crypto::EFF_LONG_WORD_LIST;
 use rand::{seq::SliceRandom, Rng, RngCore};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 use crate::{error::GeneratorError, util::capitalize_first_letter};
+
+#[derive(Debug, Error)]
+pub enum PassphraseError {
+    #[error("'num_words' must be between {} and {}", minimum, maximum)]
+    InvalidNumWords { minimum: u8, maximum: u8 },
+    #[error("'word_separator' cannot be empty")]
+    EmptyWordSeparator,
+}
 
 /// Passphrase generator request options.
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -46,16 +55,19 @@ struct ValidPassphraseGeneratorOptions {
 
 impl PassphraseGeneratorRequest {
     /// Validates the request and returns an immutable struct with valid options to use with the passphrase generator.
-    fn validate_options(self) -> Result<ValidPassphraseGeneratorOptions, GeneratorError> {
+    fn validate_options(self) -> Result<ValidPassphraseGeneratorOptions, PassphraseError> {
         // TODO: Add password generator policy checks
 
         if !(MINIMUM_PASSPHRASE_NUM_WORDS..=MAXIMUM_PASSPHRASE_NUM_WORDS).contains(&self.num_words)
         {
-            return Err(GeneratorError::Random);
+            return Err(PassphraseError::InvalidNumWords {
+                minimum: MINIMUM_PASSPHRASE_NUM_WORDS,
+                maximum: MAXIMUM_PASSPHRASE_NUM_WORDS,
+            });
         }
 
         if self.word_separator.chars().next().is_none() {
-            return Err(GeneratorError::Random);
+            return Err(PassphraseError::EmptyWordSeparator);
         };
 
         Ok(ValidPassphraseGeneratorOptions {

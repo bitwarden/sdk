@@ -3,13 +3,13 @@ use std::collections::HashMap;
 use reqwest::{header::CONTENT_TYPE, StatusCode};
 use serde_json::json;
 
-use crate::GeneratorError;
+use crate::username::UsernameError;
 
 pub async fn generate(
     http: &reqwest::Client,
     api_token: String,
     website: Option<String>,
-) -> Result<String, GeneratorError> {
+) -> Result<String, UsernameError> {
     generate_with_api_url(http, api_token, website, "https://api.fastmail.com".into()).await
 }
 
@@ -18,7 +18,7 @@ pub async fn generate_with_api_url(
     api_token: String,
     website: Option<String>,
     api_url: String,
-) -> Result<String, GeneratorError> {
+) -> Result<String, UsernameError> {
     let account_id = get_account_id(http, &api_token, &api_url).await?;
 
     let response = http
@@ -47,12 +47,12 @@ pub async fn generate_with_api_url(
 
     let status_code = response.status();
     if status_code == StatusCode::UNAUTHORIZED {
-        return Err(GeneratorError::InvalidApiKey);
+        return Err(UsernameError::InvalidApiKey);
     }
 
     let response_json: serde_json::Value = response.json().await?;
     let Some(r) = response_json.get("methodResponses").and_then(|r| r.get(0)) else {
-        return Err(GeneratorError::Unknown);
+        return Err(UsernameError::Unknown);
     };
     let method_response = r.get(0).and_then(|r| r.as_str());
     let response_value = r.get(1);
@@ -74,7 +74,7 @@ pub async fn generate_with_api_url(
             .and_then(|r| r.as_str())
             .unwrap_or("Unknown error");
 
-        return Err(GeneratorError::ResponseContent {
+        return Err(UsernameError::ResponseContent {
             status: status_code,
             message: error_description.to_owned(),
         });
@@ -84,20 +84,20 @@ pub async fn generate_with_api_url(
             .and_then(|r| r.as_str())
             .unwrap_or("Unknown error");
 
-        return Err(GeneratorError::ResponseContent {
+        return Err(UsernameError::ResponseContent {
             status: status_code,
             message: error_description.to_owned(),
         });
     }
 
-    Err(GeneratorError::Unknown)
+    Err(UsernameError::Unknown)
 }
 
 async fn get_account_id(
     client: &reqwest::Client,
     api_token: &str,
     api_url: &str,
-) -> Result<String, GeneratorError> {
+) -> Result<String, UsernameError> {
     #[derive(serde::Deserialize)]
     struct Response {
         #[serde(rename = "primaryAccounts")]
@@ -110,7 +110,7 @@ async fn get_account_id(
         .await?;
 
     if response.status() == StatusCode::UNAUTHORIZED {
-        return Err(GeneratorError::InvalidApiKey);
+        return Err(UsernameError::InvalidApiKey);
     }
 
     response.error_for_status_ref()?;
@@ -126,7 +126,7 @@ async fn get_account_id(
 mod tests {
     use serde_json::json;
 
-    use crate::GeneratorError;
+    use crate::username::UsernameError;
     #[tokio::test]
     async fn test_mock_server() {
         use wiremock::{matchers, Mock, ResponseTemplate};
@@ -198,7 +198,7 @@ mod tests {
 
         assert_eq!(
             fake_token_error.to_string(),
-            GeneratorError::InvalidApiKey.to_string()
+            UsernameError::InvalidApiKey.to_string()
         );
 
         server.verify().await;

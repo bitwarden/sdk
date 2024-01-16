@@ -127,8 +127,8 @@ impl ForwarderServiceType {
     }
 }
 
-/// Implementation of the username generator. This is not accessible to the public API.
-/// See [`ClientGenerator::username`](crate::ClientGenerator::username) for the API function.
+/// Implementation of the username generator.
+///
 /// Note: The HTTP client is passed in as a required parameter for convenience,
 /// as some username generators require making API calls.
 pub async fn username(

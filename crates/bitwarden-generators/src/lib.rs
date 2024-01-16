@@ -6,7 +6,7 @@ pub use error::GeneratorError;
 mod password;
 pub use password::{password, PasswordGeneratorRequest};
 mod username;
-pub use username::{username, UsernameGeneratorRequest};
+pub use username::{username, ForwarderServiceType, UsernameGeneratorRequest};
 mod username_forwarders;
 
 #[cfg(feature = "mobile")]

@@ -79,12 +79,7 @@ impl PassphraseGeneratorRequest {
     }
 }
 
-/// Implementation of the random passphrase generator. This is not accessible to the public API.
-/// See [`ClientGenerator::passphrase`](crate::ClientGenerator::passphrase) for the API function.
-///
-/// # Arguments:
-/// * `options`: Valid parameters used to generate the passphrase. To create it, use
-///     [`PassphraseGeneratorRequest::validate_options`](PassphraseGeneratorRequest::validate_options).
+/// Implementation of the random passphrase generator.
 pub fn passphrase(request: PassphraseGeneratorRequest) -> Result<String, GeneratorError> {
     let options = request.validate_options()?;
     Ok(passphrase_with_rng(rand::thread_rng(), options))

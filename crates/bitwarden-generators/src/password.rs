@@ -217,8 +217,7 @@ impl PasswordGeneratorRequest {
     }
 }
 
-/// Implementation of the random password generator. This is not accessible to the public API.
-/// See [`ClientGenerator::password`](crate::ClientGenerator::password) for the API function.
+/// Implementation of the random password generator.
 pub fn password(input: PasswordGeneratorRequest) -> Result<String, GeneratorError> {
     let options = input.validate_options()?;
     Ok(password_with_rng(rand::thread_rng(), options))

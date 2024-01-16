@@ -148,10 +148,10 @@ Encrypt an attachment file in memory
 
 - self:
 - cipher: [Cipher](#cipher)
-- attachment: [Attachment](#attachment)
+- attachment: [AttachmentView](#attachmentview)
 - buffer: Vec<>
 
-**Output**: std::result::Result<Vec,BitwardenError>
+**Output**: std::result::Result<AttachmentEncryptResult,BitwardenError>
 
 ### `encrypt_file`
 
@@ -161,11 +161,11 @@ Encrypt an attachment file located in the file system
 
 - self:
 - cipher: [Cipher](#cipher)
-- attachment: [Attachment](#attachment)
+- attachment: [AttachmentView](#attachmentview)
 - decrypted_file_path: String
 - encrypted_file_path: String
 
-**Output**: std::result::Result<,BitwardenError>
+**Output**: std::result::Result<Attachment,BitwardenError>
 
 ### `decrypt_buffer`
 
@@ -661,6 +661,46 @@ implementations.
 <tr>
     <th>fileName</th>
     <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>key</th>
+    <th></th>
+    <th></th>
+</tr>
+</table>
+
+## `AttachmentView`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>id</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>url</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>size</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>sizeName</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>fileName</th>
+    <th>string,null</th>
     <th></th>
 </tr>
 <tr>

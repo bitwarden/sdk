@@ -4,7 +4,7 @@ mod symmetric;
 
 use std::str::FromStr;
 
-pub use asymmetric::AsymmEncString;
+pub use asymmetric::AsymmetricEncString;
 use base64::{engine::general_purpose::STANDARD, Engine};
 pub use symmetric::EncString;
 

@@ -2,7 +2,7 @@
 //!
 //! This crate contains the cryptographic primitives used throughout the SDK. The crate makes a
 //! best effort to abstract away cryptographic concepts into concepts such as [`EncString`],
-//! [`AsymmEncString`] and [`SymmetricCryptoKey`].
+//! [`AsymmetricEncString`] and [`SymmetricCryptoKey`].
 //!
 //! ## Conventions:
 //!
@@ -23,7 +23,7 @@
 
 mod aes;
 mod enc_string;
-pub use enc_string::{AsymmEncString, EncString};
+pub use enc_string::{AsymmetricEncString, EncString};
 mod encryptable;
 pub use encryptable::{Decryptable, Encryptable, KeyContainer, LocateKey};
 mod error;

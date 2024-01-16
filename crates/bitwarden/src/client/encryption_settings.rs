@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-#[cfg(feature = "internal")]
-use bitwarden_crypto::{AsymmEncString, EncString};
 use bitwarden_crypto::{AsymmetricCryptoKey, KeyContainer, SymmetricCryptoKey};
+#[cfg(feature = "internal")]
+use bitwarden_crypto::{AsymmetricEncString, EncString};
 use uuid::Uuid;
 
 #[cfg(feature = "internal")]
@@ -80,7 +80,7 @@ impl EncryptionSettings {
     #[cfg(feature = "internal")]
     pub(crate) fn set_org_keys(
         &mut self,
-        org_enc_keys: Vec<(Uuid, AsymmEncString)>,
+        org_enc_keys: Vec<(Uuid, AsymmetricEncString)>,
     ) -> Result<&mut Self> {
         use bitwarden_crypto::KeyDecryptable;
 

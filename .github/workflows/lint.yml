@@ -24,6 +24,9 @@ jobs:
         with:
           toolchain: stable
 
+      - name: Install rust nightly
+        run: rustup toolchain install nightly
+
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@3cf7f8cc28d1b4e7d01e3783be10a97d55d483c8 # v2.7.1
 

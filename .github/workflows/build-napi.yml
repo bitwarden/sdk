@@ -67,12 +67,12 @@ jobs:
           targets: ${{ matrix.settings.target }}
 
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@3cf7f8cc28d1b4e7d01e3783be10a97d55d483c8 # v2.7.1
+        uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
         with:
           key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.os }}
 
       - name: Retrieve schemas
-        uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
+        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: schemas.ts
           path: ${{ github.workspace }}/crates/bitwarden-napi/src-ts/bitwarden_client/
@@ -84,7 +84,7 @@ jobs:
         run: ${{ matrix.settings.build }}
 
       - name: Upload artifact
-        uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v4.0.0
+        uses: actions/upload-artifact@1eb3cb2b3e0f29609092a73eb033bb759a334595 # v4.1.0
         with:
           name: sdk-bitwarden-napi-${{ matrix.settings.target }}
           path: ${{ github.workspace }}/crates/bitwarden-napi/sdk-napi.*.node

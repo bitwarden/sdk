@@ -17,17 +17,36 @@ pub struct ClientAttachments<'a> {
 }
 
 impl<'a> ClientAttachments<'a> {
-    pub async fn decrypt_file(
+    pub async fn encrypt_buffer(
         &self,
         cipher: Cipher,
-        attachment: Attachment,
-        encrypted_file_path: &Path,
+        attachment: AttachmentView,
+        buffer: &[u8],
+    ) -> Result<AttachmentEncryptResult> {
+        let enc = self.client.get_encryption_settings()?;
+        let key = cipher.locate_key(enc, &None).ok_or(Error::VaultLocked)?;
+
+        Ok(AttachmentFileView {
+            cipher,
+            attachment,
+            contents: buffer,
+        }
+        .encrypt_with_key(key)?)
+    }
+    pub async fn encrypt_file(
+        &self,
+        cipher: Cipher,
+        attachment: AttachmentView,
         decrypted_file_path: &Path,
-    ) -> Result<()> {
-        let data = std::fs::read(encrypted_file_path).unwrap();
-        let decrypted = self.decrypt_buffer(cipher, attachment, &data).await?;
-        std::fs::write(decrypted_file_path, decrypted)?;
-        Ok(())
+        encrypted_file_path: &Path,
+    ) -> Result<Attachment> {
+        let data = std::fs::read(decrypted_file_path).unwrap();
+        let AttachmentEncryptResult {
+            attachment,
+            contents,
+        } = self.encrypt_buffer(cipher, attachment, &data).await?;
+        std::fs::write(encrypted_file_path, contents)?;
+        Ok(attachment)
     }
 
     pub async fn decrypt_buffer(
@@ -47,38 +66,17 @@ impl<'a> ClientAttachments<'a> {
         .decrypt_with_key(key)
         .map_err(Error::Crypto)
     }
-
-    pub async fn encrypt_file(
+    pub async fn decrypt_file(
         &self,
         cipher: Cipher,
-        attachment: AttachmentView,
-        decrypted_file_path: &Path,
+        attachment: Attachment,
         encrypted_file_path: &Path,
-    ) -> Result<Attachment> {
-        let data = std::fs::read(decrypted_file_path).unwrap();
-        let AttachmentEncryptResult {
-            attachment,
-            contents,
-        } = self.encrypt_buffer(cipher, attachment, &data).await?;
-        std::fs::write(encrypted_file_path, contents)?;
-        Ok(attachment)
-    }
-
-    pub async fn encrypt_buffer(
-        &self,
-        cipher: Cipher,
-        attachment: AttachmentView,
-        buffer: &[u8],
-    ) -> Result<AttachmentEncryptResult> {
-        let enc = self.client.get_encryption_settings()?;
-        let key = cipher.locate_key(enc, &None).ok_or(Error::VaultLocked)?;
-
-        Ok(AttachmentFileView {
-            cipher,
-            attachment,
-            contents: buffer,
-        }
-        .encrypt_with_key(key)?)
+        decrypted_file_path: &Path,
+    ) -> Result<()> {
+        let data = std::fs::read(encrypted_file_path).unwrap();
+        let decrypted = self.decrypt_buffer(cipher, attachment, &data).await?;
+        std::fs::write(decrypted_file_path, decrypted)?;
+        Ok(())
     }
 }
 

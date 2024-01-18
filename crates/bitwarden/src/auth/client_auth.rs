@@ -1,4 +1,4 @@
-use bitwarden_crypto::{CreateDeviceKey, DeviceKey, UserKey};
+use bitwarden_crypto::{CreateDeviceKey, DeviceKey};
 
 #[cfg(feature = "secrets")]
 use crate::auth::login::{login_access_token, AccessTokenLoginRequest, AccessTokenLoginResponse};
@@ -114,7 +114,7 @@ fn trust_device(client: &Client) -> Result<CreateDeviceKey> {
 
     let user_key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
 
-    Ok(DeviceKey::trust_device(UserKey::new(user_key.clone()))?)
+    Ok(DeviceKey::trust_device(user_key)?)
 }
 
 impl<'a> Client {

@@ -28,20 +28,22 @@ pub struct CreateDeviceKey {
 
 impl DeviceKey {
     /// Generate a new device key
-    pub fn trust_device(user_key: UserKey) -> Result<CreateDeviceKey> {
+    ///
+    /// Note: Input has to be a SymmetricCryptoKey instead of UserKey because that's what we get from EncSettings.
+    pub fn trust_device(user_key: &SymmetricCryptoKey) -> Result<CreateDeviceKey> {
         let device_key = DeviceKey(SymmetricCryptoKey::generate(rand::thread_rng()));
 
         let device_private_key = AsymmetricCryptoKey::generate();
 
         // Encrypt both the key and mac_key of the user key
-        let data = [user_key.0.key, user_key.0.mac_key.unwrap_or_default()].concat();
+        let data = [user_key.key, user_key.mac_key.unwrap_or_default()].concat();
 
         let protected_user_key =
             AsymmEncString::encrypt_rsa2048_oaep_sha1(&data, &device_private_key)?;
 
         let protected_device_public_key = device_private_key
             .to_public_der()?
-            .encrypt_with_key(&user_key.0)?;
+            .encrypt_with_key(user_key)?;
 
         let protected_device_private_key = device_private_key
             .to_der()?
@@ -80,10 +82,9 @@ mod tests {
     #[test]
     fn test_trust_device() {
         let key = derive_symmetric_key("test");
-        let user_key = UserKey(key.clone());
 
         // Call trust_device function
-        let result = DeviceKey::trust_device(user_key).unwrap();
+        let result = DeviceKey::trust_device(&key).unwrap();
 
         let decrypted = result
             .device_key

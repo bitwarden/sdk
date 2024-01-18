@@ -8,7 +8,6 @@ use super::key_encryptable::CryptoKey;
 use crate::CryptoError;
 
 /// A symmetric encryption key. Used to encrypt and decrypt [`EncString`](crate::EncString)
-#[derive(Clone)]
 pub struct SymmetricCryptoKey {
     pub(crate) key: GenericArray<u8, U32>,
     pub(crate) mac_key: Option<GenericArray<u8, U32>>,

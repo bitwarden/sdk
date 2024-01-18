@@ -19,7 +19,7 @@ module BitwardenSDK
                            end
               File.exist?(local_file) ? local_file : File.expand_path('../../../../target/debug/libbitwarden_c.dylib', __dir__)
             when /linux/
-              local_file = File.expand_path('ubuntu-x64/libbitwarden_c.so', __dir__)
+              local_file = File.expand_path('linux-x64/libbitwarden_c.so', __dir__)
               File.exist?(local_file) ? local_file : File.expand_path('../../../../target/debug/libbitwarden_c.so', __dir__)
             when /mswin|mingw/
               local_file = File.expand_path('windows-x64/bitwarden_c.dll', __dir__)

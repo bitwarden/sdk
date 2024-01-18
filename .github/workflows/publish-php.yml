@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Setup PHP with PECL extension
-        uses: shivammathur/setup-php@e6f75134d35752277f093989e72e140eaa222f35 # 2.28.0
+        uses: shivammathur/setup-php@6d7209f44a25a59e904b1ee9f3b0c33ab2cd888d # 2.29.0
         with:
           php-version: "8.0"
           tools: composer
@@ -33,25 +33,25 @@ jobs:
         working-directory: languages/php/
 
       - name: Download x86_64-apple-darwin files
-        uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
+        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: libbitwarden_c_files-x86_64-apple-darwin
           path: temp/macos-x64
 
       - name: Download aarch64-apple-darwin files
-        uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
+        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: libbitwarden_c_files-aarch64-apple-darwin
           path: temp/macos-arm64
 
       - name: Download x86_64-unknown-linux-gnu files
-        uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
+        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: libbitwarden_c_files-x86_64-unknown-linux-gnu
-          path: temp/ubuntu-x64
+          path: temp/linux-x64
 
       - name: Download x86_64-pc-windows-msvc files
-        uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
+        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: libbitwarden_c_files-x86_64-pc-windows-msvc
           path: temp/windows-x64
@@ -59,11 +59,11 @@ jobs:
       - name: Copy lib files
         run: |
           mkdir -p languages/php/src/lib/macos-arm64
-          mkdir -p languages/php/src/lib/ubuntu-x64
+          mkdir -p languages/php/src/lib/linux-x64
           mkdir -p languages/php/src/lib/macos-x64
           mkdir -p languages/php/src/lib/windows-x64
 
-          platforms=("macos-arm64" "ubuntu-x64" "macos-x64" "windows-x64")
+          platforms=("macos-arm64" "linux-x64" "macos-x64" "windows-x64")
           files=("libbitwarden_c.dylib" "libbitwarden_c.so" "libbitwarden_c.dylib" "bitwarden_c.dll")
 
           for ((i=0; i<${#platforms[@]}; i++)); do

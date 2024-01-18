@@ -30,7 +30,7 @@ jobs:
           toolchain: stable
 
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@3cf7f8cc28d1b4e7d01e3783be10a97d55d483c8 # v2.7.1
+        uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
 
       - name: Add build architecture
         run: rustup target add ${{ matrix.settings.target }}
@@ -41,7 +41,7 @@ jobs:
         run: cargo build --target ${{ matrix.settings.target }} --release
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v4.0.0
+        uses: actions/upload-artifact@1eb3cb2b3e0f29609092a73eb033bb759a334595 # v4.1.0
         with:
           name: libbitwarden_c_files-${{ matrix.settings.target }}
           path: |

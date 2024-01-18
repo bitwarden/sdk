@@ -103,6 +103,9 @@ intervention.
 Many of the SDK tests are based on encrypted data provided by the other Bitwarden clients. In order
 to provide a consistent method of retrieving the data we provide a test account with user keys.
 
+**Disclaimer:** The server typically encrypts and protects certain fields. In order to allow
+accounts to be used on other servers this protection was explicitly removed from these data dumps.
+
 ### `test@bitwarden.com`
 
 - Email: `test@bitwarden.com`
@@ -131,10 +134,10 @@ VALUES
   (
     N 'b1fd4bf2-9643-4787-87f3-b0f00189c33b',
     N 'Test', N 'test@bitwarden.com',
-    0, N 'P|CfDJ8AoAcajySIdAtD-FAXwZd-_4Q0gykTOuw0D2SN7FEOhedah2vHS6wMo83ZOSSpyQ4QDcuAHfJhVpCWI_pqHZgvd-b03mbdO822H7CDqyfLjcYMPMJuz4Uxmzb47itrxejjs-di7AGaX-tHMvmzwH6TvWzixrQg40rS2UAetOlfHKL64EKZfVwElWqb4fWOSNUHYms39Ld72NhD0Q4uvB0XzZWhYbAwJWKc9FhWx14QCL',
+    0, N 'AQAAAAEAAYagAAAAEJ3ky9F/Zt5sy3/UAHVvBarMR+tBXYOM5IGgXy4/mx82uptgHgItauyCN+UZTvAqiA==',
     null, N 'en-US', N 'F3KL7SCJKEXO4LJFVLGZITPEHM7SAVSZ',
     null, null, null, null, N '2024-01-07 23:56:48.2600000',
-    N 'P|CfDJ8AoAcajySIdAtD-FAXwZd--enE9TC--SVZ4oXmh5ps68TphHSjew_jAZwnaIGNssFzvIx5z8QE2Mr_7Klzi4OmrxOxABMqPWIz8lY74EWB7pPGdwXoqD_Eyjq9l2dWQke9fBOkqR079r6F2FTC-8csFKwqipGkMTCduuVRA7AWI4GI0qMEWMBEIWmltCWlaj-47d9mSEfZ-glcjXCgtTD8hnHYSTmrEFmtGohr9n69_KHxBkU6Fz36hv53pA4ZPhwD802IvemdvI88dFJTJAjPozuJgjoz0T-2cwU2dULcKoRVWXFJwfdCtoO1Iu7G4dlIML4DR4OjwWJ2kS5tExbcfCpQ_4QkmnQtY-fro_jy1o',
+    N '2.Q/2PhzcC7GdeiMHhWguYAQ==|GpqzVdr0go0ug5cZh1n+uixeBC3oC90CIe0hd/HWA/pTRDZ8ane4fmsEIcuc8eMKUt55Y2q/fbNzsYu41YTZzzsJUSeqVjT8/iTQtgnNdpo=|dwI+uyvZ1h/iZ03VQ+/wrGEFYVewBUUl/syYgjsNMbE=',
     N 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0Ww2chogqCpaAR7Uw448am4b7vDFXiM5kXjFlGfXBlrAdAqTTggEvTDlMNYqPlCo+mBM6iFmTTUY9rpZBvFskMnKvsvpJ47/fehAH2o2e3Ulv/5NFevaVCMCmpkBDtbMbO1A4a3btdRtCP8DsKWMefHauEpaoLxNTLWnOIZVfCMjsSgx2EvULHAZPTtbFwm4+UVKniM4ds4jvOsD85h4jn2aLs/jWJXFfxN8iVSqEqpC2TBvsPdyHb49xQoWWfF0Z6BiNqeNGKEU9Uos1pjL+kzhEzzSpH31PZT/ufJ/oo4+93wrUt57hb6f0jxiXhwd5yQ+9F6wVwpbfkq0IwhjOwIDAQAB',
     N '2.yN7l00BOlUE0Sb0M//Q53w==|EwKG/BduQRQ33Izqc/ogoBROIoI5dmgrxSo82sgzgAMIBt3A2FZ9vPRMY+GWT85JiqytDitGR3TqwnFUBhKUpRRAq4x7rA6A1arHrFp5Tp1p21O3SfjtvB3quiOKbqWk6ZaU1Np9HwqwAecddFcB0YyBEiRX3VwF2pgpAdiPbSMuvo2qIgyob0CUoC/h4Bz1be7Qa7B0Xw9/fMKkB1LpOm925lzqosyMQM62YpMGkjMsbZz0uPopu32fxzDWSPr+kekNNyLt9InGhTpxLmq1go/pXR2uw5dfpXc5yuta7DB0EGBwnQ8Vl5HPdDooqOTD9I1jE0mRyuBpWTTI3FRnu3JUh3rIyGBJhUmHqGZvw2CKdqHCIrQeQkkEYqOeJRJVdBjhv5KGJifqT3BFRwX/YFJIChAQpebNQKXe/0kPivWokHWwXlDB7S7mBZzhaAPidZvnuIhalE2qmTypDwHy22FyqV58T8MGGMchcASDi/QXI6kcdpJzPXSeU9o+NC68QDlOIrMVxKFeE7w7PvVmAaxEo0YwmuAzzKy9QpdlK0aab/xEi8V4iXj4hGepqAvHkXIQd+r3FNeiLfllkb61p6WTjr5urcmDQMR94/wYoilpG5OlybHdbhsYHvIzYoLrC7fzl630gcO6t4nM24vdB6Ymg9BVpEgKRAxSbE62Tqacxqnz9AcmgItb48NiR/He3n3ydGjPYuKk/ihZMgEwAEZvSlNxYONSbYrIGDtOY+8Nbt6KiH3l06wjZW8tcmFeVlWv+tWotnTY9IqlAfvNVTjtsobqtQnvsiDjdEVtNy/s2ci5TH+NdZluca2OVEr91Wayxh70kpM6ib4UGbfdmGgCo74gtKvKSJU0rTHakQ5L9JlaSDD5FamBRyI0qfL43Ad9qOUZ8DaffDCyuaVyuqk7cz9HwmEmvWU3VQ+5t06n/5kRDXttcw8w+3qClEEdGo1KeENcnXCB32dQe3tDTFpuAIMLqwXs6FhpawfZ5kPYvLPczGWaqftIs/RXJ/EltGc0ugw2dmTLpoQhCqrcKEBDoYVk0LDZKsnzitOGdi9mOWse7Se8798ib1UsHFUjGzISEt6upestxOeupSTOh0v4+AjXbDzRUyogHww3V+Bqg71bkcMxtB+WM+pn1XNbVTyl9NR040nhP7KEf6e9ruXAtmrBC2ah5cFEpLIot77VFZ9ilLuitSz+7T8n1yAh1IEG6xxXxninAZIzi2qGbH69O5RSpOJuJTv17zTLJQIIc781JwQ2TTwTGnx5wZLbffhCasowJKd2EVcyMJyhz6ru0PvXWJ4hUdkARJs3Xu8dus9a86N8Xk6aAPzBDqzYb1vyFIfBxP0oO8xFHgd30Cgmz8UrSE3qeWRrF8ftrI6xQnFjHBGWD/JWSvd6YMcQED0aVuQkuNW9ST/DzQThPzRfPUoiL10yAmV7Ytu4fR3x2sF0Yfi87YhHFuCMpV/DsqxmUizyiJuD938eRcH8hzR/VO53Qo3UIsqOLcyXtTv6THjSlTopQ+JOLOnHm1w8dzYbLN44OG44rRsbihMUQp+wUZ6bsI8rrOnm9WErzkbQFbrfAINdoCiNa6cimYIjvvnMTaFWNymqY1vZxGztQiMiHiHYwTfwHTXrb9j0uPM=|09J28iXv9oWzYtzK2LBT6Yht4IT4MijEkk0fwFdrVQ4=',
     0, null, null, null, null, null, null,

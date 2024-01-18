@@ -49,7 +49,7 @@ jobs:
         uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: libbitwarden_c_files-x86_64-unknown-linux-gnu
-          path: temp/ubuntu-x64
+          path: temp/linux-x64
 
       - name: Download x86_64-pc-windows-msvc files
         uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
@@ -60,11 +60,11 @@ jobs:
       - name: Copy lib files
         run: |
           mkdir -p languages/ruby/bitwarden_sdk/lib/macos-arm64
-          mkdir -p languages/ruby/bitwarden_sdk/lib/ubuntu-x64
+          mkdir -p languages/ruby/bitwarden_sdk/lib/linux-x64
           mkdir -p languages/ruby/bitwarden_sdk/lib/macos-x64
           mkdir -p languages/ruby/bitwarden_sdk/lib/windows-x64
 
-          platforms=("macos-arm64" "ubuntu-x64" "macos-x64" "windows-x64")
+          platforms=("macos-arm64" "linux-x64" "macos-x64" "windows-x64")
           files=("libbitwarden_c.dylib" "libbitwarden_c.so" "libbitwarden_c.dylib" "bitwarden_c.dll")
 
           for ((i=0; i<${#platforms[@]}; i++)); do

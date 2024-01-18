@@ -52,7 +52,7 @@ jobs:
         uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: libbitwarden_c_files-x86_64-unknown-linux-gnu
-          path: languages/csharp/Bitwarden.Sdk/ubuntu-x64
+          path: languages/csharp/Bitwarden.Sdk/linux-x64
 
       - name: Download x86_64-pc-windows-msvc files
         uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1

@@ -4,7 +4,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::{error::GeneratorError, util::capitalize_first_letter};
+use crate::util::capitalize_first_letter;
 
 #[derive(Debug, Error)]
 pub enum PassphraseError {
@@ -80,7 +80,7 @@ impl PassphraseGeneratorRequest {
 }
 
 /// Implementation of the random passphrase generator.
-pub fn passphrase(request: PassphraseGeneratorRequest) -> Result<String, GeneratorError> {
+pub fn passphrase(request: PassphraseGeneratorRequest) -> Result<String, PassphraseError> {
     let options = request.validate_options()?;
     Ok(passphrase_with_rng(rand::thread_rng(), options))
 }

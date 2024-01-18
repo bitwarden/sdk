@@ -5,7 +5,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::{util::capitalize_first_letter, GeneratorError};
+use crate::util::capitalize_first_letter;
 
 #[derive(Debug, Error)]
 pub enum UsernameError {
@@ -134,7 +134,7 @@ impl ForwarderServiceType {
 pub async fn username(
     input: UsernameGeneratorRequest,
     http: &reqwest::Client,
-) -> Result<String, GeneratorError> {
+) -> Result<String, UsernameError> {
     use rand::thread_rng;
     use UsernameGeneratorRequest::*;
     match input {
@@ -144,7 +144,7 @@ pub async fn username(
         } => Ok(username_word(&mut thread_rng(), capitalize, include_number)),
         Subaddress { r#type, email } => Ok(username_subaddress(&mut thread_rng(), r#type, email)),
         Catchall { r#type, domain } => Ok(username_catchall(&mut thread_rng(), r#type, domain)),
-        Forwarded { service, website } => Ok(service.generate(http, website).await?),
+        Forwarded { service, website } => service.generate(http, website).await,
     }
 }
 

@@ -5,8 +5,6 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::GeneratorError;
-
 #[derive(Debug, Error)]
 pub enum PasswordError {
     #[error("No character set enabled")]
@@ -218,7 +216,7 @@ impl PasswordGeneratorRequest {
 }
 
 /// Implementation of the random password generator.
-pub fn password(input: PasswordGeneratorRequest) -> Result<String, GeneratorError> {
+pub fn password(input: PasswordGeneratorRequest) -> Result<String, PasswordError> {
     let options = input.validate_options()?;
     Ok(password_with_rng(rand::thread_rng(), options))
 }

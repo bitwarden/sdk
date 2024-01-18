@@ -1,12 +1,10 @@
 mod passphrase;
-pub use passphrase::{passphrase, PassphraseGeneratorRequest};
-mod error;
-mod util;
-pub use error::GeneratorError;
+pub use passphrase::{passphrase, PassphraseError, PassphraseGeneratorRequest};
 mod password;
-pub use password::{password, PasswordGeneratorRequest};
+mod util;
+pub use password::{password, PasswordError, PasswordGeneratorRequest};
 mod username;
-pub use username::{username, ForwarderServiceType, UsernameGeneratorRequest};
+pub use username::{username, ForwarderServiceType, UsernameError, UsernameGeneratorRequest};
 mod username_forwarders;
 
 #[cfg(feature = "mobile")]

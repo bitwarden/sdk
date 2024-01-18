@@ -5,6 +5,7 @@ use chrono::{DateTime, Utc};
 
 use crate::{error::Result, Client};
 
+pub mod attachments;
 pub mod ciphers;
 pub mod collections;
 pub mod folders;
@@ -39,6 +40,11 @@ impl ClientVault {
     /// Sends operations
     pub fn sends(self: Arc<Self>) -> Arc<sends::ClientSends> {
         Arc::new(sends::ClientSends(self.0.clone()))
+    }
+
+    /// Attachment file operations
+    pub fn attachments(self: Arc<Self>) -> Arc<attachments::ClientAttachments> {
+        Arc::new(attachments::ClientAttachments(self.0.clone()))
     }
 
     /// Generate a TOTP code from a provided key.

@@ -39,6 +39,7 @@ subtle = ">=2.5.0, <3.0"
 thiserror = ">=1.0.40, <2.0"
 uniffi = { version = "=0.25.2", optional = true }
 uuid = { version = ">=1.3.3, <2.0", features = ["serde"] }
+zeroize = { version = ">=1.7.0, <2.0", features = ["zeroize_derive"] }
 
 [dev-dependencies]
 rand_chacha = "0.3.1"

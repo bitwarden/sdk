@@ -7,7 +7,7 @@ use serde::Deserialize;
 use super::{check_length, from_b64, from_b64_vec, split_enc_string};
 use crate::{
     error::{CryptoError, EncStringParseError, Result},
-    KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey,
+    Decrypted, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey,
 };
 
 /// # Encrypted string primitive
@@ -228,13 +228,13 @@ impl KeyEncryptable<SymmetricCryptoKey, EncString> for &[u8] {
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, Vec<u8>> for EncString {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
+impl KeyDecryptable<SymmetricCryptoKey, Decrypted<Vec<u8>>> for EncString {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Decrypted<Vec<u8>>> {
         match self {
             EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
                 let mac_key = key.mac_key.ok_or(CryptoError::InvalidMac)?;
                 let dec = crate::aes::decrypt_aes256_hmac(iv, mac, data.clone(), mac_key, key.key)?;
-                Ok(dec)
+                Ok(Decrypted::new(dec))
             }
             _ => Err(CryptoError::InvalidKey),
         }
@@ -247,10 +247,10 @@ impl KeyEncryptable<SymmetricCryptoKey, EncString> for String {
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, String> for EncString {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<String> {
-        let dec: Vec<u8> = self.decrypt_with_key(key)?;
-        String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String)
+impl KeyDecryptable<SymmetricCryptoKey, Decrypted<String>> for EncString {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Decrypted<String>> {
+        let dec: Decrypted<Vec<u8>> = self.decrypt_with_key(key)?;
+        dec.try_into()
     }
 }
 
@@ -269,17 +269,17 @@ impl schemars::JsonSchema for EncString {
 #[cfg(test)]
 mod tests {
     use super::EncString;
-    use crate::{derive_symmetric_key, KeyDecryptable, KeyEncryptable};
+    use crate::{derive_symmetric_key, Decrypted, KeyDecryptable, KeyEncryptable};
 
     #[test]
     fn test_enc_string_roundtrip() {
         let key = derive_symmetric_key("test");
 
-        let test_string = "encrypted_test_string".to_string();
-        let cipher = test_string.clone().encrypt_with_key(&key).unwrap();
+        let test_string = "encrypted_test_string";
+        let cipher = test_string.to_owned().encrypt_with_key(&key).unwrap();
 
-        let decrypted_str: String = cipher.decrypt_with_key(&key).unwrap();
-        assert_eq!(decrypted_str, test_string);
+        let decrypted_str: Decrypted<String> = cipher.decrypt_with_key(&key).unwrap();
+        assert_eq!(decrypted_str.expose(), test_string);
     }
 
     #[test]

@@ -1,12 +1,6 @@
-use bitwarden_crypto::{CreateDeviceKey, DeviceKey};
-
 #[cfg(feature = "secrets")]
 use crate::auth::login::{login_access_token, AccessTokenLoginRequest, AccessTokenLoginResponse};
-use crate::{
-    auth::renew::renew_token,
-    error::{Error, Result},
-    Client,
-};
+use crate::{auth::renew::renew_token, error::Result, Client};
 #[cfg(feature = "internal")]
 use crate::{
     auth::{
@@ -22,7 +16,10 @@ use crate::{
         RegisterKeyResponse, RegisterRequest,
     },
     client::Kdf,
+    error::Error,
 };
+#[cfg(feature = "internal")]
+use bitwarden_crypto::{CreateDeviceKey, DeviceKey};
 
 pub struct ClientAuth<'a> {
     pub(crate) client: &'a mut crate::Client,
@@ -109,6 +106,7 @@ impl<'a> ClientAuth<'a> {
     }
 }
 
+#[cfg(feature = "internal")]
 fn trust_device(client: &Client) -> Result<CreateDeviceKey> {
     let enc = client.get_encryption_settings()?;
 

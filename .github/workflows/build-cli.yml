@@ -89,6 +89,47 @@ jobs:
           TARGET: ${{ matrix.settings.target }}
         run: cross build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
 
+      - name: Login to Azure
+        uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
+        with:
+          creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
+
+      - name: Retrieve secrets windows
+        if: runner.os == 'Windows'
+        id: retrieve-secrets-windows
+        uses: bitwarden/gh-actions/get-keyvault-secrets@main
+        with:
+          keyvault: "bitwarden-ci"
+          secrets: "code-signing-vault-url,
+            code-signing-client-id,
+            code-signing-tenant-id,
+            code-signing-client-secret,
+            code-signing-cert-name"
+
+      - name: Install AST
+        if: runner.os == 'Windows'
+        run: dotnet tool install --global AzureSignTool --version 4.0.1
+
+      - name: Sign windows binary
+        if: runner.os == 'Windows'
+        env:
+          SIGNING_VAULT_URL: ${{ steps.retrieve-secrets-windows.outputs.code-signing-vault-url }}
+          SIGNING_CLIENT_ID: ${{ steps.retrieve-secrets-windows.outputs.code-signing-client-id }}
+          SIGNING_TENANT_ID: ${{ steps.retrieve-secrets-windows.outputs.code-signing-tenant-id }}
+          SIGNING_CLIENT_SECRET: ${{ steps.retrieve-secrets-windows.outputs.code-signing-client-secret }}
+          SIGNING_CERT_NAME: ${{ steps.retrieve-secrets-windows.outputs.code-signing-cert-name }}
+        run: |
+          azuresigntool sign -v `
+            -kvu $env::SIGNING_VAULT_URL `
+            -kvi $env::SIGNING_CLIENT_ID `
+            -kvt $env::SIGNING_TENANT_ID `
+            -kvs $env::SIGNING_CLIENT_SECRET `
+            -kvc $env::SIGNING_CERT_NAME `
+            -fd sha256 `
+            -du https://bitwarden.com `
+            -tr http://timestamp.digicert.com `
+            ./target/${{ matrix.settings.target }}/release/bws.exe
+
       - name: Zip Windows
         shell: cmd
         if: runner.os == 'Windows'

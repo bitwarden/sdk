@@ -29,9 +29,10 @@ jobs:
 
         package:
           - bitwarden
-          - bitwarden-crypto
           - bitwarden-api-api
           - bitwarden-api-identity
+          - bitwarden-crypto
+          - bitwarden-generators
 
     steps:
       - name: Checkout

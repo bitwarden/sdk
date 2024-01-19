@@ -3,8 +3,15 @@ use std::collections::BTreeSet;
 use rand::{distributions::Distribution, seq::SliceRandom, RngCore};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
-use crate::error::Result;
+#[derive(Debug, Error)]
+pub enum PasswordError {
+    #[error("No character set enabled")]
+    NoCharacterSetEnabled,
+    #[error("Invalid password length")]
+    InvalidLength,
+}
 
 /// Password generator request options.
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -32,7 +39,7 @@ pub struct PasswordGeneratorRequest {
     /// When set, the value must be between 1 and 9. This value is ignored is lowercase is false
     pub min_lowercase: Option<u8>,
     /// The minimum number of uppercase characters in the generated password.
-    /// When set, the value must be between 1 and 9. This value is ignored is uppercase is false  
+    /// When set, the value must be between 1 and 9. This value is ignored is uppercase is false
     pub min_uppercase: Option<u8>,
     /// The minimum number of numbers in the generated password.
     /// When set, the value must be between 1 and 9. This value is ignored is numbers is false
@@ -128,16 +135,16 @@ struct PasswordGeneratorOptions {
 
 impl PasswordGeneratorRequest {
     /// Validates the request and returns an immutable struct with valid options to use with the password generator.
-    fn validate_options(self) -> Result<PasswordGeneratorOptions> {
+    fn validate_options(self) -> Result<PasswordGeneratorOptions, PasswordError> {
         // TODO: Add password generator policy checks
 
         // We always have to have at least one character set enabled
         if !self.lowercase && !self.uppercase && !self.numbers && !self.special {
-            return Err("At least one character set must be enabled".into());
+            return Err(PasswordError::NoCharacterSetEnabled);
         }
 
         if self.length < 4 {
-            return Err("A password must be at least 4 characters long".into());
+            return Err(PasswordError::InvalidLength);
         }
 
         // Make sure the minimum values are zero when the character
@@ -159,7 +166,7 @@ impl PasswordGeneratorRequest {
         // Check that the minimum lengths aren't larger than the password length
         let minimum_length = min_lowercase + min_uppercase + min_number + min_special;
         if minimum_length > length {
-            return Err("Password length can't be less than the sum of the minimums".into());
+            return Err(PasswordError::InvalidLength);
         }
 
         let lower = (
@@ -208,9 +215,8 @@ impl PasswordGeneratorRequest {
     }
 }
 
-/// Implementation of the random password generator. This is not accessible to the public API.
-/// See [`ClientGenerator::password`](crate::ClientGenerator::password) for the API function.
-pub(super) fn password(input: PasswordGeneratorRequest) -> Result<String> {
+/// Implementation of the random password generator.
+pub fn password(input: PasswordGeneratorRequest) -> Result<String, PasswordError> {
     let options = input.validate_options()?;
     Ok(password_with_rng(rand::thread_rng(), options))
 }

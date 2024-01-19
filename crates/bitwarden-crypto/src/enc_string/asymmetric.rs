@@ -18,7 +18,7 @@ mod internal {
     ///
     /// [AsymmetricEncString] is a Bitwarden specific primitive that represents an asymmetrically encrypted string.
     /// They are used together with the KeyDecryptable and KeyEncryptable traits to encrypt and decrypt data using
-    /// [AsymmetricCryptoKey]s.
+    /// [crate::AsymmetricCryptoKey]s.
     ///
     /// The flexibility of the [AsymmetricEncString] type allows for different encryption algorithms to be used
     /// which is represented by the different variants of the enum.
@@ -34,7 +34,7 @@ mod internal {
     ///
     /// ## Serialization
     ///
-    /// [AsymmetricEncString] implements [Display] and [FromStr] to allow for easy serialization and uses a
+    /// [AsymmetricEncString] implements [std::fmt::Display] and [std::str::FromStr] to allow for easy serialization and uses a
     /// custom scheme to represent the different variants.
     ///
     /// The scheme is one of the following schemes:

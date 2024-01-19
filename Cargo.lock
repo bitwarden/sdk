@@ -506,6 +506,7 @@ dependencies = [
  "async-lock",
  "bitwarden",
  "bitwarden-crypto",
+ "bitwarden-generators",
  "chrono",
  "env_logger",
  "schemars",

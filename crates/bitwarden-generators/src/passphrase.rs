@@ -2,8 +2,17 @@ use bitwarden_crypto::EFF_LONG_WORD_LIST;
 use rand::{seq::SliceRandom, Rng, RngCore};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
-use crate::{error::Result, util::capitalize_first_letter};
+use crate::util::capitalize_first_letter;
+
+#[derive(Debug, Error)]
+pub enum PassphraseError {
+    #[error("'num_words' must be between {} and {}", minimum, maximum)]
+    InvalidNumWords { minimum: u8, maximum: u8 },
+    #[error("'word_separator' cannot be empty")]
+    EmptyWordSeparator,
+}
 
 /// Passphrase generator request options.
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -49,16 +58,19 @@ struct ValidPassphraseGeneratorOptions {
 impl PassphraseGeneratorRequest {
     /// Validates the request and returns an immutable struct with valid options to use with the
     /// passphrase generator.
-    fn validate_options(self) -> Result<ValidPassphraseGeneratorOptions> {
+    fn validate_options(self) -> Result<ValidPassphraseGeneratorOptions, PassphraseError> {
         // TODO: Add password generator policy checks
 
         if !(MINIMUM_PASSPHRASE_NUM_WORDS..=MAXIMUM_PASSPHRASE_NUM_WORDS).contains(&self.num_words)
         {
-            return Err(format!("'num_words' must be between {MINIMUM_PASSPHRASE_NUM_WORDS} and {MAXIMUM_PASSPHRASE_NUM_WORDS}").into());
+            return Err(PassphraseError::InvalidNumWords {
+                minimum: MINIMUM_PASSPHRASE_NUM_WORDS,
+                maximum: MAXIMUM_PASSPHRASE_NUM_WORDS,
+            });
         }
 
         if self.word_separator.chars().next().is_none() {
-            return Err("'word_separator' cannot be empty".into());
+            return Err(PassphraseError::EmptyWordSeparator);
         };
 
         Ok(ValidPassphraseGeneratorOptions {
@@ -70,13 +82,8 @@ impl PassphraseGeneratorRequest {
     }
 }
 
-/// Implementation of the random passphrase generator. This is not accessible to the public API.
-/// See [`ClientGenerator::passphrase`](crate::ClientGenerator::passphrase) for the API function.
-///
-/// # Arguments:
-/// * `options`: Valid parameters used to generate the passphrase. To create it, use
-///   [`PassphraseGeneratorRequest::validate_options`](PassphraseGeneratorRequest::validate_options).
-pub(super) fn passphrase(request: PassphraseGeneratorRequest) -> Result<String> {
+/// Implementation of the random passphrase generator.
+pub fn passphrase(request: PassphraseGeneratorRequest) -> Result<String, PassphraseError> {
     let options = request.validate_options()?;
     Ok(passphrase_with_rng(rand::thread_rng(), options))
 }

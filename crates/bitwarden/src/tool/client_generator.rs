@@ -1,12 +1,9 @@
-use crate::{
-    error::Result,
-    tool::generators::{
-        passphrase::{passphrase, PassphraseGeneratorRequest},
-        password::{password, PasswordGeneratorRequest},
-        username::{username, UsernameGeneratorRequest},
-    },
-    Client,
+use bitwarden_generators::{
+    passphrase, password, username, PassphraseGeneratorRequest, PasswordGeneratorRequest,
+    UsernameGeneratorRequest,
 };
+
+use crate::{error::Result, Client};
 
 pub struct ClientGenerator<'a> {
     pub(crate) client: &'a crate::Client,
@@ -20,7 +17,7 @@ impl<'a> ClientGenerator<'a> {
     /// # Examples
     ///
     /// ```
-    /// use bitwarden::{Client, tool::PasswordGeneratorRequest, error::Result};
+    /// use bitwarden::{Client, generators::PasswordGeneratorRequest, error::Result};
     /// async fn test() -> Result<()> {
     ///     let input = PasswordGeneratorRequest {
     ///         lowercase: true,
@@ -35,7 +32,7 @@ impl<'a> ClientGenerator<'a> {
     /// }
     /// ```
     pub async fn password(&self, input: PasswordGeneratorRequest) -> Result<String> {
-        password(input)
+        Ok(password(input)?)
     }
 
     /// Generates a random passphrase.
@@ -48,7 +45,7 @@ impl<'a> ClientGenerator<'a> {
     /// # Examples
     ///
     /// ```
-    /// use bitwarden::{Client, tool::PassphraseGeneratorRequest, error::Result};
+    /// use bitwarden::{Client, generators::PassphraseGeneratorRequest, error::Result};
     /// async fn test() -> Result<()> {
     ///     let input = PassphraseGeneratorRequest {
     ///         num_words: 4,
@@ -60,7 +57,7 @@ impl<'a> ClientGenerator<'a> {
     /// }
     /// ```
     pub async fn passphrase(&self, input: PassphraseGeneratorRequest) -> Result<String> {
-        passphrase(input)
+        Ok(passphrase(input)?)
     }
 
     /// Generates a random username.
@@ -71,7 +68,7 @@ impl<'a> ClientGenerator<'a> {
     /// will use third-party services, which may require a specific setup or API key.
     ///
     /// ```
-    /// use bitwarden::{Client, tool::{UsernameGeneratorRequest}, error::Result};
+    /// use bitwarden::{Client, generators::{UsernameGeneratorRequest}, error::Result};
     /// async fn test() -> Result<()> {
     ///     let input = UsernameGeneratorRequest::Word {
     ///         capitalize: true,
@@ -83,7 +80,7 @@ impl<'a> ClientGenerator<'a> {
     /// }
     /// ```
     pub async fn username(&self, input: UsernameGeneratorRequest) -> Result<String> {
-        username(input, self.client.get_http_client()).await
+        Ok(username(input, self.client.get_http_client()).await?)
     }
 }
 

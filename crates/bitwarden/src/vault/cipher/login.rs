@@ -98,11 +98,11 @@ impl KeyDecryptable<SymmetricCryptoKey, LoginUriView> for LoginUri {
 impl KeyDecryptable<SymmetricCryptoKey, LoginView> for Login {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<LoginView, CryptoError> {
         Ok(LoginView {
-            username: self.username.decrypt_with_key(key)?,
-            password: self.password.decrypt_with_key(key)?,
+            username: self.username.decrypt_with_key(key).ok().flatten(),
+            password: self.password.decrypt_with_key(key).ok().flatten(),
             password_revision_date: self.password_revision_date,
-            uris: self.uris.decrypt_with_key(key)?,
-            totp: self.totp.decrypt_with_key(key)?,
+            uris: self.uris.decrypt_with_key(key).ok().flatten(),
+            totp: self.totp.decrypt_with_key(key).ok().flatten(),
             autofill_on_page_load: self.autofill_on_page_load,
         })
     }

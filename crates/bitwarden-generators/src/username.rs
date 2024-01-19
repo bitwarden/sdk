@@ -1,9 +1,25 @@
 use bitwarden_crypto::EFF_LONG_WORD_LIST;
 use rand::{distributions::Distribution, seq::SliceRandom, Rng, RngCore};
+use reqwest::StatusCode;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
-use crate::{error::Result, util::capitalize_first_letter};
+use crate::util::capitalize_first_letter;
+
+#[derive(Debug, Error)]
+pub enum UsernameError {
+    #[error("Invalid API Key")]
+    InvalidApiKey,
+    #[error("Unknown error")]
+    Unknown,
+
+    #[error("Received error message from server: [{}] {}", .status, .message)]
+    ResponseContent { status: StatusCode, message: String },
+
+    #[error(transparent)]
+    Reqwest(#[from] reqwest::Error),
+}
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -85,10 +101,14 @@ pub enum UsernameGeneratorRequest {
 impl ForwarderServiceType {
     // Generate a username using the specified email forwarding service
     // This requires an HTTP client to be passed in, as the service will need to make API calls
-    pub async fn generate(self, http: &reqwest::Client, website: Option<String>) -> Result<String> {
+    pub async fn generate(
+        self,
+        http: &reqwest::Client,
+        website: Option<String>,
+    ) -> Result<String, UsernameError> {
         use ForwarderServiceType::*;
 
-        use crate::tool::generators::username_forwarders::*;
+        use crate::username_forwarders::*;
 
         match self {
             AddyIo {
@@ -107,14 +127,14 @@ impl ForwarderServiceType {
     }
 }
 
-/// Implementation of the username generator. This is not accessible to the public API.
-/// See [`ClientGenerator::username`](crate::ClientGenerator::username) for the API function.
+/// Implementation of the username generator.
+///
 /// Note: The HTTP client is passed in as a required parameter for convenience,
 /// as some username generators require making API calls.
-pub(super) async fn username(
+pub async fn username(
     input: UsernameGeneratorRequest,
     http: &reqwest::Client,
-) -> Result<String> {
+) -> Result<String, UsernameError> {
     use rand::thread_rng;
     use UsernameGeneratorRequest::*;
     match input {

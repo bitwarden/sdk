@@ -350,6 +350,7 @@ dependencies = [
  "bitwarden-api-api",
  "bitwarden-api-identity",
  "bitwarden-crypto",
+ "bitwarden-generators",
  "chrono",
  "data-encoding",
  "getrandom 0.2.11",
@@ -444,6 +445,23 @@ dependencies = [
  "thiserror",
  "uniffi",
  "uuid",
+]
+
+[[package]]
+name = "bitwarden-generators"
+version = "0.1.0"
+dependencies = [
+ "bitwarden-crypto",
+ "rand 0.8.5",
+ "rand_chacha 0.3.1",
+ "reqwest",
+ "schemars",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "uniffi",
+ "wiremock",
 ]
 
 [[package]]

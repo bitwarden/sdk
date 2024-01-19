@@ -1,7 +1,7 @@
 use bitwarden::{
     auth::RegisterRequest,
     client::client_settings::ClientSettings,
-    tool::{PassphraseGeneratorRequest, PasswordGeneratorRequest},
+    generators::{PassphraseGeneratorRequest, PasswordGeneratorRequest},
 };
 use bitwarden_cli::{install_color_eyre, text_prompt_when_none, Color};
 use clap::{command, Args, CommandFactory, Parser, Subcommand};

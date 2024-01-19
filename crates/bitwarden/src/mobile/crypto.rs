@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use bitwarden_crypto::{AsymmEncString, EncString};
+use bitwarden_crypto::{AsymmetricEncString, EncString};
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{KeyDecryptable, KeyEncryptable, MasterKey, SymmetricCryptoKey};
 use schemars::JsonSchema;
@@ -89,7 +89,7 @@ pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequ
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct InitOrgCryptoRequest {
     /// The encryption keys for all the organizations the user is a part of
-    pub organization_keys: HashMap<uuid::Uuid, AsymmEncString>,
+    pub organization_keys: HashMap<uuid::Uuid, AsymmetricEncString>,
 }
 
 #[cfg(feature = "internal")]

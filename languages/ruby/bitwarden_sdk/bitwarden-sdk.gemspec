@@ -25,7 +25,7 @@ Gem::Specification.new do |spec|
     end
   end
 
-  spec.files += Dir.glob('lib/ubuntu-x64/**/*')
+  spec.files += Dir.glob('lib/linux-x64/**/*')
   spec.files += Dir.glob('lib/macos-x64/**/*')
   spec.files += Dir.glob('lib/windows-x64/**/*')
   spec.files += Dir.glob('lib/macos-arm64/**/*')

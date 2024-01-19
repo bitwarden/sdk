@@ -6,7 +6,7 @@ license-file = "LICENSE"
 repository = "https://github.com/bitwarden/sdk"
 homepage = "https://bitwarden.com"
 description = """
-Bitwarden Cryptographic primitives
+Internal crate for the bitwarden crate. Do not use.
 """
 keywords = ["bitwarden"]
 edition = "2021"

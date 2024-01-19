@@ -20,13 +20,10 @@ impl<V: Zeroize> Decrypted<V> {
 impl TryFrom<Decrypted<Vec<u8>>> for Decrypted<String> {
     type Error = CryptoError;
 
-    fn try_from(v: Decrypted<Vec<u8>>) -> Result<Self, CryptoError> {
-        let mut str = v.expose().to_owned();
+    fn try_from(mut v: Decrypted<Vec<u8>>) -> Result<Self, CryptoError> {
+        let value = std::mem::take(&mut v.value);
 
-        let rtn = String::from_utf8(str).map_err(|_| CryptoError::InvalidUtf8String);
-
-        str.zeroize();
-
+        let rtn = String::from_utf8(value).map_err(|_| CryptoError::InvalidUtf8String);
         rtn.map(Decrypted::new)
     }
 }

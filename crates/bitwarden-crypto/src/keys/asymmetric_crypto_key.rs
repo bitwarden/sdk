@@ -10,12 +10,11 @@ pub struct AsymmetricCryptoKey {
 
 impl AsymmetricCryptoKey {
     /// Generate a random AsymmetricCryptoKey (RSA-2048)
-    pub(crate) fn generate() -> Self {
-        let mut rng = rand::thread_rng();
+    pub fn generate<R: rand::CryptoRng + rand::RngCore>(rng: &mut R) -> Self {
         let bits = 2048;
 
         Self {
-            key: RsaPrivateKey::new(&mut rng, bits).expect("failed to generate a key"),
+            key: RsaPrivateKey::new(rng, bits).expect("failed to generate a key"),
         }
     }
 

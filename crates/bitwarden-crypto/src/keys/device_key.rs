@@ -26,9 +26,10 @@ impl DeviceKey {
     ///
     /// Note: Input has to be a SymmetricCryptoKey instead of UserKey because that's what we get from EncSettings.
     pub fn trust_device(user_key: &SymmetricCryptoKey) -> Result<CreateDeviceKey> {
-        let device_key = DeviceKey(SymmetricCryptoKey::generate(rand::thread_rng()));
+        let mut rng = rand::thread_rng();
+        let device_key = DeviceKey(SymmetricCryptoKey::generate(&mut rng));
 
-        let device_private_key = AsymmetricCryptoKey::generate();
+        let device_private_key = AsymmetricCryptoKey::generate(&mut rng);
 
         // Encrypt both the key and mac_key of the user key
         let data = [user_key.key, user_key.mac_key.unwrap_or_default()].concat();

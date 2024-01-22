@@ -26,8 +26,8 @@ fn convert_level(level: LogLevel) -> Level {
     }
 }
 
-// Rc<RwLock<...>> is to avoid needing to take ownership of the Client during our async run_command function
-// https://github.com/rustwasm/wasm-bindgen/issues/2195#issuecomment-799588401
+// Rc<RwLock<...>> is to avoid needing to take ownership of the Client during our async run_command
+// function https://github.com/rustwasm/wasm-bindgen/issues/2195#issuecomment-799588401
 #[wasm_bindgen]
 pub struct BitwardenClient(Rc<RwLock<JsonClient>>);
 

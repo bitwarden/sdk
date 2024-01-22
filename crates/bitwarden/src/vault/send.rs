@@ -197,8 +197,9 @@ impl KeyEncryptable<SymmetricCryptoKey, SendFile> for SendFileView {
 impl LocateKey for Send {}
 impl KeyDecryptable<SymmetricCryptoKey, SendView> for Send {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendView, CryptoError> {
-        // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
-        // For the rest of the fields, we ignore the provided SymmetricCryptoKey and the stretched key
+        // For sends, we first decrypt the send key with the user key, and stretch it to it's full
+        // size For the rest of the fields, we ignore the provided SymmetricCryptoKey and
+        // the stretched key
         let k: Vec<u8> = self.key.decrypt_with_key(key)?;
         let key = Send::derive_shareable_key(&k)?;
 
@@ -230,8 +231,9 @@ impl KeyDecryptable<SymmetricCryptoKey, SendView> for Send {
 
 impl KeyDecryptable<SymmetricCryptoKey, SendListView> for Send {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendListView, CryptoError> {
-        // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
-        // For the rest of the fields, we ignore the provided SymmetricCryptoKey and the stretched key
+        // For sends, we first decrypt the send key with the user key, and stretch it to it's full
+        // size For the rest of the fields, we ignore the provided SymmetricCryptoKey and
+        // the stretched key
         let key = Send::get_key(&self.key, key)?;
 
         Ok(SendListView {
@@ -253,8 +255,9 @@ impl KeyDecryptable<SymmetricCryptoKey, SendListView> for Send {
 impl LocateKey for SendView {}
 impl KeyEncryptable<SymmetricCryptoKey, Send> for SendView {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Send, CryptoError> {
-        // For sends, we first decrypt the send key with the user key, and stretch it to it's full size
-        // For the rest of the fields, we ignore the provided SymmetricCryptoKey and the stretched key
+        // For sends, we first decrypt the send key with the user key, and stretch it to it's full
+        // size For the rest of the fields, we ignore the provided SymmetricCryptoKey and
+        // the stretched key
         let k = match (self.key, self.id) {
             // Existing send, decrypt key
             (Some(k), _) => URL_SAFE_NO_PAD

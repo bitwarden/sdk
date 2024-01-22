@@ -3,8 +3,9 @@ use std::{fs::File, io::Write};
 use anyhow::Result;
 use schemars::{schema::RootSchema, schema_for, JsonSchema};
 
-/// Creates a json schema file for any type passed in using Schemars. The filename and path of the generated
-/// schema file is derived from the namespace passed into the macro or supplied as the first argument.
+/// Creates a json schema file for any type passed in using Schemars. The filename and path of the
+/// generated schema file is derived from the namespace passed into the macro or supplied as the
+/// first argument.
 ///
 /// The schema filename is given by the last namespace element and trims off any `>` characters.
 /// This means the filename will represent the last _generic_ type of the type given.
@@ -30,7 +31,8 @@ use schemars::{schema::RootSchema, schema_for, JsonSchema};
 /// ```
 /// write_schema_for!(response::two_factor_login_response::two_factor_providers::TwoFactorProviders);
 /// ```
-/// will generate `TwoFactorProviders.json` at `{{pwd}}/response/two_factor_login_response/TwoFactorProviders.json`
+/// will generate `TwoFactorProviders.json` at
+/// `{{pwd}}/response/two_factor_login_response/TwoFactorProviders.json`
 ///
 /// ## Path specified
 ///

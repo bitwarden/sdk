@@ -12,13 +12,12 @@ use crate::{
         password::{
             password_strength, satisfies_policy, validate_password, MasterPasswordPolicyOptions,
         },
+        passwordless::new_passwordless_request,
         register::{make_register_keys, register},
-        RegisterKeyResponse, RegisterRequest,
+        PasswordlessLoginRequest, RegisterKeyResponse, RegisterRequest,
     },
     client::Kdf,
 };
-
-use super::{passwordless::new_passwordless_request, PasswordlessLoginRequest};
 
 pub struct ClientAuth<'a> {
     pub(crate) client: &'a mut crate::Client,

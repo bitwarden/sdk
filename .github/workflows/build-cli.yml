@@ -157,7 +157,7 @@ jobs:
 
           echo "Attach staple"
           chmod -R 755 "./target/${{ matrix.settings.target }}/release/bws"
-          xcrun stapler staple "./target/${{ matrix.settings.target }}/release/bws" -v
+          xcrun stapler staple -v "./target/${{ matrix.settings.target }}/release/bws"
 
       - name: Retrieve secrets windows
         if: runner.os == 'Windows'

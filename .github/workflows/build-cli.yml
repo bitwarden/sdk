@@ -94,6 +94,70 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
 
+      - name: Retrieve secrets macos
+        if: runner.os == 'macos'
+        id: retrieve-secrets-macos
+        uses: bitwarden/gh-actions/get-keyvault-secrets@main
+        with:
+          keyvault: "bitwarden-ci"
+          secrets: "macos-bws-notarization-apple-id,
+            macos-bws-notarization-team-id,
+            macos-bws-notarization-password,
+            macos-bws-certificate-name"
+
+      - name: Decrypt secrets
+        if: runner.os == 'macos'
+        env:
+          DECRYPT_FILE_PASSWORD: ${{ secrets.DECRYPT_FILE_PASSWORD }}
+        run: |
+          mkdir -p $HOME/secrets
+
+          gpg --quiet --batch --yes --decrypt --passphrase="$DECRYPT_FILE_PASSWORD" \
+            --output "$HOME/secrets/devid-app-cert.p12" \
+            "$GITHUB_WORKSPACE/.github/secrets/devid-app-cert.p12.gpg"
+
+      - name: Set up keychain
+        if: runner.os == 'macos'
+        env:
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+          DEVID_CERT_PASSWORD: ${{ secrets.DEVID_CERT_PASSWORD }}
+        run: |
+          security create-keychain -p $KEYCHAIN_PASSWORD build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p $KEYCHAIN_PASSWORD build.keychain
+          security set-keychain-settings -lut 1200 build.keychain
+
+          security import "$HOME/secrets/devid-app-cert.p12" -k build.keychain -P $DEVID_CERT_PASSWORD \
+            -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/productbuild
+
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $KEYCHAIN_PASSWORD build.keychain
+
+      - name: Sign macos
+        if: runner.os == 'macos'
+        env:
+          MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-certificate-name }}
+        run: /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime ./target/${{ matrix.settings.target }}/release/bws -v
+
+      - name: Notarize app macos
+        if: runner.os == 'macos'
+        env:
+          MACOS_NOTARIZATION_APPLE_ID: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-notarization-apple-id }}
+          MACOS_NOTARIZATION_TEAM_ID: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-notarization-team-id }}
+          MACOS_NOTARIZATION_PWD: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-notarization-password }}
+        run: |
+
+          echo "Create keychain profile"
+          xcrun notarytool store-credentials "notarytool-profile" --apple-id "$MACOS_NOTARIZATION_APPLE_ID" --team-id "$MACOS_NOTARIZATION_TEAM_ID" --password "$MACOS_NOTARIZATION_PWD"
+
+          echo "Creating temp notarization archive"
+          ditto -c -k --keepParent "./target/${{ matrix.settings.target }}/release/bws" "notarization.zip"
+
+          echo "Notarize app"
+          xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
+
+          echo "Attach staple"
+          xcrun stapler staple "./target/${{ matrix.settings.target }}/release/bws"
+
       - name: Retrieve secrets windows
         if: runner.os == 'Windows'
         id: retrieve-secrets-windows

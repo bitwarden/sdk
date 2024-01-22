@@ -1227,6 +1227,32 @@ implementations.
         </table>
     </td>
 </tr>
+<tr>
+    <th>passwordless</th>
+    <th>object</th>
+    <th></th>
+</tr>
+<tr>
+    <td colspan="3">
+        <table>
+        <tr>
+            <th>Key</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+            <tr>
+                <td>request_private_key</td>
+                <td>string</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>protected_user_key</td>
+                <td></td>
+                <td></td>
+            </tr>
+        </table>
+    </td>
+</tr>
 </table>
 
 ## `InitUserCryptoRequest`

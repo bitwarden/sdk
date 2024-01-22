@@ -1,9 +1,8 @@
 use base64::{engine::general_purpose::STANDARD, Engine};
 use bitwarden_crypto::{fingerprint, AsymmetricCryptoKey};
-use bitwarden_generators::{password, PasswordGeneratorRequest};
-
 #[cfg(feature = "mobile")]
 use bitwarden_crypto::{AsymmetricEncString, KeyDecryptable, SymmetricCryptoKey};
+use bitwarden_generators::{password, PasswordGeneratorRequest};
 
 use crate::error::Error;
 

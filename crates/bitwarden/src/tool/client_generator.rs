@@ -1,10 +1,10 @@
 use bitwarden_generators::{passphrase, password, username};
 
-use crate::generators::{
-    PassphraseGeneratorRequest, PasswordGeneratorRequest, UsernameGeneratorRequest,
+use crate::{
+    error::Result,
+    generators::{PassphraseGeneratorRequest, PasswordGeneratorRequest, UsernameGeneratorRequest},
+    Client,
 };
-
-use crate::{error::Result, Client};
 
 pub struct ClientGenerator<'a> {
     pub(crate) client: &'a crate::Client,
@@ -62,10 +62,11 @@ impl<'a> ClientGenerator<'a> {
     }
 
     /// Generates a random username.
-    /// There are different username generation strategies, which can be customized using the `input` parameter.
+    /// There are different username generation strategies, which can be customized using the
+    /// `input` parameter.
     ///
-    /// Note that most generation strategies will be executed on the client side, but `Forwarded` will use third-party
-    /// services, which may require a specific setup or API key.
+    /// Note that most generation strategies will be executed on the client side, but `Forwarded`
+    /// will use third-party services, which may require a specific setup or API key.
     ///
     /// ```
     /// use bitwarden::{Client, generators::{UsernameGeneratorRequest}, error::Result};

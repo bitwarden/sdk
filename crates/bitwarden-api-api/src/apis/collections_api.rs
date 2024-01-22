@@ -62,7 +62,8 @@ pub enum OrganizationsOrgIdCollectionsIdDeletePostError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`organizations_org_id_collections_id_delete_user_org_user_id_post`]
+/// struct for typed errors of method
+/// [`organizations_org_id_collections_id_delete_user_org_user_id_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationsOrgIdCollectionsIdDeleteUserOrgUserIdPostError {
@@ -97,7 +98,8 @@ pub enum OrganizationsOrgIdCollectionsIdPutError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`organizations_org_id_collections_id_user_org_user_id_delete`]
+/// struct for typed errors of method
+/// [`organizations_org_id_collections_id_user_org_user_id_delete`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationsOrgIdCollectionsIdUserOrgUserIdDeleteError {

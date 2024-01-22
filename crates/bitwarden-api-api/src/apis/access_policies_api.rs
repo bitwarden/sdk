@@ -27,21 +27,24 @@ pub enum AccessPoliciesIdPutError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`organizations_id_access_policies_people_potential_grantees_get`]
+/// struct for typed errors of method
+/// [`organizations_id_access_policies_people_potential_grantees_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationsIdAccessPoliciesPeoplePotentialGranteesGetError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`organizations_id_access_policies_projects_potential_grantees_get`]
+/// struct for typed errors of method
+/// [`organizations_id_access_policies_projects_potential_grantees_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationsIdAccessPoliciesProjectsPotentialGranteesGetError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`organizations_id_access_policies_service_accounts_potential_grantees_get`]
+/// struct for typed errors of method
+/// [`organizations_id_access_policies_service_accounts_potential_grantees_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationsIdAccessPoliciesServiceAccountsPotentialGranteesGetError {

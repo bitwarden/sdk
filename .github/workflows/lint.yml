@@ -24,11 +24,16 @@ jobs:
         with:
           toolchain: stable
 
+      - name: Install rust nightly
+        run: |
+          rustup toolchain install nightly
+          rustup component add rustfmt --toolchain nightly-x86_64-unknown-linux-gnu
+
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
 
       - name: Cargo fmt
-        run: cargo fmt --check
+        run: cargo +nightly fmt --check
 
       - name: Set up Node
         uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8 # v4.0.1

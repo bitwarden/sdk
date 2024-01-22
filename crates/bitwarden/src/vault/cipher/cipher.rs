@@ -46,7 +46,8 @@ pub struct Cipher {
     pub folder_id: Option<Uuid>,
     pub collection_ids: Vec<Uuid>,
 
-    /// More recent ciphers uses individual encryption keys to encrypt the other fields of the Cipher.
+    /// More recent ciphers uses individual encryption keys to encrypt the other fields of the
+    /// Cipher.
     pub key: Option<EncString>,
 
     pub name: EncString,

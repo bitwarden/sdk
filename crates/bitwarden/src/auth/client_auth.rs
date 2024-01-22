@@ -1,3 +1,4 @@
+#[cfg(feature = "internal")]
 use bitwarden_crypto::AsymmetricEncString;
 
 #[cfg(feature = "secrets")]
@@ -14,14 +15,12 @@ use crate::{
         password::{
             password_strength, satisfies_policy, validate_password, MasterPasswordPolicyOptions,
         },
-        passwordless::new_passwordless_request,
+        passwordless::{approve_passwordless_login, new_passwordless_request},
         register::{make_register_keys, register},
         PasswordlessLoginRequest, RegisterKeyResponse, RegisterRequest,
     },
     client::Kdf,
 };
-
-use super::passwordless::approve_passwordless_login;
 
 pub struct ClientAuth<'a> {
     pub(crate) client: &'a mut crate::Client,

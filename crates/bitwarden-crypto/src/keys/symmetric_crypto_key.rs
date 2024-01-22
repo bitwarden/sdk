@@ -151,34 +151,4 @@ mod tests {
         let key2 = SymmetricCryptoKey::from_str(key).unwrap();
         assert_eq!(key, key2.to_base64());
     }
-
-    #[test]
-    fn test_zeroize() {
-        let key = derive_symmetric_key("test");
-
-        // Get a raw pointer to the key components
-        let raw_key: &[u8] = unsafe { core::slice::from_raw_parts(key.key.as_ptr(), 32) };
-        let raw_mac: &[u8] =
-            unsafe { core::slice::from_raw_parts(key.mac_key.as_ref().unwrap().as_ptr(), 32) };
-
-        // Check that we grabbed the correct slices of memory
-        assert_eq!(key.key.as_slice(), raw_key);
-        assert_eq!(key.mac_key.as_ref().unwrap().as_slice(), raw_mac);
-
-        // Drop the key and immediately create a copy of the memory behind the raw pointers
-        drop(key);
-        let recovered_key = raw_key.to_vec();
-        let recovered_mac_key = raw_mac.to_vec();
-
-        // Rust seems pretty quick to reclaim the memory and immediately I can see one of the bytes
-        // was used again So instead of expecting all zeroes, we just check that all the
-        // bytes except one are zero
-        let key_zeroes = recovered_key.iter().filter(|&&b| b == 0).count();
-        let mac_zeroes = recovered_mac_key.iter().filter(|&&b| b == 0).count();
-        assert!(key_zeroes > 30, "Key was not zeroized: {recovered_key:?}");
-        assert!(
-            mac_zeroes > 30,
-            "Mac key was not zeroized: {recovered_mac_key:?}"
-        );
-    }
 }

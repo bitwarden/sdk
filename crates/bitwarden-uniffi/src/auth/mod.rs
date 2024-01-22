@@ -3,7 +3,7 @@ use std::sync::Arc;
 use bitwarden::auth::{
     password::MasterPasswordPolicyOptions, PasswordlessLoginRequest, RegisterKeyResponse,
 };
-use bitwarden_crypto::{HashPurpose, Kdf};
+use bitwarden_crypto::{AsymmetricEncString, HashPurpose, Kdf};
 
 use crate::{error::Result, Client};
 
@@ -106,5 +106,19 @@ impl ClientAuth {
             .await
             .auth()
             .new_passwordless_request(&email)?)
+    }
+
+    /// Approve a passwordless login request
+    pub async fn approve_passwordless_request(
+        &self,
+        public_key: String,
+    ) -> Result<AsymmetricEncString> {
+        Ok(self
+            .0
+             .0
+            .write()
+            .await
+            .auth()
+            .approve_passwordless_request(public_key)?)
     }
 }

@@ -1,10 +1,10 @@
 use base64::{engine::general_purpose::STANDARD, Engine};
-use bitwarden_crypto::{fingerprint, AsymmetricCryptoKey};
+use bitwarden_crypto::{fingerprint, AsymmetricCryptoKey, AsymmetricEncCryptoKey};
 #[cfg(feature = "mobile")]
 use bitwarden_crypto::{AsymmetricEncString, KeyDecryptable, SymmetricCryptoKey};
 use bitwarden_generators::{password, PasswordGeneratorRequest};
 
-use crate::error::Error;
+use crate::{error::Error, Client};
 
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct PasswordlessLoginRequest {
@@ -53,6 +53,21 @@ pub(crate) fn passwordless_decrypt_user_key(
     let key: String = user_key.decrypt_with_key(&key)?;
 
     Ok(key.parse()?)
+}
+
+pub(crate) fn approve_passwordless_login(
+    client: &mut Client,
+    public_key: String,
+) -> Result<AsymmetricEncString, Error> {
+    let public_key = AsymmetricEncCryptoKey::from_der(&STANDARD.decode(public_key)?)?;
+
+    let enc = client.get_encryption_settings()?;
+    let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
+
+    Ok(AsymmetricEncString::encrypt_rsa2048_oaep_sha1(
+        &key.to_vec(),
+        &public_key,
+    )?)
 }
 
 #[test]

@@ -8,7 +8,7 @@ use super::{from_b64_vec, split_enc_string};
 use crate::{
     error::{CryptoError, EncStringParseError, Result},
     rsa::encrypt_rsa2048_oaep_sha1,
-    AsymmetricCryptoKey, KeyDecryptable,
+    AsymmetricCryptoKey, AsymmetricEncryptable, KeyDecryptable,
 };
 
 /// # Encrypted string primitive
@@ -139,9 +139,9 @@ impl serde::Serialize for AsymmetricEncString {
 impl AsymmetricEncString {
     pub fn encrypt_rsa2048_oaep_sha1(
         data_dec: &[u8],
-        key: &AsymmetricCryptoKey,
+        key: &dyn AsymmetricEncryptable,
     ) -> Result<AsymmetricEncString> {
-        let enc = encrypt_rsa2048_oaep_sha1(&key.key, data_dec)?;
+        let enc = encrypt_rsa2048_oaep_sha1(key.to_public_key(), data_dec)?;
         Ok(AsymmetricEncString::Rsa2048_OaepSha1_B64 { data: enc })
     }
 

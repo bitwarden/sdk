@@ -1,9 +1,32 @@
-use rsa::RsaPrivateKey;
+use rsa::{pkcs1::DecodeRsaPublicKey, RsaPrivateKey, RsaPublicKey};
 
 use super::key_encryptable::CryptoKey;
 use crate::error::{CryptoError, Result};
 
-/// An asymmetric encryption key. Used to encrypt and decrypt [`EncString`](crate::EncString)
+/// An asymmetric encryption key (public key) that can only encrypt [AsymmetricEncString](crate::AsymmetricEncString).
+pub struct AsymmetricEncCryptoKey {
+    pub(crate) key: RsaPublicKey,
+}
+
+impl AsymmetricEncCryptoKey {
+    pub fn from_der(der: &[u8]) -> Result<Self> {
+        Ok(Self {
+            key: rsa::RsaPublicKey::from_pkcs1_der(der).map_err(|_| CryptoError::InvalidKey)?,
+        })
+    }
+}
+
+pub trait AsymmetricEncryptable {
+    fn to_public_key(&self) -> &RsaPublicKey;
+}
+
+impl AsymmetricEncryptable for AsymmetricEncCryptoKey {
+    fn to_public_key(&self) -> &RsaPublicKey {
+        &self.key
+    }
+}
+
+/// An asymmetric encryption key. Used to encrypt and decrypt [`AsymmetricEncString`](crate::AsymmetricEncString)
 pub struct AsymmetricCryptoKey {
     pub(crate) key: RsaPrivateKey,
 }
@@ -51,6 +74,12 @@ impl AsymmetricCryptoKey {
             .map_err(|_| CryptoError::InvalidKey)?
             .as_bytes()
             .to_owned())
+    }
+}
+
+impl AsymmetricEncryptable for AsymmetricCryptoKey {
+    fn to_public_key(&self) -> &RsaPublicKey {
+        self.key.as_ref()
     }
 }
 

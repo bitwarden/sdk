@@ -1,3 +1,5 @@
+use bitwarden_crypto::AsymmetricEncString;
+
 #[cfg(feature = "secrets")]
 use crate::auth::login::{login_access_token, AccessTokenLoginRequest, AccessTokenLoginResponse};
 use crate::{auth::renew::renew_token, error::Result, Client};
@@ -18,6 +20,8 @@ use crate::{
     },
     client::Kdf,
 };
+
+use super::passwordless::approve_passwordless_login;
 
 pub struct ClientAuth<'a> {
     pub(crate) client: &'a mut crate::Client,
@@ -101,6 +105,13 @@ impl<'a> ClientAuth<'a> {
 
     pub fn new_passwordless_request(&self, email: &str) -> Result<PasswordlessLoginRequest> {
         new_passwordless_request(email)
+    }
+
+    pub fn approve_passwordless_request(
+        &mut self,
+        public_key: String,
+    ) -> Result<AsymmetricEncString> {
+        approve_passwordless_login(self.client, public_key)
     }
 }
 

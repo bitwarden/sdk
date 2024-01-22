@@ -149,6 +149,17 @@ Initialize a new passwordless login request
 
 **Output**: std::result::Result<PasswordlessLoginRequest,BitwardenError>
 
+### `approve_passwordless_request`
+
+Approve a passwordless login request
+
+**Arguments**:
+
+- self:
+- public_key: String
+
+**Output**: std::result::Result<AsymmetricEncString,BitwardenError>
+
 ## ClientAttachments
 
 ### `encrypt_buffer`

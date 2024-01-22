@@ -206,7 +206,8 @@ fn derive_binary(hash: Vec<u8>) -> u32 {
         | hash[offset + 3] as u32
 }
 
-/// This code is migrated from our javascript implementation and is not technically a correct base32 decoder since we filter out various characters, and use exact chunking.
+/// This code is migrated from our javascript implementation and is not technically a correct base32
+/// decoder since we filter out various characters, and use exact chunking.
 fn decode_b32(s: &str) -> Vec<u8> {
     let s = s.to_uppercase();
 

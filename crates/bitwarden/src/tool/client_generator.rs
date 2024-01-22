@@ -1,10 +1,10 @@
 use bitwarden_generators::{passphrase, password, username};
 
-use crate::generators::{
-    PassphraseGeneratorRequest, PasswordGeneratorRequest, UsernameGeneratorRequest,
+use crate::{
+    error::Result,
+    generators::{PassphraseGeneratorRequest, PasswordGeneratorRequest, UsernameGeneratorRequest},
+    Client,
 };
-
-use crate::{error::Result, Client};
 
 pub struct ClientGenerator<'a> {
     pub(crate) client: &'a crate::Client,

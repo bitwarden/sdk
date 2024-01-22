@@ -138,6 +138,17 @@ password, use the email OTP.
 
 **Output**: std::result::Result<,BitwardenError>
 
+### `new_passwordless_request`
+
+Initialize a new passwordless login request
+
+**Arguments**:
+
+- self:
+- email: String
+
+**Output**: std::result::Result<PasswordlessLoginRequest,BitwardenError>
+
 ## ClientAttachments
 
 ### `encrypt_buffer`

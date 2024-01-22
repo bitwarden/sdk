@@ -1,6 +1,8 @@
 use std::sync::Arc;
 
-use bitwarden::auth::{password::MasterPasswordPolicyOptions, RegisterKeyResponse};
+use bitwarden::auth::{
+    password::MasterPasswordPolicyOptions, PasswordlessLoginRequest, RegisterKeyResponse,
+};
 use bitwarden_crypto::{HashPurpose, Kdf};
 
 use crate::{error::Result, Client};
@@ -90,5 +92,19 @@ impl ClientAuth {
             .auth()
             .validate_password(password, password_hash.to_string())
             .await?)
+    }
+
+    /// Initialize a new passwordless login request
+    pub async fn new_passwordless_request(
+        &self,
+        email: String,
+    ) -> Result<PasswordlessLoginRequest> {
+        Ok(self
+            .0
+             .0
+            .write()
+            .await
+            .auth()
+            .new_passwordless_request(&email)?)
     }
 }

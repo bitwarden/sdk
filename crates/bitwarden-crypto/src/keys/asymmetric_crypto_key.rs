@@ -3,7 +3,8 @@ use rsa::{pkcs1::DecodeRsaPublicKey, RsaPrivateKey, RsaPublicKey};
 use super::key_encryptable::CryptoKey;
 use crate::error::{CryptoError, Result};
 
-/// An asymmetric encryption key (public key) that can only encrypt [AsymmetricEncString](crate::AsymmetricEncString).
+/// An asymmetric encryption key (public key) that can only encrypt
+/// [AsymmetricEncString](crate::AsymmetricEncString).
 pub struct AsymmetricEncCryptoKey {
     pub(crate) key: RsaPublicKey,
 }
@@ -26,7 +27,8 @@ impl AsymmetricEncryptable for AsymmetricEncCryptoKey {
     }
 }
 
-/// An asymmetric encryption key. Used to encrypt and decrypt [`AsymmetricEncString`](crate::AsymmetricEncString)
+/// An asymmetric encryption key. Used to encrypt and decrypt
+/// [`AsymmetricEncString`](crate::AsymmetricEncString)
 pub struct AsymmetricCryptoKey {
     pub(crate) key: RsaPrivateKey,
 }

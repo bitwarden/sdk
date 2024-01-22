@@ -17,12 +17,6 @@ maturin develop
 
 You can now import `BitwardenClient` in your Python code.
 
-# Use without building locally
-
-```bash
-pip install BitwardenClient
-```
-
 # Run
 
 Set the `ORGANIZATION_ID` and `ACCESS_TOKEN` environment variables to your organization ID and access token, respectively.

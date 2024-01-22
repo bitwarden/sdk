@@ -30,7 +30,7 @@ pub(crate) fn new_passwordless_request(email: &str) -> Result<PasswordlessLoginR
     let b64 = STANDARD.encode(&spki);
 
     Ok(PasswordlessLoginRequest {
-        private_key: STANDARD.encode(&key.to_der()?),
+        private_key: STANDARD.encode(key.to_der()?),
         public_key: b64,
         fingerprint,
         access_code: password(PasswordGeneratorRequest {
@@ -48,7 +48,7 @@ pub(crate) fn passwordless_decrypt_user_key(
     private_key: String,
     user_key: AsymmetricEncString,
 ) -> Result<SymmetricCryptoKey, Error> {
-    let key = AsymmetricCryptoKey::from_der(&STANDARD.decode(&private_key)?)?;
+    let key = AsymmetricCryptoKey::from_der(&STANDARD.decode(private_key)?)?;
     let key: String = user_key.decrypt_with_key(&key)?;
 
     Ok(key.parse()?)

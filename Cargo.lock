@@ -352,7 +352,6 @@ dependencies = [
  "bitwarden-crypto",
  "bitwarden-generators",
  "chrono",
- "data-encoding",
  "getrandom 0.2.11",
  "hmac",
  "log",
@@ -1041,12 +1040,6 @@ dependencies = [
  "quote",
  "syn 1.0.109",
 ]
-
-[[package]]
-name = "data-encoding"
-version = "2.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e962a19be5cfc3f3bf6dd8f61eb50107f356ad6270fbb3ed41476571db78be5"
 
 [[package]]
 name = "deadpool"

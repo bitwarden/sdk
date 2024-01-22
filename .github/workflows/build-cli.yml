@@ -155,9 +155,9 @@ jobs:
           echo "Notarize app"
           xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
 
-          echo "Attach staple"
-          chmod -R 755 "./target/${{ matrix.settings.target }}/release/bws"
-          xcrun stapler staple -v "./target/${{ matrix.settings.target }}/release/bws"
+          # Apple don't support staple cli tools
+          # echo "Attach staple"
+          # xcrun stapler staple -v "./target/${{ matrix.settings.target }}/release/bws"
 
       - name: Retrieve secrets windows
         if: runner.os == 'Windows'

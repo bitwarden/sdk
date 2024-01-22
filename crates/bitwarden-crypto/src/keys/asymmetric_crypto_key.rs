@@ -1,4 +1,4 @@
-use rsa::{pkcs1::DecodeRsaPublicKey, RsaPrivateKey, RsaPublicKey};
+use rsa::{pkcs8::DecodePublicKey, RsaPrivateKey, RsaPublicKey};
 
 use super::key_encryptable::CryptoKey;
 use crate::error::{CryptoError, Result};
@@ -12,7 +12,8 @@ pub struct AsymmetricEncCryptoKey {
 impl AsymmetricEncCryptoKey {
     pub fn from_der(der: &[u8]) -> Result<Self> {
         Ok(Self {
-            key: rsa::RsaPublicKey::from_pkcs1_der(der).map_err(|_| CryptoError::InvalidKey)?,
+            key: rsa::RsaPublicKey::from_public_key_der(der)
+                .map_err(|_| CryptoError::InvalidKey)?,
         })
     }
 }

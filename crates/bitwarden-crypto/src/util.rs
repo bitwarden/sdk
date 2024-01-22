@@ -26,7 +26,7 @@ pub(crate) fn hkdf_expand<T: ArrayLength<u8>>(
     hkdf.expand(i, &mut key)
         .map_err(|_| CryptoError::InvalidKeyLen)?;
 
-    Ok(key.into())
+    Ok(Box::into_pin(key))
 }
 
 /// Generate random bytes that are cryptographically secure

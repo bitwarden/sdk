@@ -4,13 +4,17 @@ use aes::cipher::typenum::U32;
 use base64::{engine::general_purpose::STANDARD, Engine};
 use generic_array::GenericArray;
 use rand::Rng;
-use zeroize::Zeroize;
+use zeroize::{Zeroize, Zeroizing};
 
 use super::key_encryptable::CryptoKey;
 use crate::CryptoError;
 
 /// A symmetric encryption key. Used to encrypt and decrypt [`EncString`](crate::EncString)
 pub struct SymmetricCryptoKey {
+    // GenericArray is equivalent to [u8; N], which is a Copy type placed on the stack.
+    // To keep the compiler from making copies when moving this struct around,
+    // we use a Box to keep the values on the heap. We also pin the box to make sure
+    // that the contents can't be pulled out of the box and moved
     pub(crate) key: Pin<Box<GenericArray<u8, U32>>>,
     pub(crate) mac_key: Option<Pin<Box<GenericArray<u8, U32>>>>,
 }
@@ -51,26 +55,26 @@ impl SymmetricCryptoKey {
         Self { key, mac_key }
     }
 
-    pub fn to_base64(&self) -> String {
-        let mut buf = Vec::new();
-        buf.extend_from_slice(&self.key);
+    fn total_len(&self) -> usize {
+        self.key.len() + self.mac_key.as_ref().map_or(0, |mac| mac.len())
+    }
 
-        if let Some(mac) = &self.mac_key {
-            buf.extend_from_slice(mac);
-        }
+    pub fn to_base64(&self) -> String {
+        let mut buf = self.to_vec();
 
         let result = STANDARD.encode(&buf);
         buf.zeroize();
         result
     }
 
-    pub fn to_vec(&self) -> Vec<u8> {
-        let mut buf = Vec::new();
+    pub fn to_vec(&self) -> Zeroizing<Vec<u8>> {
+        let mut buf = Vec::with_capacity(self.total_len());
+
         buf.extend_from_slice(&self.key);
         if let Some(mac) = &self.mac_key {
             buf.extend_from_slice(mac);
         }
-        buf
+        Zeroizing::new(buf)
     }
 }
 
@@ -146,5 +150,34 @@ mod tests {
         let key = "UY4B5N4DA4UisCNClgZtRr6VLy9ZF5BXXC7cDZRqourKi4ghEMgISbCsubvgCkHf5DZctQjVot11/vVvN9NNHQ==";
         let key2 = SymmetricCryptoKey::from_str(key).unwrap();
         assert_eq!(key, key2.to_base64());
+    }
+
+    #[test]
+    fn test_zeroize() {
+        let key = derive_symmetric_key("test");
+
+        // Get a raw pointer to the key components
+        let raw_key: &[u8] = unsafe { core::slice::from_raw_parts(key.key.as_ptr(), 32) };
+        let raw_mac: &[u8] =
+            unsafe { core::slice::from_raw_parts(key.mac_key.as_ref().unwrap().as_ptr(), 32) };
+
+        // Check that we grabbed the correct slices of memory
+        assert_eq!(key.key.as_slice(), raw_key);
+        assert_eq!(key.mac_key.as_ref().unwrap().as_slice(), raw_mac);
+
+        // Drop the key and immediately create a copy of the memory behind the raw pointers
+        drop(key);
+        let recovered_key = raw_key.to_vec();
+        let recovered_mac_key = raw_mac.to_vec();
+
+        // Rust seems pretty quick to reclaim the memory and immediately I can see one of the bytes was used again
+        // So instead of expecting all zeroes, we just check that all the bytes except one are zero
+        let key_zeroes = recovered_key.iter().filter(|&&b| b == 0).count();
+        let mac_zeroes = recovered_mac_key.iter().filter(|&&b| b == 0).count();
+        assert!(key_zeroes > 30, "Key was not zeroized: {recovered_key:?}");
+        assert!(
+            mac_zeroes > 30,
+            "Mac key was not zeroized: {recovered_mac_key:?}"
+        );
     }
 }

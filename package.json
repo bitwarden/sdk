@@ -20,9 +20,9 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
-    "@openapitools/openapi-generator-cli": "2.7.0",
+    "@openapitools/openapi-generator-cli": "2.9.0",
     "handlebars": "^4.7.8",
-    "prettier": "3.2.2",
+    "prettier": "3.2.4",
     "quicktype-core": "23.0.81",
     "rimraf": "5.0.5",
     "ts-node": "10.9.2",

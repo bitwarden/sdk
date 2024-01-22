@@ -1,7 +1,6 @@
 use std::{collections::HashMap, str::FromStr};
 
 use chrono::{DateTime, Utc};
-use data_encoding::BASE32_NOPAD;
 use hmac::{Hmac, Mac};
 use reqwest::Url;
 use schemars::JsonSchema;
@@ -129,19 +128,6 @@ impl FromStr for Totp {
     /// - OTP Auth URI
     /// - Steam URI
     fn from_str(key: &str) -> Result<Self> {
-        fn decode_secret(secret: &str) -> Result<Vec<u8>> {
-            // Sanitize the secret to only contain allowed characters
-            let secret = secret
-                .to_uppercase()
-                .chars()
-                .filter(|c| BASE32_CHARS.contains(*c))
-                .collect::<String>();
-
-            BASE32_NOPAD
-                .decode(secret.as_bytes())
-                .map_err(|e| e.to_string().into())
-        }
-
         let params = if key.starts_with("otpauth://") {
             let url = Url::parse(key).map_err(|_| "Unable to parse URL")?;
             let parts: HashMap<_, _> = url.query_pairs().collect();
@@ -166,26 +152,26 @@ impl FromStr for Totp {
                     .and_then(|v| v.parse().ok())
                     .map(|v: u32| v.max(1))
                     .unwrap_or(DEFAULT_PERIOD),
-                secret: decode_secret(
+                secret: decode_b32(
                     &parts
                         .get("secret")
                         .map(|v| v.to_string())
                         .ok_or("Missing secret in otpauth URI")?,
-                )?,
+                ),
             }
         } else if let Some(secret) = key.strip_prefix("steam://") {
             Totp {
                 algorithm: Algorithm::Steam,
                 digits: 5,
                 period: DEFAULT_PERIOD,
-                secret: decode_secret(secret)?,
+                secret: decode_b32(secret),
             }
         } else {
             Totp {
                 algorithm: DEFAULT_ALGORITHM,
                 digits: DEFAULT_DIGITS,
                 period: DEFAULT_PERIOD,
-                secret: decode_secret(key)?,
+                secret: decode_b32(key),
             }
         };
 
@@ -220,11 +206,41 @@ fn derive_binary(hash: Vec<u8>) -> u32 {
         | hash[offset + 3] as u32
 }
 
+/// This code is migrated from our javascript implementation and is not technically a correct base32 decoder since we filter out various characters, and use exact chunking.
+fn decode_b32(s: &str) -> Vec<u8> {
+    let s = s.to_uppercase();
+
+    let mut bits = String::new();
+    for c in s.chars() {
+        if let Some(i) = BASE32_CHARS.find(c) {
+            bits.push_str(&format!("{:05b}", i));
+        }
+    }
+    let mut bytes = Vec::new();
+
+    for chunk in bits.as_bytes().chunks_exact(8) {
+        let byte_str = std::str::from_utf8(chunk).unwrap();
+        let byte = u8::from_str_radix(byte_str, 2).unwrap();
+        bytes.push(byte);
+    }
+
+    bytes
+}
+
 #[cfg(test)]
 mod tests {
     use chrono::Utc;
 
     use super::*;
+
+    #[test]
+    fn test_decode_b32() {
+        let res = decode_b32("WQIQ25BRKZYCJVYP");
+        assert_eq!(res, vec![180, 17, 13, 116, 49, 86, 112, 36, 215, 15]);
+
+        let res = decode_b32("ABCD123");
+        assert_eq!(res, vec![0, 68, 61]);
+    }
 
     #[test]
     fn test_generate_totp() {
@@ -234,6 +250,14 @@ mod tests {
             ("PIUDISEQYA", "829846"),       // non padded
             ("PIUDISEQYA======", "829846"), // padded
             ("PIUD1IS!EQYA=", "829846"),    // sanitized
+            // Steam
+            ("steam://HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ", "7W6CJ"),
+            ("steam://ABCD123", "N26DF"),
+            // Various weird lengths
+            ("ddfdf", "932653"),
+            ("HJSGFJHDFDJDJKSDFD", "000034"),
+            ("xvdsfasdfasdasdghsgsdfg", "403786"),
+            ("KAKFJWOSFJ12NWL", "093430"),
         ];
 
         let time = Some(
@@ -276,19 +300,5 @@ mod tests {
 
         assert_eq!(response.code, "730364".to_string());
         assert_eq!(response.period, 60);
-    }
-
-    #[test]
-    fn test_generate_steam() {
-        let key = "steam://HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ".to_string();
-        let time = Some(
-            DateTime::parse_from_rfc3339("2023-01-01T00:00:00.000Z")
-                .unwrap()
-                .with_timezone(&Utc),
-        );
-        let response = generate_totp(key, time).unwrap();
-
-        assert_eq!(response.code, "7W6CJ".to_string());
-        assert_eq!(response.period, 30);
     }
 }

@@ -1,6 +1,7 @@
-use bitwarden_generators::{
-    passphrase, password, username, PassphraseGeneratorRequest, PasswordGeneratorRequest,
-    UsernameGeneratorRequest,
+use bitwarden_generators::{passphrase, password, username};
+
+use crate::generators::{
+    PassphraseGeneratorRequest, PasswordGeneratorRequest, UsernameGeneratorRequest,
 };
 
 use crate::{error::Result, Client};

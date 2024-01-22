@@ -207,15 +207,15 @@ impl KeyDecryptable<SymmetricCryptoKey, SendView> for Send {
             id: self.id,
             access_id: self.access_id.clone(),
 
-            name: self.name.decrypt_with_key(&key)?,
-            notes: self.notes.decrypt_with_key(&key)?,
+            name: self.name.decrypt_with_key(&key).ok().unwrap_or_default(),
+            notes: self.notes.decrypt_with_key(&key).ok().flatten(),
             key: Some(URL_SAFE_NO_PAD.encode(k)),
             new_password: None,
             has_password: self.password.is_some(),
 
             r#type: self.r#type,
-            file: self.file.decrypt_with_key(&key)?,
-            text: self.text.decrypt_with_key(&key)?,
+            file: self.file.decrypt_with_key(&key).ok().flatten(),
+            text: self.text.decrypt_with_key(&key).ok().flatten(),
 
             max_access_count: self.max_access_count,
             access_count: self.access_count,

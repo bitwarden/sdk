@@ -18,6 +18,8 @@ use crate::{
     client::Kdf,
 };
 
+use super::{passwordless::new_passwordless_request, PasswordlessLoginRequest};
+
 pub struct ClientAuth<'a> {
     pub(crate) client: &'a mut crate::Client,
 }
@@ -96,6 +98,10 @@ impl<'a> ClientAuth<'a> {
 
     pub async fn validate_password(&self, password: String, password_hash: String) -> Result<bool> {
         validate_password(self.client, password, password_hash).await
+    }
+
+    pub fn new_passwordless_request(&self, email: &str) -> Result<PasswordlessLoginRequest> {
+        new_passwordless_request(email)
     }
 }
 

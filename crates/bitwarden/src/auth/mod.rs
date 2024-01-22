@@ -6,13 +6,18 @@ pub mod login;
 pub mod password;
 pub mod renew;
 pub use jwt_token::JWTToken;
-
 #[cfg(feature = "internal")]
 mod register;
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{HashPurpose, MasterKey};
 #[cfg(feature = "internal")]
 pub use register::{RegisterKeyResponse, RegisterRequest};
+#[cfg(feature = "internal")]
+mod passwordless;
+#[cfg(feature = "internal")]
+pub(crate) use passwordless::passwordless_decrypt_user_key;
+#[cfg(feature = "internal")]
+pub use passwordless::PasswordlessLoginRequest;
 
 #[cfg(feature = "internal")]
 use crate::{client::Kdf, error::Result};

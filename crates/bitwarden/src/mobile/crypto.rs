@@ -50,10 +50,16 @@ pub enum InitUserCryptoMethod {
         /// The user's symmetric crypto key, encrypted with the PIN. Use `derive_pin_key` to obtain this.
         pin_protected_user_key: EncString,
     },
+    Passwordless {
+        request_private_key: String,
+        protected_user_key: AsymmetricEncString,
+    },
 }
 
 #[cfg(feature = "internal")]
 pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequest) -> Result<()> {
+    use crate::auth::passwordless_decrypt_user_key;
+
     let login_method = crate::client::LoginMethod::User(crate::client::UserLoginMethod::Username {
         client_id: "".to_string(),
         email: req.email,
@@ -77,6 +83,13 @@ pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequ
             pin_protected_user_key,
         } => {
             client.initialize_user_crypto_pin(&pin, pin_protected_user_key, private_key)?;
+        }
+        InitUserCryptoMethod::Passwordless {
+            request_private_key,
+            protected_user_key,
+        } => {
+            let user_key = passwordless_decrypt_user_key(request_private_key, protected_user_key)?;
+            client.initialize_user_crypto_decrypted_key(user_key, private_key)?;
         }
     }
 

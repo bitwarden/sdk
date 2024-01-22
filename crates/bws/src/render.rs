@@ -42,7 +42,8 @@ pub(crate) fn serialize_response<T: Serialize + TableSerialize<N>, const N: usiz
     match output {
         Output::JSON => {
             let mut text = serde_json::to_string_pretty(&data).unwrap();
-            // Yaml/table/tsv serializations add a newline at the end, so we do the same here for consistency
+            // Yaml/table/tsv serializations add a newline at the end, so we do the same here for
+            // consistency
             text.push('\n');
             pretty_print("json", &text, color);
         }
@@ -110,7 +111,8 @@ fn pretty_print(language: &str, data: &str, color: bool) {
     }
 }
 
-// We're using const generics for the array lengths to make sure the header count and value count match
+// We're using const generics for the array lengths to make sure the header count and value count
+// match
 pub(crate) trait TableSerialize<const N: usize>: Sized {
     fn get_headers() -> [&'static str; N];
     fn get_values(&self) -> Vec<[String; N]>;

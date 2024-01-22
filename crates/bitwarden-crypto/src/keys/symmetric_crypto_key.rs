@@ -170,8 +170,9 @@ mod tests {
         let recovered_key = raw_key.to_vec();
         let recovered_mac_key = raw_mac.to_vec();
 
-        // Rust seems pretty quick to reclaim the memory and immediately I can see one of the bytes was used again
-        // So instead of expecting all zeroes, we just check that all the bytes except one are zero
+        // Rust seems pretty quick to reclaim the memory and immediately I can see one of the bytes
+        // was used again So instead of expecting all zeroes, we just check that all the
+        // bytes except one are zero
         let key_zeroes = recovered_key.iter().filter(|&&b| b == 0).count();
         let mac_zeroes = recovered_mac_key.iter().filter(|&&b| b == 0).count();
         assert!(key_zeroes > 30, "Key was not zeroized: {recovered_key:?}");

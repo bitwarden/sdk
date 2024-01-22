@@ -1,6 +1,9 @@
 use std::{fmt::Display, str::FromStr};
 
 use base64::{engine::general_purpose::STANDARD, Engine};
+// This module is a workaround to avoid deprecated warnings that come from the ZeroizeOnDrop
+// macro expansion
+pub use internal::AsymmetricEncString;
 use rsa::Oaep;
 use serde::Deserialize;
 
@@ -9,24 +12,21 @@ use crate::{
     error::{CryptoError, EncStringParseError, Result},
     AsymmetricCryptoKey, KeyDecryptable,
 };
-
-// This module is a workaround to avoid deprecated warnings that come from the ZeroizeOnDrop macro expansion
-pub use internal::AsymmetricEncString;
 #[allow(deprecated)]
 mod internal {
     /// # Encrypted string primitive
     ///
-    /// [AsymmetricEncString] is a Bitwarden specific primitive that represents an asymmetrically encrypted string.
-    /// They are used together with the KeyDecryptable and KeyEncryptable traits to encrypt and decrypt data using
-    /// [crate::AsymmetricCryptoKey]s.
+    /// [AsymmetricEncString] is a Bitwarden specific primitive that represents an asymmetrically
+    /// encrypted string. They are used together with the KeyDecryptable and KeyEncryptable
+    /// traits to encrypt and decrypt data using [crate::AsymmetricCryptoKey]s.
     ///
-    /// The flexibility of the [AsymmetricEncString] type allows for different encryption algorithms to be used
-    /// which is represented by the different variants of the enum.
+    /// The flexibility of the [AsymmetricEncString] type allows for different encryption algorithms
+    /// to be used which is represented by the different variants of the enum.
     ///
     /// ## Note
     ///
-    /// For backwards compatibility we will rarely if ever be able to remove support for decrypting old
-    /// variants, but we should be opinionated in which variants are used for encrypting.
+    /// For backwards compatibility we will rarely if ever be able to remove support for decrypting
+    /// old variants, but we should be opinionated in which variants are used for encrypting.
     ///
     /// ## Variants
     /// - [Rsa2048_OaepSha256_B64](AsymmetricEncString::Rsa2048_OaepSha256_B64)
@@ -34,8 +34,8 @@ mod internal {
     ///
     /// ## Serialization
     ///
-    /// [AsymmetricEncString] implements [std::fmt::Display] and [std::str::FromStr] to allow for easy serialization and uses a
-    /// custom scheme to represent the different variants.
+    /// [AsymmetricEncString] implements [std::fmt::Display] and [std::str::FromStr] to allow for
+    /// easy serialization and uses a custom scheme to represent the different variants.
     ///
     /// The scheme is one of the following schemes:
     /// - `[type].[data]`
@@ -59,7 +59,8 @@ mod internal {
     }
 }
 
-/// To avoid printing sensitive information, [AsymmetricEncString] debug prints to `AsymmetricEncString`.
+/// To avoid printing sensitive information, [AsymmetricEncString] debug prints to
+/// `AsymmetricEncString`.
 impl std::fmt::Debug for AsymmetricEncString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("AsymmetricEncString").finish()

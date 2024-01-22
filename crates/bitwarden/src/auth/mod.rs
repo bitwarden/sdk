@@ -14,7 +14,7 @@ use bitwarden_crypto::{HashPurpose, MasterKey};
 pub use register::{RegisterKeyResponse, RegisterRequest};
 #[cfg(feature = "internal")]
 mod passwordless;
-#[cfg(feature = "internal")]
+#[cfg(feature = "mobile")]
 pub(crate) use passwordless::passwordless_decrypt_user_key;
 #[cfg(feature = "internal")]
 pub use passwordless::PasswordlessLoginRequest;

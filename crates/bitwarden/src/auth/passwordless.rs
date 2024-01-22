@@ -1,8 +1,9 @@
 use base64::{engine::general_purpose::STANDARD, Engine};
-use bitwarden_crypto::{
-    fingerprint, AsymmetricCryptoKey, AsymmetricEncString, KeyDecryptable, SymmetricCryptoKey,
-};
+use bitwarden_crypto::{fingerprint, AsymmetricCryptoKey};
 use bitwarden_generators::{password, PasswordGeneratorRequest};
+
+#[cfg(feature = "mobile")]
+use bitwarden_crypto::{AsymmetricEncString, KeyDecryptable, SymmetricCryptoKey};
 
 use crate::error::Error;
 
@@ -44,6 +45,7 @@ pub(crate) fn new_passwordless_request(email: &str) -> Result<PasswordlessLoginR
     })
 }
 
+#[cfg(feature = "mobile")]
 pub(crate) fn passwordless_decrypt_user_key(
     private_key: String,
     user_key: AsymmetricEncString,

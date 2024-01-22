@@ -156,7 +156,8 @@ jobs:
           xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
 
           echo "Attach staple"
-          xcrun stapler staple "./target/${{ matrix.settings.target }}/release/bws"
+          chmod -R 755 "./target/${{ matrix.settings.target }}/release/bws"
+          xcrun stapler staple "./target/${{ matrix.settings.target }}/release/bws" -v
 
       - name: Retrieve secrets windows
         if: runner.os == 'Windows'

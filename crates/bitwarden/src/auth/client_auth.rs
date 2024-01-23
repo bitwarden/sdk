@@ -1,3 +1,6 @@
+#[cfg(feature = "internal")]
+use bitwarden_crypto::{DeviceKey, TrustDeviceResponse};
+
 #[cfg(feature = "secrets")]
 use crate::auth::login::{login_access_token, AccessTokenLoginRequest, AccessTokenLoginResponse};
 use crate::{auth::renew::renew_token, error::Result, Client};
@@ -18,8 +21,6 @@ use crate::{
     client::Kdf,
     error::Error,
 };
-#[cfg(feature = "internal")]
-use bitwarden_crypto::{DeviceKey, TrustDeviceResponse};
 
 pub struct ClientAuth<'a> {
     pub(crate) client: &'a mut crate::Client,

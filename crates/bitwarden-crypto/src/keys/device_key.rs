@@ -24,7 +24,8 @@ pub struct TrustDeviceResponse {
 impl DeviceKey {
     /// Generate a new device key
     ///
-    /// Note: Input has to be a SymmetricCryptoKey instead of UserKey because that's what we get from EncSettings.
+    /// Note: Input has to be a SymmetricCryptoKey instead of UserKey because that's what we get
+    /// from EncSettings.
     pub fn trust_device(user_key: &SymmetricCryptoKey) -> Result<TrustDeviceResponse> {
         let mut rng = rand::thread_rng();
         let device_key = DeviceKey(SymmetricCryptoKey::generate(&mut rng));
@@ -71,9 +72,8 @@ impl DeviceKey {
 
 #[cfg(test)]
 mod tests {
-    use crate::derive_symmetric_key;
-
     use super::*;
+    use crate::derive_symmetric_key;
 
     #[test]
     fn test_trust_device() {

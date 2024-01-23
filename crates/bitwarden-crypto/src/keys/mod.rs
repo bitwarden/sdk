@@ -13,7 +13,7 @@ pub use symmetric_crypto_key::derive_symmetric_key;
 pub use symmetric_crypto_key::SymmetricCryptoKey;
 mod asymmetric_crypto_key;
 pub use asymmetric_crypto_key::{
-    AsymmetricCryptoKey, AsymmetricEncCryptoKey, AsymmetricEncryptable,
+    AsymmetricCryptoKey, AsymmetricEncryptable, AsymmetricPublicCryptoKey,
 };
 
 mod user_key;

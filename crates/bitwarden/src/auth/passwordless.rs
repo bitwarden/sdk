@@ -1,6 +1,6 @@
 use base64::{engine::general_purpose::STANDARD, Engine};
 use bitwarden_crypto::{
-    fingerprint, AsymmetricCryptoKey, AsymmetricEncCryptoKey, AsymmetricEncString,
+    fingerprint, AsymmetricCryptoKey, AsymmetricEncString, AsymmetricPublicCryptoKey,
 };
 #[cfg(feature = "mobile")]
 use bitwarden_crypto::{KeyDecryptable, SymmetricCryptoKey};
@@ -21,6 +21,11 @@ pub struct PasswordlessLoginRequest {
     pub access_code: String,
 }
 
+/// Initiate a new passwordless login request.
+///
+/// Generates a private key and access code. The pulic key is uploaded to the server and transmitted
+/// to another device. Where the user confirms the validity by confirming the fingerprint. The user
+/// key is then encrypted using the public key and returned to the initiating device.
 pub(crate) fn new_passwordless_request(email: &str) -> Result<PasswordlessLoginRequest, Error> {
     let mut rng = rand::thread_rng();
 
@@ -46,6 +51,7 @@ pub(crate) fn new_passwordless_request(email: &str) -> Result<PasswordlessLoginR
     })
 }
 
+/// Decrypt the user key using the private key generated previously.
 #[cfg(feature = "mobile")]
 pub(crate) fn passwordless_decrypt_user_key(
     private_key: String,
@@ -57,11 +63,14 @@ pub(crate) fn passwordless_decrypt_user_key(
     Ok(key.parse()?)
 }
 
+/// Approve a passwordless login request.
+///
+/// Encrypts the user key with a public key.
 pub(crate) fn approve_passwordless_login(
     client: &mut Client,
     public_key: String,
 ) -> Result<AsymmetricEncString, Error> {
-    let public_key = AsymmetricEncCryptoKey::from_der(&STANDARD.decode(public_key)?)?;
+    let public_key = AsymmetricPublicCryptoKey::from_der(&STANDARD.decode(public_key)?)?;
 
     let enc = client.get_encryption_settings()?;
     let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
@@ -118,6 +127,11 @@ mod tests {
 
         let public_key = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnRtpYLp9QLaEUkdPkWZX6TrMUKFoSaFamBKDL0NlS6xwtETTqYIxRVsvnHii3Dhz+fh3aHQVyBa1rBXogeH3MLERzNADwZhpWtBT9wKCXY5o0fIWYdZV/Nf0Y+0ZoKdImrGPLPmyHGfCqrvrK7g09q8+3kXUlkdAImlQqc5TiYwiHBfUQVTBq/Ae7a0FEpajx1NUM4h3edpCYxbvnpSTuzMgbmbUUS4gdCaheA2ibYxy/zkLzsaLygoibMyGNl9Y8J5n7dDrVXpUKZTihVfXwHfEZwtKNunWsmmt8rEJWVpguUDEDVSUogoxQcNaCi7KHn9ioSip76hg1jLpypO3WwIDAQAB";
 
-        let _res = approve_passwordless_login(&mut client, public_key.to_owned()).unwrap();
+        // Verify fingerprint
+        let pbkey = STANDARD.decode(public_key).unwrap();
+        let fingerprint = fingerprint("test@bitwarden.com", &pbkey).unwrap();
+        assert_eq!(fingerprint, "spill-applaud-sweep-habitable-shrunk");
+
+        approve_passwordless_login(&mut client, public_key.to_owned()).unwrap();
     }
 }

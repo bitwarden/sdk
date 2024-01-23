@@ -1,6 +1,5 @@
 #[cfg(feature = "internal")]
-use bitwarden_crypto::AsymmetricEncString;
-use bitwarden_crypto::{DeviceKey, TrustDeviceResponse};
+use bitwarden_crypto::{AsymmetricEncString, DeviceKey, TrustDeviceResponse};
 
 #[cfg(feature = "secrets")]
 use crate::auth::login::{login_access_token, AccessTokenLoginRequest, AccessTokenLoginResponse};

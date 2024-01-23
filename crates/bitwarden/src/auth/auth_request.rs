@@ -5,10 +5,13 @@ use bitwarden_crypto::{
 #[cfg(feature = "mobile")]
 use bitwarden_crypto::{KeyDecryptable, SymmetricCryptoKey};
 use bitwarden_generators::{password, PasswordGeneratorRequest};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 
 use crate::{error::Error, Client};
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Object))]
 pub struct AuthRequestResponse {
     /// Base64 encoded private key
     /// This key is temporarily passed back and will most likely not be available in the future
@@ -19,6 +22,33 @@ pub struct AuthRequestResponse {
     pub fingerprint: String,
     /// Access code
     pub access_code: String,
+}
+
+#[uniffi::export]
+impl AuthRequestResponse {
+    pub fn public_key(&self) -> String {
+        self.public_key.clone()
+    }
+
+    pub fn fingerprint(&self) -> String {
+        self.fingerprint.clone()
+    }
+
+    pub fn access_code(&self) -> String {
+        self.access_code.clone()
+    }
+}
+
+impl AuthRequestResponse {
+    pub(crate) fn auth_request_decrypt_user_key(
+        &self,
+        user_key: AsymmetricEncString,
+    ) -> Result<SymmetricCryptoKey, Error> {
+        let key = AsymmetricCryptoKey::from_der(&STANDARD.decode(&self.private_key)?)?;
+        let key: String = user_key.decrypt_with_key(&key)?;
+
+        Ok(key.parse()?)
+    }
 }
 
 /// Initiate a new auth request.
@@ -49,18 +79,6 @@ pub(crate) fn new_auth_request(email: &str) -> Result<AuthRequestResponse, Error
             ..Default::default()
         })?,
     })
-}
-
-/// Decrypt the user key using the private key generated previously.
-#[cfg(feature = "mobile")]
-pub(crate) fn auth_request_decrypt_user_key(
-    private_key: String,
-    user_key: AsymmetricEncString,
-) -> Result<SymmetricCryptoKey, Error> {
-    let key = AsymmetricCryptoKey::from_der(&STANDARD.decode(private_key)?)?;
-    let key: String = user_key.decrypt_with_key(&key)?;
-
-    Ok(key.parse()?)
 }
 
 /// Approve an auth request.
@@ -94,7 +112,7 @@ fn test_auth_request() {
     let encrypted =
         AsymmetricEncString::encrypt_rsa2048_oaep_sha1(secret.as_bytes(), &private_key).unwrap();
 
-    let decrypted = auth_request_decrypt_user_key(request.private_key, encrypted).unwrap();
+    let decrypted = request.auth_request_decrypt_user_key(encrypted).unwrap();
 
     assert_eq!(decrypted.to_base64(), secret);
 }

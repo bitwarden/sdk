@@ -11,7 +11,7 @@ use crate::{
 pub struct DeviceKey(SymmetricCryptoKey);
 
 #[derive(Debug)]
-pub struct CreateDeviceKey {
+pub struct TrustDeviceResponse {
     pub device_key: DeviceKey,
     /// UserKey encrypted with DevicePublicKey
     pub protected_user_key: AsymmetricEncString,
@@ -25,7 +25,7 @@ impl DeviceKey {
     /// Generate a new device key
     ///
     /// Note: Input has to be a SymmetricCryptoKey instead of UserKey because that's what we get from EncSettings.
-    pub fn trust_device(user_key: &SymmetricCryptoKey) -> Result<CreateDeviceKey> {
+    pub fn trust_device(user_key: &SymmetricCryptoKey) -> Result<TrustDeviceResponse> {
         let mut rng = rand::thread_rng();
         let device_key = DeviceKey(SymmetricCryptoKey::generate(&mut rng));
 
@@ -45,7 +45,7 @@ impl DeviceKey {
             .to_der()?
             .encrypt_with_key(&device_key.0)?;
 
-        Ok(CreateDeviceKey {
+        Ok(TrustDeviceResponse {
             device_key,
             protected_user_key,
             protected_device_private_key,

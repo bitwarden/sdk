@@ -19,7 +19,7 @@ use crate::{
     error::Error,
 };
 #[cfg(feature = "internal")]
-use bitwarden_crypto::{CreateDeviceKey, DeviceKey};
+use bitwarden_crypto::{DeviceKey, TrustDeviceResponse};
 
 pub struct ClientAuth<'a> {
     pub(crate) client: &'a mut crate::Client,
@@ -101,13 +101,13 @@ impl<'a> ClientAuth<'a> {
         validate_password(self.client, password, password_hash).await
     }
 
-    pub async fn trust_device(&self) -> Result<CreateDeviceKey> {
+    pub async fn trust_device(&self) -> Result<TrustDeviceResponse> {
         trust_device(self.client)
     }
 }
 
 #[cfg(feature = "internal")]
-fn trust_device(client: &Client) -> Result<CreateDeviceKey> {
+fn trust_device(client: &Client) -> Result<TrustDeviceResponse> {
     let enc = client.get_encryption_settings()?;
 
     let user_key = enc.get_key(&None).ok_or(Error::VaultLocked)?;

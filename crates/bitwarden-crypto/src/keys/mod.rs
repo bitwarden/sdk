@@ -13,4 +13,4 @@ pub use asymmetric_crypto_key::AsymmetricCryptoKey;
 mod user_key;
 pub use user_key::UserKey;
 mod device_key;
-pub use device_key::{CreateDeviceKey, DeviceKey};
+pub use device_key::{DeviceKey, TrustDeviceResponse};

@@ -138,6 +138,7 @@ impl serde::Serialize for AsymmetricEncString {
 }
 
 impl AsymmetricEncString {
+    /// Encrypt and produce a [AsymmetricEncString::Rsa2048_OaepSha1_B64] variant.
     pub fn encrypt_rsa2048_oaep_sha1(
         data_dec: &[u8],
         key: &dyn AsymmetricEncryptable,

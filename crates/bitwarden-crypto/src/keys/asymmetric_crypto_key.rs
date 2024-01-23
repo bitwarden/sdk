@@ -17,6 +17,7 @@ pub struct AsymmetricPublicCryptoKey {
 }
 
 impl AsymmetricPublicCryptoKey {
+    /// Build a public key from the SubjectPublicKeyInfo DER.
     pub fn from_der(der: &[u8]) -> Result<Self> {
         Ok(Self {
             key: rsa::RsaPublicKey::from_public_key_der(der)
@@ -38,7 +39,7 @@ pub struct AsymmetricCryptoKey {
 }
 
 impl AsymmetricCryptoKey {
-    /// Generate a random AsymmetricCryptoKey (RSA-2048)
+    /// Generate a random AsymmetricCryptoKey (RSA-2048).
     pub fn generate<R: rand::CryptoRng + rand::RngCore>(rng: &mut R) -> Self {
         let bits = 2048;
 
@@ -74,7 +75,6 @@ impl AsymmetricCryptoKey {
     pub fn to_public_der(&self) -> Result<Vec<u8>> {
         use rsa::pkcs8::EncodePublicKey;
         Ok(self
-            .key
             .to_public_key()
             .to_public_key_der()
             .map_err(|_| CryptoError::InvalidKey)?

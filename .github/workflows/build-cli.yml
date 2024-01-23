@@ -139,6 +139,7 @@ jobs:
         run: /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime ./target/${{ matrix.settings.target }}/release/bws -v
 
       - name: Create pkg
+        if: runner.os == 'macos'
         env:
           MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-certificate-name }}
         run: pkgbuild --root ./${{ matrix.settings.target }} --identifier "com.bitwarden.bws.pkg" --install-location "/" --sign $MACOS_CERTIFICATE_NAME --version "${{ env._PACKAGE_VERSION }}" "./target/{{ matrix.settings.target }}/bws-${{ env._PACKAGE_VERSION }}.pkg"

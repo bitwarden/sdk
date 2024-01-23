@@ -63,7 +63,7 @@ pub(crate) fn auth_request_decrypt_user_key(
     Ok(key.parse()?)
 }
 
-/// Approve a passwordless login request.
+/// Approve an auth request.
 ///
 /// Encrypts the user key with a public key.
 pub(crate) fn approve_auth_request(

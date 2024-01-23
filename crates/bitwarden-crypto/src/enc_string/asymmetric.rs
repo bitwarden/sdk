@@ -1,8 +1,7 @@
 use std::{fmt::Display, str::FromStr};
 
 use base64::{engine::general_purpose::STANDARD, Engine};
-// This module is a workaround to avoid deprecated warnings that come from the ZeroizeOnDrop
-// macro expansion
+
 pub use internal::AsymmetricEncString;
 use rsa::Oaep;
 use serde::Deserialize;
@@ -12,6 +11,9 @@ use crate::{
     error::{CryptoError, EncStringParseError, Result},
     AsymmetricCryptoKey, KeyDecryptable,
 };
+
+// This module is a workaround to avoid deprecated warnings that come from the ZeroizeOnDrop
+// macro expansion
 #[allow(deprecated)]
 mod internal {
     /// # Encrypted string primitive

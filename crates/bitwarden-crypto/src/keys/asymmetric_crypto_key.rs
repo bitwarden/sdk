@@ -7,9 +7,10 @@ use crate::error::{CryptoError, Result};
 
 /// An asymmetric encryption key. Used to encrypt and decrypt [`EncString`](crate::EncString)
 pub struct AsymmetricCryptoKey {
-    // Similarly to SymmetricCryptoKey, we use a pinned Box to keep the key on the heap.
-    // The RsaPrivateKey type is not Copy so the compiler shouldn't be making stack copies
-    // with each move, but for some extra precaution we box it anyway
+    // RsaPrivateKey is not a Copy type so this isn't completely necessary, but
+    // to keep the compiler from making stack copies when moving this struct around,
+    // we use a Box to keep the values on the heap. We also pin the box to make sure
+    // that the contents can't be pulled out of the box and moved
     pub(crate) key: Pin<Box<RsaPrivateKey>>,
 }
 

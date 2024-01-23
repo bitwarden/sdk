@@ -21,9 +21,10 @@ mobile = ["uniffi"]
 aes = { version = ">=0.8.2, <0.9", features = ["zeroize"] }
 argon2 = { version = ">=0.5.0, <0.6", features = [
     "alloc",
+    "zeroize",
 ], default-features = false }
 base64 = ">=0.21.2, <0.22"
-cbc = { version = ">=0.1.2, <0.2", features = ["alloc"] }
+cbc = { version = ">=0.1.2, <0.2", features = ["alloc", "zeroize"] }
 generic-array = { version = ">=0.14.7, <1.0", features = ["zeroize"] }
 hkdf = ">=0.12.3, <0.13"
 hmac = ">=0.12.1, <0.13"
@@ -34,8 +35,8 @@ rand = ">=0.8.5, <0.9"
 rsa = ">=0.9.2, <0.10"
 schemars = { version = ">=0.8, <0.9", features = ["uuid1"] }
 serde = { version = ">=1.0, <2.0", features = ["derive"] }
-sha1 = ">=0.10.5, <0.11"
-sha2 = ">=0.10.6, <0.11"
+sha1 = { version = ">=0.10.5, <0.11", features = ["zeroize"] }
+sha2 = { version = ">=0.10.6, <0.11", features = ["zeroize"] }
 subtle = ">=2.5.0, <3.0"
 thiserror = ">=1.0.40, <2.0"
 uniffi = { version = "=0.25.2", optional = true }

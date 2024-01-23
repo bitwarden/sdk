@@ -95,8 +95,10 @@ impl ClientAuth {
     }
 
     /// Initialize a new auth request
-    pub async fn new_auth_request(&self, email: String) -> Result<AuthRequestResponse> {
-        Ok(self.0 .0.write().await.auth().new_auth_request(&email)?)
+    pub async fn new_auth_request(&self, email: String) -> Result<Arc<AuthRequestResponse>> {
+        Ok(Arc::new(
+            self.0 .0.write().await.auth().new_auth_request(&email)?,
+        ))
     }
 
     /// Approve an auth request

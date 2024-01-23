@@ -1,3 +1,6 @@
+#[cfg(feature = "internal")]
+use bitwarden_crypto::{DeviceKey, TrustDeviceResponse};
+
 #[cfg(feature = "secrets")]
 use crate::auth::login::{login_access_token, AccessTokenLoginRequest, AccessTokenLoginResponse};
 use crate::{auth::renew::renew_token, error::Result, Client};
@@ -16,6 +19,7 @@ use crate::{
         RegisterKeyResponse, RegisterRequest,
     },
     client::Kdf,
+    error::Error,
 };
 
 pub struct ClientAuth<'a> {
@@ -97,6 +101,19 @@ impl<'a> ClientAuth<'a> {
     pub async fn validate_password(&self, password: String, password_hash: String) -> Result<bool> {
         validate_password(self.client, password, password_hash).await
     }
+
+    pub async fn trust_device(&self) -> Result<TrustDeviceResponse> {
+        trust_device(self.client)
+    }
+}
+
+#[cfg(feature = "internal")]
+fn trust_device(client: &Client) -> Result<TrustDeviceResponse> {
+    let enc = client.get_encryption_settings()?;
+
+    let user_key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
+
+    Ok(DeviceKey::trust_device(user_key)?)
 }
 
 impl<'a> Client {
@@ -172,7 +189,7 @@ mod tests {
             .login_access_token(&AccessTokenLoginRequest {
                 access_token: "0.ec2c1d46-6a4b-4751-a310-af9601317f2d.C2IgxjjLF7qSshsbwe8JGcbM075YXw:X8vbvA0bduihIDe/qrzIQQ==".into(),
                 state_file: None,
-            },)
+            })
             .await
             .unwrap();
         assert!(res.authenticated);

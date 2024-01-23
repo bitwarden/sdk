@@ -52,6 +52,8 @@ pub enum RsaError {
     CreatePublicKey,
     #[error("Unable to create private key")]
     CreatePrivateKey,
+    #[error("Rsa error, {0}")]
+    Rsa(#[from] rsa::Error),
 }
 
 /// Alias for `Result<T, CryptoError>`.

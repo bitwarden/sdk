@@ -13,11 +13,11 @@ use bitwarden_crypto::{HashPurpose, MasterKey};
 #[cfg(feature = "internal")]
 pub use register::{RegisterKeyResponse, RegisterRequest};
 #[cfg(feature = "internal")]
-mod passwordless;
+mod auth_request;
 #[cfg(feature = "mobile")]
-pub(crate) use passwordless::passwordless_decrypt_user_key;
+pub(crate) use auth_request::auth_request_decrypt_user_key;
 #[cfg(feature = "internal")]
-pub use passwordless::PasswordlessLoginRequest;
+pub use auth_request::AuthRequestResponse;
 
 #[cfg(feature = "internal")]
 use crate::{client::Kdf, error::Result};

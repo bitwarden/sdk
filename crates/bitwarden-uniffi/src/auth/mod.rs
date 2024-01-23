@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use bitwarden::auth::{
-    password::MasterPasswordPolicyOptions, PasswordlessLoginRequest, RegisterKeyResponse,
+    password::MasterPasswordPolicyOptions, AuthRequestResponse, RegisterKeyResponse,
 };
 use bitwarden_crypto::{AsymmetricEncString, HashPurpose, Kdf};
 
@@ -95,30 +95,18 @@ impl ClientAuth {
     }
 
     /// Initialize a new passwordless login request
-    pub async fn new_passwordless_request(
-        &self,
-        email: String,
-    ) -> Result<PasswordlessLoginRequest> {
-        Ok(self
-            .0
-             .0
-            .write()
-            .await
-            .auth()
-            .new_passwordless_request(&email)?)
+    pub async fn new_auth_request(&self, email: String) -> Result<AuthRequestResponse> {
+        Ok(self.0 .0.write().await.auth().new_auth_request(&email)?)
     }
 
     /// Approve a passwordless login request
-    pub async fn approve_passwordless_request(
-        &self,
-        public_key: String,
-    ) -> Result<AsymmetricEncString> {
+    pub async fn approve_auth_request(&self, public_key: String) -> Result<AsymmetricEncString> {
         Ok(self
             .0
              .0
             .write()
             .await
             .auth()
-            .approve_passwordless_request(public_key)?)
+            .approve_auth_request(public_key)?)
     }
 }

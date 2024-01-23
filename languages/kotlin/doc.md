@@ -138,7 +138,7 @@ password, use the email OTP.
 
 **Output**: std::result::Result<,BitwardenError>
 
-### `new_passwordless_request`
+### `new_auth_request`
 
 Initialize a new passwordless login request
 
@@ -147,9 +147,9 @@ Initialize a new passwordless login request
 - self:
 - email: String
 
-**Output**: std::result::Result<PasswordlessLoginRequest,BitwardenError>
+**Output**: std::result::Result<AuthRequestResponse,BitwardenError>
 
-### `approve_passwordless_request`
+### `approve_auth_request`
 
 Approve a passwordless login request
 
@@ -1250,7 +1250,7 @@ implementations.
     </td>
 </tr>
 <tr>
-    <th>passwordless</th>
+    <th>authRequest</th>
     <th>object</th>
     <th></th>
 </tr>

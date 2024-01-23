@@ -9,7 +9,7 @@ use bitwarden_generators::{password, PasswordGeneratorRequest};
 use crate::{error::Error, Client};
 
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
-pub struct PasswordlessLoginRequest {
+pub struct AuthRequestResponse {
     /// Base64 encoded private key
     /// This key is temporarily passed back and will most likely not be available in the future
     pub private_key: String,
@@ -21,12 +21,12 @@ pub struct PasswordlessLoginRequest {
     pub access_code: String,
 }
 
-/// Initiate a new passwordless login request.
+/// Initiate a new auth request.
 ///
 /// Generates a private key and access code. The pulic key is uploaded to the server and transmitted
 /// to another device. Where the user confirms the validity by confirming the fingerprint. The user
 /// key is then encrypted using the public key and returned to the initiating device.
-pub(crate) fn new_passwordless_request(email: &str) -> Result<PasswordlessLoginRequest, Error> {
+pub(crate) fn new_auth_request(email: &str) -> Result<AuthRequestResponse, Error> {
     let mut rng = rand::thread_rng();
 
     let key = AsymmetricCryptoKey::generate(&mut rng);
@@ -36,7 +36,7 @@ pub(crate) fn new_passwordless_request(email: &str) -> Result<PasswordlessLoginR
     let fingerprint = fingerprint(email, &spki)?;
     let b64 = STANDARD.encode(&spki);
 
-    Ok(PasswordlessLoginRequest {
+    Ok(AuthRequestResponse {
         private_key: STANDARD.encode(key.to_der()?),
         public_key: b64,
         fingerprint,
@@ -53,7 +53,7 @@ pub(crate) fn new_passwordless_request(email: &str) -> Result<PasswordlessLoginR
 
 /// Decrypt the user key using the private key generated previously.
 #[cfg(feature = "mobile")]
-pub(crate) fn passwordless_decrypt_user_key(
+pub(crate) fn auth_request_decrypt_user_key(
     private_key: String,
     user_key: AsymmetricEncString,
 ) -> Result<SymmetricCryptoKey, Error> {
@@ -66,7 +66,7 @@ pub(crate) fn passwordless_decrypt_user_key(
 /// Approve a passwordless login request.
 ///
 /// Encrypts the user key with a public key.
-pub(crate) fn approve_passwordless_login(
+pub(crate) fn approve_auth_request(
     client: &mut Client,
     public_key: String,
 ) -> Result<AsymmetricEncString, Error> {
@@ -82,8 +82,8 @@ pub(crate) fn approve_passwordless_login(
 }
 
 #[test]
-fn test_passwordless_login_request() {
-    let request = new_passwordless_request("test@bitwarden.com").unwrap();
+fn test_auth_request() {
+    let request = new_auth_request("test@bitwarden.com").unwrap();
 
     let secret =
         "w2LO+nwV4oxwswVYCxlOfRUseXfvU03VzvKQHrqeklPgiMZrspUe6sOBToCnDn9Ay0tuCBn8ykVVRb7PWhub2Q==";
@@ -94,7 +94,7 @@ fn test_passwordless_login_request() {
     let encrypted =
         AsymmetricEncString::encrypt_rsa2048_oaep_sha1(secret.as_bytes(), &private_key).unwrap();
 
-    let decrypted = passwordless_decrypt_user_key(request.private_key, encrypted).unwrap();
+    let decrypted = auth_request_decrypt_user_key(request.private_key, encrypted).unwrap();
 
     assert_eq!(decrypted.to_base64(), secret);
 }
@@ -132,6 +132,6 @@ mod tests {
         let fingerprint = fingerprint("test@bitwarden.com", &pbkey).unwrap();
         assert_eq!(fingerprint, "spill-applaud-sweep-habitable-shrunk");
 
-        approve_passwordless_login(&mut client, public_key.to_owned()).unwrap();
+        approve_auth_request(&mut client, public_key.to_owned()).unwrap();
     }
 }

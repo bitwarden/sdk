@@ -7,6 +7,7 @@ use crate::{auth::renew::renew_token, error::Result, Client};
 #[cfg(feature = "internal")]
 use crate::{
     auth::{
+        auth_request::{approve_auth_request, new_auth_request},
         login::{
             login_api_key, login_password, send_two_factor_email, ApiKeyLoginRequest,
             ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse,
@@ -15,9 +16,8 @@ use crate::{
         password::{
             password_strength, satisfies_policy, validate_password, MasterPasswordPolicyOptions,
         },
-        passwordless::{approve_passwordless_login, new_passwordless_request},
         register::{make_register_keys, register},
-        PasswordlessLoginRequest, RegisterKeyResponse, RegisterRequest,
+        AuthRequestResponse, RegisterKeyResponse, RegisterRequest,
     },
     client::Kdf,
     error::Error,
@@ -103,15 +103,12 @@ impl<'a> ClientAuth<'a> {
         validate_password(self.client, password, password_hash).await
     }
 
-    pub fn new_passwordless_request(&self, email: &str) -> Result<PasswordlessLoginRequest> {
-        new_passwordless_request(email)
+    pub fn new_auth_request(&self, email: &str) -> Result<AuthRequestResponse> {
+        new_auth_request(email)
     }
 
-    pub fn approve_passwordless_request(
-        &mut self,
-        public_key: String,
-    ) -> Result<AsymmetricEncString> {
-        approve_passwordless_login(self.client, public_key)
+    pub fn approve_auth_request(&mut self, public_key: String) -> Result<AsymmetricEncString> {
+        approve_auth_request(self.client, public_key)
     }
 
     pub async fn trust_device(&self) -> Result<TrustDeviceResponse> {

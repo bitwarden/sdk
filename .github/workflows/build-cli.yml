@@ -142,7 +142,7 @@ jobs:
         if: runner.os == 'macos'
         env:
           MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-certificate-name }}
-        run: pkgbuild --root ./${{ matrix.settings.target }} --identifier "com.bitwarden.bws.pkg" --install-location "/" --sign $MACOS_CERTIFICATE_NAME --version "${{ env._PACKAGE_VERSION }}" "./target/{{ matrix.settings.target }}/bws-${{ env._PACKAGE_VERSION }}.pkg"
+        run: pkgbuild --root ./target/${{ matrix.settings.target }} --identifier "com.bitwarden.bws.pkg" --install-location "/" --sign $MACOS_CERTIFICATE_NAME --version "${{ env._PACKAGE_VERSION }}" "./target/{{ matrix.settings.target }}/bws-${{ env._PACKAGE_VERSION }}.pkg"
 
       - name: Notarize app macos
         if: runner.os == 'macos'

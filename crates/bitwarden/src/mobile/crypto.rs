@@ -47,7 +47,8 @@ pub enum InitUserCryptoMethod {
     Pin {
         /// The user's PIN
         pin: String,
-        /// The user's symmetric crypto key, encrypted with the PIN. Use `derive_pin_key` to obtain this.
+        /// The user's symmetric crypto key, encrypted with the PIN. Use `derive_pin_key` to obtain
+        /// this.
         pin_protected_user_key: EncString,
     },
 }

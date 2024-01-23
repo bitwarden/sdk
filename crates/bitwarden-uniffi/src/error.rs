@@ -1,6 +1,7 @@
 use std::fmt::{Display, Formatter};
 
-// Name is converted from *Error to *Exception, so we can't just name the enum Error because Exception already exists
+// Name is converted from *Error to *Exception, so we can't just name the enum Error because
+// Exception already exists
 #[derive(uniffi::Error, Debug)]
 #[uniffi(flat_error)]
 pub enum BitwardenError {

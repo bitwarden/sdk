@@ -13,12 +13,12 @@ use crate::{
 
 /// # Encrypted string primitive
 ///
-/// [AsymmetricEncString] is a Bitwarden specific primitive that represents an asymmetrically encrypted string.
-/// They are used together with the KeyDecryptable and KeyEncryptable traits to encrypt and decrypt data using
-/// [AsymmetricCryptoKey]s.
+/// [AsymmetricEncString] is a Bitwarden specific primitive that represents an asymmetrically
+/// encrypted string. They are used together with the KeyDecryptable and KeyEncryptable traits to
+/// encrypt and decrypt data using [AsymmetricCryptoKey]s.
 ///
-/// The flexibility of the [AsymmetricEncString] type allows for different encryption algorithms to be used
-/// which is represented by the different variants of the enum.
+/// The flexibility of the [AsymmetricEncString] type allows for different encryption algorithms to
+/// be used which is represented by the different variants of the enum.
 ///
 /// ## Note
 ///
@@ -31,8 +31,8 @@ use crate::{
 ///
 /// ## Serialization
 ///
-/// [AsymmetricEncString] implements [Display] and [FromStr] to allow for easy serialization and uses a
-/// custom scheme to represent the different variants.
+/// [AsymmetricEncString] implements [Display] and [FromStr] to allow for easy serialization and
+/// uses a custom scheme to represent the different variants.
 ///
 /// The scheme is one of the following schemes:
 /// - `[type].[data]`
@@ -55,7 +55,8 @@ pub enum AsymmetricEncString {
     Rsa2048_OaepSha1_HmacSha256_B64 { data: Vec<u8>, mac: Vec<u8> },
 }
 
-/// To avoid printing sensitive information, [AsymmetricEncString] debug prints to `AsymmetricEncString`.
+/// To avoid printing sensitive information, [AsymmetricEncString] debug prints to
+/// `AsymmetricEncString`.
 impl std::fmt::Debug for AsymmetricEncString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("AsymmetricEncString").finish()

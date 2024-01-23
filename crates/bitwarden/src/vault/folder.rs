@@ -43,7 +43,7 @@ impl KeyDecryptable<SymmetricCryptoKey, FolderView> for Folder {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<FolderView, CryptoError> {
         Ok(FolderView {
             id: self.id,
-            name: self.name.decrypt_with_key(key)?,
+            name: self.name.decrypt_with_key(key).ok().unwrap_or_default(),
             revision_date: self.revision_date,
         })
     }

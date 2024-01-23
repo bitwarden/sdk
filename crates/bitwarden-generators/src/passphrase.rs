@@ -26,7 +26,8 @@ pub struct PassphraseGeneratorRequest {
     pub word_separator: String,
     /// When set to true, capitalize the first letter of each word in the generated passphrase.
     pub capitalize: bool,
-    /// When set to true, include a number at the end of one of the words in the generated passphrase.
+    /// When set to true, include a number at the end of one of the words in the generated
+    /// passphrase.
     pub include_number: bool,
 }
 
@@ -45,7 +46,8 @@ const MINIMUM_PASSPHRASE_NUM_WORDS: u8 = 3;
 const MAXIMUM_PASSPHRASE_NUM_WORDS: u8 = 20;
 
 /// Represents a set of valid options to generate a passhprase with.
-/// To get an instance of it, use [`PassphraseGeneratorRequest::validate_options`](PassphraseGeneratorRequest::validate_options)
+/// To get an instance of it, use
+/// [`PassphraseGeneratorRequest::validate_options`](PassphraseGeneratorRequest::validate_options)
 struct ValidPassphraseGeneratorOptions {
     pub(super) num_words: u8,
     pub(super) word_separator: String,
@@ -54,7 +56,8 @@ struct ValidPassphraseGeneratorOptions {
 }
 
 impl PassphraseGeneratorRequest {
-    /// Validates the request and returns an immutable struct with valid options to use with the passphrase generator.
+    /// Validates the request and returns an immutable struct with valid options to use with the
+    /// passphrase generator.
     fn validate_options(self) -> Result<ValidPassphraseGeneratorOptions, PassphraseError> {
         // TODO: Add password generator policy checks
 
@@ -173,7 +176,8 @@ mod tests {
 
         let input = PassphraseGeneratorRequest {
             num_words: 4,
-            word_separator: "👨🏻‍❤️‍💋‍👨🏻".into(), // This emoji is 35 bytes long, but represented as a single character
+            word_separator: "👨🏻‍❤️‍💋‍👨🏻".into(), /* This emoji is 35 bytes long, but represented
+                                                   * as a single character */
             capitalize: false,
             include_number: true,
         }

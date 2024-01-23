@@ -120,7 +120,7 @@ mod tests {
             .decrypt_user_key(protected_device_private_key, protected_user_key)
             .unwrap();
 
-        assert_eq!(decrypted.0.key, user_key.key,);
-        assert_eq!(decrypted.0.mac_key, user_key.mac_key,);
+        assert_eq!(decrypted.0.key, user_key.key);
+        assert_eq!(decrypted.0.mac_key, user_key.mac_key);
     }
 }

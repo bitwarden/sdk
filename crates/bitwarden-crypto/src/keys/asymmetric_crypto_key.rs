@@ -31,7 +31,7 @@ impl AsymmetricCryptoKey {
         let bits = 2048;
 
         Self {
-            key: RsaPrivateKey::new(rng, bits).expect("failed to generate a key"),
+            key: Box::pin(RsaPrivateKey::new(rng, bits).expect("failed to generate a key")),
         }
     }
 

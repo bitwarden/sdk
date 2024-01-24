@@ -30,6 +30,92 @@ jobs:
           VERSION=$(grep -o '^version = ".*"' crates/bws/Cargo.toml | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
           echo "package_version=$VERSION" >> $GITHUB_OUTPUT
 
+  build-windows:
+    name: Building CLI for - ${{ matrix.settings.os }} - ${{ matrix.settings.target }}
+    runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}
+    needs:
+      - setup
+    env:
+      _PACKAGE_VERSION: ${{ needs.setup.outputs.package_version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - os: windows-2022
+            target: x86_64-pc-windows-msvc
+
+          - os: windows-2022
+            target: aarch64-pc-windows-msvc
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248 # stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.settings.target }}
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@3cf7f8cc28d1b4e7d01e3783be10a97d55d483c8 # v2.7.1
+        with:
+          key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.os }}
+
+      - name: Build
+        env:
+          TARGET: ${{ matrix.settings.target }}
+        run: cargo build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
+
+      - name: Login to Azure
+        uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
+        with:
+          creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
+
+      - name: Retrieve secrets
+        id: retrieve-secrets-windows
+        uses: bitwarden/gh-actions/get-keyvault-secrets@main
+        with:
+          keyvault: "bitwarden-ci"
+          secrets: "code-signing-vault-url,
+            code-signing-client-id,
+            code-signing-tenant-id,
+            code-signing-client-secret,
+            code-signing-cert-name"
+
+      - name: Install AST
+        run: dotnet tool install --global AzureSignTool --version 4.0.1
+
+      - name: Sign windows binary
+        env:
+          SIGNING_VAULT_URL: ${{ steps.retrieve-secrets-windows.outputs.code-signing-vault-url }}
+          SIGNING_CLIENT_ID: ${{ steps.retrieve-secrets-windows.outputs.code-signing-client-id }}
+          SIGNING_TENANT_ID: ${{ steps.retrieve-secrets-windows.outputs.code-signing-tenant-id }}
+          SIGNING_CLIENT_SECRET: ${{ steps.retrieve-secrets-windows.outputs.code-signing-client-secret }}
+          SIGNING_CERT_NAME: ${{ steps.retrieve-secrets-windows.outputs.code-signing-cert-name }}
+        run: |
+          azuresigntool sign -v \
+            -kvu $SIGNING_VAULT_URL \
+            -kvi $SIGNING_CLIENT_ID \
+            -kvt $SIGNING_TENANT_ID \
+            -kvs $SIGNING_CLIENT_SECRET \
+            -kvc $SIGNING_CERT_NAME \
+            -fd sha256 \
+            -du https://bitwarden.com \
+            -tr http://timestamp.digicert.com \
+            ./target/${{ matrix.settings.target }}/release/bws.exe
+
+      - name: Zip
+        shell: cmd
+        if: runner.os == 'Windows'
+        run: 7z a ./bws-${{ matrix.settings.target }}-%_PACKAGE_VERSION%.zip ./target/${{ matrix.settings.target }}/release/bws.exe
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v4.0.0
+        with:
+          name: bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip
+          path: ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip
+          if-no-files-found: error
+
   build:
     name: Building CLI for - ${{ matrix.settings.os }} - ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}

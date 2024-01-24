@@ -104,6 +104,9 @@ jobs:
             -tr http://timestamp.digicert.com \
             ./target/${{ matrix.settings.target }}/release/bws.exe
 
+            signtool verify /pa /v ./target/${{ matrix.settings.target }}/release/bws.exe
+            if %ERRORLEVEL% GEQ 1 echo This file is not signed.
+
       - name: Zip
         shell: cmd
         run: 7z a ./bws-${{ matrix.settings.target }}-%_PACKAGE_VERSION%.zip ./target/${{ matrix.settings.target }}/release/bws.exe

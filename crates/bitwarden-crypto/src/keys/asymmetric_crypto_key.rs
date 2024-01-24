@@ -1,15 +1,45 @@
-use rsa::RsaPrivateKey;
+use rsa::{pkcs8::DecodePublicKey, RsaPrivateKey, RsaPublicKey};
 
 use super::key_encryptable::CryptoKey;
 use crate::error::{CryptoError, Result};
 
-/// An asymmetric encryption key. Used to encrypt and decrypt [`EncString`](crate::EncString)
+/// Trait to allow both [`AsymmetricCryptoKey`] and [`AsymmetricPublicCryptoKey`] to be used to
+/// encrypt [AsymmetricEncString](crate::AsymmetricEncString).
+pub trait AsymmetricEncryptable {
+    fn to_public_key(&self) -> &RsaPublicKey;
+}
+
+/// An asymmetric public encryption key. Can only encrypt
+/// [AsymmetricEncString](crate::AsymmetricEncString), usually accompanied by a
+/// [AsymmetricCryptoKey]
+pub struct AsymmetricPublicCryptoKey {
+    pub(crate) key: RsaPublicKey,
+}
+
+impl AsymmetricPublicCryptoKey {
+    /// Build a public key from the SubjectPublicKeyInfo DER.
+    pub fn from_der(der: &[u8]) -> Result<Self> {
+        Ok(Self {
+            key: rsa::RsaPublicKey::from_public_key_der(der)
+                .map_err(|_| CryptoError::InvalidKey)?,
+        })
+    }
+}
+
+impl AsymmetricEncryptable for AsymmetricPublicCryptoKey {
+    fn to_public_key(&self) -> &RsaPublicKey {
+        &self.key
+    }
+}
+
+/// An asymmetric encryption key. Contains both the public and private key. Can be used to both
+/// encrypt and decrypt [`AsymmetricEncString`](crate::AsymmetricEncString).
 pub struct AsymmetricCryptoKey {
     pub(crate) key: RsaPrivateKey,
 }
 
 impl AsymmetricCryptoKey {
-    /// Generate a random AsymmetricCryptoKey (RSA-2048)
+    /// Generate a random AsymmetricCryptoKey (RSA-2048).
     pub fn generate<R: rand::CryptoRng + rand::RngCore>(rng: &mut R) -> Self {
         let bits = 2048;
 
@@ -45,12 +75,17 @@ impl AsymmetricCryptoKey {
     pub fn to_public_der(&self) -> Result<Vec<u8>> {
         use rsa::pkcs8::EncodePublicKey;
         Ok(self
-            .key
             .to_public_key()
             .to_public_key_der()
             .map_err(|_| CryptoError::InvalidKey)?
             .as_bytes()
             .to_owned())
+    }
+}
+
+impl AsymmetricEncryptable for AsymmetricCryptoKey {
+    fn to_public_key(&self) -> &RsaPublicKey {
+        self.key.as_ref()
     }
 }
 
@@ -67,7 +102,9 @@ impl std::fmt::Debug for AsymmetricCryptoKey {
 mod tests {
     use base64::{engine::general_purpose::STANDARD, Engine};
 
-    use super::AsymmetricCryptoKey;
+    use crate::{
+        AsymmetricCryptoKey, AsymmetricEncString, AsymmetricPublicCryptoKey, KeyDecryptable,
+    };
 
     #[test]
     fn test_asymmetric_crypto_key() {
@@ -110,5 +147,62 @@ DnqOsltgPomWZ7xVfMkm9niL2OA=
         // Check that the keys can be converted back to DER
         assert_eq!(der_key.to_der().unwrap(), der_key_vec);
         assert_eq!(pem_key.to_der().unwrap(), der_key_vec);
+    }
+
+    #[test]
+    fn test_encrypt_public_decrypt_private() {
+        let private_key = STANDARD
+            .decode(concat!(
+                "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCu9xd+vmkIPoqH",
+                "NejsFZzkd1xuCn1TqGTT7ANhAEnbI/yaVt3caI30kwUC2WIToFpNgu7Ej0x2TteY",
+                "OgrLrdcC4jy1SifmKYv/v3ZZxrd/eqttmH2k588panseRwHK3LVk7xA+URhQ/bjL",
+                "gPM59V0uR1l+z1fmooeJPFz5WSXNObc9Jqnh45FND+U/UYHXTLSomTn7jgZFxJBK",
+                "veS7q6Lat7wAnYZCF2dnPmhZoJv+SKPltA8HAGsgQGWBF1p5qxV1HrAUk8kBBnG2",
+                "paj0w8p5UM6RpDdCuvKH7j1LiuWffn3b9Z4dgzmE7jsMmvzoQtypzIKaSxhqzvFO",
+                "od9V8dJdAgMBAAECggEAGGIYjOIB1rOKkDHP4ljXutI0mCRPl3FMDemiBeppoIfZ",
+                "G/Q3qpAKmndDt0Quwh/yfcNdvZhf1kwCCTWri/uPz5fSUIyDV3TaTRu0ZWoHaBVj",
+                "Hxylg+4HRZUQj+Vi50/PWr/jQmAAVMcrMfcoTl82q2ynmP/R1vM3EsXOCjTliv5B",
+                "XlMPRjj/9PDBH0dnnVcAPDOpflzOTL2f4HTFEMlmg9/tZBnd96J/cmfhjAv9XpFL",
+                "FBAFZzs5pz0rwCNSR8QZNonnK7pngVUlGDLORK58y84tGmxZhGdne3CtCWey/sJ4",
+                "7QF0Pe8YqWBU56926IY6DcSVBuQGZ6vMCNlU7J8D2QKBgQDXyh3t2TicM/n1QBLk",
+                "zLoGmVUmxUGziHgl2dnJiGDtyOAU3+yCorPgFaCie29s5qm4b0YEGxUxPIrRrEro",
+                "h0FfKn9xmr8CdmTPTcjJW1+M7bxxq7oBoU/QzKXgIHlpeCjjnvPJt0PcNkNTjCXv",
+                "shsrINh2rENoe/x79eEfM/N5eQKBgQDPkYSmYyALoNq8zq0A4BdR+F5lb5Fj5jBH",
+                "Jk68l6Uti+0hRbJ2d1tQTLkU+eCPQLGBl6fuc1i4K5FV7v14jWtRPdD7wxrkRi3j",
+                "ilqQwLBOU6Bj3FK4DvlLF+iYTuBWj2/KcxflXECmsjitKHLK6H7kFEiuJql+NAHU",
+                "U9EFXepLBQKBgQDQ+HCnZ1bFHiiP8m7Zl9EGlvK5SwlnPV9s+F1KJ4IGhCNM09UM",
+                "ZVfgR9F5yCONyIrPiyK40ylgtwqQJlOcf281I8irUXpsfg7+Gou5Q31y0r9NLUpC",
+                "Td8niyePtqMdGjouxD2+OHXFCd+FRxFt4IMi7vnxYr0csAVAXkqWlw7PsQKBgH/G",
+                "/PnQm7GM3BrOwAGB8dksJDAddkshMScblezTDYP0V43b8firkTLliCo5iNum357/",
+                "VQmdSEhXyag07yR/Kklg3H2fpbZQ3X7tdMMXW3FcWagfwWw9C4oGtdDM/Z1Lv23J",
+                "XDR9je8QV4OBGul+Jl8RfYx3kG94ZIfo8Qt0vP5hAoGARjAzdCGYz42NwaUk8n94",
+                "W2RuKHtTV9vtjaAbfPFbZoGkT7sXNJVlrA0C+9f+H9rOTM3mX59KrjmLVzde4Vhs",
+                "avWMShuK4vpAiDQLU7GyABvi5CR6Ld+AT+LSzxHhVe0ASOQPNCA2SOz3RQvgPi7R",
+                "GDgRMUB6cL3IRVzcR0dC6cY=",
+            ))
+            .unwrap();
+
+        let public_key = STANDARD
+            .decode(concat!(
+                "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArvcXfr5pCD6KhzXo7BWc",
+                "5Hdcbgp9U6hk0+wDYQBJ2yP8mlbd3GiN9JMFAtliE6BaTYLuxI9Mdk7XmDoKy63X",
+                "AuI8tUon5imL/792Wca3f3qrbZh9pOfPKWp7HkcByty1ZO8QPlEYUP24y4DzOfVd",
+                "LkdZfs9X5qKHiTxc+VklzTm3PSap4eORTQ/lP1GB10y0qJk5+44GRcSQSr3ku6ui",
+                "2re8AJ2GQhdnZz5oWaCb/kij5bQPBwBrIEBlgRdaeasVdR6wFJPJAQZxtqWo9MPK",
+                "eVDOkaQ3Qrryh+49S4rln3592/WeHYM5hO47DJr86ELcqcyCmksYas7xTqHfVfHS",
+                "XQIDAQAB",
+            ))
+            .unwrap();
+
+        let private_key = AsymmetricCryptoKey::from_der(&private_key).unwrap();
+        let public_key = AsymmetricPublicCryptoKey::from_der(&public_key).unwrap();
+
+        let plaintext = "Hello, world!";
+        let encrypted =
+            AsymmetricEncString::encrypt_rsa2048_oaep_sha1(plaintext.as_bytes(), &public_key)
+                .unwrap();
+        let decrypted: String = encrypted.decrypt_with_key(&private_key).unwrap();
+
+        assert_eq!(plaintext, decrypted);
     }
 }

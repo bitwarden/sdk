@@ -340,6 +340,8 @@ dependencies = [
  "chrono",
  "getrandom",
  "hmac",
+ "jni",
+ "libloading",
  "log",
  "rand",
  "rand_chacha",
@@ -2651,7 +2653,6 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "webpki-roots",
  "winreg",
 ]
 

@@ -371,10 +371,20 @@ jobs:
           MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-certificate-name }}
         run: /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime ./bws-aarch64-apple-darwin/bws -v
 
-      - name: Create pkg
+      # - name: Create pkg
+      #   env:
+      #     MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-certificate-name }}
+      #   run: pkgbuild --root ./bws-aarch64-apple-darwin --identifier "com.bitwarden.bws.pkg" --install-location "/" --sign $MACOS_CERTIFICATE_NAME --version "${{ env._PACKAGE_VERSION }}" "./bws-aarch64-apple-darwin/bws-${{ env._PACKAGE_VERSION }}.pkg"
+
+      - name: Create dmg
+        run: |
+          hdiutil create ./tmp.dmg -volname "Bitwarden Secrets Manager CLI" -srcfolder ./bws-aarch64-apple-darwin -ov -fs HFS+
+          hdiutil convert ./tmp.dmg -format UDZO -o ./bws-macos-universal-pkg-${{ env._PACKAGE_VERSION }}.dmg
+
+      - name: Sign dmg
         env:
           MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-certificate-name }}
-        run: pkgbuild --root ./bws-aarch64-apple-darwin --identifier "com.bitwarden.bws.pkg" --install-location "/" --sign $MACOS_CERTIFICATE_NAME --version "${{ env._PACKAGE_VERSION }}" "./bws-aarch64-apple-darwin/bws-${{ env._PACKAGE_VERSION }}.pkg"
+        run: /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime ./bws-macos-universal-pkg-${{ env._PACKAGE_VERSION }}.dmg -v
 
       - name: Notarize app
         env:
@@ -395,17 +405,17 @@ jobs:
           rm notarization.zip
 
           echo "Creating temp notarization archive"
-          ditto -c -k --keepParent "./bws-aarch64-apple-darwin/bws-${{ env._PACKAGE_VERSION }}.pkg" "notarization.zip"
+          ditto -c -k --keepParent "./bws-macos-universal-pkg-${{ env._PACKAGE_VERSION }}.dmg" "notarization.zip"
 
-          echo "Notarize pkg"
+          echo "Notarize dmg"
           xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
 
-          xcrun stapler staple "./bws-aarch64-apple-darwin/bws-${{ env._PACKAGE_VERSION }}.pkg"
+          xcrun stapler staple "./bws-macos-universal-pkg-${{ env._PACKAGE_VERSION }}.dmg"
 
       - name: Zip universal artifact
         run: |
           zip ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip ./bws-macos-universal/bws
-          zip ./bws-macos-universal-pkg-${{ env._PACKAGE_VERSION }}.zip ./bws-aarch64-apple-darwin/bws-${{ env._PACKAGE_VERSION }}.pkg
+          zip ./bws-macos-universal-pkg-${{ env._PACKAGE_VERSION }}.zip ./bws-macos-universal-pkg-${{ env._PACKAGE_VERSION }}.dmg
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v4.0.0

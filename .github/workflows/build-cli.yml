@@ -106,7 +106,6 @@ jobs:
 
       - name: Zip
         shell: cmd
-        if: runner.os == 'Windows'
         run: 7z a ./bws-${{ matrix.settings.target }}-%_PACKAGE_VERSION%.zip ./target/${{ matrix.settings.target }}/release/bws.exe
 
       - name: Upload artifact
@@ -169,13 +168,7 @@ jobs:
           TARGET: ${{ matrix.settings.target }}
         run: cross build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
 
-      - name: Zip Windows
-        shell: cmd
-        if: runner.os == 'Windows'
-        run: 7z a ./bws-${{ matrix.settings.target }}-%_PACKAGE_VERSION%.zip ./target/${{ matrix.settings.target }}/release/bws.exe
-
       - name: Zip Unix
-        if: runner.os != 'Windows'
         run: zip -j ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip ./target/${{ matrix.settings.target }}/release/bws
 
       - name: Upload artifact

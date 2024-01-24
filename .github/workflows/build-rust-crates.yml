@@ -29,9 +29,10 @@ jobs:
 
         package:
           - bitwarden
-          - bitwarden-crypto
           - bitwarden-api-api
           - bitwarden-api-identity
+          - bitwarden-crypto
+          - bitwarden-generators
 
     steps:
       - name: Checkout
@@ -44,7 +45,7 @@ jobs:
           targets: ${{ matrix.settings.target }}
 
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@3cf7f8cc28d1b4e7d01e3783be10a97d55d483c8 # v2.7.1
+        uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
 
       - name: Build
         run: cargo build -p ${{ matrix.package }} --release
@@ -74,7 +75,7 @@ jobs:
           targets: ${{ matrix.settings.target }}
 
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@3cf7f8cc28d1b4e7d01e3783be10a97d55d483c8 # v2.7.1
+        uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
 
       - name: Install cargo-release
         run: cargo install cargo-release

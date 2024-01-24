@@ -7,17 +7,18 @@ use serde::Deserialize;
 use super::{from_b64_vec, split_enc_string};
 use crate::{
     error::{CryptoError, EncStringParseError, Result},
+    rsa::encrypt_rsa2048_oaep_sha1,
     AsymmetricCryptoKey, KeyDecryptable,
 };
 
 /// # Encrypted string primitive
 ///
-/// [AsymmEncString] is a Bitwarden specific primitive that represents an asymmetrically encrypted string. They are
-/// are used together with the KeyDecryptable and KeyEncryptable traits to encrypt and decrypt
-/// data using [AsymmetricCryptoKey]s.
+/// [AsymmetricEncString] is a Bitwarden specific primitive that represents an asymmetrically
+/// encrypted string. They are used together with the KeyDecryptable and KeyEncryptable traits to
+/// encrypt and decrypt data using [AsymmetricCryptoKey]s.
 ///
-/// The flexibility of the [AsymmEncString] type allows for different encryption algorithms to be used
-/// which is represented by the different variants of the enum.
+/// The flexibility of the [AsymmetricEncString] type allows for different encryption algorithms to
+/// be used which is represented by the different variants of the enum.
 ///
 /// ## Note
 ///
@@ -25,13 +26,13 @@ use crate::{
 /// variants, but we should be opinionated in which variants are used for encrypting.
 ///
 /// ## Variants
-/// - [Rsa2048_OaepSha256_B64](AsymmEncString::Rsa2048_OaepSha256_B64)
-/// - [Rsa2048_OaepSha1_B64](AsymmEncString::Rsa2048_OaepSha1_B64)
+/// - [Rsa2048_OaepSha256_B64](AsymmetricEncString::Rsa2048_OaepSha256_B64)
+/// - [Rsa2048_OaepSha1_B64](AsymmetricEncString::Rsa2048_OaepSha1_B64)
 ///
 /// ## Serialization
 ///
-/// [AsymmEncString] implements [Display] and [FromStr] to allow for easy serialization and uses a
-/// custom scheme to represent the different variants.
+/// [AsymmetricEncString] implements [Display] and [FromStr] to allow for easy serialization and
+/// uses a custom scheme to represent the different variants.
 ///
 /// The scheme is one of the following schemes:
 /// - `[type].[data]`
@@ -41,7 +42,7 @@ use crate::{
 /// - `[data]`: is the encrypted data.
 #[derive(Clone)]
 #[allow(unused, non_camel_case_types)]
-pub enum AsymmEncString {
+pub enum AsymmetricEncString {
     /// 3
     Rsa2048_OaepSha256_B64 { data: Vec<u8> },
     /// 4
@@ -54,15 +55,16 @@ pub enum AsymmEncString {
     Rsa2048_OaepSha1_HmacSha256_B64 { data: Vec<u8>, mac: Vec<u8> },
 }
 
-/// To avoid printing sensitive information, [AsymmEncString] debug prints to `AsymmEncString`.
-impl std::fmt::Debug for AsymmEncString {
+/// To avoid printing sensitive information, [AsymmetricEncString] debug prints to
+/// `AsymmetricEncString`.
+impl std::fmt::Debug for AsymmetricEncString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("AsymmEncString").finish()
+        f.debug_struct("AsymmetricEncString").finish()
     }
 }
 
-/// Deserializes an [AsymmEncString] from a string.
-impl FromStr for AsymmEncString {
+/// Deserializes an [AsymmetricEncString] from a string.
+impl FromStr for AsymmetricEncString {
     type Err = CryptoError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -70,23 +72,23 @@ impl FromStr for AsymmEncString {
         match (enc_type, parts.len()) {
             ("3", 1) => {
                 let data = from_b64_vec(parts[0])?;
-                Ok(AsymmEncString::Rsa2048_OaepSha256_B64 { data })
+                Ok(AsymmetricEncString::Rsa2048_OaepSha256_B64 { data })
             }
             ("4", 1) => {
                 let data = from_b64_vec(parts[0])?;
-                Ok(AsymmEncString::Rsa2048_OaepSha1_B64 { data })
+                Ok(AsymmetricEncString::Rsa2048_OaepSha1_B64 { data })
             }
             #[allow(deprecated)]
             ("5", 2) => {
                 let data = from_b64_vec(parts[0])?;
                 let mac: Vec<u8> = from_b64_vec(parts[1])?;
-                Ok(AsymmEncString::Rsa2048_OaepSha256_HmacSha256_B64 { data, mac })
+                Ok(AsymmetricEncString::Rsa2048_OaepSha256_HmacSha256_B64 { data, mac })
             }
             #[allow(deprecated)]
             ("6", 2) => {
                 let data = from_b64_vec(parts[0])?;
                 let mac: Vec<u8> = from_b64_vec(parts[1])?;
-                Ok(AsymmEncString::Rsa2048_OaepSha1_HmacSha256_B64 { data, mac })
+                Ok(AsymmetricEncString::Rsa2048_OaepSha1_HmacSha256_B64 { data, mac })
             }
 
             (enc_type, parts) => Err(EncStringParseError::InvalidTypeAsymm {
@@ -98,15 +100,15 @@ impl FromStr for AsymmEncString {
     }
 }
 
-impl Display for AsymmEncString {
+impl Display for AsymmetricEncString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let parts: Vec<&[u8]> = match self {
-            AsymmEncString::Rsa2048_OaepSha256_B64 { data } => vec![data],
-            AsymmEncString::Rsa2048_OaepSha1_B64 { data } => vec![data],
+            AsymmetricEncString::Rsa2048_OaepSha256_B64 { data } => vec![data],
+            AsymmetricEncString::Rsa2048_OaepSha1_B64 { data } => vec![data],
             #[allow(deprecated)]
-            AsymmEncString::Rsa2048_OaepSha256_HmacSha256_B64 { data, mac } => vec![data, mac],
+            AsymmetricEncString::Rsa2048_OaepSha256_HmacSha256_B64 { data, mac } => vec![data, mac],
             #[allow(deprecated)]
-            AsymmEncString::Rsa2048_OaepSha1_HmacSha256_B64 { data, mac } => vec![data, mac],
+            AsymmetricEncString::Rsa2048_OaepSha1_HmacSha256_B64 { data, mac } => vec![data, mac],
         };
 
         let encoded_parts: Vec<String> = parts.iter().map(|part| STANDARD.encode(part)).collect();
@@ -117,7 +119,7 @@ impl Display for AsymmEncString {
     }
 }
 
-impl<'de> Deserialize<'de> for AsymmEncString {
+impl<'de> Deserialize<'de> for AsymmetricEncString {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -126,7 +128,7 @@ impl<'de> Deserialize<'de> for AsymmEncString {
     }
 }
 
-impl serde::Serialize for AsymmEncString {
+impl serde::Serialize for AsymmetricEncString {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -135,23 +137,31 @@ impl serde::Serialize for AsymmEncString {
     }
 }
 
-impl AsymmEncString {
-    /// The numerical representation of the encryption type of the [AsymmEncString].
+impl AsymmetricEncString {
+    pub(crate) fn encrypt_rsa2048_oaep_sha1(
+        data_dec: &[u8],
+        key: &AsymmetricCryptoKey,
+    ) -> Result<AsymmetricEncString> {
+        let enc = encrypt_rsa2048_oaep_sha1(&key.key, data_dec)?;
+        Ok(AsymmetricEncString::Rsa2048_OaepSha1_B64 { data: enc })
+    }
+
+    /// The numerical representation of the encryption type of the [AsymmetricEncString].
     const fn enc_type(&self) -> u8 {
         match self {
-            AsymmEncString::Rsa2048_OaepSha256_B64 { .. } => 3,
-            AsymmEncString::Rsa2048_OaepSha1_B64 { .. } => 4,
+            AsymmetricEncString::Rsa2048_OaepSha256_B64 { .. } => 3,
+            AsymmetricEncString::Rsa2048_OaepSha1_B64 { .. } => 4,
             #[allow(deprecated)]
-            AsymmEncString::Rsa2048_OaepSha256_HmacSha256_B64 { .. } => 5,
+            AsymmetricEncString::Rsa2048_OaepSha256_HmacSha256_B64 { .. } => 5,
             #[allow(deprecated)]
-            AsymmEncString::Rsa2048_OaepSha1_HmacSha256_B64 { .. } => 6,
+            AsymmetricEncString::Rsa2048_OaepSha1_HmacSha256_B64 { .. } => 6,
         }
     }
 }
 
-impl KeyDecryptable<AsymmetricCryptoKey, Vec<u8>> for AsymmEncString {
+impl KeyDecryptable<AsymmetricCryptoKey, Vec<u8>> for AsymmetricEncString {
     fn decrypt_with_key(&self, key: &AsymmetricCryptoKey) -> Result<Vec<u8>> {
-        use AsymmEncString::*;
+        use AsymmetricEncString::*;
         match self {
             Rsa2048_OaepSha256_B64 { data } => key.key.decrypt(Oaep::new::<sha2::Sha256>(), data),
             Rsa2048_OaepSha1_B64 { data } => key.key.decrypt(Oaep::new::<sha1::Sha1>(), data),
@@ -168,18 +178,18 @@ impl KeyDecryptable<AsymmetricCryptoKey, Vec<u8>> for AsymmEncString {
     }
 }
 
-impl KeyDecryptable<AsymmetricCryptoKey, String> for AsymmEncString {
+impl KeyDecryptable<AsymmetricCryptoKey, String> for AsymmetricEncString {
     fn decrypt_with_key(&self, key: &AsymmetricCryptoKey) -> Result<String> {
         let dec: Vec<u8> = self.decrypt_with_key(key)?;
         String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String)
     }
 }
 
-/// Usually we wouldn't want to expose AsymmEncStrings in the API or the schemas.
-/// But during the transition phase we will expose endpoints using the AsymmEncString type.
-impl schemars::JsonSchema for AsymmEncString {
+/// Usually we wouldn't want to expose AsymmetricEncStrings in the API or the schemas.
+/// But during the transition phase we will expose endpoints using the AsymmetricEncString type.
+impl schemars::JsonSchema for AsymmetricEncString {
     fn schema_name() -> String {
-        "AsymmEncString".to_string()
+        "AsymmetricEncString".to_string()
     }
 
     fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
@@ -189,7 +199,7 @@ impl schemars::JsonSchema for AsymmEncString {
 
 #[cfg(test)]
 mod tests {
-    use super::{AsymmEncString, AsymmetricCryptoKey, KeyDecryptable};
+    use super::{AsymmetricCryptoKey, AsymmetricEncString, KeyDecryptable};
 
     const RSA_PRIVATE_KEY: &str = "-----BEGIN PRIVATE KEY-----
 MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCXRVrCX+2hfOQS
@@ -224,7 +234,7 @@ XKZBokBGnjFnTnKcs7nv/O8=
     fn test_enc_string_rsa2048_oaep_sha256_b64() {
         let private_key = AsymmetricCryptoKey::from_pem(RSA_PRIVATE_KEY).unwrap();
         let enc_str: &str = "3.YFqzW9LL/uLjCnl0RRLtndzGJ1FV27mcwQwGjfJPOVrgCX9nJSUYCCDd0iTIyOZ/zRxG47b6L1Z3qgkEfcxjmrSBq60gijc3E2TBMAg7OCLVcjORZ+i1sOVOudmOPWro6uA8refMrg4lqbieDlbLMzjVEwxfi5WpcL876cD0vYyRwvLO3bzFrsE7x33HHHtZeOPW79RqMn5efsB5Dj9wVheC9Ix9AYDjbo+rjg9qR6guwKmS7k2MSaIQlrDR7yu8LP+ePtiSjx+gszJV5jQGfcx60dtiLQzLS/mUD+RmU7B950Bpx0H7x56lT5yXZbWK5YkoP6qd8B8D2aKbP68Ywg==";
-        let enc_string: AsymmEncString = enc_str.parse().unwrap();
+        let enc_string: AsymmetricEncString = enc_str.parse().unwrap();
 
         assert_eq!(enc_string.enc_type(), 3);
 
@@ -236,7 +246,7 @@ XKZBokBGnjFnTnKcs7nv/O8=
     fn test_enc_string_rsa2048_oaep_sha1_b64() {
         let private_key = AsymmetricCryptoKey::from_pem(RSA_PRIVATE_KEY).unwrap();
         let enc_str: &str = "4.ZheRb3PCfAunyFdQYPfyrFqpuvmln9H9w5nDjt88i5A7ug1XE0LJdQHCIYJl0YOZ1gCOGkhFu/CRY2StiLmT3iRKrrVBbC1+qRMjNNyDvRcFi91LWsmRXhONVSPjywzrJJXglsztDqGkLO93dKXNhuKpcmtBLsvgkphk/aFvxbaOvJ/FHdK/iV0dMGNhc/9tbys8laTdwBlI5xIChpRcrfH+XpSFM88+Bu03uK67N9G6eU1UmET+pISJwJvMuIDMqH+qkT7OOzgL3t6I0H2LDj+CnsumnQmDsvQzDiNfTR0IgjpoE9YH2LvPXVP2wVUkiTwXD9cG/E7XeoiduHyHjw==";
-        let enc_string: AsymmEncString = enc_str.parse().unwrap();
+        let enc_string: AsymmetricEncString = enc_str.parse().unwrap();
 
         assert_eq!(enc_string.enc_type(), 4);
 
@@ -248,7 +258,7 @@ XKZBokBGnjFnTnKcs7nv/O8=
     fn test_enc_string_rsa2048_oaep_sha1_hmac_sha256_b64() {
         let private_key = AsymmetricCryptoKey::from_pem(RSA_PRIVATE_KEY).unwrap();
         let enc_str: &str = "6.ThnNc67nNr7GELyuhGGfsXNP2zJnNqhrIsjntEQ27r2qmn8vwdHbTbfO0cwt6YgSibDN0PjiCZ1O3Wb/IFq+vwvyRwFqF9145wBF8CQCbkhV+M0XvO99kh0daovtt120Nve/5ETI5PbPag9VdalKRQWZypJaqQHm5TAQVf4F5wtLlCLMBkzqTk+wkFe7BPMTGn07T+O3eJbTxXvyMZewQ7icJF0MZVA7VyWX9qElmZ89FCKowbf1BMr5pbcQ+0KdXcSVW3to43VkTp7k7COwsuH3M/i1AuVP5YN8ixjyRpvaeGqX/ap2nCHK2Wj5VxgCGT7XEls6ZknnAp9nB9qVjQ==|s3ntw5H/KKD/qsS0lUghTHl5Sm9j6m7YEdNHf0OeAFQ=";
-        let enc_string: AsymmEncString = enc_str.parse().unwrap();
+        let enc_string: AsymmetricEncString = enc_str.parse().unwrap();
 
         assert_eq!(enc_string.enc_type(), 6);
 
@@ -260,7 +270,7 @@ XKZBokBGnjFnTnKcs7nv/O8=
     fn test_enc_string_serialization() {
         #[derive(serde::Serialize, serde::Deserialize)]
         struct Test {
-            key: AsymmEncString,
+            key: AsymmetricEncString,
         }
 
         let cipher = "6.ThnNc67nNr7GELyuhGGfsXNP2zJnNqhrIsjntEQ27r2qmn8vwdHbTbfO0cwt6YgSibDN0PjiCZ1O3Wb/IFq+vwvyRwFqF9145wBF8CQCbkhV+M0XvO99kh0daovtt120Nve/5ETI5PbPag9VdalKRQWZypJaqQHm5TAQVf4F5wtLlCLMBkzqTk+wkFe7BPMTGn07T+O3eJbTxXvyMZewQ7icJF0MZVA7VyWX9qElmZ89FCKowbf1BMr5pbcQ+0KdXcSVW3to43VkTp7k7COwsuH3M/i1AuVP5YN8ixjyRpvaeGqX/ap2nCHK2Wj5VxgCGT7XEls6ZknnAp9nB9qVjQ==|s3ntw5H/KKD/qsS0lUghTHl5Sm9j6m7YEdNHf0OeAFQ=";

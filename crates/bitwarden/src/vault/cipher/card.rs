@@ -47,12 +47,12 @@ impl KeyEncryptable<SymmetricCryptoKey, Card> for CardView {
 impl KeyDecryptable<SymmetricCryptoKey, CardView> for Card {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CardView, CryptoError> {
         Ok(CardView {
-            cardholder_name: self.cardholder_name.decrypt_with_key(key)?,
-            exp_month: self.exp_month.decrypt_with_key(key)?,
-            exp_year: self.exp_year.decrypt_with_key(key)?,
-            code: self.code.decrypt_with_key(key)?,
-            brand: self.brand.decrypt_with_key(key)?,
-            number: self.number.decrypt_with_key(key)?,
+            cardholder_name: self.cardholder_name.decrypt_with_key(key).ok().flatten(),
+            exp_month: self.exp_month.decrypt_with_key(key).ok().flatten(),
+            exp_year: self.exp_year.decrypt_with_key(key).ok().flatten(),
+            code: self.code.decrypt_with_key(key).ok().flatten(),
+            brand: self.brand.decrypt_with_key(key).ok().flatten(),
+            number: self.number.decrypt_with_key(key).ok().flatten(),
         })
     }
 }

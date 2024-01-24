@@ -1,8 +1,9 @@
 use bitwarden::{
     auth::password::MasterPasswordPolicyOptions,
+    generators::{PassphraseGeneratorRequest, PasswordGeneratorRequest},
     mobile::crypto::{InitOrgCryptoRequest, InitUserCryptoRequest},
     platform::FingerprintRequest,
-    tool::{ExportFormat, PassphraseGeneratorRequest, PasswordGeneratorRequest},
+    tool::ExportFormat,
     vault::{
         Cipher, CipherView, Collection, Folder, FolderView, Send, SendListView, SendView,
         TotpResponse,

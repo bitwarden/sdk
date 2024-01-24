@@ -2,8 +2,17 @@ use bitwarden_crypto::EFF_LONG_WORD_LIST;
 use rand::{seq::SliceRandom, Rng, RngCore};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
-use crate::{error::Result, util::capitalize_first_letter};
+use crate::util::capitalize_first_letter;
+
+#[derive(Debug, Error)]
+pub enum PassphraseError {
+    #[error("'num_words' must be between {} and {}", minimum, maximum)]
+    InvalidNumWords { minimum: u8, maximum: u8 },
+    #[error("'word_separator' cannot be empty")]
+    EmptyWordSeparator,
+}
 
 /// Passphrase generator request options.
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -17,7 +26,8 @@ pub struct PassphraseGeneratorRequest {
     pub word_separator: String,
     /// When set to true, capitalize the first letter of each word in the generated passphrase.
     pub capitalize: bool,
-    /// When set to true, include a number at the end of one of the words in the generated passphrase.
+    /// When set to true, include a number at the end of one of the words in the generated
+    /// passphrase.
     pub include_number: bool,
 }
 
@@ -36,7 +46,8 @@ const MINIMUM_PASSPHRASE_NUM_WORDS: u8 = 3;
 const MAXIMUM_PASSPHRASE_NUM_WORDS: u8 = 20;
 
 /// Represents a set of valid options to generate a passhprase with.
-/// To get an instance of it, use [`PassphraseGeneratorRequest::validate_options`](PassphraseGeneratorRequest::validate_options)
+/// To get an instance of it, use
+/// [`PassphraseGeneratorRequest::validate_options`](PassphraseGeneratorRequest::validate_options)
 struct ValidPassphraseGeneratorOptions {
     pub(super) num_words: u8,
     pub(super) word_separator: String,
@@ -45,17 +56,21 @@ struct ValidPassphraseGeneratorOptions {
 }
 
 impl PassphraseGeneratorRequest {
-    /// Validates the request and returns an immutable struct with valid options to use with the passphrase generator.
-    fn validate_options(self) -> Result<ValidPassphraseGeneratorOptions> {
+    /// Validates the request and returns an immutable struct with valid options to use with the
+    /// passphrase generator.
+    fn validate_options(self) -> Result<ValidPassphraseGeneratorOptions, PassphraseError> {
         // TODO: Add password generator policy checks
 
         if !(MINIMUM_PASSPHRASE_NUM_WORDS..=MAXIMUM_PASSPHRASE_NUM_WORDS).contains(&self.num_words)
         {
-            return Err(format!("'num_words' must be between {MINIMUM_PASSPHRASE_NUM_WORDS} and {MAXIMUM_PASSPHRASE_NUM_WORDS}").into());
+            return Err(PassphraseError::InvalidNumWords {
+                minimum: MINIMUM_PASSPHRASE_NUM_WORDS,
+                maximum: MAXIMUM_PASSPHRASE_NUM_WORDS,
+            });
         }
 
         if self.word_separator.chars().next().is_none() {
-            return Err("'word_separator' cannot be empty".into());
+            return Err(PassphraseError::EmptyWordSeparator);
         };
 
         Ok(ValidPassphraseGeneratorOptions {
@@ -67,13 +82,8 @@ impl PassphraseGeneratorRequest {
     }
 }
 
-/// Implementation of the random passphrase generator. This is not accessible to the public API.
-/// See [`ClientGenerator::passphrase`](crate::ClientGenerator::passphrase) for the API function.
-///
-/// # Arguments:
-/// * `options`: Valid parameters used to generate the passphrase. To create it, use
-///     [`PassphraseGeneratorRequest::validate_options`](PassphraseGeneratorRequest::validate_options).
-pub(super) fn passphrase(request: PassphraseGeneratorRequest) -> Result<String> {
+/// Implementation of the random passphrase generator.
+pub fn passphrase(request: PassphraseGeneratorRequest) -> Result<String, PassphraseError> {
     let options = request.validate_options()?;
     Ok(passphrase_with_rng(rand::thread_rng(), options))
 }
@@ -166,7 +176,8 @@ mod tests {
 
         let input = PassphraseGeneratorRequest {
             num_words: 4,
-            word_separator: "👨🏻‍❤️‍💋‍👨🏻".into(), // This emoji is 35 bytes long, but represented as a single character
+            word_separator: "👨🏻‍❤️‍💋‍👨🏻".into(), /* This emoji is 35 bytes long, but represented
+                                                   * as a single character */
             capitalize: false,
             include_number: true,
         }

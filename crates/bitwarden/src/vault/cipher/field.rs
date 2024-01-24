@@ -55,8 +55,8 @@ impl KeyEncryptable<SymmetricCryptoKey, Field> for FieldView {
 impl KeyDecryptable<SymmetricCryptoKey, FieldView> for Field {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<FieldView, CryptoError> {
         Ok(FieldView {
-            name: self.name.decrypt_with_key(key)?,
-            value: self.value.decrypt_with_key(key)?,
+            name: self.name.decrypt_with_key(key).ok().flatten(),
+            value: self.value.decrypt_with_key(key).ok().flatten(),
             r#type: self.r#type,
             linked_id: self.linked_id,
         })

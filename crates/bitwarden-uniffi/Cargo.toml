@@ -25,6 +25,9 @@ bitwarden = { path = "../bitwarden", features = ["mobile", "internal"] }
 bitwarden-crypto = { path = "../bitwarden-crypto", version = "=0.1.0", features = [
     "mobile",
 ] }
+bitwarden-generators = { path = "../bitwarden-generators", version = "=0.1.0", features = [
+    "mobile",
+] }
 
 [build-dependencies]
 uniffi = { version = "=0.25.2", features = ["build"] }

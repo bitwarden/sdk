@@ -14,7 +14,8 @@ pub fn derive_shareable_key(
 ) -> SymmetricCryptoKey {
     // Because all inputs are fixed size, we can unwrap all errors here without issue
 
-    // TODO: Are these the final `key` and `info` parameters or should we change them? I followed the pattern used for sends
+    // TODO: Are these the final `key` and `info` parameters or should we change them? I followed
+    // the pattern used for sends
     let res = Hmac::<sha2::Sha256>::new_from_slice(format!("bitwarden-{}", name).as_bytes())
         .unwrap()
         .chain_update(secret)

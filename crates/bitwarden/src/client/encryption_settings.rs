@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-#[cfg(feature = "internal")]
-use bitwarden_crypto::{AsymmEncString, EncString};
 use bitwarden_crypto::{AsymmetricCryptoKey, KeyContainer, SymmetricCryptoKey};
+#[cfg(feature = "internal")]
+use bitwarden_crypto::{AsymmetricEncString, EncString};
 use uuid::Uuid;
 
 #[cfg(feature = "internal")]
@@ -45,9 +45,10 @@ impl EncryptionSettings {
         }
     }
 
-    /// Initialize the encryption settings with the decrypted user key and the encrypted user private key
-    /// This should only be used when unlocking the vault via biometrics or when the vault is set to lock: "never"
-    /// Otherwise handling the decrypted user key is dangerous and discouraged
+    /// Initialize the encryption settings with the decrypted user key and the encrypted user
+    /// private key This should only be used when unlocking the vault via biometrics or when the
+    /// vault is set to lock: "never" Otherwise handling the decrypted user key is dangerous and
+    /// discouraged
     #[cfg(feature = "internal")]
     pub(crate) fn new_decrypted_key(
         user_key: SymmetricCryptoKey,
@@ -80,7 +81,7 @@ impl EncryptionSettings {
     #[cfg(feature = "internal")]
     pub(crate) fn set_org_keys(
         &mut self,
-        org_enc_keys: Vec<(Uuid, AsymmEncString)>,
+        org_enc_keys: Vec<(Uuid, AsymmetricEncString)>,
     ) -> Result<&mut Self> {
         use bitwarden_crypto::KeyDecryptable;
 
@@ -105,7 +106,8 @@ impl EncryptionSettings {
     }
 
     pub(crate) fn get_key(&self, org_id: &Option<Uuid>) -> Option<&SymmetricCryptoKey> {
-        // If we don't have a private key set (to decode multiple org keys), we just use the main user key
+        // If we don't have a private key set (to decode multiple org keys), we just use the main
+        // user key
         if self.private_key.is_none() {
             return Some(&self.user_key);
         }

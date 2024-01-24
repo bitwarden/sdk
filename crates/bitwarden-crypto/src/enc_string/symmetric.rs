@@ -12,9 +12,9 @@ use crate::{
 
 /// # Encrypted string primitive
 ///
-/// [EncString] is a Bitwarden specific primitive that represents a symmetrically encrypted string. They are
-/// are used together with the [KeyDecryptable] and [KeyEncryptable] traits to encrypt and decrypt
-/// data using [SymmetricCryptoKey]s.
+/// [EncString] is a Bitwarden specific primitive that represents a symmetrically encrypted string.
+/// They are are used together with the [KeyDecryptable] and [KeyEncryptable] traits to encrypt and
+/// decrypt data using [SymmetricCryptoKey]s.
 ///
 /// The flexibility of the [EncString] type allows for different encryption algorithms to be used
 /// which is represented by the different variants of the enum.

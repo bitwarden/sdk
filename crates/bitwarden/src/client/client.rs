@@ -4,7 +4,7 @@ use std::path::PathBuf;
 pub use bitwarden_crypto::Kdf;
 use bitwarden_crypto::SymmetricCryptoKey;
 #[cfg(feature = "internal")]
-use bitwarden_crypto::{AsymmEncString, EncString};
+use bitwarden_crypto::{AsymmetricEncString, EncString};
 use chrono::Utc;
 use reqwest::header::{self};
 use uuid::Uuid;
@@ -280,7 +280,7 @@ impl Client {
     #[cfg(feature = "internal")]
     pub(crate) fn initialize_org_crypto(
         &mut self,
-        org_keys: Vec<(Uuid, AsymmEncString)>,
+        org_keys: Vec<(Uuid, AsymmetricEncString)>,
     ) -> Result<&EncryptionSettings> {
         let enc = self
             .encryption_settings

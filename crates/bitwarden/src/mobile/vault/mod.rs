@@ -1,3 +1,4 @@
+mod client_attachments;
 mod client_ciphers;
 mod client_collection;
 mod client_folders;
@@ -6,6 +7,7 @@ mod client_sends;
 mod client_totp;
 mod client_vault;
 
+pub use client_attachments::ClientAttachments;
 pub use client_ciphers::ClientCiphers;
 pub use client_collection::ClientCollections;
 pub use client_folders::ClientFolders;

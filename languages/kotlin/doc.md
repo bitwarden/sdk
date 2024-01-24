@@ -138,6 +138,62 @@ password, use the email OTP.
 
 **Output**: std::result::Result<,BitwardenError>
 
+## ClientAttachments
+
+### `encrypt_buffer`
+
+Encrypt an attachment file in memory
+
+**Arguments**:
+
+- self:
+- cipher: [Cipher](#cipher)
+- attachment: [AttachmentView](#attachmentview)
+- buffer: Vec<>
+
+**Output**: std::result::Result<AttachmentEncryptResult,BitwardenError>
+
+### `encrypt_file`
+
+Encrypt an attachment file located in the file system
+
+**Arguments**:
+
+- self:
+- cipher: [Cipher](#cipher)
+- attachment: [AttachmentView](#attachmentview)
+- decrypted_file_path: String
+- encrypted_file_path: String
+
+**Output**: std::result::Result<Attachment,BitwardenError>
+
+### `decrypt_buffer`
+
+Decrypt an attachment file in memory
+
+**Arguments**:
+
+- self:
+- cipher: [Cipher](#cipher)
+- attachment: [Attachment](#attachment)
+- buffer: Vec<>
+
+**Output**: std::result::Result<Vec,BitwardenError>
+
+### `decrypt_file`
+
+Decrypt an attachment file located in the file system
+
+**Arguments**:
+
+- self:
+- cipher: [Cipher](#cipher)
+- attachment: [Attachment](#attachment)
+- encrypted_file_path: String
+- decrypted_file_path: String
+
+**Output**: std::result::Result<,BitwardenError>
+
 ## ClientCiphers
 
 ### `encrypt`
@@ -541,6 +597,16 @@ Sends operations
 
 **Output**: Arc<sends::ClientSends>
 
+### `attachments`
+
+Attachment file operations
+
+**Arguments**:
+
+- self: Arc<Self>
+
+**Output**: Arc<attachments::ClientAttachments>
+
 ### `generate_totp`
 
 Generate a TOTP code from a provided key.
@@ -563,6 +629,86 @@ The key can be either:
 
 References are generated from the JSON schemas and should mostly match the kotlin and swift
 implementations.
+
+## `Attachment`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>id</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>url</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>size</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>sizeName</th>
+    <th>string,null</th>
+    <th>Readable size, ex: &quot;4.2 KB&quot; or &quot;1.43 GB&quot;</th>
+</tr>
+<tr>
+    <th>fileName</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>key</th>
+    <th></th>
+    <th></th>
+</tr>
+</table>
+
+## `AttachmentView`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>id</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>url</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>size</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>sizeName</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>fileName</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>key</th>
+    <th></th>
+    <th></th>
+</tr>
+</table>
 
 ## `Cipher`
 

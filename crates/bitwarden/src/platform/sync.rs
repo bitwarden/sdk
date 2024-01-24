@@ -69,7 +69,8 @@ pub struct DomainResponse {
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SyncResponse {
-    /// Data about the user, including their encryption keys and the organizations they are a part of
+    /// Data about the user, including their encryption keys and the organizations they are a part
+    /// of
     pub profile: ProfileResponse,
     pub folders: Vec<Folder>,
     pub collections: Vec<Collection>,

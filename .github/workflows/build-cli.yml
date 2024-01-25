@@ -39,8 +39,6 @@ jobs:
           fi
           echo "sign=false" >> $GITHUB_OUTPUT
 
-
-
   build-windows:
     name: Building CLI for - ${{ matrix.settings.os }} - ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}

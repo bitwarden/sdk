@@ -3,10 +3,7 @@ use base64::{
     Engine,
 };
 use bitwarden_api_api::models::{SendFileModel, SendResponseModel, SendTextModel};
-use bitwarden_crypto::{
-    derive_shareable_key, generate_random_bytes, CryptoError, EncString, KeyDecryptable,
-    KeyEncryptable, LocateKey, SymmetricCryptoKey,
-};
+use bitwarden_crypto::{derive_shareable_key, generate_random_bytes, CryptoError, EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey, DecryptedString, DecryptedVec};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -33,7 +30,7 @@ pub struct SendFile {
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SendFileView {
     pub id: Option<String>,
-    pub file_name: String,
+    pub file_name: DecryptedString,
     pub size: Option<String>,
     /// Readable size, ex: "4.2 KB" or "1.43 GB"
     pub size_name: Option<String>,
@@ -51,7 +48,7 @@ pub struct SendText {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SendTextView {
-    pub text: Option<String>,
+    pub text: Option<DecryptedString>,
     pub hidden: bool,
 }
 
@@ -96,8 +93,8 @@ pub struct SendView {
     pub id: Option<Uuid>,
     pub access_id: Option<String>,
 
-    pub name: String,
-    pub notes: Option<String>,
+    pub name: DecryptedString,
+    pub notes: Option<DecryptedString>,
     /// Base64 encoded key
     pub key: Option<String>,
     /// Replace or add a password to an existing send. The SDK will always return None when
@@ -122,14 +119,14 @@ pub struct SendView {
     pub expiration_date: Option<DateTime<Utc>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SendListView {
     pub id: Option<Uuid>,
     pub access_id: Option<String>,
 
-    pub name: String,
+    pub name: DecryptedString,
 
     pub r#type: SendType,
     pub disabled: bool,
@@ -144,8 +141,8 @@ impl Send {
         send_key: &EncString,
         enc_key: &SymmetricCryptoKey,
     ) -> Result<SymmetricCryptoKey, CryptoError> {
-        let key: Vec<u8> = send_key.decrypt_with_key(enc_key)?;
-        Self::derive_shareable_key(&key)
+        let key: DecryptedVec = send_key.decrypt_with_key(enc_key)?;
+        Self::derive_shareable_key(key.expose())
     }
 
     fn derive_shareable_key(key: &[u8]) -> Result<SymmetricCryptoKey, CryptoError> {
@@ -200,8 +197,8 @@ impl KeyDecryptable<SymmetricCryptoKey, SendView> for Send {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full
         // size For the rest of the fields, we ignore the provided SymmetricCryptoKey and
         // the stretched key
-        let k: Vec<u8> = self.key.decrypt_with_key(key)?;
-        let key = Send::derive_shareable_key(&k)?;
+        let k: DecryptedVec = self.key.decrypt_with_key(key)?;
+        let key = Send::derive_shareable_key(k.expose())?;
 
         Ok(SendView {
             id: self.id,
@@ -209,7 +206,7 @@ impl KeyDecryptable<SymmetricCryptoKey, SendView> for Send {
 
             name: self.name.decrypt_with_key(&key).ok().unwrap_or_default(),
             notes: self.notes.decrypt_with_key(&key).ok().flatten(),
-            key: Some(URL_SAFE_NO_PAD.encode(k)),
+            key: Some(URL_SAFE_NO_PAD.encode(k.expose())),
             new_password: None,
             has_password: self.password.is_some(),
 

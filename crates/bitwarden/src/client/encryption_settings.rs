@@ -54,11 +54,11 @@ impl EncryptionSettings {
         user_key: SymmetricCryptoKey,
         private_key: EncString,
     ) -> Result<Self> {
-        use bitwarden_crypto::KeyDecryptable;
+        use bitwarden_crypto::{DecryptedVec, KeyDecryptable};
 
         let private_key = {
-            let dec: Vec<u8> = private_key.decrypt_with_key(&user_key)?;
-            Some(AsymmetricCryptoKey::from_der(&dec)?)
+            let dec: DecryptedVec = private_key.decrypt_with_key(&user_key)?;
+            Some(AsymmetricCryptoKey::from_der(dec.expose())?)
         };
 
         Ok(EncryptionSettings {
@@ -83,7 +83,7 @@ impl EncryptionSettings {
         &mut self,
         org_enc_keys: Vec<(Uuid, AsymmetricEncString)>,
     ) -> Result<&mut Self> {
-        use bitwarden_crypto::KeyDecryptable;
+        use bitwarden_crypto::{DecryptedVec, KeyDecryptable};
 
         use crate::error::Error;
 
@@ -95,9 +95,9 @@ impl EncryptionSettings {
 
         // Decrypt the org keys with the private key
         for (org_id, org_enc_key) in org_enc_keys {
-            let dec: Vec<u8> = org_enc_key.decrypt_with_key(private_key)?;
+            let dec: DecryptedVec = org_enc_key.decrypt_with_key(private_key)?;
 
-            let org_key = SymmetricCryptoKey::try_from(dec.as_slice())?;
+            let org_key = SymmetricCryptoKey::try_from(dec.expose().as_slice())?;
 
             self.org_keys.insert(org_id, org_key);
         }

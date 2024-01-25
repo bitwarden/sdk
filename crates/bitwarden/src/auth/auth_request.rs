@@ -57,10 +57,12 @@ pub(crate) fn auth_request_decrypt_user_key(
     private_key: String,
     user_key: AsymmetricEncString,
 ) -> Result<SymmetricCryptoKey, Error> {
-    let key = AsymmetricCryptoKey::from_der(&STANDARD.decode(private_key)?)?;
-    let key: String = user_key.decrypt_with_key(&key)?;
+    use bitwarden_crypto::DecryptedString;
 
-    Ok(key.parse()?)
+    let key = AsymmetricCryptoKey::from_der(&STANDARD.decode(private_key)?)?;
+    let key: DecryptedString = user_key.decrypt_with_key(&key)?;
+
+    Ok(key.expose().parse()?)
 }
 
 /// Approve an auth request.

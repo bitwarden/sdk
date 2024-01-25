@@ -1,7 +1,5 @@
 use bitwarden_api_api::models::CipherIdentityModel;
-use bitwarden_crypto::{
-    CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
-};
+use bitwarden_crypto::{CryptoError, DecryptedString, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -35,24 +33,24 @@ pub struct Identity {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct IdentityView {
-    pub title: Option<String>,
-    pub first_name: Option<String>,
-    pub middle_name: Option<String>,
-    pub last_name: Option<String>,
-    pub address1: Option<String>,
-    pub address2: Option<String>,
-    pub address3: Option<String>,
-    pub city: Option<String>,
-    pub state: Option<String>,
-    pub postal_code: Option<String>,
-    pub country: Option<String>,
-    pub company: Option<String>,
-    pub email: Option<String>,
-    pub phone: Option<String>,
-    pub ssn: Option<String>,
-    pub username: Option<String>,
-    pub passport_number: Option<String>,
-    pub license_number: Option<String>,
+    pub title: Option<DecryptedString>,
+    pub first_name: Option<DecryptedString>,
+    pub middle_name: Option<DecryptedString>,
+    pub last_name: Option<DecryptedString>,
+    pub address1: Option<DecryptedString>,
+    pub address2: Option<DecryptedString>,
+    pub address3: Option<DecryptedString>,
+    pub city: Option<DecryptedString>,
+    pub state: Option<DecryptedString>,
+    pub postal_code: Option<DecryptedString>,
+    pub country: Option<DecryptedString>,
+    pub company: Option<DecryptedString>,
+    pub email: Option<DecryptedString>,
+    pub phone: Option<DecryptedString>,
+    pub ssn: Option<DecryptedString>,
+    pub username: Option<DecryptedString>,
+    pub passport_number: Option<DecryptedString>,
+    pub license_number: Option<DecryptedString>,
 }
 
 impl KeyEncryptable<SymmetricCryptoKey, Identity> for IdentityView {

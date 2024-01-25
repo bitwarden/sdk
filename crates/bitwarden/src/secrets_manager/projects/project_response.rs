@@ -1,5 +1,5 @@
 use bitwarden_api_api::models::ProjectResponseModel;
-use bitwarden_crypto::{Decryptable, EncString};
+use bitwarden_crypto::{Decryptable, DecryptedString, EncString};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -27,7 +27,7 @@ impl ProjectResponse {
     ) -> Result<Self> {
         let organization_id = response.organization_id.ok_or(Error::MissingFields)?;
 
-        let name = response
+        let name: DecryptedString = response
             .name
             .ok_or(Error::MissingFields)?
             .parse::<EncString>()?
@@ -36,7 +36,7 @@ impl ProjectResponse {
         Ok(ProjectResponse {
             id: response.id.ok_or(Error::MissingFields)?,
             organization_id,
-            name,
+            name: name.expose().to_owned(),
 
             creation_date: response
                 .creation_date

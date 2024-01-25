@@ -1,13 +1,20 @@
+use std::{
+    borrow::Cow,
+    fmt::{self, Formatter},
+};
+
+use schemars::JsonSchema;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
-use crate::CryptoError;
+use crate::{CryptoError, CryptoKey, KeyEncryptable};
 
 /// A wrapper for decrypted values.
 ///
 /// Implements `Zeroize` and `ZeroizeOnDrop` to ensure that the value is zeroized on drop. Please be
 /// careful if cloning or copying the inner value using `expose` since any copy will not be
 /// zeroized.
-#[derive(Zeroize, ZeroizeOnDrop)]
+#[derive(Zeroize, ZeroizeOnDrop, PartialEq, Clone)]
 pub struct Decrypted<V: Zeroize> {
     value: V,
 }
@@ -34,6 +41,66 @@ impl TryFrom<DecryptedVec> for DecryptedString {
 
         let rtn = String::from_utf8(value).map_err(|_| CryptoError::InvalidUtf8String);
         rtn.map(Decrypted::new)
+    }
+}
+
+impl<V: Zeroize + Default> Default for Decrypted<V> {
+    fn default() -> Self {
+        Self::new(V::default())
+    }
+}
+
+impl<V: Zeroize + Serialize> fmt::Debug for Decrypted<V> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Decrypted")
+            .field("value", &"********")
+            .finish()
+    }
+}
+
+/// Unfortunately once we serialize a `DecryptedString` we can't control the future memory.
+impl<V: Zeroize + Serialize> Serialize for Decrypted<V> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        self.value.serialize(serializer)
+    }
+}
+
+impl<'de, V: Zeroize + Deserialize<'de>> Deserialize<'de> for Decrypted<V> {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        Ok(Self::new(V::deserialize(deserializer)?))
+    }
+}
+
+/// Transparently expose the inner value for serialization
+impl<V: Zeroize + JsonSchema> JsonSchema for Decrypted<V> {
+    fn schema_name() -> String {
+        V::schema_name()
+    }
+
+    fn schema_id() -> Cow<'static, str> {
+        V::schema_id()
+    }
+
+    fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+        V::json_schema(gen)
+    }
+}
+
+/**
+impl<K: CryptoKey, V: Zeroize + Clone + KeyEncryptable<K, O>> KeyEncryptable<K, V>
+    for Decrypted<V>
+{
+    fn encrypt_with_key(self, key: &K) -> Result<O, CryptoError> {
+        self.value.clone().encrypt_with_key(key)
+    }
+}
+**/
+
+impl<T: KeyEncryptable<Key, Output> + Zeroize + Clone, Key: CryptoKey, Output>
+    KeyEncryptable<Key, Output> for Decrypted<T>
+{
+    fn encrypt_with_key(self, key: &Key) -> Result<Output, CryptoError> {
+        self.value.clone().encrypt_with_key(key)
     }
 }
 

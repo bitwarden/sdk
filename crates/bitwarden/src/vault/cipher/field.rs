@@ -1,7 +1,5 @@
 use bitwarden_api_api::models::CipherFieldModel;
-use bitwarden_crypto::{
-    CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
-};
+use bitwarden_crypto::{CryptoError, DecryptedString, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
@@ -34,8 +32,8 @@ pub struct Field {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct FieldView {
-    name: Option<String>,
-    value: Option<String>,
+    name: Option<DecryptedString>,
+    value: Option<DecryptedString>,
     r#type: FieldType,
 
     linked_id: Option<LinkedIdType>,

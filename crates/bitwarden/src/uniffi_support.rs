@@ -1,6 +1,6 @@
 use std::{num::NonZeroU32, str::FromStr};
 
-use bitwarden_crypto::{AsymmetricEncString, EncString};
+use bitwarden_crypto::{AsymmetricEncString, DecryptedString, EncString};
 use uuid::Uuid;
 
 use crate::UniffiCustomTypeConverter;
@@ -19,6 +19,20 @@ impl UniffiCustomTypeConverter for AsymmetricEncString {
 
     fn from_custom(obj: Self) -> Self::Builtin {
         obj.to_string()
+    }
+}
+
+uniffi::custom_type!(DecryptedString, String);
+
+impl UniffiCustomTypeConverter for DecryptedString {
+    type Builtin = String;
+
+    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
+        Ok(Self::new(val))
+    }
+
+    fn from_custom(obj: Self) -> Self::Builtin {
+        (*obj.expose()).to_owned()
     }
 }
 

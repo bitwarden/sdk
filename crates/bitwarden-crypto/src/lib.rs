@@ -41,7 +41,7 @@ mod wordlist;
 pub use util::pbkdf2;
 pub use wordlist::EFF_LONG_WORD_LIST;
 mod decrypted;
-pub use decrypted::Decrypted;
+pub use decrypted::{Decrypted, DecryptedString, DecryptedVec};
 
 #[cfg(feature = "mobile")]
 uniffi::setup_scaffolding!();

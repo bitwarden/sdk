@@ -1,7 +1,5 @@
 use bitwarden_api_api::models::{CipherLoginModel, CipherLoginUriModel};
-use bitwarden_crypto::{
-    CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
-};
+use bitwarden_crypto::{CryptoError, DecryptedString, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -34,7 +32,7 @@ pub struct LoginUri {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct LoginUriView {
-    pub uri: Option<String>,
+    pub uri: Option<DecryptedString>,
     pub r#match: Option<UriMatchType>,
 }
 
@@ -55,12 +53,12 @@ pub struct Login {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct LoginView {
-    pub username: Option<String>,
-    pub password: Option<String>,
+    pub username: Option<DecryptedString>,
+    pub password: Option<DecryptedString>,
     pub password_revision_date: Option<DateTime<Utc>>,
 
     pub uris: Option<Vec<LoginUriView>>,
-    pub totp: Option<String>,
+    pub totp: Option<DecryptedString>,
     pub autofill_on_page_load: Option<bool>,
 }
 

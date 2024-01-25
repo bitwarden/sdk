@@ -158,18 +158,20 @@ pub fn derive_pin_key(client: &mut Client, pin: String) -> Result<DerivePinKeyRe
 
 #[cfg(feature = "internal")]
 pub fn derive_pin_user_key(client: &mut Client, encrypted_pin: EncString) -> Result<EncString> {
+    use bitwarden_crypto::DecryptedString;
+
     let user_key = client
         .get_encryption_settings()?
         .get_key(&None)
         .ok_or(Error::VaultLocked)?;
 
-    let pin: String = encrypted_pin.decrypt_with_key(user_key)?;
+    let pin: DecryptedString = encrypted_pin.decrypt_with_key(user_key)?;
     let login_method = client
         .login_method
         .as_ref()
         .ok_or(Error::NotAuthenticated)?;
 
-    derive_pin_protected_user_key(&pin, login_method, user_key)
+    derive_pin_protected_user_key(pin.expose(), login_method, user_key)
 }
 
 #[cfg(feature = "internal")]

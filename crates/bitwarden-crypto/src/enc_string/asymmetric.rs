@@ -202,6 +202,8 @@ impl schemars::JsonSchema for AsymmetricEncString {
 
 #[cfg(test)]
 mod tests {
+    use crate::DecryptedString;
+
     use super::{AsymmetricCryptoKey, AsymmetricEncString, KeyDecryptable};
 
     const RSA_PRIVATE_KEY: &str = "-----BEGIN PRIVATE KEY-----
@@ -241,8 +243,8 @@ XKZBokBGnjFnTnKcs7nv/O8=
 
         assert_eq!(enc_string.enc_type(), 3);
 
-        let res: String = enc_string.decrypt_with_key(&private_key).unwrap();
-        assert_eq!(res, "EncryptMe!");
+        let res: DecryptedString = enc_string.decrypt_with_key(&private_key).unwrap();
+        assert_eq!(res.expose(), "EncryptMe!");
     }
 
     #[test]
@@ -253,8 +255,8 @@ XKZBokBGnjFnTnKcs7nv/O8=
 
         assert_eq!(enc_string.enc_type(), 4);
 
-        let res: String = enc_string.decrypt_with_key(&private_key).unwrap();
-        assert_eq!(res, "EncryptMe!");
+        let res: DecryptedString = enc_string.decrypt_with_key(&private_key).unwrap();
+        assert_eq!(res.expose(), "EncryptMe!");
     }
 
     #[test]
@@ -265,8 +267,8 @@ XKZBokBGnjFnTnKcs7nv/O8=
 
         assert_eq!(enc_string.enc_type(), 6);
 
-        let res: String = enc_string.decrypt_with_key(&private_key).unwrap();
-        assert_eq!(res, "EncryptMe!");
+        let res: DecryptedString = enc_string.decrypt_with_key(&private_key).unwrap();
+        assert_eq!(res.expose(), "EncryptMe!");
     }
 
     #[test]

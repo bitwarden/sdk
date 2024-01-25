@@ -103,7 +103,8 @@ mod tests {
     use base64::{engine::general_purpose::STANDARD, Engine};
 
     use crate::{
-        AsymmetricCryptoKey, AsymmetricEncString, AsymmetricPublicCryptoKey, KeyDecryptable,
+        AsymmetricCryptoKey, AsymmetricEncString, AsymmetricPublicCryptoKey, DecryptedString,
+        KeyDecryptable,
     };
 
     #[test]
@@ -201,8 +202,8 @@ DnqOsltgPomWZ7xVfMkm9niL2OA=
         let encrypted =
             AsymmetricEncString::encrypt_rsa2048_oaep_sha1(plaintext.as_bytes(), &public_key)
                 .unwrap();
-        let decrypted: String = encrypted.decrypt_with_key(&private_key).unwrap();
+        let decrypted: DecryptedString = encrypted.decrypt_with_key(&private_key).unwrap();
 
-        assert_eq!(plaintext, decrypted);
+        assert_eq!(plaintext, decrypted.expose());
     }
 }

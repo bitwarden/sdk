@@ -6,6 +6,7 @@ use serde::Deserialize;
 
 use super::{from_b64_vec, split_enc_string};
 use crate::{
+    decrypted::{DecryptedString, DecryptedVec},
     error::{CryptoError, EncStringParseError, Result},
     rsa::encrypt_rsa2048_oaep_sha1,
     AsymmetricCryptoKey, AsymmetricEncryptable, KeyDecryptable,
@@ -160,8 +161,8 @@ impl AsymmetricEncString {
     }
 }
 
-impl KeyDecryptable<AsymmetricCryptoKey, Vec<u8>> for AsymmetricEncString {
-    fn decrypt_with_key(&self, key: &AsymmetricCryptoKey) -> Result<Vec<u8>> {
+impl KeyDecryptable<AsymmetricCryptoKey, DecryptedVec> for AsymmetricEncString {
+    fn decrypt_with_key(&self, key: &AsymmetricCryptoKey) -> Result<DecryptedVec> {
         use AsymmetricEncString::*;
         match self {
             Rsa2048_OaepSha256_B64 { data } => key.key.decrypt(Oaep::new::<sha2::Sha256>(), data),
@@ -175,14 +176,15 @@ impl KeyDecryptable<AsymmetricCryptoKey, Vec<u8>> for AsymmetricEncString {
                 key.key.decrypt(Oaep::new::<sha1::Sha1>(), data)
             }
         }
+        .map(DecryptedVec::new)
         .map_err(|_| CryptoError::KeyDecrypt)
     }
 }
 
-impl KeyDecryptable<AsymmetricCryptoKey, String> for AsymmetricEncString {
-    fn decrypt_with_key(&self, key: &AsymmetricCryptoKey) -> Result<String> {
-        let dec: Vec<u8> = self.decrypt_with_key(key)?;
-        String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String)
+impl KeyDecryptable<AsymmetricCryptoKey, DecryptedString> for AsymmetricEncString {
+    fn decrypt_with_key(&self, key: &AsymmetricCryptoKey) -> Result<DecryptedString> {
+        let dec: DecryptedVec = self.decrypt_with_key(key)?;
+        dec.try_into()
     }
 }
 

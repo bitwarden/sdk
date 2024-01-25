@@ -4171,28 +4171,3 @@ dependencies = [
  "regex",
  "time",
 ]
-
-[[patch.unused]]
-name = "uniffi"
-version = "0.25.2"
-source = "git+https://github.com/mozilla/uniffi-rs?rev=23711c8151bbb794369aa1f9d383db386792dff9#23711c8151bbb794369aa1f9d383db386792dff9"
-
-[[patch.unused]]
-name = "uniffi_bindgen"
-version = "0.25.2"
-source = "git+https://github.com/mozilla/uniffi-rs?rev=23711c8151bbb794369aa1f9d383db386792dff9#23711c8151bbb794369aa1f9d383db386792dff9"
-
-[[patch.unused]]
-name = "uniffi_build"
-version = "0.25.2"
-source = "git+https://github.com/mozilla/uniffi-rs?rev=23711c8151bbb794369aa1f9d383db386792dff9#23711c8151bbb794369aa1f9d383db386792dff9"
-
-[[patch.unused]]
-name = "uniffi_core"
-version = "0.25.2"
-source = "git+https://github.com/mozilla/uniffi-rs?rev=23711c8151bbb794369aa1f9d383db386792dff9#23711c8151bbb794369aa1f9d383db386792dff9"
-
-[[patch.unused]]
-name = "uniffi_macros"
-version = "0.25.2"
-source = "git+https://github.com/mozilla/uniffi-rs?rev=23711c8151bbb794369aa1f9d383db386792dff9#23711c8151bbb794369aa1f9d383db386792dff9"

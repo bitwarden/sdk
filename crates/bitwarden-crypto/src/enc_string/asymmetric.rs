@@ -7,17 +7,18 @@ use serde::Deserialize;
 use super::{from_b64_vec, split_enc_string};
 use crate::{
     error::{CryptoError, EncStringParseError, Result},
-    AsymmetricCryptoKey, KeyDecryptable,
+    rsa::encrypt_rsa2048_oaep_sha1,
+    AsymmetricCryptoKey, AsymmetricEncryptable, KeyDecryptable,
 };
 
 /// # Encrypted string primitive
 ///
-/// [AsymmetricEncString] is a Bitwarden specific primitive that represents an asymmetrically encrypted string.
-/// They are used together with the KeyDecryptable and KeyEncryptable traits to encrypt and decrypt data using
-/// [AsymmetricCryptoKey]s.
+/// [AsymmetricEncString] is a Bitwarden specific primitive that represents an asymmetrically
+/// encrypted string. They are used together with the KeyDecryptable and KeyEncryptable traits to
+/// encrypt and decrypt data using [AsymmetricCryptoKey]s.
 ///
-/// The flexibility of the [AsymmetricEncString] type allows for different encryption algorithms to be used
-/// which is represented by the different variants of the enum.
+/// The flexibility of the [AsymmetricEncString] type allows for different encryption algorithms to
+/// be used which is represented by the different variants of the enum.
 ///
 /// ## Note
 ///
@@ -30,8 +31,8 @@ use crate::{
 ///
 /// ## Serialization
 ///
-/// [AsymmetricEncString] implements [Display] and [FromStr] to allow for easy serialization and uses a
-/// custom scheme to represent the different variants.
+/// [AsymmetricEncString] implements [Display] and [FromStr] to allow for easy serialization and
+/// uses a custom scheme to represent the different variants.
 ///
 /// The scheme is one of the following schemes:
 /// - `[type].[data]`
@@ -54,7 +55,8 @@ pub enum AsymmetricEncString {
     Rsa2048_OaepSha1_HmacSha256_B64 { data: Vec<u8>, mac: Vec<u8> },
 }
 
-/// To avoid printing sensitive information, [AsymmetricEncString] debug prints to `AsymmetricEncString`.
+/// To avoid printing sensitive information, [AsymmetricEncString] debug prints to
+/// `AsymmetricEncString`.
 impl std::fmt::Debug for AsymmetricEncString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("AsymmetricEncString").finish()
@@ -136,6 +138,15 @@ impl serde::Serialize for AsymmetricEncString {
 }
 
 impl AsymmetricEncString {
+    /// Encrypt and produce a [AsymmetricEncString::Rsa2048_OaepSha1_B64] variant.
+    pub fn encrypt_rsa2048_oaep_sha1(
+        data_dec: &[u8],
+        key: &dyn AsymmetricEncryptable,
+    ) -> Result<AsymmetricEncString> {
+        let enc = encrypt_rsa2048_oaep_sha1(key.to_public_key(), data_dec)?;
+        Ok(AsymmetricEncString::Rsa2048_OaepSha1_B64 { data: enc })
+    }
+
     /// The numerical representation of the encryption type of the [AsymmetricEncString].
     const fn enc_type(&self) -> u8 {
         match self {

@@ -4,9 +4,8 @@ use bitwarden_crypto::{
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::error::{Error, Result};
-
 use super::Cipher;
+use crate::error::{Error, Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -63,7 +62,8 @@ impl<'a> KeyEncryptable<SymmetricCryptoKey, AttachmentEncryptResult> for Attachm
 
         let mut attachment = self.attachment;
 
-        // Because this is a new attachment, we have to generate a key for it, encrypt the contents with it, and then encrypt the key with the cipher key
+        // Because this is a new attachment, we have to generate a key for it, encrypt the contents
+        // with it, and then encrypt the key with the cipher key
         let attachment_key = SymmetricCryptoKey::generate(rand::thread_rng());
         let encrypted_contents = self.contents.encrypt_with_key(&attachment_key)?;
         attachment.key = Some(attachment_key.to_vec().encrypt_with_key(ciphers_key)?);
@@ -136,7 +136,6 @@ impl TryFrom<bitwarden_api_api::models::AttachmentResponseModel> for Attachment 
 #[cfg(test)]
 mod tests {
     use base64::{engine::general_purpose::STANDARD, Engine};
-
     use bitwarden_crypto::{EncString, KeyDecryptable, SymmetricCryptoKey};
 
     use crate::vault::{

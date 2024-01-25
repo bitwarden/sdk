@@ -13,7 +13,6 @@ impl<'a> ClientVault<'a> {
     /// - A base32 encoded string
     /// - OTP Auth URI
     /// - Steam URI
-    ///
     pub fn generate_totp(
         &'a self,
         key: String,

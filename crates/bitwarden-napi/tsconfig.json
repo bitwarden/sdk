@@ -7,7 +7,7 @@
     "strict": true,
     "noImplicitAny": true,
     "esModuleInterop": true,
-    "declaration": true
+    "declaration": true,
   },
-  "include": ["src-ts", "src-ts/bitwarden_client", "src-ts/index.ts"]
+  "include": ["src-ts", "src-ts/bitwarden_client", "src-ts/index.ts"],
 }

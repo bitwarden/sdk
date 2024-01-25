@@ -17,7 +17,10 @@ pub struct SsoConfigurationData {
         skip_serializing_if = "Option::is_none"
     )]
     pub member_decryption_type: Option<crate::models::MemberDecryptionType>,
-    /// Legacy property to determine if KeyConnector was enabled.  Kept for backwards compatibility with old configs that will not have  the new Bit.Core.Auth.Models.Data.SsoConfigurationData.MemberDecryptionType when deserialized from the database.
+    /// Legacy property to determine if KeyConnector was enabled.  Kept for backwards compatibility
+    /// with old configs that will not have  the new
+    /// Bit.Core.Auth.Models.Data.SsoConfigurationData.MemberDecryptionType when deserialized from
+    /// the database.
     #[serde(
         rename = "keyConnectorEnabled",
         skip_serializing_if = "Option::is_none"

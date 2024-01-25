@@ -1,7 +1,9 @@
 use std::sync::Arc;
 
-use bitwarden::auth::{password::MasterPasswordPolicyOptions, RegisterKeyResponse};
-use bitwarden_crypto::{HashPurpose, Kdf};
+use bitwarden::auth::{
+    password::MasterPasswordPolicyOptions, AuthRequestResponse, RegisterKeyResponse,
+};
+use bitwarden_crypto::{AsymmetricEncString, HashPurpose, Kdf};
 
 use crate::{error::Result, Client};
 
@@ -90,5 +92,21 @@ impl ClientAuth {
             .auth()
             .validate_password(password, password_hash.to_string())
             .await?)
+    }
+
+    /// Initialize a new auth request
+    pub async fn new_auth_request(&self, email: String) -> Result<AuthRequestResponse> {
+        Ok(self.0 .0.write().await.auth().new_auth_request(&email)?)
+    }
+
+    /// Approve an auth request
+    pub async fn approve_auth_request(&self, public_key: String) -> Result<AsymmetricEncString> {
+        Ok(self
+            .0
+             .0
+            .write()
+            .await
+            .auth()
+            .approve_auth_request(public_key)?)
     }
 }

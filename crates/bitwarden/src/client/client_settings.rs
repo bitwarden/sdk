@@ -1,8 +1,8 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-/// Basic client behavior settings. These settings specify the various targets and behavior of the Bitwarden Client.
-/// They are optional and uneditable once the client is initialized.
+/// Basic client behavior settings. These settings specify the various targets and behavior of the
+/// Bitwarden Client. They are optional and uneditable once the client is initialized.
 ///
 /// Defaults to
 ///

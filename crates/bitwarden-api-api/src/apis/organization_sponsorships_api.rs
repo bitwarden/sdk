@@ -27,21 +27,24 @@ pub enum OrganizationSponsorshipSponsoredSponsoredOrgIdDeleteError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`organization_sponsorship_sponsored_sponsored_org_id_remove_post`]
+/// struct for typed errors of method
+/// [`organization_sponsorship_sponsored_sponsored_org_id_remove_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationSponsorshipSponsoredSponsoredOrgIdRemovePostError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`organization_sponsorship_sponsoring_org_id_families_for_enterprise_post`]
+/// struct for typed errors of method
+/// [`organization_sponsorship_sponsoring_org_id_families_for_enterprise_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationSponsorshipSponsoringOrgIdFamiliesForEnterprisePostError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`organization_sponsorship_sponsoring_org_id_families_for_enterprise_resend_post`]
+/// struct for typed errors of method
+/// [`organization_sponsorship_sponsoring_org_id_families_for_enterprise_resend_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationSponsorshipSponsoringOrgIdFamiliesForEnterpriseResendPostError {
@@ -62,7 +65,8 @@ pub enum OrganizationSponsorshipSponsoringOrganizationIdDeleteError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`organization_sponsorship_sponsoring_organization_id_delete_post`]
+/// struct for typed errors of method
+/// [`organization_sponsorship_sponsoring_organization_id_delete_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationSponsorshipSponsoringOrganizationIdDeletePostError {

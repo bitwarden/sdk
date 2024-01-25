@@ -66,30 +66,30 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Setup Node
-        uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65 # v4.0.0
+        uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8 # v4.0.1
         with:
           node-version: 18
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # stable
+        uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248 # stable
         with:
           toolchain: stable
           targets: ${{ matrix.settings.target }}
 
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@3cf7f8cc28d1b4e7d01e3783be10a97d55d483c8 # v2.7.1
+        uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
         with:
           key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.os }}
 
       - name: Retrieve schemas
-        uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
+        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: schemas.py
           path: ${{ github.workspace }}/languages/python/bitwarden_sdk
 
       - name: Build wheels
         if: ${{ matrix.settings.target != 'x86_64-unknown-linux-gnu' }}
-        uses: PyO3/maturin-action@b9e8f88fd4448fdecf5095864cdc7e39a544aa9f # v1.40.7
+        uses: PyO3/maturin-action@a3013db91b2ef2e51420cfe99ee619c8e72a17e6 # v1.40.8
         with:
           target: ${{ matrix.settings.target }}
           args: --release --find-interpreter --sdist
@@ -99,7 +99,7 @@ jobs:
 
       - name: Build wheels (Linux - x86_64)
         if: ${{ matrix.settings.target == 'x86_64-unknown-linux-gnu' }}
-        uses: PyO3/maturin-action@b9e8f88fd4448fdecf5095864cdc7e39a544aa9f # v1.40.7
+        uses: PyO3/maturin-action@a3013db91b2ef2e51420cfe99ee619c8e72a17e6 # v1.40.8
         with:
           target: ${{ matrix.settings.target }}
           args: --release --find-interpreter --sdist

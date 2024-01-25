@@ -1,4 +1,7 @@
-use aes::cipher::{generic_array::GenericArray, typenum::U64};
+use std::pin::Pin;
+
+use aes::cipher::typenum::U64;
+use generic_array::GenericArray;
 use hmac::{Hmac, Mac};
 
 use crate::{keys::SymmetricCryptoKey, util::hkdf_expand};
@@ -22,9 +25,9 @@ pub fn derive_shareable_key(
         .finalize()
         .into_bytes();
 
-    let key: GenericArray<u8, U64> = hkdf_expand(&res, info).unwrap();
+    let mut key: Pin<Box<GenericArray<u8, U64>>> = hkdf_expand(&res, info).unwrap();
 
-    SymmetricCryptoKey::try_from(key.as_slice()).unwrap()
+    SymmetricCryptoKey::try_from(key.as_mut_slice()).unwrap()
 }
 
 #[cfg(test)]

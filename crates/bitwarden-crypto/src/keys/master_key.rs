@@ -1,7 +1,8 @@
-use std::num::NonZeroU32;
+use std::{num::NonZeroU32, pin::Pin};
 
-use aes::cipher::{generic_array::GenericArray, typenum::U32};
+use aes::cipher::typenum::U32;
 use base64::{engine::general_purpose::STANDARD, Engine};
+use generic_array::GenericArray;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use sha2::Digest;
@@ -59,8 +60,8 @@ impl MasterKey {
     pub fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey> {
         let stretched_key = stretch_master_key(self)?;
 
-        let dec: Vec<u8> = user_key.decrypt_with_key(&stretched_key)?;
-        SymmetricCryptoKey::try_from(dec.as_slice())
+        let mut dec: Vec<u8> = user_key.decrypt_with_key(&stretched_key)?;
+        SymmetricCryptoKey::try_from(dec.as_mut_slice())
     }
 
     pub fn encrypt_user_key(&self, user_key: &SymmetricCryptoKey) -> Result<EncString> {
@@ -68,8 +69,8 @@ impl MasterKey {
 
         EncString::encrypt_aes256_hmac(
             user_key.to_vec().as_slice(),
-            stretched_key.mac_key.unwrap(),
-            stretched_key.key,
+            stretched_key.mac_key.as_ref().unwrap(),
+            &stretched_key.key,
         )
     }
 }
@@ -86,7 +87,7 @@ fn make_user_key(
 
 /// Derive a generic key from a secret and salt using the provided KDF.
 fn derive_key(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<SymmetricCryptoKey> {
-    let hash = match kdf {
+    let mut hash = match kdf {
         Kdf::PBKDF2 { iterations } => crate::util::pbkdf2(secret, salt, iterations.get()),
 
         Kdf::Argon2id {
@@ -117,17 +118,13 @@ fn derive_key(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<SymmetricCryptoKe
             hash
         }
     };
-    SymmetricCryptoKey::try_from(hash.as_slice())
+    SymmetricCryptoKey::try_from(hash.as_mut_slice())
 }
 
 fn stretch_master_key(master_key: &MasterKey) -> Result<SymmetricCryptoKey> {
-    let key: GenericArray<u8, U32> = hkdf_expand(&master_key.0.key, Some("enc"))?;
-    let mac_key: GenericArray<u8, U32> = hkdf_expand(&master_key.0.key, Some("mac"))?;
-
-    Ok(SymmetricCryptoKey {
-        key,
-        mac_key: Some(mac_key),
-    })
+    let key: Pin<Box<GenericArray<u8, U32>>> = hkdf_expand(&master_key.0.key, Some("enc"))?;
+    let mac_key: Pin<Box<GenericArray<u8, U32>>> = hkdf_expand(&master_key.0.key, Some("mac"))?;
+    Ok(SymmetricCryptoKey::new(key, Some(mac_key)))
 }
 
 #[cfg(test)]
@@ -185,14 +182,16 @@ mod tests {
 
     #[test]
     fn test_stretch_master_key() {
-        let master_key = MasterKey(SymmetricCryptoKey {
-            key: [
-                31, 79, 104, 226, 150, 71, 177, 90, 194, 80, 172, 209, 17, 129, 132, 81, 138, 167,
-                69, 167, 254, 149, 2, 27, 39, 197, 64, 42, 22, 195, 86, 75,
-            ]
-            .into(),
-            mac_key: None,
-        });
+        let master_key = MasterKey(SymmetricCryptoKey::new(
+            Box::pin(
+                [
+                    31, 79, 104, 226, 150, 71, 177, 90, 194, 80, 172, 209, 17, 129, 132, 81, 138,
+                    167, 69, 167, 254, 149, 2, 27, 39, 197, 64, 42, 22, 195, 86, 75,
+                ]
+                .into(),
+            ),
+            None,
+        ));
 
         let stretched = stretch_master_key(&master_key).unwrap();
 
@@ -208,7 +207,7 @@ mod tests {
                 221, 127, 206, 234, 101, 27, 202, 38, 86, 52, 34, 28, 78, 28, 185, 16, 48, 61, 127,
                 166, 209, 247, 194, 87, 232, 26, 48, 85, 193, 249, 179, 155
             ],
-            stretched.mac_key.unwrap().as_slice()
+            stretched.mac_key.as_ref().unwrap().as_slice()
         );
     }
 
@@ -254,14 +253,16 @@ mod tests {
     fn test_make_user_key() {
         let mut rng = rand_chacha::ChaCha8Rng::from_seed([0u8; 32]);
 
-        let master_key = MasterKey(SymmetricCryptoKey {
-            key: [
-                31, 79, 104, 226, 150, 71, 177, 90, 194, 80, 172, 209, 17, 129, 132, 81, 138, 167,
-                69, 167, 254, 149, 2, 27, 39, 197, 64, 42, 22, 195, 86, 75,
-            ]
-            .into(),
-            mac_key: None,
-        });
+        let master_key = MasterKey(SymmetricCryptoKey::new(
+            Box::pin(
+                [
+                    31, 79, 104, 226, 150, 71, 177, 90, 194, 80, 172, 209, 17, 129, 132, 81, 138,
+                    167, 69, 167, 254, 149, 2, 27, 39, 197, 64, 42, 22, 195, 86, 75,
+                ]
+                .into(),
+            ),
+            None,
+        ));
 
         let (user_key, protected) = make_user_key(&mut rng, &master_key).unwrap();
 
@@ -273,7 +274,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            user_key.0.mac_key.unwrap().as_slice(),
+            user_key.0.mac_key.as_ref().unwrap().as_slice(),
             [
                 152, 76, 225, 114, 185, 33, 111, 65, 159, 68, 83, 103, 69, 109, 86, 25, 49, 74, 66,
                 163, 218, 134, 176, 1, 56, 123, 253, 184, 14, 12, 254, 66

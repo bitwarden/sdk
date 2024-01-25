@@ -1,3 +1,5 @@
+use std::pin::Pin;
+
 use rsa::{pkcs8::DecodePublicKey, RsaPrivateKey, RsaPublicKey};
 
 use super::key_encryptable::CryptoKey;
@@ -35,8 +37,23 @@ impl AsymmetricEncryptable for AsymmetricPublicCryptoKey {
 /// An asymmetric encryption key. Contains both the public and private key. Can be used to both
 /// encrypt and decrypt [`AsymmetricEncString`](crate::AsymmetricEncString).
 pub struct AsymmetricCryptoKey {
-    pub(crate) key: RsaPrivateKey,
+    // RsaPrivateKey is not a Copy type so this isn't completely necessary, but
+    // to keep the compiler from making stack copies when moving this struct around,
+    // we use a Box to keep the values on the heap. We also pin the box to make sure
+    // that the contents can't be pulled out of the box and moved
+    pub(crate) key: Pin<Box<RsaPrivateKey>>,
 }
+
+// Note that RsaPrivateKey already implements ZeroizeOnDrop, so we don't need to do anything
+// We add this assertion to make sure that this is still true in the future
+const _: () = {
+    fn assert_zeroize_on_drop<T: zeroize::ZeroizeOnDrop>() {}
+    fn assert_all() {
+        assert_zeroize_on_drop::<RsaPrivateKey>();
+    }
+};
+
+impl zeroize::ZeroizeOnDrop for AsymmetricCryptoKey {}
 
 impl AsymmetricCryptoKey {
     /// Generate a random AsymmetricCryptoKey (RSA-2048).
@@ -44,21 +61,21 @@ impl AsymmetricCryptoKey {
         let bits = 2048;
 
         Self {
-            key: RsaPrivateKey::new(rng, bits).expect("failed to generate a key"),
+            key: Box::pin(RsaPrivateKey::new(rng, bits).expect("failed to generate a key")),
         }
     }
 
     pub fn from_pem(pem: &str) -> Result<Self> {
         use rsa::pkcs8::DecodePrivateKey;
         Ok(Self {
-            key: rsa::RsaPrivateKey::from_pkcs8_pem(pem).map_err(|_| CryptoError::InvalidKey)?,
+            key: Box::pin(RsaPrivateKey::from_pkcs8_pem(pem).map_err(|_| CryptoError::InvalidKey)?),
         })
     }
 
     pub fn from_der(der: &[u8]) -> Result<Self> {
         use rsa::pkcs8::DecodePrivateKey;
         Ok(Self {
-            key: rsa::RsaPrivateKey::from_pkcs8_der(der).map_err(|_| CryptoError::InvalidKey)?,
+            key: Box::pin(RsaPrivateKey::from_pkcs8_der(der).map_err(|_| CryptoError::InvalidKey)?),
         })
     }
 
@@ -85,7 +102,7 @@ impl AsymmetricCryptoKey {
 
 impl AsymmetricEncryptable for AsymmetricCryptoKey {
     fn to_public_key(&self) -> &RsaPublicKey {
-        self.key.as_ref()
+        (*self.key).as_ref()
     }
 }
 

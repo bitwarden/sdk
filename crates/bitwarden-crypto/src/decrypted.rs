@@ -4,7 +4,9 @@ use crate::CryptoError;
 
 /// A wrapper for decrypted values.
 ///
-/// Implements `Zeroize` and `ZeroizeOnDrop` to ensure that the value is zeroized on drop. Please be careful if cloning or copying the inner value using `expose` since any copy will not be zeroized.
+/// Implements `Zeroize` and `ZeroizeOnDrop` to ensure that the value is zeroized on drop. Please be
+/// careful if cloning or copying the inner value using `expose` since any copy will not be
+/// zeroized.
 #[derive(Zeroize, ZeroizeOnDrop)]
 pub struct Decrypted<V: Zeroize> {
     value: V,
@@ -15,13 +17,15 @@ impl<V: Zeroize> Decrypted<V> {
         Self { value }
     }
 
-    /// Expose the inner value. By exposing the inner value, you take responsibility for ensuring that any copy of the value is zeroized.
+    /// Expose the inner value. By exposing the inner value, you take responsibility for ensuring
+    /// that any copy of the value is zeroized.
     pub fn expose(&self) -> &V {
         &self.value
     }
 }
 
-/// Helper to convert a `Decrypted<Vec<u8>>` to a `Decrypted<String>`, care is taken to ensure any intermediate copies are zeroed to avoid leaking sensitive data.
+/// Helper to convert a `Decrypted<Vec<u8>>` to a `Decrypted<String>`, care is taken to ensure any
+/// intermediate copies are zeroed to avoid leaking sensitive data.
 impl TryFrom<DecryptedVec> for DecryptedString {
     type Error = CryptoError;
 

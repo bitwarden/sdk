@@ -16,7 +16,7 @@ keywords = ["bitwarden", "secrets-manager", "cli"]
 bat = { version = "0.24.0", features = [
     "regex-onig",
 ], default-features = false }
-chrono = { version = "0.4.31", features = [
+chrono = { version = "0.4.33", features = [
     "clock",
     "std",
 ], default-features = false }

@@ -2,6 +2,7 @@
 package_name = "com.bitwarden.sdk"
 cdylib_name = "bitwarden_uniffi"
 generate_immutable_records = true
+android = true
 
 [bindings.swift]
 ffi_module_name = "BitwardenFFI"

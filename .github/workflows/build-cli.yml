@@ -75,7 +75,7 @@ jobs:
 
       - name: Install Cross (aarch64-unknown-linux-gnu)
         if: ${{ matrix.settings.target == 'aarch64-unknown-linux-gnu' }}
-        run: cargo install cross --locked
+        run: cargo install cross --locked --git https://github.com/cross-rs/cross.git --rev 185398b1b885820515a212de720a306b08e2c8c9
 
       - name: Build
         if: ${{ matrix.settings.target != 'aarch64-unknown-linux-gnu' }}

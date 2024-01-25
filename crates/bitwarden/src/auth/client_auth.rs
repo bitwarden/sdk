@@ -1,5 +1,5 @@
 #[cfg(feature = "internal")]
-use bitwarden_crypto::{DeviceKey, TrustDeviceResponse};
+use bitwarden_crypto::{AsymmetricEncString, DeviceKey, TrustDeviceResponse};
 
 #[cfg(feature = "secrets")]
 use crate::auth::login::{login_access_token, AccessTokenLoginRequest, AccessTokenLoginResponse};
@@ -7,6 +7,7 @@ use crate::{auth::renew::renew_token, error::Result, Client};
 #[cfg(feature = "internal")]
 use crate::{
     auth::{
+        auth_request::{approve_auth_request, new_auth_request},
         login::{
             login_api_key, login_password, send_two_factor_email, ApiKeyLoginRequest,
             ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse,
@@ -16,7 +17,7 @@ use crate::{
             password_strength, satisfies_policy, validate_password, MasterPasswordPolicyOptions,
         },
         register::{make_register_keys, register},
-        RegisterKeyResponse, RegisterRequest,
+        AuthRequestResponse, RegisterKeyResponse, RegisterRequest,
     },
     client::Kdf,
     error::Error,
@@ -100,6 +101,14 @@ impl<'a> ClientAuth<'a> {
 
     pub async fn validate_password(&self, password: String, password_hash: String) -> Result<bool> {
         validate_password(self.client, password, password_hash).await
+    }
+
+    pub fn new_auth_request(&self, email: &str) -> Result<AuthRequestResponse> {
+        new_auth_request(email)
+    }
+
+    pub fn approve_auth_request(&mut self, public_key: String) -> Result<AsymmetricEncString> {
+        approve_auth_request(self.client, public_key)
     }
 
     pub async fn trust_device(&self) -> Result<TrustDeviceResponse> {

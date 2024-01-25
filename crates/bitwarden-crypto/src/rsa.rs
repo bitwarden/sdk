@@ -45,15 +45,11 @@ pub(crate) fn make_key_pair(key: &SymmetricCryptoKey) -> Result<RsaKeyPair> {
     })
 }
 
-pub(super) fn encrypt_rsa2048_oaep_sha1(
-    private_key: &RsaPrivateKey,
-    data: &[u8],
-) -> Result<Vec<u8>> {
+pub(super) fn encrypt_rsa2048_oaep_sha1(public_key: &RsaPublicKey, data: &[u8]) -> Result<Vec<u8>> {
     let mut rng = rand::thread_rng();
 
     let padding = Oaep::new::<Sha1>();
-    private_key
-        .to_public_key()
+    public_key
         .encrypt(&mut rng, padding, data)
         .map_err(|e| CryptoError::RsaError(e.into()))
 }

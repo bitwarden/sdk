@@ -30,7 +30,7 @@ jobs:
       - name: Install rust
         uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248 # stable
         with:
-          toolchain: 1.67.0 # https://github.com/cross-rs/cross/issues/1222
+          toolchain: stable
 
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
@@ -38,7 +38,7 @@ jobs:
           key: ${{ matrix.settings.target }}-cargo
 
       - name: Install Cross
-        run: cargo install cross --locked
+        run: cargo install cross --locked --git https://github.com/cross-rs/cross.git --rev 185398b1b885820515a212de720a306b08e2c8c9
 
       - name: Build
         env:

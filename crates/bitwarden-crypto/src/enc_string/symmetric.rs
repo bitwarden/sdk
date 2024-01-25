@@ -6,6 +6,7 @@ use serde::Deserialize;
 
 use super::{check_length, from_b64, from_b64_vec, split_enc_string};
 use crate::{
+    decrypted::{DecryptedString, DecryptedVec},
     error::{CryptoError, EncStringParseError, Result},
     Decrypted, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey,
 };
@@ -228,8 +229,8 @@ impl KeyEncryptable<SymmetricCryptoKey, EncString> for &[u8] {
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, Decrypted<Vec<u8>>> for EncString {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Decrypted<Vec<u8>>> {
+impl KeyDecryptable<SymmetricCryptoKey, DecryptedVec> for EncString {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<DecryptedVec> {
         match self {
             EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
                 let mac_key = key.mac_key.ok_or(CryptoError::InvalidMac)?;
@@ -247,9 +248,9 @@ impl KeyEncryptable<SymmetricCryptoKey, EncString> for String {
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, Decrypted<String>> for EncString {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Decrypted<String>> {
-        let dec: Decrypted<Vec<u8>> = self.decrypt_with_key(key)?;
+impl KeyDecryptable<SymmetricCryptoKey, DecryptedString> for EncString {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<DecryptedString> {
+        let dec: DecryptedVec = self.decrypt_with_key(key)?;
         dec.try_into()
     }
 }
@@ -269,7 +270,7 @@ impl schemars::JsonSchema for EncString {
 #[cfg(test)]
 mod tests {
     use super::EncString;
-    use crate::{derive_symmetric_key, Decrypted, KeyDecryptable, KeyEncryptable};
+    use crate::{decrypted::DecryptedString, derive_symmetric_key, KeyDecryptable, KeyEncryptable};
 
     #[test]
     fn test_enc_string_roundtrip() {
@@ -278,7 +279,7 @@ mod tests {
         let test_string = "encrypted_test_string";
         let cipher = test_string.to_owned().encrypt_with_key(&key).unwrap();
 
-        let decrypted_str: Decrypted<String> = cipher.decrypt_with_key(&key).unwrap();
+        let decrypted_str: DecryptedString = cipher.decrypt_with_key(&key).unwrap();
         assert_eq!(decrypted_str.expose(), test_string);
     }
 

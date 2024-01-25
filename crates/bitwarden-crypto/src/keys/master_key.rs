@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use sha2::Digest;
 
 use crate::{
+    decrypted::DecryptedVec,
     util::{self, hkdf_expand},
     EncString, KeyDecryptable, Result, SymmetricCryptoKey, UserKey,
 };
@@ -59,8 +60,8 @@ impl MasterKey {
     pub fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey> {
         let stretched_key = stretch_master_key(self)?;
 
-        let dec: Vec<u8> = user_key.decrypt_with_key(&stretched_key)?;
-        SymmetricCryptoKey::try_from(dec.as_slice())
+        let dec: DecryptedVec = user_key.decrypt_with_key(&stretched_key)?;
+        SymmetricCryptoKey::try_from(dec.expose().as_slice())
     }
 
     pub fn encrypt_user_key(&self, user_key: &SymmetricCryptoKey) -> Result<EncString> {

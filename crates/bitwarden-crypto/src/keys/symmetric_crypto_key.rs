@@ -90,6 +90,8 @@ impl FromStr for SymmetricCryptoKey {
 impl TryFrom<&mut [u8]> for SymmetricCryptoKey {
     type Error = CryptoError;
 
+    /// Note: This function takes the byte slice by mutable reference and will zero out all
+    /// the data in it. This is to prevent the key from being left in memory.
     fn try_from(value: &mut [u8]) -> Result<Self, Self::Error> {
         let result = if value.len() == Self::KEY_LEN + Self::MAC_LEN {
             let mut key = Box::pin(GenericArray::<u8, U32>::default());

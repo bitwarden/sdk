@@ -20,6 +20,7 @@ jobs:
     runs-on: ubuntu-22.04
     outputs:
       package_version: ${{ steps.retrieve-version.outputs.package_version }}
+      sign: ${{ steps.sign.outputs.sign }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -29,6 +30,16 @@ jobs:
         run: |
           VERSION=$(grep -o '^version = ".*"' crates/bws/Cargo.toml | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
           echo "package_version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Sign if branch is main or rc
+        id: sign
+        run: |
+          if [[ $GITHUB_REF == refs/heads/main || $GITHUB_REF == refs/heads/rc ]]; then
+            echo "sign=true" >> $GITHUB_OUTPUT
+          fi
+          echo "sign=false" >> $GITHUB_OUTPUT
+
+
 
   build-windows:
     name: Building CLI for - ${{ matrix.settings.os }} - ${{ matrix.settings.target }}
@@ -67,11 +78,13 @@ jobs:
         run: cargo build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
 
       - name: Login to Azure
+        if: ${{ needs.setup.outputs.sign == 'true' }}
         uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
         with:
           creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
 
       - name: Retrieve secrets
+        if: ${{ needs.setup.outputs.sign == 'true' }}
         id: retrieve-secrets-windows
         uses: bitwarden/gh-actions/get-keyvault-secrets@main
         with:
@@ -83,9 +96,11 @@ jobs:
             code-signing-cert-name"
 
       - name: Install AST
+        if: ${{ needs.setup.outputs.sign == 'true' }}
         run: dotnet tool install --global AzureSignTool --version 4.0.1
 
       - name: Sign windows binary
+        if: ${{ needs.setup.outputs.sign == 'true' }}
         env:
           SIGNING_VAULT_URL: ${{ steps.retrieve-secrets-windows.outputs.code-signing-vault-url }}
           SIGNING_CLIENT_ID: ${{ steps.retrieve-secrets-windows.outputs.code-signing-client-id }}

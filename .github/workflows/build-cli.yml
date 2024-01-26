@@ -33,8 +33,10 @@ jobs:
 
       - name: Sign if branch is main or rc
         id: sign
+        env:
+          REPO_OWNER: ${{ github.repository_owner }}
         run: |
-          if [[ $GITHUB_REF == refs/heads/main || $GITHUB_REF == refs/heads/rc ]]; then
+          if [[ $REPO_OWNER == bitwarden ]]; then
             echo "sign=true" >> $GITHUB_OUTPUT
           fi
           echo "sign=false" >> $GITHUB_OUTPUT

@@ -74,7 +74,7 @@ jobs:
       - name: Unzip
         working-directory: ${{ github.workspace }}/target/wheels
         run: |
-          # unzip -o *.zip
+          find ./dist -maxdepth 2 -type f -print0 | xargs -0 mv -t ./dist
           ls -lR
 
       - name: Login to Azure

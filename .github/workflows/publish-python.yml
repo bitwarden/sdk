@@ -73,14 +73,32 @@ jobs:
           unzip -o *.zip
           ls -lR
 
+      - name: Login to Azure
+        uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
+        with:
+          creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
+
+      - name: Retrieve pypi api token
+        id: retrieve-secret
+        uses: bitwarden/gh-actions/get-keyvault-secrets@main
+        with:
+          keyvault: "bitwarden-ci"
+          secrets: "pypi-api-token"
+
       - name: Check
         working-directory: ${{ github.workspace }}/target/wheels
         run: twine check dist/*
 
       - name: Publish
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ steps.retrieve-secret.outputs.pypi-api-token }}
         run: twine upload --repository pypi dist/*
 
       - name: Dry Run - Publish
         if: ${{ github.event.inputs.release_type == 'Dry Run' }}
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ steps.retrieve-secret.outputs.pypi-api-token }}
         run: twine upload --repository testpypi dist/*

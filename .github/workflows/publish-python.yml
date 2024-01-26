@@ -1,0 +1,88 @@
+---
+name: Publish Python SDK
+run-name: Publish Python SDK ${{ inputs.release_type }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Release Options"
+        required: true
+        default: "Initial Release"
+        type: choice
+        options:
+          - Initial Release
+          - Redeploy
+          - Dry Run
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Branch check
+        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/rc" ]] && [[ "$GITHUB_REF" != "refs/heads/hotfix-rc" ]]; then
+            echo "==================================="
+            echo "[!] Can only release from the 'rc' or 'hotfix-rc' branches"
+            echo "==================================="
+            exit 1
+          fi
+
+  publish:
+    name: Publish
+    runs-on: ubuntu-22.04
+    needs: setup
+    steps:
+      - name: Install Python
+        uses: actions/setup-python@b269c8a5f0b0f3e4f8e73f3c4b7e2e4b8a5e4b8a # v2.3.2
+        with:
+          python-version: "3.9"
+
+      - name: Install twine
+        run: pip install twine
+
+      - name: Download artifacts
+        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-python.yml
+          path: ${{ github.workspace }}/target/wheels
+          workflow_conclusion: success
+          branch: ${{ github.ref_name }}
+
+      - name: Dry Run - Download artifacts
+        if: ${{ github.event.inputs.release_type == 'Dry Run' }}
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-python.yml
+          path: ${{ github.workspace }}/target/wheels
+          workflow_conclusion: success
+          branch: main
+
+      - name: Unzip
+        working-directory: ${{ github.workspace }}/target/wheels
+        run: |
+          unzip -o *.zip
+          ls -lR
+
+      - name: Check
+        working-directory: ${{ github.workspace }}/target/wheels
+        run: twine check dist/*
+
+      # - name: Publish
+      #   if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+      #   run: |
+      #     if [[ "$GITHUB_REF" == "refs/heads/rc" ]]; then
+      #       twine upload --repository testpypi dist/*
+      #     elif [[ "$GITHUB_REF" == "refs/heads/hotfix-rc" ]]; then
+      #       twine upload --repository pypi dist/*
+      #     fi

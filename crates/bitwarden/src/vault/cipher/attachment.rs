@@ -1,4 +1,7 @@
-use bitwarden_crypto::{CryptoError, DecryptedString, DecryptedVec, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
+use bitwarden_crypto::{
+    CryptoError, DecryptedString, DecryptedVec, EncString, KeyDecryptable, KeyEncryptable,
+    SymmetricCryptoKey,
+};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -192,6 +195,6 @@ mod tests {
         .decrypt_with_key(&user_key)
         .unwrap();
 
-        assert_eq!(dec, original);
+        assert_eq!(dec.expose(), &original);
     }
 }

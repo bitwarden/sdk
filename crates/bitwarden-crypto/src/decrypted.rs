@@ -5,22 +5,27 @@ use std::{
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use zeroize::{Zeroize, ZeroizeOnDrop};
+use zeroize::Zeroize;
 
 use crate::{CryptoError, CryptoKey, KeyEncryptable};
 
-/// A wrapper for decrypted values.
+/// Wrapper for decrypted values which makes a best effort to enforce zeroization of the inner value
+/// on drop. The inner value exposes a [`Decrypted::expose`] method which returns a reference to the
+/// inner value. Care must be taken to avoid accidentally exposing the inner value through copying
+/// or cloning.
 ///
-/// Implements `Zeroize` and `ZeroizeOnDrop` to ensure that the value is zeroized on drop. Please be
-/// careful if cloning or copying the inner value using `expose` since any copy will not be
-/// zeroized.
-#[derive(Zeroize, ZeroizeOnDrop, PartialEq, Clone)]
+/// Internally [`Decrypted`] contains a [`Box`] which ensures the value is placed on the heap. It
+/// implements the [`Drop`] trait which calls `zeroize` on the inner value.
+#[derive(PartialEq, Clone)]
 pub struct Decrypted<V: Zeroize> {
-    value: V,
+    value: Box<V>,
 }
 
 impl<V: Zeroize> Decrypted<V> {
-    pub fn new(value: V) -> Self {
+    /// Create a new [`Decrypted`] value. In an attempt to avoid accidentally placing this on the
+    /// stack it only accepts a [`Box`] value. The rust compiler should be able to optimize away the
+    /// initial stack allocation presuming the value is not used before being boxed.
+    pub fn new(value: Box<V>) -> Self {
         Self { value }
     }
 
@@ -28,6 +33,18 @@ impl<V: Zeroize> Decrypted<V> {
     /// that any copy of the value is zeroized.
     pub fn expose(&self) -> &V {
         &self.value
+    }
+}
+
+impl<V: Zeroize> Zeroize for Decrypted<V> {
+    fn zeroize(&mut self) {
+        self.value.zeroize()
+    }
+}
+
+impl<V: Zeroize> Drop for Decrypted<V> {
+    fn drop(&mut self) {
+        self.zeroize()
     }
 }
 
@@ -39,14 +56,14 @@ impl TryFrom<DecryptedVec> for DecryptedString {
     fn try_from(mut v: DecryptedVec) -> Result<Self, CryptoError> {
         let value = std::mem::take(&mut v.value);
 
-        let rtn = String::from_utf8(value).map_err(|_| CryptoError::InvalidUtf8String);
-        rtn.map(Decrypted::new)
+        let rtn = String::from_utf8(*value).map_err(|_| CryptoError::InvalidUtf8String);
+        rtn.map(|v| Decrypted::new(Box::new(v)))
     }
 }
 
 impl<V: Zeroize + Default> Default for Decrypted<V> {
     fn default() -> Self {
-        Self::new(V::default())
+        Self::new(Box::default())
     }
 }
 
@@ -67,7 +84,7 @@ impl<V: Zeroize + Serialize> Serialize for Decrypted<V> {
 
 impl<'de, V: Zeroize + Deserialize<'de>> Deserialize<'de> for Decrypted<V> {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        Ok(Self::new(V::deserialize(deserializer)?))
+        Ok(Self::new(Box::new(V::deserialize(deserializer)?)))
     }
 }
 

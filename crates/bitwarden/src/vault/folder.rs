@@ -1,5 +1,8 @@
 use bitwarden_api_api::models::FolderResponseModel;
-use bitwarden_crypto::{CryptoError, DecryptedString, EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey};
+use bitwarden_crypto::{
+    CryptoError, DecryptedString, EncString, KeyDecryptable, KeyEncryptable, LocateKey,
+    SymmetricCryptoKey,
+};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

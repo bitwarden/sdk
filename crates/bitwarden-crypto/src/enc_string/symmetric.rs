@@ -235,7 +235,7 @@ impl KeyDecryptable<SymmetricCryptoKey, DecryptedVec> for EncString {
             EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
                 let mac_key = key.mac_key.ok_or(CryptoError::InvalidMac)?;
                 let dec = crate::aes::decrypt_aes256_hmac(iv, mac, data.clone(), mac_key, key.key)?;
-                Ok(Decrypted::new(dec))
+                Ok(Decrypted::new(Box::new(dec)))
             }
             _ => Err(CryptoError::InvalidKey),
         }

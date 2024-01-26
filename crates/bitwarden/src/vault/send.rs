@@ -3,7 +3,10 @@ use base64::{
     Engine,
 };
 use bitwarden_api_api::models::{SendFileModel, SendResponseModel, SendTextModel};
-use bitwarden_crypto::{derive_shareable_key, generate_random_bytes, CryptoError, EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey, DecryptedString, DecryptedVec};
+use bitwarden_crypto::{
+    derive_shareable_key, generate_random_bytes, CryptoError, DecryptedString, DecryptedVec,
+    EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey,
+};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -358,7 +361,7 @@ impl TryFrom<SendTextModel> for SendText {
 
 #[cfg(test)]
 mod tests {
-    use bitwarden_crypto::{KeyDecryptable, KeyEncryptable};
+    use bitwarden_crypto::{DecryptedString, KeyDecryptable, KeyEncryptable};
 
     use super::{Send, SendText, SendTextView, SendType};
     use crate::{
@@ -442,7 +445,7 @@ mod tests {
         let expected = SendView {
             id: "3d80dd72-2d14-4f26-812c-b0f0018aa144".parse().ok(),
             access_id: Some("ct2APRQtJk-BLLDwAYqhRA".to_owned()),
-            name: "Test".to_string(),
+            name: DecryptedString::new(Box::new("Test".to_string())),
             notes: None,
             key: Some("Pgui0FK85cNhBGWHAlBHBw".to_owned()),
             new_password: None,
@@ -450,7 +453,7 @@ mod tests {
             r#type: SendType::Text,
             file: None,
             text: Some(SendTextView {
-                text: Some("This is a test".to_owned()),
+                text: Some(DecryptedString::new(Box::new("This is a test".to_owned()))),
                 hidden: false,
             }),
             max_access_count: None,
@@ -473,7 +476,7 @@ mod tests {
         let view = SendView {
             id: "3d80dd72-2d14-4f26-812c-b0f0018aa144".parse().ok(),
             access_id: Some("ct2APRQtJk-BLLDwAYqhRA".to_owned()),
-            name: "Test".to_string(),
+            name: DecryptedString::new(Box::new("Test".to_string())),
             notes: None,
             key: Some("Pgui0FK85cNhBGWHAlBHBw".to_owned()),
             new_password: None,
@@ -481,7 +484,7 @@ mod tests {
             r#type: SendType::Text,
             file: None,
             text: Some(SendTextView {
-                text: Some("This is a test".to_owned()),
+                text: Some(DecryptedString::new(Box::new("This is a test".to_owned()))),
                 hidden: false,
             }),
             max_access_count: None,
@@ -511,7 +514,7 @@ mod tests {
         let view = SendView {
             id: None,
             access_id: Some("ct2APRQtJk-BLLDwAYqhRA".to_owned()),
-            name: "Test".to_string(),
+            name: DecryptedString::new(Box::new("Test".to_string())),
             notes: None,
             key: None,
             new_password: None,
@@ -519,7 +522,7 @@ mod tests {
             r#type: SendType::Text,
             file: None,
             text: Some(SendTextView {
-                text: Some("This is a test".to_owned()),
+                text: Some(DecryptedString::new(Box::new("This is a test".to_owned()))),
                 hidden: false,
             }),
             max_access_count: None,
@@ -552,7 +555,7 @@ mod tests {
         let view = SendView {
             id: None,
             access_id: Some("ct2APRQtJk-BLLDwAYqhRA".to_owned()),
-            name: "Test".to_owned(),
+            name: DecryptedString::new(Box::new("Test".to_owned())),
             notes: None,
             key: Some("Pgui0FK85cNhBGWHAlBHBw".to_owned()),
             new_password: Some("abc123".to_owned()),
@@ -560,7 +563,7 @@ mod tests {
             r#type: SendType::Text,
             file: None,
             text: Some(SendTextView {
-                text: Some("This is a test".to_owned()),
+                text: Some(DecryptedString::new(Box::new("This is a test".to_owned()))),
                 hidden: false,
             }),
             max_access_count: None,

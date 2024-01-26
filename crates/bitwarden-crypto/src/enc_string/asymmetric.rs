@@ -176,7 +176,7 @@ impl KeyDecryptable<AsymmetricCryptoKey, DecryptedVec> for AsymmetricEncString {
                 key.key.decrypt(Oaep::new::<sha1::Sha1>(), data)
             }
         }
-        .map(DecryptedVec::new)
+        .map(|v| DecryptedVec::new(Box::new(v)))
         .map_err(|_| CryptoError::KeyDecrypt)
     }
 }
@@ -202,9 +202,8 @@ impl schemars::JsonSchema for AsymmetricEncString {
 
 #[cfg(test)]
 mod tests {
-    use crate::DecryptedString;
-
     use super::{AsymmetricCryptoKey, AsymmetricEncString, KeyDecryptable};
+    use crate::DecryptedString;
 
     const RSA_PRIVATE_KEY: &str = "-----BEGIN PRIVATE KEY-----
 MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCXRVrCX+2hfOQS

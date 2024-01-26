@@ -28,7 +28,7 @@ impl UniffiCustomTypeConverter for DecryptedString {
     type Builtin = String;
 
     fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(Self::new(val))
+        Ok(Self::new(Box::new(val)))
     }
 
     fn from_custom(obj: Self) -> Self::Builtin {

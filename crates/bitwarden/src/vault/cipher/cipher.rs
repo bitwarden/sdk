@@ -1,5 +1,8 @@
 use bitwarden_api_api::models::CipherDetailsResponseModel;
-use bitwarden_crypto::{CryptoError, DecryptedString, DecryptedVec, EncString, KeyContainer, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey};
+use bitwarden_crypto::{
+    CryptoError, DecryptedString, DecryptedVec, EncString, KeyContainer, KeyDecryptable,
+    KeyEncryptable, LocateKey, SymmetricCryptoKey,
+};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -227,7 +230,11 @@ impl Cipher {
                 let Some(login) = &self.login else {
                     return Ok(String::new());
                 };
-                login.username.decrypt_with_key(key)?.map(|s: DecryptedString| s.expose().to_owned()).unwrap_or_default()
+                login
+                    .username
+                    .decrypt_with_key(key)?
+                    .map(|s: DecryptedString| s.expose().to_owned())
+                    .unwrap_or_default()
             }
             CipherType::SecureNote => String::new(),
             CipherType::Card => {

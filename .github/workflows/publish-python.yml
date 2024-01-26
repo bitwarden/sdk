@@ -57,7 +57,7 @@ jobs:
           path: ${{ github.workspace }}/target/wheels/dist
           workflow_conclusion: success
           branch: ${{ github.ref_name }}
-          name: bitwarden_sdk*
+          name: bitwarden_sdk.*
 
       - name: Dry Run - Download artifacts
         if: ${{ github.event.inputs.release_type == 'Dry Run' }}
@@ -67,7 +67,7 @@ jobs:
           path: ${{ github.workspace }}/target/wheels/dist
           workflow_conclusion: success
           branch: main
-          name: bitwarden_sdk*
+          name: bitwarden_sdk.*
 
       - name: Unzip
         working-directory: ${{ github.workspace }}/target/wheels

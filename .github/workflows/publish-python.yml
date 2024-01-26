@@ -8,11 +8,10 @@ on:
       release_type:
         description: "Release Options"
         required: true
-        default: "Initial Release"
+        default: "Release"
         type: choice
         options:
-          - Initial Release
-          - Redeploy
+          - Release
           - Dry Run
 
 defaults:

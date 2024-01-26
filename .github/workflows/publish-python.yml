@@ -42,7 +42,7 @@ jobs:
     needs: setup
     steps:
       - name: Install Python
-        uses: actions/setup-python@b269c8a5f0b0f3e4f8e73f3c4b7e2e4b8a5e4b8a # v2.3.2
+        uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c # v5.0.0
         with:
           python-version: "3.9"
 

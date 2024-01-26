@@ -70,12 +70,13 @@ export class SecretsClient {
     key: string,
     value: string,
     note: string,
+    projectIds: string[],
     organizationId: string,
   ): Promise<SecretResponse> {
     const response = await this.client.run_command(
       Convert.commandToJson({
         secrets: {
-          create: { key, value, note, organizationId },
+          create: { key, value, note, projectIds, organizationId },
         },
       }),
     );
@@ -100,12 +101,13 @@ export class SecretsClient {
     key: string,
     value: string,
     note: string,
+    projectIds: string[],
     organizationId: string,
   ): Promise<SecretResponse> {
     const response = await this.client.run_command(
       Convert.commandToJson({
         secrets: {
-          update: { id, key, value, note, organizationId },
+          update: { id, key, value, note, projectIds, organizationId },
         },
       }),
     );

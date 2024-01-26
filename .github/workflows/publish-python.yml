@@ -72,10 +72,9 @@ jobs:
           name_is_regexp: true
 
       - name: Unzip
-        working-directory: ${{ github.workspace }}/target/wheels
+        working-directory: ${{ github.workspace }}/target/wheels/dist
         run: |
-          find ./dist -maxdepth 2 -type f -print0 | xargs -0 mv -t ./dist
-          cd dist
+          find . -maxdepth 2 -type f -print0 | xargs -0 mv -t .
           rm -rf */
           ls -lR
 

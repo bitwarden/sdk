@@ -77,11 +77,10 @@ jobs:
         working-directory: ${{ github.workspace }}/target/wheels
         run: twine check dist/*
 
-      # - name: Publish
-      #   if: ${{ github.event.inputs.release_type != 'Dry Run' }}
-      #   run: |
-      #     if [[ "$GITHUB_REF" == "refs/heads/rc" ]]; then
-      #       twine upload --repository testpypi dist/*
-      #     elif [[ "$GITHUB_REF" == "refs/heads/hotfix-rc" ]]; then
-      #       twine upload --repository pypi dist/*
-      #     fi
+      - name: Publish
+        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        run: twine upload --repository pypi dist/*
+
+      - name: Dry Run - Publish
+        if: ${{ github.event.inputs.release_type == 'Dry Run' }}
+        run: twine upload --repository testpypi dist/*

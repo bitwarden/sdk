@@ -75,6 +75,7 @@ jobs:
         working-directory: ${{ github.workspace }}/target/wheels
         run: |
           find ./dist -maxdepth 2 -type f -print0 | xargs -0 mv -t ./dist
+          rm -rf */
           ls -lR
 
       - name: Login to Azure

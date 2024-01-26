@@ -86,19 +86,18 @@ jobs:
           secrets: "pypi-api-token"
 
       - name: Check
-        working-directory: ${{ github.workspace }}/target/wheels
-        run: twine check dist/*
+        run: twine check ${{ github.workspace }}/target/wheels
 
       - name: Publish
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ steps.retrieve-secret.outputs.pypi-api-token }}
-        run: twine upload --repository pypi dist/*
+        run: twine upload --repository pypi ${{ github.workspace }}/target/wheels
 
       - name: Dry Run - Publish
         if: ${{ github.event.inputs.release_type == 'Dry Run' }}
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ steps.retrieve-secret.outputs.pypi-api-token }}
-        run: twine upload --repository testpypi dist/*
+        run: twine upload --repository testpypi ${{ github.workspace }}/target/wheels

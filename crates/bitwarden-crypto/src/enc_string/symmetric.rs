@@ -1,14 +1,15 @@
 use std::{fmt::Display, str::FromStr};
 
-use aes::cipher::{generic_array::GenericArray, typenum::U32};
+use aes::cipher::typenum::U32;
 use base64::{engine::general_purpose::STANDARD, Engine};
+use generic_array::GenericArray;
 use serde::Deserialize;
 
 use super::{check_length, from_b64, from_b64_vec, split_enc_string};
 use crate::{
     decrypted::{DecryptedString, DecryptedVec},
     error::{CryptoError, EncStringParseError, Result},
-    Decrypted, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey,
+    KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey,
 };
 
 /// # Encrypted string primitive
@@ -44,7 +45,7 @@ use crate::{
 /// - `[iv]`: (optional) is the initialization vector used for encryption.
 /// - `[data]`: is the encrypted data.
 /// - `[mac]`: (optional) is the MAC used to validate the integrity of the data.
-#[derive(Clone)]
+#[derive(Clone, zeroize::ZeroizeOnDrop)]
 #[allow(unused, non_camel_case_types)]
 pub enum EncString {
     /// 0
@@ -205,8 +206,8 @@ impl serde::Serialize for EncString {
 impl EncString {
     pub fn encrypt_aes256_hmac(
         data_dec: &[u8],
-        mac_key: GenericArray<u8, U32>,
-        key: GenericArray<u8, U32>,
+        mac_key: &GenericArray<u8, U32>,
+        key: &GenericArray<u8, U32>,
     ) -> Result<EncString> {
         let (iv, mac, data) = crate::aes::encrypt_aes256_hmac(data_dec, mac_key, key)?;
         Ok(EncString::AesCbc256_HmacSha256_B64 { iv, mac, data })
@@ -225,7 +226,11 @@ impl EncString {
 impl LocateKey for EncString {}
 impl KeyEncryptable<SymmetricCryptoKey, EncString> for &[u8] {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<EncString> {
-        EncString::encrypt_aes256_hmac(self, key.mac_key.ok_or(CryptoError::InvalidMac)?, key.key)
+        EncString::encrypt_aes256_hmac(
+            self,
+            key.mac_key.as_ref().ok_or(CryptoError::InvalidMac)?,
+            &key.key,
+        )
     }
 }
 
@@ -233,9 +238,15 @@ impl KeyDecryptable<SymmetricCryptoKey, DecryptedVec> for EncString {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<DecryptedVec> {
         match self {
             EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
-                let mac_key = key.mac_key.ok_or(CryptoError::InvalidMac)?;
-                let dec = crate::aes::decrypt_aes256_hmac(iv, mac, data.clone(), mac_key, key.key)?;
-                Ok(Decrypted::new(Box::new(dec)))
+                let mac_key = key.mac_key.as_ref().ok_or(CryptoError::InvalidMac)?;
+                let dec = DecryptedVec::new(Box::new(crate::aes::decrypt_aes256_hmac(
+                    iv,
+                    mac,
+                    data.clone(),
+                    mac_key,
+                    &key.key,
+                )?));
+                Ok(dec)
             }
             _ => Err(CryptoError::InvalidKey),
         }

@@ -64,8 +64,8 @@ pub(crate) async fn login_access_token(
         }
 
         let payload: Payload = serde_json::from_slice(decrypted_payload.expose())?;
-        let encryption_key = STANDARD.decode(payload.encryption_key.clone())?;
-        let encryption_key = SymmetricCryptoKey::try_from(encryption_key.as_slice())?;
+        let mut encryption_key = STANDARD.decode(payload.encryption_key.clone())?;
+        let encryption_key = SymmetricCryptoKey::try_from(encryption_key.as_mut_slice())?;
 
         let access_token_obj: JWTToken = r.access_token.parse()?;
 

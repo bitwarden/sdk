@@ -34,6 +34,12 @@ impl<V: Zeroize> Decrypted<V> {
     pub fn expose(&self) -> &V {
         &self.value
     }
+
+    /// Expose the inner value mutable. By exposing the inner value, you take responsibility for
+    /// ensuring that any copy of the value is zeroized.
+    pub fn expose_mut(&mut self) -> &mut V {
+        &mut self.value
+    }
 }
 
 impl<V: Zeroize> Zeroize for Decrypted<V> {

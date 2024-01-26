@@ -65,8 +65,8 @@ impl DeviceKey {
         let device_private_key =
             AsymmetricCryptoKey::from_der(device_private_key.expose().as_slice())?;
 
-        let dec: DecryptedVec = protected_user_key.decrypt_with_key(&device_private_key)?;
-        let user_key: SymmetricCryptoKey = dec.expose().as_slice().try_into()?;
+        let mut dec: DecryptedVec = protected_user_key.decrypt_with_key(&device_private_key)?;
+        let user_key: SymmetricCryptoKey = dec.expose_mut().as_mut_slice().try_into()?;
 
         Ok(UserKey(user_key))
     }
@@ -98,7 +98,7 @@ mod tests {
     #[test]
     fn test_decrypt_user_key() {
         // Example keys from desktop app
-        let user_key: &[u8] = &[
+        let user_key: &mut [u8] = &mut [
             109, 128, 172, 147, 206, 123, 134, 95, 16, 36, 155, 113, 201, 18, 186, 230, 216, 212,
             173, 188, 74, 11, 134, 131, 137, 242, 105, 178, 105, 126, 52, 139, 248, 91, 215, 21,
             128, 91, 226, 222, 165, 67, 251, 34, 83, 81, 77, 147, 225, 76, 13, 41, 102, 45, 183,
@@ -106,7 +106,7 @@ mod tests {
         ];
         let user_key = SymmetricCryptoKey::try_from(user_key).unwrap();
 
-        let key_data: &[u8] = &[
+        let key_data: &mut [u8] = &mut [
             114, 235, 60, 115, 172, 156, 203, 145, 195, 130, 215, 250, 88, 146, 215, 230, 12, 109,
             245, 222, 54, 217, 255, 211, 221, 105, 230, 236, 65, 52, 209, 133, 76, 208, 113, 254,
             194, 216, 156, 19, 230, 62, 32, 93, 87, 7, 144, 156, 117, 142, 250, 32, 182, 118, 187,

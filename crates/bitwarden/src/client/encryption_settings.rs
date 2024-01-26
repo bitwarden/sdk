@@ -95,9 +95,9 @@ impl EncryptionSettings {
 
         // Decrypt the org keys with the private key
         for (org_id, org_enc_key) in org_enc_keys {
-            let dec: DecryptedVec = org_enc_key.decrypt_with_key(private_key)?;
+            let mut dec: DecryptedVec = org_enc_key.decrypt_with_key(private_key)?;
 
-            let org_key = SymmetricCryptoKey::try_from(dec.expose().as_slice())?;
+            let org_key = SymmetricCryptoKey::try_from(dec.expose_mut().as_mut_slice())?;
 
             self.org_keys.insert(org_id, org_key);
         }

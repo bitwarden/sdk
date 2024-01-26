@@ -71,12 +71,11 @@ jobs:
           name: bitwarden_sdk(.*)
           name_is_regexp: true
 
-      - name: Unzip
+      - name: Move files
         working-directory: ${{ github.workspace }}/target/wheels/dist
         run: |
           find . -maxdepth 2 -type f -print0 | xargs -0 mv -t .
           rm -rf */
-          ls -lR
 
       - name: Login to Azure
         uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
@@ -96,6 +95,7 @@ jobs:
 
       - name: Publish
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        working-directory: ${{ github.workspace }}/target/wheels
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ steps.retrieve-secret.outputs.pypi-api-token }}
@@ -103,6 +103,7 @@ jobs:
 
       - name: Dry Run - Publish
         if: ${{ github.event.inputs.release_type == 'Dry Run' }}
+        working-directory: ${{ github.workspace }}/target/wheels
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ steps.retrieve-secret.outputs.pypi-api-token }}

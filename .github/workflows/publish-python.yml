@@ -54,7 +54,7 @@ jobs:
         uses: bitwarden/gh-actions/download-artifacts@main
         with:
           workflow: build-python-wheels.yml
-          path: ${{ github.workspace }}/target/wheels
+          path: ${{ github.workspace }}/target/wheels/dist
           workflow_conclusion: success
           branch: ${{ github.ref_name }}
 
@@ -63,7 +63,7 @@ jobs:
         uses: bitwarden/gh-actions/download-artifacts@main
         with:
           workflow: build-python-wheels.yml
-          path: ${{ github.workspace }}/target/wheels
+          path: ${{ github.workspace }}/target/wheels/dist
           workflow_conclusion: success
           branch: main
 
@@ -86,18 +86,19 @@ jobs:
           secrets: "pypi-api-token"
 
       - name: Check
-        run: twine check ${{ github.workspace }}/target/wheels
+        working-directory: ${{ github.workspace }}/target/wheels
+        run: twine check dist/*
 
       - name: Publish
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ steps.retrieve-secret.outputs.pypi-api-token }}
-        run: twine upload --repository pypi ${{ github.workspace }}/target/wheels
+        run: twine upload --repository pypi dist/*
 
       - name: Dry Run - Publish
         if: ${{ github.event.inputs.release_type == 'Dry Run' }}
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ steps.retrieve-secret.outputs.pypi-api-token }}
-        run: twine upload --repository testpypi ${{ github.workspace }}/target/wheels
+        run: twine upload --repository testpypi dist/*

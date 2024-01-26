@@ -1,13 +1,10 @@
 use std::{fmt::Debug, str::FromStr};
 
 use base64::Engine;
+use bitwarden_crypto::{derive_shareable_key, SymmetricCryptoKey};
 use uuid::Uuid;
 
-use crate::{
-    crypto::{derive_shareable_key, SymmetricCryptoKey},
-    error::AccessTokenInvalidError,
-    util::STANDARD_INDIFFERENT,
-};
+use crate::{error::AccessTokenInvalidError, util::STANDARD_INDIFFERENT};
 
 pub struct AccessToken {
     pub access_token_id: Uuid,
@@ -91,7 +88,8 @@ mod tests {
 
         use crate::client::AccessToken;
 
-        // Encryption key without base64 padding, we generate it with padding but ignore it when decoding
+        // Encryption key without base64 padding, we generate it with padding but ignore it when
+        // decoding
         let t = "0.ec2c1d46-6a4b-4751-a310-af9601317f2d.C2IgxjjLF7qSshsbwe8JGcbM075YXw:X8vbvA0bduihIDe/qrzIQQ";
         assert!(AccessToken::from_str(t).is_ok());
 

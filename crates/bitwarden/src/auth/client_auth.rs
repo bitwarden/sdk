@@ -1,9 +1,13 @@
+#[cfg(feature = "internal")]
+use bitwarden_crypto::{AsymmetricEncString, DeviceKey, TrustDeviceResponse};
+
 #[cfg(feature = "secrets")]
 use crate::auth::login::{login_access_token, AccessTokenLoginRequest, AccessTokenLoginResponse};
 use crate::{auth::renew::renew_token, error::Result, Client};
 #[cfg(feature = "internal")]
 use crate::{
     auth::{
+        auth_request::{approve_auth_request, new_auth_request},
         login::{
             login_api_key, login_password, send_two_factor_email, ApiKeyLoginRequest,
             ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse,
@@ -13,9 +17,10 @@ use crate::{
             password_strength, satisfies_policy, validate_password, MasterPasswordPolicyOptions,
         },
         register::{make_register_keys, register},
-        RegisterKeyResponse, RegisterRequest,
+        AuthRequestResponse, RegisterKeyResponse, RegisterRequest,
     },
-    client::kdf::Kdf,
+    client::Kdf,
+    error::Error,
 };
 
 pub struct ClientAuth<'a> {
@@ -70,9 +75,10 @@ impl<'a> ClientAuth<'a> {
     }
 
     pub async fn prelogin(&mut self, email: String) -> Result<Kdf> {
-        use crate::auth::login::request_prelogin;
+        use crate::auth::login::{parse_prelogin, request_prelogin};
 
-        request_prelogin(self.client, email).await?.try_into()
+        let response = request_prelogin(self.client, email).await?;
+        parse_prelogin(response)
     }
 
     pub async fn login_password(
@@ -96,6 +102,27 @@ impl<'a> ClientAuth<'a> {
     pub async fn validate_password(&self, password: String, password_hash: String) -> Result<bool> {
         validate_password(self.client, password, password_hash).await
     }
+
+    pub fn new_auth_request(&self, email: &str) -> Result<AuthRequestResponse> {
+        new_auth_request(email)
+    }
+
+    pub fn approve_auth_request(&mut self, public_key: String) -> Result<AsymmetricEncString> {
+        approve_auth_request(self.client, public_key)
+    }
+
+    pub async fn trust_device(&self) -> Result<TrustDeviceResponse> {
+        trust_device(self.client)
+    }
+}
+
+#[cfg(feature = "internal")]
+fn trust_device(client: &Client) -> Result<TrustDeviceResponse> {
+    let enc = client.get_encryption_settings()?;
+
+    let user_key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
+
+    Ok(DeviceKey::trust_device(user_key)?)
 }
 
 impl<'a> Client {
@@ -171,7 +198,7 @@ mod tests {
             .login_access_token(&AccessTokenLoginRequest {
                 access_token: "0.ec2c1d46-6a4b-4751-a310-af9601317f2d.C2IgxjjLF7qSshsbwe8JGcbM075YXw:X8vbvA0bduihIDe/qrzIQQ==".into(),
                 state_file: None,
-            },)
+            })
             .await
             .unwrap();
         assert!(res.authenticated);

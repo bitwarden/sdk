@@ -31,54 +31,54 @@ jobs:
         run: npm ci
 
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@3cf7f8cc28d1b4e7d01e3783be10a97d55d483c8 # v2.7.1
+        uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
 
       - name: NPM Schemas
         run: npm run schemas
 
       - name: Upload ts schemas artifact
-        uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v4.0.0
+        uses: actions/upload-artifact@694cdabd8bdb0f10b2cea11669e1bf5453eed0a6 # v4.2.0
         with:
           name: schemas.ts
           path: ${{ github.workspace }}/languages/js/sdk-client/src/schemas.ts
           if-no-files-found: error
 
       - name: Upload c# schemas artifact
-        uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v4.0.0
+        uses: actions/upload-artifact@694cdabd8bdb0f10b2cea11669e1bf5453eed0a6 # v4.2.0
         with:
           name: schemas.cs
           path: ${{ github.workspace }}/languages/csharp/Bitwarden.Sdk/schemas.cs
           if-no-files-found: error
 
       - name: Upload python schemas artifact
-        uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v4.0.0
+        uses: actions/upload-artifact@694cdabd8bdb0f10b2cea11669e1bf5453eed0a6 # v4.2.0
         with:
           name: schemas.py
           path: ${{ github.workspace }}/languages/python/bitwarden_sdk/schemas.py
           if-no-files-found: error
 
       - name: Upload ruby schemas artifact
-        uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v4.0.0
+        uses: actions/upload-artifact@694cdabd8bdb0f10b2cea11669e1bf5453eed0a6 # v4.2.0
         with:
           name: schemas.rb
           path: ${{ github.workspace }}/languages/ruby/bitwarden_sdk/lib/schemas.rb
           if-no-files-found: error
 
       - name: Upload json schemas artifact
-        uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v4.0.0
+        uses: actions/upload-artifact@694cdabd8bdb0f10b2cea11669e1bf5453eed0a6 # v4.2.0
         with:
           name: sdk-schemas-json
           path: ${{ github.workspace }}/support/schemas/*
           if-no-files-found: error
 
       - name: Upload Go schemas artifact
-        uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v4.0.0
+        uses: actions/upload-artifact@694cdabd8bdb0f10b2cea11669e1bf5453eed0a6 # v4.2.0
         with:
           name: schemas.go
           path: ${{ github.workspace }}/languages/go/schema.go
 
       - name: Upload java schemas artifact
-        uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v4.0.0
+        uses: actions/upload-artifact@694cdabd8bdb0f10b2cea11669e1bf5453eed0a6 # v4.2.0
         with:
           name: sdk-schemas-java
           path: ${{ github.workspace }}/languages/java/src/main/java/com/bitwarden/sdk/schema/*

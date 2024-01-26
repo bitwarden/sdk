@@ -6,8 +6,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "internal")]
 use crate::{
     auth::{api::request::PasswordTokenRequest, login::TwoFactorRequest},
-    client::{kdf::Kdf, LoginMethod},
-    crypto::EncString,
+    client::{Kdf, LoginMethod},
     Client,
 };
 use crate::{
@@ -23,7 +22,9 @@ pub(crate) async fn login_password(
     client: &mut Client,
     input: &PasswordLoginRequest,
 ) -> Result<PasswordLoginResponse> {
-    use crate::{auth::determine_password_hash, client::UserLoginMethod, crypto::HashPurpose};
+    use bitwarden_crypto::{EncString, HashPurpose};
+
+    use crate::{auth::determine_password_hash, client::UserLoginMethod};
 
     info!("password logging in");
     debug!("{:#?}, {:#?}", client, input);
@@ -93,9 +94,11 @@ pub struct PasswordLoginResponse {
     pub reset_master_password: bool,
     /// Whether or not the user is required to update their master password
     pub force_password_reset: bool,
-    /// The available two factor authentication options. Present only when authentication fails due to requiring a second authentication factor.
+    /// The available two factor authentication options. Present only when authentication fails due
+    /// to requiring a second authentication factor.
     pub two_factor: Option<TwoFactorProviders>,
-    /// The information required to present the user with a captcha challenge. Only present when authentication fails due to requiring validation of a captcha challenge.
+    /// The information required to present the user with a captcha challenge. Only present when
+    /// authentication fails due to requiring validation of a captcha challenge.
     pub captcha: Option<CaptchaResponse>,
 }
 

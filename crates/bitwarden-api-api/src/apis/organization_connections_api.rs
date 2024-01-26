@@ -20,14 +20,16 @@ pub enum OrganizationsConnectionsEnabledGetError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`organizations_connections_organization_connection_id_delete`]
+/// struct for typed errors of method
+/// [`organizations_connections_organization_connection_id_delete`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationsConnectionsOrganizationConnectionIdDeleteError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`organizations_connections_organization_connection_id_delete_post`]
+/// struct for typed errors of method
+/// [`organizations_connections_organization_connection_id_delete_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationsConnectionsOrganizationConnectionIdDeletePostError {

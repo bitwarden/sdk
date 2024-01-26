@@ -1,10 +1,13 @@
+#[cfg(feature = "internal")]
+use bitwarden_crypto::EncString;
+
 use crate::Client;
 #[cfg(feature = "internal")]
 use crate::{
     error::Result,
     mobile::crypto::{
-        derive_pin_key, get_user_encryption_key, initialize_org_crypto, initialize_user_crypto,
-        DerivePinKeyResponse, InitOrgCryptoRequest, InitUserCryptoRequest,
+        derive_pin_key, derive_pin_user_key, get_user_encryption_key, initialize_org_crypto,
+        initialize_user_crypto, DerivePinKeyResponse, InitOrgCryptoRequest, InitUserCryptoRequest,
     },
 };
 
@@ -31,6 +34,11 @@ impl<'a> ClientCrypto<'a> {
     #[cfg(feature = "internal")]
     pub async fn derive_pin_key(&mut self, pin: String) -> Result<DerivePinKeyResponse> {
         derive_pin_key(self.client, pin)
+    }
+
+    #[cfg(feature = "internal")]
+    pub async fn derive_pin_user_key(&mut self, encrypted_pin: EncString) -> Result<EncString> {
+        derive_pin_user_key(self.client, encrypted_pin)
     }
 }
 

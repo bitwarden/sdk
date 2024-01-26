@@ -6,7 +6,6 @@ pub(crate) mod access_token;
 mod client;
 pub mod client_settings;
 pub(crate) mod encryption_settings;
-pub mod kdf;
 
 pub use access_token::AccessToken;
 pub use client::Client;

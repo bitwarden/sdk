@@ -1,15 +1,15 @@
 use bitwarden::{
     auth::password::MasterPasswordPolicyOptions,
-    client::kdf::Kdf,
-    crypto::HashPurpose,
+    generators::{PassphraseGeneratorRequest, PasswordGeneratorRequest},
     mobile::crypto::{InitOrgCryptoRequest, InitUserCryptoRequest},
     platform::FingerprintRequest,
-    tool::{ExportFormat, PassphraseGeneratorRequest, PasswordGeneratorRequest},
+    tool::ExportFormat,
     vault::{
         Cipher, CipherView, Collection, Folder, FolderView, Send, SendListView, SendView,
         TotpResponse,
     },
 };
+use bitwarden_crypto::{HashPurpose, Kdf};
 use schemars::JsonSchema;
 
 #[derive(JsonSchema)]

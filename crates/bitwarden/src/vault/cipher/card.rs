@@ -1,11 +1,11 @@
 use bitwarden_api_api::models::CipherCardModel;
+use bitwarden_crypto::{
+    CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
+};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
-    error::{Error, Result},
-};
+use crate::error::{Error, Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -31,8 +31,8 @@ pub struct CardView {
     pub number: Option<String>,
 }
 
-impl KeyEncryptable<Card> for CardView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Card> {
+impl KeyEncryptable<SymmetricCryptoKey, Card> for CardView {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Card, CryptoError> {
         Ok(Card {
             cardholder_name: self.cardholder_name.encrypt_with_key(key)?,
             exp_month: self.exp_month.encrypt_with_key(key)?,
@@ -44,15 +44,15 @@ impl KeyEncryptable<Card> for CardView {
     }
 }
 
-impl KeyDecryptable<CardView> for Card {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CardView> {
+impl KeyDecryptable<SymmetricCryptoKey, CardView> for Card {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CardView, CryptoError> {
         Ok(CardView {
-            cardholder_name: self.cardholder_name.decrypt_with_key(key)?,
-            exp_month: self.exp_month.decrypt_with_key(key)?,
-            exp_year: self.exp_year.decrypt_with_key(key)?,
-            code: self.code.decrypt_with_key(key)?,
-            brand: self.brand.decrypt_with_key(key)?,
-            number: self.number.decrypt_with_key(key)?,
+            cardholder_name: self.cardholder_name.decrypt_with_key(key).ok().flatten(),
+            exp_month: self.exp_month.decrypt_with_key(key).ok().flatten(),
+            exp_year: self.exp_year.decrypt_with_key(key).ok().flatten(),
+            code: self.code.decrypt_with_key(key).ok().flatten(),
+            brand: self.brand.decrypt_with_key(key).ok().flatten(),
+            number: self.number.decrypt_with_key(key).ok().flatten(),
         })
     }
 }

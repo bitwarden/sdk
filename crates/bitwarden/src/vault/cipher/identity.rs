@@ -1,11 +1,11 @@
 use bitwarden_api_api::models::CipherIdentityModel;
+use bitwarden_crypto::{
+    CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
+};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey},
-    error::{Error, Result},
-};
+use crate::error::{Error, Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -55,8 +55,8 @@ pub struct IdentityView {
     pub license_number: Option<String>,
 }
 
-impl KeyEncryptable<Identity> for IdentityView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Identity> {
+impl KeyEncryptable<SymmetricCryptoKey, Identity> for IdentityView {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Identity, CryptoError> {
         Ok(Identity {
             title: self.title.encrypt_with_key(key)?,
             first_name: self.first_name.encrypt_with_key(key)?,
@@ -80,27 +80,27 @@ impl KeyEncryptable<Identity> for IdentityView {
     }
 }
 
-impl KeyDecryptable<IdentityView> for Identity {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<IdentityView> {
+impl KeyDecryptable<SymmetricCryptoKey, IdentityView> for Identity {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<IdentityView, CryptoError> {
         Ok(IdentityView {
-            title: self.title.decrypt_with_key(key)?,
-            first_name: self.first_name.decrypt_with_key(key)?,
-            middle_name: self.middle_name.decrypt_with_key(key)?,
-            last_name: self.last_name.decrypt_with_key(key)?,
-            address1: self.address1.decrypt_with_key(key)?,
-            address2: self.address2.decrypt_with_key(key)?,
-            address3: self.address3.decrypt_with_key(key)?,
-            city: self.city.decrypt_with_key(key)?,
-            state: self.state.decrypt_with_key(key)?,
-            postal_code: self.postal_code.decrypt_with_key(key)?,
-            country: self.country.decrypt_with_key(key)?,
-            company: self.company.decrypt_with_key(key)?,
-            email: self.email.decrypt_with_key(key)?,
-            phone: self.phone.decrypt_with_key(key)?,
-            ssn: self.ssn.decrypt_with_key(key)?,
-            username: self.username.decrypt_with_key(key)?,
-            passport_number: self.passport_number.decrypt_with_key(key)?,
-            license_number: self.license_number.decrypt_with_key(key)?,
+            title: self.title.decrypt_with_key(key).ok().flatten(),
+            first_name: self.first_name.decrypt_with_key(key).ok().flatten(),
+            middle_name: self.middle_name.decrypt_with_key(key).ok().flatten(),
+            last_name: self.last_name.decrypt_with_key(key).ok().flatten(),
+            address1: self.address1.decrypt_with_key(key).ok().flatten(),
+            address2: self.address2.decrypt_with_key(key).ok().flatten(),
+            address3: self.address3.decrypt_with_key(key).ok().flatten(),
+            city: self.city.decrypt_with_key(key).ok().flatten(),
+            state: self.state.decrypt_with_key(key).ok().flatten(),
+            postal_code: self.postal_code.decrypt_with_key(key).ok().flatten(),
+            country: self.country.decrypt_with_key(key).ok().flatten(),
+            company: self.company.decrypt_with_key(key).ok().flatten(),
+            email: self.email.decrypt_with_key(key).ok().flatten(),
+            phone: self.phone.decrypt_with_key(key).ok().flatten(),
+            ssn: self.ssn.decrypt_with_key(key).ok().flatten(),
+            username: self.username.decrypt_with_key(key).ok().flatten(),
+            passport_number: self.passport_number.decrypt_with_key(key).ok().flatten(),
+            license_number: self.license_number.decrypt_with_key(key).ok().flatten(),
         })
     }
 }

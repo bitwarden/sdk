@@ -1,4 +1,8 @@
 use bitwarden_api_api::models::CipherDetailsResponseModel;
+use bitwarden_crypto::{
+    CryptoError, EncString, KeyContainer, KeyDecryptable, KeyEncryptable, LocateKey,
+    SymmetricCryptoKey,
+};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -11,8 +15,6 @@ use super::{
     login, secure_note,
 };
 use crate::{
-    client::encryption_settings::EncryptionSettings,
-    crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey},
     error::{Error, Result},
     vault::password_history,
 };
@@ -44,7 +46,8 @@ pub struct Cipher {
     pub folder_id: Option<Uuid>,
     pub collection_ids: Vec<Uuid>,
 
-    /// More recent ciphers uses individual encryption keys to encrypt the other fields of the Cipher.
+    /// More recent ciphers uses individual encryption keys to encrypt the other fields of the
+    /// Cipher.
     pub key: Option<EncString>,
 
     pub name: EncString,
@@ -135,8 +138,8 @@ pub struct CipherListView {
     pub revision_date: DateTime<Utc>,
 }
 
-impl KeyEncryptable<Cipher> for CipherView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Cipher> {
+impl KeyEncryptable<SymmetricCryptoKey, Cipher> for CipherView {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Cipher, CryptoError> {
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let key = ciphers_key.as_ref().unwrap_or(key);
 
@@ -169,8 +172,8 @@ impl KeyEncryptable<Cipher> for CipherView {
     }
 }
 
-impl KeyDecryptable<CipherView> for Cipher {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CipherView> {
+impl KeyDecryptable<SymmetricCryptoKey, CipherView> for Cipher {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CipherView, CryptoError> {
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let key = ciphers_key.as_ref().unwrap_or(key);
 
@@ -180,22 +183,22 @@ impl KeyDecryptable<CipherView> for Cipher {
             folder_id: self.folder_id,
             collection_ids: self.collection_ids.clone(),
             key: self.key.clone(),
-            name: self.name.decrypt_with_key(key)?,
-            notes: self.notes.decrypt_with_key(key)?,
+            name: self.name.decrypt_with_key(key).ok().unwrap_or_default(),
+            notes: self.notes.decrypt_with_key(key).ok().flatten(),
             r#type: self.r#type,
-            login: self.login.decrypt_with_key(key)?,
-            identity: self.identity.decrypt_with_key(key)?,
-            card: self.card.decrypt_with_key(key)?,
-            secure_note: self.secure_note.decrypt_with_key(key)?,
+            login: self.login.decrypt_with_key(key).ok().flatten(),
+            identity: self.identity.decrypt_with_key(key).ok().flatten(),
+            card: self.card.decrypt_with_key(key).ok().flatten(),
+            secure_note: self.secure_note.decrypt_with_key(key).ok().flatten(),
             favorite: self.favorite,
             reprompt: self.reprompt,
             organization_use_totp: self.organization_use_totp,
             edit: self.edit,
             view_password: self.view_password,
-            local_data: self.local_data.decrypt_with_key(key)?,
-            attachments: self.attachments.decrypt_with_key(key)?,
-            fields: self.fields.decrypt_with_key(key)?,
-            password_history: self.password_history.decrypt_with_key(key)?,
+            local_data: self.local_data.decrypt_with_key(key).ok().flatten(),
+            attachments: self.attachments.decrypt_with_key(key).ok().flatten(),
+            fields: self.fields.decrypt_with_key(key).ok().flatten(),
+            password_history: self.password_history.decrypt_with_key(key).ok().flatten(),
             creation_date: self.creation_date,
             deleted_date: self.deleted_date,
             revision_date: self.revision_date,
@@ -208,20 +211,20 @@ impl Cipher {
     /// Note that some ciphers do not have individual encryption keys,
     /// in which case this will return Ok(None) and the key associated
     /// with this cipher's user or organization must be used instead
-    fn get_cipher_key(
+    pub(super) fn get_cipher_key(
         key: &SymmetricCryptoKey,
         ciphers_key: &Option<EncString>,
-    ) -> Result<Option<SymmetricCryptoKey>> {
+    ) -> Result<Option<SymmetricCryptoKey>, CryptoError> {
         ciphers_key
             .as_ref()
             .map(|k| {
-                let key: Vec<u8> = k.decrypt_with_key(key)?;
-                SymmetricCryptoKey::try_from(key.as_slice())
+                let mut key: Vec<u8> = k.decrypt_with_key(key)?;
+                SymmetricCryptoKey::try_from(key.as_mut_slice())
             })
             .transpose()
     }
 
-    fn get_decrypted_subtitle(&self, key: &SymmetricCryptoKey) -> Result<String> {
+    fn get_decrypted_subtitle(&self, key: &SymmetricCryptoKey) -> Result<String, CryptoError> {
         Ok(match self.r#type {
             CipherType::Login => {
                 let Some(login) = &self.login else {
@@ -286,8 +289,8 @@ impl Cipher {
     }
 }
 
-impl KeyDecryptable<CipherListView> for Cipher {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CipherListView> {
+impl KeyDecryptable<SymmetricCryptoKey, CipherListView> for Cipher {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CipherListView, CryptoError> {
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let key = ciphers_key.as_ref().unwrap_or(key);
 
@@ -296,8 +299,8 @@ impl KeyDecryptable<CipherListView> for Cipher {
             organization_id: self.organization_id,
             folder_id: self.folder_id,
             collection_ids: self.collection_ids.clone(),
-            name: self.name.decrypt_with_key(key)?,
-            sub_title: self.get_decrypted_subtitle(key)?,
+            name: self.name.decrypt_with_key(key).ok().unwrap_or_default(),
+            sub_title: self.get_decrypted_subtitle(key).ok().unwrap_or_default(),
             r#type: self.r#type,
             favorite: self.favorite,
             reprompt: self.reprompt,
@@ -318,7 +321,7 @@ impl KeyDecryptable<CipherListView> for Cipher {
 impl LocateKey for Cipher {
     fn locate_key<'a>(
         &self,
-        enc: &'a EncryptionSettings,
+        enc: &'a dyn KeyContainer,
         _: &Option<Uuid>,
     ) -> Option<&'a SymmetricCryptoKey> {
         enc.get_key(&self.organization_id)
@@ -327,7 +330,7 @@ impl LocateKey for Cipher {
 impl LocateKey for CipherView {
     fn locate_key<'a>(
         &self,
-        enc: &'a EncryptionSettings,
+        enc: &'a dyn KeyContainer,
         _: &Option<Uuid>,
     ) -> Option<&'a SymmetricCryptoKey> {
         enc.get_key(&self.organization_id)

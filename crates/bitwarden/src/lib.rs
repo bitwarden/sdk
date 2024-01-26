@@ -46,7 +46,6 @@
 //!     Ok(())
 //! }
 //! ```
-//!
 
 #[cfg(feature = "mobile")]
 uniffi::setup_scaffolding!();
@@ -55,7 +54,6 @@ uniffi::setup_scaffolding!();
 pub mod admin_console;
 pub mod auth;
 pub mod client;
-pub mod crypto;
 pub mod error;
 #[cfg(feature = "mobile")]
 pub mod mobile;
@@ -70,10 +68,15 @@ pub(crate) mod uniffi_support;
 mod util;
 #[cfg(feature = "internal")]
 pub mod vault;
-pub mod wordlist;
 
 pub use client::Client;
 
 // Ensure the readme docs compile
 #[doc = include_str!("../README.md")]
 mod readme {}
+
+pub mod generators {
+    pub use bitwarden_generators::{
+        PassphraseGeneratorRequest, PasswordGeneratorRequest, UsernameGeneratorRequest,
+    };
+}

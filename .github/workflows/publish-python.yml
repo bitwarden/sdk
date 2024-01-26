@@ -53,7 +53,7 @@ jobs:
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
         uses: bitwarden/gh-actions/download-artifacts@main
         with:
-          workflow: build-python.yml
+          workflow: build-python-wheels.yml
           path: ${{ github.workspace }}/target/wheels
           workflow_conclusion: success
           branch: ${{ github.ref_name }}
@@ -62,7 +62,7 @@ jobs:
         if: ${{ github.event.inputs.release_type == 'Dry Run' }}
         uses: bitwarden/gh-actions/download-artifacts@main
         with:
-          workflow: build-python.yml
+          workflow: build-python-wheels.yml
           path: ${{ github.workspace }}/target/wheels
           workflow_conclusion: success
           branch: main

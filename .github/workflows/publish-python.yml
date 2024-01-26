@@ -70,7 +70,7 @@ jobs:
       - name: Unzip
         working-directory: ${{ github.workspace }}/target/wheels
         run: |
-          unzip -o *.zip
+          # unzip -o *.zip
           ls -lR
 
       - name: Login to Azure

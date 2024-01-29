@@ -87,7 +87,8 @@ jobs:
         uses: bitwarden/gh-actions/get-keyvault-secrets@main
         with:
           keyvault: "bitwarden-ci"
-          secrets: "pypi-api-token"
+          secrets: "pypi-api-token,
+            pypi-test-api-token"
 
       - name: Check
         working-directory: ${{ github.workspace }}/target/wheels
@@ -98,7 +99,7 @@ jobs:
         working-directory: ${{ github.workspace }}/target/wheels
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ steps.retrieve-secret.outputs.pypi-api-token }}
+          TWINE_PASSWORD: ${{ steps.retrieve-secret.outputs.pypi-test-api-token }}
         run: twine upload --repository pypi dist/*
 
       - name: Dry Run - Publish

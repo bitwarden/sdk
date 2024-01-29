@@ -9,7 +9,7 @@ use super::{from_b64_vec, split_enc_string};
 use crate::{
     error::{CryptoError, EncStringParseError, Result},
     rsa::encrypt_rsa2048_oaep_sha1,
-    AsymmetricCryptoKey, AsymmetricEncryptable, KeyDecryptable, {DecryptedString, DecryptedVec},
+    AsymmetricCryptoKey, AsymmetricEncryptable, DecryptedString, DecryptedVec, KeyDecryptable,
 };
 
 // This module is a workaround to avoid deprecated warnings that come from the ZeroizeOnDrop

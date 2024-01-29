@@ -7,9 +7,8 @@ use serde::Deserialize;
 
 use super::{check_length, from_b64, from_b64_vec, split_enc_string};
 use crate::{
-    decrypted::{DecryptedString, DecryptedVec},
     error::{CryptoError, EncStringParseError, Result},
-    KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey,
+    KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey, {DecryptedString, DecryptedVec},
 };
 
 /// # Encrypted string primitive
@@ -281,7 +280,7 @@ impl schemars::JsonSchema for EncString {
 #[cfg(test)]
 mod tests {
     use super::EncString;
-    use crate::{decrypted::DecryptedString, derive_symmetric_key, KeyDecryptable, KeyEncryptable};
+    use crate::{derive_symmetric_key, DecryptedString, KeyDecryptable, KeyEncryptable};
 
     #[test]
     fn test_enc_string_roundtrip() {

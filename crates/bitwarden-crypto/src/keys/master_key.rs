@@ -8,9 +8,8 @@ use serde::{Deserialize, Serialize};
 use sha2::Digest;
 
 use crate::{
-    decrypted::DecryptedVec,
     util::{self, hkdf_expand},
-    EncString, KeyDecryptable, Result, SymmetricCryptoKey, UserKey,
+    DecryptedVec, EncString, KeyDecryptable, Result, SymmetricCryptoKey, UserKey,
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]

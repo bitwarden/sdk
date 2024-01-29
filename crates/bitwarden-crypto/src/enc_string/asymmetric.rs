@@ -7,10 +7,9 @@ use serde::Deserialize;
 
 use super::{from_b64_vec, split_enc_string};
 use crate::{
-    decrypted::{DecryptedString, DecryptedVec},
     error::{CryptoError, EncStringParseError, Result},
     rsa::encrypt_rsa2048_oaep_sha1,
-    AsymmetricCryptoKey, AsymmetricEncryptable, KeyDecryptable,
+    AsymmetricCryptoKey, AsymmetricEncryptable, KeyDecryptable, {DecryptedString, DecryptedVec},
 };
 
 // This module is a workaround to avoid deprecated warnings that come from the ZeroizeOnDrop

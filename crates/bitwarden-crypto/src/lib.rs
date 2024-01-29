@@ -40,8 +40,8 @@ pub use util::generate_random_bytes;
 mod wordlist;
 pub use util::pbkdf2;
 pub use wordlist::EFF_LONG_WORD_LIST;
-mod decrypted;
-pub use decrypted::{Decrypted, DecryptedString, DecryptedVec};
+mod sensitive;
+pub use sensitive::*;
 
 #[cfg(feature = "mobile")]
 uniffi::setup_scaffolding!();

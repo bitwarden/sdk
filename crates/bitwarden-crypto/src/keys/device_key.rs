@@ -1,5 +1,5 @@
 use crate::{
-    decrypted::DecryptedVec, error::Result, AsymmetricCryptoKey, AsymmetricEncString, EncString,
+    error::Result, AsymmetricCryptoKey, AsymmetricEncString, DecryptedVec, EncString,
     KeyDecryptable, KeyEncryptable, SymmetricCryptoKey, UserKey,
 };
 

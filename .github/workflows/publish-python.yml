@@ -99,7 +99,7 @@ jobs:
         working-directory: ${{ github.workspace }}/target/wheels
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ steps.retrieve-secret.outputs.pypi-test-api-token }}
+          TWINE_PASSWORD: ${{ steps.retrieve-secret.outputs.pypi-api-token }}
         run: twine upload --repository pypi dist/*
 
       - name: Dry Run - Publish
@@ -107,5 +107,5 @@ jobs:
         working-directory: ${{ github.workspace }}/target/wheels
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ steps.retrieve-secret.outputs.pypi-api-token }}
+          TWINE_PASSWORD: ${{ steps.retrieve-secret.outputs.pypi-test-api-token }}
         run: twine upload --repository testpypi dist/*

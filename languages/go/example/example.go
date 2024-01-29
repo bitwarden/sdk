@@ -16,6 +16,7 @@ func main() {
 	bitwardenClient, _ := sdk.NewBitwardenClient(&apiURL, &identityURL)
 
 	accessToken := os.Getenv("ACCESS_TOKEN")
+	statePath := os.Getenv("STATE_PATH")
 	organizationIDStr := os.Getenv("ORGANIZATION_ID")
 	projectName := os.Getenv("PROJECT_NAME")
 
@@ -23,7 +24,7 @@ func main() {
 		projectName = "NewTestProject" // default value
 	}
 
-	err := bitwardenClient.AccessTokenLogin(accessToken)
+	err := bitwardenClient.AccessTokenLogin(accessToken, &statePath)
 	if err != nil {
 		panic(err)
 	}

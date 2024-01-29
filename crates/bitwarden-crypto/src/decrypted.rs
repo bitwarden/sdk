@@ -5,7 +5,7 @@ use std::{
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use zeroize::Zeroize;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 use crate::{CryptoError, CryptoKey, KeyEncryptable};
 
@@ -16,7 +16,7 @@ use crate::{CryptoError, CryptoKey, KeyEncryptable};
 ///
 /// Internally [`Decrypted`] contains a [`Box`] which ensures the value is placed on the heap. It
 /// implements the [`Drop`] trait which calls `zeroize` on the inner value.
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, Zeroize, ZeroizeOnDrop)]
 pub struct Decrypted<V: Zeroize> {
     value: Box<V>,
 }
@@ -42,18 +42,6 @@ impl<V: Zeroize> Decrypted<V> {
     }
 }
 
-impl<V: Zeroize> Zeroize for Decrypted<V> {
-    fn zeroize(&mut self) {
-        self.value.zeroize()
-    }
-}
-
-impl<V: Zeroize> Drop for Decrypted<V> {
-    fn drop(&mut self) {
-        self.zeroize()
-    }
-}
-
 /// Helper to convert a `Decrypted<Vec<u8>>` to a `Decrypted<String>`, care is taken to ensure any
 /// intermediate copies are zeroed to avoid leaking sensitive data.
 impl TryFrom<DecryptedVec> for DecryptedString {
@@ -76,6 +64,7 @@ impl<V: Zeroize + Default> Default for Decrypted<V> {
 impl<V: Zeroize + Serialize> fmt::Debug for Decrypted<V> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Decrypted")
+            .field("type", &std::any::type_name::<V>())
             .field("value", &"********")
             .finish()
     }
@@ -108,16 +97,6 @@ impl<V: Zeroize + JsonSchema> JsonSchema for Decrypted<V> {
         V::json_schema(gen)
     }
 }
-
-/**
-impl<K: CryptoKey, V: Zeroize + Clone + KeyEncryptable<K, O>> KeyEncryptable<K, V>
-    for Decrypted<V>
-{
-    fn encrypt_with_key(self, key: &K) -> Result<O, CryptoError> {
-        self.value.clone().encrypt_with_key(key)
-    }
-}
-**/
 
 impl<T: KeyEncryptable<Key, Output> + Zeroize + Clone, Key: CryptoKey, Output>
     KeyEncryptable<Key, Output> for Decrypted<T>

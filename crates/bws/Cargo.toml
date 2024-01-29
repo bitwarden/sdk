@@ -27,7 +27,7 @@ comfy-table = "^7.1.0"
 directories = "5.0.1"
 env_logger = "0.10.1"
 log = "0.4.20"
-regex = { version = "1.10.2", features = [
+regex = { version = "1.10.3", features = [
     "std",
     "perf",
 ], default-features = false }

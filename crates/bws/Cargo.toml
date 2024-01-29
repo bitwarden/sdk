@@ -25,20 +25,20 @@ clap_complete = "4.4.9"
 color-eyre = "0.6"
 comfy-table = "^7.1.0"
 directories = "5.0.1"
-env_logger = "0.10.1"
+env_logger = "0.11.1"
 log = "0.4.20"
-regex = { version = "1.10.2", features = [
+regex = { version = "1.10.3", features = [
     "std",
     "perf",
 ], default-features = false }
-serde = "^1.0.195"
-serde_json = "^1.0.111"
+serde = "^1.0.196"
+serde_json = "^1.0.113"
 serde_yaml = "0.9"
 supports-color = "2.1.0"
 thiserror = "1.0.56"
 tokio = { version = "1.35.1", features = ["rt-multi-thread", "macros"] }
 toml = "0.8.8"
-uuid = { version = "^1.6.1", features = ["serde"] }
+uuid = { version = "^1.7.0", features = ["serde"] }
 
 bitwarden = { path = "../bitwarden", version = "0.4.0", features = ["secrets"] }
 

@@ -72,12 +72,15 @@ impl DeviceKey {
 
 #[cfg(test)]
 mod tests {
+    use zeroize::Zeroizing;
+
     use super::*;
     use crate::derive_symmetric_key;
 
     #[test]
     fn test_trust_device() {
         let key = derive_symmetric_key("test");
+        assert_eq!(key.to_vec(), Zeroizing::new(vec![0]));
 
         let result = DeviceKey::trust_device(&key).unwrap();
 

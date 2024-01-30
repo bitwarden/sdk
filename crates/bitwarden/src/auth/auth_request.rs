@@ -58,9 +58,9 @@ pub(crate) fn auth_request_decrypt_user_key(
     user_key: AsymmetricEncString,
 ) -> Result<SymmetricCryptoKey, Error> {
     let key = AsymmetricCryptoKey::from_der(&STANDARD.decode(private_key)?)?;
-    let key: String = user_key.decrypt_with_key(&key)?;
+    let mut key: Vec<u8> = user_key.decrypt_with_key(&key)?;
 
-    Ok(key.parse()?)
+    Ok(SymmetricCryptoKey::try_from(key.as_mut_slice())?)
 }
 
 /// Approve an auth request.
@@ -83,20 +83,25 @@ pub(crate) fn approve_auth_request(
 
 #[test]
 fn test_auth_request() {
+    use zeroize::Zeroizing;
+
     let request = new_auth_request("test@bitwarden.com").unwrap();
 
-    let secret =
-        "w2LO+nwV4oxwswVYCxlOfRUseXfvU03VzvKQHrqeklPgiMZrspUe6sOBToCnDn9Ay0tuCBn8ykVVRb7PWhub2Q==";
+    let secret: &[u8] = &[
+        111, 32, 97, 169, 4, 241, 174, 74, 239, 206, 113, 86, 174, 68, 216, 238, 52, 85, 156, 27,
+        134, 149, 54, 55, 91, 147, 45, 130, 131, 237, 51, 31, 191, 106, 155, 14, 160, 82, 47, 40,
+        96, 31, 114, 127, 212, 187, 167, 110, 205, 116, 198, 243, 218, 72, 137, 53, 248, 43, 255,
+        67, 35, 61, 245, 93,
+    ];
 
     let private_key =
         AsymmetricCryptoKey::from_der(&STANDARD.decode(&request.private_key).unwrap()).unwrap();
 
-    let encrypted =
-        AsymmetricEncString::encrypt_rsa2048_oaep_sha1(secret.as_bytes(), &private_key).unwrap();
+    let encrypted = AsymmetricEncString::encrypt_rsa2048_oaep_sha1(secret, &private_key).unwrap();
 
     let decrypted = auth_request_decrypt_user_key(request.private_key, encrypted).unwrap();
 
-    assert_eq!(decrypted.to_base64(), secret);
+    assert_eq!(decrypted.to_vec(), Zeroizing::new(secret.to_owned()));
 }
 
 #[cfg(test)]

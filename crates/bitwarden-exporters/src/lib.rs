@@ -30,6 +30,10 @@ pub struct Cipher {
     pub reprompt: u8,
 
     pub fields: Vec<Field>,
+
+    pub revision_date: DateTime<Utc>,
+    pub creation_date: DateTime<Utc>,
+    pub deleted_date: Option<DateTime<Utc>>,
 }
 
 #[derive(Clone)]
@@ -41,6 +45,7 @@ pub struct Field {
 pub enum CipherType {
     Login(CipherLogin),
     Identity(),
+    SecureNote(SecureNote),
 }
 
 impl ToString for CipherType {
@@ -48,6 +53,7 @@ impl ToString for CipherType {
         match self {
             CipherType::Login(_) => "login".to_string(),
             CipherType::Identity() => "identity".to_string(),
+            CipherType::SecureNote(_) => "note".to_string(),
         }
     }
 }
@@ -57,6 +63,14 @@ pub struct CipherLogin {
     pub password: String,
     pub login_uris: Vec<String>,
     pub totp: Option<String>,
+}
+
+pub struct SecureNote {
+    pub r#type: SecureNoteType,
+}
+
+pub enum SecureNoteType {
+    Generic = 0,
 }
 
 pub fn export(folders: Vec<Folder>, ciphers: Vec<Cipher>, format: Format) -> String {

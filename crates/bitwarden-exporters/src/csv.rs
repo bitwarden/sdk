@@ -46,6 +46,9 @@ pub(crate) fn export_csv(folders: Vec<Folder>, ciphers: Vec<Cipher>) -> Result<S
     .map_err(|_| "Failed to convert CSV to UTF-8".to_string())
 }
 
+/// CSV export format. See https://bitwarden.com/help/condition-bitwarden-import/#condition-a-csv
+///
+/// Be careful when changing this struct to maintain compatibility with old exports.
 #[derive(serde::Serialize)]
 struct CsvRow {
     folder: Option<String>,
@@ -129,6 +132,9 @@ mod tests {
                 favorite: false,
                 reprompt: 0,
                 fields: vec![],
+                revision_date: "2024-01-30T11:28:20.036Z".parse().unwrap(),
+                creation_date: "2024-01-30T11:28:20.036Z".parse().unwrap(),
+                deleted_date: None,
             },
             Cipher {
                 id: "7dd81bd0-cc72-4f42-96e7-b0fc014e71a3".parse().unwrap(),
@@ -153,6 +159,9 @@ mod tests {
                         value: Some("asdfer".to_string()),
                     },
                 ],
+                revision_date: "2024-01-30T11:28:20.036Z".parse().unwrap(),
+                creation_date: "2024-01-30T11:28:20.036Z".parse().unwrap(),
+                deleted_date: None,
             },
         ];
 

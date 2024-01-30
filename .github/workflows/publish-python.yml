@@ -55,7 +55,7 @@ jobs:
           workflow: build-python-wheels.yml
           path: ${{ github.workspace }}/target/wheels/dist
           workflow_conclusion: success
-          branch: ${{ github.event.inputs.release_type == 'Dry Run' && main ||  github.ref_name }}
+          branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
           name: bitwarden_sdk(.*)
           name_is_regexp: true
 

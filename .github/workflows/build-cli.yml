@@ -393,7 +393,7 @@ jobs:
       - name: Sign binary
         env:
           MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-certificate-name }}
-        run: codesign -s "$MACOS_NOTARIZATION_TEAM_ID" -f --timestamp -o runtime -i "com.bitwarden.bws" --entitlements "./crates/bws/entitlements.plist" ./bws-aarch64-apple-darwin/bws -v
+        run: codesign -s "$MACOS_CERTIFICATE_NAME" -f --timestamp -o runtime -i "com.bitwarden.bws" --entitlements "./crates/bws/entitlements.plist" ./bws-aarch64-apple-darwin/bws -v
 
       # - name: Create pkg
       #   env:

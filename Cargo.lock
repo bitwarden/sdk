@@ -459,6 +459,7 @@ dependencies = [
  "csv",
  "serde",
  "serde_json",
+ "thiserror",
  "uuid",
 ]
 

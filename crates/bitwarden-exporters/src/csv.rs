@@ -2,48 +2,56 @@ use std::collections::HashMap;
 
 use csv::Writer;
 use serde::Serializer;
+use thiserror::Error;
 use uuid::Uuid;
 
 use crate::{Cipher, CipherType, Field, Folder};
 
-pub(crate) fn export_csv(folders: Vec<Folder>, ciphers: Vec<Cipher>) -> Result<String, String> {
+#[derive(Debug, Error)]
+pub enum CsvError {
+    #[error("CSV error")]
+    Csv,
+}
+
+pub(crate) fn export_csv(folders: Vec<Folder>, ciphers: Vec<Cipher>) -> Result<String, CsvError> {
     let folders: HashMap<Uuid, String> = folders.iter().map(|f| (f.id, f.name.clone())).collect();
 
-    let rows = ciphers.iter().map(|c| {
-        let login = if let CipherType::Login(l) = &c.r#type {
-            Some(l)
-        } else {
-            None
-        };
+    let rows = ciphers
+        .iter()
+        .filter(|c| matches!(c.r#type, CipherType::Login(_) | CipherType::SecureNote(_)))
+        .map(|c| {
+            let login = if let CipherType::Login(l) = &c.r#type {
+                Some(l)
+            } else {
+                None
+            };
 
-        CsvRow {
-            folder: c
-                .folder_id
-                .and_then(|f| folders.get(&f))
-                .map(|f| f.to_owned()),
-            favorite: c.favorite,
-            r#type: c.r#type.to_string(),
-            name: c.name.to_owned(),
-            notes: c.notes.to_owned(),
-            fields: c.fields.clone(),
-            reprompt: c.reprompt,
-            login_uri: login.map(|l| l.login_uris.clone()).unwrap_or_default(),
-            login_username: login.map(|l| l.username.clone()),
-            login_password: login.map(|l| l.password.clone()),
-            login_totp: login.and_then(|l| l.totp.clone()),
-        }
-    });
+            CsvRow {
+                folder: c
+                    .folder_id
+                    .and_then(|f| folders.get(&f))
+                    .map(|f| f.to_owned()),
+                favorite: c.favorite,
+                r#type: c.r#type.to_string(),
+                name: c.name.to_owned(),
+                notes: c.notes.to_owned(),
+                fields: c.fields.clone(),
+                reprompt: c.reprompt,
+                login_uri: login
+                    .map(|l| l.login_uris.iter().flat_map(|l| l.uri.clone()).collect())
+                    .unwrap_or_default(),
+                login_username: login.map(|l| l.username.clone()),
+                login_password: login.map(|l| l.password.clone()),
+                login_totp: login.and_then(|l| l.totp.clone()),
+            }
+        });
 
     let mut wtr = Writer::from_writer(vec![]);
     for row in rows {
         wtr.serialize(row).unwrap();
     }
 
-    String::from_utf8(
-        wtr.into_inner()
-            .map_err(|_| "Failed to write CSV".to_string())?,
-    )
-    .map_err(|_| "Failed to convert CSV to UTF-8".to_string())
+    String::from_utf8(wtr.into_inner().map_err(|_| CsvError::Csv)?).map_err(|_| CsvError::Csv)
 }
 
 /// CSV export format. See https://bitwarden.com/help/condition-bitwarden-import/#condition-a-csv
@@ -103,7 +111,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::CipherLogin;
+    use crate::{Card, Login, LoginUri};
 
     #[test]
     fn test_export_csv() {
@@ -123,10 +131,13 @@ mod tests {
                 folder_id: None,
                 name: "test@bitwarden.com".to_string(),
                 notes: None,
-                r#type: CipherType::Login(CipherLogin {
+                r#type: CipherType::Login(Login {
                     username: "test@bitwarden.com".to_string(),
                     password: "Abc123".to_string(),
-                    login_uris: vec!["https://google.com".to_string()],
+                    login_uris: vec![LoginUri {
+                        uri: Some("https://google.com".to_string()),
+                        r#match: None,
+                    }],
                     totp: None,
                 }),
                 favorite: false,
@@ -141,10 +152,13 @@ mod tests {
                 folder_id: Some("583e7665-0126-4d37-9139-b0d20184dd86".parse().unwrap()),
                 name: "Steam Account".to_string(),
                 notes: None,
-                r#type: CipherType::Login(CipherLogin {
+                r#type: CipherType::Login(Login {
                     username: "steam".to_string(),
                     password: "3Pvb8u7EfbV*nJ".to_string(),
-                    login_uris: vec!["https://steampowered.com".to_string()],
+                    login_uris: vec![LoginUri {
+                        uri: Some("https://steampowered.com".to_string()),
+                        r#match: None,
+                    }],
                     totp: Some("steam://ABCD123".to_string()),
                 }),
                 favorite: true,
@@ -153,10 +167,14 @@ mod tests {
                     Field {
                         name: Some("Test".to_string()),
                         value: Some("v".to_string()),
+                        r#type: 0,
+                        linked_id: None,
                     },
                     Field {
                         name: Some("Hidden".to_string()),
                         value: Some("asdfer".to_string()),
+                        r#type: 1,
+                        linked_id: None,
                     },
                 ],
                 revision_date: "2024-01-30T11:28:20.036Z".parse().unwrap(),
@@ -174,5 +192,56 @@ mod tests {
         ].join("\n");
 
         assert_eq!(csv, expected);
+    }
+
+    #[test]
+    fn test_export_ignore_card() {
+        let folders = vec![];
+        let ciphers = vec![Cipher {
+            id: "d55d65d7-c161-40a4-94ca-b0d20184d91a".parse().unwrap(),
+            folder_id: None,
+            name: "My Card".to_string(),
+            notes: None,
+            r#type: CipherType::Card(Card {
+                cardholder_name: None,
+                exp_month: None,
+                exp_year: None,
+                code: None,
+                brand: None,
+                number: None,
+            }),
+            favorite: false,
+            reprompt: 0,
+            fields: vec![],
+            revision_date: "2024-01-30T11:28:20.036Z".parse().unwrap(),
+            creation_date: "2024-01-30T11:28:20.036Z".parse().unwrap(),
+            deleted_date: None,
+        }];
+
+        let csv = export_csv(folders, ciphers).unwrap();
+
+        assert_eq!(csv, "");
+    }
+
+    #[test]
+    fn test_export_ignore_identity() {
+        let folders = vec![];
+        let ciphers = vec![Cipher {
+            id: "d55d65d7-c161-40a4-94ca-b0d20184d91a".parse().unwrap(),
+            folder_id: None,
+            name: "My Identity".to_string(),
+            notes: None,
+            r#type: CipherType::Identity(),
+            favorite: false,
+            reprompt: 0,
+            fields: vec![],
+            revision_date: "2024-01-30T11:28:20.036Z".parse().unwrap(),
+            creation_date: "2024-01-30T11:28:20.036Z".parse().unwrap(),
+            deleted_date: None,
+        }];
+
+        let csv = export_csv(folders, ciphers).unwrap();
+
+        assert_eq!(csv, "");
     }
 }

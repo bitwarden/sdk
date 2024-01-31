@@ -21,4 +21,5 @@ chrono = { version = ">=0.4.26, <0.5", features = [
 csv = "1.3.0"
 serde = { version = ">=1.0, <2.0", features = ["derive"] }
 serde_json = ">=1.0.96, <2.0"
+thiserror = ">=1.0.40, <2.0"
 uuid = { version = ">=1.3.3, <2.0", features = ["serde"] }

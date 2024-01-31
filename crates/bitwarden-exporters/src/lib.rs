@@ -40,11 +40,14 @@ pub struct Cipher {
 pub struct Field {
     name: Option<String>,
     value: Option<String>,
+    r#type: u8,
+    linked_id: Option<u8>,
 }
 
 pub enum CipherType {
-    Login(CipherLogin),
+    Login(Login),
     Identity(),
+    Card(Card),
     SecureNote(SecureNote),
 }
 
@@ -53,16 +56,40 @@ impl ToString for CipherType {
         match self {
             CipherType::Login(_) => "login".to_string(),
             CipherType::Identity() => "identity".to_string(),
+            CipherType::Card(_) => "card".to_string(),
             CipherType::SecureNote(_) => "note".to_string(),
         }
     }
 }
 
-pub struct CipherLogin {
+pub struct Login {
     pub username: String,
     pub password: String,
-    pub login_uris: Vec<String>,
+    pub login_uris: Vec<LoginUri>,
     pub totp: Option<String>,
+}
+
+pub struct LoginUri {
+    pub uri: Option<String>,
+    pub r#match: Option<UriMatchType>,
+}
+
+pub enum UriMatchType {
+    Domain = 0,
+    Host = 1,
+    StartsWith = 2,
+    Exact = 3,
+    RegularExpression = 4,
+    Never = 5,
+}
+
+pub struct Card {
+    pub cardholder_name: Option<String>,
+    pub exp_month: Option<String>,
+    pub exp_year: Option<String>,
+    pub code: Option<String>,
+    pub brand: Option<String>,
+    pub number: Option<String>,
 }
 
 pub struct SecureNote {

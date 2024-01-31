@@ -53,7 +53,6 @@ impl TryFrom<FolderView> for bitwarden_exporters::Folder {
         Ok(Self {
             id: value.id.ok_or(Error::MissingFields)?,
             name: value.name,
-            revision_date: value.revision_date,
         })
     }
 }
@@ -64,6 +63,16 @@ impl TryFrom<CipherView> for bitwarden_exporters::Cipher {
     fn try_from(value: CipherView) -> Result<Self, Self::Error> {
         Ok(Self {
             id: value.id.ok_or(Error::MissingFields)?,
+            folder_id: todo!(),
+            name: todo!(),
+            notes: todo!(),
+            r#type: todo!(),
+            favorite: todo!(),
+            reprompt: todo!(),
+            fields: todo!(),
+            revision_date: todo!(),
+            creation_date: todo!(),
+            deleted_date: todo!(),
         })
     }
 }

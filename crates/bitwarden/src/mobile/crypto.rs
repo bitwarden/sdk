@@ -129,6 +129,53 @@ pub async fn get_user_encryption_key(client: &mut Client) -> Result<String> {
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+pub struct UpdatePasswordResponse {
+    /// Hash of the new password
+    password_hash: String,
+    /// User key, encrypted with the new password
+    new_key: EncString,
+}
+
+pub fn update_password(
+    client: &mut Client,
+    new_password: String,
+) -> Result<UpdatePasswordResponse> {
+    let user_key = client
+        .get_encryption_settings()?
+        .get_key(&None)
+        .ok_or(Error::VaultLocked)?;
+
+    let login_method = client
+        .login_method
+        .as_ref()
+        .ok_or(Error::NotAuthenticated)?;
+
+    // Derive a new master key from password
+    let new_master_key = match login_method {
+        LoginMethod::User(
+            UserLoginMethod::Username { email, kdf, .. }
+            | UserLoginMethod::ApiKey { email, kdf, .. },
+        ) => MasterKey::derive(new_password.as_bytes(), email.as_bytes(), kdf)?,
+        _ => return Err(Error::NotAuthenticated),
+    };
+
+    let new_key = new_master_key.encrypt_user_key(user_key)?;
+
+    let password_hash = new_master_key.derive_master_key_hash(
+        new_password.as_bytes(),
+        bitwarden_crypto::HashPurpose::ServerAuthorization,
+    )?;
+
+    Ok(UpdatePasswordResponse {
+        password_hash,
+        new_key,
+    })
+}
+
+#[cfg(feature = "internal")]
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct DerivePinKeyResponse {
     /// [UserKey] protected by PIN
     pin_protected_user_key: EncString,
@@ -193,6 +240,66 @@ fn derive_pin_protected_user_key(
 mod tests {
     use super::*;
     use crate::{client::Kdf, Client};
+
+    #[tokio::test]
+    async fn test_update_password() {
+        let mut client = Client::new(None);
+
+        let priv_key = "2.kmLY8NJVuiKBFJtNd/ZFpA==|qOodlRXER+9ogCe3yOibRHmUcSNvjSKhdDuztLlucs10jLiNoVVVAc+9KfNErLSpx5wmUF1hBOJM8zwVPjgQTrmnNf/wuDpwiaCxNYb/0v4FygPy7ccAHK94xP1lfqq7U9+tv+/yiZSwgcT+xF0wFpoxQeNdNRFzPTuD9o4134n8bzacD9DV/WjcrXfRjbBCzzuUGj1e78+A7BWN7/5IWLz87KWk8G7O/W4+8PtEzlwkru6Wd1xO19GYU18oArCWCNoegSmcGn7w7NDEXlwD403oY8Oa7ylnbqGE28PVJx+HLPNIdSC6YKXeIOMnVs7Mctd/wXC93zGxAWD6ooTCzHSPVV50zKJmWIG2cVVUS7j35H3rGDtUHLI+ASXMEux9REZB8CdVOZMzp2wYeiOpggebJy6MKOZqPT1R3X0fqF2dHtRFPXrNsVr1Qt6bS9qTyO4ag1/BCvXF3P1uJEsI812BFAne3cYHy5bIOxuozPfipJrTb5WH35bxhElqwT3y/o/6JWOGg3HLDun31YmiZ2HScAsUAcEkA4hhoTNnqy4O2s3yVbCcR7jF7NLsbQc0MDTbnjxTdI4VnqUIn8s2c9hIJy/j80pmO9Bjxp+LQ9a2hUkfHgFhgHxZUVaeGVth8zG2kkgGdrp5VHhxMVFfvB26Ka6q6qE/UcS2lONSv+4T8niVRJz57qwctj8MNOkA3PTEfe/DP/LKMefke31YfT0xogHsLhDkx+mS8FCc01HReTjKLktk/Jh9mXwC5oKwueWWwlxI935ecn+3I2kAuOfMsgPLkoEBlwgiREC1pM7VVX1x8WmzIQVQTHd4iwnX96QewYckGRfNYWz/zwvWnjWlfcg8kRSe+68EHOGeRtC5r27fWLqRc0HNcjwpgHkI/b6czerCe8+07TWql4keJxJxhBYj3iOH7r9ZS8ck51XnOb8tGL1isimAJXodYGzakwktqHAD7MZhS+P02O+6jrg7d+yPC2ZCuS/3TOplYOCHQIhnZtR87PXTUwr83zfOwAwCyv6KP84JUQ45+DItrXLap7nOVZKQ5QxYIlbThAO6eima6Zu5XHfqGPMNWv0bLf5+vAjIa5np5DJrSwz9no/hj6CUh0iyI+SJq4RGI60lKtypMvF6MR3nHLEHOycRUQbZIyTHWl4QQLdHzuwN9lv10ouTEvNr6sFflAX2yb6w3hlCo7oBytH3rJekjb3IIOzBpeTPIejxzVlh0N9OT5MZdh4sNKYHUoWJ8mnfjdM+L4j5Q2Kgk/XiGDgEebkUxiEOQUdVpePF5uSCE+TPav/9FIRGXGiFn6NJMaU7aBsDTFBLloffFLYDpd8/bTwoSvifkj7buwLYM+h/qcnfdy5FWau1cKav+Blq/ZC0qBpo658RTC8ZtseAFDgXoQZuksM10hpP9bzD04Bx30xTGX81QbaSTNwSEEVrOtIhbDrj9OI43KH4O6zLzK+t30QxAv5zjk10RZ4+5SAdYndIlld9Y62opCfPDzRy3ubdve4ZEchpIKWTQvIxq3T5ogOhGaWBVYnkMtM2GVqvWV//46gET5SH/MdcwhACUcZ9kCpMnWH9CyyUwYvTT3UlNyV+DlS27LMPvaw7tx7qa+GfNCoCBd8S4esZpQYK/WReiS8=|pc7qpD42wxyXemdNPuwxbh8iIaryrBPu8f/DGwYdHTw=";
+
+        initialize_user_crypto(
+            &mut client,
+            InitUserCryptoRequest {
+                kdf_params: Kdf::PBKDF2 {
+                    iterations: 100_000.try_into().unwrap(),
+                },
+                email: "test@bitwarden.com".into(),
+                private_key: priv_key.to_owned(),
+                method: InitUserCryptoMethod::Password {
+                    password: "asdfasdfasdf".into(),
+                    user_key: "2.u2HDQ/nH2J7f5tYHctZx6Q==|NnUKODz8TPycWJA5svexe1wJIz2VexvLbZh2RDfhj5VI3wP8ZkR0Vicvdv7oJRyLI1GyaZDBCf9CTBunRTYUk39DbZl42Rb+Xmzds02EQhc=|rwuo5wgqvTJf3rgwOUfabUyzqhguMYb3sGBjOYqjevc=".into(),
+                },
+            },
+        )
+        .await
+        .unwrap();
+
+        let new_password_response = update_password(&mut client, "123412341234".into()).unwrap();
+
+        let mut client2 = Client::new(None);
+
+        initialize_user_crypto(
+            &mut client2,
+            InitUserCryptoRequest {
+                kdf_params: Kdf::PBKDF2 {
+                    iterations: 100_000.try_into().unwrap(),
+                },
+                email: "test@bitwarden.com".into(),
+                private_key: priv_key.to_owned(),
+                method: InitUserCryptoMethod::Password {
+                    password: "123412341234".into(),
+                    user_key: new_password_response.new_key.to_string(),
+                },
+            },
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(
+            client
+                .get_encryption_settings()
+                .unwrap()
+                .get_key(&None)
+                .unwrap()
+                .to_base64(),
+            client2
+                .get_encryption_settings()
+                .unwrap()
+                .get_key(&None)
+                .unwrap()
+                .to_base64()
+        );
+    }
 
     #[tokio::test]
     async fn test_initialize_user_crypto_pin() {

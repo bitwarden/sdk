@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use bitwarden::mobile::crypto::{
-    DerivePinKeyResponse, InitOrgCryptoRequest, InitUserCryptoRequest,
+    DerivePinKeyResponse, InitOrgCryptoRequest, InitUserCryptoRequest, UpdatePasswordResponse,
 };
 use bitwarden_crypto::EncString;
 
@@ -48,6 +48,19 @@ impl ClientCrypto {
             .await
             .crypto()
             .get_user_encryption_key()
+            .await?)
+    }
+
+    /// Update the user's password, which will re-encrypt the user's encryption key with the new
+    /// password. This returns the new encrypted user key and the new password hash.
+    pub async fn update_password(&self, new_password: String) -> Result<UpdatePasswordResponse> {
+        Ok(self
+            .0
+             .0
+            .write()
+            .await
+            .crypto()
+            .update_password(new_password)
             .await?)
     }
 

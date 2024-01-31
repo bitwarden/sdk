@@ -111,7 +111,10 @@ mod tests {
     use bitwarden_crypto::Kdf;
 
     use super::*;
-    use crate::client::{LoginMethod, UserLoginMethod};
+    use crate::{
+        client::{LoginMethod, UserLoginMethod},
+        mobile::crypto::{InitUserCryptoMethod, InitUserCryptoRequest},
+    };
 
     #[test]
     fn test_approve() {
@@ -138,5 +141,61 @@ mod tests {
         assert_eq!(fingerprint, "spill-applaud-sweep-habitable-shrunk");
 
         approve_auth_request(&mut client, public_key.to_owned()).unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_device_login() {
+        let mut approving_client = Client::new(None);
+        approving_client.set_login_method(LoginMethod::User(UserLoginMethod::Username {
+            client_id: "123".to_owned(),
+            email: "test@bitwarden.com".to_owned(),
+            kdf: Kdf::PBKDF2 {
+                iterations: NonZeroU32::new(600_000).unwrap(),
+            },
+        }));
+
+        let user_key = "2.Q/2PhzcC7GdeiMHhWguYAQ==|GpqzVdr0go0ug5cZh1n+uixeBC3oC90CIe0hd/HWA/pTRDZ8ane4fmsEIcuc8eMKUt55Y2q/fbNzsYu41YTZzzsJUSeqVjT8/iTQtgnNdpo=|dwI+uyvZ1h/iZ03VQ+/wrGEFYVewBUUl/syYgjsNMbE=".parse().unwrap();
+        let private_key = "2.yN7l00BOlUE0Sb0M//Q53w==|EwKG/BduQRQ33Izqc/ogoBROIoI5dmgrxSo82sgzgAMIBt3A2FZ9vPRMY+GWT85JiqytDitGR3TqwnFUBhKUpRRAq4x7rA6A1arHrFp5Tp1p21O3SfjtvB3quiOKbqWk6ZaU1Np9HwqwAecddFcB0YyBEiRX3VwF2pgpAdiPbSMuvo2qIgyob0CUoC/h4Bz1be7Qa7B0Xw9/fMKkB1LpOm925lzqosyMQM62YpMGkjMsbZz0uPopu32fxzDWSPr+kekNNyLt9InGhTpxLmq1go/pXR2uw5dfpXc5yuta7DB0EGBwnQ8Vl5HPdDooqOTD9I1jE0mRyuBpWTTI3FRnu3JUh3rIyGBJhUmHqGZvw2CKdqHCIrQeQkkEYqOeJRJVdBjhv5KGJifqT3BFRwX/YFJIChAQpebNQKXe/0kPivWokHWwXlDB7S7mBZzhaAPidZvnuIhalE2qmTypDwHy22FyqV58T8MGGMchcASDi/QXI6kcdpJzPXSeU9o+NC68QDlOIrMVxKFeE7w7PvVmAaxEo0YwmuAzzKy9QpdlK0aab/xEi8V4iXj4hGepqAvHkXIQd+r3FNeiLfllkb61p6WTjr5urcmDQMR94/wYoilpG5OlybHdbhsYHvIzYoLrC7fzl630gcO6t4nM24vdB6Ymg9BVpEgKRAxSbE62Tqacxqnz9AcmgItb48NiR/He3n3ydGjPYuKk/ihZMgEwAEZvSlNxYONSbYrIGDtOY+8Nbt6KiH3l06wjZW8tcmFeVlWv+tWotnTY9IqlAfvNVTjtsobqtQnvsiDjdEVtNy/s2ci5TH+NdZluca2OVEr91Wayxh70kpM6ib4UGbfdmGgCo74gtKvKSJU0rTHakQ5L9JlaSDD5FamBRyI0qfL43Ad9qOUZ8DaffDCyuaVyuqk7cz9HwmEmvWU3VQ+5t06n/5kRDXttcw8w+3qClEEdGo1KeENcnXCB32dQe3tDTFpuAIMLqwXs6FhpawfZ5kPYvLPczGWaqftIs/RXJ/EltGc0ugw2dmTLpoQhCqrcKEBDoYVk0LDZKsnzitOGdi9mOWse7Se8798ib1UsHFUjGzISEt6upestxOeupSTOh0v4+AjXbDzRUyogHww3V+Bqg71bkcMxtB+WM+pn1XNbVTyl9NR040nhP7KEf6e9ruXAtmrBC2ah5cFEpLIot77VFZ9ilLuitSz+7T8n1yAh1IEG6xxXxninAZIzi2qGbH69O5RSpOJuJTv17zTLJQIIc781JwQ2TTwTGnx5wZLbffhCasowJKd2EVcyMJyhz6ru0PvXWJ4hUdkARJs3Xu8dus9a86N8Xk6aAPzBDqzYb1vyFIfBxP0oO8xFHgd30Cgmz8UrSE3qeWRrF8ftrI6xQnFjHBGWD/JWSvd6YMcQED0aVuQkuNW9ST/DzQThPzRfPUoiL10yAmV7Ytu4fR3x2sF0Yfi87YhHFuCMpV/DsqxmUizyiJuD938eRcH8hzR/VO53Qo3UIsqOLcyXtTv6THjSlTopQ+JOLOnHm1w8dzYbLN44OG44rRsbihMUQp+wUZ6bsI8rrOnm9WErzkbQFbrfAINdoCiNa6cimYIjvvnMTaFWNymqY1vZxGztQiMiHiHYwTfwHTXrb9j0uPM=|09J28iXv9oWzYtzK2LBT6Yht4IT4MijEkk0fwFdrVQ4=";
+
+        approving_client
+            .initialize_user_crypto("asdfasdfasdf", user_key, private_key.parse().unwrap())
+            .unwrap();
+
+        let mut requesting_client = Client::new(None);
+        let auth_req = new_auth_request("test@bitwarden.com").unwrap();
+
+        let approved_req =
+            approve_auth_request(&mut approving_client, auth_req.public_key).unwrap();
+
+        requesting_client
+            .crypto()
+            .initialize_user_crypto(InitUserCryptoRequest {
+                kdf_params: Kdf::PBKDF2 {
+                    iterations: NonZeroU32::new(600_000).unwrap(),
+                },
+                email: "test@bitwarden.com".to_owned(),
+                private_key: private_key.to_owned(),
+                method: InitUserCryptoMethod::AuthRequest {
+                    request_private_key: auth_req.private_key,
+                    protected_user_key: approved_req,
+                },
+            })
+            .await
+            .unwrap();
+
+        assert_eq!(
+            approving_client
+                .get_encryption_settings()
+                .unwrap()
+                .get_key(&None)
+                .unwrap()
+                .to_base64(),
+            requesting_client
+                .get_encryption_settings()
+                .unwrap()
+                .get_key(&None)
+                .unwrap()
+                .to_base64()
+        );
     }
 }

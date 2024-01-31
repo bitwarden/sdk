@@ -311,6 +311,18 @@ as it can be used to decrypt all of the user&#x27;s data
 
 **Output**: std::result::Result<String,BitwardenError>
 
+### `update_password`
+
+Update the user&#x27;s password, which will re-encrypt the user&#x27;s encryption key with the new
+password. This returns the new encrypted user key and the new password hash.
+
+**Arguments**:
+
+- self:
+- new_password: String
+
+**Output**: std::result::Result<UpdatePasswordResponse,BitwardenError>
+
 ### `derive_pin_key`
 
 Generates a PIN protected user key from the provided PIN. The result can be stored and later used to

@@ -71,8 +71,6 @@ pub enum AuthRequestMethod {
     MasterKey {
         /// Master Key protected by the private key provided in `AuthRequestResponse`.
         protected_master_key: AsymmetricEncString,
-        /// Master Password hash protected by the private key provided in `AuthRequestResponse`.
-        protected_master_password_hash: AsymmetricEncString,
         /// User Key protected by the MasterKey, provided by the auth response.
         auth_request_key: EncString,
     },
@@ -116,12 +114,10 @@ pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequ
                 }
                 AuthRequestMethod::MasterKey {
                     protected_master_key,
-                    protected_master_password_hash,
                     auth_request_key,
                 } => auth_request_decrypt_master_key(
                     request_private_key,
                     protected_master_key,
-                    protected_master_password_hash,
                     auth_request_key,
                 )?,
             };

@@ -102,9 +102,8 @@ pub(crate) async fn complete_auth_request(
         }));
 
         let method = match res.master_password_hash {
-            Some(hash) => AuthRequestMethod::MasterKey {
+            Some(_) => AuthRequestMethod::MasterKey {
                 protected_master_key: res.key.unwrap().parse().unwrap(),
-                protected_master_password_hash: hash.parse().unwrap(),
                 auth_request_key: r.key.unwrap().parse().unwrap(),
             },
             None => AuthRequestMethod::UserKey {

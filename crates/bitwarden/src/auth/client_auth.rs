@@ -10,8 +10,8 @@ use crate::{
         auth_request::{approve_auth_request, new_auth_request},
         login::{
             login_api_key, login_password, send_two_factor_email, ApiKeyLoginRequest,
-            ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse,
-            TwoFactorEmailRequest,
+            ApiKeyLoginResponse, NewAuthRequestResponse, PasswordLoginRequest,
+            PasswordLoginResponse, TwoFactorEmailRequest,
         },
         password::{
             password_strength, satisfies_policy, validate_password, MasterPasswordPolicyOptions,
@@ -22,8 +22,6 @@ use crate::{
     client::Kdf,
     error::Error,
 };
-
-use super::login::NewAuthRequestResponse;
 
 pub struct ClientAuth<'a> {
     pub(crate) client: &'a mut crate::Client,

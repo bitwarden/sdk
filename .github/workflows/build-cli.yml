@@ -207,13 +207,13 @@ jobs:
       - name: Create pkg
         env:
           MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-installer-certificate-name }}
-        run: pkgbuild --identifier com.bitwarden.bws.pkg --install-location /usr/local/bin/ --root ./target/${{ matrix.settings.target }}/release ./target/{{ matrix.settings.target }}/bws-${{ env._PACKAGE_VERSION }}.pkg
-        # run: pkgbuild --identifier com.bitwarden.bws.pkg --install-location /usr/local/bin/ --root ./target/${{ matrix.settings.target }}/release --sign "$MACOS_CERTIFICATE_NAME" --version "${{ env._PACKAGE_VERSION }}" ./target/{{ matrix.settings.target }}/bws-${{ env._PACKAGE_VERSION }}.pkg
+        run: pkgbuild --identifier com.bitwarden.bws.pkg --install-location /usr/local/bin/ --root ./target/${{ matrix.settings.target }}/release ./target/{{ matrix.settings.target }}/bws.pkg
+        # run: pkgbuild --identifier com.bitwarden.bws.pkg --install-location /usr/local/bin/ --root ./target/${{ matrix.settings.target }}/release --sign "$MACOS_CERTIFICATE_NAME" --version "${{ env._PACKAGE_VERSION }}" ./target/{{ matrix.settings.target }}/bws.pkg
 
       - name: Sign pkg
         env:
           MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-installer-certificate-name }}
-        run: /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" ./target/{{ matrix.settings.target }}/bws-${{ env._PACKAGE_VERSION }}.pkg -v
+        run: /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" ./target/{{ matrix.settings.target }}/bws.pkg -v
 
       # - name: Create dmg
       #   run: |
@@ -243,15 +243,15 @@ jobs:
 
           rm notarization.zip
 
-          echo "Notarize dmg"
-          xcrun notarytool submit "./target/{{ matrix.settings.target }}/bws-${{ env._PACKAGE_VERSION }}.pkg" --keychain-profile "notarytool-profile" --wait
+          echo "Notarize pkg"
+          xcrun notarytool submit "./target/{{ matrix.settings.target }}/bws.pkg" --keychain-profile "notarytool-profile" --wait
 
-          xcrun stapler staple "./target/{{ matrix.settings.target }}/bws-${{ env._PACKAGE_VERSION }}.pkg"
+          xcrun stapler staple "./target/{{ matrix.settings.target }}/bws.pkg"
 
       - name: Zip macos
         run: |
           zip -j ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip ./target/${{ matrix.settings.target }}/release/bws
-          zip -j ./bws-${{ matrix.settings.target }}-pkg-${{ env._PACKAGE_VERSION }}.zip ./target/{{ matrix.settings.target }}/bws-${{ env._PACKAGE_VERSION }}.pkg
+          zip -j ./bws-${{ matrix.settings.target }}-pkg-${{ env._PACKAGE_VERSION }}.zip ./target/{{ matrix.settings.target }}/bws.pkg
 
       - name: Upload artifact
         uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v4.0.0
@@ -407,18 +407,16 @@ jobs:
       - name: Create pkg
         env:
           MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-installer-certificate-name }}
-        run: pkgbuild --identifier com.bitwarden.bws.pkg --install-location /usr/local/bin/ --root ./bws-aarch64-apple-darwin ./bws-aarch64-apple-darwin/bws-${{ env._PACKAGE_VERSION }}.pkg
-        # run: pkgbuild --identifier com.bitwarden.bws.pkg --install-location /usr/local/bin/ --root ./bws-aarch64-apple-darwin --sign "$MACOS_CERTIFICATE_NAME" --version "${{ env._PACKAGE_VERSION }}" ./bws-aarch64-apple-darwin/bws-${{ env._PACKAGE_VERSION }}.pkg
+        run: pkgbuild --identifier com.bitwarden.bws.pkg --install-location /usr/local/bin/ --root ./bws-aarch64-apple-darwin ./bws-aarch64-apple-darwin/bws.pkg
+        # run: pkgbuild --identifier com.bitwarden.bws.pkg --install-location /usr/local/bin/ --root ./bws-aarch64-apple-darwin --sign "$MACOS_CERTIFICATE_NAME" --version "${{ env._PACKAGE_VERSION }}" ./bws-aarch64-apple-darwin/bws.pkg
 
       - name: Sign pkg
         env:
           MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-installer-certificate-name }}
-        run: /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" ./bws-aarch64-apple-darwin/bws-${{ env._PACKAGE_VERSION }}.pkg -v
+        run: /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" ./bws-aarch64-apple-darwin/bws.pkg -v
 
       # - name: Create dmg
-      #   run: |
-      #     hdiutil create ./tmp.dmg -volname "Bitwarden Secrets Manager CLI" -srcfolder ./bws-aarch64-apple-darwin -ov -fs HFS+
-      #     hdiutil convert ./tmp.dmg -format UDZO -o ./bws-macos-universal-pkg-${{ env._PACKAGE_VERSION }}.dmg
+      #   run: create-dmg ./bws-aarch64-apple-darwin/bws-${{ env._PACKAGE_VERSION }}.dmg ./bws-macos-universal
 
       # - name: Sign dmg
       #   env:
@@ -444,14 +442,14 @@ jobs:
           rm notarization.zip
 
           echo "Notarize pkg"
-          xcrun notarytool submit "./bws-aarch64-apple-darwin/bws-${{ env._PACKAGE_VERSION }}.pkg" --keychain-profile "notarytool-profile" --wait
+          xcrun notarytool submit "./bws-aarch64-apple-darwin/bws.pkg" --keychain-profile "notarytool-profile" --wait
 
-          xcrun stapler staple "./bws-aarch64-apple-darwin/bws-${{ env._PACKAGE_VERSION }}.pkg"
+          xcrun stapler staple "./bws-aarch64-apple-darwin/bws.pkg"
 
       - name: Zip universal artifact
         run: |
           zip ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip ./bws-macos-universal/bws
-          zip ./bws-macos-universal-pkg-${{ env._PACKAGE_VERSION }}.zip ./bws-aarch64-apple-darwin/bws-${{ env._PACKAGE_VERSION }}.pkg
+          zip ./bws-macos-universal-pkg-${{ env._PACKAGE_VERSION }}.zip ./bws-aarch64-apple-darwin/bws.pkg
 
       - name: Upload artifact
         uses: actions/upload-artifact@694cdabd8bdb0f10b2cea11669e1bf5453eed0a6 # v4.2.0

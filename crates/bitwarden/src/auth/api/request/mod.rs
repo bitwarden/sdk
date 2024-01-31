@@ -15,9 +15,9 @@ pub(crate) use password_token_request::*;
 #[cfg(feature = "internal")]
 pub(crate) use renew_token_request::*;
 
-#[cfg(feature = "internal")]
+#[cfg(feature = "mobile")]
 mod auth_request_token_request;
-#[cfg(feature = "internal")]
+#[cfg(feature = "mobile")]
 pub(crate) use auth_request_token_request::*;
 
 use crate::{

@@ -63,7 +63,7 @@ pub(crate) async fn login_password(
 async fn request_identity_tokens(
     client: &mut Client,
     input: &PasswordLoginRequest,
-    password_hash: &String,
+    password_hash: &str,
 ) -> Result<IdentityTokenResponse> {
     use crate::client::client_settings::DeviceType;
 

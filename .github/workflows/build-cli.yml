@@ -166,7 +166,8 @@ jobs:
           secrets: "macos-bws-notarization-apple-id,
             macos-bws-notarization-team-id,
             macos-bws-notarization-password,
-            macos-bws-certificate-name"
+            macos-bws-certificate-name,
+            macos-bws-installer-certificate-name"
 
       - name: Decrypt secrets
         env:
@@ -177,6 +178,10 @@ jobs:
           gpg --quiet --batch --yes --decrypt --passphrase="$DECRYPT_FILE_PASSWORD" \
             --output "$HOME/secrets/devid-app-cert.p12" \
             "$GITHUB_WORKSPACE/.github/secrets/devid-app-cert.p12.gpg"
+
+          gpg --quiet --batch --yes --decrypt --passphrase="$DECRYPT_FILE_PASSWORD" \
+            --output "$HOME/secrets/devid-installer-cert.p12" \
+            "$GITHUB_WORKSPACE/.github/secrets/devid-installer-cert.p12.gpg"
 
       - name: Set up keychain
         env:
@@ -190,20 +195,25 @@ jobs:
 
           security import "$HOME/secrets/devid-app-cert.p12" -k build.keychain -P $DEVID_CERT_PASSWORD \
             -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/productbuild
-
+          security import "$HOME/secrets/devid-installer-cert.p12" -k build.keychain -P $DEVID_CERT_PASSWORD \
+            -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/productbuild
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $KEYCHAIN_PASSWORD build.keychain
 
       - name: Sign macos
         env:
           MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-certificate-name }}
-          MACOS_NOTARIZATION_TEAM_ID: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-notarization-team-id }}
-        run: codesign -s "$MACOS_NOTARIZATION_TEAM_ID" -f --timestamp -o runtime -i "com.bitwarden.bws" --entitlements "./crates/bws/entitlements.plist" ./target/${{ matrix.settings.target }}/release/bws -v
-            # /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime ./target/${{ matrix.settings.target }}/release/bws -v
+        run: /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime ./target/${{ matrix.settings.target }}/release/bws -v
 
-      # - name: Create pkg
-      #   env:
-      #     MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-certificate-name }}
-      #   run: pkgbuild --root ./target/${{ matrix.settings.target }}/release --identifier "com.bitwarden.bws.pkg" --install-location "/" --sign "$MACOS_CERTIFICATE_NAME" --version "${{ env._PACKAGE_VERSION }}" "./target/{{ matrix.settings.target }}/bws-${{ env._PACKAGE_VERSION }}.pkg"
+      - name: Create pkg
+        env:
+          MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-installer-certificate-name }}
+        run: pkgbuild --identifier com.bitwarden.bws.pkg --install-location /usr/local/bin/ --root ./target/${{ matrix.settings.target }}/release ./target/{{ matrix.settings.target }}/bws-${{ env._PACKAGE_VERSION }}.pkg
+        # run: pkgbuild --identifier com.bitwarden.bws.pkg --install-location /usr/local/bin/ --root ./target/${{ matrix.settings.target }}/release --sign "$MACOS_CERTIFICATE_NAME" --version "${{ env._PACKAGE_VERSION }}" ./target/{{ matrix.settings.target }}/bws-${{ env._PACKAGE_VERSION }}.pkg
+
+      - name: Sign pkg
+        env:
+          MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-installer-certificate-name }}
+        run: /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" ./target/{{ matrix.settings.target }}/bws-${{ env._PACKAGE_VERSION }}.pkg -v
 
       # - name: Create dmg
       #   run: |
@@ -231,19 +241,17 @@ jobs:
           echo "Notarize app"
           xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
 
-          # rm notarization.zip
+          rm notarization.zip
 
-          # echo "Creating temp notarization archive"
-          # ditto -c -k --keepParent "./target/{{ matrix.settings.target }}/bws-${{ env._PACKAGE_VERSION }}.dmg" "notarization.zip"
+          echo "Notarize dmg"
+          xcrun notarytool submit "./target/{{ matrix.settings.target }}/bws-${{ env._PACKAGE_VERSION }}.pkg" --keychain-profile "notarytool-profile" --wait
 
-          # echo "Notarize dmg"
-          # xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
-
-          # xcrun stapler staple "./target/{{ matrix.settings.target }}/bws-${{ env._PACKAGE_VERSION }}.dmg"
+          xcrun stapler staple "./target/{{ matrix.settings.target }}/bws-${{ env._PACKAGE_VERSION }}.pkg"
 
       - name: Zip macos
-        run: zip -j ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip ./target/${{ matrix.settings.target }}/release/bws
-          # zip ./bws-${{ matrix.settings.target }}-dmg-${{ env._PACKAGE_VERSION }}.zip ./target/{{ matrix.settings.target }}/bws-${{ env._PACKAGE_VERSION }}.dmg
+        run: |
+          zip -j ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip ./target/${{ matrix.settings.target }}/release/bws
+          zip -j ./bws-${{ matrix.settings.target }}-pkg-${{ env._PACKAGE_VERSION }}.zip ./target/{{ matrix.settings.target }}/bws-${{ env._PACKAGE_VERSION }}.pkg
 
       - name: Upload artifact
         uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v4.0.0
@@ -252,12 +260,12 @@ jobs:
           path: ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip
           if-no-files-found: error
 
-      # - name: Upload dmg artifact
-      #   uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v4.0.0
-      #   with:
-      #     name: bws-${{ matrix.settings.target }}-dmg-${{ env._PACKAGE_VERSION }}.zip
-      #     path: ./bws-${{ matrix.settings.target }}-dmg-${{ env._PACKAGE_VERSION }}.zip
-      #     if-no-files-found: error
+      - name: Upload dmg artifact
+        uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v4.0.0
+        with:
+          name: bws-${{ matrix.settings.target }}-pkg-${{ env._PACKAGE_VERSION }}.zip
+          path: ./bws-${{ matrix.settings.target }}-pkg-${{ env._PACKAGE_VERSION }}.zip
+          if-no-files-found: error
 
   build-linux:
     name: Building CLI for - ${{ matrix.settings.os }} - ${{ matrix.settings.target }}
@@ -363,7 +371,8 @@ jobs:
           secrets: "macos-bws-notarization-apple-id,
             macos-bws-notarization-team-id,
             macos-bws-notarization-password,
-            macos-bws-certificate-name"
+            macos-bws-certificate-name,
+            macos-bws-installer-certificate-name"
 
       - name: Decrypt secrets
         env:
@@ -395,10 +404,16 @@ jobs:
           MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-certificate-name }}
         run: codesign -s "$MACOS_CERTIFICATE_NAME" -f --timestamp -o runtime -i "com.bitwarden.bws" --entitlements "./crates/bws/entitlements.plist" ./bws-aarch64-apple-darwin/bws -v
 
-      # - name: Create pkg
-      #   env:
-      #     MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-certificate-name }}
-      #   run: pkgbuild --root ./bws-aarch64-apple-darwin --identifier "com.bitwarden.bws.pkg" --install-location "/" --sign $MACOS_CERTIFICATE_NAME --version "${{ env._PACKAGE_VERSION }}" "./bws-aarch64-apple-darwin/bws-${{ env._PACKAGE_VERSION }}.pkg"
+      - name: Create pkg
+        env:
+          MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-installer-certificate-name }}
+        run: pkgbuild --identifier com.bitwarden.bws.pkg --install-location /usr/local/bin/ --root ./bws-aarch64-apple-darwin ./bws-aarch64-apple-darwin/bws-${{ env._PACKAGE_VERSION }}.pkg
+        # run: pkgbuild --identifier com.bitwarden.bws.pkg --install-location /usr/local/bin/ --root ./bws-aarch64-apple-darwin --sign "$MACOS_CERTIFICATE_NAME" --version "${{ env._PACKAGE_VERSION }}" ./bws-aarch64-apple-darwin/bws-${{ env._PACKAGE_VERSION }}.pkg
+
+      - name: Sign pkg
+        env:
+          MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-installer-certificate-name }}
+        run: /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" ./bws-aarch64-apple-darwin/bws-${{ env._PACKAGE_VERSION }}.pkg -v
 
       # - name: Create dmg
       #   run: |
@@ -426,20 +441,17 @@ jobs:
           echo "Notarize app"
           xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
 
-          # rm notarization.zip
+          rm notarization.zip
 
-          # echo "Creating temp notarization archive"
-          # ditto -c -k --keepParent "./bws-macos-universal-pkg-${{ env._PACKAGE_VERSION }}.dmg" "notarization.zip"
+          echo "Notarize pkg"
+          xcrun notarytool submit "./bws-aarch64-apple-darwin/bws-${{ env._PACKAGE_VERSION }}.pkg" --keychain-profile "notarytool-profile" --wait
 
-          # echo "Notarize dmg"
-          # xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
-
-          # xcrun stapler staple "./bws-macos-universal-pkg-${{ env._PACKAGE_VERSION }}.dmg"
+          xcrun stapler staple "./bws-aarch64-apple-darwin/bws-${{ env._PACKAGE_VERSION }}.pkg"
 
       - name: Zip universal artifact
         run: |
           zip ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip ./bws-macos-universal/bws
-          # zip ./bws-macos-universal-dmg-${{ env._PACKAGE_VERSION }}.zip ./bws-macos-universal-pkg-${{ env._PACKAGE_VERSION }}.dmg
+          zip ./bws-macos-universal-pkg-${{ env._PACKAGE_VERSION }}.zip ./bws-aarch64-apple-darwin/bws-${{ env._PACKAGE_VERSION }}.pkg
 
       - name: Upload artifact
         uses: actions/upload-artifact@694cdabd8bdb0f10b2cea11669e1bf5453eed0a6 # v4.2.0
@@ -448,12 +460,12 @@ jobs:
           path: ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip
           if-no-files-found: error
 
-      # - name: Upload pkg artifact
-      #   uses: actions/upload-artifact@694cdabd8bdb0f10b2cea11669e1bf5453eed0a6 # v4.2.0
-      #   with:
-      #     name: bws-macos-universal-dmg-${{ env._PACKAGE_VERSION }}.zip
-      #     path: ./bws-macos-universal-dmg-${{ env._PACKAGE_VERSION }}.zip
-      #     if-no-files-found: error
+      - name: Upload pkg artifact
+        uses: actions/upload-artifact@694cdabd8bdb0f10b2cea11669e1bf5453eed0a6 # v4.2.0
+        with:
+          name: bws-macos-universal-pkg-${{ env._PACKAGE_VERSION }}.zip
+          path: ./bws-macos-universal-pkg-${{ env._PACKAGE_VERSION }}.zip
+          if-no-files-found: error
 
   third_party:
     name: Generate THIRDPARTY.html

@@ -23,6 +23,8 @@ use crate::{
     error::Error,
 };
 
+use super::login::NewAuthRequestResponse;
+
 pub struct ClientAuth<'a> {
     pub(crate) client: &'a mut crate::Client,
 }
@@ -93,6 +95,22 @@ impl<'a> ClientAuth<'a> {
         input: &ApiKeyLoginRequest,
     ) -> Result<ApiKeyLoginResponse> {
         login_api_key(self.client, input).await
+    }
+
+    pub async fn login_device(
+        &mut self,
+        email: String,
+        device_identifier: String,
+    ) -> Result<NewAuthRequestResponse> {
+        use crate::auth::login::send_new_auth_request;
+
+        send_new_auth_request(self.client, email, device_identifier).await
+    }
+
+    pub async fn login_device_complete(&mut self, auth_req: NewAuthRequestResponse) -> Result<()> {
+        use crate::auth::login::complete_auth_request;
+
+        complete_auth_request(self.client, auth_req).await
     }
 
     pub async fn send_two_factor_email(&mut self, tf: &TwoFactorEmailRequest) -> Result<()> {

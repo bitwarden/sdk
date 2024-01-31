@@ -6,7 +6,7 @@ use bitwarden_crypto::SymmetricCryptoKey;
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{AsymmetricEncString, EncString};
 use chrono::Utc;
-use reqwest::header::{self};
+use reqwest::header::{self, HeaderValue};
 use uuid::Uuid;
 
 use super::AccessToken;
@@ -86,7 +86,11 @@ impl Client {
     pub fn new(settings_input: Option<ClientSettings>) -> Self {
         let settings = settings_input.unwrap_or_default();
 
-        let headers = header::HeaderMap::new();
+        let mut headers = header::HeaderMap::new();
+        headers.append(
+            "Device-Type",
+            HeaderValue::from_str(&(settings.device_type as u8).to_string()).unwrap(),
+        );
 
         #[allow(unused_mut)]
         let mut client_builder = reqwest::Client::builder().default_headers(headers);

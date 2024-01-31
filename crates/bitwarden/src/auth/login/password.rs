@@ -65,10 +65,18 @@ async fn request_identity_tokens(
     input: &PasswordLoginRequest,
     password_hash: &String,
 ) -> Result<IdentityTokenResponse> {
+    use crate::client::client_settings::DeviceType;
+
     let config = client.get_api_configurations().await;
-    PasswordTokenRequest::new(&input.email, password_hash, &input.two_factor)
-        .send(config)
-        .await
+    PasswordTokenRequest::new(
+        &input.email,
+        password_hash,
+        DeviceType::ChromeBrowser,
+        "b86dd6ab-4265-4ddf-a7f1-eb28d5677f33",
+        &input.two_factor,
+    )
+    .send(config)
+    .await
 }
 
 #[cfg(feature = "internal")]

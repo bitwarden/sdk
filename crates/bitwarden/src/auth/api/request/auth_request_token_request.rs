@@ -1,17 +1,15 @@
 use log::debug;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::{
-    auth::{
-        api::response::IdentityTokenResponse,
-        login::{TwoFactorProvider, TwoFactorRequest},
-    },
+    auth::api::response::IdentityTokenResponse,
     client::{client_settings::DeviceType, ApiConfigurations},
     error::Result,
 };
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct PasswordTokenRequest {
+pub struct AuthRequestTokenRequest {
     scope: String,
     client_id: String,
     #[serde(rename = "deviceType")]
@@ -23,38 +21,30 @@ pub struct PasswordTokenRequest {
     grant_type: String,
     #[serde(rename = "username")]
     email: String,
+    #[serde(rename = "authRequest")]
+    auth_request_id: Uuid,
     #[serde(rename = "password")]
-    master_password_hash: String,
-
-    #[serde(rename = "twoFactorToken")]
-    two_factor_token: Option<String>,
-    #[serde(rename = "twoFactorProvider")]
-    two_factor_provider: Option<TwoFactorProvider>,
-    #[serde(rename = "twoFactorToken")]
-    two_factor_remember: Option<bool>,
+    access_code: String,
 }
 
-impl PasswordTokenRequest {
+impl AuthRequestTokenRequest {
     pub fn new(
         email: &str,
-        password_hash: &str,
+        auth_request_id: &Uuid,
+        access_code: &str,
         device_type: DeviceType,
         device_identifier: &str,
-        two_factor: &Option<TwoFactorRequest>,
     ) -> Self {
-        let tf = two_factor.as_ref();
         let obj = Self {
             scope: "api offline_access".to_string(),
             client_id: "web".to_string(),
             device_type: device_type as u8,
             device_identifier: device_identifier.to_string(),
-            device_name: "firefox".to_string(),
+            device_name: "chrome".to_string(),
             grant_type: "password".to_string(),
-            master_password_hash: password_hash.to_string(),
             email: email.to_string(),
-            two_factor_token: tf.map(|t| t.token.to_owned()),
-            two_factor_provider: tf.map(|t| t.provider.clone()),
-            two_factor_remember: tf.map(|t| t.remember),
+            auth_request_id: *auth_request_id,
+            access_code: access_code.to_string(),
         };
         debug!("initializing {:?}", obj);
         obj

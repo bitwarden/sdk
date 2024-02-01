@@ -45,9 +45,9 @@ echo 'source <(/path/to/bws completions bash)' >> ~/.bashrc
 For more detailed documentation, please refer to the
 [Secrets Manager CLI help article](https://bitwarden.com/help/secrets-manager-cli/).
 
-### Docker
+## Docker
 
-You can also use the `bws` CLI with Docker:
+You can also use the `bws` Docker image:
 
 <!-- TODO: remove the build step once the Docker image is published to the Docker Hub -->
 

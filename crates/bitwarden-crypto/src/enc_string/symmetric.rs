@@ -274,6 +274,8 @@ impl schemars::JsonSchema for EncString {
 
 #[cfg(test)]
 mod tests {
+    use schemars::schema_for;
+
     use super::EncString;
     use crate::{derive_symmetric_key, KeyDecryptable, KeyEncryptable};
 
@@ -324,5 +326,79 @@ mod tests {
         let enc_string_new = EncString::from_buffer(&enc_buf).unwrap();
 
         assert_eq!(enc_string_new.to_string(), enc_str)
+    }
+
+    #[test]
+    fn test_from_str_cbc256() {
+        let enc_str = "0.pMS6/icTQABtulw52pq2lg==|XXbxKxDTh+mWiN1HjH2N1w==";
+        let enc_string: EncString = enc_str.parse().unwrap();
+
+        assert_eq!(enc_string.enc_type(), 0);
+        if let EncString::AesCbc256_B64 { iv, data } = &enc_string {
+            assert_eq!(
+                iv,
+                &[164, 196, 186, 254, 39, 19, 64, 0, 109, 186, 92, 57, 218, 154, 182, 150]
+            );
+            assert_eq!(
+                data,
+                &[93, 118, 241, 43, 16, 211, 135, 233, 150, 136, 221, 71, 140, 125, 141, 215]
+            );
+        }
+    }
+
+    #[test]
+    fn test_from_str_cbc128_hmac() {
+        let enc_str = "1.Hh8gISIjJCUmJygpKissLQ==|MjM0NTY3ODk6Ozw9Pj9AQUJDREU=|KCkqKywtLi8wMTIzNDU2Nzg5Ojs8PT4/QEFCQ0RFRkc=";
+        let enc_string: EncString = enc_str.parse().unwrap();
+
+        assert_eq!(enc_string.enc_type(), 1);
+        if let EncString::AesCbc128_HmacSha256_B64 { iv, mac, data } = &enc_string {
+            assert_eq!(
+                iv,
+                &[30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45]
+            );
+            assert_eq!(
+                mac,
+                &[
+                    40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
+                    60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71
+                ]
+            );
+            assert_eq!(
+                data,
+                &[50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69]
+            );
+        }
+    }
+
+    #[test]
+    fn test_from_str_invalid() {
+        let enc_str = "7.ABC";
+        let enc_string: Result<EncString, _> = enc_str.parse();
+
+        let err = enc_string.unwrap_err();
+        assert_eq!(
+            err.to_string(),
+            "EncString error, Invalid symmetric type, got type 7 with 1 parts"
+        );
+    }
+
+    #[test]
+    fn test_debug_format() {
+        let enc_str  = "2.pMS6/icTQABtulw52pq2lg==|XXbxKxDTh+mWiN1HjH2N1w==|Q6PkuT+KX/axrgN9ubD5Ajk2YNwxQkgs3WJM0S0wtG8=";
+        let enc_string: EncString = enc_str.parse().unwrap();
+
+        let debug_string = format!("{:?}", enc_string);
+        assert_eq!(debug_string, "EncString");
+    }
+
+    #[test]
+    fn test_json_schema() {
+        let schema = schema_for!(EncString);
+
+        assert_eq!(
+            serde_json::to_string(&schema).unwrap(),
+            r#"{"$schema":"http://json-schema.org/draft-07/schema#","title":"EncString","type":"string"}"#
+        );
     }
 }

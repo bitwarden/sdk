@@ -39,6 +39,10 @@ pub enum HashPurpose {
 pub struct MasterKey(SymmetricCryptoKey);
 
 impl MasterKey {
+    pub fn new(key: SymmetricCryptoKey) -> MasterKey {
+        Self(key)
+    }
+
     /// Derives a users master key from their password, email and KDF.
     pub fn derive(password: &[u8], email: &[u8], kdf: &Kdf) -> Result<Self> {
         derive_key(password, email, kdf).map(Self)

@@ -29,6 +29,8 @@ use crate::{
 pub(crate) struct ApiConfigurations {
     pub identity: bitwarden_api_identity::apis::configuration::Configuration,
     pub api: bitwarden_api_api::apis::configuration::Configuration,
+    /// Reqwest client useable for external integrations like email forwarders, HIBP.
+    pub external_client: reqwest::Client,
     pub device_type: DeviceType,
 }
 
@@ -86,20 +88,27 @@ impl Client {
     pub fn new(settings_input: Option<ClientSettings>) -> Self {
         let settings = settings_input.unwrap_or_default();
 
+        fn new_client_builder() -> reqwest::ClientBuilder {
+            #[allow(unused_mut)]
+            let mut client_builder = reqwest::Client::builder();
+
+            #[cfg(all(not(target_os = "android"), not(target_arch = "wasm32")))]
+            {
+                client_builder =
+                    client_builder.use_preconfigured_tls(rustls_platform_verifier::tls_config());
+            }
+
+            client_builder
+        }
+
+        let external_client = new_client_builder().build().unwrap();
+
         let mut headers = header::HeaderMap::new();
         headers.append(
             "Device-Type",
             HeaderValue::from_str(&(settings.device_type as u8).to_string()).unwrap(),
         );
-
-        #[allow(unused_mut)]
-        let mut client_builder = reqwest::Client::builder().default_headers(headers);
-
-        #[cfg(all(not(target_os = "android"), not(target_arch = "wasm32")))]
-        {
-            client_builder =
-                client_builder.use_preconfigured_tls(rustls_platform_verifier::tls_config());
-        }
+        let client_builder = new_client_builder().default_headers(headers);
 
         let client = client_builder.build().unwrap();
 
@@ -131,6 +140,7 @@ impl Client {
             __api_configurations: ApiConfigurations {
                 identity,
                 api,
+                external_client,
                 device_type: settings.device_type,
             },
             encryption_settings: None,
@@ -146,7 +156,7 @@ impl Client {
 
     #[cfg(feature = "mobile")]
     pub(crate) fn get_http_client(&self) -> &reqwest::Client {
-        &self.__api_configurations.api.client
+        &self.__api_configurations.external_client
     }
 
     #[cfg(feature = "secrets")]

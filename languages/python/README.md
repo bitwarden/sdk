@@ -2,7 +2,7 @@
 ## Requirements
 
 - Python 3
-- `maturin` (install with `pip install maturin[patchelf]`)
+- `maturin` (install with `pip install maturin`)
 - `npm`
 
 ## Build
@@ -15,12 +15,15 @@ cd languages/python/
 maturin develop
 ```
 
-You can now import `BitwardenClient` in your Python code.
+You can now import `BitwardenClient` in your Python code with:
+```python
+from bitwarden_sdk import BitwardenClient
+```
 
 # Use without building locally
 
 ```bash
-pip install BitwardenClient
+pip install bitwarden-sdk
 ```
 
 # Run

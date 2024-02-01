@@ -207,13 +207,13 @@ jobs:
       - name: Create pkg
         env:
           MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-installer-certificate-name }}
-        # run: /usr/bin/pkgbuild --identifier com.bitwarden.bws.pkg --install-location /usr/local/bin/ --root ./target/${{ matrix.settings.target }}/release ./target/bws.pkg
-        run: /usr/bin/pkgbuild --identifier com.bitwarden.bws.pkg --install-location /usr/local/bin/ --root ./target/${{ matrix.settings.target }}/release --sign "$MACOS_CERTIFICATE_NAME" --version "${{ env._PACKAGE_VERSION }}" ./target/bws.pkg
+        run: /usr/bin/pkgbuild --identifier com.bitwarden.bws.pkg --install-location /usr/local/bin/ --root ./target/${{ matrix.settings.target }}/release ./target/bws.pkg
+        # run: /usr/bin/pkgbuild --identifier com.bitwarden.bws.pkg --install-location /usr/local/bin/ --root ./target/${{ matrix.settings.target }}/release --sign "$MACOS_CERTIFICATE_NAME" --version "${{ env._PACKAGE_VERSION }}" ./target/bws.pkg
 
-      # - name: Sign pkg
-      #   env:
-      #     MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-installer-certificate-name }}
-      #   run: /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" ./target/bws.pkg -v
+      - name: Sign pkg
+        env:
+          MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-certificate-name }}
+        run: /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" ./target/bws.pkg -v
 
       # - name: Create dmg
       #   run: |
@@ -407,13 +407,13 @@ jobs:
       - name: Create pkg
         env:
           MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-installer-certificate-name }}
-        # run: /usr/bin/pkgbuild --identifier com.bitwarden.bwscli --install-location /usr/local/bin/ --root ./bws-aarch64-apple-darwin/ ./bw.pkg
-        run: /usr/bin/pkgbuild --identifier com.bitwarden.bws --install-location /usr/local/bin/ --root ./bws-aarch64-apple-darwin --sign "$MACOS_CERTIFICATE_NAME" --version "${{ env._PACKAGE_VERSION }}" ./bws-aarch64-apple-darwin/bws.pkg
+        run: /usr/bin/pkgbuild --identifier com.bitwarden.bwscli --install-location /usr/local/bin/ --root ./bws-aarch64-apple-darwin/ ./bw.pkg
+        # run: /usr/bin/pkgbuild --identifier com.bitwarden.bws --install-location /usr/local/bin/ --root ./bws-aarch64-apple-darwin --sign "$MACOS_CERTIFICATE_NAME" --version "${{ env._PACKAGE_VERSION }}" ./bws-aarch64-apple-darwin/bws.pkg
 
-      # - name: Sign pkg
-      #   env:
-      #     MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-installer-certificate-name }}
-      #   run: /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" ./bws-aarch64-apple-darwin/bws.pkg -v
+      - name: Sign pkg
+        env:
+          MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-certificate-name }}
+        run: /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" ./bws-aarch64-apple-darwin/bws.pkg -v
 
       # - name: Create dmg
       #   run: create-dmg ./bws-aarch64-apple-darwin/bws-${{ env._PACKAGE_VERSION }}.dmg ./bws-macos-universal

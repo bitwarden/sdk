@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::{Cipher, Field, Folder};
+use crate::{Card, Cipher, Field, Folder, Login, LoginUri, SecureNote};
 
 pub(crate) fn export_json(folders: Vec<Folder>, ciphers: Vec<Cipher>) -> Result<String, String> {
     Ok("".to_owned())
@@ -39,14 +39,18 @@ struct JsonCipher {
     notes: Option<String>,
 
     r#type: u8,
-    //login: Option<JsonLogin>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    login: Option<JsonLogin>,
     //identity: Option<JsonIdentity>,
-    //card: Option<JsonCard>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    card: Option<JsonCard>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     secure_note: Option<JsonSecureNote>,
 
     favorite: bool,
     reprompt: u8,
 
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     fields: Vec<JsonField>,
     password_history: Option<Vec<String>>,
 
@@ -57,8 +61,78 @@ struct JsonCipher {
 
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]
+struct JsonLogin {
+    username: String,
+    password: String,
+    uris: Vec<JsonLoginUri>,
+    totp: Option<String>,
+    fido2_credentials: Vec<String>,
+}
+
+impl From<Login> for JsonLogin {
+    fn from(login: Login) -> Self {
+        JsonLogin {
+            username: login.username,
+            password: login.password,
+            uris: login.login_uris.into_iter().map(|u| u.into()).collect(),
+            totp: login.totp,
+            fido2_credentials: vec![],
+        }
+    }
+}
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct JsonLoginUri {
+    uri: Option<String>,
+    r#match: Option<u8>,
+}
+
+impl From<LoginUri> for JsonLoginUri {
+    fn from(login_uri: LoginUri) -> Self {
+        JsonLoginUri {
+            uri: login_uri.uri,
+            r#match: login_uri.r#match.map(|m| m as u8),
+        }
+    }
+}
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 struct JsonSecureNote {
     r#type: u8,
+}
+
+impl From<SecureNote> for JsonSecureNote {
+    fn from(note: SecureNote) -> Self {
+        JsonSecureNote {
+            r#type: note.r#type as u8,
+        }
+    }
+}
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct JsonCard {
+    cardholder_name: Option<String>,
+    exp_month: Option<String>,
+    exp_year: Option<String>,
+    code: Option<String>,
+    brand: Option<String>,
+    number: Option<String>,
+}
+
+impl From<Card> for JsonCard {
+    fn from(card: Card) -> Self {
+        JsonCard {
+            cardholder_name: card.cardholder_name,
+            exp_month: card.exp_month,
+            exp_year: card.exp_year,
+            code: card.code,
+            brand: card.brand,
+            number: card.number,
+        }
+    }
 }
 
 #[derive(serde::Serialize)]
@@ -90,12 +164,13 @@ impl From<Cipher> for JsonCipher {
             crate::CipherType::Identity() => 4,
         };
 
-        let secure_note = match cipher.r#type {
-            crate::CipherType::SecureNote(s) => Some(JsonSecureNote {
-                r#type: s.r#type as u8,
-            }),
-            _ => None,
+        let (login, secure_note, card) = match cipher.r#type {
+            crate::CipherType::Login(l) => (Some(l.into()), None, None),
+            crate::CipherType::SecureNote(s) => (None, Some(s.into()), None),
+            crate::CipherType::Card(c) => (None, None, Some(c.into())),
+            _ => (None, None, None),
         };
+
 
         JsonCipher {
             id: cipher.id,
@@ -105,9 +180,9 @@ impl From<Cipher> for JsonCipher {
             name: cipher.name,
             notes: cipher.notes,
             r#type,
-            //login: None,
+            login,
             //identity: None,
-            //card: None,
+            card,
             secure_note,
             favorite: cipher.favorite,
             reprompt: cipher.reprompt,
@@ -186,7 +261,6 @@ mod tests {
             deleted_date: None,
         };
 
-        // Convert to JsonCipher
         let json = serde_json::to_string(&JsonCipher::from(cipher)).unwrap();
 
         let expected = r#"{
@@ -278,7 +352,6 @@ mod tests {
             deleted_date: None,
         };
 
-        // Convert to JsonCipher
         let json = serde_json::to_string(&JsonCipher::from(cipher)).unwrap();
 
         let expected = r#"{
@@ -296,6 +369,66 @@ mod tests {
             "favorite": false,
             "secureNote": {
               "type": 0
+            },
+            "collectionIds": null
+        }"#;
+
+        assert_eq!(
+            json.parse::<serde_json::Value>().unwrap(),
+            expected.parse::<serde_json::Value>().unwrap()
+        )
+    }
+
+    #[test]
+    fn test_convert_card() {
+        let cipher = Cipher {
+            id: "3ed8de45-48ee-4e26-a2dc-b10701276c53".parse().unwrap(),
+            folder_id: None,
+
+            name: "My card".to_string(),
+            notes: None,
+
+            r#type: crate::CipherType::Card(crate::Card {
+                cardholder_name: Some("John Doe".to_string()),
+                exp_month: Some("1".to_string()),
+                exp_year: Some("2032".to_string()),
+                code: Some("123".to_string()),
+                brand: Some("Visa".to_string()),
+                number: Some("4111111111111111".to_string()),
+            }),
+
+            favorite: false,
+            reprompt: 0,
+
+            fields: vec![],
+
+            revision_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
+            creation_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
+            deleted_date: None,
+        };
+
+        let json = serde_json::to_string(&JsonCipher::from(cipher)).unwrap();
+
+        let expected = r#"{
+            "passwordHistory": null,
+            "revisionDate": "2024-01-30T17:55:36.150Z",
+            "creationDate": "2024-01-30T17:55:36.150Z",
+            "deletedDate": null,
+            "id": "3ed8de45-48ee-4e26-a2dc-b10701276c53",
+            "organizationId": null,
+            "folderId": null,
+            "type": 3,
+            "reprompt": 0,
+            "name": "My card",
+            "notes": null,
+            "favorite": false,
+            "card": {
+                "cardholderName": "John Doe",
+                "brand": "Visa",
+                "number": "4111111111111111",
+                "expMonth": "1",
+                "expYear": "2032",
+                "code": "123"
             },
             "collectionIds": null
         }"#;

@@ -55,9 +55,9 @@ impl ToString for CipherType {
     fn to_string(&self) -> String {
         match self {
             CipherType::Login(_) => "login".to_string(),
-            CipherType::Identity() => "identity".to_string(),
-            CipherType::Card(_) => "card".to_string(),
             CipherType::SecureNote(_) => "note".to_string(),
+            CipherType::Card(_) => "card".to_string(),
+            CipherType::Identity() => "identity".to_string(),
         }
     }
 }

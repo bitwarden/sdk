@@ -291,3 +291,23 @@ impl Client {
         Ok(self.encryption_settings.as_ref().unwrap())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_reqwest_rustls_platform_verifier_are_compatible() {
+        // rustls-platform-verifier is generating a rustls::ClientConfig,
+        // which reqwest accepts as a &dyn Any and then downcasts it to a
+        // rustls::ClientConfig.
+
+        // This means that if the rustls version of the two crates don't match,
+        // the downcast will fail and we will get a runtime error.
+
+        // This tests is added to ensure that it doesn't happen.
+
+        let _ = reqwest::ClientBuilder::new()
+            .use_preconfigured_tls(rustls_platform_verifier::tls_config())
+            .build()
+            .unwrap();
+    }
+}

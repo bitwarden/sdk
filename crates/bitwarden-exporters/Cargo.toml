@@ -11,6 +11,7 @@ Internal crate for the bitwarden crate. Do not use.
 keywords = ["bitwarden"]
 edition = "2021"
 rust-version = "1.57"
+exclude = ["/resources"]
 
 [dependencies]
 chrono = { version = ">=0.4.26, <0.5", features = [

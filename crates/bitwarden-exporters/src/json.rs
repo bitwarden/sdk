@@ -4,7 +4,13 @@ use uuid::Uuid;
 use crate::{Card, Cipher, Field, Folder, Identity, Login, LoginUri, SecureNote};
 
 pub(crate) fn export_json(folders: Vec<Folder>, ciphers: Vec<Cipher>) -> Result<String, String> {
-    Ok("".to_owned())
+    let export = JsonExport {
+        encrypted: false,
+        folders: folders.into_iter().map(|f| f.into()).collect(),
+        items: ciphers.into_iter().map(|c| c.into()).collect(),
+    };
+
+    serde_json::to_string_pretty(&export).map_err(|e| e.to_string())
 }
 
 /// JSON export format. These are intentionally decoupled from the internal data structures to
@@ -24,6 +30,15 @@ struct JsonExport {
 struct JsonFolder {
     id: Uuid,
     name: String,
+}
+
+impl From<Folder> for JsonFolder {
+    fn from(folder: Folder) -> Self {
+        JsonFolder {
+            id: folder.id,
+            name: folder.name,
+        }
+    }
 }
 
 #[derive(serde::Serialize)]
@@ -220,7 +235,6 @@ impl From<Cipher> for JsonCipher {
             crate::CipherType::Identity(i) => (None, None, None, Some(i.into())),
         };
 
-
         JsonCipher {
             id: cipher.id,
             folder_id: cipher.folder_id,
@@ -246,9 +260,10 @@ impl From<Cipher> for JsonCipher {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Cipher, Field, LoginUri};
+    use std::{fs, io::Read, path::PathBuf};
 
     use super::*;
+    use crate::{Cipher, Field, LoginUri};
 
     #[test]
     fn test_convert_login() {
@@ -497,7 +512,7 @@ mod tests {
             name: "My identity".to_string(),
             notes: None,
 
-            r#type: crate::CipherType::Identity(crate::Identity{
+            r#type: crate::CipherType::Identity(crate::Identity {
                 title: Some("Mr".to_string()),
                 first_name: Some("John".to_string()),
                 middle_name: None,
@@ -570,5 +585,168 @@ mod tests {
             json.parse::<serde_json::Value>().unwrap(),
             expected.parse::<serde_json::Value>().unwrap()
         )
+    }
+
+    #[test]
+    pub fn test_export() {
+        let mut d = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        d.push("resources");
+        d.push("json_export.json");
+
+        let mut file = fs::File::open(d).unwrap();
+
+        let mut expected = String::new();
+        file.read_to_string(&mut expected).unwrap();
+
+        let export = export_json(
+            vec![Folder {
+                id: "942e2984-1b9a-453b-b039-b107012713b9".parse().unwrap(),
+                name: "Important".to_string(),
+            }],
+            vec![
+                Cipher {
+                    id: "25c8c414-b446-48e9-a1bd-b10700bbd740".parse().unwrap(),
+                    folder_id: Some("942e2984-1b9a-453b-b039-b107012713b9".parse().unwrap()),
+
+                    name: "Bitwarden".to_string(),
+                    notes: Some("My note".to_string()),
+
+                    r#type: crate::CipherType::Login(crate::Login {
+                        username: "test@bitwarden.com".to_string(),
+                        password: "asdfasdfasdf".to_string(),
+                        login_uris: vec![LoginUri {
+                            uri: Some("https://vault.bitwarden.com".to_string()),
+                            r#match: None,
+                        }],
+                        totp: Some("ABC".to_string()),
+                    }),
+
+                    favorite: true,
+                    reprompt: 0,
+
+                    fields: vec![
+                        Field {
+                            name: Some("Text".to_string()),
+                            value: Some("A".to_string()),
+                            r#type: 0,
+                            linked_id: None,
+                        },
+                        Field {
+                            name: Some("Hidden".to_string()),
+                            value: Some("B".to_string()),
+                            r#type: 1,
+                            linked_id: None,
+                        },
+                        Field {
+                            name: Some("Boolean (true)".to_string()),
+                            value: Some("true".to_string()),
+                            r#type: 2,
+                            linked_id: None,
+                        },
+                        Field {
+                            name: Some("Boolean (false)".to_string()),
+                            value: Some("false".to_string()),
+                            r#type: 2,
+                            linked_id: None,
+                        },
+                        Field {
+                            name: Some("Linked".to_string()),
+                            value: None,
+                            r#type: 3,
+                            linked_id: Some(101),
+                        },
+                    ],
+
+                    revision_date: "2024-01-30T14:09:33.753Z".parse().unwrap(),
+                    creation_date: "2024-01-30T11:23:54.416Z".parse().unwrap(),
+                    deleted_date: None,
+                },
+                Cipher {
+                    id: "23f0f877-42b1-4820-a850-b10700bc41eb".parse().unwrap(),
+                    folder_id: None,
+
+                    name: "My secure note".to_string(),
+                    notes: Some("Very secure!".to_string()),
+
+                    r#type: crate::CipherType::SecureNote(crate::SecureNote {
+                        r#type: crate::SecureNoteType::Generic,
+                    }),
+
+                    favorite: false,
+                    reprompt: 0,
+
+                    fields: vec![],
+
+                    revision_date: "2024-01-30T11:25:25.466Z".parse().unwrap(),
+                    creation_date: "2024-01-30T11:25:25.466Z".parse().unwrap(),
+                    deleted_date: None,
+                },
+                Cipher {
+                    id: "3ed8de45-48ee-4e26-a2dc-b10701276c53".parse().unwrap(),
+                    folder_id: None,
+
+                    name: "My card".to_string(),
+                    notes: None,
+
+                    r#type: crate::CipherType::Card(crate::Card {
+                        cardholder_name: Some("John Doe".to_string()),
+                        exp_month: Some("1".to_string()),
+                        exp_year: Some("2032".to_string()),
+                        code: Some("123".to_string()),
+                        brand: Some("Visa".to_string()),
+                        number: Some("4111111111111111".to_string()),
+                    }),
+
+                    favorite: false,
+                    reprompt: 0,
+
+                    fields: vec![],
+
+                    revision_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
+                    creation_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
+                    deleted_date: None,
+                },
+                Cipher {
+                    id: "41cc3bc1-c3d9-4637-876c-b10701273712".parse().unwrap(),
+                    folder_id: Some("942e2984-1b9a-453b-b039-b107012713b9".parse().unwrap()),
+
+                    name: "My identity".to_string(),
+                    notes: None,
+
+                    r#type: crate::CipherType::Identity(crate::Identity {
+                        title: Some("Mr".to_string()),
+                        first_name: Some("John".to_string()),
+                        middle_name: None,
+                        last_name: Some("Doe".to_string()),
+                        address1: None,
+                        address2: None,
+                        address3: None,
+                        city: None,
+                        state: None,
+                        postal_code: None,
+                        country: None,
+                        company: Some("Bitwarden".to_string()),
+                        email: None,
+                        phone: None,
+                        ssn: None,
+                        username: Some("JDoe".to_string()),
+                        passport_number: None,
+                        license_number: None,
+                    }),
+
+                    favorite: false,
+                    reprompt: 0,
+
+                    fields: vec![],
+
+                    revision_date: "2024-01-30T17:54:50.706Z".parse().unwrap(),
+                    creation_date: "2024-01-30T17:54:50.706Z".parse().unwrap(),
+                    deleted_date: None,
+                },
+            ],
+        )
+        .unwrap();
+
+        assert_eq!(export, expected);
     }
 }

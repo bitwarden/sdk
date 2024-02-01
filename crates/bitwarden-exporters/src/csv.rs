@@ -111,7 +111,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Card, Login, LoginUri};
+    use crate::{Card, Identity, Login, LoginUri};
 
     #[test]
     fn test_export_csv() {
@@ -231,7 +231,26 @@ mod tests {
             folder_id: None,
             name: "My Identity".to_string(),
             notes: None,
-            r#type: CipherType::Identity(),
+            r#type: CipherType::Identity(Identity {
+                title: None,
+                first_name: None,
+                middle_name: None,
+                last_name: None,
+                address1: None,
+                address2: None,
+                address3: None,
+                city: None,
+                state: None,
+                postal_code: None,
+                country: None,
+                company: None,
+                email: None,
+                phone: None,
+                ssn: None,
+                username: None,
+                passport_number: None,
+                license_number: None,
+            }),
             favorite: false,
             reprompt: 0,
             fields: vec![],

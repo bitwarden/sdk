@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::{Card, Cipher, Field, Folder, Login, LoginUri, SecureNote};
+use crate::{Card, Cipher, Field, Folder, Identity, Login, LoginUri, SecureNote};
 
 pub(crate) fn export_json(folders: Vec<Folder>, ciphers: Vec<Cipher>) -> Result<String, String> {
     Ok("".to_owned())
@@ -41,7 +41,8 @@ struct JsonCipher {
     r#type: u8,
     #[serde(skip_serializing_if = "Option::is_none")]
     login: Option<JsonLogin>,
-    //identity: Option<JsonIdentity>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    identity: Option<JsonIdentity>,
     #[serde(skip_serializing_if = "Option::is_none")]
     card: Option<JsonCard>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -137,6 +138,54 @@ impl From<Card> for JsonCard {
 
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]
+struct JsonIdentity {
+    title: Option<String>,
+    first_name: Option<String>,
+    middle_name: Option<String>,
+    last_name: Option<String>,
+    address1: Option<String>,
+    address2: Option<String>,
+    address3: Option<String>,
+    city: Option<String>,
+    state: Option<String>,
+    postal_code: Option<String>,
+    country: Option<String>,
+    company: Option<String>,
+    email: Option<String>,
+    phone: Option<String>,
+    ssn: Option<String>,
+    username: Option<String>,
+    passport_number: Option<String>,
+    license_number: Option<String>,
+}
+
+impl From<Identity> for JsonIdentity {
+    fn from(identity: Identity) -> Self {
+        JsonIdentity {
+            title: identity.title,
+            first_name: identity.first_name,
+            middle_name: identity.middle_name,
+            last_name: identity.last_name,
+            address1: identity.address1,
+            address2: identity.address2,
+            address3: identity.address3,
+            city: identity.city,
+            state: identity.state,
+            postal_code: identity.postal_code,
+            country: identity.country,
+            company: identity.company,
+            email: identity.email,
+            phone: identity.phone,
+            ssn: identity.ssn,
+            username: identity.username,
+            passport_number: identity.passport_number,
+            license_number: identity.license_number,
+        }
+    }
+}
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 struct JsonField {
     name: Option<String>,
     value: Option<String>,
@@ -161,14 +210,14 @@ impl From<Cipher> for JsonCipher {
             crate::CipherType::Login(_) => 1,
             crate::CipherType::SecureNote(_) => 2,
             crate::CipherType::Card(_) => 3,
-            crate::CipherType::Identity() => 4,
+            crate::CipherType::Identity(_) => 4,
         };
 
-        let (login, secure_note, card) = match cipher.r#type {
-            crate::CipherType::Login(l) => (Some(l.into()), None, None),
-            crate::CipherType::SecureNote(s) => (None, Some(s.into()), None),
-            crate::CipherType::Card(c) => (None, None, Some(c.into())),
-            _ => (None, None, None),
+        let (login, secure_note, card, identity) = match cipher.r#type {
+            crate::CipherType::Login(l) => (Some(l.into()), None, None, None),
+            crate::CipherType::SecureNote(s) => (None, Some(s.into()), None, None),
+            crate::CipherType::Card(c) => (None, None, Some(c.into()), None),
+            crate::CipherType::Identity(i) => (None, None, None, Some(i.into())),
         };
 
 
@@ -181,7 +230,7 @@ impl From<Cipher> for JsonCipher {
             notes: cipher.notes,
             r#type,
             login,
-            //identity: None,
+            identity,
             card,
             secure_note,
             favorite: cipher.favorite,
@@ -429,6 +478,90 @@ mod tests {
                 "expMonth": "1",
                 "expYear": "2032",
                 "code": "123"
+            },
+            "collectionIds": null
+        }"#;
+
+        assert_eq!(
+            json.parse::<serde_json::Value>().unwrap(),
+            expected.parse::<serde_json::Value>().unwrap()
+        )
+    }
+
+    #[test]
+    fn test_convert_identity() {
+        let cipher = Cipher {
+            id: "41cc3bc1-c3d9-4637-876c-b10701273712".parse().unwrap(),
+            folder_id: Some("942e2984-1b9a-453b-b039-b107012713b9".parse().unwrap()),
+
+            name: "My identity".to_string(),
+            notes: None,
+
+            r#type: crate::CipherType::Identity(crate::Identity{
+                title: Some("Mr".to_string()),
+                first_name: Some("John".to_string()),
+                middle_name: None,
+                last_name: Some("Doe".to_string()),
+                address1: None,
+                address2: None,
+                address3: None,
+                city: None,
+                state: None,
+                postal_code: None,
+                country: None,
+                company: Some("Bitwarden".to_string()),
+                email: None,
+                phone: None,
+                ssn: None,
+                username: Some("JDoe".to_string()),
+                passport_number: None,
+                license_number: None,
+            }),
+
+            favorite: false,
+            reprompt: 0,
+
+            fields: vec![],
+
+            revision_date: "2024-01-30T17:54:50.706Z".parse().unwrap(),
+            creation_date: "2024-01-30T17:54:50.706Z".parse().unwrap(),
+            deleted_date: None,
+        };
+
+        let json = serde_json::to_string(&JsonCipher::from(cipher)).unwrap();
+
+        let expected = r#"{
+            "passwordHistory": null,
+            "revisionDate": "2024-01-30T17:54:50.706Z",
+            "creationDate": "2024-01-30T17:54:50.706Z",
+            "deletedDate": null,
+            "id": "41cc3bc1-c3d9-4637-876c-b10701273712",
+            "organizationId": null,
+            "folderId": "942e2984-1b9a-453b-b039-b107012713b9",
+            "type": 4,
+            "reprompt": 0,
+            "name": "My identity",
+            "notes": null,
+            "favorite": false,
+            "identity": {
+                "title": "Mr",
+                "firstName": "John",
+                "middleName": null,
+                "lastName": "Doe",
+                "address1": null,
+                "address2": null,
+                "address3": null,
+                "city": null,
+                "state": null,
+                "postalCode": null,
+                "country": null,
+                "company": "Bitwarden",
+                "email": null,
+                "phone": null,
+                "ssn": null,
+                "username": "JDoe",
+                "passportNumber": null,
+                "licenseNumber": null
             },
             "collectionIds": null
         }"#;

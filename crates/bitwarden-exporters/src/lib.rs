@@ -46,9 +46,9 @@ pub struct Field {
 
 pub enum CipherType {
     Login(Login),
-    Identity(),
-    Card(Card),
     SecureNote(SecureNote),
+    Card(Card),
+    Identity(Identity),
 }
 
 impl ToString for CipherType {
@@ -57,7 +57,7 @@ impl ToString for CipherType {
             CipherType::Login(_) => "login".to_string(),
             CipherType::SecureNote(_) => "note".to_string(),
             CipherType::Card(_) => "card".to_string(),
-            CipherType::Identity() => "identity".to_string(),
+            CipherType::Identity(_) => "identity".to_string(),
         }
     }
 }
@@ -98,6 +98,27 @@ pub struct SecureNote {
 
 pub enum SecureNoteType {
     Generic = 0,
+}
+
+pub struct Identity {
+    pub title: Option<String>,
+    pub first_name: Option<String>,
+    pub middle_name: Option<String>,
+    pub last_name: Option<String>,
+    pub address1: Option<String>,
+    pub address2: Option<String>,
+    pub address3: Option<String>,
+    pub city: Option<String>,
+    pub state: Option<String>,
+    pub postal_code: Option<String>,
+    pub country: Option<String>,
+    pub company: Option<String>,
+    pub email: Option<String>,
+    pub phone: Option<String>,
+    pub ssn: Option<String>,
+    pub username: Option<String>,
+    pub passport_number: Option<String>,
+    pub license_number: Option<String>,
 }
 
 pub fn export(folders: Vec<Folder>, ciphers: Vec<Cipher>, format: Format) -> String {

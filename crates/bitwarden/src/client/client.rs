@@ -30,6 +30,7 @@ pub(crate) struct ApiConfigurations {
     pub identity: bitwarden_api_identity::apis::configuration::Configuration,
     pub api: bitwarden_api_api::apis::configuration::Configuration,
     /// Reqwest client useable for external integrations like email forwarders, HIBP.
+    #[allow(unused)]
     pub external_client: reqwest::Client,
     pub device_type: DeviceType,
 }

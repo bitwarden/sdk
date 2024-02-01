@@ -7,7 +7,8 @@ use crate::{
     error::Result,
     mobile::crypto::{
         derive_pin_key, derive_pin_user_key, get_user_encryption_key, initialize_org_crypto,
-        initialize_user_crypto, DerivePinKeyResponse, InitOrgCryptoRequest, InitUserCryptoRequest,
+        initialize_user_crypto, update_password, DerivePinKeyResponse, InitOrgCryptoRequest,
+        InitUserCryptoRequest, UpdatePasswordResponse,
     },
 };
 
@@ -29,6 +30,14 @@ impl<'a> ClientCrypto<'a> {
     #[cfg(feature = "internal")]
     pub async fn get_user_encryption_key(&mut self) -> Result<String> {
         get_user_encryption_key(self.client).await
+    }
+
+    #[cfg(feature = "internal")]
+    pub async fn update_password(
+        &mut self,
+        new_password: String,
+    ) -> Result<UpdatePasswordResponse> {
+        update_password(self.client, new_password)
     }
 
     #[cfg(feature = "internal")]

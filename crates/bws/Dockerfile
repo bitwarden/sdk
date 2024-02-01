@@ -30,5 +30,12 @@ WORKDIR /usr/local/bin
 COPY --from=build /app/target/release/bws .
 COPY --from=build /etc/ssl/certs /etc/ssl/certs
 
-ENTRYPOINT ["bws"]
+# Create a non-root user
+RUN useradd -ms /bin/bash app
 
+# Switch to the non-root user
+USER app
+
+WORKDIR /home/app
+
+ENTRYPOINT ["bws"]

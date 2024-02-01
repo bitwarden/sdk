@@ -274,6 +274,8 @@ impl schemars::JsonSchema for EncString {
 
 #[cfg(test)]
 mod tests {
+    use schemars::schema_for;
+
     use super::EncString;
     use crate::{derive_symmetric_key, KeyDecryptable, KeyEncryptable};
 
@@ -324,5 +326,36 @@ mod tests {
         let enc_string_new = EncString::from_buffer(&enc_buf).unwrap();
 
         assert_eq!(enc_string_new.to_string(), enc_str)
+    }
+
+    #[test]
+    fn test_from_str_invalid() {
+        let enc_str = "7.ABC";
+        let enc_string: Result<EncString, _> = enc_str.parse();
+
+        let err = enc_string.unwrap_err();
+        assert_eq!(
+            err.to_string(),
+            "EncString error, Invalid symmetric type, got type 7 with 1 parts"
+        );
+    }
+
+    #[test]
+    fn test_debug_format() {
+        let enc_str  = "2.pMS6/icTQABtulw52pq2lg==|XXbxKxDTh+mWiN1HjH2N1w==|Q6PkuT+KX/axrgN9ubD5Ajk2YNwxQkgs3WJM0S0wtG8=";
+        let enc_string: EncString = enc_str.parse().unwrap();
+
+        let debug_string = format!("{:?}", enc_string);
+        assert_eq!(debug_string, "EncString");
+    }
+
+    #[test]
+    fn test_json_schema() {
+        let schema = schema_for!(EncString);
+
+        assert_eq!(
+            serde_json::to_string(&schema).unwrap(),
+            r#"{"$schema":"http://json-schema.org/draft-07/schema#","title":"EncString","type":"string"}"#
+        );
     }
 }

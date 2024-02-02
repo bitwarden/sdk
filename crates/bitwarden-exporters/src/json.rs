@@ -108,7 +108,7 @@ impl From<LoginUri> for JsonLoginUri {
     fn from(login_uri: LoginUri) -> Self {
         JsonLoginUri {
             uri: login_uri.uri,
-            r#match: login_uri.r#match.map(|m| m as u8),
+            r#match: login_uri.r#match,
         }
     }
 }

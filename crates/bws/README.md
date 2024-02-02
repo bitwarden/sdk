@@ -59,7 +59,7 @@ docker build -f crates/bws/Dockerfile --no-cache -t bitwarden/bws .
 docker run --rm -it bitwarden/bws --help
 ```
 
-The Docker image is ran with a non-root user named `app`. If you need to pass your config file to
+The Docker image is run with a non-root user named `app`. If you need to pass your config file to
 the container, you can use the `-v`/`--volume` flag to mount your local `.bws` directory to the
 default location within the container:
 
@@ -84,5 +84,5 @@ export BWS_CONFIG_FILE="/path/to/config/file"
 docker run --rm -it -e BWS_CONFIG_FILE="$BWS_CONFIG_FILE" -v "$BWS_CONFIG_FILE":"$BWS_CONFIG_FILE" bitwarden/bws --help
 ```
 
-Note that if you want to use identitcal config file paths on your host and in the container, the
+Note that if you want to use identical config file paths on your host and in the container, the
 parent directory must exist on both.

@@ -94,6 +94,26 @@ impl ClientAuth {
             .await?)
     }
 
+    /// Validate the user password without knowing the password hash
+    ///
+    /// Used for accounts that we know have master passwords but that have not logged in with a
+    /// password. Some example are login with device or TDE.
+    ///
+    /// This works by comparing the provided password against the encrypted user key.
+    pub async fn validate_password_user_key(
+        &self,
+        password: String,
+        encrypted_user_key: String,
+    ) -> Result<String> {
+        Ok(self
+            .0
+             .0
+            .write()
+            .await
+            .auth()
+            .validate_password_user_key(password, encrypted_user_key)?)
+    }
+
     /// Initialize a new auth request
     pub async fn new_auth_request(&self, email: String) -> Result<AuthRequestResponse> {
         Ok(self.0 .0.write().await.auth().new_auth_request(&email)?)

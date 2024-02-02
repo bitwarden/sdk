@@ -6,11 +6,6 @@ on:
     paths:
       - "crates/bws/**"
   workflow_dispatch:
-    inputs:
-      sdk_branch:
-        description: "Server branch name to deploy (examples: 'master', 'rc', 'feature/sm')"
-        type: string
-        default: master
   pull_request:
     paths:
       - ".github/workflows/build-cli-docker.yml"
@@ -111,7 +106,7 @@ jobs:
           platforms: |
             linux/amd64,
             linux/arm64/v8
-          push: true
+          push: ${{ env.is_publish_branch }}
           tags: ${{ steps.tag-list.outputs.tags }}
           secrets: |
             "GH_PAT=${{ steps.retrieve-secret-pat.outputs.github-pat-bitwarden-devops-bot-repo-scope }}"

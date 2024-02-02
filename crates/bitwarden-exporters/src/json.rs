@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::{Card, Cipher, Field, Folder, Identity, Login, LoginUri, SecureNote};
+use crate::{Card, Cipher, CipherType, Field, Folder, Identity, Login, LoginUri, SecureNote};
 
 pub(crate) fn export_json(folders: Vec<Folder>, ciphers: Vec<Cipher>) -> Result<String, String> {
     let export = JsonExport {
@@ -222,17 +222,17 @@ impl From<Field> for JsonField {
 impl From<Cipher> for JsonCipher {
     fn from(cipher: Cipher) -> Self {
         let r#type = match cipher.r#type {
-            crate::CipherType::Login(_) => 1,
-            crate::CipherType::SecureNote(_) => 2,
-            crate::CipherType::Card(_) => 3,
-            crate::CipherType::Identity(_) => 4,
+            CipherType::Login(_) => 1,
+            CipherType::SecureNote(_) => 2,
+            CipherType::Card(_) => 3,
+            CipherType::Identity(_) => 4,
         };
 
         let (login, secure_note, card, identity) = match cipher.r#type {
-            crate::CipherType::Login(l) => (Some(l.into()), None, None, None),
-            crate::CipherType::SecureNote(s) => (None, Some(s.into()), None, None),
-            crate::CipherType::Card(c) => (None, None, Some(c.into()), None),
-            crate::CipherType::Identity(i) => (None, None, None, Some(i.into())),
+            CipherType::Login(l) => (Some((*l).into()), None, None, None),
+            CipherType::SecureNote(s) => (None, Some((*s).into()), None, None),
+            CipherType::Card(c) => (None, None, Some((*c).into()), None),
+            CipherType::Identity(i) => (None, None, None, Some((*i).into())),
         };
 
         JsonCipher {
@@ -263,7 +263,7 @@ mod tests {
     use std::{fs, io::Read, path::PathBuf};
 
     use super::*;
-    use crate::{Cipher, Field, LoginUri};
+    use crate::{Cipher, Field, LoginUri, SecureNoteType};
 
     #[test]
     fn test_convert_login() {
@@ -274,7 +274,7 @@ mod tests {
             name: "Bitwarden".to_string(),
             notes: Some("My note".to_string()),
 
-            r#type: crate::CipherType::Login(crate::Login {
+            r#type: CipherType::Login(Box::new(Login {
                 username: "test@bitwarden.com".to_string(),
                 password: "asdfasdfasdf".to_string(),
                 login_uris: vec![LoginUri {
@@ -282,7 +282,7 @@ mod tests {
                     r#match: None,
                 }],
                 totp: Some("ABC".to_string()),
-            }),
+            })),
 
             favorite: true,
             reprompt: 0,
@@ -402,9 +402,9 @@ mod tests {
             name: "My secure note".to_string(),
             notes: Some("Very secure!".to_string()),
 
-            r#type: crate::CipherType::SecureNote(crate::SecureNote {
-                r#type: crate::SecureNoteType::Generic,
-            }),
+            r#type: CipherType::SecureNote(Box::new(SecureNote {
+                r#type: SecureNoteType::Generic,
+            })),
 
             favorite: false,
             reprompt: 0,
@@ -452,14 +452,14 @@ mod tests {
             name: "My card".to_string(),
             notes: None,
 
-            r#type: crate::CipherType::Card(crate::Card {
+            r#type: CipherType::Card(Box::new(Card {
                 cardholder_name: Some("John Doe".to_string()),
                 exp_month: Some("1".to_string()),
                 exp_year: Some("2032".to_string()),
                 code: Some("123".to_string()),
                 brand: Some("Visa".to_string()),
                 number: Some("4111111111111111".to_string()),
-            }),
+            })),
 
             favorite: false,
             reprompt: 0,
@@ -512,7 +512,7 @@ mod tests {
             name: "My identity".to_string(),
             notes: None,
 
-            r#type: crate::CipherType::Identity(crate::Identity {
+            r#type: CipherType::Identity(Box::new(Identity {
                 title: Some("Mr".to_string()),
                 first_name: Some("John".to_string()),
                 middle_name: None,
@@ -531,7 +531,7 @@ mod tests {
                 username: Some("JDoe".to_string()),
                 passport_number: None,
                 license_number: None,
-            }),
+            })),
 
             favorite: false,
             reprompt: 0,
@@ -611,7 +611,7 @@ mod tests {
                     name: "Bitwarden".to_string(),
                     notes: Some("My note".to_string()),
 
-                    r#type: crate::CipherType::Login(crate::Login {
+                    r#type: CipherType::Login(Box::new(Login {
                         username: "test@bitwarden.com".to_string(),
                         password: "asdfasdfasdf".to_string(),
                         login_uris: vec![LoginUri {
@@ -619,7 +619,7 @@ mod tests {
                             r#match: None,
                         }],
                         totp: Some("ABC".to_string()),
-                    }),
+                    })),
 
                     favorite: true,
                     reprompt: 0,
@@ -668,9 +668,9 @@ mod tests {
                     name: "My secure note".to_string(),
                     notes: Some("Very secure!".to_string()),
 
-                    r#type: crate::CipherType::SecureNote(crate::SecureNote {
-                        r#type: crate::SecureNoteType::Generic,
-                    }),
+                    r#type: CipherType::SecureNote(Box::new(SecureNote {
+                        r#type: SecureNoteType::Generic,
+                    })),
 
                     favorite: false,
                     reprompt: 0,
@@ -688,14 +688,14 @@ mod tests {
                     name: "My card".to_string(),
                     notes: None,
 
-                    r#type: crate::CipherType::Card(crate::Card {
+                    r#type: CipherType::Card(Box::new(Card {
                         cardholder_name: Some("John Doe".to_string()),
                         exp_month: Some("1".to_string()),
                         exp_year: Some("2032".to_string()),
                         code: Some("123".to_string()),
                         brand: Some("Visa".to_string()),
                         number: Some("4111111111111111".to_string()),
-                    }),
+                    })),
 
                     favorite: false,
                     reprompt: 0,
@@ -713,7 +713,7 @@ mod tests {
                     name: "My identity".to_string(),
                     notes: None,
 
-                    r#type: crate::CipherType::Identity(crate::Identity {
+                    r#type: CipherType::Identity(Box::new(Identity {
                         title: Some("Mr".to_string()),
                         first_name: Some("John".to_string()),
                         middle_name: None,
@@ -732,7 +732,7 @@ mod tests {
                         username: Some("JDoe".to_string()),
                         passport_number: None,
                         license_number: None,
-                    }),
+                    })),
 
                     favorite: false,
                     reprompt: 0,
@@ -747,6 +747,9 @@ mod tests {
         )
         .unwrap();
 
-        assert_eq!(export, expected);
+        assert_eq!(
+            export.parse::<serde_json::Value>().unwrap(),
+            expected.parse::<serde_json::Value>().unwrap()
+        )
     }
 }

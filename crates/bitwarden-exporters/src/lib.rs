@@ -45,10 +45,10 @@ pub struct Field {
 }
 
 pub enum CipherType {
-    Login(Login),
-    SecureNote(SecureNote),
-    Card(Card),
-    Identity(Identity),
+    Login(Box<Login>),
+    SecureNote(Box<SecureNote>),
+    Card(Box<Card>),
+    Identity(Box<Identity>),
 }
 
 impl ToString for CipherType {

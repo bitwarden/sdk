@@ -131,7 +131,7 @@ mod tests {
                 folder_id: None,
                 name: "test@bitwarden.com".to_string(),
                 notes: None,
-                r#type: CipherType::Login(Login {
+                r#type: CipherType::Login(Box::new(Login {
                     username: "test@bitwarden.com".to_string(),
                     password: "Abc123".to_string(),
                     login_uris: vec![LoginUri {
@@ -139,7 +139,7 @@ mod tests {
                         r#match: None,
                     }],
                     totp: None,
-                }),
+                })),
                 favorite: false,
                 reprompt: 0,
                 fields: vec![],
@@ -152,7 +152,7 @@ mod tests {
                 folder_id: Some("583e7665-0126-4d37-9139-b0d20184dd86".parse().unwrap()),
                 name: "Steam Account".to_string(),
                 notes: None,
-                r#type: CipherType::Login(Login {
+                r#type: CipherType::Login(Box::new(Login {
                     username: "steam".to_string(),
                     password: "3Pvb8u7EfbV*nJ".to_string(),
                     login_uris: vec![LoginUri {
@@ -160,7 +160,7 @@ mod tests {
                         r#match: None,
                     }],
                     totp: Some("steam://ABCD123".to_string()),
-                }),
+                })),
                 favorite: true,
                 reprompt: 0,
                 fields: vec![
@@ -202,14 +202,14 @@ mod tests {
             folder_id: None,
             name: "My Card".to_string(),
             notes: None,
-            r#type: CipherType::Card(Card {
+            r#type: CipherType::Card(Box::new(Card {
                 cardholder_name: None,
                 exp_month: None,
                 exp_year: None,
                 code: None,
                 brand: None,
                 number: None,
-            }),
+            })),
             favorite: false,
             reprompt: 0,
             fields: vec![],
@@ -231,7 +231,7 @@ mod tests {
             folder_id: None,
             name: "My Identity".to_string(),
             notes: None,
-            r#type: CipherType::Identity(Identity {
+            r#type: CipherType::Identity(Box::new(Identity {
                 title: None,
                 first_name: None,
                 middle_name: None,
@@ -250,7 +250,7 @@ mod tests {
                 username: None,
                 passport_number: None,
                 license_number: None,
-            }),
+            })),
             favorite: false,
             reprompt: 0,
             fields: vec![],

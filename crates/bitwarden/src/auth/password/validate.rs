@@ -8,7 +8,7 @@ use crate::{
 };
 
 /// Validate if the provided password matches the password hash stored in the client.
-pub(crate) async fn validate_password(
+pub(crate) fn validate_password(
     client: &Client,
     password: String,
     password_hash: String,
@@ -22,9 +22,12 @@ pub(crate) async fn validate_password(
         match login_method {
             UserLoginMethod::Username { email, kdf, .. }
             | UserLoginMethod::ApiKey { email, kdf, .. } => {
-                let hash =
-                    determine_password_hash(email, kdf, &password, HashPurpose::LocalAuthorization)
-                        .await?;
+                let hash = determine_password_hash(
+                    email,
+                    kdf,
+                    &password,
+                    HashPurpose::LocalAuthorization,
+                )?;
 
                 Ok(hash == password_hash)
             }
@@ -61,7 +64,7 @@ pub(crate) fn validate_password_user_key(
                 let existing_key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
 
                 if user_key.to_vec() != existing_key.to_vec() {
-                    return Err("wrong password".into());
+                    return Err("wrong user key".into());
                 }
 
                 Ok(master_key
@@ -75,13 +78,12 @@ pub(crate) fn validate_password_user_key(
 
 #[cfg(test)]
 mod tests {
-    use crate::auth::password::validate::validate_password_user_key;
+    use crate::auth::password::{validate::validate_password_user_key, validate_password};
 
-    #[tokio::test]
-    async fn test_validate_password() {
+    #[test]
+    fn test_validate_password() {
         use std::num::NonZeroU32;
 
-        use super::validate_password;
         use crate::client::{Client, Kdf, LoginMethod, UserLoginMethod};
 
         let mut client = Client::new(None);
@@ -96,14 +98,14 @@ mod tests {
         let password = "password123".to_string();
         let password_hash = "7kTqkF1pY/3JeOu73N9kR99fDDe9O1JOZaVc7KH3lsU=".to_string();
 
-        let result = validate_password(&client, password, password_hash).await;
+        let result = validate_password(&client, password, password_hash);
 
         assert!(result.unwrap());
     }
 
     #[cfg(feature = "internal")]
-    #[tokio::test]
-    async fn test_validate_password_user_key() {
+    #[test]
+    fn test_validate_password_user_key() {
         use std::num::NonZeroU32;
 
         use crate::client::{Client, Kdf, LoginMethod, UserLoginMethod};
@@ -129,11 +131,12 @@ mod tests {
                 .unwrap();
 
         assert_eq!(result, "aOvkBXFhSdgrBWR3hZCMRoML9+h5yRblU3lFphCdkeA=");
+        assert!(validate_password(&client, "asdfasdfasdf".to_string(), result.to_string()).unwrap())
     }
 
     #[cfg(feature = "internal")]
-    #[tokio::test]
-    async fn test_validate_password_user_key_wrong_password() {
+    #[test]
+    fn test_validate_password_user_key_wrong_password() {
         use std::num::NonZeroU32;
 
         use crate::client::{Client, Kdf, LoginMethod, UserLoginMethod};

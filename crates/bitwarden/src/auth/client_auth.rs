@@ -102,8 +102,8 @@ impl<'a> ClientAuth<'a> {
         send_two_factor_email(self.client, tf).await
     }
 
-    pub async fn validate_password(&self, password: String, password_hash: String) -> Result<bool> {
-        validate_password(self.client, password, password_hash).await
+    pub fn validate_password(&self, password: String, password_hash: String) -> Result<bool> {
+        validate_password(self.client, password, password_hash)
     }
 
     pub fn validate_password_user_key(

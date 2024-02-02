@@ -40,8 +40,8 @@ pub(crate) fn export_csv(folders: Vec<Folder>, ciphers: Vec<Cipher>) -> Result<S
                 login_uri: login
                     .map(|l| l.login_uris.iter().flat_map(|l| l.uri.clone()).collect())
                     .unwrap_or_default(),
-                login_username: login.map(|l| l.username.clone()),
-                login_password: login.map(|l| l.password.clone()),
+                login_username: login.and_then(|l| l.username.clone()),
+                login_password: login.and_then(|l| l.password.clone()),
                 login_totp: login.and_then(|l| l.totp.clone()),
             }
         });
@@ -132,8 +132,8 @@ mod tests {
                 name: "test@bitwarden.com".to_string(),
                 notes: None,
                 r#type: CipherType::Login(Box::new(Login {
-                    username: "test@bitwarden.com".to_string(),
-                    password: "Abc123".to_string(),
+                    username: Some("test@bitwarden.com".to_string()),
+                    password: Some("Abc123".to_string()),
                     login_uris: vec![LoginUri {
                         uri: Some("https://google.com".to_string()),
                         r#match: None,
@@ -153,8 +153,8 @@ mod tests {
                 name: "Steam Account".to_string(),
                 notes: None,
                 r#type: CipherType::Login(Box::new(Login {
-                    username: "steam".to_string(),
-                    password: "3Pvb8u7EfbV*nJ".to_string(),
+                    username: Some("steam".to_string()),
+                    password: Some("3Pvb8u7EfbV*nJ".to_string()),
                     login_uris: vec![LoginUri {
                         uri: Some("https://steampowered.com".to_string()),
                         r#match: None,

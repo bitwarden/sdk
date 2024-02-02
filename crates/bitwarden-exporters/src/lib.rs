@@ -38,10 +38,10 @@ pub struct Cipher {
 
 #[derive(Clone)]
 pub struct Field {
-    name: Option<String>,
-    value: Option<String>,
-    r#type: u8,
-    linked_id: Option<u8>,
+    pub name: Option<String>,
+    pub value: Option<String>,
+    pub r#type: u8,
+    pub linked_id: Option<u32>,
 }
 
 pub enum CipherType {
@@ -63,24 +63,15 @@ impl ToString for CipherType {
 }
 
 pub struct Login {
-    pub username: String,
-    pub password: String,
+    pub username: Option<String>,
+    pub password: Option<String>,
     pub login_uris: Vec<LoginUri>,
     pub totp: Option<String>,
 }
 
 pub struct LoginUri {
     pub uri: Option<String>,
-    pub r#match: Option<UriMatchType>,
-}
-
-pub enum UriMatchType {
-    Domain = 0,
-    Host = 1,
-    StartsWith = 2,
-    Exact = 3,
-    RegularExpression = 4,
-    Never = 5,
+    pub r#match: Option<u8>,
 }
 
 pub struct Card {

@@ -78,8 +78,8 @@ struct JsonCipher {
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 struct JsonLogin {
-    username: String,
-    password: String,
+    username: Option<String>,
+    password: Option<String>,
     uris: Vec<JsonLoginUri>,
     totp: Option<String>,
     fido2_credentials: Vec<String>,
@@ -205,7 +205,7 @@ struct JsonField {
     name: Option<String>,
     value: Option<String>,
     r#type: u8,
-    linked_id: Option<u8>,
+    linked_id: Option<u32>,
 }
 
 impl From<Field> for JsonField {
@@ -275,8 +275,8 @@ mod tests {
             notes: Some("My note".to_string()),
 
             r#type: CipherType::Login(Box::new(Login {
-                username: "test@bitwarden.com".to_string(),
-                password: "asdfasdfasdf".to_string(),
+                username: Some("test@bitwarden.com".to_string()),
+                password: Some("asdfasdfasdf".to_string()),
                 login_uris: vec![LoginUri {
                     uri: Some("https://vault.bitwarden.com".to_string()),
                     r#match: None,
@@ -612,8 +612,8 @@ mod tests {
                     notes: Some("My note".to_string()),
 
                     r#type: CipherType::Login(Box::new(Login {
-                        username: "test@bitwarden.com".to_string(),
-                        password: "asdfasdfasdf".to_string(),
+                        username: Some("test@bitwarden.com".to_string()),
+                        password: Some("asdfasdfasdf".to_string()),
                         login_uris: vec![LoginUri {
                             uri: Some("https://vault.bitwarden.com".to_string()),
                             r#match: None,

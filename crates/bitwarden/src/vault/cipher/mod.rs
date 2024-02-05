@@ -12,6 +12,6 @@ pub(crate) mod secure_note;
 pub use attachment::{
     Attachment, AttachmentEncryptResult, AttachmentFile, AttachmentFileView, AttachmentView,
 };
-pub use cipher::{Cipher, CipherListView, CipherType, CipherView};
+pub use cipher::{Cipher, CipherListView, CipherRepromptType, CipherType, CipherView};
 pub use field::FieldView;
 pub use secure_note::SecureNoteType;

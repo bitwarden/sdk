@@ -187,9 +187,8 @@ impl From<ExportFormat> for bitwarden_exporters::Format {
 mod tests {
     use chrono::{DateTime, Utc};
 
-    use crate::vault::{login::LoginView, CipherRepromptType};
-
     use super::*;
+    use crate::vault::{login::LoginView, CipherRepromptType};
 
     #[test]
     fn test_try_from_folder_view() {

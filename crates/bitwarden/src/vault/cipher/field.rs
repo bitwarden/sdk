@@ -34,11 +34,11 @@ pub struct Field {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct FieldView {
-    pub name: Option<String>,
-    pub value: Option<String>,
-    pub r#type: FieldType,
+    pub(crate) name: Option<String>,
+    pub(crate) value: Option<String>,
+    pub(crate) r#type: FieldType,
 
-    pub linked_id: Option<LinkedIdType>,
+    pub(crate) linked_id: Option<LinkedIdType>,
 }
 
 impl KeyEncryptable<SymmetricCryptoKey, Field> for FieldView {

@@ -12,11 +12,19 @@ pub enum Format {
     EncryptedJson { password: String },
 }
 
+/// Export representation of a Bitwarden folder.
+///
+/// These are mostly duplicated from the `bitwarden` vault models to facilitate a stable export API
+/// that is not tied to the internal vault models. We may revisit this in the future.
 pub struct Folder {
     pub id: Uuid,
     pub name: String,
 }
 
+/// Export representation of a Bitwarden cipher.
+///
+/// These are mostly duplicated from the `bitwarden` vault models to facilitate a stable export API
+/// that is not tied to the internal vault models. We may revisit this in the future.
 pub struct Cipher {
     pub id: Uuid,
     pub folder_id: Option<Uuid>,
@@ -116,7 +124,6 @@ pub fn export(folders: Vec<Folder>, ciphers: Vec<Cipher>, format: Format) -> Str
     match format {
         Format::Csv => export_csv(folders, ciphers).unwrap(),
         Format::Json => export_json(folders, ciphers).unwrap(),
-        // Format::EncryptedJson { password } => export_encrypted_json(folders, ciphers, password),
-        _ => todo!(),
+        Format::EncryptedJson { password: _ } => todo!(),
     }
 }

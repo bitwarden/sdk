@@ -223,7 +223,7 @@ jobs:
           platforms: |
             linux/amd64,
             linux/arm64/v8
-          push: ${{ github.event.inputs.release_type != 'Dry Run' }}
+          push: ${{ inputs.release_type != 'Dry Run' }}
           tags: ${{ steps.tag-list.outputs.tags }}
           secrets: |
             "GH_PAT=${{ steps.retrieve-secret-pat.outputs.github-pat-bitwarden-devops-bot-repo-scope }}"

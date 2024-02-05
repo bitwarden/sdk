@@ -171,7 +171,7 @@ jobs:
         id: tag-list
         env:
           VERSION: ${{ needs.setup.outputs.release-version }}
-          DRY_RUN: ${{ github.event.inputs.release_type == 'Dry Run' }}
+          DRY_RUN: ${{ inputs.release_type == 'Dry Run' }}
         run: |
           if [[ "${DRY_RUN}" == "true" ]]; then
             REF=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}

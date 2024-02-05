@@ -11,7 +11,7 @@ JSON bindings for the Bitwarden Secret Manager SDK
 keywords = ["bitwarden", "secrets manager"]
 categories = ["api-bindings"]
 edition = "2021"
-rust-version = "1.57"
+rust-version = "1.71"
 
 [features]
 internal = ["bitwarden/internal"] # Internal testing methods

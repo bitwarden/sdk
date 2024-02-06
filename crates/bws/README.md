@@ -56,8 +56,8 @@ docker build -f crates/bws/Dockerfile -t bitwarden/bws .
 docker run --rm -it bitwarden/bws --help
 ```
 
-To use a configuration file, utilize docker [bind mounting](https://docs.docker.com/storage/bind-mounts/)
-to expose it to the container:
+To use a configuration file, utilize docker
+[bind mounting](https://docs.docker.com/storage/bind-mounts/) to expose it to the container:
 
 ```bash
 docker run --rm -it -v "$HOME"/.bws:/home/app/.bws bitwarden/bws --help

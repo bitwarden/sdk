@@ -1,6 +1,8 @@
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{AsymmetricEncString, DeviceKey, TrustDeviceResponse};
 
+#[cfg(feature = "mobile")]
+use crate::auth::login::NewAuthRequestResponse;
 #[cfg(feature = "secrets")]
 use crate::auth::login::{login_access_token, AccessTokenLoginRequest, AccessTokenLoginResponse};
 use crate::{auth::renew::renew_token, error::Result, Client};
@@ -14,7 +16,8 @@ use crate::{
             TwoFactorEmailRequest,
         },
         password::{
-            password_strength, satisfies_policy, validate_password, MasterPasswordPolicyOptions,
+            password_strength, satisfies_policy, validate_password, validate_password_user_key,
+            MasterPasswordPolicyOptions,
         },
         register::{make_register_keys, register},
         AuthRequestResponse, RegisterKeyResponse, RegisterRequest,
@@ -99,8 +102,16 @@ impl<'a> ClientAuth<'a> {
         send_two_factor_email(self.client, tf).await
     }
 
-    pub async fn validate_password(&self, password: String, password_hash: String) -> Result<bool> {
-        validate_password(self.client, password, password_hash).await
+    pub fn validate_password(&self, password: String, password_hash: String) -> Result<bool> {
+        validate_password(self.client, password, password_hash)
+    }
+
+    pub fn validate_password_user_key(
+        &self,
+        password: String,
+        encrypted_user_key: String,
+    ) -> Result<String> {
+        validate_password_user_key(self.client, password, encrypted_user_key)
     }
 
     pub fn new_auth_request(&self, email: &str) -> Result<AuthRequestResponse> {
@@ -113,6 +124,25 @@ impl<'a> ClientAuth<'a> {
 
     pub async fn trust_device(&self) -> Result<TrustDeviceResponse> {
         trust_device(self.client)
+    }
+}
+
+#[cfg(feature = "mobile")]
+impl<'a> ClientAuth<'a> {
+    pub async fn login_device(
+        &mut self,
+        email: String,
+        device_identifier: String,
+    ) -> Result<NewAuthRequestResponse> {
+        use crate::auth::login::send_new_auth_request;
+
+        send_new_auth_request(self.client, email, device_identifier).await
+    }
+
+    pub async fn login_device_complete(&mut self, auth_req: NewAuthRequestResponse) -> Result<()> {
+        use crate::auth::login::complete_auth_request;
+
+        complete_auth_request(self.client, auth_req).await
     }
 }
 

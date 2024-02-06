@@ -206,6 +206,8 @@ impl schemars::JsonSchema for AsymmetricEncString {
 
 #[cfg(test)]
 mod tests {
+    use schemars::schema_for;
+
     use super::{AsymmetricCryptoKey, AsymmetricEncString, KeyDecryptable};
 
     const RSA_PRIVATE_KEY: &str = "-----BEGIN PRIVATE KEY-----
@@ -287,5 +289,36 @@ XKZBokBGnjFnTnKcs7nv/O8=
         assert_eq!(t.key.enc_type(), 6);
         assert_eq!(t.key.to_string(), cipher);
         assert_eq!(serde_json::to_string(&t).unwrap(), serialized);
+    }
+
+    #[test]
+    fn test_from_str_invalid() {
+        let enc_str = "7.ABC";
+        let enc_string: Result<AsymmetricEncString, _> = enc_str.parse();
+
+        let err = enc_string.unwrap_err();
+        assert_eq!(
+            err.to_string(),
+            "EncString error, Invalid asymmetric type, got type 7 with 1 parts"
+        );
+    }
+
+    #[test]
+    fn test_debug_format() {
+        let enc_str: &str = "4.ZheRb3PCfAunyFdQYPfyrFqpuvmln9H9w5nDjt88i5A7ug1XE0LJdQHCIYJl0YOZ1gCOGkhFu/CRY2StiLmT3iRKrrVBbC1+qRMjNNyDvRcFi91LWsmRXhONVSPjywzrJJXglsztDqGkLO93dKXNhuKpcmtBLsvgkphk/aFvxbaOvJ/FHdK/iV0dMGNhc/9tbys8laTdwBlI5xIChpRcrfH+XpSFM88+Bu03uK67N9G6eU1UmET+pISJwJvMuIDMqH+qkT7OOzgL3t6I0H2LDj+CnsumnQmDsvQzDiNfTR0IgjpoE9YH2LvPXVP2wVUkiTwXD9cG/E7XeoiduHyHjw==";
+        let enc_string: AsymmetricEncString = enc_str.parse().unwrap();
+
+        let debug_string = format!("{:?}", enc_string);
+        assert_eq!(debug_string, "AsymmetricEncString");
+    }
+
+    #[test]
+    fn test_json_schema() {
+        let schema = schema_for!(AsymmetricEncString);
+
+        assert_eq!(
+            serde_json::to_string(&schema).unwrap(),
+            r#"{"$schema":"http://json-schema.org/draft-07/schema#","title":"AsymmetricEncString","type":"string"}"#
+        );
     }
 }

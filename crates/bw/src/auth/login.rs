@@ -114,3 +114,26 @@ pub(crate) async fn login_api_key(
 
     Ok(())
 }
+
+pub(crate) async fn login_device(
+    mut client: Client,
+    email: Option<String>,
+    device_identifier: Option<String>,
+) -> Result<()> {
+    let email = text_prompt_when_none("Email", email)?;
+    let device_identifier = text_prompt_when_none("Device Identifier", device_identifier)?;
+
+    let auth = client
+        .auth()
+        .login_device(email, device_identifier)
+        .await
+        .unwrap();
+
+    println!("Fingerprint: {}", auth.fingerprint);
+
+    Text::new("Press enter once approved").prompt()?;
+
+    client.auth().login_device_complete(auth).await.unwrap();
+
+    Ok(())
+}

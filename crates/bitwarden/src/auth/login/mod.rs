@@ -29,6 +29,13 @@ pub(crate) use api_key::login_api_key;
 #[cfg(feature = "internal")]
 pub use api_key::{ApiKeyLoginRequest, ApiKeyLoginResponse};
 
+#[cfg(feature = "mobile")]
+mod auth_request;
+#[cfg(feature = "mobile")]
+pub use auth_request::NewAuthRequestResponse;
+#[cfg(feature = "mobile")]
+pub(crate) use auth_request::{complete_auth_request, send_new_auth_request};
+
 #[cfg(feature = "secrets")]
 mod access_token;
 #[cfg(feature = "secrets")]

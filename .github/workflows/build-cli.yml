@@ -204,27 +204,6 @@ jobs:
           MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-certificate-name }}
         run: /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime ./target/${{ matrix.settings.target }}/release/bws -v
 
-      - name: Create pkg
-        env:
-          MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-installer-certificate-name }}
-        run: /usr/bin/pkgbuild --identifier com.bitwarden.bws.pkg --install-location /usr/local/bin/ --root ./target/${{ matrix.settings.target }}/release ./target/bws.pkg
-        # run: /usr/bin/pkgbuild --identifier com.bitwarden.bws.pkg --install-location /usr/local/bin/ --root ./target/${{ matrix.settings.target }}/release --sign "$MACOS_CERTIFICATE_NAME" --version "${{ env._PACKAGE_VERSION }}" ./target/bws.pkg
-
-      - name: Sign pkg
-        env:
-          MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-certificate-name }}
-        run: /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" ./target/bws.pkg -v
-
-      # - name: Create dmg
-      #   run: |
-      #     hdiutil create ./tmp.dmg -volname "Bitwarden Secrets Manager CLI" -srcfolder ./target/${{ matrix.settings.target }}/release -ov -fs HFS+
-      #     hdiutil convert -format UDZO -o './target/{{ matrix.settings.target }}/bws-${{ env._PACKAGE_VERSION }}.dmg' ./tmp.dmg
-
-      # - name: Sign dmg
-      #   env:
-      #     MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-certificate-name }}
-      #   run: /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime ./target/{{ matrix.settings.target }}/bws-${{ env._PACKAGE_VERSION }}.dmg -v
-
       - name: Notarize app macos
         env:
           MACOS_NOTARIZATION_APPLE_ID: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-notarization-apple-id }}
@@ -235,36 +214,19 @@ jobs:
           echo "Create keychain profile"
           xcrun notarytool store-credentials "notarytool-profile" --apple-id "$MACOS_NOTARIZATION_APPLE_ID" --team-id "$MACOS_NOTARIZATION_TEAM_ID" --password "$MACOS_NOTARIZATION_PWD"
 
-          echo "Creating temp notarization archive"
-          ditto -c -k --keepParent "./target/${{ matrix.settings.target }}/release/bws" "notarization.zip"
+          echo "Creating notarization archive"
+          ditto -c -k --keepParent ./target/${{ matrix.settings.target }}/release/bws ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip
+
+          /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip -v
 
           echo "Notarize app"
-          xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
-
-          rm notarization.zip
-
-          echo "Notarize pkg"
-          xcrun notarytool submit "./target/bws.pkg" --keychain-profile "notarytool-profile" --wait
-
-          xcrun stapler staple "./target/bws.pkg"
-
-      - name: Zip macos
-        run: |
-          zip -j ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip ./target/${{ matrix.settings.target }}/release/bws
-          zip -j ./bws-${{ matrix.settings.target }}-pkg-${{ env._PACKAGE_VERSION }}.zip ./target/bws.pkg
+          xcrun notarytool submit ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip --keychain-profile "notarytool-profile" --wait
 
       - name: Upload artifact
         uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v4.0.0
         with:
           name: bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip
           path: ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip
-          if-no-files-found: error
-
-      - name: Upload dmg artifact
-        uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v4.0.0
-        with:
-          name: bws-${{ matrix.settings.target }}-pkg-${{ env._PACKAGE_VERSION }}.zip
-          path: ./bws-${{ matrix.settings.target }}-pkg-${{ env._PACKAGE_VERSION }}.zip
           if-no-files-found: error
 
   build-linux:

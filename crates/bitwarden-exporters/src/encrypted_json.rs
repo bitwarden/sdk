@@ -1,5 +1,5 @@
 use base64::{engine::general_purpose::STANDARD, Engine};
-use bitwarden_crypto::{generate_random_bytes, Kdf, MasterKey};
+use bitwarden_crypto::{generate_random_bytes, Kdf, KeyEncryptable, PinKey};
 use serde::Serialize;
 use thiserror::Error;
 use uuid::Uuid;
@@ -45,7 +45,7 @@ pub(crate) fn export_encrypted_json(
 
     let salt: [u8; 16] = generate_random_bytes();
     let salt = STANDARD.encode(salt);
-    let key = MasterKey::derive(password.as_bytes(), salt.as_bytes(), &kdf)?;
+    let key = PinKey::derive(password.as_bytes(), salt.as_bytes(), &kdf)?;
 
     let enc_key_validation = Uuid::new_v4().to_string();
 
@@ -57,8 +57,8 @@ pub(crate) fn export_encrypted_json(
         kdf_iterations,
         kdf_memory,
         kdf_parallelism,
-        enc_key_validation: key.encrypt(enc_key_validation.as_bytes())?.to_string(),
-        data: key.encrypt(decrypted_export.as_bytes())?.to_string(),
+        enc_key_validation: enc_key_validation.encrypt_with_key(&key)?.to_string(),
+        data: decrypted_export.encrypt_with_key(&key)?.to_string(),
     };
 
     Ok(serde_json::to_string_pretty(&encrypted_export)?)

@@ -14,7 +14,7 @@ pub enum CsvError {
 }
 
 pub(crate) fn export_csv(folders: Vec<Folder>, ciphers: Vec<Cipher>) -> Result<String, CsvError> {
-    let folders: HashMap<Uuid, String> = folders.iter().map(|f| (f.id, f.name.clone())).collect();
+    let folders: HashMap<Uuid, String> = folders.into_iter().map(|f| (f.id, f.name)).collect();
 
     let rows = ciphers
         .into_iter()

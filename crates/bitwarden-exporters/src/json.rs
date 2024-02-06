@@ -1,16 +1,23 @@
 use chrono::{DateTime, Utc};
+use thiserror::Error;
 use uuid::Uuid;
 
 use crate::{Card, Cipher, CipherType, Field, Folder, Identity, Login, LoginUri, SecureNote};
 
-pub(crate) fn export_json(folders: Vec<Folder>, ciphers: Vec<Cipher>) -> Result<String, String> {
+#[derive(Error, Debug)]
+pub enum JsonError {
+    #[error("JSON error: {0}")]
+    Serde(#[from] serde_json::Error),
+}
+
+pub(crate) fn export_json(folders: Vec<Folder>, ciphers: Vec<Cipher>) -> Result<String, JsonError> {
     let export = JsonExport {
         encrypted: false,
         folders: folders.into_iter().map(|f| f.into()).collect(),
         items: ciphers.into_iter().map(|c| c.into()).collect(),
     };
 
-    serde_json::to_string_pretty(&export).map_err(|e| e.to_string())
+    Ok(serde_json::to_string_pretty(&export)?)
 }
 
 /// JSON export format. These are intentionally decoupled from the internal data structures to
@@ -249,7 +256,7 @@ impl From<Cipher> for JsonCipher {
             secure_note,
             favorite: cipher.favorite,
             reprompt: cipher.reprompt,
-            fields: cipher.fields.iter().map(|f| f.clone().into()).collect(),
+            fields: cipher.fields.into_iter().map(|f| f.into()).collect(),
             password_history: None,
             revision_date: cipher.revision_date,
             creation_date: cipher.creation_date,

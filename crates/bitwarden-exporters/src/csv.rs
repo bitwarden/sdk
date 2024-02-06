@@ -17,7 +17,7 @@ pub(crate) fn export_csv(folders: Vec<Folder>, ciphers: Vec<Cipher>) -> Result<S
     let folders: HashMap<Uuid, String> = folders.iter().map(|f| (f.id, f.name.clone())).collect();
 
     let rows = ciphers
-        .iter()
+        .into_iter()
         .filter(|c| matches!(c.r#type, CipherType::Login(_) | CipherType::SecureNote(_)))
         .map(|c| {
             let login = if let CipherType::Login(l) = &c.r#type {
@@ -35,7 +35,7 @@ pub(crate) fn export_csv(folders: Vec<Folder>, ciphers: Vec<Cipher>) -> Result<S
                 r#type: c.r#type.to_string(),
                 name: c.name.to_owned(),
                 notes: c.notes.to_owned(),
-                fields: c.fields.clone(),
+                fields: c.fields,
                 reprompt: c.reprompt,
                 login_uri: login
                     .map(|l| l.login_uris.iter().flat_map(|l| l.uri.clone()).collect())

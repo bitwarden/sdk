@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use thiserror::Error;
 use uuid::Uuid;
 
 mod csv;
@@ -120,10 +121,22 @@ pub struct Identity {
     pub license_number: Option<String>,
 }
 
-pub fn export(folders: Vec<Folder>, ciphers: Vec<Cipher>, format: Format) -> String {
+#[derive(Error, Debug)]
+pub enum ExportError {
+    #[error("CSV error: {0}")]
+    Csv(#[from] csv::CsvError),
+    #[error("JSON error: {0}")]
+    Json(#[from] json::JsonError),
+}
+
+pub fn export(
+    folders: Vec<Folder>,
+    ciphers: Vec<Cipher>,
+    format: Format,
+) -> Result<String, ExportError> {
     match format {
-        Format::Csv => export_csv(folders, ciphers).unwrap(),
-        Format::Json => export_json(folders, ciphers).unwrap(),
+        Format::Csv => Ok(export_csv(folders, ciphers)?),
+        Format::Json => Ok(export_json(folders, ciphers)?),
         Format::EncryptedJson { password: _ } => todo!(),
     }
 }

@@ -38,7 +38,7 @@ pub(super) fn export_vault(
     let ciphers: Vec<bitwarden_exporters::Cipher> =
         ciphers.into_iter().flat_map(|c| c.try_into()).collect();
 
-    Ok(export(folders, ciphers, format.into()))
+    Ok(export(folders, ciphers, format.into())?)
 }
 
 pub(super) fn export_organization_vault(

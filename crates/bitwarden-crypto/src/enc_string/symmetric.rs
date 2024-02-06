@@ -236,13 +236,26 @@ impl KeyEncryptable<SymmetricCryptoKey, EncString> for &[u8] {
 impl KeyDecryptable<SymmetricCryptoKey, Vec<u8>> for EncString {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
         match self {
+            EncString::AesCbc256_B64 { iv, data } => {
+                let dec = crate::aes::decrypt_aes256(iv, data.clone(), &key.key)?;
+                Ok(dec)
+            }
+            EncString::AesCbc128_HmacSha256_B64 { iv, mac, data } => {
+                // TODO: SymmetricCryptoKey is designed to handle 32 byte keys only, but this
+                // variant uses a 16 byte key This means the key+mac are going to be
+                // parsed as a single 32 byte key, at the moment we split it manually
+                // When refactoring the key handling, this should be fixed.
+                let enc_key = key.key[0..16].into();
+                let mac_key = key.key[16..32].into();
+                let dec = crate::aes::decrypt_aes128_hmac(iv, mac, data.clone(), mac_key, enc_key)?;
+                Ok(dec)
+            }
             EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
                 let mac_key = key.mac_key.as_ref().ok_or(CryptoError::InvalidMac)?;
                 let dec =
                     crate::aes::decrypt_aes256_hmac(iv, mac, data.clone(), mac_key, &key.key)?;
                 Ok(dec)
             }
-            _ => Err(CryptoError::InvalidKey),
         }
     }
 }

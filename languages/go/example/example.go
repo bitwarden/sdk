@@ -16,9 +16,12 @@ func main() {
 	bitwardenClient, _ := sdk.NewBitwardenClient(&apiURL, &identityURL)
 
 	accessToken := os.Getenv("ACCESS_TOKEN")
-	statePath := os.Getenv("STATE_PATH")
 	organizationIDStr := os.Getenv("ORGANIZATION_ID")
 	projectName := os.Getenv("PROJECT_NAME")
+
+	// Configuring the statePath is optional, pass nil
+	// in AccessTokenLogni() to not use state
+	statePath := os.Getenv("STATE_PATH")
 
 	if projectName == "" {
 		projectName = "NewTestProject" // default value

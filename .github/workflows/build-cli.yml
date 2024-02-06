@@ -197,7 +197,7 @@ jobs:
       - name: Sign macos
         env:
           MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-certificate-name }}
-        run: /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime ./target/${{ matrix.settings.target }}/release/bws -v
+        run: codesign --sign "$MACOS_CERTIFICATE_NAME" --verbose=3 --force --options=runtime --timestamp  ./target/${{ matrix.settings.target }}/release/bws
 
       - name: Notarize app macos
         env:
@@ -213,7 +213,7 @@ jobs:
           echo "Creating notarization archive"
           zip -j ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip ./target/${{ matrix.settings.target }}/release/bws
 
-          /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip -v
+          codesign --sign "$MACOS_CERTIFICATE_NAME" --verbose=3 --force --options=runtime --timestamp  ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip
 
           echo "Notarize app"
           xcrun notarytool submit ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip --keychain-profile "notarytool-profile" --wait
@@ -360,7 +360,7 @@ jobs:
       - name: Sign binary
         env:
           MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-certificate-name }}
-        run: /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime ./bws-aarch64-apple-darwin/bws -v
+        run: codesign --sign "$MACOS_CERTIFICATE_NAME" --verbose=3 --force --options=runtime --timestamp  ./bws-aarch64-apple-darwin/bws
 
       - name: Notarize app
         env:
@@ -376,7 +376,7 @@ jobs:
           echo "Creating notarization archive"
           zip -j /bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip ./bws-aarch64-apple-darwin/bws
 
-          /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip -v
+          codesign --sign "$MACOS_CERTIFICATE_NAME" --verbose=3 --force --options=runtime --timestamp  ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip
 
           echo "Notarize app"
           xcrun notarytool submit ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip --keychain-profile "notarytool-profile" --wait

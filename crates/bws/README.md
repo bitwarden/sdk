@@ -47,42 +47,18 @@ For more detailed documentation, please refer to the
 
 ## Docker
 
-You can also use the `bws` Docker image:
-
-<!-- TODO: remove the build step once the Docker image is published to the Docker Hub -->
+We also provide a docker image preloaded with the `bws` cli.
 
 ```bash
-# From the root of the repository, build the Docker image:
-docker build -f crates/bws/Dockerfile --no-cache -t bitwarden/bws .
+# From the root of the repository
+docker build -f crates/bws/Dockerfile -t bitwarden/bws .
 
-# Run with Docker:
 docker run --rm -it bitwarden/bws --help
 ```
 
-The Docker image is run with a non-root user named `app`. If you need to pass your config file to
-the container, you can use the `-v`/`--volume` flag to mount your local `.bws` directory to the
-default location within the container:
+To use a configuration file, utilize docker [bind mounting](https://docs.docker.com/storage/bind-mounts/)
+to expose it to the container:
 
 ```bash
 docker run --rm -it -v "$HOME"/.bws:/home/app/.bws bitwarden/bws --help
 ```
-
-Alternatively, you can use the `BWS_CONFIG_FILE` environment variable to specify the location of the
-config file within the container:
-
-```bash
-docker run --rm -it -e BWS_CONFIG_FILE="/path/to/config/file" -v /path/to/config/file:"$BWS_CONFIG_FILE" bitwarden/bws --help
-```
-
-Or, more concisely:
-
-```bash
-# Set the BWS_CONFIG_FILE environment variable on your host
-export BWS_CONFIG_FILE="/path/to/config/file"
-
-# Pass the BWS_CONFIG_FILE environment variable to the container
-docker run --rm -it -e BWS_CONFIG_FILE="$BWS_CONFIG_FILE" -v "$BWS_CONFIG_FILE":"$BWS_CONFIG_FILE" bitwarden/bws --help
-```
-
-Note that if you want to use identical config file paths on your host and in the container, the
-parent directory must exist on both.

@@ -28,13 +28,13 @@ pub(crate) async fn login_access_token(
 
     let access_token: AccessToken = input.access_token.parse()?;
 
-    if let Some(state_file) = &input.state_file {
-        if let Ok(organization_id) = load_tokens_from_state(client, state_file, &access_token) {
+    if let Some(state_path) = &input.state_path {
+        if let Ok(organization_id) = load_tokens_from_state(client, state_path, &access_token) {
             client.set_login_method(LoginMethod::ServiceAccount(
                 ServiceAccountLoginMethod::AccessToken {
                     access_token,
                     organization_id,
-                    state_file: Some(state_file.to_path_buf()),
+                    state_path: Some(state_path.to_path_buf()),
                 },
             ));
 
@@ -75,9 +75,9 @@ pub(crate) async fn login_access_token(
             .parse()
             .map_err(|_| Error::InvalidResponse)?;
 
-        if let Some(state_file) = &input.state_file {
+        if let Some(state_path) = &input.state_path {
             let state = ClientState::new(r.access_token.clone(), payload.encryption_key);
-            _ = state::set(state_file, &access_token, state);
+            _ = state::set(state_path, &access_token, state);
         }
 
         client.set_tokens(
@@ -89,7 +89,7 @@ pub(crate) async fn login_access_token(
             ServiceAccountLoginMethod::AccessToken {
                 access_token,
                 organization_id,
-                state_file: input.state_file.clone(),
+                state_path: input.state_path.clone(),
             },
         ));
 
@@ -111,10 +111,10 @@ async fn request_access_token(
 
 fn load_tokens_from_state(
     client: &mut Client,
-    state_file: &Path,
+    state_path: &Path,
     access_token: &AccessToken,
 ) -> Result<Uuid> {
-    let client_state = state::get(state_file, access_token)?;
+    let client_state = state::get(state_path, access_token)?;
 
     let token: JWTToken = client_state.token.parse()?;
 
@@ -143,7 +143,7 @@ fn load_tokens_from_state(
 pub struct AccessTokenLoginRequest {
     /// Bitwarden service API access token
     pub access_token: String,
-    pub state_file: Option<PathBuf>,
+    pub state_path: Option<PathBuf>,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

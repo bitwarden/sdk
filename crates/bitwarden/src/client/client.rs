@@ -66,7 +66,7 @@ pub(crate) enum ServiceAccountLoginMethod {
     AccessToken {
         access_token: AccessToken,
         organization_id: Uuid,
-        state_file: Option<PathBuf>,
+        state_path: Option<PathBuf>,
     },
 }
 

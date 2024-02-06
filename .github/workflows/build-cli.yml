@@ -374,7 +374,7 @@ jobs:
           xcrun notarytool store-credentials "notarytool-profile" --apple-id "$MACOS_NOTARIZATION_APPLE_ID" --team-id "$MACOS_NOTARIZATION_TEAM_ID" --password "$MACOS_NOTARIZATION_PWD"
 
           echo "Creating notarization archive"
-          zip -j /bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip ./bws-aarch64-apple-darwin/bws
+          zip -j ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip ./bws-aarch64-apple-darwin/bws
 
           codesign --sign "$MACOS_CERTIFICATE_NAME" --verbose=3 --force --options=runtime --timestamp  ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip
 

@@ -211,7 +211,7 @@ jobs:
           xcrun notarytool store-credentials "notarytool-profile" --apple-id "$MACOS_NOTARIZATION_APPLE_ID" --team-id "$MACOS_NOTARIZATION_TEAM_ID" --password "$MACOS_NOTARIZATION_PWD"
 
           echo "Creating notarization archive"
-          ditto -c -k --keepParent ./target/${{ matrix.settings.target }}/release/bws ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip
+          zip -j ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip ./target/${{ matrix.settings.target }}/release/bws
 
           /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip -v
 
@@ -373,8 +373,8 @@ jobs:
           echo "Create keychain profile"
           xcrun notarytool store-credentials "notarytool-profile" --apple-id "$MACOS_NOTARIZATION_APPLE_ID" --team-id "$MACOS_NOTARIZATION_TEAM_ID" --password "$MACOS_NOTARIZATION_PWD"
 
-          echo "Creating temp notarization archive"
-          ditto -c -k --keepParent "./bws-aarch64-apple-darwin/bws" ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip
+          echo "Creating notarization archive"
+          zip -j /bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip ./bws-aarch64-apple-darwin/bws
 
           /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip -v
 

@@ -77,6 +77,16 @@ impl MasterKey {
             &stretched_key.key,
         )
     }
+
+    pub fn encrypt(&self, data: &[u8]) -> Result<EncString> {
+        let stretched_key = stretch_master_key(self)?;
+
+        EncString::encrypt_aes256_hmac(
+            data,
+            stretched_key.mac_key.as_ref().unwrap(),
+            &stretched_key.key,
+        )
+    }
 }
 
 /// Generate a new random user key and encrypt it with the master key.

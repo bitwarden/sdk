@@ -1,9 +1,10 @@
 use crate::{
-    keys::{key_encryptable::CryptoKey, utils::derive_kdf_key},
+    keys::{
+        key_encryptable::CryptoKey,
+        utils::{derive_kdf_key, stretch_kdf_key},
+    },
     EncString, Kdf, KeyEncryptable, Result, SymmetricCryptoKey,
 };
-
-use super::utils::stretch_kdf_key;
 
 /// Pin Key.
 ///

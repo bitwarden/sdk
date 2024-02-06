@@ -20,7 +20,7 @@ func main() {
 	projectName := os.Getenv("PROJECT_NAME")
 
 	// Configuring the statePath is optional, pass nil
-	// in AccessTokenLogni() to not use state
+	// in AccessTokenLogin() to not use state
 	statePath := os.Getenv("STATE_PATH")
 
 	if projectName == "" {

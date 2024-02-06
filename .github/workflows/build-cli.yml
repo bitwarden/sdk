@@ -213,7 +213,7 @@ jobs:
           echo "Creating notarization archive"
           zip -j ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip ./target/${{ matrix.settings.target }}/release/bws
 
-          codesign --sign "$MACOS_CERTIFICATE_NAME" --verbose=3 --force --options=runtime --timestamp  ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip
+          codesign --sign "$MACOS_CERTIFICATE_NAME" --verbose=3 --force --options=runtime --timestamp ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip
 
           echo "Notarize app"
           xcrun notarytool submit ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip --keychain-profile "notarytool-profile" --wait

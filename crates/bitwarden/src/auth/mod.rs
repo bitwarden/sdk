@@ -14,16 +14,16 @@ use bitwarden_crypto::{HashPurpose, MasterKey};
 pub use register::{RegisterKeyResponse, RegisterRequest};
 #[cfg(feature = "internal")]
 mod auth_request;
-#[cfg(feature = "mobile")]
-pub(crate) use auth_request::auth_request_decrypt_user_key;
 #[cfg(feature = "internal")]
 pub use auth_request::AuthRequestResponse;
+#[cfg(feature = "mobile")]
+pub(crate) use auth_request::{auth_request_decrypt_master_key, auth_request_decrypt_user_key};
 
 #[cfg(feature = "internal")]
 use crate::{client::Kdf, error::Result};
 
 #[cfg(feature = "internal")]
-async fn determine_password_hash(
+fn determine_password_hash(
     email: &str,
     kdf: &Kdf,
     password: &str,
@@ -40,8 +40,8 @@ mod tests {
     use super::*;
 
     #[cfg(feature = "internal")]
-    #[tokio::test]
-    async fn test_determine_password_hash() {
+    #[test]
+    fn test_determine_password_hash() {
         use super::determine_password_hash;
 
         let password = "password123";
@@ -51,9 +51,7 @@ mod tests {
         };
         let purpose = HashPurpose::LocalAuthorization;
 
-        let result = determine_password_hash(email, &kdf, password, purpose)
-            .await
-            .unwrap();
+        let result = determine_password_hash(email, &kdf, password, purpose).unwrap();
 
         assert_eq!(result, "7kTqkF1pY/3JeOu73N9kR99fDDe9O1JOZaVc7KH3lsU=");
     }

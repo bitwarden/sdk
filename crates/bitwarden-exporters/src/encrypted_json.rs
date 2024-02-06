@@ -90,7 +90,7 @@ mod tests {
 
     #[test]
     pub fn test_export() {
-        let export = export_encrypted_json(
+        let _export = export_encrypted_json(
             vec![Folder {
                 id: "942e2984-1b9a-453b-b039-b107012713b9".parse().unwrap(),
                 name: "Important".to_string(),

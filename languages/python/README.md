@@ -12,6 +12,7 @@ From the root of the repository:
 npm run schemas # generate schemas.py
 
 cd languages/python/
+python3 -m venv .venv
 maturin develop
 ```
 
@@ -31,5 +32,8 @@ pip install bitwarden-sdk
 Set the `ORGANIZATION_ID` and `ACCESS_TOKEN` environment variables to your organization ID and access token, respectively.
 
 ```bash
+source .venv/bin/activate
 python3 ./example.py
+
+deactivate # run this to close the virtual session
 ```

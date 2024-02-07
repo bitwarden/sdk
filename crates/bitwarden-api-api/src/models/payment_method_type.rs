@@ -20,8 +20,6 @@ pub enum PaymentMethodType {
     Variant3 = 3,
     Variant4 = 4,
     Variant5 = 5,
-    Variant6 = 6,
-    Variant7 = 7,
     Variant8 = 8,
     Variant255 = 255,
 }
@@ -35,8 +33,6 @@ impl ToString for PaymentMethodType {
             Self::Variant3 => String::from("3"),
             Self::Variant4 => String::from("4"),
             Self::Variant5 => String::from("5"),
-            Self::Variant6 => String::from("6"),
-            Self::Variant7 => String::from("7"),
             Self::Variant8 => String::from("8"),
             Self::Variant255 => String::from("255"),
         }

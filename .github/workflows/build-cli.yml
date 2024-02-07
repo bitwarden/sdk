@@ -170,9 +170,7 @@ jobs:
             macos-bws-installer-certificate-name"
 
       - name: Get p12 signing cert
-        uses: azure/CLI@4db43908b9df2e7ac93c8275a8f9a448c59338dd # v1.0.9
-        with:
-          inlineScript: az keyvault certificate download --vault-name bitwarden-ci --name macos-bws-certificate-devid-app-cert-p12 --file $GITHUB_WORKSPACE/.github/secrets/devid-app-cert.p12
+        run: az keyvault certificate download --vault-name bitwarden-ci --name macos-bws-certificate-devid-app-cert-p12 --file $GITHUB_WORKSPACE/.github/secrets/devid-app-cert.p12
 
       # - name: Decrypt secrets
       #   env:
@@ -337,9 +335,7 @@ jobs:
             macos-bws-installer-certificate-name"
 
       - name: Get p12 signing cert
-        uses: azure/CLI@4db43908b9df2e7ac93c8275a8f9a448c59338dd # v1.0.9
-        with:
-          inlineScript: az keyvault certificate download --vault-name bitwarden-ci --name macos-bws-certificate-devid-app-cert-p12 --file $GITHUB_WORKSPACE/.github/secrets/devid-app-cert.p12
+        run: az keyvault certificate download --vault-name bitwarden-ci --name macos-bws-certificate-devid-app-cert-p12 --file $GITHUB_WORKSPACE/.github/secrets/devid-app-cert.p12
 
       # - name: Decrypt secrets
       #   env:

@@ -24,7 +24,7 @@ pub struct SecureNote {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SecureNoteView {
-    r#type: SecureNoteType,
+    pub(crate) r#type: SecureNoteType,
 }
 
 impl KeyEncryptable<SymmetricCryptoKey, SecureNote> for SecureNoteView {

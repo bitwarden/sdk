@@ -169,15 +169,20 @@ jobs:
             macos-bws-certificate-name,
             macos-bws-installer-certificate-name"
 
-      - name: Decrypt secrets
-        env:
-          DECRYPT_FILE_PASSWORD: ${{ secrets.DECRYPT_FILE_PASSWORD }}
-        run: |
-          mkdir -p $HOME/secrets
+      - name: Get p12 signing cert
+        uses: azure/CLI@4db43908b9df2e7ac93c8275a8f9a448c59338dd # v1.0.9
+        with:
+          inlineScript: az keyvault certificate download --vault-name bitwarden-ci --name macos-bws-certificate-devid-app-cert-p12 --file $GITHUB_WORKSPACE/.github/secrets/devid-app-cert.p12
 
-          gpg --quiet --batch --yes --decrypt --passphrase="$DECRYPT_FILE_PASSWORD" \
-            --output "$HOME/secrets/devid-app-cert.p12" \
-            "$GITHUB_WORKSPACE/.github/secrets/devid-app-cert.p12.gpg"
+      # - name: Decrypt secrets
+      #   env:
+      #     DECRYPT_FILE_PASSWORD: ${{ secrets.DECRYPT_FILE_PASSWORD }}
+      #   run: |
+      #     mkdir -p $HOME/secrets
+
+      #     gpg --quiet --batch --yes --decrypt --passphrase="$DECRYPT_FILE_PASSWORD" \
+      #       --output "$HOME/secrets/devid-app-cert.p12" \
+      #       "$GITHUB_WORKSPACE/.github/secrets/devid-app-cert.p12.gpg"
 
       - name: Set up keychain
         env:
@@ -206,7 +211,6 @@ jobs:
           MACOS_NOTARIZATION_PWD: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-notarization-password }}
           MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-certificate-name }}
         run: |
-
           echo "Create keychain profile"
           xcrun notarytool store-credentials "notarytool-profile" --apple-id "$MACOS_NOTARIZATION_APPLE_ID" --team-id "$MACOS_NOTARIZATION_TEAM_ID" --password "$MACOS_NOTARIZATION_PWD"
 
@@ -332,15 +336,20 @@ jobs:
             macos-bws-certificate-name,
             macos-bws-installer-certificate-name"
 
-      - name: Decrypt secrets
-        env:
-          DECRYPT_FILE_PASSWORD: ${{ secrets.DECRYPT_FILE_PASSWORD }}
-        run: |
-          mkdir -p $HOME/secrets
+      - name: Get p12 signing cert
+        uses: azure/CLI@4db43908b9df2e7ac93c8275a8f9a448c59338dd # v1.0.9
+        with:
+          inlineScript: az keyvault certificate download --vault-name bitwarden-ci --name macos-bws-certificate-devid-app-cert-p12 --file $GITHUB_WORKSPACE/.github/secrets/devid-app-cert.p12
 
-          gpg --quiet --batch --yes --decrypt --passphrase="$DECRYPT_FILE_PASSWORD" \
-            --output "$HOME/secrets/devid-app-cert.p12" \
-            "$GITHUB_WORKSPACE/.github/secrets/devid-app-cert.p12.gpg"
+      # - name: Decrypt secrets
+      #   env:
+      #     DECRYPT_FILE_PASSWORD: ${{ secrets.DECRYPT_FILE_PASSWORD }}
+      #   run: |
+      #     mkdir -p $HOME/secrets
+
+      #     gpg --quiet --batch --yes --decrypt --passphrase="$DECRYPT_FILE_PASSWORD" \
+      #       --output "$HOME/secrets/devid-app-cert.p12" \
+      #       "$GITHUB_WORKSPACE/.github/secrets/devid-app-cert.p12.gpg"
 
       - name: Set up keychain
         env:

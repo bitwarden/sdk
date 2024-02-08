@@ -18,6 +18,7 @@ on:
           - bitwarden-json
           - cli
           - napi
+          - python-sdk
       version_number:
         description: "New version (example: '2024.1.0')"
         required: true
@@ -141,6 +142,13 @@ jobs:
       - name: Bump bitwarden-json crate Version
         if: ${{ inputs.project == 'bitwarden-json' }}
         run: cargo-set-version set-version -p bitwarden-json ${{ inputs.version_number }}
+
+      ### python
+      - name: Bump python-sdk Version
+        if: ${{ inputs.project == 'python-sdk' }}
+        run: |
+          sed -i 's/version = "[0-9]\.[0-9]\.[0-9]"/version = "${{ inputs.version_number }}"/' ./languages/python/pyproject.toml
+          sed -i 's/__version__ = "[0-9]\.[0-9]\.[0-9]"/__version__ = "${{ inputs.version_number }}"/' ./languages/python/bitwarden_sdk/__init__.py
 
       ############################
       # VERSION BUMP SECTION END #

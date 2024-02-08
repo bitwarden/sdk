@@ -456,6 +456,8 @@ dependencies = [
 name = "bitwarden-exporters"
 version = "0.1.0"
 dependencies = [
+ "base64 0.21.7",
+ "bitwarden-crypto",
  "chrono",
  "csv",
  "serde",
@@ -3813,6 +3815,7 @@ version = "1.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f00cc9702ca12d3c81455259621e676d0f7251cec66a21e98fe2e9a37db93b2a"
 dependencies = [
+ "getrandom 0.2.12",
  "serde",
 ]
 

@@ -3,6 +3,7 @@ use bitwarden_exporters::export;
 use schemars::JsonSchema;
 
 use crate::{
+    client::{LoginMethod, UserLoginMethod},
     error::{Error, Result},
     vault::{
         login::LoginUriView, Cipher, CipherType, CipherView, Collection, FieldView, Folder,
@@ -38,7 +39,35 @@ pub(super) fn export_vault(
     let ciphers: Vec<bitwarden_exporters::Cipher> =
         ciphers.into_iter().flat_map(|c| c.try_into()).collect();
 
-    Ok(export(folders, ciphers, format.into())?)
+    let format = convert_format(client, format)?;
+
+    Ok(export(folders, ciphers, format)?)
+}
+
+fn convert_format(
+    client: &Client,
+    format: ExportFormat,
+) -> Result<bitwarden_exporters::Format, Error> {
+    let login_method = client
+        .login_method
+        .as_ref()
+        .ok_or(Error::NotAuthenticated)?;
+
+    let kdf = match login_method {
+        LoginMethod::User(
+            UserLoginMethod::Username { kdf, .. } | UserLoginMethod::ApiKey { kdf, .. },
+        ) => kdf,
+        _ => return Err(Error::NotAuthenticated),
+    };
+
+    Ok(match format {
+        ExportFormat::Csv => bitwarden_exporters::Format::Csv,
+        ExportFormat::Json => bitwarden_exporters::Format::Json,
+        ExportFormat::EncryptedJson { password } => bitwarden_exporters::Format::EncryptedJson {
+            password,
+            kdf: kdf.clone(),
+        },
+    })
 }
 
 pub(super) fn export_organization_vault(
@@ -173,18 +202,11 @@ impl From<SecureNoteType> for bitwarden_exporters::SecureNoteType {
     }
 }
 
-impl From<ExportFormat> for bitwarden_exporters::Format {
-    fn from(value: ExportFormat) -> Self {
-        match value {
-            ExportFormat::Csv => Self::Csv,
-            ExportFormat::Json => Self::Json,
-            ExportFormat::EncryptedJson { password } => Self::EncryptedJson { password },
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
+    use std::num::NonZeroU32;
+
+    use bitwarden_crypto::Kdf;
     use chrono::{DateTime, Utc};
 
     use super::*;
@@ -276,19 +298,32 @@ mod tests {
     }
 
     #[test]
-    fn test_from_export_format() {
+    fn test_convert_format() {
+        let mut client = Client::new(None);
+        client.set_login_method(LoginMethod::User(UserLoginMethod::Username {
+            client_id: "7b821276-e27c-400b-9853-606393c87f18".to_owned(),
+            email: "test@bitwarden.com".to_owned(),
+            kdf: Kdf::PBKDF2 {
+                iterations: NonZeroU32::new(600_000).unwrap(),
+            },
+        }));
+
         assert!(matches!(
-            bitwarden_exporters::Format::from(ExportFormat::Csv),
+            convert_format(&client, ExportFormat::Csv).unwrap(),
             bitwarden_exporters::Format::Csv
         ));
         assert!(matches!(
-            bitwarden_exporters::Format::from(ExportFormat::Json),
+            convert_format(&client, ExportFormat::Json).unwrap(),
             bitwarden_exporters::Format::Json
         ));
         assert!(matches!(
-            bitwarden_exporters::Format::from(ExportFormat::EncryptedJson {
-                password: "password".to_string()
-            }),
+            convert_format(
+                &client,
+                ExportFormat::EncryptedJson {
+                    password: "password".to_string()
+                }
+            )
+            .unwrap(),
             bitwarden_exporters::Format::EncryptedJson { .. }
         ));
     }

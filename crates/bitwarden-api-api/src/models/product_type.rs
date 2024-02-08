@@ -18,6 +18,7 @@ pub enum ProductType {
     Variant1 = 1,
     Variant2 = 2,
     Variant3 = 3,
+    Variant4 = 4,
 }
 
 impl ToString for ProductType {
@@ -27,6 +28,7 @@ impl ToString for ProductType {
             Self::Variant1 => String::from("1"),
             Self::Variant2 => String::from("2"),
             Self::Variant3 => String::from("3"),
+            Self::Variant4 => String::from("4"),
         }
     }
 }

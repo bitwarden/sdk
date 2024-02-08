@@ -162,14 +162,17 @@ fn generate_mac(mac_key: &[u8], iv: &[u8], data: &[u8]) -> Result<[u8; 32]> {
 #[cfg(test)]
 mod tests {
     use base64::{engine::general_purpose::STANDARD, Engine};
-    use generic_array::sequence::GenericSequence;
+    use generic_array::{sequence::GenericSequence, ArrayLength};
     use rand::SeedableRng;
 
     use super::*;
 
     /// Helper function for generating a `GenericArray` of size 32 with each element being
     /// a multiple of a given increment, starting from a given offset.
-    fn generate_generic_array(offset: u8, increment: u8) -> GenericArray<u8, U32> {
+    fn generate_generic_array<N: ArrayLength<u8>>(
+        offset: u8,
+        increment: u8,
+    ) -> GenericArray<u8, N> {
         GenericArray::generate(|i| offset + i as u8 * increment)
     }
 
@@ -206,6 +209,19 @@ mod tests {
         assert!(result.is_ok());
         let mac = result.unwrap();
         assert_eq!(mac.len(), 32);
+    }
+
+    #[test]
+    fn test_decrypt_aes128() {
+        let iv = generate_vec(16, 0, 1);
+        let iv: &[u8; 16] = iv.as_slice().try_into().unwrap();
+        let key = generate_generic_array(0, 1);
+
+        let data = STANDARD.decode("dC0X+2IjFbeL4WLLg2jX7Q==").unwrap();
+
+        let decrypted = decrypt_aes128(iv, data, &key).unwrap();
+
+        assert_eq!(String::from_utf8(decrypted).unwrap(), "EncryptMe!");
     }
 
     #[test]

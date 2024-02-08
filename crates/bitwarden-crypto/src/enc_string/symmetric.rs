@@ -290,7 +290,7 @@ mod tests {
     use schemars::schema_for;
 
     use super::EncString;
-    use crate::{derive_symmetric_key, KeyDecryptable, KeyEncryptable};
+    use crate::{derive_symmetric_key, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
 
     #[test]
     fn test_enc_string_roundtrip() {
@@ -356,7 +356,9 @@ mod tests {
                 data,
                 &[93, 118, 241, 43, 16, 211, 135, 233, 150, 136, 221, 71, 140, 125, 141, 215]
             );
-        }
+        } else {
+            panic!("Invalid variant")
+        };
     }
 
     #[test]
@@ -381,7 +383,35 @@ mod tests {
                 data,
                 &[50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69]
             );
-        }
+        } else {
+            panic!("Invalid variant")
+        };
+    }
+
+    #[test]
+    fn test_decrypt_cbc256() {
+        let key = "hvBMMb1t79YssFZkpetYsM3deyVuQv4r88Uj9gvYe08=";
+        let key: SymmetricCryptoKey = key.parse().unwrap();
+
+        let enc_str = "0.NQfjHLr6za7VQVAbrpL81w==|wfrjmyJ0bfwkQlySrhw8dA==";
+        let enc_string: EncString = enc_str.parse().unwrap();
+        assert_eq!(enc_string.enc_type(), 0);
+
+        let dec_str: String = enc_string.decrypt_with_key(&key).unwrap();
+        assert_eq!(dec_str, "EncryptMe!");
+    }
+
+    #[test]
+    fn test_decrypt_cbc128_hmac() {
+        let key = "Gt1aZ8kTTgkF80bLtb7LiMZBcxEA2FA5mbvV4x7K208=";
+        let key: SymmetricCryptoKey = key.parse().unwrap();
+
+        let enc_str = "1.CU/oG4VZuxbHoZSDZjCLQw==|kb1HGwAk+fQ275ORfLf5Ew==|8UaEYHyqRZcG37JWhYBOBdEatEXd1u1/wN7OuImolcM=";
+        let enc_string: EncString = enc_str.parse().unwrap();
+        assert_eq!(enc_string.enc_type(), 1);
+
+        let dec_str: String = enc_string.decrypt_with_key(&key).unwrap();
+        assert_eq!(dec_str, "EncryptMe!");
     }
 
     #[test]

@@ -14,19 +14,19 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum SecureNoteType {
-    Variant0 = 0,
+    Generic = 0,
 }
 
 impl ToString for SecureNoteType {
     fn to_string(&self) -> String {
         match self {
-            Self::Variant0 => String::from("0"),
+            Self::Generic => String::from("0"),
         }
     }
 }
 
 impl Default for SecureNoteType {
     fn default() -> SecureNoteType {
-        Self::Variant0
+        Self::Generic
     }
 }

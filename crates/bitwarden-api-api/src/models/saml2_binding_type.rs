@@ -14,21 +14,21 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum Saml2BindingType {
-    Variant1 = 1,
-    Variant2 = 2,
+    HttpRedirect = 1,
+    HttpPost = 2,
 }
 
 impl ToString for Saml2BindingType {
     fn to_string(&self) -> String {
         match self {
-            Self::Variant1 => String::from("1"),
-            Self::Variant2 => String::from("2"),
+            Self::HttpRedirect => String::from("1"),
+            Self::HttpPost => String::from("2"),
         }
     }
 }
 
 impl Default for Saml2BindingType {
     fn default() -> Saml2BindingType {
-        Self::Variant1
+        Self::HttpRedirect
     }
 }

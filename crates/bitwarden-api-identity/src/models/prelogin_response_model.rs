@@ -10,10 +10,10 @@
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PreloginResponseModel {
-    #[serde(rename = "kdf", skip_serializing_if = "Option::is_none")]
-    pub kdf: Option<crate::models::KdfType>,
-    #[serde(rename = "kdfIterations", skip_serializing_if = "Option::is_none")]
-    pub kdf_iterations: Option<i32>,
+    #[serde(rename = "kdf")]
+    pub kdf: crate::models::KdfType,
+    #[serde(rename = "kdfIterations")]
+    pub kdf_iterations: i32,
     #[serde(rename = "kdfMemory", skip_serializing_if = "Option::is_none")]
     pub kdf_memory: Option<i32>,
     #[serde(rename = "kdfParallelism", skip_serializing_if = "Option::is_none")]
@@ -21,10 +21,10 @@ pub struct PreloginResponseModel {
 }
 
 impl PreloginResponseModel {
-    pub fn new() -> PreloginResponseModel {
+    pub fn new(kdf: crate::models::KdfType, kdf_iterations: i32) -> PreloginResponseModel {
         PreloginResponseModel {
-            kdf: None,
-            kdf_iterations: None,
+            kdf,
+            kdf_iterations,
             kdf_memory: None,
             kdf_parallelism: None,
         }

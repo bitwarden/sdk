@@ -14,19 +14,19 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum PlanSponsorshipType {
-    Variant0 = 0,
+    FamiliesForEnterprise = 0,
 }
 
 impl ToString for PlanSponsorshipType {
     fn to_string(&self) -> String {
         match self {
-            Self::Variant0 => String::from("0"),
+            Self::FamiliesForEnterprise => String::from("0"),
         }
     }
 }
 
 impl Default for PlanSponsorshipType {
     fn default() -> PlanSponsorshipType {
-        Self::Variant0
+        Self::FamiliesForEnterprise
     }
 }

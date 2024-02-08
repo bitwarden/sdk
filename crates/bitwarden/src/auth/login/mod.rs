@@ -64,13 +64,19 @@ pub(crate) fn parse_prelogin(response: PreloginResponseModel) -> Result<Kdf> {
         default_pbkdf2_iterations,
     };
 
-    Ok(match response.kdf {
+    let kdf = response.kdf.ok_or("KDF not found")?;
+
+    Ok(match kdf {
         KdfType::Variant0 => Kdf::PBKDF2 {
-            iterations: NonZeroU32::new(response.kdf_iterations as u32)
+            iterations: response
+                .kdf_iterations
+                .and_then(|e| NonZeroU32::new(e as u32))
                 .unwrap_or_else(default_pbkdf2_iterations),
         },
         KdfType::Variant1 => Kdf::Argon2id {
-            iterations: NonZeroU32::new(response.kdf_iterations as u32)
+            iterations: response
+                .kdf_iterations
+                .and_then(|e| NonZeroU32::new(e as u32))
                 .unwrap_or_else(default_argon2_iterations),
             memory: response
                 .kdf_memory

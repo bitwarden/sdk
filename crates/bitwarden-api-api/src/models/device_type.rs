@@ -37,6 +37,9 @@ pub enum DeviceType {
     Variant20 = 20,
     Variant21 = 21,
     Variant22 = 22,
+    Variant23 = 23,
+    Variant24 = 24,
+    Variant25 = 25,
 }
 
 impl ToString for DeviceType {
@@ -65,6 +68,9 @@ impl ToString for DeviceType {
             Self::Variant20 => String::from("20"),
             Self::Variant21 => String::from("21"),
             Self::Variant22 => String::from("22"),
+            Self::Variant23 => String::from("23"),
+            Self::Variant24 => String::from("24"),
+            Self::Variant25 => String::from("25"),
         }
     }
 }

@@ -1072,7 +1072,7 @@ pub async fn ciphers_id_attachment_attachment_id_admin_delete(
 
 pub async fn ciphers_id_attachment_attachment_id_delete(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     attachment_id: &str,
 ) -> Result<(), Error<CiphersIdAttachmentAttachmentIdDeleteError>> {
     let local_var_configuration = configuration;
@@ -1164,7 +1164,7 @@ pub async fn ciphers_id_attachment_attachment_id_delete_admin_post(
 
 pub async fn ciphers_id_attachment_attachment_id_delete_post(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     attachment_id: &str,
 ) -> Result<(), Error<CiphersIdAttachmentAttachmentIdDeletePostError>> {
     let local_var_configuration = configuration;
@@ -1210,7 +1210,7 @@ pub async fn ciphers_id_attachment_attachment_id_delete_post(
 
 pub async fn ciphers_id_attachment_attachment_id_get(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     attachment_id: &str,
 ) -> Result<crate::models::AttachmentResponseModel, Error<CiphersIdAttachmentAttachmentIdGetError>>
 {
@@ -1257,7 +1257,7 @@ pub async fn ciphers_id_attachment_attachment_id_get(
 
 pub async fn ciphers_id_attachment_attachment_id_post(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     attachment_id: &str,
 ) -> Result<(), Error<CiphersIdAttachmentAttachmentIdPostError>> {
     let local_var_configuration = configuration;
@@ -1303,7 +1303,7 @@ pub async fn ciphers_id_attachment_attachment_id_post(
 
 pub async fn ciphers_id_attachment_attachment_id_renew_get(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     attachment_id: &str,
 ) -> Result<
     crate::models::AttachmentUploadDataResponseModel,
@@ -1403,7 +1403,7 @@ pub async fn ciphers_id_attachment_attachment_id_share_post(
 
 pub async fn ciphers_id_attachment_post(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
 ) -> Result<crate::models::CipherResponseModel, Error<CiphersIdAttachmentPostError>> {
     let local_var_configuration = configuration;
 
@@ -1447,7 +1447,7 @@ pub async fn ciphers_id_attachment_post(
 
 pub async fn ciphers_id_attachment_v2_post(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     attachment_request_model: Option<crate::models::AttachmentRequestModel>,
 ) -> Result<crate::models::AttachmentUploadDataResponseModel, Error<CiphersIdAttachmentV2PostError>>
 {
@@ -1586,7 +1586,7 @@ pub async fn ciphers_id_collections_admin_put(
 
 pub async fn ciphers_id_collections_post(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     cipher_collections_request_model: Option<crate::models::CipherCollectionsRequestModel>,
 ) -> Result<(), Error<CiphersIdCollectionsPostError>> {
     let local_var_configuration = configuration;
@@ -1632,7 +1632,7 @@ pub async fn ciphers_id_collections_post(
 
 pub async fn ciphers_id_collections_put(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     cipher_collections_request_model: Option<crate::models::CipherCollectionsRequestModel>,
 ) -> Result<(), Error<CiphersIdCollectionsPutError>> {
     let local_var_configuration = configuration;
@@ -1678,7 +1678,7 @@ pub async fn ciphers_id_collections_put(
 
 pub async fn ciphers_id_delete(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
 ) -> Result<(), Error<CiphersIdDeleteError>> {
     let local_var_configuration = configuration;
 
@@ -1810,7 +1810,7 @@ pub async fn ciphers_id_delete_admin_put(
 
 pub async fn ciphers_id_delete_post(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
 ) -> Result<(), Error<CiphersIdDeletePostError>> {
     let local_var_configuration = configuration;
 
@@ -1854,7 +1854,7 @@ pub async fn ciphers_id_delete_post(
 
 pub async fn ciphers_id_delete_put(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
 ) -> Result<(), Error<CiphersIdDeletePutError>> {
     let local_var_configuration = configuration;
 
@@ -1898,7 +1898,7 @@ pub async fn ciphers_id_delete_put(
 
 pub async fn ciphers_id_details_get(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
 ) -> Result<crate::models::CipherDetailsResponseModel, Error<CiphersIdDetailsGetError>> {
     let local_var_configuration = configuration;
 
@@ -1942,7 +1942,7 @@ pub async fn ciphers_id_details_get(
 
 pub async fn ciphers_id_full_details_get(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
 ) -> Result<crate::models::CipherDetailsResponseModel, Error<CiphersIdFullDetailsGetError>> {
     let local_var_configuration = configuration;
 
@@ -1986,7 +1986,7 @@ pub async fn ciphers_id_full_details_get(
 
 pub async fn ciphers_id_get(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
 ) -> Result<crate::models::CipherResponseModel, Error<CiphersIdGetError>> {
     let local_var_configuration = configuration;
 
@@ -2030,7 +2030,7 @@ pub async fn ciphers_id_get(
 
 pub async fn ciphers_id_partial_post(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     cipher_partial_request_model: Option<crate::models::CipherPartialRequestModel>,
 ) -> Result<crate::models::CipherResponseModel, Error<CiphersIdPartialPostError>> {
     let local_var_configuration = configuration;
@@ -2076,7 +2076,7 @@ pub async fn ciphers_id_partial_post(
 
 pub async fn ciphers_id_partial_put(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     cipher_partial_request_model: Option<crate::models::CipherPartialRequestModel>,
 ) -> Result<crate::models::CipherResponseModel, Error<CiphersIdPartialPutError>> {
     let local_var_configuration = configuration;
@@ -2258,7 +2258,7 @@ pub async fn ciphers_id_restore_admin_put(
 
 pub async fn ciphers_id_restore_put(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
 ) -> Result<crate::models::CipherResponseModel, Error<CiphersIdRestorePutError>> {
     let local_var_configuration = configuration;
 
@@ -2302,7 +2302,7 @@ pub async fn ciphers_id_restore_put(
 
 pub async fn ciphers_id_share_post(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     cipher_share_request_model: Option<crate::models::CipherShareRequestModel>,
 ) -> Result<crate::models::CipherResponseModel, Error<CiphersIdSharePostError>> {
     let local_var_configuration = configuration;
@@ -2348,7 +2348,7 @@ pub async fn ciphers_id_share_post(
 
 pub async fn ciphers_id_share_put(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     cipher_share_request_model: Option<crate::models::CipherShareRequestModel>,
 ) -> Result<crate::models::CipherResponseModel, Error<CiphersIdSharePutError>> {
     let local_var_configuration = configuration;

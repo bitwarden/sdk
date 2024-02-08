@@ -26,6 +26,11 @@ pub enum PlanType {
     Variant9 = 9,
     Variant10 = 10,
     Variant11 = 11,
+    Variant12 = 12,
+    Variant13 = 13,
+    Variant14 = 14,
+    Variant15 = 15,
+    Variant16 = 16,
 }
 
 impl ToString for PlanType {
@@ -43,6 +48,11 @@ impl ToString for PlanType {
             Self::Variant9 => String::from("9"),
             Self::Variant10 => String::from("10"),
             Self::Variant11 => String::from("11"),
+            Self::Variant12 => String::from("12"),
+            Self::Variant13 => String::from("13"),
+            Self::Variant14 => String::from("14"),
+            Self::Variant15 => String::from("15"),
+            Self::Variant16 => String::from("16"),
         }
     }
 }

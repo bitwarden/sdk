@@ -12,8 +12,10 @@ mod asymmetric_crypto_key;
 pub use asymmetric_crypto_key::{
     AsymmetricCryptoKey, AsymmetricEncryptable, AsymmetricPublicCryptoKey,
 };
-
 mod user_key;
 pub use user_key::UserKey;
 mod device_key;
 pub use device_key::{DeviceKey, TrustDeviceResponse};
+mod pin_key;
+pub use pin_key::PinKey;
+mod utils;

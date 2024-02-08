@@ -1,0 +1,11 @@
+{
+  "name": "sdk-example",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@bitwarden/sdk-client": "../sdk-client",
+    "@bitwarden/sdk-wasm": "../wasm"
+  }
+}

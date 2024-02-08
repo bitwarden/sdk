@@ -815,8 +815,8 @@ pub async fn devices_knowndevice_email_identifier_get(
 
 pub async fn devices_knowndevice_get(
     configuration: &configuration::Configuration,
-    x_request_email: Option<&str>,
-    x_device_identifier: Option<&str>,
+    x_request_email: &str,
+    x_device_identifier: &str,
 ) -> Result<bool, Error<DevicesKnowndeviceGetError>> {
     let local_var_configuration = configuration;
 
@@ -830,14 +830,10 @@ pub async fn devices_knowndevice_get(
         local_var_req_builder =
             local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
     }
-    if let Some(local_var_param_value) = x_request_email {
-        local_var_req_builder =
-            local_var_req_builder.header("x-Request-Email", local_var_param_value.to_string());
-    }
-    if let Some(local_var_param_value) = x_device_identifier {
-        local_var_req_builder =
-            local_var_req_builder.header("x-Device-Identifier", local_var_param_value.to_string());
-    }
+    local_var_req_builder =
+        local_var_req_builder.header("x-Request-Email", x_request_email.to_string());
+    local_var_req_builder =
+        local_var_req_builder.header("x-Device-Identifier", x_device_identifier.to_string());
     if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
         local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
     };

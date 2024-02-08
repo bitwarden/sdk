@@ -16,7 +16,7 @@ impl PinKey {
         Self(key)
     }
 
-    /// Derives a users master key from their password, email and KDF.
+    /// Derives a users pin key from their password, email and KDF.
     pub fn derive(password: &[u8], salt: &[u8], kdf: &Kdf) -> Result<Self> {
         derive_kdf_key(password, salt, kdf).map(Self)
     }

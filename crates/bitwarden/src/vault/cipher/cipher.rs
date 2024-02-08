@@ -385,10 +385,10 @@ impl TryFrom<CipherDetailsResponseModel> for Cipher {
 impl From<bitwarden_api_api::models::CipherType> for CipherType {
     fn from(t: bitwarden_api_api::models::CipherType) -> Self {
         match t {
-            bitwarden_api_api::models::CipherType::Variant1 => CipherType::Login,
-            bitwarden_api_api::models::CipherType::Variant2 => CipherType::SecureNote,
-            bitwarden_api_api::models::CipherType::Variant3 => CipherType::Card,
-            bitwarden_api_api::models::CipherType::Variant4 => CipherType::Identity,
+            bitwarden_api_api::models::CipherType::Login => CipherType::Login,
+            bitwarden_api_api::models::CipherType::SecureNote => CipherType::SecureNote,
+            bitwarden_api_api::models::CipherType::Card => CipherType::Card,
+            bitwarden_api_api::models::CipherType::Identity => CipherType::Identity,
         }
     }
 }
@@ -396,8 +396,8 @@ impl From<bitwarden_api_api::models::CipherType> for CipherType {
 impl From<bitwarden_api_api::models::CipherRepromptType> for CipherRepromptType {
     fn from(t: bitwarden_api_api::models::CipherRepromptType) -> Self {
         match t {
-            bitwarden_api_api::models::CipherRepromptType::Variant0 => CipherRepromptType::None,
-            bitwarden_api_api::models::CipherRepromptType::Variant1 => CipherRepromptType::Password,
+            bitwarden_api_api::models::CipherRepromptType::None => CipherRepromptType::None,
+            bitwarden_api_api::models::CipherRepromptType::Password => CipherRepromptType::Password,
         }
     }
 }

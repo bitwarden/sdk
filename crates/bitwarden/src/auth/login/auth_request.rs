@@ -41,7 +41,7 @@ pub(crate) async fn send_new_auth_request(
         public_key: auth.public_key,
         device_identifier: device_identifier.clone(),
         access_code: auth.access_code.clone(),
-        r#type: AuthRequestType::Variant0, // AuthenticateAndUnlock
+        r#type: AuthRequestType::AuthenticateAndUnlock,
     };
 
     let res = auth_requests_post(&config.api, Some(req)).await?;

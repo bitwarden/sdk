@@ -42,7 +42,7 @@ pub(super) async fn register(client: &mut Client, req: &RegisterRequest) -> Resu
             })),
             token: None,
             organization_user_id: None,
-            kdf: Some(bitwarden_api_identity::models::KdfType::Variant0),
+            kdf: Some(bitwarden_api_identity::models::KdfType::PBKDF2_SHA256),
             kdf_iterations: Some(default_pbkdf2_iterations().get() as i32),
             kdf_memory: None,
             kdf_parallelism: None,

@@ -81,9 +81,9 @@ To generate a new version of the bindings run the following script from the root
 ./support/build-api.sh
 ```
 
-This project uses customized templates which lives in the `support/templates` directory. These
-templates resolves some outstanding issues we've experienced with the rust generator. But we strive
-towards modifying the templates as little as possible to ease future upgrades.
+This project uses customized templates which lives in the `support/openapi-templates` directory.
+These templates resolves some outstanding issues we've experienced with the rust generator. But we
+strive towards modifying the templates as little as possible to ease future upgrades.
 
 [secrets-manager]: https://bitwarden.com/products/secrets-manager/
 [bws-help]: https://bitwarden.com/help/secrets-manager-cli/

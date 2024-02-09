@@ -16,6 +16,9 @@
 pub enum ProviderType {
     Msp = 0,
     Reseller = 1,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for ProviderType {
@@ -23,6 +26,7 @@ impl ToString for ProviderType {
         match self {
             Self::Msp => String::from("0"),
             Self::Reseller => String::from("1"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

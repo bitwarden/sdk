@@ -17,6 +17,9 @@ pub enum AuthRequestType {
     AuthenticateAndUnlock = 0,
     Unlock = 1,
     AdminApproval = 2,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for AuthRequestType {
@@ -25,6 +28,7 @@ impl ToString for AuthRequestType {
             Self::AuthenticateAndUnlock => String::from("0"),
             Self::Unlock => String::from("1"),
             Self::AdminApproval => String::from("2"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

@@ -17,6 +17,9 @@ pub enum MemberDecryptionType {
     MasterPassword = 0,
     KeyConnector = 1,
     TrustedDeviceEncryption = 2,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for MemberDecryptionType {
@@ -25,6 +28,7 @@ impl ToString for MemberDecryptionType {
             Self::MasterPassword => String::from("0"),
             Self::KeyConnector => String::from("1"),
             Self::TrustedDeviceEncryption => String::from("2"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

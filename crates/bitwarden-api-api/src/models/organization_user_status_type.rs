@@ -18,6 +18,9 @@ pub enum OrganizationUserStatusType {
     Accepted = 1,
     Confirmed = 2,
     Revoked = -1,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for OrganizationUserStatusType {
@@ -27,6 +30,7 @@ impl ToString for OrganizationUserStatusType {
             Self::Accepted => String::from("1"),
             Self::Confirmed => String::from("2"),
             Self::Revoked => String::from("-1"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

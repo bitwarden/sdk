@@ -15,12 +15,16 @@
 )]
 pub enum PlanSponsorshipType {
     FamiliesForEnterprise = 0,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for PlanSponsorshipType {
     fn to_string(&self) -> String {
         match self {
             Self::FamiliesForEnterprise => String::from("0"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

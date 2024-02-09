@@ -16,6 +16,9 @@
 pub enum CipherRepromptType {
     None = 0,
     Password = 1,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for CipherRepromptType {
@@ -23,6 +26,7 @@ impl ToString for CipherRepromptType {
         match self {
             Self::None => String::from("0"),
             Self::Password => String::from("1"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

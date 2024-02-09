@@ -16,6 +16,9 @@
 pub enum EventSystemUser {
     SCIM = 1,
     DomainVerification = 2,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for EventSystemUser {
@@ -23,6 +26,7 @@ impl ToString for EventSystemUser {
         match self {
             Self::SCIM => String::from("1"),
             Self::DomainVerification => String::from("2"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

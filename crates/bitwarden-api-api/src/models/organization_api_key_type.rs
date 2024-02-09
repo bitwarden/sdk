@@ -17,6 +17,9 @@ pub enum OrganizationApiKeyType {
     Default = 0,
     BillingSync = 1,
     Scim = 2,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for OrganizationApiKeyType {
@@ -25,6 +28,7 @@ impl ToString for OrganizationApiKeyType {
             Self::Default => String::from("0"),
             Self::BillingSync => String::from("1"),
             Self::Scim => String::from("2"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

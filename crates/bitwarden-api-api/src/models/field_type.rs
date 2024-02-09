@@ -18,6 +18,9 @@ pub enum FieldType {
     Hidden = 1,
     Boolean = 2,
     Linked = 3,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for FieldType {
@@ -27,6 +30,7 @@ impl ToString for FieldType {
             Self::Hidden => String::from("1"),
             Self::Boolean => String::from("2"),
             Self::Linked => String::from("3"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

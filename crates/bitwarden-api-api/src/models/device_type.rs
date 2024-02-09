@@ -40,6 +40,9 @@ pub enum DeviceType {
     WindowsCLI = 23,
     MacOsCLI = 24,
     LinuxCLI = 25,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for DeviceType {
@@ -71,6 +74,7 @@ impl ToString for DeviceType {
             Self::WindowsCLI => String::from("23"),
             Self::MacOsCLI => String::from("24"),
             Self::LinuxCLI => String::from("25"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

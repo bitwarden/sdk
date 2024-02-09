@@ -22,6 +22,9 @@ pub enum TwoFactorProviderType {
     Remember = 5,
     OrganizationDuo = 6,
     WebAuthn = 7,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for TwoFactorProviderType {
@@ -35,6 +38,7 @@ impl ToString for TwoFactorProviderType {
             Self::Remember => String::from("5"),
             Self::OrganizationDuo => String::from("6"),
             Self::WebAuthn => String::from("7"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

@@ -20,6 +20,9 @@ pub enum UriMatchType {
     Exact = 3,
     RegularExpression = 4,
     Never = 5,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for UriMatchType {
@@ -31,6 +34,7 @@ impl ToString for UriMatchType {
             Self::Exact => String::from("3"),
             Self::RegularExpression => String::from("4"),
             Self::Never => String::from("5"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

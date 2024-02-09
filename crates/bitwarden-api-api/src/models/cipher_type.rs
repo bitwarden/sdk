@@ -18,6 +18,9 @@ pub enum CipherType {
     SecureNote = 2,
     Card = 3,
     Identity = 4,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for CipherType {
@@ -27,6 +30,7 @@ impl ToString for CipherType {
             Self::SecureNote => String::from("2"),
             Self::Card => String::from("3"),
             Self::Identity => String::from("4"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

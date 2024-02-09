@@ -17,6 +17,9 @@ pub enum WebAuthnPrfStatus {
     Enabled = 0,
     Supported = 1,
     Unsupported = 2,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for WebAuthnPrfStatus {
@@ -25,6 +28,7 @@ impl ToString for WebAuthnPrfStatus {
             Self::Enabled => String::from("0"),
             Self::Supported => String::from("1"),
             Self::Unsupported => String::from("2"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

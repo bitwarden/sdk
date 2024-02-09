@@ -16,6 +16,8 @@ pub enum {{{classname}}} {
 {{#enumVars}}
     {{{name}}} = {{{value}}},
 {{/enumVars}}{{/allowableValues}}
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for {{{classname}}} {
@@ -26,6 +28,7 @@ impl ToString for {{{classname}}} {
             Self::{{{name}}} => String::from("{{{value}}}"),
             {{/enumVars}}
             {{/allowableValues}}
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

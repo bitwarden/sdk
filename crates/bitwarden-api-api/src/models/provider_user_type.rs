@@ -16,6 +16,9 @@
 pub enum ProviderUserType {
     ProviderAdmin = 0,
     ServiceUser = 1,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for ProviderUserType {
@@ -23,6 +26,7 @@ impl ToString for ProviderUserType {
         match self {
             Self::ProviderAdmin => String::from("0"),
             Self::ServiceUser => String::from("1"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

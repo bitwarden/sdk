@@ -16,6 +16,9 @@
 pub enum OpenIdConnectRedirectBehavior {
     RedirectGet = 0,
     FormPost = 1,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for OpenIdConnectRedirectBehavior {
@@ -23,6 +26,7 @@ impl ToString for OpenIdConnectRedirectBehavior {
         match self {
             Self::RedirectGet => String::from("0"),
             Self::FormPost => String::from("1"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

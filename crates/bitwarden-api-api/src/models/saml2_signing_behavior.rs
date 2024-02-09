@@ -17,6 +17,9 @@ pub enum Saml2SigningBehavior {
     IfIdpWantAuthnRequestsSigned = 0,
     Always = 1,
     Never = 3,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for Saml2SigningBehavior {
@@ -25,6 +28,7 @@ impl ToString for Saml2SigningBehavior {
             Self::IfIdpWantAuthnRequestsSigned => String::from("0"),
             Self::Always => String::from("1"),
             Self::Never => String::from("3"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

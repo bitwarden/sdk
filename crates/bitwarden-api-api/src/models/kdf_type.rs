@@ -16,6 +16,9 @@
 pub enum KdfType {
     PBKDF2_SHA256 = 0,
     Argon2id = 1,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for KdfType {
@@ -23,6 +26,7 @@ impl ToString for KdfType {
         match self {
             Self::PBKDF2_SHA256 => String::from("0"),
             Self::Argon2id => String::from("1"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

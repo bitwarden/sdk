@@ -7,7 +7,7 @@ The SDK is written in Rust and provides a Rust API, CLI and various language bin
 ### Disclaimer
 
 The password manager SDK is not intended for public use and is not supported by Bitwarden at this
-stage. It is solely intended to centralized the business logic and to provide a single source of
+stage. It is solely intended to centralize the business logic and to provide a single source of
 truth for the internal applications. As the SDK evolves into a more stable and feature complete
 state we will re-evaluate the possibility of publishing stable bindings for the public.
 

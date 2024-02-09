@@ -253,6 +253,7 @@ src/models/organization_user_public_key_response_model_list_response_model.rs
 src/models/organization_user_reset_password_details_response_model.rs
 src/models/organization_user_reset_password_enrollment_request_model.rs
 src/models/organization_user_reset_password_request_model.rs
+src/models/organization_user_status_type.rs
 src/models/organization_user_type.rs
 src/models/organization_user_update_groups_request_model.rs
 src/models/organization_user_update_request_model.rs

@@ -14,21 +14,21 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum FileUploadType {
-    Variant0 = 0,
-    Variant1 = 1,
+    Direct = 0,
+    Azure = 1,
 }
 
 impl ToString for FileUploadType {
     fn to_string(&self) -> String {
         match self {
-            Self::Variant0 => String::from("0"),
-            Self::Variant1 => String::from("1"),
+            Self::Direct => String::from("0"),
+            Self::Azure => String::from("1"),
         }
     }
 }
 
 impl Default for FileUploadType {
     fn default() -> FileUploadType {
-        Self::Variant0
+        Self::Direct
     }
 }

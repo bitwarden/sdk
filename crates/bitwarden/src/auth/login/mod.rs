@@ -67,13 +67,13 @@ pub(crate) fn parse_prelogin(response: PreloginResponseModel) -> Result<Kdf> {
     let kdf = response.kdf.ok_or("KDF not found")?;
 
     Ok(match kdf {
-        KdfType::Variant0 => Kdf::PBKDF2 {
+        KdfType::PBKDF2_SHA256 => Kdf::PBKDF2 {
             iterations: response
                 .kdf_iterations
                 .and_then(|e| NonZeroU32::new(e as u32))
                 .unwrap_or_else(default_pbkdf2_iterations),
         },
-        KdfType::Variant1 => Kdf::Argon2id {
+        KdfType::Argon2id => Kdf::Argon2id {
             iterations: response
                 .kdf_iterations
                 .and_then(|e| NonZeroU32::new(e as u32))

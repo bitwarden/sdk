@@ -14,21 +14,21 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum CipherRepromptType {
-    Variant0 = 0,
-    Variant1 = 1,
+    None = 0,
+    Password = 1,
 }
 
 impl ToString for CipherRepromptType {
     fn to_string(&self) -> String {
         match self {
-            Self::Variant0 => String::from("0"),
-            Self::Variant1 => String::from("1"),
+            Self::None => String::from("0"),
+            Self::Password => String::from("1"),
         }
     }
 }
 
 impl Default for CipherRepromptType {
     fn default() -> CipherRepromptType {
-        Self::Variant0
+        Self::None
     }
 }

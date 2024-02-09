@@ -172,7 +172,7 @@ jobs:
       - name: Get p12 signing cert
         run: |
           mkdir -p $HOME/secrets
-          az keyvault certificate download --vault-name bitwarden-ci --name macos-bws-certificate-devid-app-cert-p12 --file $HOME/secrets/devid-app-cert.p12
+          az keyvault secret download --vault-name bitwarden-ci --name macos-bws-certificate-devid-app-cert-p12 --file $HOME/secrets/devid-app-cert.p12 --encoding base64
 
       # - name: Decrypt secrets
       #   env:
@@ -341,7 +341,7 @@ jobs:
       - name: Get p12 signing cert
         run: |
           mkdir -p $HOME/secrets
-          az keyvault certificate download --vault-name bitwarden-ci --name macos-bws-certificate-devid-app-cert-p12 --file $HOME/secrets/devid-app-cert.p12
+          az keyvault secret download --vault-name bitwarden-ci --name macos-bws-certificate-devid-app-cert-p12 --file $HOME/secrets/devid-app-cert.p12 --encoding base64
 
       # - name: Decrypt secrets
       #   env:

@@ -33,7 +33,8 @@ are:
   server.
 - [`bitwarden-api-identity`](./crates/bitwarden-api-identity/): Auto-generated API bindings for the
   Identity server.
-- [`bws`](./crates/bws/): CLI for interacting with the secrets manager.
+- [`bws`](./crates/bws/): CLI for interacting with the [Bitwarden Secrets Manager][secrets-manager].
+  Review the [CLI documentation][bws-help].
 - [`bitwarden-c`](./crates/bitwarden-c/): C bindings for FFI interop.
 - [`bitwarden-json`](./crates/bitwarden-json/): JSON wrapper around the `bitwarden` crate. Powers
   the other language bindings.
@@ -83,3 +84,6 @@ To generate a new version of the bindings run the following script from the root
 This project uses customized templates which lives in the `support/templates` directory. These
 templates resolves some outstanding issues we've experienced with the rust generator. But we strive
 towards modifying the templates as little as possible to ease future upgrades.
+
+[secrets-manager]: https://bitwarden.com/products/secrets-manager/
+[bws-help]: https://bitwarden.com/help/secrets-manager-cli/

@@ -12,7 +12,6 @@ From the root of the repository:
 npm run schemas # generate schemas.py
 
 cd languages/python/
-python3 -m venv .venv
 maturin develop
 ```
 
@@ -35,9 +34,21 @@ Set the `ORGANIZATION_ID` and `ACCESS_TOKEN` environment variables to your organ
 python3 ./example.py
 ```
 
-## Using Virtual Environments
+# Using Virtual Environments
 
-If you would like to run the script within a virtual environment you can do the following.
+If you would like to build & run the script within a virtual environment you can do the following.
+
+## Build
+
+```bash
+npm run schemas # generate schemas.py
+
+cd languages/python/
+python3 -m venv .venv
+maturin develop
+```
+
+## Run
 
 ```bash
 source .venv/bin/activate

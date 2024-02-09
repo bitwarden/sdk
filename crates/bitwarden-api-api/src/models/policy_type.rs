@@ -14,41 +14,41 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum PolicyType {
-    Variant0 = 0,
-    Variant1 = 1,
-    Variant2 = 2,
-    Variant3 = 3,
-    Variant4 = 4,
-    Variant5 = 5,
-    Variant6 = 6,
-    Variant7 = 7,
-    Variant8 = 8,
-    Variant9 = 9,
-    Variant10 = 10,
-    Variant11 = 11,
+    TwoFactorAuthentication = 0,
+    MasterPassword = 1,
+    PasswordGenerator = 2,
+    SingleOrg = 3,
+    RequireSso = 4,
+    PersonalOwnership = 5,
+    DisableSend = 6,
+    SendOptions = 7,
+    ResetPassword = 8,
+    MaximumVaultTimeout = 9,
+    DisablePersonalVaultExport = 10,
+    ActivateAutofill = 11,
 }
 
 impl ToString for PolicyType {
     fn to_string(&self) -> String {
         match self {
-            Self::Variant0 => String::from("0"),
-            Self::Variant1 => String::from("1"),
-            Self::Variant2 => String::from("2"),
-            Self::Variant3 => String::from("3"),
-            Self::Variant4 => String::from("4"),
-            Self::Variant5 => String::from("5"),
-            Self::Variant6 => String::from("6"),
-            Self::Variant7 => String::from("7"),
-            Self::Variant8 => String::from("8"),
-            Self::Variant9 => String::from("9"),
-            Self::Variant10 => String::from("10"),
-            Self::Variant11 => String::from("11"),
+            Self::TwoFactorAuthentication => String::from("0"),
+            Self::MasterPassword => String::from("1"),
+            Self::PasswordGenerator => String::from("2"),
+            Self::SingleOrg => String::from("3"),
+            Self::RequireSso => String::from("4"),
+            Self::PersonalOwnership => String::from("5"),
+            Self::DisableSend => String::from("6"),
+            Self::SendOptions => String::from("7"),
+            Self::ResetPassword => String::from("8"),
+            Self::MaximumVaultTimeout => String::from("9"),
+            Self::DisablePersonalVaultExport => String::from("10"),
+            Self::ActivateAutofill => String::from("11"),
         }
     }
 }
 
 impl Default for PolicyType {
     fn default() -> PolicyType {
-        Self::Variant0
+        Self::TwoFactorAuthentication
     }
 }

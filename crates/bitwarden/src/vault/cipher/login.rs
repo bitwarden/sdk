@@ -143,12 +143,12 @@ impl TryFrom<CipherLoginUriModel> for LoginUri {
 impl From<bitwarden_api_api::models::UriMatchType> for UriMatchType {
     fn from(value: bitwarden_api_api::models::UriMatchType) -> Self {
         match value {
-            bitwarden_api_api::models::UriMatchType::Variant0 => Self::Domain,
-            bitwarden_api_api::models::UriMatchType::Variant1 => Self::Host,
-            bitwarden_api_api::models::UriMatchType::Variant2 => Self::StartsWith,
-            bitwarden_api_api::models::UriMatchType::Variant3 => Self::Exact,
-            bitwarden_api_api::models::UriMatchType::Variant4 => Self::RegularExpression,
-            bitwarden_api_api::models::UriMatchType::Variant5 => Self::Never,
+            bitwarden_api_api::models::UriMatchType::Domain => Self::Domain,
+            bitwarden_api_api::models::UriMatchType::Host => Self::Host,
+            bitwarden_api_api::models::UriMatchType::StartsWith => Self::StartsWith,
+            bitwarden_api_api::models::UriMatchType::Exact => Self::Exact,
+            bitwarden_api_api::models::UriMatchType::RegularExpression => Self::RegularExpression,
+            bitwarden_api_api::models::UriMatchType::Never => Self::Never,
         }
     }
 }

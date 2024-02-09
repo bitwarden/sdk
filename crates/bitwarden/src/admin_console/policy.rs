@@ -53,20 +53,28 @@ impl TryFrom<PolicyResponseModel> for Policy {
 impl From<bitwarden_api_api::models::PolicyType> for PolicyType {
     fn from(policy_type: bitwarden_api_api::models::PolicyType) -> Self {
         match policy_type {
-            bitwarden_api_api::models::PolicyType::Variant0 => PolicyType::TwoFactorAuthentication,
-            bitwarden_api_api::models::PolicyType::Variant1 => PolicyType::MasterPassword,
-            bitwarden_api_api::models::PolicyType::Variant2 => PolicyType::PasswordGenerator,
-            bitwarden_api_api::models::PolicyType::Variant3 => PolicyType::SingleOrg,
-            bitwarden_api_api::models::PolicyType::Variant4 => PolicyType::RequireSso,
-            bitwarden_api_api::models::PolicyType::Variant5 => PolicyType::PersonalOwnership,
-            bitwarden_api_api::models::PolicyType::Variant6 => PolicyType::DisableSend,
-            bitwarden_api_api::models::PolicyType::Variant7 => PolicyType::SendOptions,
-            bitwarden_api_api::models::PolicyType::Variant8 => PolicyType::ResetPassword,
-            bitwarden_api_api::models::PolicyType::Variant9 => PolicyType::MaximumVaultTimeout,
-            bitwarden_api_api::models::PolicyType::Variant10 => {
+            bitwarden_api_api::models::PolicyType::TwoFactorAuthentication => {
+                PolicyType::TwoFactorAuthentication
+            }
+            bitwarden_api_api::models::PolicyType::MasterPassword => PolicyType::MasterPassword,
+            bitwarden_api_api::models::PolicyType::PasswordGenerator => {
+                PolicyType::PasswordGenerator
+            }
+            bitwarden_api_api::models::PolicyType::SingleOrg => PolicyType::SingleOrg,
+            bitwarden_api_api::models::PolicyType::RequireSso => PolicyType::RequireSso,
+            bitwarden_api_api::models::PolicyType::PersonalOwnership => {
+                PolicyType::PersonalOwnership
+            }
+            bitwarden_api_api::models::PolicyType::DisableSend => PolicyType::DisableSend,
+            bitwarden_api_api::models::PolicyType::SendOptions => PolicyType::SendOptions,
+            bitwarden_api_api::models::PolicyType::ResetPassword => PolicyType::ResetPassword,
+            bitwarden_api_api::models::PolicyType::MaximumVaultTimeout => {
+                PolicyType::MaximumVaultTimeout
+            }
+            bitwarden_api_api::models::PolicyType::DisablePersonalVaultExport => {
                 PolicyType::DisablePersonalVaultExport
             }
-            bitwarden_api_api::models::PolicyType::Variant11 => PolicyType::ActivateAutofill,
+            bitwarden_api_api::models::PolicyType::ActivateAutofill => PolicyType::ActivateAutofill,
         }
     }
 }

@@ -14,21 +14,21 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum OrganizationConnectionType {
-    Variant1 = 1,
-    Variant2 = 2,
+    CloudBillingSync = 1,
+    Scim = 2,
 }
 
 impl ToString for OrganizationConnectionType {
     fn to_string(&self) -> String {
         match self {
-            Self::Variant1 => String::from("1"),
-            Self::Variant2 => String::from("2"),
+            Self::CloudBillingSync => String::from("1"),
+            Self::Scim => String::from("2"),
         }
     }
 }
 
 impl Default for OrganizationConnectionType {
     fn default() -> OrganizationConnectionType {
-        Self::Variant1
+        Self::CloudBillingSync
     }
 }

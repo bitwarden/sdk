@@ -14,33 +14,33 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum TwoFactorProviderType {
-    Variant0 = 0,
-    Variant1 = 1,
-    Variant2 = 2,
-    Variant3 = 3,
-    Variant4 = 4,
-    Variant5 = 5,
-    Variant6 = 6,
-    Variant7 = 7,
+    Authenticator = 0,
+    Email = 1,
+    Duo = 2,
+    YubiKey = 3,
+    U2f = 4,
+    Remember = 5,
+    OrganizationDuo = 6,
+    WebAuthn = 7,
 }
 
 impl ToString for TwoFactorProviderType {
     fn to_string(&self) -> String {
         match self {
-            Self::Variant0 => String::from("0"),
-            Self::Variant1 => String::from("1"),
-            Self::Variant2 => String::from("2"),
-            Self::Variant3 => String::from("3"),
-            Self::Variant4 => String::from("4"),
-            Self::Variant5 => String::from("5"),
-            Self::Variant6 => String::from("6"),
-            Self::Variant7 => String::from("7"),
+            Self::Authenticator => String::from("0"),
+            Self::Email => String::from("1"),
+            Self::Duo => String::from("2"),
+            Self::YubiKey => String::from("3"),
+            Self::U2f => String::from("4"),
+            Self::Remember => String::from("5"),
+            Self::OrganizationDuo => String::from("6"),
+            Self::WebAuthn => String::from("7"),
         }
     }
 }
 
 impl Default for TwoFactorProviderType {
     fn default() -> TwoFactorProviderType {
-        Self::Variant0
+        Self::Authenticator
     }
 }

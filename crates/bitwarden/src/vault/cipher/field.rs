@@ -82,10 +82,10 @@ impl TryFrom<CipherFieldModel> for Field {
 impl From<bitwarden_api_api::models::FieldType> for FieldType {
     fn from(model: bitwarden_api_api::models::FieldType) -> Self {
         match model {
-            bitwarden_api_api::models::FieldType::Variant0 => FieldType::Text,
-            bitwarden_api_api::models::FieldType::Variant1 => FieldType::Hidden,
-            bitwarden_api_api::models::FieldType::Variant2 => FieldType::Boolean,
-            bitwarden_api_api::models::FieldType::Variant3 => FieldType::Linked,
+            bitwarden_api_api::models::FieldType::Text => FieldType::Text,
+            bitwarden_api_api::models::FieldType::Hidden => FieldType::Hidden,
+            bitwarden_api_api::models::FieldType::Boolean => FieldType::Boolean,
+            bitwarden_api_api::models::FieldType::Linked => FieldType::Linked,
         }
     }
 }

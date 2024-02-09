@@ -14,35 +14,35 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum Saml2NameIdFormat {
-    Variant0 = 0,
-    Variant1 = 1,
-    Variant2 = 2,
-    Variant3 = 3,
-    Variant4 = 4,
-    Variant5 = 5,
-    Variant6 = 6,
-    Variant7 = 7,
-    Variant8 = 8,
+    NotConfigured = 0,
+    Unspecified = 1,
+    EmailAddress = 2,
+    X509SubjectName = 3,
+    WindowsDomainQualifiedName = 4,
+    KerberosPrincipalName = 5,
+    EntityIdentifier = 6,
+    Persistent = 7,
+    Transient = 8,
 }
 
 impl ToString for Saml2NameIdFormat {
     fn to_string(&self) -> String {
         match self {
-            Self::Variant0 => String::from("0"),
-            Self::Variant1 => String::from("1"),
-            Self::Variant2 => String::from("2"),
-            Self::Variant3 => String::from("3"),
-            Self::Variant4 => String::from("4"),
-            Self::Variant5 => String::from("5"),
-            Self::Variant6 => String::from("6"),
-            Self::Variant7 => String::from("7"),
-            Self::Variant8 => String::from("8"),
+            Self::NotConfigured => String::from("0"),
+            Self::Unspecified => String::from("1"),
+            Self::EmailAddress => String::from("2"),
+            Self::X509SubjectName => String::from("3"),
+            Self::WindowsDomainQualifiedName => String::from("4"),
+            Self::KerberosPrincipalName => String::from("5"),
+            Self::EntityIdentifier => String::from("6"),
+            Self::Persistent => String::from("7"),
+            Self::Transient => String::from("8"),
         }
     }
 }
 
 impl Default for Saml2NameIdFormat {
     fn default() -> Saml2NameIdFormat {
-        Self::Variant0
+        Self::NotConfigured
     }
 }

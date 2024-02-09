@@ -14,41 +14,41 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum Algorithm {
-    Variant65535 = -65535,
-    Variant259 = -259,
-    Variant258 = -258,
-    Variant257 = -257,
-    Variant47 = -47,
-    Variant39 = -39,
-    Variant38 = -38,
-    Variant37 = -37,
-    Variant36 = -36,
-    Variant35 = -35,
-    Variant8 = -8,
-    Variant7 = -7,
+    RS1 = -65535,
+    RS512 = -259,
+    RS384 = -258,
+    RS256 = -257,
+    ES256K = -47,
+    PS512 = -39,
+    PS384 = -38,
+    PS256 = -37,
+    ES512 = -36,
+    ES384 = -35,
+    EdDSA = -8,
+    ES256 = -7,
 }
 
 impl ToString for Algorithm {
     fn to_string(&self) -> String {
         match self {
-            Self::Variant65535 => String::from("-65535"),
-            Self::Variant259 => String::from("-259"),
-            Self::Variant258 => String::from("-258"),
-            Self::Variant257 => String::from("-257"),
-            Self::Variant47 => String::from("-47"),
-            Self::Variant39 => String::from("-39"),
-            Self::Variant38 => String::from("-38"),
-            Self::Variant37 => String::from("-37"),
-            Self::Variant36 => String::from("-36"),
-            Self::Variant35 => String::from("-35"),
-            Self::Variant8 => String::from("-8"),
-            Self::Variant7 => String::from("-7"),
+            Self::RS1 => String::from("-65535"),
+            Self::RS512 => String::from("-259"),
+            Self::RS384 => String::from("-258"),
+            Self::RS256 => String::from("-257"),
+            Self::ES256K => String::from("-47"),
+            Self::PS512 => String::from("-39"),
+            Self::PS384 => String::from("-38"),
+            Self::PS256 => String::from("-37"),
+            Self::ES512 => String::from("-36"),
+            Self::ES384 => String::from("-35"),
+            Self::EdDSA => String::from("-8"),
+            Self::ES256 => String::from("-7"),
         }
     }
 }
 
 impl Default for Algorithm {
     fn default() -> Algorithm {
-        Self::Variant65535
+        Self::RS1
     }
 }

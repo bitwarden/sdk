@@ -14,33 +14,33 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum PaymentMethodType {
-    Variant0 = 0,
-    Variant1 = 1,
-    Variant2 = 2,
-    Variant3 = 3,
-    Variant4 = 4,
-    Variant5 = 5,
-    Variant8 = 8,
-    Variant255 = 255,
+    Card = 0,
+    BankAccount = 1,
+    PayPal = 2,
+    BitPay = 3,
+    Credit = 4,
+    WireTransfer = 5,
+    Check = 8,
+    None = 255,
 }
 
 impl ToString for PaymentMethodType {
     fn to_string(&self) -> String {
         match self {
-            Self::Variant0 => String::from("0"),
-            Self::Variant1 => String::from("1"),
-            Self::Variant2 => String::from("2"),
-            Self::Variant3 => String::from("3"),
-            Self::Variant4 => String::from("4"),
-            Self::Variant5 => String::from("5"),
-            Self::Variant8 => String::from("8"),
-            Self::Variant255 => String::from("255"),
+            Self::Card => String::from("0"),
+            Self::BankAccount => String::from("1"),
+            Self::PayPal => String::from("2"),
+            Self::BitPay => String::from("3"),
+            Self::Credit => String::from("4"),
+            Self::WireTransfer => String::from("5"),
+            Self::Check => String::from("8"),
+            Self::None => String::from("255"),
         }
     }
 }
 
 impl Default for PaymentMethodType {
     fn default() -> PaymentMethodType {
-        Self::Variant0
+        Self::Card
     }
 }

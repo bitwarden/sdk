@@ -12,20 +12,20 @@
 pub struct SecretResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
-    #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<uuid::Uuid>,
-    #[serde(rename = "organizationId", skip_serializing_if = "Option::is_none")]
-    pub organization_id: Option<uuid::Uuid>,
+    #[serde(rename = "id")]
+    pub id: uuid::Uuid,
+    #[serde(rename = "organizationId")]
+    pub organization_id: uuid::Uuid,
     #[serde(rename = "key", skip_serializing_if = "Option::is_none")]
     pub key: Option<String>,
     #[serde(rename = "value", skip_serializing_if = "Option::is_none")]
     pub value: Option<String>,
     #[serde(rename = "note", skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
-    #[serde(rename = "creationDate", skip_serializing_if = "Option::is_none")]
-    pub creation_date: Option<String>,
-    #[serde(rename = "revisionDate", skip_serializing_if = "Option::is_none")]
-    pub revision_date: Option<String>,
+    #[serde(rename = "creationDate")]
+    pub creation_date: String,
+    #[serde(rename = "revisionDate")]
+    pub revision_date: String,
     #[serde(rename = "projects", skip_serializing_if = "Option::is_none")]
     pub projects: Option<Vec<crate::models::SecretResponseInnerProject>>,
     #[serde(rename = "read", skip_serializing_if = "Option::is_none")]
@@ -35,16 +35,21 @@ pub struct SecretResponseModel {
 }
 
 impl SecretResponseModel {
-    pub fn new() -> SecretResponseModel {
+    pub fn new(
+        id: uuid::Uuid,
+        organization_id: uuid::Uuid,
+        creation_date: String,
+        revision_date: String,
+    ) -> SecretResponseModel {
         SecretResponseModel {
             object: None,
-            id: None,
-            organization_id: None,
+            id,
+            organization_id,
             key: None,
             value: None,
             note: None,
-            creation_date: None,
-            revision_date: None,
+            creation_date,
+            revision_date,
             projects: None,
             read: None,
             write: None,

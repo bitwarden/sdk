@@ -169,20 +169,15 @@ jobs:
             macos-bws-certificate-name,
             macos-bws-installer-certificate-name"
 
-      - name: Get p12 signing cert
+      - name: Decrypt secrets
+        env:
+          DECRYPT_FILE_PASSWORD: ${{ secrets.DECRYPT_FILE_PASSWORD }}
         run: |
           mkdir -p $HOME/secrets
-          az keyvault secret download --vault-name bitwarden-ci --name macos-bws-certificate-devid-app-cert-p12 --file $HOME/secrets/devid-app-cert.p12 --encoding base64
 
-      # - name: Decrypt secrets
-      #   env:
-      #     DECRYPT_FILE_PASSWORD: ${{ secrets.DECRYPT_FILE_PASSWORD }}
-      #   run: |
-      #     mkdir -p $HOME/secrets
-
-      #     gpg --quiet --batch --yes --decrypt --passphrase="$DECRYPT_FILE_PASSWORD" \
-      #       --output "$HOME/secrets/devid-app-cert.p12" \
-      #       "$GITHUB_WORKSPACE/.github/secrets/devid-app-cert.p12.gpg"
+          gpg --quiet --batch --yes --decrypt --passphrase="$DECRYPT_FILE_PASSWORD" \
+            --output "$HOME/secrets/devid-app-cert.p12" \
+            "$GITHUB_WORKSPACE/.github/secrets/devid-app-cert.p12.gpg"
 
       - name: Set up keychain
         env:
@@ -338,20 +333,15 @@ jobs:
             macos-bws-certificate-name,
             macos-bws-installer-certificate-name"
 
-      - name: Get p12 signing cert
+      - name: Decrypt secrets
+        env:
+          DECRYPT_FILE_PASSWORD: ${{ secrets.DECRYPT_FILE_PASSWORD }}
         run: |
           mkdir -p $HOME/secrets
-          az keyvault secret download --vault-name bitwarden-ci --name macos-bws-certificate-devid-app-cert-p12 --file $HOME/secrets/devid-app-cert.p12 --encoding base64
 
-      # - name: Decrypt secrets
-      #   env:
-      #     DECRYPT_FILE_PASSWORD: ${{ secrets.DECRYPT_FILE_PASSWORD }}
-      #   run: |
-      #     mkdir -p $HOME/secrets
-
-      #     gpg --quiet --batch --yes --decrypt --passphrase="$DECRYPT_FILE_PASSWORD" \
-      #       --output "$HOME/secrets/devid-app-cert.p12" \
-      #       "$GITHUB_WORKSPACE/.github/secrets/devid-app-cert.p12.gpg"
+          gpg --quiet --batch --yes --decrypt --passphrase="$DECRYPT_FILE_PASSWORD" \
+            --output "$HOME/secrets/devid-app-cert.p12" \
+            "$GITHUB_WORKSPACE/.github/secrets/devid-app-cert.p12.gpg"
 
       - name: Set up keychain
         env:

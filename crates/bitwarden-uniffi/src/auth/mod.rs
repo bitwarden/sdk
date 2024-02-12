@@ -3,7 +3,7 @@ use std::sync::Arc;
 use bitwarden::auth::{
     password::MasterPasswordPolicyOptions, AuthRequestResponse, RegisterKeyResponse,
 };
-use bitwarden_crypto::{AsymmetricEncString, HashPurpose, Kdf};
+use bitwarden_crypto::{AsymmetricEncString, HashPurpose, Kdf, TrustDeviceResponse};
 
 use crate::{error::Result, Client};
 
@@ -127,5 +127,10 @@ impl ClientAuth {
             .await
             .auth()
             .approve_auth_request(public_key)?)
+    }
+
+    /// Trust the current device
+    pub async fn t(&self) -> Result<TrustDeviceResponse> {
+        Ok(self.0 .0.write().await.auth().trust_device()?)
     }
 }

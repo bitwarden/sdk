@@ -5,6 +5,11 @@
   "enabledManagers": ["cargo", "dockerfile", "github-actions", "npm", "nuget"],
   "packageRules": [
     {
+      "groupName": "dockerfile minor",
+      "matchManagers": ["dockerfile"],
+      "matchUpdateTypes": ["minor", "patch"]
+    },
+    {
       "matchManagers": ["cargo"],
       "matchPackagePatterns": ["pyo3*"],
       "matchUpdateTypes": ["minor", "patch"],

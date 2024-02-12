@@ -25,5 +25,3 @@
 docs/*.md
 .travis.yml
 git_push.sh
-
-src/models/organization_user_status_type.rs

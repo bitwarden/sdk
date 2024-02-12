@@ -484,7 +484,7 @@ pub async fn organizations_org_id_users_enable_secrets_manager_put(
 
 pub async fn organizations_org_id_users_get(
     configuration: &configuration::Configuration,
-    org_id: &str,
+    org_id: uuid::Uuid,
     include_groups: Option<bool>,
     include_collections: Option<bool>,
 ) -> Result<

@@ -13,22 +13,24 @@
 #[derive(
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
-pub enum BitwardenProductType {
-    Variant0 = 0,
-    Variant1 = 1,
+pub enum WebAuthnPrfStatus {
+    Enabled = 0,
+    Supported = 1,
+    Unsupported = 2,
 }
 
-impl ToString for BitwardenProductType {
+impl ToString for WebAuthnPrfStatus {
     fn to_string(&self) -> String {
         match self {
-            Self::Variant0 => String::from("0"),
-            Self::Variant1 => String::from("1"),
+            Self::Enabled => String::from("0"),
+            Self::Supported => String::from("1"),
+            Self::Unsupported => String::from("2"),
         }
     }
 }
 
-impl Default for BitwardenProductType {
-    fn default() -> BitwardenProductType {
-        Self::Variant0
+impl Default for WebAuthnPrfStatus {
+    fn default() -> WebAuthnPrfStatus {
+        Self::Enabled
     }
 }

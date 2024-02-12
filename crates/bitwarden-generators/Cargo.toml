@@ -30,4 +30,4 @@ uniffi = { version = "=0.26.1", optional = true }
 [dev-dependencies]
 rand_chacha = "0.3.1"
 tokio = { version = "1.36.0", features = ["rt", "macros"] }
-wiremock = "0.5.22"
+wiremock = "0.6.0"

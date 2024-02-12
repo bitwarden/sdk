@@ -1,3 +1,5 @@
+use std::{fs::File, io::Write};
+
 use bitwarden_crypto::Decryptable;
 use bitwarden_exporters::export;
 use log::{debug, info};
@@ -92,8 +94,18 @@ pub(super) async fn export_vault_attachments(client: &mut Client) -> Result<()> 
 
     info!("Vault synced got {} ciphers", sync.ciphers.len());
 
-    let ciphers_with_attachments = sync
-        .ciphers
+    let folders = sync.folders;
+    let ciphers = sync.ciphers;
+
+    let mut f = File::create("export.csv")?;
+    f.write_all(
+        export_vault(client, folders.clone(), ciphers.clone(), ExportFormat::Csv)?.as_bytes(),
+    )?;
+
+    let mut f = File::create("export.json")?;
+    f.write_all(export_vault(client, folders, ciphers.clone(), ExportFormat::Json)?.as_bytes())?;
+
+    let ciphers_with_attachments = ciphers
         .iter()
         .filter(|c| c.attachments.as_ref().is_some_and(|a| !a.is_empty()));
 
@@ -106,8 +118,7 @@ pub(super) async fn export_vault_attachments(client: &mut Client) -> Result<()> 
 
     let enc_settings = client.get_encryption_settings()?;
 
-    let decrypted: Vec<CipherView> = sync
-        .ciphers
+    let decrypted: Vec<CipherView> = ciphers
         .iter()
         .map(|c| c.decrypt(enc_settings, &None).unwrap())
         .collect();

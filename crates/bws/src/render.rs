@@ -9,6 +9,7 @@ use serde::Serialize;
 pub(crate) enum Output {
     JSON,
     YAML,
+    Env,
     Table,
     TSV,
     None,
@@ -41,13 +42,39 @@ pub(crate) fn serialize_response<T: Serialize + TableSerialize<N>, const N: usiz
     match output {
         Output::JSON => {
             let mut text = serde_json::to_string_pretty(&data).unwrap();
-            // Yaml/table/tsv serializations add a newline at the end, so we do the same here for consistency
+            // Yaml/table/tsv serializations add a newline at the end, so we do the same here for
+            // consistency
             text.push('\n');
             pretty_print("json", &text, color);
         }
         Output::YAML => {
             let text = serde_yaml::to_string(&data).unwrap();
             pretty_print("yaml", &text, color);
+        }
+        Output::Env => {
+            let valid_key_regex = regex::Regex::new("^[a-zA-Z_][a-zA-Z0-9_]*$").unwrap();
+
+            let mut commented_out = false;
+            let mut text: Vec<String> = data
+                .get_values()
+                .into_iter()
+                .map(|row| {
+                    if valid_key_regex.is_match(&row[1]) {
+                        format!("{}=\"{}\"", row[1], row[2])
+                    } else {
+                        commented_out = true;
+                        format!("# {}=\"{}\"", row[1], row[2].replace('\n', "\n# "))
+                    }
+                })
+                .collect();
+
+            if commented_out {
+                text.push(String::from(
+                    "\n# one or more secrets have been commented-out due to a problematic key name",
+                ));
+            }
+
+            pretty_print("sh", &format!("{}\n", text.join("\n")), color);
         }
         Output::Table => {
             let mut table = Table::new();
@@ -84,7 +111,8 @@ fn pretty_print(language: &str, data: &str, color: bool) {
     }
 }
 
-// We're using const generics for the array lengths to make sure the header count and value count match
+// We're using const generics for the array lengths to make sure the header count and value count
+// match
 pub(crate) trait TableSerialize<const N: usize>: Sized {
     fn get_headers() -> [&'static str; N];
     fn get_values(&self) -> Vec<[String; N]>;

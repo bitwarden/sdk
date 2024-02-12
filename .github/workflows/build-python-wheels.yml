@@ -1,0 +1,122 @@
+---
+name: Build Python Wheels
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "main"
+      - "rc"
+      - "hotfix-rc"
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+    working-directory: languages/python
+
+jobs:
+  generate_schemas:
+    uses: ./.github/workflows/generate_schemas.yml
+
+  setup:
+    name: Setup
+    runs-on: ubuntu-22.04
+    outputs:
+      package_version: ${{ steps.retrieve-version.outputs.package_version }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Get Package Version
+        id: retrieve-version
+        run: |
+          VERSION="$(grep -o '^version = ".*"' ../../crates/bitwarden-py/Cargo.toml | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")"
+          echo "package_version=$VERSION" >> $GITHUB_OUTPUT
+
+  build:
+    name: Building Python wheel for - ${{ matrix.settings.os }} - ${{ matrix.settings.target }}
+    runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}
+    needs:
+      - generate_schemas
+      - setup
+    env:
+      _PACKAGE_VERSION: ${{ needs.setup.outputs.package_version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - os: macos-12
+            target: x86_64-apple-darwin
+
+          - os: macos-12
+            target: aarch64-apple-darwin
+
+          - os: windows-2022
+            target: x86_64-pc-windows-msvc
+
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+
+          - os: ubuntu-22.04
+            target: aarch64-unknown-linux-gnu
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Setup Node
+        uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8 # v4.0.1
+        with:
+          node-version: 18
+
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248 # stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.settings.target }}
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
+        with:
+          key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.os }}
+
+      - name: Retrieve schemas
+        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
+        with:
+          name: schemas.py
+          path: ${{ github.workspace }}/languages/python/bitwarden_sdk
+
+      - name: Build wheels
+        if: ${{ matrix.settings.target != 'x86_64-unknown-linux-gnu' }}
+        uses: PyO3/maturin-action@a3013db91b2ef2e51420cfe99ee619c8e72a17e6 # v1.40.8
+        with:
+          target: ${{ matrix.settings.target }}
+          args: --release --find-interpreter --sdist
+          sccache: "true"
+          manylinux: "2_28" # https://github.com/pola-rs/polars/pull/12211
+          working-directory: ${{ github.workspace }}/languages/python
+
+      - name: Build wheels (Linux - x86_64)
+        if: ${{ matrix.settings.target == 'x86_64-unknown-linux-gnu' }}
+        uses: PyO3/maturin-action@a3013db91b2ef2e51420cfe99ee619c8e72a17e6 # v1.40.8
+        with:
+          target: ${{ matrix.settings.target }}
+          args: --release --find-interpreter --sdist
+          container: quay.io/pypa/manylinux_2_28_x86_64:2023-11-20-745eb52
+          sccache: "true"
+          manylinux: "2_28" # https://github.com/pola-rs/polars/pull/12211
+          working-directory: ${{ github.workspace }}/languages/python
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
+        with:
+          name: bitwarden_sdk-${{ env._PACKAGE_VERSION }}-${{ matrix.settings.target }}
+          path: ${{ github.workspace }}/target/wheels/bitwarden_sdk*.whl
+
+      - name: Upload sdists
+        if: ${{ matrix.settings.target == 'x86_64-unknown-linux-gnu' }} # we only need one sdist
+        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
+        with:
+          name: bitwarden_sdk-${{ env._PACKAGE_VERSION }}-sdist
+          path: ${{ github.workspace }}/target/wheels/bitwarden_sdk-*.tar.gz

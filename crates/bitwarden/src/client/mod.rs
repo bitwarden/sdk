@@ -2,7 +2,6 @@
 
 pub(crate) use client::*;
 pub(crate) mod access_token;
-pub mod auth_settings;
 #[allow(clippy::module_inception)]
 mod client;
 pub mod client_settings;

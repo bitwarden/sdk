@@ -5,14 +5,13 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use super::domain::GlobalDomains;
 use crate::{
     admin_console::Policy,
     client::{encryption_settings::EncryptionSettings, Client},
     error::{Error, Result},
     vault::{Cipher, Collection, Folder},
 };
-
-use super::domain::GlobalDomains;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -70,13 +69,14 @@ pub struct DomainResponse {
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SyncResponse {
-    /// Data about the user, including their encryption keys and the organizations they are a part of
+    /// Data about the user, including their encryption keys and the organizations they are a part
+    /// of
     pub profile: ProfileResponse,
     pub folders: Vec<Folder>,
     pub collections: Vec<Collection>,
     /// List of ciphers accessible by the user
     pub ciphers: Vec<Cipher>,
-    pub domains: DomainResponse,
+    pub domains: Option<DomainResponse>,
     pub policies: Vec<Policy>,
     pub sends: Vec<crate::vault::Send>,
 }
@@ -89,34 +89,23 @@ impl SyncResponse {
         let profile = *response.profile.ok_or(Error::MissingFields)?;
         let ciphers = response.ciphers.ok_or(Error::MissingFields)?;
 
+        fn try_into_iter<In, InItem, Out, OutItem>(iter: In) -> Result<Out, InItem::Error>
+        where
+            In: IntoIterator<Item = InItem>,
+            InItem: TryInto<OutItem>,
+            Out: FromIterator<OutItem>,
+        {
+            iter.into_iter().map(|i| i.try_into()).collect()
+        }
+
         Ok(SyncResponse {
             profile: ProfileResponse::process_response(profile, enc)?,
-            folders: response
-                .folders
-                .ok_or(Error::MissingFields)?
-                .into_iter()
-                .map(|f| f.into())
-                .collect(),
-            collections: response
-                .collections
-                .ok_or(Error::MissingFields)?
-                .into_iter()
-                .map(|c| c.into())
-                .collect(),
-            ciphers: ciphers.into_iter().map(|c| c.into()).collect(),
-            domains: (*response.domains.unwrap()).into(),
-            policies: response
-                .policies
-                .ok_or(Error::MissingFields)?
-                .into_iter()
-                .map(|p| p.into())
-                .collect(),
-            sends: response
-                .sends
-                .ok_or(Error::MissingFields)?
-                .into_iter()
-                .map(|s| s.into())
-                .collect(),
+            folders: try_into_iter(response.folders.ok_or(Error::MissingFields)?)?,
+            collections: try_into_iter(response.collections.ok_or(Error::MissingFields)?)?,
+            ciphers: try_into_iter(ciphers)?,
+            domains: response.domains.map(|d| (*d).try_into()).transpose()?,
+            policies: try_into_iter(response.policies.ok_or(Error::MissingFields)?)?,
+            sends: try_into_iter(response.sends.ok_or(Error::MissingFields)?)?,
         })
     }
 }
@@ -152,16 +141,17 @@ impl ProfileResponse {
     }
 }
 
-impl From<DomainsResponseModel> for DomainResponse {
-    fn from(value: DomainsResponseModel) -> Self {
-        DomainResponse {
+impl TryFrom<DomainsResponseModel> for DomainResponse {
+    type Error = Error;
+    fn try_from(value: DomainsResponseModel) -> Result<Self> {
+        Ok(Self {
             equivalent_domains: value.equivalent_domains.unwrap_or_default(),
             global_equivalent_domains: value
                 .global_equivalent_domains
                 .unwrap_or_default()
                 .into_iter()
-                .map(|s| s.into())
-                .collect(),
-        }
+                .map(|s| s.try_into())
+                .collect::<Result<Vec<GlobalDomains>>>()?,
+        })
     }
 }

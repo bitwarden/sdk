@@ -21,6 +21,7 @@ use log::error;
 
 mod config;
 mod render;
+mod state;
 
 use config::ProfileKey;
 use render::{serialize_response, Color, Output};
@@ -33,7 +34,7 @@ struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
 
-    #[arg(short = 'o', long, global = true, value_enum, default_value_t = Output::JSON, help="Output format", hide = true)]
+    #[arg(short = 'o', long, global = true, value_enum, default_value_t = Output::JSON, help="Output format")]
     output: Output,
 
     #[arg(short = 'c', long, global = true, value_enum, default_value_t = Color::Auto, help="Use colors in the output")]
@@ -247,7 +248,7 @@ async fn process_commands() -> Result<()> {
     let Some(command) = cli.command else {
         let mut cmd = Cli::command();
         eprintln!("{}", cmd.render_help().ansi());
-        return Ok(());
+        std::process::exit(1);
     };
 
     // These commands don't require authentication, so we process them first
@@ -272,7 +273,7 @@ async fn process_commands() -> Result<()> {
                 profile
             } else if let Some(access_token) = cli.access_token {
                 AccessToken::from_str(&access_token)?
-                    .service_account_id
+                    .access_token_id
                     .to_string()
             } else {
                 String::from("default")
@@ -302,6 +303,7 @@ async fn process_commands() -> Result<()> {
         Some(key) => key,
         None => bail!("Missing access token"),
     };
+    let access_token_obj: AccessToken = access_token.parse()?;
 
     let profile = get_config_profile(
         &cli.server_url,
@@ -311,6 +313,7 @@ async fn process_commands() -> Result<()> {
     )?;
 
     let settings = profile
+        .clone()
         .map(|p| -> Result<_> {
             Ok(ClientSettings {
                 identity_url: p.identity_url()?,
@@ -320,11 +323,20 @@ async fn process_commands() -> Result<()> {
         })
         .transpose()?;
 
+    let state_file_path = state::get_state_file_path(
+        profile.and_then(|p| p.state_file_dir).map(Into::into),
+        access_token_obj.access_token_id.to_string(),
+    );
+
     let mut client = bitwarden::Client::new(settings);
 
     // Load session or return if no session exists
     let _ = client
-        .access_token_login(&AccessTokenLoginRequest { access_token })
+        .auth()
+        .login_access_token(&AccessTokenLoginRequest {
+            access_token,
+            state_file: state_file_path,
+        })
         .await?;
 
     let organization_id = match client.get_access_token_organization() {
@@ -618,7 +630,7 @@ fn get_config_profile(
             profile.to_owned()
         } else {
             AccessToken::from_str(access_token)?
-                .service_account_id
+                .access_token_id
                 .to_string()
         };
 

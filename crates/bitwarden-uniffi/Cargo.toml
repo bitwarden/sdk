@@ -12,15 +12,22 @@ crate-type = ["lib", "staticlib", "cdylib"]
 bench = false
 
 [dependencies]
-async-lock = "2.7.0"
-env_logger = "0.10.0"
-uniffi = "=0.24.1"
+async-lock = "3.3.0"
+chrono = { version = ">=0.4.26, <0.5", features = [
+    "serde",
+    "std",
+], default-features = false }
+env_logger = "0.11.1"
 schemars = { version = ">=0.8, <0.9", optional = true }
+uniffi = "=0.26.1"
 
 bitwarden = { path = "../bitwarden", features = ["mobile", "internal"] }
+bitwarden-crypto = { path = "../bitwarden-crypto", version = "=0.1.0", features = [
+    "mobile",
+] }
+bitwarden-generators = { path = "../bitwarden-generators", version = "=0.1.0", features = [
+    "mobile",
+] }
 
 [build-dependencies]
-uniffi = { version = "=0.24.1", features = ["build"] }
-
-[target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
-openssl = { version = "0.10", features = ["vendored"] }
+uniffi = { version = "=0.26.1", features = ["build"] }

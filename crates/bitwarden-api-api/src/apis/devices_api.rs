@@ -13,13 +13,6 @@ use reqwest;
 use super::{configuration, Error};
 use crate::apis::ResponseContent;
 
-/// struct for typed errors of method [`devices_exist_by_types_post`]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum DevicesExistByTypesPostError {
-    UnknownValue(serde_json::Value),
-}
-
 /// struct for typed errors of method [`devices_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -111,6 +104,13 @@ pub enum DevicesIdentifierKeysPutError {
     UnknownValue(serde_json::Value),
 }
 
+/// struct for typed errors of method [`devices_identifier_retrieve_keys_post`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum DevicesIdentifierRetrieveKeysPostError {
+    UnknownValue(serde_json::Value),
+}
+
 /// struct for typed errors of method [`devices_knowndevice_email_identifier_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -132,48 +132,11 @@ pub enum DevicesPostError {
     UnknownValue(serde_json::Value),
 }
 
-pub async fn devices_exist_by_types_post(
-    configuration: &configuration::Configuration,
-    device_type: Option<Vec<crate::models::DeviceType>>,
-) -> Result<bool, Error<DevicesExistByTypesPostError>> {
-    let local_var_configuration = configuration;
-
-    let local_var_client = &local_var_configuration.client;
-
-    let local_var_uri_str = format!(
-        "{}/devices/exist-by-types",
-        local_var_configuration.base_path
-    );
-    let mut local_var_req_builder =
-        local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
-
-    if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
-        local_var_req_builder =
-            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
-    }
-    if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
-        local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
-    };
-    local_var_req_builder = local_var_req_builder.json(&device_type);
-
-    let local_var_req = local_var_req_builder.build()?;
-    let local_var_resp = local_var_client.execute(local_var_req).await?;
-
-    let local_var_status = local_var_resp.status();
-    let local_var_content = local_var_resp.text().await?;
-
-    if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
-        serde_json::from_str(&local_var_content).map_err(Error::from)
-    } else {
-        let local_var_entity: Option<DevicesExistByTypesPostError> =
-            serde_json::from_str(&local_var_content).ok();
-        let local_var_error = ResponseContent {
-            status: local_var_status,
-            content: local_var_content,
-            entity: local_var_entity,
-        };
-        Err(Error::ResponseError(local_var_error))
-    }
+/// struct for typed errors of method [`devices_update_trust_post`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum DevicesUpdateTrustPostError {
+    UnknownValue(serde_json::Value),
 }
 
 pub async fn devices_get(
@@ -755,6 +718,55 @@ pub async fn devices_identifier_keys_put(
     }
 }
 
+pub async fn devices_identifier_retrieve_keys_post(
+    configuration: &configuration::Configuration,
+    identifier: &str,
+    secret_verification_request_model: Option<crate::models::SecretVerificationRequestModel>,
+) -> Result<
+    crate::models::ProtectedDeviceResponseModel,
+    Error<DevicesIdentifierRetrieveKeysPostError>,
+> {
+    let local_var_configuration = configuration;
+
+    let local_var_client = &local_var_configuration.client;
+
+    let local_var_uri_str = format!(
+        "{}/devices/{identifier}/retrieve-keys",
+        local_var_configuration.base_path,
+        identifier = crate::apis::urlencode(identifier.to_string())
+    );
+    let mut local_var_req_builder =
+        local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
+
+    if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
+        local_var_req_builder =
+            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
+    }
+    if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
+        local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
+    };
+    local_var_req_builder = local_var_req_builder.json(&secret_verification_request_model);
+
+    let local_var_req = local_var_req_builder.build()?;
+    let local_var_resp = local_var_client.execute(local_var_req).await?;
+
+    let local_var_status = local_var_resp.status();
+    let local_var_content = local_var_resp.text().await?;
+
+    if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
+        serde_json::from_str(&local_var_content).map_err(Error::from)
+    } else {
+        let local_var_entity: Option<DevicesIdentifierRetrieveKeysPostError> =
+            serde_json::from_str(&local_var_content).ok();
+        let local_var_error = ResponseContent {
+            status: local_var_status,
+            content: local_var_content,
+            entity: local_var_entity,
+        };
+        Err(Error::ResponseError(local_var_error))
+    }
+}
+
 pub async fn devices_knowndevice_email_identifier_get(
     configuration: &configuration::Configuration,
     email: &str,
@@ -803,8 +815,8 @@ pub async fn devices_knowndevice_email_identifier_get(
 
 pub async fn devices_knowndevice_get(
     configuration: &configuration::Configuration,
-    x_request_email: Option<&str>,
-    x_device_identifier: Option<&str>,
+    x_request_email: &str,
+    x_device_identifier: &str,
 ) -> Result<bool, Error<DevicesKnowndeviceGetError>> {
     let local_var_configuration = configuration;
 
@@ -818,14 +830,10 @@ pub async fn devices_knowndevice_get(
         local_var_req_builder =
             local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
     }
-    if let Some(local_var_param_value) = x_request_email {
-        local_var_req_builder =
-            local_var_req_builder.header("x-Request-Email", local_var_param_value.to_string());
-    }
-    if let Some(local_var_param_value) = x_device_identifier {
-        local_var_req_builder =
-            local_var_req_builder.header("x-Device-Identifier", local_var_param_value.to_string());
-    }
+    local_var_req_builder =
+        local_var_req_builder.header("x-Request-Email", x_request_email.to_string());
+    local_var_req_builder =
+        local_var_req_builder.header("x-Device-Identifier", x_device_identifier.to_string());
     if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
         local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
     };
@@ -881,6 +889,47 @@ pub async fn devices_post(
         serde_json::from_str(&local_var_content).map_err(Error::from)
     } else {
         let local_var_entity: Option<DevicesPostError> =
+            serde_json::from_str(&local_var_content).ok();
+        let local_var_error = ResponseContent {
+            status: local_var_status,
+            content: local_var_content,
+            entity: local_var_entity,
+        };
+        Err(Error::ResponseError(local_var_error))
+    }
+}
+
+pub async fn devices_update_trust_post(
+    configuration: &configuration::Configuration,
+    update_devices_trust_request_model: Option<crate::models::UpdateDevicesTrustRequestModel>,
+) -> Result<(), Error<DevicesUpdateTrustPostError>> {
+    let local_var_configuration = configuration;
+
+    let local_var_client = &local_var_configuration.client;
+
+    let local_var_uri_str = format!("{}/devices/update-trust", local_var_configuration.base_path);
+    let mut local_var_req_builder =
+        local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
+
+    if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
+        local_var_req_builder =
+            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
+    }
+    if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
+        local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
+    };
+    local_var_req_builder = local_var_req_builder.json(&update_devices_trust_request_model);
+
+    let local_var_req = local_var_req_builder.build()?;
+    let local_var_resp = local_var_client.execute(local_var_req).await?;
+
+    let local_var_status = local_var_resp.status();
+    let local_var_content = local_var_resp.text().await?;
+
+    if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
+        Ok(())
+    } else {
+        let local_var_entity: Option<DevicesUpdateTrustPostError> =
             serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,

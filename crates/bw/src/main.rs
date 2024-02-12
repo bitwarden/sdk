@@ -1,5 +1,7 @@
 use bitwarden::{
-    auth::RegisterRequest, client::client_settings::ClientSettings, tool::PasswordGeneratorRequest,
+    auth::RegisterRequest,
+    client::client_settings::ClientSettings,
+    generators::{PassphraseGeneratorRequest, PasswordGeneratorRequest},
 };
 use bitwarden_cli::{install_color_eyre, text_prompt_when_none, Color};
 use clap::{command, Args, CommandFactory, Parser, Subcommand};
@@ -84,6 +86,11 @@ enum LoginCommands {
         client_id: Option<String>,
         client_secret: Option<String>,
     },
+    Device {
+        #[arg(short = 'e', long, help = "Email address")]
+        email: Option<String>,
+        device_identifier: Option<String>,
+    },
 }
 
 #[derive(Subcommand, Clone)]
@@ -95,7 +102,7 @@ enum ItemCommands {
 #[derive(Subcommand, Clone)]
 enum GeneratorCommands {
     Password(PasswordGeneratorArgs),
-    Passphrase {},
+    Passphrase(PassphraseGeneratorArgs),
 }
 
 #[derive(Args, Clone)]
@@ -119,6 +126,18 @@ struct PasswordGeneratorArgs {
 
     #[arg(long, default_value = "16", help = "Length of generated password")]
     length: u8,
+}
+
+#[derive(Args, Clone)]
+struct PassphraseGeneratorArgs {
+    #[arg(long, default_value = "3", help = "Number of words in the passphrase")]
+    words: u8,
+    #[arg(long, default_value = " ", help = "Separator between words")]
+    separator: char,
+    #[arg(long, action, help = "Capitalize the first letter of each word")]
+    capitalize: bool,
+    #[arg(long, action, help = "Include a number in one of the words")]
+    include_number: bool,
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -151,12 +170,18 @@ async fn process_commands() -> Result<()> {
             match args.command {
                 // FIXME: Rust CLI will not support password login!
                 LoginCommands::Password { email } => {
-                    auth::password_login(&mut client, email).await?;
+                    auth::login_password(&mut client, email).await?;
                 }
                 LoginCommands::ApiKey {
                     client_id,
                     client_secret,
-                } => auth::api_key_login(client, client_id, client_secret).await?,
+                } => auth::login_api_key(client, client_id, client_secret).await?,
+                LoginCommands::Device {
+                    email,
+                    device_identifier,
+                } => {
+                    auth::login_device(client, email, device_identifier).await?;
+                }
             }
             return Ok(());
         }
@@ -194,7 +219,7 @@ async fn process_commands() -> Result<()> {
             });
             let mut client = bitwarden::Client::new(settings);
 
-            auth::password_login(&mut client, email).await?;
+            auth::login_password(&mut client, email).await?;
 
             client.exporters().export_vault_attachments().await?;
 
@@ -222,14 +247,26 @@ async fn process_commands() -> Result<()> {
                         uppercase: args.uppercase,
                         numbers: args.numbers,
                         special: args.special,
-                        length: Some(args.length),
+                        length: args.length,
                         ..Default::default()
                     })
                     .await?;
 
                 println!("{}", password);
             }
-            GeneratorCommands::Passphrase {} => todo!(),
+            GeneratorCommands::Passphrase(args) => {
+                let passphrase = client
+                    .generator()
+                    .passphrase(PassphraseGeneratorRequest {
+                        num_words: args.words,
+                        word_separator: args.separator.to_string(),
+                        capitalize: args.capitalize,
+                        include_number: args.include_number,
+                    })
+                    .await?;
+
+                println!("{}", passphrase);
+            }
         },
     };
 

@@ -2,9 +2,10 @@ name: Deploy NuGet Package
 
 on:
   workflow_dispatch:
-    version_number:
-      description: "New Version"
-      required: true
+    inputs:
+      version_number:
+        description: "New Version"
+        required: true
 
 jobs:
   generate_schemas:
@@ -22,39 +23,39 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Download C# schemas artifact
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: schemas.cs
           path: languages/csharp/Bitwarden.Sdk
 
       - name: Set up .NET Core
-        uses: actions/setup-dotnet@3447fd6a9f9e57506b15f895c5b76d3b197dc7c2 # v3.2.0
+        uses: actions/setup-dotnet@4d6c8fcf3c8f7a60068d26b594648e99df24cee3 # v4.0.0
         with:
           global-json-file: languages/csharp/global.json
 
       - name: Download x86_64-apple-darwin files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: libbitwarden_c_files-x86_64-apple-darwin
           path: languages/csharp/Bitwarden.Sdk/macos-x64
 
       - name: Download aarch64-apple-darwin files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: libbitwarden_c_files-aarch64-apple-darwin
           path: languages/csharp/Bitwarden.Sdk/macos-arm64
 
       - name: Download x86_64-unknown-linux-gnu files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: libbitwarden_c_files-x86_64-unknown-linux-gnu
-          path: languages/csharp/Bitwarden.Sdk/ubuntu-x64
+          path: languages/csharp/Bitwarden.Sdk/linux-x64
 
       - name: Download x86_64-pc-windows-msvc files
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: libbitwarden_c_files-x86_64-pc-windows-msvc
           path: languages/csharp/Bitwarden.Sdk/windows-x64

@@ -1,0 +1,3 @@
+*.lock
+*.gem
+bitwarden_sdk/lib/schemas.rb

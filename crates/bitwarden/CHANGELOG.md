@@ -2,23 +2,40 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
+adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
 ### Changed
 
-- `auth::request::AccessTokenLoginRequest` moved to `auth::login::AccessTokenLoginRequest` (#178)
+- Switched TLS backend to `rustls`, removing the dependency on `OpenSSL`.
 
+## [0.4.0] - 2023-12-21
+
+### Added
+
+- Support for basic state to avoid reauthenticating when creating a new `Client`. This is a breaking
+  change because of adding `state_file` to the `AccessTokenLoginRequest` struct. (#388)
+
+### Deprecated
+
+- `client.access_token_login()` is now deprecated and will be removed in a future release. Please
+  use `client.auth().login_access_token()` instead. (#319)
+
+## [0.3.1] - 2023-10-13
+
+### Changed
+
+- `auth::request::AccessTokenLoginRequest` moved to `auth::login::AccessTokenLoginRequest` (#178)
 - Support for fetching multiple secrets by ids (#150)
 
 ## [0.3.0] - 2023-07-26
 
 ### Deprecated
 
-- The secrets manager SDK is now hidden behind a `secrets` feature flag. Make sure to enable
-  this flag in your `Cargo.toml` file. At the moment the flag is enabled by default for compatibility
+- The secrets manager SDK is now hidden behind a `secrets` feature flag. Make sure to enable this
+  flag in your `Cargo.toml` file. At the moment the flag is enabled by default for compatibility
   reasons, but this is considered deprecated and the flag will be made opt-in eventually.
 
 ### Added

@@ -14,21 +14,21 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum SendType {
-    Variant0 = 0,
-    Variant1 = 1,
+    Text = 0,
+    File = 1,
 }
 
 impl ToString for SendType {
     fn to_string(&self) -> String {
         match self {
-            Self::Variant0 => String::from("0"),
-            Self::Variant1 => String::from("1"),
+            Self::Text => String::from("0"),
+            Self::File => String::from("1"),
         }
     }
 }
 
 impl Default for SendType {
     fn default() -> SendType {
-        Self::Variant0
+        Self::Text
     }
 }

@@ -1,6 +1,8 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use crate::error::{Error, Result};
+
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 pub struct GlobalDomains {
     pub r#type: i32,
@@ -8,12 +10,14 @@ pub struct GlobalDomains {
     pub excluded: bool,
 }
 
-impl From<bitwarden_api_api::models::GlobalDomains> for GlobalDomains {
-    fn from(global_domains: bitwarden_api_api::models::GlobalDomains) -> Self {
-        GlobalDomains {
-            r#type: global_domains.r#type.unwrap(),
-            domains: global_domains.domains.unwrap(),
-            excluded: global_domains.excluded.unwrap(),
-        }
+impl TryFrom<bitwarden_api_api::models::GlobalDomains> for GlobalDomains {
+    type Error = Error;
+
+    fn try_from(global_domains: bitwarden_api_api::models::GlobalDomains) -> Result<Self> {
+        Ok(Self {
+            r#type: global_domains.r#type.ok_or(Error::MissingFields)?,
+            domains: global_domains.domains.ok_or(Error::MissingFields)?,
+            excluded: global_domains.excluded.ok_or(Error::MissingFields)?,
+        })
     }
 }

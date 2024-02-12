@@ -8,16 +8,18 @@ on:
       release_type:
         description: "Release Options"
         required: true
-        default: "Initial Release"
+        default: "Release"
         type: choice
         options:
-          - Initial Release
-          - Redeploy
+          - Release
           - Dry Run
 
 defaults:
   run:
     shell: bash
+
+env:
+  _AZ_REGISTRY: bitwardenprod.azurecr.io
 
 jobs:
   setup:
@@ -27,7 +29,7 @@ jobs:
       release-version: ${{ steps.version.outputs.version }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Branch check
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
@@ -58,7 +60,7 @@ jobs:
 
       - name: Download all Release artifacts
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
-        uses: bitwarden/gh-actions/download-artifacts@8fccdaea2810d5dfb13753b6dd93bbd3a63ff82e
+        uses: bitwarden/gh-actions/download-artifacts@main
         with:
           workflow: build-cli.yml
           path: packages
@@ -67,15 +69,15 @@ jobs:
 
       - name: Dry Run - Download all artifacts
         if: ${{ github.event.inputs.release_type == 'Dry Run' }}
-        uses: bitwarden/gh-actions/download-artifacts@8fccdaea2810d5dfb13753b6dd93bbd3a63ff82e
+        uses: bitwarden/gh-actions/download-artifacts@main
         with:
           workflow: build-cli.yml
           path: packages
           workflow_conclusion: success
-          branch: master
+          branch: main
 
       - name: Get checksum files
-        uses: bitwarden/gh-actions/get-checksum@8fccdaea2810d5dfb13753b6dd93bbd3a63ff82e
+        uses: bitwarden/gh-actions/get-checksum@main
         with:
           packages_dir: "packages"
           file_path: "packages/bws-sha256-checksums-${{ steps.version.outputs.version }}.txt"
@@ -120,32 +122,32 @@ jobs:
 
   publish:
     name: Publish bws to crates.io
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs:
       - setup
     steps:
       - name: Checkout
-        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Login to Azure
-        uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
+        uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
         with:
           creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
 
       - name: Retrieve secrets
         id: retrieve-secrets
-        uses: bitwarden/gh-actions/get-keyvault-secrets@8fccdaea2810d5dfb13753b6dd93bbd3a63ff82e
+        uses: bitwarden/gh-actions/get-keyvault-secrets@main
         with:
           keyvault: "bitwarden-ci"
           secrets: "cratesio-api-token"
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # stable
+        uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248 # stable
         with:
           toolchain: stable
 
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@a95ba195448af2da9b00fb742d14ffaaf3c21f43 # v2.7.0
+        uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
 
       - name: Install cargo-release
         run: cargo install cargo-release
@@ -156,3 +158,78 @@ jobs:
           PUBLISH_GRACE_SLEEP: 10
           CARGO_REGISTRY_TOKEN: ${{ steps.retrieve-secrets.outputs.cratesio-api-token }}
         run: cargo-release release publish -p bws --execute --no-confirm
+
+  publish-docker:
+    name: Publish docker versioned and latest image
+    runs-on: ubuntu-22.04
+    needs: setup
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Generate tag list
+        id: tag-list
+        env:
+          VERSION: ${{ needs.setup.outputs.release-version }}
+          DRY_RUN: ${{ inputs.release_type == 'Dry Run' }}
+        run: |
+          if [[ "${DRY_RUN}" == "true" ]]; then
+            REF=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
+            IMAGE_TAG=$(echo "${REF}" | sed "s#/#-#g")  # slash safe branch name
+            echo "tags=$_AZ_REGISTRY/bws:${IMAGE_TAG},bitwarden/bws:${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          else
+            echo "tags=$_AZ_REGISTRY/bws:${VERSION},bitwarden/bws:${VERSION},$_AZ_REGISTRY/bws:latest,bitwarden/bws:latest" >> $GITHUB_OUTPUT
+          fi
+
+      ########## Set up Docker ##########
+      - name: Set up QEMU emulators
+        uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
+
+      ########## Login to Docker registries ##########
+      - name: Login to Azure - Prod Subscription
+        uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
+        with:
+          creds: ${{ secrets.AZURE_PROD_KV_CREDENTIALS }}
+
+      - name: Login to Azure ACR
+        run: az acr login -n ${_AZ_REGISTRY%.azurecr.io}
+
+      - name: Login to Azure - CI Subscription
+        uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
+        with:
+          creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
+
+      - name: Retrieve github PAT secrets
+        id: retrieve-secret-pat
+        uses: bitwarden/gh-actions/get-keyvault-secrets@main
+        with:
+          keyvault: "bitwarden-ci"
+          secrets: "github-pat-bitwarden-devops-bot-repo-scope"
+
+      - name: Setup Docker Trust
+        uses: bitwarden/gh-actions/setup-docker-trust@main
+        with:
+          azure-creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
+          azure-keyvault-name: "bitwarden-ci"
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
+        with:
+          context: .
+          file: crates/bws/Dockerfile
+          platforms: |
+            linux/amd64,
+            linux/arm64/v8
+          push: ${{ inputs.release_type != 'Dry Run' }}
+          tags: ${{ steps.tag-list.outputs.tags }}
+          secrets: |
+            "GH_PAT=${{ steps.retrieve-secret-pat.outputs.github-pat-bitwarden-devops-bot-repo-scope }}"
+
+      - name: Log out of Docker and disable Docker Notary
+        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        run: |
+          docker logout
+          echo "DOCKER_CONTENT_TRUST=0" >> $GITHUB_ENV

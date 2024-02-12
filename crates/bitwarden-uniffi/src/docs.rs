@@ -1,10 +1,15 @@
 use bitwarden::{
     auth::password::MasterPasswordPolicyOptions,
-    client::auth_settings::Kdf,
-    mobile::crypto::InitCryptoRequest,
-    tool::{ExportFormat, PassphraseGeneratorRequest, PasswordGeneratorRequest},
-    vault::{Cipher, CipherView, Collection, Folder, FolderView, Send, SendListView, SendView},
+    generators::{PassphraseGeneratorRequest, PasswordGeneratorRequest},
+    mobile::crypto::{InitOrgCryptoRequest, InitUserCryptoRequest},
+    platform::FingerprintRequest,
+    tool::ExportFormat,
+    vault::{
+        Cipher, CipherView, Collection, Folder, FolderView, Send, SendListView, SendView,
+        TotpResponse,
+    },
 };
+use bitwarden_crypto::{HashPurpose, Kdf};
 use schemars::JsonSchema;
 
 #[derive(JsonSchema)]
@@ -21,7 +26,9 @@ pub enum DocRef {
     SendListView(SendListView),
 
     // Crypto
-    InitCryptoRequest(InitCryptoRequest),
+    InitUserCryptoRequest(InitUserCryptoRequest),
+    InitOrgCryptoRequest(InitOrgCryptoRequest),
+    HashPurpose(HashPurpose),
 
     // Generators
     PasswordGeneratorRequest(PasswordGeneratorRequest),
@@ -30,9 +37,15 @@ pub enum DocRef {
     // Exporters
     ExportFormat(ExportFormat),
 
+    // Platform
+    FingerprintRequest(FingerprintRequest),
+
     // Auth
     MasterPasswordPolicyOptions(MasterPasswordPolicyOptions),
 
     // Kdf
     Kdf(Kdf),
+
+    /// TOTP
+    TotpResponse(TotpResponse),
 }

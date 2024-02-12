@@ -53,7 +53,7 @@ mod test {
                 private_key: Default::default(),
                 key: Default::default(),
                 two_factor_token: Default::default(),
-                kdf: KdfType::Variant0,
+                kdf: KdfType::default(),
                 kdf_iterations: crate::util::default_pbkdf2_iterations(),
                 reset_master_password: Default::default(),
                 force_password_reset: Default::default(),

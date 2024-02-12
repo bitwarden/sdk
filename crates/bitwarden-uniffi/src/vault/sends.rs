@@ -7,7 +7,7 @@ use crate::{Client, Result};
 #[derive(uniffi::Object)]
 pub struct ClientSends(pub Arc<Client>);
 
-#[uniffi::export]
+#[uniffi::export(async_runtime = "tokio")]
 impl ClientSends {
     /// Encrypt send
     pub async fn encrypt(&self, send: SendView) -> Result<Send> {

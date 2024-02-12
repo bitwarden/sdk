@@ -1,0 +1,75 @@
+name: Publish PHP SDK
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_rust:
+    uses: ./.github/workflows/build-rust-cross-platform.yml
+
+  setup_php:
+    name: Setup PHP
+    runs-on: ubuntu-22.04
+    needs:
+      - build_rust
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Setup PHP with PECL extension
+        uses: shivammathur/setup-php@6d7209f44a25a59e904b1ee9f3b0c33ab2cd888d # 2.29.0
+        with:
+          php-version: "8.0"
+          tools: composer
+          extensions: ext-ffi
+
+      - name: Composer check
+        run: |
+          composer install
+          composer validate
+        working-directory: languages/php/
+
+      - name: Download x86_64-apple-darwin files
+        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
+        with:
+          name: libbitwarden_c_files-x86_64-apple-darwin
+          path: temp/macos-x64
+
+      - name: Download aarch64-apple-darwin files
+        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
+        with:
+          name: libbitwarden_c_files-aarch64-apple-darwin
+          path: temp/macos-arm64
+
+      - name: Download x86_64-unknown-linux-gnu files
+        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
+        with:
+          name: libbitwarden_c_files-x86_64-unknown-linux-gnu
+          path: temp/linux-x64
+
+      - name: Download x86_64-pc-windows-msvc files
+        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
+        with:
+          name: libbitwarden_c_files-x86_64-pc-windows-msvc
+          path: temp/windows-x64
+
+      - name: Copy lib files
+        run: |
+          mkdir -p languages/php/src/lib/macos-arm64
+          mkdir -p languages/php/src/lib/linux-x64
+          mkdir -p languages/php/src/lib/macos-x64
+          mkdir -p languages/php/src/lib/windows-x64
+
+          platforms=("macos-arm64" "linux-x64" "macos-x64" "windows-x64")
+          files=("libbitwarden_c.dylib" "libbitwarden_c.so" "libbitwarden_c.dylib" "bitwarden_c.dll")
+
+          for ((i=0; i<${#platforms[@]}; i++)); do
+            cp "temp/${platforms[$i]}/${files[$i]}" "languages/php/src/lib/${platforms[$i]}/${files[$i]}"
+          done
+
+      - name: Publish version
+        run: curl -XPOST -H'content-type:application/json' 'https://packagist.org/api/update-package?username=malirobot&apiToken=${{secrets.PACKAGIST_KEY}}' -d'{"repository":{"url":"https://packagist.org/packages/bitwarden/sdk"}}'
+        working-directory: languages/php/

@@ -1,12 +1,11 @@
+use bitwarden_api_api::models::CipherCardModel;
+use bitwarden_crypto::{
+    CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
+};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
-use crate::{
-    client::encryption_settings::EncryptionSettings,
-    crypto::{Decryptable, EncString, Encryptable},
-    error::Result,
-};
+use crate::error::{Error, Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -32,28 +31,43 @@ pub struct CardView {
     pub number: Option<String>,
 }
 
-impl Encryptable<Card> for CardView {
-    fn encrypt(self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<Card> {
+impl KeyEncryptable<SymmetricCryptoKey, Card> for CardView {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Card, CryptoError> {
         Ok(Card {
-            cardholder_name: self.cardholder_name.encrypt(enc, org_id)?,
-            exp_month: self.exp_month.encrypt(enc, org_id)?,
-            exp_year: self.exp_year.encrypt(enc, org_id)?,
-            code: self.code.encrypt(enc, org_id)?,
-            brand: self.brand.encrypt(enc, org_id)?,
-            number: self.number.encrypt(enc, org_id)?,
+            cardholder_name: self.cardholder_name.encrypt_with_key(key)?,
+            exp_month: self.exp_month.encrypt_with_key(key)?,
+            exp_year: self.exp_year.encrypt_with_key(key)?,
+            code: self.code.encrypt_with_key(key)?,
+            brand: self.brand.encrypt_with_key(key)?,
+            number: self.number.encrypt_with_key(key)?,
         })
     }
 }
 
-impl Decryptable<CardView> for Card {
-    fn decrypt(&self, enc: &EncryptionSettings, org_id: &Option<Uuid>) -> Result<CardView> {
+impl KeyDecryptable<SymmetricCryptoKey, CardView> for Card {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CardView, CryptoError> {
         Ok(CardView {
-            cardholder_name: self.cardholder_name.decrypt(enc, org_id)?,
-            exp_month: self.exp_month.decrypt(enc, org_id)?,
-            exp_year: self.exp_year.decrypt(enc, org_id)?,
-            code: self.code.decrypt(enc, org_id)?,
-            brand: self.brand.decrypt(enc, org_id)?,
-            number: self.number.decrypt(enc, org_id)?,
+            cardholder_name: self.cardholder_name.decrypt_with_key(key).ok().flatten(),
+            exp_month: self.exp_month.decrypt_with_key(key).ok().flatten(),
+            exp_year: self.exp_year.decrypt_with_key(key).ok().flatten(),
+            code: self.code.decrypt_with_key(key).ok().flatten(),
+            brand: self.brand.decrypt_with_key(key).ok().flatten(),
+            number: self.number.decrypt_with_key(key).ok().flatten(),
+        })
+    }
+}
+
+impl TryFrom<CipherCardModel> for Card {
+    type Error = Error;
+
+    fn try_from(card: CipherCardModel) -> Result<Self> {
+        Ok(Self {
+            cardholder_name: EncString::try_from_optional(card.cardholder_name)?,
+            exp_month: EncString::try_from_optional(card.exp_month)?,
+            exp_year: EncString::try_from_optional(card.exp_year)?,
+            code: EncString::try_from_optional(card.code)?,
+            brand: EncString::try_from_optional(card.brand)?,
+            number: EncString::try_from_optional(card.number)?,
         })
     }
 }

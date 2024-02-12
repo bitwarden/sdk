@@ -1,0 +1,33 @@
+[package]
+name = "bitwarden-generators"
+version = "0.1.0"
+authors = ["Bitwarden Inc"]
+license-file = "LICENSE"
+repository = "https://github.com/bitwarden/sdk"
+homepage = "https://bitwarden.com"
+description = """
+Internal crate for the bitwarden crate. Do not use.
+"""
+keywords = ["bitwarden"]
+edition = "2021"
+rust-version = "1.57"
+
+[features]
+mobile = ["uniffi"] # Mobile-specific features
+
+[dependencies]
+bitwarden-crypto = { path = "../bitwarden-crypto", version = "=0.1.0" }
+rand = ">=0.8.5, <0.9"
+reqwest = { version = ">=0.11, <0.12", features = [
+    "json",
+], default-features = false }
+schemars = { version = ">=0.8.9, <0.9", features = ["uuid1", "chrono"] }
+serde = { version = ">=1.0, <2.0", features = ["derive"] }
+serde_json = ">=1.0.96, <2.0"
+thiserror = ">=1.0.40, <2.0"
+uniffi = { version = "=0.26.1", optional = true }
+
+[dev-dependencies]
+rand_chacha = "0.3.1"
+tokio = { version = "1.36.0", features = ["rt", "macros"] }
+wiremock = "0.6.0"

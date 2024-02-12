@@ -1,6 +1,7 @@
+use bitwarden_crypto::{Decryptable, Encryptable};
+
 use super::client_vault::ClientVault;
 use crate::{
-    crypto::{Decryptable, Encryptable},
     error::Result,
     vault::{Folder, FolderView},
     Client,

@@ -1,9 +1,11 @@
 //! Errors that can occur when using this SDK
 
-use std::fmt::Debug;
+use std::{borrow::Cow, fmt::Debug};
 
 use bitwarden_api_api::apis::Error as ApiError;
 use bitwarden_api_identity::apis::Error as IdentityError;
+use bitwarden_exporters::ExportError;
+use bitwarden_generators::{PassphraseError, PasswordError, UsernameError};
 use reqwest::StatusCode;
 use thiserror::Error;
 
@@ -24,10 +26,7 @@ pub enum Error {
     MissingFields,
 
     #[error("Cryptography error, {0}")]
-    Crypto(#[from] CryptoError),
-
-    #[error("Error parsing EncString: {0}")]
-    InvalidEncString(#[from] EncStringParseError),
+    Crypto(#[from] bitwarden_crypto::CryptoError),
 
     #[error("Error parsing Identity response: {0}")]
     IdentityFail(crate::auth::api::response::IdentityTokenFailResponse),
@@ -46,8 +45,37 @@ pub enum Error {
     #[error("Received error message from server: [{}] {}", .status, .message)]
     ResponseContent { status: StatusCode, message: String },
 
+    #[error("The state file version is invalid")]
+    InvalidStateFileVersion,
+
+    #[error("The state file could not be read")]
+    InvalidStateFile,
+
+    // Generators
+    #[error(transparent)]
+    UsernameError(#[from] UsernameError),
+    #[error(transparent)]
+    PassphraseError(#[from] PassphraseError),
+    #[error(transparent)]
+    PasswordError(#[from] PasswordError),
+
+    #[error(transparent)]
+    ExportError(#[from] ExportError),
+
     #[error("Internal error: {0}")]
-    Internal(&'static str),
+    Internal(Cow<'static, str>),
+}
+
+impl From<String> for Error {
+    fn from(s: String) -> Self {
+        Self::Internal(s.into())
+    }
+}
+
+impl From<&'static str> for Error {
+    fn from(s: &'static str) -> Self {
+        Self::Internal(s.into())
+    }
 }
 
 #[derive(Debug, Error)]
@@ -66,34 +94,6 @@ pub enum AccessTokenInvalidError {
 
     #[error("Invalid base64 length: expected {expected}, got {got}")]
     InvalidBase64Length { expected: usize, got: usize },
-}
-
-#[derive(Debug, Error)]
-pub enum CryptoError {
-    #[error("The provided key is not the expected type")]
-    InvalidKey,
-    #[error("The cipher's MAC doesn't match the expected value")]
-    InvalidMac,
-    #[error("Error while decrypting EncString")]
-    KeyDecrypt,
-    #[error("The cipher key has an invalid length")]
-    InvalidKeyLen,
-    #[error("There is no encryption key for the provided organization")]
-    NoKeyForOrg,
-    #[error("The value is not a valid UTF8 String")]
-    InvalidUtf8String,
-}
-
-#[derive(Debug, Error)]
-pub enum EncStringParseError {
-    #[error("No type detected, missing '.' separator")]
-    NoType,
-    #[error("Invalid type, got {enc_type} with {parts} parts")]
-    InvalidType { enc_type: String, parts: usize },
-    #[error("Error decoding base64: {0}")]
-    InvalidBase64(#[from] base64::DecodeError),
-    #[error("Invalid length: expected {expected}, got {got}")]
-    InvalidLength { expected: usize, got: usize },
 }
 
 // Ensure that the error messages implement Send and Sync

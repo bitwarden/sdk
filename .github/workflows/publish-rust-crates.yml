@@ -29,6 +29,16 @@ on:
         required: true
         default: true
         type: boolean
+      publish_bitwarden-crypto:
+        description: "Publish bitwarden-crypto crate"
+        required: true
+        default: true
+        type: boolean
+      publish_bitwarden-generators:
+        description: "Publish bitwarden-generators crate"
+        required: true
+        default: true
+        type: boolean
 
 defaults:
   run:
@@ -43,7 +53,7 @@ jobs:
       packages_command: ${{ steps.packages-list.outputs.packages_command }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Branch check
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
@@ -61,6 +71,8 @@ jobs:
           PUBLISH_BITWARDEN: ${{ github.event.inputs.publish_bitwarden }}
           PUBLISH_BITWARDEN_API_API: ${{ github.event.inputs.publish_bitwarden-api-api }}
           PUBLISH_BITWARDEN_API_IDENTITY: ${{ github.event.inputs.publish_bitwarden-api-identity }}
+          PUBLISH_BITWARDEN_CRYPTO: ${{ github.event.inputs.publish_bitwarden-crypto }}
+          PUBLISH_BITWARDEN_GENERATORS: ${{ github.event.inputs.publish_bitwarden-generators }}
         run: |
           if [[ "$PUBLISH_BITWARDEN" == "false" ]] && [[ "$PUBLISH_BITWARDEN_API_API" == "false" ]] && [[ "$PUBLISH_BITWARDEN_API_IDENTITY" == "false" ]]; then
             echo "==================================="
@@ -87,6 +99,16 @@ jobs:
             PACKAGES_LIST="$PACKAGES_LIST bitwarden-api-identity"
           fi
 
+          if [[ "$PUBLISH_BITWARDEN_CRYPTO" == "true" ]]; then
+            PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-crypto"
+            PACKAGES_LIST="$PACKAGES_LIST bitwarden-crypto"
+          fi
+
+          if [[ "$PUBLISH_BITWARDEN_GENERATORS" == "true" ]]; then
+            PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-generators"
+            PACKAGES_LIST="$PACKAGES_LIST bitwarden-generators"
+          fi
+
           echo "Packages command: " $PACKAGES_COMMAND
           echo "Packages list: " $PACKAGES_LIST
 
@@ -100,27 +122,27 @@ jobs:
       - setup
     steps:
       - name: Checkout
-        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Login to Azure
-        uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
+        uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
         with:
           creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
 
       - name: Retrieve secrets
         id: retrieve-secrets
-        uses: bitwarden/gh-actions/get-keyvault-secrets@8fccdaea2810d5dfb13753b6dd93bbd3a63ff82e
+        uses: bitwarden/gh-actions/get-keyvault-secrets@main
         with:
           keyvault: "bitwarden-ci"
           secrets: "cratesio-api-token"
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # stable
+        uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248 # stable
         with:
           toolchain: stable
 
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@a95ba195448af2da9b00fb742d14ffaaf3c21f43 # v2.7.0
+        uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
 
       - name: Install cargo-release
         run: cargo install cargo-release

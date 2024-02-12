@@ -1,0 +1,99 @@
+---
+name: Publish Python SDK
+run-name: Publish Python SDK ${{ inputs.release_type }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Release Options"
+        required: true
+        default: "Release"
+        type: choice
+        options:
+          - Release
+          - Dry Run
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Branch check
+        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/rc" ]] && [[ "$GITHUB_REF" != "refs/heads/hotfix-rc" ]]; then
+            echo "==================================="
+            echo "[!] Can only release from the 'rc' or 'hotfix-rc' branches"
+            echo "==================================="
+            exit 1
+          fi
+
+  publish:
+    name: Publish
+    runs-on: ubuntu-22.04
+    needs: setup
+    steps:
+      - name: Install Python
+        uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c # v5.0.0
+        with:
+          python-version: "3.9"
+
+      - name: Install twine
+        run: pip install twine
+
+      - name: Download artifacts
+        uses: dawidd6/action-download-artifact@e7466d1a7587ed14867642c2ca74b5bcc1e19a2d # v3.0.0
+        with:
+          workflow: build-python-wheels.yml
+          path: ${{ github.workspace }}/target/wheels/dist
+          workflow_conclusion: success
+          branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          name: bitwarden_sdk(.*)
+          name_is_regexp: true
+
+      - name: Move files
+        working-directory: ${{ github.workspace }}/target/wheels/dist
+        run: |
+          find . -maxdepth 2 -type f -print0 | xargs -0 mv -t .
+          rm -rf */
+
+      - name: Login to Azure
+        uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
+        with:
+          creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
+
+      - name: Retrieve pypi api token
+        id: retrieve-secret
+        uses: bitwarden/gh-actions/get-keyvault-secrets@main
+        with:
+          keyvault: "bitwarden-ci"
+          secrets: "pypi-api-token,
+            pypi-test-api-token"
+
+      - name: Check
+        working-directory: ${{ github.workspace }}/target/wheels
+        run: twine check dist/*
+
+      - name: Publish
+        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        working-directory: ${{ github.workspace }}/target/wheels
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ steps.retrieve-secret.outputs.pypi-api-token }}
+        run: twine upload --repository pypi dist/*
+
+      - name: Dry Run - Publish
+        if: ${{ github.event.inputs.release_type == 'Dry Run' }}
+        working-directory: ${{ github.workspace }}/target/wheels
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ steps.retrieve-secret.outputs.pypi-test-api-token }}
+        run: twine upload --repository testpypi dist/*

@@ -1,11 +1,11 @@
 use std::{fs::File, io::Write};
 
 use anyhow::Result;
-use itertools::Itertools;
-use schemars::{schema::RootSchema, schema_for};
+use schemars::{schema::RootSchema, schema_for, JsonSchema};
 
-/// Creates a json schema file for any type passed in using Schemars. The filename and path of the generated
-/// schema file is derived from the namespace passed into the macro or supplied as the first argument.
+/// Creates a json schema file for any type passed in using Schemars. The filename and path of the
+/// generated schema file is derived from the namespace passed into the macro or supplied as the
+/// first argument.
 ///
 /// The schema filename is given by the last namespace element and trims off any `>` characters.
 /// This means the filename will represent the last _generic_ type of the type given.
@@ -31,7 +31,8 @@ use schemars::{schema::RootSchema, schema_for};
 /// ```
 /// write_schema_for!(response::two_factor_login_response::two_factor_providers::TwoFactorProviders);
 /// ```
-/// will generate `TwoFactorProviders.json` at `{{pwd}}/response/two_factor_login_response/TwoFactorProviders.json`
+/// will generate `TwoFactorProviders.json` at
+/// `{{pwd}}/response/two_factor_login_response/TwoFactorProviders.json`
 ///
 /// ## Path specified
 ///
@@ -45,6 +46,8 @@ use schemars::{schema::RootSchema, schema_for};
 /// will generate `Response.json` at `{{pwd}}/path/to/folder/Response.json`
 macro_rules! write_schema_for {
     ($type:ty) => {
+        use itertools::Itertools;
+
         let schema = schema_for!($type);
 
         let type_name = stringify!($type);
@@ -65,12 +68,6 @@ macro_rules! write_schema_for {
     };
 }
 
-macro_rules! write_schema_for_response {
-    ( $($type:ty),+ $(,)? ) => {
-        $( write_schema_for!("response", bitwarden_json::response::Response<$type>); )+
-    };
-}
-
 fn write_schema(schema: RootSchema, dir_path: String, type_name: String) -> Result<()> {
     let file_name = type_name
         .split("::")
@@ -88,33 +85,39 @@ fn write_schema(schema: RootSchema, dir_path: String, type_name: String) -> Resu
     Ok(())
 }
 
-fn main() -> Result<()> {
+use bitwarden_json::response::Response;
+
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+struct SchemaTypes {
     // Input types for new Client
-    write_schema_for!(bitwarden::client::client_settings::ClientSettings);
+    client_settings: bitwarden::client::client_settings::ClientSettings,
+
     // Input types for Client::run_command
-    write_schema_for!(bitwarden_json::command::Command);
+    input_command: bitwarden_json::command::Command,
 
     // Output types for Client::run_command
-    // Only add structs which are direct results of SDK commands.
-    write_schema_for_response! {
-        bitwarden::auth::login::ApiKeyLoginResponse,
-        bitwarden::auth::login::PasswordLoginResponse,
-        bitwarden::secrets_manager::secrets::SecretIdentifiersResponse,
-        bitwarden::secrets_manager::secrets::SecretResponse,
-        bitwarden::secrets_manager::secrets::SecretsResponse,
-        bitwarden::secrets_manager::secrets::SecretsDeleteResponse,
-        bitwarden::secrets_manager::projects::ProjectResponse,
-        bitwarden::secrets_manager::projects::ProjectsResponse,
-        bitwarden::secrets_manager::projects::ProjectsDeleteResponse,
-    };
+    api_key_login: Response<bitwarden::auth::login::ApiKeyLoginResponse>,
+    password_login: Response<bitwarden::auth::login::PasswordLoginResponse>,
+    access_token_login: Response<bitwarden::auth::login::AccessTokenLoginResponse>,
+    secret_identifiers: Response<bitwarden::secrets_manager::secrets::SecretIdentifiersResponse>,
+    secret: Response<bitwarden::secrets_manager::secrets::SecretResponse>,
+    secrets: Response<bitwarden::secrets_manager::secrets::SecretsResponse>,
+    secrets_delete: Response<bitwarden::secrets_manager::secrets::SecretsDeleteResponse>,
+    project: Response<bitwarden::secrets_manager::projects::ProjectResponse>,
+    projects: Response<bitwarden::secrets_manager::projects::ProjectsResponse>,
+    projects_delete: Response<bitwarden::secrets_manager::projects::ProjectsDeleteResponse>,
 
-    // Same as above, but for the internal feature
     #[cfg(feature = "internal")]
-    write_schema_for_response! {
-        bitwarden::platform::FingerprintResponse,
-        bitwarden::platform::SyncResponse,
-        bitwarden::platform::UserApiKeyResponse,
-    };
+    fingerprint: Response<bitwarden::platform::FingerprintResponse>,
+    #[cfg(feature = "internal")]
+    sync: Response<bitwarden::platform::SyncResponse>,
+    #[cfg(feature = "internal")]
+    user_api_key: Response<bitwarden::platform::UserApiKeyResponse>,
+}
+
+fn main() -> Result<()> {
+    write_schema_for!("schema_types", SchemaTypes);
 
     #[cfg(feature = "internal")]
     write_schema_for!(bitwarden_uniffi::docs::DocRef);

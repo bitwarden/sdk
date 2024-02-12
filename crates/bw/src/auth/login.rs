@@ -3,6 +3,7 @@ use bitwarden::{
         ApiKeyLoginRequest, PasswordLoginRequest, TwoFactorEmailRequest, TwoFactorProvider,
         TwoFactorRequest,
     },
+    platform::SyncRequest,
     Client,
 };
 use bitwarden_cli::text_prompt_when_none;
@@ -10,16 +11,20 @@ use color_eyre::eyre::{bail, Result};
 use inquire::{Password, Text};
 use log::{debug, error, info};
 
-pub(crate) async fn password_login(client: &mut Client, email: Option<String>) -> Result<()> {
+pub(crate) async fn login_password(client: &mut Client, email: Option<String>) -> Result<()> {
     let email = text_prompt_when_none("Email", email)?;
 
     let password = Password::new("Password").without_confirmation().prompt()?;
 
+    let kdf = client.auth().prelogin(email.clone()).await?;
+
     let result = client
-        .password_login(&PasswordLoginRequest {
+        .auth()
+        .login_password(&PasswordLoginRequest {
             email: email.clone(),
             password: password.clone(),
             two_factor: None,
+            kdf: kdf.clone(),
         })
         .await?;
 
@@ -42,6 +47,7 @@ pub(crate) async fn password_login(client: &mut Client, email: Option<String>) -
         } else if let Some(tf) = two_factor.email {
             // Send token
             client
+                .auth()
                 .send_two_factor_email(&TwoFactorEmailRequest {
                     email: email.clone(),
                     password: password.clone(),
@@ -61,10 +67,12 @@ pub(crate) async fn password_login(client: &mut Client, email: Option<String>) -
         };
 
         let result = client
-            .password_login(&PasswordLoginRequest {
+            .auth()
+            .login_password(&PasswordLoginRequest {
                 email,
                 password,
                 two_factor,
+                kdf,
             })
             .await?;
 
@@ -73,10 +81,17 @@ pub(crate) async fn password_login(client: &mut Client, email: Option<String>) -
         debug!("{:?}", result);
     }
 
+    let res = client
+        .sync(&SyncRequest {
+            exclude_subdomains: Some(true),
+        })
+        .await?;
+    info!("{:#?}", res);
+
     Ok(())
 }
 
-pub(crate) async fn api_key_login(
+pub(crate) async fn login_api_key(
     mut client: Client,
     client_id: Option<String>,
     client_secret: Option<String>,
@@ -87,7 +102,8 @@ pub(crate) async fn api_key_login(
     let password = Password::new("Password").without_confirmation().prompt()?;
 
     let result = client
-        .api_key_login(&ApiKeyLoginRequest {
+        .auth()
+        .login_api_key(&ApiKeyLoginRequest {
             client_id,
             client_secret,
             password,
@@ -95,6 +111,29 @@ pub(crate) async fn api_key_login(
         .await?;
 
     debug!("{:?}", result);
+
+    Ok(())
+}
+
+pub(crate) async fn login_device(
+    mut client: Client,
+    email: Option<String>,
+    device_identifier: Option<String>,
+) -> Result<()> {
+    let email = text_prompt_when_none("Email", email)?;
+    let device_identifier = text_prompt_when_none("Device Identifier", device_identifier)?;
+
+    let auth = client
+        .auth()
+        .login_device(email, device_identifier)
+        .await
+        .unwrap();
+
+    println!("Fingerprint: {}", auth.fingerprint);
+
+    Text::new("Press enter once approved").prompt()?;
+
+    client.auth().login_device_complete(auth).await.unwrap();
 
     Ok(())
 }

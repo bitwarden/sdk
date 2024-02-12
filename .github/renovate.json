@@ -1,34 +1,9 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:base",
-    "schedule:weekends",
-    ":combinePatchMinorReleases",
-    ":dependencyDashboard",
-    ":maintainLockFilesWeekly",
-    ":prConcurrentLimit10",
-    ":rebaseStalePrs",
-    ":separateMajorReleases"
-  ],
+  "extends": ["github>bitwarden/renovate-config:non-pinned"],
   "separateMajorMinor": true,
   "enabledManagers": ["cargo", "github-actions", "npm", "nuget"],
   "packageRules": [
-    {
-      "groupName": "npm minor",
-      "matchManagers": ["npm"],
-      "matchUpdateTypes": ["minor", "patch"]
-    },
-    {
-      "matchManagers": ["cargo"],
-      "matchUpdateTypes": ["patch"],
-      "enabled": false
-    },
-    {
-      "matchManagers": ["cargo"],
-      "matchUpdateTypes": ["minor"],
-      "matchCurrentVersion": ">=1.0.0",
-      "enabled": false
-    },
     {
       "matchManagers": ["cargo"],
       "matchPackagePatterns": ["pyo3*"],
@@ -36,14 +11,10 @@
       "groupName": "pyo3 non-major"
     },
     {
-      "groupName": "nuget minor",
-      "matchManagers": ["nuget"],
-      "matchUpdateTypes": ["minor", "patch"]
-    },
-    {
       "groupName": "gh minor",
       "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["minor", "patch"]
     }
-  ]
+  ],
+  "ignoreDeps": ["dotnet-sdk"]
 }

@@ -21,6 +21,7 @@ const template = Handlebars.compile(
 const rootElements = [
   "Client",
   "ClientAuth",
+  "ClientAttachments",
   "ClientCiphers",
   "ClientCollections",
   "ClientCrypto",
@@ -28,6 +29,7 @@ const rootElements = [
   "ClientFolders",
   "ClientGenerators",
   "ClientPasswordHistory",
+  "ClientPlatform",
   "ClientSends",
   "ClientVault",
 ];

@@ -37,7 +37,7 @@ serde_yaml = "0.9"
 supports-color = "3.0.0"
 thiserror = "1.0.57"
 tokio = { version = "1.36.0", features = ["rt-multi-thread", "macros"] }
-toml = "0.8.9"
+toml = "0.8.10"
 uuid = { version = "^1.7.0", features = ["serde"] }
 
 bitwarden = { path = "../bitwarden", version = "0.4.0", features = ["secrets"] }

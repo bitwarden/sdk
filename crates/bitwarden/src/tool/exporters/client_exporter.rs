@@ -1,11 +1,10 @@
+use super::export_vault_attachments;
 use crate::{
     error::Result,
     tool::exporters::{export_organization_vault, export_vault, ExportFormat},
     vault::{Cipher, Collection, Folder},
     Client,
 };
-
-use super::export_vault_attachments;
 
 pub struct ClientExporters<'a> {
     pub(crate) client: &'a mut crate::Client,

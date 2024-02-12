@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Download Java schemas artifact
-        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
+        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
         with:
           name: sdk-schemas-java
           path: languages/java/src/main/java/bit/sdk/schema/
@@ -37,25 +37,25 @@ jobs:
           java-version: 17
 
       - name: Download x86_64-apple-darwin files
-        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
+        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
         with:
           name: libbitwarden_c_files-x86_64-apple-darwin
           path: languages/java/src/main/resources/darwin-x86-64
 
       - name: Download aarch64-apple-darwin files
-        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
+        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
         with:
           name: libbitwarden_c_files-aarch64-apple-darwin
           path: languages/java/src/main/resources/darwin-aarch64
 
       - name: Download x86_64-unknown-linux-gnu files
-        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
+        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
         with:
           name: libbitwarden_c_files-x86_64-unknown-linux-gnu
           path: languages/java/src/main/resources/linux-x86-64
 
       - name: Download x86_64-pc-windows-msvc files
-        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
+        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
         with:
           name: libbitwarden_c_files-x86_64-pc-windows-msvc
           path: languages/java/src/main/resources/win32-x86-64

@@ -33,12 +33,12 @@ are:
   server.
 - [`bitwarden-api-identity`](./crates/bitwarden-api-identity/): Auto-generated API bindings for the
   Identity server.
-- [`bws`](./crates/bws/): CLI for interacting with the [Bitwarden Secrets Manager][secrets-manager].
-  Review the [CLI documentation][bws-help].
 - [`bitwarden-c`](./crates/bitwarden-c/): C bindings for FFI interop.
 - [`bitwarden-json`](./crates/bitwarden-json/): JSON wrapper around the `bitwarden` crate. Powers
   the other language bindings.
 - [`bitwarden-napi`](./crates/bitwarden-napi/): Node-API bindings.
+- [`bws`](./crates/bws/): CLI for interacting with the [Bitwarden Secrets Manager][secrets-manager].
+  Review the [CLI documentation][bws-help].
 - [`sdk-schemas`](./crates/sdk-schemas/): Generator for the _json schemas_.
 
 ## Schemas

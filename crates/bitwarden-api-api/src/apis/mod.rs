@@ -60,6 +60,37 @@ pub fn urlencode<T: AsRef<str>>(s: T) -> String {
     ::url::form_urlencoded::byte_serialize(s.as_ref().as_bytes()).collect()
 }
 
+pub fn parse_deep_object(prefix: &str, value: &serde_json::Value) -> Vec<(String, String)> {
+    if let serde_json::Value::Object(object) = value {
+        let mut params = vec![];
+
+        for (key, value) in object {
+            match value {
+                serde_json::Value::Object(_) => params.append(&mut parse_deep_object(
+                    &format!("{}[{}]", prefix, key),
+                    value,
+                )),
+                serde_json::Value::Array(array) => {
+                    for (i, value) in array.iter().enumerate() {
+                        params.append(&mut parse_deep_object(
+                            &format!("{}[{}][{}]", prefix, key, i),
+                            value,
+                        ));
+                    }
+                }
+                serde_json::Value::String(s) => {
+                    params.push((format!("{}[{}]", prefix, key), s.clone()))
+                }
+                _ => params.push((format!("{}[{}]", prefix, key), value.to_string())),
+            }
+        }
+
+        return params;
+    }
+
+    unimplemented!("Only objects are supported with style=deepObject")
+}
+
 pub mod access_policies_api;
 pub mod accounts_api;
 pub mod accounts_billing_api;
@@ -93,6 +124,7 @@ pub mod provider_users_api;
 pub mod providers_api;
 pub mod push_api;
 pub mod secrets_api;
+pub mod secrets_manager_events_api;
 pub mod secrets_manager_porting_api;
 pub mod self_hosted_organization_licenses_api;
 pub mod self_hosted_organization_sponsorships_api;
@@ -103,5 +135,6 @@ pub mod sync_api;
 pub mod trash_api;
 pub mod two_factor_api;
 pub mod users_api;
+pub mod web_authn_api;
 
 pub mod configuration;

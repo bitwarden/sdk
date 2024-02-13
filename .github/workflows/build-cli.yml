@@ -99,7 +99,7 @@ jobs:
         run: zip -j ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip ./target/${{ matrix.settings.target }}/release/bws
 
       - name: Upload artifact
-        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
           name: bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip
           path: ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip
@@ -118,12 +118,12 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Download x86_64-apple-darwin artifact
-        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
+        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
         with:
           name: bws-x86_64-apple-darwin-${{ env._PACKAGE_VERSION }}.zip
 
       - name: Download aarch64-apple-darwin artifact
-        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
+        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
         with:
           name: bws-aarch64-apple-darwin-${{ env._PACKAGE_VERSION }}.zip
 
@@ -142,7 +142,7 @@ jobs:
         run: zip ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip ./bws-macos-universal/bws
 
       - name: Upload artifact
-        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
           name: bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip
           path: ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip
@@ -177,7 +177,7 @@ jobs:
           sed -i.bak 's/\$NAME\$/Bitwarden Secrets Manager CLI/g' THIRDPARTY.html
 
       - name: Upload artifact
-        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
           name: THIRDPARTY.html
           path: ./crates/bws/THIRDPARTY.html

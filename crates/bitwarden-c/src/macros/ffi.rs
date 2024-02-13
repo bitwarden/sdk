@@ -3,7 +3,7 @@
 macro_rules! ffi_ref {
     ($name:ident) => {{
         assert!(!$name.is_null());
-        &mut *$name
+        &*$name
     }};
 }
 

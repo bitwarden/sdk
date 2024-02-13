@@ -1,7 +1,7 @@
 ###############################################
 #                 Build stage                 #
 ###############################################
-FROM --platform=$BUILDPLATFORM rust:1.73 AS build
+FROM --platform=$BUILDPLATFORM rust:1.76 AS build
 
 # Docker buildx supplies the value for this arg
 ARG TARGETPLATFORM

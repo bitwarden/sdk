@@ -23,36 +23,36 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Set up Ruby
-        uses: ruby/setup-ruby@bd03e04863f52d169e18a2b190e8fa6b84938215 # v1.170.0
+        uses: ruby/setup-ruby@22fdc77bf4148f810455b226c90fb81b5cbc00a7 # v1.171.0
         with:
           ruby-version: 3.2
 
       - name: Download Ruby schemas artifact
-        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
+        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
         with:
           name: schemas.rb
           path: languages/ruby/bitwarden_sdk/lib
 
       - name: Download x86_64-apple-darwin files
-        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
+        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
         with:
           name: libbitwarden_c_files-x86_64-apple-darwin
           path: temp/macos-x64
 
       - name: Download aarch64-apple-darwin files
-        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
+        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
         with:
           name: libbitwarden_c_files-aarch64-apple-darwin
           path: temp/macos-arm64
 
       - name: Download x86_64-unknown-linux-gnu files
-        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
+        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
         with:
           name: libbitwarden_c_files-x86_64-unknown-linux-gnu
           path: temp/linux-x64
 
       - name: Download x86_64-pc-windows-msvc files
-        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
+        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
         with:
           name: libbitwarden_c_files-x86_64-pc-windows-msvc
           path: temp/windows-x64

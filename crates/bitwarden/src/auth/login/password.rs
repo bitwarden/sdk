@@ -34,8 +34,7 @@ pub(crate) async fn login_password(
         &input.kdf,
         &input.password,
         HashPurpose::ServerAuthorization,
-    )
-    .await?;
+    )?;
     let response = request_identity_tokens(client, input, &password_hash).await?;
 
     if let IdentityTokenResponse::Authenticated(r) = &response {

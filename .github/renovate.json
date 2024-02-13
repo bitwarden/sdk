@@ -2,13 +2,18 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["github>bitwarden/renovate-config:non-pinned"],
   "separateMajorMinor": true,
-  "enabledManagers": ["cargo", "github-actions", "npm", "nuget"],
+  "enabledManagers": ["cargo", "dockerfile", "github-actions", "npm", "nuget"],
   "packageRules": [
     {
       "matchManagers": ["cargo"],
       "matchPackagePatterns": ["pyo3*"],
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "pyo3 non-major"
+    },
+    {
+      "groupName": "dockerfile minor",
+      "matchManagers": ["dockerfile"],
+      "matchUpdateTypes": ["minor", "patch"]
     },
     {
       "groupName": "gh minor",

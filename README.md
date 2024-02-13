@@ -1,7 +1,16 @@
-# Bitwarden Secrets Manager SDK
+# Bitwarden SDK
 
-This repository houses the Bitwarden Secrets Manager SDK. The core SDK is written in Rust and
-provides a Rust API, CLI and Node-API bindings. In the future more language bindings might be added.
+This repository houses the Bitwarden SDKs. We currently provide a public Secrets Manager SDK and an
+internal SDK for the Bitwarden Password Manager which is used for the native mobile applications.
+The SDK is written in Rust and provides a Rust API, CLI and various language bindings.
+
+### Disclaimer
+
+The password manager SDK is not intended for public use and is not supported by Bitwarden at this
+stage. It is solely intended to centralize the business logic and to provide a single source of
+truth for the internal applications. As the SDK evolves into a more stable and feature complete
+state we will re-evaluate the possibility of publishing stable bindings for the public. **The
+password manager interface is unstable and will change without warning.**
 
 # We're Hiring!
 
@@ -17,7 +26,8 @@ cargo build
 
 ## Crates
 
-The project is structured as a monorepo using cargo workspaces.
+The project is structured as a monorepo using cargo workspaces. Some of the more noteworthy crates
+are:
 
 - [`bitwarden`](./crates/bitwarden/): Rust friendly API for interacting with the secrets manager.
 - [`bitwarden-api-api`](./crates/bitwarden-api-api/): Auto-generated API bindings for the API
@@ -28,7 +38,8 @@ The project is structured as a monorepo using cargo workspaces.
 - [`bitwarden-json`](./crates/bitwarden-json/): JSON wrapper around the `bitwarden` crate. Powers
   the other language bindings.
 - [`bitwarden-napi`](./crates/bitwarden-napi/): Node-API bindings.
-- [`bws`](./crates/bws/): CLI for interacting with the secrets manager.
+- [`bws`](./crates/bws/): CLI for interacting with the [Bitwarden Secrets Manager][secrets-manager].
+  Review the [CLI documentation][bws-help].
 - [`sdk-schemas`](./crates/sdk-schemas/): Generator for the _json schemas_.
 
 ## Schemas
@@ -65,21 +76,15 @@ ASPNETCORE_ENVIRONMENT=development dotnet swagger tofile --output ../../identity
 
 ### OpenApi Generator
 
-Runs from the root of the SDK project.
+To generate a new version of the bindings run the following script from the root of the SDK project.
 
 ```bash
 ./support/build-api.sh
 ```
 
-OpenApi Generator works using templates, we have customized our templates to work better with our
-codebase.
+This project uses customized templates which lives in the `support/openapi-templates` directory.
+These templates resolves some outstanding issues we've experienced with the rust generator. But we
+strive towards modifying the templates as little as possible to ease future upgrades.
 
-- https://github.com/OpenAPITools/openapi-generator/issues/10977
-- https://github.com/OpenAPITools/openapi-generator/issues/12464
-
-There is also a scenario where we have a negative integer enum which completely breaks the openapi
-generation. In that case we excluded the file from being generated and manually patched it.
-`crates/bitwarden-api-api/src/models/organization_user_status_type.rs`
-
-The hope going forward is that we can continue to use the generator with minimal manual
-intervention.
+[secrets-manager]: https://bitwarden.com/products/secrets-manager/
+[bws-help]: https://bitwarden.com/help/secrets-manager-cli/

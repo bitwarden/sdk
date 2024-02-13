@@ -2,7 +2,7 @@
 name = "bws"
 version = "0.4.0"
 edition = "2021"
-rust-version = "1.60"
+rust-version = "1.71"
 authors = ["Bitwarden Inc"]
 license-file = "LICENSE"
 repository = "https://github.com/bitwarden/sdk"

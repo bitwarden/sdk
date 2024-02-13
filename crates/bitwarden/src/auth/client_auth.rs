@@ -122,7 +122,7 @@ impl<'a> ClientAuth<'a> {
         approve_auth_request(self.client, public_key)
     }
 
-    pub async fn trust_device(&self) -> Result<TrustDeviceResponse> {
+    pub fn trust_device(&self) -> Result<TrustDeviceResponse> {
         trust_device(self.client)
     }
 }

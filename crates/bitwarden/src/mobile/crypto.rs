@@ -57,6 +57,14 @@ pub enum InitUserCryptoMethod {
 
         method: AuthRequestMethod,
     },
+    DeviceKey {
+        /// The device's DeviceKey
+        device_key: String,
+        /// The Device Private Key
+        protected_device_private_key: EncString,
+        /// The user's symmetric crypto key, encrypted with the Device Key.
+        device_protected_user_key: AsymmetricEncString,
+    },
 }
 
 #[cfg(feature = "internal")]
@@ -78,6 +86,8 @@ pub enum AuthRequestMethod {
 
 #[cfg(feature = "internal")]
 pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequest) -> Result<()> {
+    use bitwarden_crypto::DeviceKey;
+
     use crate::auth::{auth_request_decrypt_master_key, auth_request_decrypt_user_key};
 
     let login_method = crate::client::LoginMethod::User(crate::client::UserLoginMethod::Username {
@@ -121,6 +131,17 @@ pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequ
                     auth_request_key,
                 )?,
             };
+            client.initialize_user_crypto_decrypted_key(user_key, private_key)?;
+        }
+        InitUserCryptoMethod::DeviceKey {
+            device_key,
+            protected_device_private_key,
+            device_protected_user_key,
+        } => {
+            let device_key = device_key.parse::<DeviceKey>()?;
+            let user_key = device_key
+                .decrypt_user_key(protected_device_private_key, device_protected_user_key)?;
+
             client.initialize_user_crypto_decrypted_key(user_key, private_key)?;
         }
     }

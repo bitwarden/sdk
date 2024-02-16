@@ -2,6 +2,14 @@ name: Build Rust Cross Platform
 
 on:
   workflow_call:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - rc
+      - hotfix-rc
+    paths:
+      - "crates/**"
 
 jobs:
   build_rust:

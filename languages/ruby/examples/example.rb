@@ -1,5 +1,5 @@
 # NOTE - for example purpose only - import gem instead
-require 'bitwarden-sdk'
+require 'bitwarden-sdk-secrets'
 
 token = ENV['ACCESS_TOKEN']
 organization_id = ENV['ORGANIZATION_ID']

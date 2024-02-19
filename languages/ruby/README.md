@@ -97,12 +97,16 @@ puts response
 ## Development
 
 ```bash
+# Build and copy the bitwarden-c library
 cargo build --package bitwarden-c
 cp ../../target/debug/libbitwarden_c.dylib ./bitwarden_sdk_secrets/lib/macos-arm64/libbitwarden_c.dylib
 
+# Install ruby dependencies
 cd ./bitwarden_sdk_secrets
-gem build bitwarden-sdk-secrets.gemspec
-gem install ./bitwarden-sdk-secrets-0.0.0.gem
+bundle install
+
+# Install the gem
+bundle exec rake install
 
 ## Run example tests
 cd ..

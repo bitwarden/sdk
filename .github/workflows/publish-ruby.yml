@@ -12,6 +12,9 @@ on:
         options:
           - Release
           - Dry Run
+    permissions:
+      id-token: write
+      contents: write
 
 jobs:
   setup:
@@ -43,18 +46,6 @@ jobs:
         uses: ruby/setup-ruby@22fdc77bf4148f810455b226c90fb81b5cbc00a7 # v1.171.0
         with:
           ruby-version: 3.2
-
-      - name: Login to Azure
-        uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
-        with:
-          creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
-
-      - name: Retrieve ruby gem api key
-        id: retrieve-secret
-        uses: bitwarden/gh-actions/get-keyvault-secrets@main
-        with:
-          keyvault: "bitwarden-ci"
-          secrets: "ruby-gem-api-key"
 
       - name: Download artifacts
         uses: bitwarden/gh-actions/download-artifacts@main
@@ -121,12 +112,4 @@ jobs:
         working-directory: languages/ruby/bitwarden_sdk
 
       - name: Push gem to Rubygems
-        run: |
-          mkdir -p $HOME/.gem
-          touch $HOME/.gem/credentials
-          chmod 0600 $HOME/.gem/credentials
-          printf -- "---\n:rubygems_api_key: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
-          gem push *.gem
-        env:
-          GEM_HOST_API_KEY: ${{ steps.retrieve-secret.outputs.ruby-gem-api-key }}
-        working-directory: languages/ruby/bitwarden_sdk
+        uses: rubygems/release-gem@48512b949a6517699b78f000b4f36e641d321ed3 # v1.0.0

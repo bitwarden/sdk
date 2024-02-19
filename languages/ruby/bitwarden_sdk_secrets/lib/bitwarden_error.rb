@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module BitwardenSDK
+module BitwardenSDKSecrets
   class BitwardenError < StandardError
     def initialize(message = 'Error getting response')
       super(message)

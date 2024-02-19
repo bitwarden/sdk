@@ -8,9 +8,9 @@ organization_id = ENV['ORGANIZATION_ID']
 api_url = ENV['API_URL']
 identity_url = ENV['IDENTITY_URL']
 
-bitwarden_settings = BitwardenSDK::BitwardenSettings.new(api_url, identity_url)
+bitwarden_settings = BitwardenSDKSecrets::BitwardenSettings.new(api_url, identity_url)
 
-bw_client = BitwardenSDK::BitwardenClient.new(bitwarden_settings)
+bw_client = BitwardenSDKSecrets::BitwardenClient.new(bitwarden_settings)
 response = bw_client.access_token_login(token)
 puts response
 

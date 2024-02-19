@@ -1,24 +1,23 @@
 # Bitwarden Secrets Manager SDK
 
-Ruby bindings for interacting with the [Bitwarden Secrets Manager]. This is a beta release and might be missing some functionality.
+Ruby bindings for interacting with the [Bitwarden Secrets Manager]. This is a beta release and might
+be missing some functionality.
 
 ## Installation
 
 Requirements: Ruby >= 3.0
 
-Install gem: `gem install bitwarden-sdk`
+Install gem: `gem install bitwarden-sdk-secrets`
 
-Import it: require 'bitwarden-sdk'
-
+Import it: require 'bitwarden-sdk-secrets'
 
 ## Usage
 
-To interact with client first you need to obtain access token from Bitwarden.
-Client will be initialized with default client settings if they are not provided
-via env variables.
+To interact with client first you need to obtain access token from Bitwarden. Client will be
+initialized with default client settings if they are not provided via env variables.
 
 ```ruby
-require 'bitwarden-sdk'
+require 'bitwarden-sdk-secrets'
 
 # then you can initialize BitwardenSettings:
 bitwarden_settings = BitwardenSDK::BitwardenSettings.new(
@@ -34,6 +33,7 @@ puts response
 ```
 
 After successful authorization you can interact with client to manage your projects and secrets.
+
 ```ruby
 
 # CREATE project
@@ -61,6 +61,7 @@ puts response
 ```
 
 Similarly, you interact with secrets:
+
 ```ruby
 # CREATE secret
 key = 'AWS-SES'
@@ -92,4 +93,25 @@ puts response
 response = bw_client.secrets_client.delete_secret([secret_id])
 puts response
 ```
+
+## Development
+
+```bash
+cargo build --package bitwarden-c
+cp ../../target/debug/libbitwarden_c.dylib ./bitwarden_sdk_secrets/lib/macos-arm64/libbitwarden_c.dylib
+
+cd ./bitwarden_sdk_secrets
+gem build bitwarden-sdk-secrets.gemspec
+gem install ./bitwarden-sdk-secrets-0.0.0.gem
+
+## Run example tests
+cd ..
+export ACCESS_TOKEN=""
+export ORGANIZATION_ID=""
+
+export API_URL=https://localhost:8080/api
+export IDENTITY_URL=https://localhost:8080/identity
+ruby examples/example.rb
+```
+
 [Bitwarden Secrets Manager]: https://bitwarden.com/products/secrets-manager/

@@ -1,4 +1,9 @@
-use std::{path::PathBuf, process, str::FromStr};
+use std::{
+    io::{self, Read},
+    path::PathBuf,
+    process,
+    str::FromStr,
+};
 
 use bitwarden::{
     auth::login::AccessTokenLoginRequest,
@@ -81,6 +86,13 @@ enum Commands {
     Secret {
         #[command(subcommand)]
         cmd: SecretCommand,
+    },
+    #[command(long_about = "Run a command with secrets injected")]
+    Run {
+        #[arg(help = "The command to run")]
+        command: Vec<String>,
+        #[arg(long, help = "The ID of the project to use")]
+        project_id: Option<Uuid>,
     },
     #[command(long_about = "Create a single item (deprecated)", hide(true))]
     Create {
@@ -218,6 +230,11 @@ enum EditCommand {
 enum DeleteCommand {
     Project { project_ids: Vec<Uuid> },
     Secret { secret_ids: Vec<Uuid> },
+}
+
+#[derive(Subcommand, Debug)]
+enum RunCommand {
+    Command { command: Vec<String> },
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -605,6 +622,55 @@ async fn process_commands() -> Result<()> {
             if !secrets_failed.is_empty() {
                 process::exit(1);
             }
+        }
+
+        Commands::Run {
+            command,
+            project_id,
+        } => {
+            let res = if let Some(project_id) = project_id {
+                client
+                    .secrets()
+                    .list_by_project(&SecretIdentifiersByProjectRequest { project_id })
+                    .await?
+            } else {
+                client
+                    .secrets()
+                    .list(&SecretIdentifiersRequest { organization_id })
+                    .await?
+            };
+
+            let secret_ids = res.data.into_iter().map(|e| e.id).collect();
+            let secrets = client
+                .secrets()
+                .get_by_ids(SecretsGetRequest { ids: secret_ids })
+                .await?
+                .data;
+
+            let environment = secrets
+                .iter()
+                .map(|s| (s.key.clone(), s.value.clone()))
+                .collect::<std::collections::HashMap<String, String>>();
+
+            let command = if command.is_empty() {
+                let mut buffer = String::new();
+                io::stdin().read_to_string(&mut buffer)?;
+                buffer
+            } else {
+                command.join(" ")
+            };
+
+            let _output = process::Command::new("sh")
+                .arg("-c")
+                .arg(command)
+                .envs(environment)
+                .output()
+                .expect("failed to execute process");
+
+            let stdout = String::from_utf8_lossy(&_output.stdout);
+            let stderr = String::from_utf8_lossy(&_output.stderr);
+            println!("{}", stdout);
+            eprintln!("{}", stderr);
         }
 
         Commands::Config { .. } | Commands::Completions { .. } => {

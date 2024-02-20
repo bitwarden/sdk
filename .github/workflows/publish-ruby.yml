@@ -112,4 +112,5 @@ jobs:
         working-directory: languages/ruby/bitwarden_sdk
 
       - name: Push gem to Rubygems
+        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
         uses: rubygems/release-gem@48512b949a6517699b78f000b4f36e641d321ed3 # v1.0.0

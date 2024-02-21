@@ -656,6 +656,14 @@ async fn process_commands() -> Result<()> {
                 .map(|s| (s.key.clone(), s.value.clone()))
                 .collect::<std::collections::HashMap<String, String>>();
 
+            let valid_key_regex = regex::Regex::new("^[a-zA-Z_][a-zA-Z0-9_]*$").unwrap();
+
+            for key in environment.keys() {
+                if !valid_key_regex.is_match(key) {
+                    eprintln!("Warning: secret name '{}' is not POSIX-compliant", key);
+                }
+            }
+
             let command = if command.is_empty() {
                 let mut buffer = String::new();
                 std::io::stdin().read_to_string(&mut buffer)?;

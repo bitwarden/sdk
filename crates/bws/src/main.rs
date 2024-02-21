@@ -92,6 +92,8 @@ enum Commands {
     Run {
         #[arg(help = "The command to run")]
         command: Vec<String>,
+        #[arg(long, help = "The shell to use")]
+        shell: Option<String>,
         #[arg(long, help = "The ID of the project to use")]
         project_id: Option<Uuid>,
     },
@@ -235,7 +237,11 @@ enum DeleteCommand {
 
 #[derive(Subcommand, Debug)]
 enum RunCommand {
-    Command { command: Vec<String> },
+    Command {
+        command: Vec<String>,
+        project_id: Option<Uuid>,
+        shell: Option<String>,
+    },
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -628,6 +634,7 @@ async fn process_commands() -> Result<()> {
 
         Commands::Run {
             command,
+            shell,
             project_id,
         } => {
             let res = if let Some(project_id) = project_id {
@@ -662,7 +669,15 @@ async fn process_commands() -> Result<()> {
                 command.join(" ")
             };
 
-            let _output = process::Command::new("sh")
+            let shell = if cfg!(unix) {
+                shell.unwrap_or_else(|| "sh".to_string())
+            } else if cfg!(windows) {
+                shell.unwrap_or_else(|| "pwsh".to_string())
+            } else {
+                unreachable!();
+            };
+
+            let mut child = process::Command::new(&shell)
                 .arg("-c")
                 .arg(command)
                 .envs(environment)

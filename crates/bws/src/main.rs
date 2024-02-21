@@ -1,9 +1,4 @@
-use std::{
-    io::{BufRead, Read},
-    path::PathBuf,
-    process,
-    str::FromStr,
-};
+use std::{io::Read, path::PathBuf, process, str::FromStr};
 
 use bitwarden::{
     auth::login::AccessTokenLoginRequest,
@@ -681,27 +676,10 @@ async fn process_commands() -> Result<()> {
                 .arg("-c")
                 .arg(&command)
                 .envs(&environment)
-                .stdout(process::Stdio::piped())
-                .stderr(process::Stdio::piped())
+                .stdout(process::Stdio::inherit())
+                .stderr(process::Stdio::inherit())
                 .spawn()
                 .expect("failed to execute process");
-
-            let stdout = child.stdout.take().expect("");
-            let stderr = child.stderr.take().expect("");
-
-            let stdout_reader = std::io::BufReader::new(stdout);
-            let stderr_reader = std::io::BufReader::new(stderr);
-
-            let stdout_lines = stdout_reader.lines();
-            let stderr_lines = stderr_reader.lines();
-
-            for line in stdout_lines {
-                println!("{}", line.unwrap());
-            }
-
-            for line in stderr_lines {
-                eprintln!("{}", line.unwrap());
-            }
 
             let _ = child.wait();
         }

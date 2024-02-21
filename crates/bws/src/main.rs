@@ -1,5 +1,5 @@
 use std::{
-    io::{self, Read},
+    io::{BufRead, Read},
     path::PathBuf,
     process,
     str::FromStr,
@@ -656,7 +656,7 @@ async fn process_commands() -> Result<()> {
 
             let command = if command.is_empty() {
                 let mut buffer = String::new();
-                io::stdin().read_to_string(&mut buffer)?;
+                std::io::stdin().read_to_string(&mut buffer)?;
                 buffer
             } else {
                 command.join(" ")

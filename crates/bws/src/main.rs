@@ -89,6 +89,11 @@ enum Commands {
         command: Vec<String>,
         #[arg(long, help = "The shell to use")]
         shell: Option<String>,
+        #[arg(
+            long,
+            help = "Don't inherit environment variables from the current shell"
+        )]
+        no_inherit_env: bool,
         #[arg(long, help = "The ID of the project to use")]
         project_id: Option<Uuid>,
     },
@@ -630,6 +635,7 @@ async fn process_commands() -> Result<()> {
         Commands::Run {
             command,
             shell,
+            no_inherit_env,
             project_id,
         } => {
             let res = if let Some(project_id) = project_id {
@@ -664,7 +670,7 @@ async fn process_commands() -> Result<()> {
                 }
             }
 
-            let command = if command.is_empty() {
+            let user_command = if command.is_empty() {
                 let mut buffer = String::new();
                 std::io::stdin().read_to_string(&mut buffer)?;
                 buffer
@@ -680,14 +686,23 @@ async fn process_commands() -> Result<()> {
                 unreachable!();
             };
 
-            let mut child = process::Command::new(&shell)
+            let mut command = process::Command::new(&shell);
+            command
                 .arg("-c")
-                .arg(&command)
-                .envs(&environment)
+                .arg(&user_command)
                 .stdout(process::Stdio::inherit())
-                .stderr(process::Stdio::inherit())
-                .spawn()
-                .expect("failed to execute process");
+                .stderr(process::Stdio::inherit());
+
+            if no_inherit_env {
+                let path = std::env::var("PATH").unwrap_or_else(|_| "/bin:/usr/bin".to_string());
+                command.env_clear();
+                command.env("PATH", path); // PATH is always necessary
+                command.envs(&environment);
+            } else {
+                command.envs(&environment);
+            }
+
+            let mut child = command.spawn().expect("failed to execute process");
 
             let exit_status = child.wait().expect("process failed to execute");
             let exit_code = exit_status.code().unwrap_or(1);

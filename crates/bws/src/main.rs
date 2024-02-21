@@ -679,15 +679,31 @@ async fn process_commands() -> Result<()> {
 
             let mut child = process::Command::new(&shell)
                 .arg("-c")
-                .arg(command)
-                .envs(environment)
-                .output()
+                .arg(&command)
+                .envs(&environment)
+                .stdout(process::Stdio::piped())
+                .stderr(process::Stdio::piped())
+                .spawn()
                 .expect("failed to execute process");
 
-            let stdout = String::from_utf8_lossy(&_output.stdout);
-            let stderr = String::from_utf8_lossy(&_output.stderr);
-            println!("{}", stdout);
-            eprintln!("{}", stderr);
+            let stdout = child.stdout.take().expect("");
+            let stderr = child.stderr.take().expect("");
+
+            let stdout_reader = std::io::BufReader::new(stdout);
+            let stderr_reader = std::io::BufReader::new(stderr);
+
+            let stdout_lines = stdout_reader.lines();
+            let stderr_lines = stderr_reader.lines();
+
+            for line in stdout_lines {
+                println!("{}", line.unwrap());
+            }
+
+            for line in stderr_lines {
+                eprintln!("{}", line.unwrap());
+            }
+
+            let _ = child.wait();
         }
 
         Commands::Config { .. } | Commands::Completions { .. } => {

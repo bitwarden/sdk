@@ -85,6 +85,10 @@ func main() {
 		panic(err)
 	}
 
+	if _, err = bitwardenClient.Projects.Delete([]string{projectID}); err != nil {
+		panic(err)
+	}
+
 	secretIdentifiers, err := bitwardenClient.Secrets.List(organizationID.String())
 	if err != nil {
 		panic(err)

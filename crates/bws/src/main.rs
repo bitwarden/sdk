@@ -47,6 +47,7 @@ struct Cli {
         short = 'f',
         long,
         global = true,
+        env = CONFIG_FILE_KEY_VAR_NAME,
         help = format!("[default: ~/{}/{}] Config file to use", config::DIRECTORY, config::FILENAME)
     )]
     config_file: Option<PathBuf>,
@@ -228,6 +229,7 @@ async fn main() -> Result<()> {
 }
 
 const ACCESS_TOKEN_KEY_VAR_NAME: &str = "BWS_ACCESS_TOKEN";
+const CONFIG_FILE_KEY_VAR_NAME: &str = "BWS_CONFIG_FILE";
 const PROFILE_KEY_VAR_NAME: &str = "BWS_PROFILE";
 const SERVER_URL_KEY_VAR_NAME: &str = "BWS_SERVER_URL";
 

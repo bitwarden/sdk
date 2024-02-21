@@ -2,7 +2,7 @@
 
 require_relative 'bitwarden_error'
 
-module BitwardenSDK
+module BitwardenSDKSecrets
   class ProjectsClient
     def initialize(command_runner)
       @command_runner = command_runner

@@ -2,7 +2,7 @@
 
 require 'json'
 
-module BitwardenSDK
+module BitwardenSDKSecrets
   class SecretsClient
     def initialize(command_runner)
       @command_runner = command_runner

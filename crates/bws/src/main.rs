@@ -686,7 +686,7 @@ async fn process_commands() -> Result<()> {
                 unreachable!();
             };
 
-            let mut command = process::Command::new(&shell);
+            let mut command = process::Command::new(shell);
             command
                 .arg("-c")
                 .arg(&user_command)

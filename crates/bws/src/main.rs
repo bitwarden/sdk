@@ -681,7 +681,14 @@ async fn process_commands() -> Result<()> {
                 .spawn()
                 .expect("failed to execute process");
 
+            let exit_status = child.wait().expect("process failed to execute");
+            let exit_code = exit_status.code().unwrap_or(1);
+
             let _ = child.wait();
+
+            if exit_code != 0 {
+                process::exit(exit_code);
+            }
         }
 
         Commands::Config { .. } | Commands::Completions { .. } => {

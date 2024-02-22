@@ -33,8 +33,7 @@ jobs:
   build-windows:
     name: Building CLI for - ${{ matrix.settings.os }} - ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}
-    needs:
-      - setup
+    needs: setup
     env:
       _PACKAGE_VERSION: ${{ needs.setup.outputs.package_version }}
     strategy:

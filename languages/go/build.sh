@@ -20,7 +20,7 @@ rm -f languages/go/example/example && rm -rf "$GO_LIB_DIR"
 
 printf '%s\n\n' "Building binaries..."
 cargo build
-npm run schemas
+npm i && npm run schemas
 
 printf '%s\n\n' "Copying Go bindings to $GO_LIB_DIR..."
 mkdir -p "$GO_LIB_DIR"

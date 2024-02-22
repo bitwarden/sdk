@@ -154,7 +154,7 @@ jobs:
       ### ruby sdk
       - name: Bump ruby-sdk Version
         if: ${{ inputs.project == 'ruby-sdk' }}
-        run: sed -i "s/VERSION = '[0-9]\.[0-9]\.[0-9]'/VERSION = '${{ inputs.version_number }}'/" ./languages/ruby/bitwarden_sdk/lib/version.rb
+        run: sed -i "s/VERSION = '[0-9]\.[0-9]\.[0-9]'/VERSION = '${{ inputs.version_number }}'/" ./languages/ruby/bitwarden_sdk_secrets/lib/version.rb
 
       ############################
       # VERSION BUMP SECTION END #

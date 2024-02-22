@@ -54,12 +54,12 @@ jobs:
           path: languages/ruby/bitwarden_sdk_secrets/lib
           workflow_conclusion: success
           branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
-          name: schemas.rb
+          artifacts: schemas.rb
 
       - name: Download x86_64-apple-darwin artifact
         uses: bitwarden/gh-actions/download-artifacts@main
         with:
-          workflow: generate_schemas.yml
+          workflow: build-rust-cross-platform.yml
           path: temp/macos-x64
           workflow_conclusion: success
           branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
@@ -68,7 +68,7 @@ jobs:
       - name: Download aarch64-apple-darwin artifact
         uses: bitwarden/gh-actions/download-artifacts@main
         with:
-          workflow: generate_schemas.yml
+          workflow: build-rust-cross-platform.yml
           workflow_conclusion: success
           branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
           artifacts: libbitwarden_c_files-aarch64-apple-darwin
@@ -77,7 +77,7 @@ jobs:
       - name: Download x86_64-unknown-linux-gnu artifact
         uses: bitwarden/gh-actions/download-artifacts@main
         with:
-          workflow: generate_schemas.yml
+          workflow: build-rust-cross-platform.yml
           workflow_conclusion: success
           branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
           artifacts: libbitwarden_c_files-x86_64-unknown-linux-gnu
@@ -86,7 +86,7 @@ jobs:
       - name: Download x86_64-pc-windows-msvc artifact
         uses: bitwarden/gh-actions/download-artifacts@main
         with:
-          workflow: generate_schemas.yml
+          workflow: build-rust-cross-platform.yml
           workflow_conclusion: success
           branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
           artifacts: libbitwarden_c_files-x86_64-pc-windows-msvc

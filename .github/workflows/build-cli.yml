@@ -114,7 +114,6 @@ jobs:
           path: ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip
           if-no-files-found: error
 
-
   build-macos:
     name: Building CLI for - ${{ matrix.settings.os }} - ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}
@@ -236,7 +235,6 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
 

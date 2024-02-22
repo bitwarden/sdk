@@ -681,7 +681,7 @@ async fn process_commands() -> Result<()> {
             let shell = if cfg!(unix) {
                 shell.unwrap_or_else(|| "sh".to_string())
             } else if cfg!(windows) {
-                shell.unwrap_or_else(|| "pwsh".to_string())
+                shell.unwrap_or_else(|| "powershell".to_string())
             } else {
                 unreachable!();
             };

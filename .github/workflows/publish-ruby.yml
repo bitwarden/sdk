@@ -12,9 +12,11 @@ on:
         options:
           - Release
           - Dry Run
-    permissions:
-      id-token: write
-      contents: write
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   setup:

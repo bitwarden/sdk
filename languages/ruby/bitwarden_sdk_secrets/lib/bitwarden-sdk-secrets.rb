@@ -11,7 +11,7 @@ require_relative 'bitwarden_error'
 require_relative 'projects'
 require_relative 'secrets'
 
-module BitwardenSDK
+module BitwardenSDKSecrets
   class BitwardenSettings
     attr_accessor :api_url, :identity_url
 
@@ -43,8 +43,8 @@ module BitwardenSDK
       @secrets_client = SecretsClient.new(@command_runner)
     end
 
-    def access_token_login(access_token)
-      access_token_request = AccessTokenLoginRequest.new(access_token: access_token)
+    def access_token_login(access_token, state_file = nil)
+      access_token_request = AccessTokenLoginRequest.new(access_token: access_token, state_file: state_file)
       @command_runner.run(SelectiveCommand.new(access_token_login: access_token_request))
       nil
     end

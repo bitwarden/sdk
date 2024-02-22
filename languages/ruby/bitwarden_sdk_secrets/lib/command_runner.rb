@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module BitwardenSDK
+module BitwardenSDKSecrets
   class CommandRunner
     def initialize(bitwarden_sdk, handle)
       @bitwarden_sdk = bitwarden_sdk

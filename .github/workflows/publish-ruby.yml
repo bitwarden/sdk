@@ -51,7 +51,7 @@ jobs:
         uses: bitwarden/gh-actions/download-artifacts@main
         with:
           workflow: generate_schemas.yml
-          path: languages/ruby/bitwarden_sdk/lib
+          path: languages/ruby/bitwarden_sdk_secrets/lib
           workflow_conclusion: success
           branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
           name: schemas.rb
@@ -94,22 +94,22 @@ jobs:
 
       - name: Copy lib files
         run: |
-          mkdir -p languages/ruby/bitwarden_sdk/lib/macos-arm64
-          mkdir -p languages/ruby/bitwarden_sdk/lib/linux-x64
-          mkdir -p languages/ruby/bitwarden_sdk/lib/macos-x64
-          mkdir -p languages/ruby/bitwarden_sdk/lib/windows-x64
+          mkdir -p languages/ruby/bitwarden_sdk_secrets/lib/macos-arm64
+          mkdir -p languages/ruby/bitwarden_sdk_secrets/lib/linux-x64
+          mkdir -p languages/ruby/bitwarden_sdk_secrets/lib/macos-x64
+          mkdir -p languages/ruby/bitwarden_sdk_secrets/lib/windows-x64
 
           platforms=("macos-arm64" "linux-x64" "macos-x64" "windows-x64")
           files=("libbitwarden_c.dylib" "libbitwarden_c.so" "libbitwarden_c.dylib" "bitwarden_c.dll")
 
           for ((i=0; i<${#platforms[@]}; i++)); do
-            cp "temp/${platforms[$i]}/${files[$i]}" "languages/ruby/bitwarden_sdk/lib/${platforms[$i]}/${files[$i]}"
+            cp "temp/${platforms[$i]}/${files[$i]}" "languages/ruby/bitwarden_sdk_secrets/lib/${platforms[$i]}/${files[$i]}"
           done
         shell: bash
 
       - name: Build gem
         run: gem build bitwarden-sdk.gemspec
-        working-directory: languages/ruby/bitwarden_sdk
+        working-directory: languages/ruby/bitwarden_sdk_secrets
 
       - name: Push gem to Rubygems
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}

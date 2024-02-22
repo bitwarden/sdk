@@ -113,8 +113,8 @@ jobs:
       - name: Set remote URL
         run: |
           # Attribute commits to the last committer on HEAD
-          git config --global user.email "$(git log -1 --pretty=format:'%ae')"
-          git config --global user.name "$(git log -1 --pretty=format:'%an')"
+          git config --global user.email "106330231+bitwarden-devops-bot@users.noreply.github.com"
+          git config --global user.name "bitwarden-devops-bot"
           git remote set-url origin "https://x-access-token:${{ github.token }}@github.com/$GITHUB_REPOSITORY"
 
       - name: Configure trusted publishing credentials

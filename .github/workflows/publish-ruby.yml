@@ -110,7 +110,7 @@ jobs:
         shell: bash
 
       - name: Build gem
-        run: gem build bitwarden-sdk.gemspec
+        run: gem build bitwarden-sdk-secrets.gemspec
         working-directory: languages/ruby/bitwarden_sdk_secrets
 
       - name: Push gem to Rubygems

@@ -63,7 +63,7 @@ jobs:
           path: temp/macos-x64
           workflow_conclusion: success
           branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
-          name: libbitwarden_c_files-x86_64-apple-darwin
+          artifacts: libbitwarden_c_files-x86_64-apple-darwin
 
       - name: Download aarch64-apple-darwin artifact
         uses: bitwarden/gh-actions/download-artifacts@main
@@ -71,7 +71,7 @@ jobs:
           workflow: generate_schemas.yml
           workflow_conclusion: success
           branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
-          name: libbitwarden_c_files-aarch64-apple-darwin
+          artifacts: libbitwarden_c_files-aarch64-apple-darwin
           path: temp/macos-arm64
 
       - name: Download x86_64-unknown-linux-gnu artifact
@@ -80,7 +80,7 @@ jobs:
           workflow: generate_schemas.yml
           workflow_conclusion: success
           branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
-          name: libbitwarden_c_files-x86_64-unknown-linux-gnu
+          artifacts: libbitwarden_c_files-x86_64-unknown-linux-gnu
           path: temp/linux-x64
 
       - name: Download x86_64-pc-windows-msvc artifact
@@ -89,7 +89,7 @@ jobs:
           workflow: generate_schemas.yml
           workflow_conclusion: success
           branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
-          name: libbitwarden_c_files-x86_64-pc-windows-msvc
+          artifacts: libbitwarden_c_files-x86_64-pc-windows-msvc
           path: temp/windows-x64
 
       - name: Copy lib files

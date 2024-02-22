@@ -105,8 +105,6 @@ jobs:
           for ((i=0; i<${#platforms[@]}; i++)); do
             cp "temp/${platforms[$i]}/${files[$i]}" "languages/ruby/bitwarden_sdk_secrets/lib/${platforms[$i]}/${files[$i]}"
           done
-
-          ls -lR languages/ruby/bitwarden_sdk_secrets
         shell: bash
 
       - name: Build gem

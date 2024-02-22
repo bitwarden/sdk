@@ -38,7 +38,7 @@ impl BitwardenClient {
     }
 
     #[napi]
-    pub async unsafe fn run_command(&mut self, command_input: String) -> String {
+    pub async fn run_command(&self, command_input: String) -> String {
         self.0.run_command(&command_input).await
     }
 }

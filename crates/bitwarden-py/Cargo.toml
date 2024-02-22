@@ -2,7 +2,7 @@
 name = "bitwarden-py"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.57"
+rust-version = "1.71"
 
 [lib]
 name = "bitwarden_py"
@@ -18,7 +18,7 @@ bitwarden-json = { path = "../bitwarden-json", features = ["secrets"] }
 pyo3-build-config = { version = "0.20.2" }
 
 [target.'cfg(not(target_arch="wasm32"))'.dependencies]
-tokio = { version = "1.35.1", features = ["rt-multi-thread", "macros"] }
+tokio = { version = "1.36.0", features = ["rt-multi-thread", "macros"] }
 pyo3-asyncio = { version = "0.20.0", features = [
     "attributes",
     "tokio-runtime",

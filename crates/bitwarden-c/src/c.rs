@@ -8,7 +8,7 @@ use crate::{box_ptr, ffi_ref};
 #[tokio::main]
 pub async extern "C" fn run_command(
     c_str_ptr: *const c_char,
-    client_ptr: *mut Client,
+    client_ptr: *const Client,
 ) -> *mut c_char {
     let client = unsafe { ffi_ref!(client_ptr) };
     let input_str = str::from_utf8(unsafe { CStr::from_ptr(c_str_ptr).to_bytes() }).unwrap();

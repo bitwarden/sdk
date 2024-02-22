@@ -206,7 +206,7 @@ pub async fn organizations_org_id_groups_delete_post(
 
 pub async fn organizations_org_id_groups_get(
     configuration: &configuration::Configuration,
-    org_id: &str,
+    org_id: uuid::Uuid,
 ) -> Result<
     crate::models::GroupDetailsResponseModelListResponseModel,
     Error<OrganizationsOrgIdGroupsGetError>,

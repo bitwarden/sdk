@@ -78,6 +78,11 @@ enum LoginCommands {
         client_id: Option<String>,
         client_secret: Option<String>,
     },
+    Device {
+        #[arg(short = 'e', long, help = "Email address")]
+        email: Option<String>,
+        device_identifier: Option<String>,
+    },
 }
 
 #[derive(Subcommand, Clone)]
@@ -163,6 +168,12 @@ async fn process_commands() -> Result<()> {
                     client_id,
                     client_secret,
                 } => auth::login_api_key(client, client_id, client_secret).await?,
+                LoginCommands::Device {
+                    email,
+                    device_identifier,
+                } => {
+                    auth::login_device(client, email, device_identifier).await?;
+                }
             }
             return Ok(());
         }

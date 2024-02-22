@@ -1,6 +1,7 @@
 use std::{fmt::Display, str::FromStr};
 
 use base64::{engine::general_purpose::STANDARD, Engine};
+pub use internal::AsymmetricEncString;
 use rsa::Oaep;
 use serde::Deserialize;
 
@@ -8,51 +9,56 @@ use super::{from_b64_vec, split_enc_string};
 use crate::{
     error::{CryptoError, EncStringParseError, Result},
     rsa::encrypt_rsa2048_oaep_sha1,
-    AsymmetricCryptoKey, KeyDecryptable,
+    AsymmetricCryptoKey, AsymmetricEncryptable, KeyDecryptable,
 };
 
-/// # Encrypted string primitive
-///
-/// [AsymmetricEncString] is a Bitwarden specific primitive that represents an asymmetrically
-/// encrypted string. They are used together with the KeyDecryptable and KeyEncryptable traits to
-/// encrypt and decrypt data using [AsymmetricCryptoKey]s.
-///
-/// The flexibility of the [AsymmetricEncString] type allows for different encryption algorithms to
-/// be used which is represented by the different variants of the enum.
-///
-/// ## Note
-///
-/// For backwards compatibility we will rarely if ever be able to remove support for decrypting old
-/// variants, but we should be opinionated in which variants are used for encrypting.
-///
-/// ## Variants
-/// - [Rsa2048_OaepSha256_B64](AsymmetricEncString::Rsa2048_OaepSha256_B64)
-/// - [Rsa2048_OaepSha1_B64](AsymmetricEncString::Rsa2048_OaepSha1_B64)
-///
-/// ## Serialization
-///
-/// [AsymmetricEncString] implements [Display] and [FromStr] to allow for easy serialization and
-/// uses a custom scheme to represent the different variants.
-///
-/// The scheme is one of the following schemes:
-/// - `[type].[data]`
-///
-/// Where:
-/// - `[type]`: is a digit number representing the variant.
-/// - `[data]`: is the encrypted data.
-#[derive(Clone)]
-#[allow(unused, non_camel_case_types)]
-pub enum AsymmetricEncString {
-    /// 3
-    Rsa2048_OaepSha256_B64 { data: Vec<u8> },
-    /// 4
-    Rsa2048_OaepSha1_B64 { data: Vec<u8> },
-    /// 5
-    #[deprecated]
-    Rsa2048_OaepSha256_HmacSha256_B64 { data: Vec<u8>, mac: Vec<u8> },
-    /// 6
-    #[deprecated]
-    Rsa2048_OaepSha1_HmacSha256_B64 { data: Vec<u8>, mac: Vec<u8> },
+// This module is a workaround to avoid deprecated warnings that come from the ZeroizeOnDrop
+// macro expansion
+#[allow(deprecated)]
+mod internal {
+    /// # Encrypted string primitive
+    ///
+    /// [AsymmetricEncString] is a Bitwarden specific primitive that represents an asymmetrically
+    /// encrypted string. They are used together with the KeyDecryptable and KeyEncryptable
+    /// traits to encrypt and decrypt data using [crate::AsymmetricCryptoKey]s.
+    ///
+    /// The flexibility of the [AsymmetricEncString] type allows for different encryption algorithms
+    /// to be used which is represented by the different variants of the enum.
+    ///
+    /// ## Note
+    ///
+    /// For backwards compatibility we will rarely if ever be able to remove support for decrypting
+    /// old variants, but we should be opinionated in which variants are used for encrypting.
+    ///
+    /// ## Variants
+    /// - [Rsa2048_OaepSha256_B64](AsymmetricEncString::Rsa2048_OaepSha256_B64)
+    /// - [Rsa2048_OaepSha1_B64](AsymmetricEncString::Rsa2048_OaepSha1_B64)
+    ///
+    /// ## Serialization
+    ///
+    /// [AsymmetricEncString] implements [std::fmt::Display] and [std::str::FromStr] to allow for
+    /// easy serialization and uses a custom scheme to represent the different variants.
+    ///
+    /// The scheme is one of the following schemes:
+    /// - `[type].[data]`
+    ///
+    /// Where:
+    /// - `[type]`: is a digit number representing the variant.
+    /// - `[data]`: is the encrypted data.
+    #[derive(Clone, zeroize::ZeroizeOnDrop)]
+    #[allow(unused, non_camel_case_types)]
+    pub enum AsymmetricEncString {
+        /// 3
+        Rsa2048_OaepSha256_B64 { data: Vec<u8> },
+        /// 4
+        Rsa2048_OaepSha1_B64 { data: Vec<u8> },
+        /// 5
+        #[deprecated]
+        Rsa2048_OaepSha256_HmacSha256_B64 { data: Vec<u8>, mac: Vec<u8> },
+        /// 6
+        #[deprecated]
+        Rsa2048_OaepSha1_HmacSha256_B64 { data: Vec<u8>, mac: Vec<u8> },
+    }
 }
 
 /// To avoid printing sensitive information, [AsymmetricEncString] debug prints to
@@ -138,11 +144,12 @@ impl serde::Serialize for AsymmetricEncString {
 }
 
 impl AsymmetricEncString {
-    pub(crate) fn encrypt_rsa2048_oaep_sha1(
+    /// Encrypt and produce a [AsymmetricEncString::Rsa2048_OaepSha1_B64] variant.
+    pub fn encrypt_rsa2048_oaep_sha1(
         data_dec: &[u8],
-        key: &AsymmetricCryptoKey,
+        key: &dyn AsymmetricEncryptable,
     ) -> Result<AsymmetricEncString> {
-        let enc = encrypt_rsa2048_oaep_sha1(&key.key, data_dec)?;
+        let enc = encrypt_rsa2048_oaep_sha1(key.to_public_key(), data_dec)?;
         Ok(AsymmetricEncString::Rsa2048_OaepSha1_B64 { data: enc })
     }
 
@@ -199,6 +206,8 @@ impl schemars::JsonSchema for AsymmetricEncString {
 
 #[cfg(test)]
 mod tests {
+    use schemars::schema_for;
+
     use super::{AsymmetricCryptoKey, AsymmetricEncString, KeyDecryptable};
 
     const RSA_PRIVATE_KEY: &str = "-----BEGIN PRIVATE KEY-----
@@ -280,5 +289,36 @@ XKZBokBGnjFnTnKcs7nv/O8=
         assert_eq!(t.key.enc_type(), 6);
         assert_eq!(t.key.to_string(), cipher);
         assert_eq!(serde_json::to_string(&t).unwrap(), serialized);
+    }
+
+    #[test]
+    fn test_from_str_invalid() {
+        let enc_str = "7.ABC";
+        let enc_string: Result<AsymmetricEncString, _> = enc_str.parse();
+
+        let err = enc_string.unwrap_err();
+        assert_eq!(
+            err.to_string(),
+            "EncString error, Invalid asymmetric type, got type 7 with 1 parts"
+        );
+    }
+
+    #[test]
+    fn test_debug_format() {
+        let enc_str: &str = "4.ZheRb3PCfAunyFdQYPfyrFqpuvmln9H9w5nDjt88i5A7ug1XE0LJdQHCIYJl0YOZ1gCOGkhFu/CRY2StiLmT3iRKrrVBbC1+qRMjNNyDvRcFi91LWsmRXhONVSPjywzrJJXglsztDqGkLO93dKXNhuKpcmtBLsvgkphk/aFvxbaOvJ/FHdK/iV0dMGNhc/9tbys8laTdwBlI5xIChpRcrfH+XpSFM88+Bu03uK67N9G6eU1UmET+pISJwJvMuIDMqH+qkT7OOzgL3t6I0H2LDj+CnsumnQmDsvQzDiNfTR0IgjpoE9YH2LvPXVP2wVUkiTwXD9cG/E7XeoiduHyHjw==";
+        let enc_string: AsymmetricEncString = enc_str.parse().unwrap();
+
+        let debug_string = format!("{:?}", enc_string);
+        assert_eq!(debug_string, "AsymmetricEncString");
+    }
+
+    #[test]
+    fn test_json_schema() {
+        let schema = schema_for!(AsymmetricEncString);
+
+        assert_eq!(
+            serde_json::to_string(&schema).unwrap(),
+            r#"{"$schema":"http://json-schema.org/draft-07/schema#","title":"AsymmetricEncString","type":"string"}"#
+        );
     }
 }

@@ -14,21 +14,21 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum SsoType {
-    Variant1 = 1,
-    Variant2 = 2,
+    OpenIdConnect = 1,
+    Saml2 = 2,
 }
 
 impl ToString for SsoType {
     fn to_string(&self) -> String {
         match self {
-            Self::Variant1 => String::from("1"),
-            Self::Variant2 => String::from("2"),
+            Self::OpenIdConnect => String::from("1"),
+            Self::Saml2 => String::from("2"),
         }
     }
 }
 
 impl Default for SsoType {
     fn default() -> SsoType {
-        Self::Variant1
+        Self::OpenIdConnect
     }
 }

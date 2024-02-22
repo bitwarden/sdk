@@ -113,4 +113,4 @@ jobs:
 
       - name: Push gem to Rubygems
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
-        uses: rubygems/release-gem@48512b949a6517699b78f000b4f36e641d321ed3 # v1.0.0
+        uses: rubygems/release-gem@035c7c1c1c14d277318867ced5037926d2395300 # v1.0.1

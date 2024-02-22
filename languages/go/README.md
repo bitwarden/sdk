@@ -8,6 +8,10 @@ managing projects and secrets, as well as a client interface to facilitate opera
 - Go installed
 - C environment to run CGO
 
+## Building the SDK
+
+`cargo` and `npm` are required to build the SDK. To build, run the `./build.sh` script.
+
 ## Installation
 
 Download the SDK files and place them in your Go project directory.

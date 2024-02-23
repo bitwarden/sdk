@@ -666,7 +666,10 @@ async fn process_commands() -> Result<()> {
 
             for key in environment.keys() {
                 if !valid_key_regex.is_match(key) {
-                    eprintln!("Warning: secret name '{}' is not POSIX-compliant", key);
+                    eprintln!(
+                        "Warning: secret '{}' does not have a POSIX-compliant name",
+                        key
+                    );
                 }
             }
 

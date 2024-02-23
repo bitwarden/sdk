@@ -670,20 +670,12 @@ async fn process_commands() -> Result<()> {
                 }
             }
 
-            let user_command = if command.is_empty() {
-                let mut buffer = String::new();
-                std::io::stdin().read_to_string(&mut buffer)?;
-                buffer
-            } else {
-                command.join(" ")
-            };
-
-            let shell = if cfg!(unix) {
-                shell.unwrap_or_else(|| "sh".to_string())
-            } else if cfg!(windows) {
-                shell.unwrap_or_else(|| "powershell".to_string())
-            } else {
-                unreachable!();
+            let shell = match std::env::consts::OS {
+                os if os == "linux" || os == "macos" || os.contains("bsd") => {
+                    shell.unwrap_or_else(|| "sh".to_string())
+                }
+                "windows" => shell.unwrap_or_else(|| "powershell".to_string()),
+                _ => unreachable!(),
             };
 
             let mut command = process::Command::new(shell);

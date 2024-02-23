@@ -17,7 +17,7 @@ permissions:
   contents: read
   id-token: write
 
-# jobs:
+jobs:
 #   setup:
 #     name: Setup
 #     runs-on: ubuntu-22.04

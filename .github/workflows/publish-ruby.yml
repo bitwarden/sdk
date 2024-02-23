@@ -12,9 +12,10 @@ on:
         options:
           - Release
           - Dry Run
-    permissions:
-      id-token: write
-      contents: write
+
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
   setup:
@@ -105,12 +106,27 @@ jobs:
           for ((i=0; i<${#platforms[@]}; i++)); do
             cp "temp/${platforms[$i]}/${files[$i]}" "languages/ruby/bitwarden_sdk_secrets/lib/${platforms[$i]}/${files[$i]}"
           done
-        shell: bash
 
-      - name: Build gem
-        run: gem build bitwarden-sdk-secrets.gemspec
+      - name: bundle install
+        run: bundle install
         working-directory: languages/ruby/bitwarden_sdk_secrets
 
-      - name: Push gem to Rubygems
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
-        uses: rubygems/release-gem@035c7c1c1c14d277318867ced5037926d2395300 # v1.0.1
+      - name: Set remote URL
+        run: |
+          # Attribute commits to the last committer on HEAD
+          git config --global user.email "106330231+bitwarden-devops-bot@users.noreply.github.com"
+          git config --global user.name "bitwarden-devops-bot"
+          git remote set-url origin "https://x-access-token:${{ github.token }}@github.com/$GITHUB_REPOSITORY"
+
+      - name: Configure trusted publishing credentials
+        uses: rubygems/configure-rubygems-credentials@bc6dd217f8a4f919d6835fcfefd470ef821f5c44 # v1.0.0
+
+      - name: Run release rake task
+        if: ${{ inputs.release_type == 'Release' }}
+        run: bundle exec rake release
+        working-directory: languages/ruby/bitwarden_sdk_secrets
+
+      - name: Wait for release to propagate
+        if: ${{ inputs.release_type == 'Release' }}
+        run: gem exec rubygems-await pkg/*.gem
+        working-directory: languages/ruby/bitwarden_sdk_secrets

@@ -14,23 +14,23 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum AuthRequestType {
-    Variant0 = 0,
-    Variant1 = 1,
-    Variant2 = 2,
+    AuthenticateAndUnlock = 0,
+    Unlock = 1,
+    AdminApproval = 2,
 }
 
 impl ToString for AuthRequestType {
     fn to_string(&self) -> String {
         match self {
-            Self::Variant0 => String::from("0"),
-            Self::Variant1 => String::from("1"),
-            Self::Variant2 => String::from("2"),
+            Self::AuthenticateAndUnlock => String::from("0"),
+            Self::Unlock => String::from("1"),
+            Self::AdminApproval => String::from("2"),
         }
     }
 }
 
 impl Default for AuthRequestType {
     fn default() -> AuthRequestType {
-        Self::Variant0
+        Self::AuthenticateAndUnlock
     }
 }

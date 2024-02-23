@@ -4,6 +4,7 @@ use std::{borrow::Cow, fmt::Debug};
 
 use bitwarden_api_api::apis::Error as ApiError;
 use bitwarden_api_identity::apis::Error as IdentityError;
+use bitwarden_exporters::ExportError;
 use bitwarden_generators::{PassphraseError, PasswordError, UsernameError};
 use reqwest::StatusCode;
 use thiserror::Error;
@@ -50,12 +51,16 @@ pub enum Error {
     #[error("The state file could not be read")]
     InvalidStateFile,
 
+    // Generators
     #[error(transparent)]
     UsernameError(#[from] UsernameError),
     #[error(transparent)]
     PassphraseError(#[from] PassphraseError),
     #[error(transparent)]
     PasswordError(#[from] PasswordError),
+
+    #[error(transparent)]
+    ExportError(#[from] ExportError),
 
     #[error("Internal error: {0}")]
     Internal(Cow<'static, str>),

@@ -1,16 +1,22 @@
 import {
   Convert,
-  ResponseForFingerprintResponse,
-  ResponseForPasswordLoginResponse,
-  ResponseForSecretIdentifiersResponse,
-  ResponseForSecretResponse,
-  ResponseForSecretsDeleteResponse,
-  ResponseForSyncResponse,
-  ResponseForUserAPIKeyResponse,
+  ProjectResponse,
+  ProjectsDeleteResponse,
+  ProjectsResponse,
+  SecretIdentifiersResponse,
+  SecretResponse,
+  SecretsDeleteResponse,
 } from "./schemas";
 
 interface BitwardenSDKClient {
   run_command(js_input: string): Promise<any>;
+}
+
+function handleResponse<T>(response: { success: boolean; errorMessage?: string; data?: T }): T {
+  if (!response.success) {
+    throw new Error(response.errorMessage);
+  }
+  return response.data as T;
 }
 
 export class BitwardenClient {
@@ -20,64 +26,25 @@ export class BitwardenClient {
     this.client = client;
   }
 
-  async login(email: string, password: string, pbkdf_iter: number): Promise<ResponseForPasswordLoginResponse> {
+  async accessTokenLogin(accessToken: string): Promise<void> {
     const response = await this.client.run_command(
       Convert.commandToJson({
-        passwordLogin: {
-          email: email,
-          password: password,
-          kdf: {
-            pBKDF2: {
-              iterations: pbkdf_iter,
-            }
-          },
+        accessTokenLogin: {
+          accessToken,
         },
-      })
+      }),
     );
 
-    return Convert.toResponseForPasswordLoginResponse(response);
+    handleResponse(Convert.toResponseForAccessTokenLoginResponse(response));
   }
 
-  async getUserApiKey(
-    secret: string,
-    isOtp: boolean = false
-  ): Promise<ResponseForUserAPIKeyResponse> {
-    const response = await this.client.run_command(
-      Convert.commandToJson({
-        getUserApiKey: {
-          masterPassword: isOtp ? null : secret,
-          otp: isOtp ? secret : null,
-        },
-      })
-    );
-
-    return Convert.toResponseForUserAPIKeyResponse(response);
+  secrets(): SecretsClient {
+    return new SecretsClient(this.client);
   }
 
-  async sync(excludeSubdomains: boolean = false): Promise<ResponseForSyncResponse> {
-    const response = await this.client.run_command(
-      Convert.commandToJson({
-        sync: {
-          excludeSubdomains,
-        },
-      })
-    );
-
-    return Convert.toResponseForSyncResponse(response);
+  projects(): ProjectsClient {
+    return new ProjectsClient(this.client);
   }
-
-  async fingerprint(fingerprintMaterial: string, publicKey: string): Promise<string> {
-    const response = await this.client.run_command(
-      Convert.commandToJson({
-        fingerprint: {
-          fingerprintMaterial: fingerprintMaterial,
-          publicKey: publicKey,
-        }
-      })
-    )
-
-    return Convert.toResponseForFingerprintResponse(response).data.fingerprint;
-  };
 }
 
 export class SecretsClient {
@@ -87,74 +54,144 @@ export class SecretsClient {
     this.client = client;
   }
 
-  async get(id: string): Promise<ResponseForSecretResponse> {
+  async get(id: string): Promise<SecretResponse> {
     const response = await this.client.run_command(
       Convert.commandToJson({
         secrets: {
           get: { id },
         },
-      })
+      }),
     );
 
-    return Convert.toResponseForSecretResponse(response);
+    return handleResponse(Convert.toResponseForSecretResponse(response));
   }
 
   async create(
     key: string,
+    value: string,
     note: string,
+    projectIds: string[],
     organizationId: string,
-    value: string
-  ): Promise<ResponseForSecretResponse> {
+  ): Promise<SecretResponse> {
     const response = await this.client.run_command(
       Convert.commandToJson({
         secrets: {
-          create: { key, note, organizationId, value },
+          create: { key, value, note, projectIds, organizationId },
         },
-      })
+      }),
     );
 
-    return Convert.toResponseForSecretResponse(response);
+    return handleResponse(Convert.toResponseForSecretResponse(response));
   }
 
-  async list(organizationId: string): Promise<ResponseForSecretIdentifiersResponse> {
+  async list(organizationId: string): Promise<SecretIdentifiersResponse> {
     const response = await this.client.run_command(
       Convert.commandToJson({
         secrets: {
           list: { organizationId },
         },
-      })
+      }),
     );
 
-    return Convert.toResponseForSecretIdentifiersResponse(response);
+    return handleResponse(Convert.toResponseForSecretIdentifiersResponse(response));
   }
 
   async update(
     id: string,
     key: string,
+    value: string,
     note: string,
+    projectIds: string[],
     organizationId: string,
-    value: string
-  ): Promise<ResponseForSecretResponse> {
+  ): Promise<SecretResponse> {
     const response = await this.client.run_command(
       Convert.commandToJson({
         secrets: {
-          update: { id, key, note, organizationId, value },
+          update: { id, key, value, note, projectIds, organizationId },
         },
-      })
+      }),
     );
 
-    return Convert.toResponseForSecretResponse(response);
+    return handleResponse(Convert.toResponseForSecretResponse(response));
   }
 
-  async delete(ids: string[]): Promise<ResponseForSecretsDeleteResponse> {
+  async delete(ids: string[]): Promise<SecretsDeleteResponse> {
     const response = await this.client.run_command(
       Convert.commandToJson({
         secrets: {
           delete: { ids },
         },
-      })
+      }),
     );
 
-    return Convert.toResponseForSecretsDeleteResponse(response);
+    return handleResponse(Convert.toResponseForSecretsDeleteResponse(response));
+  }
+}
+
+export class ProjectsClient {
+  client: BitwardenSDKClient;
+
+  constructor(client: BitwardenSDKClient) {
+    this.client = client;
+  }
+
+  async get(id: string): Promise<ProjectResponse> {
+    const response = await this.client.run_command(
+      Convert.commandToJson({
+        projects: {
+          get: { id },
+        },
+      }),
+    );
+
+    return handleResponse(Convert.toResponseForProjectResponse(response));
+  }
+
+  async create(name: string, organizationId: string): Promise<ProjectResponse> {
+    const response = await this.client.run_command(
+      Convert.commandToJson({
+        projects: {
+          create: { name, organizationId },
+        },
+      }),
+    );
+
+    return handleResponse(Convert.toResponseForProjectResponse(response));
+  }
+
+  async list(organizationId: string): Promise<ProjectsResponse> {
+    const response = await this.client.run_command(
+      Convert.commandToJson({
+        projects: {
+          list: { organizationId },
+        },
+      }),
+    );
+
+    return handleResponse(Convert.toResponseForProjectsResponse(response));
+  }
+
+  async update(id: string, name: string, organizationId: string): Promise<ProjectResponse> {
+    const response = await this.client.run_command(
+      Convert.commandToJson({
+        projects: {
+          update: { id, name, organizationId },
+        },
+      }),
+    );
+
+    return handleResponse(Convert.toResponseForProjectResponse(response));
+  }
+
+  async delete(ids: string[]): Promise<ProjectsDeleteResponse> {
+    const response = await this.client.run_command(
+      Convert.commandToJson({
+        projects: {
+          delete: { ids },
+        },
+      }),
+    );
+
+    return handleResponse(Convert.toResponseForProjectsDeleteResponse(response));
   }
 }

@@ -14,23 +14,23 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum MemberDecryptionType {
-    Variant0 = 0,
-    Variant1 = 1,
-    Variant2 = 2,
+    MasterPassword = 0,
+    KeyConnector = 1,
+    TrustedDeviceEncryption = 2,
 }
 
 impl ToString for MemberDecryptionType {
     fn to_string(&self) -> String {
         match self {
-            Self::Variant0 => String::from("0"),
-            Self::Variant1 => String::from("1"),
-            Self::Variant2 => String::from("2"),
+            Self::MasterPassword => String::from("0"),
+            Self::KeyConnector => String::from("1"),
+            Self::TrustedDeviceEncryption => String::from("2"),
         }
     }
 }
 
 impl Default for MemberDecryptionType {
     fn default() -> MemberDecryptionType {
-        Self::Variant0
+        Self::MasterPassword
     }
 }

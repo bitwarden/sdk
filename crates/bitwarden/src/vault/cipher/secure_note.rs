@@ -24,7 +24,7 @@ pub struct SecureNote {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SecureNoteView {
-    r#type: SecureNoteType,
+    pub(crate) r#type: SecureNoteType,
 }
 
 impl KeyEncryptable<SymmetricCryptoKey, SecureNote> for SecureNoteView {
@@ -56,7 +56,7 @@ impl TryFrom<CipherSecureNoteModel> for SecureNote {
 impl From<bitwarden_api_api::models::SecureNoteType> for SecureNoteType {
     fn from(model: bitwarden_api_api::models::SecureNoteType) -> Self {
         match model {
-            bitwarden_api_api::models::SecureNoteType::Variant0 => SecureNoteType::Generic,
+            bitwarden_api_api::models::SecureNoteType::Generic => SecureNoteType::Generic,
         }
     }
 }

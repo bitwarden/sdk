@@ -1,6 +1,8 @@
+use std::str::FromStr;
+
 use crate::{
-    error::Result, AsymmetricCryptoKey, AsymmetricEncString, EncString, KeyDecryptable,
-    KeyEncryptable, SymmetricCryptoKey, UserKey,
+    error::Result, AsymmetricCryptoKey, AsymmetricEncString, CryptoError, EncString,
+    KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
 };
 
 /// Device Key
@@ -11,8 +13,10 @@ use crate::{
 pub struct DeviceKey(SymmetricCryptoKey);
 
 #[derive(Debug)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct TrustDeviceResponse {
-    pub device_key: DeviceKey,
+    /// Base64 encoded device key
+    pub device_key: String,
     /// UserKey encrypted with DevicePublicKey
     pub protected_user_key: AsymmetricEncString,
     /// DevicePrivateKey encrypted with [DeviceKey]
@@ -47,7 +51,7 @@ impl DeviceKey {
             .encrypt_with_key(&device_key.0)?;
 
         Ok(TrustDeviceResponse {
-            device_key,
+            device_key: device_key.to_base64(),
             protected_user_key,
             protected_device_private_key,
             protected_device_public_key,
@@ -59,14 +63,27 @@ impl DeviceKey {
         &self,
         protected_device_private_key: EncString,
         protected_user_key: AsymmetricEncString,
-    ) -> Result<UserKey> {
+    ) -> Result<SymmetricCryptoKey> {
         let device_private_key: Vec<u8> = protected_device_private_key.decrypt_with_key(&self.0)?;
         let device_private_key = AsymmetricCryptoKey::from_der(device_private_key.as_slice())?;
 
-        let dec: Vec<u8> = protected_user_key.decrypt_with_key(&device_private_key)?;
-        let user_key: SymmetricCryptoKey = dec.as_slice().try_into()?;
+        let mut dec: Vec<u8> = protected_user_key.decrypt_with_key(&device_private_key)?;
+        let user_key: SymmetricCryptoKey = dec.as_mut_slice().try_into()?;
 
-        Ok(UserKey(user_key))
+        Ok(user_key)
+    }
+
+    fn to_base64(&self) -> String {
+        self.0.to_base64()
+    }
+}
+
+impl FromStr for DeviceKey {
+    type Err = CryptoError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let key = s.parse::<SymmetricCryptoKey>()?;
+        Ok(DeviceKey(key))
     }
 }
 
@@ -83,20 +100,22 @@ mod tests {
 
         let decrypted = result
             .device_key
+            .parse::<DeviceKey>()
+            .unwrap()
             .decrypt_user_key(
                 result.protected_device_private_key,
                 result.protected_user_key,
             )
             .unwrap();
 
-        assert_eq!(key.key, decrypted.0.key);
-        assert_eq!(key.mac_key, decrypted.0.mac_key);
+        assert_eq!(key.key, decrypted.key);
+        assert_eq!(key.mac_key, decrypted.mac_key);
     }
 
     #[test]
     fn test_decrypt_user_key() {
         // Example keys from desktop app
-        let user_key: &[u8] = &[
+        let user_key: &mut [u8] = &mut [
             109, 128, 172, 147, 206, 123, 134, 95, 16, 36, 155, 113, 201, 18, 186, 230, 216, 212,
             173, 188, 74, 11, 134, 131, 137, 242, 105, 178, 105, 126, 52, 139, 248, 91, 215, 21,
             128, 91, 226, 222, 165, 67, 251, 34, 83, 81, 77, 147, 225, 76, 13, 41, 102, 45, 183,
@@ -104,7 +123,7 @@ mod tests {
         ];
         let user_key = SymmetricCryptoKey::try_from(user_key).unwrap();
 
-        let key_data: &[u8] = &[
+        let key_data: &mut [u8] = &mut [
             114, 235, 60, 115, 172, 156, 203, 145, 195, 130, 215, 250, 88, 146, 215, 230, 12, 109,
             245, 222, 54, 217, 255, 211, 221, 105, 230, 236, 65, 52, 209, 133, 76, 208, 113, 254,
             194, 216, 156, 19, 230, 62, 32, 93, 87, 7, 144, 156, 117, 142, 250, 32, 182, 118, 187,
@@ -120,7 +139,7 @@ mod tests {
             .decrypt_user_key(protected_device_private_key, protected_user_key)
             .unwrap();
 
-        assert_eq!(decrypted.0.key, user_key.key);
-        assert_eq!(decrypted.0.mac_key, user_key.mac_key);
+        assert_eq!(decrypted.key, user_key.key);
+        assert_eq!(decrypted.mac_key, user_key.mac_key);
     }
 }

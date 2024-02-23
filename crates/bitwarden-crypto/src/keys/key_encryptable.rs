@@ -1,5 +1,7 @@
 use std::{collections::HashMap, hash::Hash};
 
+use rayon::prelude::*;
+
 use crate::error::Result;
 
 pub trait CryptoKey {}
@@ -44,37 +46,55 @@ impl<T: KeyDecryptable<Key, Output>, Key: CryptoKey, Output> KeyDecryptable<Key,
     }
 }
 
-impl<T: KeyEncryptable<Key, Output>, Key: CryptoKey, Output> KeyEncryptable<Key, Vec<Output>>
-    for Vec<T>
+impl<
+        T: KeyEncryptable<Key, Output> + Send + Sync,
+        Key: CryptoKey + Send + Sync,
+        Output: Send + Sync,
+    > KeyEncryptable<Key, Vec<Output>> for Vec<T>
 {
     fn encrypt_with_key(self, key: &Key) -> Result<Vec<Output>> {
-        self.into_iter().map(|e| e.encrypt_with_key(key)).collect()
+        self.into_par_iter()
+            .map(|e| e.encrypt_with_key(key))
+            .collect()
     }
 }
 
-impl<T: KeyDecryptable<Key, Output>, Key: CryptoKey, Output> KeyDecryptable<Key, Vec<Output>>
-    for Vec<T>
+impl<
+        T: KeyDecryptable<Key, Output> + Send + Sync,
+        Key: CryptoKey + Send + Sync,
+        Output: Send + Sync,
+    > KeyDecryptable<Key, Vec<Output>> for Vec<T>
 {
     fn decrypt_with_key(&self, key: &Key) -> Result<Vec<Output>> {
-        self.iter().map(|e| e.decrypt_with_key(key)).collect()
+        self.into_par_iter()
+            .map(|e| e.decrypt_with_key(key))
+            .collect()
     }
 }
 
-impl<T: KeyEncryptable<Key, Output>, Key: CryptoKey, Output, Id: Hash + Eq>
-    KeyEncryptable<Key, HashMap<Id, Output>> for HashMap<Id, T>
+impl<
+        T: KeyEncryptable<Key, Output> + Send + Sync,
+        Key: CryptoKey + Send + Sync,
+        Output: Send + Sync,
+        Id: Hash + Eq + Send + Sync,
+    > KeyEncryptable<Key, HashMap<Id, Output>> for HashMap<Id, T>
 {
     fn encrypt_with_key(self, key: &Key) -> Result<HashMap<Id, Output>> {
-        self.into_iter()
+        self.into_par_iter()
             .map(|(id, e)| Ok((id, e.encrypt_with_key(key)?)))
             .collect()
     }
 }
 
-impl<T: KeyDecryptable<Key, Output>, Key: CryptoKey, Output, Id: Hash + Eq + Copy>
-    KeyDecryptable<Key, HashMap<Id, Output>> for HashMap<Id, T>
+impl<
+        T: KeyDecryptable<Key, Output> + Send + Sync,
+        Key: CryptoKey + Send + Sync,
+        Output: Send + Sync,
+        Id: Hash + Eq + Copy + Send + Sync,
+    > KeyDecryptable<Key, HashMap<Id, Output>> for HashMap<Id, T>
 {
     fn decrypt_with_key(&self, key: &Key) -> Result<HashMap<Id, Output>> {
-        self.iter()
+        self.into_par_iter()
             .map(|(id, e)| Ok((*id, e.decrypt_with_key(key)?)))
             .collect()
     }

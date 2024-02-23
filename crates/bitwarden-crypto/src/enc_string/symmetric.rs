@@ -1,7 +1,8 @@
 use std::{fmt::Display, str::FromStr};
 
-use aes::cipher::{generic_array::GenericArray, typenum::U32};
+use aes::cipher::typenum::U32;
 use base64::{engine::general_purpose::STANDARD, Engine};
+use generic_array::GenericArray;
 use serde::Deserialize;
 
 use super::{check_length, from_b64, from_b64_vec, split_enc_string};
@@ -43,7 +44,7 @@ use crate::{
 /// - `[iv]`: (optional) is the initialization vector used for encryption.
 /// - `[data]`: is the encrypted data.
 /// - `[mac]`: (optional) is the MAC used to validate the integrity of the data.
-#[derive(Clone)]
+#[derive(Clone, zeroize::ZeroizeOnDrop)]
 #[allow(unused, non_camel_case_types)]
 pub enum EncString {
     /// 0
@@ -204,8 +205,8 @@ impl serde::Serialize for EncString {
 impl EncString {
     pub fn encrypt_aes256_hmac(
         data_dec: &[u8],
-        mac_key: GenericArray<u8, U32>,
-        key: GenericArray<u8, U32>,
+        mac_key: &GenericArray<u8, U32>,
+        key: &GenericArray<u8, U32>,
     ) -> Result<EncString> {
         let (iv, mac, data) = crate::aes::encrypt_aes256_hmac(data_dec, mac_key, key)?;
         Ok(EncString::AesCbc256_HmacSha256_B64 { iv, mac, data })
@@ -224,19 +225,37 @@ impl EncString {
 impl LocateKey for EncString {}
 impl KeyEncryptable<SymmetricCryptoKey, EncString> for &[u8] {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<EncString> {
-        EncString::encrypt_aes256_hmac(self, key.mac_key.ok_or(CryptoError::InvalidMac)?, key.key)
+        EncString::encrypt_aes256_hmac(
+            self,
+            key.mac_key.as_ref().ok_or(CryptoError::InvalidMac)?,
+            &key.key,
+        )
     }
 }
 
 impl KeyDecryptable<SymmetricCryptoKey, Vec<u8>> for EncString {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
         match self {
-            EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
-                let mac_key = key.mac_key.ok_or(CryptoError::InvalidMac)?;
-                let dec = crate::aes::decrypt_aes256_hmac(iv, mac, data.clone(), mac_key, key.key)?;
+            EncString::AesCbc256_B64 { iv, data } => {
+                let dec = crate::aes::decrypt_aes256(iv, data.clone(), &key.key)?;
                 Ok(dec)
             }
-            _ => Err(CryptoError::InvalidKey),
+            EncString::AesCbc128_HmacSha256_B64 { iv, mac, data } => {
+                // TODO: SymmetricCryptoKey is designed to handle 32 byte keys only, but this
+                // variant uses a 16 byte key This means the key+mac are going to be
+                // parsed as a single 32 byte key, at the moment we split it manually
+                // When refactoring the key handling, this should be fixed.
+                let enc_key = key.key[0..16].into();
+                let mac_key = key.key[16..32].into();
+                let dec = crate::aes::decrypt_aes128_hmac(iv, mac, data.clone(), mac_key, enc_key)?;
+                Ok(dec)
+            }
+            EncString::AesCbc256_HmacSha256_B64 { iv, mac, data } => {
+                let mac_key = key.mac_key.as_ref().ok_or(CryptoError::InvalidMac)?;
+                let dec =
+                    crate::aes::decrypt_aes256_hmac(iv, mac, data.clone(), mac_key, &key.key)?;
+                Ok(dec)
+            }
         }
     }
 }
@@ -268,8 +287,10 @@ impl schemars::JsonSchema for EncString {
 
 #[cfg(test)]
 mod tests {
+    use schemars::schema_for;
+
     use super::EncString;
-    use crate::{derive_symmetric_key, KeyDecryptable, KeyEncryptable};
+    use crate::{derive_symmetric_key, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
 
     #[test]
     fn test_enc_string_roundtrip() {
@@ -318,5 +339,109 @@ mod tests {
         let enc_string_new = EncString::from_buffer(&enc_buf).unwrap();
 
         assert_eq!(enc_string_new.to_string(), enc_str)
+    }
+
+    #[test]
+    fn test_from_str_cbc256() {
+        let enc_str = "0.pMS6/icTQABtulw52pq2lg==|XXbxKxDTh+mWiN1HjH2N1w==";
+        let enc_string: EncString = enc_str.parse().unwrap();
+
+        assert_eq!(enc_string.enc_type(), 0);
+        if let EncString::AesCbc256_B64 { iv, data } = &enc_string {
+            assert_eq!(
+                iv,
+                &[164, 196, 186, 254, 39, 19, 64, 0, 109, 186, 92, 57, 218, 154, 182, 150]
+            );
+            assert_eq!(
+                data,
+                &[93, 118, 241, 43, 16, 211, 135, 233, 150, 136, 221, 71, 140, 125, 141, 215]
+            );
+        } else {
+            panic!("Invalid variant")
+        };
+    }
+
+    #[test]
+    fn test_from_str_cbc128_hmac() {
+        let enc_str = "1.Hh8gISIjJCUmJygpKissLQ==|MjM0NTY3ODk6Ozw9Pj9AQUJDREU=|KCkqKywtLi8wMTIzNDU2Nzg5Ojs8PT4/QEFCQ0RFRkc=";
+        let enc_string: EncString = enc_str.parse().unwrap();
+
+        assert_eq!(enc_string.enc_type(), 1);
+        if let EncString::AesCbc128_HmacSha256_B64 { iv, mac, data } = &enc_string {
+            assert_eq!(
+                iv,
+                &[30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45]
+            );
+            assert_eq!(
+                mac,
+                &[
+                    40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
+                    60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71
+                ]
+            );
+            assert_eq!(
+                data,
+                &[50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69]
+            );
+        } else {
+            panic!("Invalid variant")
+        };
+    }
+
+    #[test]
+    fn test_decrypt_cbc256() {
+        let key = "hvBMMb1t79YssFZkpetYsM3deyVuQv4r88Uj9gvYe08=";
+        let key: SymmetricCryptoKey = key.parse().unwrap();
+
+        let enc_str = "0.NQfjHLr6za7VQVAbrpL81w==|wfrjmyJ0bfwkQlySrhw8dA==";
+        let enc_string: EncString = enc_str.parse().unwrap();
+        assert_eq!(enc_string.enc_type(), 0);
+
+        let dec_str: String = enc_string.decrypt_with_key(&key).unwrap();
+        assert_eq!(dec_str, "EncryptMe!");
+    }
+
+    #[test]
+    fn test_decrypt_cbc128_hmac() {
+        let key = "Gt1aZ8kTTgkF80bLtb7LiMZBcxEA2FA5mbvV4x7K208=";
+        let key: SymmetricCryptoKey = key.parse().unwrap();
+
+        let enc_str = "1.CU/oG4VZuxbHoZSDZjCLQw==|kb1HGwAk+fQ275ORfLf5Ew==|8UaEYHyqRZcG37JWhYBOBdEatEXd1u1/wN7OuImolcM=";
+        let enc_string: EncString = enc_str.parse().unwrap();
+        assert_eq!(enc_string.enc_type(), 1);
+
+        let dec_str: String = enc_string.decrypt_with_key(&key).unwrap();
+        assert_eq!(dec_str, "EncryptMe!");
+    }
+
+    #[test]
+    fn test_from_str_invalid() {
+        let enc_str = "7.ABC";
+        let enc_string: Result<EncString, _> = enc_str.parse();
+
+        let err = enc_string.unwrap_err();
+        assert_eq!(
+            err.to_string(),
+            "EncString error, Invalid symmetric type, got type 7 with 1 parts"
+        );
+    }
+
+    #[test]
+    fn test_debug_format() {
+        let enc_str  = "2.pMS6/icTQABtulw52pq2lg==|XXbxKxDTh+mWiN1HjH2N1w==|Q6PkuT+KX/axrgN9ubD5Ajk2YNwxQkgs3WJM0S0wtG8=";
+        let enc_string: EncString = enc_str.parse().unwrap();
+
+        let debug_string = format!("{:?}", enc_string);
+        assert_eq!(debug_string, "EncString");
+    }
+
+    #[test]
+    fn test_json_schema() {
+        let schema = schema_for!(EncString);
+
+        assert_eq!(
+            serde_json::to_string(&schema).unwrap(),
+            r#"{"$schema":"http://json-schema.org/draft-07/schema#","title":"EncString","type":"string"}"#
+        );
     }
 }

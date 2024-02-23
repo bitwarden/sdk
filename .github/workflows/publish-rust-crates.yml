@@ -149,7 +149,7 @@ jobs:
 
       - name: Create GitHub deployment
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
-        uses: chrnorm/deployment-action@d42cde7132fcec920de534fffc3be83794335c00 # v2.0.5
+        uses: chrnorm/deployment-action@55729fcebec3d284f60f5bcabbd8376437d696b1 # v2.0.7
         id: deployment
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"

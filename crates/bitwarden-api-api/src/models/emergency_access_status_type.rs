@@ -14,27 +14,27 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum EmergencyAccessStatusType {
-    Variant0 = 0,
-    Variant1 = 1,
-    Variant2 = 2,
-    Variant3 = 3,
-    Variant4 = 4,
+    Invited = 0,
+    Accepted = 1,
+    Confirmed = 2,
+    RecoveryInitiated = 3,
+    RecoveryApproved = 4,
 }
 
 impl ToString for EmergencyAccessStatusType {
     fn to_string(&self) -> String {
         match self {
-            Self::Variant0 => String::from("0"),
-            Self::Variant1 => String::from("1"),
-            Self::Variant2 => String::from("2"),
-            Self::Variant3 => String::from("3"),
-            Self::Variant4 => String::from("4"),
+            Self::Invited => String::from("0"),
+            Self::Accepted => String::from("1"),
+            Self::Confirmed => String::from("2"),
+            Self::RecoveryInitiated => String::from("3"),
+            Self::RecoveryApproved => String::from("4"),
         }
     }
 }
 
 impl Default for EmergencyAccessStatusType {
     fn default() -> EmergencyAccessStatusType {
-        Self::Variant0
+        Self::Invited
     }
 }

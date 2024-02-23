@@ -13,12 +13,12 @@ impl BitwardenClient {
     }
 
     #[pyo3(text_signature = "($self, command_input)")]
-    fn run_command(&mut self, command_input: String) -> String {
-        run_command(&mut self.0, &command_input)
+    fn run_command(&self, command_input: String) -> String {
+        run_command(&self.0, &command_input)
     }
 }
 
 #[tokio::main]
-async fn run_command(client: &mut JsonClient, input_str: &str) -> String {
+async fn run_command(client: &JsonClient, input_str: &str) -> String {
     client.run_command(input_str).await
 }

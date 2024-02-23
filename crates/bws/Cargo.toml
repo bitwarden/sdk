@@ -13,6 +13,7 @@ Bitwarden Secrets Manager CLI
 keywords = ["bitwarden", "secrets-manager", "cli"]
 
 [dependencies]
+atty = "0.2.14"
 bat = { version = "0.24.0", features = [
     "regex-onig",
 ], default-features = false }

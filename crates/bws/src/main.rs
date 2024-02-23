@@ -1,3 +1,4 @@
+use atty::Stream;
 use std::{io::Read, path::PathBuf, process, str::FromStr};
 
 use bitwarden::{
@@ -638,6 +639,25 @@ async fn process_commands() -> Result<()> {
             no_inherit_env,
             project_id,
         } => {
+            let user_command = if command.is_empty() {
+                if atty::is(Stream::Stdin) {
+                    eprintln!("{}", Cli::command().render_help().ansi());
+                    std::process::exit(1);
+                }
+
+                let mut buffer = String::new();
+                std::io::stdin().read_to_string(&mut buffer)?;
+                buffer
+            } else {
+                command.join(" ")
+            };
+
+            if user_command.is_empty() {
+                let mut cmd = Cli::command();
+                eprintln!("{}", cmd.render_help().ansi());
+                std::process::exit(1);
+            }
+
             let res = if let Some(project_id) = project_id {
                 client
                     .secrets()

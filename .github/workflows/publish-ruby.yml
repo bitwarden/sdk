@@ -15,7 +15,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
   id-token: write
 
 jobs:
@@ -108,8 +107,8 @@ jobs:
             cp "temp/${platforms[$i]}/${files[$i]}" "languages/ruby/bitwarden_sdk_secrets/lib/${platforms[$i]}/${files[$i]}"
           done
 
-      - name: Build gem
-        run: gem build bitwarden-sdk-secrets.gemspec
+      - name: bundle install
+        run: bundle install
         working-directory: languages/ruby/bitwarden_sdk_secrets
 
       - name: Set remote URL

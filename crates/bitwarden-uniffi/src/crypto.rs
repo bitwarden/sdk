@@ -3,7 +3,7 @@ use std::sync::Arc;
 use bitwarden::mobile::crypto::{
     DerivePinKeyResponse, InitOrgCryptoRequest, InitUserCryptoRequest, UpdatePasswordResponse,
 };
-use bitwarden_crypto::EncString;
+use bitwarden_crypto::{AsymmetricEncString, EncString};
 
 use crate::{error::Result, Client};
 
@@ -82,5 +82,18 @@ impl ClientCrypto {
             .crypto()
             .derive_pin_user_key(encrypted_pin)
             .await?)
+    }
+
+    pub async fn enroll_admin_password_reset(
+        &self,
+        public_key: String,
+    ) -> Result<AsymmetricEncString> {
+        Ok(self
+            .0
+             .0
+            .write()
+            .await
+            .crypto()
+            .enroll_admin_password_reset(public_key)?)
     }
 }

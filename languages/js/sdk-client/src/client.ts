@@ -26,6 +26,20 @@ export class BitwardenClient {
     this.client = client;
   }
 
+  async fingerprint(fingerprintMaterial: string, publicKey: string): Promise<string> {
+    const response = await this.client.run_command(
+
+      Convert.commandToJson({
+        fingerprint: {
+          fingerprintMaterial: fingerprintMaterial,
+          publicKey: publicKey,
+        }
+      })
+    )
+
+    return Convert.toResponseForFingerprintResponse(response).data.fingerprint;
+  };
+
   async accessTokenLogin(accessToken: string): Promise<void> {
     const response = await this.client.run_command(
       Convert.commandToJson({

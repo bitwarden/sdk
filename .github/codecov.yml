@@ -1,3 +1,9 @@
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+
 ignore:
   - "crates/sdk-schemas" # Tool
   - "crates/uniffi-bindgen" # Tool

@@ -486,6 +486,7 @@ mod tests {
         use std::{num::NonZeroU32, ops::Deref};
 
         use base64::{engine::general_purpose::STANDARD, Engine};
+        use bitwarden_crypto::AsymmetricCryptoKey;
 
         let mut client = Client::new(None);
         client.set_login_method(LoginMethod::User(UserLoginMethod::Username {

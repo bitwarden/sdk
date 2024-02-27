@@ -41,7 +41,6 @@ impl Default for ClientSettings {
     }
 }
 
-#[allow(non_camel_case_types)]
 #[derive(Serialize, Deserialize, Copy, Clone, Debug, JsonSchema)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum DeviceType {

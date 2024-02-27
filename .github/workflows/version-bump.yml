@@ -19,6 +19,7 @@ on:
           - cli
           - napi
           - python-sdk
+          - go-sdk
       version_number:
         description: "New version (example: '2024.1.0')"
         required: true
@@ -149,6 +150,11 @@ jobs:
         run: |
           sed -i 's/version = "[0-9]\.[0-9]\.[0-9]"/version = "${{ inputs.version_number }}"/' ./languages/python/pyproject.toml
           sed -i 's/__version__ = "[0-9]\.[0-9]\.[0-9]"/__version__ = "${{ inputs.version_number }}"/' ./languages/python/bitwarden_sdk/__init__.py
+
+      ### go
+      - name: Bump go-sdk Version
+        if: ${{ inputs.project == 'go-sdk' }}
+        run: sed -i 's/[0-9]\.[0-9]\.[0-9]/${{ inputs.version_number }}/' ./languages/go/.version
 
       ############################
       # VERSION BUMP SECTION END #

@@ -1,23 +1,44 @@
 name: Publish Ruby SDK
+run-name: Publish Ruby SDK ${{ inputs.release_type }}
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Release Options"
+        required: true
+        default: "Release"
+        type: choice
+        options:
+          - Release
+          - Dry Run
+
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
-  generate_schemas:
-    uses: ./.github/workflows/generate_schemas.yml
-
-  build_rust:
-    uses: ./.github/workflows/build-rust-cross-platform.yml
-
-  build_ruby:
-    name: Build Ruby
+  setup:
+    name: Setup
     runs-on: ubuntu-22.04
-    needs:
-      - generate_schemas
-      - build_rust
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Branch check
+        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/rc" ]] && [[ "$GITHUB_REF" != "refs/heads/hotfix-rc" ]]; then
+            echo "==================================="
+            echo "[!] Can only release from the 'rc' or 'hotfix-rc' branches"
+            echo "==================================="
+            exit 1
+          fi
+
+  publish_ruby:
+    name: Publish Ruby
+    runs-on: ubuntu-22.04
+    needs: setup
     steps:
       - name: Checkout Repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -27,54 +48,84 @@ jobs:
         with:
           ruby-version: 3.2
 
-      - name: Download Ruby schemas artifact
-        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
+      - name: Download artifacts
+        uses: bitwarden/gh-actions/download-artifacts@main
         with:
-          name: schemas.rb
-          path: languages/ruby/bitwarden_sdk/lib
+          workflow: generate_schemas.yml
+          path: languages/ruby/bitwarden_sdk_secrets/lib
+          workflow_conclusion: success
+          branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          artifacts: schemas.rb
 
-      - name: Download x86_64-apple-darwin files
-        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
+      - name: Download x86_64-apple-darwin artifact
+        uses: bitwarden/gh-actions/download-artifacts@main
         with:
-          name: libbitwarden_c_files-x86_64-apple-darwin
+          workflow: build-rust-cross-platform.yml
           path: temp/macos-x64
+          workflow_conclusion: success
+          branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          artifacts: libbitwarden_c_files-x86_64-apple-darwin
 
-      - name: Download aarch64-apple-darwin files
-        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
+      - name: Download aarch64-apple-darwin artifact
+        uses: bitwarden/gh-actions/download-artifacts@main
         with:
-          name: libbitwarden_c_files-aarch64-apple-darwin
+          workflow: build-rust-cross-platform.yml
+          workflow_conclusion: success
+          branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          artifacts: libbitwarden_c_files-aarch64-apple-darwin
           path: temp/macos-arm64
 
-      - name: Download x86_64-unknown-linux-gnu files
-        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
+      - name: Download x86_64-unknown-linux-gnu artifact
+        uses: bitwarden/gh-actions/download-artifacts@main
         with:
-          name: libbitwarden_c_files-x86_64-unknown-linux-gnu
+          workflow: build-rust-cross-platform.yml
+          workflow_conclusion: success
+          branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          artifacts: libbitwarden_c_files-x86_64-unknown-linux-gnu
           path: temp/linux-x64
 
-      - name: Download x86_64-pc-windows-msvc files
-        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
+      - name: Download x86_64-pc-windows-msvc artifact
+        uses: bitwarden/gh-actions/download-artifacts@main
         with:
-          name: libbitwarden_c_files-x86_64-pc-windows-msvc
+          workflow: build-rust-cross-platform.yml
+          workflow_conclusion: success
+          branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          artifacts: libbitwarden_c_files-x86_64-pc-windows-msvc
           path: temp/windows-x64
 
       - name: Copy lib files
         run: |
-          mkdir -p languages/ruby/bitwarden_sdk/lib/macos-arm64
-          mkdir -p languages/ruby/bitwarden_sdk/lib/linux-x64
-          mkdir -p languages/ruby/bitwarden_sdk/lib/macos-x64
-          mkdir -p languages/ruby/bitwarden_sdk/lib/windows-x64
+          mkdir -p languages/ruby/bitwarden_sdk_secrets/lib/macos-arm64
+          mkdir -p languages/ruby/bitwarden_sdk_secrets/lib/linux-x64
+          mkdir -p languages/ruby/bitwarden_sdk_secrets/lib/macos-x64
+          mkdir -p languages/ruby/bitwarden_sdk_secrets/lib/windows-x64
 
           platforms=("macos-arm64" "linux-x64" "macos-x64" "windows-x64")
           files=("libbitwarden_c.dylib" "libbitwarden_c.so" "libbitwarden_c.dylib" "bitwarden_c.dll")
 
           for ((i=0; i<${#platforms[@]}; i++)); do
-            cp "temp/${platforms[$i]}/${files[$i]}" "languages/ruby/bitwarden_sdk/lib/${platforms[$i]}/${files[$i]}"
+            cp "temp/${platforms[$i]}/${files[$i]}" "languages/ruby/bitwarden_sdk_secrets/lib/${platforms[$i]}/${files[$i]}"
           done
-        shell: bash
+
+      - name: Login to Azure
+        uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
+        with:
+          creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
+
+      - name: Retrieve secrets
+        id: retrieve-secrets
+        uses: bitwarden/gh-actions/get-keyvault-secrets@main
+        with:
+          keyvault: "bitwarden-ci"
+          secrets: "rubygem-api-key"
+
+      - name: bundle install
+        run: bundle install
+        working-directory: languages/ruby/bitwarden_sdk_secrets
 
       - name: Build gem
-        run: gem build bitwarden-sdk.gemspec
-        working-directory: languages/ruby/bitwarden_sdk
+        run: gem build bitwarden-sdk-secrets.gemspec
+        working-directory: languages/ruby/bitwarden_sdk_secrets
 
       - name: Push gem to Rubygems
         run: |
@@ -84,5 +135,5 @@ jobs:
           printf -- "---\n:rubygems_api_key: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
           gem push *.gem
         env:
-          GEM_HOST_API_KEY: ${{ secrets.GEM_HOST_API_KEY }}
-        working-directory: languages/ruby/bitwarden_sdk
+          GEM_HOST_API_KEY: ${{ steps.retrieve-secrets.outputs.rubygem-api-key }}
+        working-directory: languages/ruby/bitwarden_sdk_secrets

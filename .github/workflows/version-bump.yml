@@ -19,6 +19,7 @@ on:
           - cli
           - napi
           - python-sdk
+          - ruby-sdk
           - go-sdk
       version_number:
         description: "New version (example: '2024.1.0')"
@@ -151,7 +152,12 @@ jobs:
           sed -i 's/version = "[0-9]\.[0-9]\.[0-9]"/version = "${{ inputs.version_number }}"/' ./languages/python/pyproject.toml
           sed -i 's/__version__ = "[0-9]\.[0-9]\.[0-9]"/__version__ = "${{ inputs.version_number }}"/' ./languages/python/bitwarden_sdk/__init__.py
 
-      ### go
+      ### ruby sdk
+      - name: Bump ruby-sdk Version
+        if: ${{ inputs.project == 'ruby-sdk' }}
+        run: sed -i "s/VERSION = '[0-9]\.[0-9]\.[0-9]'/VERSION = '${{ inputs.version_number }}'/" ./languages/ruby/bitwarden_sdk_secrets/lib/version.rb
+
+      ### go sdk
       - name: Bump go-sdk Version
         if: ${{ inputs.project == 'go-sdk' }}
         run: sed -i 's/[0-9]\.[0-9]\.[0-9]/${{ inputs.version_number }}/' ./languages/go/.version

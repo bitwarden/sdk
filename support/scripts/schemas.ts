@@ -60,7 +60,7 @@ async function main() {
     },
   });
 
-  writeToFile("./languages/ruby/bitwarden_sdk/lib/schemas.rb", ruby.lines);
+  writeToFile("./languages/ruby/bitwarden_sdk_secrets/lib/schemas.rb", ruby.lines);
 
   const csharp = await quicktype({
     inputData,

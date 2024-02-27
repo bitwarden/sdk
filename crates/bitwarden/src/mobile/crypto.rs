@@ -297,7 +297,7 @@ pub(super) fn enroll_admin_password_reset(
     let public_key = AsymmetricPublicCryptoKey::from_der(&STANDARD.decode(public_key)?)?;
     let enc = client.get_encryption_settings()?;
 
-    // Comments
+    // Some comments
 
     let key = enc.get_key(&None);
     let key = key.ok_or(Error::VaultLocked)?;

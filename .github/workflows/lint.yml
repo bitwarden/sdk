@@ -53,7 +53,16 @@ jobs:
         env:
           RUSTDOCFLAGS: "-D warnings"
 
+      - name: Install clippy-sarif and sarif-fmt
+        run: cargo install clippy-sarif sarif-fmt --locked --git https://github.com/psastras/sarif-rs.git --rev 11c33a53f6ffeaed736856b86fb6b7b09fabdfd8
+
       - name: Cargo clippy
-        run: cargo clippy --all-features --tests
+        run: cargo clippy --all-features --tests --message-format=json |
+          clippy-sarif | tee clippy_result.sarif | sarif-fmt
         env:
           RUSTFLAGS: "-D warnings"
+
+      - name: Upload Clippy results to GitHub
+        uses: github/codeql-action/upload-sarif@47b3d888fe66b639e431abf22ebca059152f1eea # v3.24.5
+        with:
+          sarif_file: clippy_result.sarif

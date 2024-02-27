@@ -5,7 +5,7 @@ on:
       - rc
       - hotfix-rc
 
-
+  pull_request:
 
 jobs:
   build:

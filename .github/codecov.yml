@@ -1,6 +1,7 @@
 coverage:
   status:
-    patch: off
+    patch:
+      informational: true
 
 ignore:
   - "crates/sdk-schemas" # Tool

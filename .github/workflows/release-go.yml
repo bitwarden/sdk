@@ -3,9 +3,14 @@ name: Release Go
 on:
   workflow_dispatch:
     inputs:
-      version_number:
-        description: "New Version"
+      release_type:
+        description: "Release Options"
         required: true
+        default: "Release"
+        type: choice
+        options:
+          - Release
+          - Dry Run
 
 env:
   GO111MODULE: on

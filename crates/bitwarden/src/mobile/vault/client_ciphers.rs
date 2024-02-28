@@ -1,8 +1,8 @@
-use bitwarden_crypto::{Decryptable, Encryptable};
+use bitwarden_crypto::{Decryptable, Encryptable, LocateKey};
 
 use super::client_vault::ClientVault;
 use crate::{
-    error::Result,
+    error::{Error, Result},
     vault::{Cipher, CipherListView, CipherView},
     Client,
 };
@@ -12,8 +12,15 @@ pub struct ClientCiphers<'a> {
 }
 
 impl<'a> ClientCiphers<'a> {
-    pub async fn encrypt(&self, cipher_view: CipherView) -> Result<Cipher> {
+    pub async fn encrypt(&self, mut cipher_view: CipherView) -> Result<Cipher> {
         let enc = self.client.get_encryption_settings()?;
+
+        if cipher_view.key.is_none() && self.client.get_flags().enable_cipher_key_encryption {
+            let key = cipher_view
+                .locate_key(enc, &None)
+                .ok_or(Error::VaultLocked)?;
+            cipher_view.generate_cipher_key(key)?;
+        }
 
         let cipher = cipher_view.encrypt(enc, &None)?;
 

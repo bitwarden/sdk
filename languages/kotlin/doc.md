@@ -46,6 +46,16 @@ Generator operations
 
 **Output**: Arc<ClientGenerators>
 
+### `exporters`
+
+Exporters
+
+**Arguments**:
+
+- self: Arc<Self>
+
+**Output**: Arc<ClientExporters>
+
 ### `auth`
 
 Auth operations
@@ -137,6 +147,23 @@ password, use the email OTP.
 - password_hash: String
 
 **Output**: std::result::Result<,BitwardenError>
+
+### `validate_password_user_key`
+
+Validate the user password without knowing the password hash
+
+Used for accounts that we know have master passwords but that have not logged in with a password.
+Some example are login with device or TDE.
+
+This works by comparing the provided password against the encrypted user key.
+
+**Arguments**:
+
+- self:
+- password: String
+- encrypted_user_key: String
+
+**Output**: std::result::Result<String,BitwardenError>
 
 ### `new_auth_request`
 
@@ -493,6 +520,17 @@ Fingerprint using logged in user&#x27;s public key
 - fingerprint_material: String
 
 **Output**: std::result::Result<String,BitwardenError>
+
+### `load_flags`
+
+Load feature flags into the client
+
+**Arguments**:
+
+- self:
+- flags: std::collections::HashMap<String,>
+
+**Output**: std::result::Result<,BitwardenError>
 
 ## ClientSends
 
@@ -1283,6 +1321,37 @@ implementations.
                 <td>method</td>
                 <td></td>
                 <td></td>
+            </tr>
+        </table>
+    </td>
+</tr>
+<tr>
+    <th>deviceKey</th>
+    <th>object</th>
+    <th></th>
+</tr>
+<tr>
+    <td colspan="3">
+        <table>
+        <tr>
+            <th>Key</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+            <tr>
+                <td>device_key</td>
+                <td>string</td>
+                <td>The device's DeviceKey</td>
+            </tr>
+            <tr>
+                <td>protected_device_private_key</td>
+                <td></td>
+                <td>The Device Private Key</td>
+            </tr>
+            <tr>
+                <td>device_protected_user_key</td>
+                <td></td>
+                <td>The user's symmetric crypto key, encrypted with the Device Key.</td>
             </tr>
         </table>
     </td>

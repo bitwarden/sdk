@@ -7,12 +7,13 @@ on:
 
   pull_request:
 
+env:
+  GO111MODULE: on
+  GO_VERSION: "^1.18"
+
 jobs:
   build:
     name: Build
-    needs:
-      - build_rust
-      - generate-schemas
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout Repository

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# Usage: ./build.sh [--release]
+
 check_command() {
   if ! command -v "$1" &>/dev/null; then
     printf '%s\n' "$1 is required to build locally. Please install $2."
@@ -19,7 +21,13 @@ printf '%s\n\n' "Cleaning old builds..."
 rm -f languages/go/example/example && rm -rf "$GO_LIB_DIR"
 
 printf '%s\n\n' "Building binaries..."
-cargo build
+
+if [ "$1" = "--release" ]; then
+  cargo build --release
+else
+  cargo build
+fi
+
 npm i && npm run schemas
 
 printf '%s\n\n' "Copying Go bindings to $GO_LIB_DIR..."

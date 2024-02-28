@@ -40,6 +40,18 @@ export class BitwardenClient {
     return Convert.toResponseForFingerprintResponse(response).data.fingerprint;
   };
 
+  async client_get_assertion(): Promise<string> {
+    const response = await this.client.run_command(
+      Convert.commandToJson({
+        fido2ClientGetAssertion: {
+          webauthnJson: ""
+        },
+      })
+    );
+
+    return response;
+  }
+
   async accessTokenLogin(accessToken: string): Promise<void> {
     const response = await this.client.run_command(
       Convert.commandToJson({

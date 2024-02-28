@@ -63,6 +63,11 @@ impl Client {
             #[cfg(feature = "internal")]
             Command::Fingerprint(req) => client.platform().fingerprint(&req).into_string(),
 
+            #[cfg(feature = "internal")]
+            Command::Fido2ClientGetAssertion(req) => {
+                client.platform().client_get_assertion(req).into_string()
+            }
+
             #[cfg(feature = "secrets")]
             Command::Secrets(cmd) => match cmd {
                 SecretsCommand::Get(req) => client.secrets().get(&req).await.into_string(),

@@ -9,6 +9,7 @@ rm $OUTPUT_DIR/*
 
 if [ "$1" = "no-docker" ]; then
     cargo build -p memory-testing
+    # This specifically needs to run as root to be able to capture core dumps
     sudo python3 ./crates/memory-testing/capture_dumps.py ./target/debug/memory-testing $OUTPUT_DIR
 else
     docker build -f crates/memory-testing/Dockerfile -t bitwarden/memory-testing .

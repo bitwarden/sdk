@@ -8,14 +8,15 @@ COPY . /app
 
 # Build project
 WORKDIR /app
-RUN ls -la /
 RUN cargo build -p memory-testing
-# RUN cargo build -p memory-testing --release
 
 ###############################################
 #                  App stage                  #
 ###############################################
 FROM debian:bookworm-slim
+
+# This specifically needs to run as root to be able to capture core dumps
+USER root
 
 RUN apt-get update && apt-get install -y --no-install-recommends python3 gdb && apt-get clean && rm -rf /var/lib/apt/lists/*
 

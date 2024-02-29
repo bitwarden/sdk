@@ -1,0 +1,8 @@
+[package]
+name = "memory-testing"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+bitwarden-crypto = { path = "../bitwarden-crypto", version = "=0.1.0" }

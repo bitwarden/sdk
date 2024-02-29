@@ -187,6 +187,16 @@ Approve an auth request
 
 **Output**: std::result::Result<AsymmetricEncString,BitwardenError>
 
+### `trust_device`
+
+Trust the current device
+
+**Arguments**:
+
+- self:
+
+**Output**: std::result::Result<TrustDeviceResponse,BitwardenError>
+
 ## ClientAttachments
 
 ### `encrypt_buffer`

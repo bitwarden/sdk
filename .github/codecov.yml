@@ -1,8 +1,3 @@
-coverage:
-  status:
-    patch:
-      informational: true
-
 ignore:
   - "crates/sdk-schemas" # Tool
   - "crates/uniffi-bindgen" # Tool

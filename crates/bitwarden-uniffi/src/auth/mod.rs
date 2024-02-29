@@ -130,7 +130,7 @@ impl ClientAuth {
     }
 
     /// Trust the current device
-    pub async fn t(&self) -> Result<TrustDeviceResponse> {
+    pub async fn trust_device(&self) -> Result<TrustDeviceResponse> {
         Ok(self.0 .0.write().await.auth().trust_device()?)
     }
 }

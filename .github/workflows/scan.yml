@@ -21,6 +21,8 @@ jobs:
     steps:
       - name: Check out repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 0
 
       - name: Scan with Checkmarx
         uses: checkmarx/ast-github-action@749fec53e0db0f6404a97e2e0807c3e80e3583a7 #2.0.23

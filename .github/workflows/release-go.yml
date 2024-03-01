@@ -150,4 +150,5 @@ jobs:
           body: "<insert release notes here>"
           token: ${{ steps.retrieve-secrets.outputs.github-pat-bitwarden-devops-bot-repo-scope }}
           draft: true
-          repo: bitwarden/sm-sdk-go
+          repo: sm-sdk-go
+          owner: bitwarden

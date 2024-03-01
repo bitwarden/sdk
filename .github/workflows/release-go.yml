@@ -175,7 +175,7 @@ jobs:
           # fi
 
       - name: Create release tag on SDK Go repo
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        # if: ${{ github.event.inputs.release_type != 'Dry Run' }}
         working-directory: sm-sdk-go
         run: |
           # Check if tag exists, set output then exit 0 if true.

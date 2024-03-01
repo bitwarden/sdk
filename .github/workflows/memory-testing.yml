@@ -20,35 +20,28 @@ defaults:
     shell: bash
 
 jobs:
-  msrv:
-    name: Memory Testing for - ${{ matrix.settings.os }} - ${{ matrix.settings.target }}
-    runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        settings:
-          - os: ubuntu-22.04
-            target: x86_64-unknown-linux-gnu
+  memory-test:
+    name: Memory Testing
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
-      - name: Set up python & gdb
+      - name: Set up gdb
         run: |
           sudo apt update
-          sudo apt -y install python3 gdb
+          sudo apt -y install gdb
 
       - name: Install rust
         uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248 # stable
         with:
           toolchain: stable
-          targets: ${{ matrix.settings.target }}
 
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
         with:
-          key: memtest-${{ matrix.settings.target }}-cargo-${{ matrix.settings.os }}
+          key: memtest-cargo
 
       - name: Memory Testing
         run: ./crates/memory-testing/run_test.sh no-docker

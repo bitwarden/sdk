@@ -3,12 +3,17 @@ name: Memory Testing
 
 on:
   pull_request:
+    paths:
+      - "crates/bitwarden-crypto/**"
+      - "crates/memory-testing/**"
   push:
+    paths:
+      - "crates/bitwarden-crypto/**"
+      - "crates/memory-testing/**"
     branches:
       - "main"
       - "rc"
       - "hotfix-rc"
-  workflow_dispatch:
 
 defaults:
   run:

@@ -13,7 +13,8 @@ pub fn load_cases(base_dir: &Path) -> Cases {
     cases
 }
 
-// Note: We don't actively zeroize these structs here because we want the code in bitwarden_crypto to handle it for us
+// Note: We don't actively zeroize these structs here because we want the code in bitwarden_crypto
+// to handle it for us
 #[derive(serde::Deserialize)]
 pub struct Cases {
     pub symmetric_key: Vec<SymmetricKeyCases>,

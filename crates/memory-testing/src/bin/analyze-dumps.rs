@@ -115,7 +115,8 @@ fn main() -> io::Result<()> {
             mac_final_pos.is_empty(),
         );
 
-        // TODO: At the moment we are not zeroizing the base64 key in from_str, so this test is ignored
+        // TODO: At the moment we are not zeroizing the base64 key in from_str, so this test is
+        // ignored
         add_row(
             &mut table,
             format!("Symm. Key in Base64, case {}", idx),

@@ -531,6 +531,17 @@ Fingerprint using logged in user&#x27;s public key
 
 **Output**: std::result::Result<String,BitwardenError>
 
+### `load_flags`
+
+Load feature flags into the client
+
+**Arguments**:
+
+- self:
+- flags: std::collections::HashMap<String,>
+
+**Output**: std::result::Result<,BitwardenError>
+
 ## ClientSends
 
 ### `encrypt`

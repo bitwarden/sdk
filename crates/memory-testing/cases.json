@@ -1,10 +1,9 @@
 {
-    "symmetric_key": [
-        {
-            "key": "FfhVVP8fmFIZY1WmRszPmRmVCxXNWVcJffPrbkywTPtBNkgfhYGT+D9sVGizYXrPffuj2yoyWqMwF9iF5aMQhQ==",
-            "decrypted_key_hex": "15f85554ff1f9852196355a646cccf9919950b15cd5957097df3eb6e4cb04cfb",
-            "decrypted_mac_hex": "4136481f858193f83f6c5468b3617acf7dfba3db2a325aa33017d885e5a31085"
-        }
-        
-    ]
+  "symmetric_key": [
+    {
+      "key": "FfhVVP8fmFIZY1WmRszPmRmVCxXNWVcJffPrbkywTPtBNkgfhYGT+D9sVGizYXrPffuj2yoyWqMwF9iF5aMQhQ==",
+      "decrypted_key_hex": "15f85554ff1f9852196355a646cccf9919950b15cd5957097df3eb6e4cb04cfb",
+      "decrypted_mac_hex": "4136481f858193f83f6c5468b3617acf7dfba3db2a325aa33017d885e5a31085"
+    }
+  ]
 }

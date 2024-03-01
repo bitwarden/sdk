@@ -8,8 +8,20 @@ import {
   SecretsDeleteResponse,
 } from "./schemas";
 
+export interface Fido2GetAssertionUserInterface {
+  /**
+    pub fn pick_credential(
+      this: &JSFido2GetAssertionUserInterface,
+      cipher_ids: Vec<String>,
+      rp_id: String,
+    ) -> String;
+   */
+  pick_credential(cipherIds: string[], rpId: string): string;
+}
+
 interface BitwardenSDKClient {
   run_command(js_input: string): Promise<any>;
+  client_get_assertion(param: string, user_interface: Fido2GetAssertionUserInterface);
 }
 
 function handleResponse<T>(response: { success: boolean; errorMessage?: string; data?: T }): T {
@@ -39,18 +51,6 @@ export class BitwardenClient {
 
     return Convert.toResponseForFingerprintResponse(response).data.fingerprint;
   };
-
-  async client_get_assertion(): Promise<string> {
-    const response = await this.client.run_command(
-      Convert.commandToJson({
-        fido2ClientGetAssertion: {
-          webauthnJson: ""
-        },
-      })
-    );
-
-    return response;
-  }
 
   async accessTokenLogin(accessToken: string): Promise<void> {
     const response = await this.client.run_command(

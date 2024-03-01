@@ -1,5 +1,6 @@
 use super::{
     client_get_assertion,
+    fido2::Fido2GetAssertionUserInterface,
     generate_fingerprint::{generate_fingerprint, generate_user_fingerprint},
     Fido2ClientGetAssertionRequest, FingerprintRequest, FingerprintResponse,
 };
@@ -18,8 +19,13 @@ impl<'a> ClientPlatform<'a> {
         generate_user_fingerprint(self.client, fingerprint_material)
     }
 
-    pub fn client_get_assertion(&self, request: Fido2ClientGetAssertionRequest) -> Result<String> {
-        client_get_assertion(request)
+    pub async fn client_get_assertion(
+        &self,
+        request: Fido2ClientGetAssertionRequest,
+        user_interface: impl Fido2GetAssertionUserInterface,
+    ) -> Result<String> {
+        log::debug!("client_platform.client_get_assertion");
+        client_get_assertion(request, user_interface).await
     }
 }
 

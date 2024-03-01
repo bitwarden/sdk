@@ -15,9 +15,7 @@ use bitwarden::{
 #[cfg(feature = "internal")]
 use bitwarden::{
     auth::login::{ApiKeyLoginRequest, PasswordLoginRequest},
-    platform::{
-        Fido2ClientGetAssertionRequest, FingerprintRequest, SecretVerificationRequest, SyncRequest,
-    },
+    platform::{FingerprintRequest, SecretVerificationRequest, SyncRequest},
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -72,12 +70,6 @@ pub enum Command {
     ///
     /// Returns: [SyncResponse](bitwarden::platform::SyncResponse)
     Sync(SyncRequest),
-
-    #[cfg(feature = "internal")]
-    /// > Requires Authentication
-    ///
-    /// Returns: ?
-    Fido2ClientGetAssertion(Fido2ClientGetAssertionRequest),
 
     #[cfg(feature = "secrets")]
     Secrets(SecretsCommand),

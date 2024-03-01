@@ -363,6 +363,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "uniffi",
+ "url",
  "uuid",
  "wiremock",
  "zeroize",

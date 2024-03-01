@@ -1,5 +1,9 @@
 use async_lock::Mutex;
-use bitwarden::client::client_settings::ClientSettings;
+use bitwarden::{
+    client::client_settings::ClientSettings,
+    error::Result,
+    platform::{Fido2ClientGetAssertionRequest, Fido2GetAssertionUserInterface},
+};
 
 #[cfg(feature = "secrets")]
 use crate::command::{ProjectsCommand, SecretsCommand};
@@ -14,6 +18,19 @@ impl Client {
     pub fn new(settings_input: Option<String>) -> Self {
         let settings = Self::parse_settings(settings_input);
         Self(Mutex::new(bitwarden::Client::new(settings)))
+    }
+
+    pub async fn client_get_assertion(
+        &self,
+        request: Fido2ClientGetAssertionRequest,
+        user_interface: impl Fido2GetAssertionUserInterface,
+    ) -> Result<String> {
+        let mut client = self.0.lock().await;
+
+        client
+            .platform()
+            .client_get_assertion(request, user_interface)
+            .await
     }
 
     pub async fn run_command(&self, input_str: &str) -> String {
@@ -62,11 +79,6 @@ impl Client {
             Command::Sync(req) => client.sync(&req).await.into_string(),
             #[cfg(feature = "internal")]
             Command::Fingerprint(req) => client.platform().fingerprint(&req).into_string(),
-
-            #[cfg(feature = "internal")]
-            Command::Fido2ClientGetAssertion(req) => {
-                client.platform().client_get_assertion(req).into_string()
-            }
 
             #[cfg(feature = "secrets")]
             Command::Secrets(cmd) => match cmd {

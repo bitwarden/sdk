@@ -23,11 +23,6 @@ assert find_subarrays([1, 2, 3], [1, 2, 3]) == [0]
 assert find_subarrays([1, 2, 3], [1, 2, 4, 3, 5]) == []
 
 
-def find_subarrays_batch(needles: List[Tuple[bytearray, str]], haystack: bytearray):
-    for needle, name in needles:
-        print(f"Subarrays of {name}:", find_subarrays(needle, haystack))
-
-
 def read_file_to_byte_array(file_path: str) -> bytearray:
     with open(file_path, "rb") as file:
         return bytearray(file.read())
@@ -43,6 +38,10 @@ SYMMETRIC_KEY = bytearray.fromhex(
 SYMMETRIC_MAC = bytearray.fromhex(
     "4136 481f 8581 93f8 3f6c 5468 b361 7acf 7dfb a3db 2a32 5aa3 3017 d885 e5a3 1085"
 )
+SYMMETRIC_B64 = bytearray.fromhex(
+    "4666 6856 5650 3866 6d46 495a 5931 576d 5273 7a50 6d52 6d56 4378 584e 5756 634a 6666 5072 626b 7977 5450 7442 4e6b 6766 6859 4754 2b44 3973 5647 697a 5958 7250 6666 756a 3279 6f79 5771 4d77 4639 6946 3561 4d51 6851 3d3d"
+)
+
 
 # ---------------------------------------------------------------------------
 
@@ -59,6 +58,7 @@ initial_core = read_file_to_byte_array(output_dir + "/initial_dump.bin")
 
 key_initial_matches = find_subarrays(SYMMETRIC_KEY, initial_core)
 mac_initial_matches = find_subarrays(SYMMETRIC_MAC, initial_core)
+b64_initial_matches = find_subarrays(SYMMETRIC_B64, initial_core)
 test_initial_matches = find_subarrays(TEST_STRING, initial_core)
 
 print("-------------- Processing final core dump --------------")
@@ -67,6 +67,7 @@ final_core = read_file_to_byte_array(output_dir + "/final_dump.bin")
 
 key_final_matches = find_subarrays(SYMMETRIC_KEY, final_core)
 mac_final_matches = find_subarrays(SYMMETRIC_MAC, final_core)
+b64_final_matches = find_subarrays(SYMMETRIC_B64, final_core)
 test_final_matches = find_subarrays(TEST_STRING, final_core)
 
 
@@ -76,10 +77,12 @@ if debug:
     print("Initial matches")
     print("    Key:", key_initial_matches)
     print("    MAC:", mac_initial_matches)
+    print("    Base64 Key:", b64_initial_matches)
     print("    Test:", test_initial_matches)
     print("Final matches")
     print("    Key:", key_final_matches)
     print("    MAC:", mac_final_matches)
+    print("    Base64 Key:", b64_final_matches)
     print("    Test:", test_final_matches)
 
 print("------------------ Checking for leaks  -----------------")

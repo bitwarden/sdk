@@ -158,6 +158,12 @@ jobs:
           # Copy files to local sm-sdk-go repo path
           cp --verbose -rf sdk/languages/go/. sm-sdk-go
 
+      - name: Replace repo name
+        working-directory: sm-sdk-go
+        run: |
+          find . -name '*' -exec \
+          gsed -i -e 's/github.com\/bitwarden\/sdk\/languages\/go/github.com\/bitwarden\/sm-sdk-go/g' {} \;
+
       - name: Push changes
         working-directory: sm-sdk-go
         run: |

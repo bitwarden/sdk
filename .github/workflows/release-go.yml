@@ -87,7 +87,7 @@ jobs:
       - name: Update files
         run: |
           # Copy files to local sm-sdk-go repo path
-          cp --verbose -rf sdk/languages/go sm-sdk-go
+          cp --verbose -rf sdk/languages/go/. sm-sdk-go
 
       - name: Push changes
         working-directory: sm-sdk-go

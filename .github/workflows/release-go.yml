@@ -99,8 +99,7 @@ jobs:
         with:
           workflow: build-rust-cross-platform.yml
           workflow_conclusion: success
-          # branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
-          branch: DEVOPS-1750-fix-go-release
+          branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
           artifacts: libbitwarden_c_files-arm64-unknown-linux-gnu
           path: temp/linux-arm64
 
@@ -165,18 +164,18 @@ jobs:
           git add .
           git commit -m "Update Go SDK to ${{ github.sha }}"
 
-          # if [[ "${{ github.event.inputs.release_type }}" == "Dry Run" ]]; then
-          #   echo "==================================="
-          #   echo "[!] Dry Run - Skipping push"
-          #   echo "==================================="
-          #   git ls-files -m
-          #   exit 0
-          # else
+          if [[ "${{ github.event.inputs.release_type }}" == "Dry Run" ]]; then
+            echo "==================================="
+            echo "[!] Dry Run - Skipping push"
+            echo "==================================="
+            git ls-files -m
+            exit 0
+          else
             git push origin main
-          # fi
+          fi
 
       - name: Create release tag on SDK Go repo
-        # if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
         working-directory: sm-sdk-go
         run: |
           # Check if tag exists, set output then exit 0 if true.

@@ -1,4 +1,4 @@
-module github.com/bitwarden/sdk/languages/go
+module github.com/bitwarden/sm-sdk-go
 
 go 1.18
 

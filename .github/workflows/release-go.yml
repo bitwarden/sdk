@@ -58,6 +58,56 @@ jobs:
         with:
           path: sdk
 
+      - name: Download x86_64-apple-darwin artifact
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-rust-cross-platform.yml
+          path: temp/macos-x64
+          workflow_conclusion: success
+          branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          artifacts: libbitwarden_c_files-x86_64-apple-darwin
+
+      - name: Download aarch64-apple-darwin artifact
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-rust-cross-platform.yml
+          workflow_conclusion: success
+          branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          artifacts: libbitwarden_c_files-aarch64-apple-darwin
+          path: temp/macos-arm64
+
+      - name: Download x86_64-unknown-linux-gnu artifact
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-rust-cross-platform.yml
+          workflow_conclusion: success
+          branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          artifacts: libbitwarden_c_files-x86_64-unknown-linux-gnu
+          path: temp/linux-x64
+
+      - name: Download x86_64-pc-windows-msvc artifact
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-rust-cross-platform.yml
+          workflow_conclusion: success
+          branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          artifacts: libbitwarden_c_files-x86_64-pc-windows-msvc
+          path: temp/windows-x64
+
+      - name: Copy lib files
+        run: |
+          mkdir -p languages/go/bitwarden_sdk_secrets/lib/macos-arm64
+          mkdir -p languages/go/bitwarden_sdk_secrets/lib/linux-x64
+          mkdir -p languages/go/bitwarden_sdk_secrets/lib/macos-x64
+          mkdir -p languages/go/bitwarden_sdk_secrets/lib/windows-x64
+
+          platforms=("macos-arm64" "linux-x64" "macos-x64" "windows-x64")
+          files=("libbitwarden_c.dylib" "libbitwarden_c.so" "libbitwarden_c.dylib" "bitwarden_c.dll")
+
+          for ((i=0; i<${#platforms[@]}; i++)); do
+            cp "temp/${platforms[$i]}/${files[$i]}" "languages/go/bitwarden_sdk_secrets/lib/${platforms[$i]}/${files[$i]}"
+          done
+
       - name: Login to Azure - Prod Subscription
         uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
         with:

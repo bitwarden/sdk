@@ -114,17 +114,17 @@ jobs:
 
       - name: Copy lib files
         run: |
-          mkdir -p languages/go/bitwarden_sdk_secrets/lib/macos-arm64
-          mkdir -p languages/go/bitwarden_sdk_secrets/lib/linux-x64
-          mkdir -p languages/go/bitwarden_sdk_secrets/lib/macos-x64
-          mkdir -p languages/go/bitwarden_sdk_secrets/lib/windows-x64
-          mkdir -p languages/go/bitwarden_sdk_secrets/lib/linux-arm64
+          mkdir -p sdk/languages/go/bitwarden_sdk_secrets/lib/macos-arm64
+          mkdir -p sdk/languages/go/bitwarden_sdk_secrets/lib/linux-x64
+          mkdir -p sdk/languages/go/bitwarden_sdk_secrets/lib/macos-x64
+          mkdir -p sdk/languages/go/bitwarden_sdk_secrets/lib/windows-x64
+          mkdir -p sdk/languages/go/bitwarden_sdk_secrets/lib/linux-arm64
 
           platforms=("macos-arm64" "linux-x64" "macos-x64" "windows-x64") # "linux-arm64"
           files=("libbitwarden_c.dylib" "libbitwarden_c.so" "libbitwarden_c.dylib" "bitwarden_c.dll")
 
           for ((i=0; i<${#platforms[@]}; i++)); do
-            cp "temp/${platforms[$i]}/${files[$i]}" "languages/go/bitwarden_sdk_secrets/lib/${platforms[$i]}/${files[$i]}"
+            cp "temp/${platforms[$i]}/${files[$i]}" "sdk/languages/go/bitwarden_sdk_secrets/lib/${platforms[$i]}/${files[$i]}"
           done
 
       - name: Login to Azure - Prod Subscription

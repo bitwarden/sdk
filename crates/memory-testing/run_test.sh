@@ -2,18 +2,19 @@
 cd "$(dirname "$0")"
 cd ../../
 
-OUTPUT_DIR="./crates/memory-testing/output"
+BASE_DIR="./crates/memory-testing"
 
-mkdir -p $OUTPUT_DIR
-rm $OUTPUT_DIR/*
+mkdir -p $BASE_DIR/output
+rm $BASE_DIR/output/*
+
+cargo build -p memory-testing
 
 if [ "$1" = "no-docker" ]; then
-    cargo build -p memory-testing
     # This specifically needs to run as root to be able to capture core dumps
-    sudo python3 ./crates/memory-testing/capture_dumps.py ./target/debug/memory-testing $OUTPUT_DIR
+    sudo ./target/debug/capture-dumps ./target/debug/memory-testing $BASE_DIR
 else
     docker build -f crates/memory-testing/Dockerfile -t bitwarden/memory-testing .
-    docker run --rm -it -v $OUTPUT_DIR:/output bitwarden/memory-testing 
+    docker run --rm -it -v $BASE_DIR:/output bitwarden/memory-testing 
 fi
 
-python3 ./crates/memory-testing/analyze_dumps.py $OUTPUT_DIR
+./target/debug/analyze-dumps $BASE_DIR

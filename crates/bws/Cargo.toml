@@ -11,6 +11,7 @@ description = """
 Bitwarden Secrets Manager CLI
 """
 keywords = ["bitwarden", "secrets-manager", "cli"]
+exclude = ["Dockerfile*", "entitlements.plist"]
 
 [dependencies]
 bat = { version = "0.24.0", features = [

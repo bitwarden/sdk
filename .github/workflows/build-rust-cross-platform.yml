@@ -41,6 +41,10 @@ jobs:
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
 
+      - name: Install gcc-aarch64-linux-gnu
+        if: matrix.settings.target == 'aarch64-unknown-linux-gnu'
+        run: sudo apt-get install gcc-aarch64-linux-gnu
+
       - name: Add build architecture
         run: rustup target add ${{ matrix.settings.target }}
 

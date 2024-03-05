@@ -24,14 +24,33 @@ jobs:
         with:
           toolchain: stable
 
+      - name: Install rust nightly
+        run: |
+          rustup toolchain install nightly
+          rustup component add rustfmt --toolchain nightly-x86_64-unknown-linux-gnu
+
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
 
       - name: Cargo fmt
-        run: cargo fmt --check
+        run: cargo +nightly fmt --check
+
+      - name: Install clippy-sarif and sarif-fmt
+        run: cargo install clippy-sarif sarif-fmt --locked --git https://github.com/psastras/sarif-rs.git --rev 11c33a53f6ffeaed736856b86fb6b7b09fabdfd8
+
+      - name: Cargo clippy
+        run: cargo clippy --all-features --tests --message-format=json |
+          clippy-sarif | tee clippy_result.sarif | sarif-fmt
+        env:
+          RUSTFLAGS: "-D warnings"
+
+      - name: Upload Clippy results to GitHub
+        uses: github/codeql-action/upload-sarif@47b3d888fe66b639e431abf22ebca059152f1eea # v3.24.5
+        with:
+          sarif_file: clippy_result.sarif
 
       - name: Set up Node
-        uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8 # v4.0.1
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
           cache: "npm"
           cache-dependency-path: "package-lock.json"
@@ -47,8 +66,3 @@ jobs:
         run: cargo doc --no-deps --features internal
         env:
           RUSTDOCFLAGS: "-D warnings"
-
-      - name: Cargo clippy
-        run: cargo clippy --all-features --tests
-        env:
-          RUSTFLAGS: "-D warnings"

@@ -34,11 +34,11 @@ pub struct Field {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct FieldView {
-    name: Option<String>,
-    value: Option<String>,
-    r#type: FieldType,
+    pub(crate) name: Option<String>,
+    pub(crate) value: Option<String>,
+    pub(crate) r#type: FieldType,
 
-    linked_id: Option<LinkedIdType>,
+    pub(crate) linked_id: Option<LinkedIdType>,
 }
 
 impl KeyEncryptable<SymmetricCryptoKey, Field> for FieldView {
@@ -55,8 +55,8 @@ impl KeyEncryptable<SymmetricCryptoKey, Field> for FieldView {
 impl KeyDecryptable<SymmetricCryptoKey, FieldView> for Field {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<FieldView, CryptoError> {
         Ok(FieldView {
-            name: self.name.decrypt_with_key(key)?,
-            value: self.value.decrypt_with_key(key)?,
+            name: self.name.decrypt_with_key(key).ok().flatten(),
+            value: self.value.decrypt_with_key(key).ok().flatten(),
             r#type: self.r#type,
             linked_id: self.linked_id,
         })
@@ -82,10 +82,10 @@ impl TryFrom<CipherFieldModel> for Field {
 impl From<bitwarden_api_api::models::FieldType> for FieldType {
     fn from(model: bitwarden_api_api::models::FieldType) -> Self {
         match model {
-            bitwarden_api_api::models::FieldType::Variant0 => FieldType::Text,
-            bitwarden_api_api::models::FieldType::Variant1 => FieldType::Hidden,
-            bitwarden_api_api::models::FieldType::Variant2 => FieldType::Boolean,
-            bitwarden_api_api::models::FieldType::Variant3 => FieldType::Linked,
+            bitwarden_api_api::models::FieldType::Text => FieldType::Text,
+            bitwarden_api_api::models::FieldType::Hidden => FieldType::Hidden,
+            bitwarden_api_api::models::FieldType::Boolean => FieldType::Boolean,
+            bitwarden_api_api::models::FieldType::Linked => FieldType::Linked,
         }
     }
 }

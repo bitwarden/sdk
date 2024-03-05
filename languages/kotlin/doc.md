@@ -46,6 +46,16 @@ Generator operations
 
 **Output**: Arc<ClientGenerators>
 
+### `exporters`
+
+Exporters
+
+**Arguments**:
+
+- self: Arc<Self>
+
+**Output**: Arc<ClientExporters>
+
 ### `auth`
 
 Auth operations
@@ -135,6 +145,111 @@ password, use the email OTP.
 - self:
 - password: String
 - password_hash: String
+
+**Output**: std::result::Result<,BitwardenError>
+
+### `validate_password_user_key`
+
+Validate the user password without knowing the password hash
+
+Used for accounts that we know have master passwords but that have not logged in with a password.
+Some example are login with device or TDE.
+
+This works by comparing the provided password against the encrypted user key.
+
+**Arguments**:
+
+- self:
+- password: String
+- encrypted_user_key: String
+
+**Output**: std::result::Result<String,BitwardenError>
+
+### `new_auth_request`
+
+Initialize a new auth request
+
+**Arguments**:
+
+- self:
+- email: String
+
+**Output**: std::result::Result<AuthRequestResponse,BitwardenError>
+
+### `approve_auth_request`
+
+Approve an auth request
+
+**Arguments**:
+
+- self:
+- public_key: String
+
+**Output**: std::result::Result<AsymmetricEncString,BitwardenError>
+
+### `trust_device`
+
+Trust the current device
+
+**Arguments**:
+
+- self:
+
+**Output**: std::result::Result<TrustDeviceResponse,BitwardenError>
+
+## ClientAttachments
+
+### `encrypt_buffer`
+
+Encrypt an attachment file in memory
+
+**Arguments**:
+
+- self:
+- cipher: [Cipher](#cipher)
+- attachment: [AttachmentView](#attachmentview)
+- buffer: Vec<>
+
+**Output**: std::result::Result<AttachmentEncryptResult,BitwardenError>
+
+### `encrypt_file`
+
+Encrypt an attachment file located in the file system
+
+**Arguments**:
+
+- self:
+- cipher: [Cipher](#cipher)
+- attachment: [AttachmentView](#attachmentview)
+- decrypted_file_path: String
+- encrypted_file_path: String
+
+**Output**: std::result::Result<Attachment,BitwardenError>
+
+### `decrypt_buffer`
+
+Decrypt an attachment file in memory
+
+**Arguments**:
+
+- self:
+- cipher: [Cipher](#cipher)
+- attachment: [Attachment](#attachment)
+- buffer: Vec<>
+
+**Output**: std::result::Result<Vec,BitwardenError>
+
+### `decrypt_file`
+
+Decrypt an attachment file located in the file system
+
+**Arguments**:
+
+- self:
+- cipher: [Cipher](#cipher)
+- attachment: [Attachment](#attachment)
+- encrypted_file_path: String
+- decrypted_file_path: String
 
 **Output**: std::result::Result<,BitwardenError>
 
@@ -232,6 +347,18 @@ as it can be used to decrypt all of the user&#x27;s data
 - self:
 
 **Output**: std::result::Result<String,BitwardenError>
+
+### `update_password`
+
+Update the user&#x27;s password, which will re-encrypt the user&#x27;s encryption key with the new
+password. This returns the new encrypted user key and the new password hash.
+
+**Arguments**:
+
+- self:
+- new_password: String
+
+**Output**: std::result::Result<UpdatePasswordResponse,BitwardenError>
 
 ### `derive_pin_key`
 
@@ -404,6 +531,17 @@ Fingerprint using logged in user&#x27;s public key
 
 **Output**: std::result::Result<String,BitwardenError>
 
+### `load_flags`
+
+Load feature flags into the client
+
+**Arguments**:
+
+- self:
+- flags: std::collections::HashMap<String,>
+
+**Output**: std::result::Result<,BitwardenError>
+
 ## ClientSends
 
 ### `encrypt`
@@ -541,6 +679,16 @@ Sends operations
 
 **Output**: Arc<sends::ClientSends>
 
+### `attachments`
+
+Attachment file operations
+
+**Arguments**:
+
+- self: Arc<Self>
+
+**Output**: Arc<attachments::ClientAttachments>
+
 ### `generate_totp`
 
 Generate a TOTP code from a provided key.
@@ -563,6 +711,86 @@ The key can be either:
 
 References are generated from the JSON schemas and should mostly match the kotlin and swift
 implementations.
+
+## `Attachment`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>id</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>url</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>size</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>sizeName</th>
+    <th>string,null</th>
+    <th>Readable size, ex: &quot;4.2 KB&quot; or &quot;1.43 GB&quot;</th>
+</tr>
+<tr>
+    <th>fileName</th>
+    <th></th>
+    <th></th>
+</tr>
+<tr>
+    <th>key</th>
+    <th></th>
+    <th></th>
+</tr>
+</table>
+
+## `AttachmentView`
+
+<table>
+<tr>
+    <th>Key</th>
+    <th>Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <th>id</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>url</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>size</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>sizeName</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>fileName</th>
+    <th>string,null</th>
+    <th></th>
+</tr>
+<tr>
+    <th>key</th>
+    <th></th>
+    <th></th>
+</tr>
+</table>
 
 ## `Cipher`
 
@@ -1077,6 +1305,63 @@ implementations.
                 <td>pin_protected_user_key</td>
                 <td></td>
                 <td>The user's symmetric crypto key, encrypted with the PIN. Use `derive_pin_key` to obtain this.</td>
+            </tr>
+        </table>
+    </td>
+</tr>
+<tr>
+    <th>authRequest</th>
+    <th>object</th>
+    <th></th>
+</tr>
+<tr>
+    <td colspan="3">
+        <table>
+        <tr>
+            <th>Key</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+            <tr>
+                <td>request_private_key</td>
+                <td>string</td>
+                <td>Private Key generated by the `crate::auth::new_auth_request`.</td>
+            </tr>
+            <tr>
+                <td>method</td>
+                <td></td>
+                <td></td>
+            </tr>
+        </table>
+    </td>
+</tr>
+<tr>
+    <th>deviceKey</th>
+    <th>object</th>
+    <th></th>
+</tr>
+<tr>
+    <td colspan="3">
+        <table>
+        <tr>
+            <th>Key</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+            <tr>
+                <td>device_key</td>
+                <td>string</td>
+                <td>The device's DeviceKey</td>
+            </tr>
+            <tr>
+                <td>protected_device_private_key</td>
+                <td></td>
+                <td>The Device Private Key</td>
+            </tr>
+            <tr>
+                <td>device_protected_user_key</td>
+                <td></td>
+                <td>The user's symmetric crypto key, encrypted with the Device Key.</td>
             </tr>
         </table>
     </td>

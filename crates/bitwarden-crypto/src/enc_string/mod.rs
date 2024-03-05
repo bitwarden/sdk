@@ -75,3 +75,56 @@ where
         T::from_str(v).map_err(|e| E::custom(format!("{:?}", e)))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_check_length_less_than_expected() {
+        let buf = [1, 2, 3];
+        let expected = 5;
+        let result = check_length(&buf, expected);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_check_length_equal_to_expected() {
+        let buf = [1, 2, 3, 4, 5];
+        let expected = 5;
+        let result = check_length(&buf, expected);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_check_length_greater_than_expected() {
+        let buf = [1, 2, 3, 4, 5, 6];
+        let expected = 5;
+        let result = check_length(&buf, expected);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_split_enc_string_new_format() {
+        let s = "2.abc|def|ghi";
+        let (header, parts) = split_enc_string(s);
+        assert_eq!(header, "2");
+        assert_eq!(parts, vec!["abc", "def", "ghi"]);
+    }
+
+    #[test]
+    fn test_split_enc_string_old_format_three_parts() {
+        let s = "abc|def|ghi";
+        let (header, parts) = split_enc_string(s);
+        assert_eq!(header, "1");
+        assert_eq!(parts, vec!["abc", "def", "ghi"]);
+    }
+
+    #[test]
+    fn test_split_enc_string_old_format_fewer_parts() {
+        let s = "abc|def";
+        let (header, parts) = split_enc_string(s);
+        assert_eq!(header, "0");
+        assert_eq!(parts, vec!["abc", "def"]);
+    }
+}

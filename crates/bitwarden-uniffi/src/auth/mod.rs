@@ -1,7 +1,9 @@
 use std::sync::Arc;
 
-use bitwarden::auth::{password::MasterPasswordPolicyOptions, RegisterKeyResponse};
-use bitwarden_crypto::{HashPurpose, Kdf};
+use bitwarden::auth::{
+    password::MasterPasswordPolicyOptions, AuthRequestResponse, RegisterKeyResponse,
+};
+use bitwarden_crypto::{AsymmetricEncString, HashPurpose, Kdf, TrustDeviceResponse};
 
 use crate::{error::Result, Client};
 
@@ -88,7 +90,47 @@ impl ClientAuth {
             .write()
             .await
             .auth()
-            .validate_password(password, password_hash.to_string())
-            .await?)
+            .validate_password(password, password_hash.to_string())?)
+    }
+
+    /// Validate the user password without knowing the password hash
+    ///
+    /// Used for accounts that we know have master passwords but that have not logged in with a
+    /// password. Some example are login with device or TDE.
+    ///
+    /// This works by comparing the provided password against the encrypted user key.
+    pub async fn validate_password_user_key(
+        &self,
+        password: String,
+        encrypted_user_key: String,
+    ) -> Result<String> {
+        Ok(self
+            .0
+             .0
+            .write()
+            .await
+            .auth()
+            .validate_password_user_key(password, encrypted_user_key)?)
+    }
+
+    /// Initialize a new auth request
+    pub async fn new_auth_request(&self, email: String) -> Result<AuthRequestResponse> {
+        Ok(self.0 .0.write().await.auth().new_auth_request(&email)?)
+    }
+
+    /// Approve an auth request
+    pub async fn approve_auth_request(&self, public_key: String) -> Result<AsymmetricEncString> {
+        Ok(self
+            .0
+             .0
+            .write()
+            .await
+            .auth()
+            .approve_auth_request(public_key)?)
+    }
+
+    /// Trust the current device
+    pub async fn trust_device(&self) -> Result<TrustDeviceResponse> {
+        Ok(self.0 .0.write().await.auth().trust_device()?)
     }
 }

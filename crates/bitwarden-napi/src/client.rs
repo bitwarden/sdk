@@ -29,7 +29,8 @@ pub struct BitwardenClient(JsonClient);
 impl BitwardenClient {
     #[napi(constructor)]
     pub fn new(settings_input: Option<String>, log_level: Option<LogLevel>) -> Self {
-        // This will only fail if another logger was already initialized, so we can ignore the result
+        // This will only fail if another logger was already initialized, so we can ignore the
+        // result
         let _ = env_logger::Builder::from_default_env()
             .filter_level(convert_level(log_level.unwrap_or(LogLevel::Info)))
             .try_init();
@@ -37,7 +38,7 @@ impl BitwardenClient {
     }
 
     #[napi]
-    pub async unsafe fn run_command(&mut self, command_input: String) -> String {
+    pub async fn run_command(&self, command_input: String) -> String {
         self.0.run_command(&command_input).await
     }
 }

@@ -1,5 +1,5 @@
 extern crate console_error_panic_hook;
-use std::{rc::Rc, sync::RwLock};
+use std::rc::Rc;
 
 use bitwarden_json::client::Client as JsonClient;
 use js_sys::Promise;
@@ -26,10 +26,10 @@ fn convert_level(level: LogLevel) -> Level {
     }
 }
 
-// Rc<RwLock<...>> is to avoid needing to take ownership of the Client during our async run_command function
-// https://github.com/rustwasm/wasm-bindgen/issues/2195#issuecomment-799588401
+// Rc<...> is to avoid needing to take ownership of the Client during our async run_command
+// function https://github.com/rustwasm/wasm-bindgen/issues/2195#issuecomment-799588401
 #[wasm_bindgen]
-pub struct BitwardenClient(Rc<RwLock<JsonClient>>);
+pub struct BitwardenClient(Rc<JsonClient>);
 
 #[wasm_bindgen]
 impl BitwardenClient {
@@ -42,20 +42,14 @@ impl BitwardenClient {
             panic!("failed to initialize logger: {:?}", e);
         }
 
-        Self(Rc::new(RwLock::new(bitwarden_json::client::Client::new(
-            settings_input,
-        ))))
+        Self(Rc::new(bitwarden_json::client::Client::new(settings_input)))
     }
 
     #[wasm_bindgen]
-    pub fn run_command(&mut self, js_input: String) -> Promise {
+    pub fn run_command(&self, js_input: String) -> Promise {
         let rc = self.0.clone();
-        // TODO: We should probably switch to an async-aware RwLock here,
-        // but it probably doesn't matter much in a single threaded environment
-        #[allow(clippy::await_holding_lock)]
         future_to_promise(async move {
-            let mut client = rc.write().unwrap();
-            let result = client.run_command(&js_input).await;
+            let result = rc.run_command(&js_input).await;
             Ok(result.into())
         })
     }

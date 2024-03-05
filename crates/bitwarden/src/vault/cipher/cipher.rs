@@ -46,7 +46,8 @@ pub struct Cipher {
     pub folder_id: Option<Uuid>,
     pub collection_ids: Vec<Uuid>,
 
-    /// More recent ciphers uses individual encryption keys to encrypt the other fields of the Cipher.
+    /// More recent ciphers uses individual encryption keys to encrypt the other fields of the
+    /// Cipher.
     pub key: Option<EncString>,
 
     pub name: EncString,
@@ -182,22 +183,22 @@ impl KeyDecryptable<SymmetricCryptoKey, CipherView> for Cipher {
             folder_id: self.folder_id,
             collection_ids: self.collection_ids.clone(),
             key: self.key.clone(),
-            name: self.name.decrypt_with_key(key)?,
-            notes: self.notes.decrypt_with_key(key)?,
+            name: self.name.decrypt_with_key(key).ok().unwrap_or_default(),
+            notes: self.notes.decrypt_with_key(key).ok().flatten(),
             r#type: self.r#type,
-            login: self.login.decrypt_with_key(key)?,
-            identity: self.identity.decrypt_with_key(key)?,
-            card: self.card.decrypt_with_key(key)?,
-            secure_note: self.secure_note.decrypt_with_key(key)?,
+            login: self.login.decrypt_with_key(key).ok().flatten(),
+            identity: self.identity.decrypt_with_key(key).ok().flatten(),
+            card: self.card.decrypt_with_key(key).ok().flatten(),
+            secure_note: self.secure_note.decrypt_with_key(key).ok().flatten(),
             favorite: self.favorite,
             reprompt: self.reprompt,
             organization_use_totp: self.organization_use_totp,
             edit: self.edit,
             view_password: self.view_password,
-            local_data: self.local_data.decrypt_with_key(key)?,
-            attachments: self.attachments.decrypt_with_key(key)?,
-            fields: self.fields.decrypt_with_key(key)?,
-            password_history: self.password_history.decrypt_with_key(key)?,
+            local_data: self.local_data.decrypt_with_key(key).ok().flatten(),
+            attachments: self.attachments.decrypt_with_key(key).ok().flatten(),
+            fields: self.fields.decrypt_with_key(key).ok().flatten(),
+            password_history: self.password_history.decrypt_with_key(key).ok().flatten(),
             creation_date: self.creation_date,
             deleted_date: self.deleted_date,
             revision_date: self.revision_date,
@@ -210,15 +211,15 @@ impl Cipher {
     /// Note that some ciphers do not have individual encryption keys,
     /// in which case this will return Ok(None) and the key associated
     /// with this cipher's user or organization must be used instead
-    fn get_cipher_key(
+    pub(super) fn get_cipher_key(
         key: &SymmetricCryptoKey,
         ciphers_key: &Option<EncString>,
     ) -> Result<Option<SymmetricCryptoKey>, CryptoError> {
         ciphers_key
             .as_ref()
             .map(|k| {
-                let key: Vec<u8> = k.decrypt_with_key(key)?;
-                SymmetricCryptoKey::try_from(key.as_slice())
+                let mut key: Vec<u8> = k.decrypt_with_key(key)?;
+                SymmetricCryptoKey::try_from(key.as_mut_slice())
             })
             .transpose()
     }
@@ -288,6 +289,18 @@ impl Cipher {
     }
 }
 
+impl CipherView {
+    pub fn generate_cipher_key(&mut self, key: &SymmetricCryptoKey) -> Result<()> {
+        let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
+        let key = ciphers_key.as_ref().unwrap_or(key);
+
+        let new_key = SymmetricCryptoKey::generate(rand::thread_rng());
+
+        self.key = Some(new_key.to_vec().encrypt_with_key(key)?);
+        Ok(())
+    }
+}
+
 impl KeyDecryptable<SymmetricCryptoKey, CipherListView> for Cipher {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CipherListView, CryptoError> {
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
@@ -298,8 +311,8 @@ impl KeyDecryptable<SymmetricCryptoKey, CipherListView> for Cipher {
             organization_id: self.organization_id,
             folder_id: self.folder_id,
             collection_ids: self.collection_ids.clone(),
-            name: self.name.decrypt_with_key(key)?,
-            sub_title: self.get_decrypted_subtitle(key)?,
+            name: self.name.decrypt_with_key(key).ok().unwrap_or_default(),
+            sub_title: self.get_decrypted_subtitle(key).ok().unwrap_or_default(),
             r#type: self.r#type,
             favorite: self.favorite,
             reprompt: self.reprompt,
@@ -384,10 +397,10 @@ impl TryFrom<CipherDetailsResponseModel> for Cipher {
 impl From<bitwarden_api_api::models::CipherType> for CipherType {
     fn from(t: bitwarden_api_api::models::CipherType) -> Self {
         match t {
-            bitwarden_api_api::models::CipherType::Variant1 => CipherType::Login,
-            bitwarden_api_api::models::CipherType::Variant2 => CipherType::SecureNote,
-            bitwarden_api_api::models::CipherType::Variant3 => CipherType::Card,
-            bitwarden_api_api::models::CipherType::Variant4 => CipherType::Identity,
+            bitwarden_api_api::models::CipherType::Login => CipherType::Login,
+            bitwarden_api_api::models::CipherType::SecureNote => CipherType::SecureNote,
+            bitwarden_api_api::models::CipherType::Card => CipherType::Card,
+            bitwarden_api_api::models::CipherType::Identity => CipherType::Identity,
         }
     }
 }
@@ -395,8 +408,73 @@ impl From<bitwarden_api_api::models::CipherType> for CipherType {
 impl From<bitwarden_api_api::models::CipherRepromptType> for CipherRepromptType {
     fn from(t: bitwarden_api_api::models::CipherRepromptType) -> Self {
         match t {
-            bitwarden_api_api::models::CipherRepromptType::Variant0 => CipherRepromptType::None,
-            bitwarden_api_api::models::CipherRepromptType::Variant1 => CipherRepromptType::Password,
+            bitwarden_api_api::models::CipherRepromptType::None => CipherRepromptType::None,
+            bitwarden_api_api::models::CipherRepromptType::Password => CipherRepromptType::Password,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    #[test]
+    fn test_generate_cipher_key() {
+        let key = SymmetricCryptoKey::generate(rand::thread_rng());
+
+        fn generate_cipher() -> CipherView {
+            CipherView {
+                r#type: CipherType::Login,
+                login: Some(login::LoginView {
+                    username: Some("test_username".to_string()),
+                    password: Some("test_password".to_string()),
+                    password_revision_date: None,
+                    uris: None,
+                    totp: None,
+                    autofill_on_page_load: None,
+                }),
+                id: "fd411a1a-fec8-4070-985d-0e6560860e69".parse().ok(),
+                organization_id: None,
+                folder_id: None,
+                collection_ids: vec![],
+                key: None,
+                name: "My test login".to_string(),
+                notes: None,
+                identity: None,
+                card: None,
+                secure_note: None,
+                favorite: false,
+                reprompt: CipherRepromptType::None,
+                organization_use_totp: true,
+                edit: true,
+                view_password: true,
+                local_data: None,
+                attachments: None,
+                fields: None,
+                password_history: None,
+                creation_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
+                deleted_date: None,
+                revision_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
+            }
+        }
+
+        let original_cipher = generate_cipher();
+
+        // Check that the cipher gets encrypted correctly without it's own key
+        let cipher = generate_cipher();
+        let no_key_cipher_enc = cipher.encrypt_with_key(&key).unwrap();
+        let no_key_cipher_dec: CipherView = no_key_cipher_enc.decrypt_with_key(&key).unwrap();
+        assert!(no_key_cipher_dec.key.is_none());
+        assert_eq!(no_key_cipher_dec.name, original_cipher.name);
+
+        let mut cipher = generate_cipher();
+        cipher.generate_cipher_key(&key).unwrap();
+
+        // Check that the cipher gets encrypted correctly when it's assigned it's own key
+        let key_cipher_enc = cipher.encrypt_with_key(&key).unwrap();
+        let key_cipher_dec: CipherView = key_cipher_enc.decrypt_with_key(&key).unwrap();
+        assert!(key_cipher_dec.key.is_some());
+        assert_eq!(key_cipher_dec.name, original_cipher.name);
     }
 }

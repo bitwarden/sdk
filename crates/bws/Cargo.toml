@@ -2,7 +2,7 @@
 name = "bws"
 version = "0.4.0"
 edition = "2021"
-rust-version = "1.60"
+rust-version = "1.71"
 authors = ["Bitwarden Inc"]
 license-file = "LICENSE"
 repository = "https://github.com/bitwarden/sdk"
@@ -11,36 +11,37 @@ description = """
 Bitwarden Secrets Manager CLI
 """
 keywords = ["bitwarden", "secrets-manager", "cli"]
+exclude = ["Dockerfile*", "entitlements.plist"]
 
 [dependencies]
 bat = { version = "0.24.0", features = [
     "regex-onig",
 ], default-features = false }
-chrono = { version = "0.4.31", features = [
+chrono = { version = "0.4.34", features = [
     "clock",
     "std",
 ], default-features = false }
-clap = { version = "4.4.16", features = ["derive", "env", "string"] }
-clap_complete = "4.4.6"
+clap = { version = "4.5.1", features = ["derive", "env", "string"] }
+clap_complete = "4.5.0"
 color-eyre = "0.6"
 comfy-table = "^7.1.0"
 directories = "5.0.1"
-env_logger = "0.10.1"
+env_logger = "0.11.1"
 log = "0.4.20"
-regex = { version = "1.10.2", features = [
+regex = { version = "1.10.3", features = [
     "std",
     "perf",
 ], default-features = false }
-serde = "^1.0.195"
-serde_json = "^1.0.111"
+serde = "^1.0.196"
+serde_json = "^1.0.113"
 serde_yaml = "0.9"
-supports-color = "2.1.0"
-thiserror = "1.0.56"
-tokio = { version = "1.35.1", features = ["rt-multi-thread", "macros"] }
-toml = "0.8.8"
-uuid = { version = "^1.6.1", features = ["serde"] }
+supports-color = "3.0.0"
+thiserror = "1.0.57"
+tokio = { version = "1.36.0", features = ["rt-multi-thread", "macros"] }
+toml = "0.8.10"
+uuid = { version = "^1.7.0", features = ["serde"] }
 
 bitwarden = { path = "../bitwarden", version = "0.4.0", features = ["secrets"] }
 
 [dev-dependencies]
-tempfile = "3.9.0"
+tempfile = "3.10.0"

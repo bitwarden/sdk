@@ -14,25 +14,25 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum FieldType {
-    Variant0 = 0,
-    Variant1 = 1,
-    Variant2 = 2,
-    Variant3 = 3,
+    Text = 0,
+    Hidden = 1,
+    Boolean = 2,
+    Linked = 3,
 }
 
 impl ToString for FieldType {
     fn to_string(&self) -> String {
         match self {
-            Self::Variant0 => String::from("0"),
-            Self::Variant1 => String::from("1"),
-            Self::Variant2 => String::from("2"),
-            Self::Variant3 => String::from("3"),
+            Self::Text => String::from("0"),
+            Self::Hidden => String::from("1"),
+            Self::Boolean => String::from("2"),
+            Self::Linked => String::from("3"),
         }
     }
 }
 
 impl Default for FieldType {
     fn default() -> FieldType {
-        Self::Variant0
+        Self::Text
     }
 }

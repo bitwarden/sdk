@@ -15,8 +15,10 @@
     "Pbkdf",
     "PKCS8",
     "repr",
+    "reprompt",
     "reqwest",
     "schemars",
+    "totp",
     "uniffi",
     "wordlist",
     "zxcvbn"

@@ -14,41 +14,51 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum PlanType {
-    Variant0 = 0,
-    Variant1 = 1,
-    Variant2 = 2,
-    Variant3 = 3,
-    Variant4 = 4,
-    Variant5 = 5,
-    Variant6 = 6,
-    Variant7 = 7,
-    Variant8 = 8,
-    Variant9 = 9,
-    Variant10 = 10,
-    Variant11 = 11,
+    Free = 0,
+    FamiliesAnnually2019 = 1,
+    TeamsMonthly2019 = 2,
+    TeamsAnnually2019 = 3,
+    EnterpriseMonthly2019 = 4,
+    EnterpriseAnnually2019 = 5,
+    Custom = 6,
+    FamiliesAnnually = 7,
+    TeamsMonthly2020 = 8,
+    TeamsAnnually2020 = 9,
+    EnterpriseMonthly2020 = 10,
+    EnterpriseAnnually2020 = 11,
+    TeamsMonthly = 12,
+    TeamsAnnually = 13,
+    EnterpriseMonthly = 14,
+    EnterpriseAnnually = 15,
+    TeamsStarter = 16,
 }
 
 impl ToString for PlanType {
     fn to_string(&self) -> String {
         match self {
-            Self::Variant0 => String::from("0"),
-            Self::Variant1 => String::from("1"),
-            Self::Variant2 => String::from("2"),
-            Self::Variant3 => String::from("3"),
-            Self::Variant4 => String::from("4"),
-            Self::Variant5 => String::from("5"),
-            Self::Variant6 => String::from("6"),
-            Self::Variant7 => String::from("7"),
-            Self::Variant8 => String::from("8"),
-            Self::Variant9 => String::from("9"),
-            Self::Variant10 => String::from("10"),
-            Self::Variant11 => String::from("11"),
+            Self::Free => String::from("0"),
+            Self::FamiliesAnnually2019 => String::from("1"),
+            Self::TeamsMonthly2019 => String::from("2"),
+            Self::TeamsAnnually2019 => String::from("3"),
+            Self::EnterpriseMonthly2019 => String::from("4"),
+            Self::EnterpriseAnnually2019 => String::from("5"),
+            Self::Custom => String::from("6"),
+            Self::FamiliesAnnually => String::from("7"),
+            Self::TeamsMonthly2020 => String::from("8"),
+            Self::TeamsAnnually2020 => String::from("9"),
+            Self::EnterpriseMonthly2020 => String::from("10"),
+            Self::EnterpriseAnnually2020 => String::from("11"),
+            Self::TeamsMonthly => String::from("12"),
+            Self::TeamsAnnually => String::from("13"),
+            Self::EnterpriseMonthly => String::from("14"),
+            Self::EnterpriseAnnually => String::from("15"),
+            Self::TeamsStarter => String::from("16"),
         }
     }
 }
 
 impl Default for PlanType {
     fn default() -> PlanType {
-        Self::Variant0
+        Self::Free
     }
 }

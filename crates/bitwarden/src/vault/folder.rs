@@ -22,9 +22,9 @@ pub struct Folder {
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct FolderView {
-    id: Option<Uuid>,
-    name: String,
-    revision_date: DateTime<Utc>,
+    pub id: Option<Uuid>,
+    pub name: String,
+    pub revision_date: DateTime<Utc>,
 }
 
 impl LocateKey for FolderView {}
@@ -43,7 +43,7 @@ impl KeyDecryptable<SymmetricCryptoKey, FolderView> for Folder {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<FolderView, CryptoError> {
         Ok(FolderView {
             id: self.id,
-            name: self.name.decrypt_with_key(key)?,
+            name: self.name.decrypt_with_key(key).ok().unwrap_or_default(),
             revision_date: self.revision_date,
         })
     }

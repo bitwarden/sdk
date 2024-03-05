@@ -51,7 +51,7 @@ impl KeyDecryptable<SymmetricCryptoKey, CollectionView> for Collection {
             id: self.id,
             organization_id: self.organization_id,
 
-            name: self.name.decrypt_with_key(key)?,
+            name: self.name.decrypt_with_key(key).ok().unwrap_or_default(),
 
             external_id: self.external_id.clone(),
             hide_passwords: self.hide_passwords,

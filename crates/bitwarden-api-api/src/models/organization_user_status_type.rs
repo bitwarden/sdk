@@ -14,25 +14,25 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum OrganizationUserStatusType {
-    _0 = 0,
-    _1 = 1,
-    _2 = 2,
-    __1 = -1,
+    Invited = 0,
+    Accepted = 1,
+    Confirmed = 2,
+    Revoked = -1,
 }
 
 impl ToString for OrganizationUserStatusType {
     fn to_string(&self) -> String {
         match self {
-            Self::_0 => String::from("0"),
-            Self::_1 => String::from("1"),
-            Self::_2 => String::from("2"),
-            Self::__1 => String::from("-1"),
+            Self::Invited => String::from("0"),
+            Self::Accepted => String::from("1"),
+            Self::Confirmed => String::from("2"),
+            Self::Revoked => String::from("-1"),
         }
     }
 }
 
 impl Default for OrganizationUserStatusType {
     fn default() -> OrganizationUserStatusType {
-        Self::_0
+        Self::Invited
     }
 }

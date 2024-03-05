@@ -1,10 +1,11 @@
 use std::{collections::HashMap, hash::Hash};
 
+use rayon::prelude::*;
 use uuid::Uuid;
 
 use crate::{CryptoError, KeyDecryptable, KeyEncryptable, Result, SymmetricCryptoKey};
 
-pub trait KeyContainer {
+pub trait KeyContainer: Send + Sync {
     fn get_key(&self, org_id: &Option<Uuid>) -> Option<&SymmetricCryptoKey>;
 }
 
@@ -46,37 +47,48 @@ impl<T: KeyDecryptable<SymmetricCryptoKey, Output> + LocateKey, Output> Decrypta
     }
 }
 
-impl<T: Encryptable<Output>, Output> Encryptable<Vec<Output>> for Vec<T> {
+impl<T: Encryptable<Output> + Send + Sync, Output: Send + Sync> Encryptable<Vec<Output>>
+    for Vec<T>
+{
     fn encrypt(self, enc: &dyn KeyContainer, org_id: &Option<Uuid>) -> Result<Vec<Output>> {
-        self.into_iter().map(|e| e.encrypt(enc, org_id)).collect()
+        self.into_par_iter()
+            .map(|e| e.encrypt(enc, org_id))
+            .collect()
     }
 }
 
-impl<T: Decryptable<Output>, Output> Decryptable<Vec<Output>> for Vec<T> {
+impl<T: Decryptable<Output> + Send + Sync, Output: Send + Sync> Decryptable<Vec<Output>>
+    for Vec<T>
+{
     fn decrypt(&self, enc: &dyn KeyContainer, org_id: &Option<Uuid>) -> Result<Vec<Output>> {
-        self.iter().map(|e| e.decrypt(enc, org_id)).collect()
+        self.into_par_iter()
+            .map(|e| e.decrypt(enc, org_id))
+            .collect()
     }
 }
 
-impl<T: Encryptable<Output>, Output, Id: Hash + Eq> Encryptable<HashMap<Id, Output>>
-    for HashMap<Id, T>
+impl<T: Encryptable<Output> + Send + Sync, Output: Send + Sync, Id: Hash + Eq + Send + Sync>
+    Encryptable<HashMap<Id, Output>> for HashMap<Id, T>
 {
     fn encrypt(self, enc: &dyn KeyContainer, org_id: &Option<Uuid>) -> Result<HashMap<Id, Output>> {
-        self.into_iter()
+        self.into_par_iter()
             .map(|(id, e)| Ok((id, e.encrypt(enc, org_id)?)))
             .collect()
     }
 }
 
-impl<T: Decryptable<Output>, Output, Id: Hash + Eq + Copy> Decryptable<HashMap<Id, Output>>
-    for HashMap<Id, T>
+impl<
+        T: Decryptable<Output> + Send + Sync,
+        Output: Send + Sync,
+        Id: Hash + Eq + Copy + Send + Sync,
+    > Decryptable<HashMap<Id, Output>> for HashMap<Id, T>
 {
     fn decrypt(
         &self,
         enc: &dyn KeyContainer,
         org_id: &Option<Uuid>,
     ) -> Result<HashMap<Id, Output>> {
-        self.iter()
+        self.into_par_iter()
             .map(|(id, e)| Ok((*id, e.decrypt(enc, org_id)?)))
             .collect()
     }

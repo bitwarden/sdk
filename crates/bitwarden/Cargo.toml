@@ -10,7 +10,7 @@ Bitwarden Secrets Manager SDK
 """
 keywords = ["bitwarden", "secrets-manager"]
 edition = "2021"
-rust-version = "1.57"
+rust-version = "1.71"
 
 [features]
 default = ["secrets"]
@@ -21,6 +21,7 @@ mobile = [
     "uniffi",
     "internal",
     "bitwarden-crypto/mobile",
+    "bitwarden-generators/mobile",
 ] # Mobile-specific features
 
 wasm-bindgen = ["chrono/wasmbind"]
@@ -30,12 +31,13 @@ base64 = ">=0.21.2, <0.22"
 bitwarden-api-api = { path = "../bitwarden-api-api", version = "=0.2.3" }
 bitwarden-api-identity = { path = "../bitwarden-api-identity", version = "=0.2.3" }
 bitwarden-crypto = { path = "../bitwarden-crypto", version = "=0.1.0" }
+bitwarden-exporters = { path = "../bitwarden-exporters", version = "0.1.0" }
+bitwarden-generators = { path = "../bitwarden-generators", version = "0.1.0" }
 chrono = { version = ">=0.4.26, <0.5", features = [
     "clock",
     "serde",
     "std",
 ], default-features = false }
-data-encoding = ">=2.5.0, <3.0"
 # We don't use this directly (it's used by rand), but we need it here to enable WASM support
 getrandom = { version = ">=0.2.9, <0.3", features = ["js"] }
 hmac = ">=0.12.1, <0.13"
@@ -52,7 +54,7 @@ serde_repr = ">=0.1.12, <0.2"
 sha1 = ">=0.10.5, <0.11"
 sha2 = ">=0.10.6, <0.11"
 thiserror = ">=1.0.40, <2.0"
-uniffi = { version = "=0.25.2", optional = true, features = ["tokio"] }
+uniffi = { version = "=0.26.1", optional = true, features = ["tokio"] }
 uuid = { version = ">=1.3.3, <2.0", features = ["serde"] }
 zxcvbn = ">= 2.2.2, <3.0"
 
@@ -75,5 +77,6 @@ reqwest = { version = "*", features = [
 
 [dev-dependencies]
 rand_chacha = "0.3.1"
-tokio = { version = "1.35.1", features = ["rt", "macros"] }
-wiremock = "0.5.22"
+tokio = { version = "1.36.0", features = ["rt", "macros"] }
+wiremock = "0.6.0"
+zeroize = { version = ">=1.7.0, <2.0", features = ["derive", "aarch64"] }

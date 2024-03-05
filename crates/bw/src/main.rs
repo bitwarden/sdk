@@ -1,7 +1,7 @@
 use bitwarden::{
     auth::RegisterRequest,
     client::client_settings::ClientSettings,
-    tool::{PassphraseGeneratorRequest, PasswordGeneratorRequest},
+    generators::{PassphraseGeneratorRequest, PasswordGeneratorRequest},
 };
 use bitwarden_cli::{install_color_eyre, text_prompt_when_none, Color};
 use clap::{command, Args, CommandFactory, Parser, Subcommand};
@@ -77,6 +77,11 @@ enum LoginCommands {
     ApiKey {
         client_id: Option<String>,
         client_secret: Option<String>,
+    },
+    Device {
+        #[arg(short = 'e', long, help = "Email address")]
+        email: Option<String>,
+        device_identifier: Option<String>,
     },
 }
 
@@ -163,6 +168,12 @@ async fn process_commands() -> Result<()> {
                     client_id,
                     client_secret,
                 } => auth::login_api_key(client, client_id, client_secret).await?,
+                LoginCommands::Device {
+                    email,
+                    device_identifier,
+                } => {
+                    auth::login_device(client, email, device_identifier).await?;
+                }
             }
             return Ok(());
         }

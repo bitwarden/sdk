@@ -14,21 +14,21 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum ProviderUserType {
-    Variant0 = 0,
-    Variant1 = 1,
+    ProviderAdmin = 0,
+    ServiceUser = 1,
 }
 
 impl ToString for ProviderUserType {
     fn to_string(&self) -> String {
         match self {
-            Self::Variant0 => String::from("0"),
-            Self::Variant1 => String::from("1"),
+            Self::ProviderAdmin => String::from("0"),
+            Self::ServiceUser => String::from("1"),
         }
     }
 }
 
 impl Default for ProviderUserType {
     fn default() -> ProviderUserType {
-        Self::Variant0
+        Self::ProviderAdmin
     }
 }

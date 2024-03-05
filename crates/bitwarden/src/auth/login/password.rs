@@ -34,8 +34,7 @@ pub(crate) async fn login_password(
         &input.kdf,
         &input.password,
         HashPurpose::ServerAuthorization,
-    )
-    .await?;
+    )?;
     let response = request_identity_tokens(client, input, &password_hash).await?;
 
     if let IdentityTokenResponse::Authenticated(r) = &response {
@@ -63,12 +62,20 @@ pub(crate) async fn login_password(
 async fn request_identity_tokens(
     client: &mut Client,
     input: &PasswordLoginRequest,
-    password_hash: &String,
+    password_hash: &str,
 ) -> Result<IdentityTokenResponse> {
+    use crate::client::client_settings::DeviceType;
+
     let config = client.get_api_configurations().await;
-    PasswordTokenRequest::new(&input.email, password_hash, &input.two_factor)
-        .send(config)
-        .await
+    PasswordTokenRequest::new(
+        &input.email,
+        password_hash,
+        DeviceType::ChromeBrowser,
+        "b86dd6ab-4265-4ddf-a7f1-eb28d5677f33",
+        &input.two_factor,
+    )
+    .send(config)
+    .await
 }
 
 #[cfg(feature = "internal")]
@@ -94,9 +101,11 @@ pub struct PasswordLoginResponse {
     pub reset_master_password: bool,
     /// Whether or not the user is required to update their master password
     pub force_password_reset: bool,
-    /// The available two factor authentication options. Present only when authentication fails due to requiring a second authentication factor.
+    /// The available two factor authentication options. Present only when authentication fails due
+    /// to requiring a second authentication factor.
     pub two_factor: Option<TwoFactorProviders>,
-    /// The information required to present the user with a captcha challenge. Only present when authentication fails due to requiring validation of a captcha challenge.
+    /// The information required to present the user with a captcha challenge. Only present when
+    /// authentication fails due to requiring validation of a captcha challenge.
     pub captcha: Option<CaptchaResponse>,
 }
 

@@ -98,11 +98,11 @@ impl KeyDecryptable<SymmetricCryptoKey, LoginUriView> for LoginUri {
 impl KeyDecryptable<SymmetricCryptoKey, LoginView> for Login {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<LoginView, CryptoError> {
         Ok(LoginView {
-            username: self.username.decrypt_with_key(key)?,
-            password: self.password.decrypt_with_key(key)?,
+            username: self.username.decrypt_with_key(key).ok().flatten(),
+            password: self.password.decrypt_with_key(key).ok().flatten(),
             password_revision_date: self.password_revision_date,
-            uris: self.uris.decrypt_with_key(key)?,
-            totp: self.totp.decrypt_with_key(key)?,
+            uris: self.uris.decrypt_with_key(key).ok().flatten(),
+            totp: self.totp.decrypt_with_key(key).ok().flatten(),
             autofill_on_page_load: self.autofill_on_page_load,
         })
     }
@@ -143,12 +143,12 @@ impl TryFrom<CipherLoginUriModel> for LoginUri {
 impl From<bitwarden_api_api::models::UriMatchType> for UriMatchType {
     fn from(value: bitwarden_api_api::models::UriMatchType) -> Self {
         match value {
-            bitwarden_api_api::models::UriMatchType::Variant0 => Self::Domain,
-            bitwarden_api_api::models::UriMatchType::Variant1 => Self::Host,
-            bitwarden_api_api::models::UriMatchType::Variant2 => Self::StartsWith,
-            bitwarden_api_api::models::UriMatchType::Variant3 => Self::Exact,
-            bitwarden_api_api::models::UriMatchType::Variant4 => Self::RegularExpression,
-            bitwarden_api_api::models::UriMatchType::Variant5 => Self::Never,
+            bitwarden_api_api::models::UriMatchType::Domain => Self::Domain,
+            bitwarden_api_api::models::UriMatchType::Host => Self::Host,
+            bitwarden_api_api::models::UriMatchType::StartsWith => Self::StartsWith,
+            bitwarden_api_api::models::UriMatchType::Exact => Self::Exact,
+            bitwarden_api_api::models::UriMatchType::RegularExpression => Self::RegularExpression,
+            bitwarden_api_api::models::UriMatchType::Never => Self::Never,
         }
     }
 }

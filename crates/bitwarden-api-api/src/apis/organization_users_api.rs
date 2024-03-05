@@ -174,14 +174,16 @@ pub enum OrganizationsOrgIdUsersInvitePostError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`organizations_org_id_users_organization_user_id_accept_init_post`]
+/// struct for typed errors of method
+/// [`organizations_org_id_users_organization_user_id_accept_init_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationsOrgIdUsersOrganizationUserIdAcceptInitPostError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`organizations_org_id_users_organization_user_id_accept_post`]
+/// struct for typed errors of method
+/// [`organizations_org_id_users_organization_user_id_accept_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationsOrgIdUsersOrganizationUserIdAcceptPostError {
@@ -230,7 +232,8 @@ pub enum OrganizationsOrgIdUsersRevokePutError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`organizations_org_id_users_user_id_reset_password_enrollment_put`]
+/// struct for typed errors of method
+/// [`organizations_org_id_users_user_id_reset_password_enrollment_put`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationsOrgIdUsersUserIdResetPasswordEnrollmentPutError {
@@ -481,7 +484,7 @@ pub async fn organizations_org_id_users_enable_secrets_manager_put(
 
 pub async fn organizations_org_id_users_get(
     configuration: &configuration::Configuration,
-    org_id: &str,
+    org_id: uuid::Uuid,
     include_groups: Option<bool>,
     include_collections: Option<bool>,
 ) -> Result<

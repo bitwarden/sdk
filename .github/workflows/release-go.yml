@@ -170,15 +170,15 @@ jobs:
           git add .
           git commit -m "Update Go SDK to ${{ github.sha }}"
 
-          if [[ "${{ github.event.inputs.release_type }}" == "Dry Run" ]]; then
-            echo "==================================="
-            echo "[!] Dry Run - Skipping push"
-            echo "==================================="
-            git ls-files -m
-            exit 0
-          else
+          # if [[ "${{ github.event.inputs.release_type }}" == "Dry Run" ]]; then
+          #   echo "==================================="
+          #   echo "[!] Dry Run - Skipping push"
+          #   echo "==================================="
+          #   git ls-files -m
+          #   exit 0
+          # else
             git push origin main
-          fi
+          # fi
 
       - name: Create release tag on SDK Go repo
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}

@@ -46,6 +46,7 @@ rand = ">=0.8.5, <0.9"
 reqwest = { version = ">=0.11, <0.12", features = [
     "json",
 ], default-features = false }
+rusqlite = { version = ">=0.31.0, <0.32", features = ["uuid"] }
 schemars = { version = ">=0.8.9, <0.9", features = ["uuid1", "chrono"] }
 serde = { version = ">=1.0, <2.0", features = ["derive"] }
 serde_json = ">=1.0.96, <2.0"

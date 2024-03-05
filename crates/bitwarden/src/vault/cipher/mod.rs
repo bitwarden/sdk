@@ -7,6 +7,7 @@ pub(crate) mod identity;
 pub(crate) mod linked_id;
 pub(crate) mod local_data;
 pub(crate) mod login;
+pub(crate) mod repository;
 pub(crate) mod secure_note;
 
 pub use attachment::{

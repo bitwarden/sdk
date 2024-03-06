@@ -65,7 +65,7 @@ jobs:
 
       - name: Retrieve secrets
         id: retrieve-secrets
-        uses: bitwarden/gh-actions/get-keyvault-secrets@62d1bf7c3e31c458cc7236b1e69a475d235cd78f
+        uses: bitwarden/gh-actions/get-keyvault-secrets@4f37134d838f21609c38cb56694d8605f176704c
         with:
           keyvault: ${{ env._KEY_VAULT }}
           secrets: "github-pat-bitwarden-devops-bot-repo-scope"
@@ -136,7 +136,7 @@ jobs:
 
       - name: Retrieve secrets
         id: retrieve-secrets
-        uses: bitwarden/gh-actions/get-keyvault-secrets@62d1bf7c3e31c458cc7236b1e69a475d235cd78f
+        uses: bitwarden/gh-actions/get-keyvault-secrets@4f37134d838f21609c38cb56694d8605f176704c
         with:
           keyvault: ${{ env._KEY_VAULT }}
           secrets: "github-pat-bitwarden-devops-bot-repo-scope"

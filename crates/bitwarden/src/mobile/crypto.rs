@@ -86,7 +86,7 @@ pub enum AuthRequestMethod {
 
 #[cfg(feature = "internal")]
 pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequest) -> Result<()> {
-    use bitwarden_crypto::DeviceKey;
+    use bitwarden_crypto::{DeviceKey, SensitiveString};
 
     use crate::auth::{auth_request_decrypt_master_key, auth_request_decrypt_user_key};
 
@@ -105,7 +105,8 @@ pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequ
             client.initialize_user_crypto(&password, user_key, private_key)?;
         }
         InitUserCryptoMethod::DecryptedKey { decrypted_user_key } => {
-            let user_key = decrypted_user_key.parse::<SymmetricCryptoKey>()?;
+            let decrypted_user_key = SensitiveString::new(Box::new(decrypted_user_key));
+            let user_key = SymmetricCryptoKey::try_from(decrypted_user_key)?;
             client.initialize_user_crypto_decrypted_key(user_key, private_key)?;
         }
         InitUserCryptoMethod::Pin {
@@ -138,7 +139,8 @@ pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequ
             protected_device_private_key,
             device_protected_user_key,
         } => {
-            let device_key = device_key.parse::<DeviceKey>()?;
+            let device_key = SensitiveString::new(Box::new(device_key));
+            let device_key = DeviceKey::try_from(device_key)?;
             let user_key = device_key
                 .decrypt_user_key(protected_device_private_key, device_protected_user_key)?;
 
@@ -172,7 +174,7 @@ pub async fn get_user_encryption_key(client: &mut Client) -> Result<String> {
         .get_key(&None)
         .ok_or(Error::VaultLocked)?;
 
-    Ok(user_key.to_base64())
+    Ok(user_key.to_base64().expose().to_owned())
 }
 
 #[cfg(feature = "internal")]
@@ -293,15 +295,16 @@ pub(super) fn enroll_admin_password_reset(
     client: &mut Client,
     public_key: String,
 ) -> Result<AsymmetricEncString> {
-    use base64::{engine::general_purpose::STANDARD, Engine};
-    use bitwarden_crypto::AsymmetricPublicCryptoKey;
+    use base64::engine::general_purpose::STANDARD;
+    use bitwarden_crypto::{AsymmetricPublicCryptoKey, SensitiveString};
 
-    let public_key = AsymmetricPublicCryptoKey::from_der(&STANDARD.decode(public_key)?)?;
+    let public_key = SensitiveString::new(Box::new(public_key));
+    let public_key = AsymmetricPublicCryptoKey::from_der(public_key.decode_base64(STANDARD)?)?;
     let enc = client.get_encryption_settings()?;
     let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
 
     Ok(AsymmetricEncString::encrypt_rsa2048_oaep_sha1(
-        &key.to_vec(),
+        key.to_vec().expose(),
         &public_key,
     )?)
 }
@@ -485,10 +488,10 @@ mod tests {
     #[cfg(feature = "internal")]
     #[test]
     fn test_enroll_admin_password_reset() {
-        use std::{num::NonZeroU32, ops::Deref};
+        use std::num::NonZeroU32;
 
-        use base64::{engine::general_purpose::STANDARD, Engine};
-        use bitwarden_crypto::{AsymmetricCryptoKey, DecryptedVec};
+        use base64::engine::general_purpose::STANDARD;
+        use bitwarden_crypto::{AsymmetricCryptoKey, DecryptedVec, SensitiveString};
 
         let mut client = Client::new(None);
         client.set_login_method(LoginMethod::User(UserLoginMethod::Username {
@@ -510,8 +513,9 @@ mod tests {
         let encrypted = enroll_admin_password_reset(&mut client, public_key.to_owned()).unwrap();
 
         let private_key = "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCzLtEUdxfcLxDj84yaGFsVF5hZ8Hjlb08NMQDy1RnBma06I3ZESshLYzVz4r/gegMn9OOltfV/Yxlyvida8oW6qdlfJ7AVz6Oa8pV7BiL40C7b76+oqraQpyYw2HChANB1AhXL9SqWngKmLZwjA7qiCrmcc0kZHeOb4KnKtp9iVvPVs+8veFvKgYO4ba2AAOHKFdR0W55/agXfAy+fWUAkC8mc9ikyJdQWaPV6OZvC2XFkOseBQm9Rynudh3BQpoWiL6w620efe7t5k+02/EyOFJL9f/XEEjM/+Yo0t3LAfkuhHGeKiRST59Xc9hTEmyJTeVXROtz+0fjqOp3xkaObAgMBAAECggEACs4xhnO0HaZhh1/iH7zORMIRXKeyxP2LQiTR8xwN5JJ9wRWmGAR9VasS7EZFTDidIGVME2u/h4s5EqXnhxfO+0gGksVvgNXJ/qw87E8K2216g6ZNo6vSGA7H1GH2voWwejJ4/k/cJug6dz2S402rRAKh2Wong1arYHSkVlQp3diiMa5FHAOSE+Cy09O2ZsaF9IXQYUtlW6AVXFrBEPYH2kvkaPXchh8VETMijo6tbvoKLnUHe+wTaDMls7hy8exjtVyI59r3DNzjy1lNGaGb5QSnFMXR+eHhPZc844Wv02MxC15zKABADrl58gpJyjTl6XpDdHCYGsmGpVGH3X9TQQKBgQDz/9beFjzq59ve6rGwn+EtnQfSsyYT+jr7GN8lNEXb3YOFXBgPhfFIcHRh2R00Vm9w2ApfAx2cd8xm2I6HuvQ1Os7g26LWazvuWY0Qzb+KaCLQTEGH1RnTq6CCG+BTRq/a3J8M4t38GV5TWlzv8wr9U4dl6FR4efjb65HXs1GQ4QKBgQC7/uHfrOTEHrLeIeqEuSl0vWNqEotFKdKLV6xpOvNuxDGbgW4/r/zaxDqt0YBOXmRbQYSEhmO3oy9J6XfE1SUln0gbavZeW0HESCAmUIC88bDnspUwS9RxauqT5aF8ODKN/bNCWCnBM1xyonPOs1oT1nyparJVdQoG//Y7vkB3+wKBgBqLqPq8fKAp3XfhHLfUjREDVoiLyQa/YI9U42IOz9LdxKNLo6p8rgVthpvmnRDGnpUuS+KOWjhdqDVANjF6G3t3DG7WNl8Rh5Gk2H4NhFswfSkgQrjebFLlBy9gjQVCWXt8KSmjvPbiY6q52Aaa8IUjA0YJAregvXxfopxO+/7BAoGARicvEtDp7WWnSc1OPoj6N14VIxgYcI7SyrzE0d/1x3ffKzB5e7qomNpxKzvqrVP8DzG7ydh8jaKPmv1MfF8tpYRy3AhmN3/GYwCnPqT75YYrhcrWcVdax5gmQVqHkFtIQkRSCIftzPLlpMGKha/YBV8c1fvC4LD0NPh/Ynv0gtECgYEAyOZg95/kte0jpgUEgwuMrzkhY/AaUJULFuR5MkyvReEbtSBQwV5tx60+T95PHNiFooWWVXiLMsAgyI2IbkxVR1Pzdri3gWK5CTfqb7kLuaj/B7SGvBa2Sxo478KS5K8tBBBWkITqo+wLC0mn3uZi1dyMWO1zopTA+KtEGF2dtGQ=";
+        let private_key = SensitiveString::test(private_key);
         let private_key =
-            AsymmetricCryptoKey::from_der(&STANDARD.decode(private_key).unwrap()).unwrap();
+            AsymmetricCryptoKey::from_der(private_key.decode_base64(STANDARD).unwrap()).unwrap();
         let decrypted: DecryptedVec = encrypted.decrypt_with_key(&private_key).unwrap();
 
         let expected = client
@@ -519,9 +523,7 @@ mod tests {
             .unwrap()
             .get_key(&None)
             .unwrap()
-            .to_vec()
-            .deref()
-            .clone();
-        assert_eq!(decrypted.expose(), &expected);
+            .to_vec();
+        assert_eq!(decrypted.expose(), expected.expose());
     }
 }

@@ -103,11 +103,11 @@ where
                     "{}: {}",
                     f.name
                         .as_ref()
-                        .map(|n| n.expose().to_owned())
+                        .map(|n| n.expose().as_str())
                         .unwrap_or_default(),
                     f.value
                         .as_ref()
-                        .map(|n| n.expose().to_owned())
+                        .map(|n| n.expose().as_str())
                         .unwrap_or_default(),
                 )
             })

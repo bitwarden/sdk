@@ -58,7 +58,7 @@ impl EncryptionSettings {
 
         let private_key = {
             let dec: DecryptedVec = private_key.decrypt_with_key(&user_key)?;
-            Some(AsymmetricCryptoKey::from_der(dec.expose())?)
+            Some(AsymmetricCryptoKey::from_der(dec)?)
         };
 
         Ok(EncryptionSettings {
@@ -95,9 +95,9 @@ impl EncryptionSettings {
 
         // Decrypt the org keys with the private key
         for (org_id, org_enc_key) in org_enc_keys {
-            let mut dec: DecryptedVec = org_enc_key.decrypt_with_key(private_key)?;
+            let dec: DecryptedVec = org_enc_key.decrypt_with_key(private_key)?;
 
-            let org_key = SymmetricCryptoKey::try_from(dec.expose_mut().as_mut_slice())?;
+            let org_key = SymmetricCryptoKey::try_from(dec)?;
 
             self.org_keys.insert(org_id, org_key);
         }

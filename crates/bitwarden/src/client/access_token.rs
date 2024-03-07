@@ -79,7 +79,7 @@ mod tests {
             "ec2c1d46-6a4b-4751-a310-af9601317f2d"
         );
         assert_eq!(token.client_secret, "C2IgxjjLF7qSshsbwe8JGcbM075YXw");
-        assert_eq!(token.encryption_key.to_base64(), "H9/oIRLtL9nGCQOVDjSMoEbJsjWXSOCb3qeyDt6ckzS3FhyboEDWyTP/CQfbIszNmAVg2ExFganG1FVFGXO/Jg==");
+        assert_eq!(token.encryption_key.to_base64().expose(), "H9/oIRLtL9nGCQOVDjSMoEbJsjWXSOCb3qeyDt6ckzS3FhyboEDWyTP/CQfbIszNmAVg2ExFganG1FVFGXO/Jg==");
     }
 
     #[test]

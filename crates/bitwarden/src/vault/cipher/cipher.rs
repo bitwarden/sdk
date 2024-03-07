@@ -218,8 +218,8 @@ impl Cipher {
         ciphers_key
             .as_ref()
             .map(|k| {
-                let mut key: DecryptedVec = k.decrypt_with_key(key)?;
-                SymmetricCryptoKey::try_from(key.expose_mut().as_mut_slice())
+                let key: DecryptedVec = k.decrypt_with_key(key)?;
+                SymmetricCryptoKey::try_from(key)
             })
             .transpose()
     }
@@ -301,7 +301,7 @@ impl CipherView {
 
         let new_key = SymmetricCryptoKey::generate(rand::thread_rng());
 
-        self.key = Some(new_key.to_vec().encrypt_with_key(key)?);
+        self.key = Some(new_key.to_vec().expose().encrypt_with_key(key)?);
         Ok(())
     }
 }

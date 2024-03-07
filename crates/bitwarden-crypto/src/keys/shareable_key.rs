@@ -37,9 +37,9 @@ mod tests {
     #[test]
     fn test_derive_shareable_key() {
         let key = derive_shareable_key(*b"&/$%F1a895g67HlX", "test_key", None);
-        assert_eq!(key.to_base64(), "4PV6+PcmF2w7YHRatvyMcVQtI7zvCyssv/wFWmzjiH6Iv9altjmDkuBD1aagLVaLezbthbSe+ktR+U6qswxNnQ==");
+        assert_eq!(key.to_base64().expose(), "4PV6+PcmF2w7YHRatvyMcVQtI7zvCyssv/wFWmzjiH6Iv9altjmDkuBD1aagLVaLezbthbSe+ktR+U6qswxNnQ==");
 
         let key = derive_shareable_key(*b"67t9b5g67$%Dh89n", "test_key", Some("test"));
-        assert_eq!(key.to_base64(), "F9jVQmrACGx9VUPjuzfMYDjr726JtL300Y3Yg+VYUnVQtQ1s8oImJ5xtp1KALC9h2nav04++1LDW4iFD+infng==");
+        assert_eq!(key.to_base64().expose(), "F9jVQmrACGx9VUPjuzfMYDjr726JtL300Y3Yg+VYUnVQtQ1s8oImJ5xtp1KALC9h2nav04++1LDW4iFD+infng==");
     }
 }

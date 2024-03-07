@@ -1,6 +1,7 @@
 use base64::{engine::general_purpose::STANDARD, Engine};
 use bitwarden_crypto::{
     fingerprint, AsymmetricCryptoKey, AsymmetricEncString, AsymmetricPublicCryptoKey,
+    SensitiveString,
 };
 #[cfg(feature = "mobile")]
 use bitwarden_crypto::{EncString, KeyDecryptable, SymmetricCryptoKey};
@@ -59,12 +60,11 @@ pub(crate) fn auth_request_decrypt_user_key(
 ) -> Result<SymmetricCryptoKey, Error> {
     use bitwarden_crypto::DecryptedVec;
 
-    let key = AsymmetricCryptoKey::from_der(&STANDARD.decode(private_key)?)?;
-    let mut key: DecryptedVec = user_key.decrypt_with_key(&key)?;
+    let private_key = SensitiveString::new(Box::new(private_key));
+    let key = AsymmetricCryptoKey::from_der(private_key.decode_base64(STANDARD)?)?;
+    let key: DecryptedVec = user_key.decrypt_with_key(&key)?;
 
-    Ok(SymmetricCryptoKey::try_from(
-        key.expose_mut().as_mut_slice(),
-    )?)
+    Ok(SymmetricCryptoKey::try_from(key)?)
 }
 
 /// Decrypt the user key using the private key generated previously.
@@ -76,11 +76,10 @@ pub(crate) fn auth_request_decrypt_master_key(
 ) -> Result<SymmetricCryptoKey, Error> {
     use bitwarden_crypto::{DecryptedVec, MasterKey};
 
-    let key = AsymmetricCryptoKey::from_der(&STANDARD.decode(private_key)?)?;
-    let mut master_key: DecryptedVec = master_key.decrypt_with_key(&key)?;
-    let master_key = MasterKey::new(SymmetricCryptoKey::try_from(
-        master_key.expose_mut().as_mut_slice(),
-    )?);
+    let private_key = SensitiveString::new(Box::new(private_key));
+    let key = AsymmetricCryptoKey::from_der(private_key.decode_base64(STANDARD)?)?;
+    let master_key: DecryptedVec = master_key.decrypt_with_key(&key)?;
+    let master_key = MasterKey::new(SymmetricCryptoKey::try_from(master_key)?);
 
     Ok(master_key.decrypt_user_key(user_key)?)
 }
@@ -92,21 +91,20 @@ pub(crate) fn approve_auth_request(
     client: &mut Client,
     public_key: String,
 ) -> Result<AsymmetricEncString, Error> {
-    let public_key = AsymmetricPublicCryptoKey::from_der(&STANDARD.decode(public_key)?)?;
+    let public_key = SensitiveString::new(Box::new(public_key));
+    let public_key = AsymmetricPublicCryptoKey::from_der(public_key.decode_base64(STANDARD)?)?;
 
     let enc = client.get_encryption_settings()?;
     let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
 
     Ok(AsymmetricEncString::encrypt_rsa2048_oaep_sha1(
-        &key.to_vec(),
+        key.to_vec().expose(),
         &public_key,
     )?)
 }
 
 #[test]
 fn test_auth_request() {
-    use zeroize::Zeroizing;
-
     let request = new_auth_request("test@bitwarden.com").unwrap();
 
     let secret: &[u8] = &[
@@ -116,14 +114,15 @@ fn test_auth_request() {
         67, 35, 61, 245, 93,
     ];
 
+    let private_key = SensitiveString::new(Box::new(request.private_key.clone()));
     let private_key =
-        AsymmetricCryptoKey::from_der(&STANDARD.decode(&request.private_key).unwrap()).unwrap();
+        AsymmetricCryptoKey::from_der(private_key.decode_base64(STANDARD).unwrap()).unwrap();
 
     let encrypted = AsymmetricEncString::encrypt_rsa2048_oaep_sha1(secret, &private_key).unwrap();
 
     let decrypted = auth_request_decrypt_user_key(request.private_key, encrypted).unwrap();
 
-    assert_eq!(decrypted.to_vec(), Zeroizing::new(secret.to_owned()));
+    assert_eq!(decrypted.to_vec().expose(), secret);
 }
 
 #[cfg(test)]
@@ -173,8 +172,8 @@ mod tests {
         let dec = auth_request_decrypt_user_key(private_key.to_owned(), enc_user_key).unwrap();
 
         assert_eq!(
-            dec.to_vec().as_ref(),
-            vec![
+            dec.to_vec().expose(),
+            &[
                 201, 37, 234, 213, 21, 75, 40, 70, 149, 213, 234, 16, 19, 251, 162, 245, 161, 74,
                 34, 245, 211, 151, 211, 192, 95, 10, 117, 50, 88, 223, 23, 157
             ]
@@ -192,8 +191,8 @@ mod tests {
                 .unwrap();
 
         assert_eq!(
-            dec.to_vec().as_ref(),
-            vec![
+            dec.to_vec().expose(),
+            &[
                 109, 128, 172, 147, 206, 123, 134, 95, 16, 36, 155, 113, 201, 18, 186, 230, 216,
                 212, 173, 188, 74, 11, 134, 131, 137, 242, 105, 178, 105, 126, 52, 139, 248, 91,
                 215, 21, 128, 91, 226, 222, 165, 67, 251, 34, 83, 81, 77, 147, 225, 76, 13, 41,

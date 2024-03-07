@@ -27,8 +27,7 @@ pub(crate) async fn send_two_factor_email(
         &kdf,
         &input.password,
         HashPurpose::ServerAuthorization,
-    )
-    .await?;
+    )?;
 
     let config = client.get_api_configurations().await;
     bitwarden_api_api::apis::two_factor_api::two_factor_send_email_login_post(

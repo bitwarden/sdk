@@ -34,11 +34,11 @@ pub struct Field {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct FieldView {
-    name: Option<DecryptedString>,
-    value: Option<DecryptedString>,
-    r#type: FieldType,
+    pub(crate) name: Option<DecryptedString>,
+    pub(crate) value: Option<DecryptedString>,
+    pub(crate) r#type: FieldType,
 
-    linked_id: Option<LinkedIdType>,
+    pub(crate) linked_id: Option<LinkedIdType>,
 }
 
 impl KeyEncryptable<SymmetricCryptoKey, Field> for FieldView {
@@ -82,10 +82,10 @@ impl TryFrom<CipherFieldModel> for Field {
 impl From<bitwarden_api_api::models::FieldType> for FieldType {
     fn from(model: bitwarden_api_api::models::FieldType) -> Self {
         match model {
-            bitwarden_api_api::models::FieldType::Variant0 => FieldType::Text,
-            bitwarden_api_api::models::FieldType::Variant1 => FieldType::Hidden,
-            bitwarden_api_api::models::FieldType::Variant2 => FieldType::Boolean,
-            bitwarden_api_api::models::FieldType::Variant3 => FieldType::Linked,
+            bitwarden_api_api::models::FieldType::Text => FieldType::Text,
+            bitwarden_api_api::models::FieldType::Hidden => FieldType::Hidden,
+            bitwarden_api_api::models::FieldType::Boolean => FieldType::Boolean,
+            bitwarden_api_api::models::FieldType::Linked => FieldType::Linked,
         }
     }
 }

@@ -10,8 +10,6 @@ use crate::util::capitalize_first_letter;
 pub enum PassphraseError {
     #[error("'num_words' must be between {} and {}", minimum, maximum)]
     InvalidNumWords { minimum: u8, maximum: u8 },
-    #[error("'word_separator' cannot be empty")]
-    EmptyWordSeparator,
 }
 
 /// Passphrase generator request options.
@@ -68,10 +66,6 @@ impl PassphraseGeneratorRequest {
                 maximum: MAXIMUM_PASSPHRASE_NUM_WORDS,
             });
         }
-
-        if self.word_separator.chars().next().is_none() {
-            return Err(PassphraseError::EmptyWordSeparator);
-        };
 
         Ok(ValidPassphraseGeneratorOptions {
             num_words: self.num_words,

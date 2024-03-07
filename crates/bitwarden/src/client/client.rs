@@ -6,16 +6,19 @@ use bitwarden_crypto::SymmetricCryptoKey;
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{AsymmetricEncString, EncString};
 use chrono::Utc;
-use reqwest::header::{self};
+use reqwest::header::{self, HeaderValue};
 use uuid::Uuid;
 
 use super::AccessToken;
 #[cfg(feature = "secrets")]
 use crate::auth::login::{AccessTokenLoginRequest, AccessTokenLoginResponse};
 #[cfg(feature = "internal")]
-use crate::platform::{
-    get_user_api_key, sync, SecretVerificationRequest, SyncRequest, SyncResponse,
-    UserApiKeyResponse,
+use crate::{
+    client::flags::Flags,
+    platform::{
+        get_user_api_key, sync, SecretVerificationRequest, SyncRequest, SyncResponse,
+        UserApiKeyResponse,
+    },
 };
 use crate::{
     client::{
@@ -29,6 +32,9 @@ use crate::{
 pub(crate) struct ApiConfigurations {
     pub identity: bitwarden_api_identity::apis::configuration::Configuration,
     pub api: bitwarden_api_api::apis::configuration::Configuration,
+    /// Reqwest client useable for external integrations like email forwarders, HIBP.
+    #[allow(unused)]
+    pub external_client: reqwest::Client,
     pub device_type: DeviceType,
 }
 
@@ -74,6 +80,9 @@ pub struct Client {
     pub(crate) token_expires_on: Option<i64>,
     pub(crate) login_method: Option<LoginMethod>,
 
+    #[cfg(feature = "internal")]
+    flags: Flags,
+
     /// Use Client::get_api_configurations() to access this.
     /// It should only be used directly in renew_token
     #[doc(hidden)]
@@ -86,16 +95,27 @@ impl Client {
     pub fn new(settings_input: Option<ClientSettings>) -> Self {
         let settings = settings_input.unwrap_or_default();
 
-        let headers = header::HeaderMap::new();
+        fn new_client_builder() -> reqwest::ClientBuilder {
+            #[allow(unused_mut)]
+            let mut client_builder = reqwest::Client::builder();
 
-        #[allow(unused_mut)]
-        let mut client_builder = reqwest::Client::builder().default_headers(headers);
+            #[cfg(all(not(target_os = "android"), not(target_arch = "wasm32")))]
+            {
+                client_builder =
+                    client_builder.use_preconfigured_tls(rustls_platform_verifier::tls_config());
+            }
 
-        #[cfg(all(not(target_os = "android"), not(target_arch = "wasm32")))]
-        {
-            client_builder =
-                client_builder.use_preconfigured_tls(rustls_platform_verifier::tls_config());
+            client_builder
         }
+
+        let external_client = new_client_builder().build().unwrap();
+
+        let mut headers = header::HeaderMap::new();
+        headers.append(
+            "Device-Type",
+            HeaderValue::from_str(&(settings.device_type as u8).to_string()).unwrap(),
+        );
+        let client_builder = new_client_builder().default_headers(headers);
 
         let client = client_builder.build().unwrap();
 
@@ -124,13 +144,26 @@ impl Client {
             refresh_token: None,
             token_expires_on: None,
             login_method: None,
+            #[cfg(feature = "internal")]
+            flags: Flags::default(),
             __api_configurations: ApiConfigurations {
                 identity,
                 api,
+                external_client,
                 device_type: settings.device_type,
             },
             encryption_settings: None,
         }
+    }
+
+    #[cfg(feature = "internal")]
+    pub fn load_flags(&mut self, flags: std::collections::HashMap<String, bool>) {
+        self.flags = Flags::load_from_map(flags);
+    }
+
+    #[cfg(feature = "mobile")]
+    pub(crate) fn get_flags(&self) -> &Flags {
+        &self.flags
     }
 
     pub(crate) async fn get_api_configurations(&mut self) -> &ApiConfigurations {
@@ -142,7 +175,7 @@ impl Client {
 
     #[cfg(feature = "mobile")]
     pub(crate) fn get_http_client(&self) -> &reqwest::Client {
-        &self.__api_configurations.api.client
+        &self.__api_configurations.external_client
     }
 
     #[cfg(feature = "secrets")]
@@ -289,5 +322,25 @@ impl Client {
 
         enc.set_org_keys(org_keys)?;
         Ok(self.encryption_settings.as_ref().unwrap())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_reqwest_rustls_platform_verifier_are_compatible() {
+        // rustls-platform-verifier is generating a rustls::ClientConfig,
+        // which reqwest accepts as a &dyn Any and then downcasts it to a
+        // rustls::ClientConfig.
+
+        // This means that if the rustls version of the two crates don't match,
+        // the downcast will fail and we will get a runtime error.
+
+        // This tests is added to ensure that it doesn't happen.
+
+        let _ = reqwest::ClientBuilder::new()
+            .use_preconfigured_tls(rustls_platform_verifier::tls_config())
+            .build()
+            .unwrap();
     }
 }

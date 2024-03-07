@@ -329,8 +329,8 @@ impl TryFrom<SendResponseModel> for Send {
 impl From<bitwarden_api_api::models::SendType> for SendType {
     fn from(t: bitwarden_api_api::models::SendType) -> Self {
         match t {
-            bitwarden_api_api::models::SendType::Variant0 => SendType::Text,
-            bitwarden_api_api::models::SendType::Variant1 => SendType::File,
+            bitwarden_api_api::models::SendType::Text => SendType::Text,
+            bitwarden_api_api::models::SendType::File => SendType::File,
         }
     }
 }

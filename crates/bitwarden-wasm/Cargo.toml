@@ -2,7 +2,7 @@
 name = "bitwarden-wasm"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.57"
+rust-version = "1.71"
 
 [lib]
 crate-type = ["cdylib"]
@@ -10,11 +10,11 @@ crate-type = ["cdylib"]
 [dependencies]
 console_error_panic_hook = "0.1.7"
 console_log = { version = "1.0.0", features = ["color"] }
-js-sys = "0.3.67"
+js-sys = "0.3.68"
 log = "0.4.20"
-serde = { version = "1.0.195", features = ["derive"] }
-wasm-bindgen = { version = "0.2.90", features = ["serde-serialize"] }
-wasm-bindgen-futures = "0.4.40"
+serde = { version = "1.0.196", features = ["derive"] }
+wasm-bindgen = { version = "0.2.91", features = ["serde-serialize"] }
+wasm-bindgen-futures = "0.4.41"
 
 bitwarden-json = { path = "../bitwarden-json", features = [
     "secrets",
@@ -22,4 +22,4 @@ bitwarden-json = { path = "../bitwarden-json", features = [
 ] }
 
 [dev-dependencies]
-wasm-bindgen-test = "0.3.40"
+wasm-bindgen-test = "0.3.41"

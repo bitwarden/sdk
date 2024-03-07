@@ -15,7 +15,7 @@ jobs:
     name: Cleanup Android SDK
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/delete-package-versions@0d39a63126868f5eefaa47169615edd3c0f61e20 # v4.1.1
+      - uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 # v5.0.0
         with:
           package-name: com.bitwarden.sdk-android
           package-type: maven

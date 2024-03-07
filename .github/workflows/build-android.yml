@@ -46,7 +46,7 @@ jobs:
         run: cross build -p bitwarden-uniffi --release --target=${{ matrix.settings.target }}
 
       - name: Upload artifact
-        uses: actions/upload-artifact@694cdabd8bdb0f10b2cea11669e1bf5453eed0a6 # v4.2.0
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
           name: android-${{ matrix.settings.target }}
           path: ./target/${{ matrix.settings.target }}/release/libbitwarden_uniffi.so
@@ -86,7 +86,7 @@ jobs:
           java-version: 17
 
       - name: Download Artifacts
-        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
+        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
 
       - name: Move artifacts
         working-directory: languages/kotlin/sdk/src/main/jniLibs
@@ -102,7 +102,7 @@ jobs:
         run: ./build-schemas.sh
 
       - name: Publish
-        uses: gradle/gradle-build-action@982da8e78c05368c70dac0351bb82647a9e9a5d2 # v2.11.1
+        uses: gradle/actions/setup-gradle@ec92e829475ac0c2315ea8f9eced72db85bb337a # v3.0.0
         with:
           arguments: sdk:publish
           build-root-directory: languages/kotlin

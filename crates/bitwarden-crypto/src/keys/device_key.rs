@@ -1,6 +1,8 @@
+use std::str::FromStr;
+
 use crate::{
-    error::Result, AsymmetricCryptoKey, AsymmetricEncString, DecryptedVec, EncString,
-    KeyDecryptable, KeyEncryptable, SymmetricCryptoKey, UserKey,
+    error::Result, AsymmetricCryptoKey, AsymmetricEncString, CryptoError, DecryptedVec, EncString,
+    KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
 };
 
 /// Device Key
@@ -11,8 +13,10 @@ use crate::{
 pub struct DeviceKey(SymmetricCryptoKey);
 
 #[derive(Debug)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct TrustDeviceResponse {
-    pub device_key: DeviceKey,
+    /// Base64 encoded device key
+    pub device_key: String,
     /// UserKey encrypted with DevicePublicKey
     pub protected_user_key: AsymmetricEncString,
     /// DevicePrivateKey encrypted with [DeviceKey]
@@ -47,7 +51,7 @@ impl DeviceKey {
             .encrypt_with_key(&device_key.0)?;
 
         Ok(TrustDeviceResponse {
-            device_key,
+            device_key: device_key.to_base64(),
             protected_user_key,
             protected_device_private_key,
             protected_device_public_key,
@@ -59,7 +63,7 @@ impl DeviceKey {
         &self,
         protected_device_private_key: EncString,
         protected_user_key: AsymmetricEncString,
-    ) -> Result<UserKey> {
+    ) -> Result<SymmetricCryptoKey> {
         let device_private_key: DecryptedVec =
             protected_device_private_key.decrypt_with_key(&self.0)?;
         let device_private_key =
@@ -68,7 +72,20 @@ impl DeviceKey {
         let mut dec: DecryptedVec = protected_user_key.decrypt_with_key(&device_private_key)?;
         let user_key: SymmetricCryptoKey = dec.expose_mut().as_mut_slice().try_into()?;
 
-        Ok(UserKey(user_key))
+        Ok(user_key)
+    }
+
+    fn to_base64(&self) -> String {
+        self.0.to_base64()
+    }
+}
+
+impl FromStr for DeviceKey {
+    type Err = CryptoError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let key = s.parse::<SymmetricCryptoKey>()?;
+        Ok(DeviceKey(key))
     }
 }
 
@@ -85,14 +102,16 @@ mod tests {
 
         let decrypted = result
             .device_key
+            .parse::<DeviceKey>()
+            .unwrap()
             .decrypt_user_key(
                 result.protected_device_private_key,
                 result.protected_user_key,
             )
             .unwrap();
 
-        assert_eq!(key.key, decrypted.0.key);
-        assert_eq!(key.mac_key, decrypted.0.mac_key);
+        assert_eq!(key.key, decrypted.key);
+        assert_eq!(key.mac_key, decrypted.mac_key);
     }
 
     #[test]
@@ -122,7 +141,7 @@ mod tests {
             .decrypt_user_key(protected_device_private_key, protected_user_key)
             .unwrap();
 
-        assert_eq!(decrypted.0.key, user_key.key);
-        assert_eq!(decrypted.0.mac_key, user_key.mac_key);
+        assert_eq!(decrypted.key, user_key.key);
+        assert_eq!(decrypted.mac_key, user_key.mac_key);
     }
 }

@@ -14,27 +14,27 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum OrganizationUserType {
-    Variant0 = 0,
-    Variant1 = 1,
-    Variant2 = 2,
-    Variant3 = 3,
-    Variant4 = 4,
+    Owner = 0,
+    Admin = 1,
+    User = 2,
+    Manager = 3,
+    Custom = 4,
 }
 
 impl ToString for OrganizationUserType {
     fn to_string(&self) -> String {
         match self {
-            Self::Variant0 => String::from("0"),
-            Self::Variant1 => String::from("1"),
-            Self::Variant2 => String::from("2"),
-            Self::Variant3 => String::from("3"),
-            Self::Variant4 => String::from("4"),
+            Self::Owner => String::from("0"),
+            Self::Admin => String::from("1"),
+            Self::User => String::from("2"),
+            Self::Manager => String::from("3"),
+            Self::Custom => String::from("4"),
         }
     }
 }
 
 impl Default for OrganizationUserType {
     fn default() -> OrganizationUserType {
-        Self::Variant0
+        Self::Owner
     }
 }

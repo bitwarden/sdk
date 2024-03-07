@@ -23,9 +23,9 @@ pub struct Folder {
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct FolderView {
-    id: Option<Uuid>,
-    name: DecryptedString,
-    revision_date: DateTime<Utc>,
+    pub id: Option<Uuid>,
+    pub name: DecryptedString,
+    pub revision_date: DateTime<Utc>,
 }
 
 impl LocateKey for FolderView {}

@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
 use bitwarden::mobile::crypto::{
-    DerivePinKeyResponse, InitOrgCryptoRequest, InitUserCryptoRequest,
+    DerivePinKeyResponse, InitOrgCryptoRequest, InitUserCryptoRequest, UpdatePasswordResponse,
 };
-use bitwarden_crypto::EncString;
+use bitwarden_crypto::{AsymmetricEncString, EncString};
 
 use crate::{error::Result, Client};
 
@@ -51,6 +51,19 @@ impl ClientCrypto {
             .await?)
     }
 
+    /// Update the user's password, which will re-encrypt the user's encryption key with the new
+    /// password. This returns the new encrypted user key and the new password hash.
+    pub async fn update_password(&self, new_password: String) -> Result<UpdatePasswordResponse> {
+        Ok(self
+            .0
+             .0
+            .write()
+            .await
+            .crypto()
+            .update_password(new_password)
+            .await?)
+    }
+
     /// Generates a PIN protected user key from the provided PIN. The result can be stored and later
     /// used to initialize another client instance by using the PIN and the PIN key with
     /// `initialize_user_crypto`.
@@ -69,5 +82,18 @@ impl ClientCrypto {
             .crypto()
             .derive_pin_user_key(encrypted_pin)
             .await?)
+    }
+
+    pub async fn enroll_admin_password_reset(
+        &self,
+        public_key: String,
+    ) -> Result<AsymmetricEncString> {
+        Ok(self
+            .0
+             .0
+            .write()
+            .await
+            .crypto()
+            .enroll_admin_password_reset(public_key)?)
     }
 }

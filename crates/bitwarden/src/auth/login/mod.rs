@@ -29,6 +29,13 @@ pub(crate) use api_key::login_api_key;
 #[cfg(feature = "internal")]
 pub use api_key::{ApiKeyLoginRequest, ApiKeyLoginResponse};
 
+#[cfg(feature = "mobile")]
+mod auth_request;
+#[cfg(feature = "mobile")]
+pub use auth_request::NewAuthRequestResponse;
+#[cfg(feature = "mobile")]
+pub(crate) use auth_request::{complete_auth_request, send_new_auth_request};
+
 #[cfg(feature = "secrets")]
 mod access_token;
 #[cfg(feature = "secrets")]
@@ -60,13 +67,13 @@ pub(crate) fn parse_prelogin(response: PreloginResponseModel) -> Result<Kdf> {
     let kdf = response.kdf.ok_or("KDF not found")?;
 
     Ok(match kdf {
-        KdfType::Variant0 => Kdf::PBKDF2 {
+        KdfType::PBKDF2_SHA256 => Kdf::PBKDF2 {
             iterations: response
                 .kdf_iterations
                 .and_then(|e| NonZeroU32::new(e as u32))
                 .unwrap_or_else(default_pbkdf2_iterations),
         },
-        KdfType::Variant1 => Kdf::Argon2id {
+        KdfType::Argon2id => Kdf::Argon2id {
             iterations: response
                 .kdf_iterations
                 .and_then(|e| NonZeroU32::new(e as u32))

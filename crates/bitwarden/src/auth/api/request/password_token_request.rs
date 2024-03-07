@@ -6,7 +6,7 @@ use crate::{
         api::response::IdentityTokenResponse,
         login::{TwoFactorProvider, TwoFactorRequest},
     },
-    client::ApiConfigurations,
+    client::{client_settings::DeviceType, ApiConfigurations},
     error::Result,
 };
 
@@ -35,13 +35,19 @@ pub struct PasswordTokenRequest {
 }
 
 impl PasswordTokenRequest {
-    pub fn new(email: &str, password_hash: &String, two_factor: &Option<TwoFactorRequest>) -> Self {
+    pub fn new(
+        email: &str,
+        password_hash: &str,
+        device_type: DeviceType,
+        device_identifier: &str,
+        two_factor: &Option<TwoFactorRequest>,
+    ) -> Self {
         let tf = two_factor.as_ref();
         let obj = Self {
             scope: "api offline_access".to_string(),
             client_id: "web".to_string(),
-            device_type: 10,
-            device_identifier: "b86dd6ab-4265-4ddf-a7f1-eb28d5677f33".to_string(),
+            device_type: device_type as u8,
+            device_identifier: device_identifier.to_string(),
             device_name: "firefox".to_string(),
             grant_type: "password".to_string(),
             master_password_hash: password_hash.to_string(),

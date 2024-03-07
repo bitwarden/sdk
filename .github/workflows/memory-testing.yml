@@ -1,5 +1,5 @@
 ---
-name: Memory Testing
+name: Test for memory leaks
 
 on:
   pull_request:
@@ -15,17 +15,13 @@ on:
       - "rc"
       - "hotfix-rc"
 
-defaults:
-  run:
-    shell: bash
-
 jobs:
   memory-test:
-    name: Memory Testing
+    name: Testing
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout
+      - name: Check out repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Set up gdb
@@ -43,5 +39,5 @@ jobs:
         with:
           key: memtest-cargo
 
-      - name: Memory Testing
+      - name: Test
         run: ./crates/memory-testing/run_test.sh no-docker

@@ -101,6 +101,18 @@ impl<V: Zeroize + JsonSchema> JsonSchema for Sensitive<V> {
     }
 }
 
+impl Sensitive<String> {
+    // We use a lot of `&str` in our tests, so we expose this helper
+    // to make it easier.
+    // IMPORTANT: This should not be used outside of test code
+    // Note that we can't just mark it with #[cfg(test)] because that only applies
+    // when testing this crate, not when testing other crates that depend on it.
+    // By at least limiting it to &'static str we should be able to avoid accidental usages
+    pub fn test(value: &'static str) -> Self {
+        Self::new(Box::new(value.to_string()))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use schemars::schema_for;
@@ -109,7 +121,7 @@ mod tests {
 
     #[test]
     fn test_debug() {
-        let string = Sensitive::new(Box::new("test".to_string()));
+        let string = Sensitive::test("test");
         assert_eq!(
             format!("{:?}", string),
             "Sensitive { type: \"alloc::string::String\", value: \"********\" }"

@@ -432,8 +432,8 @@ mod tests {
             CipherView {
                 r#type: CipherType::Login,
                 login: Some(login::LoginView {
-                    username: Some("test_username".to_string()),
-                    password: Some("test_password".to_string()),
+                    username: Some(DecryptedString::test("test_username")),
+                    password: Some(DecryptedString::test("test_password")),
                     password_revision_date: None,
                     uris: None,
                     totp: None,
@@ -444,7 +444,7 @@ mod tests {
                 folder_id: None,
                 collection_ids: vec![],
                 key: None,
-                name: "My test login".to_string(),
+                name: DecryptedString::test("My test login"),
                 notes: None,
                 identity: None,
                 card: None,

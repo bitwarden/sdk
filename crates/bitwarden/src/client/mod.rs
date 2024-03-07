@@ -7,5 +7,8 @@ mod client;
 pub mod client_settings;
 pub(crate) mod encryption_settings;
 
+#[cfg(feature = "internal")]
+mod flags;
+
 pub use access_token::AccessToken;
 pub use client::Client;

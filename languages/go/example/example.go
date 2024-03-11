@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	sdk "github.com/bitwarden/sdk/languages/go"
+	sdk "github.com/bitwarden/sm-sdk-go"
 	"github.com/gofrs/uuid"
 )
 

@@ -1,0 +1,43 @@
+---
+name: Test for memory leaks
+
+on:
+  pull_request:
+    paths:
+      - "crates/bitwarden-crypto/**"
+      - "crates/memory-testing/**"
+  push:
+    paths:
+      - "crates/bitwarden-crypto/**"
+      - "crates/memory-testing/**"
+    branches:
+      - "main"
+      - "rc"
+      - "hotfix-rc"
+
+jobs:
+  memory-test:
+    name: Testing
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Set up gdb
+        run: |
+          sudo apt update
+          sudo apt -y install gdb
+
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248 # stable
+        with:
+          toolchain: stable
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
+        with:
+          key: memtest-cargo
+
+      - name: Test
+        run: ./crates/memory-testing/run_test.sh no-docker

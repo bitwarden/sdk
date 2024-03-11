@@ -1,0 +1,13 @@
+[package]
+name = "memory-testing"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+bitwarden-crypto = { path = "../bitwarden-crypto", version = "=0.1.0" }
+comfy-table = "7.1.0"
+hex = "0.4.3"
+serde = "1.0.196"
+serde_json = "1.0.113"
+zeroize = "1.7.0"

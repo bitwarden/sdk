@@ -210,7 +210,7 @@ jobs:
           draft: true
           repo: sm-sdk-go
           owner: bitwarden
-          artifacts: "libbitwarden_c_files-x86_64-apple-darwin-$_PKG_VERSION.zip,
-            libbitwarden_c_files-aarch64-apple-darwin-$_PKG_VERSION.zip,
-            libbitwarden_c_files-x86_64-unknown-linux-gnu-$_PKG_VERSION.zip,
-            libbitwarden_c_files-x86_64-pc-windows-msvc-$_PKG_VERSION.zip"
+          artifacts: "libbitwarden_c_files-x86_64-apple-darwin-${{ env._PKG_VERSION }}.zip,
+            libbitwarden_c_files-aarch64-apple-darwin-${{ env._PKG_VERSION }}.zip,
+            libbitwarden_c_files-x86_64-unknown-linux-gnu-${{ env._PKG_VERSION }}.zip,
+            libbitwarden_c_files-x86_64-pc-windows-msvc-${{ env._PKG_VERSION }}.zip"

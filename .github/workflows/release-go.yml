@@ -29,7 +29,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Branch check
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        if: ${{ inputs.release_type != 'Dry Run' }}
         run: |
           if [[ "$GITHUB_REF" != "refs/heads/rc" ]] && [[ "$GITHUB_REF" != "refs/heads/hotfix-rc" ]]; then
             echo "==================================="
@@ -57,6 +57,15 @@ jobs:
         uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # v4.0.0
         with:
           path: sdk
+
+      - name: Download artifacts
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: generate_schemas.yml
+          path: sdk/languages/go/bitwarden_sdk_secrets/lib
+          workflow_conclusion: success
+          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          artifacts: schemas.go
 
       - name: Login to Azure - Prod Subscription
         uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
@@ -89,13 +98,19 @@ jobs:
           # Copy files to local sm-sdk-go repo path
           cp --verbose -rf sdk/languages/go/. sm-sdk-go
 
+      - name: Replace repo name
+        working-directory: sm-sdk-go
+        run: |
+          find . -name '*' -exec \
+          gsed -i -e 's/github.com\/bitwarden\/sdk\/languages\/go/github.com\/bitwarden\/sm-sdk-go/g' {} \;
+
       - name: Push changes
         working-directory: sm-sdk-go
         run: |
           git add .
           git commit -m "Update Go SDK to ${{ github.sha }}"
 
-          if [[ "${{ github.event.inputs.release_type }}" == "Dry Run" ]]; then
+          if [[ "${{ inputs.release_type }}" == "Dry Run" ]]; then
             echo "==================================="
             echo "[!] Dry Run - Skipping push"
             echo "==================================="
@@ -106,7 +121,7 @@ jobs:
           fi
 
       - name: Create release tag on SDK Go repo
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        if: ${{ inputs.release_type != 'Dry Run' }}
         working-directory: sm-sdk-go
         run: |
           # Check if tag exists, set output then exit 0 if true.
@@ -141,8 +156,51 @@ jobs:
           keyvault: ${{ env._KEY_VAULT }}
           secrets: "github-pat-bitwarden-devops-bot-repo-scope"
 
+      - name: Download x86_64-apple-darwin artifact
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-rust-cross-platform.yml
+          workflow_conclusion: success
+          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          artifacts: libbitwarden_c_files-x86_64-apple-darwin
+          skip_unpack: true
+
+      - name: Download aarch64-apple-darwin artifact
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-rust-cross-platform.yml
+          workflow_conclusion: success
+          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          artifacts: libbitwarden_c_files-aarch64-apple-darwin
+          skip_unpack: true
+
+      - name: Download x86_64-unknown-linux-gnu artifact
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-rust-cross-platform.yml
+          workflow_conclusion: success
+          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          artifacts: libbitwarden_c_files-x86_64-unknown-linux-gnu
+          skip_unpack: true
+
+      - name: Download x86_64-pc-windows-msvc artifact
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-rust-cross-platform.yml
+          workflow_conclusion: success
+          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          artifacts: libbitwarden_c_files-x86_64-pc-windows-msvc
+          skip_unpack: true
+
+      - name: Rename build artifacts
+        run: |
+          mv libbitwarden_c_files-x86_64-apple-darwin.zip libbitwarden_c_files-x86_64-apple-darwin-$_PKG_VERSION.zip
+          mv libbitwarden_c_files-aarch64-apple-darwin.zip libbitwarden_c_files-aarch64-apple-darwin-$_PKG_VERSION.zip
+          mv libbitwarden_c_files-x86_64-unknown-linux-gnu.zip libbitwarden_c_files-x86_64-unknown-linux-gnu-$_PKG_VERSION.zip
+          mv libbitwarden_c_files-x86_64-pc-windows-msvc.zip libbitwarden_c_files-x86_64-pc-windows-msvc-$_PKG_VERSION.zip
+
       - name: Create release
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        if: ${{ inputs.release_type != 'Dry Run' }}
         uses: ncipollo/release-action@6c75be85e571768fa31b40abf38de58ba0397db5 # v1.13.0
         with:
           tag: v${{ env._PKG_VERSION }}
@@ -152,3 +210,7 @@ jobs:
           draft: true
           repo: sm-sdk-go
           owner: bitwarden
+          artifacts: "libbitwarden_c_files-x86_64-apple-darwin-$_PKG_VERSION.zip,
+            libbitwarden_c_files-aarch64-apple-darwin-$_PKG_VERSION.zip,
+            libbitwarden_c_files-x86_64-unknown-linux-gnu-$_PKG_VERSION.zip,
+            libbitwarden_c_files-x86_64-pc-windows-msvc-$_PKG_VERSION.zip"

@@ -25,6 +25,8 @@ jobs:
             target: x86_64-pc-windows-msvc
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
+          - os: ubuntu-22.04
+            target: aarch64-unknown-linux-gnu
 
     steps:
       - name: Checkout
@@ -44,8 +46,18 @@ jobs:
       - name: Build Rust
         env:
           RUSTFLAGS: "-D warnings"
+        if: ${{ matrix.settings.target }} != aarch64-unknown-linux-gnu
         run: cargo build --target ${{ matrix.settings.target }} --release
 
+      - name: Build Rust
+        env:
+          RUSTFLAGS: "-D warnings"
+        if: ${{ matrix.settings.target }} == aarch64-unknown-linux-gnu
+        run: |
+          sudo apt update
+          sudo apt install -y crossbuild-essential-arm64
+          cargo build --target ${{ matrix.settings.target }} --release
+  
       - name: Upload Artifact
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:

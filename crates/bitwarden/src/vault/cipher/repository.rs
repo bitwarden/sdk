@@ -5,12 +5,22 @@ use crate::error::Error;
 
 use super::Cipher;
 
+pub trait CipherRepository {
+    fn save(&self, cipher: &Cipher) -> Result<(), Error>;
+    /// Replace all ciphers in the repository with the given ciphers.
+    ///
+    /// Typically used during a sync operation.
+    fn replace_all(&mut self, ciphers: &[Cipher]) -> Result<(), Error>;
+    fn delete_by_id(&self, id: Uuid) -> Result<(), Error>;
+    fn get_all(&self) -> Result<Vec<Cipher>, Error>;
+}
+
 struct CipherRow {
     id: Uuid,
     value: String,
 }
 
-struct CipherSqliteRepository {
+pub struct CipherSqliteRepository {
     conn: Connection,
 }
 
@@ -28,8 +38,10 @@ impl CipherSqliteRepository {
 
         Self { conn }
     }
+}
 
-    pub fn save(&self, cipher: &Cipher) -> Result<(), Error> {
+impl CipherRepository for CipherSqliteRepository {
+    fn save(&self, cipher: &Cipher) -> Result<(), Error> {
         let id = cipher.id.unwrap();
         let serialized = serde_json::to_string(cipher)?;
 
@@ -46,10 +58,7 @@ impl CipherSqliteRepository {
         Ok(())
     }
 
-    /// Replace all ciphers in the repository with the given ciphers.
-    ///
-    /// Typically used during a sync operation.
-    pub fn replace_all(&mut self, ciphers: &[&Cipher]) -> Result<(), Error> {
+    fn replace_all(&mut self, ciphers: &[Cipher]) -> Result<(), Error> {
         let tx = self.conn.transaction()?;
         {
             tx.execute("DELETE FROM ciphers", [])?;
@@ -73,14 +82,14 @@ impl CipherSqliteRepository {
         Ok(())
     }
 
-    pub fn delete_by_id(&self, id: Uuid) -> Result<(), Error> {
+    fn delete_by_id(&self, id: Uuid) -> Result<(), Error> {
         let mut stmt = self.conn.prepare("DELETE FROM ciphers WHERE id = ?1")?;
         stmt.execute(params![id])?;
 
         Ok(())
     }
 
-    pub fn get_all(&self) -> Result<Vec<Cipher>, Error> {
+    fn get_all(&self) -> Result<Vec<Cipher>, Error> {
         let mut stmt = self.conn.prepare("SELECT id, value FROM ciphers")?;
         let rows = stmt.query_map([], |row| {
             Ok(CipherRow {
@@ -181,11 +190,14 @@ mod tests {
         assert_eq!(ciphers.len(), 1);
         assert_eq!(ciphers[0].id, old_cipher.id);
 
-        let new_cipher = mock_cipher("d55d65d7-c161-40a4-94ca-b0d20184d91c".parse().unwrap());
-        repo.replace_all(&[&new_cipher]).unwrap();
+        let new_ciphers = vec![mock_cipher(
+            "d55d65d7-c161-40a4-94ca-b0d20184d91c".parse().unwrap(),
+        )];
+
+        repo.replace_all(new_ciphers.as_slice()).unwrap();
 
         let ciphers = repo.get_all().unwrap();
         assert_eq!(ciphers.len(), 1);
-        assert_eq!(ciphers[0].id, new_cipher.id);
+        assert_eq!(ciphers[0].id, new_ciphers[0].id);
     }
 }

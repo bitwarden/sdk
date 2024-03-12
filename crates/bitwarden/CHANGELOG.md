@@ -9,7 +9,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
-- Switched TLS backend to `rustls`, removing the dependency on `OpenSSL`.
+- Switched TLS backend to `rustls`, removing the dependency on `OpenSSL`. (#374)
+- `client::AccessToken` is now `auth::AccessToken`. (#656)
 
 ## [0.4.0] - 2023-12-21
 

@@ -4,7 +4,7 @@ use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    client::AccessToken,
+    auth::AccessToken,
     error::{Error, Result},
 };
 

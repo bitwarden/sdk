@@ -9,9 +9,16 @@ use chrono::Utc;
 use reqwest::header::{self, HeaderValue};
 use uuid::Uuid;
 
-use super::AccessToken;
 #[cfg(feature = "secrets")]
 use crate::auth::login::{AccessTokenLoginRequest, AccessTokenLoginResponse};
+use crate::{
+    auth::AccessToken,
+    client::{
+        client_settings::{ClientSettings, DeviceType},
+        encryption_settings::EncryptionSettings,
+    },
+    error::{Error, Result},
+};
 #[cfg(feature = "internal")]
 use crate::{
     client::flags::Flags,
@@ -19,13 +26,6 @@ use crate::{
         get_user_api_key, sync, SecretVerificationRequest, SyncRequest, SyncResponse,
         UserApiKeyResponse,
     },
-};
-use crate::{
-    client::{
-        client_settings::{ClientSettings, DeviceType},
-        encryption_settings::EncryptionSettings,
-    },
-    error::{Error, Result},
 };
 
 #[derive(Debug)]

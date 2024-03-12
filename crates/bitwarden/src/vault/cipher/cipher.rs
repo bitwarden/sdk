@@ -433,6 +433,7 @@ mod tests {
                     uris: None,
                     totp: None,
                     autofill_on_page_load: None,
+                    fido2_credentials: None,
                 }),
                 id: "fd411a1a-fec8-4070-985d-0e6560860e69".parse().ok(),
                 organization_id: None,

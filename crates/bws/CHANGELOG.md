@@ -10,6 +10,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - Switched TLS backend to `rustls`, removing the dependency on `OpenSSL`.
+
+### Added
+
 - Add a `BWS_CONFIG_FILE` environment variable to specify the location of the config file (#571)
 - The `bws` CLI is now available as a Docker image (`docker run -it bitwarden/bws --help`)
 

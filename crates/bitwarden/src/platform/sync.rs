@@ -38,7 +38,15 @@ pub(crate) async fn sync(client: &mut Client, input: &SyncRequest) -> Result<Syn
 
     let enc = client.initialize_org_crypto(org_keys)?;
 
-    SyncResponse::process_response(sync, enc)
+    let res = SyncResponse::process_response(sync, enc)?;
+
+    let mut repositories = client.repositories.lock().unwrap();
+
+    let ciphers = res.ciphers.as_slice();
+
+    repositories.cipher.as_mut().replace_all(ciphers)?;
+
+    Ok(res)
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

@@ -1,4 +1,7 @@
-use std::path::PathBuf;
+use std::{
+    path::PathBuf,
+    sync::{Arc, Mutex},
+};
 
 #[cfg(feature = "internal")]
 pub use bitwarden_crypto::Kdf;
@@ -7,6 +10,7 @@ use bitwarden_crypto::SymmetricCryptoKey;
 use bitwarden_crypto::{AsymmetricEncString, EncString};
 use chrono::Utc;
 use reqwest::header::{self, HeaderValue};
+use rusqlite::Connection;
 use uuid::Uuid;
 
 use super::AccessToken;
@@ -26,6 +30,7 @@ use crate::{
         encryption_settings::EncryptionSettings,
     },
     error::{Error, Result},
+    vault::{CipherRepository, CipherSqliteRepository},
 };
 
 #[derive(Debug)]
@@ -89,6 +94,19 @@ pub struct Client {
     pub(crate) __api_configurations: ApiConfigurations,
 
     encryption_settings: Option<EncryptionSettings>,
+
+    pub(crate) repositories: Arc<Mutex<ClientRepositories>>,
+}
+
+#[cfg(feature = "internal")]
+pub struct ClientRepositories {
+    pub(crate) cipher: Box<dyn CipherRepository + Send>,
+}
+
+impl std::fmt::Debug for ClientRepositories {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ClientRepositories").finish()
+    }
 }
 
 impl Client {
@@ -139,6 +157,12 @@ impl Client {
             api_key: None,
         };
 
+        let conn = Connection::open("test.sqlite").unwrap();
+
+        let repositories = ClientRepositories {
+            cipher: Box::new(CipherSqliteRepository::new(conn)),
+        };
+
         Self {
             token: None,
             refresh_token: None,
@@ -153,6 +177,7 @@ impl Client {
                 device_type: settings.device_type,
             },
             encryption_settings: None,
+            repositories: Arc::new(Mutex::new(repositories)),
         }
     }
 

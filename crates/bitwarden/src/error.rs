@@ -41,6 +41,8 @@ pub enum Error {
     InvalidBase64(#[from] base64::DecodeError),
     #[error(transparent)]
     Chrono(#[from] chrono::ParseError),
+    #[error(transparent)]
+    Sqlite(#[from] rusqlite::Error),
 
     #[error("Received error message from server: [{}] {}", .status, .message)]
     ResponseContent { status: StatusCode, message: String },

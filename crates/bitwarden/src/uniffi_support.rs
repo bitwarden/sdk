@@ -1,6 +1,6 @@
 use std::num::NonZeroU32;
 
-use bitwarden_crypto::{AsymmetricEncString, EncString};
+use bitwarden_crypto::{AsymmetricEncString, DecryptedString, EncString};
 use uuid::Uuid;
 
 use crate::UniffiCustomTypeConverter;
@@ -12,6 +12,20 @@ uniffi::ffi_converter_forward!(
     bitwarden_crypto::UniFfiTag,
     crate::UniFfiTag
 );
+
+uniffi::custom_type!(DecryptedString, String);
+
+impl UniffiCustomTypeConverter for DecryptedString {
+    type Builtin = String;
+
+    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
+        Ok(Self::new(Box::new(val)))
+    }
+
+    fn from_custom(obj: Self) -> Self::Builtin {
+        (*obj.expose()).to_owned()
+    }
+}
 
 type DateTime = chrono::DateTime<chrono::Utc>;
 uniffi::custom_type!(DateTime, std::time::SystemTime);

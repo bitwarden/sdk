@@ -4,8 +4,10 @@ use base64::{engine::general_purpose::STANDARD, Engine};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::utils::{derive_kdf_key, stretch_kdf_key};
-use crate::{util, EncString, KeyDecryptable, Result, SymmetricCryptoKey, UserKey};
+use crate::{
+    keys::utils::{derive_kdf_key, stretch_kdf_key},
+    util, DecryptedVec, EncString, KeyDecryptable, Result, SymmetricCryptoKey, UserKey,
+};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -59,15 +61,15 @@ impl MasterKey {
     pub fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey> {
         let stretched_key = stretch_kdf_key(&self.0)?;
 
-        let mut dec: Vec<u8> = user_key.decrypt_with_key(&stretched_key)?;
-        SymmetricCryptoKey::try_from(dec.as_mut_slice())
+        let dec: DecryptedVec = user_key.decrypt_with_key(&stretched_key)?;
+        SymmetricCryptoKey::try_from(dec)
     }
 
     pub fn encrypt_user_key(&self, user_key: &SymmetricCryptoKey) -> Result<EncString> {
         let stretched_key = stretch_kdf_key(&self.0)?;
 
         EncString::encrypt_aes256_hmac(
-            user_key.to_vec().as_slice(),
+            user_key.to_vec().expose(),
             stretched_key.mac_key.as_ref().unwrap(),
             &stretched_key.key,
         )

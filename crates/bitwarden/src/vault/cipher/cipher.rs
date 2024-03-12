@@ -1,7 +1,7 @@
 use bitwarden_api_api::models::CipherDetailsResponseModel;
 use bitwarden_crypto::{
-    CryptoError, EncString, KeyContainer, KeyDecryptable, KeyEncryptable, LocateKey,
-    SymmetricCryptoKey,
+    CryptoError, DecryptedString, DecryptedVec, EncString, KeyContainer, KeyDecryptable,
+    KeyEncryptable, LocateKey, SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
@@ -86,8 +86,8 @@ pub struct CipherView {
 
     pub key: Option<EncString>,
 
-    pub name: String,
-    pub notes: Option<String>,
+    pub name: DecryptedString,
+    pub notes: Option<DecryptedString>,
 
     pub r#type: CipherType,
     pub login: Option<login::LoginView>,
@@ -120,7 +120,7 @@ pub struct CipherListView {
     pub folder_id: Option<Uuid>,
     pub collection_ids: Vec<Uuid>,
 
-    pub name: String,
+    pub name: DecryptedString,
     pub sub_title: String,
 
     pub r#type: CipherType,
@@ -218,8 +218,8 @@ impl Cipher {
         ciphers_key
             .as_ref()
             .map(|k| {
-                let mut key: Vec<u8> = k.decrypt_with_key(key)?;
-                SymmetricCryptoKey::try_from(key.as_mut_slice())
+                let key: DecryptedVec = k.decrypt_with_key(key)?;
+                SymmetricCryptoKey::try_from(key)
             })
             .transpose()
     }
@@ -230,7 +230,11 @@ impl Cipher {
                 let Some(login) = &self.login else {
                     return Ok(String::new());
                 };
-                login.username.decrypt_with_key(key)?.unwrap_or_default()
+                login
+                    .username
+                    .decrypt_with_key(key)?
+                    .map(|s: DecryptedString| s.expose().to_owned())
+                    .unwrap_or_default()
             }
             CipherType::SecureNote => String::new(),
             CipherType::Card => {
@@ -240,25 +244,26 @@ impl Cipher {
                 let mut sub_title = String::new();
 
                 if let Some(brand) = &card.brand {
-                    let brand: String = brand.decrypt_with_key(key)?;
-                    sub_title.push_str(&brand);
+                    let brand: DecryptedString = brand.decrypt_with_key(key)?;
+                    sub_title.push_str(brand.expose());
                 }
 
                 if let Some(number) = &card.number {
-                    let number: String = number.decrypt_with_key(key)?;
-                    let number_len = number.len();
+                    let number: DecryptedString = number.decrypt_with_key(key)?;
+                    let n = number.expose();
+                    let number_len = n.len();
                     if number_len > 4 {
                         if !sub_title.is_empty() {
                             sub_title.push_str(", ");
                         }
 
                         // On AMEX cards we show 5 digits instead of 4
-                        let digit_count = match &number[0..2] {
+                        let digit_count = match &n[0..2] {
                             "34" | "37" => 5,
                             _ => 4,
                         };
 
-                        sub_title.push_str(&number[(number_len - digit_count)..]);
+                        sub_title.push_str(&n[(number_len - digit_count)..]);
                     }
                 }
 
@@ -271,16 +276,16 @@ impl Cipher {
                 let mut sub_title = String::new();
 
                 if let Some(first_name) = &identity.first_name {
-                    let first_name: String = first_name.decrypt_with_key(key)?;
-                    sub_title.push_str(&first_name);
+                    let first_name: DecryptedString = first_name.decrypt_with_key(key)?;
+                    sub_title.push_str(first_name.expose());
                 }
 
                 if let Some(last_name) = &identity.last_name {
                     if !sub_title.is_empty() {
                         sub_title.push(' ');
                     }
-                    let last_name: String = last_name.decrypt_with_key(key)?;
-                    sub_title.push_str(&last_name);
+                    let last_name: DecryptedString = last_name.decrypt_with_key(key)?;
+                    sub_title.push_str(last_name.expose());
                 }
 
                 sub_title
@@ -296,7 +301,7 @@ impl CipherView {
 
         let new_key = SymmetricCryptoKey::generate(rand::thread_rng());
 
-        self.key = Some(new_key.to_vec().encrypt_with_key(key)?);
+        self.key = Some(new_key.to_vec().expose().encrypt_with_key(key)?);
         Ok(())
     }
 }
@@ -427,8 +432,8 @@ mod tests {
             CipherView {
                 r#type: CipherType::Login,
                 login: Some(login::LoginView {
-                    username: Some("test_username".to_string()),
-                    password: Some("test_password".to_string()),
+                    username: Some(DecryptedString::test("test_username")),
+                    password: Some(DecryptedString::test("test_password")),
                     password_revision_date: None,
                     uris: None,
                     totp: None,
@@ -439,7 +444,7 @@ mod tests {
                 folder_id: None,
                 collection_ids: vec![],
                 key: None,
-                name: "My test login".to_string(),
+                name: DecryptedString::test("My test login"),
                 notes: None,
                 identity: None,
                 card: None,

@@ -264,5 +264,5 @@ jobs:
         if: ${{ inputs.release_type != 'Dry Run' }}
         env:
           PACKAGIST_KEY: ${{ steps.retrieve-secrets.outputs.packagist-key }}
-        run: curl -XPOST -H'content-type:application/json' 'https://packagist.org/api/update-package?username=bitwarden&apiToken=${{ env.PACKAGIST_KEY }}' -d'{"repository":{"url":"https://packagist.org/packages/bitwarden/bitwarden-sdk-secrets"}}'
+        run: curl -XPOST -H'content-type:application/json' 'https://packagist.org/api/update-package?username=bitwarden&apiToken=${{ env.PACKAGIST_KEY }}' -d'{"repository":{"url":"https://packagist.org/packages/bitwarden/sdk-secrets"}}'
         working-directory: sm-sdk-php

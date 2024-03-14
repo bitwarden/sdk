@@ -50,13 +50,13 @@ jobs:
       - name: Build Rust
         env:
           RUSTFLAGS: "-D warnings"
-        if: ${{ matrix.settings.target }} != aarch64-unknown-linux-gnu
+        if: ${{ matrix.settings.target != 'aarch64-unknown-linux-gnu' }}
         run: cargo build --target ${{ matrix.settings.target }} --release
 
       - name: Build Rust (aarch64-unknown-linux-gnu)
         env:
           RUSTFLAGS: "-D warnings"
-        if: ${{ matrix.settings.target }} == aarch64-unknown-linux-gnu
+        if: ${{ matrix.settings.target == 'aarch64-unknown-linux-gnu' }}
         run: cross build --target ${{ matrix.settings.target }} --release
 
       - name: Upload Artifact

@@ -40,6 +40,10 @@ jobs:
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
 
+      - name: Install Cross (aarch64-unknown-linux-gnu)
+        if: ${{ matrix.settings.target == 'aarch64-unknown-linux-gnu' }}
+        run: cargo install cross --locked --git https://github.com/cross-rs/cross.git --rev 185398b1b885820515a212de720a306b08e2c8c9
+
       - name: Add build architecture
         run: rustup target add ${{ matrix.settings.target }}
 
@@ -49,15 +53,12 @@ jobs:
         if: ${{ matrix.settings.target }} != aarch64-unknown-linux-gnu
         run: cargo build --target ${{ matrix.settings.target }} --release
 
-      - name: Build Rust
+      - name: Build Rust (aarch64-unknown-linux-gnu)
         env:
           RUSTFLAGS: "-D warnings"
         if: ${{ matrix.settings.target }} == aarch64-unknown-linux-gnu
-        run: |
-          sudo apt update
-          sudo apt install -y crossbuild-essential-arm64
-          cargo build --target ${{ matrix.settings.target }} --release
-  
+        run: cross build --target ${{ matrix.settings.target }} --release
+
       - name: Upload Artifact
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:

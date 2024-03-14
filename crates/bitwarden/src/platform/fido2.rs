@@ -17,6 +17,7 @@ use passkey::{
     },
 };
 
+#[async_trait::async_trait]
 pub trait Fido2GetAssertionUserInterface {
     async fn pick_credential(&self, ids: Vec<String>, rp_id: &str) -> Result<VaultItem>;
 }
@@ -116,15 +117,13 @@ where
             .session
             .user_interface
             .0
-            .pick_credential(id_strs, rp_id);
-        // .await <-- awaiting here causes error
+            .pick_credential(id_strs, rp_id)
+            .await;
 
-        // match result {
-        //     Ok(item) => Ok(vec![item]),
-        //     Err(e) => Err(StatusCode::Ctap2(Ctap2Code::Known(Ctap2Error::NotAllowed))),
-        // }
-
-        todo!()
+        match result {
+            Ok(item) => Ok(vec![item]),
+            Err(e) => Err(StatusCode::Ctap2(Ctap2Code::Known(Ctap2Error::NotAllowed))),
+        }
     }
 
     async fn save_credential(

@@ -20,6 +20,9 @@ bitwarden-json = { path = "../bitwarden-json", features = [
     "secrets",
     "internal",
 ] }
+futures = "0.3.30"
+async-trait = "0.1.77"
+async-lock = "3.3.0"
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.41"

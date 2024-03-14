@@ -1,10 +1,11 @@
 extern crate console_error_panic_hook;
-use std::{fmt::Result, process::Output, rc::Rc};
+use std::{cell::Cell, fmt::Result, process::Output, rc::Rc, sync::RwLock};
 
 use bitwarden_json::{
     client::Client as JsonClient, Fido2ClientGetAssertionRequest, Fido2GetAssertionUserInterface,
     VaultItem,
 };
+use futures::{SinkExt, StreamExt};
 use js_sys::{Object, Promise};
 use log::Level;
 use wasm_bindgen::prelude::*;
@@ -41,23 +42,76 @@ extern "C" {
     ) -> Promise;
 }
 
-impl Fido2GetAssertionUserInterface for JSFido2GetAssertionUserInterface {
+// We create a new function that takes the wasm object, spawns a local task and creates the communication channels
+// This function will wrap the channels in a struct to allow us to implement the trait there
+impl JSFido2GetAssertionUserInterface {
+    fn to_channel_wrapped(self) -> JSFido2GetAssertionUserInterfaceWrapper {
+        let (tx_wrapper, mut rx_task) = futures::channel::mpsc::channel::<(Vec<String>, String)>(1);
+        let (mut tx_task, rx_wrapper) = futures::channel::mpsc::channel::<String>(1);
+
+        // Spawn the local task which just waits until we receive input from the trait, note that this is not Send but we don't care
+        wasm_bindgen_futures::spawn_local(async move {
+            let (cipher_ids, rp_id) = rx_task.next().await.unwrap();
+
+            let picked_id_promise = self.pick_credential(cipher_ids, rp_id);
+            let picked_id = wasm_bindgen_futures::JsFuture::from(picked_id_promise).await;
+            let picked_id = picked_id.unwrap().as_string().unwrap();
+
+            tx_task.send(picked_id).await.unwrap();
+        });
+
+        JSFido2GetAssertionUserInterfaceWrapper {
+            tx: async_lock::Mutex::new(tx_wrapper),
+            rx: async_lock::Mutex::new(rx_wrapper),
+        }
+    }
+}
+
+struct JSFido2GetAssertionUserInterfaceWrapper {
+    tx: async_lock::Mutex<futures::channel::mpsc::Sender<(Vec<String>, String)>>,
+    rx: async_lock::Mutex<futures::channel::mpsc::Receiver<String>>,
+}
+
+// This is implemented over the wrapper now, which only contains the channels, and should be Send
+#[async_trait::async_trait]
+impl Fido2GetAssertionUserInterface for JSFido2GetAssertionUserInterfaceWrapper {
     async fn pick_credential(
         &self,
         cipher_ids: Vec<String>,
         rp_id: &str,
     ) -> bitwarden_json::Result<VaultItem> {
         log::debug!("JSFido2GetAssertionUserInterface.pick_credential");
-        let picked_id_promise = self.pick_credential(cipher_ids.clone(), rp_id.to_string());
 
-        let picked_id = wasm_bindgen_futures::JsFuture::from(picked_id_promise).await;
+        self.tx
+            .lock()
+            .await
+            .send((cipher_ids, rp_id.to_string()))
+            .await
+            .unwrap();
 
-        Ok(VaultItem::new(
-            picked_id.unwrap().as_string().unwrap(),
-            "name".to_string(),
-        ))
+        let cipher_id = self.rx.lock().await.next().await.unwrap();
+
+        Ok(VaultItem::new(cipher_id, "name".to_string()))
     }
 }
+
+// impl Fido2GetAssertionUserInterface for JSFido2GetAssertionUserInterface {
+//     async fn pick_credential(
+//         &self,
+//         cipher_ids: Vec<String>,
+//         rp_id: &str,
+//     ) -> bitwarden_json::Result<VaultItem> {
+//         log::debug!("JSFido2GetAssertionUserInterface.pick_credential");
+//         let picked_id_promise = self.pick_credential(cipher_ids.clone(), rp_id.to_string());
+
+//         let picked_id = wasm_bindgen_futures::JsFuture::from(picked_id_promise).await;
+
+//         Ok(VaultItem::new(
+//             picked_id.unwrap().as_string().unwrap(),
+//             "name".to_string(),
+//         ))
+//     }
+// }
 
 // Rc<...> is to avoid needing to take ownership of the Client during our async run_command
 // function https://github.com/rustwasm/wasm-bindgen/issues/2195#issuecomment-799588401
@@ -103,9 +157,10 @@ impl BitwardenClient {
         let request = Fido2ClientGetAssertionRequest {
             webauthn_json: param,
         };
+        let wrapped_user_interface = user_interface.to_channel_wrapped();
 
         self.0
-            .client_get_assertion(request, user_interface)
+            .client_get_assertion(request, wrapped_user_interface)
             .await
             .unwrap();
     }

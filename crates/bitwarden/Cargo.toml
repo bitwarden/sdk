@@ -16,7 +16,10 @@ rust-version = "1.71"
 default = ["secrets"]
 
 secrets = [] # Secrets manager API
-internal = [] # Internal testing methods
+internal = [
+    "bitwarden-exporters",
+    "bitwarden-generators",
+] # Internal testing methods
 mobile = [
     "uniffi",
     "internal",
@@ -31,8 +34,8 @@ base64 = ">=0.21.2, <0.22"
 bitwarden-api-api = { path = "../bitwarden-api-api", version = "=0.2.3" }
 bitwarden-api-identity = { path = "../bitwarden-api-identity", version = "=0.2.3" }
 bitwarden-crypto = { path = "../bitwarden-crypto", version = "=0.1.0" }
-bitwarden-exporters = { path = "../bitwarden-exporters", version = "0.1.0" }
-bitwarden-generators = { path = "../bitwarden-generators", version = "0.1.0" }
+bitwarden-exporters = { path = "../bitwarden-exporters", version = "0.1.0", optional = true }
+bitwarden-generators = { path = "../bitwarden-generators", version = "0.1.0", optional = true }
 chrono = { version = ">=0.4.26, <0.5", features = [
     "clock",
     "serde",

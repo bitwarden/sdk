@@ -1,16 +1,17 @@
 [package]
 name = "bitwarden"
 version = "0.4.0"
-authors = ["Bitwarden Inc"]
-license-file = "LICENSE"
-repository = "https://github.com/bitwarden/sdk"
-homepage = "https://bitwarden.com"
 description = """
 Bitwarden Secrets Manager SDK
 """
 keywords = ["bitwarden", "secrets-manager"]
-edition = "2021"
-rust-version = "1.71"
+
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
 
 [features]
 default = ["secrets"]
@@ -28,11 +29,11 @@ wasm-bindgen = ["chrono/wasmbind"]
 
 [dependencies]
 base64 = ">=0.21.2, <0.22"
-bitwarden-api-api = { path = "../bitwarden-api-api", version = "=0.2.3" }
-bitwarden-api-identity = { path = "../bitwarden-api-identity", version = "=0.2.3" }
-bitwarden-crypto = { path = "../bitwarden-crypto", version = "=0.1.0" }
-bitwarden-exporters = { path = "../bitwarden-exporters", version = "0.1.0" }
-bitwarden-generators = { path = "../bitwarden-generators", version = "0.1.0" }
+bitwarden-api-api = { workspace = true }
+bitwarden-api-identity = { workspace = true }
+bitwarden-crypto = { workspace = true }
+bitwarden-exporters = { workspace = true }
+bitwarden-generators = { workspace = true }
 chrono = { version = ">=0.4.26, <0.5", features = [
     "clock",
     "serde",

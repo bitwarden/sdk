@@ -1,16 +1,17 @@
 [package]
 name = "bw"
 version = "0.0.2"
-edition = "2021"
-rust-version = "1.71"
-authors = ["Bitwarden Inc"]
-license-file = "LICENSE"
-repository = "https://github.com/bitwarden/sdk"
-homepage = "https://bitwarden.com"
 description = """
 Bitwarden Password Manager CLI
 """
-keywords = ["bitwarden", "password-manager", "cli"]
+keywords = ["bitwarden", "password manager", "cli"]
+
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
 
 [dependencies]
 clap = { version = "4.5.1", features = ["derive", "env"] }

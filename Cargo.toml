@@ -1,7 +1,24 @@
 [workspace]
 resolver = "2"
-
 members = ["crates/*"]
+
+[workspace.package]
+# Global settings for all crates should be defined here
+authors = ["Bitwarden Inc"]
+edition = "2021"
+rust-version = "1.71"
+homepage = "https://bitwarden.com"
+repository = "https://github.com/bitwarden/sdk"
+license-file = "LICENSE"
+keywords = ["bitwarden"]
+
+# Define dependencies that are expected to be consistent across all crates
+[workspace.dependencies]
+bitwarden-api-api = { path = "crates/bitwarden-api-api", version = "0.2.3" }
+bitwarden-api-identity = { path = "crates/bitwarden-api-identity", version = "=0.2.3" }
+bitwarden-crypto = { path = "crates/bitwarden-crypto", version = "=0.1.0" }
+bitwarden-exporters = { path = "crates/bitwarden-exporters", version = "=0.1.0" }
+bitwarden-generators = { path = "crates/bitwarden-generators", version = "=0.1.0" }
 
 # Compile all dependencies with some optimizations when building this crate on debug
 # This slows down clean builds by about 50%, but the resulting binaries can be orders of magnitude faster

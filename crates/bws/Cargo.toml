@@ -1,17 +1,18 @@
 [package]
 name = "bws"
 version = "0.4.0"
-edition = "2021"
-rust-version = "1.71"
-authors = ["Bitwarden Inc"]
-license-file = "LICENSE"
-repository = "https://github.com/bitwarden/sdk"
-homepage = "https://bitwarden.com"
 description = """
 Bitwarden Secrets Manager CLI
 """
-keywords = ["bitwarden", "secrets-manager", "cli"]
+keywords = ["bitwarden", "secrets manager", "cli"]
 exclude = ["Dockerfile*", "entitlements.plist"]
+
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
 
 [dependencies]
 bat = { version = "0.24.0", features = [

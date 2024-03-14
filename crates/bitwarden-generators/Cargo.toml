@@ -14,7 +14,7 @@ license-file.workspace = true
 keywords.workspace = true
 
 [features]
-mobile = ["uniffi"] # Mobile-specific features
+mobile = ["dep:uniffi"] # Mobile-specific features
 
 [dependencies]
 bitwarden-crypto = { workspace = true }

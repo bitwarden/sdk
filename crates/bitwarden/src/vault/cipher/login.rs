@@ -129,7 +129,7 @@ impl KeyDecryptable<SymmetricCryptoKey, LoginView> for Login {
             uris: self.uris.decrypt_with_key(key).ok().flatten(),
             totp: self.totp.decrypt_with_key(key).ok().flatten(),
             autofill_on_page_load: self.autofill_on_page_load,
-            fido2_credentials: self.fido2_credentials.as_ref().map(|v| v.to_vec()),
+            fido2_credentials: self.fido2_credentials.clone(),
         })
     }
 }

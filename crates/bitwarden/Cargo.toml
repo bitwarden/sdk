@@ -17,12 +17,12 @@ default = ["secrets"]
 
 secrets = [] # Secrets manager API
 internal = [
-    "bitwarden-exporters",
-    "bitwarden-generators",
+    "dep:bitwarden-exporters",
+    "dep:bitwarden-generators",
 ] # Internal testing methods
 mobile = [
-    "uniffi",
     "internal",
+    "dep:uniffi",
     "bitwarden-crypto/mobile",
     "bitwarden-generators/mobile",
 ] # Mobile-specific features

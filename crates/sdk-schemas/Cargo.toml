@@ -1,8 +1,15 @@
 [package]
 name = "sdk-schemas"
 version = "0.1.0"
-edition = "2021"
-rust-version = "1.71"
+publish = false
+
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+keywords.workspace = true
 
 [features]
 internal = [

@@ -1,16 +1,18 @@
 [package]
 name = "bitwarden-api-api"
 version = "0.2.3"
-authors = ["Bitwarden Inc"]
-license-file = "LICENSE"
-repository = "https://github.com/bitwarden/sdk"
-homepage = "https://bitwarden.com"
 description = """
 Api bindings for the Bitwarden API.
 """
-keywords = ["bitwarden"]
 categories = ["api-bindings"]
-edition = "2018"
+
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+keywords.workspace = true
 
 [dependencies]
 serde = ">=1.0.163, <2"

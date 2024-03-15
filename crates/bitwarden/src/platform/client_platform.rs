@@ -1,10 +1,16 @@
 use super::{
-    client_get_assertion,
-    fido2::Fido2GetAssertionUserInterface,
+    fido2::{Fido2ClientCreateCredentialRequest, Fido2MakeCredentialUserInterface, VaultItem},
     generate_fingerprint::{generate_fingerprint, generate_user_fingerprint},
-    Fido2ClientGetAssertionRequest, FingerprintRequest, FingerprintResponse,
+    FingerprintRequest, FingerprintResponse,
 };
-use crate::{error::Result, Client};
+use crate::{
+    error::Result,
+    platform::fido2::{
+        client_create_credential, client_get_assertion, Fido2ClientGetAssertionRequest,
+        Fido2GetAssertionUserInterface,
+    },
+    Client,
+};
 
 pub struct ClientPlatform<'a> {
     pub(crate) client: &'a mut Client,
@@ -19,13 +25,13 @@ impl<'a> ClientPlatform<'a> {
         generate_user_fingerprint(self.client, fingerprint_material)
     }
 
-    pub async fn client_get_assertion(
+    pub async fn client_create_credential(
         &self,
-        request: Fido2ClientGetAssertionRequest,
-        user_interface: impl Fido2GetAssertionUserInterface,
-    ) -> Result<String> {
-        log::debug!("client_platform.client_get_assertion");
-        client_get_assertion(request, user_interface).await
+        request: Fido2ClientCreateCredentialRequest,
+        user_interface: impl Fido2MakeCredentialUserInterface,
+    ) -> Result<VaultItem> {
+        log::debug!("client_platform.client_create_credential");
+        client_create_credential(request, user_interface).await
     }
 }
 

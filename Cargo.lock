@@ -345,6 +345,7 @@ dependencies = [
  "bitwarden-exporters",
  "bitwarden-generators",
  "chrono",
+ "coset",
  "getrandom",
  "hmac",
  "log",
@@ -530,9 +531,12 @@ dependencies = [
 name = "bitwarden-wasm"
 version = "0.1.0"
 dependencies = [
+ "async-lock",
+ "async-trait",
  "bitwarden-json",
  "console_error_panic_hook",
  "console_log",
+ "futures",
  "js-sys",
  "log",
  "serde",

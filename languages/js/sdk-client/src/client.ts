@@ -8,20 +8,13 @@ import {
   SecretsDeleteResponse,
 } from "./schemas";
 
-export interface Fido2GetAssertionUserInterface {
-  /**
-    pub fn pick_credential(
-      this: &JSFido2GetAssertionUserInterface,
-      cipher_ids: Vec<String>,
-      rp_id: String,
-    ) -> String;
-   */
-  pick_credential(cipherIds: string[], rpId: string): string;
+export interface Fido2MakeCredentialUserInterface {
+  confirm_new_credential(credentialName: string, userName: string, userVerification: boolean): Promise<string>;
 }
 
 interface BitwardenSDKClient {
   run_command(js_input: string): Promise<any>;
-  client_get_assertion(param: string, user_interface: Fido2GetAssertionUserInterface);
+  client_create_credential(param: string, user_interface: Fido2MakeCredentialUserInterface);
 }
 
 function handleResponse<T>(response: { success: boolean; errorMessage?: string; data?: T }): T {

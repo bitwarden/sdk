@@ -2,7 +2,10 @@ use async_lock::Mutex;
 use bitwarden::{
     client::client_settings::ClientSettings,
     error::Result,
-    platform::{Fido2ClientGetAssertionRequest, Fido2GetAssertionUserInterface},
+    platform::fido2::{
+        Fido2ClientCreateCredentialRequest, Fido2ClientGetAssertionRequest,
+        Fido2GetAssertionUserInterface, Fido2MakeCredentialUserInterface, VaultItem,
+    },
 };
 
 #[cfg(feature = "secrets")]
@@ -20,16 +23,16 @@ impl Client {
         Self(Mutex::new(bitwarden::Client::new(settings)))
     }
 
-    pub async fn client_get_assertion(
+    pub async fn client_create_credential(
         &self,
-        request: Fido2ClientGetAssertionRequest,
-        user_interface: impl Fido2GetAssertionUserInterface,
-    ) -> Result<String> {
+        request: Fido2ClientCreateCredentialRequest,
+        user_interface: impl Fido2MakeCredentialUserInterface,
+    ) -> Result<VaultItem> {
         let mut client = self.0.lock().await;
 
         client
             .platform()
-            .client_get_assertion(request, user_interface)
+            .client_create_credential(request, user_interface)
             .await
     }
 

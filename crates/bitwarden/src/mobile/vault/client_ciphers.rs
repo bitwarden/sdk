@@ -24,6 +24,11 @@ impl<'a> ClientCiphers<'a> {
             cipher_view.generate_cipher_key(key)?;
         }
 
+        // For compatibility reasons, we only create checksums for ciphers that have a key
+        if cipher_view.key.is_some() {
+            cipher_view.generate_checksums();
+        }
+
         let cipher = cipher_view.encrypt(enc, &None)?;
 
         Ok(cipher)
@@ -32,7 +37,12 @@ impl<'a> ClientCiphers<'a> {
     pub async fn decrypt(&self, cipher: Cipher) -> Result<CipherView> {
         let enc = self.client.get_encryption_settings()?;
 
-        let cipher_view = cipher.decrypt(enc, &None)?;
+        let mut cipher_view: CipherView = cipher.decrypt(enc, &None)?;
+
+        // For compatibility we only remove URLs with invalid checksums if the cipher has a key
+        if cipher_view.key.is_some() {
+            cipher_view.remove_invalid_checksums();
+        }
 
         Ok(cipher_view)
     }

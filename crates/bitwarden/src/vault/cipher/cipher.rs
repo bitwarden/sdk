@@ -299,6 +299,20 @@ impl CipherView {
         self.key = Some(new_key.to_vec().encrypt_with_key(key)?);
         Ok(())
     }
+
+    pub fn generate_checksums(&mut self) {
+        if let Some(uris) = self.login.as_mut().and_then(|l| l.uris.as_mut()) {
+            for uri in uris {
+                uri.generate_checksum();
+            }
+        }
+    }
+
+    pub fn remove_invalid_checksums(&mut self) {
+        if let Some(uris) = self.login.as_mut().and_then(|l| l.uris.as_mut()) {
+            uris.retain(|u| u.is_checksum_valid());
+        }
+    }
 }
 
 impl KeyDecryptable<SymmetricCryptoKey, CipherListView> for Cipher {

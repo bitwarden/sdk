@@ -22,7 +22,7 @@ log = "0.4.20"
 tokio = { version = "1.36.0", features = ["rt-multi-thread", "macros"] }
 
 bitwarden = { workspace = true, features = ["internal", "mobile"] }
-bitwarden-cli = { path = "../bitwarden-cli", version = "0.1.0" }
+bitwarden-cli = { path = "../bitwarden-cli", version = "0.4.0" }
 
 [dev-dependencies]
 tempfile = "3.10.0"

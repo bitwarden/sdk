@@ -18,14 +18,13 @@ license-file.workspace = true
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+bitwarden-json = { path = "../bitwarden-json", version = "0.3.0", features = [
+    "secrets",
+] }
 env_logger = "0.11.1"
 log = "0.4.20"
 napi = { version = "2", features = ["async"] }
 napi-derive = "2"
-
-bitwarden-json = { path = "../bitwarden-json", version = "0.3.0", features = [
-    "secrets",
-] }
 
 [build-dependencies]
 napi-build = "2.1.0"

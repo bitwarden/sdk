@@ -14,6 +14,7 @@ keywords = ["bitwarden"]
 
 # Define dependencies that are expected to be consistent across all crates
 [workspace.dependencies]
+bitwarden = { path = "crates/bitwarden", version = "0.4.0" }
 bitwarden-api-api = { path = "crates/bitwarden-api-api", version = "0.2.3" }
 bitwarden-api-identity = { path = "crates/bitwarden-api-identity", version = "=0.2.3" }
 bitwarden-crypto = { path = "crates/bitwarden-crypto", version = "=0.1.0" }

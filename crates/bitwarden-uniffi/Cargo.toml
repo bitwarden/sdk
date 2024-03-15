@@ -27,7 +27,7 @@ env_logger = "0.11.1"
 schemars = { version = ">=0.8, <0.9", optional = true }
 uniffi = "=0.26.1"
 
-bitwarden = { path = "../bitwarden", features = ["mobile", "internal"] }
+bitwarden = { workspace = true, features = ["mobile", "internal"] }
 bitwarden-crypto = { workspace = true, features = ["mobile"] }
 bitwarden-generators = { workspace = true, features = ["mobile"] }
 

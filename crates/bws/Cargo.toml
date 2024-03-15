@@ -4,7 +4,7 @@ version = "0.4.0"
 description = """
 Bitwarden Secrets Manager CLI
 """
-keywords = ["bitwarden", "secrets manager", "cli"]
+keywords = ["bitwarden", "secrets-manager", "cli"]
 exclude = ["Dockerfile*", "entitlements.plist"]
 
 authors.workspace = true

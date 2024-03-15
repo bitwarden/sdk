@@ -4,7 +4,7 @@ version = "0.0.2"
 description = """
 Bitwarden Password Manager CLI
 """
-keywords = ["bitwarden", "password manager", "cli"]
+keywords = ["bitwarden", "password-manager", "cli"]
 
 authors.workspace = true
 edition.workspace = true

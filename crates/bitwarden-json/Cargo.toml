@@ -4,7 +4,7 @@ version = "0.3.0"
 description = """
 JSON bindings for the Bitwarden Secret Manager SDK
 """
-keywords = ["bitwarden", "secrets manager"]
+keywords = ["bitwarden", "secrets-manager"]
 categories = ["api-bindings"]
 publish = false
 

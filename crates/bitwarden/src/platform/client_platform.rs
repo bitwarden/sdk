@@ -4,12 +4,7 @@ use super::{
     FingerprintRequest, FingerprintResponse,
 };
 use crate::{
-    error::Result,
-    platform::fido2::{
-        client_create_credential, client_get_assertion, Fido2ClientGetAssertionRequest,
-        Fido2GetAssertionUserInterface,
-    },
-    Client,
+    error::Result, platform::fido2::client_create_credential::client_create_credential, Client,
 };
 
 pub struct ClientPlatform<'a> {

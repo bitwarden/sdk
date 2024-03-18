@@ -648,7 +648,7 @@ async fn process_commands() -> Result<()> {
                 _ => unreachable!(),
             };
 
-            if !which(&shell).is_ok() {
+            if which(&shell).is_err() {
                 eprintln!("Error: shell '{}' not found", shell);
                 std::process::exit(1);
             }

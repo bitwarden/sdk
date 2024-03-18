@@ -4,7 +4,9 @@ use std::{borrow::Cow, fmt::Debug};
 
 use bitwarden_api_api::apis::Error as ApiError;
 use bitwarden_api_identity::apis::Error as IdentityError;
+#[cfg(feature = "internal")]
 use bitwarden_exporters::ExportError;
+#[cfg(feature = "internal")]
 use bitwarden_generators::{PassphraseError, PasswordError, UsernameError};
 use reqwest::StatusCode;
 use thiserror::Error;
@@ -52,13 +54,17 @@ pub enum Error {
     InvalidStateFile,
 
     // Generators
+    #[cfg(feature = "internal")]
     #[error(transparent)]
     UsernameError(#[from] UsernameError),
+    #[cfg(feature = "internal")]
     #[error(transparent)]
     PassphraseError(#[from] PassphraseError),
+    #[cfg(feature = "internal")]
     #[error(transparent)]
     PasswordError(#[from] PasswordError),
 
+    #[cfg(feature = "internal")]
     #[error(transparent)]
     ExportError(#[from] ExportError),
 

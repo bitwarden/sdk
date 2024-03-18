@@ -4,6 +4,7 @@ type SecretsInterface interface {
 	Create(key, value, note string, organizationID string, projectIDs []string) (*SecretResponse, error)
 	List(organizationID string) (*SecretIdentifiersResponse, error)
 	Get(secretID string) (*SecretResponse, error)
+	GetByIDS(secretIDs []string) (*SecretsResponse, error)
 	Update(secretID string, key, value, note string, organizationID string, projectIDs []string) (*SecretResponse, error)
 	Delete(secretIDs []string) (*SecretsDeleteResponse, error)
 }
@@ -70,6 +71,22 @@ func (s *Secrets) Get(id string) (*SecretResponse, error) {
 	}
 
 	var response SecretResponse
+	if err := s.executeCommand(command, &response); err != nil {
+		return nil, err
+	}
+	return &response, nil
+}
+
+func (s *Secrets) GetByIDS(ids []string) (*SecretsResponse, error) {
+	command := Command{
+		Secrets: &SecretsCommand{
+			GetByIDS: &SecretsGetRequest{
+				IDS: ids,
+			},
+		},
+	}
+
+	var response SecretsResponse
 	if err := s.executeCommand(command, &response); err != nil {
 		return nil, err
 	}

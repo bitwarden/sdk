@@ -1,11 +1,11 @@
 [package]
 name = "bitwarden-api-identity"
-version = "0.2.3"
 description = """
 Api bindings for the Bitwarden Identity API.
 """
 categories = ["api-bindings"]
 
+version.workspace = true
 authors.workspace = true
 edition.workspace = true
 rust-version.workspace = true

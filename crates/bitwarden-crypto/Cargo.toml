@@ -1,10 +1,10 @@
 [package]
 name = "bitwarden-crypto"
-version = "0.1.0"
 description = """
 Internal crate for the bitwarden crate. Do not use.
 """
 
+version.workspace = true
 authors.workspace = true
 edition.workspace = true
 rust-version.workspace = true

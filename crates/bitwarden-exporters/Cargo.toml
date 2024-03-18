@@ -1,11 +1,11 @@
 [package]
 name = "bitwarden-exporters"
-version = "0.1.0"
 description = """
 Internal crate for the bitwarden crate. Do not use.
 """
 exclude = ["/resources"]
 
+version.workspace = true
 authors.workspace = true
 edition.workspace = true
 rust-version.workspace = true

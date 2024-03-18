@@ -1,11 +1,11 @@
 [package]
 name = "bitwarden"
-version = "0.4.0"
 description = """
 Bitwarden Secrets Manager SDK
 """
 keywords = ["bitwarden", "secrets-manager"]
 
+version.workspace = true
 authors.workspace = true
 edition.workspace = true
 rust-version.workspace = true

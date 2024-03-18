@@ -11,12 +11,7 @@ on:
         type: choice
         options:
           - bitwarden
-          - bitwarden-api-api
-          - bitwarden-api-identity
-          - bitwarden-crypto
-          - bitwarden-generators
-          - bitwarden-json
-          - cli
+          - bws
           - napi
           - python-sdk
           - ruby-sdk
@@ -43,7 +38,7 @@ jobs:
         uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
 
       - name: Install cargo-release
-        run: cargo install cargo-edit
+        run: cargo install cargo-edit --locked
 
       - name: Login to Azure - CI Subscription
         uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
@@ -101,49 +96,19 @@ jobs:
 
       - name: Bump napi crate Version
         if: ${{ inputs.project == 'napi' }}
-        run: cargo-set-version set-version -p bitwarden-napi ${{ inputs.version_number }}
+        run: cargo set-version -p bitwarden-napi ${{ inputs.version_number }}
 
       ### bitwarden
 
       - name: Bump bitwarden crate Version
         if: ${{ inputs.project == 'bitwarden' }}
-        run: cargo-set-version set-version -p bitwarden ${{ inputs.version_number }}
+        run: cargo set-version -p bitwarden ${{ inputs.version_number }}
 
-      ### bitwarden-api-api
+      ### bws
 
-      - name: Bump bitwarden-api-api crate Version
-        if: ${{ inputs.project == 'bitwarden-api-api' }}
-        run: cargo-set-version set-version -p bitwarden-api-api ${{ inputs.version_number }}
-
-      ### bitwarden-api-identity
-
-      - name: Bump bitwarden-api-identity crate Version
-        if: ${{ inputs.project == 'bitwarden-api-identity' }}
-        run: cargo-set-version set-version -p bitwarden-api-identity ${{ inputs.version_number }}
-
-      ### bitwarden-crypto
-
-      - name: Bump bitwarden-crypto crate Version
-        if: ${{ inputs.project == 'bitwarden-crypto' }}
-        run: cargo-set-version set-version -p bitwarden-crypto ${{ inputs.version_number }}
-
-      ### bitwarden-generators
-
-      - name: Bump bitwarden-generators crate Version
-        if: ${{ inputs.project == 'bitwarden-generators' }}
-        run: cargo-set-version set-version -p bitwarden-generators ${{ inputs.version_number }}
-
-      ### cli
-
-      - name: Bump cli Version
-        if: ${{ inputs.project == 'cli' }}
-        run: cargo-set-version set-version -p bws ${{ inputs.version_number }}
-
-      ### bitwarden-json
-
-      - name: Bump bitwarden-json crate Version
-        if: ${{ inputs.project == 'bitwarden-json' }}
-        run: cargo-set-version set-version -p bitwarden-json ${{ inputs.version_number }}
+      - name: Bump bws Version
+        if: ${{ inputs.project == 'bws' }}
+        run: cargo set-version -p bws ${{ inputs.version_number }}
 
       ### python
       - name: Bump python-sdk Version

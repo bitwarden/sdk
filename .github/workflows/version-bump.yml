@@ -21,6 +21,7 @@ on:
           - python-sdk
           - ruby-sdk
           - go-sdk
+          - dotnet-sdk
       version_number:
         description: "New version (example: '2024.1.0')"
         required: true
@@ -161,6 +162,11 @@ jobs:
       - name: Bump go-sdk Version
         if: ${{ inputs.project == 'go-sdk' }}
         run: sed -i 's/[0-9]\.[0-9]\.[0-9]/${{ inputs.version_number }}/' ./languages/go/.version
+
+      ### dotnet sdk
+      - name: Bump dotnet-sdk Version
+        if: ${{ inputs.project == 'dotnet-sdk' }}
+        run: sed -i 's/<Version>[0-9]\.[0-9]\.[0-9]<\/Version>/<Version>${{ inputs.version_number }}<\/Version>/' languages/csharp/Bitwarden.Sdk/Bitwarden.Sdk.csproj
 
       ############################
       # VERSION BUMP SECTION END #

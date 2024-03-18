@@ -13,6 +13,9 @@ on:
           - Release
           - Dry Run
 
+env:
+  _KEY_VAULT: "bitwarden-ci"
+
 jobs:
   validate:
     name: Setup

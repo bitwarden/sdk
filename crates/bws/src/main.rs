@@ -27,6 +27,7 @@ mod state;
 use config::ProfileKey;
 use render::{serialize_response, Color, Output};
 use uuid::Uuid;
+use which::which;
 
 #[derive(Parser, Debug)]
 #[command(name = "bws", version, about = "Bitwarden Secrets CLI", long_about = None)]
@@ -639,6 +640,19 @@ async fn process_commands() -> Result<()> {
             no_inherit_env,
             project_id,
         } => {
+            let shell = match std::env::consts::OS {
+                os if os == "linux" || os == "macos" || os.contains("bsd") => {
+                    shell.unwrap_or_else(|| "sh".to_string())
+                }
+                "windows" => shell.unwrap_or_else(|| "powershell".to_string()),
+                _ => unreachable!(),
+            };
+
+            if !which(&shell).is_ok() {
+                eprintln!("Error: shell '{}' not found", shell);
+                std::process::exit(1);
+            }
+
             let user_command = if command.is_empty() {
                 if atty::is(Stream::Stdin) {
                     eprintln!("{}", Cli::command().render_help().ansi());
@@ -692,14 +706,6 @@ async fn process_commands() -> Result<()> {
                     );
                 }
             }
-
-            let shell = match std::env::consts::OS {
-                os if os == "linux" || os == "macos" || os.contains("bsd") => {
-                    shell.unwrap_or_else(|| "sh".to_string())
-                }
-                "windows" => shell.unwrap_or_else(|| "powershell".to_string()),
-                _ => unreachable!(),
-            };
 
             let mut command = process::Command::new(shell);
             command

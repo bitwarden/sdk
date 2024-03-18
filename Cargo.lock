@@ -626,6 +626,7 @@ dependencies = [
  "tokio",
  "toml 0.8.10",
  "uuid",
+ "which",
 ]
 
 [[package]]
@@ -3980,6 +3981,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "998d2c24ec099a87daf9467808859f9d82b61f1d9c9701251aea037f514eae0e"
 dependencies = [
  "nom",
+]
+
+[[package]]
+name = "which"
+version = "6.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7fa5e0c10bf77f44aac573e498d1a82d5fbd5e91f6fc0a99e7be4b38e85e101c"
+dependencies = [
+ "either",
+ "home",
+ "once_cell",
+ "rustix",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]

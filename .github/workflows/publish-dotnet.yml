@@ -1,5 +1,5 @@
-name: Publish NuGet Package
-run-name: Publish NuGet Package ${{ inputs.release_type }}
+name: Publish .NET NuGet
+run-name: Publish .NET NuGet Package ${{ inputs.release_type }}
 
 on:
   workflow_dispatch:

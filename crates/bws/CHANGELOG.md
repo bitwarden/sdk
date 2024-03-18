@@ -17,7 +17,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
-- Switched TLS backend to `rusttls`, removing the dependency on `OpenSSL`. (#374)
+- Switched TLS backend to `rusttls`, removing the dependency on `OpenSSL` (#374)
 - MSRV for `bws` was updated to `1.71.0`: (#589)
 
 ## [0.4.0] - 2023-12-21

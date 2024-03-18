@@ -1,6 +1,6 @@
-use atty::Stream;
 use std::{io::Read, path::PathBuf, process, str::FromStr};
 
+use atty::Stream;
 use bitwarden::{
     auth::{login::AccessTokenLoginRequest, AccessToken},
     client::client_settings::ClientSettings,

@@ -18,7 +18,7 @@ license-file.workspace = true
 bat = { version = "0.24.0", features = [
     "regex-onig",
 ], default-features = false }
-chrono = { version = "0.4.34", features = [
+chrono = { version = "0.4.35", features = [
     "clock",
     "std",
 ], default-features = false }

@@ -13,7 +13,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The `bws` CLI is now available as a Docker image (`docker run -it bitwarden/bws --help`) (#305)
 - The `bws` CLI releases are now code signed on Windows and Mac (#534, #535)
 - Re-add output options to the help menu after they were accidentally removed (#477)
-- We now use rustls on non-wasm platforms: (#374)
 
 ### Changed
 

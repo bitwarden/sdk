@@ -1,21 +1,22 @@
 [package]
 name = "bitwarden-exporters"
 version = "0.1.0"
-authors = ["Bitwarden Inc"]
-license-file = "LICENSE"
-repository = "https://github.com/bitwarden/sdk"
-homepage = "https://bitwarden.com"
 description = """
 Internal crate for the bitwarden crate. Do not use.
 """
-keywords = ["bitwarden"]
-edition = "2021"
-rust-version = "1.57"
 exclude = ["/resources"]
+
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+keywords.workspace = true
 
 [dependencies]
 base64 = ">=0.21.2, <0.22"
-bitwarden-crypto = { path = "../bitwarden-crypto", version = "=0.1.0" }
+bitwarden-crypto = { workspace = true }
 chrono = { version = ">=0.4.26, <0.5", features = [
     "clock",
     "serde",

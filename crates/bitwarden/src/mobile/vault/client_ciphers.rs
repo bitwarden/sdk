@@ -32,7 +32,7 @@ impl<'a> ClientCiphers<'a> {
     pub async fn decrypt(&self, cipher: Cipher) -> Result<CipherView> {
         let enc = self.client.get_encryption_settings()?;
 
-        let cipher_view: CipherView = cipher.decrypt(enc, &None)?;
+        let cipher_view = cipher.decrypt(enc, &None)?;
 
         Ok(cipher_view)
     }

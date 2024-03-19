@@ -16,11 +16,12 @@
     <RepositoryType>Git</RepositoryType>
 
     <PackageProjectUrl>https://bitwarden.com/products/secrets-manager/</PackageProjectUrl>
-    <PackageId>Bitwarden.Sdk</PackageId>
+    <PackageId>Bitwarden.Secrets.Sdk</PackageId>
     <PackageIcon>bitwarden.png</PackageIcon>
-    <PackageTags>Bitwarden;Sdk;.NET</PackageTags>
+    <PackageTags>Bitwarden;Secrets Manager;Sdk;.NET</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <Version>0.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

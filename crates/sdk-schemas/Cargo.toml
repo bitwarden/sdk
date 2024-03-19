@@ -19,7 +19,7 @@ internal = [
 ]
 
 [dependencies]
-anyhow = "1.0.79"
+anyhow = "1.0.81"
 itertools = "0.12.1"
 schemars = { version = "0.8.16", features = ["preserve_order"] }
 serde_json = "1.0.113"

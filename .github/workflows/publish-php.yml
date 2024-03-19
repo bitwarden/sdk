@@ -113,7 +113,7 @@ jobs:
         working-directory: sm-sdk-php
         run: |
           find . -name '*' -exec \
-            sed -i -e 's/github.com\/bitwarden\/sdk\/languages\/php/github.com\/bitwarden\/sm-sdk-go/g' {} \;
+            sed -i -e 's/github.com\/bitwarden\/sdk\/languages\/php/github.com\/bitwarden\/sm-sdk-php/g' {} \;
 
           find . -name '*' -exec \
             sed -i -e 's/github.com\/bitwarden\/sdk/github.com\/bitwarden\/sm-sdk-php/g' {} \;

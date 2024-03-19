@@ -3,8 +3,7 @@ use bitwarden::{
     client::client_settings::ClientSettings,
     error::Result,
     platform::fido2::{
-        Fido2ClientCreateCredentialRequest, Fido2ClientGetAssertionRequest,
-        Fido2GetAssertionUserInterface, Fido2MakeCredentialUserInterface, VaultItem,
+        Fido2ClientCreateCredentialRequest, Fido2CredentialStore, Fido2UserInterface, VaultItem,
     },
 };
 
@@ -26,13 +25,14 @@ impl Client {
     pub async fn client_create_credential(
         &self,
         request: Fido2ClientCreateCredentialRequest,
-        user_interface: impl Fido2MakeCredentialUserInterface,
+        user_interface: impl Fido2UserInterface,
+        credential_store: impl Fido2CredentialStore,
     ) -> Result<VaultItem> {
         let mut client = self.0.lock().await;
 
         client
             .platform()
-            .client_create_credential(request, user_interface)
+            .client_create_credential(request, user_interface, credential_store)
             .await
     }
 

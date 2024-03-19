@@ -1,5 +1,7 @@
 use super::{
-    fido2::{Fido2ClientCreateCredentialRequest, Fido2MakeCredentialUserInterface, VaultItem},
+    fido2::{
+        Fido2ClientCreateCredentialRequest, Fido2CredentialStore, Fido2UserInterface, VaultItem,
+    },
     generate_fingerprint::{generate_fingerprint, generate_user_fingerprint},
     FingerprintRequest, FingerprintResponse,
 };
@@ -23,10 +25,11 @@ impl<'a> ClientPlatform<'a> {
     pub async fn client_create_credential(
         &self,
         request: Fido2ClientCreateCredentialRequest,
-        user_interface: impl Fido2MakeCredentialUserInterface,
+        user_interface: impl Fido2UserInterface,
+        credential_store: impl Fido2CredentialStore,
     ) -> Result<VaultItem> {
         log::debug!("client_platform.client_create_credential");
-        client_create_credential(request, user_interface).await
+        client_create_credential(request, user_interface, credential_store).await
     }
 }
 

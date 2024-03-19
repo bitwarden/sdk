@@ -6,10 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::error::Result;
 use url::Url;
 
-use super::{
-    user_interface::{self, Fido2GetAssertionUserInterface, VaultItem},
-    Fido2MakeCredentialUserInterface,
-};
+use super::user_interface::VaultItem;
 
 use coset::Algorithm;
 
@@ -105,7 +102,6 @@ pub struct Fido2ClientGetAssertionRequest {
 
 pub(crate) async fn client_get_assertion(
     request: Fido2ClientGetAssertionRequest,
-    user_interface: impl Fido2GetAssertionUserInterface,
 ) -> Result<String> {
     // log::debug!("fido2.client_get_assertion");
     // // First create an Authenticator for the Client to use.

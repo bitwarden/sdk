@@ -66,7 +66,12 @@ impl<'a> KeyEncryptable<SymmetricCryptoKey, AttachmentEncryptResult> for Attachm
         // with it, and then encrypt the key with the cipher key
         let attachment_key = SymmetricCryptoKey::generate(rand::thread_rng());
         let encrypted_contents = self.contents.encrypt_with_key(&attachment_key)?;
-        attachment.key = Some(attachment_key.to_vec().encrypt_with_key(ciphers_key)?);
+        attachment.key = Some(
+            attachment_key
+                .to_vec()
+                .expose()
+                .encrypt_with_key(ciphers_key)?,
+        );
 
         Ok(AttachmentEncryptResult {
             attachment: attachment.encrypt_with_key(ciphers_key)?,
@@ -136,7 +141,7 @@ impl TryFrom<bitwarden_api_api::models::AttachmentResponseModel> for Attachment 
 #[cfg(test)]
 mod tests {
     use base64::{engine::general_purpose::STANDARD, Engine};
-    use bitwarden_crypto::{EncString, KeyDecryptable, SymmetricCryptoKey};
+    use bitwarden_crypto::{EncString, KeyDecryptable, SensitiveString, SymmetricCryptoKey};
 
     use crate::vault::{
         cipher::cipher::{CipherRepromptType, CipherType},
@@ -145,7 +150,7 @@ mod tests {
 
     #[test]
     fn test_attachment_key() {
-        let user_key : SymmetricCryptoKey = "w2LO+nwV4oxwswVYCxlOfRUseXfvU03VzvKQHrqeklPgiMZrspUe6sOBToCnDn9Ay0tuCBn8ykVVRb7PWhub2Q==".parse().unwrap();
+        let user_key : SymmetricCryptoKey = SensitiveString::test("w2LO+nwV4oxwswVYCxlOfRUseXfvU03VzvKQHrqeklPgiMZrspUe6sOBToCnDn9Ay0tuCBn8ykVVRb7PWhub2Q==").try_into().unwrap();
 
         let attachment = Attachment {
             id: None,

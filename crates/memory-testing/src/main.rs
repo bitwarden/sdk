@@ -1,6 +1,6 @@
-use std::{env, io::Read, path::Path, process, str::FromStr};
+use std::{env, io::Read, path::Path, process};
 
-use bitwarden_crypto::SymmetricCryptoKey;
+use bitwarden_crypto::{SensitiveString, SymmetricCryptoKey};
 
 fn wait_for_dump() {
     println!("Waiting for dump...");
@@ -22,8 +22,9 @@ fn main() {
     let mut symmetric_keys = Vec::new();
     let mut symmetric_keys_as_vecs = Vec::new();
 
-    for case in &cases.symmetric_key {
-        let key = SymmetricCryptoKey::from_str(&case.key).unwrap();
+    for case in cases.symmetric_key {
+        let key = SensitiveString::new(Box::new(case.key));
+        let key = SymmetricCryptoKey::try_from(key).unwrap();
         symmetric_keys_as_vecs.push(key.to_vec());
         symmetric_keys.push(key);
     }

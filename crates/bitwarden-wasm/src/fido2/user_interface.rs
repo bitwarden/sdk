@@ -18,13 +18,13 @@ struct JsNewCredentialParams {
 extern "C" {
     pub type JSFido2UserInterface;
 
-    #[wasm_bindgen(method)]
+    #[wasm_bindgen(method, js_name = "confirmNewCredential")]
     fn confirm_new_credential(
         this: &JSFido2UserInterface,
         params: JsNewCredentialParams,
     ) -> Promise;
 
-    #[wasm_bindgen(method)]
+    #[wasm_bindgen(method, js_name = "pickCredential")]
     fn pick_credential(this: &JSFido2UserInterface, ids: Vec<String>, rp_id: String) -> Promise;
 
     #[wasm_bindgen(method)]
@@ -47,6 +47,7 @@ impl JSFido2UserInterface {
 
         // Spawn the local task which just waits until we receive input from the trait, note that this is not Send but we don't care
         wasm_bindgen_futures::spawn_local(async move {
+            log::info!("JSFido2UserInterfaceWrapper.spawn_local");
             let params = rx_task.next().await.unwrap();
 
             let result_promise = self.confirm_new_credential(JsNewCredentialParams {
@@ -86,7 +87,7 @@ impl Fido2UserInterface for JSFido2UserInterfaceWrapper {
         &self,
         params: NewCredentialParams,
     ) -> Result<NewCredentialResult> {
-        log::debug!("JSFido2MakeCredentialUserInterface.pick_credential");
+        log::info!("JSFido2UserInterface.confirm_new_credential");
 
         self.confirm_new_credential
             .0

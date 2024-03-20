@@ -82,7 +82,22 @@ where
         ids: Option<&[PublicKeyCredentialDescriptor]>,
         rp_id: &str,
     ) -> std::result::Result<Vec<Self::PasskeyItem>, StatusCode> {
-        let result: Vec<Self::PasskeyItem> = vec![];
+        let result = self
+            .context
+            .credential_store
+            .0
+            .find_credentials(super::FindCredentialsParams {
+                ids: ids
+                    .unwrap_or_default()
+                    .iter()
+                    .map(|descriptor| descriptor.id.clone())
+                    .collect(),
+                rp_id: rp_id.to_owned(),
+            })
+            .await
+            // TODO: Look into error code
+            .map_err(|_error| StatusCode::Ctap2(Ctap2Code::Known(Ctap2Error::NotAllowed)))?;
+
         std::result::Result::Ok(result)
     }
 

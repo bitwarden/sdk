@@ -8,13 +8,41 @@ import {
   SecretsDeleteResponse,
 } from "./schemas";
 
-export interface Fido2MakeCredentialUserInterface {
-  confirm_new_credential(credentialName: string, userName: string, userVerification: boolean): Promise<string>;
+export interface Fido2VaultItem {
+  cipher_id: string;
+  name: string;
+}
+
+export interface FindCredentialsParams {
+  ids: Uint8Array[];
+  rp_id: string;
+}
+
+export interface Fido2CredentialStore {
+  findCredentials(params: FindCredentialsParams): Promise<Fido2VaultItem[]>;
+  saveCredential(params: unknown): Promise<any>;
+}
+
+export interface Fido2NewCredentialParams {
+  credential_name: string;
+  user_name: string;
+}
+
+export interface Fido2ConfirmNewCredentialResult {
+  vault_item: Fido2VaultItem;
+}
+
+export interface Fido2UserInterface {
+  confirmNewCredential(params: Fido2NewCredentialParams): Promise<Fido2ConfirmNewCredentialResult>;
 }
 
 interface BitwardenSDKClient {
   run_command(js_input: string): Promise<any>;
-  client_create_credential(param: string, user_interface: Fido2MakeCredentialUserInterface);
+  client_create_credential(
+    param: string,
+    user_interface: Fido2UserInterface,
+    credential_store: Fido2CredentialStore,
+  ): Promise<void>;
 }
 
 function handleResponse<T>(response: { success: boolean; errorMessage?: string; data?: T }): T {
@@ -33,17 +61,16 @@ export class BitwardenClient {
 
   async fingerprint(fingerprintMaterial: string, publicKey: string): Promise<string> {
     const response = await this.client.run_command(
-
       Convert.commandToJson({
         fingerprint: {
           fingerprintMaterial: fingerprintMaterial,
           publicKey: publicKey,
-        }
-      })
-    )
+        },
+      }),
+    );
 
     return Convert.toResponseForFingerprintResponse(response).data.fingerprint;
-  };
+  }
 
   async accessTokenLogin(accessToken: string): Promise<void> {
     const response = await this.client.run_command(

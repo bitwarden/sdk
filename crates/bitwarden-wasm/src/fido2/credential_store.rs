@@ -1,5 +1,7 @@
 extern crate console_error_panic_hook;
 
+use std::ops::Deref;
+
 use bitwarden_json::{
     Fido2CredentialStore, FindCredentialsParams, Result, SaveCredentialParams, VaultItem,
 };
@@ -10,7 +12,7 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 struct JsFindCredentialsParams {
-    ids: Vec<JsPublicKeyCredentialDescriptor>,
+    ids: Vec<Vec<u8>>,
     rp_id: String,
 }
 
@@ -50,10 +52,10 @@ struct JsPublicKeyCredentialRpEntity {
 extern "C" {
     pub type JSFido2CredentialStore;
 
-    #[wasm_bindgen(method)]
+    #[wasm_bindgen(method, js_name = "findCredentials")]
     fn find_credentials(this: &JSFido2CredentialStore, params: JsFindCredentialsParams) -> Promise;
 
-    #[wasm_bindgen(method)]
+    #[wasm_bindgen(method, js_name = "saveCredential")]
     fn save_credential(this: &JSFido2CredentialStore, params: JsSaveCredentialParams) -> Promise;
 }
 
@@ -104,14 +106,7 @@ impl Fido2CredentialStore for JSFido2CredentialStoreWrapper {
             .lock()
             .await
             .send(JsFindCredentialsParams {
-                ids: params
-                    .ids
-                    .unwrap_or_default()
-                    .iter()
-                    .map(|descriptor| JsPublicKeyCredentialDescriptor {
-                        id: descriptor.id.clone().into(),
-                    })
-                    .collect(),
+                ids: params.ids.iter().map(|id| id.deref().clone()).collect(),
                 rp_id: params.rp_id,
             })
             .await

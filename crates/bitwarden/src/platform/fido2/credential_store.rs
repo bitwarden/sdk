@@ -1,12 +1,9 @@
 use super::VaultItem;
 use crate::error::Result;
-use passkey::types::{
-    ctap2::{self},
-    webauthn::PublicKeyCredentialDescriptor,
-};
+use passkey::types::{ctap2, webauthn::PublicKeyCredentialDescriptor, Bytes};
 
 pub struct FindCredentialsParams {
-    pub ids: Option<Vec<PublicKeyCredentialDescriptor>>,
+    pub ids: Vec<Bytes>,
     pub rp_id: String,
 }
 

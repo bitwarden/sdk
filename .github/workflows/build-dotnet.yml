@@ -76,7 +76,7 @@ jobs:
           name: libbitwarden_c_files-x86_64-pc-windows-msvc
           path: languages/csharp/Bitwarden.Sdk/windows-x64
 
-      - name: Build .NET 6 Project
+      - name: Build .NET Project
         working-directory: languages/csharp/Bitwarden.Sdk
         run: |
           dotnet restore
@@ -86,11 +86,11 @@ jobs:
         env:
           VERSION: ${{ needs.validate.outputs.version }}
         run: dotnet pack --configuration Release -p:PackageID=Bitwarden.Secrets.Sdk -p:Version=${VERSION} --output ./nuget-output /nologo /v:n
-        working-directory: languages/csharp/Bitwarden.Secrets.Sdk
+        working-directory: languages/csharp/Bitwarden.Sdk
 
       - name: Upload NuGet package
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
-          name: Bitwarden.Secrets.Sdk.${{ needs.validate.outputs.version }}.nupkg
+          name: Bitwarden.Sdk.${{ needs.validate.outputs.version }}.nupkg
           path: |
-            ./languages/csharp/Bitwarden.Secrets.Sdk/nuget-output/*.nupkg
+            ./languages/csharp/Bitwarden.Sdk/nuget-output/*.nupkg

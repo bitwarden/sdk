@@ -1,5 +1,6 @@
-use std::{path::PathBuf, process, str::FromStr};
+use std::{io::Read, path::PathBuf, process, str::FromStr};
 
+use atty::Stream;
 use bitwarden::{
     auth::{login::AccessTokenLoginRequest, AccessToken},
     client::client_settings::ClientSettings,
@@ -26,6 +27,7 @@ mod state;
 use config::ProfileKey;
 use render::{serialize_response, Color, Output};
 use uuid::Uuid;
+use which::which;
 
 #[derive(Parser, Debug)]
 #[command(name = "bws", version, about = "Bitwarden Secrets CLI", long_about = None)]
@@ -82,6 +84,20 @@ enum Commands {
     Secret {
         #[command(subcommand)]
         cmd: SecretCommand,
+    },
+    #[command(long_about = "Run a command with secrets injected")]
+    Run {
+        #[arg(help = "The command to run")]
+        command: Vec<String>,
+        #[arg(long, help = "The shell to use")]
+        shell: Option<String>,
+        #[arg(
+            long,
+            help = "Don't inherit environment variables from the current shell"
+        )]
+        no_inherit_env: bool,
+        #[arg(long, help = "The ID of the project to use")]
+        project_id: Option<Uuid>,
     },
     #[command(long_about = "Create a single item (deprecated)", hide(true))]
     Create {
@@ -219,6 +235,15 @@ enum EditCommand {
 enum DeleteCommand {
     Project { project_ids: Vec<Uuid> },
     Secret { secret_ids: Vec<Uuid> },
+}
+
+#[derive(Subcommand, Debug)]
+enum RunCommand {
+    Command {
+        command: Vec<String>,
+        project_id: Option<Uuid>,
+        shell: Option<String>,
+    },
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -606,6 +631,107 @@ async fn process_commands() -> Result<()> {
 
             if !secrets_failed.is_empty() {
                 process::exit(1);
+            }
+        }
+
+        Commands::Run {
+            command,
+            shell,
+            no_inherit_env,
+            project_id,
+        } => {
+            let shell = match std::env::consts::OS {
+                os if os == "linux" || os == "macos" || os.contains("bsd") => {
+                    shell.unwrap_or_else(|| "sh".to_string())
+                }
+                "windows" => shell.unwrap_or_else(|| "powershell".to_string()),
+                _ => unreachable!(),
+            };
+
+            if which(&shell).is_err() {
+                eprintln!("Error: shell '{}' not found", shell);
+                std::process::exit(1);
+            }
+
+            let user_command = if command.is_empty() {
+                if atty::is(Stream::Stdin) {
+                    eprintln!("{}", Cli::command().render_help().ansi());
+                    std::process::exit(1);
+                }
+
+                let mut buffer = String::new();
+                std::io::stdin().read_to_string(&mut buffer)?;
+                buffer
+            } else {
+                command.join(" ")
+            };
+
+            if user_command.is_empty() {
+                let mut cmd = Cli::command();
+                eprintln!("{}", cmd.render_help().ansi());
+                std::process::exit(1);
+            }
+
+            let res = if let Some(project_id) = project_id {
+                client
+                    .secrets()
+                    .list_by_project(&SecretIdentifiersByProjectRequest { project_id })
+                    .await?
+            } else {
+                client
+                    .secrets()
+                    .list(&SecretIdentifiersRequest { organization_id })
+                    .await?
+            };
+
+            let secret_ids = res.data.into_iter().map(|e| e.id).collect();
+            let secrets = client
+                .secrets()
+                .get_by_ids(SecretsGetRequest { ids: secret_ids })
+                .await?
+                .data;
+
+            let environment = secrets
+                .iter()
+                .map(|s| (s.key.clone(), s.value.clone()))
+                .collect::<std::collections::HashMap<String, String>>();
+
+            let valid_key_regex = regex::Regex::new("^[a-zA-Z_][a-zA-Z0-9_]*$").unwrap();
+
+            for key in environment.keys() {
+                if !valid_key_regex.is_match(key) {
+                    eprintln!(
+                        "Warning: secret '{}' does not have a POSIX-compliant name",
+                        key
+                    );
+                }
+            }
+
+            let mut command = process::Command::new(shell);
+            command
+                .arg("-c")
+                .arg(&user_command)
+                .stdout(process::Stdio::inherit())
+                .stderr(process::Stdio::inherit());
+
+            if no_inherit_env {
+                let path = std::env::var("PATH").unwrap_or_else(|_| "/bin:/usr/bin".to_string());
+                command.env_clear();
+                command.env("PATH", path); // PATH is always necessary
+                command.envs(&environment);
+            } else {
+                command.envs(&environment);
+            }
+
+            let mut child = command.spawn().expect("failed to execute process");
+
+            let exit_status = child.wait().expect("process failed to execute");
+            let exit_code = exit_status.code().unwrap_or(1);
+
+            let _ = child.wait();
+
+            if exit_code != 0 {
+                process::exit(exit_code);
             }
         }
 

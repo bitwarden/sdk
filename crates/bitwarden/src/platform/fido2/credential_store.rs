@@ -1,22 +1,24 @@
+use super::VaultItem;
+use crate::error::Result;
 use passkey::types::{
-    ctap2::{self, StatusCode},
+    ctap2::{self},
     webauthn::PublicKeyCredentialDescriptor,
 };
 
-use super::VaultItem;
+pub struct FindCredentialsParams {
+    pub ids: Option<Vec<PublicKeyCredentialDescriptor>>,
+    pub rp_id: String,
+}
+
+pub struct SaveCredentialParams {
+    pub cred: VaultItem,
+    pub user: ctap2::make_credential::PublicKeyCredentialUserEntity,
+    pub rp: ctap2::make_credential::PublicKeyCredentialRpEntity,
+}
 
 #[async_trait::async_trait]
 pub trait Fido2CredentialStore {
-    async fn find_credentials(
-        &self,
-        ids: Option<&[PublicKeyCredentialDescriptor]>,
-        rp_id: &str,
-    ) -> std::result::Result<Vec<VaultItem>, StatusCode>;
+    async fn find_credentials(&self, params: FindCredentialsParams) -> Result<Vec<VaultItem>>;
 
-    async fn save_credential(
-        &mut self,
-        cred: VaultItem,
-        user: ctap2::make_credential::PublicKeyCredentialUserEntity,
-        rp: ctap2::make_credential::PublicKeyCredentialRpEntity,
-    ) -> Result<(), StatusCode>;
+    async fn save_credential(&mut self, params: SaveCredentialParams) -> Result<()>;
 }

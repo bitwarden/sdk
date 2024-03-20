@@ -1,5 +1,4 @@
 use crate::error::Result;
-use passkey::types::webauthn;
 use serde::{Deserialize, Serialize};
 
 impl VaultItem {
@@ -11,8 +10,8 @@ impl VaultItem {
 #[derive(Default, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct VaultItem {
-    cipher_id: String,
-    name: String,
+    pub cipher_id: String,
+    pub name: String,
 }
 
 pub struct NewCredentialParams {

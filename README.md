@@ -76,7 +76,8 @@ ASPNETCORE_ENVIRONMENT=development dotnet swagger tofile --output ../../identity
 
 ### OpenApi Generator
 
-Make sure you have the nightly toolchain installed with `rustup`. We need this to run `cargo +nightly fmt` in the `build-api.sh` script below.
+Make sure you have the nightly toolchain installed with `rustup`. We need this to run
+`cargo +nightly fmt` in the `build-api.sh` script below.
 
 ```bash
 rustup toolchain install nightly

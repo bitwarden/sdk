@@ -208,6 +208,7 @@ src/models/organization_api_key_information_list_response_model.rs
 src/models/organization_api_key_request_model.rs
 src/models/organization_api_key_type.rs
 src/models/organization_auto_enroll_status_response_model.rs
+src/models/organization_billing_status_response_model.rs
 src/models/organization_collection_management_update_request_model.rs
 src/models/organization_connection_request_model.rs
 src/models/organization_connection_response_model.rs
@@ -223,7 +224,6 @@ src/models/organization_keys_response_model.rs
 src/models/organization_license.rs
 src/models/organization_public_key_response_model.rs
 src/models/organization_response_model.rs
-src/models/organization_risks_subscription_failure_response_model.rs
 src/models/organization_seat_request_model.rs
 src/models/organization_sponsorship_create_request_model.rs
 src/models/organization_sponsorship_redeem_request_model.rs
@@ -347,6 +347,7 @@ src/models/secret_with_projects_list_response_model.rs
 src/models/secrets_manager_plan_features_response_model.rs
 src/models/secrets_manager_subscribe_request_model.rs
 src/models/secrets_manager_subscription_update_request_model.rs
+src/models/secrets_sync_response_model.rs
 src/models/secrets_with_projects_inner_secret.rs
 src/models/secure_note_type.rs
 src/models/selection_read_only_request_model.rs
@@ -379,6 +380,7 @@ src/models/sso_configuration_data_request.rs
 src/models/sso_type.rs
 src/models/sso_urls.rs
 src/models/storage_request_model.rs
+src/models/subscription_cancellation_request_model.rs
 src/models/subscription_response_model.rs
 src/models/sync_response_model.rs
 src/models/tax_info_response_model.rs

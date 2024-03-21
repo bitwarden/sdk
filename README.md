@@ -76,6 +76,12 @@ ASPNETCORE_ENVIRONMENT=development dotnet swagger tofile --output ../../identity
 
 ### OpenApi Generator
 
+Make sure you have the nightly toolchain installed with `rustup`. We need this to run `cargo +nightly fmt` in the `build-api.sh` script below.
+
+```bash
+rustup toolchain install nightly
+```
+
 To generate a new version of the bindings run the following script from the root of the SDK project.
 
 ```bash

@@ -58,15 +58,6 @@ jobs:
         with:
           path: sdk
 
-      - name: Download artifacts
-        uses: bitwarden/gh-actions/download-artifacts@main
-        with:
-          workflow: generate_schemas.yml
-          path: sdk/languages/go/bitwarden_sdk_secrets/lib
-          workflow_conclusion: success
-          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
-          artifacts: schemas.go
-
       - name: Login to Azure - Prod Subscription
         uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
         with:
@@ -98,11 +89,21 @@ jobs:
           # Copy files to local sm-sdk-go repo path
           cp --verbose -rf sdk/languages/go/. sm-sdk-go
 
+      - name: Download artifacts
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: generate_schemas.yml
+          path: sm-sdk-go
+          workflow_conclusion: success
+          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          artifacts: schemas.go
+
       - name: Replace repo name
         working-directory: sm-sdk-go
         run: |
           find . -name '*' -exec \
           gsed -i -e 's/github.com\/bitwarden\/sdk\/languages\/go/github.com\/bitwarden\/sm-sdk-go/g' {} \;
+          rm -rf bitwarden_sdk_secrets
 
       - name: Push changes
         working-directory: sm-sdk-go
@@ -110,15 +111,15 @@ jobs:
           git add .
           git commit -m "Update Go SDK to ${{ github.sha }}"
 
-          if [[ "${{ inputs.release_type }}" == "Dry Run" ]]; then
-            echo "==================================="
-            echo "[!] Dry Run - Skipping push"
-            echo "==================================="
-            git ls-files -m
-            exit 0
-          else
+          # if [[ "${{ inputs.release_type }}" == "Dry Run" ]]; then
+          #   echo "==================================="
+          #   echo "[!] Dry Run - Skipping push"
+          #   echo "==================================="
+          #   git ls-files -m
+          #   exit 0
+          # else
             git push origin main
-          fi
+          # fi
 
       - name: Create release tag on SDK Go repo
         if: ${{ inputs.release_type != 'Dry Run' }}

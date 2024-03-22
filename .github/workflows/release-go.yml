@@ -194,10 +194,20 @@ jobs:
 
       - name: Rename build artifacts
         run: |
-          mv libbitwarden_c_files-x86_64-apple-darwin.zip libbitwarden_c_files-x86_64-apple-darwin-$_PKG_VERSION.zip
-          mv libbitwarden_c_files-aarch64-apple-darwin.zip libbitwarden_c_files-aarch64-apple-darwin-$_PKG_VERSION.zip
-          mv libbitwarden_c_files-x86_64-unknown-linux-gnu.zip libbitwarden_c_files-x86_64-unknown-linux-gnu-$_PKG_VERSION.zip
-          mv libbitwarden_c_files-x86_64-pc-windows-msvc.zip libbitwarden_c_files-x86_64-pc-windows-msvc-$_PKG_VERSION.zip
+          artifacts=("x86_64-apple-darwin" "aarch64-apple-darwin" "x86_64-unknown-linux-gnu" "x86_64-pc-windows-msvc") # aarch64-unknown-linux-gnu)
+          for value in "${artifacts[@]}"
+          do
+            unzip libbitwarden_c_files-$value.zip -d libbitwarden_c_files-$value
+            cd libbitwarden_c_files-$value
+            zip ../libbitwarden_c_files-$value-$_PKG_VERSION.zip '*.a' '*.d' '*.rlib' '*.so' '*.dylib'
+          done
+
+          ls -lRa
+
+          # mv libbitwarden_c_files-x86_64-apple-darwin.zip libbitwarden_c_files-x86_64-apple-darwin-$_PKG_VERSION.zip
+          # mv libbitwarden_c_files-aarch64-apple-darwin.zip libbitwarden_c_files-aarch64-apple-darwin-$_PKG_VERSION.zip
+          # mv libbitwarden_c_files-x86_64-unknown-linux-gnu.zip libbitwarden_c_files-x86_64-unknown-linux-gnu-$_PKG_VERSION.zip
+          # mv libbitwarden_c_files-x86_64-pc-windows-msvc.zip libbitwarden_c_files-x86_64-pc-windows-msvc-$_PKG_VERSION.zip
 
       - name: Create release
         if: ${{ inputs.release_type != 'Dry Run' }}

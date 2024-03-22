@@ -8,7 +8,10 @@ pub struct BitwardenClient(JsonClient);
 impl BitwardenClient {
     #[new]
     pub fn new(settings_string: Option<String>) -> Self {
-        _ = pyo3_log::try_init();
+        // This will only fail if another logger was already initialized, so we can ignore the
+        // result
+        let _ = pyo3_log::try_init();
+
         Self(JsonClient::new(settings_string))
     }
 

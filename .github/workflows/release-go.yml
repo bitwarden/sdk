@@ -199,7 +199,7 @@ jobs:
           do
             unzip libbitwarden_c_files-$value.zip -d libbitwarden_c_files-$value
             cd libbitwarden_c_files-$value
-            zip ../libbitwarden_c_files-$value-$_PKG_VERSION.zip '*.a' '*.d' '*.rlib' '*.so' '*.dylib'
+            zip -R ../libbitwarden_c_files-$value-$_PKG_VERSION.zip 'libbitwarden_c.*'
           done
 
           ls -lRa

@@ -139,9 +139,14 @@ pub struct CipherListView {
 }
 
 impl KeyEncryptable<SymmetricCryptoKey, Cipher> for CipherView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Cipher, CryptoError> {
+    fn encrypt_with_key(mut self, key: &SymmetricCryptoKey) -> Result<Cipher, CryptoError> {
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let key = ciphers_key.as_ref().unwrap_or(key);
+
+        // For compatibility reasons, we only create checksums for ciphers that have a key
+        if ciphers_key.is_some() {
+            self.generate_checksums();
+        }
 
         Ok(Cipher {
             id: self.id,
@@ -177,7 +182,7 @@ impl KeyDecryptable<SymmetricCryptoKey, CipherView> for Cipher {
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let key = ciphers_key.as_ref().unwrap_or(key);
 
-        Ok(CipherView {
+        let mut cipher = CipherView {
             id: self.id,
             organization_id: self.organization_id,
             folder_id: self.folder_id,
@@ -202,7 +207,14 @@ impl KeyDecryptable<SymmetricCryptoKey, CipherView> for Cipher {
             creation_date: self.creation_date,
             deleted_date: self.deleted_date,
             revision_date: self.revision_date,
-        })
+        };
+
+        // For compatibility we only remove URLs with invalid checksums if the cipher has a key
+        if ciphers_key.is_some() {
+            cipher.remove_invalid_checksums();
+        }
+
+        Ok(cipher)
     }
 }
 
@@ -298,6 +310,20 @@ impl CipherView {
 
         self.key = Some(new_key.to_vec().encrypt_with_key(key)?);
         Ok(())
+    }
+
+    pub fn generate_checksums(&mut self) {
+        if let Some(uris) = self.login.as_mut().and_then(|l| l.uris.as_mut()) {
+            for uri in uris {
+                uri.generate_checksum();
+            }
+        }
+    }
+
+    pub fn remove_invalid_checksums(&mut self) {
+        if let Some(uris) = self.login.as_mut().and_then(|l| l.uris.as_mut()) {
+            uris.retain(|u| u.is_checksum_valid());
+        }
     }
 }
 

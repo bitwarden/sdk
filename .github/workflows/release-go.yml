@@ -104,21 +104,21 @@ jobs:
           find . -name '*' -exec \
           gsed -i -e 's/github.com\/bitwarden\/sdk\/languages\/go/github.com\/bitwarden\/sm-sdk-go/g' {} \;
 
-      - name: Push changes
-        working-directory: sm-sdk-go
-        run: |
-          git add .
-          git commit -m "Update Go SDK to ${{ github.sha }}"
+      # - name: Push changes
+      #   working-directory: sm-sdk-go
+      #   run: |
+      #     git add .
+      #     git commit -m "Update Go SDK to ${{ github.sha }}"
 
-          if [[ "${{ inputs.release_type }}" == "Dry Run" ]]; then
-            echo "==================================="
-            echo "[!] Dry Run - Skipping push"
-            echo "==================================="
-            git ls-files -m
-            exit 0
-          else
-            git push origin main
-          fi
+      #     if [[ "${{ inputs.release_type }}" == "Dry Run" ]]; then
+      #       echo "==================================="
+      #       echo "[!] Dry Run - Skipping push"
+      #       echo "==================================="
+      #       git ls-files -m
+      #       exit 0
+      #     else
+      #       git push origin main
+      #     fi
 
       - name: Create release tag on SDK Go repo
         if: ${{ inputs.release_type != 'Dry Run' }}

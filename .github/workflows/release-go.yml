@@ -203,12 +203,9 @@ jobs:
             cd ..
           done
 
-          ls -lRa
+          unzip libbitwarden_c_files-x86_64-apple-darwin-$_PKG_VERSION.zip -d libbitwarden_c_files-x86_64-apple-darwin-$_PKG_VERSION
 
-          # mv libbitwarden_c_files-x86_64-apple-darwin.zip libbitwarden_c_files-x86_64-apple-darwin-$_PKG_VERSION.zip
-          # mv libbitwarden_c_files-aarch64-apple-darwin.zip libbitwarden_c_files-aarch64-apple-darwin-$_PKG_VERSION.zip
-          # mv libbitwarden_c_files-x86_64-unknown-linux-gnu.zip libbitwarden_c_files-x86_64-unknown-linux-gnu-$_PKG_VERSION.zip
-          # mv libbitwarden_c_files-x86_64-pc-windows-msvc.zip libbitwarden_c_files-x86_64-pc-windows-msvc-$_PKG_VERSION.zip
+          ls ./libbitwarden_c_files-x86_64-apple-darwin-$_PKG_VERSION -lRa
 
       - name: Create release
         if: ${{ inputs.release_type != 'Dry Run' }}

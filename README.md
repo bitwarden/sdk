@@ -76,13 +76,6 @@ ASPNETCORE_ENVIRONMENT=development dotnet swagger tofile --output ../../identity
 
 ### OpenApi Generator
 
-Make sure you have the nightly toolchain installed with `rustup`. We need this to run
-`cargo +nightly fmt` in the `build-api.sh` script below.
-
-```bash
-rustup toolchain install nightly
-```
-
 To generate a new version of the bindings run the following script from the root of the SDK project.
 
 ```bash
@@ -92,6 +85,8 @@ To generate a new version of the bindings run the following script from the root
 This project uses customized templates which lives in the `support/openapi-templates` directory.
 These templates resolves some outstanding issues we've experienced with the rust generator. But we
 strive towards modifying the templates as little as possible to ease future upgrades.
+
+Note: If you don't have the nightly toolchain installed, the `build-api.sh` script will install it for you.
 
 ## Tests
 

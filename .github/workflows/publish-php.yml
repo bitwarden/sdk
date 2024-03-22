@@ -58,6 +58,7 @@ jobs:
 
       - name: Composer check
         run: |
+          composer update
           composer install
           composer validate
         working-directory: languages/php/

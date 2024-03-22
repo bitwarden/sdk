@@ -1,25 +1,29 @@
 [package]
 name = "bitwarden"
 version = "0.4.0"
-authors = ["Bitwarden Inc"]
-license-file = "LICENSE"
-repository = "https://github.com/bitwarden/sdk"
-homepage = "https://bitwarden.com"
 description = """
 Bitwarden Secrets Manager SDK
 """
 keywords = ["bitwarden", "secrets-manager"]
-edition = "2021"
-rust-version = "1.71"
+
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
 
 [features]
 default = ["secrets"]
 
 secrets = [] # Secrets manager API
-internal = [] # Internal testing methods
+internal = [
+    "dep:bitwarden-exporters",
+    "dep:bitwarden-generators",
+] # Internal testing methods
 mobile = [
-    "uniffi",
     "internal",
+    "dep:uniffi",
     "bitwarden-crypto/mobile",
     "bitwarden-generators/mobile",
 ] # Mobile-specific features
@@ -28,11 +32,11 @@ wasm-bindgen = ["chrono/wasmbind"]
 
 [dependencies]
 base64 = ">=0.21.2, <0.22"
-bitwarden-api-api = { path = "../bitwarden-api-api", version = "=0.2.3" }
-bitwarden-api-identity = { path = "../bitwarden-api-identity", version = "=0.2.3" }
-bitwarden-crypto = { path = "../bitwarden-crypto", version = "=0.1.0" }
-bitwarden-exporters = { path = "../bitwarden-exporters", version = "0.1.0" }
-bitwarden-generators = { path = "../bitwarden-generators", version = "0.1.0" }
+bitwarden-api-api = { workspace = true }
+bitwarden-api-identity = { workspace = true }
+bitwarden-crypto = { workspace = true }
+bitwarden-exporters = { workspace = true, optional = true }
+bitwarden-generators = { workspace = true, optional = true }
 chrono = { version = ">=0.4.26, <0.5", features = [
     "clock",
     "serde",
@@ -43,7 +47,7 @@ getrandom = { version = ">=0.2.9, <0.3", features = ["js"] }
 hmac = ">=0.12.1, <0.13"
 log = ">=0.4.18, <0.5"
 rand = ">=0.8.5, <0.9"
-reqwest = { version = ">=0.11, <0.12", features = [
+reqwest = { version = ">=0.12, <0.13", features = [
     "json",
 ], default-features = false }
 schemars = { version = ">=0.8.9, <0.9", features = ["uuid1", "chrono"] }
@@ -64,7 +68,7 @@ zxcvbn = ">= 2.2.2, <3.0"
 reqwest = { version = "*", features = [
     "rustls-tls-manual-roots",
 ], default-features = false }
-rustls-platform-verifier = "0.1.0"
+rustls-platform-verifier = "0.2.0"
 
 [target.'cfg(target_os = "android")'.dependencies]
 # The use of rustls-platform-verifier requires some extra support to communicate with the Android platform

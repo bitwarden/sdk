@@ -198,8 +198,8 @@ jobs:
           for value in "${artifacts[@]}"
           do
             unzip libbitwarden_c_files-$value.zip -d libbitwarden_c_files-$value
-            cd libbitwarden_c_files-$value
-            zip -R ../libbitwarden_c_files-$value-$_PKG_VERSION.zip 'libbitwarden_c.*'
+            # cd libbitwarden_c_files-$value
+            zip -Rj ../libbitwarden_c_files-$value-$_PKG_VERSION.zip 'libbitwarden_c_files-$value/libbitwarden_c.*'
           done
 
           ls -lRa

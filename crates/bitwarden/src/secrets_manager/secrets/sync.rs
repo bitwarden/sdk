@@ -71,9 +71,9 @@ impl SecretsSyncResponse {
             return Err(Error::MissingFields);
         }
 
-        return Ok(SecretsSyncResponse {
+        Ok(SecretsSyncResponse {
             has_changes: false,
             secrets: None,
-        });
+        })
     }
 }

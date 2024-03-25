@@ -59,3 +59,10 @@ impl UniffiCustomTypeConverter for SensitiveString {
         obj.expose().to_owned()
     }
 }
+
+/// Uniffi doesn't seem to be generating the SensitiveString unless it's being used by
+/// a record somewhere. This is a workaround to make sure the type is generated.
+#[derive(uniffi::Record)]
+struct SupportSensitiveString {
+    sensitive_string: SensitiveString,
+}

@@ -5,10 +5,11 @@ use std::ops::Deref;
 use bitwarden_json::{
     Fido2CredentialStore, FindCredentialsParams, Result, SaveCredentialParams, VaultItem,
 };
-use futures::{SinkExt, StreamExt};
 use js_sys::Promise;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
+
+use super::channel_wrapper::{CallerChannel, ChannelWrapped};
 
 #[wasm_bindgen]
 struct JsFindCredentialsParams {
@@ -61,38 +62,27 @@ extern "C" {
 
 impl JSFido2CredentialStore {
     pub fn to_channel_wrapped(self) -> JSFido2CredentialStoreWrapper {
-        let (tx_wrapper, mut rx_task) =
-            futures::channel::mpsc::channel::<JsFindCredentialsParams>(1);
-        let (mut tx_task, rx_wrapper) = futures::channel::mpsc::channel::<Vec<JsVaultItem>>(1);
+        // First we create a ChannelWrapped
+        let wrapper = ChannelWrapped::new(self);
 
-        // Spawn the local task which just waits until we receive input from the trait, note that this is not Send but we don't care
-        wasm_bindgen_futures::spawn_local(async move {
-            let params = rx_task.next().await.unwrap();
+        // And then we create an instance of the wrapped struct, and use ChannelWrapped to
+        // create a channel for each function.
+        let store = JSFido2CredentialStoreWrapper {
+            find_credentials: wrapper.create_channel(|inner, params| async move {
+                let promise = inner.find_credentials(params);
+                let result = wasm_bindgen_futures::JsFuture::from(promise).await;
+                let result: JsVaultItem = serde_wasm_bindgen::from_value(result.unwrap()).unwrap();
+                result
+            }),
+        };
 
-            let result_promise = self.find_credentials(JsFindCredentialsParams {
-                ids: params.ids,
-                rp_id: params.rp_id,
-            });
-            let result = wasm_bindgen_futures::JsFuture::from(result_promise).await;
-            let result = serde_wasm_bindgen::from_value(result.unwrap()).unwrap();
-
-            tx_task.send(result).await.unwrap();
-        });
-
-        JSFido2CredentialStoreWrapper {
-            find_credentials: (
-                async_lock::Mutex::new(tx_wrapper),
-                async_lock::Mutex::new(rx_wrapper),
-            ),
-        }
+        store
     }
 }
 
 pub struct JSFido2CredentialStoreWrapper {
-    find_credentials: (
-        async_lock::Mutex<futures::channel::mpsc::Sender<JsFindCredentialsParams>>,
-        async_lock::Mutex<futures::channel::mpsc::Receiver<Vec<JsVaultItem>>>,
-    ),
+    // TODO: JsVaultItem -> Vec<JsVaultItem>
+    find_credentials: CallerChannel<JsFindCredentialsParams, JsVaultItem>,
 }
 
 #[async_trait::async_trait]
@@ -101,18 +91,14 @@ impl Fido2CredentialStore for JSFido2CredentialStoreWrapper {
         log::debug!("JSFido2CredentialStoreWrapper.find_credentials");
 
         // TODO: passkey-rs supports serde, so we should be able to use that instead
-        self.find_credentials
-            .0
-            .lock()
-            .await
-            .send(JsFindCredentialsParams {
+        let result = self
+            .find_credentials
+            .call(JsFindCredentialsParams {
                 ids: params.ids.iter().map(|id| id.deref().clone()).collect(),
                 rp_id: params.rp_id,
             })
             .await
             .unwrap();
-
-        let result = self.find_credentials.1.lock().await.next().await.unwrap();
 
         Ok(result
             .iter()

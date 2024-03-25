@@ -19,6 +19,7 @@ pub struct NewCredentialParams {
     pub user_name: String,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct NewCredentialResult {
     pub vault_item: VaultItem,
 }

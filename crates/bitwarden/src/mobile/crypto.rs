@@ -2,7 +2,9 @@ use std::collections::HashMap;
 
 use bitwarden_crypto::{AsymmetricEncString, EncString};
 #[cfg(feature = "internal")]
-use bitwarden_crypto::{KeyDecryptable, KeyEncryptable, MasterKey, SymmetricCryptoKey};
+use bitwarden_crypto::{
+    KeyDecryptable, KeyEncryptable, MasterKey, SensitiveString, SymmetricCryptoKey,
+};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -168,13 +170,13 @@ pub async fn initialize_org_crypto(client: &mut Client, req: InitOrgCryptoReques
 }
 
 #[cfg(feature = "internal")]
-pub async fn get_user_encryption_key(client: &mut Client) -> Result<String> {
+pub async fn get_user_encryption_key(client: &mut Client) -> Result<SensitiveString> {
     let user_key = client
         .get_encryption_settings()?
         .get_key(&None)
         .ok_or(Error::VaultLocked)?;
 
-    Ok(user_key.to_base64().expose().to_owned())
+    Ok(user_key.to_base64())
 }
 
 #[cfg(feature = "internal")]

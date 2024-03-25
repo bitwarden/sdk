@@ -57,6 +57,14 @@ enum Commands {
         #[command(subcommand)]
         command: GeneratorCommands,
     },
+
+    Export {
+        // TODO: Remove these
+        #[arg(short = 'e', long, help = "Email address")]
+        email: Option<String>,
+        #[arg(short = 's', long, global = true, help = "Server URL")]
+        server: Option<String>,
+    },
 }
 
 #[derive(Args, Clone)]
@@ -157,12 +165,12 @@ async fn process_commands() -> Result<()> {
                 identity_url: format!("{}/identity", server),
                 ..Default::default()
             });
-            let client = bitwarden::Client::new(settings);
+            let mut client = bitwarden::Client::new(settings);
 
             match args.command {
                 // FIXME: Rust CLI will not support password login!
                 LoginCommands::Password { email } => {
-                    auth::login_password(client, email).await?;
+                    auth::login_password(&mut client, email).await?;
                 }
                 LoginCommands::ApiKey {
                     client_id,
@@ -203,9 +211,23 @@ async fn process_commands() -> Result<()> {
                 })
                 .await?;
         }
+        Commands::Export { email, server } => {
+            let settings = server.map(|server| ClientSettings {
+                api_url: format!("{}/api", server),
+                identity_url: format!("{}/identity", server),
+                ..Default::default()
+            });
+            let mut client = bitwarden::Client::new(settings);
+
+            auth::login_password(&mut client, email).await?;
+
+            client.exporters().export_vault_attachments().await?;
+
+            return Ok(());
+            // Export vault
+        }
         _ => {}
     }
-
     // Not login, assuming we have a config
     let client = bitwarden::Client::new(None);
 
@@ -215,6 +237,7 @@ async fn process_commands() -> Result<()> {
         Commands::Register { .. } => unreachable!(),
         Commands::Item { command: _ } => todo!(),
         Commands::Sync {} => todo!(),
+        Commands::Export { .. } => unreachable!(),
         Commands::Generate { command } => match command {
             GeneratorCommands::Password(args) => {
                 let password = client

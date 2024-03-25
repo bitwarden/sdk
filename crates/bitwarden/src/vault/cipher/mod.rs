@@ -10,7 +10,8 @@ pub(crate) mod login;
 pub(crate) mod secure_note;
 
 pub use attachment::{
-    Attachment, AttachmentEncryptResult, AttachmentFile, AttachmentFileView, AttachmentView,
+    download_attachment, Attachment, AttachmentEncryptResult, AttachmentFile, AttachmentFileView,
+    AttachmentView,
 };
 pub use cipher::{Cipher, CipherListView, CipherRepromptType, CipherType, CipherView};
 pub use field::FieldView;

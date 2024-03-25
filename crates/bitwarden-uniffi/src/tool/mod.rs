@@ -65,7 +65,7 @@ impl ClientExporters {
         Ok(self
             .0
              .0
-            .read()
+            .write()
             .await
             .exporters()
             .export_vault(folders, ciphers, format)
@@ -82,7 +82,7 @@ impl ClientExporters {
         Ok(self
             .0
              .0
-            .read()
+            .write()
             .await
             .exporters()
             .export_organization_vault(collections, ciphers, format)

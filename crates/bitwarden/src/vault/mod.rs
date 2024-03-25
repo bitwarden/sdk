@@ -1,3 +1,4 @@
+mod api;
 mod cipher;
 mod collection;
 mod folder;

@@ -1,13 +1,26 @@
+use std::{
+    fs::{create_dir_all, File},
+    io::Write,
+    path::Path,
+};
+
+use bitwarden_api_api::apis::ciphers_api::ciphers_id_attachment_attachment_id_get;
 use bitwarden_crypto::{
     CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
 };
+use log::debug;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use super::Cipher;
-use crate::error::{Error, Result};
+use crate::{
+    error::{Error, Result},
+    vault::api::attachment_get,
+    Client,
+};
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Attachment {
@@ -30,6 +43,49 @@ pub struct AttachmentView {
     pub size_name: Option<String>,
     pub file_name: Option<String>,
     pub key: Option<EncString>,
+}
+
+pub async fn download_attachment(
+    client: &mut Client,
+    cipher_id: Uuid,
+    attachment_id: &str,
+) -> Result<Vec<u8>> {
+    // The attachments from sync doesn't contain the correct url
+    let configuration = &client.get_api_configurations().await.api;
+    let response = ciphers_id_attachment_attachment_id_get(
+        configuration,
+        cipher_id,
+        attachment_id.to_string().as_str(),
+    )
+    .await?;
+
+    let attachment: Attachment = response.try_into()?;
+    let enc = client.get_encryption_settings()?;
+    let k = enc.get_key(&None).ok_or(Error::VaultLocked)?;
+
+    let view = attachment.decrypt_with_key(k)?;
+    let mut cipher_key: Vec<u8> = view.key.unwrap().decrypt_with_key(k)?;
+
+    let key = SymmetricCryptoKey::try_from(cipher_key.as_mut_slice())?;
+
+    let response = attachment_get(&view.url.unwrap()).await?;
+    let bytes = response.bytes().await?;
+
+    let buf = EncString::from_buffer(&bytes)?;
+    let dec: Vec<u8> = buf.decrypt_with_key(&key)?;
+
+    let path = Path::new("attachments")
+        .join(cipher_id.to_string())
+        .join(attachment_id)
+        .join(view.file_name.unwrap());
+
+    create_dir_all(path.parent().unwrap())?;
+    let mut file = File::create(path)?;
+    file.write_all(&dec)?;
+
+    debug!("{:?}", bytes.len());
+
+    todo!()
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

@@ -1,0 +1,22 @@
+[package]
+name = "test-sync"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+keywords.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bitwarden = { workspace = true, features = ["secrets"] }
+tokio = { version = "1.36.0", features = ["rt-multi-thread", "macros"] }
+uuid = { version = "^1.7.0", features = ["serde"] }
+color-eyre = "0.6"
+chrono = { version = "0.4.35", features = [
+    "clock",
+    "std",
+], default-features = false }

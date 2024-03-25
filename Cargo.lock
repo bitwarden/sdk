@@ -3294,6 +3294,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "test-sync"
+version = "0.1.0"
+dependencies = [
+ "bitwarden",
+ "chrono",
+ "color-eyre",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "textwrap"
 version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

@@ -22,5 +22,6 @@ npx openapi-generator-cli generate \
     -t ./support/openapi-template \
     --additional-properties=packageVersion=1.0.0
 
+rustup toolchain install nightly
 cargo +nightly fmt
 npm run prettier

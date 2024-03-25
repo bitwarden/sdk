@@ -75,4 +75,4 @@ jobs:
         if: ${{ inputs.release_type != 'Dry Run' }}
         env:
           NUGET_API_KEY: ${{ steps.retrieve-secrets.outputs.nuget-api-key }}
-        run: dotnet nuget push ../nuget-output/*.nupkg -k ${{ env.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
+        run: dotnet nuget push ./nuget-output/*.nupkg -k ${{ env.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json

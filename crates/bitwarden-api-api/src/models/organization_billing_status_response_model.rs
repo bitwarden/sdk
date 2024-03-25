@@ -9,11 +9,13 @@
  */
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct OrganizationRisksSubscriptionFailureResponseModel {
+pub struct OrganizationBillingStatusResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
     #[serde(rename = "organizationId", skip_serializing_if = "Option::is_none")]
     pub organization_id: Option<uuid::Uuid>,
+    #[serde(rename = "organizationName", skip_serializing_if = "Option::is_none")]
+    pub organization_name: Option<String>,
     #[serde(
         rename = "risksSubscriptionFailure",
         skip_serializing_if = "Option::is_none"
@@ -21,11 +23,12 @@ pub struct OrganizationRisksSubscriptionFailureResponseModel {
     pub risks_subscription_failure: Option<bool>,
 }
 
-impl OrganizationRisksSubscriptionFailureResponseModel {
-    pub fn new() -> OrganizationRisksSubscriptionFailureResponseModel {
-        OrganizationRisksSubscriptionFailureResponseModel {
+impl OrganizationBillingStatusResponseModel {
+    pub fn new() -> OrganizationBillingStatusResponseModel {
+        OrganizationBillingStatusResponseModel {
             object: None,
             organization_id: None,
+            organization_name: None,
             risks_subscription_failure: None,
         }
     }

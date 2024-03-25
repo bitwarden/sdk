@@ -82,6 +82,8 @@ pub struct OrganizationCreateRequestModel {
         skip_serializing_if = "Option::is_none"
     )]
     pub is_from_secrets_manager_trial: Option<bool>,
+    #[serde(rename = "initiationPath", skip_serializing_if = "Option::is_none")]
+    pub initiation_path: Option<String>,
 }
 
 impl OrganizationCreateRequestModel {
@@ -116,6 +118,7 @@ impl OrganizationCreateRequestModel {
             additional_service_accounts: None,
             use_secrets_manager,
             is_from_secrets_manager_trial: None,
+            initiation_path: None,
         }
     }
 }

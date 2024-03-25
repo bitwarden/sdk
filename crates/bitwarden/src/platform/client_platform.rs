@@ -28,7 +28,10 @@ impl<'a> ClientPlatform<'a> {
         user_interface: impl Fido2UserInterface,
         credential_store: impl Fido2CredentialStore,
     ) -> Result<VaultItem> {
-        log::debug!("client_platform.client_create_credential");
+        log::debug!(
+            "client_platform.client_create_credential, request: {:?}",
+            request
+        );
         client_create_credential(request, user_interface, credential_store).await
     }
 }

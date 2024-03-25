@@ -82,6 +82,7 @@ where
         ids: Option<&[PublicKeyCredentialDescriptor]>,
         rp_id: &str,
     ) -> std::result::Result<Vec<Self::PasskeyItem>, StatusCode> {
+        log::info!("PasskeyRsCredentialStore.find_credentials");
         let result = self
             .context
             .credential_store

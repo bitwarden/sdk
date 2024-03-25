@@ -1,13 +1,15 @@
 extern crate console_error_panic_hook;
 use std::rc::Rc;
 
-use bitwarden_json::client::Client as JsonClient;
+use super::fido2::{
+    client_create_credential::JSFido2ClientCreateCredentialRequest,
+    credential_store::JSFido2CredentialStore, user_interface::JSFido2UserInterface,
+};
+use bitwarden_json::{client::Client as JsonClient, Fido2ClientCreateCredentialRequest};
 use js_sys::Promise;
 use log::Level;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::future_to_promise;
-
-use super::fido2::user_interface::JSFido2UserInterface;
 
 #[wasm_bindgen]
 pub enum LogLevel {
@@ -59,8 +61,9 @@ impl BitwardenClient {
     #[wasm_bindgen]
     pub async fn client_create_credential(
         &mut self,
-        param: String,
+        js_request: JsValue,
         user_interface: JSFido2UserInterface,
+        credential_store: JSFido2CredentialStore,
     ) {
         log::info!("wasm_bindgen.client_create_credential");
         log::debug!("wasm_bindgen.client_create_credential");
@@ -68,10 +71,22 @@ impl BitwardenClient {
         //     webauthn_json: param,
         // };
         let wrapped_user_interface = user_interface.to_channel_wrapped();
+        let wrapped_credential_store = credential_store.to_channel_wrapped();
+        let request: JSFido2ClientCreateCredentialRequest =
+            serde_wasm_bindgen::from_value(js_request).unwrap();
+        let options = serde_json::from_str(&request.options).unwrap();
+        let webauthn_request = Fido2ClientCreateCredentialRequest {
+            options,
+            origin: request.origin,
+        };
 
-        // self.0
-        //     .client_create_credential(request, wrapped_user_interface)
-        //     .await
-        //     .unwrap();
+        self.0
+            .client_create_credential(
+                webauthn_request,
+                wrapped_user_interface,
+                wrapped_credential_store,
+            )
+            .await
+            .unwrap();
     }
 }

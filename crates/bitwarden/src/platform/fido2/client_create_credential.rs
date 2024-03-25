@@ -18,9 +18,10 @@ const AAGUID: Aaguid = Aaguid([
     0xd5, 0x48, 0x82, 0x6e, 0x79, 0xb4, 0xdb, 0x40, 0xa3, 0xd8, 0x11, 0x11, 0x6f, 0x7e, 0x83, 0x49,
 ]);
 
-// TODO: Struct in case we want to add more fields. Consider simplifying.
+#[derive(Debug)]
 pub struct Fido2ClientCreateCredentialRequest {
     pub options: CredentialCreationOptions,
+    pub origin: String,
 }
 
 pub(crate) async fn client_create_credential(
@@ -28,7 +29,7 @@ pub(crate) async fn client_create_credential(
     user_interface: impl Fido2UserInterface,
     credential_store: impl Fido2CredentialStore,
 ) -> Result<VaultItem> {
-    log::debug!("fido2.client_create_credential");
+    log::debug!("fido2.client_create_credential, request: {:?}", request);
     let context = Fido2Transaction::new(
         Fido2Options::CreateCredential(clone_create_options(&request.options)),
         user_interface,
@@ -42,11 +43,7 @@ pub(crate) async fn client_create_credential(
     let mut client = Client::new(authenticator.into());
 
     client
-        .register(
-            &Url::parse("https://bitwarden.com").unwrap(),
-            request.options,
-            None,
-        )
+        .register(&Url::parse(&request.origin).unwrap(), request.options, None)
         .await
         .unwrap();
 

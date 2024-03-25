@@ -36,10 +36,15 @@ export interface Fido2UserInterface {
   confirmNewCredential(params: Fido2NewCredentialParams): Promise<Fido2ConfirmNewCredentialResult>;
 }
 
+export interface Fido2ClientCreateCredentialRequest {
+  options: string;
+  origin: string;
+}
+
 interface BitwardenSDKClient {
   run_command(js_input: string): Promise<any>;
   client_create_credential(
-    param: string,
+    webauthn_request: Fido2ClientCreateCredentialRequest,
     user_interface: Fido2UserInterface,
     credential_store: Fido2CredentialStore,
   ): Promise<void>;

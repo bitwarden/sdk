@@ -1,6 +1,7 @@
 use std::{
     borrow::{Borrow, BorrowMut},
     cell::Cell,
+    sync::Arc,
 };
 
 use passkey::{
@@ -29,51 +30,55 @@ pub enum Fido2Options {
 
 pub struct Fido2Transaction<U, S>
 where
-    U: Fido2UserInterface,
-    S: Fido2CredentialStore,
+    U: Fido2UserInterface + Send,
+    S: Fido2CredentialStore + Send,
 {
     options: Wrap<Fido2Options>,
     user_interface: Wrap<U>,
-    credential_store: Wrap<S>,
+    credential_store: Wrap<async_lock::Mutex<S>>,
     user_presence: Wrap<Cell<bool>>,
 }
 
 impl<U, S> Fido2Transaction<U, S>
 where
-    U: Fido2UserInterface,
-    S: Fido2CredentialStore,
+    U: Fido2UserInterface + Send,
+    S: Fido2CredentialStore + Send,
 {
     pub fn new(request: Fido2Options, user_interface: U, credential_store: S) -> Self {
         Self {
             options: Wrap(request),
             user_interface: Wrap(user_interface),
-            credential_store: Wrap(credential_store),
+            credential_store: Wrap(async_lock::Mutex::new(credential_store)),
             user_presence: Wrap(Cell::new(false)),
         }
     }
 
-    pub fn into_user_validation_method(&self) -> PasskeyRsUserValidationMethod<U, S> {
-        PasskeyRsUserValidationMethod { context: &self }
+    pub fn into_user_validation_method(self: &Arc<Self>) -> PasskeyRsUserValidationMethod<U, S> {
+        PasskeyRsUserValidationMethod {
+            context: Arc::clone(self),
+        }
     }
 
-    pub fn into_credential_store(&self) -> PasskeyRsCredentialStore<U, S> {
-        PasskeyRsCredentialStore { context: &self }
+    pub fn into_credential_store(self: &Arc<Self>) -> PasskeyRsCredentialStore<U, S> {
+        PasskeyRsCredentialStore {
+            context: Arc::clone(self),
+        }
     }
 }
 
-pub struct PasskeyRsCredentialStore<'a, U, S>
+pub struct PasskeyRsCredentialStore<U, S>
 where
-    U: Fido2UserInterface,
-    S: Fido2CredentialStore,
+    U: Fido2UserInterface + Send,
+    S: Fido2CredentialStore + Send,
 {
-    context: &'a Fido2Transaction<U, S>,
+    context: Arc<Fido2Transaction<U, S>>,
 }
 
 #[async_trait::async_trait]
-impl<'a, U, S> CredentialStore for PasskeyRsCredentialStore<'a, U, S>
+impl<U, S> CredentialStore for PasskeyRsCredentialStore<U, S>
 where
-    U: Fido2UserInterface,
-    S: Fido2CredentialStore,
+    U: Fido2UserInterface + Send,
+    S: Fido2CredentialStore + Send,
 {
     type PasskeyItem = VaultItem;
 
@@ -87,6 +92,8 @@ where
             .context
             .credential_store
             .0
+            .lock()
+            .await
             .find_credentials(super::FindCredentialsParams {
                 ids: ids
                     .unwrap_or_default()
@@ -116,7 +123,7 @@ where
                     .0
                     .confirm_new_credential(NewCredentialParams {
                         credential_name: cred.rp_id, // TODO: This should take other fields into account
-                        user_name: user.name.unwrap_or("Unknown name".to_owned()),
+                        user_name: user.name.clone().unwrap_or("Unknown name".to_owned()),
                     })
                     .await
                     // TODO: We should convert the error more intelligently
@@ -127,12 +134,18 @@ where
                 // target.vault_item.fido2_credential = new Fido2Credential(cred, user, rp);
 
                 // TODO: Fix trying to use non-mutable reference
-                // self.context
-                //     .credential_store
-                //     .0
-                //     .get_mut()
-                //     .save_credential(target.vault_item, user, rp)
-                //     .await?;
+                self.context
+                    .credential_store
+                    .0
+                    .lock()
+                    .await
+                    .save_credential(super::SaveCredentialParams {
+                        cred: target.vault_item,
+                        user,
+                        rp,
+                    })
+                    .await // TODO: Don't unwrap this but return an actual Err
+                    .unwrap();
 
                 std::result::Result::Ok(())
             }
@@ -144,19 +157,19 @@ where
     }
 }
 
-pub struct PasskeyRsUserValidationMethod<'a, U, S>
+pub struct PasskeyRsUserValidationMethod<U, S>
 where
-    U: Fido2UserInterface,
-    S: Fido2CredentialStore,
+    U: Fido2UserInterface + Send,
+    S: Fido2CredentialStore + Send,
 {
-    context: &'a Fido2Transaction<U, S>,
+    context: Arc<Fido2Transaction<U, S>>,
 }
 
 #[async_trait::async_trait]
-impl<'a, U, S> UserValidationMethod for PasskeyRsUserValidationMethod<'a, U, S>
+impl<U, S> UserValidationMethod for PasskeyRsUserValidationMethod<U, S>
 where
-    U: Fido2UserInterface,
-    S: Fido2CredentialStore,
+    U: Fido2UserInterface + Send,
+    S: Fido2CredentialStore + Send,
 {
     async fn check_user_verification(&self) -> bool {
         self.context

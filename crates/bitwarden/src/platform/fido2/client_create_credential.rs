@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::error::Result;
 use url::Url;
 
@@ -26,15 +28,15 @@ pub struct Fido2ClientCreateCredentialRequest {
 
 pub(crate) async fn client_create_credential(
     request: Fido2ClientCreateCredentialRequest,
-    user_interface: impl Fido2UserInterface,
-    credential_store: impl Fido2CredentialStore,
+    user_interface: impl Fido2UserInterface + Send,
+    credential_store: impl Fido2CredentialStore + Send,
 ) -> Result<VaultItem> {
     log::debug!("fido2.client_create_credential, request: {:?}", request);
-    let context = Fido2Transaction::new(
+    let context = Arc::new(Fido2Transaction::new(
         Fido2Options::CreateCredential(clone_create_options(&request.options)),
         user_interface,
         credential_store,
-    );
+    ));
     let authenticator = Authenticator::new(
         AAGUID,
         context.into_credential_store(),

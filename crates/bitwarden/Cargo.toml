@@ -27,6 +27,7 @@ mobile = [
 wasm-bindgen = ["chrono/wasmbind"]
 
 [dependencies]
+async-lock = "3.3.0"
 async-trait = "0.1.77"
 base64 = ">=0.21.2, <0.22"
 bitwarden-api-api = { path = "../bitwarden-api-api", version = "=0.2.3" }

@@ -17,10 +17,14 @@ COPY . /app
 WORKDIR /app/crates/bws
 RUN cargo build --release --bin bws
 
+# Bundle bws dependencies
+RUN mkdir /lib-bws
+RUN ldd /app/target/release/bws | tr -s '[:blank:]' '\n' | grep '^/' | xargs -I % cp % /lib-bws
+
 ###############################################
 #                  App stage                  #
 ###############################################
-FROM debian:bookworm-slim
+FROM scratch
 
 ARG TARGETPLATFORM
 LABEL com.bitwarden.product="bitwarden"
@@ -28,14 +32,11 @@ LABEL com.bitwarden.product="bitwarden"
 # Copy built project from the build stage
 WORKDIR /usr/local/bin
 COPY --from=build /app/target/release/bws .
+
+# Copy certs
 COPY --from=build /etc/ssl/certs /etc/ssl/certs
 
-# Create a non-root user
-RUN useradd -ms /bin/bash app
-
-# Switch to the non-root user
-USER app
-
-WORKDIR /home/app
+# Copy bws dependencies
+COPY --from=build /lib-bws /lib
 
 ENTRYPOINT ["bws"]

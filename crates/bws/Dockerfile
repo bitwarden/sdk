@@ -15,7 +15,7 @@ COPY . /app
 
 # Build project
 WORKDIR /app/crates/bws
-RUN cargo build --release
+RUN cargo build --release --bin bws
 
 ###############################################
 #                  App stage                  #

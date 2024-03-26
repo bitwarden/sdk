@@ -25,7 +25,7 @@ impl Client {
     pub async fn client_create_credential(
         &self,
         request: Fido2ClientCreateCredentialRequest,
-        user_interface: impl Fido2UserInterface + Send,
+        user_interface: impl Fido2UserInterface + Send + Sync,
         credential_store: impl Fido2CredentialStore + Send,
     ) -> Result<VaultItem> {
         let mut client = self.0.lock().await;

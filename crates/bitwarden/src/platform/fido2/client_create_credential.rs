@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::error::Result;
+use crate::error::{Error, Result};
 use url::Url;
 
 use super::{
@@ -26,11 +26,13 @@ pub struct Fido2ClientCreateCredentialRequest {
     pub origin: String,
 }
 
+pub type Fido2CreatedPublicKeyCredential = CreatedPublicKeyCredential;
+
 pub(crate) async fn client_create_credential(
     request: Fido2ClientCreateCredentialRequest,
     user_interface: impl Fido2UserInterface + Send + Sync,
     credential_store: impl Fido2CredentialStore + Send,
-) -> Result<VaultItem> {
+) -> Result<CreatedPublicKeyCredential> {
     log::debug!("fido2.client_create_credential, request: {:?}", request);
     let context = Arc::new(Fido2Transaction::new(
         Fido2Options::CreateCredential(clone_create_options(&request.options)),
@@ -47,37 +49,8 @@ pub(crate) async fn client_create_credential(
     client
         .register(&Url::parse(&request.origin).unwrap(), request.options, None)
         .await
-        .unwrap();
-
-    std::result::Result::Ok(VaultItem::new("cipher_id".to_string(), "name".to_string()))
+        .map_err(|error| Error::Internal("Unable to create credential".into()))
 }
-
-// let challenge = vec![0; 32];
-// let options = CredentialCreationOptions {
-//     public_key: PublicKeyCredentialCreationOptions {
-//         rp: PublicKeyCredentialRpEntity {
-//             id: Some("bitwarden.com".to_string()),
-//             name: "Bitwarden".to_string(),
-//         },
-//         user: PublicKeyCredentialUserEntity {
-//             id: vec![].into(),
-//             name: "user".to_string(),
-//             display_name: "User".to_string(),
-//         },
-//         challenge: challenge.into(),
-//         pub_key_cred_params: vec![PublicKeyCredentialParameters {
-//             ty: PublicKeyCredentialType::PublicKey,
-//             alg: coset::iana::Algorithm::ES256,
-//         }],
-//         timeout: None,
-//         exclude_credentials: None,
-//         authenticator_selection: None,
-//         attestation: AttestationConveyancePreference::None,
-//         attestation_formats: None,
-//         hints: None,
-//         extensions: None,
-//     },
-// };
 
 fn clone_create_options(options: &CredentialCreationOptions) -> CredentialCreationOptions {
     let json: String = serde_json::to_string(options).unwrap();

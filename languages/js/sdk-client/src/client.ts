@@ -46,13 +46,33 @@ export interface Fido2ClientCreateCredentialRequest {
   origin: string;
 }
 
+export interface Fido2CreatedPublicKeyCredential {
+  id: string,
+  rawId: Uint8Array,
+  type: 'public-key',
+  response: {
+      clientDataJSON: Uint8Array,
+      authenticatorData: Uint8Array,
+      publicKey: Uint8Array,
+      publicKeyAlgorithm: number,
+      attestationObject: Uint8Array,
+      transports: string[]
+  },
+  authenticatorAttachment: string,
+  clientExtensionResults: {
+      credProps: {
+          rk: boolean
+      }
+  }
+}
+
 interface BitwardenSDKClient {
   run_command(js_input: string): Promise<any>;
   client_create_credential(
     webauthn_request: Fido2ClientCreateCredentialRequest,
     user_interface: Fido2UserInterface,
     credential_store: Fido2CredentialStore,
-  ): Promise<void>;
+  ): Promise<Fido2CreatedPublicKeyCredential>;
 }
 
 function handleResponse<T>(response: { success: boolean; errorMessage?: string; data?: T }): T {

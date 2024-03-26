@@ -5,7 +5,10 @@ use super::fido2::{
     client_create_credential::JSFido2ClientCreateCredentialRequest,
     credential_store::JSFido2CredentialStore, user_interface::JSFido2UserInterface,
 };
-use bitwarden_json::{client::Client as JsonClient, Fido2ClientCreateCredentialRequest};
+use bitwarden_json::{
+    client::Client as JsonClient, Fido2ClientCreateCredentialRequest,
+    Fido2CreatedPublicKeyCredential,
+};
 use js_sys::Promise;
 use log::Level;
 use wasm_bindgen::prelude::*;
@@ -64,7 +67,7 @@ impl BitwardenClient {
         js_request: JsValue,
         user_interface: JSFido2UserInterface,
         credential_store: JSFido2CredentialStore,
-    ) {
+    ) -> JsValue {
         log::info!("wasm_bindgen.client_create_credential");
         log::debug!("wasm_bindgen.client_create_credential");
         // let request = Fido2ClientCreateCredentialRequest {
@@ -80,7 +83,8 @@ impl BitwardenClient {
             origin: request.origin,
         };
 
-        self.0
+        let result = self
+            .0
             .client_create_credential(
                 webauthn_request,
                 wrapped_user_interface,
@@ -88,5 +92,7 @@ impl BitwardenClient {
             )
             .await
             .unwrap();
+
+        serde_wasm_bindgen::to_value(&result).unwrap()
     }
 }

@@ -4,7 +4,9 @@ mod fido2;
 mod transaction;
 mod user_interface;
 
-pub use client_create_credential::Fido2ClientCreateCredentialRequest;
+pub use client_create_credential::{
+    Fido2ClientCreateCredentialRequest, Fido2CreatedPublicKeyCredential,
+};
 
 pub use credential_store::{Fido2CredentialStore, FindCredentialsParams, SaveCredentialParams};
 pub use fido2::Fido2ClientGetAssertionRequest;

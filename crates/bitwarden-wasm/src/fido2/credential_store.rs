@@ -9,7 +9,7 @@ use js_sys::Promise;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
-use super::channel_wrapper::{CallerChannel, ChannelWrapped};
+use super::channel_wrapper::{auto_map_return, CallerChannel, ChannelWrapped};
 
 #[wasm_bindgen]
 struct JsFindCredentialsParams {
@@ -40,13 +40,13 @@ struct JsVaultItem {
 struct JsPublicKeyCredentialUserEntity {
     id: String,
     name: String,
-    display_name: String,
+    display_name: Option<String>,
 }
 
 #[wasm_bindgen]
 struct JsPublicKeyCredentialRpEntity {
     id: String,
-    name: String,
+    name: Option<String>,
 }
 
 #[wasm_bindgen]
@@ -69,10 +69,11 @@ impl JSFido2CredentialStore {
         // create a channel for each function.
         let store = JSFido2CredentialStoreWrapper {
             find_credentials: wrapper.create_channel(|inner, params| async move {
-                let promise = inner.find_credentials(params);
-                let result = wasm_bindgen_futures::JsFuture::from(promise).await;
-                let result: JsVaultItem = serde_wasm_bindgen::from_value(result.unwrap()).unwrap();
-                result
+                auto_map_return(inner.find_credentials(params)).await
+            }),
+
+            save_credential: wrapper.create_channel(|inner, params| async move {
+                auto_map_return(inner.save_credential(params)).await
             }),
         };
 
@@ -83,6 +84,7 @@ impl JSFido2CredentialStore {
 pub struct JSFido2CredentialStoreWrapper {
     // TODO: JsVaultItem -> Vec<JsVaultItem>
     find_credentials: CallerChannel<JsFindCredentialsParams, JsVaultItem>,
+    save_credential: CallerChannel<JsSaveCredentialParams, ()>,
 }
 
 #[async_trait::async_trait]
@@ -114,6 +116,26 @@ impl Fido2CredentialStore for JSFido2CredentialStoreWrapper {
     }
 
     async fn save_credential(&mut self, params: SaveCredentialParams) -> Result<()> {
-        todo!()
+        let result = self
+            .save_credential
+            .call(JsSaveCredentialParams {
+                cred: JsVaultItem {
+                    cipher_id: params.cred.cipher_id,
+                    name: params.cred.name,
+                },
+                user: JsPublicKeyCredentialUserEntity {
+                    id: params.user.id.into(),
+                    name: params.user.name.unwrap_or("".to_owned()),
+                    display_name: params.user.display_name,
+                },
+                rp: JsPublicKeyCredentialRpEntity {
+                    id: params.rp.id,
+                    name: params.rp.name,
+                },
+            })
+            .await
+            .unwrap();
+
+        Ok(result)
     }
 }

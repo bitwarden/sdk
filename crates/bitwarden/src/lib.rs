@@ -69,6 +69,9 @@ mod util;
 #[cfg(feature = "internal")]
 pub mod vault;
 
+#[cfg(target_os = "android")]
+mod android_support;
+
 pub use client::Client;
 
 // Ensure the readme docs compile

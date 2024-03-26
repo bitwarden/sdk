@@ -21,6 +21,9 @@ RUN cargo build --release --bin bws
 RUN mkdir /lib-bws
 RUN ldd /app/target/release/bws | tr -s '[:blank:]' '\n' | grep '^/' | xargs -I % cp % /lib-bws
 
+# Make a HOME directory for the app stage
+RUN mkdir -p /home/app
+
 ###############################################
 #                  App stage                  #
 ###############################################
@@ -28,6 +31,10 @@ FROM scratch
 
 ARG TARGETPLATFORM
 LABEL com.bitwarden.product="bitwarden"
+
+# Set a HOME directory
+COPY --from=build /home/app /home/app
+ENV HOME=/home/app
 
 # Copy built project from the build stage
 WORKDIR /usr/local/bin

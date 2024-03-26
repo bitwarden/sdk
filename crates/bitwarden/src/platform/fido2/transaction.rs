@@ -18,11 +18,6 @@ use super::{
     NewCredentialParams, VaultItem,
 };
 
-// TODO: Use Mutex instead Wrap
-#[derive(Default)]
-struct Wrap<T>(T);
-unsafe impl<T> Sync for Wrap<T> {}
-
 pub enum Fido2Options {
     CreateCredential(webauthn::CredentialCreationOptions),
     GetCredential(webauthn::CredentialRequestOptions),
@@ -30,26 +25,26 @@ pub enum Fido2Options {
 
 pub struct Fido2Transaction<U, S>
 where
-    U: Fido2UserInterface + Send,
+    U: Fido2UserInterface + Send + Sync,
     S: Fido2CredentialStore + Send,
 {
-    options: Wrap<Fido2Options>,
-    user_interface: Wrap<U>,
-    credential_store: Wrap<async_lock::Mutex<S>>,
-    user_presence: Wrap<Cell<bool>>,
+    options: Fido2Options,
+    user_interface: Arc<U>,
+    credential_store: async_lock::Mutex<S>,
+    user_presence: async_lock::Mutex<bool>,
 }
 
 impl<U, S> Fido2Transaction<U, S>
 where
-    U: Fido2UserInterface + Send,
+    U: Fido2UserInterface + Send + Sync,
     S: Fido2CredentialStore + Send,
 {
     pub fn new(request: Fido2Options, user_interface: U, credential_store: S) -> Self {
         Self {
-            options: Wrap(request),
-            user_interface: Wrap(user_interface),
-            credential_store: Wrap(async_lock::Mutex::new(credential_store)),
-            user_presence: Wrap(Cell::new(false)),
+            options: request,
+            user_interface: Arc::new(user_interface),
+            credential_store: async_lock::Mutex::new(credential_store),
+            user_presence: async_lock::Mutex::new(false),
         }
     }
 
@@ -68,7 +63,7 @@ where
 
 pub struct PasskeyRsCredentialStore<U, S>
 where
-    U: Fido2UserInterface + Send,
+    U: Fido2UserInterface + Send + Sync,
     S: Fido2CredentialStore + Send,
 {
     context: Arc<Fido2Transaction<U, S>>,
@@ -77,7 +72,7 @@ where
 #[async_trait::async_trait]
 impl<U, S> CredentialStore for PasskeyRsCredentialStore<U, S>
 where
-    U: Fido2UserInterface + Send,
+    U: Fido2UserInterface + Send + Sync,
     S: Fido2CredentialStore + Send,
 {
     type PasskeyItem = VaultItem;
@@ -91,7 +86,6 @@ where
         let result = self
             .context
             .credential_store
-            .0
             .lock()
             .await
             .find_credentials(super::FindCredentialsParams {
@@ -115,28 +109,27 @@ where
         user: ctap2::make_credential::PublicKeyCredentialUserEntity,
         rp: ctap2::make_credential::PublicKeyCredentialRpEntity,
     ) -> Result<(), StatusCode> {
-        match self.context.options.0.borrow() {
+        match &self.context.options {
             Fido2Options::CreateCredential(request) => {
                 let target = self
                     .context
                     .user_interface
-                    .0
                     .confirm_new_credential(NewCredentialParams {
-                        credential_name: cred.rp_id, // TODO: This should take other fields into account
+                        credential_name: cred.rp_id, /* TODO: This should take other fields into
+                                                      * account */
                         user_name: user.name.clone().unwrap_or("Unknown name".to_owned()),
                     })
                     .await
                     // TODO: We should convert the error more intelligently
                     .map_err(|error| StatusCode::Ctap2(Ctap2Code::Known(Ctap2Error::NotAllowed)))?;
 
-                self.context.user_presence.0.set(true); // true because the user actively interacted with the UI
+                *self.context.user_presence.lock().await = true; // true because the user actively interacted with the UI
 
                 // target.vault_item.fido2_credential = new Fido2Credential(cred, user, rp);
 
                 // TODO: Fix trying to use non-mutable reference
                 self.context
                     .credential_store
-                    .0
                     .lock()
                     .await
                     .save_credential(super::SaveCredentialParams {
@@ -159,7 +152,7 @@ where
 
 pub struct PasskeyRsUserValidationMethod<U, S>
 where
-    U: Fido2UserInterface + Send,
+    U: Fido2UserInterface + Send + Sync,
     S: Fido2CredentialStore + Send,
 {
     context: Arc<Fido2Transaction<U, S>>,
@@ -168,23 +161,19 @@ where
 #[async_trait::async_trait]
 impl<U, S> UserValidationMethod for PasskeyRsUserValidationMethod<U, S>
 where
-    U: Fido2UserInterface + Send,
+    U: Fido2UserInterface + Send + Sync,
     S: Fido2CredentialStore + Send,
 {
     async fn check_user_verification(&self) -> bool {
-        self.context
-            .user_interface
-            .0
-            .check_user_verification()
-            .await
+        self.context.user_interface.check_user_verification().await
     }
 
     async fn check_user_presence(&self) -> bool {
-        if self.context.user_presence.0.get() {
+        if *self.context.user_presence.lock().await {
             return true;
         }
 
-        self.context.user_interface.0.check_user_presence().await
+        self.context.user_interface.check_user_presence().await
     }
 
     fn is_presence_enabled(&self) -> bool {

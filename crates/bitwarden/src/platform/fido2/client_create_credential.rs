@@ -28,7 +28,7 @@ pub struct Fido2ClientCreateCredentialRequest {
 
 pub(crate) async fn client_create_credential(
     request: Fido2ClientCreateCredentialRequest,
-    user_interface: impl Fido2UserInterface + Send,
+    user_interface: impl Fido2UserInterface + Send + Sync,
     credential_store: impl Fido2CredentialStore + Send,
 ) -> Result<VaultItem> {
     log::debug!("fido2.client_create_credential, request: {:?}", request);

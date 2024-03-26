@@ -100,13 +100,17 @@ impl Fido2CredentialStore for JSFido2CredentialStoreWrapper {
             .await
             .unwrap();
 
-        Ok(result
-            .iter()
-            .map(|item| VaultItem {
-                cipher_id: item.cipher_id.clone(),
-                name: item.name.clone(),
-            })
-            .collect())
+        Ok(vec![VaultItem {
+            cipher_id: result.cipher_id,
+            name: result.name,
+        }])
+        // Ok(result
+        //     .iter()
+        //     .map(|item| VaultItem {
+        //         cipher_id: item.cipher_id.clone(),
+        //         name: item.name.clone(),
+        //     })
+        //     .collect())
     }
 
     async fn save_credential(&mut self, params: SaveCredentialParams) -> Result<()> {

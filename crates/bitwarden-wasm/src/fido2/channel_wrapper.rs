@@ -1,4 +1,7 @@
+use bitwarden_json::{Error, Result};
 use futures::{Future, SinkExt, StreamExt};
+use js_sys::Promise;
+use serde::de::DeserializeOwned;
 use std::rc::Rc;
 
 /// This is just a thin wrapper around the channels to make it easier to use
@@ -20,10 +23,24 @@ impl<In, Out> CallerChannel<In, Out> {
         }
     }
 
-    pub async fn call(&self, params: In) -> Result<Option<Out>, futures::channel::mpsc::SendError> {
+    pub async fn call(&self, params: In) -> Result<Out> {
         let mut lock = self.chan.lock().await;
-        lock.0.send(params).await?;
-        Ok(lock.1.next().await)
+        lock.0
+            .send(params)
+            .await
+            .map_err(|_| Error::Internal("Failed to receive from WASM channel".into()))?;
+        lock.1.next().await.ok_or(Error::Internal(
+            "Failed to receive from WASM channel".into(),
+        ))
+    }
+
+    pub fn call_blocking(&self, params: In) -> Result<Out> {
+        let mut lock = futures::executor::block_on(self.chan.lock());
+        futures::executor::block_on(lock.0.send(params))
+            .map_err(|_| Error::Internal("Failed to receive from WASM channel".into()))?;
+        futures::executor::block_on(lock.1.next()).ok_or(Error::Internal(
+            "Failed to receive from WASM channel".into(),
+        ))
     }
 }
 
@@ -65,4 +82,13 @@ impl<Inner> ChannelWrapped<Inner> {
 
         CallerChannel::new(tx_caller, rx_caller)
     }
+}
+
+pub async fn auto_map_return<Out>(promise: Promise) -> Out
+where
+    Out: DeserializeOwned,
+{
+    let result = wasm_bindgen_futures::JsFuture::from(promise).await;
+    let result: Out = serde_wasm_bindgen::from_value(result.unwrap()).unwrap();
+    result
 }

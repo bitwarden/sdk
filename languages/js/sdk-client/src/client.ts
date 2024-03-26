@@ -34,6 +34,11 @@ export interface Fido2ConfirmNewCredentialResult {
 
 export interface Fido2UserInterface {
   confirmNewCredential(params: Fido2NewCredentialParams): Promise<Fido2ConfirmNewCredentialResult>;
+  pickCredential(params: unknown): Promise<any>;
+  checkUserVerification(): Promise<boolean>;
+  checkUserPresence(): Promise<boolean>;
+  isPresenceEnabled(): boolean;
+  isVerificationEnabled(): boolean | undefined;
 }
 
 export interface Fido2ClientCreateCredentialRequest {

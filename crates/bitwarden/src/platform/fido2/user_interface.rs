@@ -8,7 +8,6 @@ impl VaultItem {
 }
 
 #[derive(Default, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct VaultItem {
     pub cipher_id: String,
     pub name: String,

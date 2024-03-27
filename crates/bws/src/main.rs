@@ -325,7 +325,7 @@ async fn process_commands() -> Result<()> {
         })
         .transpose()?;
 
-    let state_file_path = state::get_state_file_path(
+    let state_path = state::get_state_file_path(
         profile.and_then(|p| p.state_file_dir).map(Into::into),
         access_token_obj.access_token_id.to_string(),
     );
@@ -337,7 +337,7 @@ async fn process_commands() -> Result<()> {
         .auth()
         .login_access_token(&AccessTokenLoginRequest {
             access_token,
-            state_file: state_file_path,
+            state_path,
         })
         .await?;
 

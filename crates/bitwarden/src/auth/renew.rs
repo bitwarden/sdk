@@ -46,7 +46,7 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
             LoginMethod::ServiceAccount(s) => match s {
                 ServiceAccountLoginMethod::AccessToken {
                     access_token,
-                    state_file,
+                    state_path,
                     ..
                 } => {
                     let result = AccessTokenRequest::new(
@@ -58,14 +58,14 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
 
                     if let (
                         IdentityTokenResponse::Authenticated(r),
-                        Some(state_file),
+                        Some(state_path),
                         Ok(enc_settings),
-                    ) = (&result, state_file, client.get_encryption_settings())
+                    ) = (&result, state_path, client.get_encryption_settings())
                     {
                         if let Some(enc_key) = enc_settings.get_key(&None) {
                             let state =
                                 ClientState::new(r.access_token.clone(), enc_key.to_base64());
-                            _ = state::set(state_file, access_token, state);
+                            _ = state::set(state_path, access_token, state);
                         }
                     }
 

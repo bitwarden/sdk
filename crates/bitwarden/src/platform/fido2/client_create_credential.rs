@@ -6,7 +6,7 @@ use url::Url;
 use super::{
     credential_store::Fido2CredentialStore,
     transaction::{Fido2Options, Fido2Transaction},
-    user_interface::{Fido2UserInterface, VaultItem},
+    user_interface::Fido2UserInterface,
 };
 
 use passkey::{

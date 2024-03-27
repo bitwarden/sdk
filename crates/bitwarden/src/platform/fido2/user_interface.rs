@@ -1,16 +1,12 @@
 use crate::error::Result;
 use serde::{Deserialize, Serialize};
 
-impl VaultItem {
+use super::Fido2VaultItem;
+
+impl Fido2VaultItem {
     pub fn new(cipher_id: String, name: String) -> Self {
         Self { cipher_id, name }
     }
-}
-
-#[derive(Default, Debug, Serialize, Deserialize)]
-pub struct VaultItem {
-    pub cipher_id: String,
-    pub name: String,
 }
 
 pub struct NewCredentialParams {
@@ -20,7 +16,7 @@ pub struct NewCredentialParams {
 
 #[derive(Serialize, Deserialize)]
 pub struct NewCredentialResult {
-    pub vault_item: VaultItem,
+    pub vault_item: Fido2VaultItem,
 }
 
 pub struct PickCredentialParams {
@@ -29,7 +25,7 @@ pub struct PickCredentialParams {
 }
 
 pub struct PickCredentialResult {
-    pub vault_item: VaultItem,
+    pub vault_item: Fido2VaultItem,
 }
 
 #[async_trait::async_trait]

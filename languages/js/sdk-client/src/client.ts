@@ -9,8 +9,25 @@ import {
 } from "./schemas";
 
 export interface Fido2VaultItem {
-  cipher_id: string;
+  cipherId: string;
   name: string;
+}
+
+// TODO: Temporary until I figure out how to decrypt EncString in the SDK
+export interface Fido2CredentialView {
+  credentialId: string,
+  keyType: string,
+  keyAlgorithm: string,
+  keyCurve: string,
+  keyValue: string,
+  rpId: string,
+  userHandle?: string,
+  userName?: string,
+  counter: string,
+  rpName?: string,
+  userDisplayName?: string,
+  discoverable: string,
+  creationDate: string,
 }
 
 export interface FindCredentialsParams {
@@ -20,7 +37,7 @@ export interface FindCredentialsParams {
 
 export interface Fido2CredentialStore {
   findCredentials(params: FindCredentialsParams): Promise<Fido2VaultItem[]>;
-  saveCredential(params: unknown): Promise<any>;
+  saveCredential(params: Fido2VaultItem): Promise<void>;
 }
 
 export interface Fido2NewCredentialParams {
@@ -34,7 +51,7 @@ export interface Fido2ConfirmNewCredentialResult {
 
 export interface Fido2UserInterface {
   confirmNewCredential(params: Fido2NewCredentialParams): Promise<Fido2ConfirmNewCredentialResult>;
-  pickCredential(params: unknown): Promise<any>;
+  pickCredential(params: unknown): Promise<Fido2VaultItem>;
   checkUserVerification(): Promise<boolean>;
   checkUserPresence(): Promise<boolean>;
   isPresenceEnabled(): boolean;

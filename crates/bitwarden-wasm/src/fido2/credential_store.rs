@@ -1,12 +1,10 @@
 extern crate console_error_panic_hook;
 
-use std::ops::Deref;
-
 use bitwarden_json::{
-    Fido2CredentialStore, FindCredentialsParams, Result, SaveCredentialParams, VaultItem,
+    Fido2CredentialStore, Fido2VaultItem, FindCredentialsParams, Result, SaveCredentialParams,
 };
 use js_sys::Promise;
-use serde::{Deserialize, Serialize};
+use std::ops::Deref;
 use wasm_bindgen::prelude::*;
 
 use super::channel_wrapper::{auto_map_return, CallerChannel, ChannelWrapped};
@@ -19,7 +17,7 @@ struct JsFindCredentialsParams {
 
 #[wasm_bindgen]
 struct JsSaveCredentialParams {
-    cred: JsVaultItem,
+    cred: Fido2VaultItem,
     user: JsPublicKeyCredentialUserEntity,
     rp: JsPublicKeyCredentialRpEntity,
 }
@@ -27,13 +25,6 @@ struct JsSaveCredentialParams {
 #[wasm_bindgen]
 struct JsPublicKeyCredentialDescriptor {
     id: String,
-}
-
-#[wasm_bindgen]
-#[derive(Serialize, Deserialize)]
-struct JsVaultItem {
-    cipher_id: String,
-    name: String,
 }
 
 #[wasm_bindgen]
@@ -83,13 +74,13 @@ impl JSFido2CredentialStore {
 
 pub struct JSFido2CredentialStoreWrapper {
     // TODO: JsVaultItem -> Vec<JsVaultItem>
-    find_credentials: CallerChannel<JsFindCredentialsParams, JsVaultItem>,
+    find_credentials: CallerChannel<JsFindCredentialsParams, Fido2VaultItem>,
     save_credential: CallerChannel<JsSaveCredentialParams, ()>,
 }
 
 #[async_trait::async_trait]
 impl Fido2CredentialStore for JSFido2CredentialStoreWrapper {
-    async fn find_credentials(&self, params: FindCredentialsParams) -> Result<Vec<VaultItem>> {
+    async fn find_credentials(&self, params: FindCredentialsParams) -> Result<Vec<Fido2VaultItem>> {
         log::debug!("JSFido2CredentialStoreWrapper.find_credentials");
 
         // TODO: passkey-rs supports serde, so we should be able to use that instead
@@ -102,7 +93,7 @@ impl Fido2CredentialStore for JSFido2CredentialStoreWrapper {
             .await
             .unwrap();
 
-        Ok(vec![VaultItem {
+        Ok(vec![Fido2VaultItem {
             cipher_id: result.cipher_id,
             name: result.name,
         }])
@@ -119,7 +110,7 @@ impl Fido2CredentialStore for JSFido2CredentialStoreWrapper {
         let result = self
             .save_credential
             .call(JsSaveCredentialParams {
-                cred: JsVaultItem {
+                cred: Fido2VaultItem {
                     cipher_id: params.cred.cipher_id,
                     name: params.cred.name,
                 },

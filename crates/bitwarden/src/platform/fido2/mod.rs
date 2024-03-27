@@ -3,6 +3,7 @@ mod credential_store;
 mod fido2;
 mod transaction;
 mod user_interface;
+mod vault_item;
 
 pub use client_create_credential::{
     Fido2ClientCreateCredentialRequest, Fido2CreatedPublicKeyCredential,
@@ -16,5 +17,6 @@ pub use passkey::types::{
 };
 pub use user_interface::{
     Fido2UserInterface, NewCredentialParams, NewCredentialResult, PickCredentialParams,
-    PickCredentialResult, VaultItem,
+    PickCredentialResult,
 };
+pub use vault_item::{Fido2CredentialView, Fido2VaultItem};

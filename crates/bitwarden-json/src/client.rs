@@ -4,7 +4,7 @@ use bitwarden::{
     error::Result,
     platform::fido2::{
         Fido2ClientCreateCredentialRequest, Fido2CreatedPublicKeyCredential, Fido2CredentialStore,
-        Fido2UserInterface, VaultItem,
+        Fido2UserInterface, Fido2VaultItem,
     },
 };
 

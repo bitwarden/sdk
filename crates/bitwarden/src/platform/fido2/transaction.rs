@@ -14,8 +14,8 @@ use passkey::{
 };
 
 use super::{
-    credential_store::Fido2CredentialStore, user_interface::Fido2UserInterface,
-    NewCredentialParams, VaultItem,
+    credential_store::Fido2CredentialStore, user_interface::Fido2UserInterface, Fido2VaultItem,
+    NewCredentialParams,
 };
 
 pub enum Fido2Options {
@@ -75,7 +75,7 @@ where
     U: Fido2UserInterface + Send + Sync,
     S: Fido2CredentialStore + Send,
 {
-    type PasskeyItem = VaultItem;
+    type PasskeyItem = Fido2VaultItem;
 
     async fn find_credentials(
         &self,

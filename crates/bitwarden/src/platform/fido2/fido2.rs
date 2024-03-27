@@ -1,24 +1,11 @@
-use std::{borrow::Borrow, cell::Cell};
-
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::error::Result;
-use url::Url;
 
-use super::user_interface::VaultItem;
+use crate::platform::fido2::Fido2VaultItem;
 
-use coset::Algorithm;
-
-use passkey::{
-    authenticator::{Authenticator, CredentialStore, UserValidationMethod},
-    client::Client,
-    types::{
-        ctap2::{self, *},
-        webauthn::*,
-        Passkey,
-    },
-};
+use passkey::types::Passkey;
 
 // impl TryInto<Passkey> for VaultItem {
 //     type Error = WebauthnError;
@@ -28,8 +15,8 @@ use passkey::{
 //     }
 // }
 
-impl From<VaultItem> for Passkey {
-    fn from(value: VaultItem) -> Self {
+impl From<Fido2VaultItem> for Passkey {
+    fn from(value: Fido2VaultItem) -> Self {
         todo!()
     }
 }

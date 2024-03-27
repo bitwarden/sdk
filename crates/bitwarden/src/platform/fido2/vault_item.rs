@@ -1,14 +1,29 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-#[derive(Default, Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Fido2VaultItem {
     pub cipher_id: String,
     pub name: String,
+    pub fido2_credential: Option<Fido2CredentialView>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+impl Fido2VaultItem {
+    pub fn new(
+        cipher_id: String,
+        name: String,
+        fido2_credential: Option<Fido2CredentialView>,
+    ) -> Self {
+        Self {
+            cipher_id,
+            name,
+            fido2_credential,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Fido2CredentialView {
     credential_id: String,

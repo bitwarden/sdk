@@ -1,29 +1,29 @@
+use super::Fido2VaultItem;
 use crate::error::Result;
 use serde::{Deserialize, Serialize};
 
-use super::Fido2VaultItem;
-
-impl Fido2VaultItem {
-    pub fn new(cipher_id: String, name: String) -> Self {
-        Self { cipher_id, name }
-    }
-}
-
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct NewCredentialParams {
     pub credential_name: String,
     pub user_name: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct NewCredentialResult {
     pub vault_item: Fido2VaultItem,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct PickCredentialParams {
     pub ids: Vec<String>,
     pub rp_id: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct PickCredentialResult {
     pub vault_item: Fido2VaultItem,
 }

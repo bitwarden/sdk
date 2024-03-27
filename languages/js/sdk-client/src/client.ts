@@ -11,6 +11,7 @@ import {
 export interface Fido2VaultItem {
   cipherId: string;
   name: string;
+  fido2Credential?: Fido2CredentialView;
 }
 
 // TODO: Temporary until I figure out how to decrypt EncString in the SDK
@@ -35,18 +36,22 @@ export interface FindCredentialsParams {
   rp_id: string;
 }
 
+export interface SaveCredentialParams {
+  vaultItem: Fido2VaultItem;
+}
+
 export interface Fido2CredentialStore {
   findCredentials(params: FindCredentialsParams): Promise<Fido2VaultItem[]>;
-  saveCredential(params: Fido2VaultItem): Promise<void>;
+  saveCredential(params: SaveCredentialParams): Promise<void>;
 }
 
 export interface Fido2NewCredentialParams {
-  credential_name: string;
-  user_name: string;
+  credentialName: string;
+  userName: string;
 }
 
 export interface Fido2ConfirmNewCredentialResult {
-  vault_item: Fido2VaultItem;
+  vaultItem: Fido2VaultItem;
 }
 
 export interface Fido2UserInterface {

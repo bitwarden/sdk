@@ -89,6 +89,11 @@ where
     Out: DeserializeOwned,
 {
     let result = wasm_bindgen_futures::JsFuture::from(promise).await;
-    let result: Out = serde_wasm_bindgen::from_value(result.unwrap()).unwrap();
+    let result: Out = serde_wasm_bindgen::from_value(result.unwrap())
+        .map_err(|error| {
+            log::error!("Failed to deserialize return value {:?}", error);
+            Error::Internal("Failed to deserialize return value".into())
+        })
+        .unwrap();
     result
 }

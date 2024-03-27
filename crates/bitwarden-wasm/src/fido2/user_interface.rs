@@ -10,20 +10,11 @@ use wasm_bindgen::prelude::*;
 use super::channel_wrapper::{auto_map_return, CallerChannel, ChannelWrapped};
 
 #[wasm_bindgen]
-struct JsNewCredentialParams {
-    credential_name: String,
-    user_name: String,
-}
-
-#[wasm_bindgen]
 extern "C" {
     pub type JSFido2UserInterface;
 
     #[wasm_bindgen(method, js_name = "confirmNewCredential")]
-    fn confirm_new_credential(
-        this: &JSFido2UserInterface,
-        params: JsNewCredentialParams,
-    ) -> Promise;
+    fn confirm_new_credential(this: &JSFido2UserInterface, params: JsValue) -> Promise;
 
     #[wasm_bindgen(method, js_name = "pickCredential")]
     fn pick_credential(this: &JSFido2UserInterface, ids: Vec<String>, rp_id: String) -> Promise;
@@ -47,7 +38,8 @@ impl JSFido2UserInterface {
 
         let user_interface = JSFido2UserInterfaceWrapper {
             confirm_new_credential: wrapper.create_channel(|inner, params| {
-                auto_map_return(inner.confirm_new_credential(params))
+                let js_params = serde_wasm_bindgen::to_value(&params).unwrap();
+                auto_map_return(inner.confirm_new_credential(js_params))
             }),
 
             check_user_verification: wrapper.create_channel(|inner, _| async move {
@@ -70,7 +62,7 @@ impl JSFido2UserInterface {
 }
 
 pub struct JSFido2UserInterfaceWrapper {
-    confirm_new_credential: CallerChannel<JsNewCredentialParams, NewCredentialResult>,
+    confirm_new_credential: CallerChannel<NewCredentialParams, NewCredentialResult>,
     // pick_credential // todo
     check_user_verification: CallerChannel<(), bool>,
     check_user_presence: CallerChannel<(), bool>,
@@ -86,12 +78,7 @@ impl Fido2UserInterface for JSFido2UserInterfaceWrapper {
     ) -> Result<NewCredentialResult> {
         log::info!("JSFido2UserInterface.confirm_new_credential");
 
-        self.confirm_new_credential
-            .call(JsNewCredentialParams {
-                credential_name: params.credential_name,
-                user_name: params.user_name,
-            })
-            .await
+        self.confirm_new_credential.call(params).await
     }
 
     async fn pick_credential(&self, _params: PickCredentialParams) -> Result<PickCredentialResult> {

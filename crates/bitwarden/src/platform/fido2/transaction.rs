@@ -1,8 +1,4 @@
-use std::{
-    borrow::{Borrow, BorrowMut},
-    cell::Cell,
-    sync::Arc,
-};
+use std::sync::Arc;
 
 use passkey::{
     authenticator::{CredentialStore, UserValidationMethod},
@@ -133,9 +129,7 @@ where
                     .lock()
                     .await
                     .save_credential(super::SaveCredentialParams {
-                        cred: target.vault_item,
-                        user,
-                        rp,
+                        vault_item: target.vault_item,
                     })
                     .await // TODO: Don't unwrap this but return an actual Err
                     .unwrap();

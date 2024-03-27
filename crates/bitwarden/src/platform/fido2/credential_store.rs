@@ -1,16 +1,19 @@
 use super::Fido2VaultItem;
 use crate::error::Result;
-use passkey::types::{ctap2, webauthn::PublicKeyCredentialDescriptor, Bytes};
+use passkey::types::Bytes;
+use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct FindCredentialsParams {
     pub ids: Vec<Bytes>,
     pub rp_id: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SaveCredentialParams {
-    pub cred: Fido2VaultItem,
-    pub user: ctap2::make_credential::PublicKeyCredentialUserEntity,
-    pub rp: ctap2::make_credential::PublicKeyCredentialRpEntity,
+    pub vault_item: Fido2VaultItem,
 }
 
 #[async_trait::async_trait]

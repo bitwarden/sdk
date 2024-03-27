@@ -2441,11 +2441,11 @@ version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "499cff8432e71c5f8784d9645aac0f9fca604d67f59b68a606170b5e229c6538"
 dependencies = [
- "bitflags 2.4.2",
+ "bitflags 2.5.0",
  "ciborium",
  "coset",
  "data-encoding",
- "indexmap 2.2.3",
+ "indexmap 2.2.5",
  "rand",
  "serde",
  "serde_json",
@@ -3256,7 +3256,7 @@ version = "1.0.114"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c5f09b1bd632ef549eaa9f60a1f8de742bdbc698e6cee2095fc84dde5f549ae0"
 dependencies = [
- "indexmap 2.2.3",
+ "indexmap 2.2.5",
  "itoa",
  "ryu",
  "serde",

@@ -11,9 +11,9 @@ use crate::{
     auth::{
         api::{request::AccessTokenRequest, response::IdentityTokenResponse},
         login::{response::two_factor::TwoFactorProviders, PasswordLoginResponse},
-        JWTToken,
+        AccessToken, JWTToken,
     },
-    client::{AccessToken, LoginMethod, ServiceAccountLoginMethod},
+    client::{LoginMethod, ServiceAccountLoginMethod},
     error::{Error, Result},
     secrets_manager::state::{self, ClientState},
     Client,

@@ -2,7 +2,7 @@
 
 require 'ffi'
 
-module BitwardenSDK
+module BitwardenSDKSecrets
   module BitwardenLib
     extend FFI::Library
 

@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 
 	sdk "github.com/bitwarden/sdk/languages/go"
@@ -19,11 +21,15 @@ func main() {
 	organizationIDStr := os.Getenv("ORGANIZATION_ID")
 	projectName := os.Getenv("PROJECT_NAME")
 
+	// Configuring the statePath is optional, pass nil
+	// in AccessTokenLogin() to not use state
+	statePath := os.Getenv("STATE_PATH")
+
 	if projectName == "" {
 		projectName = "NewTestProject" // default value
 	}
 
-	err := bitwardenClient.AccessTokenLogin(accessToken)
+	err := bitwardenClient.AccessTokenLogin(accessToken, &statePath)
 	if err != nil {
 		panic(err)
 	}
@@ -82,6 +88,29 @@ func main() {
 	if _, err = bitwardenClient.Projects.Delete([]string{projectID}); err != nil {
 		panic(err)
 	}
+
+	secretIdentifiers, err := bitwardenClient.Secrets.List(organizationID.String())
+	if err != nil {
+		panic(err)
+	}
+
+	// Get secrets with a list of IDs
+	secretIDs := make([]string, len(secretIdentifiers.Data))
+	for i, identifier := range secretIdentifiers.Data {
+		secretIDs[i] = identifier.ID
+	}
+
+	secrets, err := bitwardenClient.Secrets.GetByIDS(secretIDs)
+	if err != nil {
+		log.Fatalf("Error getting secrets: %v", err)
+	}
+
+	jsonSecrets, err := json.MarshalIndent(secrets, "", "  ")
+	if err != nil {
+		log.Fatalf("Error marshalling secrets to JSON: %v", err)
+	}
+
+	fmt.Println(string(jsonSecrets))
 
 	defer bitwardenClient.Close()
 }

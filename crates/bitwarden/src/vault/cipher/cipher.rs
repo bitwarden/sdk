@@ -139,9 +139,14 @@ pub struct CipherListView {
 }
 
 impl KeyEncryptable<SymmetricCryptoKey, Cipher> for CipherView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Cipher, CryptoError> {
+    fn encrypt_with_key(mut self, key: &SymmetricCryptoKey) -> Result<Cipher, CryptoError> {
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let key = ciphers_key.as_ref().unwrap_or(key);
+
+        // For compatibility reasons, we only create checksums for ciphers that have a key
+        if ciphers_key.is_some() {
+            self.generate_checksums();
+        }
 
         Ok(Cipher {
             id: self.id,
@@ -177,7 +182,7 @@ impl KeyDecryptable<SymmetricCryptoKey, CipherView> for Cipher {
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let key = ciphers_key.as_ref().unwrap_or(key);
 
-        Ok(CipherView {
+        let mut cipher = CipherView {
             id: self.id,
             organization_id: self.organization_id,
             folder_id: self.folder_id,
@@ -202,7 +207,14 @@ impl KeyDecryptable<SymmetricCryptoKey, CipherView> for Cipher {
             creation_date: self.creation_date,
             deleted_date: self.deleted_date,
             revision_date: self.revision_date,
-        })
+        };
+
+        // For compatibility we only remove URLs with invalid checksums if the cipher has a key
+        if ciphers_key.is_some() {
+            cipher.remove_invalid_checksums();
+        }
+
+        Ok(cipher)
     }
 }
 
@@ -286,6 +298,32 @@ impl Cipher {
                 sub_title
             }
         })
+    }
+}
+
+impl CipherView {
+    pub fn generate_cipher_key(&mut self, key: &SymmetricCryptoKey) -> Result<()> {
+        let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
+        let key = ciphers_key.as_ref().unwrap_or(key);
+
+        let new_key = SymmetricCryptoKey::generate(rand::thread_rng());
+
+        self.key = Some(new_key.to_vec().encrypt_with_key(key)?);
+        Ok(())
+    }
+
+    pub fn generate_checksums(&mut self) {
+        if let Some(uris) = self.login.as_mut().and_then(|l| l.uris.as_mut()) {
+            for uri in uris {
+                uri.generate_checksum();
+            }
+        }
+    }
+
+    pub fn remove_invalid_checksums(&mut self) {
+        if let Some(uris) = self.login.as_mut().and_then(|l| l.uris.as_mut()) {
+            uris.retain(|u| u.is_checksum_valid());
+        }
     }
 }
 
@@ -399,5 +437,71 @@ impl From<bitwarden_api_api::models::CipherRepromptType> for CipherRepromptType 
             bitwarden_api_api::models::CipherRepromptType::None => CipherRepromptType::None,
             bitwarden_api_api::models::CipherRepromptType::Password => CipherRepromptType::Password,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    #[test]
+    fn test_generate_cipher_key() {
+        let key = SymmetricCryptoKey::generate(rand::thread_rng());
+
+        fn generate_cipher() -> CipherView {
+            CipherView {
+                r#type: CipherType::Login,
+                login: Some(login::LoginView {
+                    username: Some("test_username".to_string()),
+                    password: Some("test_password".to_string()),
+                    password_revision_date: None,
+                    uris: None,
+                    totp: None,
+                    autofill_on_page_load: None,
+                    fido2_credentials: None,
+                }),
+                id: "fd411a1a-fec8-4070-985d-0e6560860e69".parse().ok(),
+                organization_id: None,
+                folder_id: None,
+                collection_ids: vec![],
+                key: None,
+                name: "My test login".to_string(),
+                notes: None,
+                identity: None,
+                card: None,
+                secure_note: None,
+                favorite: false,
+                reprompt: CipherRepromptType::None,
+                organization_use_totp: true,
+                edit: true,
+                view_password: true,
+                local_data: None,
+                attachments: None,
+                fields: None,
+                password_history: None,
+                creation_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
+                deleted_date: None,
+                revision_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
+            }
+        }
+
+        let original_cipher = generate_cipher();
+
+        // Check that the cipher gets encrypted correctly without it's own key
+        let cipher = generate_cipher();
+        let no_key_cipher_enc = cipher.encrypt_with_key(&key).unwrap();
+        let no_key_cipher_dec: CipherView = no_key_cipher_enc.decrypt_with_key(&key).unwrap();
+        assert!(no_key_cipher_dec.key.is_none());
+        assert_eq!(no_key_cipher_dec.name, original_cipher.name);
+
+        let mut cipher = generate_cipher();
+        cipher.generate_cipher_key(&key).unwrap();
+
+        // Check that the cipher gets encrypted correctly when it's assigned it's own key
+        let key_cipher_enc = cipher.encrypt_with_key(&key).unwrap();
+        let key_cipher_dec: CipherView = key_cipher_enc.decrypt_with_key(&key).unwrap();
+        assert!(key_cipher_dec.key.is_some());
+        assert_eq!(key_cipher_dec.name, original_cipher.name);
     }
 }

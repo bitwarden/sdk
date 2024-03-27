@@ -44,3 +44,21 @@ echo 'source <(/path/to/bws completions bash)' >> ~/.bashrc
 
 For more detailed documentation, please refer to the
 [Secrets Manager CLI help article](https://bitwarden.com/help/secrets-manager-cli/).
+
+## Docker
+
+We also provide a docker image preloaded with the `bws` cli.
+
+```bash
+# From the root of the repository
+docker build -f crates/bws/Dockerfile -t bitwarden/bws .
+
+docker run --rm -it bitwarden/bws --help
+```
+
+To use a configuration file, utilize docker
+[bind mounting](https://docs.docker.com/storage/bind-mounts/) to expose it to the container:
+
+```bash
+docker run --rm -it -v "$HOME"/.bws:/home/app/.bws bitwarden/bws --help
+```

@@ -9,20 +9,23 @@ use chrono::Utc;
 use reqwest::header::{self, HeaderValue};
 use uuid::Uuid;
 
-use super::AccessToken;
 #[cfg(feature = "secrets")]
 use crate::auth::login::{AccessTokenLoginRequest, AccessTokenLoginResponse};
-#[cfg(feature = "internal")]
-use crate::platform::{
-    get_user_api_key, sync, SecretVerificationRequest, SyncRequest, SyncResponse,
-    UserApiKeyResponse,
-};
 use crate::{
+    auth::AccessToken,
     client::{
         client_settings::{ClientSettings, DeviceType},
         encryption_settings::EncryptionSettings,
     },
     error::{Error, Result},
+};
+#[cfg(feature = "internal")]
+use crate::{
+    client::flags::Flags,
+    platform::{
+        get_user_api_key, sync, SecretVerificationRequest, SyncRequest, SyncResponse,
+        UserApiKeyResponse,
+    },
 };
 
 #[derive(Debug)]
@@ -76,6 +79,9 @@ pub struct Client {
     pub(crate) refresh_token: Option<String>,
     pub(crate) token_expires_on: Option<i64>,
     pub(crate) login_method: Option<LoginMethod>,
+
+    #[cfg(feature = "internal")]
+    flags: Flags,
 
     /// Use Client::get_api_configurations() to access this.
     /// It should only be used directly in renew_token
@@ -138,6 +144,8 @@ impl Client {
             refresh_token: None,
             token_expires_on: None,
             login_method: None,
+            #[cfg(feature = "internal")]
+            flags: Flags::default(),
             __api_configurations: ApiConfigurations {
                 identity,
                 api,
@@ -146,6 +154,16 @@ impl Client {
             },
             encryption_settings: None,
         }
+    }
+
+    #[cfg(feature = "internal")]
+    pub fn load_flags(&mut self, flags: std::collections::HashMap<String, bool>) {
+        self.flags = Flags::load_from_map(flags);
+    }
+
+    #[cfg(feature = "mobile")]
+    pub(crate) fn get_flags(&self) -> &Flags {
+        &self.flags
     }
 
     pub(crate) async fn get_api_configurations(&mut self) -> &ApiConfigurations {

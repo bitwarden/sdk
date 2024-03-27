@@ -1,3 +1,4 @@
 *.lock
 *.gem
-bitwarden_sdk/lib/schemas.rb
+bitwarden_sdk_secrets/lib/schemas.rb
+bitwarden_sdk_secrets/pkg

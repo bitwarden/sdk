@@ -238,7 +238,7 @@ impl TryFrom<bitwarden_api_api::models::CipherFido2CredentialModel> for Fido2Cre
                 .ok()
                 .flatten(),
             discoverable: value.discoverable.ok_or(Error::MissingFields)?.parse()?,
-            creation_date: value.creation_date.parse().unwrap(),
+            creation_date: value.creation_date.parse()?,
         })
     }
 }

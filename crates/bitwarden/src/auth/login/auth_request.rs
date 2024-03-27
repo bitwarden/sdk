@@ -13,7 +13,7 @@ use crate::{
         auth_request::new_auth_request,
     },
     client::{LoginMethod, UserLoginMethod},
-    error::Result,
+    error::{Error, Result},
     mobile::crypto::{AuthRequestMethod, InitUserCryptoMethod, InitUserCryptoRequest},
     Client,
 };
@@ -50,7 +50,7 @@ pub(crate) async fn send_new_auth_request(
         fingerprint: auth.fingerprint,
         email,
         device_identifier,
-        auth_request_id: res.id.unwrap(),
+        auth_request_id: res.id.ok_or(Error::MissingFields)?,
         access_code: auth.access_code,
         private_key: auth.private_key,
     })
@@ -103,11 +103,11 @@ pub(crate) async fn complete_auth_request(
 
         let method = match res.master_password_hash {
             Some(_) => AuthRequestMethod::MasterKey {
-                protected_master_key: res.key.unwrap().parse().unwrap(),
-                auth_request_key: r.key.unwrap().parse().unwrap(),
+                protected_master_key: res.key.ok_or(Error::MissingFields)?.parse()?,
+                auth_request_key: r.key.ok_or(Error::MissingFields)?.parse()?,
             },
             None => AuthRequestMethod::UserKey {
-                protected_user_key: res.key.unwrap().parse().unwrap(),
+                protected_user_key: res.key.ok_or(Error::MissingFields)?.parse()?,
             },
         };
 
@@ -116,7 +116,7 @@ pub(crate) async fn complete_auth_request(
             .initialize_user_crypto(InitUserCryptoRequest {
                 kdf_params: kdf,
                 email: auth_req.email,
-                private_key: r.private_key.unwrap(),
+                private_key: r.private_key.ok_or(Error::MissingFields)?,
                 method: InitUserCryptoMethod::AuthRequest {
                     request_private_key: auth_req.private_key,
                     method,

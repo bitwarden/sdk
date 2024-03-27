@@ -16,6 +16,9 @@
 pub enum EmergencyAccessType {
     View = 0,
     Takeover = 1,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for EmergencyAccessType {
@@ -23,6 +26,7 @@ impl ToString for EmergencyAccessType {
         match self {
             Self::View => String::from("0"),
             Self::Takeover => String::from("1"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

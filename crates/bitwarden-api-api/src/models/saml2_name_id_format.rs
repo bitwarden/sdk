@@ -23,6 +23,9 @@ pub enum Saml2NameIdFormat {
     EntityIdentifier = 6,
     Persistent = 7,
     Transient = 8,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for Saml2NameIdFormat {
@@ -37,6 +40,7 @@ impl ToString for Saml2NameIdFormat {
             Self::EntityIdentifier => String::from("6"),
             Self::Persistent => String::from("7"),
             Self::Transient => String::from("8"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

@@ -26,6 +26,9 @@ pub enum PolicyType {
     MaximumVaultTimeout = 9,
     DisablePersonalVaultExport = 10,
     ActivateAutofill = 11,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for PolicyType {
@@ -43,6 +46,7 @@ impl ToString for PolicyType {
             Self::MaximumVaultTimeout => String::from("9"),
             Self::DisablePersonalVaultExport => String::from("10"),
             Self::ActivateAutofill => String::from("11"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

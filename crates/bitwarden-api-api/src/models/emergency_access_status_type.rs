@@ -19,6 +19,9 @@ pub enum EmergencyAccessStatusType {
     Confirmed = 2,
     RecoveryInitiated = 3,
     RecoveryApproved = 4,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for EmergencyAccessStatusType {
@@ -29,6 +32,7 @@ impl ToString for EmergencyAccessStatusType {
             Self::Confirmed => String::from("2"),
             Self::RecoveryInitiated => String::from("3"),
             Self::RecoveryApproved => String::from("4"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

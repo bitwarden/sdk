@@ -16,6 +16,9 @@
 pub enum Saml2BindingType {
     HttpRedirect = 1,
     HttpPost = 2,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for Saml2BindingType {
@@ -23,6 +26,7 @@ impl ToString for Saml2BindingType {
         match self {
             Self::HttpRedirect => String::from("1"),
             Self::HttpPost => String::from("2"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

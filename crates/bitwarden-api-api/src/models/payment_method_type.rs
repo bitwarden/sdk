@@ -22,6 +22,9 @@ pub enum PaymentMethodType {
     WireTransfer = 5,
     Check = 8,
     None = 255,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for PaymentMethodType {
@@ -35,6 +38,7 @@ impl ToString for PaymentMethodType {
             Self::WireTransfer => String::from("5"),
             Self::Check => String::from("8"),
             Self::None => String::from("255"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

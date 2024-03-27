@@ -19,6 +19,9 @@ pub enum OrganizationUserType {
     User = 2,
     Manager = 3,
     Custom = 4,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for OrganizationUserType {
@@ -29,6 +32,7 @@ impl ToString for OrganizationUserType {
             Self::User => String::from("2"),
             Self::Manager => String::from("3"),
             Self::Custom => String::from("4"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

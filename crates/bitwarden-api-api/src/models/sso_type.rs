@@ -16,6 +16,9 @@
 pub enum SsoType {
     OpenIdConnect = 1,
     Saml2 = 2,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for SsoType {
@@ -23,6 +26,7 @@ impl ToString for SsoType {
         match self {
             Self::OpenIdConnect => String::from("1"),
             Self::Saml2 => String::from("2"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

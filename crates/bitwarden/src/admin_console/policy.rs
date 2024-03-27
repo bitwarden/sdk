@@ -43,38 +43,43 @@ impl TryFrom<PolicyResponseModel> for Policy {
         Ok(Self {
             id: policy.id.ok_or(Error::MissingFields)?,
             organization_id: policy.organization_id.ok_or(Error::MissingFields)?,
-            r#type: policy.r#type.ok_or(Error::MissingFields)?.into(),
+            r#type: policy.r#type.ok_or(Error::MissingFields)?.try_into()?,
             data: policy.data,
             enabled: policy.enabled.ok_or(Error::MissingFields)?,
         })
     }
 }
 
-impl From<bitwarden_api_api::models::PolicyType> for PolicyType {
-    fn from(policy_type: bitwarden_api_api::models::PolicyType) -> Self {
+impl TryFrom<bitwarden_api_api::models::PolicyType> for PolicyType {
+    type Error = Error;
+
+    fn try_from(policy_type: bitwarden_api_api::models::PolicyType) -> Result<Self> {
         match policy_type {
             bitwarden_api_api::models::PolicyType::TwoFactorAuthentication => {
-                PolicyType::TwoFactorAuthentication
+                Ok(PolicyType::TwoFactorAuthentication)
             }
-            bitwarden_api_api::models::PolicyType::MasterPassword => PolicyType::MasterPassword,
+            bitwarden_api_api::models::PolicyType::MasterPassword => Ok(PolicyType::MasterPassword),
             bitwarden_api_api::models::PolicyType::PasswordGenerator => {
-                PolicyType::PasswordGenerator
+                Ok(PolicyType::PasswordGenerator)
             }
-            bitwarden_api_api::models::PolicyType::SingleOrg => PolicyType::SingleOrg,
-            bitwarden_api_api::models::PolicyType::RequireSso => PolicyType::RequireSso,
+            bitwarden_api_api::models::PolicyType::SingleOrg => Ok(PolicyType::SingleOrg),
+            bitwarden_api_api::models::PolicyType::RequireSso => Ok(PolicyType::RequireSso),
             bitwarden_api_api::models::PolicyType::PersonalOwnership => {
-                PolicyType::PersonalOwnership
+                Ok(PolicyType::PersonalOwnership)
             }
-            bitwarden_api_api::models::PolicyType::DisableSend => PolicyType::DisableSend,
-            bitwarden_api_api::models::PolicyType::SendOptions => PolicyType::SendOptions,
-            bitwarden_api_api::models::PolicyType::ResetPassword => PolicyType::ResetPassword,
+            bitwarden_api_api::models::PolicyType::DisableSend => Ok(PolicyType::DisableSend),
+            bitwarden_api_api::models::PolicyType::SendOptions => Ok(PolicyType::SendOptions),
+            bitwarden_api_api::models::PolicyType::ResetPassword => Ok(PolicyType::ResetPassword),
             bitwarden_api_api::models::PolicyType::MaximumVaultTimeout => {
-                PolicyType::MaximumVaultTimeout
+                Ok(PolicyType::MaximumVaultTimeout)
             }
             bitwarden_api_api::models::PolicyType::DisablePersonalVaultExport => {
-                PolicyType::DisablePersonalVaultExport
+                Ok(PolicyType::DisablePersonalVaultExport)
             }
-            bitwarden_api_api::models::PolicyType::ActivateAutofill => PolicyType::ActivateAutofill,
+            bitwarden_api_api::models::PolicyType::ActivateAutofill => {
+                Ok(PolicyType::ActivateAutofill)
+            }
+            bitwarden_api_api::models::PolicyType::UnknownValue => Err(Error::MissingFields),
         }
     }
 }

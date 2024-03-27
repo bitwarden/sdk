@@ -19,6 +19,9 @@ pub enum ProductType {
     Teams = 2,
     Enterprise = 3,
     TeamsStarter = 4,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for ProductType {
@@ -29,6 +32,7 @@ impl ToString for ProductType {
             Self::Teams => String::from("2"),
             Self::Enterprise => String::from("3"),
             Self::TeamsStarter => String::from("4"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

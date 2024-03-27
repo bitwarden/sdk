@@ -331,6 +331,7 @@ impl From<bitwarden_api_api::models::SendType> for SendType {
         match t {
             bitwarden_api_api::models::SendType::Text => SendType::Text,
             bitwarden_api_api::models::SendType::File => SendType::File,
+            bitwarden_api_api::models::SendType::UnknownValue => panic!("Unknown send type"),
         }
     }
 }

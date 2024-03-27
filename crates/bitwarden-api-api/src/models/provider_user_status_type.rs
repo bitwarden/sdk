@@ -17,6 +17,9 @@ pub enum ProviderUserStatusType {
     Invited = 0,
     Accepted = 1,
     Confirmed = 2,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for ProviderUserStatusType {
@@ -25,6 +28,7 @@ impl ToString for ProviderUserStatusType {
             Self::Invited => String::from("0"),
             Self::Accepted => String::from("1"),
             Self::Confirmed => String::from("2"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

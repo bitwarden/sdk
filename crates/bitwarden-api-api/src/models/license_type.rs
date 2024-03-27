@@ -16,6 +16,9 @@
 pub enum LicenseType {
     User = 0,
     Organization = 1,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for LicenseType {
@@ -23,6 +26,7 @@ impl ToString for LicenseType {
         match self {
             Self::User => String::from("0"),
             Self::Organization => String::from("1"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

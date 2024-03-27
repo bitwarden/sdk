@@ -31,6 +31,9 @@ pub enum PlanType {
     EnterpriseMonthly = 14,
     EnterpriseAnnually = 15,
     TeamsStarter = 16,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for PlanType {
@@ -53,6 +56,7 @@ impl ToString for PlanType {
             Self::EnterpriseMonthly => String::from("14"),
             Self::EnterpriseAnnually => String::from("15"),
             Self::TeamsStarter => String::from("16"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

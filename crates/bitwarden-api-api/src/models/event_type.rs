@@ -88,6 +88,9 @@ pub enum EventType {
     OrganizationDomain_Verified = 2002,
     OrganizationDomain_NotVerified = 2003,
     Secret_Retrieved = 2100,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for EventType {
@@ -167,6 +170,7 @@ impl ToString for EventType {
             Self::OrganizationDomain_Verified => String::from("2002"),
             Self::OrganizationDomain_NotVerified => String::from("2003"),
             Self::Secret_Retrieved => String::from("2100"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

@@ -15,12 +15,16 @@
 )]
 pub enum SecureNoteType {
     Generic = 0,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for SecureNoteType {
     fn to_string(&self) -> String {
         match self {
             Self::Generic => String::from("0"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

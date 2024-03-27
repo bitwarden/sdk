@@ -26,6 +26,9 @@ pub enum Algorithm {
     ES384 = -35,
     EdDSA = -8,
     ES256 = -7,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for Algorithm {
@@ -43,6 +46,7 @@ impl ToString for Algorithm {
             Self::ES384 => String::from("-35"),
             Self::EdDSA => String::from("-8"),
             Self::ES256 => String::from("-7"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

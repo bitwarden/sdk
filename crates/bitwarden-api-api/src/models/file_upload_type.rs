@@ -16,6 +16,9 @@
 pub enum FileUploadType {
     Direct = 0,
     Azure = 1,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for FileUploadType {
@@ -23,6 +26,7 @@ impl ToString for FileUploadType {
         match self {
             Self::Direct => String::from("0"),
             Self::Azure => String::from("1"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

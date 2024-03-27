@@ -105,6 +105,9 @@ pub enum GlobalEquivalentDomainsType {
     TakeawayEU = 88,
     Atlassian = 89,
     Pinterest = 90,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for GlobalEquivalentDomainsType {
@@ -201,6 +204,7 @@ impl ToString for GlobalEquivalentDomainsType {
             Self::TakeawayEU => String::from("88"),
             Self::Atlassian => String::from("89"),
             Self::Pinterest => String::from("90"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

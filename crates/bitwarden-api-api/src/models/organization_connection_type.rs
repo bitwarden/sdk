@@ -16,6 +16,9 @@
 pub enum OrganizationConnectionType {
     CloudBillingSync = 1,
     Scim = 2,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for OrganizationConnectionType {
@@ -23,6 +26,7 @@ impl ToString for OrganizationConnectionType {
         match self {
             Self::CloudBillingSync => String::from("1"),
             Self::Scim => String::from("2"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

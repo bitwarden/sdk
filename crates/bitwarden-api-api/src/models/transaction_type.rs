@@ -19,6 +19,9 @@ pub enum TransactionType {
     PromotionalCredit = 2,
     ReferralCredit = 3,
     Refund = 4,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for TransactionType {
@@ -29,6 +32,7 @@ impl ToString for TransactionType {
             Self::PromotionalCredit => String::from("2"),
             Self::ReferralCredit => String::from("3"),
             Self::Refund => String::from("4"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

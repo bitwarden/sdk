@@ -16,6 +16,9 @@
 pub enum SendType {
     Text = 0,
     File = 1,
+
+    #[serde(other)]
+    UnknownValue = -1337,
 }
 
 impl ToString for SendType {
@@ -23,6 +26,7 @@ impl ToString for SendType {
         match self {
             Self::Text => String::from("0"),
             Self::File => String::from("1"),
+            Self::UnknownValue => String::from("UnknownValue"),
         }
     }
 }

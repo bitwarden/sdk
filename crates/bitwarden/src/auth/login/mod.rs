@@ -87,5 +87,6 @@ pub(crate) fn parse_prelogin(response: PreloginResponseModel) -> Result<Kdf> {
                 .and_then(|e| NonZeroU32::new(e as u32))
                 .unwrap_or_else(default_argon2_parallelism),
         },
+        KdfType::UnknownValue => Err("Unknown KDF")?,
     })
 }

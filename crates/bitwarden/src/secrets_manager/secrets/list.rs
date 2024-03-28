@@ -8,7 +8,7 @@ use uuid::Uuid;
 
 use crate::{
     client::{encryption_settings::EncryptionSettings, Client},
-    error::{Error, Result},
+    error::{require, Result},
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -93,16 +93,14 @@ impl SecretIdentifierResponse {
         response: SecretsWithProjectsInnerSecret,
         enc: &EncryptionSettings,
     ) -> Result<SecretIdentifierResponse> {
-        let organization_id = response.organization_id.ok_or(Error::MissingFields)?;
+        let organization_id = require!(response.organization_id);
 
-        let key = response
-            .key
-            .ok_or(Error::MissingFields)?
+        let key = require!(response.key)
             .parse::<EncString>()?
             .decrypt(enc, &Some(organization_id))?;
 
         Ok(SecretIdentifierResponse {
-            id: response.id.ok_or(Error::MissingFields)?,
+            id: require!(response.id),
             organization_id,
             key,
         })

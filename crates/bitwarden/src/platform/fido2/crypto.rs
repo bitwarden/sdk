@@ -3,7 +3,7 @@ use coset::{
     iana::{self, EnumI64},
     CoseKey,
 };
-use p256::SecretKey;
+use p256::{pkcs8::EncodePrivateKey, SecretKey};
 use passkey::types::{ctap2::Ctap2Error, Bytes};
 
 pub fn cose_key_to_pkcs8(cose_key: &CoseKey) -> Result<Bytes> {
@@ -14,11 +14,12 @@ pub fn cose_key_to_pkcs8(cose_key: &CoseKey) -> Result<Bytes> {
     })?;
 
     let vec = secret_key
-        .to_sec1_der()
+        .to_pkcs8_der()
         .map_err(|error| {
             log::error!("Failed to convert P256 private key to PKC8: {:?}", error);
             Error::Internal("Failed to convert P256 private key to PKC8".into())
         })?
+        .as_bytes()
         .to_vec();
 
     Ok(Bytes::from(vec))

@@ -352,6 +352,7 @@ dependencies = [
  "log",
  "p256",
  "passkey",
+ "pkcs8",
  "rand",
  "rand_chacha",
  "regex",

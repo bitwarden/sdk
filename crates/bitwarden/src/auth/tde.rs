@@ -6,6 +6,9 @@ use bitwarden_crypto::{
 
 use crate::{error::Result, Client};
 
+/// This function generates a new user key and key pair, initializes the client's crypto with the
+/// generated user key, and encrypts the user key with the organization public key for admin
+/// password reset. If remember_device is true, it also generates a device key.
 pub(super) fn make_register_tde_keys(
     client: &mut Client,
     org_public_key: String,
@@ -15,8 +18,6 @@ pub(super) fn make_register_tde_keys(
 
     let mut rng = rand::thread_rng();
 
-    // Generate a new user key and key pair, and encrypt the user key with the org public key for
-    // admin password reset
     let user_key = UserKey::new(SymmetricCryptoKey::generate(&mut rng));
     let key_pair = user_key.make_key_pair()?;
 
@@ -29,8 +30,6 @@ pub(super) fn make_register_tde_keys(
         None
     };
 
-    // Initialize the crypto with the generated user key, this way it doesn't need to leave the
-    // client
     client.initialize_user_crypto_decrypted_key(user_key.0, key_pair.private.clone())?;
 
     Ok(RegisterTdeKeyResponse {

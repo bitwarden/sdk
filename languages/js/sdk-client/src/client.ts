@@ -8,8 +8,93 @@ import {
   SecretsDeleteResponse,
 } from "./schemas";
 
+export interface Fido2VaultItem {
+  cipherId: string;
+  name: string;
+  fido2Credential?: Fido2CredentialView;
+}
+
+// TODO: Temporary until I figure out how to decrypt EncString in the SDK
+export interface Fido2CredentialView {
+  credentialId: string,
+  keyType: 'public-key',
+  keyAlgorithm: string,
+  keyCurve: string,
+  keyValue: string,
+  rpId: string,
+  userHandle?: string,
+  userName?: string,
+  counter: number,
+  rpName?: string,
+  userDisplayName?: string,
+  discoverable: boolean,
+  creationDate: string,
+}
+
+export interface FindCredentialsParams {
+  ids: Uint8Array[];
+  rp_id: string;
+}
+
+export interface SaveCredentialParams {
+  vaultItem: Fido2VaultItem;
+}
+
+export interface Fido2CredentialStore {
+  findCredentials(params: FindCredentialsParams): Promise<Fido2VaultItem[]>;
+  saveCredential(params: SaveCredentialParams): Promise<void>;
+}
+
+export interface Fido2NewCredentialParams {
+  credentialName: string;
+  userName: string;
+}
+
+export interface Fido2ConfirmNewCredentialResult {
+  vaultItem: Fido2VaultItem;
+}
+
+export interface Fido2UserInterface {
+  confirmNewCredential(params: Fido2NewCredentialParams): Promise<Fido2ConfirmNewCredentialResult>;
+  pickCredential(params: unknown): Promise<Fido2VaultItem>;
+  checkUserVerification(): Promise<boolean>;
+  checkUserPresence(): Promise<boolean>;
+  isPresenceEnabled(): boolean;
+  isVerificationEnabled(): boolean | undefined;
+}
+
+export interface Fido2ClientCreateCredentialRequest {
+  options: string;
+  origin: string;
+}
+
+export interface Fido2CreatedPublicKeyCredential {
+  id: string,
+  rawId: Uint8Array,
+  type: 'public-key',
+  response: {
+      clientDataJSON: Uint8Array,
+      authenticatorData: Uint8Array,
+      publicKey: Uint8Array,
+      publicKeyAlgorithm: number,
+      attestationObject: Uint8Array,
+      transports: string[]
+  },
+  authenticatorAttachment: string,
+  clientExtensionResults: {
+      credProps: {
+          rk: boolean
+      }
+  }
+}
+
 interface BitwardenSDKClient {
   run_command(js_input: string): Promise<any>;
+  client_create_credential(
+    webauthn_request: Fido2ClientCreateCredentialRequest,
+    user_interface: Fido2UserInterface,
+    credential_store: Fido2CredentialStore,
+  ): Promise<Fido2CreatedPublicKeyCredential>;
 }
 
 function handleResponse<T>(response: { success: boolean; errorMessage?: string; data?: T }): T {
@@ -24,6 +109,19 @@ export class BitwardenClient {
 
   constructor(client: BitwardenSDKClient) {
     this.client = client;
+  }
+
+  async fingerprint(fingerprintMaterial: string, publicKey: string): Promise<string> {
+    const response = await this.client.run_command(
+      Convert.commandToJson({
+        fingerprint: {
+          fingerprintMaterial: fingerprintMaterial,
+          publicKey: publicKey,
+        },
+      }),
+    );
+
+    return Convert.toResponseForFingerprintResponse(response).data.fingerprint;
   }
 
   async accessTokenLogin(accessToken: string): Promise<void> {

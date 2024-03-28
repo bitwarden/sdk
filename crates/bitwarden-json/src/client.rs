@@ -1,5 +1,12 @@
 use async_lock::Mutex;
-use bitwarden::client::client_settings::ClientSettings;
+use bitwarden::{
+    client::client_settings::ClientSettings,
+    error::Result,
+    platform::fido2::{
+        Fido2ClientCreateCredentialRequest, Fido2CreatedPublicKeyCredential, Fido2CredentialStore,
+        Fido2UserInterface, Fido2VaultItem,
+    },
+};
 
 #[cfg(feature = "secrets")]
 use crate::command::{ProjectsCommand, SecretsCommand};
@@ -14,6 +21,20 @@ impl Client {
     pub fn new(settings_input: Option<String>) -> Self {
         let settings = Self::parse_settings(settings_input);
         Self(Mutex::new(bitwarden::Client::new(settings)))
+    }
+
+    pub async fn client_create_credential(
+        &self,
+        request: Fido2ClientCreateCredentialRequest,
+        user_interface: impl Fido2UserInterface + Send + Sync,
+        credential_store: impl Fido2CredentialStore + Send,
+    ) -> Result<Fido2CreatedPublicKeyCredential> {
+        let mut client = self.0.lock().await;
+
+        client
+            .platform()
+            .client_create_credential(request, user_interface, credential_store)
+            .await
     }
 
     pub async fn run_command(&self, input_str: &str) -> String {

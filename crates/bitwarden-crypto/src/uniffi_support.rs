@@ -1,6 +1,8 @@
 use std::{num::NonZeroU32, str::FromStr};
 
-use crate::{AsymmetricEncString, CryptoError, EncString, UniffiCustomTypeConverter};
+use crate::{
+    AsymmetricEncString, CryptoError, EncString, SensitiveString, UniffiCustomTypeConverter,
+};
 
 uniffi::custom_type!(NonZeroU32, u32);
 
@@ -42,4 +44,25 @@ impl UniffiCustomTypeConverter for AsymmetricEncString {
     fn from_custom(obj: Self) -> Self::Builtin {
         obj.to_string()
     }
+}
+
+uniffi::custom_type!(SensitiveString, String);
+
+impl UniffiCustomTypeConverter for SensitiveString {
+    type Builtin = String;
+
+    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
+        Ok(SensitiveString::new(Box::new(val)))
+    }
+
+    fn from_custom(obj: Self) -> Self::Builtin {
+        obj.expose().to_owned()
+    }
+}
+
+/// Uniffi doesn't seem to be generating the SensitiveString unless it's being used by
+/// a record somewhere. This is a workaround to make sure the type is generated.
+#[derive(uniffi::Record)]
+struct SupportSensitiveString {
+    sensitive_string: SensitiveString,
 }

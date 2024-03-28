@@ -3,7 +3,7 @@ use std::sync::Arc;
 use bitwarden::mobile::crypto::{
     DerivePinKeyResponse, InitOrgCryptoRequest, InitUserCryptoRequest, UpdatePasswordResponse,
 };
-use bitwarden_crypto::{AsymmetricEncString, EncString};
+use bitwarden_crypto::{AsymmetricEncString, EncString, SensitiveString};
 
 use crate::{error::Result, Client};
 
@@ -40,7 +40,7 @@ impl ClientCrypto {
 
     /// Get the uses's decrypted encryption key. Note: It's very important
     /// to keep this key safe, as it can be used to decrypt all of the user's data
-    pub async fn get_user_encryption_key(&self) -> Result<String> {
+    pub async fn get_user_encryption_key(&self) -> Result<SensitiveString> {
         Ok(self
             .0
              .0

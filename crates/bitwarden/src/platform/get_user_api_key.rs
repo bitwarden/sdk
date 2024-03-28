@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use super::SecretVerificationRequest;
 use crate::{
     client::{LoginMethod, UserLoginMethod},
-    error::{Error, Result},
+    error::{require, Error, Result},
     Client,
 };
 
@@ -75,9 +75,7 @@ pub struct UserApiKeyResponse {
 
 impl UserApiKeyResponse {
     pub(crate) fn process_response(response: ApiKeyResponseModel) -> Result<UserApiKeyResponse> {
-        match response.api_key {
-            Some(api_key) => Ok(UserApiKeyResponse { api_key }),
-            None => Err(Error::MissingFields),
-        }
+        let api_key = require!(response.api_key);
+        Ok(UserApiKeyResponse { api_key })
     }
 }

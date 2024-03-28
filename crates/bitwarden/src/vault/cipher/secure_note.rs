@@ -4,7 +4,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::error::{Error, Result};
+use crate::error::{require, Error, Result};
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
@@ -48,7 +48,7 @@ impl TryFrom<CipherSecureNoteModel> for SecureNote {
 
     fn try_from(model: CipherSecureNoteModel) -> Result<Self> {
         Ok(Self {
-            r#type: model.r#type.map(|t| t.into()).ok_or(Error::MissingFields)?,
+            r#type: require!(model.r#type).into(),
         })
     }
 }

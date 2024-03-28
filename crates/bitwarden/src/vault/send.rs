@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use uuid::Uuid;
 
-use crate::error::{Error, Result};
+use crate::error::{require, Error, Result};
 
 const SEND_ITERATIONS: u32 = 100_000;
 
@@ -308,19 +308,19 @@ impl TryFrom<SendResponseModel> for Send {
         Ok(Send {
             id: send.id,
             access_id: send.access_id,
-            name: send.name.ok_or(Error::MissingFields)?.parse()?,
+            name: require!(send.name).parse()?,
             notes: EncString::try_from_optional(send.notes)?,
-            key: send.key.ok_or(Error::MissingFields)?.parse()?,
+            key: require!(send.key).parse()?,
             password: send.password,
-            r#type: send.r#type.ok_or(Error::MissingFields)?.into(),
+            r#type: require!(send.r#type).into(),
             file: send.file.map(|f| (*f).try_into()).transpose()?,
             text: send.text.map(|t| (*t).try_into()).transpose()?,
             max_access_count: send.max_access_count.map(|s| s as u32),
-            access_count: send.access_count.ok_or(Error::MissingFields)? as u32,
+            access_count: require!(send.access_count) as u32,
             disabled: send.disabled.unwrap_or(false),
             hide_email: send.hide_email.unwrap_or(false),
-            revision_date: send.revision_date.ok_or(Error::MissingFields)?.parse()?,
-            deletion_date: send.deletion_date.ok_or(Error::MissingFields)?.parse()?,
+            revision_date: require!(send.revision_date).parse()?,
+            deletion_date: require!(send.deletion_date).parse()?,
             expiration_date: send.expiration_date.map(|s| s.parse()).transpose()?,
         })
     }
@@ -341,7 +341,7 @@ impl TryFrom<SendFileModel> for SendFile {
     fn try_from(file: SendFileModel) -> Result<Self> {
         Ok(SendFile {
             id: file.id,
-            file_name: file.file_name.ok_or(Error::MissingFields)?.parse()?,
+            file_name: require!(file.file_name).parse()?,
             size: file.size.map(|v| v.to_string()),
             size_name: file.size_name,
         })

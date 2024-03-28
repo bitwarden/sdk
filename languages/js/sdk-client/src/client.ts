@@ -17,17 +17,17 @@ export interface Fido2VaultItem {
 // TODO: Temporary until I figure out how to decrypt EncString in the SDK
 export interface Fido2CredentialView {
   credentialId: string,
-  keyType: string,
+  keyType: 'public-key',
   keyAlgorithm: string,
   keyCurve: string,
   keyValue: string,
   rpId: string,
   userHandle?: string,
   userName?: string,
-  counter: string,
+  counter: number,
   rpName?: string,
   userDisplayName?: string,
-  discoverable: string,
+  discoverable: boolean,
   creationDate: string,
 }
 

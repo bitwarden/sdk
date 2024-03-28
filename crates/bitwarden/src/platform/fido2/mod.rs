@@ -1,6 +1,8 @@
 pub mod client_create_credential;
 mod credential_store;
+mod crypto;
 mod fido2;
+mod guid;
 mod transaction;
 mod user_interface;
 mod vault_item;

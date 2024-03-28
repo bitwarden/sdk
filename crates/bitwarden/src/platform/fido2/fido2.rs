@@ -15,12 +15,6 @@ use passkey::types::Passkey;
 //     }
 // }
 
-impl From<Fido2VaultItem> for Passkey {
-    fn from(value: Fido2VaultItem) -> Self {
-        todo!()
-    }
-}
-
 fn uuid_raw_to_standard_format(uuid: &Vec<u8>) -> String {
     let mut uuid_str = String::with_capacity(36);
     uuid_str.push_str(&format!(

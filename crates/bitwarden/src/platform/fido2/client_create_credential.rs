@@ -49,7 +49,7 @@ pub(crate) async fn client_create_credential(
     client
         .register(&Url::parse(&request.origin).unwrap(), request.options, None)
         .await
-        .map_err(|error| Error::Internal("Unable to create credential".into()))
+        .map_err(|_| Error::Internal("Unable to create credential".into()))
 }
 
 fn clone_create_options(options: &CredentialCreationOptions) -> CredentialCreationOptions {

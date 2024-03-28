@@ -10,8 +10,9 @@ use passkey::{
 };
 
 use super::{
-    credential_store::Fido2CredentialStore, user_interface::Fido2UserInterface, Fido2VaultItem,
-    NewCredentialParams,
+    credential_store::Fido2CredentialStore, crypto::cose_key_to_pkcs8,
+    guid::guid_to_standard_format, user_interface::Fido2UserInterface, Fido2CredentialView,
+    Fido2VaultItem, NewCredentialParams,
 };
 
 pub enum Fido2Options {
@@ -107,7 +108,7 @@ where
     ) -> Result<(), StatusCode> {
         match &self.context.options {
             Fido2Options::CreateCredential(request) => {
-                let target = self
+                let mut target = self
                     .context
                     .user_interface
                     .confirm_new_credential(NewCredentialParams {
@@ -121,7 +122,26 @@ where
 
                 *self.context.user_presence.lock().await = true; // true because the user actively interacted with the UI
 
-                // target.vault_item.fido2_credential = new Fido2Credential(cred, user, rp);
+                let key_value = cose_key_to_pkcs8(&cred.key)
+                    // TODO: We should convert the error more intelligently
+                    .map_err(|_| StatusCode::Ctap2(Ctap2Code::Known(Ctap2Error::NotAllowed)))?;
+
+                target.vault_item.fido2_credential = Some(Fido2CredentialView {
+                    credential_id: guid_to_standard_format(&cred.credential_id.into())
+                        .map_err(|_| StatusCode::Ctap2(Ctap2Code::Known(Ctap2Error::NotAllowed)))?,
+                    key_type: "public-key".to_owned(),
+                    key_algorithm: "ECDSA".to_owned(),
+                    key_curve: "P-256".to_owned(),
+                    key_value: key_value.into(),
+                    rp_id: rp.id,
+                    rp_name: rp.name,
+                    user_handle: Some(user.id.into()),
+                    user_name: user.name,
+                    user_display_name: user.display_name,
+                    discoverable: true,
+                    counter: cred.counter.unwrap_or(0),
+                    creation_date: chrono::offset::Utc::now(),
+                });
 
                 // TODO: Fix trying to use non-mutable reference
                 self.context

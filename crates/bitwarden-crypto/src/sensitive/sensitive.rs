@@ -21,7 +21,16 @@ pub struct Sensitive<V: Zeroize> {
     pub(super) value: Box<V>,
 }
 
+/// Important: This type does not protect against reallocations made by the Vec.
+/// This means that if you insert any elements past the capacity, the data will be copied to a
+/// new allocation and the old allocation will not be zeroized.
+/// To avoid this, use Vec::with_capacity to preallocate the capacity you need.
 pub type SensitiveVec = Sensitive<Vec<u8>>;
+
+/// Important: This type does not protect against reallocations made by the String.
+/// This means that if you insert any characters past the capacity, the data will be copied to a
+/// new allocation and the old allocation will not be zeroized.
+/// To avoid this, use String::with_capacity to preallocate the capacity you need.
 pub type SensitiveString = Sensitive<String>;
 
 impl<V: Zeroize> Sensitive<V> {

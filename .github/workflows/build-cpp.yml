@@ -1,0 +1,42 @@
+name: Build C++ SDK
+
+on:
+  push:
+    branches:
+      - main
+      - rc
+      - hotfix-rc
+
+  pull_request:
+
+
+jobs:
+  generate-schemas:
+    uses: ./.github/workflows/generate_schemas.yml
+
+  build:
+    name: Build
+    needs: generate-schemas
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: install dependencies
+        run: |
+          sudo apt-get install nlohmann-json-dev
+          sudo apt-get install libboost-all-dev
+
+      - name: Download schemas
+        uses: actions/download-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        with:
+          name: sdk-schemas-cpp
+          path: languages/cpp/include
+
+      - name: Build
+        working-directory: languages/cpp
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DNLOHMANN=/path/to/include/nlohmann -DBOOST=/path/to/include/boost -DTARGET=../../target/release/libbitwarden_c.dylib
+          cmake --build .

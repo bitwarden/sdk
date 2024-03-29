@@ -40,3 +40,9 @@ jobs:
           cd build
           cmake .. -DNLOHMANN=/path/to/include/nlohmann -DBOOST=/path/to/include/boost -DTARGET=../../target/release/libbitwarden_c.dylib
           cmake --build .
+
+      - name: Upload C++ package
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        with:
+          name: libbitwarden_c.dylib
+          path: languages/cpp/target/release/libbitwarden_c.dylib

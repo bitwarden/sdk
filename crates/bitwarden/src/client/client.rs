@@ -265,7 +265,7 @@ impl Client {
         Ok(self.encryption_settings.as_ref().unwrap())
     }
 
-    #[cfg(feature = "mobile")]
+    #[cfg(feature = "internal")]
     pub(crate) fn initialize_user_crypto_decrypted_key(
         &mut self,
         user_key: SymmetricCryptoKey,

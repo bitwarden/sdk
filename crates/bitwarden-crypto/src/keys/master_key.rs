@@ -67,7 +67,7 @@ impl MasterKey {
         let stretched_key = stretch_kdf_key(&self.0)?;
 
         EncString::encrypt_aes256_hmac(
-            user_key.to_vec().as_slice(),
+            user_key.to_vec().expose(),
             stretched_key
                 .mac_key
                 .as_ref()

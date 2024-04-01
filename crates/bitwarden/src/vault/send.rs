@@ -394,7 +394,7 @@ mod tests {
         // Get the send key
         let send_key = Send::get_key(&send_key, k).unwrap();
         let send_key_b64 = send_key.to_base64();
-        assert_eq!(send_key_b64, "IR9ImHGm6rRuIjiN7csj94bcZR5WYTJj5GtNfx33zm6tJCHUl+QZlpNPba8g2yn70KnOHsAODLcR0um6E3MAlg==");
+        assert_eq!(send_key_b64.expose(), "IR9ImHGm6rRuIjiN7csj94bcZR5WYTJj5GtNfx33zm6tJCHUl+QZlpNPba8g2yn70KnOHsAODLcR0um6E3MAlg==");
     }
 
     fn build_encryption_settings() -> EncryptionSettings {

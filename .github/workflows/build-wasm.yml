@@ -42,7 +42,7 @@ jobs:
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
         with:
-          key: wasm-cargo-${{ matrix.settings.os }}
+          key: wasm-cargo-cache
 
       - name: Install wasm-bindgen-cli
         run: cargo install wasm-bindgen-cli

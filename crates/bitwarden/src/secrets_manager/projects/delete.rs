@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 use crate::{
     client::Client,
-    error::{Error, Result},
+    error::{require, Result},
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -62,7 +62,7 @@ impl ProjectDeleteResponse {
         response: BulkDeleteResponseModel,
     ) -> Result<ProjectDeleteResponse> {
         Ok(ProjectDeleteResponse {
-            id: response.id.ok_or(Error::MissingFields)?,
+            id: require!(response.id),
             error: response.error,
         })
     }

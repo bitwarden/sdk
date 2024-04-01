@@ -24,7 +24,7 @@ pub(crate) async fn login_password(
 ) -> Result<PasswordLoginResponse> {
     use bitwarden_crypto::{EncString, HashPurpose};
 
-    use crate::{auth::determine_password_hash, client::UserLoginMethod, error::Error};
+    use crate::{auth::determine_password_hash, client::UserLoginMethod, error::require};
 
     info!("password logging in");
     debug!("{:#?}, {:#?}", client, input);
@@ -49,12 +49,8 @@ pub(crate) async fn login_password(
             kdf: input.kdf.to_owned(),
         }));
 
-        let user_key: EncString = r.key.as_deref().ok_or(Error::MissingFields)?.parse()?;
-        let private_key: EncString = r
-            .private_key
-            .as_deref()
-            .ok_or(Error::MissingFields)?
-            .parse()?;
+        let user_key: EncString = require!(r.key.as_deref()).parse()?;
+        let private_key: EncString = require!(r.private_key.as_deref()).parse()?;
 
         client.initialize_user_crypto(&input.password, user_key, private_key)?;
     }

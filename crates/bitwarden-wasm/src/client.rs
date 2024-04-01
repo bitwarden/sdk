@@ -2,7 +2,6 @@ extern crate console_error_panic_hook;
 use std::rc::Rc;
 
 use argon2::{Algorithm, Argon2, Params, Version};
-use base64::{engine::general_purpose::STANDARD, Engine};
 use bitwarden_json::client::Client as JsonClient;
 use js_sys::Promise;
 use log::Level;
@@ -64,7 +63,7 @@ pub fn argon2(
     iterations: u32,
     memory: u32,
     parallelism: u32,
-) -> String {
+) -> Vec<u8> {
     let argon = Argon2::new(
         Algorithm::Argon2id,
         Version::V0x13,
@@ -79,6 +78,5 @@ pub fn argon2(
 
     let mut hash = [0u8; 32];
     argon.hash_password_into(password, salt, &mut hash).unwrap();
-
-    STANDARD.encode(hash)
+    hash.to_vec()
 }

@@ -86,6 +86,9 @@ This project uses customized templates which lives in the `support/openapi-templ
 These templates resolves some outstanding issues we've experienced with the rust generator. But we
 strive towards modifying the templates as little as possible to ease future upgrades.
 
+Note: If you don't have the nightly toolchain installed, the `build-api.sh` script will install it
+for you.
+
 ## Tests
 
 Many of the SDK tests are based on encrypted data provided by the other Bitwarden clients. In order

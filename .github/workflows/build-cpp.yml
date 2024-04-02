@@ -28,9 +28,6 @@ jobs:
           sudo apt-get install -y nlohmann-json3-dev
           sudo apt-get install -y libboost-all-dev
 
-          dpkg -L nlohmann-json3-dev
-          dpkg -L libboost-all-dev
-
       - name: Download schemas
         uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.4
         with:
@@ -42,7 +39,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DNLOHMANN=/path/to/include/nlohmann -DBOOST=/path/to/include/boost -DTARGET=../../target/release/libbitwarden_c.dylib
+          cmake .. -DNLOHMANN=/usr/share/doc/nlohmann-json3-dev -DBOOST=/usr/share/doc/libboost-all-dev -DTARGET=../../target/release/libbitwarden_c.dylib
           cmake --build .
 
       - name: Upload C++ package

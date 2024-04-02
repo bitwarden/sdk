@@ -15,7 +15,7 @@ use super::{
     login, secure_note,
 };
 use crate::{
-    error::{Error, Result},
+    error::{require, Error, Result},
     vault::password_history,
 };
 
@@ -308,7 +308,7 @@ impl CipherView {
 
         let new_key = SymmetricCryptoKey::generate(rand::thread_rng());
 
-        self.key = Some(new_key.to_vec().encrypt_with_key(key)?);
+        self.key = Some(new_key.to_vec().expose().encrypt_with_key(key)?);
         Ok(())
     }
 
@@ -384,9 +384,9 @@ impl TryFrom<CipherDetailsResponseModel> for Cipher {
             organization_id: cipher.organization_id,
             folder_id: cipher.folder_id,
             collection_ids: cipher.collection_ids.unwrap_or_default(),
-            name: EncString::try_from_optional(cipher.name)?.ok_or(Error::MissingFields)?,
+            name: require!(EncString::try_from_optional(cipher.name)?),
             notes: EncString::try_from_optional(cipher.notes)?,
-            r#type: cipher.r#type.ok_or(Error::MissingFields)?.into(),
+            r#type: require!(cipher.r#type).into(),
             login: cipher.login.map(|l| (*l).try_into()).transpose()?,
             identity: cipher.identity.map(|i| (*i).try_into()).transpose()?,
             card: cipher.card.map(|c| (*c).try_into()).transpose()?,
@@ -412,9 +412,9 @@ impl TryFrom<CipherDetailsResponseModel> for Cipher {
                 .password_history
                 .map(|p| p.into_iter().map(|p| p.try_into()).collect())
                 .transpose()?,
-            creation_date: cipher.creation_date.ok_or(Error::MissingFields)?.parse()?,
+            creation_date: require!(cipher.creation_date).parse()?,
             deleted_date: cipher.deleted_date.map(|d| d.parse()).transpose()?,
-            revision_date: cipher.revision_date.ok_or(Error::MissingFields)?.parse()?,
+            revision_date: require!(cipher.revision_date).parse()?,
             key: EncString::try_from_optional(cipher.key)?,
         })
     }

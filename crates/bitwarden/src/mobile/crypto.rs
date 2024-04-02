@@ -2,7 +2,9 @@ use std::collections::HashMap;
 
 use bitwarden_crypto::{AsymmetricEncString, EncString};
 #[cfg(feature = "internal")]
-use bitwarden_crypto::{KeyDecryptable, KeyEncryptable, MasterKey, SymmetricCryptoKey};
+use bitwarden_crypto::{
+    KeyDecryptable, KeyEncryptable, MasterKey, SensitiveString, SymmetricCryptoKey,
+};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -86,7 +88,7 @@ pub enum AuthRequestMethod {
 
 #[cfg(feature = "internal")]
 pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequest) -> Result<()> {
-    use bitwarden_crypto::DeviceKey;
+    use bitwarden_crypto::{DecryptedString, DeviceKey};
 
     use crate::auth::{auth_request_decrypt_master_key, auth_request_decrypt_user_key};
 
@@ -105,7 +107,8 @@ pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequ
             client.initialize_user_crypto(&password, user_key, private_key)?;
         }
         InitUserCryptoMethod::DecryptedKey { decrypted_user_key } => {
-            let user_key = decrypted_user_key.parse::<SymmetricCryptoKey>()?;
+            let decrypted_user_key = DecryptedString::new(Box::new(decrypted_user_key));
+            let user_key = SymmetricCryptoKey::try_from(decrypted_user_key)?;
             client.initialize_user_crypto_decrypted_key(user_key, private_key)?;
         }
         InitUserCryptoMethod::Pin {
@@ -138,7 +141,8 @@ pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequ
             protected_device_private_key,
             device_protected_user_key,
         } => {
-            let device_key = device_key.parse::<DeviceKey>()?;
+            let device_key = DecryptedString::new(Box::new(device_key));
+            let device_key = DeviceKey::try_from(device_key)?;
             let user_key = device_key
                 .decrypt_user_key(protected_device_private_key, device_protected_user_key)?;
 
@@ -166,7 +170,7 @@ pub async fn initialize_org_crypto(client: &mut Client, req: InitOrgCryptoReques
 }
 
 #[cfg(feature = "internal")]
-pub async fn get_user_encryption_key(client: &mut Client) -> Result<String> {
+pub async fn get_user_encryption_key(client: &mut Client) -> Result<SensitiveString> {
     let user_key = client
         .get_encryption_settings()?
         .get_key(&None)
@@ -299,7 +303,7 @@ pub(super) fn enroll_admin_password_reset(
     let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
 
     Ok(AsymmetricEncString::encrypt_rsa2048_oaep_sha1(
-        &key.to_vec(),
+        key.to_vec().expose(),
         &public_key,
     )?)
 }
@@ -483,7 +487,7 @@ mod tests {
     #[cfg(feature = "internal")]
     #[test]
     fn test_enroll_admin_password_reset() {
-        use std::{num::NonZeroU32, ops::Deref};
+        use std::num::NonZeroU32;
 
         use base64::{engine::general_purpose::STANDARD, Engine};
         use bitwarden_crypto::AsymmetricCryptoKey;
@@ -516,10 +520,7 @@ mod tests {
             .get_encryption_settings()
             .unwrap()
             .get_key(&None)
-            .unwrap()
-            .to_vec()
-            .deref()
-            .clone();
-        assert_eq!(decrypted, expected);
+            .unwrap();
+        assert_eq!(&decrypted, expected.to_vec().expose());
     }
 }

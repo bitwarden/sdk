@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    error::{Error, Result},
+    error::{require, Result},
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -25,27 +25,19 @@ impl ProjectResponse {
         response: ProjectResponseModel,
         enc: &EncryptionSettings,
     ) -> Result<Self> {
-        let organization_id = response.organization_id.ok_or(Error::MissingFields)?;
+        let organization_id = require!(response.organization_id);
 
-        let name = response
-            .name
-            .ok_or(Error::MissingFields)?
+        let name = require!(response.name)
             .parse::<EncString>()?
             .decrypt(enc, &Some(organization_id))?;
 
         Ok(ProjectResponse {
-            id: response.id.ok_or(Error::MissingFields)?,
+            id: require!(response.id),
             organization_id,
             name,
 
-            creation_date: response
-                .creation_date
-                .ok_or(Error::MissingFields)?
-                .parse()?,
-            revision_date: response
-                .revision_date
-                .ok_or(Error::MissingFields)?
-                .parse()?,
+            creation_date: require!(response.creation_date).parse()?,
+            revision_date: require!(response.revision_date).parse()?,
         })
     }
 }

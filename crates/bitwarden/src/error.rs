@@ -24,8 +24,8 @@ pub enum Error {
 
     #[error("The response received was invalid and could not be processed")]
     InvalidResponse,
-    #[error("The response received was missing some of the required fields")]
-    MissingFields,
+    #[error("The response received was missing some of the required fields: {0}")]
+    MissingFields(&'static str),
 
     #[error("Cryptography error, {0}")]
     Crypto(#[from] bitwarden_crypto::CryptoError),
@@ -132,5 +132,19 @@ macro_rules! impl_bitwarden_error {
 }
 impl_bitwarden_error!(ApiError);
 impl_bitwarden_error!(IdentityError);
+
+/// This macro is used to require that a value is present or return an error otherwise.
+/// It is equivalent to using `val.ok_or(Error::MissingFields)?`, but easier to use and
+/// with a more descriptive error message.
+/// Note that this macro will return early from the function if the value is not present.
+macro_rules! require {
+    ($val:expr) => {
+        match $val {
+            Some(val) => val,
+            None => return Err($crate::error::Error::MissingFields(stringify!($val))),
+        }
+    };
+}
+pub(crate) use require;
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

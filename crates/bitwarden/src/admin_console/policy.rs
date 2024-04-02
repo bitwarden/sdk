@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use uuid::Uuid;
 
-use crate::error::{Error, Result};
+use crate::error::{require, Error, Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 pub struct Policy {
@@ -41,11 +41,11 @@ impl TryFrom<PolicyResponseModel> for Policy {
 
     fn try_from(policy: PolicyResponseModel) -> Result<Self> {
         Ok(Self {
-            id: policy.id.ok_or(Error::MissingFields)?,
-            organization_id: policy.organization_id.ok_or(Error::MissingFields)?,
-            r#type: policy.r#type.ok_or(Error::MissingFields)?.into(),
+            id: require!(policy.id),
+            organization_id: require!(policy.organization_id),
+            r#type: require!(policy.r#type).into(),
             data: policy.data,
-            enabled: policy.enabled.ok_or(Error::MissingFields)?,
+            enabled: require!(policy.enabled),
         })
     }
 }

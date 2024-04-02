@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
-use base64::{engine::general_purpose::STANDARD, Engine};
-use bitwarden_crypto::{EncString, KeyDecryptable, SymmetricCryptoKey};
+use base64::engine::general_purpose::STANDARD;
+use bitwarden_crypto::{EncString, KeyDecryptable, SensitiveString, SymmetricCryptoKey};
 use chrono::Utc;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -14,7 +14,7 @@ use crate::{
         AccessToken, JWTToken,
     },
     client::{LoginMethod, ServiceAccountLoginMethod},
-    error::{Error, Result},
+    error::{require, Error, Result},
     secrets_manager::state::{self, ClientState},
     Client,
 };
@@ -59,19 +59,17 @@ pub(crate) async fn login_access_token(
         #[derive(serde::Deserialize)]
         struct Payload {
             #[serde(rename = "encryptionKey")]
-            encryption_key: String,
+            encryption_key: SensitiveString,
         }
 
         let payload: Payload = serde_json::from_slice(&decrypted_payload)?;
-        let mut encryption_key = STANDARD.decode(payload.encryption_key.clone())?;
-        let encryption_key = SymmetricCryptoKey::try_from(encryption_key.as_mut_slice())?;
+        let encryption_key = payload.encryption_key.clone().decode_base64(STANDARD)?;
+        let encryption_key = SymmetricCryptoKey::try_from(encryption_key)?;
 
         let access_token_obj: JWTToken = r.access_token.parse()?;
 
         // This should always be Some() when logging in with an access token
-        let organization_id = access_token_obj
-            .organization
-            .ok_or(Error::MissingFields)?
+        let organization_id = require!(access_token_obj.organization)
             .parse()
             .map_err(|_| Error::InvalidResponse)?;
 
@@ -125,7 +123,7 @@ fn load_tokens_from_state(
             let organization_id: Uuid = organization_id
                 .parse()
                 .map_err(|_| "Bad organization id.")?;
-            let encryption_key: SymmetricCryptoKey = client_state.encryption_key.parse()?;
+            let encryption_key = SymmetricCryptoKey::try_from(client_state.encryption_key)?;
 
             client.set_tokens(client_state.token, None, time_till_expiration as u64);
             client.initialize_crypto_single_key(encryption_key);

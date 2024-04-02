@@ -3,13 +3,12 @@ name: Build bws Docker image
 
 on:
   push:
-    paths:
-      - "crates/bws/**"
+    branches:
+      - "main"
+      - "rc"
+      - "hotfix-rc"
   workflow_dispatch:
   pull_request:
-    paths:
-      - ".github/workflows/build-cli-docker.yml"
-      - "crates/bws/**"
 
 env:
   _AZ_REGISTRY: bitwardenprod.azurecr.io
@@ -106,7 +105,7 @@ jobs:
           platforms: |
             linux/amd64,
             linux/arm64/v8
-          push: ${{ env.is_publish_branch }}
+          push: true
           tags: ${{ steps.tag-list.outputs.tags }}
           secrets: |
             "GH_PAT=${{ steps.retrieve-secret-pat.outputs.github-pat-bitwarden-devops-bot-repo-scope }}"

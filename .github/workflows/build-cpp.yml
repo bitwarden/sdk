@@ -62,7 +62,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DNLOHMANN=/usr/share/doc/nlohmann-json3-dev -DBOOST=/usr/share/doc/libboost-all-dev -DTARGET=../include/libbitwarden_c.dylib
+          cmake .. -DNLOHMANN=/usr/share/doc/nlohmann-json3-dev -DBOOST=/usr/share/doc/libboost-all-dev -DTARGET=include/libbitwarden_c.dylib
           cmake --build .
 
       - name: Upload C++ package for ${{ matrix.settings.target }}

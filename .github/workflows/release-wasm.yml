@@ -8,10 +8,10 @@ on:
       release_type:
         description: "Release Options"
         required: true
-        default: "Initial Release"
+        default: "Release"
         type: choice
         options:
-          - Initial Release
+          - Release
           - Redeploy
           - Dry Run
       npm_publish:
@@ -111,22 +111,12 @@ jobs:
           secrets: "npm-api-key"
 
       - name: Download artifacts
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
         uses: bitwarden/gh-actions/download-artifacts@main
         with:
           workflow: build-wasm.yml
           path: ${{ github.workspace }}/languages/js/wasm
           workflow_conclusion: success
-          branch: ${{ github.ref_name }}
-
-      - name: Dry Run - Download artifacts
-        if: ${{ github.event.inputs.release_type == 'Dry Run' }}
-        uses: bitwarden/gh-actions/download-artifacts@main
-        with:
-          workflow: build-wasm.yml
-          path: ${{ github.workspace }}/languages/js/wasm
-          workflow_conclusion: success
-          branch: main
+          branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
 
       - name: Setup NPM
         run: |

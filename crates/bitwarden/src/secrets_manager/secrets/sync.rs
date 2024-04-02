@@ -7,7 +7,7 @@ use uuid::Uuid;
 use super::SecretResponse;
 use crate::{
     client::encryption_settings::EncryptionSettings,
-    error::{Error, Result},
+    error::{require, Result},
     Client,
 };
 
@@ -51,24 +51,19 @@ impl SecretsSyncResponse {
         response: SecretsSyncResponseModel,
         enc: &EncryptionSettings,
     ) -> Result<SecretsSyncResponse> {
-        let has_changes = response.has_changes.ok_or(Error::MissingFields)?;
+        let has_changes = require!(response.has_changes);
 
-        if has_changes && response.secrets.is_some() {
-            let secrets = response
-                .secrets
-                .unwrap()
+        if has_changes {
+            let secrets = require!(response.secrets)
                 .data
                 .unwrap_or_default()
                 .into_iter()
                 .map(|r| SecretResponse::process_base_response(r, enc))
                 .collect::<Result<_, _>>()?;
-
             return Ok(SecretsSyncResponse {
                 has_changes,
                 secrets: Some(secrets),
             });
-        } else if has_changes && response.secrets.is_none() {
-            return Err(Error::MissingFields);
         }
 
         Ok(SecretsSyncResponse {

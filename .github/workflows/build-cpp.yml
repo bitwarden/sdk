@@ -15,10 +15,27 @@ jobs:
   generate-schemas:
     uses: ./.github/workflows/generate_schemas.yml
 
+  build_rust:
+    uses: ./.github/workflows/build-rust-cross-platform.yml
+
   build:
-    name: Build
-    needs: generate-schemas
-    runs-on: ubuntu-22.04
+    name: Build for ${{ matrix.settings.os }} ${{ matrix.settings.target }}
+    needs:
+      - generate-schemas
+      - build_rust
+    runs-on: ${{ matrix.settings.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - os: macos-12
+            target: x86_64-apple-darwin
+          - os: macos-12
+            target: aarch64-apple-darwin
+          - os: windows-2022
+            target: x86_64-pc-windows-msvc
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
     steps:
       - name: Checkout Repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -34,16 +51,22 @@ jobs:
           name: sdk-schemas-cpp
           path: languages/cpp/include
 
+      - name: Download ${{ matrix.settings.target }} files
+        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
+        with:
+          name: libbitwarden_c_files-${{ matrix.settings.target }}
+          path: languages/cpp/include
+
       - name: Build
         working-directory: languages/cpp
         run: |
           mkdir build
           cd build
-          cmake .. -DNLOHMANN=/usr/share/doc/nlohmann-json3-dev -DBOOST=/usr/share/doc/libboost-all-dev -DTARGET=../../target/release/libbitwarden_c.dylib
+          cmake .. -DNLOHMANN=/usr/share/doc/nlohmann-json3-dev -DBOOST=/usr/share/doc/libboost-all-dev -DTARGET=../include/libbitwarden_c.dylib
           cmake --build .
 
-      - name: Upload C++ package
+      - name: Upload C++ package for ${{ matrix.settings.target }}
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
-          name: libbitwarden_c.dylib
-          path: languages/cpp/target/release/libbitwarden_c.dylib
+          name: libbitwarden_c-${{ matrix.settings.target }}
+          path: languages/cpp/target/release

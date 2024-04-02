@@ -8,7 +8,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::error::{Error, Result};
+use crate::error::{require, Error, Result};
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
@@ -222,23 +222,23 @@ impl TryFrom<bitwarden_api_api::models::CipherFido2CredentialModel> for Fido2Cre
 
     fn try_from(value: bitwarden_api_api::models::CipherFido2CredentialModel) -> Result<Self> {
         Ok(Self {
-            credential_id: value.credential_id.ok_or(Error::MissingFields)?.parse()?,
-            key_type: value.key_type.ok_or(Error::MissingFields)?.parse()?,
-            key_algorithm: value.key_algorithm.ok_or(Error::MissingFields)?.parse()?,
-            key_curve: value.key_curve.ok_or(Error::MissingFields)?.parse()?,
-            key_value: value.key_value.ok_or(Error::MissingFields)?.parse()?,
-            rp_id: value.rp_id.ok_or(Error::MissingFields)?.parse()?,
+            credential_id: require!(value.credential_id).parse()?,
+            key_type: require!(value.key_type).parse()?,
+            key_algorithm: require!(value.key_algorithm).parse()?,
+            key_curve: require!(value.key_curve).parse()?,
+            key_value: require!(value.key_value).parse()?,
+            rp_id: require!(value.rp_id).parse()?,
             user_handle: EncString::try_from_optional(value.user_handle)
                 .ok()
                 .flatten(),
             user_name: EncString::try_from_optional(value.user_name).ok().flatten(),
-            counter: value.counter.ok_or(Error::MissingFields)?.parse()?,
+            counter: require!(value.counter).parse()?,
             rp_name: EncString::try_from_optional(value.rp_name).ok().flatten(),
             user_display_name: EncString::try_from_optional(value.user_display_name)
                 .ok()
                 .flatten(),
-            discoverable: value.discoverable.ok_or(Error::MissingFields)?.parse()?,
-            creation_date: value.creation_date.parse().unwrap(),
+            discoverable: require!(value.discoverable).parse()?,
+            creation_date: value.creation_date.parse()?,
         })
     }
 }

@@ -9,7 +9,7 @@ use crate::{
         JWTToken,
     },
     client::{LoginMethod, UserLoginMethod},
-    error::Result,
+    error::{require, Result},
     Client,
 };
 
@@ -44,8 +44,8 @@ pub(crate) async fn login_api_key(
             kdf,
         }));
 
-        let user_key: EncString = r.key.as_deref().unwrap().parse().unwrap();
-        let private_key: EncString = r.private_key.as_deref().unwrap().parse().unwrap();
+        let user_key: EncString = require!(r.key.as_deref()).parse()?;
+        let private_key: EncString = require!(r.private_key.as_deref()).parse()?;
 
         client.initialize_user_crypto(&input.password, user_key, private_key)?;
     }

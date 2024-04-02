@@ -5,7 +5,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::utils::{derive_kdf_key, stretch_kdf_key};
-use crate::{util, EncString, KeyDecryptable, Result, SymmetricCryptoKey, UserKey};
+use crate::{util, CryptoError, EncString, KeyDecryptable, Result, SymmetricCryptoKey, UserKey};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -67,8 +67,11 @@ impl MasterKey {
         let stretched_key = stretch_kdf_key(&self.0)?;
 
         EncString::encrypt_aes256_hmac(
-            user_key.to_vec().as_slice(),
-            stretched_key.mac_key.as_ref().unwrap(),
+            user_key.to_vec().expose(),
+            stretched_key
+                .mac_key
+                .as_ref()
+                .ok_or(CryptoError::InvalidMac)?,
             &stretched_key.key,
         )
     }

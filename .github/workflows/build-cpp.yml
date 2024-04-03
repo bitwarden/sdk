@@ -40,10 +40,23 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
-      - name: install dependencies
+      - name: install dependencies linux
+        if: matrix.settings.os == 'ubuntu-22.04'
         run: |
           sudo apt-get install -y nlohmann-json3-dev
           sudo apt-get install -y libboost-all-dev
+
+      - name: install dependencies macos
+        if: matrix.settings.os == 'macos-12'
+        run: |
+          brew install nlohmann-json
+          brew install boost
+
+      - name: install dependencies windows
+        if: matrix.settings.os == 'windows-2022'
+        run: |
+          choco install nlohmann-json
+          choco install boost
 
       - name: Download schemas
         uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.4

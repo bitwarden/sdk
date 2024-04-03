@@ -20,14 +20,15 @@ pub fn derive_shareable_key(
     // TODO: Are these the final `key` and `info` parameters or should we change them? I followed
     // the pattern used for sends
     let res = Hmac::<sha2::Sha256>::new_from_slice(format!("bitwarden-{}", name).as_bytes())
-        .unwrap()
+        .expect("hmac new_from_slice should not fail")
         .chain_update(secret)
         .finalize()
         .into_bytes();
 
-    let mut key: Pin<Box<GenericArray<u8, U64>>> = hkdf_expand(&res, info).unwrap();
+    let mut key: Pin<Box<GenericArray<u8, U64>>> =
+        hkdf_expand(&res, info).expect("Input is a valid size");
 
-    SymmetricCryptoKey::try_from(key.as_mut_slice()).unwrap()
+    SymmetricCryptoKey::try_from(key.as_mut_slice()).expect("Key is a valid size")
 }
 
 #[cfg(test)]

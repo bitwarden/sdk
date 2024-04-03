@@ -8,7 +8,7 @@ pub(crate) fn get_state_file_path(
         state_file_path.push(access_token_id);
 
         if let Some(parent_folder) = state_file_path.parent() {
-            std::fs::create_dir_all(parent_folder).unwrap();
+            std::fs::create_dir_all(parent_folder).expect("Parent directory should be writable");
         }
 
         return Some(state_file_path);

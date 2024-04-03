@@ -48,13 +48,13 @@ pub(crate) const DIRECTORY: &str = ".bws";
 
 pub(crate) fn get_config_path(config_file: Option<&Path>, ensure_folder_exists: bool) -> PathBuf {
     let config_file = config_file.map(ToOwned::to_owned).unwrap_or_else(|| {
-        let base_dirs = BaseDirs::new().unwrap();
+        let base_dirs = BaseDirs::new().expect("A valid home directory should exist");
         base_dirs.home_dir().join(DIRECTORY).join(FILENAME)
     });
 
     if ensure_folder_exists {
         if let Some(parent_folder) = config_file.parent() {
-            std::fs::create_dir_all(parent_folder).unwrap();
+            std::fs::create_dir_all(parent_folder).expect("Parent directory should be writable");
         }
     }
 

@@ -30,12 +30,16 @@ jobs:
         settings:
           - os: macos-12
             target: x86_64-apple-darwin
+
           - os: macos-12
             target: aarch64-apple-darwin
+
           - os: windows-2022
             target: x86_64-pc-windows-msvc
+
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -73,9 +77,25 @@ jobs:
       - name: Build
         working-directory: languages/cpp
         run: |
+          if [[ ${{ matrix.settings.os }} == 'macos-12' ]]; then
+            export DNLOHMANN_PATH=/usr/local/opt/nlohmann-json
+            export DBOOST_PATH=/usr/local/opt/boost
+          fi
+
+          if [[ ${{ matrix.settings.os }} == 'ubuntu-22.04' ]]; then
+            export DNLOHMANN_PATH=/usr/share/doc/nlohmann-json3-dev
+            export DBOOST_PATH=/usr/share/doc/libboost-all-dev
+          fi
+
+          if [[ ${{ matrix.settings.os }} == 'windows-2022' ]]; then
+            export DNLOHMANN_PATH=/c/Program\ Files/nlohmann-json
+            export DBOOST_PATH=/c/Program\ Files/boost
+          fi
+
+
           mkdir build
           cd build
-          cmake .. -DNLOHMANN=/usr/share/doc/nlohmann-json3-dev -DBOOST=/usr/share/doc/libboost-all-dev -DTARGET=include/libbitwarden_c.dylib
+          cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=include/libbitwarden_c.dylib
           cmake --build .
 
       - name: Upload C++ package for ${{ matrix.settings.target }}

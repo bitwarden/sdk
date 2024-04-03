@@ -92,7 +92,6 @@ jobs:
             export DBOOST_PATH=/c/Program\ Files/boost
           fi
 
-
           mkdir build
           cd build
           cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=include/libbitwarden_c.dylib
@@ -103,3 +102,4 @@ jobs:
         with:
           name: libbitwarden_c-${{ matrix.settings.target }}
           path: languages/cpp/target/release
+          if-no-files-found: error

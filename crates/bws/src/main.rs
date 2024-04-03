@@ -14,212 +14,18 @@ use bitwarden::{
         },
     },
 };
-use clap::{ArgGroup, CommandFactory, Parser, Subcommand};
+use clap::{CommandFactory, Parser};
 use clap_complete::Shell;
 use color_eyre::eyre::{bail, Result};
 use log::error;
+use uuid::Uuid;
 
+mod cli;
 mod config;
 mod render;
 mod state;
 
-use config::ProfileKey;
-use render::{serialize_response, Color, Output};
-use uuid::Uuid;
-
-#[derive(Parser, Debug)]
-#[command(name = "bws", version, about = "Bitwarden Secrets CLI", long_about = None)]
-struct Cli {
-    // Optional as a workaround for https://github.com/clap-rs/clap/issues/3572
-    #[command(subcommand)]
-    command: Option<Commands>,
-
-    #[arg(short = 'o', long, global = true, value_enum, default_value_t = Output::JSON, help="Output format")]
-    output: Output,
-
-    #[arg(short = 'c', long, global = true, value_enum, default_value_t = Color::Auto, help="Use colors in the output")]
-    color: Color,
-
-    #[arg(short = 't', long, global = true, env = ACCESS_TOKEN_KEY_VAR_NAME, hide_env_values = true, help="Specify access token for the service account")]
-    access_token: Option<String>,
-
-    #[arg(
-        short = 'f',
-        long,
-        global = true,
-        env = CONFIG_FILE_KEY_VAR_NAME,
-        help = format!("[default: ~/{}/{}] Config file to use", config::DIRECTORY, config::FILENAME)
-    )]
-    config_file: Option<PathBuf>,
-
-    #[arg(short = 'p', long, global = true, env = PROFILE_KEY_VAR_NAME, help="Profile to use from the config file")]
-    profile: Option<String>,
-
-    #[arg(short = 'u', long, global = true, env = SERVER_URL_KEY_VAR_NAME, help="Override the server URL from the config file")]
-    server_url: Option<String>,
-}
-
-#[derive(Subcommand, Debug)]
-enum Commands {
-    #[command(long_about = "Configure the CLI", arg_required_else_help(true))]
-    Config {
-        name: Option<ProfileKey>,
-        value: Option<String>,
-
-        #[arg(short = 'd', long)]
-        delete: bool,
-    },
-
-    #[command(long_about = "Generate shell completion files")]
-    Completions { shell: Option<Shell> },
-
-    #[command(long_about = "Commands available on Projects")]
-    Project {
-        #[command(subcommand)]
-        cmd: ProjectCommand,
-    },
-    #[command(long_about = "Commands available on Secrets")]
-    Secret {
-        #[command(subcommand)]
-        cmd: SecretCommand,
-    },
-    #[command(long_about = "Create a single item (deprecated)", hide(true))]
-    Create {
-        #[command(subcommand)]
-        cmd: CreateCommand,
-    },
-    #[command(long_about = "Delete one or more items (deprecated)", hide(true))]
-    Delete {
-        #[command(subcommand)]
-        cmd: DeleteCommand,
-    },
-    #[command(long_about = "Edit a single item (deprecated)", hide(true))]
-    Edit {
-        #[command(subcommand)]
-        cmd: EditCommand,
-    },
-    #[command(long_about = "Retrieve a single item (deprecated)", hide(true))]
-    Get {
-        #[command(subcommand)]
-        cmd: GetCommand,
-    },
-    #[command(long_about = "List items (deprecated)", hide(true))]
-    List {
-        #[command(subcommand)]
-        cmd: ListCommand,
-    },
-}
-
-#[derive(Subcommand, Debug)]
-enum SecretCommand {
-    Create {
-        key: String,
-        value: String,
-
-        #[arg(help = "The ID of the project this secret will be added to")]
-        project_id: Uuid,
-
-        #[arg(long, help = "An optional note to add to the secret")]
-        note: Option<String>,
-    },
-    Delete {
-        secret_ids: Vec<Uuid>,
-    },
-    #[clap(group = ArgGroup::new("edit_field").required(true).multiple(true))]
-    Edit {
-        secret_id: Uuid,
-        #[arg(long, group = "edit_field")]
-        key: Option<String>,
-        #[arg(long, group = "edit_field")]
-        value: Option<String>,
-        #[arg(long, group = "edit_field")]
-        note: Option<String>,
-        #[arg(long, group = "edit_field")]
-        project_id: Option<Uuid>,
-    },
-    Get {
-        secret_id: Uuid,
-    },
-    List {
-        project_id: Option<Uuid>,
-    },
-}
-
-#[derive(Subcommand, Debug)]
-enum ProjectCommand {
-    Create {
-        name: String,
-    },
-    Delete {
-        project_ids: Vec<Uuid>,
-    },
-    Edit {
-        project_id: Uuid,
-        #[arg(long, group = "edit_field")]
-        name: String,
-    },
-    Get {
-        project_id: Uuid,
-    },
-    List,
-}
-
-#[derive(Subcommand, Debug)]
-enum ListCommand {
-    Projects,
-    Secrets { project_id: Option<Uuid> },
-}
-
-#[derive(Subcommand, Debug)]
-enum GetCommand {
-    Project { project_id: Uuid },
-    Secret { secret_id: Uuid },
-}
-
-#[derive(Subcommand, Debug)]
-enum CreateCommand {
-    Project {
-        name: String,
-    },
-    Secret {
-        key: String,
-        value: String,
-
-        #[arg(long, help = "An optional note to add to the secret")]
-        note: Option<String>,
-
-        #[arg(long, help = "The ID of the project this secret will be added to")]
-        project_id: Uuid,
-    },
-}
-
-#[derive(Subcommand, Debug)]
-enum EditCommand {
-    #[clap(group = ArgGroup::new("edit_field").required(true).multiple(true))]
-    Project {
-        project_id: Uuid,
-        #[arg(long, group = "edit_field")]
-        name: String,
-    },
-    #[clap(group = ArgGroup::new("edit_field").required(true).multiple(true))]
-    Secret {
-        secret_id: Uuid,
-        #[arg(long, group = "edit_field")]
-        key: Option<String>,
-        #[arg(long, group = "edit_field")]
-        value: Option<String>,
-        #[arg(long, group = "edit_field")]
-        note: Option<String>,
-        #[arg(long, group = "edit_field")]
-        project_id: Option<Uuid>,
-    },
-}
-
-#[derive(Subcommand, Debug)]
-enum DeleteCommand {
-    Project { project_ids: Vec<Uuid> },
-    Secret { secret_ids: Vec<Uuid> },
-}
+use crate::{cli::*, render::serialize_response};
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
@@ -227,11 +33,6 @@ async fn main() -> Result<()> {
 
     process_commands().await
 }
-
-const ACCESS_TOKEN_KEY_VAR_NAME: &str = "BWS_ACCESS_TOKEN";
-const CONFIG_FILE_KEY_VAR_NAME: &str = "BWS_CONFIG_FILE";
-const PROFILE_KEY_VAR_NAME: &str = "BWS_PROFILE";
-const SERVER_URL_KEY_VAR_NAME: &str = "BWS_SERVER_URL";
 
 #[allow(clippy::comparison_chain)]
 async fn process_commands() -> Result<()> {

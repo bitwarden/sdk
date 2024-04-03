@@ -12,7 +12,6 @@ on:
         type: choice
         options:
           - Release
-          - Redeploy
           - Dry Run
       npm_publish:
         description: "Publish to NPM registry"

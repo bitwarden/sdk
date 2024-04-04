@@ -45,22 +45,41 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: install dependencies linux
-        if: matrix.settings.os == 'ubuntu-22.04'
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get install -y nlohmann-json3-dev
           sudo apt-get install -y libboost-all-dev
 
       - name: install dependencies macos
-        if: matrix.settings.os == 'macos-12'
+        if: runner.os == 'macOS'
         run: |
           brew install nlohmann-json
           brew install boost
 
-      - name: install dependencies windows
-        if: matrix.settings.os == 'windows-2022'
+      - name: Set up conda environment
+        uses: conda-incubator/setup-miniconda@030178870c779d9e5e1b4e563269f3aa69b04081 # v3.0.3
+        with:
+          miniconda-version: "latest"
+          auto-update-conda: true
+          activate-environment: conda-env
+        if: runner.os == 'Windows' #|| runner.os == 'Linux'
+
+      - name: Install libraries for Windows
         run: |
-          choco install nlohmann-json
-          choco install boost
+          conda install -c conda-forge boost
+          conda install -c conda-forge nlohmann_json
+          conda list
+        shell: pwsh
+        if: runner.os == 'Windows'
+
+      # - name: Install libraries for Linux
+      #   run: |
+      #     conda install -c conda-forge boost
+      #     conda install -c conda-forge nlohmann_json
+      #     # sudo apt-get update
+      #     # sudo apt-get install libboost-all-dev
+      #   shell: bash
+      #   if: runner.os == 'Linux'
 
       - name: Download schemas
         uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.4

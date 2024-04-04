@@ -114,6 +114,8 @@ jobs:
             export DBOOST_PATH=C:\Users\runneradmin\miniconda3\envs\conda-env\boost
           fi
 
+          ls include
+
           mkdir build
           cd build
           cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=include/libbitwarden_c.dylib

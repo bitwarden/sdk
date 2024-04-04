@@ -10,7 +10,5 @@ fn main() -> Result<(), std::io::Error> {
     let cmd = <Cli as clap::CommandFactory>::command();
     clap_mangen::generate_to(cmd, &path)?;
 
-    println!("cargo:warning=man files generated: {path:?}");
-
     Ok(())
 }

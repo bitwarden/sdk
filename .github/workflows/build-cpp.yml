@@ -96,17 +96,17 @@ jobs:
       - name: Build
         working-directory: languages/cpp
         run: |
-          if [[ ${{ runner.os }} == 'macOS' ]]; then
+          if [[ '${{ runner.os }}' == 'macOS' ]]; then
             export DNLOHMANN_PATH=/usr/local/opt/nlohmann-json
             export DBOOST_PATH=/usr/local/opt/boost
           fi
 
-          if [[ ${{ runner.os }} == 'Linux' ]]; then
+          if [[ '${{ runner.os }}' == 'Linux' ]]; then
             export DNLOHMANN_PATH=/usr/share/doc/nlohmann-json3-dev
             export DBOOST_PATH=/usr/share/doc/libboost-all-dev
           fi
 
-          if [[ ${{ runner.os }} == 'Windows' ]]; then
+          if [[ '${{ runner.os }}' == 'Windows' ]]; then
             export DNLOHMANN_PATH=C:\Users\runneradmin\miniconda3\envs\conda-env\nlohmann_json
             export DBOOST_PATH=C:\Users\runneradmin\miniconda3\envs\conda-env\boost
           fi

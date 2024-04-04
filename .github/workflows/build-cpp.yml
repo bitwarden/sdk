@@ -122,6 +122,6 @@ jobs:
       - name: Upload C++ package for ${{ matrix.settings.target }}
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
-          name: libbitwarden_c-${{ matrix.settings.target }}
+          name: libbitwarden_cpp-${{ matrix.settings.target }}
           path: languages/cpp/build
           if-no-files-found: error

@@ -10,10 +10,6 @@ on:
   pull_request:
   workflow_dispatch:
 
-defaults:
-  run:
-    shell: bash
-
 jobs:
   generate-schemas:
     uses: ./.github/workflows/generate_schemas.yml
@@ -96,8 +92,9 @@ jobs:
           name: libbitwarden_c_files-${{ matrix.settings.target }}
           path: languages/cpp/include
 
-      - name: Build
+      - name: Build unix
         working-directory: languages/cpp
+        if: runner.os == 'macOS' || runner.os == 'Linux'
         run: |
           if [[ '${{ runner.os }}' == 'macOS' ]]; then
             export DNLOHMANN_PATH=/usr/local/opt/nlohmann-json
@@ -109,16 +106,23 @@ jobs:
             export DBOOST_PATH=/usr/share/doc/libboost-all-dev
           fi
 
-          if [[ '${{ runner.os }}' == 'Windows' ]]; then
-            export DNLOHMANN_PATH=C:\Users\runneradmin\miniconda3\envs\conda-env\nlohmann_json
-            export DBOOST_PATH=C:\Users\runneradmin\miniconda3\envs\conda-env\boost
-          fi
-
           ls include
 
           mkdir build
           cd build
           cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=include/libbitwarden_c.dylib
+          cmake --build .
+
+      - name: Build windows
+        if: runner.os == 'Windows'
+        working-directory: languages/cpp
+        run: |
+          set DNLOHMANN_PATH=C:\Users\runneradmin\miniconda3\envs\conda-env\nlohmann_json
+          set DBOOST_PATH=C:\Users\runneradmin\miniconda3\envs\conda-env\boost
+
+          mkdir build
+          cd build
+          cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=include/libbitwarden_c.dll
           cmake --build .
 
       - name: Upload C++ package for ${{ matrix.settings.target }}

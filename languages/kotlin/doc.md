@@ -132,6 +132,18 @@ Generate keys needed for registration process
 
 **Output**: std::result::Result<RegisterKeyResponse,BitwardenError>
 
+### `make_register_tde_keys`
+
+Generate keys needed for TDE process
+
+**Arguments**:
+
+- self:
+- org_public_key: String
+- remember_device:
+
+**Output**: std::result::Result<RegisterTdeKeyResponse,BitwardenError>
+
 ### `validate_password`
 
 Validate the user password
@@ -288,6 +300,18 @@ Decrypt cipher list
 
 **Output**: std::result::Result<Vec,BitwardenError>
 
+### `move_to_organization`
+
+Move a cipher to an organization, reencrypting the cipher key if necessary
+
+**Arguments**:
+
+- self:
+- cipher: [CipherView](#cipherview)
+- organization_id: Uuid
+
+**Output**: std::result::Result<CipherView,BitwardenError>
+
 ## ClientCollections
 
 ### `decrypt`
@@ -346,7 +370,7 @@ as it can be used to decrypt all of the user&#x27;s data
 
 - self:
 
-**Output**: std::result::Result<String,BitwardenError>
+**Output**: std::result::Result<SensitiveString,BitwardenError>
 
 ### `update_password`
 

@@ -117,12 +117,9 @@ jobs:
         if: runner.os == 'Windows'
         working-directory: languages/cpp
         run: |
-          set DNLOHMANN_PATH=C:\Users\runneradmin\miniconda3\envs\conda-env\nlohmann_json
-          set DBOOST_PATH=C:\Users\runneradmin\miniconda3\envs\conda-env\boost
-
           mkdir build
           cd build
-          cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=include/libbitwarden_c.dll
+          cmake .. -DNLOHMANN=C:\Users\runneradmin\miniconda3\envs\conda-env\nlohmann_json -DBOOST=C:\Users\runneradmin\miniconda3\envs\conda-env\boost -DTARGET=include/libbitwarden_c.dll
           cmake --build .
 
       - name: Upload C++ package for ${{ matrix.settings.target }}

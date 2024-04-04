@@ -107,8 +107,8 @@ jobs:
           fi
 
           if [[ ${{ runner.os }} == 'Windows' ]]; then
-            export DNLOHMANN_PATH=/c/Program\ Files/nlohmann-json
-            export DBOOST_PATH=/c/Program\ Files/boost
+            export DNLOHMANN_PATH=C:\Users\runneradmin\miniconda3\envs\conda-env\nlohmann_json
+            export DBOOST_PATH=C:\Users\runneradmin\miniconda3\envs\conda-env\boost
           fi
 
           mkdir build

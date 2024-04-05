@@ -2,9 +2,12 @@ use std::pin::Pin;
 
 use aes::cipher::typenum::U64;
 use generic_array::GenericArray;
-use hmac::{Hmac, Mac};
+use hmac::Mac;
 
-use crate::{keys::SymmetricCryptoKey, util::hkdf_expand};
+use crate::{
+    keys::SymmetricCryptoKey,
+    util::{hkdf_expand, PbkdfSha256Hmac},
+};
 
 /// Derive a shareable key using hkdf from secret and name.
 ///
@@ -19,7 +22,7 @@ pub fn derive_shareable_key(
 
     // TODO: Are these the final `key` and `info` parameters or should we change them? I followed
     // the pattern used for sends
-    let res = Hmac::<sha2::Sha256>::new_from_slice(format!("bitwarden-{}", name).as_bytes())
+    let res = PbkdfSha256Hmac::new_from_slice(format!("bitwarden-{}", name).as_bytes())
         .expect("hmac new_from_slice should not fail")
         .chain_update(secret)
         .finalize()

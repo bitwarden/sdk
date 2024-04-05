@@ -62,10 +62,10 @@ pub(crate) fn serialize_response<T: Serialize + TableSerialize<N>, const N: usiz
                 .into_iter()
                 .map(|row| {
                     if valid_key_regex.is_match(&row[1]) {
-                        env_print(&row[1], &row[2], false)
+                        env_fmt(&row[1], &row[2], false)
                     } else {
                         commented_out = true;
-                        env_print(&row[1], &row[2], true)
+                        env_fmt(&row[1], &row[2], true)
                     }
                 })
                 .collect();
@@ -113,7 +113,7 @@ fn pretty_print(language: &str, data: &str, color: bool) {
     }
 }
 
-fn env_print(key: &str, value: &str, commented_out: bool) -> String {
+fn env_fmt(key: &str, value: &str, commented_out: bool) -> String {
     let value = value.replace('"', "\\\"");
     let formatted = format!("{}=\"{}\"", key, value);
     if commented_out {

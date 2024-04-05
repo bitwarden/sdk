@@ -33,3 +33,6 @@ bitwarden-generators = { workspace = true, features = ["mobile"] }
 
 [build-dependencies]
 uniffi = { version = "=0.26.1", features = ["build"] }
+
+[lints]
+workspace = true

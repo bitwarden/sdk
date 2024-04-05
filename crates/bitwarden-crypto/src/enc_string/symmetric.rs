@@ -119,15 +119,15 @@ impl EncString {
         match enc_type {
             0 => {
                 check_length(buf, 18)?;
-                let iv = buf[1..17].try_into().unwrap();
+                let iv = buf[1..17].try_into().expect("Valid length");
                 let data = buf[17..].to_vec();
 
                 Ok(EncString::AesCbc256_B64 { iv, data })
             }
             1 | 2 => {
                 check_length(buf, 50)?;
-                let iv = buf[1..17].try_into().unwrap();
-                let mac = buf[17..49].try_into().unwrap();
+                let iv = buf[1..17].try_into().expect("Valid length");
+                let mac = buf[17..49].try_into().expect("Valid length");
                 let data = buf[49..].to_vec();
 
                 if enc_type == 1 {

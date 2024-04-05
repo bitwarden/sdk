@@ -6,19 +6,19 @@ use base64::{
 };
 
 pub fn default_pbkdf2_iterations() -> NonZeroU32 {
-    NonZeroU32::new(600_000).unwrap()
+    NonZeroU32::new(600_000).expect("Non-zero number")
 }
 #[cfg(feature = "internal")]
 pub fn default_argon2_iterations() -> NonZeroU32 {
-    NonZeroU32::new(3).unwrap()
+    NonZeroU32::new(3).expect("Non-zero number")
 }
 #[cfg(feature = "internal")]
 pub fn default_argon2_memory() -> NonZeroU32 {
-    NonZeroU32::new(64).unwrap()
+    NonZeroU32::new(64).expect("Non-zero number")
 }
 #[cfg(feature = "internal")]
 pub fn default_argon2_parallelism() -> NonZeroU32 {
-    NonZeroU32::new(4).unwrap()
+    NonZeroU32::new(4).expect("Non-zero number")
 }
 
 const INDIFFERENT: GeneralPurposeConfig =

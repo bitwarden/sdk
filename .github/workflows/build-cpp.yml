@@ -108,8 +108,6 @@ jobs:
             export DTARGET=include/libbitwarden_c.so
           fi
 
-          ls include
-
           mkdir build
           cd build
           cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=$DTARGET
@@ -118,6 +116,10 @@ jobs:
       - name: Build windows
         if: runner.os == 'Windows'
         working-directory: languages/cpp
+        env:
+          # BOOST_INCLUDE_DIR: C:\Users\runneradmin\miniconda3\envs\conda-env\Library\include
+          BOOST_INCLUDE_DIR: C:\Users\runneradmin\miniconda3\envs\conda-env\boost
+          NLOHMANN_JSON_INCLUDE_DIR: C:\Users\runneradmin\miniconda3\envs\conda-env\nlohmann_json
         run: |
           mkdir build
           cd build

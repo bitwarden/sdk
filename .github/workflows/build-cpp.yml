@@ -99,18 +99,20 @@ jobs:
           if [[ '${{ runner.os }}' == 'macOS' ]]; then
             export DNLOHMANN_PATH=/usr/local/opt/nlohmann-json
             export DBOOST_PATH=/usr/local/opt/boost
+            export DTARGET=include/libbitwarden_c.dylib
           fi
 
           if [[ '${{ runner.os }}' == 'Linux' ]]; then
             export DNLOHMANN_PATH=/usr/share/doc/nlohmann-json3-dev
             export DBOOST_PATH=/usr/share/doc/libboost-all-dev
+            export DTARGET=include/libbitwarden_c.so
           fi
 
           ls include
 
           mkdir build
           cd build
-          cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=include/libbitwarden_c.dylib
+          cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=$DTARGET
           cmake --build .
 
       - name: Build windows

@@ -117,9 +117,10 @@ jobs:
         if: runner.os == 'Windows'
         working-directory: languages/cpp
         env:
-          # BOOST_INCLUDE_DIR: C:\Users\runneradmin\miniconda3\envs\conda-env\Library\include
-          BOOST_INCLUDE_DIR: C:\Users\runneradmin\miniconda3\envs\conda-env\boost
-          NLOHMANN_JSON_INCLUDE_DIR: C:\Users\runneradmin\miniconda3\envs\conda-env\nlohmann_json
+          BOOST_INCLUDE_DIR: C:\Users\runneradmin\miniconda3\envs\conda-env\Library\include
+          # BOOST_INCLUDE_DIR: C:\Users\runneradmin\miniconda3\envs\conda-env\boost
+          # NLOHMANN_JSON_INCLUDE_DIR: C:\Users\runneradmin\miniconda3\envs\conda-env\nlohmann_json
+          NLOHMANN_JSON_INCLUDE_DIR: C:\Users\runneradmin\miniconda3\envs\conda-env\Library\include
         run: |
           mkdir build
           cd build

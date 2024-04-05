@@ -124,9 +124,16 @@ jobs:
           cmake .. -DNLOHMANN=C:\Users\runneradmin\miniconda3\envs\conda-env\nlohmann_json -DBOOST=C:\Users\runneradmin\miniconda3\envs\conda-env\boost -DTARGET=include/libbitwarden_c.dll
           cmake --build .
 
+      - name: Copy artifacts
+        working-directory: languages/cpp/build
+        run: |
+          mkdir artifacts
+          cp libbitwarden_c.* artifacts
+          cp libBitwardenClient.* artifacts
+
       - name: Upload C++ package for ${{ matrix.settings.target }}
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
           name: libbitwarden_cpp-${{ matrix.settings.target }}
-          path: languages/cpp/build
+          path: languages/cpp/build/artifacts
           if-no-files-found: error

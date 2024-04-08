@@ -21,3 +21,6 @@ bitwarden-json = { path = "../bitwarden-json", features = ["secrets"] }
 
 [dependencies]
 env_logger = ">=0.10.0, <0.12"
+
+[lints]
+workspace = true

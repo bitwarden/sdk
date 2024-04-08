@@ -87,7 +87,7 @@ pub(crate) async fn complete_auth_request(
 
     if let IdentityTokenResponse::Authenticated(r) = response {
         let kdf = Kdf::PBKDF2 {
-            iterations: NonZeroU32::new(600_000).unwrap(),
+            iterations: NonZeroU32::new(600_000).expect("Non-zero number"),
         };
 
         client.set_tokens(

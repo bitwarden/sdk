@@ -28,6 +28,9 @@ pub enum CryptoError {
     #[error("Fingerprint error, {0}")]
     FingerprintError(#[from] FingerprintError),
 
+    #[error("Argon2 error, {0}")]
+    ArgonError(#[from] argon2::Error),
+
     #[error("Number is zero")]
     ZeroNumber,
 }

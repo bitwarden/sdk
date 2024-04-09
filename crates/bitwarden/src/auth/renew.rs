@@ -56,11 +56,8 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
                     .send(&client.__api_configurations)
                     .await?;
 
-                    if let (
-                        IdentityTokenResponse::Payload(r),
-                        Some(state_file),
-                        Ok(enc_settings),
-                    ) = (&result, state_file, client.get_encryption_settings())
+                    if let (IdentityTokenResponse::Payload(r), Some(state_file), Ok(enc_settings)) =
+                        (&result, state_file, client.get_encryption_settings())
                     {
                         if let Some(enc_key) = enc_settings.get_key(&None) {
                             let state =

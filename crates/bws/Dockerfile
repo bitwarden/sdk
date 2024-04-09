@@ -19,7 +19,10 @@ RUN cargo build --release --bin bws
 
 # Bundle bws dependencies
 RUN mkdir /lib-bws
-RUN ldd /app/target/release/bws | tr -s '[:blank:]' '\n' | grep '^/' | xargs -I % cp % /lib-bws
+RUN mkdir /lib64-bws
+
+RUN ldd /app/target/release/bws | tr -s '[:blank:]' '\n' | grep '^/lib' | xargs -I % cp % /lib-bws
+RUN ldd /app/target/release/bws | tr -s '[:blank:]' '\n' | grep '^/lib64' | xargs -I % cp % /lib64-bws
 
 # Make a HOME directory for the app stage
 RUN mkdir -p /home/app
@@ -45,5 +48,6 @@ COPY --from=build /etc/ssl/certs /etc/ssl/certs
 
 # Copy bws dependencies
 COPY --from=build /lib-bws /lib
+COPY --from=build /lib64-bws /lib64
 
 ENTRYPOINT ["bws"]

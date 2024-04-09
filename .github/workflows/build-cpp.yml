@@ -55,21 +55,12 @@ jobs:
           brew install nlohmann-json
           brew install boost
 
-      - name: Set up conda environment
-        uses: conda-incubator/setup-miniconda@030178870c779d9e5e1b4e563269f3aa69b04081 # v3.0.3
-        with:
-          miniconda-version: "latest"
-          auto-update-conda: true
-          activate-environment: conda-env
-        if: runner.os == 'Windows' #|| runner.os == 'Linux'
-
       - name: Install libraries for Windows
-        run: |
-          conda install -c conda-forge boost
-          conda install -c conda-forge nlohmann_json
-          conda list
-        shell: pwsh
         if: runner.os == 'Windows'
+        run: |
+          vcpkg install boost
+          vcpkg install nlohmann-json
+        shell: pwsh
 
       # - name: Install libraries for Linux
       #   run: |

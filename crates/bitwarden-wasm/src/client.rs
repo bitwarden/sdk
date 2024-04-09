@@ -63,7 +63,7 @@ pub fn argon2(
     iterations: u32,
     memory: u32,
     parallelism: u32,
-) -> Vec<u8> {
+) -> Result<Vec<u8>, JsError> {
     let argon = Argon2::new(
         Algorithm::Argon2id,
         Version::V0x13,
@@ -72,11 +72,10 @@ pub fn argon2(
             iterations,
             parallelism,
             Some(32),
-        )
-        .unwrap(),
+        )?,
     );
 
     let mut hash = [0u8; 32];
-    argon.hash_password_into(password, salt, &mut hash).unwrap();
-    hash.to_vec()
+    argon.hash_password_into(password, salt, &mut hash)?;
+    Ok(Vec::new())
 }

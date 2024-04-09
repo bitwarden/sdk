@@ -32,3 +32,6 @@ napi-build = "2.1.0"
 
 [profile.release]
 lto = true
+
+[lints]
+workspace = true

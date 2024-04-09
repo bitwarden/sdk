@@ -33,3 +33,6 @@ wasm-bindgen-futures = "0.4.41"
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.41"
+
+[lints]
+workspace = true

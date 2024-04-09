@@ -57,7 +57,7 @@ impl<T: Serialize + JsonSchema> ResponseIntoString for Response<T> {
             Ok(ser) => ser,
             Err(e) => {
                 let error = Response::error(format!("Failed to serialize Response: {}", e));
-                serde_json::to_string(&error).unwrap()
+                serde_json::to_string(&error).expect("Serialize should be infallible")
             }
         }
     }

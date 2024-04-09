@@ -30,3 +30,6 @@ pyo3-asyncio = { version = "0.20.0", features = [
     "attributes",
     "tokio-runtime",
 ] }
+
+[lints]
+workspace = true

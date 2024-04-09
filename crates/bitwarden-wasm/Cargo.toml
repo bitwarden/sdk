@@ -19,7 +19,6 @@ argon2 = { version = ">=0.5.0, <0.6", features = [
     "alloc",
     "zeroize",
 ], default-features = false }
-base64 = ">=0.21.2, <0.22"
 bitwarden-json = { path = "../bitwarden-json", features = [
     "secrets",
     "internal",

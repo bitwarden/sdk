@@ -77,5 +77,5 @@ pub fn argon2(
 
     let mut hash = [0u8; 32];
     argon.hash_password_into(password, salt, &mut hash)?;
-    Ok(Vec::new())
+    Ok(hash.to_vec())
 }

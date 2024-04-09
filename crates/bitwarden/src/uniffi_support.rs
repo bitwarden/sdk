@@ -1,6 +1,6 @@
 use std::num::NonZeroU32;
 
-use bitwarden_crypto::{AsymmetricEncString, EncString};
+use bitwarden_crypto::{AsymmetricEncString, EncString, SensitiveString};
 use uuid::Uuid;
 
 use crate::UniffiCustomTypeConverter;
@@ -9,6 +9,11 @@ uniffi::ffi_converter_forward!(NonZeroU32, bitwarden_crypto::UniFfiTag, crate::U
 uniffi::ffi_converter_forward!(EncString, bitwarden_crypto::UniFfiTag, crate::UniFfiTag);
 uniffi::ffi_converter_forward!(
     AsymmetricEncString,
+    bitwarden_crypto::UniFfiTag,
+    crate::UniFfiTag
+);
+uniffi::ffi_converter_forward!(
+    SensitiveString,
     bitwarden_crypto::UniFfiTag,
     crate::UniFfiTag
 );

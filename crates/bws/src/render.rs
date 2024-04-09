@@ -41,18 +41,20 @@ pub(crate) fn serialize_response<T: Serialize + TableSerialize<N>, const N: usiz
 ) {
     match output {
         Output::JSON => {
-            let mut text = serde_json::to_string_pretty(&data).unwrap();
+            let mut text =
+                serde_json::to_string_pretty(&data).expect("Serialize should be infallible");
             // Yaml/table/tsv serializations add a newline at the end, so we do the same here for
             // consistency
             text.push('\n');
             pretty_print("json", &text, color);
         }
         Output::YAML => {
-            let text = serde_yaml::to_string(&data).unwrap();
+            let text = serde_yaml::to_string(&data).expect("Serialize should be infallible");
             pretty_print("yaml", &text, color);
         }
         Output::Env => {
-            let valid_key_regex = regex::Regex::new("^[a-zA-Z_][a-zA-Z0-9_]*$").unwrap();
+            let valid_key_regex =
+                regex::Regex::new("^[a-zA-Z_][a-zA-Z0-9_]*$").expect("regex is valid");
 
             let mut commented_out = false;
             let mut text: Vec<String> = data
@@ -105,7 +107,7 @@ fn pretty_print(language: &str, data: &str, color: bool) {
             .input_from_bytes(data.as_bytes())
             .language(language)
             .print()
-            .unwrap();
+            .expect("Input is valid");
     } else {
         print!("{}", data);
     }

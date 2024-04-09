@@ -16,6 +16,8 @@ on:
           - python-sdk
           - ruby-sdk
           - go-sdk
+          - dotnet-sdk
+          - php-sdk
       version_number:
         description: "New version (example: '2024.1.0')"
         required: true
@@ -30,7 +32,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Install rust
-        uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248 # stable
+        uses: dtolnay/rust-toolchain@dc6353516c68da0f06325f42ad880f76a5e77ec9 # stable
         with:
           toolchain: stable
 
@@ -126,6 +128,17 @@ jobs:
       - name: Bump go-sdk Version
         if: ${{ inputs.project == 'go-sdk' }}
         run: sed -i 's/[0-9]\.[0-9]\.[0-9]/${{ inputs.version_number }}/' ./languages/go/.version
+
+      ### dotnet sdk
+      - name: Bump dotnet-sdk Version
+        if: ${{ inputs.project == 'dotnet-sdk' }}
+        run: sed -i 's/<Version>[0-9]\.[0-9]\.[0-9]<\/Version>/<Version>${{ inputs.version_number }}<\/Version>/' languages/csharp/Bitwarden.Sdk/Bitwarden.Sdk.csproj
+
+      ### php sdk
+      - name: Bump php-sdk Version
+        if: ${{ inputs.project == 'php-sdk' }}
+        run: |
+          sed -i 's/"version": "[0-9]\.[0-9]\.[0-9]"/"version": "${{ inputs.version_number }}"/' ./languages/php/composer.json
 
       ############################
       # VERSION BUMP SECTION END #

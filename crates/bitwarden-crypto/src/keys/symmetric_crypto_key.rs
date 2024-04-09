@@ -1,13 +1,13 @@
-use std::{pin::Pin, str::FromStr};
+use std::pin::Pin;
 
 use aes::cipher::typenum::U32;
-use base64::{engine::general_purpose::STANDARD, Engine};
+use base64::engine::general_purpose::STANDARD;
 use generic_array::GenericArray;
 use rand::Rng;
-use zeroize::{Zeroize, Zeroizing};
+use zeroize::Zeroize;
 
 use super::key_encryptable::CryptoKey;
-use crate::CryptoError;
+use crate::{CryptoError, SensitiveString, SensitiveVec};
 
 /// A symmetric encryption key. Used to encrypt and decrypt [`EncString`](crate::EncString)
 pub struct SymmetricCryptoKey {
@@ -59,31 +59,35 @@ impl SymmetricCryptoKey {
         self.key.len() + self.mac_key.as_ref().map_or(0, |mac| mac.len())
     }
 
-    pub fn to_base64(&self) -> String {
-        let mut buf = self.to_vec();
-
-        let result = STANDARD.encode(&buf);
-        buf.zeroize();
-        result
+    pub fn to_base64(&self) -> SensitiveString {
+        self.to_vec().encode_base64(STANDARD)
     }
 
-    pub fn to_vec(&self) -> Zeroizing<Vec<u8>> {
-        let mut buf = Vec::with_capacity(self.total_len());
+    pub fn to_vec(&self) -> SensitiveVec {
+        let mut buf = SensitiveVec::new(Box::new(Vec::with_capacity(self.total_len())));
 
-        buf.extend_from_slice(&self.key);
+        buf.expose_mut().extend_from_slice(&self.key);
         if let Some(mac) = &self.mac_key {
-            buf.extend_from_slice(mac);
+            buf.expose_mut().extend_from_slice(mac);
         }
-        Zeroizing::new(buf)
+        buf
     }
 }
 
-impl FromStr for SymmetricCryptoKey {
-    type Err = CryptoError;
+impl TryFrom<SensitiveString> for SymmetricCryptoKey {
+    type Error = CryptoError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut bytes = STANDARD.decode(s).map_err(|_| CryptoError::InvalidKey)?;
-        SymmetricCryptoKey::try_from(bytes.as_mut_slice())
+    fn try_from(value: SensitiveString) -> Result<Self, Self::Error> {
+        SymmetricCryptoKey::try_from(value.decode_base64(STANDARD)?)
+    }
+}
+
+impl TryFrom<SensitiveVec> for SymmetricCryptoKey {
+    type Error = CryptoError;
+
+    fn try_from(mut value: SensitiveVec) -> Result<Self, Self::Error> {
+        let val = value.expose_mut();
+        SymmetricCryptoKey::try_from(val.as_mut_slice())
     }
 }
 
@@ -138,19 +142,18 @@ pub fn derive_symmetric_key(name: &str) -> SymmetricCryptoKey {
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
-
     use super::{derive_symmetric_key, SymmetricCryptoKey};
+    use crate::SensitiveString;
 
     #[test]
     fn test_symmetric_crypto_key() {
         let key = derive_symmetric_key("test");
-        let key2 = SymmetricCryptoKey::from_str(&key.to_base64()).unwrap();
+        let key2 = SymmetricCryptoKey::try_from(key.to_base64()).unwrap();
         assert_eq!(key.key, key2.key);
         assert_eq!(key.mac_key, key2.mac_key);
 
-        let key = "UY4B5N4DA4UisCNClgZtRr6VLy9ZF5BXXC7cDZRqourKi4ghEMgISbCsubvgCkHf5DZctQjVot11/vVvN9NNHQ==";
-        let key2 = SymmetricCryptoKey::from_str(key).unwrap();
+        let key = SensitiveString::test("UY4B5N4DA4UisCNClgZtRr6VLy9ZF5BXXC7cDZRqourKi4ghEMgISbCsubvgCkHf5DZctQjVot11/vVvN9NNHQ==");
+        let key2 = SymmetricCryptoKey::try_from(key.clone()).unwrap();
         assert_eq!(key, key2.to_base64());
     }
 }

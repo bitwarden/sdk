@@ -1,3 +1,4 @@
+use base64::{engine::general_purpose::STANDARD, Engine};
 use bitwarden_api_api::models::{CipherLoginModel, CipherLoginUriModel};
 use bitwarden_crypto::{
     CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
@@ -7,7 +8,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::error::{Error, Result};
+use crate::error::{require, Error, Result};
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
@@ -28,6 +29,7 @@ pub enum UriMatchType {
 pub struct LoginUri {
     pub uri: Option<EncString>,
     pub r#match: Option<UriMatchType>,
+    pub uri_checksum: Option<EncString>,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -36,6 +38,35 @@ pub struct LoginUri {
 pub struct LoginUriView {
     pub uri: Option<String>,
     pub r#match: Option<UriMatchType>,
+    pub uri_checksum: Option<String>,
+}
+
+impl LoginUriView {
+    pub(crate) fn is_checksum_valid(&self) -> bool {
+        let Some(uri) = &self.uri else {
+            return false;
+        };
+        let Some(cs) = &self.uri_checksum else {
+            return false;
+        };
+        let Ok(cs) = STANDARD.decode(cs) else {
+            return false;
+        };
+
+        use sha2::Digest;
+        let uri_hash = sha2::Sha256::new().chain_update(uri.as_bytes()).finalize();
+
+        uri_hash.as_slice() == cs
+    }
+
+    pub(crate) fn generate_checksum(&mut self) {
+        if let Some(uri) = &self.uri {
+            use sha2::Digest;
+            let uri_hash = sha2::Sha256::new().chain_update(uri.as_bytes()).finalize();
+            let uri_hash = STANDARD.encode(uri_hash.as_slice());
+            self.uri_checksum = Some(uri_hash);
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
@@ -93,6 +124,7 @@ impl KeyEncryptable<SymmetricCryptoKey, LoginUri> for LoginUriView {
         Ok(LoginUri {
             uri: self.uri.encrypt_with_key(key)?,
             r#match: self.r#match,
+            uri_checksum: self.uri_checksum.encrypt_with_key(key)?,
         })
     }
 }
@@ -116,6 +148,7 @@ impl KeyDecryptable<SymmetricCryptoKey, LoginUriView> for LoginUri {
         Ok(LoginUriView {
             uri: self.uri.decrypt_with_key(key)?,
             r#match: self.r#match,
+            uri_checksum: self.uri_checksum.decrypt_with_key(key)?,
         })
     }
 }
@@ -166,6 +199,7 @@ impl TryFrom<CipherLoginUriModel> for LoginUri {
         Ok(Self {
             uri: EncString::try_from_optional(uri.uri)?,
             r#match: uri.r#match.map(|m| m.into()),
+            uri_checksum: EncString::try_from_optional(uri.uri_checksum)?,
         })
     }
 }
@@ -188,23 +222,72 @@ impl TryFrom<bitwarden_api_api::models::CipherFido2CredentialModel> for Fido2Cre
 
     fn try_from(value: bitwarden_api_api::models::CipherFido2CredentialModel) -> Result<Self> {
         Ok(Self {
-            credential_id: value.credential_id.ok_or(Error::MissingFields)?.parse()?,
-            key_type: value.key_type.ok_or(Error::MissingFields)?.parse()?,
-            key_algorithm: value.key_algorithm.ok_or(Error::MissingFields)?.parse()?,
-            key_curve: value.key_curve.ok_or(Error::MissingFields)?.parse()?,
-            key_value: value.key_value.ok_or(Error::MissingFields)?.parse()?,
-            rp_id: value.rp_id.ok_or(Error::MissingFields)?.parse()?,
+            credential_id: require!(value.credential_id).parse()?,
+            key_type: require!(value.key_type).parse()?,
+            key_algorithm: require!(value.key_algorithm).parse()?,
+            key_curve: require!(value.key_curve).parse()?,
+            key_value: require!(value.key_value).parse()?,
+            rp_id: require!(value.rp_id).parse()?,
             user_handle: EncString::try_from_optional(value.user_handle)
                 .ok()
                 .flatten(),
             user_name: EncString::try_from_optional(value.user_name).ok().flatten(),
-            counter: value.counter.ok_or(Error::MissingFields)?.parse()?,
+            counter: require!(value.counter).parse()?,
             rp_name: EncString::try_from_optional(value.rp_name).ok().flatten(),
             user_display_name: EncString::try_from_optional(value.user_display_name)
                 .ok()
                 .flatten(),
-            discoverable: value.discoverable.ok_or(Error::MissingFields)?.parse()?,
-            creation_date: value.creation_date.parse().unwrap(),
+            discoverable: require!(value.discoverable).parse()?,
+            creation_date: value.creation_date.parse()?,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_valid_checksum() {
+        let uri = super::LoginUriView {
+            uri: Some("https://example.com".to_string()),
+            r#match: Some(super::UriMatchType::Domain),
+            uri_checksum: Some("EAaArVRs5qV39C9S3zO0z9ynVoWeZkuNfeMpsVDQnOk=".to_string()),
+        };
+        assert!(uri.is_checksum_valid());
+    }
+
+    #[test]
+    fn test_invalid_checksum() {
+        let uri = super::LoginUriView {
+            uri: Some("https://example.com".to_string()),
+            r#match: Some(super::UriMatchType::Domain),
+            uri_checksum: Some("UtSgIv8LYfEdOu7yqjF7qXWhmouYGYC8RSr7/ryZg5Q=".to_string()),
+        };
+        assert!(!uri.is_checksum_valid());
+    }
+
+    #[test]
+    fn test_missing_checksum() {
+        let uri = super::LoginUriView {
+            uri: Some("https://example.com".to_string()),
+            r#match: Some(super::UriMatchType::Domain),
+            uri_checksum: None,
+        };
+        assert!(!uri.is_checksum_valid());
+    }
+
+    #[test]
+    fn test_generate_checksum() {
+        let mut uri = super::LoginUriView {
+            uri: Some("https://test.com".to_string()),
+            r#match: Some(super::UriMatchType::Domain),
+            uri_checksum: None,
+        };
+
+        uri.generate_checksum();
+
+        assert_eq!(
+            uri.uri_checksum.unwrap().as_str(),
+            "OWk2vQvwYD1nhLZdA+ltrpBWbDa2JmHyjUEWxRZSS8w="
+        );
     }
 }

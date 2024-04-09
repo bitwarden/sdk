@@ -108,16 +108,17 @@ impl Client {
             client_builder
         }
 
-        let external_client = new_client_builder().build().unwrap();
+        let external_client = new_client_builder().build().expect("Build should not fail");
 
         let mut headers = header::HeaderMap::new();
         headers.append(
             "Device-Type",
-            HeaderValue::from_str(&(settings.device_type as u8).to_string()).unwrap(),
+            HeaderValue::from_str(&(settings.device_type as u8).to_string())
+                .expect("All numbers are valid ASCII"),
         );
         let client_builder = new_client_builder().default_headers(headers);
 
-        let client = client_builder.build().unwrap();
+        let client = client_builder.build().expect("Build should not fail");
 
         let identity = bitwarden_api_identity::apis::configuration::Configuration {
             base_path: settings.identity_url,
@@ -262,10 +263,13 @@ impl Client {
             user_key,
             private_key,
         )?);
-        Ok(self.encryption_settings.as_ref().unwrap())
+        Ok(self
+            .encryption_settings
+            .as_ref()
+            .expect("Value is initialized previously"))
     }
 
-    #[cfg(feature = "mobile")]
+    #[cfg(feature = "internal")]
     pub(crate) fn initialize_user_crypto_decrypted_key(
         &mut self,
         user_key: SymmetricCryptoKey,
@@ -278,7 +282,7 @@ impl Client {
         Ok(self
             .encryption_settings
             .as_ref()
-            .expect("It was initialized on the previous line"))
+            .expect("Value is initialized previously"))
     }
 
     #[cfg(feature = "mobile")]
@@ -307,7 +311,9 @@ impl Client {
         key: SymmetricCryptoKey,
     ) -> &EncryptionSettings {
         self.encryption_settings = Some(EncryptionSettings::new_single_key(key));
-        self.encryption_settings.as_ref().unwrap()
+        self.encryption_settings
+            .as_ref()
+            .expect("Value is initialized previously")
     }
 
     #[cfg(feature = "internal")]
@@ -321,7 +327,7 @@ impl Client {
             .ok_or(Error::VaultLocked)?;
 
         enc.set_org_keys(org_keys)?;
-        Ok(self.encryption_settings.as_ref().unwrap())
+        Ok(&*enc)
     }
 }
 

@@ -19,7 +19,7 @@ internal = [
 ]
 
 [dependencies]
-anyhow = "1.0.79"
+anyhow = "1.0.81"
 bitwarden = { workspace = true }
 bitwarden-json = { path = "../bitwarden-json" }
 bitwarden-uniffi = { path = "../bitwarden-uniffi" }

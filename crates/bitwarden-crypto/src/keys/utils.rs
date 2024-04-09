@@ -25,16 +25,13 @@ pub(super) fn derive_kdf_key(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<Sy
                     iterations.get(),
                     parallelism.get(),
                     Some(32),
-                )
-                .unwrap(),
+                )?,
             );
 
             let salt_sha = sha2::Sha256::new().chain_update(salt).finalize();
 
             let mut hash = [0u8; 32];
-            argon
-                .hash_password_into(secret, &salt_sha, &mut hash)
-                .unwrap();
+            argon.hash_password_into(secret, &salt_sha, &mut hash)?;
             hash
         }
     };

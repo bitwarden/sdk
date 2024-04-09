@@ -24,6 +24,9 @@ bitwarden-crypto = { path = "crates/bitwarden-crypto", version = "=0.4.0" }
 bitwarden-exporters = { path = "crates/bitwarden-exporters", version = "=0.4.0" }
 bitwarden-generators = { path = "crates/bitwarden-generators", version = "=0.4.0" }
 
+[workspace.lints.clippy]
+unwrap_used = "deny"
+
 # Compile all dependencies with some optimizations when building this crate on debug
 # This slows down clean builds by about 50%, but the resulting binaries can be orders of magnitude faster
 # As clean builds won't occur very often, this won't slow down the development process

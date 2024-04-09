@@ -15,7 +15,7 @@ use super::{
     login, secure_note,
 };
 use crate::{
-    error::{Error, Result},
+    error::{require, Error, Result},
     vault::password_history,
 };
 
@@ -139,9 +139,14 @@ pub struct CipherListView {
 }
 
 impl KeyEncryptable<SymmetricCryptoKey, Cipher> for CipherView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Cipher, CryptoError> {
+    fn encrypt_with_key(mut self, key: &SymmetricCryptoKey) -> Result<Cipher, CryptoError> {
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let key = ciphers_key.as_ref().unwrap_or(key);
+
+        // For compatibility reasons, we only create checksums for ciphers that have a key
+        if ciphers_key.is_some() {
+            self.generate_checksums();
+        }
 
         Ok(Cipher {
             id: self.id,
@@ -177,7 +182,7 @@ impl KeyDecryptable<SymmetricCryptoKey, CipherView> for Cipher {
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let key = ciphers_key.as_ref().unwrap_or(key);
 
-        Ok(CipherView {
+        let mut cipher = CipherView {
             id: self.id,
             organization_id: self.organization_id,
             folder_id: self.folder_id,
@@ -202,7 +207,14 @@ impl KeyDecryptable<SymmetricCryptoKey, CipherView> for Cipher {
             creation_date: self.creation_date,
             deleted_date: self.deleted_date,
             revision_date: self.revision_date,
-        })
+        };
+
+        // For compatibility we only remove URLs with invalid checksums if the cipher has a key
+        if ciphers_key.is_some() {
+            cipher.remove_invalid_checksums();
+        }
+
+        Ok(cipher)
     }
 }
 
@@ -296,8 +308,22 @@ impl CipherView {
 
         let new_key = SymmetricCryptoKey::generate(rand::thread_rng());
 
-        self.key = Some(new_key.to_vec().encrypt_with_key(key)?);
+        self.key = Some(new_key.to_vec().expose().encrypt_with_key(key)?);
         Ok(())
+    }
+
+    pub fn generate_checksums(&mut self) {
+        if let Some(uris) = self.login.as_mut().and_then(|l| l.uris.as_mut()) {
+            for uri in uris {
+                uri.generate_checksum();
+            }
+        }
+    }
+
+    pub fn remove_invalid_checksums(&mut self) {
+        if let Some(uris) = self.login.as_mut().and_then(|l| l.uris.as_mut()) {
+            uris.retain(|u| u.is_checksum_valid());
+        }
     }
 }
 
@@ -358,9 +384,9 @@ impl TryFrom<CipherDetailsResponseModel> for Cipher {
             organization_id: cipher.organization_id,
             folder_id: cipher.folder_id,
             collection_ids: cipher.collection_ids.unwrap_or_default(),
-            name: EncString::try_from_optional(cipher.name)?.ok_or(Error::MissingFields)?,
+            name: require!(EncString::try_from_optional(cipher.name)?),
             notes: EncString::try_from_optional(cipher.notes)?,
-            r#type: cipher.r#type.ok_or(Error::MissingFields)?.into(),
+            r#type: require!(cipher.r#type).into(),
             login: cipher.login.map(|l| (*l).try_into()).transpose()?,
             identity: cipher.identity.map(|i| (*i).try_into()).transpose()?,
             card: cipher.card.map(|c| (*c).try_into()).transpose()?,
@@ -386,9 +412,9 @@ impl TryFrom<CipherDetailsResponseModel> for Cipher {
                 .password_history
                 .map(|p| p.into_iter().map(|p| p.try_into()).collect())
                 .transpose()?,
-            creation_date: cipher.creation_date.ok_or(Error::MissingFields)?.parse()?,
+            creation_date: require!(cipher.creation_date).parse()?,
             deleted_date: cipher.deleted_date.map(|d| d.parse()).transpose()?,
-            revision_date: cipher.revision_date.ok_or(Error::MissingFields)?.parse()?,
+            revision_date: require!(cipher.revision_date).parse()?,
             key: EncString::try_from_optional(cipher.key)?,
         })
     }

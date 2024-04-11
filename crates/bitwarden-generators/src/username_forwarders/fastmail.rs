@@ -34,7 +34,7 @@ pub async fn generate_with_api_url(
                         "new-masked-email": {
                             "state": "enabled",
                             "description": "",
-                            "url": website,
+                            "forDomain": website,
                             "emailPrefix": null,
                         },
                     },

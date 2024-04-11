@@ -68,15 +68,6 @@ jobs:
           Get-ChildItem -Recurse C:/vcpkg/buildtrees/boost/
         if: runner.os == 'Windows'
 
-      # - name: Install libraries for Linux
-      #   run: |
-      #     conda install -c conda-forge boost
-      #     conda install -c conda-forge nlohmann_json
-      #     # sudo apt-get update
-      #     # sudo apt-get install libboost-all-dev
-      #   shell: bash
-      #   if: runner.os == 'Linux'
-
       - name: Download schemas
         uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.4
         with:
@@ -115,8 +106,6 @@ jobs:
         working-directory: languages/cpp
         env:
           BOOST_INCLUDE_DIR: C:/vcpkg/packages/boost
-          # BOOST_INCLUDE_DIR: C:\Users\runneradmin\miniconda3\envs\conda-env\boost
-          # NLOHMANN_JSON_INCLUDE_DIR: C:\Users\runneradmin\miniconda3\envs\conda-env\nlohmann_json
           NLOHMANN_JSON_INCLUDE_DIR: C:/vcpkg/packages/nlohmann-json_x64-windows
         run: |
           mkdir build

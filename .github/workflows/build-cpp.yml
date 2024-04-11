@@ -64,8 +64,8 @@ jobs:
 
       - name: list
         run: |
-          ls -lR C:/vcpkg/buildtrees/nlohmann-json/
-          ls -lR C:/vcpkg/buildtrees/boost/
+          Get-ChildItem -Recurse C:/vcpkg/buildtrees/nlohmann-json/
+          Get-ChildItem -Recurse C:/vcpkg/buildtrees/boost/
         if: runner.os == 'Windows'
 
       # - name: Install libraries for Linux

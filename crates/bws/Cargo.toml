@@ -19,6 +19,7 @@ bat = { version = "0.24.0", features = [
     "regex-onig",
 ], default-features = false }
 bitwarden = { workspace = true, features = ["secrets"] }
+bitwarden-cli = { workspace = true }
 chrono = { version = "0.4.35", features = [
     "clock",
     "std",

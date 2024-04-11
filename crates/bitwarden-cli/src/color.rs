@@ -17,6 +17,9 @@ impl Color {
     }
 }
 
+/**
+ * Conditionally install color_eyre. If colors are disabled we also disable error colors.
+ */
 pub fn install_color_eyre(color: Color) -> color_eyre::Result<(), color_eyre::Report> {
     if color.is_enabled() {
         color_eyre::install()

@@ -62,6 +62,12 @@ jobs:
           vcpkg install nlohmann-json
         shell: pwsh
 
+      - name: list
+        run: |
+          ls -lR C:/vcpkg/buildtrees/nlohmann-json/
+          ls -lR C:/vcpkg/buildtrees/boost/
+        if: runner.os == 'Windows'
+
       # - name: Install libraries for Linux
       #   run: |
       #     conda install -c conda-forge boost
@@ -108,10 +114,10 @@ jobs:
         if: runner.os == 'Windows'
         working-directory: languages/cpp
         env:
-          BOOST_INCLUDE_DIR: C:\Users\runneradmin\miniconda3\envs\conda-env\Library\include
+          BOOST_INCLUDE_DIR: C:/vcpkg/packages/boost_x64-windows
           # BOOST_INCLUDE_DIR: C:\Users\runneradmin\miniconda3\envs\conda-env\boost
           # NLOHMANN_JSON_INCLUDE_DIR: C:\Users\runneradmin\miniconda3\envs\conda-env\nlohmann_json
-          NLOHMANN_JSON_INCLUDE_DIR: C:\Users\runneradmin\miniconda3\envs\conda-env\Library\include
+          NLOHMANN_JSON_INCLUDE_DIR: C:/vcpkg/packages/nlohmann-json_x64-windows
         run: |
           mkdir build
           cd build

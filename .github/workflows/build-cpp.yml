@@ -64,8 +64,8 @@ jobs:
 
       - name: list C:/vcpkg/buildtrees
         run: |
-          Get-ChildItem -Recurse C:/vcpkg/buildtrees/nlohmann-json/
-          Get-ChildItem -Recurse C:/vcpkg/buildtrees/boost/
+          Get-ChildItem -Recurse C:\vcpkg\installed\x64-windows\include\
+          Get-ChildItem -Recurse C:\vcpkg\installed\x64-windows\lib\
         if: runner.os == 'Windows'
 
       - name: List C:/vcpkg/packages
@@ -114,10 +114,10 @@ jobs:
         run: |
           mkdir build
           cd build
-          $DNLOHMANN_PATH="C:\vcpkg\buildtrees\nlohmann-json\"
-          $DBOOST_PATH="C:\vcpkg\buildtrees\boost\"
+          $DNLOHMANN_PATH="C:\vcpkg\installed\x64-windows\include\nlohmann-json"
+          $DBOOST_PATH="C:\vcpkg\installed\x64-windows\include\boost"
           $DTARGET="include\libbitwarden_c.dll"
-          cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=$DTARGET
+          cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=$DTARGET -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
           cmake --build .
         shell: pwsh
 

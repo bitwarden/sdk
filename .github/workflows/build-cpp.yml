@@ -62,10 +62,14 @@ jobs:
           vcpkg install nlohmann-json
         shell: pwsh
 
-      - name: list
+      - name: list C:/vcpkg/buildtrees
         run: |
           Get-ChildItem -Recurse C:/vcpkg/buildtrees/nlohmann-json/
           Get-ChildItem -Recurse C:/vcpkg/buildtrees/boost/
+        if: runner.os == 'Windows'
+
+      - name: List C:/vcpkg/packages
+        run: Get-ChildItem -Recurse C:/vcpkg/packages
         if: runner.os == 'Windows'
 
       - name: Download schemas

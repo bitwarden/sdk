@@ -14,6 +14,7 @@ use bitwarden::{
         },
     },
 };
+use bitwarden_cli::{install_color_eyre, Color};
 use clap::{ArgGroup, CommandFactory, Parser, Subcommand};
 use clap_complete::Shell;
 use color_eyre::eyre::{bail, Result};
@@ -24,7 +25,7 @@ mod render;
 mod state;
 
 use config::ProfileKey;
-use render::{serialize_response, Color, Output};
+use render::{serialize_response, Output};
 use uuid::Uuid;
 
 #[derive(Parser, Debug)]
@@ -236,16 +237,9 @@ const SERVER_URL_KEY_VAR_NAME: &str = "BWS_SERVER_URL";
 #[allow(clippy::comparison_chain)]
 async fn process_commands() -> Result<()> {
     let cli = Cli::parse();
+    let color = cli.color;
 
-    let color = cli.color.is_enabled();
-    if color {
-        color_eyre::install()?;
-    } else {
-        // Use an empty theme to disable error coloring
-        color_eyre::config::HookBuilder::new()
-            .theme(color_eyre::config::Theme::new())
-            .install()?;
-    }
+    install_color_eyre(color)?;
 
     let Some(command) = cli.command else {
         let mut cmd = Cli::command();

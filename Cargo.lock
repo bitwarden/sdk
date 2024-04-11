@@ -597,6 +597,7 @@ version = "0.4.0"
 dependencies = [
  "bat",
  "bitwarden",
+ "bitwarden-cli",
  "chrono",
  "clap",
  "clap_complete",

@@ -38,10 +38,10 @@ LABEL com.bitwarden.product="bitwarden"
 # Set a HOME directory
 COPY --from=build /home/app /home/app
 ENV HOME=/home/app
+WORKDIR /home/app
 
 # Copy built project from the build stage
-WORKDIR /usr/local/bin
-COPY --from=build /app/target/release/bws .
+COPY --from=build /app/target/release/bws /bin/bws
 
 # Copy certs
 COPY --from=build /etc/ssl/certs /etc/ssl/certs

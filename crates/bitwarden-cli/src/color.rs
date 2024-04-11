@@ -8,6 +8,9 @@ pub enum Color {
 }
 
 impl Color {
+    /**
+     * Evaluate if colors are supported
+     */
     pub fn is_enabled(self) -> bool {
         match self {
             Color::No => false,
@@ -18,7 +21,7 @@ impl Color {
 }
 
 /**
- * Conditionally install color_eyre. If colors are disabled we also disable error colors.
+ * Installs color_eyre, if Color is disabled we use an empty theme to disable error colors.
  */
 pub fn install_color_eyre(color: Color) -> color_eyre::Result<(), color_eyre::Report> {
     if color.is_enabled() {

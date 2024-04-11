@@ -109,8 +109,8 @@ jobs:
         if: runner.os == 'Windows'
         working-directory: languages/cpp
         env:
-          BOOST_INCLUDE_DIR: C:/vcpkg/packages/boost
-          NLOHMANN_JSON_INCLUDE_DIR: C:/vcpkg/packages/nlohmann-json_x64-windows
+          BOOST_INCLUDE_DIR: C:/vcpkg/buildtrees/boost/
+          NLOHMANN_JSON_INCLUDE_DIR: C:/vcpkg/buildtrees/nlohmann-json/
         run: |
           mkdir build
           cd build

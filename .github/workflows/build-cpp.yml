@@ -108,13 +108,13 @@ jobs:
       - name: Build windows
         if: runner.os == 'Windows'
         working-directory: languages/cpp
-        env:
-          BOOST_INCLUDE_DIR: C:/vcpkg/buildtrees/boost/
-          NLOHMANN_JSON_INCLUDE_DIR: C:/vcpkg/buildtrees/nlohmann-json/
+        # env:
+        #   BOOST_INCLUDE_DIR: C:\vcpkg\buildtrees\boost\
+        #   NLOHMANN_JSON_INCLUDE_DIR: C:\vcpkg\buildtrees\nlohmann-json\
         run: |
           mkdir build
           cd build
-          cmake .. -DNLOHMANN=$env:NLOHMANN_JSON_INCLUDE_DIR -DBOOST=$env:BOOST_INCLUDE_DIR -DTARGET="include/libbitwarden_c.dll"
+          cmake .. -DNLOHMANN="C:\vcpkg\buildtrees\boost\" -DBOOST="C:\vcpkg\buildtrees\nlohmann-json\" -DTARGET="include/libbitwarden_c.dll"
           cmake --build .
 
       - name: Copy artifacts

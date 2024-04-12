@@ -4,7 +4,13 @@ use base64::{
     alphabet,
     engine::{DecodePaddingMode, GeneralPurpose, GeneralPurposeConfig},
 };
+use bitwarden_crypto::Kdf;
 
+pub fn default_kdf() -> Kdf {
+    Kdf::PBKDF2 {
+        iterations: default_pbkdf2_iterations(),
+    }
+}
 pub fn default_pbkdf2_iterations() -> NonZeroU32 {
     NonZeroU32::new(600_000).expect("Non-zero number")
 }

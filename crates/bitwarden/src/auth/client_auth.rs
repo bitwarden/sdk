@@ -1,6 +1,7 @@
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{AsymmetricEncString, DeviceKey, TrustDeviceResponse};
 
+use super::password::{set_password, SetPasswordResponse};
 #[cfg(feature = "mobile")]
 use crate::auth::login::NewAuthRequestResponse;
 #[cfg(feature = "secrets")]
@@ -133,6 +134,10 @@ impl<'a> ClientAuth<'a> {
 
     pub fn trust_device(&self) -> Result<TrustDeviceResponse> {
         trust_device(self.client)
+    }
+
+    pub async fn set_password(&self, password: String) -> Result<SetPasswordResponse> {
+        set_password(self.client, password).await
     }
 }
 

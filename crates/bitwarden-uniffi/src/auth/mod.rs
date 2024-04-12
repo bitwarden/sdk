@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use bitwarden::auth::{
-    password::MasterPasswordPolicyOptions, AuthRequestResponse, RegisterKeyResponse,
-    RegisterTdeKeyResponse,
+    password::{MasterPasswordPolicyOptions, SetPasswordResponse},
+    AuthRequestResponse, RegisterKeyResponse, RegisterTdeKeyResponse,
 };
 use bitwarden_crypto::{AsymmetricEncString, HashPurpose, Kdf, TrustDeviceResponse};
 
@@ -148,5 +148,19 @@ impl ClientAuth {
     /// Trust the current device
     pub async fn trust_device(&self) -> Result<TrustDeviceResponse> {
         Ok(self.0 .0.write().await.auth().trust_device()?)
+    }
+
+    /// Set a new password for the user.
+    ///
+    /// Presumes that the user is logged in using a username, and has crypto initialized.
+    pub async fn set_password(&self, new_password: String) -> Result<SetPasswordResponse> {
+        Ok(self
+            .0
+             .0
+            .write()
+            .await
+            .auth()
+            .set_password(new_password)
+            .await?)
     }
 }

@@ -1,6 +1,6 @@
 use base64::{engine::general_purpose::STANDARD, Engine};
 use bitwarden_crypto::{
-    AsymmetricEncString, AsymmetricPublicCryptoKey, DeviceKey, EncString, Kdf, SymmetricCryptoKey,
+    AsymmetricEncString, AsymmetricPublicCryptoKey, DeviceKey, EncString, SymmetricCryptoKey,
     TrustDeviceResponse, UserKey,
 };
 

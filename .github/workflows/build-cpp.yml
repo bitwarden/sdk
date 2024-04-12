@@ -55,22 +55,22 @@ jobs:
           brew install nlohmann-json
           brew install boost
 
+      - name: Export GitHub Actions cache environment variables
+        if: runner.os == 'Windows'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
       - name: Install libraries for Windows
         if: runner.os == 'Windows'
+        env:
+          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
         run: |
           vcpkg install boost
           vcpkg install nlohmann-json
         shell: pwsh
-
-      - name: list C:/vcpkg/buildtrees
-        run: |
-          Get-ChildItem -Recurse C:\vcpkg\installed\x64-windows\include\
-          Get-ChildItem -Recurse C:\vcpkg\installed\x64-windows\lib\
-        if: runner.os == 'Windows'
-
-      - name: List C:/vcpkg/packages
-        run: Get-ChildItem -Recurse C:/vcpkg/packages
-        if: runner.os == 'Windows'
 
       - name: Download schemas
         uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.4

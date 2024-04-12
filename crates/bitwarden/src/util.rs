@@ -4,8 +4,10 @@ use base64::{
     alphabet,
     engine::{DecodePaddingMode, GeneralPurpose, GeneralPurposeConfig},
 };
+#[cfg(feature = "internal")]
 use bitwarden_crypto::Kdf;
 
+#[cfg(feature = "internal")]
 pub fn default_kdf() -> Kdf {
     Kdf::PBKDF2 {
         iterations: default_pbkdf2_iterations(),

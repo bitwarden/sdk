@@ -82,16 +82,15 @@ impl ClientAuth {
     /// Generate keys needed for TDE process
     pub async fn make_register_tde_keys(
         &self,
+        email: String,
         org_public_key: String,
         remember_device: bool,
     ) -> Result<RegisterTdeKeyResponse> {
-        Ok(self
-            .0
-             .0
-            .write()
-            .await
-            .auth()
-            .make_register_tde_keys(org_public_key, remember_device)?)
+        Ok(self.0 .0.write().await.auth().make_register_tde_keys(
+            email,
+            org_public_key,
+            remember_device,
+        )?)
     }
 
     /// Validate the user password

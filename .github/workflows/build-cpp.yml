@@ -117,7 +117,7 @@ jobs:
           $DNLOHMANN_PATH="C:\vcpkg\installed\x64-windows\include\nlohmann-json"
           $DBOOST_PATH="C:\vcpkg\installed\x64-windows\include\boost"
           $DTARGET="include/libbitwarden_c.dll"
-          cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=$DTARGET -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
+          cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=$DTARGET -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_INSTALL_PREFIX=${GITHUB_WORKSPACE}/languages/cpp/
           cmake --build .
         shell: pwsh
 

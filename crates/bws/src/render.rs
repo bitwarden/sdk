@@ -1,26 +1,17 @@
 use bitwarden::secrets_manager::{projects::ProjectResponse, secrets::SecretResponse};
+use bitwarden_cli::Color;
 use chrono::{DateTime, Utc};
 use comfy_table::Table;
 use serde::Serialize;
 
-use crate::cli::{Color, Output};
-
-impl Color {
-    pub(crate) fn is_enabled(self) -> bool {
-        match self {
-            Color::No => false,
-            Color::Yes => true,
-            Color::Auto => supports_color::on(supports_color::Stream::Stdout).is_some(),
-        }
-    }
-}
+use crate::cli::Output;
 
 const ASCII_HEADER_ONLY: &str = "     --            ";
 
 pub(crate) fn serialize_response<T: Serialize + TableSerialize<N>, const N: usize>(
     data: T,
     output: Output,
-    color: bool,
+    color: Color,
 ) {
     match output {
         Output::JSON => {
@@ -84,8 +75,8 @@ pub(crate) fn serialize_response<T: Serialize + TableSerialize<N>, const N: usiz
     }
 }
 
-fn pretty_print(language: &str, data: &str, color: bool) {
-    if color {
+fn pretty_print(language: &str, data: &str, color: Color) {
+    if color.is_enabled() {
         bat::PrettyPrinter::new()
             .input_from_bytes(data.as_bytes())
             .language(language)

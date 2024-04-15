@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use bitwarden_cli::Color;
 use clap::{ArgGroup, Parser, Subcommand, ValueEnum};
 use clap_complete::Shell;
 use uuid::Uuid;
@@ -30,13 +31,6 @@ pub(crate) enum Output {
     Table,
     TSV,
     None,
-}
-
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
-pub(crate) enum Color {
-    No,
-    Yes,
-    Auto,
 }
 
 #[derive(Parser, Debug)]

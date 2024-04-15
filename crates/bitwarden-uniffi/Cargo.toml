@@ -19,6 +19,9 @@ bench = false
 
 [dependencies]
 async-lock = "3.3.0"
+bitwarden = { workspace = true, features = ["mobile", "internal"] }
+bitwarden-crypto = { workspace = true, features = ["mobile"] }
+bitwarden-generators = { workspace = true, features = ["mobile"] }
 chrono = { version = ">=0.4.26, <0.5", features = [
     "serde",
     "std",
@@ -26,10 +29,7 @@ chrono = { version = ">=0.4.26, <0.5", features = [
 env_logger = "0.11.1"
 schemars = { version = ">=0.8, <0.9", optional = true }
 uniffi = "=0.26.1"
-
-bitwarden = { workspace = true, features = ["mobile", "internal"] }
-bitwarden-crypto = { workspace = true, features = ["mobile"] }
-bitwarden-generators = { workspace = true, features = ["mobile"] }
+uuid = ">=1.3.3, <2"
 
 [build-dependencies]
 uniffi = { version = "=0.26.1", features = ["build"] }

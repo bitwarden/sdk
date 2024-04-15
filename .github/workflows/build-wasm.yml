@@ -1,0 +1,58 @@
+---
+name: Build @bitwarden/sdk-wasm
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "main"
+      - "rc"
+      - "hotfix-rc"
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+    working-directory: crates/bitwarden-wasm
+
+jobs:
+  build:
+    name: Building @bitwarden/sdk-wasm
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Setup Node
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: 18
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm i -g binaryen
+
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248 # stable
+        with:
+          toolchain: stable
+          targets: wasm32-unknown-unknown
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
+        with:
+          key: wasm-cargo-cache
+
+      - name: Install wasm-bindgen-cli
+        run: cargo install wasm-bindgen-cli
+
+      - name: Build
+        run: ./build.sh -r
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        with:
+          name: sdk-bitwarden-wasm
+          path: ${{ github.workspace }}/languages/js/wasm/*
+          if-no-files-found: error

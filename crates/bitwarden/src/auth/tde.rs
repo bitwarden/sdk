@@ -1,10 +1,10 @@
 use base64::{engine::general_purpose::STANDARD, Engine};
 use bitwarden_crypto::{
-    AsymmetricEncString, AsymmetricPublicCryptoKey, DeviceKey, EncString, SymmetricCryptoKey,
+    AsymmetricEncString, AsymmetricPublicCryptoKey, DeviceKey, EncString, Kdf, SymmetricCryptoKey,
     TrustDeviceResponse, UserKey,
 };
 
-use crate::{error::Result, util::default_kdf, Client};
+use crate::{error::Result, Client};
 
 /// This function generates a new user key and key pair, initializes the client's crypto with the
 /// generated user key, and encrypts the user key with the organization public key for admin
@@ -35,7 +35,7 @@ pub(super) fn make_register_tde_keys(
         crate::client::UserLoginMethod::Username {
             client_id: "".to_owned(),
             email,
-            kdf: default_kdf(),
+            kdf: Kdf::default(),
         },
     ));
     client.initialize_user_crypto_decrypted_key(user_key.0, key_pair.private.clone())?;

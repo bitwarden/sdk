@@ -2,16 +2,11 @@ use bitwarden_api_identity::{
     apis::accounts_api::accounts_register_post,
     models::{KeysRequestModel, RegisterRequestModel},
 };
-use bitwarden_crypto::{HashPurpose, MasterKey, RsaKeyPair};
+use bitwarden_crypto::{default_pbkdf2_iterations, HashPurpose, MasterKey, RsaKeyPair};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    client::Kdf,
-    error::Result,
-    util::{default_kdf, default_pbkdf2_iterations},
-    Client,
-};
+use crate::{client::Kdf, error::Result, Client};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -26,7 +21,7 @@ pub struct RegisterRequest {
 pub(super) async fn register(client: &mut Client, req: &RegisterRequest) -> Result<()> {
     let config = client.get_api_configurations().await;
 
-    let kdf = default_kdf();
+    let kdf = Kdf::default();
 
     let keys = make_register_keys(req.email.to_owned(), req.password.to_owned(), kdf)?;
 

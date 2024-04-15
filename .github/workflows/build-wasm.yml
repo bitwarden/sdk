@@ -60,6 +60,7 @@ jobs:
 
       - name: Set version
         if: ${{ github.ref == 'refs/head/main' }}
+        # Fetches current version from registry and uses prerelease to bump it
         run: |
           npm version --no-git-tag-version $(npm view @bitwarden/sdk-wasm@latest version)
           npm version --no-git-tag-version prerelease

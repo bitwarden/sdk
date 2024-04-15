@@ -24,7 +24,7 @@ pub enum Kdf {
 impl Default for Kdf {
     fn default() -> Self {
         Kdf::PBKDF2 {
-            iterations: NonZeroU32::new(600_000).expect("Non-zero number"),
+            iterations: default_pbkdf2_iterations(),
         }
     }
 }

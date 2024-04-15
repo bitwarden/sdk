@@ -68,8 +68,8 @@ jobs:
         env:
           VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
         run: |
-          vcpkg install boost
-          vcpkg install nlohmann-json
+          vcpkg install boost --binarysource="clear;x-gha,readwrite"
+          vcpkg install nlohmann-json --binarysource="clear;x-gha,readwrite"
         shell: pwsh
 
       - name: Download schemas

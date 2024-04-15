@@ -62,8 +62,10 @@ jobs:
         run: |
           npm version --no-git-tag-version $(npm view @bitwarden/sdk-wasm@latest version)
           npm version --no-git-tag-version prerelease
+        working-directory: languages/js/wasm
 
       - name: Publish NPM
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: languages/js/wasm

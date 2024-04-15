@@ -59,6 +59,7 @@ jobs:
           if-no-files-found: error
 
       - name: Set version
+        if: ${{ github.ref == 'refs/head/main' }}
         run: |
           npm version --no-git-tag-version $(npm view @bitwarden/sdk-wasm@latest version)
           npm version --no-git-tag-version prerelease
@@ -67,6 +68,7 @@ jobs:
         working-directory: languages/js/wasm
 
       - name: Publish NPM
+        if: ${{ github.ref == 'refs/head/main' }}
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

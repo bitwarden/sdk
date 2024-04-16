@@ -101,10 +101,20 @@ jobs:
           name: libbitwarden_c_files-${{ matrix.settings.target }}
           path: languages/cpp/include
 
-      - name: List includes
+      - name: Set permissions to include folder
         if: runner.os == 'Windows'
+        shell: pwsh
         run: |
-          ls languages/cpp/include
+          Get-Acl languages/cpp/include/* | Format-List
+
+          $path = "./languages/cpp/include"
+          $name = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+          $acl = Get-Acl languages/cpp/include
+          $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule($name,"FullControl","Allow")
+          $acl.SetAccessRule($accessRule)
+          $acl | Set-Acl languages/cpp/include
+          Get-ChildItem -Path "$path" -Recurse -Force | Set-Acl -aclObject $acl -Verbose
+
           Get-Acl languages/cpp/include/* | Format-List
 
       - name: Build unix

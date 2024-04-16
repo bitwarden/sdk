@@ -1,6 +1,6 @@
 use base64::{engine::general_purpose::STANDARD, Engine};
 use bitwarden_crypto::{
-    AsymmetricEncString, AsymmetricPublicCryptoKey, DeviceKey, EncString, SymmetricCryptoKey,
+    AsymmetricEncString, AsymmetricPublicCryptoKey, DeviceKey, EncString, Kdf, SymmetricCryptoKey,
     TrustDeviceResponse, UserKey,
 };
 
@@ -11,6 +11,7 @@ use crate::{error::Result, Client};
 /// password reset. If remember_device is true, it also generates a device key.
 pub(super) fn make_register_tde_keys(
     client: &mut Client,
+    email: String,
     org_public_key: String,
     remember_device: bool,
 ) -> Result<RegisterTdeKeyResponse> {
@@ -30,6 +31,13 @@ pub(super) fn make_register_tde_keys(
         None
     };
 
+    client.set_login_method(crate::client::LoginMethod::User(
+        crate::client::UserLoginMethod::Username {
+            client_id: "".to_owned(),
+            email,
+            kdf: Kdf::default(),
+        },
+    ));
     client.initialize_user_crypto_decrypted_key(user_key.0, key_pair.private.clone())?;
 
     Ok(RegisterTdeKeyResponse {

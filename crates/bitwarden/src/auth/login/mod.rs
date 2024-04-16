@@ -58,8 +58,7 @@ pub(crate) fn parse_prelogin(response: PreloginResponseModel) -> Result<Kdf> {
     use std::num::NonZeroU32;
 
     use bitwarden_api_identity::models::KdfType;
-
-    use crate::util::{
+    use bitwarden_crypto::{
         default_argon2_iterations, default_argon2_memory, default_argon2_parallelism,
         default_pbkdf2_iterations,
     };

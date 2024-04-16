@@ -28,6 +28,7 @@ jobs:
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
           node-version: 18
+          registry-url: "https://npm.pkg.github.com"
           cache: "npm"
 
       - name: Install dependencies
@@ -56,3 +57,20 @@ jobs:
           name: sdk-bitwarden-wasm
           path: ${{ github.workspace }}/languages/js/wasm/*
           if-no-files-found: error
+
+      - name: Set version
+        if: ${{ github.ref == 'refs/head/main' }}
+        # Fetches current version from registry and uses prerelease to bump it
+        run: |
+          npm version --no-git-tag-version $(npm view @bitwarden/sdk-wasm@latest version)
+          npm version --no-git-tag-version prerelease
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: languages/js/wasm
+
+      - name: Publish NPM
+        if: ${{ github.ref == 'refs/head/main' }}
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: languages/js/wasm

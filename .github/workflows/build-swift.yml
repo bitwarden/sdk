@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - "rc"
-      - "hotfix-rc-swift"
+      - "hotfix-rc"
       - "master"
       - "DEVOPS-1525-swift-workflow-for-package-publishing"
 

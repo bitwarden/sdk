@@ -70,7 +70,7 @@ jobs:
 
       - name: Publish NPM
         if: ${{ github.ref == 'refs/head/main' }}
-        run: npm publish
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         working-directory: languages/js/wasm

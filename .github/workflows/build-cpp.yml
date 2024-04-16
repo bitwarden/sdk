@@ -85,7 +85,9 @@ jobs:
           path: languages/cpp/include
 
       - name: List includes
-        run: ls languages/cpp/include
+        run: |
+          ls languages/cpp/include
+          Get-Acl languages/cpp/include/* | Format-List
 
       - name: Build unix
         working-directory: languages/cpp

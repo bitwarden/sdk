@@ -59,7 +59,7 @@ jobs:
           if-no-files-found: error
 
       - name: Set version
-        if: ${{ github.ref == 'refs/head/main' }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         # Fetches current version from registry and uses prerelease to bump it
         run: |
           npm version --no-git-tag-version $(npm view @bitwarden/sdk-wasm@latest version)
@@ -69,7 +69,7 @@ jobs:
         working-directory: languages/js/wasm
 
       - name: Publish NPM
-        if: ${{ github.ref == 'refs/head/main' }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

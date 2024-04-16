@@ -55,6 +55,16 @@ jobs:
           brew install nlohmann-json
           brew install boost
 
+      - name: Cache vcpkg
+        if: runner.os == 'Windows'
+        uses: actions/cache@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          path: C:/vcpkg/
+          key: vcpkg-${{ runner.os }}-${{ matrix.settings.target }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-
+            vcpkg-
+
       - name: Export GitHub Actions cache environment variables
         if: runner.os == 'Windows'
         uses: actions/github-script@v6
@@ -64,7 +74,7 @@ jobs:
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
       - name: Install libraries for Windows
-        if: runner.os == 'Windows'
+        if: runner.os == 'Windows' && steps.cache.outputs.cache-hit != 'true'
         env:
           VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
         run: |
@@ -85,6 +95,7 @@ jobs:
           path: languages/cpp/include
 
       - name: List includes
+        if: runner.os == 'Windows'
         run: |
           ls languages/cpp/include
           Get-Acl languages/cpp/include/* | Format-List

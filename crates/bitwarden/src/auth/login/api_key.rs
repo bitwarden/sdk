@@ -1,5 +1,4 @@
-use std::str::FromStr;
-
+use bitwarden_crypto::EncString;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -7,15 +6,14 @@ use crate::{
     auth::{
         api::{request::ApiTokenRequest, response::IdentityTokenResponse},
         login::{response::two_factor::TwoFactorProviders, PasswordLoginResponse},
+        JWTToken,
     },
     client::{LoginMethod, UserLoginMethod},
-    crypto::EncString,
-    error::{Error, Result},
-    util::decode_token,
+    error::{require, Result},
     Client,
 };
 
-pub(crate) async fn api_key_login(
+pub(crate) async fn login_api_key(
     client: &mut Client,
     input: &ApiKeyLoginRequest,
 ) -> Result<ApiKeyLoginResponse> {
@@ -25,29 +23,29 @@ pub(crate) async fn api_key_login(
     let response = request_api_identity_tokens(client, input).await?;
 
     if let IdentityTokenResponse::Authenticated(r) = &response {
-        let access_token_obj = decode_token(&r.access_token)?;
+        let access_token_obj: JWTToken = r.access_token.parse()?;
 
         // This should always be Some() when logging in with an api key
         let email = access_token_obj
             .email
-            .ok_or(Error::Internal("Access token doesn't contain email"))?;
+            .ok_or("Access token doesn't contain email")?;
 
-        let kdf = client.prelogin(email.clone()).await?;
+        let kdf = client.auth().prelogin(email.clone()).await?;
 
         client.set_tokens(
             r.access_token.clone(),
             r.refresh_token.clone(),
             r.expires_in,
-            LoginMethod::User(UserLoginMethod::ApiKey {
-                client_id: input.client_id.to_owned(),
-                client_secret: input.client_secret.to_owned(),
-                email,
-                kdf,
-            }),
         );
+        client.set_login_method(LoginMethod::User(UserLoginMethod::ApiKey {
+            client_id: input.client_id.to_owned(),
+            client_secret: input.client_secret.to_owned(),
+            email,
+            kdf,
+        }));
 
-        let user_key = EncString::from_str(r.key.as_deref().unwrap()).unwrap();
-        let private_key = EncString::from_str(r.private_key.as_deref().unwrap()).unwrap();
+        let user_key: EncString = require!(r.key.as_deref()).parse()?;
+        let private_key: EncString = require!(r.private_key.as_deref()).parse()?;
 
         client.initialize_user_crypto(&input.password, user_key, private_key)?;
     }

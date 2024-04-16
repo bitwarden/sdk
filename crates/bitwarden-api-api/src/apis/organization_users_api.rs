@@ -174,14 +174,16 @@ pub enum OrganizationsOrgIdUsersInvitePostError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`organizations_org_id_users_organization_user_id_accept_init_post`]
+/// struct for typed errors of method
+/// [`organizations_org_id_users_organization_user_id_accept_init_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationsOrgIdUsersOrganizationUserIdAcceptInitPostError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`organizations_org_id_users_organization_user_id_accept_post`]
+/// struct for typed errors of method
+/// [`organizations_org_id_users_organization_user_id_accept_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationsOrgIdUsersOrganizationUserIdAcceptPostError {
@@ -230,7 +232,8 @@ pub enum OrganizationsOrgIdUsersRevokePutError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`organizations_org_id_users_user_id_reset_password_enrollment_put`]
+/// struct for typed errors of method
+/// [`organizations_org_id_users_user_id_reset_password_enrollment_put`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationsOrgIdUsersUserIdResetPasswordEnrollmentPutError {
@@ -391,10 +394,7 @@ pub async fn organizations_org_id_users_enable_secrets_manager_patch(
     configuration: &configuration::Configuration,
     org_id: uuid::Uuid,
     organization_user_bulk_request_model: Option<crate::models::OrganizationUserBulkRequestModel>,
-) -> Result<
-    crate::models::OrganizationUserBulkResponseModelListResponseModel,
-    Error<OrganizationsOrgIdUsersEnableSecretsManagerPatchError>,
-> {
+) -> Result<(), Error<OrganizationsOrgIdUsersEnableSecretsManagerPatchError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -423,7 +423,7 @@ pub async fn organizations_org_id_users_enable_secrets_manager_patch(
     let local_var_content = local_var_resp.text().await?;
 
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
-        serde_json::from_str(&local_var_content).map_err(Error::from)
+        Ok(())
     } else {
         let local_var_entity: Option<OrganizationsOrgIdUsersEnableSecretsManagerPatchError> =
             serde_json::from_str(&local_var_content).ok();
@@ -440,10 +440,7 @@ pub async fn organizations_org_id_users_enable_secrets_manager_put(
     configuration: &configuration::Configuration,
     org_id: uuid::Uuid,
     organization_user_bulk_request_model: Option<crate::models::OrganizationUserBulkRequestModel>,
-) -> Result<
-    crate::models::OrganizationUserBulkResponseModelListResponseModel,
-    Error<OrganizationsOrgIdUsersEnableSecretsManagerPutError>,
-> {
+) -> Result<(), Error<OrganizationsOrgIdUsersEnableSecretsManagerPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -472,7 +469,7 @@ pub async fn organizations_org_id_users_enable_secrets_manager_put(
     let local_var_content = local_var_resp.text().await?;
 
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
-        serde_json::from_str(&local_var_content).map_err(Error::from)
+        Ok(())
     } else {
         let local_var_entity: Option<OrganizationsOrgIdUsersEnableSecretsManagerPutError> =
             serde_json::from_str(&local_var_content).ok();
@@ -487,7 +484,7 @@ pub async fn organizations_org_id_users_enable_secrets_manager_put(
 
 pub async fn organizations_org_id_users_get(
     configuration: &configuration::Configuration,
-    org_id: &str,
+    org_id: uuid::Uuid,
     include_groups: Option<bool>,
     include_collections: Option<bool>,
 ) -> Result<
@@ -1761,8 +1758,8 @@ pub async fn organizations_org_id_users_revoke_put(
 
 pub async fn organizations_org_id_users_user_id_reset_password_enrollment_put(
     configuration: &configuration::Configuration,
-    org_id: &str,
-    user_id: &str,
+    org_id: uuid::Uuid,
+    user_id: uuid::Uuid,
     organization_user_reset_password_enrollment_request_model: Option<
         crate::models::OrganizationUserResetPasswordEnrollmentRequestModel,
     >,

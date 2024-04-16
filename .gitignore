@@ -1,6 +1,7 @@
 /target
 .DS_Store
 .pytest_cache
+.vscode/c_cpp_properties.json
 
 # Build results
 [Dd]ebug/
@@ -11,8 +12,15 @@ x64/
 x86/
 build/
 bld/
-[Bb]in/
 [Oo]bj/
+*.wasm
+
+# Binary files
+*.dylib
+*.a
+*.so
+*.dll
+*.class
 
 # Editor directories and files
 .idea
@@ -34,18 +42,21 @@ crates/bitwarden-napi/sdk-napi.*.node
 
 # Complied TypeScript client
 crates/bitwarden-napi/dist
+languages/js/sdk-client/dist/
 
 # Uniffi
 languages/swift/BitwardenFFI.xcframework
 languages/swift/tmp
 languages/swift/.build
 languages/swift/.swiftpm
-languages/kotlin/sdk/src/main/java/com/bitwarden/sdk/bitwarden_uniffi.kt
-languages/kotlin/sdk/src/main/java/com/bitwarden/core/bitwarden.kt
+languages/kotlin/sdk/src/main/java/com/bitwarden/**/*.kt
 
 # Schemas
-support/schemas
 crates/bitwarden-napi/src-ts/bitwarden_client/schemas.ts
+languages/cpp/include/schemas.hpp
 languages/csharp/Bitwarden.Sdk/schemas.cs
-languages/js_webassembly/bitwarden_client/schemas.ts
-languages/python/BitwardenClient/schemas.py
+languages/go/schema.go
+languages/java/src/main/java/com/bitwarden/sdk/schema
+languages/js/sdk-client/src/schemas.ts
+languages/python/bitwarden_sdk/schemas.py
+support/schemas

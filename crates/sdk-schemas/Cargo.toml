@@ -1,8 +1,15 @@
 [package]
 name = "sdk-schemas"
 version = "0.1.0"
-edition = "2021"
-rust-version = "1.57"
+publish = false
+
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+keywords.workspace = true
 
 [features]
 internal = [
@@ -12,11 +19,10 @@ internal = [
 ]
 
 [dependencies]
-schemars = { version = "0.8.12", features = ["preserve_order"] }
-serde_json = "1.0.96"
-anyhow = "1.0.71"
-itertools = "0.11.0"
-
-bitwarden = { path = "../bitwarden" }
+anyhow = "1.0.81"
+bitwarden = { workspace = true }
 bitwarden-json = { path = "../bitwarden-json" }
 bitwarden-uniffi = { path = "../bitwarden-uniffi" }
+itertools = "0.12.1"
+schemars = { version = "0.8.16", features = ["preserve_order"] }
+serde_json = "1.0.113"

@@ -30,6 +30,10 @@ android {
         jvmTarget = '1.8'
     }
 
+    lint {
+        baseline = file("lint-baseline.xml")
+    }
+
     publishing {
         singleVariant('release') {
             withSourcesJar()
@@ -46,12 +50,12 @@ publishing {
             // Determine the version from the git history.
             //
             // PRs: use the branch name.
-            // Master: Grab it from `crates/bitwarden/Cargo.toml`
+            // Main: Grab it from `crates/bitwarden/Cargo.toml`
 
             def branchName = "git branch --show-current".execute().text.trim()
 
-            if (branchName == "master") {
-                def content = ['grep', '-o', '^version = ".*"', '../../crates/bitwarden/Cargo.toml'].execute().text.trim()
+            if (branchName == "main") {
+                def content = ['grep', '-o', '^version = ".*"', '../../Cargo.toml'].execute().text.trim()
                 def match = ~/version = "(.*)"/
                 def matcher = match.matcher(content)
                 matcher.find()

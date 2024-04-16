@@ -1,19 +1,19 @@
+use bitwarden_api_api::models::FolderResponseModel;
+use bitwarden_crypto::{
+    CryptoError, EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey,
+};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{
-    client::encryption_settings::EncryptionSettings,
-    crypto::{Decryptable, EncString, Encryptable},
-    error::Result,
-};
+use crate::error::{require, Error, Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Folder {
-    id: Uuid,
+    id: Option<Uuid>,
     name: EncString,
     revision_date: DateTime<Utc>,
 }
@@ -22,27 +22,41 @@ pub struct Folder {
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct FolderView {
-    id: Uuid,
-    name: String,
-    revision_date: DateTime<Utc>,
+    pub id: Option<Uuid>,
+    pub name: String,
+    pub revision_date: DateTime<Utc>,
 }
 
-impl Encryptable<Folder> for FolderView {
-    fn encrypt(self, enc: &EncryptionSettings, _org: &Option<Uuid>) -> Result<Folder> {
+impl LocateKey for FolderView {}
+impl KeyEncryptable<SymmetricCryptoKey, Folder> for FolderView {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Folder, CryptoError> {
         Ok(Folder {
             id: self.id,
-            name: self.name.encrypt(enc, &None)?,
+            name: self.name.encrypt_with_key(key)?,
             revision_date: self.revision_date,
         })
     }
 }
 
-impl Decryptable<FolderView> for Folder {
-    fn decrypt(&self, enc: &EncryptionSettings, _org: &Option<Uuid>) -> Result<FolderView> {
+impl LocateKey for Folder {}
+impl KeyDecryptable<SymmetricCryptoKey, FolderView> for Folder {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<FolderView, CryptoError> {
         Ok(FolderView {
             id: self.id,
-            name: self.name.decrypt(enc, &None)?,
+            name: self.name.decrypt_with_key(key).ok().unwrap_or_default(),
             revision_date: self.revision_date,
+        })
+    }
+}
+
+impl TryFrom<FolderResponseModel> for Folder {
+    type Error = Error;
+
+    fn try_from(folder: FolderResponseModel) -> Result<Self> {
+        Ok(Folder {
+            id: folder.id,
+            name: require!(EncString::try_from_optional(folder.name)?),
+            revision_date: require!(folder.revision_date).parse()?,
         })
     }
 }

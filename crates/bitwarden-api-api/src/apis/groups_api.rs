@@ -48,7 +48,8 @@ pub enum OrganizationsOrgIdGroupsIdDeletePostError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`organizations_org_id_groups_id_delete_user_org_user_id_post`]
+/// struct for typed errors of method
+/// [`organizations_org_id_groups_id_delete_user_org_user_id_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationsOrgIdGroupsIdDeleteUserOrgUserIdPostError {
@@ -205,7 +206,7 @@ pub async fn organizations_org_id_groups_delete_post(
 
 pub async fn organizations_org_id_groups_get(
     configuration: &configuration::Configuration,
-    org_id: &str,
+    org_id: uuid::Uuid,
 ) -> Result<
     crate::models::GroupDetailsResponseModelListResponseModel,
     Error<OrganizationsOrgIdGroupsGetError>,

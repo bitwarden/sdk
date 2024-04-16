@@ -1,7 +1,11 @@
 use std::sync::Arc;
 
-use crate::Client;
+use bitwarden::vault::TotpResponse;
+use chrono::{DateTime, Utc};
 
+use crate::{error::Result, Client};
+
+pub mod attachments;
 pub mod ciphers;
 pub mod collections;
 pub mod folders;
@@ -11,7 +15,7 @@ pub mod sends;
 #[derive(uniffi::Object)]
 pub struct ClientVault(pub(crate) Arc<Client>);
 
-#[uniffi::export]
+#[uniffi::export(async_runtime = "tokio")]
 impl ClientVault {
     /// Folder operations
     pub fn folders(self: Arc<Self>) -> Arc<folders::ClientFolders> {
@@ -36,5 +40,24 @@ impl ClientVault {
     /// Sends operations
     pub fn sends(self: Arc<Self>) -> Arc<sends::ClientSends> {
         Arc::new(sends::ClientSends(self.0.clone()))
+    }
+
+    /// Attachment file operations
+    pub fn attachments(self: Arc<Self>) -> Arc<attachments::ClientAttachments> {
+        Arc::new(attachments::ClientAttachments(self.0.clone()))
+    }
+
+    /// Generate a TOTP code from a provided key.
+    ///
+    /// The key can be either:
+    /// - A base32 encoded string
+    /// - OTP Auth URI
+    /// - Steam URI
+    pub async fn generate_totp(
+        &self,
+        key: String,
+        time: Option<DateTime<Utc>>,
+    ) -> Result<TotpResponse> {
+        Ok(self.0 .0.read().await.vault().generate_totp(key, time)?)
     }
 }

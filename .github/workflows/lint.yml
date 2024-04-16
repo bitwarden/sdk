@@ -3,7 +3,7 @@ name: Lint
 on:
   workflow_dispatch:
   push:
-    branches: ["master"]
+    branches: ["main"]
   pull_request:
 
 env:
@@ -17,21 +17,40 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # stable
+        uses: dtolnay/rust-toolchain@bb45937a053e097f8591208d8e74c90db1873d07 # stable
         with:
           toolchain: stable
 
+      - name: Install rust nightly
+        run: |
+          rustup toolchain install nightly
+          rustup component add rustfmt --toolchain nightly-x86_64-unknown-linux-gnu
+
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@a95ba195448af2da9b00fb742d14ffaaf3c21f43 # v2.7.0
+        uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
 
       - name: Cargo fmt
-        run: cargo fmt --check
+        run: cargo +nightly fmt --check
+
+      - name: Install clippy-sarif and sarif-fmt
+        run: cargo install clippy-sarif sarif-fmt --locked --git https://github.com/psastras/sarif-rs.git --rev 11c33a53f6ffeaed736856b86fb6b7b09fabdfd8
+
+      - name: Cargo clippy
+        run: cargo clippy --all-features --tests --message-format=json |
+          clippy-sarif | tee clippy_result.sarif | sarif-fmt
+        env:
+          RUSTFLAGS: "-D warnings"
+
+      - name: Upload Clippy results to GitHub
+        uses: github/codeql-action/upload-sarif@47b3d888fe66b639e431abf22ebca059152f1eea # v3.24.5
+        with:
+          sarif_file: clippy_result.sarif
 
       - name: Set up Node
-        uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
           cache: "npm"
           cache-dependency-path: "package-lock.json"
@@ -47,8 +66,3 @@ jobs:
         run: cargo doc --no-deps --features internal
         env:
           RUSTDOCFLAGS: "-D warnings"
-
-      - name: Cargo clippy
-        run: cargo clippy --all-features
-        env:
-          RUSTFLAGS: "-D warnings"

@@ -1,4 +1,5 @@
 use bitwarden::secrets_manager::{projects::ProjectResponse, secrets::SecretResponse};
+use bitwarden_cli::Color;
 use chrono::{DateTime, Utc};
 use clap::ValueEnum;
 use comfy_table::Table;
@@ -9,26 +10,10 @@ use serde::Serialize;
 pub(crate) enum Output {
     JSON,
     YAML,
+    Env,
     Table,
     TSV,
     None,
-}
-
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
-pub(crate) enum Color {
-    No,
-    Yes,
-    Auto,
-}
-
-impl Color {
-    pub(crate) fn is_enabled(self) -> bool {
-        match self {
-            Color::No => false,
-            Color::Yes => true,
-            Color::Auto => supports_color::on(supports_color::Stream::Stdout).is_some(),
-        }
-    }
 }
 
 const ASCII_HEADER_ONLY: &str = "     --            ";
@@ -36,18 +21,46 @@ const ASCII_HEADER_ONLY: &str = "     --            ";
 pub(crate) fn serialize_response<T: Serialize + TableSerialize<N>, const N: usize>(
     data: T,
     output: Output,
-    color: bool,
+    color: Color,
 ) {
     match output {
         Output::JSON => {
-            let mut text = serde_json::to_string_pretty(&data).unwrap();
-            // Yaml/table/tsv serializations add a newline at the end, so we do the same here for consistency
+            let mut text =
+                serde_json::to_string_pretty(&data).expect("Serialize should be infallible");
+            // Yaml/table/tsv serializations add a newline at the end, so we do the same here for
+            // consistency
             text.push('\n');
             pretty_print("json", &text, color);
         }
         Output::YAML => {
-            let text = serde_yaml::to_string(&data).unwrap();
+            let text = serde_yaml::to_string(&data).expect("Serialize should be infallible");
             pretty_print("yaml", &text, color);
+        }
+        Output::Env => {
+            let valid_key_regex =
+                regex::Regex::new("^[a-zA-Z_][a-zA-Z0-9_]*$").expect("regex is valid");
+
+            let mut commented_out = false;
+            let mut text: Vec<String> = data
+                .get_values()
+                .into_iter()
+                .map(|row| {
+                    if valid_key_regex.is_match(&row[1]) {
+                        format!("{}=\"{}\"", row[1], row[2])
+                    } else {
+                        commented_out = true;
+                        format!("# {}=\"{}\"", row[1], row[2].replace('\n', "\n# "))
+                    }
+                })
+                .collect();
+
+            if commented_out {
+                text.push(String::from(
+                    "\n# one or more secrets have been commented-out due to a problematic key name",
+                ));
+            }
+
+            pretty_print("sh", &format!("{}\n", text.join("\n")), color);
         }
         Output::Table => {
             let mut table = Table::new();
@@ -72,19 +85,20 @@ pub(crate) fn serialize_response<T: Serialize + TableSerialize<N>, const N: usiz
     }
 }
 
-fn pretty_print(language: &str, data: &str, color: bool) {
-    if color {
+fn pretty_print(language: &str, data: &str, color: Color) {
+    if color.is_enabled() {
         bat::PrettyPrinter::new()
             .input_from_bytes(data.as_bytes())
             .language(language)
             .print()
-            .unwrap();
+            .expect("Input is valid");
     } else {
         print!("{}", data);
     }
 }
 
-// We're using const generics for the array lengths to make sure the header count and value count match
+// We're using const generics for the array lengths to make sure the header count and value count
+// match
 pub(crate) trait TableSerialize<const N: usize>: Sized {
     fn get_headers() -> [&'static str; N];
     fn get_values(&self) -> Vec<[String; N]>;

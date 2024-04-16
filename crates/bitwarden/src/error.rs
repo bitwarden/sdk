@@ -1,9 +1,13 @@
 //! Errors that can occur when using this SDK
 
-use std::fmt::Debug;
+use std::{borrow::Cow, fmt::Debug};
 
 use bitwarden_api_api::apis::Error as ApiError;
 use bitwarden_api_identity::apis::Error as IdentityError;
+#[cfg(feature = "internal")]
+use bitwarden_exporters::ExportError;
+#[cfg(feature = "internal")]
+use bitwarden_generators::{PassphraseError, PasswordError, UsernameError};
 use reqwest::StatusCode;
 use thiserror::Error;
 
@@ -20,14 +24,11 @@ pub enum Error {
 
     #[error("The response received was invalid and could not be processed")]
     InvalidResponse,
-    #[error("The response received was missing some of the required fields")]
-    MissingFields,
+    #[error("The response received was missing some of the required fields: {0}")]
+    MissingFields(&'static str),
 
     #[error("Cryptography error, {0}")]
-    Crypto(#[from] CryptoError),
-
-    #[error("Error parsing EncString: {0}")]
-    InvalidEncString(#[from] EncStringParseError),
+    Crypto(#[from] bitwarden_crypto::CryptoError),
 
     #[error("Error parsing Identity response: {0}")]
     IdentityFail(crate::auth::api::response::IdentityTokenFailResponse),
@@ -46,8 +47,41 @@ pub enum Error {
     #[error("Received error message from server: [{}] {}", .status, .message)]
     ResponseContent { status: StatusCode, message: String },
 
+    #[error("The state file version is invalid")]
+    InvalidStateFileVersion,
+
+    #[error("The state file could not be read")]
+    InvalidStateFile,
+
+    // Generators
+    #[cfg(feature = "internal")]
+    #[error(transparent)]
+    UsernameError(#[from] UsernameError),
+    #[cfg(feature = "internal")]
+    #[error(transparent)]
+    PassphraseError(#[from] PassphraseError),
+    #[cfg(feature = "internal")]
+    #[error(transparent)]
+    PasswordError(#[from] PasswordError),
+
+    #[cfg(feature = "internal")]
+    #[error(transparent)]
+    ExportError(#[from] ExportError),
+
     #[error("Internal error: {0}")]
-    Internal(&'static str),
+    Internal(Cow<'static, str>),
+}
+
+impl From<String> for Error {
+    fn from(s: String) -> Self {
+        Self::Internal(s.into())
+    }
+}
+
+impl From<&'static str> for Error {
+    fn from(s: &'static str) -> Self {
+        Self::Internal(s.into())
+    }
 }
 
 #[derive(Debug, Error)]
@@ -66,34 +100,6 @@ pub enum AccessTokenInvalidError {
 
     #[error("Invalid base64 length: expected {expected}, got {got}")]
     InvalidBase64Length { expected: usize, got: usize },
-}
-
-#[derive(Debug, Error)]
-pub enum CryptoError {
-    #[error("The provided key is not the expected type")]
-    InvalidKey,
-    #[error("The cipher's MAC doesn't match the expected value")]
-    InvalidMac,
-    #[error("Error while decrypting EncString")]
-    KeyDecrypt,
-    #[error("The cipher key has an invalid length")]
-    InvalidKeyLen,
-    #[error("There is no encryption key for the provided organization")]
-    NoKeyForOrg,
-    #[error("The value is not a valid UTF8 String")]
-    InvalidUtf8String,
-}
-
-#[derive(Debug, Error)]
-pub enum EncStringParseError {
-    #[error("No type detected, missing '.' separator")]
-    NoType,
-    #[error("Invalid type, got {enc_type} with {parts} parts")]
-    InvalidType { enc_type: String, parts: usize },
-    #[error("Error decoding base64: {0}")]
-    InvalidBase64(#[from] base64::DecodeError),
-    #[error("Invalid length: expected {expected}, got {got}")]
-    InvalidLength { expected: usize, got: usize },
 }
 
 // Ensure that the error messages implement Send and Sync
@@ -126,5 +132,19 @@ macro_rules! impl_bitwarden_error {
 }
 impl_bitwarden_error!(ApiError);
 impl_bitwarden_error!(IdentityError);
+
+/// This macro is used to require that a value is present or return an error otherwise.
+/// It is equivalent to using `val.ok_or(Error::MissingFields)?`, but easier to use and
+/// with a more descriptive error message.
+/// Note that this macro will return early from the function if the value is not present.
+macro_rules! require {
+    ($val:expr) => {
+        match $val {
+            Some(val) => val,
+            None => return Err($crate::error::Error::MissingFields(stringify!($val))),
+        }
+    };
+}
+pub(crate) use require;
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

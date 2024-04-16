@@ -1,0 +1,46 @@
+---
+name: Minimum Rust Version
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "main"
+      - "rc"
+      - "hotfix-rc"
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  msrv:
+    name: Check MSRV for - ${{ matrix.settings.os }} - ${{ matrix.settings.target }}
+    runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@bb45937a053e097f8591208d8e74c90db1873d07 # stable
+        with:
+          # Important: When updating this, make sure to update the Readme file
+          # and also the `rust-version` field in all the `Cargo.toml`.
+          toolchain: 1.71.0
+          targets: ${{ matrix.settings.target }}
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
+        with:
+          key: msrv-${{ matrix.settings.target }}-cargo-${{ matrix.settings.os }}
+
+      - name: cargo check MSRV
+        run: cargo check -p bitwarden --all-features

@@ -2,16 +2,11 @@ use bitwarden_api_identity::{
     apis::accounts_api::accounts_register_post,
     models::{KeysRequestModel, RegisterRequestModel},
 };
+use bitwarden_crypto::{default_pbkdf2_iterations, HashPurpose, MasterKey, RsaKeyPair};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    client::kdf::Kdf,
-    crypto::{HashPurpose, MasterKey, RsaKeyPair},
-    error::Result,
-    util::default_pbkdf2_iterations,
-    Client,
-};
+use crate::{client::Kdf, error::Result, Client};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -26,9 +21,7 @@ pub struct RegisterRequest {
 pub(super) async fn register(client: &mut Client, req: &RegisterRequest) -> Result<()> {
     let config = client.get_api_configurations().await;
 
-    let kdf = Kdf::PBKDF2 {
-        iterations: default_pbkdf2_iterations(),
-    };
+    let kdf = Kdf::default();
 
     let keys = make_register_keys(req.email.to_owned(), req.password.to_owned(), kdf)?;
 
@@ -47,7 +40,7 @@ pub(super) async fn register(client: &mut Client, req: &RegisterRequest) -> Resu
             })),
             token: None,
             organization_user_id: None,
-            kdf: Some(bitwarden_api_identity::models::KdfType::Variant0),
+            kdf: Some(bitwarden_api_identity::models::KdfType::PBKDF2_SHA256),
             kdf_iterations: Some(default_pbkdf2_iterations().get() as i32),
             kdf_memory: None,
             kdf_parallelism: None,
@@ -79,7 +72,7 @@ pub(super) fn make_register_keys(
 
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct RegisterKeyResponse {
-    master_password_hash: String,
-    encrypted_user_key: String,
-    keys: RsaKeyPair,
+    pub master_password_hash: String,
+    pub encrypted_user_key: String,
+    pub keys: RsaKeyPair,
 }

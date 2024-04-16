@@ -1,10 +1,15 @@
 [package]
 name = "bitwarden-c"
 version = "0.1.0"
-edition = "2021"
-rust-version = "1.57"
+publish = false
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+
 [lib]
 crate-type = ["lib", "staticlib", "cdylib"]
 bench = false
@@ -15,4 +20,7 @@ tokio = { version = ">=1.28.2, <2.0", features = ["rt-multi-thread", "macros"] }
 bitwarden-json = { path = "../bitwarden-json", features = ["secrets"] }
 
 [dependencies]
-env_logger = ">=0.10.0, <0.11"
+env_logger = ">=0.10.0, <0.12"
+
+[lints]
+workspace = true

@@ -6,17 +6,18 @@ use crate::{
 };
 
 pub struct ClientExporters<'a> {
-    pub(crate) _client: &'a crate::Client,
+    pub(crate) client: &'a crate::Client,
 }
 
 impl<'a> ClientExporters<'a> {
+    /// **Draft:** Export the vault as a CSV, JSON, or encrypted JSON file.
     pub async fn export_vault(
         &self,
         folders: Vec<Folder>,
         ciphers: Vec<Cipher>,
         format: ExportFormat,
     ) -> Result<String> {
-        export_vault(folders, ciphers, format)
+        export_vault(self.client, folders, ciphers, format)
     }
 
     pub async fn export_organization_vault(
@@ -31,6 +32,6 @@ impl<'a> ClientExporters<'a> {
 
 impl<'a> Client {
     pub fn exporters(&'a self) -> ClientExporters<'a> {
-        ClientExporters { _client: self }
+        ClientExporters { client: self }
     }
 }

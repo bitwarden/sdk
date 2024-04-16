@@ -1,0 +1,5 @@
+module BitwardenSDK
+  class BitwardenClient
+    attr_reader project_client: ProjectsClient
+  end
+end

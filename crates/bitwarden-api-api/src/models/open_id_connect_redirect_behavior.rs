@@ -14,21 +14,21 @@
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr,
 )]
 pub enum OpenIdConnectRedirectBehavior {
-    Variant0 = 0,
-    Variant1 = 1,
+    RedirectGet = 0,
+    FormPost = 1,
 }
 
 impl ToString for OpenIdConnectRedirectBehavior {
     fn to_string(&self) -> String {
         match self {
-            Self::Variant0 => String::from("0"),
-            Self::Variant1 => String::from("1"),
+            Self::RedirectGet => String::from("0"),
+            Self::FormPost => String::from("1"),
         }
     }
 }
 
 impl Default for OpenIdConnectRedirectBehavior {
     fn default() -> OpenIdConnectRedirectBehavior {
-        Self::Variant0
+        Self::RedirectGet
     }
 }

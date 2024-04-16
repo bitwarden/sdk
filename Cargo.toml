@@ -1,7 +1,32 @@
 [workspace]
 resolver = "2"
-
 members = ["crates/*"]
+
+# Global settings for all crates should be defined here
+[workspace.package]
+# Update using `cargo set-version -p bitwarden <new-version>`
+version = "0.4.0"
+authors = ["Bitwarden Inc"]
+edition = "2021"
+# Note: Changing rust-version should be considered a breaking change
+rust-version = "1.71"
+homepage = "https://bitwarden.com"
+repository = "https://github.com/bitwarden/sdk"
+license-file = "LICENSE"
+keywords = ["bitwarden"]
+
+# Define dependencies that are expected to be consistent across all crates
+[workspace.dependencies]
+bitwarden = { path = "crates/bitwarden", version = "=0.4.0" }
+bitwarden-api-api = { path = "crates/bitwarden-api-api", version = "=0.4.0" }
+bitwarden-api-identity = { path = "crates/bitwarden-api-identity", version = "=0.4.0" }
+bitwarden-cli = { path = "crates/bitwarden-cli", version = "=0.4.0" }
+bitwarden-crypto = { path = "crates/bitwarden-crypto", version = "=0.4.0" }
+bitwarden-exporters = { path = "crates/bitwarden-exporters", version = "=0.4.0" }
+bitwarden-generators = { path = "crates/bitwarden-generators", version = "=0.4.0" }
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
 
 # Compile all dependencies with some optimizations when building this crate on debug
 # This slows down clean builds by about 50%, but the resulting binaries can be orders of magnitude faster
@@ -21,11 +46,3 @@ codegen-units = 1
 # Stripping the binary reduces the size by ~30%, but the stacktraces won't be usable anymore.
 # This is fine as long as we don't have any unhandled panics, but let's keep it disabled for now
 # strip = true
-
-# Uniffi proc-macro support is still not part of a release, so we need to use the git version for now
-[patch.crates-io]
-uniffi = { git = "https://github.com/mozilla/uniffi-rs", rev = "53d5ac7274d8b4d66ad35b68cb6e2d89898f96af" }
-uniffi_build = { git = "https://github.com/mozilla/uniffi-rs", rev = "53d5ac7274d8b4d66ad35b68cb6e2d89898f96af" }
-uniffi_bindgen = { git = "https://github.com/mozilla/uniffi-rs", rev = "53d5ac7274d8b4d66ad35b68cb6e2d89898f96af" }
-uniffi_core = { git = "https://github.com/mozilla/uniffi-rs", rev = "53d5ac7274d8b4d66ad35b68cb6e2d89898f96af" }
-uniffi_macros = { git = "https://github.com/mozilla/uniffi-rs", rev = "53d5ac7274d8b4d66ad35b68cb6e2d89898f96af" }

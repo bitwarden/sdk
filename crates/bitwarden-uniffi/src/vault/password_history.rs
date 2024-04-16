@@ -7,7 +7,7 @@ use crate::{Client, Result};
 #[derive(uniffi::Object)]
 pub struct ClientPasswordHistory(pub Arc<Client>);
 
-#[uniffi::export]
+#[uniffi::export(async_runtime = "tokio")]
 impl ClientPasswordHistory {
     /// Encrypt password history
     pub async fn encrypt(&self, password_history: PasswordHistoryView) -> Result<PasswordHistory> {

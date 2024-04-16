@@ -1,0 +1,4 @@
+ignore:
+  - "crates/sdk-schemas" # Tool
+  - "crates/uniffi-bindgen" # Tool
+  - "crates/memory-testing" # Testing

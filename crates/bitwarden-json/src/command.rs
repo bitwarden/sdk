@@ -33,7 +33,6 @@ pub enum Command {
     /// This command is not capable of handling authentication requiring 2fa or captcha.
     ///
     /// Returns: [PasswordLoginResponse](bitwarden::auth::login::PasswordLoginResponse)
-    ///
     PasswordLogin(PasswordLoginRequest),
 
     #[cfg(feature = "internal")]
@@ -42,7 +41,6 @@ pub enum Command {
     /// This command is for initiating an authentication handshake with Bitwarden.
     ///
     /// Returns: [ApiKeyLoginResponse](bitwarden::auth::login::ApiKeyLoginResponse)
-    ///
     ApiKeyLogin(ApiKeyLoginRequest),
 
     #[cfg(feature = "secrets")]
@@ -51,7 +49,6 @@ pub enum Command {
     /// This command is for initiating an authentication handshake with Bitwarden.
     ///
     /// Returns: [ApiKeyLoginResponse](bitwarden::auth::login::ApiKeyLoginResponse)
-    ///
     AccessTokenLogin(AccessTokenLoginRequest),
 
     #[cfg(feature = "internal")]
@@ -59,14 +56,12 @@ pub enum Command {
     /// Get the API key of the currently authenticated user
     ///
     /// Returns: [UserApiKeyResponse](bitwarden::platform::UserApiKeyResponse)
-    ///
     GetUserApiKey(SecretVerificationRequest),
 
     #[cfg(feature = "internal")]
     /// Get the user's passphrase
     ///
     /// Returns: String
-    ///
     Fingerprint(FingerprintRequest),
 
     #[cfg(feature = "internal")]
@@ -74,7 +69,6 @@ pub enum Command {
     /// Retrieve all user data, ciphers and organizations the user is a part of
     ///
     /// Returns: [SyncResponse](bitwarden::platform::SyncResponse)
-    ///
     Sync(SyncRequest),
 
     #[cfg(feature = "secrets")]
@@ -92,7 +86,6 @@ pub enum SecretsCommand {
     /// Retrieve a secret by the provided identifier
     ///
     /// Returns: [SecretResponse](bitwarden::secrets_manager::secrets::SecretResponse)
-    ///
     Get(SecretGetRequest),
 
     /// > Requires Authentication
@@ -100,7 +93,6 @@ pub enum SecretsCommand {
     /// Retrieve secrets by the provided identifiers
     ///
     /// Returns: [SecretsResponse](bitwarden::secrets_manager::secrets::SecretsResponse)
-    ///
     GetByIds(SecretsGetRequest),
 
     /// > Requires Authentication
@@ -108,15 +100,14 @@ pub enum SecretsCommand {
     /// Creates a new secret in the provided organization using the given data
     ///
     /// Returns: [SecretResponse](bitwarden::secrets_manager::secrets::SecretResponse)
-    ///
     Create(SecretCreateRequest),
 
     /// > Requires Authentication
     /// > Requires using an Access Token for login or calling Sync at least once
-    /// Lists all secret identifiers of the given organization, to then retrieve each secret, use `CreateSecret`
+    /// Lists all secret identifiers of the given organization, to then retrieve each secret, use
+    /// `CreateSecret`
     ///
     /// Returns: [SecretIdentifiersResponse](bitwarden::secrets_manager::secrets::SecretIdentifiersResponse)
-    ///
     List(SecretIdentifiersRequest),
 
     /// > Requires Authentication
@@ -124,7 +115,6 @@ pub enum SecretsCommand {
     /// Updates an existing secret with the provided ID using the given data
     ///
     /// Returns: [SecretResponse](bitwarden::secrets_manager::secrets::SecretResponse)
-    ///
     Update(SecretPutRequest),
 
     /// > Requires Authentication
@@ -132,7 +122,6 @@ pub enum SecretsCommand {
     /// Deletes all the secrets whose IDs match the provided ones
     ///
     /// Returns: [SecretsDeleteResponse](bitwarden::secrets_manager::secrets::SecretsDeleteResponse)
-    ///
     Delete(SecretsDeleteRequest),
 }
 
@@ -145,7 +134,6 @@ pub enum ProjectsCommand {
     /// Retrieve a project by the provided identifier
     ///
     /// Returns: [ProjectResponse](bitwarden::secrets_manager::projects::ProjectResponse)
-    ///
     Get(ProjectGetRequest),
 
     /// > Requires Authentication
@@ -153,7 +141,6 @@ pub enum ProjectsCommand {
     /// Creates a new project in the provided organization using the given data
     ///
     /// Returns: [ProjectResponse](bitwarden::secrets_manager::projects::ProjectResponse)
-    ///
     Create(ProjectCreateRequest),
 
     /// > Requires Authentication
@@ -161,7 +148,6 @@ pub enum ProjectsCommand {
     /// Lists all projects of the given organization
     ///
     /// Returns: [ProjectsResponse](bitwarden::secrets_manager::projects::ProjectsResponse)
-    ///
     List(ProjectsListRequest),
 
     /// > Requires Authentication
@@ -169,7 +155,6 @@ pub enum ProjectsCommand {
     /// Updates an existing project with the provided ID using the given data
     ///
     /// Returns: [ProjectResponse](bitwarden::secrets_manager::projects::ProjectResponse)
-    ///
     Update(ProjectPutRequest),
 
     /// > Requires Authentication
@@ -177,6 +162,5 @@ pub enum ProjectsCommand {
     /// Deletes all the projects whose IDs match the provided ones
     ///
     /// Returns: [ProjectsDeleteResponse](bitwarden::secrets_manager::projects::ProjectsDeleteResponse)
-    ///
     Delete(ProjectsDeleteRequest),
 }

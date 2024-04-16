@@ -1,63 +1,90 @@
 [package]
 name = "bitwarden"
-version = "0.3.0"
-authors = ["Bitwarden Inc"]
-license-file = "LICENSE"
-repository = "https://github.com/bitwarden/sdk"
-homepage = "https://bitwarden.com"
 description = """
 Bitwarden Secrets Manager SDK
 """
 keywords = ["bitwarden", "secrets-manager"]
-edition = "2021"
-rust-version = "1.57"
+
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
 
 [features]
 default = ["secrets"]
 
-secrets = []                    # Secrets manager API
-internal = []                   # Internal testing methods
-mobile = ["uniffi", "internal"] # Mobile-specific features
+secrets = [] # Secrets manager API
+internal = [
+    "dep:bitwarden-exporters",
+    "dep:bitwarden-generators",
+] # Internal testing methods
+mobile = [
+    "internal",
+    "dep:uniffi",
+    "bitwarden-crypto/mobile",
+    "bitwarden-generators/mobile",
+] # Mobile-specific features
+
+wasm-bindgen = ["chrono/wasmbind"]
 
 [dependencies]
 base64 = ">=0.21.2, <0.22"
-lazy_static = ">=1.4.0, <2.0"
-reqwest = { version = ">=0.11, <0.12", features = ["json"] }
+bitwarden-api-api = { workspace = true }
+bitwarden-api-identity = { workspace = true }
+bitwarden-crypto = { workspace = true }
+bitwarden-exporters = { workspace = true, optional = true }
+bitwarden-generators = { workspace = true, optional = true }
+chrono = { version = ">=0.4.26, <0.5", features = [
+    "clock",
+    "serde",
+    "std",
+], default-features = false }
+# We don't use this directly (it's used by rand), but we need it here to enable WASM support
+getrandom = { version = ">=0.2.9, <0.3", features = ["js"] }
+hmac = ">=0.12.1, <0.13"
+log = ">=0.4.18, <0.5"
+rand = ">=0.8.5, <0.9"
+reqwest = { version = ">=0.12, <0.13", features = [
+    "http2",
+    "json",
+], default-features = false }
+schemars = { version = ">=0.8.9, <0.9", features = ["uuid1", "chrono"] }
 serde = { version = ">=1.0, <2.0", features = ["derive"] }
 serde_json = ">=1.0.96, <2.0"
 serde_qs = ">=0.12.0, <0.13"
 serde_repr = ">=0.1.12, <0.2"
-schemars = { version = ">=0.8, <0.9", features = ["uuid1", "chrono"] }
-log = ">=0.4.18, <0.5"
-assert_matches = ">=1.5.0, <2.0"
-thiserror = ">=1.0.40, <2.0"
-aes = ">=0.8.2, <0.9"
-cbc = { version = ">=0.1.2, <0.2", features = ["alloc"] }
-hkdf = ">=0.12.3, <0.13"
-hmac = ">=0.12.1, <0.13"
-rsa = ">=0.9.2, <0.10"
 sha1 = ">=0.10.5, <0.11"
 sha2 = ">=0.10.6, <0.11"
-pbkdf2 = { version = ">=0.12.1, <0.13", default-features = false }
-argon2 = { version = ">=0.5.0, <0.6", features = [
-    "alloc",
-], default-features = false }
-rand = ">=0.8.5, <0.9"
-num-bigint = ">=0.4, <0.5"
-num-traits = ">=0.2.15, <0.3"
+thiserror = ">=1.0.40, <2.0"
+uniffi = { version = "=0.26.1", optional = true, features = ["tokio"] }
 uuid = { version = ">=1.3.3, <2.0", features = ["serde"] }
-chrono = { version = ">=0.4.26, <0.5", features = [
-    "serde",
-    "std",
+zxcvbn = ">= 2.2.2, <3.0"
+
+[target.'cfg(all(not(target_os = "android"), not(target_arch="wasm32")))'.dependencies]
+# By default, we use rustls as the TLS stack and rust-platform-verifier to support user-installed root certificates
+# There are a few exceptions to this:
+# - WASM doesn't require a TLS stack, as it just uses the browsers/node fetch
+# - Android uses webpki-roots for the moment
+reqwest = { version = "*", features = [
+    "rustls-tls-manual-roots",
 ], default-features = false }
-uniffi = { version = "=0.24.1", optional = true }
+rustls-platform-verifier = "0.2.0"
 
-# We don't use this directly (it's used by rand), but we need it here to enable WASM support
-getrandom = { version = ">=0.2.9", features = ["js"] }
-
-bitwarden-api-identity = { path = "../bitwarden-api-identity", version = "=0.2.1" }
-bitwarden-api-api = { path = "../bitwarden-api-api", version = "=0.2.1" }
+[target.'cfg(target_os = "android")'.dependencies]
+# On android, the use of rustls-platform-verifier is more complicated and going through some changes at the moment, so we fall back to using webpki-roots
+# This means that for the moment android won't support self-signed certificates, even if they are included in the OS trust store
+reqwest = { version = "*", features = [
+    "rustls-tls-webpki-roots",
+], default-features = false }
 
 [dev-dependencies]
-tokio = { version = "1.28.2", features = ["rt", "macros"] }
-wiremock = "0.5.18"
+rand_chacha = "0.3.1"
+tokio = { version = "1.36.0", features = ["rt", "macros"] }
+wiremock = "0.6.0"
+zeroize = { version = ">=1.7.0, <2.0", features = ["derive", "aarch64"] }
+
+[lints]
+workspace = true

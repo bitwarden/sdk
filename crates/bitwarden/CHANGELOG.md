@@ -9,8 +9,26 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
-- `auth::request::AccessTokenLoginRequest` moved to `auth::login::AccessTokenLoginRequest` (#178)
+- Switched TLS backend to `rustls`, removing the dependency on `OpenSSL`. (#374)
+- `client::AccessToken` is now `auth::AccessToken`. (#656)
 
+## [0.4.0] - 2023-12-21
+
+### Added
+
+- Support for basic state to avoid reauthenticating when creating a new `Client`. This is a breaking
+  change because of adding `state_file` to the `AccessTokenLoginRequest` struct. (#388)
+
+### Deprecated
+
+- `client.access_token_login()` is now deprecated and will be removed in a future release. Please
+  use `client.auth().login_access_token()` instead. (#319)
+
+## [0.3.1] - 2023-10-13
+
+### Changed
+
+- `auth::request::AccessTokenLoginRequest` moved to `auth::login::AccessTokenLoginRequest` (#178)
 - Support for fetching multiple secrets by ids (#150)
 
 ## [0.3.0] - 2023-07-26

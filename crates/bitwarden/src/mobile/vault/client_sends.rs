@@ -1,9 +1,10 @@
 use std::path::Path;
 
+use bitwarden_crypto::{Decryptable, EncString, Encryptable, KeyDecryptable, KeyEncryptable};
+
 use super::client_vault::ClientVault;
 use crate::{
-    crypto::{Decryptable, EncString, Encryptable},
-    error::Result,
+    error::{Error, Result},
     vault::{Send, SendListView, SendView},
     Client,
 };
@@ -35,7 +36,7 @@ impl<'a> ClientSends<'a> {
         encrypted_file_path: &Path,
         decrypted_file_path: &Path,
     ) -> Result<()> {
-        let data = std::fs::read(encrypted_file_path).unwrap();
+        let data = std::fs::read(encrypted_file_path)?;
         let decrypted = self.decrypt_buffer(send, &data).await?;
         std::fs::write(decrypted_file_path, decrypted)?;
         Ok(())
@@ -43,11 +44,11 @@ impl<'a> ClientSends<'a> {
 
     pub async fn decrypt_buffer(&self, send: Send, encrypted_buffer: &[u8]) -> Result<Vec<u8>> {
         let enc = self.client.get_encryption_settings()?;
-        let enc = Send::get_encryption(&send.key, enc, &None)?;
+        let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
+        let key = Send::get_key(&send.key, key)?;
 
         let buf = EncString::from_buffer(encrypted_buffer)?;
-
-        enc.decrypt_bytes(&buf, &None)
+        Ok(buf.decrypt_with_key(&key)?)
     }
 
     pub async fn encrypt(&self, send_view: SendView) -> Result<Send> {
@@ -64,18 +65,22 @@ impl<'a> ClientSends<'a> {
         decrypted_file_path: &Path,
         encrypted_file_path: &Path,
     ) -> Result<()> {
-        let data = std::fs::read(decrypted_file_path).unwrap();
+        let data = std::fs::read(decrypted_file_path)?;
         let encrypted = self.encrypt_buffer(send, &data).await?;
         std::fs::write(encrypted_file_path, encrypted)?;
         Ok(())
     }
 
     pub async fn encrypt_buffer(&self, send: Send, buffer: &[u8]) -> Result<Vec<u8>> {
-        let enc = self.client.get_encryption_settings()?;
-        let enc = Send::get_encryption(&send.key, enc, &None)?;
+        let key = self
+            .client
+            .get_encryption_settings()?
+            .get_key(&None)
+            .ok_or(Error::VaultLocked)?;
+        let key = Send::get_key(&send.key, key)?;
 
-        let enc = enc.encrypt(buffer, &None)?;
-        enc.to_buffer()
+        let enc = buffer.encrypt_with_key(&key)?;
+        Ok(enc.to_buffer()?)
     }
 }
 

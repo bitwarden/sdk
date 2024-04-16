@@ -1,47 +1,51 @@
 [package]
 name = "bws"
-version = "0.3.0"
-edition = "2021"
-rust-version = "1.60"
-authors = ["Bitwarden Inc"]
-license-file = "LICENSE"
-repository = "https://github.com/bitwarden/sdk"
-homepage = "https://bitwarden.com"
+version = "0.4.0"
 description = """
 Bitwarden Secrets Manager CLI
 """
 keywords = ["bitwarden", "secrets-manager", "cli"]
+exclude = ["Dockerfile*", "entitlements.plist"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
 
 [dependencies]
-bat = { version = "0.23.0", features = [
+bat = { version = "0.24.0", features = [
     "regex-onig",
 ], default-features = false }
-chrono = { version = "0.4.26", features = [
+bitwarden = { workspace = true, features = ["secrets"] }
+bitwarden-cli = { workspace = true }
+chrono = { version = "0.4.35", features = [
     "clock",
     "std",
 ], default-features = false }
-clap = { version = "4.3.0", features = ["derive", "env", "string"] }
-clap_complete = "4.3.2"
+clap = { version = "4.5.1", features = ["derive", "env", "string"] }
+clap_complete = "4.5.0"
 color-eyre = "0.6"
-comfy-table = "^7.0.1"
+comfy-table = "^7.1.0"
 directories = "5.0.1"
-env_logger = "0.10.0"
-log = "0.4.18"
-serde = "^1.0.163"
-serde_json = "^1.0.96"
+env_logger = "0.11.1"
+log = "0.4.20"
+regex = { version = "1.10.3", features = [
+    "std",
+    "perf",
+], default-features = false }
+serde = "^1.0.196"
+serde_json = "^1.0.113"
 serde_yaml = "0.9"
-supports-color = "2.0.0"
-thiserror = "1.0.40"
-tokio = { version = "1.28.2", features = ["rt-multi-thread", "macros"] }
-toml = "0.8.0"
-uuid = { version = "^1.3.3", features = ["serde"] }
-
-bitwarden = { path = "../bitwarden", version = "0.3.0", features = ["secrets"] }
+supports-color = "3.0.0"
+thiserror = "1.0.57"
+tokio = { version = "1.36.0", features = ["rt-multi-thread", "macros"] }
+toml = "0.8.10"
+uuid = { version = "^1.7.0", features = ["serde"] }
 
 [dev-dependencies]
-tempfile = "3.5.0"
+tempfile = "3.10.0"
 
-[target.'cfg(target_os = "linux")'.dependencies]
-openssl = { version = "0.10", features = ["vendored"] }
+[lints]
+workspace = true

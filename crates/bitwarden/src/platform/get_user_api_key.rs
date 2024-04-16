@@ -2,6 +2,7 @@ use bitwarden_api_api::{
     apis::accounts_api::accounts_api_key_post,
     models::{ApiKeyResponseModel, SecretVerificationRequestModel},
 };
+use bitwarden_crypto::{HashPurpose, MasterKey};
 use log::{debug, info};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -9,8 +10,7 @@ use serde::{Deserialize, Serialize};
 use super::SecretVerificationRequest;
 use crate::{
     client::{LoginMethod, UserLoginMethod},
-    crypto::{HashPurpose, MasterKey},
-    error::{Error, Result},
+    error::{require, Error, Result},
     Client,
 };
 
@@ -62,7 +62,7 @@ fn get_secret_verification_request(
             auth_request_access_code: None,
         })
     } else {
-        Err(Error::Internal("Unsupported login method"))
+        Err("Unsupported login method".into())
     }
 }
 
@@ -75,9 +75,7 @@ pub struct UserApiKeyResponse {
 
 impl UserApiKeyResponse {
     pub(crate) fn process_response(response: ApiKeyResponseModel) -> Result<UserApiKeyResponse> {
-        match response.api_key {
-            Some(api_key) => Ok(UserApiKeyResponse { api_key }),
-            None => Err(Error::MissingFields),
-        }
+        let api_key = require!(response.api_key);
+        Ok(UserApiKeyResponse { api_key })
     }
 }

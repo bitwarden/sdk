@@ -9,6 +9,31 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Add a `BWS_CONFIG_FILE` environment variable to specify the location of the config file (#571)
+- The `bws` CLI is now available as a Docker image (`docker run -it bitwarden/bws --help`) (#305)
+- The `bws` CLI releases are now code signed on Windows and Mac (#534, #535)
+
+### Fixed
+
+- Re-add output options to the help menu after they were accidentally removed (#477)
+
+### Changed
+
+- Switched TLS backend to `rusttls`, removing the dependency on `OpenSSL` (#374)
+- Updated MSRV for `bws` to `1.71.0` (#589)
+
+## [0.4.0] - 2023-12-21
+
+### Added
+
+- Ability to output secrets in an `env` format with `bws` (#320)
+- Basic state to avoid reauthenticating every run, used when setting the `state_file_dir` key in the
+  config (#388)
+
+## [0.3.1] - 2023-10-13
+
+### Added
+
 - Support for shell autocompletion with the `bws completions` command (#103)
 - When running `bws` with no args, the help text is now printed to `stderr` instead of `stdout` to
   be consistent with `bws subcommand` behavior (#190)

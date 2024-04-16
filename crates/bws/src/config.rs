@@ -19,6 +19,7 @@ pub(crate) struct Profile {
     pub server_base: Option<String>,
     pub server_api: Option<String>,
     pub server_identity: Option<String>,
+    pub state_file_dir: Option<String>,
 }
 
 // TODO: This could probably be derived with a macro if we start adding more fields
@@ -28,6 +29,7 @@ pub(crate) enum ProfileKey {
     server_base,
     server_api,
     server_identity,
+    state_file_dir,
 }
 
 impl ProfileKey {
@@ -36,6 +38,7 @@ impl ProfileKey {
             ProfileKey::server_base => p.server_base = Some(value),
             ProfileKey::server_api => p.server_api = Some(value),
             ProfileKey::server_identity => p.server_identity = Some(value),
+            ProfileKey::state_file_dir => p.state_file_dir = Some(value),
         }
     }
 }
@@ -43,23 +46,28 @@ impl ProfileKey {
 pub(crate) const FILENAME: &str = "config";
 pub(crate) const DIRECTORY: &str = ".bws";
 
-fn get_config_path(config_file: Option<&Path>, ensure_folder_exists: bool) -> PathBuf {
-    let config_file = config_file.map(ToOwned::to_owned).unwrap_or_else(|| {
-        let base_dirs = BaseDirs::new().unwrap();
-        base_dirs.home_dir().join(DIRECTORY).join(FILENAME)
-    });
+fn get_config_path(config_file: Option<&Path>, ensure_folder_exists: bool) -> Result<PathBuf> {
+    let config_file = match config_file {
+        Some(path) => path.to_owned(),
+        None => {
+            let Some(base_dirs) = BaseDirs::new() else {
+                bail!("A valid home directory doesn't exist");
+            };
+            base_dirs.home_dir().join(DIRECTORY).join(FILENAME)
+        }
+    };
 
     if ensure_folder_exists {
         if let Some(parent_folder) = config_file.parent() {
-            std::fs::create_dir_all(parent_folder).unwrap();
+            std::fs::create_dir_all(parent_folder)?;
         }
     }
 
-    config_file
+    Ok(config_file)
 }
 
 pub(crate) fn load_config(config_file: Option<&Path>, must_exist: bool) -> Result<Config> {
-    let file = get_config_path(config_file, false);
+    let file = get_config_path(config_file, false)?;
 
     let content = match file.exists() {
         true => read_to_string(file),
@@ -72,7 +80,7 @@ pub(crate) fn load_config(config_file: Option<&Path>, must_exist: bool) -> Resul
 }
 
 fn write_config(config: Config, config_file: Option<&Path>) -> Result<()> {
-    let file = get_config_path(config_file, true);
+    let file = get_config_path(config_file, true)?;
 
     let content = toml::to_string_pretty(&config)?;
 
@@ -118,6 +126,7 @@ impl Profile {
             server_base: Some(url.to_string()),
             server_api: None,
             server_identity: None,
+            state_file_dir: None,
         })
     }
     pub(crate) fn api_url(&self) -> Result<String> {

@@ -1,70 +1,95 @@
-use std::str::FromStr;
+use std::path::{Path, PathBuf};
 
-use base64::Engine;
+use base64::engine::general_purpose::STANDARD;
+use bitwarden_crypto::{EncString, KeyDecryptable, SensitiveString, SymmetricCryptoKey};
+use chrono::Utc;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::{
     auth::{
         api::{request::AccessTokenRequest, response::IdentityTokenResponse},
         login::{response::two_factor::TwoFactorProviders, PasswordLoginResponse},
+        AccessToken, JWTToken,
     },
-    client::{AccessToken, LoginMethod, ServiceAccountLoginMethod},
-    crypto::{EncString, SymmetricCryptoKey},
-    error::{Error, Result},
-    util::{decode_token, BASE64_ENGINE},
+    client::{LoginMethod, ServiceAccountLoginMethod},
+    error::{require, Error, Result},
+    secrets_manager::state::{self, ClientState},
     Client,
 };
 
-pub(crate) async fn access_token_login(
+pub(crate) async fn login_access_token(
     client: &mut Client,
     input: &AccessTokenLoginRequest,
 ) -> Result<AccessTokenLoginResponse> {
     //info!("api key logging in");
     //debug!("{:#?}, {:#?}", client, input);
 
-    let access_token = AccessToken::from_str(&input.access_token)?;
+    let access_token: AccessToken = input.access_token.parse()?;
+
+    if let Some(state_file) = &input.state_file {
+        if let Ok(organization_id) = load_tokens_from_state(client, state_file, &access_token) {
+            client.set_login_method(LoginMethod::ServiceAccount(
+                ServiceAccountLoginMethod::AccessToken {
+                    access_token,
+                    organization_id,
+                    state_file: Some(state_file.to_path_buf()),
+                },
+            ));
+
+            return Ok(AccessTokenLoginResponse {
+                authenticated: true,
+                reset_master_password: false,
+                force_password_reset: false,
+                two_factor: None,
+            });
+        }
+    }
 
     let response = request_access_token(client, &access_token).await?;
 
     if let IdentityTokenResponse::Payload(r) = &response {
         // Extract the encrypted payload and use the access token encryption key to decrypt it
-        let payload = EncString::from_str(&r.encrypted_payload)?;
+        let payload: EncString = r.encrypted_payload.parse()?;
 
-        let decrypted_payload = payload.decrypt_with_key(&access_token.encryption_key)?;
+        let decrypted_payload: Vec<u8> = payload.decrypt_with_key(&access_token.encryption_key)?;
 
         // Once decrypted, we have to JSON decode to extract the organization encryption key
         #[derive(serde::Deserialize)]
         struct Payload {
             #[serde(rename = "encryptionKey")]
-            encryption_key: String,
+            encryption_key: SensitiveString,
         }
 
         let payload: Payload = serde_json::from_slice(&decrypted_payload)?;
+        let encryption_key = payload.encryption_key.clone().decode_base64(STANDARD)?;
+        let encryption_key = SymmetricCryptoKey::try_from(encryption_key)?;
 
-        let encryption_key = BASE64_ENGINE.decode(payload.encryption_key)?;
-
-        let encryption_key = SymmetricCryptoKey::try_from(encryption_key.as_slice())?;
-
-        let access_token_obj = decode_token(&r.access_token)?;
+        let access_token_obj: JWTToken = r.access_token.parse()?;
 
         // This should always be Some() when logging in with an access token
-        let organization_id = access_token_obj
-            .organization
-            .ok_or(Error::MissingFields)?
+        let organization_id = require!(access_token_obj.organization)
             .parse()
             .map_err(|_| Error::InvalidResponse)?;
+
+        if let Some(state_file) = &input.state_file {
+            let state = ClientState::new(r.access_token.clone(), payload.encryption_key);
+            _ = state::set(state_file, &access_token, state);
+        }
 
         client.set_tokens(
             r.access_token.clone(),
             r.refresh_token.clone(),
             r.expires_in,
-            LoginMethod::ServiceAccount(ServiceAccountLoginMethod::AccessToken {
-                service_account_id: access_token.service_account_id,
-                client_secret: access_token.client_secret,
-                organization_id,
-            }),
         );
+        client.set_login_method(LoginMethod::ServiceAccount(
+            ServiceAccountLoginMethod::AccessToken {
+                access_token,
+                organization_id,
+                state_file: input.state_file.clone(),
+            },
+        ));
 
         client.initialize_crypto_single_key(encryption_key);
     }
@@ -77,9 +102,37 @@ async fn request_access_token(
     input: &AccessToken,
 ) -> Result<IdentityTokenResponse> {
     let config = client.get_api_configurations().await;
-    AccessTokenRequest::new(input.service_account_id, &input.client_secret)
+    AccessTokenRequest::new(input.access_token_id, &input.client_secret)
         .send(config)
         .await
+}
+
+fn load_tokens_from_state(
+    client: &mut Client,
+    state_file: &Path,
+    access_token: &AccessToken,
+) -> Result<Uuid> {
+    let client_state = state::get(state_file, access_token)?;
+
+    let token: JWTToken = client_state.token.parse()?;
+
+    if let Some(organization_id) = token.organization {
+        let time_till_expiration = (token.exp as i64) - Utc::now().timestamp();
+
+        if time_till_expiration > 0 {
+            let organization_id: Uuid = organization_id
+                .parse()
+                .map_err(|_| "Bad organization id.")?;
+            let encryption_key = SymmetricCryptoKey::try_from(client_state.encryption_key)?;
+
+            client.set_tokens(client_state.token, None, time_till_expiration as u64);
+            client.initialize_crypto_single_key(encryption_key);
+
+            return Ok(organization_id);
+        }
+    }
+
+    Err(Error::InvalidStateFile)
 }
 
 /// Login to Bitwarden with access token
@@ -88,6 +141,7 @@ async fn request_access_token(
 pub struct AccessTokenLoginRequest {
     /// Bitwarden service API access token
     pub access_token: String,
+    pub state_file: Option<PathBuf>,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

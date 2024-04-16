@@ -1,13 +1,14 @@
 use std::sync::Arc;
 
 use bitwarden::vault::{Cipher, CipherListView, CipherView};
+use uuid::Uuid;
 
 use crate::{Client, Result};
 
 #[derive(uniffi::Object)]
 pub struct ClientCiphers(pub Arc<Client>);
 
-#[uniffi::export]
+#[uniffi::export(async_runtime = "tokio")]
 impl ClientCiphers {
     /// Encrypt cipher
     pub async fn encrypt(&self, cipher_view: CipherView) -> Result<Cipher> {
@@ -45,6 +46,23 @@ impl ClientCiphers {
             .vault()
             .ciphers()
             .decrypt_list(ciphers)
+            .await?)
+    }
+
+    /// Move a cipher to an organization, reencrypting the cipher key if necessary
+    pub async fn move_to_organization(
+        &self,
+        cipher: CipherView,
+        organization_id: Uuid,
+    ) -> Result<CipherView> {
+        Ok(self
+            .0
+             .0
+            .read()
+            .await
+            .vault()
+            .ciphers()
+            .move_to_organization(cipher, organization_id)
             .await?)
     }
 }

@@ -92,7 +92,7 @@ jobs:
 
           # Run swiftformat
           swiftformat sdk/languages/swift/Package.swift
-          
+
           # Copy files to local sdk-swift repo path
           cp --verbose -rf sdk/languages/swift/README.md sdk-swift/README.md
           cp --verbose -rf sdk/languages/swift/Package.swift sdk-swift/Package.swift

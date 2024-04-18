@@ -1,5 +1,3 @@
-use std::num::NonZeroU32;
-
 use bitwarden_api_api::{
     apis::auth_requests_api::{auth_requests_id_response_get, auth_requests_post},
     models::{AuthRequestCreateRequestModel, AuthRequestType},
@@ -86,9 +84,7 @@ pub(crate) async fn complete_auth_request(
     .await?;
 
     if let IdentityTokenResponse::Authenticated(r) = response {
-        let kdf = Kdf::PBKDF2 {
-            iterations: NonZeroU32::new(600_000).expect("Non-zero number"),
-        };
+        let kdf = Kdf::default();
 
         client.set_tokens(
             r.access_token.clone(),

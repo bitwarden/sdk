@@ -21,6 +21,27 @@ pub enum Kdf {
     },
 }
 
+impl Default for Kdf {
+    fn default() -> Self {
+        Kdf::PBKDF2 {
+            iterations: default_pbkdf2_iterations(),
+        }
+    }
+}
+
+pub fn default_pbkdf2_iterations() -> NonZeroU32 {
+    NonZeroU32::new(600_000).expect("Non-zero number")
+}
+pub fn default_argon2_iterations() -> NonZeroU32 {
+    NonZeroU32::new(3).expect("Non-zero number")
+}
+pub fn default_argon2_memory() -> NonZeroU32 {
+    NonZeroU32::new(64).expect("Non-zero number")
+}
+pub fn default_argon2_parallelism() -> NonZeroU32 {
+    NonZeroU32::new(4).expect("Non-zero number")
+}
+
 #[derive(Copy, Clone, JsonSchema)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum HashPurpose {

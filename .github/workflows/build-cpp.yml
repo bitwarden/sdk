@@ -151,7 +151,7 @@ jobs:
           $DBOOST_PATH="C:\vcpkg\installed\x64-windows\include\boost"
           $DTARGET="include/libbitwarden_c.dll"
           cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=include/libbitwarden_c.dll -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/languages/cpp/
-          cmake --build .
+          # cmake --build .
         shell: pwsh
 
       - name: Copy artifacts

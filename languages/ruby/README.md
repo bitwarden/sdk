@@ -106,7 +106,7 @@ Prerequisites:
 cd languages/ruby
 
 # Make the binary folder if it doesn't exist already
-mkdir ./bitwarden_sdk_secrets/lib/macos-arm64
+mkdir -p ./bitwarden_sdk_secrets/lib/macos-arm64
 
 # Build and copy the bitwarden-c library
 cargo build --package bitwarden-c

@@ -25,12 +25,12 @@ add_library(BitwardenClient SHARED ${SOURCES} ${SCHEMAS_SOURCE})
 set(LIB_BITWARDEN_C "${CMAKE_SOURCE_DIR}/${TARGET}")
 
 # Copy the library to the build directory before building
-# add_custom_command(
-#     TARGET BitwardenClient PRE_BUILD
-#     COMMAND ${CMAKE_COMMAND} -E copy
-#         ${LIB_BITWARDEN_C}
-#         $<TARGET_FILE_DIR:BitwardenClient>
-# )
+add_custom_command(
+    TARGET BitwardenClient PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+        ${LIB_BITWARDEN_C}
+        $<TARGET_FILE_DIR:BitwardenClient>
+)
 
 # Link libraries
 target_link_libraries(BitwardenClient PRIVATE ${LIB_BITWARDEN_C})

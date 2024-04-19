@@ -73,6 +73,7 @@ pub(crate) enum ServiceAccountLoginMethod {
     },
 }
 
+/// The main struct to interact with the Bitwarden SDK.
 #[derive(Debug)]
 pub struct Client {
     token: Option<String>,

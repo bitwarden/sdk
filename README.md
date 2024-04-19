@@ -140,5 +140,24 @@ VALUES
   );
 ```
 
+## Developer tools
+
+This project recommends the use of certain developer tools, and also includes configurations for
+them to make developers lives easier. The use of these tools is optional and they might require a
+separate installation step.
+
+The list of developer tools is:
+
+- `Visual Studio Code`: We provide a recommended extension list which should show under the
+  `Extensions` tab when opening this project with the editor. We also offer a few launch settings
+  and tasks to build and run the SDK
+- `bacon`: This is a CLI background code checker. We provide a configuration file with some of the
+  most common tasks to run (`check`, `clippy`, `test`, `doc` - run `bacon -l` to see them all). This
+  tool needs to be installed separately by running `cargo install bacon --locked`.
+- `nexttest`: This is a new and faster test runner, capable of running tests in parallel and with a
+  much nicer output compared to `cargo test`. This tool needs to be installed separately by running
+  `cargo install cargo-nextest --locked`. It can be manually run using
+  `cargo nextest run --all-features`
+
 [secrets-manager]: https://bitwarden.com/products/secrets-manager/
 [bws-help]: https://bitwarden.com/help/secrets-manager-cli/

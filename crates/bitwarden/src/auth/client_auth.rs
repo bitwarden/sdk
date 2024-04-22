@@ -1,5 +1,5 @@
 #[cfg(feature = "internal")]
-use bitwarden_crypto::{AsymmetricEncString, DeviceKey, TrustDeviceResponse};
+use bitwarden_crypto::{AsymmetricEncString, DeviceKey, SensitiveString, TrustDeviceResponse};
 
 #[cfg(feature = "mobile")]
 use crate::auth::login::NewAuthRequestResponse;
@@ -68,7 +68,7 @@ impl<'a> ClientAuth<'a> {
     pub fn make_register_keys(
         &self,
         email: String,
-        password: String,
+        password: SensitiveString,
         kdf: Kdf,
     ) -> Result<RegisterKeyResponse> {
         make_register_keys(email, password, kdf)
@@ -83,7 +83,7 @@ impl<'a> ClientAuth<'a> {
         make_register_tde_keys(self.client, email, org_public_key, remember_device)
     }
 
-    pub async fn register(&mut self, input: &RegisterRequest) -> Result<()> {
+    pub async fn register(&mut self, input: RegisterRequest) -> Result<()> {
         register(self.client, input).await
     }
 
@@ -96,29 +96,33 @@ impl<'a> ClientAuth<'a> {
 
     pub async fn login_password(
         &mut self,
-        input: &PasswordLoginRequest,
+        input: PasswordLoginRequest,
     ) -> Result<PasswordLoginResponse> {
         login_password(self.client, input).await
     }
 
     pub async fn login_api_key(
         &mut self,
-        input: &ApiKeyLoginRequest,
+        input: ApiKeyLoginRequest,
     ) -> Result<ApiKeyLoginResponse> {
         login_api_key(self.client, input).await
     }
 
-    pub async fn send_two_factor_email(&mut self, tf: &TwoFactorEmailRequest) -> Result<()> {
+    pub async fn send_two_factor_email(&mut self, tf: TwoFactorEmailRequest) -> Result<()> {
         send_two_factor_email(self.client, tf).await
     }
 
-    pub fn validate_password(&self, password: String, password_hash: String) -> Result<bool> {
+    pub fn validate_password(
+        &self,
+        password: SensitiveString,
+        password_hash: String,
+    ) -> Result<bool> {
         validate_password(self.client, password, password_hash)
     }
 
     pub fn validate_password_user_key(
         &self,
-        password: String,
+        password: SensitiveString,
         encrypted_user_key: String,
     ) -> Result<String> {
         validate_password_user_key(self.client, password, encrypted_user_key)

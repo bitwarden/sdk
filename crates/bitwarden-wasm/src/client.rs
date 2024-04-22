@@ -2,6 +2,7 @@ extern crate console_error_panic_hook;
 use std::rc::Rc;
 
 use argon2::{Algorithm, Argon2, Params, Version};
+use bitwarden_crypto::SensitiveVec;
 use bitwarden_json::client::Client as JsonClient;
 use js_sys::Promise;
 use log::Level;
@@ -58,12 +59,15 @@ impl BitwardenClient {
 
 #[wasm_bindgen]
 pub fn argon2(
-    password: &[u8],
-    salt: &[u8],
+    password: Vec<u8>,
+    salt: Vec<u8>,
     iterations: u32,
     memory: u32,
     parallelism: u32,
 ) -> Result<Vec<u8>, JsError> {
+    let password = SensitiveVec::new(Box::new(password));
+    let salt = SensitiveVec::new(Box::new(salt));
+
     let argon = Argon2::new(
         Algorithm::Argon2id,
         Version::V0x13,
@@ -76,6 +80,6 @@ pub fn argon2(
     );
 
     let mut hash = [0u8; 32];
-    argon.hash_password_into(password, salt, &mut hash)?;
+    argon.hash_password_into(password.expose(), salt.expose(), &mut hash)?;
     Ok(hash.to_vec())
 }

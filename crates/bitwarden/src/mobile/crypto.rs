@@ -231,9 +231,9 @@ pub fn update_password(
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct DerivePinKeyResponse {
-    /// [UserKey] protected by PIN
+    /// [UserKey](bitwarden_crypto::UserKey) protected by PIN
     pin_protected_user_key: EncString,
-    /// PIN protected by [UserKey]
+    /// PIN protected by [UserKey](bitwarden_crypto::UserKey)
     encrypted_pin: EncString,
 }
 

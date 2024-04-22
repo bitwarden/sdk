@@ -151,7 +151,7 @@ impl<V: Zeroize + JsonSchema> JsonSchema for Sensitive<V> {
 // IMPORTANT: This should not be used outside of test code
 // Note that we can't just mark it with #[cfg(test)] because that only applies
 // when testing this crate, not when testing other crates that depend on it.
-// By at least limiting it to &'static str we should be able to avoid accidental usages
+// By at least limiting it to &'static reference we should be able to avoid accidental usages
 impl<V: Zeroize> Sensitive<V> {
     pub fn test<T: ?Sized>(value: &'static T) -> Self
     where

@@ -14,7 +14,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
-- Fix renew for service account access token logins  (#702)
+- Fix renew for service account access token logins (#702)
 
 ## [0.4.0] - 2023-12-21
 

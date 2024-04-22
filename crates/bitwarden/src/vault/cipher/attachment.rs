@@ -151,7 +151,7 @@ mod tests {
 
     #[test]
     fn test_attachment_key() {
-        let user_key = SymmetricCryptoKey::try_from(SensitiveString::test("w2LO+nwV4oxwswVYCxlOfRUseXfvU03VzvKQHrqeklPgiMZrspUe6sOBToCnDn9Ay0tuCBn8ykVVRb7PWhub2Q==")).unwrap();
+        let user_key : SymmetricCryptoKey = SensitiveString::test("w2LO+nwV4oxwswVYCxlOfRUseXfvU03VzvKQHrqeklPgiMZrspUe6sOBToCnDn9Ay0tuCBn8ykVVRb7PWhub2Q==").try_into().unwrap();
 
         let attachment = Attachment {
             id: None,

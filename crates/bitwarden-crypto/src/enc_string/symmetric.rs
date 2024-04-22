@@ -119,15 +119,15 @@ impl EncString {
         match enc_type {
             0 => {
                 check_length(buf, 18)?;
-                let iv = buf[1..17].try_into().unwrap();
+                let iv = buf[1..17].try_into().expect("Valid length");
                 let data = buf[17..].to_vec();
 
                 Ok(EncString::AesCbc256_B64 { iv, data })
             }
             1 | 2 => {
                 check_length(buf, 50)?;
-                let iv = buf[1..17].try_into().unwrap();
-                let mac = buf[17..49].try_into().unwrap();
+                let iv = buf[1..17].try_into().expect("Valid length");
+                let mac = buf[17..49].try_into().expect("Valid length");
                 let data = buf[49..].to_vec();
 
                 if enc_type == 1 {
@@ -306,8 +306,7 @@ mod tests {
 
     use super::EncString;
     use crate::{
-        derive_symmetric_key, DecryptedString, KeyDecryptable, KeyEncryptable, SensitiveString,
-        SymmetricCryptoKey,
+        derive_symmetric_key, KeyDecryptable, KeyEncryptable, SensitiveString, SymmetricCryptoKey,
     };
 
     #[test]
@@ -317,7 +316,7 @@ mod tests {
         let test_string = "encrypted_test_string";
         let cipher = test_string.to_owned().encrypt_with_key(&key).unwrap();
 
-        let decrypted_str: DecryptedString = cipher.decrypt_with_key(&key).unwrap();
+        let decrypted_str: SensitiveString = cipher.decrypt_with_key(&key).unwrap();
         assert_eq!(decrypted_str.expose(), test_string);
     }
 
@@ -415,7 +414,7 @@ mod tests {
         let enc_string: EncString = enc_str.parse().unwrap();
         assert_eq!(enc_string.enc_type(), 0);
 
-        let dec_str: DecryptedString = enc_string.decrypt_with_key(&key).unwrap();
+        let dec_str: SensitiveString = enc_string.decrypt_with_key(&key).unwrap();
         assert_eq!(dec_str.expose(), "EncryptMe!");
     }
 
@@ -428,7 +427,7 @@ mod tests {
         let enc_string: EncString = enc_str.parse().unwrap();
         assert_eq!(enc_string.enc_type(), 1);
 
-        let dec_str: DecryptedString = enc_string.decrypt_with_key(&key).unwrap();
+        let dec_str: SensitiveString = enc_string.decrypt_with_key(&key).unwrap();
         assert_eq!(dec_str.expose(), "EncryptMe!");
     }
 

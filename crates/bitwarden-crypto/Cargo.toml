@@ -1,26 +1,27 @@
 [package]
 name = "bitwarden-crypto"
-version = "0.1.0"
-authors = ["Bitwarden Inc"]
-license-file = "LICENSE"
-repository = "https://github.com/bitwarden/sdk"
-homepage = "https://bitwarden.com"
 description = """
 Internal crate for the bitwarden crate. Do not use.
 """
-keywords = ["bitwarden"]
-edition = "2021"
-rust-version = "1.71"
+
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+keywords.workspace = true
 
 [features]
 default = []
 
-mobile = ["uniffi"]
+mobile = ["dep:uniffi"] # Mobile-specific features
 
 [dependencies]
 aes = { version = ">=0.8.2, <0.9", features = ["zeroize"] }
 argon2 = { version = ">=0.5.0, <0.6", features = [
-    "alloc",
+    "std",
     "zeroize",
 ], default-features = false }
 base64 = ">=0.21.2, <0.22"
@@ -47,3 +48,6 @@ zeroize = { version = ">=1.7.0, <2.0", features = ["derive", "aarch64"] }
 [dev-dependencies]
 rand_chacha = "0.3.1"
 serde_json = ">=1.0.96, <2.0"
+
+[lints]
+workspace = true

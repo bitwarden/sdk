@@ -38,7 +38,7 @@ impl<'a> ClientSends<'a> {
         encrypted_file_path: &Path,
         decrypted_file_path: &Path,
     ) -> Result<()> {
-        let data = std::fs::read(encrypted_file_path).unwrap();
+        let data = std::fs::read(encrypted_file_path)?;
         let decrypted = self.decrypt_buffer(send, &data).await?;
         std::fs::write(decrypted_file_path, decrypted)?;
         Ok(())
@@ -68,7 +68,7 @@ impl<'a> ClientSends<'a> {
         decrypted_file_path: &Path,
         encrypted_file_path: &Path,
     ) -> Result<()> {
-        let data = std::fs::read(decrypted_file_path).unwrap();
+        let data = std::fs::read(decrypted_file_path)?;
         let encrypted = self.encrypt_buffer(send, &data).await?;
         std::fs::write(encrypted_file_path, encrypted)?;
         Ok(())

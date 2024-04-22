@@ -48,13 +48,13 @@ pub(crate) fn export_csv(folders: Vec<Folder>, ciphers: Vec<Cipher>) -> Result<S
 
     let mut wtr = Writer::from_writer(vec![]);
     for row in rows {
-        wtr.serialize(row).unwrap();
+        wtr.serialize(row).expect("Serialize should be infallible");
     }
 
     String::from_utf8(wtr.into_inner().map_err(|_| CsvError::Csv)?).map_err(|_| CsvError::Csv)
 }
 
-/// CSV export format. See https://bitwarden.com/help/condition-bitwarden-import/#condition-a-csv
+/// CSV export format. See <https://bitwarden.com/help/condition-bitwarden-import/#condition-a-csv>
 ///
 /// Be careful when changing this struct to maintain compatibility with old exports.
 #[derive(serde::Serialize)]

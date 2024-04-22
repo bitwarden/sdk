@@ -8,7 +8,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::error::{Error, Result};
+use crate::error::{require, Error, Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -56,8 +56,8 @@ impl TryFrom<FolderResponseModel> for Folder {
     fn try_from(folder: FolderResponseModel) -> Result<Self> {
         Ok(Folder {
             id: folder.id,
-            name: EncString::try_from_optional(folder.name)?.ok_or(Error::MissingFields)?,
-            revision_date: folder.revision_date.ok_or(Error::MissingFields)?.parse()?,
+            name: require!(EncString::try_from_optional(folder.name)?),
+            revision_date: require!(folder.revision_date).parse()?,
         })
     }
 }

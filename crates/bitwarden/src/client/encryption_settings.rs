@@ -2,11 +2,11 @@ use std::collections::HashMap;
 
 use bitwarden_crypto::{AsymmetricCryptoKey, KeyContainer, SymmetricCryptoKey};
 #[cfg(feature = "internal")]
-use bitwarden_crypto::{AsymmetricEncString, EncString};
+use bitwarden_crypto::{AsymmetricEncString, EncString, MasterKey};
 use uuid::Uuid;
 
 #[cfg(feature = "internal")]
-use crate::{client::UserLoginMethod, error::Result};
+use crate::error::Result;
 
 pub struct EncryptionSettings {
     user_key: SymmetricCryptoKey,
@@ -21,28 +21,16 @@ impl std::fmt::Debug for EncryptionSettings {
 }
 
 impl EncryptionSettings {
-    /// Initialize the encryption settings with the user password and their encrypted keys
+    /// Initialize the encryption settings with the master key and the encrypted user keys
     #[cfg(feature = "internal")]
     pub(crate) fn new(
-        login_method: &UserLoginMethod,
-        password: &str,
+        master_key: MasterKey,
         user_key: EncString,
         private_key: EncString,
     ) -> Result<Self> {
-        use bitwarden_crypto::MasterKey;
-
-        match login_method {
-            UserLoginMethod::Username { email, kdf, .. }
-            | UserLoginMethod::ApiKey { email, kdf, .. } => {
-                // Derive master key from password
-                let master_key = MasterKey::derive(password.as_bytes(), email.as_bytes(), kdf)?;
-
-                // Decrypt the user key
-                let user_key = master_key.decrypt_user_key(user_key)?;
-
-                Self::new_decrypted_key(user_key, private_key)
-            }
-        }
+        // Decrypt the user key
+        let user_key = master_key.decrypt_user_key(user_key)?;
+        Self::new_decrypted_key(user_key, private_key)
     }
 
     /// Initialize the encryption settings with the decrypted user key and the encrypted user

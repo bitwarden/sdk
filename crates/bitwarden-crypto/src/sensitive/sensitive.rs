@@ -21,7 +21,16 @@ pub struct Sensitive<V: Zeroize> {
     pub(super) value: Box<V>,
 }
 
+/// Important: This type does not protect against reallocations made by the Vec.
+/// This means that if you insert any elements past the capacity, the data will be copied to a
+/// new allocation and the old allocation will not be zeroized.
+/// To avoid this, use Vec::with_capacity to preallocate the capacity you need.
 pub type SensitiveVec = Sensitive<Vec<u8>>;
+
+/// Important: This type does not protect against reallocations made by the String.
+/// This means that if you insert any characters past the capacity, the data will be copied to a
+/// new allocation and the old allocation will not be zeroized.
+/// To avoid this, use String::with_capacity to preallocate the capacity you need.
 pub type SensitiveString = Sensitive<String>;
 
 impl<V: Zeroize> Sensitive<V> {
@@ -60,7 +69,7 @@ impl TryFrom<SensitiveVec> for SensitiveString {
 
 impl SensitiveString {
     pub fn decode_base64<T: base64::Engine>(self, engine: T) -> Result<SensitiveVec, CryptoError> {
-        // Preallocate a Vec with the necessary capacity
+        // Prevent accidental copies by allocating the full size
         let len = base64::decoded_len_estimate(self.value.len());
         let mut value = SensitiveVec::new(Box::new(Vec::with_capacity(len)));
 
@@ -76,7 +85,7 @@ impl SensitiveVec {
     pub fn encode_base64<T: base64::Engine>(self, engine: T) -> SensitiveString {
         use base64::engine::Config;
 
-        // Preallocate a String with the necessary capacity
+        // Prevent accidental copies by allocating the full size
         let padding = engine.config().encode_padding();
         let len = base64::encoded_len(self.value.len(), padding).expect("Valid length");
         let mut value = SensitiveString::new(Box::new(String::with_capacity(len)));

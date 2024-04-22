@@ -4,11 +4,15 @@ use base64::{engine::general_purpose::STANDARD, Engine};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use super::utils::{derive_kdf_key, stretch_kdf_key};
 use crate::{
-    keys::utils::{derive_kdf_key, stretch_kdf_key},
-    util, DecryptedVec, EncString, KeyDecryptable, Result, SymmetricCryptoKey, UserKey,
+    util, CryptoError, DecryptedVec, EncString, KeyDecryptable, Result, SymmetricCryptoKey, UserKey,
 };
 
+/// Key Derivation Function for Bitwarden Account
+///
+/// In Bitwarden accounts can use multiple KDFs to derive their master key from their password. This
+/// Enum represents all the possible KDFs.
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
@@ -21,6 +25,32 @@ pub enum Kdf {
         memory: NonZeroU32,
         parallelism: NonZeroU32,
     },
+}
+
+impl Default for Kdf {
+    /// Default KDF for new accounts.
+    fn default() -> Self {
+        Kdf::PBKDF2 {
+            iterations: default_pbkdf2_iterations(),
+        }
+    }
+}
+
+/// Default PBKDF2 iterations
+pub fn default_pbkdf2_iterations() -> NonZeroU32 {
+    NonZeroU32::new(600_000).expect("Non-zero number")
+}
+/// Default Argon2 iterations
+pub fn default_argon2_iterations() -> NonZeroU32 {
+    NonZeroU32::new(3).expect("Non-zero number")
+}
+/// Default Argon2 memory
+pub fn default_argon2_memory() -> NonZeroU32 {
+    NonZeroU32::new(64).expect("Non-zero number")
+}
+/// Default Argon2 parallelism
+pub fn default_argon2_parallelism() -> NonZeroU32 {
+    NonZeroU32::new(4).expect("Non-zero number")
 }
 
 #[derive(Copy, Clone, JsonSchema)]
@@ -70,7 +100,10 @@ impl MasterKey {
 
         EncString::encrypt_aes256_hmac(
             user_key.to_vec().expose(),
-            stretched_key.mac_key.as_ref().unwrap(),
+            stretched_key
+                .mac_key
+                .as_ref()
+                .ok_or(CryptoError::InvalidMac)?,
             &stretched_key.key,
         )
     }

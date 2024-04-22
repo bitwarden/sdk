@@ -14,7 +14,7 @@ pub struct DeviceKey(SymmetricCryptoKey);
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct TrustDeviceResponse {
     /// Base64 encoded device key
-    pub device_key: String,
+    pub device_key: SensitiveString,
     /// UserKey encrypted with DevicePublicKey
     pub protected_user_key: AsymmetricEncString,
     /// DevicePrivateKey encrypted with [DeviceKey]
@@ -49,7 +49,7 @@ impl DeviceKey {
             .encrypt_with_key(&device_key.0)?;
 
         Ok(TrustDeviceResponse {
-            device_key: device_key.to_base64().expose().to_owned(),
+            device_key: device_key.to_base64(),
             protected_user_key,
             protected_device_private_key,
             protected_device_public_key,
@@ -96,8 +96,7 @@ mod tests {
 
         let result = DeviceKey::trust_device(&key).unwrap();
 
-        let device_key = SensitiveString::new(Box::new(result.device_key));
-        let device_key = DeviceKey::try_from(device_key).unwrap();
+        let device_key = DeviceKey::try_from(result.device_key).unwrap();
         let decrypted = device_key
             .decrypt_user_key(
                 result.protected_device_private_key,

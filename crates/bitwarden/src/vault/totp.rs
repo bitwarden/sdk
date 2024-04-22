@@ -220,8 +220,8 @@ fn decode_b32(s: &str) -> Vec<u8> {
     let mut bytes = Vec::new();
 
     for chunk in bits.as_bytes().chunks_exact(8) {
-        let byte_str = std::str::from_utf8(chunk).unwrap();
-        let byte = u8::from_str_radix(byte_str, 2).unwrap();
+        let byte_str = std::str::from_utf8(chunk).expect("The value is a valid string");
+        let byte = u8::from_str_radix(byte_str, 2).expect("The value is a valid binary string");
         bytes.push(byte);
     }
 

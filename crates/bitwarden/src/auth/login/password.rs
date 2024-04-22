@@ -1,5 +1,5 @@
 #[cfg(feature = "internal")]
-use log::{debug, info};
+use log::info;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -22,19 +22,20 @@ pub(crate) async fn login_password(
     client: &mut Client,
     input: &PasswordLoginRequest,
 ) -> Result<PasswordLoginResponse> {
-    use bitwarden_crypto::{EncString, HashPurpose};
+    use bitwarden_crypto::{EncString, HashPurpose, MasterKey};
 
-    use crate::{auth::determine_password_hash, client::UserLoginMethod};
+    use crate::{client::UserLoginMethod, error::require};
 
     info!("password logging in");
-    debug!("{:#?}, {:#?}", client, input);
 
-    let password_hash = determine_password_hash(
-        &input.email,
+    let master_key = MasterKey::derive(
+        input.password.as_bytes(),
+        input.email.as_bytes(),
         &input.kdf,
-        &input.password,
-        HashPurpose::ServerAuthorization,
     )?;
+    let password_hash = master_key
+        .derive_master_key_hash(input.password.as_bytes(), HashPurpose::ServerAuthorization)?;
+
     let response = request_identity_tokens(client, input, &password_hash).await?;
 
     if let IdentityTokenResponse::Authenticated(r) = &response {
@@ -49,10 +50,10 @@ pub(crate) async fn login_password(
             kdf: input.kdf.to_owned(),
         }));
 
-        let user_key: EncString = r.key.as_deref().unwrap().parse().unwrap();
-        let private_key: EncString = r.private_key.as_deref().unwrap().parse().unwrap();
+        let user_key: EncString = require!(r.key.as_deref()).parse()?;
+        let private_key: EncString = require!(r.private_key.as_deref()).parse()?;
 
-        client.initialize_user_crypto(&input.password, user_key, private_key)?;
+        client.initialize_user_crypto_master_key(master_key, user_key, private_key)?;
     }
 
     PasswordLoginResponse::process_response(response)

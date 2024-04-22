@@ -1,11 +1,18 @@
 [package]
 name = "memory-testing"
 version = "0.1.0"
-edition = "2021"
 publish = false
 
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+keywords.workspace = true
+
 [dependencies]
-bitwarden-crypto = { path = "../bitwarden-crypto", version = "=0.1.0" }
+bitwarden-crypto = { workspace = true }
 comfy-table = "7.1.0"
 hex = "0.4.3"
 serde = "1.0.196"

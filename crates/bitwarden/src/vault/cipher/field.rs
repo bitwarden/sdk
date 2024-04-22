@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use super::linked_id::LinkedIdType;
-use crate::error::{Error, Result};
+use crate::error::{require, Error, Result};
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
@@ -70,7 +70,7 @@ impl TryFrom<CipherFieldModel> for Field {
         Ok(Self {
             name: EncString::try_from_optional(model.name)?,
             value: EncString::try_from_optional(model.value)?,
-            r#type: model.r#type.map(|t| t.into()).ok_or(Error::MissingFields)?,
+            r#type: require!(model.r#type).into(),
             linked_id: model
                 .linked_id
                 .map(|id| (id as u32).try_into())

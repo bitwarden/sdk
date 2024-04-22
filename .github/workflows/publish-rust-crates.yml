@@ -34,8 +34,18 @@ on:
         required: true
         default: true
         type: boolean
+      publish_bitwarden-cli:
+        description: "Publish bitwarden-cli crate"
+        required: true
+        default: true
+        type: boolean
       publish_bitwarden-generators:
         description: "Publish bitwarden-generators crate"
+        required: true
+        default: true
+        type: boolean
+      publish_bitwarden-exporters:
+        description: "Publish bitwarden-exporters crate"
         required: true
         default: true
         type: boolean
@@ -72,7 +82,9 @@ jobs:
           PUBLISH_BITWARDEN_API_API: ${{ github.event.inputs.publish_bitwarden-api-api }}
           PUBLISH_BITWARDEN_API_IDENTITY: ${{ github.event.inputs.publish_bitwarden-api-identity }}
           PUBLISH_BITWARDEN_CRYPTO: ${{ github.event.inputs.publish_bitwarden-crypto }}
+          PUBLISH_BITWARDEN_CLI: ${{ github.event.inputs.publish_bitwarden-cli }}
           PUBLISH_BITWARDEN_GENERATORS: ${{ github.event.inputs.publish_bitwarden-generators }}
+          PUBLISH_BITWARDEN_EXPORTERS: ${{ github.event.inputs.publish_bitwarden-exporters }}
         run: |
           if [[ "$PUBLISH_BITWARDEN" == "false" ]] && [[ "$PUBLISH_BITWARDEN_API_API" == "false" ]] && [[ "$PUBLISH_BITWARDEN_API_IDENTITY" == "false" ]]; then
             echo "==================================="
@@ -104,7 +116,17 @@ jobs:
             PACKAGES_LIST="$PACKAGES_LIST bitwarden-crypto"
           fi
 
+          if [[ "$PUBLISH_BITWARDEN_CLI" == "true" ]]; then
+            PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-cli"
+            PACKAGES_LIST="$PACKAGES_LIST bitwarden-cli"
+          fi
+
           if [[ "$PUBLISH_BITWARDEN_GENERATORS" == "true" ]]; then
+            PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-generators"
+            PACKAGES_LIST="$PACKAGES_LIST bitwarden-generators"
+          fi
+
+          if [[ "$PUBLISH_BITWARDEN_EXPORTERS" == "true" ]]; then
             PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-generators"
             PACKAGES_LIST="$PACKAGES_LIST bitwarden-generators"
           fi
@@ -137,7 +159,7 @@ jobs:
           secrets: "cratesio-api-token"
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248 # stable
+        uses: dtolnay/rust-toolchain@bb45937a053e097f8591208d8e74c90db1873d07 # stable
         with:
           toolchain: stable
 

@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use bitwarden::auth::{
     password::MasterPasswordPolicyOptions, AuthRequestResponse, RegisterKeyResponse,
+    RegisterTdeKeyResponse,
 };
 use bitwarden_crypto::{AsymmetricEncString, HashPurpose, Kdf, TrustDeviceResponse};
 
@@ -76,6 +77,20 @@ impl ClientAuth {
             .await
             .auth()
             .make_register_keys(email, password, kdf)?)
+    }
+
+    /// Generate keys needed for TDE process
+    pub async fn make_register_tde_keys(
+        &self,
+        email: String,
+        org_public_key: String,
+        remember_device: bool,
+    ) -> Result<RegisterTdeKeyResponse> {
+        Ok(self.0 .0.write().await.auth().make_register_tde_keys(
+            email,
+            org_public_key,
+            remember_device,
+        )?)
     }
 
     /// Validate the user password

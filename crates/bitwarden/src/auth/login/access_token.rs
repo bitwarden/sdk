@@ -13,10 +13,10 @@ use crate::{
     auth::{
         api::{request::AccessTokenRequest, response::IdentityTokenResponse},
         login::{response::two_factor::TwoFactorProviders, PasswordLoginResponse},
-        JWTToken,
+        AccessToken, JWTToken,
     },
-    client::{AccessToken, LoginMethod, ServiceAccountLoginMethod},
-    error::{Error, Result},
+    client::{LoginMethod, ServiceAccountLoginMethod},
+    error::{require, Error, Result},
     secrets_manager::state::{self, ClientState},
     Client,
 };
@@ -72,9 +72,7 @@ pub(crate) async fn login_access_token(
         let access_token_obj: JWTToken = r.access_token.parse()?;
 
         // This should always be Some() when logging in with an access token
-        let organization_id = access_token_obj
-            .organization
-            .ok_or(Error::MissingFields)?
+        let organization_id = require!(access_token_obj.organization)
             .parse()
             .map_err(|_| Error::InvalidResponse)?;
 

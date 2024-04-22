@@ -15,7 +15,7 @@ use super::{
     login, secure_note,
 };
 use crate::{
-    error::{Error, Result},
+    error::{require, Error, Result},
     vault::password_history,
 };
 
@@ -139,9 +139,14 @@ pub struct CipherListView {
 }
 
 impl KeyEncryptable<SymmetricCryptoKey, Cipher> for CipherView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Cipher, CryptoError> {
+    fn encrypt_with_key(mut self, key: &SymmetricCryptoKey) -> Result<Cipher, CryptoError> {
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let key = ciphers_key.as_ref().unwrap_or(key);
+
+        // For compatibility reasons, we only create checksums for ciphers that have a key
+        if ciphers_key.is_some() {
+            self.generate_checksums();
+        }
 
         Ok(Cipher {
             id: self.id,
@@ -177,7 +182,7 @@ impl KeyDecryptable<SymmetricCryptoKey, CipherView> for Cipher {
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let key = ciphers_key.as_ref().unwrap_or(key);
 
-        Ok(CipherView {
+        let mut cipher = CipherView {
             id: self.id,
             organization_id: self.organization_id,
             folder_id: self.folder_id,
@@ -202,7 +207,14 @@ impl KeyDecryptable<SymmetricCryptoKey, CipherView> for Cipher {
             creation_date: self.creation_date,
             deleted_date: self.deleted_date,
             revision_date: self.revision_date,
-        })
+        };
+
+        // For compatibility we only remove URLs with invalid checksums if the cipher has a key
+        if ciphers_key.is_some() {
+            cipher.remove_invalid_checksums();
+        }
+
+        Ok(cipher)
     }
 }
 
@@ -304,6 +316,43 @@ impl CipherView {
         self.key = Some(new_key.to_vec().expose().encrypt_with_key(key)?);
         Ok(())
     }
+
+    pub fn generate_checksums(&mut self) {
+        if let Some(uris) = self.login.as_mut().and_then(|l| l.uris.as_mut()) {
+            for uri in uris {
+                uri.generate_checksum();
+            }
+        }
+    }
+
+    pub fn remove_invalid_checksums(&mut self) {
+        if let Some(uris) = self.login.as_mut().and_then(|l| l.uris.as_mut()) {
+            uris.retain(|u| u.is_checksum_valid());
+        }
+    }
+
+    pub fn move_to_organization(
+        &mut self,
+        enc: &dyn KeyContainer,
+        organization_id: Uuid,
+    ) -> Result<()> {
+        // If the cipher has a key, we need to re-encrypt it with the new organization key
+        if let Some(cipher_key) = &mut self.key {
+            let old_key = enc
+                .get_key(&self.organization_id)
+                .ok_or(Error::VaultLocked)?;
+
+            let new_key = enc
+                .get_key(&Some(organization_id))
+                .ok_or(Error::VaultLocked)?;
+
+            let dec_cipher_key: DecryptedVec = cipher_key.decrypt_with_key(old_key)?;
+            *cipher_key = dec_cipher_key.expose().encrypt_with_key(new_key)?;
+        }
+
+        self.organization_id = Some(organization_id);
+        Ok(())
+    }
 }
 
 impl KeyDecryptable<SymmetricCryptoKey, CipherListView> for Cipher {
@@ -363,9 +412,9 @@ impl TryFrom<CipherDetailsResponseModel> for Cipher {
             organization_id: cipher.organization_id,
             folder_id: cipher.folder_id,
             collection_ids: cipher.collection_ids.unwrap_or_default(),
-            name: EncString::try_from_optional(cipher.name)?.ok_or(Error::MissingFields)?,
+            name: require!(EncString::try_from_optional(cipher.name)?),
             notes: EncString::try_from_optional(cipher.notes)?,
-            r#type: cipher.r#type.ok_or(Error::MissingFields)?.into(),
+            r#type: require!(cipher.r#type).into(),
             login: cipher.login.map(|l| (*l).try_into()).transpose()?,
             identity: cipher.identity.map(|i| (*i).try_into()).transpose()?,
             card: cipher.card.map(|c| (*c).try_into()).transpose()?,
@@ -391,9 +440,9 @@ impl TryFrom<CipherDetailsResponseModel> for Cipher {
                 .password_history
                 .map(|p| p.into_iter().map(|p| p.try_into()).collect())
                 .transpose()?,
-            creation_date: cipher.creation_date.ok_or(Error::MissingFields)?.parse()?,
+            creation_date: require!(cipher.creation_date).parse()?,
             deleted_date: cipher.deleted_date.map(|d| d.parse()).transpose()?,
-            revision_date: cipher.revision_date.ok_or(Error::MissingFields)?.parse()?,
+            revision_date: require!(cipher.revision_date).parse()?,
             key: EncString::try_from_optional(cipher.key)?,
         })
     }
@@ -422,7 +471,46 @@ impl From<bitwarden_api_api::models::CipherRepromptType> for CipherRepromptType 
 #[cfg(test)]
 mod tests {
 
+    use std::collections::HashMap;
+
     use super::*;
+
+    fn generate_cipher() -> CipherView {
+        CipherView {
+            r#type: CipherType::Login,
+            login: Some(login::LoginView {
+                username: Some(DecryptedString::test("test_username")),
+                password: Some(DecryptedString::test("test_password")),
+                password_revision_date: None,
+                uris: None,
+                totp: None,
+                autofill_on_page_load: None,
+                fido2_credentials: None,
+            }),
+            id: "fd411a1a-fec8-4070-985d-0e6560860e69".parse().ok(),
+            organization_id: None,
+            folder_id: None,
+            collection_ids: vec![],
+            key: None,
+            name: DecryptedString::test("My test login"),
+            notes: None,
+            identity: None,
+            card: None,
+            secure_note: None,
+            favorite: false,
+            reprompt: CipherRepromptType::None,
+            organization_use_totp: true,
+            edit: true,
+            view_password: true,
+            local_data: None,
+            attachments: None,
+            fields: None,
+            password_history: None,
+            creation_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
+            deleted_date: None,
+            revision_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
+        }
+    }
 
     #[test]
     fn test_generate_cipher_key() {
@@ -438,6 +526,7 @@ mod tests {
                     uris: None,
                     totp: None,
                     autofill_on_page_load: None,
+                    fido2_credentials: None,
                 }),
                 id: "fd411a1a-fec8-4070-985d-0e6560860e69".parse().ok(),
                 organization_id: None,
@@ -481,5 +570,61 @@ mod tests {
         let key_cipher_dec: CipherView = key_cipher_enc.decrypt_with_key(&key).unwrap();
         assert!(key_cipher_dec.key.is_some());
         assert_eq!(key_cipher_dec.name, original_cipher.name);
+    }
+
+    struct MockKeyContainer(HashMap<Option<Uuid>, SymmetricCryptoKey>);
+    impl KeyContainer for MockKeyContainer {
+        fn get_key<'a>(&'a self, org_id: &Option<Uuid>) -> Option<&'a SymmetricCryptoKey> {
+            self.0.get(org_id)
+        }
+    }
+
+    #[test]
+    fn test_move_user_cipher_to_org() {
+        let org = uuid::Uuid::new_v4();
+
+        let enc = MockKeyContainer(HashMap::from([
+            (None, SymmetricCryptoKey::generate(rand::thread_rng())),
+            (Some(org), SymmetricCryptoKey::generate(rand::thread_rng())),
+        ]));
+
+        // Create a cipher with a user key
+        let mut cipher = generate_cipher();
+        cipher
+            .generate_cipher_key(enc.get_key(&None).unwrap())
+            .unwrap();
+
+        cipher.move_to_organization(&enc, org).unwrap();
+        assert_eq!(cipher.organization_id, Some(org));
+
+        // Check that the cipher can be encrypted/decrypted with the new org key
+        let org_key = enc.get_key(&Some(org)).unwrap();
+        let cipher_enc = cipher.encrypt_with_key(org_key).unwrap();
+        let cipher_dec: CipherView = cipher_enc.decrypt_with_key(org_key).unwrap();
+
+        assert_eq!(cipher_dec.name.expose(), "My test login");
+    }
+
+    #[test]
+    fn test_move_user_cipher_to_org_manually() {
+        let org = uuid::Uuid::new_v4();
+
+        let enc = MockKeyContainer(HashMap::from([
+            (None, SymmetricCryptoKey::generate(rand::thread_rng())),
+            (Some(org), SymmetricCryptoKey::generate(rand::thread_rng())),
+        ]));
+
+        // Create a cipher with a user key
+        let mut cipher = generate_cipher();
+        cipher
+            .generate_cipher_key(enc.get_key(&None).unwrap())
+            .unwrap();
+
+        cipher.organization_id = Some(org);
+
+        // Check that the cipher can not be encrypted, as the
+        // cipher key is tied to the user key and not the org key
+        let org_key = enc.get_key(&Some(org)).unwrap();
+        assert!(cipher.encrypt_with_key(org_key).is_err());
     }
 }

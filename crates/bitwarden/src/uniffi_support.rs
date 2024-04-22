@@ -1,6 +1,6 @@
 use std::num::NonZeroU32;
 
-use bitwarden_crypto::{AsymmetricEncString, DecryptedString, EncString};
+use bitwarden_crypto::{AsymmetricEncString, DecryptedString, EncString, SensitiveString};
 use uuid::Uuid;
 
 use crate::UniffiCustomTypeConverter;
@@ -12,8 +12,11 @@ uniffi::ffi_converter_forward!(
     bitwarden_crypto::UniFfiTag,
     crate::UniFfiTag
 );
-
-uniffi::custom_type!(DecryptedString, String);
+uniffi::ffi_converter_forward!(
+    SensitiveString,
+    bitwarden_crypto::UniFfiTag,
+    crate::UniFfiTag
+);
 
 impl UniffiCustomTypeConverter for DecryptedString {
     type Builtin = String;

@@ -20,6 +20,7 @@ use crate::{
             MasterPasswordPolicyOptions,
         },
         register::{make_register_keys, register},
+        tde::{make_register_tde_keys, RegisterTdeKeyResponse},
         AuthRequestResponse, RegisterKeyResponse, RegisterRequest,
     },
     client::Kdf,
@@ -71,6 +72,15 @@ impl<'a> ClientAuth<'a> {
         kdf: Kdf,
     ) -> Result<RegisterKeyResponse> {
         make_register_keys(email, password, kdf)
+    }
+
+    pub fn make_register_tde_keys(
+        &mut self,
+        email: String,
+        org_public_key: String,
+        remember_device: bool,
+    ) -> Result<RegisterTdeKeyResponse> {
+        make_register_tde_keys(self.client, email, org_public_key, remember_device)
     }
 
     pub async fn register(&mut self, input: &RegisterRequest) -> Result<()> {

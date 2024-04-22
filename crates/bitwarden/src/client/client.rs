@@ -4,14 +4,21 @@ use std::path::PathBuf;
 pub use bitwarden_crypto::Kdf;
 use bitwarden_crypto::SymmetricCryptoKey;
 #[cfg(feature = "internal")]
-use bitwarden_crypto::{AsymmetricEncString, EncString};
+use bitwarden_crypto::{AsymmetricEncString, EncString, MasterKey};
 use chrono::Utc;
 use reqwest::header::{self, HeaderValue};
 use uuid::Uuid;
 
-use super::AccessToken;
 #[cfg(feature = "secrets")]
 use crate::auth::login::{AccessTokenLoginRequest, AccessTokenLoginResponse};
+use crate::{
+    auth::AccessToken,
+    client::{
+        client_settings::{ClientSettings, DeviceType},
+        encryption_settings::EncryptionSettings,
+    },
+    error::{Error, Result},
+};
 #[cfg(feature = "internal")]
 use crate::{
     client::flags::Flags,
@@ -19,13 +26,6 @@ use crate::{
         get_user_api_key, sync, SecretVerificationRequest, SyncRequest, SyncResponse,
         UserApiKeyResponse,
     },
-};
-use crate::{
-    client::{
-        client_settings::{ClientSettings, DeviceType},
-        encryption_settings::EncryptionSettings,
-    },
-    error::{Error, Result},
 };
 
 #[derive(Debug)]
@@ -73,6 +73,7 @@ pub(crate) enum ServiceAccountLoginMethod {
     },
 }
 
+/// The main struct to interact with the Bitwarden SDK.
 #[derive(Debug)]
 pub struct Client {
     token: Option<String>,
@@ -108,16 +109,17 @@ impl Client {
             client_builder
         }
 
-        let external_client = new_client_builder().build().unwrap();
+        let external_client = new_client_builder().build().expect("Build should not fail");
 
         let mut headers = header::HeaderMap::new();
         headers.append(
             "Device-Type",
-            HeaderValue::from_str(&(settings.device_type as u8).to_string()).unwrap(),
+            HeaderValue::from_str(&(settings.device_type as u8).to_string())
+                .expect("All numbers are valid ASCII"),
         );
         let client_builder = new_client_builder().default_headers(headers);
 
-        let client = client_builder.build().unwrap();
+        let client = client_builder.build().expect("Build should not fail");
 
         let identity = bitwarden_api_identity::apis::configuration::Configuration {
             base_path: settings.identity_url,
@@ -245,27 +247,21 @@ impl Client {
     }
 
     #[cfg(feature = "internal")]
-    pub(crate) fn initialize_user_crypto(
+    pub(crate) fn initialize_user_crypto_master_key(
         &mut self,
-        password: &str,
+        master_key: MasterKey,
         user_key: EncString,
         private_key: EncString,
     ) -> Result<&EncryptionSettings> {
-        let login_method = match &self.login_method {
-            Some(LoginMethod::User(u)) => u,
-            _ => return Err(Error::NotAuthenticated),
-        };
-
-        self.encryption_settings = Some(EncryptionSettings::new(
-            login_method,
-            password,
-            user_key,
-            private_key,
-        )?);
-        Ok(self.encryption_settings.as_ref().unwrap())
+        self.encryption_settings =
+            Some(EncryptionSettings::new(master_key, user_key, private_key)?);
+        Ok(self
+            .encryption_settings
+            .as_ref()
+            .expect("Value is initialized previously"))
     }
 
-    #[cfg(feature = "mobile")]
+    #[cfg(feature = "internal")]
     pub(crate) fn initialize_user_crypto_decrypted_key(
         &mut self,
         user_key: SymmetricCryptoKey,
@@ -278,26 +274,16 @@ impl Client {
         Ok(self
             .encryption_settings
             .as_ref()
-            .expect("It was initialized on the previous line"))
+            .expect("Value is initialized previously"))
     }
 
     #[cfg(feature = "mobile")]
     pub(crate) fn initialize_user_crypto_pin(
         &mut self,
-        pin: &str,
+        pin_key: MasterKey,
         pin_protected_user_key: EncString,
         private_key: EncString,
     ) -> Result<&EncryptionSettings> {
-        use bitwarden_crypto::MasterKey;
-
-        let pin_key = match &self.login_method {
-            Some(LoginMethod::User(
-                UserLoginMethod::Username { email, kdf, .. }
-                | UserLoginMethod::ApiKey { email, kdf, .. },
-            )) => MasterKey::derive(pin.as_bytes(), email.as_bytes(), kdf)?,
-            _ => return Err(Error::NotAuthenticated),
-        };
-
         let decrypted_user_key = pin_key.decrypt_user_key(pin_protected_user_key)?;
         self.initialize_user_crypto_decrypted_key(decrypted_user_key, private_key)
     }
@@ -307,7 +293,9 @@ impl Client {
         key: SymmetricCryptoKey,
     ) -> &EncryptionSettings {
         self.encryption_settings = Some(EncryptionSettings::new_single_key(key));
-        self.encryption_settings.as_ref().unwrap()
+        self.encryption_settings
+            .as_ref()
+            .expect("Value is initialized previously")
     }
 
     #[cfg(feature = "internal")]
@@ -321,7 +309,7 @@ impl Client {
             .ok_or(Error::VaultLocked)?;
 
         enc.set_org_keys(org_keys)?;
-        Ok(self.encryption_settings.as_ref().unwrap())
+        Ok(&*enc)
     }
 }
 

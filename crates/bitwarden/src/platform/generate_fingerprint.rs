@@ -75,7 +75,7 @@ mod tests {
         .unwrap();
 
         client
-            .initialize_user_crypto_password(
+            .initialize_user_crypto_master_key(
                 master_key,
                 user_key.parse().unwrap(),
                 private_key.parse().unwrap(),

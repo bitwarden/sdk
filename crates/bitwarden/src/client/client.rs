@@ -247,7 +247,7 @@ impl Client {
     }
 
     #[cfg(feature = "internal")]
-    pub(crate) fn initialize_user_crypto_password(
+    pub(crate) fn initialize_user_crypto_master_key(
         &mut self,
         master_key: MasterKey,
         user_key: EncString,

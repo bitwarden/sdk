@@ -448,7 +448,7 @@ mod tests {
         let expected = SendView {
             id: "3d80dd72-2d14-4f26-812c-b0f0018aa144".parse().ok(),
             access_id: Some("ct2APRQtJk-BLLDwAYqhRA".to_owned()),
-            name: SensitiveString::new(Box::new("Test".to_string())),
+            name: SensitiveString::test("Test"),
             notes: None,
             key: Some("Pgui0FK85cNhBGWHAlBHBw".to_owned()),
             new_password: None,
@@ -456,7 +456,7 @@ mod tests {
             r#type: SendType::Text,
             file: None,
             text: Some(SendTextView {
-                text: Some(SensitiveString::new(Box::new("This is a test".to_owned()))),
+                text: Some(SensitiveString::test("This is a test")),
                 hidden: false,
             }),
             max_access_count: None,
@@ -479,7 +479,7 @@ mod tests {
         let view = SendView {
             id: "3d80dd72-2d14-4f26-812c-b0f0018aa144".parse().ok(),
             access_id: Some("ct2APRQtJk-BLLDwAYqhRA".to_owned()),
-            name: SensitiveString::new(Box::new("Test".to_string())),
+            name: SensitiveString::test("Test"),
             notes: None,
             key: Some("Pgui0FK85cNhBGWHAlBHBw".to_owned()),
             new_password: None,
@@ -487,7 +487,7 @@ mod tests {
             r#type: SendType::Text,
             file: None,
             text: Some(SendTextView {
-                text: Some(SensitiveString::new(Box::new("This is a test".to_owned()))),
+                text: Some(SensitiveString::test("This is a test")),
                 hidden: false,
             }),
             max_access_count: None,
@@ -517,7 +517,7 @@ mod tests {
         let view = SendView {
             id: None,
             access_id: Some("ct2APRQtJk-BLLDwAYqhRA".to_owned()),
-            name: SensitiveString::new(Box::new("Test".to_string())),
+            name: SensitiveString::test("Test"),
             notes: None,
             key: None,
             new_password: None,
@@ -525,7 +525,7 @@ mod tests {
             r#type: SendType::Text,
             file: None,
             text: Some(SendTextView {
-                text: Some(SensitiveString::new(Box::new("This is a test".to_owned()))),
+                text: Some(SensitiveString::test("This is a test")),
                 hidden: false,
             }),
             max_access_count: None,
@@ -558,7 +558,7 @@ mod tests {
         let view = SendView {
             id: None,
             access_id: Some("ct2APRQtJk-BLLDwAYqhRA".to_owned()),
-            name: SensitiveString::new(Box::new("Test".to_owned())),
+            name: SensitiveString::test("Test"),
             notes: None,
             key: Some("Pgui0FK85cNhBGWHAlBHBw".to_owned()),
             new_password: Some("abc123".to_owned()),
@@ -566,7 +566,7 @@ mod tests {
             r#type: SendType::Text,
             file: None,
             text: Some(SendTextView {
-                text: Some(SensitiveString::new(Box::new("This is a test".to_owned()))),
+                text: Some(SensitiveString::test("This is a test")),
                 hidden: false,
             }),
             max_access_count: None,

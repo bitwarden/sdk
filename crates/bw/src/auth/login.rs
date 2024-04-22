@@ -15,8 +15,9 @@ use log::{debug, error, info};
 pub(crate) async fn login_password(mut client: Client, email: Option<String>) -> Result<()> {
     let email = text_prompt_when_none("Email", email)?;
 
-    let password = Password::new("Password").without_confirmation().prompt()?;
-    let password = SensitiveString::new(Box::new(password));
+    let password = SensitiveString::new(Box::new(
+        Password::new("Password").without_confirmation().prompt()?,
+    ));
 
     let kdf = client.auth().prelogin(email.clone()).await?;
 
@@ -101,8 +102,9 @@ pub(crate) async fn login_api_key(
     let client_id = text_prompt_when_none("Client ID", client_id)?;
     let client_secret = text_prompt_when_none("Client Secret", client_secret)?;
 
-    let password = Password::new("Password").without_confirmation().prompt()?;
-    let password = SensitiveString::new(Box::new(password));
+    let password = SensitiveString::new(Box::new(
+        Password::new("Password").without_confirmation().prompt()?,
+    ));
 
     let result = client
         .auth()

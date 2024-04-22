@@ -192,8 +192,7 @@ async fn process_commands() -> Result<()> {
             let mut client = bitwarden::Client::new(settings);
 
             let email = text_prompt_when_none("Email", email)?;
-            let password = Password::new("Password").prompt()?;
-            let password = SensitiveString::new(Box::new(password));
+            let password = SensitiveString::new(Box::new(Password::new("Password").prompt()?));
 
             client
                 .auth()

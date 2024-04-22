@@ -516,43 +516,6 @@ mod tests {
     fn test_generate_cipher_key() {
         let key = SymmetricCryptoKey::generate(rand::thread_rng());
 
-        fn generate_cipher() -> CipherView {
-            CipherView {
-                r#type: CipherType::Login,
-                login: Some(login::LoginView {
-                    username: Some(DecryptedString::test("test_username")),
-                    password: Some(DecryptedString::test("test_password")),
-                    password_revision_date: None,
-                    uris: None,
-                    totp: None,
-                    autofill_on_page_load: None,
-                    fido2_credentials: None,
-                }),
-                id: "fd411a1a-fec8-4070-985d-0e6560860e69".parse().ok(),
-                organization_id: None,
-                folder_id: None,
-                collection_ids: vec![],
-                key: None,
-                name: DecryptedString::test("My test login"),
-                notes: None,
-                identity: None,
-                card: None,
-                secure_note: None,
-                favorite: false,
-                reprompt: CipherRepromptType::None,
-                organization_use_totp: true,
-                edit: true,
-                view_password: true,
-                local_data: None,
-                attachments: None,
-                fields: None,
-                password_history: None,
-                creation_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
-                deleted_date: None,
-                revision_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
-            }
-        }
-
         let original_cipher = generate_cipher();
 
         // Check that the cipher gets encrypted correctly without it's own key

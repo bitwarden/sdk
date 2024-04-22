@@ -54,16 +54,9 @@ impl<V: Zeroize> Sensitive<V> {
     }
 }
 
-/// Helper to convert a `Sensitive<[u8, 16]>` to a `SensitiveVec`.
-impl From<Sensitive<[u8; 16]>> for SensitiveVec {
-    fn from(sensitive: Sensitive<[u8; 16]>) -> Self {
-        SensitiveVec::new(Box::new(sensitive.value.to_vec()))
-    }
-}
-
-/// Helper to convert a `Sensitive<[u8, 32]>` to a `SensitiveVec`.
-impl From<Sensitive<[u8; 32]>> for SensitiveVec {
-    fn from(sensitive: Sensitive<[u8; 32]>) -> Self {
+/// Helper to convert a `Sensitive<[u8, N]>` to a `SensitiveVec`.
+impl<const N: usize> From<Sensitive<[u8; N]>> for SensitiveVec {
+    fn from(sensitive: Sensitive<[u8; N]>) -> Self {
         SensitiveVec::new(Box::new(sensitive.value.to_vec()))
     }
 }

@@ -523,6 +523,7 @@ name = "bitwarden-wasm"
 version = "0.1.0"
 dependencies = [
  "argon2",
+ "bitwarden-crypto",
  "bitwarden-json",
  "console_error_panic_hook",
  "console_log",
@@ -583,6 +584,7 @@ version = "0.0.2"
 dependencies = [
  "bitwarden",
  "bitwarden-cli",
+ "bitwarden-crypto",
  "clap",
  "color-eyre",
  "env_logger",

@@ -197,7 +197,7 @@ impl Client {
     #[cfg(feature = "internal")]
     pub async fn get_user_api_key(
         &mut self,
-        input: &SecretVerificationRequest,
+        input: SecretVerificationRequest,
     ) -> Result<UserApiKeyResponse> {
         get_user_api_key(self, input).await
     }

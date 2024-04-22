@@ -53,7 +53,10 @@ impl ClientCrypto {
 
     /// Update the user's password, which will re-encrypt the user's encryption key with the new
     /// password. This returns the new encrypted user key and the new password hash.
-    pub async fn update_password(&self, new_password: String) -> Result<UpdatePasswordResponse> {
+    pub async fn update_password(
+        &self,
+        new_password: SensitiveString,
+    ) -> Result<UpdatePasswordResponse> {
         Ok(self
             .0
              .0
@@ -67,7 +70,7 @@ impl ClientCrypto {
     /// Generates a PIN protected user key from the provided PIN. The result can be stored and later
     /// used to initialize another client instance by using the PIN and the PIN key with
     /// `initialize_user_crypto`.
-    pub async fn derive_pin_key(&self, pin: String) -> Result<DerivePinKeyResponse> {
+    pub async fn derive_pin_key(&self, pin: SensitiveString) -> Result<DerivePinKeyResponse> {
         Ok(self.0 .0.write().await.crypto().derive_pin_key(pin).await?)
     }
 

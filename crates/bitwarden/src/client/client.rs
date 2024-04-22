@@ -4,7 +4,7 @@ use std::path::PathBuf;
 pub use bitwarden_crypto::Kdf;
 use bitwarden_crypto::SymmetricCryptoKey;
 #[cfg(feature = "internal")]
-use bitwarden_crypto::{AsymmetricEncString, EncString};
+use bitwarden_crypto::{AsymmetricEncString, EncString, MasterKey};
 use chrono::Utc;
 use reqwest::header::{self, HeaderValue};
 use uuid::Uuid;
@@ -73,6 +73,7 @@ pub(crate) enum ServiceAccountLoginMethod {
     },
 }
 
+/// The main struct to interact with the Bitwarden SDK.
 #[derive(Debug)]
 pub struct Client {
     token: Option<String>,
@@ -246,23 +247,14 @@ impl Client {
     }
 
     #[cfg(feature = "internal")]
-    pub(crate) fn initialize_user_crypto(
+    pub(crate) fn initialize_user_crypto_master_key(
         &mut self,
-        password: &str,
+        master_key: MasterKey,
         user_key: EncString,
         private_key: EncString,
     ) -> Result<&EncryptionSettings> {
-        let login_method = match &self.login_method {
-            Some(LoginMethod::User(u)) => u,
-            _ => return Err(Error::NotAuthenticated),
-        };
-
-        self.encryption_settings = Some(EncryptionSettings::new(
-            login_method,
-            password,
-            user_key,
-            private_key,
-        )?);
+        self.encryption_settings =
+            Some(EncryptionSettings::new(master_key, user_key, private_key)?);
         Ok(self
             .encryption_settings
             .as_ref()
@@ -288,20 +280,10 @@ impl Client {
     #[cfg(feature = "mobile")]
     pub(crate) fn initialize_user_crypto_pin(
         &mut self,
-        pin: &str,
+        pin_key: MasterKey,
         pin_protected_user_key: EncString,
         private_key: EncString,
     ) -> Result<&EncryptionSettings> {
-        use bitwarden_crypto::MasterKey;
-
-        let pin_key = match &self.login_method {
-            Some(LoginMethod::User(
-                UserLoginMethod::Username { email, kdf, .. }
-                | UserLoginMethod::ApiKey { email, kdf, .. },
-            )) => MasterKey::derive(pin.as_bytes(), email.as_bytes(), kdf)?,
-            _ => return Err(Error::NotAuthenticated),
-        };
-
         let decrypted_user_key = pin_key.decrypt_user_key(pin_protected_user_key)?;
         self.initialize_user_crypto_decrypted_key(decrypted_user_key, private_key)
     }

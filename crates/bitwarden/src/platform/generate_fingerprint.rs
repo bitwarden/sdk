@@ -55,10 +55,7 @@ mod tests {
     use std::num::NonZeroU32;
 
     use super::*;
-    use crate::{
-        client::{Kdf, LoginMethod, UserLoginMethod},
-        Client,
-    };
+    use crate::{client::Kdf, Client};
 
     #[test]
     fn test_generate_user_fingerprint() {
@@ -67,16 +64,19 @@ mod tests {
         let fingerprint_material = "a09726a0-9590-49d1-a5f5-afe300b6a515";
 
         let mut client = Client::new(None);
-        client.set_login_method(LoginMethod::User(UserLoginMethod::Username {
-            client_id: "a09726a0-9590-49d1-a5f5-afe300b6a515".to_owned(),
-            email: "robb@stark.com".to_owned(),
-            kdf: Kdf::PBKDF2 {
+
+        let master_key = bitwarden_crypto::MasterKey::derive(
+            "asdfasdfasdf".as_bytes(),
+            "robb@stark.com".as_bytes(),
+            &Kdf::PBKDF2 {
                 iterations: NonZeroU32::new(600_000).unwrap(),
             },
-        }));
+        )
+        .unwrap();
+
         client
-            .initialize_user_crypto(
-                "asdfasdfasdf",
+            .initialize_user_crypto_master_key(
+                master_key,
                 user_key.parse().unwrap(),
                 private_key.parse().unwrap(),
             )

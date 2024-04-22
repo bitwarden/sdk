@@ -253,12 +253,11 @@ impl Client {
         user_key: EncString,
         private_key: EncString,
     ) -> Result<&EncryptionSettings> {
-        self.encryption_settings =
-            Some(EncryptionSettings::new(master_key, user_key, private_key)?);
-        Ok(self
-            .encryption_settings
-            .as_ref()
-            .expect("Value is initialized previously"))
+        Ok(self.encryption_settings.insert(EncryptionSettings::new(
+            master_key,
+            user_key,
+            private_key,
+        )?))
     }
 
     #[cfg(feature = "internal")]
@@ -267,14 +266,12 @@ impl Client {
         user_key: SymmetricCryptoKey,
         private_key: EncString,
     ) -> Result<&EncryptionSettings> {
-        self.encryption_settings = Some(EncryptionSettings::new_decrypted_key(
-            user_key,
-            private_key,
-        )?);
         Ok(self
             .encryption_settings
-            .as_ref()
-            .expect("Value is initialized previously"))
+            .insert(EncryptionSettings::new_decrypted_key(
+                user_key,
+                private_key,
+            )?))
     }
 
     #[cfg(feature = "mobile")]
@@ -292,10 +289,8 @@ impl Client {
         &mut self,
         key: SymmetricCryptoKey,
     ) -> &EncryptionSettings {
-        self.encryption_settings = Some(EncryptionSettings::new_single_key(key));
         self.encryption_settings
-            .as_ref()
-            .expect("Value is initialized previously")
+            .insert(EncryptionSettings::new_single_key(key))
     }
 
     #[cfg(feature = "internal")]

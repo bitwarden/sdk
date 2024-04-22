@@ -38,9 +38,8 @@ pub fn derive_shareable_key(
 
 #[cfg(test)]
 mod tests {
-    use crate::Sensitive;
-
     use super::derive_shareable_key;
+    use crate::Sensitive;
 
     #[test]
     fn test_derive_shareable_key() {

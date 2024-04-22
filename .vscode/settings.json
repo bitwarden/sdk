@@ -21,6 +21,7 @@
     "totp",
     "uniffi",
     "wordlist",
+    "Zeroize",
     "zxcvbn"
   ]
 }

@@ -5,7 +5,7 @@ use base64::{
 use bitwarden_api_api::models::{SendFileModel, SendResponseModel, SendTextModel};
 use bitwarden_crypto::{
     derive_shareable_key, generate_random_bytes, CryptoError, DecryptedString, DecryptedVec,
-    EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey,
+    EncString, KeyDecryptable, KeyEncryptable, LocateKey, SensitiveVec, SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
@@ -99,7 +99,7 @@ pub struct SendView {
     pub name: DecryptedString,
     pub notes: Option<DecryptedString>,
     /// Base64 encoded key
-    pub key: Option<String>,
+    pub key: Option<DecryptedString>,
     /// Replace or add a password to an existing send. The SDK will always return None when
     /// decrypting a [Send]
     /// TODO: We should revisit this, one variant is to have `[Create, Update]SendView` DTOs.
@@ -209,7 +209,7 @@ impl KeyDecryptable<SymmetricCryptoKey, SendView> for Send {
 
             name: self.name.decrypt_with_key(&key).ok().unwrap_or_default(),
             notes: self.notes.decrypt_with_key(&key).ok().flatten(),
-            key: Some(URL_SAFE_NO_PAD.encode(k.expose())),
+            key: Some(k.encode_base64(URL_SAFE_NO_PAD)),
             new_password: None,
             has_password: self.password.is_some(),
 
@@ -260,18 +260,21 @@ impl KeyEncryptable<SymmetricCryptoKey, Send> for SendView {
         // the stretched key
         let k = match (self.key, self.id) {
             // Existing send, decrypt key
-            (Some(k), _) => URL_SAFE_NO_PAD
-                .decode(k)
+            (Some(k), _) => k
+                .decode_base64(URL_SAFE_NO_PAD)
                 .map_err(|_| CryptoError::InvalidKey)?,
             // New send, generate random key
             (None, None) => {
-                let key: [u8; 16] = generate_random_bytes();
-                key.to_vec()
+                let mut key: [u8; 16] = generate_random_bytes();
+                let out = SensitiveVec::new(Box::new(key.to_vec()));
+                key.fill(0);
+
+                out
             }
             // Existing send without key
             _ => return Err(CryptoError::InvalidKey),
         };
-        let send_key = Send::derive_shareable_key(&k)?;
+        let send_key = Send::derive_shareable_key(k.expose())?;
 
         Ok(Send {
             id: self.id,
@@ -279,9 +282,10 @@ impl KeyEncryptable<SymmetricCryptoKey, Send> for SendView {
 
             name: self.name.encrypt_with_key(&send_key)?,
             notes: self.notes.encrypt_with_key(&send_key)?,
-            key: k.encrypt_with_key(key)?,
+            key: k.expose().encrypt_with_key(key)?,
             password: self.new_password.map(|password| {
-                let password = bitwarden_crypto::pbkdf2(password.as_bytes(), &k, SEND_ITERATIONS);
+                let password =
+                    bitwarden_crypto::pbkdf2(password.as_bytes(), k.expose(), SEND_ITERATIONS);
                 STANDARD.encode(password)
             }),
 
@@ -450,7 +454,7 @@ mod tests {
             access_id: Some("ct2APRQtJk-BLLDwAYqhRA".to_owned()),
             name: SensitiveString::test("Test"),
             notes: None,
-            key: Some("Pgui0FK85cNhBGWHAlBHBw".to_owned()),
+            key: Some(SensitiveString::test("Pgui0FK85cNhBGWHAlBHBw")),
             new_password: None,
             has_password: false,
             r#type: SendType::Text,
@@ -481,7 +485,7 @@ mod tests {
             access_id: Some("ct2APRQtJk-BLLDwAYqhRA".to_owned()),
             name: SensitiveString::test("Test"),
             notes: None,
-            key: Some("Pgui0FK85cNhBGWHAlBHBw".to_owned()),
+            key: Some(SensitiveString::test("Pgui0FK85cNhBGWHAlBHBw")),
             new_password: None,
             has_password: false,
             r#type: SendType::Text,
@@ -560,7 +564,7 @@ mod tests {
             access_id: Some("ct2APRQtJk-BLLDwAYqhRA".to_owned()),
             name: SensitiveString::test("Test"),
             notes: None,
-            key: Some("Pgui0FK85cNhBGWHAlBHBw".to_owned()),
+            key: Some(SensitiveString::test("Pgui0FK85cNhBGWHAlBHBw")),
             new_password: Some("abc123".to_owned()),
             has_password: false,
             r#type: SendType::Text,

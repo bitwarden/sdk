@@ -62,10 +62,10 @@ impl<const N: usize> From<Sensitive<[u8; N]>> for SensitiveVec {
 }
 
 /// Helper to convert a `SensitiveVec` to a `Sensitive<[u8, N]>`.
-impl<const N: usize> TryFrom<SensitiveVec> for Sensitive<[u8; N]> {
+impl<const N: usize> TryFrom<&SensitiveVec> for Sensitive<[u8; N]> {
     type Error = CryptoError;
 
-    fn try_from(v: SensitiveVec) -> Result<Self, CryptoError> {
+    fn try_from(v: &SensitiveVec) -> Result<Self, CryptoError> {
         Ok(Sensitive::new(Box::new(
             TryInto::<[u8; N]>::try_into(v.expose().as_slice())
                 .map_err(|_| CryptoError::InvalidKey)?,

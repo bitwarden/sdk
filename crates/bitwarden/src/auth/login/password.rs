@@ -1,5 +1,7 @@
 #[cfg(feature = "internal")]
-use log::{debug, info};
+use bitwarden_crypto::SensitiveString;
+#[cfg(feature = "internal")]
+use log::info;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -20,22 +22,22 @@ use crate::{
 #[cfg(feature = "internal")]
 pub(crate) async fn login_password(
     client: &mut Client,
-    input: &PasswordLoginRequest,
+    input: PasswordLoginRequest,
 ) -> Result<PasswordLoginResponse> {
-    use bitwarden_crypto::{EncString, HashPurpose};
+    use bitwarden_crypto::{EncString, HashPurpose, MasterKey};
 
-    use crate::{auth::determine_password_hash, client::UserLoginMethod, error::require};
+    use crate::{client::UserLoginMethod, error::require};
 
     info!("password logging in");
-    debug!("{:#?}, {:#?}", client, input);
 
-    let password_hash = determine_password_hash(
-        &input.email,
-        &input.kdf,
-        &input.password,
-        HashPurpose::ServerAuthorization,
-    )?;
-    let response = request_identity_tokens(client, input, &password_hash).await?;
+    let password_vec = input.password.into();
+
+    let master_key = MasterKey::derive(&password_vec, input.email.as_bytes(), &input.kdf)?;
+    let password_hash =
+        master_key.derive_master_key_hash(&password_vec, HashPurpose::ServerAuthorization)?;
+
+    let response =
+        request_identity_tokens(client, &input.email, &input.two_factor, &password_hash).await?;
 
     if let IdentityTokenResponse::Authenticated(r) = &response {
         client.set_tokens(
@@ -52,7 +54,7 @@ pub(crate) async fn login_password(
         let user_key: EncString = require!(r.key.as_deref()).parse()?;
         let private_key: EncString = require!(r.private_key.as_deref()).parse()?;
 
-        client.initialize_user_crypto(&input.password, user_key, private_key)?;
+        client.initialize_user_crypto_master_key(master_key, user_key, private_key)?;
     }
 
     PasswordLoginResponse::process_response(response)
@@ -61,18 +63,19 @@ pub(crate) async fn login_password(
 #[cfg(feature = "internal")]
 async fn request_identity_tokens(
     client: &mut Client,
-    input: &PasswordLoginRequest,
+    email: &str,
+    two_factor: &Option<TwoFactorRequest>,
     password_hash: &str,
 ) -> Result<IdentityTokenResponse> {
     use crate::client::client_settings::DeviceType;
 
     let config = client.get_api_configurations().await;
     PasswordTokenRequest::new(
-        &input.email,
+        email,
         password_hash,
         DeviceType::ChromeBrowser,
         "b86dd6ab-4265-4ddf-a7f1-eb28d5677f33",
-        &input.two_factor,
+        two_factor,
     )
     .send(config)
     .await
@@ -86,7 +89,7 @@ pub struct PasswordLoginRequest {
     /// Bitwarden account email address
     pub email: String,
     /// Bitwarden account master password
-    pub password: String,
+    pub password: SensitiveString,
     // Two-factor authentication
     pub two_factor: Option<TwoFactorRequest>,
     /// Kdf from prelogin

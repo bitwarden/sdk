@@ -54,7 +54,7 @@ pub(crate) fn export_csv(folders: Vec<Folder>, ciphers: Vec<Cipher>) -> Result<S
     String::from_utf8(wtr.into_inner().map_err(|_| CsvError::Csv)?).map_err(|_| CsvError::Csv)
 }
 
-/// CSV export format. See https://bitwarden.com/help/condition-bitwarden-import/#condition-a-csv
+/// CSV export format. See <https://bitwarden.com/help/condition-bitwarden-import/#condition-a-csv>
 ///
 /// Be careful when changing this struct to maintain compatibility with old exports.
 #[derive(serde::Serialize)]

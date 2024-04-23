@@ -1,6 +1,6 @@
 use base64::engine::general_purpose::STANDARD;
 use bitwarden_crypto::{
-    generate_random_bytes, Kdf, KeyEncryptable, PinKey, Sensitive, SensitiveVec,
+    generate_random_bytes, Kdf, KeyEncryptable, PinKey, Sensitive, SensitiveString, SensitiveVec,
 };
 use serde::Serialize;
 use thiserror::Error;
@@ -26,7 +26,7 @@ pub enum EncryptedJsonError {
 pub(crate) fn export_encrypted_json(
     folders: Vec<Folder>,
     ciphers: Vec<Cipher>,
-    password: String,
+    password: SensitiveString,
     kdf: Kdf,
 ) -> Result<String, EncryptedJsonError> {
     let decrypted_export = export_json(folders, ciphers)?;
@@ -47,7 +47,7 @@ pub(crate) fn export_encrypted_json(
 
     let salt: Sensitive<[u8; 16]> = generate_random_bytes();
     let salt = SensitiveVec::from(salt).encode_base64(STANDARD);
-    let key = PinKey::derive(password.as_bytes(), salt.expose().as_bytes(), &kdf)?;
+    let key = PinKey::derive(&password.into(), salt.expose().as_bytes(), &kdf)?;
 
     let enc_key_validation = Uuid::new_v4().to_string();
 
@@ -238,7 +238,7 @@ mod tests {
                     deleted_date: None,
                 },
             ],
-            "password".to_string(),
+            SensitiveString::test("password"),
             Kdf::PBKDF2 {
                 iterations: NonZeroU32::new(600_000).unwrap(),
             },

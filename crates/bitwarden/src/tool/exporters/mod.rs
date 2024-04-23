@@ -1,4 +1,4 @@
-use bitwarden_crypto::Decryptable;
+use bitwarden_crypto::{Decryptable, SensitiveString};
 use bitwarden_exporters::export;
 use schemars::JsonSchema;
 
@@ -20,7 +20,7 @@ pub use client_exporter::ClientExporters;
 pub enum ExportFormat {
     Csv,
     Json,
-    EncryptedJson { password: String },
+    EncryptedJson { password: SensitiveString },
 }
 
 pub(super) fn export_vault(
@@ -321,7 +321,7 @@ mod tests {
             convert_format(
                 &client,
                 ExportFormat::EncryptedJson {
-                    password: "password".to_string()
+                    password: SensitiveString::test("password")
                 }
             )
             .unwrap(),

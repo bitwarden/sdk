@@ -1,4 +1,4 @@
-use bitwarden_crypto::Kdf;
+use bitwarden_crypto::{Kdf, SensitiveString};
 use chrono::{DateTime, Utc};
 use thiserror::Error;
 use uuid::Uuid;
@@ -13,7 +13,7 @@ use encrypted_json::export_encrypted_json;
 pub enum Format {
     Csv,
     Json,
-    EncryptedJson { password: String, kdf: Kdf },
+    EncryptedJson { password: SensitiveString, kdf: Kdf },
 }
 
 /// Export representation of a Bitwarden folder.

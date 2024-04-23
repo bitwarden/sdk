@@ -5,7 +5,7 @@ use base64::{
 use bitwarden_api_api::models::{SendFileModel, SendResponseModel, SendTextModel};
 use bitwarden_crypto::{
     derive_shareable_key, generate_random_bytes, CryptoError, EncString, KeyDecryptable,
-    KeyEncryptable, LocateKey, Sensitive, SensitiveVec, SymmetricCryptoKey,
+    KeyEncryptable, LocateKey, Sensitive, SensitiveString, SensitiveVec, SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
@@ -73,7 +73,7 @@ pub struct Send {
     pub name: EncString,
     pub notes: Option<EncString>,
     pub key: EncString,
-    pub password: Option<String>,
+    pub password: Option<SensitiveString>,
 
     pub r#type: SendType,
     pub file: Option<SendFile>,
@@ -284,7 +284,7 @@ impl KeyEncryptable<SymmetricCryptoKey, Send> for SendView {
             key: k.encrypt_with_key(key)?,
             password: self.new_password.map(|password| {
                 let password = bitwarden_crypto::pbkdf2(password.as_bytes(), &k, SEND_ITERATIONS);
-                STANDARD.encode(password)
+                password.encode_base64(STANDARD)
             }),
 
             r#type: self.r#type,
@@ -313,7 +313,7 @@ impl TryFrom<SendResponseModel> for Send {
             name: require!(send.name).parse()?,
             notes: EncString::try_from_optional(send.notes)?,
             key: require!(send.key).parse()?,
-            password: send.password,
+            password: send.password.map(|p| SensitiveString::new(Box::new(p))),
             r#type: require!(send.r#type).into(),
             file: send.file.map(|f| (*f).try_into()).transpose()?,
             text: send.text.map(|t| (*t).try_into()).transpose()?,
@@ -583,8 +583,8 @@ mod tests {
         let send: Send = view.encrypt_with_key(key).unwrap();
 
         assert_eq!(
-            send.password,
-            Some("vTIDfdj3FTDbejmMf+mJWpYdMXsxfeSd1Sma3sjCtiQ=".to_owned())
+            send.password.as_ref().map(|p| p.expose().as_str()),
+            Some("vTIDfdj3FTDbejmMf+mJWpYdMXsxfeSd1Sma3sjCtiQ=")
         );
 
         let v: SendView = send.decrypt_with_key(key).unwrap();

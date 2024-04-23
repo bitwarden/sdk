@@ -1,13 +1,15 @@
-use base64::{engine::general_purpose::STANDARD, Engine};
+use base64::engine::general_purpose::STANDARD;
 use bitwarden_api_api::models::{CipherLoginModel, CipherLoginUriModel};
 use bitwarden_crypto::{
-    CryptoError, DecryptedString, EncString, KeyDecryptable, KeyEncryptable, SensitiveString,
-    SymmetricCryptoKey,
+    CryptoError, DecryptedString, EncString, KeyDecryptable, KeyEncryptable, Sensitive,
+    SensitiveVec, SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
+use hmac::digest::generic_array::GenericArray;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
+use sha2::Digest;
 
 use crate::error::{require, Error, Result};
 
@@ -50,26 +52,28 @@ impl LoginUriView {
         let Some(cs) = &self.uri_checksum else {
             return false;
         };
-        let Ok(cs) = STANDARD.decode(cs.expose()) else {
+        let Ok(cs) = cs.clone().decode_base64(STANDARD) else {
             return false;
         };
 
-        use sha2::Digest;
-        let uri_hash = sha2::Sha256::new()
-            .chain_update(uri.expose().as_bytes())
-            .finalize();
+        let uri_hash: Sensitive<GenericArray<u8, _>> = Sensitive::new(Box::new(
+            sha2::Sha256::new()
+                .chain_update(uri.expose().as_bytes())
+                .finalize(),
+        ));
 
-        uri_hash.as_slice() == cs
+        uri_hash.expose().as_slice() == cs.expose()
     }
 
     pub(crate) fn generate_checksum(&mut self) {
         if let Some(uri) = &self.uri {
-            use sha2::Digest;
-            let uri_hash = sha2::Sha256::new()
-                .chain_update(uri.expose().as_bytes())
-                .finalize();
-            let uri_hash = STANDARD.encode(uri_hash.as_slice());
-            self.uri_checksum = Some(SensitiveString::new(Box::new(uri_hash)));
+            let uri_hash: SensitiveVec = Sensitive::new(Box::new(
+                sha2::Sha256::new()
+                    .chain_update(uri.expose().as_bytes())
+                    .finalize(),
+            ))
+            .into();
+            self.uri_checksum = Some(uri_hash.encode_base64(STANDARD))
         }
     }
 }

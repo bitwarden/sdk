@@ -3,6 +3,7 @@ use std::{
     fmt::{self, Formatter},
 };
 
+use generic_array::{ArrayLength, GenericArray};
 use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use zeroize::{Zeroize, ZeroizeOnDrop};
@@ -90,6 +91,12 @@ impl From<SensitiveString> for SensitiveVec {
     fn from(mut s: SensitiveString) -> Self {
         let value = std::mem::take(&mut s.value);
         Sensitive::new(Box::new(value.into_bytes()))
+    }
+}
+
+impl<N: ArrayLength<u8>> From<Sensitive<GenericArray<u8, N>>> for SensitiveVec {
+    fn from(val: Sensitive<GenericArray<u8, N>>) -> Self {
+        SensitiveVec::new(Box::new(val.value.to_vec()))
     }
 }
 

@@ -61,7 +61,7 @@ impl<const N: usize> From<Sensitive<[u8; N]>> for SensitiveVec {
     }
 }
 
-/// Helper to convert a `SensitiveVec` to a `Sensitive<[u8, N]>`.
+/// Helper to convert a `&SensitiveVec` to a `Sensitive<[u8, N]>`.
 impl<const N: usize> TryFrom<&SensitiveVec> for Sensitive<[u8; N]> {
     type Error = CryptoError;
 

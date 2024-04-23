@@ -1,7 +1,7 @@
 use bitwarden_api_api::models::CipherDetailsResponseModel;
 use bitwarden_crypto::{
     CryptoError, DecryptedString, DecryptedVec, EncString, KeyContainer, KeyDecryptable,
-    KeyEncryptable, LocateKey, SymmetricCryptoKey,
+    KeyEncryptable, LocateKey, SensitiveString, SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
@@ -121,7 +121,7 @@ pub struct CipherListView {
     pub collection_ids: Vec<Uuid>,
 
     pub name: DecryptedString,
-    pub sub_title: String,
+    pub sub_title: DecryptedString,
 
     pub r#type: CipherType,
 
@@ -236,73 +236,126 @@ impl Cipher {
             .transpose()
     }
 
-    fn get_decrypted_subtitle(&self, key: &SymmetricCryptoKey) -> Result<String, CryptoError> {
+    fn get_decrypted_subtitle(
+        &self,
+        key: &SymmetricCryptoKey,
+    ) -> Result<DecryptedString, CryptoError> {
         Ok(match self.r#type {
             CipherType::Login => {
                 let Some(login) = &self.login else {
-                    return Ok(String::new());
+                    return Ok(SensitiveString::default());
                 };
-                login
-                    .username
-                    .decrypt_with_key(key)?
-                    .map(|s: DecryptedString| s.expose().to_owned())
-                    .unwrap_or_default()
+                login.username.decrypt_with_key(key)?.unwrap_or_default()
             }
-            CipherType::SecureNote => String::new(),
+            CipherType::SecureNote => SensitiveString::default(),
             CipherType::Card => {
                 let Some(card) = &self.card else {
-                    return Ok(String::new());
+                    return Ok(SensitiveString::default());
                 };
-                let mut sub_title = String::new();
 
-                if let Some(brand) = &card.brand {
-                    let brand: DecryptedString = brand.decrypt_with_key(key)?;
-                    sub_title.push_str(brand.expose());
-                }
-
-                if let Some(number) = &card.number {
-                    let number: DecryptedString = number.decrypt_with_key(key)?;
-                    let n = number.expose();
-                    let number_len = n.len();
-                    if number_len > 4 {
-                        if !sub_title.is_empty() {
-                            sub_title.push_str(", ");
-                        }
-
-                        // On AMEX cards we show 5 digits instead of 4
-                        let digit_count = match &n[0..2] {
-                            "34" | "37" => 5,
-                            _ => 4,
-                        };
-
-                        sub_title.push_str(&n[(number_len - digit_count)..]);
-                    }
-                }
-
-                sub_title
+                build_subtitle_card(
+                    card.brand
+                        .as_ref()
+                        .map(|b| b.decrypt_with_key(key))
+                        .transpose()?,
+                    card.number
+                        .as_ref()
+                        .map(|n| n.decrypt_with_key(key))
+                        .transpose()?,
+                )
             }
             CipherType::Identity => {
                 let Some(identity) = &self.identity else {
-                    return Ok(String::new());
+                    return Ok(SensitiveString::default());
                 };
-                let mut sub_title = String::new();
 
-                if let Some(first_name) = &identity.first_name {
-                    let first_name: DecryptedString = first_name.decrypt_with_key(key)?;
-                    sub_title.push_str(first_name.expose());
-                }
-
-                if let Some(last_name) = &identity.last_name {
-                    if !sub_title.is_empty() {
-                        sub_title.push(' ');
-                    }
-                    let last_name: DecryptedString = last_name.decrypt_with_key(key)?;
-                    sub_title.push_str(last_name.expose());
-                }
-
-                sub_title
+                build_subtitle_identity(
+                    identity
+                        .first_name
+                        .as_ref()
+                        .map(|f| f.decrypt_with_key(key))
+                        .transpose()?,
+                    identity
+                        .last_name
+                        .as_ref()
+                        .map(|l| l.decrypt_with_key(key))
+                        .transpose()?,
+                )
             }
         })
+    }
+}
+
+/// Builds the subtitle for a card cipher
+///
+/// Care is taken to avoid leaking sensitive data by allocating the full size of the subtitle
+fn build_subtitle_card(
+    brand: Option<DecryptedString>,
+    number: Option<DecryptedString>,
+) -> SensitiveString {
+    let brand: Option<SensitiveString> = brand.filter(|b: &SensitiveString| !b.expose().is_empty());
+
+    // We only want to expose the last 4 or 5 digits of the card number
+    let number: Option<SensitiveString> = number
+        .filter(|b: &SensitiveString| b.expose().len() > 4)
+        .map(|n| {
+            // For AMEX cards show 5 digits instead of 4
+            let desired_len = match &n.expose()[0..2] {
+                "34" | "37" => 5,
+                _ => 4,
+            };
+            let start = n.expose().len() - desired_len;
+
+            let mut str = SensitiveString::new(Box::new(String::with_capacity(desired_len + 1)));
+            str.expose_mut().push('*');
+            str.expose_mut().push_str(&n.expose()[start..]);
+
+            str
+        });
+
+    match (brand, number) {
+        (Some(brand), Some(number)) => {
+            let length = brand.expose().len() + 2 + number.expose().len();
+
+            let mut str = SensitiveString::new(Box::new(String::with_capacity(length)));
+            str.expose_mut().push_str(brand.expose());
+            str.expose_mut().push_str(", ");
+            str.expose_mut().push_str(number.expose());
+
+            str
+        }
+        (Some(brand), None) => brand,
+        (None, Some(number)) => number,
+        _ => SensitiveString::new(Box::new("".to_owned())),
+    }
+}
+
+/// Builds the subtitle for a card cipher
+///
+/// Care is taken to avoid leaking sensitive data by allocating the full size of the subtitle
+fn build_subtitle_identity(
+    first_name: Option<DecryptedString>,
+    last_name: Option<DecryptedString>,
+) -> SensitiveString {
+    let first_name: Option<SensitiveString> =
+        first_name.filter(|f: &SensitiveString| !f.expose().is_empty());
+    let last_name: Option<SensitiveString> =
+        last_name.filter(|l: &SensitiveString| !l.expose().is_empty());
+
+    match (first_name, last_name) {
+        (Some(first_name), Some(last_name)) => {
+            let length = first_name.expose().len() + 1 + last_name.expose().len();
+
+            let mut str = SensitiveString::new(Box::new(String::with_capacity(length)));
+            str.expose_mut().push_str(first_name.expose());
+            str.expose_mut().push(' ');
+            str.expose_mut().push_str(last_name.expose());
+
+            str
+        }
+        (Some(first_name), None) => first_name,
+        (None, Some(last_name)) => last_name,
+        _ => SensitiveString::new(Box::new("".to_owned())),
     }
 }
 
@@ -589,5 +642,95 @@ mod tests {
         // cipher key is tied to the user key and not the org key
         let org_key = enc.get_key(&Some(org)).unwrap();
         assert!(cipher.encrypt_with_key(org_key).is_err());
+    }
+
+    #[test]
+    fn test_build_subtitle_card_visa() {
+        let brand = Some(DecryptedString::test("Visa"));
+        let number = Some(DecryptedString::test("4111111111111111"));
+
+        let subtitle = build_subtitle_card(brand, number);
+        assert_eq!(subtitle.expose(), "Visa, *1111");
+    }
+
+    #[test]
+    fn test_build_subtitle_card_mastercard() {
+        let brand = Some(DecryptedString::test("Mastercard"));
+        let number = Some(DecryptedString::test("5555555555554444"));
+
+        let subtitle = build_subtitle_card(brand, number);
+        assert_eq!(subtitle.expose(), "Mastercard, *4444");
+    }
+
+    #[test]
+    fn test_build_subtitle_card_amex() {
+        let brand = Some(DecryptedString::test("Amex"));
+        let number = Some(DecryptedString::test("378282246310005"));
+
+        let subtitle = build_subtitle_card(brand, number);
+        assert_eq!(subtitle.expose(), "Amex, *10005");
+    }
+
+    #[test]
+    fn test_build_subtitle_card_underflow() {
+        let brand = Some(DecryptedString::test("Mastercard"));
+        let number = Some(DecryptedString::test("4"));
+
+        let subtitle = build_subtitle_card(brand, number);
+        assert_eq!(subtitle.expose(), "Mastercard");
+    }
+
+    #[test]
+    fn test_build_subtitle_card_only_brand() {
+        let brand = Some(DecryptedString::test("Mastercard"));
+        let number = None;
+
+        let subtitle = build_subtitle_card(brand, number);
+        assert_eq!(subtitle.expose(), "Mastercard");
+    }
+
+    #[test]
+    fn test_build_subtitle_card_only_card() {
+        let brand = None;
+        let number = Some(DecryptedString::test("5555555555554444"));
+
+        let subtitle = build_subtitle_card(brand, number);
+        assert_eq!(subtitle.expose(), "*4444");
+    }
+
+    #[test]
+    fn test_build_subtitle_identity() {
+        let first_name = Some(DecryptedString::test("John"));
+        let last_name = Some(DecryptedString::test("Doe"));
+
+        let subtitle = build_subtitle_identity(first_name, last_name);
+        assert_eq!(subtitle.expose(), "John Doe");
+    }
+
+    #[test]
+    fn test_build_subtitle_identity_only_first() {
+        let first_name = Some(DecryptedString::test("John"));
+        let last_name = None;
+
+        let subtitle = build_subtitle_identity(first_name, last_name);
+        assert_eq!(subtitle.expose(), "John");
+    }
+
+    #[test]
+    fn test_build_subtitle_identity_only_last() {
+        let first_name = None;
+        let last_name = Some(DecryptedString::test("Doe"));
+
+        let subtitle = build_subtitle_identity(first_name, last_name);
+        assert_eq!(subtitle.expose(), "Doe");
+    }
+
+    #[test]
+    fn test_build_subtitle_identity_none() {
+        let first_name = None;
+        let last_name = None;
+
+        let subtitle = build_subtitle_identity(first_name, last_name);
+        assert_eq!(subtitle.expose(), "");
     }
 }

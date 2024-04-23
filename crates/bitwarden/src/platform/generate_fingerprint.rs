@@ -54,6 +54,8 @@ pub(crate) fn generate_user_fingerprint(
 mod tests {
     use std::num::NonZeroU32;
 
+    use bitwarden_crypto::SensitiveVec;
+
     use super::*;
     use crate::{client::Kdf, Client};
 
@@ -66,7 +68,7 @@ mod tests {
         let mut client = Client::new(None);
 
         let master_key = bitwarden_crypto::MasterKey::derive(
-            "asdfasdfasdf".as_bytes(),
+            &SensitiveVec::test(b"asdfasdfasdf"),
             "robb@stark.com".as_bytes(),
             &Kdf::PBKDF2 {
                 iterations: NonZeroU32::new(600_000).unwrap(),

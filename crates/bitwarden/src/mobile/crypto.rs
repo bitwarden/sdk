@@ -38,7 +38,7 @@ pub struct InitUserCryptoRequest {
 pub enum InitUserCryptoMethod {
     Password {
         /// The user's master password
-        password: String,
+        password: SensitiveString,
         /// The user's encrypted symmetric crypto key
         user_key: String,
     },
@@ -48,7 +48,7 @@ pub enum InitUserCryptoMethod {
     },
     Pin {
         /// The user's PIN
-        pin: String,
+        pin: SensitiveString,
         /// The user's symmetric crypto key, encrypted with the PIN. Use `derive_pin_key` to obtain
         /// this.
         pin_protected_user_key: EncString,
@@ -99,7 +99,7 @@ pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequ
             let user_key: EncString = user_key.parse()?;
 
             let master_key =
-                MasterKey::derive(password.as_bytes(), req.email.as_bytes(), &req.kdf_params)?;
+                MasterKey::derive(&password.into(), req.email.as_bytes(), &req.kdf_params)?;
             client.initialize_user_crypto_master_key(master_key, user_key, private_key)?;
         }
         InitUserCryptoMethod::DecryptedKey { decrypted_user_key } => {
@@ -111,7 +111,7 @@ pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequ
             pin,
             pin_protected_user_key,
         } => {
-            let pin_key = MasterKey::derive(pin.as_bytes(), req.email.as_bytes(), &req.kdf_params)?;
+            let pin_key = MasterKey::derive(&pin.into(), req.email.as_bytes(), &req.kdf_params)?;
             client.initialize_user_crypto_pin(pin_key, pin_protected_user_key, private_key)?;
         }
         InitUserCryptoMethod::AuthRequest {
@@ -197,7 +197,7 @@ pub struct UpdatePasswordResponse {
 
 pub fn update_password(
     client: &mut Client,
-    new_password: String,
+    new_password: SensitiveString,
 ) -> Result<UpdatePasswordResponse> {
     let user_key = client
         .get_encryption_settings()?
@@ -209,19 +209,21 @@ pub fn update_password(
         .as_ref()
         .ok_or(Error::NotAuthenticated)?;
 
+    let password_vec = new_password.into();
+
     // Derive a new master key from password
     let new_master_key = match login_method {
         LoginMethod::User(
             UserLoginMethod::Username { email, kdf, .. }
             | UserLoginMethod::ApiKey { email, kdf, .. },
-        ) => MasterKey::derive(new_password.as_bytes(), email.as_bytes(), kdf)?,
+        ) => MasterKey::derive(&password_vec, email.as_bytes(), kdf)?,
         _ => return Err(Error::NotAuthenticated),
     };
 
     let new_key = new_master_key.encrypt_user_key(user_key)?;
 
     let password_hash = new_master_key.derive_master_key_hash(
-        new_password.as_bytes(),
+        &password_vec,
         bitwarden_crypto::HashPurpose::ServerAuthorization,
     )?;
 
@@ -243,7 +245,7 @@ pub struct DerivePinKeyResponse {
 }
 
 #[cfg(feature = "internal")]
-pub fn derive_pin_key(client: &mut Client, pin: String) -> Result<DerivePinKeyResponse> {
+pub fn derive_pin_key(client: &mut Client, pin: SensitiveString) -> Result<DerivePinKeyResponse> {
     let user_key = client
         .get_encryption_settings()?
         .get_key(&None)
@@ -254,7 +256,8 @@ pub fn derive_pin_key(client: &mut Client, pin: String) -> Result<DerivePinKeyRe
         .as_ref()
         .ok_or(Error::NotAuthenticated)?;
 
-    let pin_protected_user_key = derive_pin_protected_user_key(&pin, login_method, user_key)?;
+    let pin_protected_user_key =
+        derive_pin_protected_user_key(pin.clone(), login_method, user_key)?;
 
     Ok(DerivePinKeyResponse {
         pin_protected_user_key,
@@ -272,17 +275,18 @@ pub fn derive_pin_user_key(client: &mut Client, encrypted_pin: EncString) -> Res
         .ok_or(Error::VaultLocked)?;
 
     let pin: DecryptedString = encrypted_pin.decrypt_with_key(user_key)?;
+
     let login_method = client
         .login_method
         .as_ref()
         .ok_or(Error::NotAuthenticated)?;
 
-    derive_pin_protected_user_key(pin.expose(), login_method, user_key)
+    derive_pin_protected_user_key(pin, login_method, user_key)
 }
 
 #[cfg(feature = "internal")]
 fn derive_pin_protected_user_key(
-    pin: &str,
+    pin: SensitiveString,
     login_method: &LoginMethod,
     user_key: &SymmetricCryptoKey,
 ) -> Result<EncString> {
@@ -290,7 +294,7 @@ fn derive_pin_protected_user_key(
         LoginMethod::User(
             UserLoginMethod::Username { email, kdf, .. }
             | UserLoginMethod::ApiKey { email, kdf, .. },
-        ) => MasterKey::derive(pin.as_bytes(), email.as_bytes(), kdf)?,
+        ) => MasterKey::derive(&pin.into(), email.as_bytes(), kdf)?,
         _ => return Err(Error::NotAuthenticated),
     };
 
@@ -338,7 +342,7 @@ mod tests {
                 email: "test@bitwarden.com".into(),
                 private_key: priv_key.to_owned(),
                 method: InitUserCryptoMethod::Password {
-                    password: "asdfasdfasdf".into(),
+                    password: SensitiveString::test("asdfasdfasdf"),
                     user_key: "2.u2HDQ/nH2J7f5tYHctZx6Q==|NnUKODz8TPycWJA5svexe1wJIz2VexvLbZh2RDfhj5VI3wP8ZkR0Vicvdv7oJRyLI1GyaZDBCf9CTBunRTYUk39DbZl42Rb+Xmzds02EQhc=|rwuo5wgqvTJf3rgwOUfabUyzqhguMYb3sGBjOYqjevc=".into(),
                 },
             },
@@ -346,7 +350,8 @@ mod tests {
         .await
         .unwrap();
 
-        let new_password_response = update_password(&mut client, "123412341234".into()).unwrap();
+        let new_password_response =
+            update_password(&mut client, SensitiveString::test("123412341234")).unwrap();
 
         let mut client2 = Client::new(None);
 
@@ -357,7 +362,7 @@ mod tests {
                 email: "test@bitwarden.com".into(),
                 private_key: priv_key.to_owned(),
                 method: InitUserCryptoMethod::Password {
-                    password: "123412341234".into(),
+                    password: SensitiveString::test("123412341234"),
                     user_key: new_password_response.new_key.to_string(),
                 },
             },
@@ -369,7 +374,7 @@ mod tests {
             .kdf()
             .hash_password(
                 "test@bitwarden.com".into(),
-                "123412341234".into(),
+                SensitiveString::test("123412341234"),
                 kdf.clone(),
                 bitwarden_crypto::HashPurpose::ServerAuthorization,
             )
@@ -409,7 +414,7 @@ mod tests {
                 email: "test@bitwarden.com".into(),
                 private_key: priv_key.to_owned(),
                 method: InitUserCryptoMethod::Password {
-                    password: "asdfasdfasdf".into(),
+                    password: SensitiveString::test("asdfasdfasdf"),
                     user_key: "2.u2HDQ/nH2J7f5tYHctZx6Q==|NnUKODz8TPycWJA5svexe1wJIz2VexvLbZh2RDfhj5VI3wP8ZkR0Vicvdv7oJRyLI1GyaZDBCf9CTBunRTYUk39DbZl42Rb+Xmzds02EQhc=|rwuo5wgqvTJf3rgwOUfabUyzqhguMYb3sGBjOYqjevc=".into(),
                 },
             },
@@ -417,7 +422,7 @@ mod tests {
         .await
         .unwrap();
 
-        let pin_key = derive_pin_key(&mut client, "1234".into()).unwrap();
+        let pin_key = derive_pin_key(&mut client, SensitiveString::test("1234")).unwrap();
 
         // Verify we can unlock with the pin
         let mut client2 = Client::new(None);
@@ -430,7 +435,7 @@ mod tests {
                 email: "test@bitwarden.com".into(),
                 private_key: priv_key.to_owned(),
                 method: InitUserCryptoMethod::Pin {
-                    pin: "1234".into(),
+                    pin: SensitiveString::test("1234"),
                     pin_protected_user_key: pin_key.pin_protected_user_key,
                 },
             },
@@ -468,7 +473,7 @@ mod tests {
                 email: "test@bitwarden.com".into(),
                 private_key: priv_key.to_owned(),
                 method: InitUserCryptoMethod::Pin {
-                    pin: "1234".into(),
+                    pin: SensitiveString::test("1234"),
                     pin_protected_user_key,
                 },
             },
@@ -498,12 +503,12 @@ mod tests {
         use std::num::NonZeroU32;
 
         use base64::engine::general_purpose::STANDARD;
-        use bitwarden_crypto::{AsymmetricCryptoKey, DecryptedVec, SensitiveString};
+        use bitwarden_crypto::{AsymmetricCryptoKey, DecryptedString, DecryptedVec, SensitiveVec};
 
         let mut client = Client::new(None);
 
         let master_key = bitwarden_crypto::MasterKey::derive(
-            "asdfasdfasdf".as_bytes(),
+            &SensitiveVec::test(b"asdfasdfasdf"),
             "test@bitwarden.com".as_bytes(),
             &Kdf::PBKDF2 {
                 iterations: NonZeroU32::new(600_000).unwrap(),
@@ -522,7 +527,7 @@ mod tests {
         let encrypted = enroll_admin_password_reset(&mut client, public_key.to_owned()).unwrap();
 
         let private_key = "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCzLtEUdxfcLxDj84yaGFsVF5hZ8Hjlb08NMQDy1RnBma06I3ZESshLYzVz4r/gegMn9OOltfV/Yxlyvida8oW6qdlfJ7AVz6Oa8pV7BiL40C7b76+oqraQpyYw2HChANB1AhXL9SqWngKmLZwjA7qiCrmcc0kZHeOb4KnKtp9iVvPVs+8veFvKgYO4ba2AAOHKFdR0W55/agXfAy+fWUAkC8mc9ikyJdQWaPV6OZvC2XFkOseBQm9Rynudh3BQpoWiL6w620efe7t5k+02/EyOFJL9f/XEEjM/+Yo0t3LAfkuhHGeKiRST59Xc9hTEmyJTeVXROtz+0fjqOp3xkaObAgMBAAECggEACs4xhnO0HaZhh1/iH7zORMIRXKeyxP2LQiTR8xwN5JJ9wRWmGAR9VasS7EZFTDidIGVME2u/h4s5EqXnhxfO+0gGksVvgNXJ/qw87E8K2216g6ZNo6vSGA7H1GH2voWwejJ4/k/cJug6dz2S402rRAKh2Wong1arYHSkVlQp3diiMa5FHAOSE+Cy09O2ZsaF9IXQYUtlW6AVXFrBEPYH2kvkaPXchh8VETMijo6tbvoKLnUHe+wTaDMls7hy8exjtVyI59r3DNzjy1lNGaGb5QSnFMXR+eHhPZc844Wv02MxC15zKABADrl58gpJyjTl6XpDdHCYGsmGpVGH3X9TQQKBgQDz/9beFjzq59ve6rGwn+EtnQfSsyYT+jr7GN8lNEXb3YOFXBgPhfFIcHRh2R00Vm9w2ApfAx2cd8xm2I6HuvQ1Os7g26LWazvuWY0Qzb+KaCLQTEGH1RnTq6CCG+BTRq/a3J8M4t38GV5TWlzv8wr9U4dl6FR4efjb65HXs1GQ4QKBgQC7/uHfrOTEHrLeIeqEuSl0vWNqEotFKdKLV6xpOvNuxDGbgW4/r/zaxDqt0YBOXmRbQYSEhmO3oy9J6XfE1SUln0gbavZeW0HESCAmUIC88bDnspUwS9RxauqT5aF8ODKN/bNCWCnBM1xyonPOs1oT1nyparJVdQoG//Y7vkB3+wKBgBqLqPq8fKAp3XfhHLfUjREDVoiLyQa/YI9U42IOz9LdxKNLo6p8rgVthpvmnRDGnpUuS+KOWjhdqDVANjF6G3t3DG7WNl8Rh5Gk2H4NhFswfSkgQrjebFLlBy9gjQVCWXt8KSmjvPbiY6q52Aaa8IUjA0YJAregvXxfopxO+/7BAoGARicvEtDp7WWnSc1OPoj6N14VIxgYcI7SyrzE0d/1x3ffKzB5e7qomNpxKzvqrVP8DzG7ydh8jaKPmv1MfF8tpYRy3AhmN3/GYwCnPqT75YYrhcrWcVdax5gmQVqHkFtIQkRSCIftzPLlpMGKha/YBV8c1fvC4LD0NPh/Ynv0gtECgYEAyOZg95/kte0jpgUEgwuMrzkhY/AaUJULFuR5MkyvReEbtSBQwV5tx60+T95PHNiFooWWVXiLMsAgyI2IbkxVR1Pzdri3gWK5CTfqb7kLuaj/B7SGvBa2Sxo478KS5K8tBBBWkITqo+wLC0mn3uZi1dyMWO1zopTA+KtEGF2dtGQ=";
-        let private_key = SensitiveString::test(private_key);
+        let private_key = DecryptedString::test(private_key);
         let private_key =
             AsymmetricCryptoKey::from_der(private_key.decode_base64(STANDARD).unwrap()).unwrap();
         let decrypted: DecryptedVec = encrypted.decrypt_with_key(&private_key).unwrap();

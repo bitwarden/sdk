@@ -363,7 +363,9 @@ impl TryFrom<SendTextModel> for SendText {
 
 #[cfg(test)]
 mod tests {
-    use bitwarden_crypto::{KeyDecryptable, KeyEncryptable, MasterKey, SensitiveString};
+    use bitwarden_crypto::{
+        KeyDecryptable, KeyEncryptable, MasterKey, SensitiveString, SensitiveVec,
+    };
 
     use super::{Send, SendText, SendTextView, SendType};
     use crate::{
@@ -375,7 +377,7 @@ mod tests {
     fn test_get_send_key() {
         // Initialize user encryption with some test data
         let master_key = MasterKey::derive(
-            "asdfasdfasdf".as_bytes(),
+            &SensitiveVec::test(b"asdfasdfasdf"),
             "test@bitwarden.com".as_bytes(),
             &Kdf::PBKDF2 {
                 iterations: 345123.try_into().unwrap(),
@@ -402,7 +404,7 @@ mod tests {
 
     fn build_encryption_settings() -> EncryptionSettings {
         let master_key = MasterKey::derive(
-            "asdfasdfasdf".as_bytes(),
+            &SensitiveVec::test(b"asdfasdfasdf"),
             "test@bitwarden.com".as_bytes(),
             &Kdf::PBKDF2 {
                 iterations: 600_000.try_into().unwrap(),

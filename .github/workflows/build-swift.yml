@@ -7,7 +7,6 @@ on:
       - "rc"
       - "hotfix-rc"
       - "main"
-      - "DEVOPS-1525-swift-workflow-for-package-publishing"
 
 jobs:
   version:

@@ -1,0 +1,65 @@
+name: Publish Java SDK
+run-name: Publish Java SDK ${{ inputs.release_type }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Release Options"
+        required: true
+        default: "Release"
+        type: choice
+        options:
+          - Release
+          - Dry Run
+
+env:
+  _KEY_VAULT: "bitwarden-ci"
+
+jobs:
+  validate:
+    name: Setup
+    runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Branch check
+        if: ${{ inputs.release_type != 'Dry Run' }}
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/rc" ]] && [[ "$GITHUB_REF" != "refs/heads/hotfix-rc" ]]; then
+            echo "==================================="
+            echo "[!] Can only release from the 'rc' or 'hotfix-rc' branches"
+            echo "==================================="
+            exit 1
+          fi
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(cat languages/java/build.gradle | grep -Eo 'version = "[0-9]+\.[0-9]+\.[0-9]+"' | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+  publish:
+    name: Publish
+    runs-on: ubuntu-22.04
+    needs: validate
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Setup java
+        uses: actions/setup-java@387ac29b308b003ca37ba93a6cab5eb57c8f5f93 # v4.0.0
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
+
+      - name: Publish package to GitHub Packages
+        run: ./gradlew publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

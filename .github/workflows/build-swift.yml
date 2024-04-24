@@ -6,7 +6,7 @@ on:
     branches:
       - "rc"
       - "hotfix-rc"
-      - "master"
+      - "main"
       - "DEVOPS-1525-swift-workflow-for-package-publishing"
 
 jobs:
@@ -26,6 +26,7 @@ jobs:
           echo "package_version=$VERSION" >> $GITHUB_OUTPUT
 
   build:
+    name: Build
     runs-on: macos-13
     needs: version
     env:

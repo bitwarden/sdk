@@ -1,8 +1,6 @@
 use std::pin::Pin;
 
-use aes::cipher::typenum::U32;
 use base64::engine::general_purpose::STANDARD;
-use generic_array::GenericArray;
 use rand::Rng;
 use zeroize::Zeroize;
 
@@ -11,12 +9,12 @@ use crate::{CryptoError, Sensitive, SensitiveString, SensitiveVec};
 
 /// A symmetric encryption key. Used to encrypt and decrypt [`EncString`](crate::EncString)
 pub struct SymmetricCryptoKey {
-    // GenericArray is equivalent to [u8; N], which is a Copy type placed on the stack.
+    // [u8; N] is a Copy type placed on the stack.
     // To keep the compiler from making stack copies when moving this struct around,
     // we use a Box to keep the values on the heap. We also pin the box to make sure
     // that the contents can't be pulled out of the box and moved
-    pub(crate) key: Pin<Box<GenericArray<u8, U32>>>,
-    pub(crate) mac_key: Option<Pin<Box<GenericArray<u8, U32>>>>,
+    pub(crate) key: Pin<Box<[u8; 32]>>,
+    pub(crate) mac_key: Option<Pin<Box<[u8; 32]>>>,
 }
 
 impl Drop for SymmetricCryptoKey {
@@ -36,8 +34,8 @@ impl SymmetricCryptoKey {
 
     /// Generate a new random [SymmetricCryptoKey]
     pub fn generate(mut rng: impl rand::RngCore) -> Self {
-        let mut key = Box::pin(GenericArray::<u8, U32>::default());
-        let mut mac_key = Box::pin(GenericArray::<u8, U32>::default());
+        let mut key = Box::pin([0u8; 32]);
+        let mut mac_key = Box::pin([0u8; 32]);
 
         rng.fill(key.as_mut_slice());
         rng.fill(mac_key.as_mut_slice());
@@ -48,10 +46,7 @@ impl SymmetricCryptoKey {
         }
     }
 
-    pub(crate) fn new(
-        key: Pin<Box<GenericArray<u8, U32>>>,
-        mac_key: Option<Pin<Box<GenericArray<u8, U32>>>>,
-    ) -> Self {
+    pub(crate) fn new(key: Pin<Box<[u8; 32]>>, mac_key: Option<Pin<Box<[u8; 32]>>>) -> Self {
         Self { key, mac_key }
     }
 
@@ -66,9 +61,9 @@ impl SymmetricCryptoKey {
     pub fn to_vec(&self) -> SensitiveVec {
         let mut buf = SensitiveVec::new(Box::new(Vec::with_capacity(self.total_len())));
 
-        buf.expose_mut().extend_from_slice(&self.key);
+        buf.expose_mut().extend_from_slice(self.key.as_slice());
         if let Some(mac) = &self.mac_key {
-            buf.expose_mut().extend_from_slice(mac);
+            buf.expose_mut().extend_from_slice(mac.as_slice());
         }
         buf
     }
@@ -107,8 +102,8 @@ impl TryFrom<&mut [u8]> for SymmetricCryptoKey {
     /// the data in it. This is to prevent the key from being left in memory.
     fn try_from(value: &mut [u8]) -> Result<Self, Self::Error> {
         let result = if value.len() == Self::KEY_LEN + Self::MAC_LEN {
-            let mut key = Box::pin(GenericArray::<u8, U32>::default());
-            let mut mac_key = Box::pin(GenericArray::<u8, U32>::default());
+            let mut key = Box::pin([0u8; 32]);
+            let mut mac_key = Box::pin([0u8; 32]);
 
             key.copy_from_slice(&value[..Self::KEY_LEN]);
             mac_key.copy_from_slice(&value[Self::KEY_LEN..]);
@@ -118,7 +113,7 @@ impl TryFrom<&mut [u8]> for SymmetricCryptoKey {
                 mac_key: Some(mac_key),
             })
         } else if value.len() == Self::KEY_LEN {
-            let mut key = Box::pin(GenericArray::<u8, U32>::default());
+            let mut key = Box::pin([0u8; 32]);
 
             key.copy_from_slice(&value[..Self::KEY_LEN]);
 

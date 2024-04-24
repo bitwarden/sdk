@@ -15,8 +15,8 @@ keywords.workspace = true
 crate-type = ["cdylib"]
 
 [dependencies]
-argon2 = { version = ">=0.5.0, <0.6", features = [
-    "alloc",
+argon2 = { version = "0.6.0-pre.0", features = [
+    "std",
     "zeroize",
 ], default-features = false }
 bitwarden-crypto = { workspace = true }

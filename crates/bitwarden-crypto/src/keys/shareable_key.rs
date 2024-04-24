@@ -1,8 +1,6 @@
 use std::pin::Pin;
 
-use aes::cipher::typenum::U64;
-use generic_array::GenericArray;
-use hmac::Mac;
+use hmac::{KeyInit, Mac};
 use zeroize::Zeroize;
 
 use crate::{
@@ -27,8 +25,7 @@ pub fn derive_shareable_key(
         .finalize()
         .into_bytes();
 
-    let mut key: Pin<Box<GenericArray<u8, U64>>> =
-        hkdf_expand(&res, info).expect("Input is a valid size");
+    let mut key: Pin<Box<[u8; 64]>> = hkdf_expand(&res, info).expect("Input is a valid size");
 
     // Zeroize the temporary buffer
     res.zeroize();

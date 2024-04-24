@@ -5,13 +5,9 @@
 //! In most cases you should use the [EncString][crate::EncString] with
 //! [KeyEncryptable][crate::KeyEncryptable] & [KeyDecryptable][crate::KeyDecryptable] instead.
 
-use aes::cipher::{
-    block_padding::Pkcs7,
-    typenum::{U16, U32},
-    BlockDecryptMut, BlockEncryptMut, KeyIvInit,
-};
-use generic_array::GenericArray;
-use hmac::Mac;
+use aes::cipher::{BlockModeDecrypt, BlockModeEncrypt, KeyIvInit};
+use cbc::cipher::block_padding::Pkcs7;
+use hmac::{KeyInit, Mac};
 use subtle::ConstantTimeEq;
 
 use crate::{
@@ -22,16 +18,11 @@ use crate::{
 /// Decrypt using AES-256 in CBC mode.
 ///
 /// Behaves similar to [decrypt_aes256_hmac], but does not validate the MAC.
-pub(crate) fn decrypt_aes256(
-    iv: &[u8; 16],
-    data: Vec<u8>,
-    key: &GenericArray<u8, U32>,
-) -> Result<Vec<u8>> {
+pub(crate) fn decrypt_aes256(iv: &[u8; 16], data: Vec<u8>, key: &[u8; 32]) -> Result<Vec<u8>> {
     // Decrypt data
-    let iv = GenericArray::from_slice(iv);
     let mut data = data;
-    let decrypted_key_slice = cbc::Decryptor::<aes::Aes256>::new(key, iv)
-        .decrypt_padded_mut::<Pkcs7>(&mut data)
+    let decrypted_key_slice = cbc::Decryptor::<aes::Aes256>::new(key.as_ref(), iv.as_ref())
+        .decrypt_padded::<Pkcs7>(&mut data)
         .map_err(|_| CryptoError::KeyDecrypt)?;
 
     // Data is decrypted in place and returns a subslice of the original Vec, to avoid cloning it,
@@ -49,8 +40,8 @@ pub(crate) fn decrypt_aes256_hmac(
     iv: &[u8; 16],
     mac: &[u8; 32],
     data: Vec<u8>,
-    mac_key: &GenericArray<u8, U32>,
-    key: &GenericArray<u8, U32>,
+    mac_key: &[u8; 32],
+    key: &[u8; 32],
 ) -> Result<Vec<u8>> {
     let res = generate_mac(mac_key, iv, &data)?;
     if res.ct_ne(mac).into() {
@@ -67,7 +58,7 @@ pub(crate) fn decrypt_aes256_hmac(
 ///
 /// A AesCbc256_B64 EncString
 #[allow(unused)]
-pub(crate) fn encrypt_aes256(data_dec: &[u8], key: &GenericArray<u8, U32>) -> ([u8; 16], Vec<u8>) {
+pub(crate) fn encrypt_aes256(data_dec: &[u8], key: &[u8; 32]) -> ([u8; 16], Vec<u8>) {
     let rng = rand::thread_rng();
     let (iv, data) = encrypt_aes256_internal(rng, data_dec, key);
 
@@ -83,8 +74,8 @@ pub(crate) fn encrypt_aes256(data_dec: &[u8], key: &GenericArray<u8, U32>) -> ([
 /// A AesCbc256_HmacSha256_B64 EncString
 pub(crate) fn encrypt_aes256_hmac(
     data_dec: &[u8],
-    mac_key: &GenericArray<u8, U32>,
-    key: &GenericArray<u8, U32>,
+    mac_key: &[u8; 32],
+    key: &[u8; 32],
 ) -> Result<([u8; 16], [u8; 32], Vec<u8>)> {
     let rng = rand::thread_rng();
     let (iv, data) = encrypt_aes256_internal(rng, data_dec, key);
@@ -101,12 +92,12 @@ pub(crate) fn encrypt_aes256_hmac(
 fn encrypt_aes256_internal(
     mut rng: impl rand::RngCore,
     data_dec: &[u8],
-    key: &GenericArray<u8, U32>,
+    key: &[u8; 32],
 ) -> ([u8; 16], Vec<u8>) {
     let mut iv = [0u8; 16];
     rng.fill_bytes(&mut iv);
-    let data = cbc::Encryptor::<aes::Aes256>::new(key, &iv.into())
-        .encrypt_padded_vec_mut::<Pkcs7>(data_dec);
+    let data = cbc::Encryptor::<aes::Aes256>::new(key.as_ref(), &iv.into())
+        .encrypt_padded_vec::<Pkcs7>(data_dec);
 
     (iv, data)
 }
@@ -114,12 +105,11 @@ fn encrypt_aes256_internal(
 /// Decrypt using AES-128 in CBC mode.
 ///
 /// Behaves similar to [decrypt_aes128_hmac], but does not validate the MAC.
-fn decrypt_aes128(iv: &[u8; 16], data: Vec<u8>, key: &GenericArray<u8, U16>) -> Result<Vec<u8>> {
+fn decrypt_aes128(iv: &[u8; 16], data: Vec<u8>, key: &[u8; 16]) -> Result<Vec<u8>> {
     // Decrypt data
-    let iv = GenericArray::from_slice(iv);
     let mut data = data;
-    let decrypted_key_slice = cbc::Decryptor::<aes::Aes128>::new(key, iv)
-        .decrypt_padded_mut::<Pkcs7>(&mut data)
+    let decrypted_key_slice = cbc::Decryptor::<aes::Aes128>::new(key.as_ref(), iv.as_ref())
+        .decrypt_padded::<Pkcs7>(&mut data)
         .map_err(|_| CryptoError::KeyDecrypt)?;
 
     // Data is decrypted in place and returns a subslice of the original Vec, to avoid cloning it,
@@ -137,8 +127,8 @@ pub fn decrypt_aes128_hmac(
     iv: &[u8; 16],
     mac: &[u8; 32],
     data: Vec<u8>,
-    mac_key: &GenericArray<u8, U16>,
-    key: &GenericArray<u8, U16>,
+    mac_key: &[u8; 16],
+    key: &[u8; 16],
 ) -> Result<Vec<u8>> {
     let res = generate_mac(mac_key, iv, &data)?;
     if res.ct_ne(mac).into() {
@@ -163,18 +153,18 @@ fn generate_mac(mac_key: &[u8], iv: &[u8], data: &[u8]) -> Result<[u8; 32]> {
 #[cfg(test)]
 mod tests {
     use base64::{engine::general_purpose::STANDARD, Engine};
-    use generic_array::{sequence::GenericSequence, ArrayLength};
     use rand::SeedableRng;
 
     use super::*;
 
-    /// Helper function for generating a `GenericArray` of size 32 with each element being
+    /// Helper function for generating a `Array` of size 32 with each element being
     /// a multiple of a given increment, starting from a given offset.
-    fn generate_generic_array<N: ArrayLength<u8>>(
-        offset: u8,
-        increment: u8,
-    ) -> GenericArray<u8, N> {
-        GenericArray::generate(|i| offset + i as u8 * increment)
+    fn generate_generic_array<const N: usize>(offset: u8, increment: u8) -> [u8; N] {
+        let mut arr = [0u8; N];
+        for (i, item) in arr.iter_mut().enumerate() {
+            *item = offset + i as u8 * increment;
+        }
+        arr
     }
 
     /// Helper function for generating a vector of a given size with each element being

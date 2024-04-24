@@ -1,6 +1,5 @@
 use std::pin::Pin;
 
-use generic_array::{typenum::U32, GenericArray};
 use sha2::Digest;
 
 use crate::{util::hkdf_expand, Kdf, Result, Sensitive, SensitiveVec, SymmetricCryptoKey};
@@ -54,8 +53,8 @@ pub(super) fn derive_kdf_key(
 }
 
 pub(super) fn stretch_kdf_key(k: &SymmetricCryptoKey) -> Result<SymmetricCryptoKey> {
-    let key: Pin<Box<GenericArray<u8, U32>>> = hkdf_expand(&k.key, Some("enc"))?;
-    let mac_key: Pin<Box<GenericArray<u8, U32>>> = hkdf_expand(&k.key, Some("mac"))?;
+    let key: Pin<Box<[u8; 32]>> = hkdf_expand(k.key.as_slice(), Some("enc"))?;
+    let mac_key: Pin<Box<[u8; 32]>> = hkdf_expand(k.key.as_slice(), Some("mac"))?;
 
     Ok(SymmetricCryptoKey::new(key, Some(mac_key)))
 }
@@ -67,13 +66,10 @@ mod tests {
     #[test]
     fn test_stretch_kdf_key() {
         let key = SymmetricCryptoKey::new(
-            Box::pin(
-                [
-                    31, 79, 104, 226, 150, 71, 177, 90, 194, 80, 172, 209, 17, 129, 132, 81, 138,
-                    167, 69, 167, 254, 149, 2, 27, 39, 197, 64, 42, 22, 195, 86, 75,
-                ]
-                .into(),
-            ),
+            Box::pin([
+                31, 79, 104, 226, 150, 71, 177, 90, 194, 80, 172, 209, 17, 129, 132, 81, 138, 167,
+                69, 167, 254, 149, 2, 27, 39, 197, 64, 42, 22, 195, 86, 75,
+            ]),
             None,
         );
 

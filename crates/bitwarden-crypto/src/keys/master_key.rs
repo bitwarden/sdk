@@ -83,7 +83,7 @@ impl MasterKey {
         password: &SensitiveVec,
         purpose: HashPurpose,
     ) -> Result<SensitiveString> {
-        let hash = util::pbkdf2(&self.0.key, password.expose(), purpose as u32);
+        let hash = util::pbkdf2(self.0.key.as_slice(), password.expose(), purpose as u32);
         Ok(hash.encode_base64(STANDARD))
     }
 
@@ -224,13 +224,10 @@ mod tests {
         let mut rng = rand_chacha::ChaCha8Rng::from_seed([0u8; 32]);
 
         let master_key = MasterKey(SymmetricCryptoKey::new(
-            Box::pin(
-                [
-                    31, 79, 104, 226, 150, 71, 177, 90, 194, 80, 172, 209, 17, 129, 132, 81, 138,
-                    167, 69, 167, 254, 149, 2, 27, 39, 197, 64, 42, 22, 195, 86, 75,
-                ]
-                .into(),
-            ),
+            Box::pin([
+                31, 79, 104, 226, 150, 71, 177, 90, 194, 80, 172, 209, 17, 129, 132, 81, 138, 167,
+                69, 167, 254, 149, 2, 27, 39, 197, 64, 42, 22, 195, 86, 75,
+            ]),
             None,
         ));
 

@@ -1,8 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-use aes::cipher::typenum::U32;
 use base64::{engine::general_purpose::STANDARD, Engine};
-use generic_array::GenericArray;
 use serde::Deserialize;
 
 use super::{check_length, from_b64, from_b64_vec, split_enc_string};
@@ -205,8 +203,8 @@ impl serde::Serialize for EncString {
 impl EncString {
     pub fn encrypt_aes256_hmac(
         data_dec: &[u8],
-        mac_key: &GenericArray<u8, U32>,
-        key: &GenericArray<u8, U32>,
+        mac_key: &[u8; 32],
+        key: &[u8; 32],
     ) -> Result<EncString> {
         let (iv, mac, data) = crate::aes::encrypt_aes256_hmac(data_dec, mac_key, key)?;
         Ok(EncString::AesCbc256_HmacSha256_B64 { iv, mac, data })
@@ -245,8 +243,8 @@ impl KeyDecryptable<SymmetricCryptoKey, Vec<u8>> for EncString {
                 // variant uses a 16 byte key This means the key+mac are going to be
                 // parsed as a single 32 byte key, at the moment we split it manually
                 // When refactoring the key handling, this should be fixed.
-                let enc_key = key.key[0..16].into();
-                let mac_key = key.key[16..32].into();
+                let enc_key: &[u8; 16] = (&key.key[0..16]).try_into().expect("Valid size");
+                let mac_key: &[u8; 16] = (&key.key[16..32]).try_into().expect("Valid size");
                 let dec = crate::aes::decrypt_aes128_hmac(iv, mac, data.clone(), mac_key, enc_key)?;
                 Ok(dec)
             }

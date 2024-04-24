@@ -1,7 +1,6 @@
 use std::pin::Pin;
 
-use ::aes::cipher::{ArrayLength, Unsigned};
-use generic_array::GenericArray;
+use ::aes::cipher::Unsigned;
 use hmac::digest::OutputSizeUser;
 use rand::{
     distributions::{Distribution, Standard},
@@ -16,15 +15,15 @@ pub(crate) const PBKDF_SHA256_HMAC_OUT_SIZE: usize =
     <<PbkdfSha256Hmac as OutputSizeUser>::OutputSize as Unsigned>::USIZE;
 
 /// [RFC5869](https://datatracker.ietf.org/doc/html/rfc5869) HKDF-Expand operation
-pub(crate) fn hkdf_expand<T: ArrayLength<u8>>(
+pub(crate) fn hkdf_expand<const T: usize>(
     prk: &[u8],
     info: Option<&str>,
-) -> Result<Pin<Box<GenericArray<u8, T>>>> {
+) -> Result<Pin<Box<[u8; T]>>> {
     let hkdf = hkdf::Hkdf::<sha2::Sha256>::from_prk(prk).map_err(|_| CryptoError::InvalidKeyLen)?;
-    let mut key = Box::<GenericArray<u8, T>>::default();
+    let mut key = Box::new([0u8; T]);
 
     let i = info.map(|i| i.as_bytes()).unwrap_or(&[]);
-    hkdf.expand(i, &mut key)
+    hkdf.expand(i, key.as_mut_slice())
         .map_err(|_| CryptoError::InvalidKeyLen)?;
 
     Ok(Box::into_pin(key))
@@ -55,8 +54,6 @@ pub fn pbkdf2(
 
 #[cfg(test)]
 mod tests {
-    use aes::cipher::typenum::U64;
-
     use super::*;
 
     #[test]
@@ -67,7 +64,7 @@ mod tests {
         ];
         let info = Some("info");
 
-        let result: Pin<Box<GenericArray<u8, U64>>> = hkdf_expand(prk, info).unwrap();
+        let result: Pin<Box<[u8; 64]>> = hkdf_expand(prk, info).unwrap();
 
         let expected_output: [u8; 64] = [
             6, 114, 42, 38, 87, 231, 30, 109, 30, 255, 104, 129, 255, 94, 92, 108, 124, 145, 215,

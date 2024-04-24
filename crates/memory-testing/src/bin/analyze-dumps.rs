@@ -152,7 +152,7 @@ fn main() -> io::Result<()> {
         // At the moment the argon library is producing some hard to pinpoint leaks
         // Upgrading to the latest pre-release version solves at least one of them
         let allowed_leaks = if matches!(case.kdf, Kdf::Argon2id { .. }) {
-            2
+            3
         } else {
             0
         };

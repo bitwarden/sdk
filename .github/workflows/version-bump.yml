@@ -23,6 +23,7 @@ on:
           - go-sdk
           - dotnet-sdk
           - php-sdk
+          - cpp-sdk
       version_number:
         description: "New version (example: '2024.1.0')"
         required: true
@@ -174,6 +175,12 @@ jobs:
         if: ${{ inputs.project == 'php-sdk' }}
         run: |
           sed -i 's/"version": "[0-9]\.[0-9]\.[0-9]"/"version": "${{ inputs.version_number }}"/' ./languages/php/composer.json
+
+      ### cpp sdk
+      - name: Bump C++ SDK Version
+        if: ${{ inputs.project == 'cpp-sdk' }}
+        run: |
+          sed -i 's/"version": "[0-9]\.[0-9]\.[0-9]"/"version": "${{ inputs.version_number }}"/' ./languages/cpp/vcpkg.json
 
       ############################
       # VERSION BUMP SECTION END #

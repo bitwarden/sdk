@@ -267,15 +267,14 @@ pub fn derive_pin_key(client: &mut Client, pin: SensitiveString) -> Result<Deriv
 
 #[cfg(feature = "internal")]
 pub fn derive_pin_user_key(client: &mut Client, encrypted_pin: EncString) -> Result<EncString> {
-    use bitwarden_crypto::Sensitive;
+    use bitwarden_crypto::DecryptedString;
 
     let user_key = client
         .get_encryption_settings()?
         .get_key(&None)
         .ok_or(Error::VaultLocked)?;
 
-    let pin: String = encrypted_pin.decrypt_with_key(user_key)?;
-    let pin = Sensitive::new(Box::new(pin));
+    let pin: DecryptedString = encrypted_pin.decrypt_with_key(user_key)?;
 
     let login_method = client
         .login_method
@@ -307,10 +306,11 @@ pub(super) fn enroll_admin_password_reset(
     client: &mut Client,
     public_key: String,
 ) -> Result<AsymmetricEncString> {
-    use base64::{engine::general_purpose::STANDARD, Engine};
+    use base64::engine::general_purpose::STANDARD;
     use bitwarden_crypto::AsymmetricPublicCryptoKey;
 
-    let public_key = AsymmetricPublicCryptoKey::from_der(&STANDARD.decode(public_key)?)?;
+    let public_key = SensitiveString::new(Box::new(public_key));
+    let public_key = AsymmetricPublicCryptoKey::from_der(public_key.decode_base64(STANDARD)?)?;
     let enc = client.get_encryption_settings()?;
     let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
 
@@ -502,8 +502,8 @@ mod tests {
     fn test_enroll_admin_password_reset() {
         use std::num::NonZeroU32;
 
-        use base64::{engine::general_purpose::STANDARD, Engine};
-        use bitwarden_crypto::{AsymmetricCryptoKey, SensitiveVec};
+        use base64::engine::general_purpose::STANDARD;
+        use bitwarden_crypto::{AsymmetricCryptoKey, DecryptedString, DecryptedVec, SensitiveVec};
 
         let mut client = Client::new(None);
 
@@ -527,15 +527,16 @@ mod tests {
         let encrypted = enroll_admin_password_reset(&mut client, public_key.to_owned()).unwrap();
 
         let private_key = "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCzLtEUdxfcLxDj84yaGFsVF5hZ8Hjlb08NMQDy1RnBma06I3ZESshLYzVz4r/gegMn9OOltfV/Yxlyvida8oW6qdlfJ7AVz6Oa8pV7BiL40C7b76+oqraQpyYw2HChANB1AhXL9SqWngKmLZwjA7qiCrmcc0kZHeOb4KnKtp9iVvPVs+8veFvKgYO4ba2AAOHKFdR0W55/agXfAy+fWUAkC8mc9ikyJdQWaPV6OZvC2XFkOseBQm9Rynudh3BQpoWiL6w620efe7t5k+02/EyOFJL9f/XEEjM/+Yo0t3LAfkuhHGeKiRST59Xc9hTEmyJTeVXROtz+0fjqOp3xkaObAgMBAAECggEACs4xhnO0HaZhh1/iH7zORMIRXKeyxP2LQiTR8xwN5JJ9wRWmGAR9VasS7EZFTDidIGVME2u/h4s5EqXnhxfO+0gGksVvgNXJ/qw87E8K2216g6ZNo6vSGA7H1GH2voWwejJ4/k/cJug6dz2S402rRAKh2Wong1arYHSkVlQp3diiMa5FHAOSE+Cy09O2ZsaF9IXQYUtlW6AVXFrBEPYH2kvkaPXchh8VETMijo6tbvoKLnUHe+wTaDMls7hy8exjtVyI59r3DNzjy1lNGaGb5QSnFMXR+eHhPZc844Wv02MxC15zKABADrl58gpJyjTl6XpDdHCYGsmGpVGH3X9TQQKBgQDz/9beFjzq59ve6rGwn+EtnQfSsyYT+jr7GN8lNEXb3YOFXBgPhfFIcHRh2R00Vm9w2ApfAx2cd8xm2I6HuvQ1Os7g26LWazvuWY0Qzb+KaCLQTEGH1RnTq6CCG+BTRq/a3J8M4t38GV5TWlzv8wr9U4dl6FR4efjb65HXs1GQ4QKBgQC7/uHfrOTEHrLeIeqEuSl0vWNqEotFKdKLV6xpOvNuxDGbgW4/r/zaxDqt0YBOXmRbQYSEhmO3oy9J6XfE1SUln0gbavZeW0HESCAmUIC88bDnspUwS9RxauqT5aF8ODKN/bNCWCnBM1xyonPOs1oT1nyparJVdQoG//Y7vkB3+wKBgBqLqPq8fKAp3XfhHLfUjREDVoiLyQa/YI9U42IOz9LdxKNLo6p8rgVthpvmnRDGnpUuS+KOWjhdqDVANjF6G3t3DG7WNl8Rh5Gk2H4NhFswfSkgQrjebFLlBy9gjQVCWXt8KSmjvPbiY6q52Aaa8IUjA0YJAregvXxfopxO+/7BAoGARicvEtDp7WWnSc1OPoj6N14VIxgYcI7SyrzE0d/1x3ffKzB5e7qomNpxKzvqrVP8DzG7ydh8jaKPmv1MfF8tpYRy3AhmN3/GYwCnPqT75YYrhcrWcVdax5gmQVqHkFtIQkRSCIftzPLlpMGKha/YBV8c1fvC4LD0NPh/Ynv0gtECgYEAyOZg95/kte0jpgUEgwuMrzkhY/AaUJULFuR5MkyvReEbtSBQwV5tx60+T95PHNiFooWWVXiLMsAgyI2IbkxVR1Pzdri3gWK5CTfqb7kLuaj/B7SGvBa2Sxo478KS5K8tBBBWkITqo+wLC0mn3uZi1dyMWO1zopTA+KtEGF2dtGQ=";
+        let private_key = DecryptedString::test(private_key);
         let private_key =
-            AsymmetricCryptoKey::from_der(&STANDARD.decode(private_key).unwrap()).unwrap();
-        let decrypted: Vec<u8> = encrypted.decrypt_with_key(&private_key).unwrap();
+            AsymmetricCryptoKey::from_der(private_key.decode_base64(STANDARD).unwrap()).unwrap();
+        let decrypted: DecryptedVec = encrypted.decrypt_with_key(&private_key).unwrap();
 
         let expected = client
             .get_encryption_settings()
             .unwrap()
             .get_key(&None)
             .unwrap();
-        assert_eq!(&decrypted, expected.to_vec().expose());
+        assert_eq!(decrypted.expose(), expected.to_vec().expose());
     }
 }

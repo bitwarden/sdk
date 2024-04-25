@@ -3,6 +3,7 @@ use std::{
     fmt::{self, Formatter},
 };
 
+use generic_array::{ArrayLength, GenericArray};
 use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use zeroize::{Zeroize, ZeroizeOnDrop};
@@ -61,6 +62,18 @@ impl<const N: usize> From<Sensitive<[u8; N]>> for SensitiveVec {
     }
 }
 
+/// Helper to convert a `&SensitiveVec` to a `Sensitive<[u8, N]>`.
+impl<const N: usize> TryFrom<&SensitiveVec> for Sensitive<[u8; N]> {
+    type Error = CryptoError;
+
+    fn try_from(v: &SensitiveVec) -> Result<Self, CryptoError> {
+        Ok(Sensitive::new(Box::new(
+            TryInto::<[u8; N]>::try_into(v.expose().as_slice())
+                .map_err(|_| CryptoError::InvalidKey)?,
+        )))
+    }
+}
+
 /// Helper to convert a `Sensitive<Vec<u8>>` to a `Sensitive<String>`, care is taken to ensure any
 /// intermediate copies are zeroed to avoid leaking sensitive data.
 impl TryFrom<SensitiveVec> for SensitiveString {
@@ -78,6 +91,12 @@ impl From<SensitiveString> for SensitiveVec {
     fn from(mut s: SensitiveString) -> Self {
         let value = std::mem::take(&mut s.value);
         Sensitive::new(Box::new(value.into_bytes()))
+    }
+}
+
+impl<N: ArrayLength<u8>> From<Sensitive<GenericArray<u8, N>>> for SensitiveVec {
+    fn from(val: Sensitive<GenericArray<u8, N>>) -> Self {
+        SensitiveVec::new(Box::new(val.value.to_vec()))
     }
 }
 

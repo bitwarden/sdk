@@ -60,8 +60,8 @@ jobs:
         uses: bitwarden/gh-actions/get-keyvault-secrets@main
         with:
           keyvault: ${{ env._KEY_VAULT }}
-          secrets: "ossrh-username,
-            ossrh-password"
+          secrets: "maven-sonartype-ssrh-username,
+            maven-sonartype-ossrh-password"
 
       - name: Setup java
         uses: actions/setup-java@387ac29b308b003ca37ba93a6cab5eb57c8f5f93 # v4.0.0

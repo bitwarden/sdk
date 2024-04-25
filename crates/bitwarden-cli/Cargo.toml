@@ -1,5 +1,8 @@
 [package]
 name = "bitwarden-cli"
+description = """
+Internal crate for the bws crate. Do not use.
+"""
 
 version.workspace = true
 authors.workspace = true

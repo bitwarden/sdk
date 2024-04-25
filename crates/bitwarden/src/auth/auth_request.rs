@@ -1,6 +1,7 @@
 use base64::{engine::general_purpose::STANDARD, Engine};
 use bitwarden_crypto::{
     fingerprint, AsymmetricCryptoKey, AsymmetricEncString, AsymmetricPublicCryptoKey,
+    SensitiveString,
 };
 #[cfg(feature = "mobile")]
 use bitwarden_crypto::{EncString, KeyDecryptable, SymmetricCryptoKey};
@@ -57,10 +58,13 @@ pub(crate) fn auth_request_decrypt_user_key(
     private_key: String,
     user_key: AsymmetricEncString,
 ) -> Result<SymmetricCryptoKey, Error> {
-    let key = AsymmetricCryptoKey::from_der(&STANDARD.decode(private_key)?)?;
-    let mut key: Vec<u8> = user_key.decrypt_with_key(&key)?;
+    use bitwarden_crypto::DecryptedVec;
 
-    Ok(SymmetricCryptoKey::try_from(key.as_mut_slice())?)
+    let private_key = SensitiveString::new(Box::new(private_key));
+    let key = AsymmetricCryptoKey::from_der(private_key.decode_base64(STANDARD)?)?;
+    let key: DecryptedVec = user_key.decrypt_with_key(&key)?;
+
+    Ok(SymmetricCryptoKey::try_from(key)?)
 }
 
 /// Decrypt the user key using the private key generated previously.
@@ -70,11 +74,12 @@ pub(crate) fn auth_request_decrypt_master_key(
     master_key: AsymmetricEncString,
     user_key: EncString,
 ) -> Result<SymmetricCryptoKey, Error> {
-    use bitwarden_crypto::MasterKey;
+    use bitwarden_crypto::{DecryptedVec, MasterKey};
 
-    let key = AsymmetricCryptoKey::from_der(&STANDARD.decode(private_key)?)?;
-    let mut master_key: Vec<u8> = master_key.decrypt_with_key(&key)?;
-    let master_key = MasterKey::new(SymmetricCryptoKey::try_from(master_key.as_mut_slice())?);
+    let private_key = SensitiveString::new(Box::new(private_key));
+    let key = AsymmetricCryptoKey::from_der(private_key.decode_base64(STANDARD)?)?;
+    let master_key: DecryptedVec = master_key.decrypt_with_key(&key)?;
+    let master_key = MasterKey::new(SymmetricCryptoKey::try_from(master_key)?);
 
     Ok(master_key.decrypt_user_key(user_key)?)
 }
@@ -86,7 +91,8 @@ pub(crate) fn approve_auth_request(
     client: &mut Client,
     public_key: String,
 ) -> Result<AsymmetricEncString, Error> {
-    let public_key = AsymmetricPublicCryptoKey::from_der(&STANDARD.decode(public_key)?)?;
+    let public_key = SensitiveString::new(Box::new(public_key));
+    let public_key = AsymmetricPublicCryptoKey::from_der(public_key.decode_base64(STANDARD)?)?;
 
     let enc = client.get_encryption_settings()?;
     let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
@@ -108,8 +114,9 @@ fn test_auth_request() {
         67, 35, 61, 245, 93,
     ];
 
+    let private_key = SensitiveString::new(Box::new(request.private_key.clone()));
     let private_key =
-        AsymmetricCryptoKey::from_der(&STANDARD.decode(&request.private_key).unwrap()).unwrap();
+        AsymmetricCryptoKey::from_der(private_key.decode_base64(STANDARD).unwrap()).unwrap();
 
     let encrypted = AsymmetricEncString::encrypt_rsa2048_oaep_sha1(secret, &private_key).unwrap();
 

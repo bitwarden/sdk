@@ -1,5 +1,6 @@
 use bitwarden_crypto::{
-    CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
+    CryptoError, DecryptedString, DecryptedVec, EncString, KeyDecryptable, KeyEncryptable,
+    SymmetricCryptoKey,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -28,7 +29,7 @@ pub struct AttachmentView {
     pub url: Option<String>,
     pub size: Option<String>,
     pub size_name: Option<String>,
-    pub file_name: Option<String>,
+    pub file_name: Option<DecryptedString>,
     pub key: Option<EncString>,
 }
 
@@ -80,18 +81,18 @@ impl<'a> KeyEncryptable<SymmetricCryptoKey, AttachmentEncryptResult> for Attachm
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, Vec<u8>> for AttachmentFile {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Vec<u8>, CryptoError> {
+impl KeyDecryptable<SymmetricCryptoKey, DecryptedVec> for AttachmentFile {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<DecryptedVec, CryptoError> {
         let ciphers_key = Cipher::get_cipher_key(key, &self.cipher.key)?;
         let ciphers_key = ciphers_key.as_ref().unwrap_or(key);
 
-        let mut attachment_key: Vec<u8> = self
+        let attachment_key: DecryptedVec = self
             .attachment
             .key
             .as_ref()
             .ok_or(CryptoError::MissingKey)?
             .decrypt_with_key(ciphers_key)?;
-        let attachment_key = SymmetricCryptoKey::try_from(attachment_key.as_mut_slice())?;
+        let attachment_key = SymmetricCryptoKey::try_from(attachment_key)?;
 
         self.contents.decrypt_with_key(&attachment_key)
     }
@@ -199,6 +200,6 @@ mod tests {
         .decrypt_with_key(&user_key)
         .unwrap();
 
-        assert_eq!(dec, original);
+        assert_eq!(dec.expose(), &original);
     }
 }

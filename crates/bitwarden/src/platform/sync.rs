@@ -9,7 +9,7 @@ use super::domain::GlobalDomains;
 use crate::{
     admin_console::Policy,
     client::{encryption_settings::EncryptionSettings, Client},
-    error::{Error, Result},
+    error::{require, Error, Result},
     vault::{Cipher, Collection, Folder},
 };
 
@@ -25,10 +25,7 @@ pub(crate) async fn sync(client: &mut Client, input: &SyncRequest) -> Result<Syn
     let sync =
         bitwarden_api_api::apis::sync_api::sync_get(&config.api, input.exclude_subdomains).await?;
 
-    let org_keys: Vec<_> = sync
-        .profile
-        .as_ref()
-        .ok_or(Error::MissingFields)?
+    let org_keys: Vec<_> = require!(sync.profile.as_ref())
         .organizations
         .as_deref()
         .unwrap_or_default()
@@ -86,8 +83,8 @@ impl SyncResponse {
         response: SyncResponseModel,
         enc: &EncryptionSettings,
     ) -> Result<SyncResponse> {
-        let profile = *response.profile.ok_or(Error::MissingFields)?;
-        let ciphers = response.ciphers.ok_or(Error::MissingFields)?;
+        let profile = require!(response.profile);
+        let ciphers = require!(response.ciphers);
 
         fn try_into_iter<In, InItem, Out, OutItem>(iter: In) -> Result<Out, InItem::Error>
         where
@@ -99,13 +96,13 @@ impl SyncResponse {
         }
 
         Ok(SyncResponse {
-            profile: ProfileResponse::process_response(profile, enc)?,
-            folders: try_into_iter(response.folders.ok_or(Error::MissingFields)?)?,
-            collections: try_into_iter(response.collections.ok_or(Error::MissingFields)?)?,
+            profile: ProfileResponse::process_response(*profile, enc)?,
+            folders: try_into_iter(require!(response.folders))?,
+            collections: try_into_iter(require!(response.collections))?,
             ciphers: try_into_iter(ciphers)?,
             domains: response.domains.map(|d| (*d).try_into()).transpose()?,
-            policies: try_into_iter(response.policies.ok_or(Error::MissingFields)?)?,
-            sends: try_into_iter(response.sends.ok_or(Error::MissingFields)?)?,
+            policies: try_into_iter(require!(response.policies))?,
+            sends: try_into_iter(require!(response.sends))?,
         })
     }
 }
@@ -115,7 +112,7 @@ impl ProfileOrganizationResponse {
         response: ProfileOrganizationResponseModel,
     ) -> Result<ProfileOrganizationResponse> {
         Ok(ProfileOrganizationResponse {
-            id: response.id.ok_or(Error::MissingFields)?,
+            id: require!(response.id),
         })
     }
 }
@@ -126,9 +123,9 @@ impl ProfileResponse {
         _enc: &EncryptionSettings,
     ) -> Result<ProfileResponse> {
         Ok(ProfileResponse {
-            id: response.id.ok_or(Error::MissingFields)?,
-            name: response.name.ok_or(Error::MissingFields)?,
-            email: response.email.ok_or(Error::MissingFields)?,
+            id: require!(response.id),
+            name: require!(response.name),
+            email: require!(response.email),
             //key: response.key,
             //private_key: response.private_key,
             organizations: response

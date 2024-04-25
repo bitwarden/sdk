@@ -1,4 +1,5 @@
 use bitwarden_crypto::{Decryptable, Encryptable, LocateKey};
+use uuid::Uuid;
 
 use super::client_vault::ClientVault;
 use crate::{
@@ -43,6 +44,16 @@ impl<'a> ClientCiphers<'a> {
         let cipher_views = ciphers.decrypt(enc, &None)?;
 
         Ok(cipher_views)
+    }
+
+    pub async fn move_to_organization(
+        &self,
+        mut cipher_view: CipherView,
+        organization_id: Uuid,
+    ) -> Result<CipherView> {
+        let enc = self.client.get_encryption_settings()?;
+        cipher_view.move_to_organization(enc, organization_id)?;
+        Ok(cipher_view)
     }
 }
 

@@ -40,7 +40,7 @@ impl<'a> ClientAttachments<'a> {
         decrypted_file_path: &Path,
         encrypted_file_path: &Path,
     ) -> Result<Attachment> {
-        let data = std::fs::read(decrypted_file_path).unwrap();
+        let data = std::fs::read(decrypted_file_path)?;
         let AttachmentEncryptResult {
             attachment,
             contents,
@@ -65,6 +65,7 @@ impl<'a> ClientAttachments<'a> {
         }
         .decrypt_with_key(key)
         .map_err(Error::Crypto)
+        .map(|s| s.expose().to_owned())
     }
     pub async fn decrypt_file(
         &self,
@@ -73,7 +74,7 @@ impl<'a> ClientAttachments<'a> {
         encrypted_file_path: &Path,
         decrypted_file_path: &Path,
     ) -> Result<()> {
-        let data = std::fs::read(encrypted_file_path).unwrap();
+        let data = std::fs::read(encrypted_file_path)?;
         let decrypted = self.decrypt_buffer(cipher, attachment, &data).await?;
         std::fs::write(decrypted_file_path, decrypted)?;
         Ok(())

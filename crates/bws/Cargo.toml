@@ -1,6 +1,6 @@
 [package]
 name = "bws"
-version = "0.4.0"
+version = "0.5.0"
 description = """
 Bitwarden Secrets Manager CLI
 """
@@ -19,7 +19,9 @@ atty = "0.2.14"
 bat = { version = "0.24.0", features = [
     "regex-onig",
 ], default-features = false }
-chrono = { version = "0.4.34", features = [
+bitwarden = { workspace = true, features = ["secrets"] }
+bitwarden-cli = { workspace = true }
+chrono = { version = "0.4.35", features = [
     "clock",
     "std",
 ], default-features = false }
@@ -43,8 +45,10 @@ tokio = { version = "1.36.0", features = ["rt-multi-thread", "macros"] }
 toml = "0.8.10"
 uuid = { version = "^1.7.0", features = ["serde"] }
 
-bitwarden = { workspace = true, features = ["secrets"] }
 which = "6.0.0"
 
 [dev-dependencies]
 tempfile = "3.10.0"
+
+[lints]
+workspace = true

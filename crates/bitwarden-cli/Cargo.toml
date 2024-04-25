@@ -1,7 +1,10 @@
 [package]
 name = "bitwarden-cli"
-version = "0.1.0"
+description = """
+Internal crate for the bws crate. Do not use.
+"""
 
+version.workspace = true
 authors.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -15,3 +18,6 @@ clap = { version = "4.5.1", features = ["derive"] }
 color-eyre = "0.6"
 inquire = "0.6.2"
 supports-color = "3.0.0"
+
+[lints]
+workspace = true

@@ -21,6 +21,7 @@ pub struct RsaKeyPair {
     pub private: EncString,
 }
 
+/// Generate a new RSA key pair of 2048 bits
 pub(crate) fn make_key_pair(key: &SymmetricCryptoKey) -> Result<RsaKeyPair> {
     let mut rng = rand::thread_rng();
     let bits = 2048;
@@ -36,8 +37,11 @@ pub(crate) fn make_key_pair(key: &SymmetricCryptoKey) -> Result<RsaKeyPair> {
         .to_pkcs8_der()
         .map_err(|_| RsaError::CreatePrivateKey)?;
 
-    let protected =
-        EncString::encrypt_aes256_hmac(pkcs.as_bytes(), key.mac_key.as_ref().unwrap(), &key.key)?;
+    let protected = EncString::encrypt_aes256_hmac(
+        pkcs.as_bytes(),
+        key.mac_key.as_ref().ok_or(CryptoError::InvalidMac)?,
+        &key.key,
+    )?;
 
     Ok(RsaKeyPair {
         public: b64,
@@ -45,6 +49,7 @@ pub(crate) fn make_key_pair(key: &SymmetricCryptoKey) -> Result<RsaKeyPair> {
     })
 }
 
+/// Encrypt data using RSA-OAEP-SHA1 with a 2048 bit key
 pub(super) fn encrypt_rsa2048_oaep_sha1(public_key: &RsaPublicKey, data: &[u8]) -> Result<Vec<u8>> {
     let mut rng = rand::thread_rng();
 

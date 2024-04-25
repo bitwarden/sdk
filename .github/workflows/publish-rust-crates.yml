@@ -127,8 +127,8 @@ jobs:
           fi
 
           if [[ "$PUBLISH_BITWARDEN_EXPORTERS" == "true" ]]; then
-            PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-generators"
-            PACKAGES_LIST="$PACKAGES_LIST bitwarden-generators"
+            PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-exporters"
+            PACKAGES_LIST="$PACKAGES_LIST bitwarden-exporters"
           fi
 
           echo "Packages command: " $PACKAGES_COMMAND

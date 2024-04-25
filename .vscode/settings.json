@@ -23,5 +23,6 @@
     "wordlist",
     "Zeroize",
     "zxcvbn"
-  ]
+  ],
+  "rust-analyzer.cargo.targetDir": true
 }

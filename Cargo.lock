@@ -329,7 +329,7 @@ checksum = "cf4b9d6a944f767f8e5e0db018570623c85f3d925ac718db4e06d0187adb21c1"
 
 [[package]]
 name = "bitwarden"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "base64",
  "bitwarden-api-api",
@@ -363,7 +363,7 @@ dependencies = [
 
 [[package]]
 name = "bitwarden-api-api"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "reqwest",
  "serde",
@@ -376,7 +376,7 @@ dependencies = [
 
 [[package]]
 name = "bitwarden-api-identity"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "reqwest",
  "serde",
@@ -398,7 +398,7 @@ dependencies = [
 
 [[package]]
 name = "bitwarden-cli"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "clap",
  "color-eyre",
@@ -408,7 +408,7 @@ dependencies = [
 
 [[package]]
 name = "bitwarden-crypto"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "aes",
  "argon2",
@@ -438,7 +438,7 @@ dependencies = [
 
 [[package]]
 name = "bitwarden-exporters"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "base64",
  "bitwarden-crypto",
@@ -452,7 +452,7 @@ dependencies = [
 
 [[package]]
 name = "bitwarden-generators"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "bitwarden-crypto",
  "rand",

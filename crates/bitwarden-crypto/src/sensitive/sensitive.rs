@@ -3,6 +3,7 @@ use std::{
     fmt::{self, Formatter},
 };
 
+use generic_array::{ArrayLength, GenericArray};
 use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use zeroize::{Zeroize, ZeroizeOnDrop};
@@ -37,20 +38,42 @@ impl<V: Zeroize> Sensitive<V> {
     /// Create a new [`Sensitive`] value. In an attempt to avoid accidentally placing this on the
     /// stack it only accepts a [`Box`] value. The rust compiler should be able to optimize away the
     /// initial stack allocation presuming the value is not used before being boxed.
+    #[inline(always)]
     pub fn new(value: Box<V>) -> Self {
         Self { value }
     }
 
     /// Expose the inner value. By exposing the inner value, you take responsibility for ensuring
     /// that any copy of the value is zeroized.
+    #[inline(always)]
     pub fn expose(&self) -> &V {
         &self.value
     }
 
     /// Expose the inner value mutable. By exposing the inner value, you take responsibility for
     /// ensuring that any copy of the value is zeroized.
+    #[inline(always)]
     pub fn expose_mut(&mut self) -> &mut V {
         &mut self.value
+    }
+}
+
+/// Helper to convert a `Sensitive<[u8, N]>` to a `SensitiveVec`.
+impl<const N: usize> From<Sensitive<[u8; N]>> for SensitiveVec {
+    fn from(sensitive: Sensitive<[u8; N]>) -> Self {
+        SensitiveVec::new(Box::new(sensitive.value.to_vec()))
+    }
+}
+
+/// Helper to convert a `&SensitiveVec` to a `Sensitive<[u8, N]>`.
+impl<const N: usize> TryFrom<&SensitiveVec> for Sensitive<[u8; N]> {
+    type Error = CryptoError;
+
+    fn try_from(v: &SensitiveVec) -> Result<Self, CryptoError> {
+        Ok(Sensitive::new(Box::new(
+            TryInto::<[u8; N]>::try_into(v.expose().as_slice())
+                .map_err(|_| CryptoError::InvalidKey)?,
+        )))
     }
 }
 
@@ -64,6 +87,19 @@ impl TryFrom<SensitiveVec> for SensitiveString {
 
         let rtn = String::from_utf8(*value).map_err(|_| CryptoError::InvalidUtf8String);
         rtn.map(|v| Sensitive::new(Box::new(v)))
+    }
+}
+
+impl From<SensitiveString> for SensitiveVec {
+    fn from(mut s: SensitiveString) -> Self {
+        let value = std::mem::take(&mut s.value);
+        Sensitive::new(Box::new(value.into_bytes()))
+    }
+}
+
+impl<N: ArrayLength<u8>> From<Sensitive<GenericArray<u8, N>>> for SensitiveVec {
+    fn from(val: Sensitive<GenericArray<u8, N>>) -> Self {
+        SensitiveVec::new(Box::new(val.value.to_vec()))
     }
 }
 
@@ -81,18 +117,22 @@ impl SensitiveString {
     }
 }
 
-impl SensitiveVec {
-    pub fn encode_base64<T: base64::Engine>(self, engine: T) -> SensitiveString {
+impl<T: Zeroize + AsRef<[u8]>> Sensitive<T> {
+    pub fn encode_base64<E: base64::Engine>(self, engine: E) -> SensitiveString {
         use base64::engine::Config;
+
+        let inner: &[u8] = self.value.as_ref().as_ref();
 
         // Prevent accidental copies by allocating the full size
         let padding = engine.config().encode_padding();
-        let len = base64::encoded_len(self.value.len(), padding).expect("Valid length");
-        let mut value = SensitiveString::new(Box::new(String::with_capacity(len)));
+        let len = base64::encoded_len(inner.len(), padding).expect("Valid length");
 
-        engine.encode_string(self.value.as_ref(), &mut value.value);
+        let mut value = SensitiveVec::new(Box::new(vec![0u8; len]));
+        engine
+            .encode_slice(inner, &mut value.value[..len])
+            .expect("Valid base64 string length");
 
-        value
+        value.try_into().expect("Valid base64 string")
     }
 }
 
@@ -139,15 +179,18 @@ impl<V: Zeroize + JsonSchema> JsonSchema for Sensitive<V> {
     }
 }
 
-impl Sensitive<String> {
-    // We use a lot of `&str` in our tests, so we expose this helper
-    // to make it easier.
-    // IMPORTANT: This should not be used outside of test code
-    // Note that we can't just mark it with #[cfg(test)] because that only applies
-    // when testing this crate, not when testing other crates that depend on it.
-    // By at least limiting it to &'static str we should be able to avoid accidental usages
-    pub fn test(value: &'static str) -> Self {
-        Self::new(Box::new(value.to_string()))
+// We use a lot of `&str` and `&[u8]` in our tests, so we expose this helper
+// to make it easier.
+// IMPORTANT: This should not be used outside of test code
+// Note that we can't just mark it with #[cfg(test)] because that only applies
+// when testing this crate, not when testing other crates that depend on it.
+// By at least limiting it to &'static reference we should be able to avoid accidental usages
+impl<V: Zeroize> Sensitive<V> {
+    pub fn test<T: ?Sized>(value: &'static T) -> Self
+    where
+        &'static T: Into<V>,
+    {
+        Self::new(Box::new(value.into()))
     }
 }
 
@@ -159,7 +202,7 @@ mod tests {
 
     #[test]
     fn test_debug() {
-        let string = Sensitive::test("test");
+        let string = SensitiveString::test("test");
         assert_eq!(
             format!("{:?}", string),
             "Sensitive { type: \"alloc::string::String\", value: \"********\" }"

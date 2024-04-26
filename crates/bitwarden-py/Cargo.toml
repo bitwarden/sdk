@@ -16,10 +16,9 @@ name = "bitwarden_py"
 crate-type = ["cdylib"]
 
 [dependencies]
+bitwarden-json = { path = "../bitwarden-json", features = ["secrets"] }
 pyo3 = { version = "0.20.2", features = ["extension-module"] }
 pyo3-log = "0.9.0"
-
-bitwarden-json = { path = "../bitwarden-json", features = ["secrets"] }
 
 [build-dependencies]
 pyo3-build-config = { version = "0.20.2" }
@@ -30,3 +29,6 @@ pyo3-asyncio = { version = "0.20.0", features = [
     "attributes",
     "tokio-runtime",
 ] }
+
+[lints]
+workspace = true

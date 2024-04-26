@@ -33,8 +33,8 @@ impl<'a> ClientCiphers<'a> {
 
     pub async fn decrypt(&self, cipher: Cipher) -> Result<CipherView> {
         let enc = self.client.get_encryption_settings()?;
-
         let key = enc.get_key(&None).ok_or(CryptoError::MissingKey)?;
+
         let cipher_view = cipher.decrypt_with_key(key)?;
 
         Ok(cipher_view)
@@ -42,8 +42,8 @@ impl<'a> ClientCiphers<'a> {
 
     pub async fn decrypt_list(&self, ciphers: Vec<Cipher>) -> Result<Vec<CipherListView>> {
         let enc = self.client.get_encryption_settings()?;
-
         let key = enc.get_key(&None).ok_or(CryptoError::MissingKey)?;
+
         let cipher_views = ciphers.decrypt_with_key(key)?;
 
         Ok(cipher_views)

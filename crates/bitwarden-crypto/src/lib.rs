@@ -58,8 +58,6 @@
 mod aes;
 mod enc_string;
 pub use enc_string::{AsymmetricEncString, EncString};
-mod encryptable;
-pub use encryptable::{Decryptable, Encryptable, KeyContainer, LocateKey};
 mod error;
 pub use error::CryptoError;
 pub(crate) use error::Result;

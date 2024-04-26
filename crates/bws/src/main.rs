@@ -14,6 +14,7 @@ use bitwarden::{
         },
     },
 };
+use bitwarden_cli::{install_color_eyre, Color};
 use clap::{ArgGroup, CommandFactory, Parser, Subcommand};
 use clap_complete::Shell;
 use color_eyre::eyre::{bail, Result};
@@ -24,7 +25,7 @@ mod render;
 mod state;
 
 use config::ProfileKey;
-use render::{serialize_response, Color, Output};
+use render::{serialize_response, Output};
 use uuid::Uuid;
 
 #[derive(Parser, Debug)]
@@ -40,7 +41,7 @@ struct Cli {
     #[arg(short = 'c', long, global = true, value_enum, default_value_t = Color::Auto, help="Use colors in the output")]
     color: Color,
 
-    #[arg(short = 't', long, global = true, env = ACCESS_TOKEN_KEY_VAR_NAME, hide_env_values = true, help="Specify access token for the service account")]
+    #[arg(short = 't', long, global = true, env = ACCESS_TOKEN_KEY_VAR_NAME, hide_env_values = true, help="Specify access token for the machine account")]
     access_token: Option<String>,
 
     #[arg(
@@ -236,16 +237,9 @@ const SERVER_URL_KEY_VAR_NAME: &str = "BWS_SERVER_URL";
 #[allow(clippy::comparison_chain)]
 async fn process_commands() -> Result<()> {
     let cli = Cli::parse();
+    let color = cli.color;
 
-    let color = cli.color.is_enabled();
-    if color {
-        color_eyre::install()?;
-    } else {
-        // Use an empty theme to disable error coloring
-        color_eyre::config::HookBuilder::new()
-            .theme(color_eyre::config::Theme::new())
-            .install()?;
-    }
+    install_color_eyre(color)?;
 
     let Some(command) = cli.command else {
         let mut cmd = Cli::command();
@@ -328,7 +322,7 @@ async fn process_commands() -> Result<()> {
     let state_file_path = state::get_state_file_path(
         profile.and_then(|p| p.state_file_dir).map(Into::into),
         access_token_obj.access_token_id.to_string(),
-    );
+    )?;
 
     let mut client = bitwarden::Client::new(settings);
 

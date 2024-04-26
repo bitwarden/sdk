@@ -51,7 +51,10 @@ fn hash_word(hash: [u8; 32]) -> Result<String> {
         let remainder = hash_number.clone() % EFF_LONG_WORD_LIST.len();
         hash_number /= EFF_LONG_WORD_LIST.len();
 
-        phrase.push(EFF_LONG_WORD_LIST[remainder.to_usize().unwrap()].to_string());
+        let index = remainder
+            .to_usize()
+            .expect("Remainder is less than EFF_LONG_WORD_LIST.len()");
+        phrase.push(EFF_LONG_WORD_LIST[index].to_string());
     }
 
     Ok(phrase.join("-"))

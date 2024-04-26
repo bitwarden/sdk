@@ -1,6 +1,6 @@
 [package]
 name = "bws"
-version = "0.4.0"
+version = "0.5.0"
 description = """
 Bitwarden Secrets Manager CLI
 """
@@ -18,6 +18,8 @@ license-file.workspace = true
 bat = { version = "0.24.0", features = [
     "regex-onig",
 ], default-features = false }
+bitwarden = { workspace = true, features = ["secrets"] }
+bitwarden-cli = { workspace = true }
 chrono = { version = "0.4.35", features = [
     "clock",
     "std",
@@ -42,7 +44,8 @@ tokio = { version = "1.36.0", features = ["rt-multi-thread", "macros"] }
 toml = "0.8.10"
 uuid = { version = "^1.7.0", features = ["serde"] }
 
-bitwarden = { workspace = true, features = ["secrets"] }
-
 [dev-dependencies]
 tempfile = "3.10.0"
+
+[lints]
+workspace = true

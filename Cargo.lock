@@ -329,7 +329,7 @@ checksum = "cf4b9d6a944f767f8e5e0db018570623c85f3d925ac718db4e06d0187adb21c1"
 
 [[package]]
 name = "bitwarden"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "base64",
  "bitwarden-api-api",
@@ -365,7 +365,7 @@ dependencies = [
 
 [[package]]
 name = "bitwarden-api-api"
-version = "0.2.3"
+version = "0.5.0"
 dependencies = [
  "reqwest",
  "serde",
@@ -378,7 +378,7 @@ dependencies = [
 
 [[package]]
 name = "bitwarden-api-identity"
-version = "0.2.3"
+version = "0.5.0"
 dependencies = [
  "reqwest",
  "serde",
@@ -400,7 +400,7 @@ dependencies = [
 
 [[package]]
 name = "bitwarden-cli"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "clap",
  "color-eyre",
@@ -410,7 +410,7 @@ dependencies = [
 
 [[package]]
 name = "bitwarden-crypto"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "aes",
  "argon2",
@@ -440,12 +440,13 @@ dependencies = [
 
 [[package]]
 name = "bitwarden-exporters"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "base64",
  "bitwarden-crypto",
  "chrono",
  "csv",
+ "itertools 0.12.1",
  "serde",
  "serde_json",
  "thiserror",
@@ -454,7 +455,7 @@ dependencies = [
 
 [[package]]
 name = "bitwarden-generators"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "bitwarden-crypto",
  "rand",
@@ -517,12 +518,15 @@ dependencies = [
  "env_logger",
  "schemars",
  "uniffi",
+ "uuid",
 ]
 
 [[package]]
 name = "bitwarden-wasm"
 version = "0.1.0"
 dependencies = [
+ "argon2",
+ "bitwarden-crypto",
  "bitwarden-json",
  "console_error_panic_hook",
  "console_log",
@@ -583,6 +587,7 @@ version = "0.0.2"
 dependencies = [
  "bitwarden",
  "bitwarden-cli",
+ "bitwarden-crypto",
  "clap",
  "color-eyre",
  "env_logger",
@@ -594,10 +599,11 @@ dependencies = [
 
 [[package]]
 name = "bws"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "bat",
  "bitwarden",
+ "bitwarden-cli",
  "chrono",
  "clap",
  "clap_complete",
@@ -1483,9 +1489,9 @@ dependencies = [
 
 [[package]]
 name = "h2"
-version = "0.4.3"
+version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "51ee2dd2e4f378392eeff5d51618cd9a63166a2513846bbc55f21cfacd9199d4"
+checksum = "816ec7294445779408f36fe57bc5b7fc1cf59664059096c65f905c1c61f58069"
 dependencies = [
  "bytes",
  "fnv",
@@ -1858,7 +1864,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c2a198fb6b0eada2a8df47933734e6d35d350665a33a3593d7164fa52c75c19"
 dependencies = [
  "cfg-if",
- "windows-targets 0.52.4",
+ "windows-targets 0.48.5",
 ]
 
 [[package]]
@@ -2617,6 +2623,7 @@ dependencies = [
  "bytes",
  "futures-core",
  "futures-util",
+ "h2",
  "http",
  "http-body",
  "http-body-util",
@@ -2713,9 +2720,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.22.2"
+version = "0.22.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e87c9956bd9807afa1f77e0f7594af32566e830e088a5576d27c5b6f30f49d41"
+checksum = "bf4ef73721ac7bcd79b2b315da7779d8fc09718c6b3d2d1b2d94850eb8c18432"
 dependencies = [
  "log",
  "ring",

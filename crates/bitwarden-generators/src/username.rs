@@ -173,7 +173,7 @@ fn random_number(mut rng: impl RngCore) -> String {
 }
 
 /// Generate a username using a plus addressed email address
-/// The format is <username>+<random-or-website>@<domain>
+/// The format is `<username>+<random-or-website>@<domain>`
 fn username_subaddress(mut rng: impl RngCore, r#type: AppendType, email: String) -> String {
     if email.len() < 3 {
         return email;
@@ -195,7 +195,7 @@ fn username_subaddress(mut rng: impl RngCore, r#type: AppendType, email: String)
 }
 
 /// Generate a username using a catchall email address
-/// The format is <random-or-website>@<domain>
+/// The format is `<random-or-website>@<domain>`
 fn username_catchall(mut rng: impl RngCore, r#type: AppendType, domain: String) -> String {
     if domain.is_empty() {
         return domain;

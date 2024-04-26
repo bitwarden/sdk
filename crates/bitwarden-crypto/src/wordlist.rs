@@ -1,4 +1,4 @@
-// EFF's Long Wordlist from https://www.eff.org/dice
+/// EFF's Long Wordlist from <https://www.eff.org/dice>
 pub const EFF_LONG_WORD_LIST: &[&str] = &[
     "abacus",
     "abdomen",

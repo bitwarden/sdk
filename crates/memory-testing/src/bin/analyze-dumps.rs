@@ -1,5 +1,6 @@
 use std::{env, fmt::Display, io, path::Path, process};
 
+use bitwarden_crypto::Kdf;
 use memory_testing::*;
 
 fn find_subarrays(needle: &[u8], haystack: &[u8]) -> Vec<usize> {
@@ -115,14 +116,69 @@ fn main() -> io::Result<()> {
             mac_final_pos.is_empty(),
         );
 
-        // TODO: At the moment we are not zeroizing the base64 key in from_str, so this test is
-        // ignored
-        add_row(
+        error |= add_row(
             &mut table,
             format!("Symm. Key in Base64, case {}", idx),
             &b64_initial_pos,
             &b64_final_pos,
             b64_final_pos.is_empty(),
+        );
+    }
+
+    for (idx, case) in cases.master_key.iter().enumerate() {
+        let password = case.password.as_bytes().to_vec();
+        let key = hex::decode(&case.key_hex).unwrap();
+        let hash_b64 = case.hash.as_bytes().to_vec();
+        let hash = hex::decode(&case.hash_hex).unwrap();
+
+        let pass_initial_pos = find_subarrays(&password, &initial_core);
+        let key_initial_pos = find_subarrays(&key, &initial_core);
+        let hashb64_initial_pos = find_subarrays(&hash_b64, &initial_core);
+        let hash_initial_pos = find_subarrays(&hash, &initial_core);
+
+        let pass_final_pos = find_subarrays(&password, &final_core);
+        let key_final_pos = find_subarrays(&key, &final_core);
+        let hashb64_final_pos = find_subarrays(&hash_b64, &final_core);
+        let hash_final_pos = find_subarrays(&hash, &final_core);
+
+        error |= add_row(
+            &mut table,
+            format!("Master Key password, case {}", idx),
+            &pass_initial_pos,
+            &pass_final_pos,
+            pass_final_pos.is_empty(),
+        );
+
+        // At the moment the argon library is producing some hard to pinpoint leaks
+        // Upgrading to the latest pre-release version solves at least one of them
+        let allowed_leaks = if matches!(case.kdf, Kdf::Argon2id { .. }) {
+            3
+        } else {
+            0
+        };
+
+        error |= add_row(
+            &mut table,
+            format!("Master Key, case {}", idx),
+            &key_initial_pos,
+            &key_final_pos,
+            key_final_pos.len() <= allowed_leaks,
+        );
+
+        error |= add_row(
+            &mut table,
+            format!("Master Key Hash B64, case {}", idx),
+            &hashb64_initial_pos,
+            &hashb64_final_pos,
+            hashb64_final_pos.is_empty(),
+        );
+
+        error |= add_row(
+            &mut table,
+            format!("Master Key Hash, case {}", idx),
+            &hash_initial_pos,
+            &hash_final_pos,
+            hash_final_pos.is_empty(),
         );
     }
 

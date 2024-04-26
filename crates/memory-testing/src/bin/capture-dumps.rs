@@ -41,7 +41,7 @@ fn main() -> io::Result<()> {
     let stdin = proc.stdin.as_mut().expect("Valid stdin");
 
     // Wait a bit for it to process
-    sleep(Duration::from_secs(3));
+    sleep(Duration::from_millis(1500));
 
     // Dump the process before the variables are freed
     let initial_core =
@@ -52,7 +52,7 @@ fn main() -> io::Result<()> {
     stdin.flush()?;
 
     // Wait a bit for it to process
-    sleep(Duration::from_secs(1));
+    sleep(Duration::from_millis(500));
 
     // Dump the process after the variables are freed
     let final_core =

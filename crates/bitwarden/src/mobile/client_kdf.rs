@@ -13,7 +13,7 @@ impl<'a> ClientKdf<'a> {
         password: SensitiveString,
         kdf_params: Kdf,
         purpose: HashPurpose,
-    ) -> Result<String> {
+    ) -> Result<SensitiveString> {
         hash_password(self.client, email, password, kdf_params, purpose).await
     }
 }

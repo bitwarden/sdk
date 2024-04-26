@@ -7,7 +7,7 @@ use rand::Rng;
 use zeroize::Zeroize;
 
 use super::key_encryptable::CryptoKey;
-use crate::{CryptoError, SensitiveString, SensitiveVec};
+use crate::{CryptoError, Sensitive, SensitiveString, SensitiveVec};
 
 /// A symmetric encryption key. Used to encrypt and decrypt [`EncString`](crate::EncString)
 pub struct SymmetricCryptoKey {
@@ -82,6 +82,15 @@ impl TryFrom<SensitiveString> for SymmetricCryptoKey {
     }
 }
 
+impl<const N: usize> TryFrom<Sensitive<[u8; N]>> for SymmetricCryptoKey {
+    type Error = CryptoError;
+
+    fn try_from(mut value: Sensitive<[u8; N]>) -> Result<Self, Self::Error> {
+        let val = value.expose_mut();
+        SymmetricCryptoKey::try_from(val.as_mut_slice())
+    }
+}
+
 impl TryFrom<SensitiveVec> for SymmetricCryptoKey {
     type Error = CryptoError;
 
@@ -136,7 +145,7 @@ impl std::fmt::Debug for SymmetricCryptoKey {
 pub fn derive_symmetric_key(name: &str) -> SymmetricCryptoKey {
     use crate::{derive_shareable_key, generate_random_bytes};
 
-    let secret: [u8; 16] = generate_random_bytes();
+    let secret: Sensitive<[u8; 16]> = generate_random_bytes();
     derive_shareable_key(secret, name, None)
 }
 

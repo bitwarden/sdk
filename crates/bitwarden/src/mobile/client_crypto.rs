@@ -35,13 +35,13 @@ impl<'a> ClientCrypto<'a> {
     #[cfg(feature = "internal")]
     pub async fn update_password(
         &mut self,
-        new_password: String,
+        new_password: SensitiveString,
     ) -> Result<UpdatePasswordResponse> {
         update_password(self.client, new_password)
     }
 
     #[cfg(feature = "internal")]
-    pub async fn derive_pin_key(&mut self, pin: String) -> Result<DerivePinKeyResponse> {
+    pub async fn derive_pin_key(&mut self, pin: SensitiveString) -> Result<DerivePinKeyResponse> {
         derive_pin_key(self.client, pin)
     }
 

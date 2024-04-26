@@ -33,7 +33,7 @@ pub(crate) async fn send_two_factor_email(
     bitwarden_api_api::apis::two_factor_api::two_factor_send_email_login_post(
         &config.api,
         Some(TwoFactorEmailRequestModel {
-            master_password_hash: Some(password_hash),
+            master_password_hash: Some(password_hash.expose().clone()),
             otp: None,
             auth_request_access_code: None,
             secret: None,

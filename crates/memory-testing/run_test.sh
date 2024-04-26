@@ -1,3 +1,5 @@
+set -eo pipefail
+
 # Move to the root of the repository
 cd "$(dirname "$0")"
 cd ../../
@@ -5,7 +7,7 @@ cd ../../
 BASE_DIR="./crates/memory-testing"
 
 mkdir -p $BASE_DIR/output
-rm $BASE_DIR/output/*
+rm $BASE_DIR/output/* || true
 
 cargo build -p memory-testing
 

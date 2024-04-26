@@ -1,5 +1,6 @@
 use std::path::Path;
 
+use bitwarden_crypto::Kdf;
 use zeroize::Zeroize;
 
 pub const TEST_STRING: &str = "THIS IS USED TO CHECK THAT THE MEMORY IS DUMPED CORRECTLY";
@@ -18,6 +19,8 @@ pub fn load_cases(base_dir: &Path) -> Cases {
 #[derive(serde::Deserialize)]
 pub struct Cases {
     pub symmetric_key: Vec<SymmetricKeyCases>,
+
+    pub master_key: Vec<MasterKeyCases>,
 }
 
 #[derive(serde::Deserialize)]
@@ -26,4 +29,16 @@ pub struct SymmetricKeyCases {
 
     pub decrypted_key_hex: String,
     pub decrypted_mac_hex: String,
+}
+
+#[derive(serde::Deserialize)]
+pub struct MasterKeyCases {
+    pub password: String,
+
+    pub email: String,
+    pub kdf: Kdf,
+
+    pub key_hex: String,
+    pub hash: String,
+    pub hash_hex: String,
 }

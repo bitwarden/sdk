@@ -115,7 +115,7 @@ impl<'a> ClientAuth<'a> {
     pub fn validate_password(
         &self,
         password: SensitiveString,
-        password_hash: String,
+        password_hash: SensitiveString,
     ) -> Result<bool> {
         validate_password(self.client, password, password_hash)
     }
@@ -124,7 +124,7 @@ impl<'a> ClientAuth<'a> {
         &self,
         password: SensitiveString,
         encrypted_user_key: String,
-    ) -> Result<String> {
+    ) -> Result<SensitiveString> {
         validate_password_user_key(self.client, password, encrypted_user_key)
     }
 

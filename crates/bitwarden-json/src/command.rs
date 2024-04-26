@@ -128,7 +128,8 @@ pub enum SecretsCommand {
     /// > Requires using an Access Token for login
     /// Retrieve the secrets accessible by the authenticated machine account
     /// Optionally, provide the last synced date to assess whether any changes have occurred
-    /// If changes are detected, retrieves all the secrets accessible by the authenticated machine account
+    /// If changes are detected, retrieves all the secrets accessible by the authenticated machine
+    /// account
     ///
     /// Returns: [SecretsSyncResponse](bitwarden::secrets_manager::secrets::SecretsSyncResponse)
     Sync(SecretsSyncRequest),

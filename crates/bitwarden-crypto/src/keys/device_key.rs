@@ -42,7 +42,6 @@ impl DeviceKey {
 
         let protected_device_public_key = device_private_key
             .to_public_der()?
-            .expose()
             .encrypt_with_key(user_key)?;
 
         let protected_device_private_key = device_private_key

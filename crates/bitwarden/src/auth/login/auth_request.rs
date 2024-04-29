@@ -36,7 +36,7 @@ pub(crate) async fn send_new_auth_request(
 
     let req = AuthRequestCreateRequestModel {
         email: email.clone(),
-        public_key: auth.public_key.expose().to_owned(),
+        public_key: auth.public_key,
         device_identifier: device_identifier.clone(),
         access_code: auth.access_code.clone(),
         r#type: AuthRequestType::AuthenticateAndUnlock,

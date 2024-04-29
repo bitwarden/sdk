@@ -1,4 +1,4 @@
-use base64::engine::general_purpose::STANDARD;
+use base64::{engine::general_purpose::STANDARD, Engine};
 use bitwarden_crypto::{
     fingerprint, AsymmetricCryptoKey, AsymmetricEncString, AsymmetricPublicCryptoKey,
     SensitiveString,
@@ -15,7 +15,7 @@ pub struct AuthRequestResponse {
     /// This key is temporarily passed back and will most likely not be available in the future
     pub private_key: SensitiveString,
     /// Base64 encoded public key
-    pub public_key: SensitiveString,
+    pub public_key: String,
     /// Fingerprint of the public key
     pub fingerprint: String,
     /// Access code
@@ -34,8 +34,8 @@ pub(crate) fn new_auth_request(email: &str) -> Result<AuthRequestResponse, Error
 
     let spki = key.to_public_der()?;
 
-    let fingerprint = fingerprint(email, spki.expose())?;
-    let b64 = spki.encode_base64(STANDARD);
+    let fingerprint = fingerprint(email, &spki)?;
+    let b64 = STANDARD.encode(spki);
 
     Ok(AuthRequestResponse {
         private_key: key.to_der()?.encode_base64(STANDARD),
@@ -87,9 +87,9 @@ pub(crate) fn auth_request_decrypt_master_key(
 /// Encrypts the user key with a public key.
 pub(crate) fn approve_auth_request(
     client: &mut Client,
-    public_key: SensitiveString,
+    public_key: String,
 ) -> Result<AsymmetricEncString, Error> {
-    let public_key = AsymmetricPublicCryptoKey::from_der(public_key.decode_base64(STANDARD)?)?;
+    let public_key = AsymmetricPublicCryptoKey::from_der(&STANDARD.decode(public_key)?)?;
 
     let enc = client.get_encryption_settings()?;
     let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
@@ -159,11 +159,7 @@ mod tests {
         let fingerprint = fingerprint("test@bitwarden.com", &pbkey).unwrap();
         assert_eq!(fingerprint, "childless-unfair-prowler-dropbox-designate");
 
-        approve_auth_request(
-            &mut client,
-            SensitiveString::new(Box::new(public_key.to_owned())),
-        )
-        .unwrap();
+        approve_auth_request(&mut client, public_key.to_owned()).unwrap();
     }
 
     #[tokio::test]

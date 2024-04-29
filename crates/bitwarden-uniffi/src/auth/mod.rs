@@ -140,10 +140,7 @@ impl ClientAuth {
     }
 
     /// Approve an auth request
-    pub async fn approve_auth_request(
-        &self,
-        public_key: SensitiveString,
-    ) -> Result<AsymmetricEncString> {
+    pub async fn approve_auth_request(&self, public_key: String) -> Result<AsymmetricEncString> {
         Ok(self
             .0
              .0

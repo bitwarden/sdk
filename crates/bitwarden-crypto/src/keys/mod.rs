@@ -1,5 +1,5 @@
 mod key_encryptable;
-pub use key_encryptable::{CryptoKey, KeyDecryptable, KeyEncryptable};
+pub use key_encryptable::{CryptoKey, KeyContainer, KeyDecryptable, KeyEncryptable, LocateKey};
 mod master_key;
 pub use master_key::{
     default_argon2_iterations, default_argon2_memory, default_argon2_parallelism,

@@ -1,4 +1,4 @@
-use bitwarden_crypto::{Decryptable, Encryptable, LocateKey};
+use bitwarden_crypto::{CryptoError, KeyDecryptable, KeyEncryptable, LocateKey};
 use uuid::Uuid;
 
 use super::client_vault::ClientVault;
@@ -25,23 +25,26 @@ impl<'a> ClientCiphers<'a> {
             cipher_view.generate_cipher_key(key)?;
         }
 
-        let cipher = cipher_view.encrypt(enc, &None)?;
+        let key = enc.get_key(&None).ok_or(CryptoError::MissingKey)?;
+        let cipher = cipher_view.encrypt_with_key(key)?;
 
         Ok(cipher)
     }
 
     pub async fn decrypt(&self, cipher: Cipher) -> Result<CipherView> {
         let enc = self.client.get_encryption_settings()?;
+        let key = enc.get_key(&None).ok_or(CryptoError::MissingKey)?;
 
-        let cipher_view = cipher.decrypt(enc, &None)?;
+        let cipher_view = cipher.decrypt_with_key(key)?;
 
         Ok(cipher_view)
     }
 
     pub async fn decrypt_list(&self, ciphers: Vec<Cipher>) -> Result<Vec<CipherListView>> {
         let enc = self.client.get_encryption_settings()?;
+        let key = enc.get_key(&None).ok_or(CryptoError::MissingKey)?;
 
-        let cipher_views = ciphers.decrypt(enc, &None)?;
+        let cipher_views = ciphers.decrypt_with_key(key)?;
 
         Ok(cipher_views)
     }

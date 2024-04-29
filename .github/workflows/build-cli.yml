@@ -280,6 +280,10 @@ jobs:
         if: ${{ matrix.settings.target == 'aarch64-unknown-linux-gnu' }}
         run: cargo install cross --locked --git https://github.com/cross-rs/cross.git --rev 185398b1b885820515a212de720a306b08e2c8c9
 
+      - name: Install Zigbuild
+        if: ${{ matrix.settings.target != 'aarch64-unknown-linux-gnu' }}
+        run: cargo install cargo-zigbuild --locked --git https://github.com/rust-cross/cargo-zigbuild --rev 6f7e1336c9cd13cf1b3704f93c40fcf84caaed6b # 0.18.4
+
       - name: Build
         if: ${{ matrix.settings.target != 'aarch64-unknown-linux-gnu' }}
         env:

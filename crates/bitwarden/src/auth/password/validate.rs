@@ -11,7 +11,7 @@ use crate::{
 pub(crate) fn validate_password(
     client: &Client,
     password: SensitiveString,
-    password_hash: String,
+    password_hash: SensitiveString,
 ) -> Result<bool> {
     let login_method = client
         .login_method
@@ -40,9 +40,9 @@ pub(crate) fn validate_password(
 #[cfg(feature = "internal")]
 pub(crate) fn validate_password_user_key(
     client: &Client,
-    password: bitwarden_crypto::SensitiveString,
+    password: SensitiveString,
     encrypted_user_key: String,
-) -> Result<String> {
+) -> Result<SensitiveString> {
     let login_method = client
         .login_method
         .as_ref()
@@ -99,7 +99,7 @@ mod tests {
         }));
 
         let password = SensitiveString::test("password123");
-        let password_hash = "7kTqkF1pY/3JeOu73N9kR99fDDe9O1JOZaVc7KH3lsU=".to_string();
+        let password_hash = SensitiveString::test("7kTqkF1pY/3JeOu73N9kR99fDDe9O1JOZaVc7KH3lsU=");
 
         let result = validate_password(&client, password, password_hash);
 
@@ -147,9 +147,7 @@ mod tests {
         .unwrap();
 
         assert_eq!(result, "aOvkBXFhSdgrBWR3hZCMRoML9+h5yRblU3lFphCdkeA=");
-        assert!(
-            validate_password(&client, password.try_into().unwrap(), result.to_string()).unwrap()
-        )
+        assert!(validate_password(&client, password.try_into().unwrap(), result).unwrap())
     }
 
     #[cfg(feature = "internal")]

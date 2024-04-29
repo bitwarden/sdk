@@ -17,7 +17,7 @@ use crate::CryptoError;
 ///
 /// Internally [`Sensitive`] contains a [`Box`] which ensures the value is placed on the heap. It
 /// implements the [`Drop`] trait which calls `zeroize` on the inner value.
-#[derive(PartialEq, Clone, Zeroize, ZeroizeOnDrop)]
+#[derive(Eq, Clone, Zeroize, ZeroizeOnDrop)]
 pub struct Sensitive<V: Zeroize> {
     pub(super) value: Box<V>,
 }
@@ -38,18 +38,21 @@ impl<V: Zeroize> Sensitive<V> {
     /// Create a new [`Sensitive`] value. In an attempt to avoid accidentally placing this on the
     /// stack it only accepts a [`Box`] value. The rust compiler should be able to optimize away the
     /// initial stack allocation presuming the value is not used before being boxed.
+    #[inline(always)]
     pub fn new(value: Box<V>) -> Self {
         Self { value }
     }
 
     /// Expose the inner value. By exposing the inner value, you take responsibility for ensuring
     /// that any copy of the value is zeroized.
+    #[inline(always)]
     pub fn expose(&self) -> &V {
         &self.value
     }
 
     /// Expose the inner value mutable. By exposing the inner value, you take responsibility for
     /// ensuring that any copy of the value is zeroized.
+    #[inline(always)]
     pub fn expose_mut(&mut self) -> &mut V {
         &mut self.value
     }
@@ -114,18 +117,22 @@ impl SensitiveString {
     }
 }
 
-impl SensitiveVec {
-    pub fn encode_base64<T: base64::Engine>(self, engine: T) -> SensitiveString {
+impl<T: Zeroize + AsRef<[u8]>> Sensitive<T> {
+    pub fn encode_base64<E: base64::Engine>(self, engine: E) -> SensitiveString {
         use base64::engine::Config;
+
+        let inner: &[u8] = self.value.as_ref().as_ref();
 
         // Prevent accidental copies by allocating the full size
         let padding = engine.config().encode_padding();
-        let len = base64::encoded_len(self.value.len(), padding).expect("Valid length");
-        let mut value = SensitiveString::new(Box::new(String::with_capacity(len)));
+        let len = base64::encoded_len(inner.len(), padding).expect("Valid length");
 
-        engine.encode_string(self.value.as_ref(), &mut value.value);
+        let mut value = SensitiveVec::new(Box::new(vec![0u8; len]));
+        engine
+            .encode_slice(inner, &mut value.value[..len])
+            .expect("Valid base64 string length");
 
-        value
+        value.try_into().expect("Valid base64 string")
     }
 }
 
@@ -141,6 +148,27 @@ impl<V: Zeroize + Serialize> fmt::Debug for Sensitive<V> {
             .field("type", &std::any::type_name::<V>())
             .field("value", &"********")
             .finish()
+    }
+}
+
+impl<V: Zeroize + PartialEq<V>> PartialEq<Sensitive<V>> for Sensitive<V> {
+    fn eq(&self, other: &Self) -> bool {
+        self.value.eq(&other.value)
+    }
+}
+impl<V: Zeroize + PartialEq<V>> PartialEq<V> for Sensitive<V> {
+    fn eq(&self, other: &V) -> bool {
+        self.value.as_ref().eq(other)
+    }
+}
+impl PartialEq<&str> for SensitiveString {
+    fn eq(&self, other: &&str) -> bool {
+        self.value.as_ref().eq(other)
+    }
+}
+impl PartialEq<&[u8]> for SensitiveVec {
+    fn eq(&self, other: &&[u8]) -> bool {
+        self.value.as_ref().eq(other)
     }
 }
 

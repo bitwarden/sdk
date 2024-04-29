@@ -1,11 +1,8 @@
-use base64::{
-    engine::general_purpose::{STANDARD, URL_SAFE_NO_PAD},
-    Engine,
-};
+use base64::engine::general_purpose::{STANDARD, URL_SAFE_NO_PAD};
 use bitwarden_api_api::models::{SendFileModel, SendResponseModel, SendTextModel};
 use bitwarden_crypto::{
     derive_shareable_key, generate_random_bytes, CryptoError, DecryptedString, DecryptedVec,
-    EncString, KeyDecryptable, KeyEncryptable, LocateKey, Sensitive, SensitiveVec,
+    EncString, KeyDecryptable, KeyEncryptable, LocateKey, Sensitive, SensitiveString, SensitiveVec,
     SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
@@ -74,7 +71,7 @@ pub struct Send {
     pub name: EncString,
     pub notes: Option<EncString>,
     pub key: EncString,
-    pub password: Option<String>,
+    pub password: Option<SensitiveString>,
 
     pub r#type: SendType,
     pub file: Option<SendFile>,
@@ -284,7 +281,7 @@ impl KeyEncryptable<SymmetricCryptoKey, Send> for SendView {
             password: self.new_password.map(|password| {
                 let password =
                     bitwarden_crypto::pbkdf2(password.as_bytes(), k.expose(), SEND_ITERATIONS);
-                STANDARD.encode(password)
+                password.encode_base64(STANDARD)
             }),
 
             r#type: self.r#type,
@@ -313,7 +310,7 @@ impl TryFrom<SendResponseModel> for Send {
             name: require!(send.name).parse()?,
             notes: EncString::try_from_optional(send.notes)?,
             key: require!(send.key).parse()?,
-            password: send.password,
+            password: send.password.map(|p| SensitiveString::new(Box::new(p))),
             r#type: require!(send.r#type).into(),
             file: send.file.map(|f| (*f).try_into()).transpose()?,
             text: send.text.map(|t| (*t).try_into()).transpose()?,
@@ -399,7 +396,7 @@ mod tests {
         // Get the send key
         let send_key = Send::get_key(&send_key, k).unwrap();
         let send_key_b64 = send_key.to_base64();
-        assert_eq!(send_key_b64.expose(), "IR9ImHGm6rRuIjiN7csj94bcZR5WYTJj5GtNfx33zm6tJCHUl+QZlpNPba8g2yn70KnOHsAODLcR0um6E3MAlg==");
+        assert_eq!(send_key_b64, "IR9ImHGm6rRuIjiN7csj94bcZR5WYTJj5GtNfx33zm6tJCHUl+QZlpNPba8g2yn70KnOHsAODLcR0um6E3MAlg==");
     }
 
     fn build_encryption_settings() -> EncryptionSettings {
@@ -585,8 +582,8 @@ mod tests {
         let send: Send = view.encrypt_with_key(key).unwrap();
 
         assert_eq!(
-            send.password,
-            Some("vTIDfdj3FTDbejmMf+mJWpYdMXsxfeSd1Sma3sjCtiQ=".to_owned())
+            send.password.clone().unwrap(),
+            "vTIDfdj3FTDbejmMf+mJWpYdMXsxfeSd1Sma3sjCtiQ="
         );
 
         let v: SendView = send.decrypt_with_key(key).unwrap();

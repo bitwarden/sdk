@@ -11,7 +11,7 @@ pub use jwt_token::JWTToken;
 #[cfg(feature = "internal")]
 mod register;
 #[cfg(feature = "internal")]
-use bitwarden_crypto::{HashPurpose, MasterKey, SensitiveVec};
+use bitwarden_crypto::{HashPurpose, MasterKey, SensitiveString, SensitiveVec};
 #[cfg(feature = "internal")]
 pub use register::{RegisterKeyResponse, RegisterRequest};
 #[cfg(feature = "internal")]
@@ -34,7 +34,7 @@ fn determine_password_hash(
     kdf: &Kdf,
     password: &SensitiveVec,
     purpose: HashPurpose,
-) -> Result<String> {
+) -> Result<SensitiveString> {
     let master_key = MasterKey::derive(password, email.as_bytes(), kdf)?;
     Ok(master_key.derive_master_key_hash(password, purpose)?)
 }

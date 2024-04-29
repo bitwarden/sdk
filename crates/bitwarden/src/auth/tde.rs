@@ -1,7 +1,7 @@
-use base64::engine::general_purpose::STANDARD;
+use base64::{engine::general_purpose::STANDARD, Engine};
 use bitwarden_crypto::{
-    AsymmetricEncString, AsymmetricPublicCryptoKey, DeviceKey, EncString, Kdf, SensitiveString,
-    SymmetricCryptoKey, TrustDeviceResponse, UserKey,
+    AsymmetricEncString, AsymmetricPublicCryptoKey, DeviceKey, EncString, Kdf, SymmetricCryptoKey,
+    TrustDeviceResponse, UserKey,
 };
 
 use crate::{error::Result, Client};
@@ -15,9 +15,7 @@ pub(super) fn make_register_tde_keys(
     org_public_key: String,
     remember_device: bool,
 ) -> Result<RegisterTdeKeyResponse> {
-    let public_key = AsymmetricPublicCryptoKey::from_der(
-        SensitiveString::new(Box::new(org_public_key)).decode_base64(STANDARD)?,
-    )?;
+    let public_key = AsymmetricPublicCryptoKey::from_der(&STANDARD.decode(org_public_key)?)?;
 
     let mut rng = rand::thread_rng();
 
@@ -25,7 +23,7 @@ pub(super) fn make_register_tde_keys(
     let key_pair = user_key.make_key_pair()?;
 
     let admin_reset =
-        AsymmetricEncString::encrypt_rsa2048_oaep_sha1(user_key.0.to_vec().expose(), &public_key)?;
+        AsymmetricEncString::encrypt_rsa2048_oaep_sha1(user_key.0.to_vec(), &public_key)?;
 
     let device_key = if remember_device {
         Some(DeviceKey::trust_device(&user_key.0)?)

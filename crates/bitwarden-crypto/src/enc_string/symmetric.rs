@@ -317,7 +317,7 @@ mod tests {
         let cipher = test_string.to_owned().encrypt_with_key(&key).unwrap();
 
         let decrypted_str: SensitiveString = cipher.decrypt_with_key(&key).unwrap();
-        assert_eq!(decrypted_str.expose(), test_string);
+        assert_eq!(decrypted_str, test_string);
     }
 
     #[test]
@@ -415,7 +415,7 @@ mod tests {
         assert_eq!(enc_string.enc_type(), 0);
 
         let dec_str: SensitiveString = enc_string.decrypt_with_key(&key).unwrap();
-        assert_eq!(dec_str.expose(), "EncryptMe!");
+        assert_eq!(dec_str, "EncryptMe!");
     }
 
     #[test]
@@ -428,7 +428,7 @@ mod tests {
         assert_eq!(enc_string.enc_type(), 1);
 
         let dec_str: SensitiveString = enc_string.decrypt_with_key(&key).unwrap();
-        assert_eq!(dec_str.expose(), "EncryptMe!");
+        assert_eq!(dec_str, "EncryptMe!");
     }
 
     #[test]

@@ -23,9 +23,9 @@ pub struct AsymmetricPublicCryptoKey {
 
 impl AsymmetricPublicCryptoKey {
     /// Build a public key from the SubjectPublicKeyInfo DER.
-    pub fn from_der(der: SensitiveVec) -> Result<Self> {
+    pub fn from_der(der: &[u8]) -> Result<Self> {
         Ok(Self {
-            key: rsa::RsaPublicKey::from_public_key_der(der.expose())
+            key: rsa::RsaPublicKey::from_public_key_der(der)
                 .map_err(|_| CryptoError::InvalidKey)?,
         })
     }
@@ -86,24 +86,29 @@ impl AsymmetricCryptoKey {
         })
     }
 
-    pub fn to_der(&self) -> Result<Vec<u8>> {
+    pub fn to_der(&self) -> Result<SensitiveVec> {
         use rsa::pkcs8::EncodePrivateKey;
-        Ok(self
+
+        // SecretDocument implements ZeroizeOnDrop
+        let key = self
             .key
             .to_pkcs8_der()
-            .map_err(|_| CryptoError::InvalidKey)?
-            .as_bytes()
-            .to_owned())
+            .map_err(|_| CryptoError::InvalidKey)?;
+
+        Ok(SensitiveVec::new(Box::new(key.as_bytes().to_owned())))
     }
 
     pub fn to_public_der(&self) -> Result<Vec<u8>> {
         use rsa::pkcs8::EncodePublicKey;
-        Ok(self
+
+        // SecretDocument implements ZeroizeOnDrop
+        let key = self
             .to_public_key()
             .to_public_key_der()
-            .map_err(|_| CryptoError::InvalidKey)?
-            .as_bytes()
-            .to_owned())
+            .map_err(|_| CryptoError::InvalidKey)?;
+
+        // Public keys are considered not sensitive
+        Ok(key.as_bytes().to_owned())
     }
 }
 
@@ -124,7 +129,7 @@ impl std::fmt::Debug for AsymmetricCryptoKey {
 
 #[cfg(test)]
 mod tests {
-    use base64::engine::general_purpose::STANDARD;
+    use base64::{engine::general_purpose::STANDARD, Engine};
 
     use crate::{
         AsymmetricCryptoKey, AsymmetricEncString, AsymmetricPublicCryptoKey, DecryptedString,
@@ -172,8 +177,8 @@ DnqOsltgPomWZ7xVfMkm9niL2OA=
         assert_eq!(pem_key.key, der_key.key);
 
         // Check that the keys can be converted back to DER
-        assert_eq!(der_key_vec, der_key.to_der().unwrap().as_slice());
-        assert_eq!(der_key_vec, pem_key.to_der().unwrap().as_slice());
+        assert_eq!(der_key_vec, der_key.to_der().unwrap());
+        assert_eq!(der_key_vec, pem_key.to_der().unwrap());
     }
 
     #[test]
@@ -209,20 +214,20 @@ DnqOsltgPomWZ7xVfMkm9niL2OA=
         .decode_base64(STANDARD)
         .unwrap();
 
-        let public_key = SensitiveString::test(concat!(
-            "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArvcXfr5pCD6KhzXo7BWc",
-            "5Hdcbgp9U6hk0+wDYQBJ2yP8mlbd3GiN9JMFAtliE6BaTYLuxI9Mdk7XmDoKy63X",
-            "AuI8tUon5imL/792Wca3f3qrbZh9pOfPKWp7HkcByty1ZO8QPlEYUP24y4DzOfVd",
-            "LkdZfs9X5qKHiTxc+VklzTm3PSap4eORTQ/lP1GB10y0qJk5+44GRcSQSr3ku6ui",
-            "2re8AJ2GQhdnZz5oWaCb/kij5bQPBwBrIEBlgRdaeasVdR6wFJPJAQZxtqWo9MPK",
-            "eVDOkaQ3Qrryh+49S4rln3592/WeHYM5hO47DJr86ELcqcyCmksYas7xTqHfVfHS",
-            "XQIDAQAB",
-        ))
-        .decode_base64(STANDARD)
-        .unwrap();
+        let public_key = STANDARD
+            .decode(concat!(
+                "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArvcXfr5pCD6KhzXo7BWc",
+                "5Hdcbgp9U6hk0+wDYQBJ2yP8mlbd3GiN9JMFAtliE6BaTYLuxI9Mdk7XmDoKy63X",
+                "AuI8tUon5imL/792Wca3f3qrbZh9pOfPKWp7HkcByty1ZO8QPlEYUP24y4DzOfVd",
+                "LkdZfs9X5qKHiTxc+VklzTm3PSap4eORTQ/lP1GB10y0qJk5+44GRcSQSr3ku6ui",
+                "2re8AJ2GQhdnZz5oWaCb/kij5bQPBwBrIEBlgRdaeasVdR6wFJPJAQZxtqWo9MPK",
+                "eVDOkaQ3Qrryh+49S4rln3592/WeHYM5hO47DJr86ELcqcyCmksYas7xTqHfVfHS",
+                "XQIDAQAB"
+            ))
+            .unwrap();
 
         let private_key = AsymmetricCryptoKey::from_der(private_key).unwrap();
-        let public_key = AsymmetricPublicCryptoKey::from_der(public_key).unwrap();
+        let public_key = AsymmetricPublicCryptoKey::from_der(&public_key).unwrap();
 
         let plaintext = SensitiveString::test("Hello, world!");
         let encrypted =

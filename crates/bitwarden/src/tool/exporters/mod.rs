@@ -227,7 +227,7 @@ mod tests {
             f.id,
             "fd411a1a-fec8-4070-985d-0e6560860e69".parse().unwrap()
         );
-        assert_eq!(f.name.expose(), "test_name");
+        assert_eq!(f.name, "test_name");
     }
 
     #[test]
@@ -274,7 +274,7 @@ mod tests {
             "fd411a1a-fec8-4070-985d-0e6560860e69".parse().unwrap()
         );
         assert_eq!(cipher.folder_id, None);
-        assert_eq!(cipher.name.expose(), "My login");
+        assert_eq!(cipher.name, "My login");
         assert_eq!(cipher.notes, None);
         assert!(!cipher.favorite);
         assert_eq!(cipher.reprompt, 0);
@@ -290,8 +290,8 @@ mod tests {
         assert_eq!(cipher.deleted_date, None);
 
         if let bitwarden_exporters::CipherType::Login(l) = cipher.r#type {
-            assert_eq!(l.username.unwrap().expose(), "test_username");
-            assert_eq!(l.password.unwrap().expose(), "test_password");
+            assert_eq!(l.username.unwrap(), "test_username");
+            assert_eq!(l.password.unwrap(), "test_password");
             assert!(l.login_uris.is_empty());
             assert_eq!(l.totp, None);
         } else {

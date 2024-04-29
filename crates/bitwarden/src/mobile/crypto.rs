@@ -315,7 +315,7 @@ pub(super) fn enroll_admin_password_reset(
     let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
 
     Ok(AsymmetricEncString::encrypt_rsa2048_oaep_sha1(
-        key.to_vec().expose(),
+        key.to_vec(),
         &public_key,
     )?)
 }
@@ -381,10 +381,7 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(
-            new_hash.expose(),
-            new_password_response.password_hash.expose()
-        );
+        assert_eq!(new_hash, new_password_response.password_hash);
 
         assert_eq!(
             client
@@ -540,6 +537,6 @@ mod tests {
             .unwrap()
             .get_key(&None)
             .unwrap();
-        assert_eq!(decrypted.expose(), expected.to_vec().expose());
+        assert_eq!(decrypted, expected.to_vec());
     }
 }

@@ -176,8 +176,8 @@ DnqOsltgPomWZ7xVfMkm9niL2OA=
         assert_eq!(pem_key.key, der_key.key);
 
         // Check that the keys can be converted back to DER
-        assert_eq!(der_key.to_der().unwrap().expose(), der_key_vec.expose());
-        assert_eq!(pem_key.to_der().unwrap().expose(), der_key_vec.expose());
+        assert_eq!(der_key_vec, der_key.to_der().unwrap());
+        assert_eq!(der_key_vec, pem_key.to_der().unwrap());
     }
 
     #[test]
@@ -228,12 +228,12 @@ DnqOsltgPomWZ7xVfMkm9niL2OA=
         let private_key = AsymmetricCryptoKey::from_der(private_key).unwrap();
         let public_key = AsymmetricPublicCryptoKey::from_der(public_key).unwrap();
 
-        let plaintext = "Hello, world!";
+        let plaintext = SensitiveString::test("Hello, world!");
         let encrypted =
-            AsymmetricEncString::encrypt_rsa2048_oaep_sha1(plaintext.as_bytes(), &public_key)
+            AsymmetricEncString::encrypt_rsa2048_oaep_sha1(plaintext.clone().into(), &public_key)
                 .unwrap();
         let decrypted: DecryptedString = encrypted.decrypt_with_key(&private_key).unwrap();
 
-        assert_eq!(plaintext, decrypted.expose());
+        assert_eq!(plaintext, decrypted);
     }
 }

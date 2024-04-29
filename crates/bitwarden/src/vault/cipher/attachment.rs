@@ -200,6 +200,6 @@ mod tests {
         .decrypt_with_key(&user_key)
         .unwrap();
 
-        assert_eq!(dec.expose(), &original);
+        assert_eq!(dec, original);
     }
 }

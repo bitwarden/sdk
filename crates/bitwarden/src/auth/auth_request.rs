@@ -95,7 +95,7 @@ pub(crate) fn approve_auth_request(
     let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
 
     Ok(AsymmetricEncString::encrypt_rsa2048_oaep_sha1(
-        key.to_vec().expose(),
+        key.to_vec(),
         &public_key,
     )?)
 }
@@ -104,22 +104,23 @@ pub(crate) fn approve_auth_request(
 fn test_auth_request() {
     let request = new_auth_request("test@bitwarden.com").unwrap();
 
-    let secret: &[u8] = &[
+    let secret = bitwarden_crypto::SensitiveVec::test(&[
         111, 32, 97, 169, 4, 241, 174, 74, 239, 206, 113, 86, 174, 68, 216, 238, 52, 85, 156, 27,
         134, 149, 54, 55, 91, 147, 45, 130, 131, 237, 51, 31, 191, 106, 155, 14, 160, 82, 47, 40,
         96, 31, 114, 127, 212, 187, 167, 110, 205, 116, 198, 243, 218, 72, 137, 53, 248, 43, 255,
         67, 35, 61, 245, 93,
-    ];
+    ]);
 
     let private_key =
         AsymmetricCryptoKey::from_der(request.private_key.clone().decode_base64(STANDARD).unwrap())
             .unwrap();
 
-    let encrypted = AsymmetricEncString::encrypt_rsa2048_oaep_sha1(secret, &private_key).unwrap();
+    let encrypted =
+        AsymmetricEncString::encrypt_rsa2048_oaep_sha1(secret.clone(), &private_key).unwrap();
 
     let decrypted = auth_request_decrypt_user_key(request.private_key, encrypted).unwrap();
 
-    assert_eq!(decrypted.to_vec().expose(), secret);
+    assert_eq!(decrypted.to_vec(), secret);
 }
 
 #[cfg(test)]
@@ -177,11 +178,12 @@ mod tests {
         .unwrap();
 
         assert_eq!(
-            dec.to_vec().expose(),
-            &[
+            dec.to_vec(),
+            [
                 201, 37, 234, 213, 21, 75, 40, 70, 149, 213, 234, 16, 19, 251, 162, 245, 161, 74,
                 34, 245, 211, 151, 211, 192, 95, 10, 117, 50, 88, 223, 23, 157
             ]
+            .as_slice()
         );
     }
 
@@ -199,13 +201,14 @@ mod tests {
         .unwrap();
 
         assert_eq!(
-            dec.to_vec().expose(),
-            &[
+            dec.to_vec(),
+            [
                 109, 128, 172, 147, 206, 123, 134, 95, 16, 36, 155, 113, 201, 18, 186, 230, 216,
                 212, 173, 188, 74, 11, 134, 131, 137, 242, 105, 178, 105, 126, 52, 139, 248, 91,
                 215, 21, 128, 91, 226, 222, 165, 67, 251, 34, 83, 81, 77, 147, 225, 76, 13, 41,
                 102, 45, 183, 218, 106, 89, 254, 208, 251, 101, 130, 10,
             ]
+            .as_slice()
         );
     }
 

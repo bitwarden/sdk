@@ -59,9 +59,6 @@ mod tests {
 
         let result = determine_password_hash(email, &kdf, &password, purpose).unwrap();
 
-        assert_eq!(
-            result.expose(),
-            "7kTqkF1pY/3JeOu73N9kR99fDDe9O1JOZaVc7KH3lsU="
-        );
+        assert_eq!(result, "7kTqkF1pY/3JeOu73N9kR99fDDe9O1JOZaVc7KH3lsU=");
     }
 }

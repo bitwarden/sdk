@@ -2,7 +2,7 @@ use bitwarden_api_api::{
     apis::auth_requests_api::{auth_requests_id_response_get, auth_requests_post},
     models::{AuthRequestCreateRequestModel, AuthRequestType},
 };
-use bitwarden_crypto::Kdf;
+use bitwarden_crypto::{Kdf, SensitiveString};
 use uuid::Uuid;
 
 use crate::{
@@ -22,7 +22,7 @@ pub struct NewAuthRequestResponse {
     device_identifier: String,
     auth_request_id: Uuid,
     access_code: String,
-    private_key: String,
+    private_key: SensitiveString,
 }
 
 pub(crate) async fn send_new_auth_request(
@@ -36,7 +36,7 @@ pub(crate) async fn send_new_auth_request(
 
     let req = AuthRequestCreateRequestModel {
         email: email.clone(),
-        public_key: auth.public_key,
+        public_key: auth.public_key.expose().to_owned(),
         device_identifier: device_identifier.clone(),
         access_code: auth.access_code.clone(),
         r#type: AuthRequestType::AuthenticateAndUnlock,

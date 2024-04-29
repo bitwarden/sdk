@@ -132,7 +132,10 @@ impl<'a> ClientAuth<'a> {
         new_auth_request(email)
     }
 
-    pub fn approve_auth_request(&mut self, public_key: String) -> Result<AsymmetricEncString> {
+    pub fn approve_auth_request(
+        &mut self,
+        public_key: SensitiveString,
+    ) -> Result<AsymmetricEncString> {
         approve_auth_request(self.client, public_key)
     }
 

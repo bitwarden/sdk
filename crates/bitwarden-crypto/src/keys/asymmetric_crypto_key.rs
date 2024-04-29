@@ -86,24 +86,28 @@ impl AsymmetricCryptoKey {
         })
     }
 
-    pub fn to_der(&self) -> Result<Vec<u8>> {
+    pub fn to_der(&self) -> Result<SensitiveVec> {
         use rsa::pkcs8::EncodePrivateKey;
-        Ok(self
+
+        // SecretDocument implements ZeroizeOnDrop
+        let key = self
             .key
             .to_pkcs8_der()
-            .map_err(|_| CryptoError::InvalidKey)?
-            .as_bytes()
-            .to_owned())
+            .map_err(|_| CryptoError::InvalidKey)?;
+
+        Ok(SensitiveVec::new(Box::new(key.as_bytes().to_owned())))
     }
 
-    pub fn to_public_der(&self) -> Result<Vec<u8>> {
+    pub fn to_public_der(&self) -> Result<SensitiveVec> {
         use rsa::pkcs8::EncodePublicKey;
-        Ok(self
+
+        // SecretDocument implements ZeroizeOnDrop
+        let key = self
             .to_public_key()
             .to_public_key_der()
-            .map_err(|_| CryptoError::InvalidKey)?
-            .as_bytes()
-            .to_owned())
+            .map_err(|_| CryptoError::InvalidKey)?;
+
+        Ok(SensitiveVec::new(Box::new(key.as_bytes().to_owned())))
     }
 }
 
@@ -172,8 +176,8 @@ DnqOsltgPomWZ7xVfMkm9niL2OA=
         assert_eq!(pem_key.key, der_key.key);
 
         // Check that the keys can be converted back to DER
-        assert_eq!(&der_key.to_der().unwrap(), der_key_vec.expose());
-        assert_eq!(&pem_key.to_der().unwrap(), der_key_vec.expose());
+        assert_eq!(der_key.to_der().unwrap().expose(), der_key_vec.expose());
+        assert_eq!(pem_key.to_der().unwrap().expose(), der_key_vec.expose());
     }
 
     #[test]

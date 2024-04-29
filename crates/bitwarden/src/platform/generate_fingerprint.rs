@@ -45,7 +45,7 @@ pub(crate) fn generate_user_fingerprint(
         .ok_or("Missing private key")?;
 
     let public_key = private_key.to_public_der()?;
-    let fingerprint = fingerprint(&fingerprint_material, &public_key)?;
+    let fingerprint = fingerprint(&fingerprint_material, public_key.expose())?;
 
     Ok(fingerprint)
 }

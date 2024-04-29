@@ -29,7 +29,7 @@ pub(crate) fn validate_password(
                     HashPurpose::LocalAuthorization,
                 )?;
 
-                Ok(hash.expose() == password_hash.expose())
+                Ok(hash == password_hash)
             }
         }
     } else {
@@ -146,10 +146,7 @@ mod tests {
         )
         .unwrap();
 
-        assert_eq!(
-            result.expose(),
-            "aOvkBXFhSdgrBWR3hZCMRoML9+h5yRblU3lFphCdkeA="
-        );
+        assert_eq!(result, "aOvkBXFhSdgrBWR3hZCMRoML9+h5yRblU3lFphCdkeA=");
         assert!(validate_password(&client, password.try_into().unwrap(), result).unwrap())
     }
 

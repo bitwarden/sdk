@@ -17,7 +17,7 @@ use crate::CryptoError;
 ///
 /// Internally [`Sensitive`] contains a [`Box`] which ensures the value is placed on the heap. It
 /// implements the [`Drop`] trait which calls `zeroize` on the inner value.
-#[derive(PartialEq, Clone, Zeroize, ZeroizeOnDrop)]
+#[derive(Eq, Clone, Zeroize, ZeroizeOnDrop)]
 pub struct Sensitive<V: Zeroize> {
     pub(super) value: Box<V>,
 }
@@ -148,6 +148,27 @@ impl<V: Zeroize + Serialize> fmt::Debug for Sensitive<V> {
             .field("type", &std::any::type_name::<V>())
             .field("value", &"********")
             .finish()
+    }
+}
+
+impl<V: Zeroize + PartialEq<V>> PartialEq<Sensitive<V>> for Sensitive<V> {
+    fn eq(&self, other: &Self) -> bool {
+        self.value.eq(&other.value)
+    }
+}
+impl<V: Zeroize + PartialEq<V>> PartialEq<V> for Sensitive<V> {
+    fn eq(&self, other: &V) -> bool {
+        self.value.as_ref().eq(other)
+    }
+}
+impl PartialEq<&str> for SensitiveString {
+    fn eq(&self, other: &&str) -> bool {
+        self.value.as_ref().eq(other)
+    }
+}
+impl PartialEq<&[u8]> for SensitiveVec {
+    fn eq(&self, other: &&[u8]) -> bool {
+        self.value.as_ref().eq(other)
     }
 }
 

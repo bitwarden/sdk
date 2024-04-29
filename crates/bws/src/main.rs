@@ -690,7 +690,8 @@ async fn process_commands() -> Result<()> {
                 .map(|s| (s.key.clone(), s.value.clone()))
                 .collect::<std::collections::HashMap<String, String>>();
 
-            let valid_key_regex = regex::Regex::new("^[a-zA-Z_][a-zA-Z0-9_]*$").expect("valid regex");
+            let valid_key_regex =
+                regex::Regex::new("^[a-zA-Z_][a-zA-Z0-9_]*$").expect("valid regex");
 
             for key in environment.keys() {
                 if !valid_key_regex.is_match(key) {

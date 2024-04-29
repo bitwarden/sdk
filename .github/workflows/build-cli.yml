@@ -251,6 +251,12 @@ jobs:
       matrix:
         settings:
           - os: ubuntu-20.04
+            target: x86_64-unknown-linux-musl
+
+          - os: ubuntu-20.04
+            target: aarch64-unknown-linux-musl
+
+          - os: ubuntu-20.04
             target: x86_64-unknown-linux-gnu
 
           - os: ubuntu-20.04
@@ -278,7 +284,7 @@ jobs:
         if: ${{ matrix.settings.target != 'aarch64-unknown-linux-gnu' }}
         env:
           TARGET: ${{ matrix.settings.target }}
-        run: cargo build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
+        run: cargo zigbuild ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
 
       - name: Build (aarch64-unknown-linux-gnu)
         if: ${{ matrix.settings.target == 'aarch64-unknown-linux-gnu' }}

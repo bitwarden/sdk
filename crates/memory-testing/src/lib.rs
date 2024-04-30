@@ -21,6 +21,8 @@ pub struct Cases {
     pub symmetric_key: Vec<SymmetricKeyCases>,
 
     pub master_key: Vec<MasterKeyCases>,
+
+    pub bit_string: Vec<BitStringCases>,
 }
 
 #[derive(serde::Deserialize)]
@@ -41,4 +43,10 @@ pub struct MasterKeyCases {
     pub key_hex: String,
     pub hash: String,
     pub hash_hex: String,
+}
+
+#[derive(serde::Deserialize)]
+pub struct BitStringCases {
+    pub left: String,
+    pub right: String,
 }

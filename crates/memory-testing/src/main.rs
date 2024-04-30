@@ -1,6 +1,7 @@
 use std::{env, io::Read, path::Path, process};
 
-use bitwarden_crypto::{MasterKey, SensitiveString, SensitiveVec, SymmetricCryptoKey};
+use bitwarden_crypto::{BitString, MasterKey, SensitiveString, SensitiveVec, SymmetricCryptoKey};
+use zeroize::Zeroizing;
 
 fn wait_for_dump() {
     println!("Waiting for dump...");
@@ -43,14 +44,25 @@ fn main() {
         master_keys.push((key, hash));
     }
 
+    let mut bit_strings = Vec::new();
+    for case in cases.bit_string {
+        let mut left = BitString::new(case.left);
+        let right = BitString::new(case.right);
+        left.push_str(right.as_str());
+
+        bit_strings.push(left);
+    }
+
     // Make a memory dump before the variables are freed
     wait_for_dump();
 
     // Use all the variables so the compiler doesn't decide to remove them
-    println!("{test_string} {symmetric_keys:?} {master_keys:?} ");
+    let len = bit_strings.len();
+    println!("{test_string} {symmetric_keys:?} {master_keys:?} {len:?} ");
 
     drop(symmetric_keys);
     drop(master_keys);
+    drop(bit_strings);
 
     // After the variables are dropped, we want to make another dump
     wait_for_dump();

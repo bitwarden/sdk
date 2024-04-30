@@ -37,5 +37,11 @@
       "hash": "lHkprdORlICVJ4Umwi94Uz/nATK6Y7If7e+iFoabzh0=",
       "hash_hex": "947929add391948095278526c22f78533fe70132ba63b21fedefa216869bce1d"
     }
+  ],
+  "bit_string": [
+    {
+      "left": "hello",
+      "right": " world"
+    }
   ]
 }

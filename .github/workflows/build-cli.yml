@@ -255,6 +255,12 @@ jobs:
 
           - os: ubuntu-20.04
             target: aarch64-unknown-linux-gnu
+
+          - os: ubuntu-20.04
+            target: x86_64-unknown-linux-musl
+
+          - os: ubuntu-20.04
+            target: aarch64-unknown-linux-musl
     steps:
       - name: Checkout repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -264,6 +270,11 @@ jobs:
         with:
           toolchain: stable
           targets: ${{ matrix.settings.target }}
+
+      - name: Install apt requirements for musl
+        if: ${{ matrix.settings.target == 'x86_64-unknown-linux-musl' || matrix.settings.target == 'aarch64-unknown-linux-musl' }}
+        run: |
+          sudo apt-get install -y --no-install-recommends zsh xz-utils liblz4-tool musl-tools brotli zstd
 
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
@@ -285,6 +296,12 @@ jobs:
         env:
           TARGET: ${{ matrix.settings.target }}
         run: cross build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
+
+      - name: Build musl
+        if: ${{ matrix.settings.target == 'x86_64-unknown-linux-musl' || matrix.settings.target == 'aarch64-unknown-linux-musl' }}
+        env:
+          TARGET: ${{ matrix.settings.target }}
+        run: RUSTFLAGS='-C target-feature=+crt-static' cross build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
 
       - name: Zip linux
         run: zip -j ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip ./target/${{ matrix.settings.target }}/release/bws

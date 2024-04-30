@@ -265,16 +265,16 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
+      - name: Install apt requirements
+        if: ${{ matrix.settings.target == 'x86_64-unknown-linux-musl' || matrix.settings.target == 'aarch64-unknown-linux-musl' }}
+        run: |
+          sudo apt-get install -y --no-install-recommends zsh xz-utils liblz4-tool musl-tools brotli zstd
+
       - name: Install rust
         uses: dtolnay/rust-toolchain@bb45937a053e097f8591208d8e74c90db1873d07 # stable
         with:
           toolchain: stable
           targets: ${{ matrix.settings.target }}
-
-      - name: Install apt requirements for musl
-        if: ${{ matrix.settings.target == 'x86_64-unknown-linux-musl' || matrix.settings.target == 'aarch64-unknown-linux-musl' }}
-        run: |
-          sudo apt-get install -y --no-install-recommends zsh xz-utils liblz4-tool musl-tools brotli zstd
 
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
@@ -301,7 +301,7 @@ jobs:
         if: ${{ matrix.settings.target == 'x86_64-unknown-linux-musl' || matrix.settings.target == 'aarch64-unknown-linux-musl' }}
         env:
           TARGET: ${{ matrix.settings.target }}
-        run: RUSTFLAGS='-C target-feature=+crt-static' cross build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
+        run: cross build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
 
       - name: Zip linux
         run: zip -j ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip ./target/${{ matrix.settings.target }}/release/bws

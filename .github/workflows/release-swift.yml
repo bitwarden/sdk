@@ -1,48 +1,50 @@
 ---
 name: Release Swift Package
-run-name: Release Swift Package ${{ inputs.release_type }}
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
-      release_type:
-        description: "Release Options"
-        required: true
-        default: "Initial Release"
-        type: choice
-        options:
-          - Initial Release
-          - Redeploy
-          - Dry Run
+      build-run-id:
+        description: "Workflow Run ID to use for artifact download"
+        type: string
+        required: false
 
 env:
   _KEY_VAULT: "bitwarden-ci"
 
 jobs:
   validate:
-    name: Validate Branch - Set Version
+    name: Set Version and SHA
     runs-on: ubuntu-22.04
     outputs:
       version: ${{ steps.version.outputs.version }}
+      sha: ${{ steps.set-sha.outputs.sha }}
+      short_sha: ${{ steps.set-sha.outputs.short_sha }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
-
-      - name: Branch check
-        if: ${{ inputs.release_type != 'Dry Run' }}
-        run: |
-          if [[ "$GITHUB_REF" != "refs/heads/rc" ]] && [[ "$GITHUB_REF" != "refs/heads/hotfix-rc" ]]; then
-            echo "==================================="
-            echo "[!] Can only release from the 'rc' or 'hotfix-rc' branches"
-            echo "==================================="
-            exit 1
-          fi
 
       - name: Get version
         id: version
         run: |
           VERSION=$(grep -o '^version = ".*"' crates/bitwarden/Cargo.toml | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Download BitwardenEFI artifact
+        uses: bitwarden/gh-actions/download-artifacts@main
+        id: download-artifact
+        with:
+          workflow: build-swift.yml
+          workflow_conclusion: success
+          skip_unpack: true
+          run_id: ${{ inputs.build-run-id }}
+      
+      - name: Set SHA
+        id: set-sha
+        run: |
+          echo "sha=$(${{ steps.download-artifact.outputs.artifact-build-commit }})" >> $GITHUB_OUTPUT
+          echo "short_sha=$(echo ${{ steps.download-artifact.outputs.artifact-build-commit }} | cut -c1-7)" >> $GITHUB_OUTPUT
+
 
   repo-sync:
     name: Push changed files to SDK Swift repo
@@ -88,7 +90,7 @@ jobs:
           # Update BitwardenFFI path
           sed -i '' 's|.binaryTarget(name: "BitwardenFFI", path: "BitwardenFFI.xcframework")|.binaryTarget(\
             name: "BitwardenFFI",\
-            url: "https://github.com/bitwarden/sdk-swift/releases/download/BitwardenFFI-v${{ env._PKG_VERSION }}/BitwardenFFI-${{ env._PKG_VERSION }}.xcframework.zip",|' sdk/languages/swift/Package.swift
+            url: "https://github.com/bitwarden/sdk-swift/releases/download/BitwardenFFI-v${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}/BitwardenFFI-${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}.xcframework.zip",|' sdk/languages/swift/Package.swift
 
           # Run swiftformat
           swiftformat sdk/languages/swift/Package.swift
@@ -103,32 +105,14 @@ jobs:
         working-directory: sdk-swift
         run: |
           git add .
-          git commit -m "Update Swift SDK to ${{ github.sha }}"
-
-          if [[ "${{ inputs.release_type }}" == "Dry Run" ]]; then
-            echo "==================================="
-            echo "[!] Dry Run - Skipping push"
-            echo "==================================="
-            git ls-files -m
-            exit 0
-          else 
-            git push origin main
-          fi
+          git commit -m "Update Swift SDK to ${{ needs.validate.outputs.sha }}"
+          git push origin main
 
       - name: Create release tag on SDK Swift repo
-        if: ${{ inputs.release_type != 'Dry Run' }}
         working-directory: sdk-swift
         run: |
-          # Check if tag exists, set output then exit 0 if true.
-          if git log ${{ env._PKG_VERSION }} >/dev/null 2>&1; then
-            echo "==================================="
-            echo "[!] Tag ${{ env._PKG_VERSION }} already exists"
-            echo "==================================="
-            exit 1
-          fi
-
-          git tag ${{ env._PKG_VERSION }}
-          git push origin ${{ env._PKG_VERSION }}
+          git tag ${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}
+          git push origin ${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}
 
   github-release:
     name: GitHub Release
@@ -153,22 +137,22 @@ jobs:
 
       - name: Download BitwardenEFI artifact
         uses: bitwarden/gh-actions/download-artifacts@main
+        id: download-artifact
         with:
           workflow: build-swift.yml
-          artifacts: BitwardenFFI-${{ env._PKG_VERSION }}.xcframework
           workflow_conclusion: success
-          branch: ${{ inputs.release_type == 'Dry Run' && 'main' || github.ref_name }}
+          artifacts: "BitwardenFFI-${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}.xcframework"
           skip_unpack: true
+          run_id: ${{ inputs.build-run-id }}
 
       - name: Create release
-        if: ${{ inputs.release_type != 'Dry Run' }}
         uses: ncipollo/release-action@6c75be85e571768fa31b40abf38de58ba0397db5 # v1.13.0
         with:
-          tag: v${{ env._PKG_VERSION }}
-          name: v${{ env._PKG_VERSION }}
-          body: "<insert release notes here>"
+          tag: v${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}
+          name: v${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}
+          body: ""
           token: ${{ steps.retrieve-secrets.outputs.github-pat-bitwarden-devops-bot-repo-scope }}
-          draft: true
+          draft: false
           repo: sdk-swift
           owner: bitwarden
-          artifacts: "BitwardenFFI-${{ env._PKG_VERSION }}.xcframework"
+          artifacts: "BitwardenFFI-${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}.xcframework"

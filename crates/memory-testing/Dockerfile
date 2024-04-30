@@ -14,7 +14,7 @@ RUN mkdir -p /app/crates/bitwarden-crypto/src \
     && mkdir -p /app/crates/memory-testing/src \
     && touch /app/crates/bitwarden-crypto/src/lib.rs \
     && echo 'fn main(){}' > /app/crates/memory-testing/src/main.rs \
-    && cargo build -p memory-testing
+    && cargo build -p memory-testing --release
 
 # Delete dummy files and copy the actual source code
 RUN rm /app/crates/bitwarden-crypto/src/lib.rs /app/crates/memory-testing/src/main.rs
@@ -23,7 +23,7 @@ COPY crates/memory-testing/src   /app/crates/memory-testing/src
 
 # Build the project. We use touch to force a rebuild of the now real files
 RUN touch /app/crates/bitwarden-crypto/src/lib.rs /app/crates/memory-testing/src/main.rs
-RUN cargo build -p memory-testing
+RUN cargo build -p memory-testing --release
 
 ###############################################
 #                  App stage                  #
@@ -36,7 +36,7 @@ USER root
 RUN apt-get update && apt-get install -y --no-install-recommends gdb=13.1-3 && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy built project from the build stage and the cases.json file
-COPY --from=build /app/target/debug/memory-testing /app/target/debug/capture-dumps ./
+COPY --from=build /app/target/release/memory-testing /app/target/release/capture-dumps ./
 COPY crates/memory-testing/cases.json .
 
 CMD [ "/capture-dumps", "./memory-testing", "/output" ]

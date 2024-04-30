@@ -9,7 +9,7 @@ BASE_DIR="./crates/memory-testing"
 mkdir -p $BASE_DIR/output
 rm $BASE_DIR/output/* || true
 
-cargo build -p memory-testing
+cargo build -p memory-testing --release
 
 if [ "$1" = "no-docker" ]; then
     # This specifically needs to run as root to be able to capture core dumps

@@ -510,6 +510,7 @@ name = "bitwarden-uniffi"
 version = "0.1.0"
 dependencies = [
  "async-lock",
+ "async-trait",
  "bitwarden",
  "bitwarden-crypto",
  "bitwarden-generators",

@@ -14,6 +14,14 @@ impl From<bitwarden::error::Error> for BitwardenError {
     }
 }
 
+// Need to implement this From<> impl in order to handle unexpected callback errors.  See the
+// Callback Interfaces section of the handbook for more info.
+impl From<uniffi::UnexpectedUniFFICallbackError> for BitwardenError {
+    fn from(e: uniffi::UnexpectedUniFFICallbackError) -> Self {
+        Self::E(bitwarden::error::Error::UniffiCallback(e))
+    }
+}
+
 impl Display for BitwardenError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {

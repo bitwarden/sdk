@@ -4,6 +4,8 @@ use bitwarden::platform::FingerprintRequest;
 
 use crate::{error::Result, Client};
 
+mod passkeys;
+
 #[derive(uniffi::Object)]
 pub struct ClientPlatform(pub(crate) Arc<Client>);
 
@@ -36,5 +38,10 @@ impl ClientPlatform {
     pub async fn load_flags(&self, flags: std::collections::HashMap<String, bool>) -> Result<()> {
         self.0 .0.write().await.load_flags(flags);
         Ok(())
+    }
+
+    /// Passkey operations
+    pub fn passkeys(self: Arc<Self>) -> Arc<passkeys::ClientPasskeys> {
+        Arc::new(passkeys::ClientPasskeys(self.0.clone()))
     }
 }

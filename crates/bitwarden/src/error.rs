@@ -68,6 +68,10 @@ pub enum Error {
     #[error(transparent)]
     ExportError(#[from] ExportError),
 
+    #[cfg(feature = "mobile")]
+    #[error("Uniffi callback error: {0}")]
+    UniffiCallback(#[from] uniffi::UnexpectedUniFFICallbackError),
+
     #[error("Internal error: {0}")]
     Internal(Cow<'static, str>),
 }

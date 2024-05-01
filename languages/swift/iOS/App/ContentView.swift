@@ -39,6 +39,28 @@ struct ContentView: View {
             delegateQueue: nil)
         
         client = Client(settings: nil)
+        
+        Task {
+            class TestSyncImplementation: TestTraitSync {
+                func giveMeAName() -> String {
+                    "Swift!"
+                }
+            }
+            class TestAsyncImplementation: TestTraitAsync {
+                func giveMeAName() async -> String {
+                    "Swift async!"
+                }
+            }
+            do {
+                let result1 = try await Client(settings: nil).platform().passkeys().passkeyTestSync(t: TestSyncImplementation())
+                let result2 = try await Client(settings: nil).platform().passkeys().passkeyTestAsync(t: TestAsyncImplementation())
+                print("Result1 " + result1)
+                print("Result2 " + result2)
+            } catch {
+                print("ERROR:", error)
+            }
+        }
+            
     }
     
     @State var setupBiometrics: Bool = true

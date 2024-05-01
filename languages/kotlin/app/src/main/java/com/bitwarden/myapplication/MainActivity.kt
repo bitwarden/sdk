@@ -32,6 +32,9 @@ import com.bitwarden.crypto.HashPurpose
 import com.bitwarden.crypto.Kdf
 import com.bitwarden.myapplication.ui.theme.MyApplicationTheme
 import com.bitwarden.sdk.Client
+import com.bitwarden.sdk.ClientPasskeysTestSync
+import com.bitwarden.sdk.TestTraitAsync
+import com.bitwarden.sdk.TestTraitSync
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
@@ -89,6 +92,30 @@ class MainActivity : FragmentActivity() {
         biometric = Biometric(this)
         client = Client(null)
         http = httpClient()
+
+        GlobalScope.launch {
+
+            class TestSyncImplementation : TestTraitSync {
+                override fun giveMeAName(): String {
+                    return "Kotlin!"
+                }
+            }
+
+            class TestAsyncImplementation : TestTraitAsync {
+                constructor(client: Client)
+                override suspend fun giveMeAName(): String {
+                    return client.echo("Kotlin-suspend!")
+                }
+            }
+
+            println("NAME: " + TestSyncImplementation().giveMeAName())
+
+            val result1 = client.platform().passkeys().passkeyTestSync(TestSyncImplementation())
+            val result2 = client.platform().passkeys().passkeyTestAsync(TestAsyncImplementation(client))
+
+            println("Result1: $result1")
+            println("Result2: $result2")
+        }
 
         setContent {
             MyApplicationTheme {

@@ -265,11 +265,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
-      - name: Install apt requirements
-        if: ${{ matrix.settings.target == 'x86_64-unknown-linux-musl' || matrix.settings.target == 'aarch64-unknown-linux-musl' }}
-        run: |
-          sudo apt-get install -y --no-install-recommends zsh xz-utils liblz4-tool musl-tools brotli zstd crossbuild-essential-arm64
-
       - name: Install rust
         uses: dtolnay/rust-toolchain@bb45937a053e097f8591208d8e74c90db1873d07 # stable
         with:
@@ -281,7 +276,7 @@ jobs:
         with:
           key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.os }}
 
-      - name: Install Cross (aarch64-unknown-linux-gnu)
+      - name: Install Cross
         if: ${{ matrix.settings.target != 'x86_64-unknown-linux-gnu' }}
         run: cargo install cross --locked --git https://github.com/cross-rs/cross.git --rev 185398b1b885820515a212de720a306b08e2c8c9
 
@@ -292,7 +287,13 @@ jobs:
         run: RUSTFLAGS='-C target-feature=+crt-static' cargo build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
 
       - name: Build with cross
-        if: ${{ matrix.settings.target != 'x86_64-unknown-linux-gnu' }}
+        if: ${{ matrix.settings.target == 'aarch64-unknown-linux-gnu' }}
+        env:
+          TARGET: ${{ matrix.settings.target }}
+        run: cross build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
+
+      - name: Build MUSL statically with cross
+        if: ${{ matrix.settings.target == 'x86_64-unknown-linux-musl' || matrix.settings.target == 'aarch64-unknown-linux-musl' }}
         env:
           TARGET: ${{ matrix.settings.target }}
         run: RUSTFLAGS='-C target-feature=+crt-static' cross build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}

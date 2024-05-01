@@ -2,7 +2,7 @@ use bitwarden_crypto::{CryptoError, KeyDecryptable, KeyEncryptable, SymmetricCry
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct LocalData {
@@ -10,7 +10,7 @@ pub struct LocalData {
     last_launched: Option<u32>,
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct LocalDataView {

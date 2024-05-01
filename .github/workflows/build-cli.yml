@@ -286,7 +286,7 @@ jobs:
         run: cargo install cross --locked --git https://github.com/cross-rs/cross.git --rev 185398b1b885820515a212de720a306b08e2c8c9
 
       - name: Build
-        if: ${{ matrix.settings.target != 'aarch64-unknown-linux-gnu' }}
+        if: ${{ matrix.settings.target != 'aarch64-unknown-linux-gnu' || matrix.settings.target != 'x86_64-unknown-linux-musl' || matrix.settings.target != 'aarch64-unknown-linux-musl' }}
         env:
           TARGET: ${{ matrix.settings.target }}
         run: cargo build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}

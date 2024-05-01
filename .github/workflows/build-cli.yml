@@ -435,3 +435,35 @@ jobs:
           name: THIRDPARTY.html
           path: ./crates/bws/THIRDPARTY.html
           if-no-files-found: error
+
+  manpages:
+    name: Generate manpages
+    runs-on: ubuntu-22.04
+    needs:
+      - setup
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248 # stable
+        with:
+          toolchain: stable
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
+        with:
+          key: cargo-cli-manpage
+
+      - name: Generate manpages
+        run: |
+          cargo check -p bws --message-format json > build.json
+          OUT_DIR=$(jq -r --slurp '.[] | select (.reason == "build-script-executed") | select(.package_id|contains("crates/bws")) .out_dir' build.json)
+          mv $OUT_DIR/manpages .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        with:
+          name: manpages
+          path: ./manpages/*
+          if-no-files-found: error

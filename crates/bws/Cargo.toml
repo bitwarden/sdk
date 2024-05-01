@@ -44,6 +44,13 @@ tokio = { version = "1.36.0", features = ["rt-multi-thread", "macros"] }
 toml = "0.8.10"
 uuid = { version = "^1.7.0", features = ["serde"] }
 
+[build-dependencies]
+bitwarden-cli = { workspace = true }
+clap = { version = "4.5.1", features = ["derive", "string"] }
+clap_complete = "4.5.0"
+clap_mangen = "0.2.20"
+uuid = { version = "^1.7.0" }
+
 [dev-dependencies]
 tempfile = "3.10.0"
 

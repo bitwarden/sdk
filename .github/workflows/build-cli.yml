@@ -289,13 +289,13 @@ jobs:
         if: ${{ matrix.settings.target == 'x86_64-unknown-linux-gnu' }}
         env:
           TARGET: ${{ matrix.settings.target }}
-        run: cargo build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
+        run: RUSTFLAGS='-C target-feature=+crt-static' cargo build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
 
       - name: Build with cross
         if: ${{ matrix.settings.target != 'x86_64-unknown-linux-gnu' }}
         env:
           TARGET: ${{ matrix.settings.target }}
-        run: cross build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
+        run: RUSTFLAGS='-C target-feature=+crt-static' cross build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
 
       - name: Zip linux
         run: zip -j ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip ./target/${{ matrix.settings.target }}/release/bws

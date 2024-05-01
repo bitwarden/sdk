@@ -282,7 +282,7 @@ jobs:
           key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.os }}
 
       - name: Install Cross (aarch64-unknown-linux-gnu)
-        if: ${{ matrix.settings.target == 'aarch64-unknown-linux-gnu' ||  matrix.settings.target == 'x86_64-unknown-linux-musl' || matrix.settings.target == 'aarch64-unknown-linux-musl'  }}
+        if: ${{ matrix.settings.target == 'x86_64-unknown-linux-musl' }}
         run: cargo install cross --locked --git https://github.com/cross-rs/cross.git --rev 185398b1b885820515a212de720a306b08e2c8c9
 
       - name: Build
@@ -297,11 +297,20 @@ jobs:
           TARGET: ${{ matrix.settings.target }}
         run: cross build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
 
-      - name: Build musl
-        if: ${{ matrix.settings.target == 'x86_64-unknown-linux-musl' || matrix.settings.target == 'aarch64-unknown-linux-musl' }}
+      - name: Build x86_64 musl
+        if: ${{ matrix.settings.target == 'x86_64-unknown-linux-musl'}}
         env:
           TARGET: ${{ matrix.settings.target }}
         run: cross build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
+
+      - name: Build aarch64 musl
+        if: ${{ matrix.settings.target == 'aarch64-unknown-linux-musl' }}
+        env:
+          TARGET: ${{ matrix.settings.target }}
+        run: |
+          rustup target add aarch64-unknown-linux-musl
+          cargo rustc --target aarch64-unknown-linux-musl -- -C link-arg=-lgcc
+          cargo build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
 
       - name: Zip linux
         run: zip -j ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip ./target/${{ matrix.settings.target }}/release/bws

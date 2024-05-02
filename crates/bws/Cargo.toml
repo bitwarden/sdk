@@ -25,7 +25,7 @@ chrono = { version = "0.4.38", features = [
     "std",
 ], default-features = false }
 clap = { version = "4.5.4", features = ["derive", "env", "string"] }
-clap_complete = "4.5.0"
+clap_complete = "4.5.2"
 color-eyre = "0.6"
 comfy-table = "^7.1.0"
 directories = "5.0.1"
@@ -47,7 +47,7 @@ uuid = { version = "^1.7.0", features = ["serde"] }
 [build-dependencies]
 bitwarden-cli = { workspace = true }
 clap = { version = "4.5.4", features = ["derive", "string"] }
-clap_complete = "4.5.0"
+clap_complete = "4.5.2"
 clap_mangen = "0.2.20"
 uuid = { version = "^1.7.0" }
 

@@ -55,7 +55,7 @@ fn get_secret_verification_request(
             })
             .transpose()?;
         Ok(SecretVerificationRequestModel {
-            master_password_hash: master_password_hash.map(|h| h.expose().clone()),
+            master_password_hash: master_password_hash.map(|h| h.as_str().to_owned()),
             otp: input.otp.as_ref().cloned(),
             secret: None,
             auth_request_access_code: None,

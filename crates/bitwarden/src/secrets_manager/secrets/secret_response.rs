@@ -71,9 +71,9 @@ impl SecretResponse {
             id: require!(response.id),
             organization_id: require!(org_id),
             project_id: project,
-            key: key.expose().to_owned(),
-            value: value.expose().to_owned(),
-            note: note.expose().to_owned(),
+            key: key.as_str().to_owned(),
+            value: value.as_str().to_owned(),
+            note: note.as_str().to_owned(),
 
             creation_date: require!(response.creation_date).parse()?,
             revision_date: require!(response.revision_date).parse()?,

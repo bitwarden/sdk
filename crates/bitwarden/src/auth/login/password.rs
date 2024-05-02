@@ -40,7 +40,7 @@ pub(crate) async fn login_password(
         client,
         &input.email,
         &input.two_factor,
-        password_hash.expose(),
+        password_hash.as_str(),
     )
     .await?;
 

@@ -8,7 +8,8 @@ use serde::Deserialize;
 use super::{check_length, from_b64, from_b64_vec, split_enc_string};
 use crate::{
     error::{CryptoError, EncStringParseError, Result},
-    DecryptedString, DecryptedVec, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey,
+    DecryptedString, DecryptedVec, KeyDecryptable, KeyEncryptable, LocateKey, SensitiveString,
+    SymmetricCryptoKey,
 };
 
 /// # Encrypted string primitive
@@ -278,6 +279,12 @@ impl KeyDecryptable<SymmetricCryptoKey, DecryptedVec> for EncString {
 impl KeyEncryptable<SymmetricCryptoKey, EncString> for String {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<EncString> {
         self.as_bytes().encrypt_with_key(key)
+    }
+}
+
+impl KeyEncryptable<SymmetricCryptoKey, EncString> for SensitiveString {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> crate::Result<EncString> {
+        self.as_str().as_bytes().encrypt_with_key(key)
     }
 }
 

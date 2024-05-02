@@ -79,7 +79,7 @@ fn vec_serialize<S>(x: &[DecryptedString], s: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
-    let iter = itertools::Itertools::intersperse(x.iter().map(|s| s.expose().as_str()), ",");
+    let iter = itertools::Itertools::intersperse(x.iter().map(|s| s.as_str()), ",");
     let result: Sensitive<String> = Sensitive::new(Box::new(iter.collect()));
 
     s.serialize_str(result.expose())
@@ -101,14 +101,8 @@ where
             .map(|f| {
                 format!(
                     "{}: {}",
-                    f.name
-                        .as_ref()
-                        .map(|n| n.expose().as_str())
-                        .unwrap_or_default(),
-                    f.value
-                        .as_ref()
-                        .map(|n| n.expose().as_str())
-                        .unwrap_or_default(),
+                    f.name.as_ref().map(|n| n.as_str()).unwrap_or_default(),
+                    f.value.as_ref().map(|n| n.as_str()).unwrap_or_default(),
                 )
             })
             .collect::<Vec<String>>()

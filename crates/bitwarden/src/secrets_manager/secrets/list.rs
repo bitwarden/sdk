@@ -105,7 +105,7 @@ impl SecretIdentifierResponse {
         Ok(SecretIdentifierResponse {
             id: require!(response.id),
             organization_id,
-            key: key.expose().to_owned(),
+            key: key.as_str().to_owned(),
         })
     }
 }

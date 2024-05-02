@@ -310,7 +310,7 @@ impl TryFrom<SendResponseModel> for Send {
             name: require!(send.name).parse()?,
             notes: EncString::try_from_optional(send.notes)?,
             key: require!(send.key).parse()?,
-            password: send.password.map(|p| SensitiveString::new(Box::new(p))),
+            password: send.password.map(|p| SensitiveString::new(p)),
             r#type: require!(send.r#type).into(),
             file: send.file.map(|f| (*f).try_into()).transpose()?,
             text: send.text.map(|t| (*t).try_into()).transpose()?,

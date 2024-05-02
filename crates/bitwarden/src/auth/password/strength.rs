@@ -14,7 +14,7 @@ pub(crate) fn password_strength(
     let mut arr: Vec<_> = inputs.iter().map(String::as_str).collect();
     arr.extend(GLOBAL_INPUTS);
 
-    zxcvbn(password.expose(), &arr).map_or(0, |e| e.score())
+    zxcvbn(password.as_str(), &arr).map_or(0, |e| e.score())
 }
 
 fn email_to_user_inputs(email: &str) -> Vec<String> {

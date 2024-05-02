@@ -37,7 +37,7 @@ impl ProjectResponse {
         Ok(ProjectResponse {
             id: require!(response.id),
             organization_id,
-            name: name.expose().to_owned(),
+            name: name.as_str().to_owned(),
 
             creation_date: require!(response.creation_date).parse()?,
             revision_date: require!(response.revision_date).parse()?,

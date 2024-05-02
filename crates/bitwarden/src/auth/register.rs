@@ -32,7 +32,7 @@ pub(super) async fn register(client: &mut Client, req: RegisterRequest) -> Resul
         Some(RegisterRequestModel {
             name: req.name,
             email: req.email,
-            master_password_hash: keys.master_password_hash.expose().clone(),
+            master_password_hash: keys.master_password_hash.as_str().to_owned(),
             master_password_hint: req.password_hint,
             captcha_response: None, // TODO: Add
             key: Some(keys.encrypted_user_key),

@@ -52,10 +52,10 @@ impl UniffiCustomTypeConverter for SensitiveString {
     type Builtin = String;
 
     fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(SensitiveString::new(Box::new(val)))
+        Ok(SensitiveString::new(val))
     }
 
     fn from_custom(obj: Self) -> Self::Builtin {
-        obj.expose().to_owned()
+        obj.as_str().to_owned()
     }
 }

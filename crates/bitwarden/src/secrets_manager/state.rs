@@ -36,7 +36,7 @@ pub fn get(state_file: &Path, access_token: &AccessToken) -> Result<ClientState>
     let encrypted_state: EncString = file_content.parse()?;
     let decrypted_state: DecryptedString =
         encrypted_state.decrypt_with_key(&access_token.encryption_key)?;
-    let client_state: ClientState = serde_json::from_str(decrypted_state.expose())?;
+    let client_state: ClientState = serde_json::from_str(decrypted_state.as_str())?;
 
     if client_state.version != STATE_VERSION {
         return Err(Error::InvalidStateFileVersion);

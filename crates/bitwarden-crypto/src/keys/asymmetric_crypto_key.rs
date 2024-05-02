@@ -72,7 +72,7 @@ impl AsymmetricCryptoKey {
         use rsa::pkcs8::DecodePrivateKey;
         Ok(Self {
             key: Box::pin(
-                RsaPrivateKey::from_pkcs8_pem(pem.expose()).map_err(|_| CryptoError::InvalidKey)?,
+                RsaPrivateKey::from_pkcs8_pem(pem.as_str()).map_err(|_| CryptoError::InvalidKey)?,
             ),
         })
     }

@@ -1,6 +1,6 @@
 use bitwarden_api_api::models::CipherDetailsResponseModel;
 use bitwarden_crypto::{
-    BitString, CryptoError, DecryptedString, DecryptedVec, EncString, KeyContainer, KeyDecryptable,
+    CryptoError, DecryptedString, DecryptedVec, EncString, KeyContainer, KeyDecryptable,
     KeyEncryptable, LocateKey, SensitiveString, SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
@@ -293,42 +293,38 @@ fn build_subtitle_card(
     brand: Option<DecryptedString>,
     number: Option<DecryptedString>,
 ) -> SensitiveString {
-    let brand: Option<SensitiveString> = brand.filter(|b: &SensitiveString| !b.expose().is_empty());
+    let brand: Option<SensitiveString> = brand.filter(|b: &SensitiveString| !b.is_empty());
 
     // We only want to expose the last 4 or 5 digits of the card number
-    let number: Option<SensitiveString> = number
-        .map(|n| BitString::new(n.expose().clone()))
-        .filter(|n| n.len() > 4)
-        .map(|n| {
-            // For AMEX cards show 5 digits instead of 4
-            let desired_len = match &n[0..2] {
-                "34" | "37" => 5,
-                _ => 4,
-            };
-            let start = n.len() - desired_len;
+    let number: Option<SensitiveString> = number.filter(|n| n.len() > 4).map(|n| {
+        // For AMEX cards show 5 digits instead of 4
+        let desired_len = match &n[0..2] {
+            "34" | "37" => 5,
+            _ => 4,
+        };
+        let start = n.len() - desired_len;
 
-            let mut str = BitString::with_capacity(desired_len + 1);
-            str.push('*');
-            str.push_str(&n[start..]);
+        let mut str = SensitiveString::with_capacity(desired_len + 1);
+        str.push('*');
+        str.push_str(&n[start..]);
 
-            str
-        })
-        .map(|n| SensitiveString::new(Box::new(n.as_str().to_string())));
+        str
+    });
 
     match (brand, number) {
         (Some(brand), Some(number)) => {
-            let length = brand.expose().len() + 2 + number.expose().len();
+            let length = brand.len() + 2 + number.len();
 
-            let mut str = BitString::with_capacity(length);
-            str.push_str(brand.expose());
+            let mut str = SensitiveString::with_capacity(length);
+            str.push_str(brand.as_str());
             str.push_str(", ");
-            str.push_str(number.expose());
+            str.push_str(number.as_str());
 
-            SensitiveString::new(Box::new(str.as_str().to_string()))
+            str
         }
         (Some(brand), None) => brand,
         (None, Some(number)) => number,
-        _ => SensitiveString::new(Box::new("".to_owned())),
+        _ => SensitiveString::new("".to_owned()),
     }
 }
 
@@ -340,24 +336,23 @@ fn build_subtitle_identity(
     last_name: Option<DecryptedString>,
 ) -> SensitiveString {
     let first_name: Option<SensitiveString> =
-        first_name.filter(|f: &SensitiveString| !f.expose().is_empty());
-    let last_name: Option<SensitiveString> =
-        last_name.filter(|l: &SensitiveString| !l.expose().is_empty());
+        first_name.filter(|f: &SensitiveString| !f.is_empty());
+    let last_name: Option<SensitiveString> = last_name.filter(|l: &SensitiveString| !l.is_empty());
 
     match (first_name, last_name) {
         (Some(first_name), Some(last_name)) => {
-            let length = first_name.expose().len() + 1 + last_name.expose().len();
+            let length = first_name.len() + 1 + last_name.len();
 
-            let mut str = SensitiveString::new(Box::new(String::with_capacity(length)));
-            str.expose_mut().push_str(first_name.expose());
-            str.expose_mut().push(' ');
-            str.expose_mut().push_str(last_name.expose());
+            let mut str = SensitiveString::with_capacity(length);
+            str.push_str(first_name.as_str());
+            str.push(' ');
+            str.push_str(last_name.as_str());
 
             str
         }
         (Some(first_name), None) => first_name,
         (None, Some(last_name)) => last_name,
-        _ => SensitiveString::new(Box::new("".to_owned())),
+        _ => SensitiveString::new("".to_owned()),
     }
 }
 

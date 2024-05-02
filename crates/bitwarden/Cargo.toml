@@ -59,7 +59,7 @@ serde_repr = ">=0.1.12, <0.2"
 sha1 = ">=0.10.5, <0.11"
 sha2 = ">=0.10.6, <0.11"
 thiserror = ">=1.0.40, <2.0"
-uniffi = { version = "=0.26.1", optional = true, features = ["tokio"] }
+uniffi = { version = "=0.27.1", optional = true, features = ["tokio"] }
 uuid = { version = ">=1.3.3, <2.0", features = ["serde"] }
 zxcvbn = ">= 2.2.2, <3.0"
 

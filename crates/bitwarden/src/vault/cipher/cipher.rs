@@ -1,6 +1,6 @@
 use bitwarden_api_api::models::CipherDetailsResponseModel;
 use bitwarden_crypto::{
-    CryptoError, DecryptedString, DecryptedVec, EncString, KeyContainer, KeyDecryptable,
+    BitString, CryptoError, DecryptedString, DecryptedVec, EncString, KeyContainer, KeyDecryptable,
     KeyEncryptable, LocateKey, SensitiveString, SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
@@ -297,32 +297,34 @@ fn build_subtitle_card(
 
     // We only want to expose the last 4 or 5 digits of the card number
     let number: Option<SensitiveString> = number
-        .filter(|b: &SensitiveString| b.expose().len() > 4)
+        .map(|n| BitString::new(n.expose().clone()))
+        .filter(|n| n.len() > 4)
         .map(|n| {
             // For AMEX cards show 5 digits instead of 4
-            let desired_len = match &n.expose()[0..2] {
+            let desired_len = match &n[0..2] {
                 "34" | "37" => 5,
                 _ => 4,
             };
-            let start = n.expose().len() - desired_len;
+            let start = n.len() - desired_len;
 
-            let mut str = SensitiveString::new(Box::new(String::with_capacity(desired_len + 1)));
-            str.expose_mut().push('*');
-            str.expose_mut().push_str(&n.expose()[start..]);
+            let mut str = BitString::with_capacity(desired_len + 1);
+            str.push('*');
+            str.push_str(&n[start..]);
 
             str
-        });
+        })
+        .map(|n| SensitiveString::new(Box::new(n.as_str().to_string())));
 
     match (brand, number) {
         (Some(brand), Some(number)) => {
             let length = brand.expose().len() + 2 + number.expose().len();
 
-            let mut str = SensitiveString::new(Box::new(String::with_capacity(length)));
-            str.expose_mut().push_str(brand.expose());
-            str.expose_mut().push_str(", ");
-            str.expose_mut().push_str(number.expose());
+            let mut str = BitString::with_capacity(length);
+            str.push_str(brand.expose());
+            str.push_str(", ");
+            str.push_str(number.expose());
 
-            str
+            SensitiveString::new(Box::new(str.as_str().to_string()))
         }
         (Some(brand), None) => brand,
         (None, Some(number)) => number,

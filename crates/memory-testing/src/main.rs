@@ -1,7 +1,6 @@
 use std::{env, io::Read, path::Path, process};
 
 use bitwarden_crypto::{BitString, MasterKey, SensitiveString, SensitiveVec, SymmetricCryptoKey};
-use zeroize::Zeroizing;
 
 fn wait_for_dump() {
     println!("Waiting for dump...");

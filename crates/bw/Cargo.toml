@@ -18,7 +18,7 @@ bitwarden = { workspace = true, features = ["internal", "mobile"] }
 bitwarden-cli = { workspace = true }
 bitwarden-crypto = { workspace = true }
 clap = { version = "4.5.4", features = ["derive", "env"] }
-color-eyre = "0.6"
+color-eyre = "0.6.3"
 env_logger = "0.11.1"
 inquire = "0.6.2"
 log = "0.4.20"

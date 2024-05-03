@@ -100,7 +100,10 @@ impl<'a> Fido2Authenticator<'a> {
                 .credential_id()
                 .to_vec(),
         })*/
-        todo!()
+
+        Ok(MakeCredentialResult {
+            credential_id: vec![],
+        })
     }
 
     pub async fn get_assertion(
@@ -205,7 +208,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
         ids: Option<&[passkey::types::webauthn::PublicKeyCredentialDescriptor]>,
         rp_id: &str,
     ) -> Result<Vec<Self::PasskeyItem>, StatusCode> {
-        todo!()
+        Ok(vec![])
     }
 
     async fn save_credential(
@@ -214,11 +217,11 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
         user: passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
         rp: passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
     ) -> Result<(), StatusCode> {
-        todo!()
+        Ok(())
     }
 
     async fn update_credential(&mut self, cred: Passkey) -> Result<(), StatusCode> {
-        todo!()
+        Ok(())
     }
 }
 
@@ -232,15 +235,18 @@ impl passkey::authenticator::UserValidationMethod for UserInterfaceImpl<'_> {
         presence: bool,
         verification: bool,
     ) -> Result<UserCheck, Ctap2Error> {
-        todo!()
+        Ok(UserCheck {
+            presence,
+            verification,
+        })
     }
 
     fn is_presence_enabled(&self) -> bool {
-        todo!()
+        true
     }
 
     fn is_verification_enabled(&self) -> Option<bool> {
-        todo!()
+        Some(true)
     }
 }
 

@@ -2,12 +2,17 @@
 
 use std::collections::HashMap;
 
+use bitwarden_crypto::{KeyEncryptable, SensitiveString};
 use passkey::{authenticator::Authenticator, types::ctap2::Aaguid};
 use reqwest::Url;
 use serde::Serialize;
+use uuid::Uuid;
 
 use super::{Fido2Authenticator, SelectedCredential};
-use crate::error::Result;
+use crate::{
+    error::{Error, Result},
+    vault::{login::LoginView, CipherView, Fido2Credential},
+};
 
 pub struct Fido2Client<'a> {
     pub(crate) authenticator: Fido2Authenticator<'a>,
@@ -55,8 +60,75 @@ impl<'a> Fido2Client<'a> {
                 credential: todo!(),
             },
         })*/
+        let enc = self.authenticator.client.get_encryption_settings()?;
+        let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
 
-        todo!()
+        Ok(PublicKeyCredentialAuthenticatorAttestationResponse {
+            id: String::new(),
+            raw_id: vec![],
+            ty: "public-key".to_string(),
+            authenticator_attachment: String::new(),
+            client_extension_results: HashMap::new(),
+            response: AuthenticatorAttestationResponse {
+                client_data_json: vec![],
+                authenticator_data: vec![],
+                public_key: None,
+                public_key_algorithm: 0,
+                attestation_object: vec![],
+                transports: None,
+            },
+            selected_credential: SelectedCredential {
+                cipher: CipherView {
+                    id: Some(Uuid::new_v4()),
+                    organization_id: None,
+                    folder_id: None,
+                    collection_ids: vec![],
+                    key: None,
+                    name: SensitiveString::new(Box::new("".to_string())),
+                    notes: Some(SensitiveString::new(Box::new("".to_string()))),
+                    r#type: crate::vault::CipherType::Login,
+                    login: Some(LoginView {
+                        username: None,
+                        password: None,
+                        password_revision_date: None,
+                        uris: None,
+                        totp: None,
+                        autofill_on_page_load: None,
+                        fido2_credentials: Some(vec![]),
+                    }),
+                    identity: None,
+                    card: None,
+                    secure_note: None,
+                    favorite: false,
+                    reprompt: crate::vault::CipherRepromptType::None,
+                    organization_use_totp: true,
+                    edit: true,
+                    view_password: true,
+                    local_data: None,
+                    attachments: Some(vec![]),
+                    fields: Some(vec![]),
+                    password_history: Some(vec![]),
+                    creation_date: chrono::offset::Utc::now(),
+                    deleted_date: None,
+                    revision_date: chrono::offset::Utc::now(),
+                },
+                credential: Fido2Credential {
+                    credential_id: "".to_owned().encrypt_with_key(key)?,
+                    key_type: "".to_owned().encrypt_with_key(key)?,
+                    key_algorithm: "".to_owned().encrypt_with_key(key)?,
+                    key_curve: "".to_owned().encrypt_with_key(key)?,
+                    key_value: "".to_owned().encrypt_with_key(key)?,
+                    rp_id: "".to_owned().encrypt_with_key(key)?,
+                    user_handle: Some("".to_owned().encrypt_with_key(key)?),
+                    user_name: Some("".to_owned().encrypt_with_key(key)?),
+                    counter: "".to_owned().encrypt_with_key(key)?,
+                    rp_name: Some("".to_owned().encrypt_with_key(key)?),
+                    user_display_name: Some("".to_owned().encrypt_with_key(key)?),
+                    discoverable: "".to_owned().encrypt_with_key(key)?,
+                    creation_date: chrono::offset::Utc::now(),
+                },
+            },
+        })
     }
     pub async fn authenticate(
         &mut self,
@@ -97,7 +169,74 @@ impl<'a> Fido2Client<'a> {
                 credential: todo!(),
             },
         })*/
-        todo!()
+
+        let enc = self.authenticator.client.get_encryption_settings()?;
+        let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
+
+        Ok(PublicKeyCredentialAuthenticatorAssertionResponse {
+            id: String::new(),
+            raw_id: vec![],
+            ty: "public-key".to_string(),
+            authenticator_attachment: String::new(),
+            client_extension_results: HashMap::new(),
+            response: AuthenticatorAssertionResponse {
+                client_data_json: vec![],
+                authenticator_data: vec![],
+                signature: vec![],
+                user_handle: vec![],
+            },
+            selected_credential: SelectedCredential {
+                cipher: CipherView {
+                    id: Some(Uuid::new_v4()),
+                    organization_id: None,
+                    folder_id: None,
+                    collection_ids: vec![],
+                    key: None,
+                    name: SensitiveString::new(Box::new("".to_string())),
+                    notes: Some(SensitiveString::new(Box::new("".to_string()))),
+                    r#type: crate::vault::CipherType::Login,
+                    login: Some(LoginView {
+                        username: None,
+                        password: None,
+                        password_revision_date: None,
+                        uris: None,
+                        totp: None,
+                        autofill_on_page_load: None,
+                        fido2_credentials: Some(vec![]),
+                    }),
+                    identity: None,
+                    card: None,
+                    secure_note: None,
+                    favorite: false,
+                    reprompt: crate::vault::CipherRepromptType::None,
+                    organization_use_totp: true,
+                    edit: true,
+                    view_password: true,
+                    local_data: None,
+                    attachments: Some(vec![]),
+                    fields: Some(vec![]),
+                    password_history: Some(vec![]),
+                    creation_date: chrono::offset::Utc::now(),
+                    deleted_date: None,
+                    revision_date: chrono::offset::Utc::now(),
+                },
+                credential: Fido2Credential {
+                    credential_id: "".to_owned().encrypt_with_key(key)?,
+                    key_type: "".to_owned().encrypt_with_key(key)?,
+                    key_algorithm: "".to_owned().encrypt_with_key(key)?,
+                    key_curve: "".to_owned().encrypt_with_key(key)?,
+                    key_value: "".to_owned().encrypt_with_key(key)?,
+                    rp_id: "".to_owned().encrypt_with_key(key)?,
+                    user_handle: Some("".to_owned().encrypt_with_key(key)?),
+                    user_name: Some("".to_owned().encrypt_with_key(key)?),
+                    counter: "".to_owned().encrypt_with_key(key)?,
+                    rp_name: Some("".to_owned().encrypt_with_key(key)?),
+                    user_display_name: Some("".to_owned().encrypt_with_key(key)?),
+                    discoverable: "".to_owned().encrypt_with_key(key)?,
+                    creation_date: chrono::offset::Utc::now(),
+                },
+            },
+        })
     }
 }
 

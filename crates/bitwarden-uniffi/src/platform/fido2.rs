@@ -3,7 +3,7 @@ use std::sync::Arc;
 use bitwarden::{
     error::Result as BitResult,
     platform::fido2::{
-        CheckUserOptions, CheckUserResult, ClientData, GetAssertionRequest, GetAssertionResult,
+        CheckUserOptions, ClientData, GetAssertionRequest, GetAssertionResult,
         MakeCredentialRequest, MakeCredentialResult,
         PublicKeyCredentialAuthenticatorAssertionResponse,
         PublicKeyCredentialAuthenticatorAttestationResponse,
@@ -143,6 +143,13 @@ impl ClientFido2Client {
 // Note that uniffi doesn't support external traits for now it seems, so we have to duplicate them
 // here.
 
+#[allow(dead_code)]
+#[derive(uniffi::Record)]
+pub struct CheckUserResult {
+    user_present: bool,
+    user_verified: bool,
+}
+
 #[uniffi::export(with_foreign)]
 #[async_trait::async_trait]
 pub trait UserInterface: Send + Sync {
@@ -154,12 +161,12 @@ pub trait UserInterface: Send + Sync {
     async fn pick_credential_for_authentication(
         &self,
         available_credentials: Vec<Cipher>,
-    ) -> Result<CipherView>;
+    ) -> Result<CipherViewWrapper>;
     async fn pick_credential_for_creation(
         &self,
         available_credentials: Vec<Cipher>,
         new_credential: Fido2Credential,
-    ) -> Result<CipherView>;
+    ) -> Result<CipherViewWrapper>;
 }
 
 #[uniffi::export(with_foreign)]
@@ -194,16 +201,25 @@ impl bitwarden::platform::fido2::CredentialStore for UniffiTraitBridge<&dyn Cred
     }
 }
 
+#[derive(uniffi::Record)]
+pub struct CipherViewWrapper {
+    cipher: CipherView,
+}
+
 #[async_trait::async_trait]
 impl bitwarden::platform::fido2::UserInterface for UniffiTraitBridge<&dyn UserInterface> {
     async fn check_user(
         &self,
         options: CheckUserOptions,
         credential: Option<CipherView>,
-    ) -> BitResult<CheckUserResult> {
+    ) -> BitResult<bitwarden::platform::fido2::CheckUserResult> {
         self.0
             .check_user(options, credential)
             .await
+            .map(|r| bitwarden::platform::fido2::CheckUserResult {
+                user_present: r.user_present,
+                user_verified: r.user_verified,
+            })
             .map_err(Into::into)
     }
     async fn pick_credential_for_authentication(
@@ -213,6 +229,7 @@ impl bitwarden::platform::fido2::UserInterface for UniffiTraitBridge<&dyn UserIn
         self.0
             .pick_credential_for_authentication(available_credentials)
             .await
+            .map(|v| v.cipher)
             .map_err(Into::into)
     }
     async fn pick_credential_for_creation(
@@ -223,6 +240,7 @@ impl bitwarden::platform::fido2::UserInterface for UniffiTraitBridge<&dyn UserIn
         self.0
             .pick_credential_for_creation(available_credentials, new_credential)
             .await
+            .map(|v| v.cipher)
             .map_err(Into::into)
     }
 }

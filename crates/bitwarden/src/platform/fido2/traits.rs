@@ -44,9 +44,7 @@ pub enum Verification {
     Required,
 }
 
-#[allow(dead_code)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct CheckUserResult {
-    user_present: bool,
-    user_verified: bool,
+    pub user_present: bool,
+    pub user_verified: bool,
 }

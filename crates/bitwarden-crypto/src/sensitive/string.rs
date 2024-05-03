@@ -32,6 +32,7 @@ impl SensitiveString {
         }
     }
 
+    /// Creates a new empty `SensitiveString` with at least the specified capacity.
     pub fn with_capacity(len: usize) -> Self {
         Self {
             inner: Zeroizing::new(String::with_capacity(len)),
@@ -73,10 +74,16 @@ impl SensitiveString {
         self.inner.push_str(s);
     }
 
+    /// Expose the inner value as a str slice.
+    ///
+    /// Warning: Taking ownership of the inner value will create a copy of the string.
     pub fn as_str(&self) -> &str {
         &self.inner
     }
 
+    /// Expose the inner value as a byte slice.
+    ///
+    /// Warning: Taking ownership of the inner value will create a copy of the string.
     pub fn as_bytes(&self) -> &[u8] {
         self.inner.as_bytes()
     }
@@ -106,6 +113,8 @@ impl SensitiveString {
 }
 
 impl Default for SensitiveString {
+    /// Creates an empty `SensitiveString`.
+    #[inline]
     fn default() -> Self {
         Self::new(String::default())
     }

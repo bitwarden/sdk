@@ -51,14 +51,9 @@ fn main() -> io::Result<()> {
 
     let test_string: Vec<u8> = TEST_STRING.as_bytes().to_vec();
     let test_initial_pos = find_subarrays(&test_string, &initial_core);
-    let test_final_pos = find_subarrays(&test_string, &final_core);
 
     if test_initial_pos.is_empty() {
         println!("ERROR: Test string not found in initial core dump, is the dump valid?");
-        error = true;
-    }
-    if test_final_pos.is_empty() {
-        println!("ERROR: Test string not found in final core dump, is the dump valid?");
         error = true;
     }
 

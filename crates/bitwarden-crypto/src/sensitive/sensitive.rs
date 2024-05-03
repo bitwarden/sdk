@@ -228,9 +228,7 @@ impl<V: Zeroize + JsonSchema> JsonSchema for Sensitive<V> {
 // We use a lot of `&str` and `&[u8]` in our tests, so we expose this helper
 // to make it easier.
 // IMPORTANT: This should not be used outside of test code
-// Note that we can't just mark it with #[cfg(test)] because that only applies
-// when testing this crate, not when testing other crates that depend on it.
-// By at least limiting it to &'static reference we should be able to avoid accidental usages
+#[cfg(any(test, feature = "test"))]
 impl<V: Zeroize> Sensitive<V> {
     pub fn test<T: ?Sized>(value: &'static T) -> Self
     where

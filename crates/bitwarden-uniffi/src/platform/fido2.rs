@@ -208,7 +208,7 @@ impl bitwarden::platform::fido2::CredentialStore for UniffiTraitBridge<&dyn Cred
 }
 
 // Uniffi seems to have trouble generating code for Android when a local trait returns a type from
-// an external crate. If the type is small we  can just copy it over and convert back and forth, but
+// an external crate. If the type is small we can just copy it over and convert back and forth, but
 // Cipher is too big for that to be practical. So we wrap it in a newtype, which is local to the
 // trait and so we can sidestep the Uniffi issue
 #[derive(uniffi::Record)]

@@ -8,6 +8,7 @@ use bitwarden_api_identity::apis::Error as IdentityError;
 use bitwarden_exporters::ExportError;
 #[cfg(feature = "internal")]
 use bitwarden_generators::{PassphraseError, PasswordError, UsernameError};
+#[cfg(feature = "mobile")]
 use passkey::client::WebauthnError;
 use reqwest::StatusCode;
 use thiserror::Error;
@@ -69,8 +70,9 @@ pub enum Error {
     #[error(transparent)]
     ExportError(#[from] ExportError),
 
+    #[cfg(feature = "mobile")]
     #[error("Webauthn error: {0:?}")]
-    WebauthnError(passkey::client::WebauthnError),
+    WebauthnError(WebauthnError),
 
     #[cfg(feature = "mobile")]
     #[error("Uniffi callback error: {0}")]
@@ -80,6 +82,7 @@ pub enum Error {
     Internal(Cow<'static, str>),
 }
 
+#[cfg(feature = "mobile")]
 impl From<WebauthnError> for Error {
     fn from(e: WebauthnError) -> Self {
         Self::WebauthnError(e)

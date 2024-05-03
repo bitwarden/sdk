@@ -1,8 +1,8 @@
 use base64::engine::general_purpose::STANDARD;
 use bitwarden_api_api::models::{CipherLoginModel, CipherLoginUriModel};
 use bitwarden_crypto::{
-    CryptoError, DecryptedString, EncString, KeyDecryptable, KeyEncryptable, Sensitive,
-    SensitiveString, SensitiveVec, SymmetricCryptoKey,
+    CryptoError, DecryptedString, DecryptedVec, EncString, KeyDecryptable, KeyEncryptable,
+    Sensitive, SensitiveVec, SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
 use hmac::digest::generic_array::GenericArray;
@@ -101,19 +101,153 @@ pub struct Fido2Credential {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Fido2CredentialView {
-    pub credential_id: SensitiveString,
-    pub key_type: SensitiveString,
-    pub key_algorithm: SensitiveString,
-    pub key_curve: SensitiveString,
-    pub key_value: SensitiveString,
-    pub rp_id: SensitiveString,
-    pub user_handle: Option<SensitiveString>,
-    pub user_name: Option<SensitiveString>,
-    pub counter: SensitiveString,
-    pub rp_name: Option<SensitiveString>,
-    pub user_display_name: Option<SensitiveString>,
-    pub discoverable: SensitiveString,
+    pub credential_id: DecryptedString,
+    pub key_type: DecryptedString,
+    pub key_algorithm: DecryptedString,
+    pub key_curve: DecryptedString,
+    // This value doesn't need to be returned to the client
+    // so we keep it encrypted until we need it
+    pub key_value: EncString,
+    pub rp_id: DecryptedString,
+    pub user_handle: Option<DecryptedVec>,
+    pub user_name: Option<DecryptedString>,
+    pub counter: DecryptedString,
+    pub rp_name: Option<DecryptedString>,
+    pub user_display_name: Option<DecryptedString>,
+    pub discoverable: DecryptedString,
     pub creation_date: DateTime<Utc>,
+}
+
+// This is mostly a copy of the Fido2CredentialView, but with the key exposed
+// Only meant to be used internally and not exposed to the outside world
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct Fido2CredentialFullView {
+    pub credential_id: DecryptedString,
+    pub key_type: DecryptedString,
+    pub key_algorithm: DecryptedString,
+    pub key_curve: DecryptedString,
+    pub key_value: DecryptedVec,
+    pub rp_id: DecryptedString,
+    pub user_handle: Option<DecryptedVec>,
+    pub user_name: Option<DecryptedString>,
+    pub counter: DecryptedString,
+    pub rp_name: Option<DecryptedString>,
+    pub user_display_name: Option<DecryptedString>,
+    pub discoverable: DecryptedString,
+    pub creation_date: DateTime<Utc>,
+}
+
+// This is mostly a copy of the Fido2CredentialView, meant to be exposed to the clients
+// to let them select where to store the new credential. Note that it doesn't contain
+// the encrypted key as that is only filled when the cipher is selected
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+pub struct Fido2CredentialNewView {
+    pub credential_id: DecryptedString,
+    pub key_type: DecryptedString,
+    pub key_algorithm: DecryptedString,
+    pub key_curve: DecryptedString,
+    pub rp_id: DecryptedString,
+    pub user_handle: Option<DecryptedVec>,
+    pub user_name: Option<DecryptedString>,
+    pub counter: DecryptedString,
+    pub rp_name: Option<DecryptedString>,
+    pub user_display_name: Option<DecryptedString>,
+    pub discoverable: DecryptedString,
+    pub creation_date: DateTime<Utc>,
+}
+
+impl From<Fido2CredentialFullView> for Fido2CredentialNewView {
+    fn from(value: Fido2CredentialFullView) -> Self {
+        Fido2CredentialNewView {
+            credential_id: value.credential_id,
+            key_type: value.key_type,
+            key_algorithm: value.key_algorithm,
+            key_curve: value.key_curve,
+            rp_id: value.rp_id,
+            user_handle: value.user_handle,
+            user_name: value.user_name,
+            counter: value.counter,
+            rp_name: value.rp_name,
+            user_display_name: value.user_display_name,
+            discoverable: value.discoverable,
+            creation_date: value.creation_date,
+        }
+    }
+}
+
+impl KeyEncryptable<SymmetricCryptoKey, Fido2Credential> for Fido2CredentialFullView {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Fido2Credential, CryptoError> {
+        Ok(Fido2Credential {
+            credential_id: self.credential_id.encrypt_with_key(key)?,
+            key_type: self.key_type.encrypt_with_key(key)?,
+            key_algorithm: self.key_algorithm.encrypt_with_key(key)?,
+            key_curve: self.key_curve.encrypt_with_key(key)?,
+            key_value: self.key_value.expose().encrypt_with_key(key)?,
+            rp_id: self.rp_id.encrypt_with_key(key)?,
+            user_handle: self
+                .user_handle
+                .map(|h| h.expose().encrypt_with_key(key))
+                .transpose()?,
+            user_name: self
+                .user_name
+                .map(|n| n.encrypt_with_key(key))
+                .transpose()?,
+            counter: self.counter.encrypt_with_key(key)?,
+            rp_name: self.rp_name.encrypt_with_key(key)?,
+            user_display_name: self.user_display_name.encrypt_with_key(key)?,
+            discoverable: self.discoverable.encrypt_with_key(key)?,
+            creation_date: self.creation_date,
+        })
+    }
+}
+
+impl KeyDecryptable<SymmetricCryptoKey, Fido2CredentialFullView> for Fido2Credential {
+    fn decrypt_with_key(
+        &self,
+        key: &SymmetricCryptoKey,
+    ) -> Result<Fido2CredentialFullView, CryptoError> {
+        Ok(Fido2CredentialFullView {
+            credential_id: self.credential_id.decrypt_with_key(key)?,
+            key_type: self.key_type.decrypt_with_key(key)?,
+            key_algorithm: self.key_algorithm.decrypt_with_key(key)?,
+            key_curve: self.key_curve.decrypt_with_key(key)?,
+            key_value: self.key_value.decrypt_with_key(key)?,
+            rp_id: self.rp_id.decrypt_with_key(key)?,
+            user_handle: self.user_handle.decrypt_with_key(key)?,
+            user_name: self.user_name.decrypt_with_key(key)?,
+            counter: self.counter.decrypt_with_key(key)?,
+            rp_name: self.rp_name.decrypt_with_key(key)?,
+            user_display_name: self.user_display_name.decrypt_with_key(key)?,
+            discoverable: self.discoverable.decrypt_with_key(key)?,
+            creation_date: self.creation_date,
+        })
+    }
+}
+
+impl KeyDecryptable<SymmetricCryptoKey, Fido2CredentialFullView> for Fido2CredentialView {
+    fn decrypt_with_key(
+        &self,
+        key: &SymmetricCryptoKey,
+    ) -> Result<Fido2CredentialFullView, CryptoError> {
+        Ok(Fido2CredentialFullView {
+            credential_id: self.credential_id.clone(),
+            key_type: self.key_type.clone(),
+            key_algorithm: self.key_algorithm.clone(),
+            key_curve: self.key_curve.clone(),
+            key_value: self.key_value.decrypt_with_key(key)?,
+            rp_id: self.rp_id.clone(),
+            user_handle: self.user_handle.clone(),
+            user_name: self.user_name.clone(),
+            counter: self.counter.clone(),
+            rp_name: self.rp_name.clone(),
+            user_display_name: self.user_display_name.clone(),
+            discoverable: self.discoverable.clone(),
+            creation_date: self.creation_date,
+        })
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
@@ -144,7 +278,7 @@ pub struct LoginView {
     pub autofill_on_page_load: Option<bool>,
 
     // TODO: Remove this once the SDK supports state
-    pub fido2_credentials: Option<Vec<Fido2Credential>>,
+    pub fido2_credentials: Option<Vec<Fido2CredentialView>>,
 }
 
 impl KeyEncryptable<SymmetricCryptoKey, LoginUri> for LoginUriView {
@@ -166,7 +300,7 @@ impl KeyEncryptable<SymmetricCryptoKey, Login> for LoginView {
             uris: self.uris.encrypt_with_key(key)?,
             totp: self.totp.encrypt_with_key(key)?,
             autofill_on_page_load: self.autofill_on_page_load,
-            fido2_credentials: self.fido2_credentials,
+            fido2_credentials: self.fido2_credentials.encrypt_with_key(key)?,
         })
     }
 }
@@ -190,7 +324,7 @@ impl KeyDecryptable<SymmetricCryptoKey, LoginView> for Login {
             uris: self.uris.decrypt_with_key(key).ok().flatten(),
             totp: self.totp.decrypt_with_key(key).ok().flatten(),
             autofill_on_page_load: self.autofill_on_page_load,
-            fido2_credentials: self.fido2_credentials.clone(),
+            fido2_credentials: self.fido2_credentials.decrypt_with_key(key).ok().flatten(),
         })
     }
 }
@@ -202,10 +336,16 @@ impl KeyEncryptable<SymmetricCryptoKey, Fido2Credential> for Fido2CredentialView
             key_type: self.key_type.encrypt_with_key(key)?,
             key_algorithm: self.key_algorithm.encrypt_with_key(key)?,
             key_curve: self.key_curve.encrypt_with_key(key)?,
-            key_value: self.key_value.encrypt_with_key(key)?,
+            key_value: self.key_value,
             rp_id: self.rp_id.encrypt_with_key(key)?,
-            user_handle: self.user_handle.encrypt_with_key(key)?,
-            user_name: self.user_name.encrypt_with_key(key)?,
+            user_handle: self
+                .user_handle
+                .map(|h| h.expose().encrypt_with_key(key))
+                .transpose()?,
+            user_name: self
+                .user_name
+                .map(|n| n.encrypt_with_key(key))
+                .transpose()?,
             counter: self.counter.encrypt_with_key(key)?,
             rp_name: self.rp_name.encrypt_with_key(key)?,
             user_display_name: self.user_display_name.encrypt_with_key(key)?,
@@ -225,7 +365,7 @@ impl KeyDecryptable<SymmetricCryptoKey, Fido2CredentialView> for Fido2Credential
             key_type: self.key_type.decrypt_with_key(key)?,
             key_algorithm: self.key_algorithm.decrypt_with_key(key)?,
             key_curve: self.key_curve.decrypt_with_key(key)?,
-            key_value: self.key_value.decrypt_with_key(key)?,
+            key_value: self.key_value.clone(),
             rp_id: self.rp_id.decrypt_with_key(key)?,
             user_handle: self.user_handle.decrypt_with_key(key)?,
             user_name: self.user_name.decrypt_with_key(key)?,

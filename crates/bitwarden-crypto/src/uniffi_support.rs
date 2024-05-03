@@ -1,7 +1,8 @@
 use std::{num::NonZeroU32, str::FromStr};
 
 use crate::{
-    AsymmetricEncString, CryptoError, EncString, SensitiveString, UniffiCustomTypeConverter,
+    AsymmetricEncString, CryptoError, EncString, SensitiveString, SensitiveVec,
+    UniffiCustomTypeConverter,
 };
 
 uniffi::custom_type!(NonZeroU32, u32);
@@ -53,6 +54,20 @@ impl UniffiCustomTypeConverter for SensitiveString {
 
     fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
         Ok(SensitiveString::new(Box::new(val)))
+    }
+
+    fn from_custom(obj: Self) -> Self::Builtin {
+        obj.expose().to_owned()
+    }
+}
+
+uniffi::custom_type!(SensitiveVec, Vec<u8>);
+
+impl UniffiCustomTypeConverter for SensitiveVec {
+    type Builtin = Vec<u8>;
+
+    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
+        Ok(SensitiveVec::new(Box::new(val)))
     }
 
     fn from_custom(obj: Self) -> Self::Builtin {

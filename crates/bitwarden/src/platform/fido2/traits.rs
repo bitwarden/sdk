@@ -1,6 +1,6 @@
 use crate::{
     error::Result,
-    vault::{login::Fido2Credential, Cipher, CipherView},
+    vault::{Cipher, CipherView, Fido2CredentialNewView},
 };
 
 #[async_trait::async_trait]
@@ -12,12 +12,12 @@ pub trait UserInterface: Send + Sync {
     ) -> Result<CheckUserResult>;
     async fn pick_credential_for_authentication(
         &self,
-        available_credentials: Vec<Cipher>,
+        available_credentials: Vec<CipherView>,
     ) -> Result<CipherView>;
     async fn pick_credential_for_creation(
         &self,
-        available_credentials: Vec<Cipher>,
-        new_credential: Fido2Credential,
+        available_credentials: Vec<CipherView>,
+        new_credential: Fido2CredentialNewView,
     ) -> Result<CipherView>;
 }
 
@@ -27,15 +27,15 @@ pub trait CredentialStore: Send + Sync {
         &self,
         ids: Option<Vec<Vec<u8>>>,
         rip_id: String,
-    ) -> Result<Vec<Cipher>>;
+    ) -> Result<Vec<CipherView>>;
 
     async fn save_credential(&self, cred: Cipher) -> Result<()>;
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
-pub enum CheckUserOptions {
-    RequirePresence(bool),
-    RequireVerification(Verification),
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+pub struct CheckUserOptions {
+    pub require_presence: bool,
+    pub require_verification: Verification,
 }
 #[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum Verification {

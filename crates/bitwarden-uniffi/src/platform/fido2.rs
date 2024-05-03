@@ -8,7 +8,7 @@ use bitwarden::{
         PublicKeyCredentialAuthenticatorAssertionResponse,
         PublicKeyCredentialAuthenticatorAttestationResponse,
     },
-    vault::{Cipher, CipherView, Fido2Credential, Fido2CredentialView},
+    vault::{Cipher, CipherView, Fido2CredentialNewView, Fido2CredentialView},
 };
 
 use crate::{error::Result, Client};
@@ -162,12 +162,12 @@ pub trait UserInterface: Send + Sync {
     ) -> Result<CheckUserResult>;
     async fn pick_credential_for_authentication(
         &self,
-        available_credentials: Vec<Cipher>,
+        available_credentials: Vec<CipherView>,
     ) -> Result<CipherViewWrapper>;
     async fn pick_credential_for_creation(
         &self,
-        available_credentials: Vec<Cipher>,
-        new_credential: Fido2Credential,
+        available_credentials: Vec<CipherView>,
+        new_credential: Fido2CredentialNewView,
     ) -> Result<CipherViewWrapper>;
 }
 
@@ -178,7 +178,7 @@ pub trait CredentialStore: Send + Sync {
         &self,
         ids: Option<Vec<Vec<u8>>>,
         rip_id: String,
-    ) -> Result<Vec<Cipher>>;
+    ) -> Result<Vec<CipherView>>;
 
     async fn save_credential(&self, cred: Cipher) -> Result<()>;
 }
@@ -195,7 +195,7 @@ impl bitwarden::platform::fido2::CredentialStore for UniffiTraitBridge<&dyn Cred
         &self,
         ids: Option<Vec<Vec<u8>>>,
         rip_id: String,
-    ) -> BitResult<Vec<Cipher>> {
+    ) -> BitResult<Vec<CipherView>> {
         self.0
             .find_credentials(ids, rip_id)
             .await
@@ -234,7 +234,7 @@ impl bitwarden::platform::fido2::UserInterface for UniffiTraitBridge<&dyn UserIn
     }
     async fn pick_credential_for_authentication(
         &self,
-        available_credentials: Vec<Cipher>,
+        available_credentials: Vec<CipherView>,
     ) -> BitResult<CipherView> {
         self.0
             .pick_credential_for_authentication(available_credentials)
@@ -244,8 +244,8 @@ impl bitwarden::platform::fido2::UserInterface for UniffiTraitBridge<&dyn UserIn
     }
     async fn pick_credential_for_creation(
         &self,
-        available_credentials: Vec<Cipher>,
-        new_credential: Fido2Credential,
+        available_credentials: Vec<CipherView>,
+        new_credential: Fido2CredentialNewView,
     ) -> BitResult<CipherView> {
         self.0
             .pick_credential_for_creation(available_credentials, new_credential)

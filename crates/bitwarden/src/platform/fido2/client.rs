@@ -6,14 +6,14 @@ use passkey::{authenticator::Authenticator, types::ctap2::Aaguid};
 use reqwest::Url;
 use serde::Serialize;
 
-use super::{CredentialStore, Fido2Authenticator, SelectedCredential, UserInterface};
+use super::{Fido2Authenticator, SelectedCredential};
 use crate::error::Result;
 
-pub struct Fido2Client<'a, UI: UserInterface, CS: CredentialStore> {
-    pub(crate) authenticator: Fido2Authenticator<'a, UI, CS>,
+pub struct Fido2Client<'a> {
+    pub(crate) authenticator: Fido2Authenticator<'a>,
 }
 
-impl<'a, UI: UserInterface, CS: CredentialStore> Fido2Client<'a, UI, CS> {
+impl<'a> Fido2Client<'a> {
     pub async fn register(
         &mut self,
         origin: String,

@@ -60,10 +60,9 @@ impl ClientFido2Authenticator {
 
         let mut platform = client.platform();
         let mut fido2 = platform.fido2();
-        let mut auth = fido2.create_authenticator(
-            UniffiTraitBridge(self.1.as_ref()),
-            UniffiTraitBridge(self.2.as_ref()),
-        )?;
+        let ui = UniffiTraitBridge(self.1.as_ref());
+        let cs = UniffiTraitBridge(self.2.as_ref());
+        let mut auth = fido2.create_authenticator(&ui, &cs)?;
 
         let result = auth.make_credential(request).await?;
         Ok(result)
@@ -74,10 +73,9 @@ impl ClientFido2Authenticator {
 
         let mut platform = client.platform();
         let mut fido2 = platform.fido2();
-        let mut auth = fido2.create_authenticator(
-            UniffiTraitBridge(self.1.as_ref()),
-            UniffiTraitBridge(self.2.as_ref()),
-        )?;
+        let ui = UniffiTraitBridge(self.1.as_ref());
+        let cs = UniffiTraitBridge(self.2.as_ref());
+        let mut auth = fido2.create_authenticator(&ui, &cs)?;
 
         let result = auth.get_assertion(request).await?;
         Ok(result)
@@ -91,10 +89,9 @@ impl ClientFido2Authenticator {
 
         let mut platform = client.platform();
         let mut fido2 = platform.fido2();
-        let mut auth = fido2.create_authenticator(
-            UniffiTraitBridge(self.1.as_ref()),
-            UniffiTraitBridge(self.2.as_ref()),
-        )?;
+        let ui = UniffiTraitBridge(self.1.as_ref());
+        let cs = UniffiTraitBridge(self.2.as_ref());
+        let mut auth = fido2.create_authenticator(&ui, &cs)?;
 
         let result = auth.silently_discover_credentials(rp_id).await?;
         Ok(result)
@@ -116,10 +113,9 @@ impl ClientFido2Client {
 
         let mut platform = client.platform();
         let mut fido2 = platform.fido2();
-        let mut client = fido2.create_client(
-            UniffiTraitBridge(self.0 .1.as_ref()),
-            UniffiTraitBridge(self.0 .2.as_ref()),
-        )?;
+        let ui = UniffiTraitBridge(self.0 .1.as_ref());
+        let cs = UniffiTraitBridge(self.0 .2.as_ref());
+        let mut client = fido2.create_client(&ui, &cs)?;
 
         let result = client.register(origin, request, client_data).await?;
         Ok(result)
@@ -135,10 +131,9 @@ impl ClientFido2Client {
 
         let mut platform = client.platform();
         let mut fido2 = platform.fido2();
-        let mut client = fido2.create_client(
-            UniffiTraitBridge(self.0 .1.as_ref()),
-            UniffiTraitBridge(self.0 .2.as_ref()),
-        )?;
+        let ui = UniffiTraitBridge(self.0 .1.as_ref());
+        let cs = UniffiTraitBridge(self.0 .2.as_ref());
+        let mut client = fido2.create_client(&ui, &cs)?;
 
         let result = client.authenticate(origin, request, client_data).await?;
         Ok(result)

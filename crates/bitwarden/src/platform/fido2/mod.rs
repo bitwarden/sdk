@@ -26,12 +26,12 @@ pub struct ClientFido2<'a> {
 }
 
 impl<'a> ClientFido2<'a> {
-    pub fn create_authenticator<UI: UserInterface, CS: CredentialStore>(
+    pub fn create_authenticator(
         &'a mut self,
 
-        user_interface: UI,
-        credential_store: CS,
-    ) -> Result<Fido2Authenticator<'a, UI, CS>> {
+        user_interface: &'a dyn UserInterface,
+        credential_store: &'a dyn CredentialStore,
+    ) -> Result<Fido2Authenticator<'a>> {
         Ok(Fido2Authenticator {
             client: self.client,
             user_interface,
@@ -39,12 +39,12 @@ impl<'a> ClientFido2<'a> {
         })
     }
 
-    pub fn create_client<UI: UserInterface, CS: CredentialStore>(
+    pub fn create_client(
         &'a mut self,
 
-        user_interface: UI,
-        credential_store: CS,
-    ) -> Result<Fido2Client<'a, UI, CS>> {
+        user_interface: &'a dyn UserInterface,
+        credential_store: &'a dyn CredentialStore,
+    ) -> Result<Fido2Client<'a>> {
         Ok(Fido2Client {
             authenticator: self.create_authenticator(user_interface, credential_store)?,
         })

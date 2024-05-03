@@ -15,13 +15,13 @@ use crate::{
     Client,
 };
 
-pub struct Fido2Authenticator<'a, UI: UserInterface, CS: CredentialStore> {
+pub struct Fido2Authenticator<'a> {
     pub(crate) client: &'a mut Client,
-    pub(crate) user_interface: UI,
-    pub(crate) credential_store: CS,
+    pub(crate) user_interface: &'a dyn UserInterface,
+    pub(crate) credential_store: &'a dyn CredentialStore,
 }
 
-impl<'a, UI: UserInterface, CS: CredentialStore> Fido2Authenticator<'a, UI, CS> {
+impl<'a> Fido2Authenticator<'a> {
     pub async fn make_credential(
         &mut self,
         request: MakeCredentialRequest,
@@ -112,29 +112,27 @@ impl<'a, UI: UserInterface, CS: CredentialStore> Fido2Authenticator<'a, UI, CS> 
         todo!()
     }
 
-    pub(crate) fn to_user_interface(&'a self) -> UserInterfaceImpl<'_, UI, CS> {
+    pub(crate) fn to_user_interface(&'a self) -> UserInterfaceImpl<'_> {
         UserInterfaceImpl {
             authenticator: self,
         }
     }
-    pub(crate) fn to_credential_store(&'a self) -> CredentialStoreImpl<'_, UI, CS> {
+    pub(crate) fn to_credential_store(&'a self) -> CredentialStoreImpl<'_> {
         CredentialStoreImpl {
             authenticator: self,
         }
     }
 }
 
-pub(crate) struct CredentialStoreImpl<'a, UI: UserInterface, CS: CredentialStore> {
-    authenticator: &'a Fido2Authenticator<'a, UI, CS>,
+pub(crate) struct CredentialStoreImpl<'a> {
+    authenticator: &'a Fido2Authenticator<'a>,
 }
-pub(crate) struct UserInterfaceImpl<'a, UI: UserInterface, CS: CredentialStore> {
-    authenticator: &'a Fido2Authenticator<'a, UI, CS>,
+pub(crate) struct UserInterfaceImpl<'a> {
+    authenticator: &'a Fido2Authenticator<'a>,
 }
 
 #[async_trait::async_trait]
-impl<UI: UserInterface, CS: CredentialStore> passkey::authenticator::CredentialStore
-    for CredentialStoreImpl<'_, UI, CS>
-{
+impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
     type PasskeyItem = CipherView;
 
     async fn find_credentials(
@@ -160,9 +158,7 @@ impl<UI: UserInterface, CS: CredentialStore> passkey::authenticator::CredentialS
 }
 
 #[async_trait::async_trait]
-impl<UI: UserInterface, CS: CredentialStore> passkey::authenticator::UserValidationMethod
-    for UserInterfaceImpl<'_, UI, CS>
-{
+impl passkey::authenticator::UserValidationMethod for UserInterfaceImpl<'_> {
     type PasskeyItem = CipherView;
 
     async fn check_user(

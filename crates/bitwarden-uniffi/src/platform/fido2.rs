@@ -13,6 +13,8 @@ use bitwarden::{
 
 use crate::{error::Result, Client};
 
+/// At the moment this is just a stub implementation that doesn't do anything. It's here to make
+/// it possible to check the usability API on the native clients.
 #[derive(uniffi::Object)]
 pub struct ClientFido2(pub(crate) Arc<Client>);
 
@@ -181,6 +183,10 @@ pub trait CredentialStore: Send + Sync {
     async fn save_credential(&self, cred: Cipher) -> Result<()>;
 }
 
+// Because uniffi doesn't support external traits, we have to make a copy of the trait here.
+// Ideally we'd want to implement the original trait for every item that implements our local copy,
+// but the orphan rules don't allow us to blanket implement an external trait. So we have to wrap
+// the trait in a newtype and implement the trait for the newtype.
 struct UniffiTraitBridge<T>(T);
 
 #[async_trait::async_trait]
@@ -201,6 +207,10 @@ impl bitwarden::platform::fido2::CredentialStore for UniffiTraitBridge<&dyn Cred
     }
 }
 
+// Uniffi seems to have trouble generating code for Android when a local trait returns a type from
+// an external crate. If the type is small we  can just copy it over and convert back and forth, but
+// Cipher is too big for that to be practical. So we wrap it in a newtype, which is local to the
+// trait and so we can sidestep the Uniffi issue
 #[derive(uniffi::Record)]
 pub struct CipherViewWrapper {
     cipher: CipherView,

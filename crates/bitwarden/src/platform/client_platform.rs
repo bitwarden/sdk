@@ -17,6 +17,8 @@ impl<'a> ClientPlatform<'a> {
         generate_user_fingerprint(self.client, fingerprint_material)
     }
 
+    /// At the moment this is just a stub implementation that doesn't do anything. It's here to make
+    /// it possible to check the usability API on the native clients.
     pub fn fido2(&'a mut self) -> ClientFido2<'a> {
         ClientFido2 {
             client: self.client,

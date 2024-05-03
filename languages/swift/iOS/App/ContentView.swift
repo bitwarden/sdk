@@ -357,9 +357,9 @@ struct ContentView: View {
             options: Options(rk: true, uv: Uv.preferred),
             extensions: nil
         ))
-        
+
         try await authenticator.silentlyDiscoverCredentials(rpId: "")
-        
+
         // Only on android!
         let client = clientFido.client(userInterface: ui, credentialStore: cs)
         try await client.authenticate(origin: "test", request: "test", clientData: ClientData.defaultWithExtraData(androidPackageName: "abc"))
@@ -396,16 +396,16 @@ extension IgnoreHttpsDelegate: URLSessionDelegate {
 }
 
 class UserInterfaceImpl: UserInterface {
+    func pickCredentialForAuthentication(availableCredentials: [BitwardenSdk.Cipher]) async throws -> BitwardenSdk.CipherViewWrapper {
+        abort()
+    }
+
+    func pickCredentialForCreation(availableCredentials: [BitwardenSdk.Cipher], newCredential: BitwardenSdk.Fido2Credential) async throws -> BitwardenSdk.CipherViewWrapper {
+        abort()
+    }
+
     func checkUser(options: BitwardenSdk.CheckUserOptions, credential: BitwardenSdk.CipherView?) async throws -> BitwardenSdk.CheckUserResult {
         return CheckUserResult(userPresent: true, userVerified: true)
-    }
-
-    func pickCredentialForAuthentication(availableCredentials: [BitwardenSdk.Cipher]) async throws -> BitwardenSdk.CipherView {
-        abort()
-    }
-
-    func pickCredentialForCreation(availableCredentials: [BitwardenSdk.Cipher], newCredential: BitwardenSdk.Fido2Credential) async throws -> BitwardenSdk.CipherView {
-        abort()
     }
 }
 

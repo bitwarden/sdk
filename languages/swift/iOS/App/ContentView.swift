@@ -339,19 +339,33 @@ struct ContentView: View {
         let authenticator = clientFido.authenticator(userInterface: ui, credentialStore: cs)
 
         // Make credential
-        try await authenticator.makeCredential(
-            request: MakeCredentialRequest(
-                clientDataHash: Data(),
-                rp: PublicKeyCredentialRpEntity(id: "abc", name: "test"),
-                user: PublicKeyCredentialUserEntity(id: Data(), displayName: "b", name: "c"),
-                pubKeyCredParams: [PublicKeyCredentialParameters(ty: "public-key", alg: 0)],
-                excludeList: nil,
-                requireResidentKey: true,
-                extensions: nil
-            )
-        )
+        try await authenticator.makeCredential(request: MakeCredentialRequest(
+            clientDataHash: Data(),
+            rp: PublicKeyCredentialRpEntity(id: "abc", name: "test"),
+            user: PublicKeyCredentialUserEntity(id: Data(), displayName: "b", name: "c"),
+            pubKeyCredParams: [PublicKeyCredentialParameters(ty: "public-key", alg: 0)],
+            excludeList: nil,
+            requireResidentKey: true,
+            extensions: nil
+        ))
 
+        // Get Assertion
+        try await authenticator.getAssertion(request: GetAssertionRequest(
+            rpId: "",
+            clientDataHash: Data(),
+            allowList: nil,
+            options: Options(rk: true, uv: Uv.preferred),
+            extensions: nil
+        ))
+        
+        try await authenticator.silentlyDiscoverCredentials(rpId: "")
+        
+        // Only on android!
+        let client = clientFido.client(userInterface: ui, credentialStore: cs)
+        try await client.authenticate(origin: "test", request: "test", clientData: ClientData.defaultWithExtraData(androidPackageName: "abc"))
+        try await client.register(origin: "test", request: "test", clientData: ClientData.defaultWithExtraData(androidPackageName: "abc"))
     }
+
 }
 
 struct ContentView_Previews: PreviewProvider {
@@ -383,7 +397,7 @@ extension IgnoreHttpsDelegate: URLSessionDelegate {
 
 class UserInterfaceImpl: UserInterface {
     func checkUser(options: BitwardenSdk.CheckUserOptions, credential: BitwardenSdk.CipherView?) async throws -> BitwardenSdk.CheckUserResult {
-        abort()
+        return CheckUserResult(userPresent: true, userVerified: true)
     }
 
     func pickCredentialForAuthentication(availableCredentials: [BitwardenSdk.Cipher]) async throws -> BitwardenSdk.CipherView {
@@ -401,6 +415,6 @@ class CredentialStoreImpl: CredentialStore {
     }
 
     func saveCredential(cred: BitwardenSdk.Cipher) async throws {
-        abort()
+        print("SAVED CREDENTIAL")
     }
 }

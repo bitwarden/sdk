@@ -32,7 +32,7 @@ wasm-bindgen = ["chrono/wasmbind"]
 
 [dependencies]
 async-trait = ">=0.1.80, <0.2"
-base64 = ">=0.21.2, <0.22"
+base64 = ">=0.21.2, <0.23"
 bitwarden-api-api = { workspace = true }
 bitwarden-api-identity = { workspace = true }
 bitwarden-crypto = { workspace = true }

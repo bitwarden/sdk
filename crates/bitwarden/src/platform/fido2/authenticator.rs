@@ -1,5 +1,7 @@
 #![allow(dead_code, unused_mut, unused_imports, unused_variables)]
 
+use bitwarden_crypto::{EncString, KeyEncryptable, SensitiveString};
+use chrono::DateTime;
 use passkey::{
     authenticator::{Authenticator, UserCheck},
     types::{
@@ -7,11 +9,15 @@ use passkey::{
         Passkey,
     },
 };
+use uuid::Uuid;
 
 use super::{CredentialStore, SelectedCredential, UserInterface};
 use crate::{
-    error::Result,
-    vault::{login::Fido2CredentialView, CipherView},
+    error::{Error, Result},
+    vault::{
+        login::{Fido2CredentialView, LoginView},
+        CipherView, Fido2Credential,
+    },
     Client,
 };
 
@@ -94,14 +100,76 @@ impl<'a> Fido2Authenticator<'a> {
                 .credential_id()
                 .to_vec(),
         })*/
-        todo!()
+
+        Ok(MakeCredentialResult {
+            credential_id: vec![],
+        })
     }
 
     pub async fn get_assertion(
         &mut self,
         request: GetAssertionRequest,
     ) -> Result<GetAssertionResult> {
-        todo!()
+        let enc = self.client.get_encryption_settings()?;
+        let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
+
+        Ok(GetAssertionResult {
+            credential_id: vec![],
+            authenticator_data: vec![],
+            signature: vec![],
+            user_handle: vec![],
+            selected_credential: SelectedCredential {
+                cipher: CipherView {
+                    id: Some(Uuid::new_v4()),
+                    organization_id: None,
+                    folder_id: None,
+                    collection_ids: vec![],
+                    key: None,
+                    name: SensitiveString::new(Box::new("".to_string())),
+                    notes: Some(SensitiveString::new(Box::new("".to_string()))),
+                    r#type: crate::vault::CipherType::Login,
+                    login: Some(LoginView {
+                        username: None,
+                        password: None,
+                        password_revision_date: None,
+                        uris: None,
+                        totp: None,
+                        autofill_on_page_load: None,
+                        fido2_credentials: Some(vec![]),
+                    }),
+                    identity: None,
+                    card: None,
+                    secure_note: None,
+                    favorite: false,
+                    reprompt: crate::vault::CipherRepromptType::None,
+                    organization_use_totp: true,
+                    edit: true,
+                    view_password: true,
+                    local_data: None,
+                    attachments: Some(vec![]),
+                    fields: Some(vec![]),
+                    password_history: Some(vec![]),
+                    creation_date: chrono::offset::Utc::now(),
+                    deleted_date: None,
+                    revision_date: chrono::offset::Utc::now(),
+                },
+                credential: Fido2Credential {
+                    credential_id: "".to_owned().encrypt_with_key(key)?,
+                    key_type: "".to_owned().encrypt_with_key(key)?,
+                    key_algorithm: "".to_owned().encrypt_with_key(key)?,
+                    key_curve: "".to_owned().encrypt_with_key(key)?,
+                    key_value: "".to_owned().encrypt_with_key(key)?,
+                    rp_id: "".to_owned().encrypt_with_key(key)?,
+                    user_handle: Some("".to_owned().encrypt_with_key(key)?),
+                    user_name: Some("".to_owned().encrypt_with_key(key)?),
+                    counter: "".to_owned().encrypt_with_key(key)?,
+                    rp_name: Some("".to_owned().encrypt_with_key(key)?),
+                    user_display_name: Some("".to_owned().encrypt_with_key(key)?),
+                    discoverable: "".to_owned().encrypt_with_key(key)?,
+                    creation_date: chrono::offset::Utc::now(),
+                },
+            },
+        })
     }
 
     // TODO: Fido2CredentialView contains all the fields, maybe we need a Fido2CredentialListView?
@@ -109,7 +177,7 @@ impl<'a> Fido2Authenticator<'a> {
         &mut self,
         rp_id: String,
     ) -> Result<Vec<Fido2CredentialView>> {
-        todo!()
+        Ok(vec![])
     }
 
     pub(crate) fn to_user_interface(&'a self) -> UserInterfaceImpl<'_> {
@@ -140,7 +208,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
         ids: Option<&[passkey::types::webauthn::PublicKeyCredentialDescriptor]>,
         rp_id: &str,
     ) -> Result<Vec<Self::PasskeyItem>, StatusCode> {
-        todo!()
+        Ok(vec![])
     }
 
     async fn save_credential(
@@ -149,11 +217,11 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
         user: passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
         rp: passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
     ) -> Result<(), StatusCode> {
-        todo!()
+        Ok(())
     }
 
     async fn update_credential(&mut self, cred: Passkey) -> Result<(), StatusCode> {
-        todo!()
+        Ok(())
     }
 }
 
@@ -167,15 +235,18 @@ impl passkey::authenticator::UserValidationMethod for UserInterfaceImpl<'_> {
         presence: bool,
         verification: bool,
     ) -> Result<UserCheck, Ctap2Error> {
-        todo!()
+        Ok(UserCheck {
+            presence,
+            verification,
+        })
     }
 
     fn is_presence_enabled(&self) -> bool {
-        todo!()
+        true
     }
 
     fn is_verification_enabled(&self) -> Option<bool> {
-        todo!()
+        Some(true)
     }
 }
 

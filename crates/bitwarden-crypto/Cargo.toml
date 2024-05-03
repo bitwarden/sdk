@@ -17,6 +17,7 @@ keywords.workspace = true
 default = []
 
 mobile = ["dep:uniffi"] # Mobile-specific features
+test = []               # Test methods
 
 [dependencies]
 aes = { version = ">=0.8.2, <0.9", features = ["zeroize"] }

@@ -19,8 +19,8 @@
 //! async fn example() -> Result<(), CryptoError> {
 //!   let key = SymmetricCryptoKey::generate(rand::thread_rng());
 //!
-//!   let data = "Hello, World!".to_owned();
-//!   let encrypted = data.clone().encrypt_with_key(&key)?;
+//!   let data = "Hello, World!";
+//!   let encrypted = data.to_owned().encrypt_with_key(&key)?;
 //!   let decrypted: DecryptedString = encrypted.decrypt_with_key(&key)?;
 //!
 //!   assert_eq!(decrypted, data);

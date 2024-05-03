@@ -8,8 +8,8 @@ use crate::{Sensitive, SensitiveVec};
 /// A sensitive string that supports string operations.
 ///
 /// Important: The `SensitiveString` protects against reallocations in the internal string. However,
-/// be careful when using any str slices as cloning them will create a `String` which is not
-/// protected.
+/// be careful when using any str or byte slices as taking ownership of them will create a copy
+/// which is not protected.
 #[derive(Eq, Clone, Zeroize)]
 pub struct SensitiveString {
     inner: Zeroizing<String>,
@@ -75,6 +75,10 @@ impl SensitiveString {
 
     pub fn as_str(&self) -> &str {
         &self.inner
+    }
+
+    pub fn as_bytes(&self) -> &[u8] {
+        self.inner.as_bytes()
     }
 
     pub fn len(&self) -> usize {

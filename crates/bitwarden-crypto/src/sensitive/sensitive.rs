@@ -80,8 +80,8 @@ impl TryFrom<SensitiveVec> for SensitiveString {
     fn try_from(mut v: SensitiveVec) -> Result<Self, CryptoError> {
         let value = std::mem::take(&mut v.value);
 
-        let rtn = String::from_utf8(*value).map_err(|_| CryptoError::InvalidUtf8String);
-        rtn.map(|v| SensitiveString::new(v))
+        let rtn = String::from_utf8(*value).map_err(|_| CryptoError::InvalidUtf8String)?;
+        Ok(SensitiveString::new(rtn))
     }
 }
 
@@ -195,7 +195,7 @@ mod tests {
             "$schema": "http://json-schema.org/draft-07/schema#",
             "title": "TestStruct",
             "type": "object",
-            "required": ["s", "v"],
+            "required": ["v"],
             "properties": {
                 "v": {
                     "$ref": "#/definitions/Array_of_uint8"
@@ -209,9 +209,6 @@ mod tests {
                         "format": "uint8",
                         "minimum": 0.0
                     }
-                },
-                "String": {
-                    "type": "string"
                 }
             }
         }"##;

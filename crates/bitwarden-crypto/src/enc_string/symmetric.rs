@@ -284,7 +284,7 @@ impl KeyEncryptable<SymmetricCryptoKey, EncString> for String {
 
 impl KeyEncryptable<SymmetricCryptoKey, EncString> for SensitiveString {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> crate::Result<EncString> {
-        self.as_str().as_bytes().encrypt_with_key(key)
+        self.as_bytes().encrypt_with_key(key)
     }
 }
 

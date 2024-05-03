@@ -22,6 +22,7 @@
     "uniffi",
     "wordlist",
     "Zeroize",
+    "Zeroizing",
     "zxcvbn"
   ],
   "rust-analyzer.cargo.targetDir": true

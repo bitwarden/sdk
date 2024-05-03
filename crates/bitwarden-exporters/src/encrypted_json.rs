@@ -47,7 +47,7 @@ pub(crate) fn export_encrypted_json(
 
     let salt: Sensitive<[u8; 16]> = generate_random_bytes();
     let salt = SensitiveVec::from(salt).encode_base64(STANDARD);
-    let key = PinKey::derive(&password.into(), salt.as_str().as_bytes(), &kdf)?;
+    let key = PinKey::derive(&password.into(), salt.as_bytes(), &kdf)?;
 
     let enc_key_validation = Uuid::new_v4().to_string();
 

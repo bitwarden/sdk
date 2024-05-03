@@ -57,9 +57,7 @@ impl LoginUriView {
         };
 
         let uri_hash: Sensitive<GenericArray<u8, _>> = Sensitive::new(Box::new(
-            sha2::Sha256::new()
-                .chain_update(uri.as_str().as_bytes())
-                .finalize(),
+            sha2::Sha256::new().chain_update(uri.as_bytes()).finalize(),
         ));
 
         cs == uri_hash.expose().as_slice()
@@ -68,9 +66,7 @@ impl LoginUriView {
     pub(crate) fn generate_checksum(&mut self) {
         if let Some(uri) = &self.uri {
             let uri_hash: SensitiveVec = Sensitive::new(Box::new(
-                sha2::Sha256::new()
-                    .chain_update(uri.as_str().as_bytes())
-                    .finalize(),
+                sha2::Sha256::new().chain_update(uri.as_bytes()).finalize(),
             ))
             .into();
             self.uri_checksum = Some(uri_hash.encode_base64(STANDARD))

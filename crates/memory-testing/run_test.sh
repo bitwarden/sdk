@@ -13,10 +13,10 @@ cargo build -p memory-testing --release
 
 if [ "$1" = "no-docker" ]; then
     # This specifically needs to run as root to be able to capture core dumps
-    sudo ./target/debug/capture-dumps ./target/debug/memory-testing $BASE_DIR
+    sudo ./target/release/capture-dumps ./target/release/memory-testing $BASE_DIR
 else
     docker build -f crates/memory-testing/Dockerfile -t bitwarden/memory-testing .
     docker run --rm -it -v $BASE_DIR:/output bitwarden/memory-testing 
 fi
 
-./target/debug/analyze-dumps $BASE_DIR
+./target/release/analyze-dumps $BASE_DIR

@@ -344,7 +344,7 @@ name = "bitwarden"
 version = "0.5.0"
 dependencies = [
  "async-trait",
- "base64 0.21.7",
+ "base64 0.22.1",
  "bitwarden-api-api",
  "bitwarden-api-identity",
  "bitwarden-crypto",
@@ -426,7 +426,7 @@ version = "0.5.0"
 dependencies = [
  "aes",
  "argon2",
- "base64 0.21.7",
+ "base64 0.22.1",
  "cbc",
  "generic-array",
  "hkdf",
@@ -454,7 +454,7 @@ dependencies = [
 name = "bitwarden-exporters"
 version = "0.5.0"
 dependencies = [
- "base64 0.21.7",
+ "base64 0.22.1",
  "bitwarden-crypto",
  "chrono",
  "csv",

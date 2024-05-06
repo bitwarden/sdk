@@ -27,29 +27,29 @@ let PIN = "1234"
 
 struct ContentView: View {
     private var http: URLSession
-    
+
     @State private var client: Client
-    
+
     @State private var accessToken: String = ""
-    
+
     init() {
         // Disable SSL Cert validation. Don't do this in production
         http = URLSession(
             configuration: URLSessionConfiguration.default, delegate: IgnoreHttpsDelegate(),
             delegateQueue: nil)
-        
+
         client = Client(settings: nil)
     }
-    
+
     @State var setupBiometrics: Bool = true
     @State var setupPin: Bool = true
     @State var outputText: String = ""
-    
+
     var body: some View {
         VStack {
             Toggle("Setup biometric unlock after login", isOn: $setupBiometrics).padding(.init(top: 0, leading: 20, bottom: 0, trailing: 20))
             Toggle("Setup PIN unlock after login", isOn: $setupPin).padding(.init(top: 0, leading: 20, bottom: 0, trailing: 20))
-            
+
             Button(action: {
                 Task {
                     do {
@@ -62,9 +62,9 @@ struct ContentView: View {
             }, label: {
                 Text("Login with username + password")
             })
-            
+
             Divider().padding(30)
-            
+
             Button(action: {
                 Task {
                     do {
@@ -77,7 +77,7 @@ struct ContentView: View {
             }, label: {
                 Text("Unlock with biometrics")
             })
-            
+
             Button(action: {
                 Task {
                     do {
@@ -90,30 +90,42 @@ struct ContentView: View {
             }, label: {
                 Text("Unlock with PIN")
             })
-            
+
+            Button(action: {
+                Task {
+                    do {
+                        try await authenticatorTest(clientFido: client.platform().fido2())
+                    } catch {
+                        print("ERROR:", error)
+                    }
+                }
+            }, label: {
+                Text("Passkey")
+            })
+
             Button(action: {
                 client = Client(settings: nil)
             }, label: {
                 Text("Lock & reset client")
             }).padding()
-            
+
             Text("Output: " + outputText).padding(.top)
         }
         .padding()
     }
-    
+
     func clientExamplePassword(clientAuth: ClientAuthProtocol, clientCrypto: ClientCryptoProtocol, setupBiometrics: Bool, setupPin: Bool) async throws {
         ////////////////////////////// Get master password hash //////////////////////////////
-        
+
         struct PreloginRequest: Codable { let email: String }
         struct PreloginResponse: Codable {
             let kdf: UInt32
             let kdfIterations: UInt32
             let kdfMemory: UInt32?
             let kdfParallelism: UInt32?
-            
+
         }
-        
+
         let (preloginDataJson, _) = try await http.data(
             for: request(
                 method: "POST", url: IDENTITY_URL + "accounts/prelogin",
@@ -123,7 +135,7 @@ struct ContentView: View {
                 }))
         let preloginData = try JSONDecoder().decode(
             PreloginResponse.self, from: preloginDataJson)
-        
+
         let kdf: Kdf
         if preloginData.kdf == 0 {
             kdf = Kdf.pbkdf2(iterations: preloginData.kdfIterations)
@@ -132,19 +144,19 @@ struct ContentView: View {
                 iterations: preloginData.kdfIterations, memory: preloginData.kdfMemory!,
                 parallelism: preloginData.kdfParallelism!)
         }
-        
+
         let passwordHash = try await clientAuth.hashPassword(
             email: EMAIL, password: PASSWORD, kdfParams: kdf, purpose: .serverAuthorization)
-        
+
         ///////////////////////////// Login /////////////////////////////
-        
+
         struct LoginResponse: Codable {
             let Key: String
             let PrivateKey: String
             let access_token: String
             let refresh_token: String
         }
-        
+
         let (loginDataJson, _) = try await http.data(
             for: request(
                 method: "POST", url: IDENTITY_URL + "connect/token",
@@ -154,7 +166,7 @@ struct ContentView: View {
                         forHTTPHeaderField: "Auth-Email")
                     r.setValue(
                         "application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-                    
+
                     var comp = URLComponents()
                     comp.queryItems = [
                         URLQueryItem(name: "scope", value: "api offline_access"),
@@ -166,7 +178,7 @@ struct ContentView: View {
                         URLQueryItem(name: "deviceName", value: "edge"),
                         URLQueryItem(name: "grant_type", value: "password"),
                         URLQueryItem(name: "username", value: EMAIL),
-                        URLQueryItem(name: "password", value: passwordHash),
+                        URLQueryItem(name: "password", value: passwordHash)
                     ]
                     r.httpBody = comp.percentEncodedQuery!
                         .replacingOccurrences(of: "@", with: "%40")
@@ -174,7 +186,7 @@ struct ContentView: View {
                         .data(using: .utf8)
                 }))
         let loginData = try JSONDecoder().decode(LoginResponse.self, from: loginDataJson)
-        
+
         try await clientCrypto.initializeUserCrypto(
             req: InitUserCryptoRequest(
                 kdfParams: kdf,
@@ -185,10 +197,10 @@ struct ContentView: View {
                     userKey: loginData.Key
                 )
             ))
-        
+
         accessToken = loginData.access_token
-        
-        if (setupBiometrics) {
+
+        if setupBiometrics {
             let defaults = UserDefaults.standard
             defaults.set(loginData.PrivateKey, forKey: "privateKey")
             defaults.set(preloginData.kdf, forKey: "kdfType")
@@ -196,28 +208,28 @@ struct ContentView: View {
             defaults.set(preloginData.kdfMemory, forKey: "kdfMemory")
             defaults.set(preloginData.kdfParallelism, forKey: "kdfParallelism")
             defaults.synchronize()
-            
+
             let key = try await clientCrypto.getUserEncryptionKey()
             biometricStoreValue(value: key)
         }
-        
-        if (setupPin) {
+
+        if setupPin {
             let pinOptions = try await clientCrypto.derivePinKey(pin: PIN)
-            
+
             let defaults = UserDefaults.standard
             defaults.set(loginData.PrivateKey, forKey: "privateKey")
             defaults.set(preloginData.kdf, forKey: "kdfType")
             defaults.set(preloginData.kdfIterations, forKey: "kdfIterations")
             defaults.set(preloginData.kdfMemory, forKey: "kdfMemory")
             defaults.set(preloginData.kdfParallelism, forKey: "kdfParallelism")
-            
+
             defaults.set(pinOptions.encryptedPin, forKey: "encryptedPin")
             defaults.set(pinOptions.pinProtectedUserKey, forKey: "pinProtectedUserKey")
-            
+
             defaults.synchronize()
         }
     }
-    
+
     func clientExampleBiometrics(clientCrypto: ClientCryptoProtocol) async throws {
         let defaults = UserDefaults.standard
         let privateKey = defaults.string(forKey: "privateKey")!
@@ -230,9 +242,9 @@ struct ContentView: View {
                 parallelism: UInt32(defaults.integer(forKey: "kdfParallelism"))
             )
         }
-        
+
         let key = biometricRetrieveValue()!
-        
+
         try await clientCrypto.initializeUserCrypto(req: InitUserCryptoRequest(
             kdfParams: kdf,
             email: EMAIL,
@@ -242,7 +254,7 @@ struct ContentView: View {
             )
         ))
     }
-    
+
     func clientExamplePin(clientCrypto: ClientCryptoProtocol) async throws {
         let defaults = UserDefaults.standard
         let privateKey = defaults.string(forKey: "privateKey")!
@@ -255,10 +267,10 @@ struct ContentView: View {
                 parallelism: UInt32(defaults.integer(forKey: "kdfParallelism"))
             )
         }
-        
+
         let encryptedPin = defaults.string(forKey: "encryptedPin")!
         let pinProtectedUserKey = defaults.string(forKey: "pinProtectedUserKey")!
-        
+
         try await clientCrypto.initializeUserCrypto(req: InitUserCryptoRequest(
             kdfParams: kdf,
             email: EMAIL,
@@ -266,17 +278,17 @@ struct ContentView: View {
             method: InitUserCryptoMethod.pin(pin: PIN, pinProtectedUserKey: pinProtectedUserKey)
         ))
     }
-    
+
     func decryptVault(clientCrypto: ClientCryptoProtocol, clientVault: ClientVaultProtocol) async throws {
         ///////////////////////////// Sync /////////////////////////////
-        
+
         struct SyncOrganization: Codable {
             let id: String
             let key: String
         }
         struct SyncProfile: Codable {
             let organizations: [SyncOrganization]
-            
+
         }
         struct SyncFolder: Codable {
             let id: String
@@ -287,7 +299,7 @@ struct ContentView: View {
             let profile: SyncProfile
             let folders: [SyncFolder]
         }
-        
+
         let (syncDataJson, _) = try await http.data(
             for: request(
                 method: "GET", url: API_URL + "sync?excludeDomains=true",
@@ -295,23 +307,23 @@ struct ContentView: View {
                     r.setValue(
                         "Bearer " + accessToken, forHTTPHeaderField: "Authorization")
                 }))
-        
+
         let syncData = try JSONDecoder().decode(SyncResponse.self, from: syncDataJson)
-        
+
         ///////////////////////////// Initialize org crypto /////////////////////////////
-        
+
         try await clientCrypto.initializeOrgCrypto(
             req: InitOrgCryptoRequest(
                 organizationKeys: Dictionary.init(
                     uniqueKeysWithValues: syncData.profile.organizations.map { ($0.id, $0.key) }
                 )
             ))
-        
+
         ///////////////////////////// Decrypt some folders /////////////////////////////
-        
+
         let dateFormatter = ISO8601DateFormatter()
         dateFormatter.formatOptions = [.withFractionalSeconds]
-        
+
         let decryptedFolders = try await clientVault.folders().decryptList(
             folders: syncData.folders.map {
                 Folder(
@@ -320,6 +332,40 @@ struct ContentView: View {
             })
         print(decryptedFolders)
     }
+
+    func authenticatorTest(clientFido: ClientFido2) async throws {
+        let ui = UserInterfaceImpl()
+        let cs = CredentialStoreImpl()
+        let authenticator = clientFido.authenticator(userInterface: ui, credentialStore: cs)
+
+        // Make credential
+        try await authenticator.makeCredential(request: MakeCredentialRequest(
+            clientDataHash: Data(),
+            rp: PublicKeyCredentialRpEntity(id: "abc", name: "test"),
+            user: PublicKeyCredentialUserEntity(id: Data(), displayName: "b", name: "c"),
+            pubKeyCredParams: [PublicKeyCredentialParameters(ty: "public-key", alg: 0)],
+            excludeList: nil,
+            requireResidentKey: true,
+            extensions: nil
+        ))
+
+        // Get Assertion
+        try await authenticator.getAssertion(request: GetAssertionRequest(
+            rpId: "",
+            clientDataHash: Data(),
+            allowList: nil,
+            options: Options(rk: true, uv: Uv.preferred),
+            extensions: nil
+        ))
+
+        try await authenticator.silentlyDiscoverCredentials(rpId: "")
+
+        // Only on android!
+        let client = clientFido.client(userInterface: ui, credentialStore: cs)
+        try await client.authenticate(origin: "test", request: "test", clientData: ClientData.defaultWithExtraData(androidPackageName: "abc"))
+        try await client.register(origin: "test", request: "test", clientData: ClientData.defaultWithExtraData(androidPackageName: "abc"))
+    }
+
 }
 
 struct ContentView_Previews: PreviewProvider {
@@ -342,9 +388,33 @@ extension IgnoreHttpsDelegate: URLSessionDelegate {
         _ session: URLSession, didReceive challenge: URLAuthenticationChallenge,
         completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
     ) {
-        //Trust the certificate even if not valid
+        // Trust the certificate even if not valid
         let urlCredential = URLCredential(trust: challenge.protectionSpace.serverTrust!)
-        
+
         completionHandler(.useCredential, urlCredential)
+    }
+}
+
+class UserInterfaceImpl: UserInterface {
+    func pickCredentialForAuthentication(availableCredentials: [BitwardenSdk.Cipher]) async throws -> BitwardenSdk.CipherViewWrapper {
+        abort()
+    }
+
+    func pickCredentialForCreation(availableCredentials: [BitwardenSdk.Cipher], newCredential: BitwardenSdk.Fido2Credential) async throws -> BitwardenSdk.CipherViewWrapper {
+        abort()
+    }
+
+    func checkUser(options: BitwardenSdk.CheckUserOptions, credential: BitwardenSdk.CipherView?) async throws -> BitwardenSdk.CheckUserResult {
+        return CheckUserResult(userPresent: true, userVerified: true)
+    }
+}
+
+class CredentialStoreImpl: CredentialStore {
+    func findCredentials(ids: [Data]?, ripId: String) async throws -> [BitwardenSdk.Cipher] {
+        abort()
+    }
+
+    func saveCredential(cred: BitwardenSdk.Cipher) async throws {
+        print("SAVED CREDENTIAL")
     }
 }

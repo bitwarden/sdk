@@ -31,6 +31,7 @@ mobile = [
 wasm-bindgen = ["chrono/wasmbind"]
 
 [dependencies]
+async-trait = ">=0.1.80, <0.2"
 base64 = ">=0.21.2, <0.22"
 bitwarden-api-api = { workspace = true }
 bitwarden-api-identity = { workspace = true }
@@ -46,6 +47,7 @@ chrono = { version = ">=0.4.26, <0.5", features = [
 getrandom = { version = ">=0.2.9, <0.3", features = ["js"] }
 hmac = ">=0.12.1, <0.13"
 log = ">=0.4.18, <0.5"
+passkey = { git = "https://github.com/bitwarden/passkey-rs", rev = "12da886102707f87ad97e499c857c0857ece0b85" }
 rand = ">=0.8.5, <0.9"
 reqwest = { version = ">=0.12, <0.13", features = [
     "http2",
@@ -54,7 +56,7 @@ reqwest = { version = ">=0.12, <0.13", features = [
 schemars = { version = ">=0.8.9, <0.9", features = ["uuid1", "chrono"] }
 serde = { version = ">=1.0, <2.0", features = ["derive"] }
 serde_json = ">=1.0.96, <2.0"
-serde_qs = ">=0.12.0, <0.13"
+serde_qs = ">=0.12.0, <0.14"
 serde_repr = ">=0.1.12, <0.2"
 sha1 = ">=0.10.5, <0.11"
 sha2 = ">=0.10.6, <0.11"
@@ -81,6 +83,7 @@ reqwest = { version = ">=0.12, <0.13", features = [
 ], default-features = false }
 
 [dev-dependencies]
+bitwarden-crypto = { workspace = true, features = ["test"] }
 rand_chacha = "0.3.1"
 tokio = { version = "1.36.0", features = ["rt", "macros"] }
 wiremock = "0.6.0"

@@ -1,41 +1,78 @@
 {
-  "symmetric_key": [
+  "cases": [
     {
-      "key": "FfhVVP8fmFIZY1WmRszPmRmVCxXNWVcJffPrbkywTPtBNkgfhYGT+D9sVGizYXrPffuj2yoyWqMwF9iF5aMQhQ==",
-      "decrypted_key_hex": "15f85554ff1f9852196355a646cccf9919950b15cd5957097df3eb6e4cb04cfb",
-      "decrypted_mac_hex": "4136481f858193f83f6c5468b3617acf7dfba3db2a325aa33017d885e5a31085"
-    }
-  ],
-  "master_key": [
-    {
-      "password": "123412341234",
-      "email": "test@mail.com",
+      "name": "Symmetric Key",
+      "symmetric_key": {
+        "key": "FfhVVP8fmFIZY1WmRszPmRmVCxXNWVcJffPrbkywTPtBNkgfhYGT+D9sVGizYXrPffuj2yoyWqMwF9iF5aMQhQ=="
+      },
+      "memory_lookups": [
+        {
+          "name": "Decrypted key",
+          "hex": "15f85554ff1f9852196355a646cccf9919950b15cd5957097df3eb6e4cb04cfb"
+        },
+        {
+          "name": "Decrypted MAC",
+          "hex": "4136481f858193f83f6c5468b3617acf7dfba3db2a325aa33017d885e5a31085"
+        }
+      ]
+    },
 
-      "kdf": {
-        "pBKDF2": {
-          "iterations": 100000
+    {
+      "name": "Master Key PBKDF2",
+      "master_key": {
+        "password": "123412341234",
+        "email": "test@mail.com",
+
+        "kdf": {
+          "pBKDF2": {
+            "iterations": 100000
+          }
         }
       },
-
-      "key_hex": "2d55ac8e33bd14ee9eee26fa651163a41049a37b3b20c914a8b6abc9a38a89d5",
-      "hash": "gQ9O5ZhtQ23dL5r93e4BL04ATYOJVEvBAOwYsDDEJFA=",
-      "hash_hex": "810f4ee5986d436ddd2f9afdddee012f4e004d8389544bc100ec18b030c42450"
+      "memory_lookups": [
+        {
+          "name": "Key",
+          "hex": "2d55ac8e33bd14ee9eee26fa651163a41049a37b3b20c914a8b6abc9a38a89d5"
+        },
+        {
+          "name": "Hash B64",
+          "string": "gQ9O5ZhtQ23dL5r93e4BL04ATYOJVEvBAOwYsDDEJFA="
+        },
+        {
+          "name": "Hash bytes",
+          "hex": "810f4ee5986d436ddd2f9afdddee012f4e004d8389544bc100ec18b030c42450"
+        }
+      ]
     },
     {
-      "password": "asdfasdfasdf",
-      "email": "test@mail.com",
+      "name": "Master Key Argon2",
+      "master_key": {
+        "password": "asdfasdfasdf",
+        "email": "test@mail.com",
 
-      "kdf": {
-        "argon2id": {
-          "iterations": 3,
-          "memory": 4,
-          "parallelism": 1
+        "kdf": {
+          "argon2id": {
+            "iterations": 3,
+            "memory": 4,
+            "parallelism": 1
+          }
         }
       },
-
-      "key_hex": "3bc0520a0abff0097d521ce0ee5e5b1cee301939a84742623c0c1697d7a4bd46",
-      "hash": "lHkprdORlICVJ4Umwi94Uz/nATK6Y7If7e+iFoabzh0=",
-      "hash_hex": "947929add391948095278526c22f78533fe70132ba63b21fedefa216869bce1d"
+      "memory_lookups": [
+        {
+          "name": "Key",
+          "hex": "3bc0520a0abff0097d521ce0ee5e5b1cee301939a84742623c0c1697d7a4bd46",
+          "allowed_count": 3
+        },
+        {
+          "name": "Hash B64",
+          "string": "lHkprdORlICVJ4Umwi94Uz/nATK6Y7If7e+iFoabzh0="
+        },
+        {
+          "name": "Hash bytes",
+          "hex": "947929add391948095278526c22f78533fe70132ba63b21fedefa216869bce1d"
+        }
+      ]
     }
   ],
   "bit_string": [

@@ -21,7 +21,6 @@ let SERVICE: String = "com.example.app"
 // We should separate keys for each user by appending the user_id
 let KEY: String = "biometric_key"
 
-
 func biometricStoreValue(value: String) {
     var error: Unmanaged<CFError>?
     let accessControl = SecAccessControlCreateWithFlags(
@@ -29,11 +28,11 @@ func biometricStoreValue(value: String) {
         kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
         .biometryCurrentSet,
         &error)
-    
+
     guard accessControl != nil && error == nil else {
         fatalError("SecAccessControlCreateWithFlags failed")
     }
-        
+
     let query = [
         kSecClass: kSecClassGenericPassword,
         kSecAttrService: SERVICE,
@@ -41,12 +40,12 @@ func biometricStoreValue(value: String) {
         kSecValueData: value.data(using: .utf8)!,
         kSecAttrAccessControl: accessControl as Any
     ] as CFDictionary
-    
+
     // Try to delete the previous secret, if it exists
     // Otherwise we get `errSecDuplicateItem`
     SecItemDelete(query)
-    
-    let status = SecItemAdd(query, nil)    
+
+    let status = SecItemAdd(query, nil)
     guard status == errSecSuccess else {
         fatalError("Unable to store the secret: " + errToString(status: status))
     }
@@ -67,9 +66,9 @@ func biometricRetrieveValue() -> String? {
         kSecAttrAccount: KEY,
         kSecMatchLimit: kSecMatchLimitOne,
         kSecReturnData: true,
-        kSecReturnAttributes: true,
+        kSecReturnAttributes: true
     ] as CFDictionary
-    
+
     var item: AnyObject?
     let status = SecItemCopyMatching(searchQuery, &item)
 
@@ -82,11 +81,11 @@ func biometricRetrieveValue() -> String? {
     guard status == noErr else {
         fatalError("Unable to retrieve the secret: " + errToString(status: status))
     }
-    
+
     if let resultDictionary = item as? [String: Any],
         let data = resultDictionary[kSecValueData as String] as? Data {
         return String(decoding: data, as: UTF8.self)
     }
-    
+
     return nil
 }

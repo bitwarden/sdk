@@ -2,7 +2,7 @@ use base64::engine::general_purpose::STANDARD;
 use bitwarden_api_api::models::{CipherLoginModel, CipherLoginUriModel};
 use bitwarden_crypto::{
     CryptoError, DecryptedString, EncString, KeyDecryptable, KeyEncryptable, Sensitive,
-    SensitiveVec, SymmetricCryptoKey,
+    SensitiveString, SensitiveVec, SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
 use hmac::digest::generic_array::GenericArray;
@@ -26,7 +26,7 @@ pub enum UriMatchType {
     Never = 5,
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct LoginUri {
@@ -35,7 +35,7 @@ pub struct LoginUri {
     pub uri_checksum: Option<EncString>,
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct LoginUriView {
@@ -93,7 +93,26 @@ pub struct Fido2Credential {
     pub creation_date: DateTime<Utc>,
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+pub struct Fido2CredentialView {
+    pub credential_id: SensitiveString,
+    pub key_type: SensitiveString,
+    pub key_algorithm: SensitiveString,
+    pub key_curve: SensitiveString,
+    pub key_value: SensitiveString,
+    pub rp_id: SensitiveString,
+    pub user_handle: Option<SensitiveString>,
+    pub user_name: Option<SensitiveString>,
+    pub counter: SensitiveString,
+    pub rp_name: Option<SensitiveString>,
+    pub user_display_name: Option<SensitiveString>,
+    pub discoverable: SensitiveString,
+    pub creation_date: DateTime<Utc>,
+}
+
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Login {
@@ -108,7 +127,7 @@ pub struct Login {
     pub fido2_credentials: Option<Vec<Fido2Credential>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct LoginView {
@@ -168,6 +187,49 @@ impl KeyDecryptable<SymmetricCryptoKey, LoginView> for Login {
             totp: self.totp.decrypt_with_key(key).ok().flatten(),
             autofill_on_page_load: self.autofill_on_page_load,
             fido2_credentials: self.fido2_credentials.clone(),
+        })
+    }
+}
+
+impl KeyEncryptable<SymmetricCryptoKey, Fido2Credential> for Fido2CredentialView {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Fido2Credential, CryptoError> {
+        Ok(Fido2Credential {
+            credential_id: self.credential_id.encrypt_with_key(key)?,
+            key_type: self.key_type.encrypt_with_key(key)?,
+            key_algorithm: self.key_algorithm.encrypt_with_key(key)?,
+            key_curve: self.key_curve.encrypt_with_key(key)?,
+            key_value: self.key_value.encrypt_with_key(key)?,
+            rp_id: self.rp_id.encrypt_with_key(key)?,
+            user_handle: self.user_handle.encrypt_with_key(key)?,
+            user_name: self.user_name.encrypt_with_key(key)?,
+            counter: self.counter.encrypt_with_key(key)?,
+            rp_name: self.rp_name.encrypt_with_key(key)?,
+            user_display_name: self.user_display_name.encrypt_with_key(key)?,
+            discoverable: self.discoverable.encrypt_with_key(key)?,
+            creation_date: self.creation_date,
+        })
+    }
+}
+
+impl KeyDecryptable<SymmetricCryptoKey, Fido2CredentialView> for Fido2Credential {
+    fn decrypt_with_key(
+        &self,
+        key: &SymmetricCryptoKey,
+    ) -> Result<Fido2CredentialView, CryptoError> {
+        Ok(Fido2CredentialView {
+            credential_id: self.credential_id.decrypt_with_key(key)?,
+            key_type: self.key_type.decrypt_with_key(key)?,
+            key_algorithm: self.key_algorithm.decrypt_with_key(key)?,
+            key_curve: self.key_curve.decrypt_with_key(key)?,
+            key_value: self.key_value.decrypt_with_key(key)?,
+            rp_id: self.rp_id.decrypt_with_key(key)?,
+            user_handle: self.user_handle.decrypt_with_key(key)?,
+            user_name: self.user_name.decrypt_with_key(key)?,
+            counter: self.counter.decrypt_with_key(key)?,
+            rp_name: self.rp_name.decrypt_with_key(key)?,
+            user_display_name: self.user_display_name.decrypt_with_key(key)?,
+            discoverable: self.discoverable.decrypt_with_key(key)?,
+            creation_date: self.creation_date,
         })
     }
 }

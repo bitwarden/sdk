@@ -19,6 +19,7 @@ bench = false
 
 [dependencies]
 async-lock = "3.3.0"
+async-trait = "0.1.80"
 bitwarden = { workspace = true, features = ["mobile", "internal"] }
 bitwarden-crypto = { workspace = true, features = ["mobile"] }
 bitwarden-generators = { workspace = true, features = ["mobile"] }

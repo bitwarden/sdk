@@ -251,6 +251,12 @@ jobs:
       matrix:
         settings:
           - os: ubuntu-20.04
+            target: x86_64-unknown-linux-musl
+
+          - os: ubuntu-20.04
+            target: aarch64-unknown-linux-musl
+
+          - os: ubuntu-20.04
             target: x86_64-unknown-linux-gnu
 
           - os: ubuntu-20.04
@@ -265,26 +271,22 @@ jobs:
           toolchain: stable
           targets: ${{ matrix.settings.target }}
 
+      - uses: goto-bus-stop/setup-zig@7ab2955eb728f5440978d5824358023be3a2802d # v2.2.0
+        with:
+          version: 0.12.0
+
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
         with:
           key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.os }}
 
-      - name: Install Cross (aarch64-unknown-linux-gnu)
-        if: ${{ matrix.settings.target == 'aarch64-unknown-linux-gnu' }}
-        run: cargo install cross --locked --git https://github.com/cross-rs/cross.git --rev 185398b1b885820515a212de720a306b08e2c8c9
+      - name: Install Zigbuild
+        run: cargo install cargo-zigbuild --locked --git https://github.com/rust-cross/cargo-zigbuild --rev 6f7e1336c9cd13cf1b3704f93c40fcf84caaed6b # 0.18.4
 
       - name: Build
-        if: ${{ matrix.settings.target != 'aarch64-unknown-linux-gnu' }}
         env:
           TARGET: ${{ matrix.settings.target }}
-        run: cargo build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
-
-      - name: Build (aarch64-unknown-linux-gnu)
-        if: ${{ matrix.settings.target == 'aarch64-unknown-linux-gnu' }}
-        env:
-          TARGET: ${{ matrix.settings.target }}
-        run: cross build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
+        run: cargo zigbuild ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
 
       - name: Zip linux
         run: zip -j ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip ./target/${{ matrix.settings.target }}/release/bws

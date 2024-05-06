@@ -41,34 +41,36 @@ impl SensitiveString {
 
     /// Extend the size of the string by `size`.
     ///
-    /// Internally creates a new string with the new size and copies the old string into it.
-    pub fn extend_size(&mut self, size: usize) {
-        let mut new_inner = Zeroizing::new(String::with_capacity(size));
+    /// Internally creates a new string with the new size and copies the old string into it,
+    /// zeroing the original.
+    fn extend_size(&mut self, size: usize) {
+        let new_size = self.inner.len() + size;
+        let mut new_inner = Zeroizing::new(String::with_capacity(new_size));
         new_inner.push_str(&self.inner);
 
         self.inner = new_inner;
     }
 
     /// Extends the capacity of the string to `size` if it is larger than the current capacity.
-    pub fn extend_spec(&mut self, size: usize) {
+    fn extend_spec(&mut self, size: usize) {
         if size > self.inner.capacity() {
             self.extend_size(size);
         }
     }
 
-    /// Appends a given char onto the end of this `BitString`
+    /// Appends a given char onto the end of this `SensitiveString`
     ///
-    /// If the capacity of the `BitString` is not large enough it will zeroize the current string
-    /// and create a new string with the new size.
+    /// If the capacity of the `SensitiveString` is not large enough it will zeroize the current
+    /// string and create a new string with the new size.
     pub fn push(&mut self, c: char) {
         self.extend_spec(self.inner.len() + c.len_utf8());
         self.inner.push(c);
     }
 
-    /// Appends a given string slice onto the end of this `BitString`
+    /// Appends a given string slice onto the end of this `SensitiveString`
     ///
-    /// If the capacity of the `BitString` is not large enough it will zeroize the current string
-    /// and create a new string with the new size.
+    /// If the capacity of the `SensitiveString` is not large enough it will zeroize the current
+    /// string and create a new string with the new size.
     pub fn push_str(&mut self, s: &str) {
         self.extend_spec(self.inner.len() + s.len());
         self.inner.push_str(s);
@@ -202,11 +204,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_bit_string() {
-        let mut bit_string = SensitiveString::new("hello".to_string());
-        bit_string.push_str(" world");
+    fn test_senitive_string() {
+        let mut s = SensitiveString::new("hello".to_string());
+        s.push_str(" world");
 
-        assert_eq!(bit_string.inner.as_str(), "hello world");
+        assert_eq!(s.inner.as_str(), "hello world");
     }
 
     #[test]

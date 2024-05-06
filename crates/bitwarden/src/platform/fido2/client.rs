@@ -84,8 +84,8 @@ impl<'a> Fido2Client<'a> {
                     folder_id: None,
                     collection_ids: vec![],
                     key: None,
-                    name: SensitiveString::new(Box::new("".to_string())),
-                    notes: Some(SensitiveString::new(Box::new("".to_string()))),
+                    name: SensitiveString::new("".to_string()),
+                    notes: Some(SensitiveString::new("".to_string())),
                     r#type: crate::vault::CipherType::Login,
                     login: Some(LoginView {
                         username: None,
@@ -192,8 +192,8 @@ impl<'a> Fido2Client<'a> {
                     folder_id: None,
                     collection_ids: vec![],
                     key: None,
-                    name: SensitiveString::new(Box::new("".to_string())),
-                    notes: Some(SensitiveString::new(Box::new("".to_string()))),
+                    name: SensitiveString::new("".to_string()),
+                    notes: Some(SensitiveString::new("".to_string())),
                     r#type: crate::vault::CipherType::Login,
                     login: Some(LoginView {
                         username: None,

@@ -76,6 +76,11 @@ tasks.withType(Javadoc) {
     options.encoding = 'UTF-8'
 }
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
 //  Gradle build requires GitHub workflow to copy native library to resources
 //  Uncomment copyNativeLib and jar tasks to use the local build (modify architecture if needed)
 //tasks.register('copyNativeLib', Copy) {

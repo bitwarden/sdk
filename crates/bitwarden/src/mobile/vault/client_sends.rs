@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use bitwarden_crypto::{Decryptable, EncString, Encryptable, KeyDecryptable, KeyEncryptable};
+use bitwarden_crypto::{DecryptedVec, EncString, KeyDecryptable, KeyEncryptable};
 
 use super::client_vault::ClientVault;
 use crate::{
@@ -16,16 +16,18 @@ pub struct ClientSends<'a> {
 impl<'a> ClientSends<'a> {
     pub async fn decrypt(&self, send: Send) -> Result<SendView> {
         let enc = self.client.get_encryption_settings()?;
+        let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
 
-        let send_view = send.decrypt(enc, &None)?;
+        let send_view = send.decrypt_with_key(key)?;
 
         Ok(send_view)
     }
 
     pub async fn decrypt_list(&self, sends: Vec<Send>) -> Result<Vec<SendListView>> {
         let enc = self.client.get_encryption_settings()?;
+        let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
 
-        let send_views = sends.decrypt(enc, &None)?;
+        let send_views = sends.decrypt_with_key(key)?;
 
         Ok(send_views)
     }
@@ -48,13 +50,15 @@ impl<'a> ClientSends<'a> {
         let key = Send::get_key(&send.key, key)?;
 
         let buf = EncString::from_buffer(encrypted_buffer)?;
-        Ok(buf.decrypt_with_key(&key)?)
+        let dec: DecryptedVec = buf.decrypt_with_key(&key)?;
+        Ok(dec.expose().to_owned())
     }
 
     pub async fn encrypt(&self, send_view: SendView) -> Result<Send> {
         let enc = self.client.get_encryption_settings()?;
+        let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
 
-        let send = send_view.encrypt(enc, &None)?;
+        let send = send_view.encrypt_with_key(key)?;
 
         Ok(send)
     }

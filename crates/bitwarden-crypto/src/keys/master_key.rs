@@ -1,12 +1,13 @@
 use std::num::NonZeroU32;
 
-use base64::{engine::general_purpose::STANDARD, Engine};
+use base64::engine::general_purpose::STANDARD;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::utils::{derive_kdf_key, stretch_kdf_key};
 use crate::{
-    util, CryptoError, EncString, KeyDecryptable, Result, SensitiveVec, SymmetricCryptoKey, UserKey,
+    util, CryptoError, DecryptedVec, EncString, KeyDecryptable, Result, SensitiveString,
+    SensitiveVec, SymmetricCryptoKey, UserKey,
 };
 
 /// Key Derivation Function for Bitwarden Account
@@ -63,6 +64,7 @@ pub enum HashPurpose {
 /// Master Key.
 ///
 /// Derived from the users master password, used to protect the [UserKey].
+#[derive(Debug)]
 pub struct MasterKey(SymmetricCryptoKey);
 
 impl MasterKey {
@@ -72,7 +74,7 @@ impl MasterKey {
 
     /// Derives a users master key from their password, email and KDF.
     pub fn derive(password: &SensitiveVec, email: &[u8], kdf: &Kdf) -> Result<Self> {
-        derive_kdf_key(password.expose(), email, kdf).map(Self)
+        derive_kdf_key(password, email, kdf).map(Self)
     }
 
     /// Derive the master key hash, used for local and remote password validation.
@@ -80,10 +82,9 @@ impl MasterKey {
         &self,
         password: &SensitiveVec,
         purpose: HashPurpose,
-    ) -> Result<String> {
+    ) -> Result<SensitiveString> {
         let hash = util::pbkdf2(&self.0.key, password.expose(), purpose as u32);
-
-        Ok(STANDARD.encode(hash))
+        Ok(hash.encode_base64(STANDARD))
     }
 
     /// Generate a new random user key and encrypt it with the master key.
@@ -95,8 +96,8 @@ impl MasterKey {
     pub fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey> {
         let stretched_key = stretch_kdf_key(&self.0)?;
 
-        let mut dec: Vec<u8> = user_key.decrypt_with_key(&stretched_key)?;
-        SymmetricCryptoKey::try_from(dec.as_mut_slice())
+        let dec: DecryptedVec = user_key.decrypt_with_key(&stretched_key)?;
+        SymmetricCryptoKey::try_from(dec)
     }
 
     pub fn encrypt_user_key(&self, user_key: &SymmetricCryptoKey) -> Result<EncString> {
@@ -189,10 +190,10 @@ mod tests {
         let master_key = MasterKey::derive(&password, salt, &kdf).unwrap();
 
         assert_eq!(
-            "ZF6HjxUTSyBHsC+HXSOhZoXN+UuMnygV5YkWXCY4VmM=",
             master_key
                 .derive_master_key_hash(&password, HashPurpose::ServerAuthorization)
                 .unwrap(),
+            "ZF6HjxUTSyBHsC+HXSOhZoXN+UuMnygV5YkWXCY4VmM=",
         );
     }
 
@@ -209,10 +210,10 @@ mod tests {
         let master_key = MasterKey::derive(&password, salt, &kdf).unwrap();
 
         assert_eq!(
-            "PR6UjYmjmppTYcdyTiNbAhPJuQQOmynKbdEl1oyi/iQ=",
             master_key
                 .derive_master_key_hash(&password, HashPurpose::ServerAuthorization)
                 .unwrap(),
+            "PR6UjYmjmppTYcdyTiNbAhPJuQQOmynKbdEl1oyi/iQ=",
         );
     }
 

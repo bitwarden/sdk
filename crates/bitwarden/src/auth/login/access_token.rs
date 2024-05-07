@@ -1,7 +1,9 @@
 use std::path::{Path, PathBuf};
 
 use base64::engine::general_purpose::STANDARD;
-use bitwarden_crypto::{EncString, KeyDecryptable, SensitiveString, SymmetricCryptoKey};
+use bitwarden_crypto::{
+    DecryptedVec, EncString, KeyDecryptable, SensitiveString, SymmetricCryptoKey,
+};
 use chrono::Utc;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -53,7 +55,8 @@ pub(crate) async fn login_access_token(
         // Extract the encrypted payload and use the access token encryption key to decrypt it
         let payload: EncString = r.encrypted_payload.parse()?;
 
-        let decrypted_payload: Vec<u8> = payload.decrypt_with_key(&access_token.encryption_key)?;
+        let decrypted_payload: DecryptedVec =
+            payload.decrypt_with_key(&access_token.encryption_key)?;
 
         // Once decrypted, we have to JSON decode to extract the organization encryption key
         #[derive(serde::Deserialize)]
@@ -62,7 +65,7 @@ pub(crate) async fn login_access_token(
             encryption_key: SensitiveString,
         }
 
-        let payload: Payload = serde_json::from_slice(&decrypted_payload)?;
+        let payload: Payload = serde_json::from_slice(decrypted_payload.expose())?;
         let encryption_key = payload.encryption_key.clone().decode_base64(STANDARD)?;
         let encryption_key = SymmetricCryptoKey::try_from(encryption_key)?;
 

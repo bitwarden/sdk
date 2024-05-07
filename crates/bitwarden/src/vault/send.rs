@@ -1,11 +1,9 @@
-use base64::{
-    engine::general_purpose::{STANDARD, URL_SAFE_NO_PAD},
-    Engine,
-};
+use base64::engine::general_purpose::{STANDARD, URL_SAFE_NO_PAD};
 use bitwarden_api_api::models::{SendFileModel, SendResponseModel, SendTextModel};
 use bitwarden_crypto::{
-    derive_shareable_key, generate_random_bytes, CryptoError, EncString, KeyDecryptable,
-    KeyEncryptable, LocateKey, Sensitive, SensitiveVec, SymmetricCryptoKey,
+    derive_shareable_key, generate_random_bytes, CryptoError, DecryptedString, DecryptedVec,
+    EncString, KeyDecryptable, KeyEncryptable, LocateKey, Sensitive, SensitiveString, SensitiveVec,
+    SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
@@ -33,7 +31,7 @@ pub struct SendFile {
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SendFileView {
     pub id: Option<String>,
-    pub file_name: String,
+    pub file_name: DecryptedString,
     pub size: Option<String>,
     /// Readable size, ex: "4.2 KB" or "1.43 GB"
     pub size_name: Option<String>,
@@ -51,7 +49,7 @@ pub struct SendText {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SendTextView {
-    pub text: Option<String>,
+    pub text: Option<DecryptedString>,
     pub hidden: bool,
 }
 
@@ -73,7 +71,7 @@ pub struct Send {
     pub name: EncString,
     pub notes: Option<EncString>,
     pub key: EncString,
-    pub password: Option<String>,
+    pub password: Option<SensitiveString>,
 
     pub r#type: SendType,
     pub file: Option<SendFile>,
@@ -96,10 +94,10 @@ pub struct SendView {
     pub id: Option<Uuid>,
     pub access_id: Option<String>,
 
-    pub name: String,
-    pub notes: Option<String>,
+    pub name: DecryptedString,
+    pub notes: Option<DecryptedString>,
     /// Base64 encoded key
-    pub key: Option<String>,
+    pub key: Option<DecryptedString>,
     /// Replace or add a password to an existing send. The SDK will always return None when
     /// decrypting a [Send]
     /// TODO: We should revisit this, one variant is to have `[Create, Update]SendView` DTOs.
@@ -122,14 +120,14 @@ pub struct SendView {
     pub expiration_date: Option<DateTime<Utc>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SendListView {
     pub id: Option<Uuid>,
     pub access_id: Option<String>,
 
-    pub name: String,
+    pub name: DecryptedString,
 
     pub r#type: SendType,
     pub disabled: bool,
@@ -144,14 +142,12 @@ impl Send {
         send_key: &EncString,
         enc_key: &SymmetricCryptoKey,
     ) -> Result<SymmetricCryptoKey, CryptoError> {
-        let key: Vec<u8> = send_key.decrypt_with_key(enc_key)?;
+        let key: DecryptedVec = send_key.decrypt_with_key(enc_key)?;
         Self::derive_shareable_key(&key)
     }
 
-    fn derive_shareable_key(key: &[u8]) -> Result<SymmetricCryptoKey, CryptoError> {
-        let key = Sensitive::new(Box::new(
-            key.try_into().map_err(|_| CryptoError::InvalidKeyLen)?,
-        ));
+    fn derive_shareable_key(key: &SensitiveVec) -> Result<SymmetricCryptoKey, CryptoError> {
+        let key = key.try_into()?;
         Ok(derive_shareable_key(key, "send", Some("send")))
     }
 }
@@ -202,7 +198,7 @@ impl KeyDecryptable<SymmetricCryptoKey, SendView> for Send {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full
         // size For the rest of the fields, we ignore the provided SymmetricCryptoKey and
         // the stretched key
-        let k: Vec<u8> = self.key.decrypt_with_key(key)?;
+        let k: DecryptedVec = self.key.decrypt_with_key(key)?;
         let key = Send::derive_shareable_key(&k)?;
 
         Ok(SendView {
@@ -211,7 +207,7 @@ impl KeyDecryptable<SymmetricCryptoKey, SendView> for Send {
 
             name: self.name.decrypt_with_key(&key).ok().unwrap_or_default(),
             notes: self.notes.decrypt_with_key(&key).ok().flatten(),
-            key: Some(URL_SAFE_NO_PAD.encode(k)),
+            key: Some(k.encode_base64(URL_SAFE_NO_PAD)),
             new_password: None,
             has_password: self.password.is_some(),
 
@@ -262,13 +258,13 @@ impl KeyEncryptable<SymmetricCryptoKey, Send> for SendView {
         // the stretched key
         let k = match (self.key, self.id) {
             // Existing send, decrypt key
-            (Some(k), _) => URL_SAFE_NO_PAD
-                .decode(k)
+            (Some(k), _) => k
+                .decode_base64(URL_SAFE_NO_PAD)
                 .map_err(|_| CryptoError::InvalidKey)?,
             // New send, generate random key
             (None, None) => {
                 let key: Sensitive<[u8; 16]> = generate_random_bytes();
-                SensitiveVec::from(key).expose().to_owned()
+                key.into()
             }
             // Existing send without key
             _ => return Err(CryptoError::InvalidKey),
@@ -281,10 +277,11 @@ impl KeyEncryptable<SymmetricCryptoKey, Send> for SendView {
 
             name: self.name.encrypt_with_key(&send_key)?,
             notes: self.notes.encrypt_with_key(&send_key)?,
-            key: k.encrypt_with_key(key)?,
+            key: k.expose().encrypt_with_key(key)?,
             password: self.new_password.map(|password| {
-                let password = bitwarden_crypto::pbkdf2(password.as_bytes(), &k, SEND_ITERATIONS);
-                STANDARD.encode(password)
+                let password =
+                    bitwarden_crypto::pbkdf2(password.as_bytes(), k.expose(), SEND_ITERATIONS);
+                password.encode_base64(STANDARD)
             }),
 
             r#type: self.r#type,
@@ -313,7 +310,7 @@ impl TryFrom<SendResponseModel> for Send {
             name: require!(send.name).parse()?,
             notes: EncString::try_from_optional(send.notes)?,
             key: require!(send.key).parse()?,
-            password: send.password,
+            password: send.password.map(|p| SensitiveString::new(Box::new(p))),
             r#type: require!(send.r#type).into(),
             file: send.file.map(|f| (*f).try_into()).transpose()?,
             text: send.text.map(|t| (*t).try_into()).transpose()?,
@@ -363,7 +360,9 @@ impl TryFrom<SendTextModel> for SendText {
 
 #[cfg(test)]
 mod tests {
-    use bitwarden_crypto::{KeyDecryptable, KeyEncryptable, MasterKey, SensitiveVec};
+    use bitwarden_crypto::{
+        KeyDecryptable, KeyEncryptable, MasterKey, SensitiveString, SensitiveVec,
+    };
 
     use super::{Send, SendText, SendTextView, SendType};
     use crate::{
@@ -397,7 +396,7 @@ mod tests {
         // Get the send key
         let send_key = Send::get_key(&send_key, k).unwrap();
         let send_key_b64 = send_key.to_base64();
-        assert_eq!(send_key_b64.expose(), "IR9ImHGm6rRuIjiN7csj94bcZR5WYTJj5GtNfx33zm6tJCHUl+QZlpNPba8g2yn70KnOHsAODLcR0um6E3MAlg==");
+        assert_eq!(send_key_b64, "IR9ImHGm6rRuIjiN7csj94bcZR5WYTJj5GtNfx33zm6tJCHUl+QZlpNPba8g2yn70KnOHsAODLcR0um6E3MAlg==");
     }
 
     fn build_encryption_settings() -> EncryptionSettings {
@@ -450,15 +449,15 @@ mod tests {
         let expected = SendView {
             id: "3d80dd72-2d14-4f26-812c-b0f0018aa144".parse().ok(),
             access_id: Some("ct2APRQtJk-BLLDwAYqhRA".to_owned()),
-            name: "Test".to_string(),
+            name: SensitiveString::test("Test"),
             notes: None,
-            key: Some("Pgui0FK85cNhBGWHAlBHBw".to_owned()),
+            key: Some(SensitiveString::test("Pgui0FK85cNhBGWHAlBHBw")),
             new_password: None,
             has_password: false,
             r#type: SendType::Text,
             file: None,
             text: Some(SendTextView {
-                text: Some("This is a test".to_owned()),
+                text: Some(SensitiveString::test("This is a test")),
                 hidden: false,
             }),
             max_access_count: None,
@@ -481,15 +480,15 @@ mod tests {
         let view = SendView {
             id: "3d80dd72-2d14-4f26-812c-b0f0018aa144".parse().ok(),
             access_id: Some("ct2APRQtJk-BLLDwAYqhRA".to_owned()),
-            name: "Test".to_string(),
+            name: SensitiveString::test("Test"),
             notes: None,
-            key: Some("Pgui0FK85cNhBGWHAlBHBw".to_owned()),
+            key: Some(SensitiveString::test("Pgui0FK85cNhBGWHAlBHBw")),
             new_password: None,
             has_password: false,
             r#type: SendType::Text,
             file: None,
             text: Some(SendTextView {
-                text: Some("This is a test".to_owned()),
+                text: Some(SensitiveString::test("This is a test")),
                 hidden: false,
             }),
             max_access_count: None,
@@ -519,7 +518,7 @@ mod tests {
         let view = SendView {
             id: None,
             access_id: Some("ct2APRQtJk-BLLDwAYqhRA".to_owned()),
-            name: "Test".to_string(),
+            name: SensitiveString::test("Test"),
             notes: None,
             key: None,
             new_password: None,
@@ -527,7 +526,7 @@ mod tests {
             r#type: SendType::Text,
             file: None,
             text: Some(SendTextView {
-                text: Some("This is a test".to_owned()),
+                text: Some(SensitiveString::test("This is a test")),
                 hidden: false,
             }),
             max_access_count: None,
@@ -560,15 +559,15 @@ mod tests {
         let view = SendView {
             id: None,
             access_id: Some("ct2APRQtJk-BLLDwAYqhRA".to_owned()),
-            name: "Test".to_owned(),
+            name: SensitiveString::test("Test"),
             notes: None,
-            key: Some("Pgui0FK85cNhBGWHAlBHBw".to_owned()),
+            key: Some(SensitiveString::test("Pgui0FK85cNhBGWHAlBHBw")),
             new_password: Some("abc123".to_owned()),
             has_password: false,
             r#type: SendType::Text,
             file: None,
             text: Some(SendTextView {
-                text: Some("This is a test".to_owned()),
+                text: Some(SensitiveString::test("This is a test")),
                 hidden: false,
             }),
             max_access_count: None,
@@ -583,8 +582,8 @@ mod tests {
         let send: Send = view.encrypt_with_key(key).unwrap();
 
         assert_eq!(
-            send.password,
-            Some("vTIDfdj3FTDbejmMf+mJWpYdMXsxfeSd1Sma3sjCtiQ=".to_owned())
+            send.password.clone().unwrap(),
+            "vTIDfdj3FTDbejmMf+mJWpYdMXsxfeSd1Sma3sjCtiQ="
         );
 
         let v: SendView = send.decrypt_with_key(key).unwrap();

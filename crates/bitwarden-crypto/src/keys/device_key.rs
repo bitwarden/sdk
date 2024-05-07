@@ -38,7 +38,7 @@ impl DeviceKey {
         let data = user_key.to_vec();
 
         let protected_user_key =
-            AsymmetricEncString::encrypt_rsa2048_oaep_sha1(data.expose(), &device_private_key)?;
+            AsymmetricEncString::encrypt_rsa2048_oaep_sha1(data, &device_private_key)?;
 
         let protected_device_public_key = device_private_key
             .to_public_der()?
@@ -46,6 +46,7 @@ impl DeviceKey {
 
         let protected_device_private_key = device_private_key
             .to_der()?
+            .expose()
             .encrypt_with_key(&device_key.0)?;
 
         Ok(TrustDeviceResponse {
@@ -62,11 +63,11 @@ impl DeviceKey {
         protected_device_private_key: EncString,
         protected_user_key: AsymmetricEncString,
     ) -> Result<SymmetricCryptoKey> {
-        let device_private_key: Vec<u8> = protected_device_private_key.decrypt_with_key(&self.0)?;
-        let device_private_key = AsymmetricCryptoKey::from_der(&device_private_key)?;
+        let device_private_key: DecryptedVec =
+            protected_device_private_key.decrypt_with_key(&self.0)?;
+        let device_private_key = AsymmetricCryptoKey::from_der(device_private_key)?;
 
-        let dec: Vec<u8> = protected_user_key.decrypt_with_key(&device_private_key)?;
-        let dec = DecryptedVec::new(Box::new(dec));
+        let dec: DecryptedVec = protected_user_key.decrypt_with_key(&device_private_key)?;
         let user_key = SymmetricCryptoKey::try_from(dec)?;
 
         Ok(user_key)

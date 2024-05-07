@@ -12,16 +12,18 @@
 //! ## Example:
 //!
 //! ```rust
-//! use bitwarden_crypto::{SymmetricCryptoKey, KeyEncryptable, KeyDecryptable, CryptoError};
+//! use bitwarden_crypto::{
+//!   CryptoError, DecryptedString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
+//! };
 //!
 //! async fn example() -> Result<(), CryptoError> {
 //!   let key = SymmetricCryptoKey::generate(rand::thread_rng());
 //!
 //!   let data = "Hello, World!".to_owned();
 //!   let encrypted = data.clone().encrypt_with_key(&key)?;
-//!   let decrypted: String = encrypted.decrypt_with_key(&key)?;
+//!   let decrypted: DecryptedString = encrypted.decrypt_with_key(&key)?;
 //!
-//!   assert_eq!(data, decrypted);
+//!   assert_eq!(decrypted, data);
 //!   Ok(())
 //! }
 //! ```
@@ -56,8 +58,6 @@
 mod aes;
 mod enc_string;
 pub use enc_string::{AsymmetricEncString, EncString};
-mod encryptable;
-pub use encryptable::{Decryptable, Encryptable, KeyContainer, LocateKey};
 mod error;
 pub use error::CryptoError;
 pub(crate) use error::Result;

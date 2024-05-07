@@ -1,6 +1,6 @@
 use bitwarden_api_api::models::CipherFieldModel;
 use bitwarden_crypto::{
-    CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
+    CryptoError, DecryptedString, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -19,7 +19,7 @@ pub enum FieldType {
     Linked = 3,
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Field {
@@ -30,12 +30,12 @@ pub struct Field {
     linked_id: Option<LinkedIdType>,
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct FieldView {
-    pub(crate) name: Option<String>,
-    pub(crate) value: Option<String>,
+    pub(crate) name: Option<DecryptedString>,
+    pub(crate) value: Option<DecryptedString>,
     pub(crate) r#type: FieldType,
 
     pub(crate) linked_id: Option<LinkedIdType>,

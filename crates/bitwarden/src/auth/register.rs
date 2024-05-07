@@ -32,7 +32,7 @@ pub(super) async fn register(client: &mut Client, req: RegisterRequest) -> Resul
         Some(RegisterRequestModel {
             name: req.name,
             email: req.email,
-            master_password_hash: keys.master_password_hash,
+            master_password_hash: keys.master_password_hash.expose().clone(),
             master_password_hint: req.password_hint,
             captcha_response: None, // TODO: Add
             key: Some(keys.encrypted_user_key),
@@ -75,7 +75,7 @@ pub(super) fn make_register_keys(
 
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct RegisterKeyResponse {
-    pub master_password_hash: String,
+    pub master_password_hash: SensitiveString,
     pub encrypted_user_key: String,
     pub keys: RsaKeyPair,
 }

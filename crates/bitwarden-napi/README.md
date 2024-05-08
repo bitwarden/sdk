@@ -20,7 +20,7 @@ const accessToken = "-- REDACTED --";
 
 const client = new BitwardenClient(settings, LogLevel.Info);
 
-// Authenticating using a service accounts access token
+// Authenticating using a machine account access token
 const result = await client.loginWithAccessToken(accessToken);
 if (!result.success) {
   throw Error("Authentication failed");

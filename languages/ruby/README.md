@@ -96,7 +96,18 @@ puts response
 
 ## Development
 
+Prerequisites:
+
+- Ruby >= 3.0 installed
+- Generate schemas `npm run schemas`
+
 ```bash
+# Navigate to the ruby language folder
+cd languages/ruby
+
+# Make the binary folder if it doesn't exist already
+mkdir -p ./bitwarden_sdk_secrets/lib/macos-arm64
+
 # Build and copy the bitwarden-c library
 cargo build --package bitwarden-c
 cp ../../target/debug/libbitwarden_c.dylib ./bitwarden_sdk_secrets/lib/macos-arm64/libbitwarden_c.dylib
@@ -113,8 +124,8 @@ cd ..
 export ACCESS_TOKEN=""
 export ORGANIZATION_ID=""
 
-export API_URL=https://localhost:8080/api
-export IDENTITY_URL=https://localhost:8080/identity
+export API_URL=http://localhost:4000
+export IDENTITY_URL=http://localhost:33656
 ruby examples/example.rb
 ```
 

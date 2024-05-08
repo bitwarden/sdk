@@ -1,10 +1,8 @@
-use std::num::NonZeroU32;
-
 use bitwarden_api_api::{
     apis::auth_requests_api::{auth_requests_id_response_get, auth_requests_post},
     models::{AuthRequestCreateRequestModel, AuthRequestType},
 };
-use bitwarden_crypto::Kdf;
+use bitwarden_crypto::{Kdf, SensitiveString};
 use uuid::Uuid;
 
 use crate::{
@@ -13,7 +11,7 @@ use crate::{
         auth_request::new_auth_request,
     },
     client::{LoginMethod, UserLoginMethod},
-    error::{Error, Result},
+    error::{require, Result},
     mobile::crypto::{AuthRequestMethod, InitUserCryptoMethod, InitUserCryptoRequest},
     Client,
 };
@@ -24,7 +22,7 @@ pub struct NewAuthRequestResponse {
     device_identifier: String,
     auth_request_id: Uuid,
     access_code: String,
-    private_key: String,
+    private_key: SensitiveString,
 }
 
 pub(crate) async fn send_new_auth_request(
@@ -50,7 +48,7 @@ pub(crate) async fn send_new_auth_request(
         fingerprint: auth.fingerprint,
         email,
         device_identifier,
-        auth_request_id: res.id.ok_or(Error::MissingFields)?,
+        auth_request_id: require!(res.id),
         access_code: auth.access_code,
         private_key: auth.private_key,
     })
@@ -86,9 +84,7 @@ pub(crate) async fn complete_auth_request(
     .await?;
 
     if let IdentityTokenResponse::Authenticated(r) = response {
-        let kdf = Kdf::PBKDF2 {
-            iterations: NonZeroU32::new(600_000).unwrap(),
-        };
+        let kdf = Kdf::default();
 
         client.set_tokens(
             r.access_token.clone(),
@@ -103,11 +99,11 @@ pub(crate) async fn complete_auth_request(
 
         let method = match res.master_password_hash {
             Some(_) => AuthRequestMethod::MasterKey {
-                protected_master_key: res.key.ok_or(Error::MissingFields)?.parse()?,
-                auth_request_key: r.key.ok_or(Error::MissingFields)?.parse()?,
+                protected_master_key: require!(res.key).parse()?,
+                auth_request_key: require!(r.key).parse()?,
             },
             None => AuthRequestMethod::UserKey {
-                protected_user_key: res.key.ok_or(Error::MissingFields)?.parse()?,
+                protected_user_key: require!(res.key).parse()?,
             },
         };
 
@@ -116,7 +112,7 @@ pub(crate) async fn complete_auth_request(
             .initialize_user_crypto(InitUserCryptoRequest {
                 kdf_params: kdf,
                 email: auth_req.email,
-                private_key: r.private_key.ok_or(Error::MissingFields)?,
+                private_key: require!(r.private_key),
                 method: InitUserCryptoMethod::AuthRequest {
                     request_private_key: auth_req.private_key,
                     method,

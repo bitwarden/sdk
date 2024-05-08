@@ -1,4 +1,4 @@
-use bitwarden_crypto::EncString;
+use bitwarden_crypto::{EncString, MasterKey, SensitiveString};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -9,18 +9,18 @@ use crate::{
         JWTToken,
     },
     client::{LoginMethod, UserLoginMethod},
-    error::{Error, Result},
+    error::{require, Result},
     Client,
 };
 
 pub(crate) async fn login_api_key(
     client: &mut Client,
-    input: &ApiKeyLoginRequest,
+    input: ApiKeyLoginRequest,
 ) -> Result<ApiKeyLoginResponse> {
     //info!("api key logging in");
     //debug!("{:#?}, {:#?}", client, input);
 
-    let response = request_api_identity_tokens(client, input).await?;
+    let response = request_api_identity_tokens(client, &input).await?;
 
     if let IdentityTokenResponse::Authenticated(r) = &response {
         let access_token_obj: JWTToken = r.access_token.parse()?;
@@ -37,6 +37,9 @@ pub(crate) async fn login_api_key(
             r.refresh_token.clone(),
             r.expires_in,
         );
+
+        let master_key = MasterKey::derive(&input.password.into(), email.as_bytes(), &kdf)?;
+
         client.set_login_method(LoginMethod::User(UserLoginMethod::ApiKey {
             client_id: input.client_id.to_owned(),
             client_secret: input.client_secret.to_owned(),
@@ -44,14 +47,10 @@ pub(crate) async fn login_api_key(
             kdf,
         }));
 
-        let user_key: EncString = r.key.as_deref().ok_or(Error::MissingFields)?.parse()?;
-        let private_key: EncString = r
-            .private_key
-            .as_deref()
-            .ok_or(Error::MissingFields)?
-            .parse()?;
+        let user_key: EncString = require!(r.key.as_deref()).parse()?;
+        let private_key: EncString = require!(r.private_key.as_deref()).parse()?;
 
-        client.initialize_user_crypto(&input.password, user_key, private_key)?;
+        client.initialize_user_crypto_master_key(master_key, user_key, private_key)?;
     }
 
     ApiKeyLoginResponse::process_response(response)
@@ -77,7 +76,7 @@ pub struct ApiKeyLoginRequest {
     pub client_secret: String,
 
     /// Bitwarden account master password
-    pub password: String,
+    pub password: SensitiveString,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

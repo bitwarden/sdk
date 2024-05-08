@@ -1,14 +1,17 @@
-use base64::{engine::general_purpose::STANDARD, Engine};
+use base64::engine::general_purpose::STANDARD;
 use bitwarden_api_api::models::{CipherLoginModel, CipherLoginUriModel};
 use bitwarden_crypto::{
-    CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
+    CryptoError, DecryptedString, EncString, KeyDecryptable, KeyEncryptable, Sensitive,
+    SensitiveString, SensitiveVec, SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
+use hmac::digest::generic_array::GenericArray;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
+use sha2::Digest;
 
-use crate::error::{Error, Result};
+use crate::error::{require, Error, Result};
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
@@ -23,7 +26,7 @@ pub enum UriMatchType {
     Never = 5,
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct LoginUri {
@@ -32,13 +35,13 @@ pub struct LoginUri {
     pub uri_checksum: Option<EncString>,
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct LoginUriView {
-    pub uri: Option<String>,
+    pub uri: Option<DecryptedString>,
     pub r#match: Option<UriMatchType>,
-    pub uri_checksum: Option<String>,
+    pub uri_checksum: Option<DecryptedString>,
 }
 
 impl LoginUriView {
@@ -49,22 +52,28 @@ impl LoginUriView {
         let Some(cs) = &self.uri_checksum else {
             return false;
         };
-        let Ok(cs) = STANDARD.decode(cs) else {
+        let Ok(cs) = cs.clone().decode_base64(STANDARD) else {
             return false;
         };
 
-        use sha2::Digest;
-        let uri_hash = sha2::Sha256::new().chain_update(uri.as_bytes()).finalize();
+        let uri_hash: Sensitive<GenericArray<u8, _>> = Sensitive::new(Box::new(
+            sha2::Sha256::new()
+                .chain_update(uri.expose().as_bytes())
+                .finalize(),
+        ));
 
-        uri_hash.as_slice() == cs
+        cs == uri_hash.expose().as_slice()
     }
 
     pub(crate) fn generate_checksum(&mut self) {
         if let Some(uri) = &self.uri {
-            use sha2::Digest;
-            let uri_hash = sha2::Sha256::new().chain_update(uri.as_bytes()).finalize();
-            let uri_hash = STANDARD.encode(uri_hash.as_slice());
-            self.uri_checksum = Some(uri_hash);
+            let uri_hash: SensitiveVec = Sensitive::new(Box::new(
+                sha2::Sha256::new()
+                    .chain_update(uri.expose().as_bytes())
+                    .finalize(),
+            ))
+            .into();
+            self.uri_checksum = Some(uri_hash.encode_base64(STANDARD))
         }
     }
 }
@@ -88,7 +97,26 @@ pub struct Fido2Credential {
     pub creation_date: DateTime<Utc>,
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+pub struct Fido2CredentialView {
+    pub credential_id: SensitiveString,
+    pub key_type: SensitiveString,
+    pub key_algorithm: SensitiveString,
+    pub key_curve: SensitiveString,
+    pub key_value: SensitiveString,
+    pub rp_id: SensitiveString,
+    pub user_handle: Option<SensitiveString>,
+    pub user_name: Option<SensitiveString>,
+    pub counter: SensitiveString,
+    pub rp_name: Option<SensitiveString>,
+    pub user_display_name: Option<SensitiveString>,
+    pub discoverable: SensitiveString,
+    pub creation_date: DateTime<Utc>,
+}
+
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Login {
@@ -103,16 +131,16 @@ pub struct Login {
     pub fido2_credentials: Option<Vec<Fido2Credential>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct LoginView {
-    pub username: Option<String>,
-    pub password: Option<String>,
+    pub username: Option<DecryptedString>,
+    pub password: Option<DecryptedString>,
     pub password_revision_date: Option<DateTime<Utc>>,
 
     pub uris: Option<Vec<LoginUriView>>,
-    pub totp: Option<String>,
+    pub totp: Option<DecryptedString>,
     pub autofill_on_page_load: Option<bool>,
 
     // TODO: Remove this once the SDK supports state
@@ -163,6 +191,49 @@ impl KeyDecryptable<SymmetricCryptoKey, LoginView> for Login {
             totp: self.totp.decrypt_with_key(key).ok().flatten(),
             autofill_on_page_load: self.autofill_on_page_load,
             fido2_credentials: self.fido2_credentials.clone(),
+        })
+    }
+}
+
+impl KeyEncryptable<SymmetricCryptoKey, Fido2Credential> for Fido2CredentialView {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Fido2Credential, CryptoError> {
+        Ok(Fido2Credential {
+            credential_id: self.credential_id.encrypt_with_key(key)?,
+            key_type: self.key_type.encrypt_with_key(key)?,
+            key_algorithm: self.key_algorithm.encrypt_with_key(key)?,
+            key_curve: self.key_curve.encrypt_with_key(key)?,
+            key_value: self.key_value.encrypt_with_key(key)?,
+            rp_id: self.rp_id.encrypt_with_key(key)?,
+            user_handle: self.user_handle.encrypt_with_key(key)?,
+            user_name: self.user_name.encrypt_with_key(key)?,
+            counter: self.counter.encrypt_with_key(key)?,
+            rp_name: self.rp_name.encrypt_with_key(key)?,
+            user_display_name: self.user_display_name.encrypt_with_key(key)?,
+            discoverable: self.discoverable.encrypt_with_key(key)?,
+            creation_date: self.creation_date,
+        })
+    }
+}
+
+impl KeyDecryptable<SymmetricCryptoKey, Fido2CredentialView> for Fido2Credential {
+    fn decrypt_with_key(
+        &self,
+        key: &SymmetricCryptoKey,
+    ) -> Result<Fido2CredentialView, CryptoError> {
+        Ok(Fido2CredentialView {
+            credential_id: self.credential_id.decrypt_with_key(key)?,
+            key_type: self.key_type.decrypt_with_key(key)?,
+            key_algorithm: self.key_algorithm.decrypt_with_key(key)?,
+            key_curve: self.key_curve.decrypt_with_key(key)?,
+            key_value: self.key_value.decrypt_with_key(key)?,
+            rp_id: self.rp_id.decrypt_with_key(key)?,
+            user_handle: self.user_handle.decrypt_with_key(key)?,
+            user_name: self.user_name.decrypt_with_key(key)?,
+            counter: self.counter.decrypt_with_key(key)?,
+            rp_name: self.rp_name.decrypt_with_key(key)?,
+            user_display_name: self.user_display_name.decrypt_with_key(key)?,
+            discoverable: self.discoverable.decrypt_with_key(key)?,
+            creation_date: self.creation_date,
         })
     }
 }
@@ -222,22 +293,22 @@ impl TryFrom<bitwarden_api_api::models::CipherFido2CredentialModel> for Fido2Cre
 
     fn try_from(value: bitwarden_api_api::models::CipherFido2CredentialModel) -> Result<Self> {
         Ok(Self {
-            credential_id: value.credential_id.ok_or(Error::MissingFields)?.parse()?,
-            key_type: value.key_type.ok_or(Error::MissingFields)?.parse()?,
-            key_algorithm: value.key_algorithm.ok_or(Error::MissingFields)?.parse()?,
-            key_curve: value.key_curve.ok_or(Error::MissingFields)?.parse()?,
-            key_value: value.key_value.ok_or(Error::MissingFields)?.parse()?,
-            rp_id: value.rp_id.ok_or(Error::MissingFields)?.parse()?,
+            credential_id: require!(value.credential_id).parse()?,
+            key_type: require!(value.key_type).parse()?,
+            key_algorithm: require!(value.key_algorithm).parse()?,
+            key_curve: require!(value.key_curve).parse()?,
+            key_value: require!(value.key_value).parse()?,
+            rp_id: require!(value.rp_id).parse()?,
             user_handle: EncString::try_from_optional(value.user_handle)
                 .ok()
                 .flatten(),
             user_name: EncString::try_from_optional(value.user_name).ok().flatten(),
-            counter: value.counter.ok_or(Error::MissingFields)?.parse()?,
+            counter: require!(value.counter).parse()?,
             rp_name: EncString::try_from_optional(value.rp_name).ok().flatten(),
             user_display_name: EncString::try_from_optional(value.user_display_name)
                 .ok()
                 .flatten(),
-            discoverable: value.discoverable.ok_or(Error::MissingFields)?.parse()?,
+            discoverable: require!(value.discoverable).parse()?,
             creation_date: value.creation_date.parse()?,
         })
     }
@@ -245,12 +316,16 @@ impl TryFrom<bitwarden_api_api::models::CipherFido2CredentialModel> for Fido2Cre
 
 #[cfg(test)]
 mod tests {
+    use bitwarden_crypto::SensitiveString;
+
     #[test]
     fn test_valid_checksum() {
         let uri = super::LoginUriView {
-            uri: Some("https://example.com".to_string()),
+            uri: Some(SensitiveString::test("https://example.com")),
             r#match: Some(super::UriMatchType::Domain),
-            uri_checksum: Some("EAaArVRs5qV39C9S3zO0z9ynVoWeZkuNfeMpsVDQnOk=".to_string()),
+            uri_checksum: Some(SensitiveString::test(
+                "EAaArVRs5qV39C9S3zO0z9ynVoWeZkuNfeMpsVDQnOk=",
+            )),
         };
         assert!(uri.is_checksum_valid());
     }
@@ -258,9 +333,11 @@ mod tests {
     #[test]
     fn test_invalid_checksum() {
         let uri = super::LoginUriView {
-            uri: Some("https://example.com".to_string()),
+            uri: Some(SensitiveString::test("https://example.com")),
             r#match: Some(super::UriMatchType::Domain),
-            uri_checksum: Some("UtSgIv8LYfEdOu7yqjF7qXWhmouYGYC8RSr7/ryZg5Q=".to_string()),
+            uri_checksum: Some(SensitiveString::test(
+                "UtSgIv8LYfEdOu7yqjF7qXWhmouYGYC8RSr7/ryZg5Q=",
+            )),
         };
         assert!(!uri.is_checksum_valid());
     }
@@ -268,7 +345,7 @@ mod tests {
     #[test]
     fn test_missing_checksum() {
         let uri = super::LoginUriView {
-            uri: Some("https://example.com".to_string()),
+            uri: Some(SensitiveString::test("https://example.com")),
             r#match: Some(super::UriMatchType::Domain),
             uri_checksum: None,
         };
@@ -278,7 +355,7 @@ mod tests {
     #[test]
     fn test_generate_checksum() {
         let mut uri = super::LoginUriView {
-            uri: Some("https://test.com".to_string()),
+            uri: Some(SensitiveString::test("https://test.com")),
             r#match: Some(super::UriMatchType::Domain),
             uri_checksum: None,
         };
@@ -286,7 +363,7 @@ mod tests {
         uri.generate_checksum();
 
         assert_eq!(
-            uri.uri_checksum.unwrap().as_str(),
+            uri.uri_checksum.unwrap().expose(),
             "OWk2vQvwYD1nhLZdA+ltrpBWbDa2JmHyjUEWxRZSS8w="
         );
     }

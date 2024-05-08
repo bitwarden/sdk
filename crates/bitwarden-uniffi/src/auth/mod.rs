@@ -4,7 +4,9 @@ use bitwarden::auth::{
     password::MasterPasswordPolicyOptions, AuthRequestResponse, RegisterKeyResponse,
     RegisterTdeKeyResponse,
 };
-use bitwarden_crypto::{AsymmetricEncString, HashPurpose, Kdf, TrustDeviceResponse};
+use bitwarden_crypto::{
+    AsymmetricEncString, HashPurpose, Kdf, SensitiveString, TrustDeviceResponse,
+};
 
 use crate::{error::Result, Client};
 
@@ -16,7 +18,7 @@ impl ClientAuth {
     /// **API Draft:** Calculate Password Strength
     pub async fn password_strength(
         &self,
-        password: String,
+        password: SensitiveString,
         email: String,
         additional_inputs: Vec<String>,
     ) -> u8 {
@@ -32,7 +34,7 @@ impl ClientAuth {
     /// Evaluate if the provided password satisfies the provided policy
     pub async fn satisfies_policy(
         &self,
-        password: String,
+        password: SensitiveString,
         strength: u8,
         policy: MasterPasswordPolicyOptions,
     ) -> bool {
@@ -49,10 +51,10 @@ impl ClientAuth {
     pub async fn hash_password(
         &self,
         email: String,
-        password: String,
+        password: SensitiveString,
         kdf_params: Kdf,
         purpose: HashPurpose,
-    ) -> Result<String> {
+    ) -> Result<SensitiveString> {
         Ok(self
             .0
              .0
@@ -67,7 +69,7 @@ impl ClientAuth {
     pub async fn make_register_keys(
         &self,
         email: String,
-        password: String,
+        password: SensitiveString,
         kdf: Kdf,
     ) -> Result<RegisterKeyResponse> {
         Ok(self
@@ -82,16 +84,15 @@ impl ClientAuth {
     /// Generate keys needed for TDE process
     pub async fn make_register_tde_keys(
         &self,
+        email: String,
         org_public_key: String,
         remember_device: bool,
     ) -> Result<RegisterTdeKeyResponse> {
-        Ok(self
-            .0
-             .0
-            .write()
-            .await
-            .auth()
-            .make_register_tde_keys(org_public_key, remember_device)?)
+        Ok(self.0 .0.write().await.auth().make_register_tde_keys(
+            email,
+            org_public_key,
+            remember_device,
+        )?)
     }
 
     /// Validate the user password
@@ -99,14 +100,18 @@ impl ClientAuth {
     /// To retrieve the user's password hash, use [`ClientAuth::hash_password`] with
     /// `HashPurpose::LocalAuthentication` during login and persist it. If the login method has no
     /// password, use the email OTP.
-    pub async fn validate_password(&self, password: String, password_hash: String) -> Result<bool> {
+    pub async fn validate_password(
+        &self,
+        password: SensitiveString,
+        password_hash: SensitiveString,
+    ) -> Result<bool> {
         Ok(self
             .0
              .0
             .write()
             .await
             .auth()
-            .validate_password(password, password_hash.to_string())?)
+            .validate_password(password, password_hash)?)
     }
 
     /// Validate the user password without knowing the password hash
@@ -117,9 +122,9 @@ impl ClientAuth {
     /// This works by comparing the provided password against the encrypted user key.
     pub async fn validate_password_user_key(
         &self,
-        password: String,
+        password: SensitiveString,
         encrypted_user_key: String,
-    ) -> Result<String> {
+    ) -> Result<SensitiveString> {
         Ok(self
             .0
              .0

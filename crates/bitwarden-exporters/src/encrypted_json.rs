@@ -1,5 +1,7 @@
-use base64::{engine::general_purpose::STANDARD, Engine};
-use bitwarden_crypto::{generate_random_bytes, Kdf, KeyEncryptable, PinKey};
+use base64::engine::general_purpose::STANDARD;
+use bitwarden_crypto::{
+    generate_random_bytes, Kdf, KeyEncryptable, PinKey, Sensitive, SensitiveString, SensitiveVec,
+};
 use serde::Serialize;
 use thiserror::Error;
 use uuid::Uuid;
@@ -24,7 +26,7 @@ pub enum EncryptedJsonError {
 pub(crate) fn export_encrypted_json(
     folders: Vec<Folder>,
     ciphers: Vec<Cipher>,
-    password: String,
+    password: SensitiveString,
     kdf: Kdf,
 ) -> Result<String, EncryptedJsonError> {
     let decrypted_export = export_json(folders, ciphers)?;
@@ -43,16 +45,16 @@ pub(crate) fn export_encrypted_json(
         ),
     };
 
-    let salt: [u8; 16] = generate_random_bytes();
-    let salt = STANDARD.encode(salt);
-    let key = PinKey::derive(password.as_bytes(), salt.as_bytes(), &kdf)?;
+    let salt: Sensitive<[u8; 16]> = generate_random_bytes();
+    let salt = SensitiveVec::from(salt).encode_base64(STANDARD);
+    let key = PinKey::derive(&password.into(), salt.expose().as_bytes(), &kdf)?;
 
     let enc_key_validation = Uuid::new_v4().to_string();
 
     let encrypted_export = EncryptedJsonExport {
         encrypted: true,
         password_protected: true,
-        salt,
+        salt: salt.expose().to_string(),
         kdf_type,
         kdf_iterations,
         kdf_memory,
@@ -83,6 +85,8 @@ pub(crate) struct EncryptedJsonExport {
 mod tests {
     use std::num::NonZeroU32;
 
+    use bitwarden_crypto::DecryptedString;
+
     use super::*;
     use crate::{
         Card, Cipher, CipherType, Field, Identity, Login, LoginUri, SecureNote, SecureNoteType,
@@ -93,24 +97,24 @@ mod tests {
         let _export = export_encrypted_json(
             vec![Folder {
                 id: "942e2984-1b9a-453b-b039-b107012713b9".parse().unwrap(),
-                name: "Important".to_string(),
+                name: DecryptedString::test("Important"),
             }],
             vec![
                 Cipher {
                     id: "25c8c414-b446-48e9-a1bd-b10700bbd740".parse().unwrap(),
                     folder_id: Some("942e2984-1b9a-453b-b039-b107012713b9".parse().unwrap()),
 
-                    name: "Bitwarden".to_string(),
-                    notes: Some("My note".to_string()),
+                    name: DecryptedString::test("Bitwarden"),
+                    notes: Some(DecryptedString::test("My note")),
 
                     r#type: CipherType::Login(Box::new(Login {
-                        username: Some("test@bitwarden.com".to_string()),
-                        password: Some("asdfasdfasdf".to_string()),
+                        username: Some(DecryptedString::test("test@bitwarden.com")),
+                        password: Some(DecryptedString::test("asdfasdfasdf")),
                         login_uris: vec![LoginUri {
-                            uri: Some("https://vault.bitwarden.com".to_string()),
+                            uri: Some(DecryptedString::test("https://vault.bitwarden.com")),
                             r#match: None,
                         }],
-                        totp: Some("ABC".to_string()),
+                        totp: Some(DecryptedString::test("ABC")),
                     })),
 
                     favorite: true,
@@ -118,31 +122,31 @@ mod tests {
 
                     fields: vec![
                         Field {
-                            name: Some("Text".to_string()),
-                            value: Some("A".to_string()),
+                            name: Some(DecryptedString::test("Text")),
+                            value: Some(DecryptedString::test("A")),
                             r#type: 0,
                             linked_id: None,
                         },
                         Field {
-                            name: Some("Hidden".to_string()),
-                            value: Some("B".to_string()),
+                            name: Some(DecryptedString::test("Hidden")),
+                            value: Some(DecryptedString::test("B")),
                             r#type: 1,
                             linked_id: None,
                         },
                         Field {
-                            name: Some("Boolean (true)".to_string()),
-                            value: Some("true".to_string()),
+                            name: Some(DecryptedString::test("Boolean (true)")),
+                            value: Some(DecryptedString::test("true")),
                             r#type: 2,
                             linked_id: None,
                         },
                         Field {
-                            name: Some("Boolean (false)".to_string()),
-                            value: Some("false".to_string()),
+                            name: Some(DecryptedString::test("Boolean (false)")),
+                            value: Some(DecryptedString::test("false")),
                             r#type: 2,
                             linked_id: None,
                         },
                         Field {
-                            name: Some("Linked".to_string()),
+                            name: Some(DecryptedString::test("Linked")),
                             value: None,
                             r#type: 3,
                             linked_id: Some(101),
@@ -157,8 +161,8 @@ mod tests {
                     id: "23f0f877-42b1-4820-a850-b10700bc41eb".parse().unwrap(),
                     folder_id: None,
 
-                    name: "My secure note".to_string(),
-                    notes: Some("Very secure!".to_string()),
+                    name: DecryptedString::test("My secure note"),
+                    notes: Some(DecryptedString::test("Very secure!")),
 
                     r#type: CipherType::SecureNote(Box::new(SecureNote {
                         r#type: SecureNoteType::Generic,
@@ -177,16 +181,16 @@ mod tests {
                     id: "3ed8de45-48ee-4e26-a2dc-b10701276c53".parse().unwrap(),
                     folder_id: None,
 
-                    name: "My card".to_string(),
+                    name: DecryptedString::test("My card"),
                     notes: None,
 
                     r#type: CipherType::Card(Box::new(Card {
-                        cardholder_name: Some("John Doe".to_string()),
-                        exp_month: Some("1".to_string()),
-                        exp_year: Some("2032".to_string()),
-                        code: Some("123".to_string()),
-                        brand: Some("Visa".to_string()),
-                        number: Some("4111111111111111".to_string()),
+                        cardholder_name: Some(DecryptedString::test("John Doe")),
+                        exp_month: Some(DecryptedString::test("1")),
+                        exp_year: Some(DecryptedString::test("2032")),
+                        code: Some(DecryptedString::test("123")),
+                        brand: Some(DecryptedString::test("Visa")),
+                        number: Some(DecryptedString::test("4111111111111111")),
                     })),
 
                     favorite: false,
@@ -202,14 +206,14 @@ mod tests {
                     id: "41cc3bc1-c3d9-4637-876c-b10701273712".parse().unwrap(),
                     folder_id: Some("942e2984-1b9a-453b-b039-b107012713b9".parse().unwrap()),
 
-                    name: "My identity".to_string(),
+                    name: DecryptedString::test("My identity"),
                     notes: None,
 
                     r#type: CipherType::Identity(Box::new(Identity {
-                        title: Some("Mr".to_string()),
-                        first_name: Some("John".to_string()),
+                        title: Some(DecryptedString::test("Mr")),
+                        first_name: Some(DecryptedString::test("John")),
                         middle_name: None,
-                        last_name: Some("Doe".to_string()),
+                        last_name: Some(DecryptedString::test("Doe")),
                         address1: None,
                         address2: None,
                         address3: None,
@@ -217,11 +221,11 @@ mod tests {
                         state: None,
                         postal_code: None,
                         country: None,
-                        company: Some("Bitwarden".to_string()),
+                        company: Some(DecryptedString::test("Bitwarden")),
                         email: None,
                         phone: None,
                         ssn: None,
-                        username: Some("JDoe".to_string()),
+                        username: Some(DecryptedString::test("JDoe")),
                         passport_number: None,
                         license_number: None,
                     })),
@@ -236,7 +240,7 @@ mod tests {
                     deleted_date: None,
                 },
             ],
-            "password".to_string(),
+            SensitiveString::test("password"),
             Kdf::PBKDF2 {
                 iterations: NonZeroU32::new(600_000).unwrap(),
             },

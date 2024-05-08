@@ -1,7 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::error::{Error, Result};
+use crate::error::{require, Error, Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 pub struct GlobalDomains {
@@ -15,9 +15,9 @@ impl TryFrom<bitwarden_api_api::models::GlobalDomains> for GlobalDomains {
 
     fn try_from(global_domains: bitwarden_api_api::models::GlobalDomains) -> Result<Self> {
         Ok(Self {
-            r#type: global_domains.r#type.ok_or(Error::MissingFields)?,
-            domains: global_domains.domains.ok_or(Error::MissingFields)?,
-            excluded: global_domains.excluded.ok_or(Error::MissingFields)?,
+            r#type: require!(global_domains.r#type),
+            domains: require!(global_domains.domains),
+            excluded: require!(global_domains.excluded),
         })
     }
 }

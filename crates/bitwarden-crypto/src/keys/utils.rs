@@ -3,12 +3,17 @@ use std::pin::Pin;
 use generic_array::{typenum::U32, GenericArray};
 use sha2::Digest;
 
-use crate::{util::hkdf_expand, Kdf, Result, SymmetricCryptoKey};
+use crate::{util::hkdf_expand, Kdf, Result, Sensitive, SensitiveVec, SymmetricCryptoKey};
 
 /// Derive a generic key from a secret and salt using the provided KDF.
-pub(super) fn derive_kdf_key(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<SymmetricCryptoKey> {
-    let mut hash = match kdf {
-        Kdf::PBKDF2 { iterations } => crate::util::pbkdf2(secret, salt, iterations.get()),
+#[inline(always)]
+pub(super) fn derive_kdf_key(
+    secret: &SensitiveVec,
+    salt: &[u8],
+    kdf: &Kdf,
+) -> Result<SymmetricCryptoKey> {
+    let hash = match kdf {
+        Kdf::PBKDF2 { iterations } => crate::util::pbkdf2(secret.expose(), salt, iterations.get()),
 
         Kdf::Argon2id {
             iterations,
@@ -25,20 +30,27 @@ pub(super) fn derive_kdf_key(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<Sy
                     iterations.get(),
                     parallelism.get(),
                     Some(32),
-                )
-                .unwrap(),
+                )?,
             );
 
             let salt_sha = sha2::Sha256::new().chain_update(salt).finalize();
 
-            let mut hash = [0u8; 32];
-            argon
-                .hash_password_into(secret, &salt_sha, &mut hash)
-                .unwrap();
+            let mut hash = Sensitive::new(Box::new([0u8; 32]));
+            let mut blocks = Sensitive::new(Box::new(vec![
+                argon2::Block::default();
+                argon.params().block_count()
+            ]));
+            argon.hash_password_into_with_memory(
+                secret.expose(),
+                &salt_sha,
+                hash.expose_mut(),
+                blocks.expose_mut(),
+            )?;
             hash
         }
     };
-    SymmetricCryptoKey::try_from(hash.as_mut_slice())
+
+    SymmetricCryptoKey::try_from(hash)
 }
 
 pub(super) fn stretch_kdf_key(k: &SymmetricCryptoKey) -> Result<SymmetricCryptoKey> {

@@ -1,11 +1,11 @@
 [package]
 name = "bitwarden"
-version = "0.4.0"
 description = """
 Bitwarden Secrets Manager SDK
 """
 keywords = ["bitwarden", "secrets-manager"]
 
+version.workspace = true
 authors.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -31,7 +31,8 @@ mobile = [
 wasm-bindgen = ["chrono/wasmbind"]
 
 [dependencies]
-base64 = ">=0.21.2, <0.22"
+async-trait = ">=0.1.80, <0.2"
+base64 = ">=0.21.2, <0.23"
 bitwarden-api-api = { workspace = true }
 bitwarden-api-identity = { workspace = true }
 bitwarden-crypto = { workspace = true }
@@ -46,19 +47,21 @@ chrono = { version = ">=0.4.26, <0.5", features = [
 getrandom = { version = ">=0.2.9, <0.3", features = ["js"] }
 hmac = ">=0.12.1, <0.13"
 log = ">=0.4.18, <0.5"
+passkey = { git = "https://github.com/bitwarden/passkey-rs", rev = "12da886102707f87ad97e499c857c0857ece0b85" }
 rand = ">=0.8.5, <0.9"
 reqwest = { version = ">=0.12, <0.13", features = [
+    "http2",
     "json",
 ], default-features = false }
 schemars = { version = ">=0.8.9, <0.9", features = ["uuid1", "chrono"] }
 serde = { version = ">=1.0, <2.0", features = ["derive"] }
 serde_json = ">=1.0.96, <2.0"
-serde_qs = ">=0.12.0, <0.13"
+serde_qs = ">=0.12.0, <0.14"
 serde_repr = ">=0.1.12, <0.2"
 sha1 = ">=0.10.5, <0.11"
 sha2 = ">=0.10.6, <0.11"
 thiserror = ">=1.0.40, <2.0"
-uniffi = { version = "=0.26.1", optional = true, features = ["tokio"] }
+uniffi = { version = "=0.27.1", optional = true, features = ["tokio"] }
 uuid = { version = ">=1.3.3, <2.0", features = ["serde"] }
 zxcvbn = ">= 2.2.2, <3.0"
 
@@ -67,7 +70,7 @@ zxcvbn = ">= 2.2.2, <3.0"
 # There are a few exceptions to this:
 # - WASM doesn't require a TLS stack, as it just uses the browsers/node fetch
 # - Android uses webpki-roots for the moment
-reqwest = { version = "*", features = [
+reqwest = { version = ">=0.12, <0.13", features = [
     "rustls-tls-manual-roots",
 ], default-features = false }
 rustls-platform-verifier = "0.2.0"
@@ -75,12 +78,16 @@ rustls-platform-verifier = "0.2.0"
 [target.'cfg(target_os = "android")'.dependencies]
 # On android, the use of rustls-platform-verifier is more complicated and going through some changes at the moment, so we fall back to using webpki-roots
 # This means that for the moment android won't support self-signed certificates, even if they are included in the OS trust store
-reqwest = { version = "*", features = [
+reqwest = { version = ">=0.12, <0.13", features = [
     "rustls-tls-webpki-roots",
 ], default-features = false }
 
 [dev-dependencies]
+bitwarden-crypto = { workspace = true, features = ["test"] }
 rand_chacha = "0.3.1"
 tokio = { version = "1.36.0", features = ["rt", "macros"] }
 wiremock = "0.6.0"
 zeroize = { version = ">=1.7.0, <2.0", features = ["derive", "aarch64"] }
+
+[lints]
+workspace = true

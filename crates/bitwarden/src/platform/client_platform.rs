@@ -1,6 +1,6 @@
 use super::{
     generate_fingerprint::{generate_fingerprint, generate_user_fingerprint},
-    FingerprintRequest, FingerprintResponse,
+    ClientFido2, FingerprintRequest, FingerprintResponse,
 };
 use crate::{error::Result, Client};
 
@@ -15,6 +15,14 @@ impl<'a> ClientPlatform<'a> {
 
     pub fn user_fingerprint(self, fingerprint_material: String) -> Result<String> {
         generate_user_fingerprint(self.client, fingerprint_material)
+    }
+
+    /// At the moment this is just a stub implementation that doesn't do anything. It's here to make
+    /// it possible to check the usability API on the native clients.
+    pub fn fido2(&'a mut self) -> ClientFido2<'a> {
+        ClientFido2 {
+            client: self.client,
+        }
     }
 }
 

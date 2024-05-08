@@ -146,7 +146,7 @@ jobs:
           artifacts=("x86_64-apple-darwin" "x86_64-unknown-linux-gnu") # "x86_64-pc-windows-msvc" "aarch64-apple-darwin" "aarch64-unknown-linux-gnu")
           for value in "${artifacts[@]}"
           do
-            mv libbitwarden_cpp-$value.zip libbitwarden_c_files-$value-$_PKG_VERSION.zip
+            mv libbitwarden_cpp-$value.zip libbitwarden_cpp_files-$value-$_PKG_VERSION.zip
           done
 
       - name: Create release
@@ -164,4 +164,6 @@ jobs:
             libbitwarden_c_files-aarch64-apple-darwin-${{ env._PKG_VERSION }}.zip,
             libbitwarden_c_files-x86_64-unknown-linux-gnu-${{ env._PKG_VERSION }}.zip,
             libbitwarden_c_files-x86_64-pc-windows-msvc-${{ env._PKG_VERSION }}.zip,
+            libbitwarden_cpp_files-x86_64-unknown-linux-gnu-${{ env._PKG_VERSION }}.zip,
+            libbitwarden_cpp_files-x86_64-apple-darwin-${{ env._PKG_VERSION }}.zip,
             sdk-schemas-cpp-${{ env._PKG_VERSION }}.zip"

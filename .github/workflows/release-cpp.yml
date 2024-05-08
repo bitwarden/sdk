@@ -149,11 +149,6 @@ jobs:
             mv libbitwarden_cpp-$value.zip libbitwarden_c_files-$value-$_PKG_VERSION.zip
           done
 
-      - name: Calculate SHA512 checksums
-        run: |
-          sha512sum -b libbitwarden_c_files-*.zip
-          sha512sum -b sdk-schemas-cpp-*.zip
-
       - name: Create release
         if: ${{ inputs.release_type != 'Dry Run' }}
         uses: ncipollo/release-action@6c75be85e571768fa31b40abf38de58ba0397db5 # v1.13.0

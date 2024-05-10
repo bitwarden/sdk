@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+      - rc
+      - hotfix-rc
+  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -60,10 +63,6 @@ jobs:
           name: libbitwarden_c_files-x86_64-pc-windows-msvc
           path: languages/java/src/main/resources/win32-x86-64
 
-      - name: Publish Maven
-        uses: gradle/actions/setup-gradle@db19848a5fa7950289d3668fb053140cf3028d43 # v3.3.2
-        with:
-          arguments: publish
-          build-root-directory: languages/java
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build Maven
+        run: ./gradlew build
+        working-directory: languages/java

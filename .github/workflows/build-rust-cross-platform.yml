@@ -58,7 +58,7 @@ jobs:
       - name: Build Rust
         env:
           RUSTFLAGS: "-D warnings"
-        run: cargo zigbuild --target ${{ matrix.settings.target }} --release
+        run: cargo zigbuild -p bitwarden-c --target ${{ matrix.settings.target }} --release
 
       - name: Upload Artifact
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3

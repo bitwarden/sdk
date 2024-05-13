@@ -146,6 +146,7 @@ impl<'a> Fido2Authenticator<'a> {
         })
     }
 
+    // TODO(Fido2): We need some changes in the passkey crate to do this
     pub async fn silently_discover_credentials(
         &mut self,
         rp_id: String,

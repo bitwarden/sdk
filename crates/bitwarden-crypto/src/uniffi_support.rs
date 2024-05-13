@@ -74,3 +74,10 @@ impl UniffiCustomTypeConverter for SensitiveVec {
         obj.expose().to_owned()
     }
 }
+
+/// Uniffi doesn't seem to be generating the SensitiveVec unless it's being used by
+/// a record somewhere. This is a workaround to make sure the type is generated.
+#[derive(uniffi::Record)]
+struct SupportSensitiveVec {
+    sensitive_string: SensitiveVec,
+}

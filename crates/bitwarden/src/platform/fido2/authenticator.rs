@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use std::{ops::Deref, sync::Mutex};
 
 use bitwarden_crypto::KeyEncryptable;
 use log::error;
@@ -11,12 +11,12 @@ use passkey::{
 };
 
 use super::{
-    types::*, CheckUserOptions, CipherViewContainer, CredentialStore, UserInterface, Verification,
-    AAGUID,
+    types::*, CheckUserOptions, CipherViewContainer, CredentialStore, SelectedCredential,
+    UserInterface, Verification, AAGUID,
 };
 use crate::{
-    error::{Error, Result},
-    vault::{login::Fido2CredentialView, Fido2CredentialFullView},
+    error::{require, Error, Result},
+    vault::{login::Fido2CredentialView, CipherView, Fido2CredentialFullView},
     Client,
 };
 
@@ -24,6 +24,8 @@ pub struct Fido2Authenticator<'a> {
     pub(crate) client: &'a mut Client,
     pub(crate) user_interface: &'a dyn UserInterface,
     pub(crate) credential_store: &'a dyn CredentialStore,
+
+    pub(crate) selected_credential: Mutex<Option<CipherView>>,
 }
 
 impl<'a> Fido2Authenticator<'a> {
@@ -129,9 +131,6 @@ impl<'a> Fido2Authenticator<'a> {
             Err(e) => return Err(format!("get_assertion error: {e:?}").into()),
         };
 
-        let enc = self.client.get_encryption_settings()?;
-        let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
-
         Ok(GetAssertionResult {
             credential_id: response
                 .auth_data
@@ -143,7 +142,7 @@ impl<'a> Fido2Authenticator<'a> {
             authenticator_data: vec![],
             signature: response.signature.into(),
             user_handle: response.user.ok_or("Missing user")?.id.into(),
-            selected_credential: super::types::get_stub_selected_credential(key)?,
+            selected_credential: self.get_selected_credential()?,
         })
     }
 
@@ -171,6 +170,22 @@ impl<'a> Fido2Authenticator<'a> {
                 authenticator: self,
             },
         )
+    }
+
+    pub(super) fn get_selected_credential(&self) -> Result<SelectedCredential> {
+        let cipher = self
+            .selected_credential
+            .lock()
+            .expect("Mutex is not poisoned")
+            .take()
+            .ok_or("No selected credential available")?;
+
+        let login = require!(cipher.login.as_ref());
+        let creds = require!(login.fido2_credentials.as_ref());
+
+        let credential = creds.first().ok_or("No Fido2 credentials found")?.clone();
+
+        Ok(SelectedCredential { cipher, credential })
     }
 }
 
@@ -209,7 +224,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             let enc = this.authenticator.client.get_encryption_settings()?;
 
             // Remove any that don't have Fido2 credentials and convert them to the container type
-            ciphers
+            let result: Vec<CipherViewContainer> = ciphers
                 .into_iter()
                 .filter(|c| {
                     c.login
@@ -218,7 +233,16 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                         .is_some()
                 })
                 .map(|c| CipherViewContainer::new(c, enc))
-                .collect()
+                .collect::<Result<_, _>>()?;
+
+            // Store the selected credential for later use
+            *this
+                .authenticator
+                .selected_credential
+                .lock()
+                .expect("Mutex is not poisoned") = result.first().map(|c| &c.cipher).cloned();
+
+            Ok(result)
         }
 
         inner(self, ids, rp_id).await.map_err(|e| {
@@ -250,19 +274,27 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
 
             let cred: Fido2CredentialFullView = cred.clone().try_into()?;
 
-            let picked = this
+            let mut picked = this
                 .authenticator
                 .user_interface
                 .pick_credential_for_creation(creds, cred.clone().into())
                 .await?;
 
             let enc = this.authenticator.client.get_encryption_settings()?;
+
+            picked.set_new_fido2_credentials(enc, vec![cred])?;
+
+            // Store the selected credential for later use
+            *this
+                .authenticator
+                .selected_credential
+                .lock()
+                .expect("Mutex is not poisoned") = Some(picked.clone());
+
             let key = enc
                 .get_key(&picked.organization_id)
                 .ok_or(Error::VaultLocked)?;
-
-            let mut encrypted = picked.encrypt_with_key(key)?;
-            encrypted.set_new_fido2_credentials(enc, vec![cred])?;
+            let encrypted = picked.encrypt_with_key(key)?;
 
             this.authenticator
                 .credential_store
@@ -300,10 +332,17 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             };
 
             let enc = this.authenticator.client.get_encryption_settings()?;
+
+            // Store the selected credential for later use
+            *this
+                .authenticator
+                .selected_credential
+                .lock()
+                .expect("Mutex is not poisoned") = Some(cred.clone());
+
             let key = enc
                 .get_key(&cred.organization_id)
                 .ok_or(Error::VaultLocked)?;
-
             let encrypted = cred.encrypt_with_key(key)?;
 
             this.authenticator

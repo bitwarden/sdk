@@ -238,25 +238,6 @@ impl Cipher {
             .transpose()
     }
 
-    #[cfg(feature = "mobile")]
-    pub(crate) fn set_new_fido2_credentials(
-        &mut self,
-        enc: &dyn KeyContainer,
-        creds: Vec<Fido2CredentialFullView>,
-    ) -> Result<()> {
-        let key = enc
-            .get_key(&self.organization_id)
-            .ok_or(Error::VaultLocked)?;
-
-        let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
-        let ciphers_key = ciphers_key.as_ref().unwrap_or(key);
-
-        require!(self.login.as_mut()).fido2_credentials =
-            Some(creds.encrypt_with_key(ciphers_key)?);
-
-        Ok(())
-    }
-
     fn get_decrypted_subtitle(
         &self,
         key: &SymmetricCryptoKey,
@@ -425,6 +406,25 @@ impl CipherView {
         }
 
         self.organization_id = Some(organization_id);
+        Ok(())
+    }
+
+    #[cfg(feature = "mobile")]
+    pub(crate) fn set_new_fido2_credentials(
+        &mut self,
+        enc: &dyn KeyContainer,
+        creds: Vec<Fido2CredentialFullView>,
+    ) -> Result<()> {
+        let key = enc
+            .get_key(&self.organization_id)
+            .ok_or(Error::VaultLocked)?;
+
+        let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
+        let ciphers_key = ciphers_key.as_ref().unwrap_or(key);
+
+        require!(self.login.as_mut()).fido2_credentials =
+            Some(creds.encrypt_with_key(ciphers_key)?);
+
         Ok(())
     }
 

@@ -1,4 +1,3 @@
-use bitwarden_crypto::SensitiveVec;
 use serde::Serialize;
 
 use super::{get_enum_from_string_name, SelectedCredential};
@@ -226,64 +225,4 @@ pub struct AuthenticatorAssertionResponse {
     pub authenticator_data: Vec<u8>,
     pub signature: Vec<u8>,
     pub user_handle: Vec<u8>,
-}
-
-pub fn get_stub_selected_credential(
-    key: &bitwarden_crypto::SymmetricCryptoKey,
-) -> crate::error::Result<SelectedCredential> {
-    use bitwarden_crypto::{KeyEncryptable, SensitiveString};
-
-    Ok(SelectedCredential {
-        cipher: crate::vault::CipherView {
-            id: Some(uuid::Uuid::new_v4()),
-            organization_id: None,
-            folder_id: None,
-            collection_ids: vec![],
-            key: None,
-            name: SensitiveString::new(Box::new("".to_string())),
-            notes: Some(SensitiveString::new(Box::new("".to_string()))),
-            r#type: crate::vault::CipherType::Login,
-            login: Some(crate::vault::login::LoginView {
-                username: None,
-                password: None,
-                password_revision_date: None,
-                uris: None,
-                totp: None,
-                autofill_on_page_load: None,
-                fido2_credentials: Some(vec![]),
-            }),
-            identity: None,
-            card: None,
-            secure_note: None,
-            favorite: false,
-            reprompt: crate::vault::CipherRepromptType::None,
-            organization_use_totp: true,
-            edit: true,
-            view_password: true,
-            local_data: None,
-            attachments: Some(vec![]),
-            fields: Some(vec![]),
-            password_history: Some(vec![]),
-            creation_date: chrono::offset::Utc::now(),
-            deleted_date: None,
-            revision_date: chrono::offset::Utc::now(),
-        },
-        credential: crate::vault::Fido2CredentialView {
-            credential_id: SensitiveString::new(Box::new(
-                "01234567-89ab-cdef-0123-456789abcdef".to_owned(),
-            )),
-            key_type: SensitiveString::new(Box::new("public-key".to_owned())),
-            key_algorithm: SensitiveString::new(Box::new("ECDSA".to_owned())),
-            key_curve: SensitiveString::new(Box::new("P-256".to_owned())),
-            key_value: [].encrypt_with_key(key)?,
-            rp_id: SensitiveString::new(Box::default()),
-            rp_name: None,
-            user_handle: Some(SensitiveVec::new(Box::default())),
-            counter: SensitiveString::new(Box::new("0".to_owned())),
-            user_name: None,
-            user_display_name: None,
-            discoverable: SensitiveString::new(Box::new("true".to_owned())),
-            creation_date: chrono::offset::Utc::now(),
-        },
-    })
 }

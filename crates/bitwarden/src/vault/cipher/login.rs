@@ -178,27 +178,24 @@ impl From<Fido2CredentialFullView> for Fido2CredentialNewView {
     }
 }
 
-impl KeyEncryptable<SymmetricCryptoKey, Fido2Credential> for Fido2CredentialFullView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Fido2Credential, CryptoError> {
-        Ok(Fido2Credential {
-            credential_id: self.credential_id.encrypt_with_key(key)?,
-            key_type: self.key_type.encrypt_with_key(key)?,
-            key_algorithm: self.key_algorithm.encrypt_with_key(key)?,
-            key_curve: self.key_curve.encrypt_with_key(key)?,
+impl KeyEncryptable<SymmetricCryptoKey, Fido2CredentialView> for Fido2CredentialFullView {
+    fn encrypt_with_key(
+        self,
+        key: &SymmetricCryptoKey,
+    ) -> Result<Fido2CredentialView, CryptoError> {
+        Ok(Fido2CredentialView {
+            credential_id: self.credential_id,
+            key_type: self.key_type,
+            key_algorithm: self.key_algorithm,
+            key_curve: self.key_curve,
             key_value: self.key_value.expose().encrypt_with_key(key)?,
-            rp_id: self.rp_id.encrypt_with_key(key)?,
-            user_handle: self
-                .user_handle
-                .map(|h| h.expose().encrypt_with_key(key))
-                .transpose()?,
-            user_name: self
-                .user_name
-                .map(|n| n.encrypt_with_key(key))
-                .transpose()?,
-            counter: self.counter.encrypt_with_key(key)?,
-            rp_name: self.rp_name.encrypt_with_key(key)?,
-            user_display_name: self.user_display_name.encrypt_with_key(key)?,
-            discoverable: self.discoverable.encrypt_with_key(key)?,
+            rp_id: self.rp_id,
+            user_handle: self.user_handle,
+            user_name: self.user_name,
+            counter: self.counter,
+            rp_name: self.rp_name,
+            user_display_name: self.user_display_name,
+            discoverable: self.discoverable,
             creation_date: self.creation_date,
         })
     }

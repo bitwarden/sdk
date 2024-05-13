@@ -1,3 +1,5 @@
+use std::sync::Mutex;
+
 use bitwarden_crypto::{KeyContainer, SensitiveString, SensitiveVec};
 use passkey::types::{ctap2::Aaguid, Passkey};
 
@@ -45,6 +47,7 @@ impl<'a> ClientFido2<'a> {
             client: self.client,
             user_interface,
             credential_store,
+            selected_credential: Mutex::new(None),
         })
     }
 
@@ -67,10 +70,11 @@ pub struct SelectedCredential {
     credential: Fido2CredentialView,
 }
 
+// This container is needed so we can properly implement the TryFrom trait for Passkey
+// Otherwise we need to decrypt the Fido2 credentials every time we create a CipherView
 #[derive(Clone)]
-struct CipherViewContainer {
+pub(crate) struct CipherViewContainer {
     cipher: CipherView,
-    // This is the list of decrypted Fido2 credentials, including their keys
     fido2_credentials: Vec<Fido2CredentialFullView>,
 }
 

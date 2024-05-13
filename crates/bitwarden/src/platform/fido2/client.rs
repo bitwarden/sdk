@@ -3,13 +3,13 @@ use reqwest::Url;
 use super::{
     get_string_name_from_enum,
     types::{
-        get_stub_selected_credential, AuthenticatorAssertionResponse,
-        AuthenticatorAttestationResponse, ClientData, ClientExtensionResults, CredPropsResult,
+        AuthenticatorAssertionResponse, AuthenticatorAttestationResponse, ClientData,
+        ClientExtensionResults, CredPropsResult,
     },
     Fido2Authenticator, PublicKeyCredentialAuthenticatorAssertionResponse,
     PublicKeyCredentialAuthenticatorAttestationResponse,
 };
-use crate::error::{Error, Result};
+use crate::error::Result;
 
 pub struct Fido2Client<'a> {
     pub(crate) authenticator: Fido2Authenticator<'a>,
@@ -35,9 +35,6 @@ impl<'a> Fido2Client<'a> {
 
         let result = client.register(&origin, request, client_data).await?;
 
-        let enc = self.authenticator.client.get_encryption_settings()?;
-        let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
-
         Ok(PublicKeyCredentialAuthenticatorAttestationResponse {
             id: result.id,
             raw_id: result.raw_id.into(),
@@ -61,7 +58,7 @@ impl<'a> Fido2Client<'a> {
                     Some(vec!["internal".to_string()])
                 },
             },
-            selected_credential: get_stub_selected_credential(key)?,
+            selected_credential: self.authenticator.get_selected_credential()?,
         })
     }
 
@@ -81,9 +78,6 @@ impl<'a> Fido2Client<'a> {
             serde_json::from_str(&request)?;
 
         let result = client.authenticate(&origin, request, client_data).await?;
-
-        let enc = self.authenticator.client.get_encryption_settings()?;
-        let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
 
         Ok(PublicKeyCredentialAuthenticatorAssertionResponse {
             id: result.id,
@@ -110,7 +104,7 @@ impl<'a> Fido2Client<'a> {
                 signature: result.response.signature.into(),
                 user_handle: result.response.user_handle.unwrap_or_default().into(),
             },
-            selected_credential: get_stub_selected_credential(key)?,
+            selected_credential: self.authenticator.get_selected_credential()?,
         })
     }
 }

@@ -387,8 +387,8 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
         &self,
         credential: Option<Self::PasskeyItem>,
         presence: bool,
-        // TODO(Fido2): This is not used as we're using the UV stored in get_assertion and make_credential
-        // Should we validate that it matches with what we stored?
+        // TODO(Fido2): This is not used as we're using the UV stored in get_assertion and
+        // make_credential Should we validate that it matches with what we stored?
         _verification: bool,
     ) -> Result<UserCheck, Ctap2Error> {
         let verification_enabled = self
@@ -437,12 +437,16 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
         })
     }
 
-    // TODO(Fido2): Do we need to return anything special here?
-    fn is_presence_enabled(&self) -> bool {
+    async fn is_presence_enabled(&self) -> bool {
         true
     }
 
-    fn is_verification_enabled(&self) -> Option<bool> {
-        Some(true)
+    async fn is_verification_enabled(&self) -> Option<bool> {
+        Some(
+            self.authenticator
+                .user_interface
+                .is_verification_enabled()
+                .await,
+        )
     }
 }

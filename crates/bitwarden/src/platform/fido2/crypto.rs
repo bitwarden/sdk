@@ -3,7 +3,7 @@ use coset::{
     CoseKey, CoseKeyBuilder,
 };
 use p256::{ecdsa::SigningKey, pkcs8::EncodePrivateKey, SecretKey};
-use passkey::types::ctap2::Ctap2Error;
+use passkey::types::ctap2::{AttestedCredentialData, Ctap2Error};
 
 use crate::error::{Error, Result};
 
@@ -62,6 +62,31 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
+fn cose_key_to_vec(cose_key: CoseKey) -> coset::Result<Vec<u8>> {
+    let mut data = Vec::new();
+    use coset::AsCborValue;
+    coset::cbor::ser::into_writer(&cose_key.to_cbor_value()?, &mut data)?;
+    Ok(data)
+}
+
+#[allow(clippy::unwrap_used)]
+pub fn attested_credential_data_into_iter(
+    data: AttestedCredentialData,
+) -> impl Iterator<Item = u8> {
+    let credential_id = data.credential_id().to_vec();
+    // SAFETY: if this unwrap fails, it is programmer error
+    // unfortunately any serialization in Coset does not use serde::Serialize and takes by value ...
+    let cose_key = cose_key_to_vec(data.key).unwrap();
+    data.aaguid
+        .0
+        .into_iter()
+        // SAFETY: the length has been asserted to be less than u16::MAX in the constructor.
+        .chain(u16::try_from(credential_id.len()).unwrap().to_be_bytes())
+        .chain(credential_id)
+        .chain(cose_key)
+}
+
 fn private_key_from_cose_key(key: &CoseKey) -> Result<SecretKey, Ctap2Error> {
     if !matches!(
         key.alg,

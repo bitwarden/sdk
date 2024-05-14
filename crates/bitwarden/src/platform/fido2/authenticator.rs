@@ -11,8 +11,8 @@ use passkey::{
 };
 
 use super::{
-    types::*, CheckUserOptions, CipherViewContainer, Fido2CredentialStore, Fido2UserInterface,
-    SelectedCredential, Verification, AAGUID,
+    crypto::attested_credential_data_into_iter, types::*, CheckUserOptions, CipherViewContainer,
+    Fido2CredentialStore, Fido2UserInterface, SelectedCredential, Verification, AAGUID,
 };
 use crate::{
     error::{require, Error, Result},
@@ -82,16 +82,18 @@ impl<'a> Fido2Authenticator<'a> {
             Err(e) => return Err(format!("make_credential error: {e:?}").into()),
         };
 
-        Ok(MakeCredentialResult {
-            // TODO(Fido2): We can get these from response.auth_data I think?
-            authenticator_data: Vec::new(),
-            attested_credential_data: Vec::new(),
-            credential_id: response
+        let authenticator_data = response.auth_data.to_vec();
+        let attested_credential_data = response
                 .auth_data
                 .attested_credential_data
-                .expect("Missing attested_credential_data")
-                .credential_id()
-                .to_vec(),
+            .ok_or("Missing attested_credential_data")?;
+        let credential_id = attested_credential_data.credential_id().to_vec();
+
+        Ok(MakeCredentialResult {
+            authenticator_data,
+            attested_credential_data: attested_credential_data_into_iter(attested_credential_data)
+                .collect(),
+            credential_id,
         })
     }
 
@@ -138,15 +140,17 @@ impl<'a> Fido2Authenticator<'a> {
             Err(e) => return Err(format!("get_assertion error: {e:?}").into()),
         };
 
-        Ok(GetAssertionResult {
-            credential_id: response
+        let authenticator_data = response.auth_data.to_vec();
+        let credential_id = response
                 .auth_data
                 .attested_credential_data
                 .ok_or("Missing attested_credential_data")?
                 .credential_id()
-                .to_vec(),
-            // TODO(Fido2): We can get these from response.auth_data I think?
-            authenticator_data: vec![],
+            .to_vec();
+
+        Ok(GetAssertionResult {
+            credential_id,
+            authenticator_data,
             signature: response.signature.into(),
             user_handle: response.user.ok_or("Missing user")?.id.into(),
             selected_credential: self.get_selected_credential()?,

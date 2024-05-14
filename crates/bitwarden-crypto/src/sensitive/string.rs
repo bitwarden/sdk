@@ -201,6 +201,8 @@ impl SensitiveString {
 
 #[cfg(test)]
 mod tests {
+    use schemars::schema_for;
+
     use super::*;
 
     #[test]
@@ -208,7 +210,7 @@ mod tests {
         let mut s = SensitiveString::new("hello".to_string());
         s.push_str(" world");
 
-        assert_eq!(s.inner.as_str(), "hello world");
+        assert_eq!(s, "hello world");
     }
 
     #[test]
@@ -239,5 +241,64 @@ mod tests {
     fn test_index_range_from() {
         let s = SensitiveString::new("Hello, world!".to_owned());
         assert_eq!(&s[7..], "world!");
+    }
+
+    #[test]
+    fn test_schemars() {
+        #[derive(JsonSchema)]
+        struct TestStruct {
+            #[allow(dead_code)]
+            v: SensitiveString,
+        }
+
+        let schema = schema_for!(TestStruct);
+        let json = serde_json::to_string_pretty(&schema).unwrap();
+        let expected = r##"{
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "title": "TestStruct",
+            "type": "object",
+            "required": ["v"],
+            "properties": {
+                "v": {
+                    "$ref": "#/definitions/String"
+                }
+            },
+            "definitions": {
+                "String": {
+                    "type": "string"
+                }
+            }
+        }"##;
+
+        assert_eq!(
+            json.parse::<serde_json::Value>().unwrap(),
+            expected.parse::<serde_json::Value>().unwrap()
+        );
+    }
+
+    #[test]
+    fn test_eq_sensitive_string() {
+        let s1 = SensitiveString::new("Hello, world!".to_owned());
+        let s2 = SensitiveString::new("Hello, world!".to_owned());
+        assert_eq!(s1, s2);
+    }
+
+    #[test]
+    fn test_neq_sensitive_string() {
+        let s1 = SensitiveString::new("Hello, world!".to_owned());
+        let s2 = SensitiveString::new("Goodbye, world!".to_owned());
+        assert_ne!(s1, s2);
+    }
+
+    #[test]
+    fn test_eq_str() {
+        let s = SensitiveString::new("Hello, world!".to_owned());
+        assert_eq!(s, "Hello, world!");
+    }
+
+    #[test]
+    fn test_neq_str() {
+        let s = SensitiveString::new("Hello, world!".to_owned());
+        assert_ne!(s, "Goodbye, world!");
     }
 }

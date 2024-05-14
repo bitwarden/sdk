@@ -24,8 +24,7 @@ impl<'a> Fido2Client<'a> {
     ) -> Result<PublicKeyCredentialAuthenticatorAttestationResponse> {
         let mut client = passkey::client::Client::new(self.authenticator.get_authenticator());
 
-        // TODO(Fido2): Handle this error
-        let origin = Url::parse(&origin).expect("Invalid URL");
+        let origin = Url::parse(&origin).map_err(|e| format!("Invalid origin: {}", e))?;
 
         let request: passkey::types::webauthn::CredentialCreationOptions =
             serde_json::from_str(&request)?;
@@ -69,8 +68,7 @@ impl<'a> Fido2Client<'a> {
     ) -> Result<PublicKeyCredentialAuthenticatorAssertionResponse> {
         let mut client = passkey::client::Client::new(self.authenticator.get_authenticator());
 
-        // TODO(Fido2): Handle this error
-        let origin = Url::parse(&origin).expect("Invalid URL");
+        let origin = Url::parse(&origin).map_err(|e| format!("Invalid origin: {}", e))?;
 
         let request: passkey::types::webauthn::CredentialRequestOptions =
             serde_json::from_str(&request)?;

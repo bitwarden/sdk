@@ -94,7 +94,7 @@ pub struct Options {
     pub uv: UV,
 }
 
-#[derive(Eq, PartialEq)]
+#[derive(Eq, PartialEq, Clone, Copy)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum UV {
     Discouraged,

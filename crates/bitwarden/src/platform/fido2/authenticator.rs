@@ -3,7 +3,7 @@ use std::{ops::Deref, sync::Mutex};
 use bitwarden_crypto::KeyEncryptable;
 use log::error;
 use passkey::{
-    authenticator::{Authenticator, UserCheck},
+    authenticator::{Authenticator, DiscoverabilitySupport, StoreInfo, UserCheck},
     types::{
         ctap2::{self, Ctap2Error, StatusCode},
         Passkey,
@@ -26,6 +26,7 @@ pub struct Fido2Authenticator<'a> {
     pub(crate) credential_store: &'a dyn Fido2CredentialStore,
 
     pub(crate) selected_credential: Mutex<Option<CipherView>>,
+    pub(crate) selected_uv: Mutex<Option<UV>>,
 }
 
 impl<'a> Fido2Authenticator<'a> {
@@ -34,6 +35,12 @@ impl<'a> Fido2Authenticator<'a> {
         request: MakeCredentialRequest,
     ) -> Result<MakeCredentialResult> {
         let mut authenticator = self.get_authenticator();
+
+        // Insert the received UV to be able to return it later in check_user
+        self.selected_uv
+            .lock()
+            .expect("Mutex is not poisoned")
+            .replace(request.options.uv);
 
         let response = authenticator
             .make_credential(ctap2::make_credential::Request {
@@ -93,6 +100,12 @@ impl<'a> Fido2Authenticator<'a> {
         request: GetAssertionRequest,
     ) -> Result<GetAssertionResult> {
         let mut authenticator = self.get_authenticator();
+
+        // Insert the received UV to be able to return it later in check_user
+        self.selected_uv
+            .lock()
+            .expect("Mutex is not poisoned")
+            .replace(request.options.uv);
 
         let response = authenticator
             .get_assertion(ctap2::get_assertion::Request {
@@ -200,7 +213,6 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
         rp_id: &str,
     ) -> Result<Vec<Self::PasskeyItem>, StatusCode> {
         // This is just a wrapper around the actual implementation to allow for ? error handling
-        // TODO(Fido2): User is unused, do we need it?
         async fn inner(
             this: &CredentialStoreImpl<'_>,
             ids: Option<&[passkey::types::webauthn::PublicKeyCredentialDescriptor]>,
@@ -280,11 +292,11 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             picked.set_new_fido2_credentials(enc, vec![cred])?;
 
             // Store the selected credential for later use
-            *this
-                .authenticator
+            this.authenticator
                 .selected_credential
                 .lock()
-                .expect("Mutex is not poisoned") = Some(picked.clone());
+                .expect("Mutex is not poisoned")
+                .replace(picked.clone());
 
             let key = enc
                 .get_key(&picked.organization_id)
@@ -334,11 +346,11 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             let enc = this.authenticator.client.get_encryption_settings()?;
 
             // Store the selected credential for later use
-            *this
-                .authenticator
+            this.authenticator
                 .selected_credential
                 .lock()
-                .expect("Mutex is not poisoned") = Some(cred.clone());
+                .expect("Mutex is not poisoned")
+                .replace(cred.clone());
 
             let key = enc
                 .get_key(&cred.organization_id)
@@ -359,6 +371,12 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             StatusCode::from(9)
         })
     }
+
+    async fn get_info(&self) -> StoreInfo {
+        StoreInfo {
+            discoverability: DiscoverabilitySupport::Full,
+        }
+    }
 }
 
 #[async_trait::async_trait]
@@ -369,15 +387,34 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
         &self,
         credential: Option<Self::PasskeyItem>,
         presence: bool,
-        verification: bool,
+        // TODO(Fido2): This is not used as we're using the UV stored in get_assertion and make_credential
+        // Should we validate that it matches with what we stored?
+        _verification: bool,
     ) -> Result<UserCheck, Ctap2Error> {
+        let verification_enabled = self
+            .authenticator
+            .user_interface
+            .is_verification_enabled()
+            .await;
+
+        let selected_uv = self
+            .authenticator
+            .selected_uv
+            .lock()
+            .expect("Mutex is not poisoned")
+            .take()
+            .ok_or(Ctap2Error::try_from(9).expect("Valid error"))?;
+
+        let require_verification = match (selected_uv, verification_enabled) {
+            (UV::Preferred, true) => Verification::Required,
+            (UV::Preferred, false) => Verification::Discouraged,
+            (UV::Required, _) => Verification::Required,
+            (UV::Discouraged, _) => Verification::Discouraged,
+        };
+
         let options = CheckUserOptions {
             require_presence: presence,
-            require_verification: if verification {
-                Verification::Required
-            } else {
-                Verification::Discouraged
-            },
+            require_verification,
         };
 
         let result = match self

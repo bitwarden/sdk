@@ -5,7 +5,7 @@ use log::error;
 use passkey::{
     authenticator::{Authenticator, DiscoverabilitySupport, StoreInfo, UserCheck},
     types::{
-        ctap2::{self, Ctap2Error, StatusCode},
+        ctap2::{self, Ctap2Error, StatusCode, VendorError},
         Passkey,
     },
 };
@@ -84,8 +84,8 @@ impl<'a> Fido2Authenticator<'a> {
 
         let authenticator_data = response.auth_data.to_vec();
         let attested_credential_data = response
-                .auth_data
-                .attested_credential_data
+            .auth_data
+            .attested_credential_data
             .ok_or("Missing attested_credential_data")?;
         let credential_id = attested_credential_data.credential_id().to_vec();
 
@@ -142,10 +142,10 @@ impl<'a> Fido2Authenticator<'a> {
 
         let authenticator_data = response.auth_data.to_vec();
         let credential_id = response
-                .auth_data
-                .attested_credential_data
-                .ok_or("Missing attested_credential_data")?
-                .credential_id()
+            .auth_data
+            .attested_credential_data
+            .ok_or("Missing attested_credential_data")?
+            .credential_id()
             .to_vec();
 
         Ok(GetAssertionResult {
@@ -257,8 +257,9 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
 
         inner(self, ids, rp_id).await.map_err(|e| {
             error!("Error finding credentials: {e:?}");
-            // TODO(Fido2): What error code should we return here?
-            StatusCode::from(9)
+            VendorError::try_from(0xF0)
+                .expect("Valid vendor error code")
+                .into()
         })
     }
 
@@ -317,8 +318,9 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
 
         inner(self, cred, user, rp).await.map_err(|e| {
             error!("Error saving credential: {e:?}");
-            // TODO(Fido2): What error code should we return here?
-            StatusCode::from(9)
+            VendorError::try_from(0xF1)
+                .expect("Valid vendor error code")
+                .into()
         })
     }
 
@@ -371,8 +373,9 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
 
         inner(self, cred).await.map_err(|e| {
             error!("Error updating credential: {e:?}");
-            // TODO(Fido2): What error code should we return here?
-            StatusCode::from(9)
+            VendorError::try_from(0xF2)
+                .expect("Valid vendor error code")
+                .into()
         })
     }
 
@@ -407,7 +410,7 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
             .lock()
             .expect("Mutex is not poisoned")
             .take()
-            .ok_or(Ctap2Error::try_from(9).expect("Valid error"))?;
+            .ok_or(Ctap2Error::UserVerificationInvalid)?;
 
         let require_verification = match (selected_uv, verification_enabled) {
             (UV::Preferred, true) => Verification::Required,
@@ -421,19 +424,15 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
             require_verification,
         };
 
-        let result = match self
+        let result = self
             .authenticator
             .user_interface
             .check_user(options, credential.map(|c| c.cipher))
             .await
-        {
-            Ok(r) => r,
-            Err(e) => {
+            .map_err(|e| {
                 error!("Error checking user: {e:?}");
-                // TODO(Fido2): What error code should we return here?
-                return Err(Ctap2Error::try_from(9).expect("Valid error"));
-            }
-        };
+                Ctap2Error::UserVerificationInvalid
+            })?;
 
         Ok(UserCheck {
             presence: result.user_present,

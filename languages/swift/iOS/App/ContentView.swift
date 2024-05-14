@@ -395,7 +395,7 @@ extension IgnoreHttpsDelegate: URLSessionDelegate {
     }
 }
 
-class UserInterfaceImpl: UserInterface {
+class UserInterfaceImpl: Fido2UserInterface {
     func pickCredentialForAuthentication(availableCredentials: [BitwardenSdk.Cipher]) async throws -> BitwardenSdk.CipherViewWrapper {
         abort()
     }
@@ -409,7 +409,7 @@ class UserInterfaceImpl: UserInterface {
     }
 }
 
-class CredentialStoreImpl: CredentialStore {
+class CredentialStoreImpl: Fido2CredentialStore {
     func findCredentials(ids: [Data]?, ripId: String) async throws -> [BitwardenSdk.Cipher] {
         abort()
     }

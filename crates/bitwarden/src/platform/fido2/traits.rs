@@ -4,7 +4,7 @@ use crate::{
 };
 
 #[async_trait::async_trait]
-pub trait UserInterface: Send + Sync {
+pub trait Fido2UserInterface: Send + Sync {
     async fn check_user(
         &self,
         options: CheckUserOptions,
@@ -19,10 +19,11 @@ pub trait UserInterface: Send + Sync {
         available_credentials: Vec<CipherView>,
         new_credential: Fido2CredentialNewView,
     ) -> Result<CipherView>;
+    async fn is_verification_enabled(&self) -> bool;
 }
 
 #[async_trait::async_trait]
-pub trait CredentialStore: Send + Sync {
+pub trait Fido2CredentialStore: Send + Sync {
     async fn find_credentials(
         &self,
         ids: Option<Vec<Vec<u8>>>,

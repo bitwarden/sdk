@@ -11,8 +11,8 @@ use passkey::{
 };
 
 use super::{
-    types::*, CheckUserOptions, CipherViewContainer, CredentialStore, SelectedCredential,
-    UserInterface, Verification, AAGUID,
+    types::*, CheckUserOptions, CipherViewContainer, Fido2CredentialStore, Fido2UserInterface,
+    SelectedCredential, Verification, AAGUID,
 };
 use crate::{
     error::{require, Error, Result},
@@ -22,8 +22,8 @@ use crate::{
 
 pub struct Fido2Authenticator<'a> {
     pub(crate) client: &'a mut Client,
-    pub(crate) user_interface: &'a dyn UserInterface,
-    pub(crate) credential_store: &'a dyn CredentialStore,
+    pub(crate) user_interface: &'a dyn Fido2UserInterface,
+    pub(crate) credential_store: &'a dyn Fido2CredentialStore,
 
     pub(crate) selected_credential: Mutex<Option<CipherView>>,
 }
@@ -60,11 +60,10 @@ impl<'a> Fido2Authenticator<'a> {
                     .extensions
                     .map(|e| serde_json::from_str(&e))
                     .transpose()?,
-                // TODO(Fido2): Where do we get these from?
                 options: passkey::types::ctap2::make_credential::Options {
                     rk: request.require_resident_key,
                     up: true,
-                    uv: true,
+                    uv: request.options.uv != UV::Discouraged,
                 },
                 pin_auth: None,
                 pin_protocol: None,

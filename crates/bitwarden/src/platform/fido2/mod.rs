@@ -11,7 +11,9 @@ mod types;
 
 pub use authenticator::Fido2Authenticator;
 pub use client::Fido2Client;
-pub use traits::{CheckUserOptions, CheckUserResult, CredentialStore, UserInterface, Verification};
+pub use traits::{
+    CheckUserOptions, CheckUserResult, Fido2CredentialStore, Fido2UserInterface, Verification,
+};
 pub use types::{
     AuthenticatorAssertionResponse, AuthenticatorAttestationResponse, ClientData,
     GetAssertionRequest, GetAssertionResult, MakeCredentialRequest, MakeCredentialResult,
@@ -40,8 +42,8 @@ impl<'a> ClientFido2<'a> {
     pub fn create_authenticator(
         &'a mut self,
 
-        user_interface: &'a dyn UserInterface,
-        credential_store: &'a dyn CredentialStore,
+        user_interface: &'a dyn Fido2UserInterface,
+        credential_store: &'a dyn Fido2CredentialStore,
     ) -> Result<Fido2Authenticator<'a>> {
         Ok(Fido2Authenticator {
             client: self.client,
@@ -54,8 +56,8 @@ impl<'a> ClientFido2<'a> {
     pub fn create_client(
         &'a mut self,
 
-        user_interface: &'a dyn UserInterface,
-        credential_store: &'a dyn CredentialStore,
+        user_interface: &'a dyn Fido2UserInterface,
+        credential_store: &'a dyn Fido2CredentialStore,
     ) -> Result<Fido2Client<'a>> {
         Ok(Fido2Client {
             authenticator: self.create_authenticator(user_interface, credential_store)?,

@@ -22,8 +22,8 @@ pub struct ClientFido2(pub(crate) Arc<Client>);
 impl ClientFido2 {
     pub fn authenticator(
         self: Arc<Self>,
-        user_interface: Arc<dyn UserInterface>,
-        credential_store: Arc<dyn CredentialStore>,
+        user_interface: Arc<dyn Fido2UserInterface>,
+        credential_store: Arc<dyn Fido2CredentialStore>,
     ) -> Arc<ClientFido2Authenticator> {
         Arc::new(ClientFido2Authenticator(
             self.0.clone(),
@@ -34,8 +34,8 @@ impl ClientFido2 {
 
     pub fn client(
         self: Arc<Self>,
-        user_interface: Arc<dyn UserInterface>,
-        credential_store: Arc<dyn CredentialStore>,
+        user_interface: Arc<dyn Fido2UserInterface>,
+        credential_store: Arc<dyn Fido2CredentialStore>,
     ) -> Arc<ClientFido2Client> {
         Arc::new(ClientFido2Client(ClientFido2Authenticator(
             self.0.clone(),
@@ -48,8 +48,8 @@ impl ClientFido2 {
 #[derive(uniffi::Object)]
 pub struct ClientFido2Authenticator(
     pub(crate) Arc<Client>,
-    pub(crate) Arc<dyn UserInterface>,
-    pub(crate) Arc<dyn CredentialStore>,
+    pub(crate) Arc<dyn Fido2UserInterface>,
+    pub(crate) Arc<dyn Fido2CredentialStore>,
 );
 
 #[uniffi::export]
@@ -154,7 +154,7 @@ pub struct CheckUserResult {
 
 #[uniffi::export(with_foreign)]
 #[async_trait::async_trait]
-pub trait UserInterface: Send + Sync {
+pub trait Fido2UserInterface: Send + Sync {
     async fn check_user(
         &self,
         options: CheckUserOptions,
@@ -169,11 +169,12 @@ pub trait UserInterface: Send + Sync {
         available_credentials: Vec<CipherView>,
         new_credential: Fido2CredentialNewView,
     ) -> Result<CipherViewWrapper>;
+    async fn is_verification_enabled(&self) -> bool;
 }
 
 #[uniffi::export(with_foreign)]
 #[async_trait::async_trait]
-pub trait CredentialStore: Send + Sync {
+pub trait Fido2CredentialStore: Send + Sync {
     async fn find_credentials(
         &self,
         ids: Option<Vec<Vec<u8>>>,
@@ -190,7 +191,9 @@ pub trait CredentialStore: Send + Sync {
 struct UniffiTraitBridge<T>(T);
 
 #[async_trait::async_trait]
-impl bitwarden::platform::fido2::CredentialStore for UniffiTraitBridge<&dyn CredentialStore> {
+impl bitwarden::platform::fido2::Fido2CredentialStore
+    for UniffiTraitBridge<&dyn Fido2CredentialStore>
+{
     async fn find_credentials(
         &self,
         ids: Option<Vec<Vec<u8>>>,
@@ -217,7 +220,7 @@ pub struct CipherViewWrapper {
 }
 
 #[async_trait::async_trait]
-impl bitwarden::platform::fido2::UserInterface for UniffiTraitBridge<&dyn UserInterface> {
+impl bitwarden::platform::fido2::Fido2UserInterface for UniffiTraitBridge<&dyn Fido2UserInterface> {
     async fn check_user(
         &self,
         options: CheckUserOptions,
@@ -252,5 +255,8 @@ impl bitwarden::platform::fido2::UserInterface for UniffiTraitBridge<&dyn UserIn
             .await
             .map(|v| v.cipher)
             .map_err(Into::into)
+    }
+    async fn is_verification_enabled(&self) -> bool {
+        self.0.is_verification_enabled().await
     }
 }

@@ -120,10 +120,12 @@ impl TryFrom<Fido2CredentialFullView> for Passkey {
     }
 }
 
-impl TryFrom<Passkey> for Fido2CredentialFullView {
-    type Error = crate::error::Error;
-
-    fn try_from(value: Passkey) -> Result<Self, Self::Error> {
+impl Fido2CredentialFullView {
+    pub(crate) fn try_from_credential(
+        value: Passkey,
+        user: passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
+        rp: passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
+    ) -> Result<Self> {
         let cred_id: Vec<u8> = value.credential_id.into();
 
         Ok(Fido2CredentialFullView {
@@ -133,14 +135,14 @@ impl TryFrom<Passkey> for Fido2CredentialFullView {
             key_curve: SensitiveString::new(Box::new("P-256".to_owned())),
             key_value: SensitiveVec::new(Box::new(cose_key_to_pkcs8(&value.key)?)),
             rp_id: SensitiveString::new(Box::new(value.rp_id)),
-            rp_name: None,
+            rp_name: rp.name.map(|n| SensitiveString::new(Box::new(n))),
             user_handle: Some(SensitiveVec::new(Box::new(cred_id))),
 
             // TODO(Fido2): Storing the counter as a string seems like a bad idea, but we don't have
             // support for EncString -> number decryption
             counter: SensitiveString::new(Box::new(value.counter.unwrap_or(0).to_string())),
-            user_name: None,
-            user_display_name: None,
+            user_name: user.name.map(|n| SensitiveString::new(Box::new(n))),
+            user_display_name: user.display_name.map(|n| SensitiveString::new(Box::new(n))),
             // TODO(Fido2): Same as the counter, but with booleans this time
             discoverable: SensitiveString::new(Box::new("true".to_owned())),
             creation_date: chrono::offset::Utc::now(),

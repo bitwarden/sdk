@@ -23,7 +23,7 @@ impl<'a> Fido2Client<'a> {
         client_data: ClientData,
     ) -> Result<PublicKeyCredentialAuthenticatorAttestationResponse> {
         let mut client =
-            passkey::client::Client::new(self.authenticator.get_passkey_authenticator());
+            passkey::client::Client::new(self.authenticator.get_authenticator());
 
         // TODO(Fido2): Handle this error
         let origin = Url::parse(&origin).expect("Invalid URL");
@@ -69,7 +69,7 @@ impl<'a> Fido2Client<'a> {
         client_data: ClientData,
     ) -> Result<PublicKeyCredentialAuthenticatorAssertionResponse> {
         let mut client =
-            passkey::client::Client::new(self.authenticator.get_passkey_authenticator());
+            passkey::client::Client::new(self.authenticator.get_authenticator());
 
         // TODO(Fido2): Handle this error
         let origin = Url::parse(&origin).expect("Invalid URL");

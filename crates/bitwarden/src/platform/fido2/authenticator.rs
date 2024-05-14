@@ -33,7 +33,7 @@ impl<'a> Fido2Authenticator<'a> {
         &mut self,
         request: MakeCredentialRequest,
     ) -> Result<MakeCredentialResult> {
-        let mut authenticator = self.get_passkey_authenticator();
+        let mut authenticator = self.get_authenticator();
 
         let response = authenticator
             .make_credential(ctap2::make_credential::Request {
@@ -51,14 +51,10 @@ impl<'a> Fido2Authenticator<'a> {
                     .pub_key_cred_params
                     .into_iter()
                     .map(TryInto::try_into)
-                    .collect::<Result<Vec<_>, _>>()?,
+                    .collect::<Result<_, _>>()?,
                 exclude_list: request
                     .exclude_list
-                    .map(|x| {
-                        x.into_iter()
-                            .map(TryInto::try_into)
-                            .collect::<Result<Vec<_>, _>>()
-                    })
+                    .map(|x| x.into_iter().map(TryInto::try_into).collect())
                     .transpose()?,
                 extensions: request
                     .extensions
@@ -66,7 +62,7 @@ impl<'a> Fido2Authenticator<'a> {
                     .transpose()?,
                 // TODO(Fido2): Where do we get these from?
                 options: passkey::types::ctap2::make_credential::Options {
-                    rk: true,
+                    rk: request.require_resident_key,
                     up: true,
                     uv: true,
                 },
@@ -97,7 +93,7 @@ impl<'a> Fido2Authenticator<'a> {
         &mut self,
         request: GetAssertionRequest,
     ) -> Result<GetAssertionResult> {
-        let mut authenticator = self.get_passkey_authenticator();
+        let mut authenticator = self.get_authenticator();
 
         let response = authenticator
             .get_assertion(ctap2::get_assertion::Request {
@@ -116,7 +112,6 @@ impl<'a> Fido2Authenticator<'a> {
                     .map(|e| serde_json::from_str(&e))
                     .transpose()?,
                 options: passkey::types::ctap2::make_credential::Options {
-                    // TODO(Fido2): Are these right?
                     rk: request.options.rk,
                     up: true,
                     uv: request.options.uv != UV::Discouraged,
@@ -159,7 +154,7 @@ impl<'a> Fido2Authenticator<'a> {
             .collect())
     }
 
-    pub(super) fn get_passkey_authenticator(
+    pub(super) fn get_authenticator(
         &self,
     ) -> Authenticator<CredentialStoreImpl, UserValidationMethodImpl> {
         Authenticator::new(
@@ -200,7 +195,6 @@ pub(super) struct UserValidationMethodImpl<'a> {
 #[async_trait::async_trait]
 impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
     type PasskeyItem = CipherViewContainer;
-
     async fn find_credentials(
         &self,
         ids: Option<&[passkey::types::webauthn::PublicKeyCredentialDescriptor]>,
@@ -258,22 +252,23 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
         cred: Passkey,
         user: passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
         rp: passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
+        // TODO(Fido2): Use this
+        _options: passkey::types::ctap2::get_assertion::Options,
     ) -> Result<(), StatusCode> {
         // This is just a wrapper around the actual implementation to allow for ? error handling
-        // TODO(Fido2): User is unused, do we need it?
         async fn inner(
             this: &mut CredentialStoreImpl<'_>,
             cred: Passkey,
-            _user: passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
+            user: passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
             rp: passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
         ) -> Result<()> {
             let creds = this
                 .authenticator
                 .credential_store
-                .find_credentials(None, rp.id)
+                .find_credentials(None, rp.id.clone())
                 .await?;
 
-            let cred: Fido2CredentialFullView = cred.clone().try_into()?;
+            let cred = Fido2CredentialFullView::try_from_credential(cred, user, rp)?;
 
             let mut picked = this
                 .authenticator
@@ -322,9 +317,14 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                 .await?;
 
             // Get the credential with the same id as the one we're updating
-            // TODO(Fido2): Is this the right id to check?
             creds.retain(|c| {
-                c.id.map(|i| i.as_bytes().as_slice() == cred.credential_id.deref())
+                c.login
+                    .as_ref()
+                    .and_then(|l| l.fido2_credentials.as_ref())
+                    .and_then(|f| f.first())
+                    .map(|cipher_cred| {
+                        cipher_cred.credential_id.expose().as_bytes() == cred.credential_id.deref()
+                    })
                     .unwrap_or(false)
             });
             let cred = match creds.len() {

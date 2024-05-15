@@ -34,17 +34,10 @@ pub enum AccountsAvatarPutError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`accounts_cancel_premium_post`]
+/// struct for typed errors of method [`accounts_cancel_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum AccountsCancelPremiumPostError {
-    UnknownValue(serde_json::Value),
-}
-
-/// struct for typed errors of method [`accounts_churn_premium_post`]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum AccountsChurnPremiumPostError {
+pub enum AccountsCancelPostError {
     UnknownValue(serde_json::Value),
 }
 
@@ -451,62 +444,17 @@ pub async fn accounts_avatar_put(
     }
 }
 
-pub async fn accounts_cancel_premium_post(
-    configuration: &configuration::Configuration,
-) -> Result<(), Error<AccountsCancelPremiumPostError>> {
-    let local_var_configuration = configuration;
-
-    let local_var_client = &local_var_configuration.client;
-
-    let local_var_uri_str = format!(
-        "{}/accounts/cancel-premium",
-        local_var_configuration.base_path
-    );
-    let mut local_var_req_builder =
-        local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
-
-    if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
-        local_var_req_builder =
-            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
-    }
-    if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
-        local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
-    };
-
-    let local_var_req = local_var_req_builder.build()?;
-    let local_var_resp = local_var_client.execute(local_var_req).await?;
-
-    let local_var_status = local_var_resp.status();
-    let local_var_content = local_var_resp.text().await?;
-
-    if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
-        Ok(())
-    } else {
-        let local_var_entity: Option<AccountsCancelPremiumPostError> =
-            serde_json::from_str(&local_var_content).ok();
-        let local_var_error = ResponseContent {
-            status: local_var_status,
-            content: local_var_content,
-            entity: local_var_entity,
-        };
-        Err(Error::ResponseError(local_var_error))
-    }
-}
-
-pub async fn accounts_churn_premium_post(
+pub async fn accounts_cancel_post(
     configuration: &configuration::Configuration,
     subscription_cancellation_request_model: Option<
         crate::models::SubscriptionCancellationRequestModel,
     >,
-) -> Result<(), Error<AccountsChurnPremiumPostError>> {
+) -> Result<(), Error<AccountsCancelPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
 
-    let local_var_uri_str = format!(
-        "{}/accounts/churn-premium",
-        local_var_configuration.base_path
-    );
+    let local_var_uri_str = format!("{}/accounts/cancel", local_var_configuration.base_path);
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
 
@@ -528,7 +476,7 @@ pub async fn accounts_churn_premium_post(
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
         Ok(())
     } else {
-        let local_var_entity: Option<AccountsChurnPremiumPostError> =
+        let local_var_entity: Option<AccountsCancelPostError> =
             serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,

@@ -17,7 +17,7 @@ use crate::CryptoError;
 ///
 /// Internally [`Sensitive`] contains a [`Box`] which ensures the value is placed on the heap. It
 /// implements the [`Drop`] trait which calls `zeroize` on the inner value.
-#[derive(PartialEq, Clone, Zeroize, ZeroizeOnDrop)]
+#[derive(Eq, Clone, Zeroize, ZeroizeOnDrop)]
 pub struct Sensitive<V: Zeroize> {
     pub(super) value: Box<V>,
 }
@@ -115,6 +115,31 @@ impl SensitiveString {
 
         Ok(value)
     }
+
+    #[inline(always)]
+    pub fn len(&self) -> usize {
+        self.value.len()
+    }
+
+    #[inline(always)]
+    pub fn is_empty(&self) -> bool {
+        self.value.is_empty()
+    }
+
+    // The predicate is specifically a fn() and not a closure to forbid capturing values
+    // from the environment, which would make it easier to accidentally leak some data.
+    // For example, the following won't compile with fn() but would work with impl Fn():
+    // ```
+    // let mut chars = Mutex::new(Vec::new());
+    // self.any_chars(|c| {chars.lock().unwrap().push(c); true});
+    // ```
+    // Note that this is not a perfect solution, as it is still possible to leak the characters by
+    // using a global variable or a static variable. Also `char` implements Copy so it's hard to
+    // ensure the compiler is not making a copy of the character.
+    #[inline(always)]
+    pub fn any_chars(&self, predicate: fn(char) -> bool) -> bool {
+        self.value.chars().any(predicate)
+    }
 }
 
 impl<T: Zeroize + AsRef<[u8]>> Sensitive<T> {
@@ -151,6 +176,27 @@ impl<V: Zeroize + Serialize> fmt::Debug for Sensitive<V> {
     }
 }
 
+impl<V: Zeroize + PartialEq<V>> PartialEq<Sensitive<V>> for Sensitive<V> {
+    fn eq(&self, other: &Self) -> bool {
+        self.value.eq(&other.value)
+    }
+}
+impl<V: Zeroize + PartialEq<V>> PartialEq<V> for Sensitive<V> {
+    fn eq(&self, other: &V) -> bool {
+        self.value.as_ref().eq(other)
+    }
+}
+impl PartialEq<&str> for SensitiveString {
+    fn eq(&self, other: &&str) -> bool {
+        self.value.as_ref().eq(other)
+    }
+}
+impl PartialEq<&[u8]> for SensitiveVec {
+    fn eq(&self, other: &&[u8]) -> bool {
+        self.value.as_ref().eq(other)
+    }
+}
+
 /// Unfortunately once we serialize a `SensitiveString` we can't control the future memory.
 impl<V: Zeroize + Serialize> Serialize for Sensitive<V> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
@@ -182,9 +228,7 @@ impl<V: Zeroize + JsonSchema> JsonSchema for Sensitive<V> {
 // We use a lot of `&str` and `&[u8]` in our tests, so we expose this helper
 // to make it easier.
 // IMPORTANT: This should not be used outside of test code
-// Note that we can't just mark it with #[cfg(test)] because that only applies
-// when testing this crate, not when testing other crates that depend on it.
-// By at least limiting it to &'static reference we should be able to avoid accidental usages
+#[cfg(any(test, feature = "test"))]
 impl<V: Zeroize> Sensitive<V> {
     pub fn test<T: ?Sized>(value: &'static T) -> Self
     where

@@ -1,4 +1,4 @@
-use bitwarden_crypto::{Decryptable, Encryptable};
+use bitwarden_crypto::{CryptoError, KeyDecryptable, KeyEncryptable};
 
 use super::client_vault::ClientVault;
 use crate::{
@@ -14,8 +14,9 @@ pub struct ClientPasswordHistory<'a> {
 impl<'a> ClientPasswordHistory<'a> {
     pub async fn encrypt(&self, history_view: PasswordHistoryView) -> Result<PasswordHistory> {
         let enc = self.client.get_encryption_settings()?;
+        let key = enc.get_key(&None).ok_or(CryptoError::MissingKey)?;
 
-        let history = history_view.encrypt(enc, &None)?;
+        let history = history_view.encrypt_with_key(key)?;
 
         Ok(history)
     }
@@ -25,8 +26,9 @@ impl<'a> ClientPasswordHistory<'a> {
         history: Vec<PasswordHistory>,
     ) -> Result<Vec<PasswordHistoryView>> {
         let enc = self.client.get_encryption_settings()?;
+        let key = enc.get_key(&None).ok_or(CryptoError::MissingKey)?;
 
-        let history_view = history.decrypt(enc, &None)?;
+        let history_view = history.decrypt_with_key(key)?;
 
         Ok(history_view)
     }

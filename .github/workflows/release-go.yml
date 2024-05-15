@@ -111,6 +111,9 @@ jobs:
           artifacts: libbitwarden_c_files-${{ matrix.settings.target }}
           skip_unpack: false
 
+      - name: Test
+        run: ls -halR sm-sdk-go/ && exit 1
+
       - name: Download artifacts
         uses: bitwarden/gh-actions/download-artifacts@main
         with:

@@ -145,7 +145,6 @@ jobs:
           unzip 'libbitwarden_c_files-x86_64-unknown-linux-musl.zip' '*.a' -d sm-sdk-go/internal/cinterface/lib/linux-x64
           unzip 'libbitwarden_c_files-aarch64-unknown-linux-musl.zip' '*.a' -d sm-sdk-go/internal/cinterface/lib/linux-arm64
           unzip 'libbitwarden_c_files-x86_64-pc-windows-gnu.zip' '*.a' -d sm-sdk-go/internal/cinterface/lib/windows-x64
-          ls -halR sm-sdk-go/cinterface && exit 1
 
       - name: Download artifacts
         uses: bitwarden/gh-actions/download-artifacts@main

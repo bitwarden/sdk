@@ -19,14 +19,14 @@ repositories {
         api 'net.java.dev.jna:jna-platform:5.12.1'
     }
 
-    description = 'BitwardenSDK'
+    description = 'Bitwarden Secrets Manager Java SDK'
     java.sourceCompatibility = JavaVersion.VERSION_1_8
 
     publishing {
         publications {
             maven(MavenPublication) {
                 groupId = 'com.bitwarden'
-                artifactId = 'sdk'
+                artifactId = 'sdk-secrets'
 
                 // Determine the version from the git history.
                 //
@@ -35,13 +35,8 @@ repositories {
 
                 def branchName = "git branch --show-current".execute().text.trim()
 
-                if (branchName == "main") {
-                    def content = ['grep', '-o', '^version = ".*"', '../../Cargo.toml'].execute().text.trim()
-                    def match = ~/version = "(.*)"/
-                    def matcher = match.matcher(content)
-                    matcher.find()
-
-                    version = "${matcher.group(1)}-SNAPSHOT"
+                if (branchName == "main" || branchName == "rc" || branchName == "hotfix-rc") {
+                    version = "0.1.0"
                 } else {
                     // branchName-SNAPSHOT
                     version = "${branchName.replaceAll('/', '-')}-SNAPSHOT"
@@ -61,6 +56,14 @@ repositories {
                     password = System.getenv("GITHUB_TOKEN")
                 }
             }
+            maven {
+                name = "OSSRH"
+                url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+                credentials {
+                    username = System.getenv("MAVEN_USERNAME")
+                    password = System.getenv("MAVEN_PASSWORD")
+                }
+            }
         }
     }
 }
@@ -71,6 +74,11 @@ tasks.withType(JavaCompile) {
 
 tasks.withType(Javadoc) {
     options.encoding = 'UTF-8'
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
 //  Gradle build requires GitHub workflow to copy native library to resources

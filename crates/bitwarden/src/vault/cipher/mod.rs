@@ -14,4 +14,5 @@ pub use attachment::{
 };
 pub use cipher::{Cipher, CipherListView, CipherRepromptType, CipherType, CipherView};
 pub use field::FieldView;
+pub use login::{Fido2Credential, Fido2CredentialView};
 pub use secure_note::SecureNoteType;

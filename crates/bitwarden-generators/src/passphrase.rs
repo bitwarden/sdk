@@ -170,8 +170,8 @@ mod tests {
 
         let input = PassphraseGeneratorRequest {
             num_words: 4,
-            word_separator: "👨🏻‍❤️‍💋‍👨🏻".into(), /* This emoji is 35 bytes long, but represented
-                                                   * as a single character */
+            // This emoji is 35 bytes long, but represented as a single character
+            word_separator: "👨🏻‍❤️‍💋‍👨🏻".into(),
             capitalize: false,
             include_number: true,
         }

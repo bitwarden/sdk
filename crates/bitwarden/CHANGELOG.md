@@ -7,6 +7,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Add support for secrets sync (#678)
+
 ## [0.5.0] - 2024-04-26
 
 ### Changed

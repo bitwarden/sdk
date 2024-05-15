@@ -241,8 +241,8 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
 
             let enc = this.authenticator.client.get_encryption_settings()?;
 
-            // Remove any that don't have Fido2 credentials and convert them to the container type
-            let result: Vec<CipherViewContainer> = ciphers
+            // Remove any that don't have Fido2 credentials
+            let creds: Vec<_> = ciphers
                 .into_iter()
                 .filter(|c| {
                     c.login
@@ -250,16 +250,22 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                         .and_then(|l| l.fido2_credentials.as_ref())
                         .is_some()
                 })
-                .map(|c| CipherViewContainer::new(c, enc))
-                .collect::<Result<_, _>>()?;
+                .collect();
+
+            let picked = this
+                .authenticator
+                .user_interface
+                .pick_credential_for_authentication(creds)
+                .await?;
 
             // Store the selected credential for later use
-            *this
-                .authenticator
+            this.authenticator
                 .selected_credential
                 .lock()
-                .expect("Mutex is not poisoned") = result.first().map(|c| &c.cipher).cloned();
+                .expect("Mutex is not poisoned")
+                .replace(picked.clone());
 
+            let result = vec![CipherViewContainer::new(picked, enc)?];
             Ok(result)
         }
 

@@ -68,7 +68,7 @@ impl<'a> Fido2Authenticator<'a> {
                     .map(|e| serde_json::from_str(&e))
                     .transpose()?,
                 options: passkey::types::ctap2::make_credential::Options {
-                    rk: request.require_resident_key,
+                    rk: request.options.rk,
                     up: true,
                     uv: request.options.uv != UV::Discouraged,
                 },

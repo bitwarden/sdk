@@ -67,7 +67,6 @@ pub struct MakeCredentialRequest {
     pub user: PublicKeyCredentialUserEntity,
     pub pub_key_cred_params: Vec<PublicKeyCredentialParameters>,
     pub exclude_list: Option<Vec<PublicKeyCredentialDescriptor>>,
-    pub require_resident_key: bool,
     pub options: Options,
     pub extensions: Extensions,
 }

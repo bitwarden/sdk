@@ -12,7 +12,7 @@ use passkey::{
 
 use super::{
     crypto::attested_credential_data_into_iter, types::*, CheckUserOptions, CipherViewContainer,
-    Fido2CredentialStore, Fido2UserInterface, SelectedCredential, Verification, AAGUID,
+    Fido2CredentialStore, Fido2UserInterface, SelectedCredential, AAGUID,
 };
 use crate::{
     error::{require, Error, Result},
@@ -42,6 +42,14 @@ impl<'a> Fido2Authenticator<'a> {
             .expect("Mutex is not poisoned")
             .replace(request.options.uv);
 
+        let verification_enabled = self.user_interface.is_verification_enabled().await;
+        let uv = match (request.options.uv, verification_enabled) {
+            (UV::Preferred, true) => true,
+            (UV::Preferred, false) => false,
+            (UV::Required, _) => true,
+            (UV::Discouraged, _) => false,
+        };
+
         let response = authenticator
             .make_credential(ctap2::make_credential::Request {
                 client_data_hash: request.client_data_hash.into(),
@@ -70,7 +78,7 @@ impl<'a> Fido2Authenticator<'a> {
                 options: passkey::types::ctap2::make_credential::Options {
                     rk: request.options.rk,
                     up: true,
-                    uv: request.options.uv != UV::Discouraged,
+                    uv,
                 },
                 pin_auth: None,
                 pin_protocol: None,
@@ -398,13 +406,7 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
         // make_credential Should we validate that it matches with what we stored?
         _verification: bool,
     ) -> Result<UserCheck, Ctap2Error> {
-        let verification_enabled = self
-            .authenticator
-            .user_interface
-            .is_verification_enabled()
-            .await;
-
-        let selected_uv = self
+        let verification = self
             .authenticator
             .selected_uv
             .lock()
@@ -412,16 +414,9 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
             .take()
             .ok_or(Ctap2Error::UserVerificationInvalid)?;
 
-        let require_verification = match (selected_uv, verification_enabled) {
-            (UV::Preferred, true) => Verification::Required,
-            (UV::Preferred, false) => Verification::Discouraged,
-            (UV::Required, _) => Verification::Required,
-            (UV::Discouraged, _) => Verification::Discouraged,
-        };
-
         let options = CheckUserOptions {
             require_presence: presence,
-            require_verification,
+            require_verification: verification.into(),
         };
 
         let result = self

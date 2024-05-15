@@ -52,15 +52,6 @@ jobs:
       _BOT_EMAIL: 106330231+bitwarden-devops-bot@users.noreply.github.com
       _BOT_NAME: bitwarden-devops-bot
       _PKG_VERSION: ${{ needs.validate.outputs.version }}
-    strategy:
-      fail-fast: false
-      matrix:
-        settings:
-          - target: x86_64-apple-darwin
-          - target: aarch64-apple-darwin
-          - target: x86_64-pc-windows-gnu
-          - target: x86_64-unknown-linux-musl
-          - target: aarch64-unknown-linux-musl
 
     steps:
       - name: Checkout SDK repo
@@ -94,6 +85,51 @@ jobs:
           git config --local user.email "${{ env._BOT_EMAIL }}"
           git config --local user.name "${{ env._BOT_NAME }}"
 
+      - name: Download x86_64-apple-darwin artifact
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-rust-cross-platform.yml
+          workflow_conclusion: success
+          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          artifacts: libbitwarden_c_files-x86_64-apple-darwin
+          skip_unpack: false
+
+      - name: Download aarch64-apple-darwin artifact
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-rust-cross-platform.yml
+          workflow_conclusion: success
+          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          artifacts: libbitwarden_c_files-aarch64-apple-darwin
+          skip_unpack: false
+
+      - name: Download x86_64-unknown-linux-musl artifact
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-rust-cross-platform.yml
+          workflow_conclusion: success
+          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          artifacts: libbitwarden_c_files-x86_64-unknown-linux-musl
+          skip_unpack: false
+
+      - name: Download aarch64-unknown-linux-musl artifact
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-rust-cross-platform.yml
+          workflow_conclusion: success
+          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          artifacts: libbitwarden_c_files-aarch64-unknown-linux-musl
+          skip_unpack: false
+
+      - name: Download x86_64-pc-windows-gnu artifact
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-rust-cross-platform.yml
+          workflow_conclusion: success
+          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          artifacts: libbitwarden_c_files-x86_64-pc-windows-gnu
+          skip_unpack: false
+
       - name: Update files
         run: |
           # Copy files to local sm-sdk-go repo path
@@ -102,17 +138,8 @@ jobs:
           rm -rf sm-sdk-go/internal/cinterface/lib/*
           mkdir -p sm-sdk-go/internal/cinterface/lib/{darwin-{x64,arm64},linux-{x64,arm64},windows-x64}
 
-      - name: Download ${{ matrix.settings.target }} artifact
-        uses: bitwarden/gh-actions/download-artifacts@main
-        with:
-          workflow: build-rust-cross-platform.yml
-          workflow_conclusion: success
-          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
-          artifacts: libbitwarden_c_files-${{ matrix.settings.target }}
-          skip_unpack: false
-
       - name: Test
-        run: ls -halR sm-sdk-go/ && exit 1
+        run: ls -halR . && exit 1
 
       - name: Download artifacts
         uses: bitwarden/gh-actions/download-artifacts@main
@@ -199,22 +226,31 @@ jobs:
           artifacts: libbitwarden_c_files-aarch64-apple-darwin
           skip_unpack: true
 
-      - name: Download x86_64-unknown-linux-gnu artifact
+      - name: Download x86_64-unknown-linux-musl artifact
         uses: bitwarden/gh-actions/download-artifacts@main
         with:
           workflow: build-rust-cross-platform.yml
           workflow_conclusion: success
           branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
-          artifacts: libbitwarden_c_files-x86_64-unknown-linux-gnu
+          artifacts: libbitwarden_c_files-x86_64-unknown-linux-musl
           skip_unpack: true
 
-      - name: Download x86_64-pc-windows-msvc artifact
+      - name: Download aarch64-unknown-linux-musl artifact
         uses: bitwarden/gh-actions/download-artifacts@main
         with:
           workflow: build-rust-cross-platform.yml
           workflow_conclusion: success
           branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
-          artifacts: libbitwarden_c_files-x86_64-pc-windows-msvc
+          artifacts: libbitwarden_c_files-aarch64-unknown-linux-musl
+          skip_unpack: true
+
+      - name: Download x86_64-pc-windows-gnu artifact
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-rust-cross-platform.yml
+          workflow_conclusion: success
+          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          artifacts: libbitwarden_c_files-x86_64-pc-windows-gnu
           skip_unpack: true
 
       - name: Rename build artifacts

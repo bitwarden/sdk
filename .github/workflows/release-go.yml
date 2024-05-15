@@ -52,6 +52,16 @@ jobs:
       _BOT_EMAIL: 106330231+bitwarden-devops-bot@users.noreply.github.com
       _BOT_NAME: bitwarden-devops-bot
       _PKG_VERSION: ${{ needs.validate.outputs.version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - target: x86_64-apple-darwin
+          - target: aarch64-apple-darwin
+          - target: x86_64-pc-windows-gnu
+          - target: x86_64-unknown-linux-musl
+          - target: aarch64-unknown-linux-musl
+
     steps:
       - name: Checkout SDK repo
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
@@ -88,6 +98,18 @@ jobs:
         run: |
           # Copy files to local sm-sdk-go repo path
           cp --verbose -rf sdk/languages/go/. sm-sdk-go
+          # Remove the old cinterface lib files
+          rm -rf sm-sdk-go/internal/cinterface/lib/*
+          mkdir -p sm-sdk-go/internal/cinterface/lib/{darwin-{x64,arm64},linux-{x64,arm64},windows-x64}
+
+      - name: Download ${{ matrix.settings.target }} artifact
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-rust-cross-platform.yml
+          workflow_conclusion: success
+          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          artifacts: libbitwarden_c_files-${{ matrix.settings.target }}
+          skip_unpack: false
 
       - name: Download artifacts
         uses: bitwarden/gh-actions/download-artifacts@main

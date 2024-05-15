@@ -142,9 +142,9 @@ jobs:
         run: |
           unzip libbitwarden_c_files-x86_64-apple-darwin.zip -d sm-sdk-go/internal/cinterface/lib/darwin-x64
           unzip libbitwarden_c_files-aarch64-apple-darwin.zip -d sm-sdk-go/internal/cinterface/lib/darwin-arm64
-          unzip libbitwarden_c_files-x86_64-unknown-linux-gnu.zip -d sm-sdk-go/internal/cinterface/lib/linux-x64
-          unzip libbitwarden_c_files-aarch64-unknown-linux-gnu.zip -d sm-sdk-go/internal/cinterface/lib/linux-arm64
-          unzip libbitwarden_c_files-x86_64-pc-windows-msvc.zip -d sm-sdk-go/internal/cinterface/lib/windows-x64
+          unzip libbitwarden_c_files-x86_64-unknown-linux-musl.zip -d sm-sdk-go/internal/cinterface/lib/linux-x64
+          unzip libbitwarden_c_files-aarch64-unknown-linux-musl.zip -d sm-sdk-go/internal/cinterface/lib/linux-arm64
+          unzip libbitwarden_c_files-x86_64-pc-windows-gnu.zip -d sm-sdk-go/internal/cinterface/lib/windows-x64
           # rm all non .a files
           find sm-sdk-go/internal/cinterface/lib -type f ! -name "*.a" -delete
           ls -halR sm-sdk-go/cinterface && exit 1

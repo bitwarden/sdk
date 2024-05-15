@@ -34,10 +34,10 @@ pub enum AccountsAvatarPutError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`accounts_cancel_premium_post`]
+/// struct for typed errors of method [`accounts_cancel_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum AccountsCancelPremiumPostError {
+pub enum AccountsCancelPostError {
     UnknownValue(serde_json::Value),
 }
 
@@ -444,17 +444,17 @@ pub async fn accounts_avatar_put(
     }
 }
 
-pub async fn accounts_cancel_premium_post(
+pub async fn accounts_cancel_post(
     configuration: &configuration::Configuration,
-) -> Result<(), Error<AccountsCancelPremiumPostError>> {
+    subscription_cancellation_request_model: Option<
+        crate::models::SubscriptionCancellationRequestModel,
+    >,
+) -> Result<(), Error<AccountsCancelPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
 
-    let local_var_uri_str = format!(
-        "{}/accounts/cancel-premium",
-        local_var_configuration.base_path
-    );
+    let local_var_uri_str = format!("{}/accounts/cancel", local_var_configuration.base_path);
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
 
@@ -465,6 +465,7 @@ pub async fn accounts_cancel_premium_post(
     if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
         local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
     };
+    local_var_req_builder = local_var_req_builder.json(&subscription_cancellation_request_model);
 
     let local_var_req = local_var_req_builder.build()?;
     let local_var_resp = local_var_client.execute(local_var_req).await?;
@@ -475,7 +476,7 @@ pub async fn accounts_cancel_premium_post(
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
         Ok(())
     } else {
-        let local_var_entity: Option<AccountsCancelPremiumPostError> =
+        let local_var_entity: Option<AccountsCancelPostError> =
             serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,

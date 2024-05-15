@@ -27,6 +27,13 @@ pub enum OrganizationsOrganizationIdSecretsPostError {
     UnknownValue(serde_json::Value),
 }
 
+/// struct for typed errors of method [`organizations_organization_id_secrets_sync_get`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum OrganizationsOrganizationIdSecretsSyncGetError {
+    UnknownValue(serde_json::Value),
+}
+
 /// struct for typed errors of method [`projects_project_id_secrets_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -146,6 +153,58 @@ pub async fn organizations_organization_id_secrets_post(
         serde_json::from_str(&local_var_content).map_err(Error::from)
     } else {
         let local_var_entity: Option<OrganizationsOrganizationIdSecretsPostError> =
+            serde_json::from_str(&local_var_content).ok();
+        let local_var_error = ResponseContent {
+            status: local_var_status,
+            content: local_var_content,
+            entity: local_var_entity,
+        };
+        Err(Error::ResponseError(local_var_error))
+    }
+}
+
+pub async fn organizations_organization_id_secrets_sync_get(
+    configuration: &configuration::Configuration,
+    organization_id: uuid::Uuid,
+    last_synced_date: Option<String>,
+) -> Result<
+    crate::models::SecretsSyncResponseModel,
+    Error<OrganizationsOrganizationIdSecretsSyncGetError>,
+> {
+    let local_var_configuration = configuration;
+
+    let local_var_client = &local_var_configuration.client;
+
+    let local_var_uri_str = format!(
+        "{}/organizations/{organizationId}/secrets/sync",
+        local_var_configuration.base_path,
+        organizationId = crate::apis::urlencode(organization_id.to_string())
+    );
+    let mut local_var_req_builder =
+        local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
+
+    if let Some(ref local_var_str) = last_synced_date {
+        local_var_req_builder =
+            local_var_req_builder.query(&[("lastSyncedDate", &local_var_str.to_string())]);
+    }
+    if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
+        local_var_req_builder =
+            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
+    }
+    if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
+        local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
+    };
+
+    let local_var_req = local_var_req_builder.build()?;
+    let local_var_resp = local_var_client.execute(local_var_req).await?;
+
+    let local_var_status = local_var_resp.status();
+    let local_var_content = local_var_resp.text().await?;
+
+    if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
+        serde_json::from_str(&local_var_content).map_err(Error::from)
+    } else {
+        let local_var_entity: Option<OrganizationsOrganizationIdSecretsSyncGetError> =
             serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,

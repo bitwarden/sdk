@@ -31,6 +31,7 @@ pub enum PushType {
     SyncSendDelete = 14,
     AuthRequest = 15,
     AuthRequestResponse = 16,
+    SyncOrganizations = 17,
 }
 
 impl ToString for PushType {
@@ -53,6 +54,7 @@ impl ToString for PushType {
             Self::SyncSendDelete => String::from("14"),
             Self::AuthRequest => String::from("15"),
             Self::AuthRequestResponse => String::from("16"),
+            Self::SyncOrganizations => String::from("17"),
         }
     }
 }

@@ -28,6 +28,17 @@ pub struct BillingSubscription {
     pub cancelled: Option<bool>,
     #[serde(rename = "items", skip_serializing_if = "Option::is_none")]
     pub items: Option<Vec<crate::models::BillingSubscriptionItem>>,
+    #[serde(rename = "collectionMethod", skip_serializing_if = "Option::is_none")]
+    pub collection_method: Option<String>,
+    #[serde(rename = "suspensionDate", skip_serializing_if = "Option::is_none")]
+    pub suspension_date: Option<String>,
+    #[serde(
+        rename = "unpaidPeriodEndDate",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub unpaid_period_end_date: Option<String>,
+    #[serde(rename = "gracePeriod", skip_serializing_if = "Option::is_none")]
+    pub grace_period: Option<i32>,
 }
 
 impl BillingSubscription {
@@ -42,6 +53,10 @@ impl BillingSubscription {
             status: None,
             cancelled: None,
             items: None,
+            collection_method: None,
+            suspension_date: None,
+            unpaid_period_end_date: None,
+            grace_period: None,
         }
     }
 }

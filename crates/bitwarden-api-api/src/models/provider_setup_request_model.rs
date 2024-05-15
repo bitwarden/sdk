@@ -20,6 +20,8 @@ pub struct ProviderSetupRequestModel {
     pub token: String,
     #[serde(rename = "key")]
     pub key: String,
+    #[serde(rename = "taxInfo", skip_serializing_if = "Option::is_none")]
+    pub tax_info: Option<Box<crate::models::ExpandedTaxInfoUpdateRequestModel>>,
 }
 
 impl ProviderSetupRequestModel {
@@ -35,6 +37,7 @@ impl ProviderSetupRequestModel {
             billing_email,
             token,
             key,
+            tax_info: None,
         }
     }
 }

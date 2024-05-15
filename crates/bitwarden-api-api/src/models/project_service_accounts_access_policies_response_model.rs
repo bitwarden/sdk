@@ -9,16 +9,9 @@
  */
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct ProjectAccessPoliciesResponseModel {
+pub struct ProjectServiceAccountsAccessPoliciesResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
-    #[serde(rename = "userAccessPolicies", skip_serializing_if = "Option::is_none")]
-    pub user_access_policies: Option<Vec<crate::models::UserProjectAccessPolicyResponseModel>>,
-    #[serde(
-        rename = "groupAccessPolicies",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub group_access_policies: Option<Vec<crate::models::GroupProjectAccessPolicyResponseModel>>,
     #[serde(
         rename = "serviceAccountAccessPolicies",
         skip_serializing_if = "Option::is_none"
@@ -27,12 +20,10 @@ pub struct ProjectAccessPoliciesResponseModel {
         Option<Vec<crate::models::ServiceAccountProjectAccessPolicyResponseModel>>,
 }
 
-impl ProjectAccessPoliciesResponseModel {
-    pub fn new() -> ProjectAccessPoliciesResponseModel {
-        ProjectAccessPoliciesResponseModel {
+impl ProjectServiceAccountsAccessPoliciesResponseModel {
+    pub fn new() -> ProjectServiceAccountsAccessPoliciesResponseModel {
+        ProjectServiceAccountsAccessPoliciesResponseModel {
             object: None,
-            user_access_policies: None,
-            group_access_policies: None,
             service_account_access_policies: None,
         }
     }

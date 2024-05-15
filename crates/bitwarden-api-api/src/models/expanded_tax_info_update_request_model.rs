@@ -9,7 +9,7 @@
  */
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct OrganizationTaxInfoUpdateRequestModel {
+pub struct ExpandedTaxInfoUpdateRequestModel {
     #[serde(rename = "country")]
     pub country: String,
     #[serde(rename = "postalCode", skip_serializing_if = "Option::is_none")]
@@ -26,9 +26,9 @@ pub struct OrganizationTaxInfoUpdateRequestModel {
     pub state: Option<String>,
 }
 
-impl OrganizationTaxInfoUpdateRequestModel {
-    pub fn new(country: String) -> OrganizationTaxInfoUpdateRequestModel {
-        OrganizationTaxInfoUpdateRequestModel {
+impl ExpandedTaxInfoUpdateRequestModel {
+    pub fn new(country: String) -> ExpandedTaxInfoUpdateRequestModel {
+        ExpandedTaxInfoUpdateRequestModel {
             country,
             postal_code: None,
             tax_id: None,

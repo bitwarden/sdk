@@ -23,7 +23,7 @@
 //!   let encrypted = data.clone().encrypt_with_key(&key)?;
 //!   let decrypted: DecryptedString = encrypted.decrypt_with_key(&key)?;
 //!
-//!   assert_eq!(&data, decrypted.expose());
+//!   assert_eq!(decrypted, data);
 //!   Ok(())
 //! }
 //! ```
@@ -58,8 +58,6 @@
 mod aes;
 mod enc_string;
 pub use enc_string::{AsymmetricEncString, EncString};
-mod encryptable;
-pub use encryptable::{Decryptable, Encryptable, KeyContainer, LocateKey};
 mod error;
 pub use error::CryptoError;
 pub(crate) use error::Result;

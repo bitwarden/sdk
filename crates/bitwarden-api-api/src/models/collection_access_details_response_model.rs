@@ -27,6 +27,12 @@ pub struct CollectionAccessDetailsResponseModel {
     /// True if the acting user is explicitly assigned to the collection
     #[serde(rename = "assigned", skip_serializing_if = "Option::is_none")]
     pub assigned: Option<bool>,
+    #[serde(rename = "readOnly", skip_serializing_if = "Option::is_none")]
+    pub read_only: Option<bool>,
+    #[serde(rename = "hidePasswords", skip_serializing_if = "Option::is_none")]
+    pub hide_passwords: Option<bool>,
+    #[serde(rename = "manage", skip_serializing_if = "Option::is_none")]
+    pub manage: Option<bool>,
 }
 
 impl CollectionAccessDetailsResponseModel {
@@ -40,6 +46,9 @@ impl CollectionAccessDetailsResponseModel {
             groups: None,
             users: None,
             assigned: None,
+            read_only: None,
+            hide_passwords: None,
+            manage: None,
         }
     }
 }

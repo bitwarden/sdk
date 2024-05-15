@@ -1,7 +1,7 @@
 use bitwarden_api_api::models::{
     BaseSecretResponseModel, BaseSecretResponseModelListResponseModel, SecretResponseModel,
 };
-use bitwarden_crypto::{Decryptable, DecryptedString, EncString};
+use bitwarden_crypto::{CryptoError, DecryptedString, EncString, KeyDecryptable};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -50,16 +50,17 @@ impl SecretResponse {
         enc: &EncryptionSettings,
     ) -> Result<SecretResponse> {
         let org_id = response.organization_id;
+        let enc_key = enc.get_key(&org_id).ok_or(CryptoError::MissingKey)?;
 
         let key: DecryptedString = require!(response.key)
             .parse::<EncString>()?
-            .decrypt(enc, &org_id)?;
+            .decrypt_with_key(enc_key)?;
         let value: DecryptedString = require!(response.value)
             .parse::<EncString>()?
-            .decrypt(enc, &org_id)?;
+            .decrypt_with_key(enc_key)?;
         let note: DecryptedString = require!(response.note)
             .parse::<EncString>()?
-            .decrypt(enc, &org_id)?;
+            .decrypt_with_key(enc_key)?;
 
         let project = response
             .projects

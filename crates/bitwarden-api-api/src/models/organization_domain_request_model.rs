@@ -10,14 +10,12 @@
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct OrganizationDomainRequestModel {
-    #[serde(rename = "txt")]
-    pub txt: String,
     #[serde(rename = "domainName")]
     pub domain_name: String,
 }
 
 impl OrganizationDomainRequestModel {
-    pub fn new(txt: String, domain_name: String) -> OrganizationDomainRequestModel {
-        OrganizationDomainRequestModel { txt, domain_name }
+    pub fn new(domain_name: String) -> OrganizationDomainRequestModel {
+        OrganizationDomainRequestModel { domain_name }
     }
 }

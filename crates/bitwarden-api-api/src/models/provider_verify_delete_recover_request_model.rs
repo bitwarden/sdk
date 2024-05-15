@@ -9,15 +9,13 @@
  */
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct AccessPolicyUpdateRequest {
-    #[serde(rename = "read")]
-    pub read: bool,
-    #[serde(rename = "write")]
-    pub write: bool,
+pub struct ProviderVerifyDeleteRecoverRequestModel {
+    #[serde(rename = "token")]
+    pub token: String,
 }
 
-impl AccessPolicyUpdateRequest {
-    pub fn new(read: bool, write: bool) -> AccessPolicyUpdateRequest {
-        AccessPolicyUpdateRequest { read, write }
+impl ProviderVerifyDeleteRecoverRequestModel {
+    pub fn new(token: String) -> ProviderVerifyDeleteRecoverRequestModel {
+        ProviderVerifyDeleteRecoverRequestModel { token }
     }
 }

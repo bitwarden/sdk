@@ -26,11 +26,16 @@ pub enum PlanType {
     TeamsAnnually2020 = 9,
     EnterpriseMonthly2020 = 10,
     EnterpriseAnnually2020 = 11,
-    TeamsMonthly = 12,
-    TeamsAnnually = 13,
-    EnterpriseMonthly = 14,
-    EnterpriseAnnually = 15,
-    TeamsStarter = 16,
+    TeamsMonthly2023 = 12,
+    TeamsAnnually2023 = 13,
+    EnterpriseMonthly2023 = 14,
+    EnterpriseAnnually2023 = 15,
+    TeamsStarter2023 = 16,
+    TeamsMonthly = 17,
+    TeamsAnnually = 18,
+    EnterpriseMonthly = 19,
+    EnterpriseAnnually = 20,
+    TeamsStarter = 21,
 }
 
 impl ToString for PlanType {
@@ -48,11 +53,16 @@ impl ToString for PlanType {
             Self::TeamsAnnually2020 => String::from("9"),
             Self::EnterpriseMonthly2020 => String::from("10"),
             Self::EnterpriseAnnually2020 => String::from("11"),
-            Self::TeamsMonthly => String::from("12"),
-            Self::TeamsAnnually => String::from("13"),
-            Self::EnterpriseMonthly => String::from("14"),
-            Self::EnterpriseAnnually => String::from("15"),
-            Self::TeamsStarter => String::from("16"),
+            Self::TeamsMonthly2023 => String::from("12"),
+            Self::TeamsAnnually2023 => String::from("13"),
+            Self::EnterpriseMonthly2023 => String::from("14"),
+            Self::EnterpriseAnnually2023 => String::from("15"),
+            Self::TeamsStarter2023 => String::from("16"),
+            Self::TeamsMonthly => String::from("17"),
+            Self::TeamsAnnually => String::from("18"),
+            Self::EnterpriseMonthly => String::from("19"),
+            Self::EnterpriseAnnually => String::from("20"),
+            Self::TeamsStarter => String::from("21"),
         }
     }
 }

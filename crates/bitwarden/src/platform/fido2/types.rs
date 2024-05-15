@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use super::{get_enum_from_string_name, SelectedCredential};
+use super::{get_enum_from_string_name, SelectedCredential, Verification};
 
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct PublicKeyCredentialRpEntity {
@@ -99,6 +99,16 @@ pub enum UV {
     Discouraged,
     Preferred,
     Required,
+}
+
+impl From<UV> for Verification {
+    fn from(value: UV) -> Self {
+        match value {
+            UV::Discouraged => Verification::Discouraged,
+            UV::Preferred => Verification::Preferred,
+            UV::Required => Verification::Required,
+        }
+    }
 }
 
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]

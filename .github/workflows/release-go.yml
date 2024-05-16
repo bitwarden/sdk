@@ -254,7 +254,7 @@ jobs:
 
       - name: Rename build artifacts
         run: |
-          artifacts=("x86_64-apple-darwin" "aarch64-apple-darwin" "x86_64-unknown-linux-gnu" "x86_64-pc-windows-msvc") # aarch64-unknown-linux-gnu)
+          artifacts=("x86_64-apple-darwin" "aarch64-apple-darwin" "x86_64-unknown-linux-musl" "aarch64-unknown-linux-musl" "x86_64-pc-windows-gnu")
           for value in "${artifacts[@]}"
           do
             unzip libbitwarden_c_files-$value.zip -d libbitwarden_c_files-$value

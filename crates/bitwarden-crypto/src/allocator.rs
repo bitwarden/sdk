@@ -4,6 +4,10 @@ use std::{
     sync::atomic,
 };
 
+/// Custom allocator that zeroizes memory before deallocating it
+///
+/// This is highly recommended to be enabled when using the Bitwarden crates to avoid sensitive data
+/// persisting in memory after it has been deallocated.
 pub struct ZeroizingAllocator<Alloc: GlobalAlloc>(pub Alloc);
 
 unsafe impl<T: GlobalAlloc> GlobalAlloc for ZeroizingAllocator<T> {

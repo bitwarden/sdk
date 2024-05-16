@@ -263,6 +263,7 @@ jobs:
             cd ..
           done
 
+          ls -hal libbitwarden_c_files-* # rm after testing
           ls ./libbitwarden_c_files-x86_64-apple-darwin-$_PKG_VERSION -lRa
 
       - name: Create release
@@ -278,5 +279,6 @@ jobs:
           owner: bitwarden
           artifacts: "libbitwarden_c_files-x86_64-apple-darwin-${{ env._PKG_VERSION }}.zip,
             libbitwarden_c_files-aarch64-apple-darwin-${{ env._PKG_VERSION }}.zip,
-            libbitwarden_c_files-x86_64-unknown-linux-gnu-${{ env._PKG_VERSION }}.zip,
-            libbitwarden_c_files-x86_64-pc-windows-msvc-${{ env._PKG_VERSION }}.zip"
+            libbitwarden_c_files-x86_64-unknown-linux-musl-${{ env._PKG_VERSION }}.zip,
+            libbitwarden_c_files-aarch64-unknown-linux-musl-${{ env._PKG_VERSION }}.zip,
+            libbitwarden_c_files-x86_64-pc-windows-gnu-${{ env._PKG_VERSION }}.zip"

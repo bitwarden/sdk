@@ -1,7 +1,10 @@
 use std::path::Path;
 
-use bitwarden_crypto::Kdf;
+use bitwarden_crypto::{Kdf, ZeroizingAllocator};
 use zeroize::{Zeroize, Zeroizing};
+
+#[global_allocator]
+static ALLOC: ZeroizingAllocator<std::alloc::System> = ZeroizingAllocator(std::alloc::System);
 
 pub const TEST_STRING: &str = "THIS IS USED TO CHECK THAT THE MEMORY IS DUMPED CORRECTLY";
 

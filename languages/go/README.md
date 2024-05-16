@@ -27,7 +27,7 @@ Download the SDK files and place them in your Go project directory.
 To initialize the client, you need to import the SDK and create a new `BitwardenClient` instance.
 
 ```go
-import "github.com/bitwarden/sdk/languages/go"
+import "github.com/bitwarden/sm-sdk-go"
 
 bitwardenClient, _ := sdk.NewBitwardenClient(&apiURL, &identityURL)
 ```
@@ -36,7 +36,8 @@ bitwardenClient, _ := sdk.NewBitwardenClient(&apiURL, &identityURL)
 
 ### Login
 
-To login using an access token. Define some `statePath` and pass it to use state, or pass `nil` instead to not use state.
+To login using an access token. Define some `statePath` and pass it to use state, or pass `nil`
+instead to not use state.
 
 ```go
 statePath := os.Getenv("STATE_PATH")

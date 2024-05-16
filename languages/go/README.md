@@ -100,6 +100,15 @@ secret, err := client.Secrets.Update("secret_id", "new_key", "new_value", "new_n
 secret, err := client.Secrets.Delete([]string{"secret_id_1", "secret_id_2"})
 ```
 
+#### Secrets Sync
+
+```go
+secretsSync, err := client.Secrets.Sync("organization_id", nil)
+
+lastSyncedDate := time.Now()
+secretsSync, err := client.Secrets.Sync("organization_id", lastSyncedDate)
+```
+
 ---
 
 ### Close Client

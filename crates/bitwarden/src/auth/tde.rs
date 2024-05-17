@@ -1,7 +1,7 @@
-use base64::{engine::general_purpose::STANDARD, Engine};
+use base64::engine::general_purpose::STANDARD;
 use bitwarden_crypto::{
-    AsymmetricEncString, AsymmetricPublicCryptoKey, DeviceKey, EncString, Kdf, SymmetricCryptoKey,
-    TrustDeviceResponse, UserKey,
+    AsymmetricEncString, AsymmetricPublicCryptoKey, DeviceKey, EncString, Kdf, SensitiveString,
+    SymmetricCryptoKey, TrustDeviceResponse, UserKey,
 };
 
 use crate::{error::Result, Client};
@@ -15,7 +15,9 @@ pub(super) fn make_register_tde_keys(
     org_public_key: String,
     remember_device: bool,
 ) -> Result<RegisterTdeKeyResponse> {
-    let public_key = AsymmetricPublicCryptoKey::from_der(&STANDARD.decode(org_public_key)?)?;
+    let public_key = AsymmetricPublicCryptoKey::from_der(
+        SensitiveString::new(Box::new(org_public_key)).decode_base64(STANDARD)?,
+    )?;
 
     let mut rng = rand::thread_rng();
 

@@ -46,7 +46,6 @@ impl DeviceKey {
 
         let protected_device_private_key = device_private_key
             .to_der()?
-            .expose()
             .encrypt_with_key(&device_key.0)?;
 
         Ok(TrustDeviceResponse {

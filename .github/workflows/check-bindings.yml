@@ -4,12 +4,12 @@ name: Check bitwarden-api-* bindings
 on:
   pull_request:
     paths:
-      - "crates/bitwarden-api-api/src/**"
-      - "crates/memory-api-identity/src/**"
+      - "crates/bitwarden-api-api/**"
+      - "crates/bitwarden-api-identity/**"
   push:
     paths:
-      - "crates/bitwarden-api-api/src/**"
-      - "crates/memory-api-identity/src/**"
+      - "crates/bitwarden-api-api/**"
+      - "crates/bitwarden-api-identity/**"
     branches:
       - "main"
       - "rc"

@@ -52,13 +52,6 @@ jobs:
           toolchain: nightly
           components: rustfmt
 
-      - name: Print environment
-        run: |
-          dotnet --info
-          nuget help | grep Version
-          echo "GitHub ref: $GITHUB_REF"
-          echo "GitHub event: $GITHUB_EVENT"
-
       - name: Generate swagger Api spec
         working-directory: server/src/Api
         run: |

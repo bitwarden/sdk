@@ -41,8 +41,8 @@ opt-level = 1
 
 # Turn on LTO on release mode
 [profile.release]
-lto = "fat"
+lto = "thin"
 codegen-units = 1
 # Stripping the binary reduces the size by ~30%, but the stacktraces won't be usable anymore.
 # This is fine as long as we don't have any unhandled panics, but let's keep it disabled for now
-strip = true
+# strip = true

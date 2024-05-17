@@ -618,7 +618,7 @@ mod tests {
         let cipher_enc = cipher.encrypt_with_key(org_key).unwrap();
         let cipher_dec: CipherView = cipher_enc.decrypt_with_key(org_key).unwrap();
 
-        assert_eq!(cipher_dec.name, "My test login");
+        assert_eq!(cipher_dec.name.expose(), "My test login");
     }
 
     #[test]
@@ -650,7 +650,7 @@ mod tests {
         let number = Some(DecryptedString::test("4111111111111111"));
 
         let subtitle = build_subtitle_card(brand, number);
-        assert_eq!(subtitle, "Visa, *1111");
+        assert_eq!(subtitle.expose(), "Visa, *1111");
     }
 
     #[test]
@@ -659,7 +659,7 @@ mod tests {
         let number = Some(DecryptedString::test("5555555555554444"));
 
         let subtitle = build_subtitle_card(brand, number);
-        assert_eq!(subtitle, "Mastercard, *4444");
+        assert_eq!(subtitle.expose(), "Mastercard, *4444");
     }
 
     #[test]
@@ -668,7 +668,7 @@ mod tests {
         let number = Some(DecryptedString::test("378282246310005"));
 
         let subtitle = build_subtitle_card(brand, number);
-        assert_eq!(subtitle, "Amex, *10005");
+        assert_eq!(subtitle.expose(), "Amex, *10005");
     }
 
     #[test]
@@ -677,7 +677,7 @@ mod tests {
         let number = Some(DecryptedString::test("4"));
 
         let subtitle = build_subtitle_card(brand, number);
-        assert_eq!(subtitle, "Mastercard");
+        assert_eq!(subtitle.expose(), "Mastercard");
     }
 
     #[test]
@@ -686,7 +686,7 @@ mod tests {
         let number = None;
 
         let subtitle = build_subtitle_card(brand, number);
-        assert_eq!(subtitle, "Mastercard");
+        assert_eq!(subtitle.expose(), "Mastercard");
     }
 
     #[test]
@@ -695,7 +695,7 @@ mod tests {
         let number = Some(DecryptedString::test("5555555555554444"));
 
         let subtitle = build_subtitle_card(brand, number);
-        assert_eq!(subtitle, "*4444");
+        assert_eq!(subtitle.expose(), "*4444");
     }
 
     #[test]
@@ -704,7 +704,7 @@ mod tests {
         let last_name = Some(DecryptedString::test("Doe"));
 
         let subtitle = build_subtitle_identity(first_name, last_name);
-        assert_eq!(subtitle, "John Doe");
+        assert_eq!(subtitle.expose(), "John Doe");
     }
 
     #[test]
@@ -713,7 +713,7 @@ mod tests {
         let last_name = None;
 
         let subtitle = build_subtitle_identity(first_name, last_name);
-        assert_eq!(subtitle, "John");
+        assert_eq!(subtitle.expose(), "John");
     }
 
     #[test]
@@ -722,7 +722,7 @@ mod tests {
         let last_name = Some(DecryptedString::test("Doe"));
 
         let subtitle = build_subtitle_identity(first_name, last_name);
-        assert_eq!(subtitle, "Doe");
+        assert_eq!(subtitle.expose(), "Doe");
     }
 
     #[test]
@@ -731,6 +731,6 @@ mod tests {
         let last_name = None;
 
         let subtitle = build_subtitle_identity(first_name, last_name);
-        assert_eq!(subtitle, "");
+        assert_eq!(subtitle.expose(), "");
     }
 }

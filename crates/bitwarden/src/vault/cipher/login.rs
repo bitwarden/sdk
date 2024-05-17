@@ -62,7 +62,7 @@ impl LoginUriView {
                 .finalize(),
         ));
 
-        cs == uri_hash.expose().as_slice()
+        uri_hash.expose().as_slice() == cs.expose()
     }
 
     pub(crate) fn generate_checksum(&mut self) {

@@ -23,7 +23,7 @@
 //!   let encrypted = data.clone().encrypt_with_key(&key)?;
 //!   let decrypted: DecryptedString = encrypted.decrypt_with_key(&key)?;
 //!
-//!   assert_eq!(decrypted, data);
+//!   assert_eq!(&data, decrypted.expose());
 //!   Ok(())
 //! }
 //! ```

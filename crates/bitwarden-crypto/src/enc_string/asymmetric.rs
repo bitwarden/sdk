@@ -10,7 +10,6 @@ use crate::{
     error::{CryptoError, EncStringParseError, Result},
     rsa::encrypt_rsa2048_oaep_sha1,
     AsymmetricCryptoKey, AsymmetricEncryptable, DecryptedString, DecryptedVec, KeyDecryptable,
-    SensitiveVec,
 };
 
 // This module is a workaround to avoid deprecated warnings that come from the ZeroizeOnDrop
@@ -147,10 +146,10 @@ impl serde::Serialize for AsymmetricEncString {
 impl AsymmetricEncString {
     /// Encrypt and produce a [AsymmetricEncString::Rsa2048_OaepSha1_B64] variant.
     pub fn encrypt_rsa2048_oaep_sha1(
-        data_dec: SensitiveVec,
+        data_dec: &[u8],
         key: &dyn AsymmetricEncryptable,
     ) -> Result<AsymmetricEncString> {
-        let enc = encrypt_rsa2048_oaep_sha1(key.to_public_key(), data_dec.expose())?;
+        let enc = encrypt_rsa2048_oaep_sha1(key.to_public_key(), data_dec)?;
         Ok(AsymmetricEncString::Rsa2048_OaepSha1_B64 { data: enc })
     }
 
@@ -255,7 +254,7 @@ XKZBokBGnjFnTnKcs7nv/O8=
         assert_eq!(enc_string.enc_type(), 3);
 
         let res: DecryptedString = enc_string.decrypt_with_key(&private_key).unwrap();
-        assert_eq!(res, "EncryptMe!");
+        assert_eq!(res.expose(), "EncryptMe!");
     }
 
     #[test]
@@ -267,7 +266,7 @@ XKZBokBGnjFnTnKcs7nv/O8=
         assert_eq!(enc_string.enc_type(), 4);
 
         let res: DecryptedString = enc_string.decrypt_with_key(&private_key).unwrap();
-        assert_eq!(res, "EncryptMe!");
+        assert_eq!(res.expose(), "EncryptMe!");
     }
 
     #[test]
@@ -279,7 +278,7 @@ XKZBokBGnjFnTnKcs7nv/O8=
         assert_eq!(enc_string.enc_type(), 6);
 
         let res: DecryptedString = enc_string.decrypt_with_key(&private_key).unwrap();
-        assert_eq!(res, "EncryptMe!");
+        assert_eq!(res.expose(), "EncryptMe!");
     }
 
     #[test]

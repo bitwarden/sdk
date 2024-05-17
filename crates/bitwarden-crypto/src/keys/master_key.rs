@@ -190,10 +190,10 @@ mod tests {
         let master_key = MasterKey::derive(&password, salt, &kdf).unwrap();
 
         assert_eq!(
+            "ZF6HjxUTSyBHsC+HXSOhZoXN+UuMnygV5YkWXCY4VmM=",
             master_key
                 .derive_master_key_hash(&password, HashPurpose::ServerAuthorization)
                 .unwrap(),
-            "ZF6HjxUTSyBHsC+HXSOhZoXN+UuMnygV5YkWXCY4VmM=",
         );
     }
 
@@ -210,10 +210,10 @@ mod tests {
         let master_key = MasterKey::derive(&password, salt, &kdf).unwrap();
 
         assert_eq!(
+            "PR6UjYmjmppTYcdyTiNbAhPJuQQOmynKbdEl1oyi/iQ=",
             master_key
                 .derive_master_key_hash(&password, HashPurpose::ServerAuthorization)
                 .unwrap(),
-            "PR6UjYmjmppTYcdyTiNbAhPJuQQOmynKbdEl1oyi/iQ=",
         );
     }
 

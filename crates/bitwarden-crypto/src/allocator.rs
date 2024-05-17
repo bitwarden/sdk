@@ -8,6 +8,8 @@ use std::{
 ///
 /// This is highly recommended to be enabled when using the Bitwarden crates to avoid sensitive data
 /// persisting in memory after it has been deallocated.
+///
+/// This allocator is a decorator around another allocator that zeroizes memory before.
 pub struct ZeroizingAllocator<Alloc: GlobalAlloc>(pub Alloc);
 
 unsafe impl<T: GlobalAlloc> GlobalAlloc for ZeroizingAllocator<T> {
@@ -16,6 +18,7 @@ unsafe impl<T: GlobalAlloc> GlobalAlloc for ZeroizingAllocator<T> {
     }
 
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
+        // Zeroize the memory before propagating the deallocation to the underlying allocator
         unsafe { volatile_set(ptr, 0, layout.size()) }
         atomic_fence();
 
@@ -71,5 +74,93 @@ unsafe fn volatile_set<T: Copy + Sized>(dst: *mut T, src: T, count: usize) {
         // This is safe, because the pointer is valid and because `dst` is well aligned for `T` and
         // `ptr` is an offset of `dst` by a multiple of `mem::size_of::<T>()` bytes.
         ptr::write_volatile(ptr, src);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[global_allocator]
+    static ALLOC: super::ZeroizingAllocator<std::alloc::System> =
+        super::ZeroizingAllocator(std::alloc::System);
+
+    #[test]
+    fn string() {
+        let s = String::from("hello");
+
+        let p1 = s.as_str().as_ptr();
+        let c1 = s.capacity();
+
+        assert_eq!(
+            unsafe { std::slice::from_raw_parts(p1, c1) },
+            b"hello",
+            "String is not at the expected memory location"
+        );
+
+        drop(s);
+
+        assert_eq!(
+            unsafe { std::slice::from_raw_parts(p1, c1) },
+            [0, 0, 0, 0, 0],
+            "memory was not zeroized after dropping the string"
+        );
+    }
+
+    #[test]
+    fn string_expand() {
+        let mut s = String::from("hello");
+
+        let p1 = s.as_str().as_ptr();
+        let c1 = s.capacity();
+
+        assert_eq!(unsafe { std::slice::from_raw_parts(p1, c1) }, b"hello");
+
+        s.push_str(" world");
+
+        let p2: *const u8 = s.as_str().as_ptr();
+        let c2 = s.capacity();
+
+        // We allocated a new string
+        assert_ne!(p1, p2);
+        assert_eq!(
+            unsafe { std::slice::from_raw_parts(p1, c1) },
+            [0, 0, 0, 0, 0],
+            "old string was not zeroized"
+        );
+
+        assert_eq!(
+            unsafe { std::slice::from_raw_parts(p2, c2) },
+            b"hello world"
+        );
+
+        // Drop the expanded string
+        drop(s);
+
+        assert_eq!(
+            unsafe { std::slice::from_raw_parts(p2, c2) },
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            "expanded string was not zeroized"
+        );
+    }
+
+    #[test]
+    fn vec() {
+        let v = vec![1, 2, 3, 4, 5];
+
+        let p1 = v.as_slice().as_ptr();
+        let c1 = v.capacity();
+
+        assert_eq!(
+            unsafe { std::slice::from_raw_parts(p1, c1) },
+            [1, 2, 3, 4, 5],
+            "vec is not at the expected memory location"
+        );
+
+        drop(v);
+
+        assert_eq!(
+            unsafe { std::slice::from_raw_parts(p1, c1) },
+            [0, 0, 0, 0, 0],
+            "vec was not zeroized after dropping"
+        );
     }
 }

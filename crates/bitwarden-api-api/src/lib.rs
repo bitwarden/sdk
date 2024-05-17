@@ -13,5 +13,3 @@ extern crate url;
 
 pub mod apis;
 pub mod models;
-
-// This is a test to see if the new CI check fails

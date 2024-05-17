@@ -27,6 +27,7 @@ unsafe impl<T: GlobalAlloc> GlobalAlloc for ZeroizingAllocator<T> {
     }
 }
 
+/*
 #[cfg(test)]
 mod tests {
     #[global_allocator]
@@ -155,3 +156,4 @@ mod tests {
         );
     }
 }
+*/

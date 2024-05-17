@@ -28,7 +28,7 @@ impl<'a> ClientCrypto<'a> {
     }
 
     #[cfg(feature = "internal")]
-    pub async fn get_user_encryption_key(&mut self) -> Result<SensitiveString> {
+    pub async fn get_user_encryption_key(&mut self) -> Result<String> {
         get_user_encryption_key(self.client).await
     }
 

@@ -1,6 +1,6 @@
 use std::{env, io::Read, path::Path, process};
 
-use bitwarden_crypto::{MasterKey, SensitiveString, SensitiveVec, SymmetricCryptoKey};
+use bitwarden_crypto::{MasterKey, SymmetricCryptoKey};
 
 fn wait_for_dump() {
     println!("Waiting for dump...");
@@ -26,7 +26,6 @@ fn main() {
     for case in cases.cases {
         match case.command {
             memory_testing::CaseCommand::SymmetricKey { key } => {
-                let key = SensitiveString::new(Box::new(key));
                 let key = SymmetricCryptoKey::try_from(key).unwrap();
                 symmetric_keys.push((key.to_vec(), key));
             }
@@ -35,11 +34,10 @@ fn main() {
                 email,
                 kdf,
             } => {
-                let password: SensitiveVec = SensitiveString::new(Box::new(password)).into();
-                let key = MasterKey::derive(&password, email.as_bytes(), &kdf).unwrap();
+                let key = MasterKey::derive(password.as_bytes(), email.as_bytes(), &kdf).unwrap();
                 let hash = key
                     .derive_master_key_hash(
-                        &password,
+                        password.as_bytes(),
                         bitwarden_crypto::HashPurpose::ServerAuthorization,
                     )
                     .unwrap();

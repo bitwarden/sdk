@@ -1,6 +1,6 @@
 use std::{fmt::Debug, path::Path};
 
-use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable, SensitiveString};
+use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -15,11 +15,11 @@ const STATE_VERSION: u32 = 1;
 pub struct ClientState {
     pub(crate) version: u32,
     pub(crate) token: String,
-    pub(crate) encryption_key: SensitiveString,
+    pub(crate) encryption_key: String,
 }
 
 impl ClientState {
-    pub fn new(token: String, encryption_key: SensitiveString) -> Self {
+    pub fn new(token: String, encryption_key: String) -> Self {
         Self {
             version: STATE_VERSION,
             token,

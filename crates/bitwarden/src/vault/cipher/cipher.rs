@@ -308,7 +308,7 @@ impl CipherView {
 
         let new_key = SymmetricCryptoKey::generate(rand::thread_rng());
 
-        self.key = Some(new_key.to_vec().expose().encrypt_with_key(key)?);
+        self.key = Some(new_key.to_vec().encrypt_with_key(key)?);
         Ok(())
     }
 

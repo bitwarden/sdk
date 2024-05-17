@@ -291,7 +291,7 @@ mod tests {
 
     use super::EncString;
     use crate::{
-        derive_symmetric_key, KeyDecryptable, KeyEncryptable, SensitiveString, SymmetricCryptoKey,
+        derive_symmetric_key, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
     };
 
     #[test]
@@ -392,7 +392,7 @@ mod tests {
 
     #[test]
     fn test_decrypt_cbc256() {
-        let key = SensitiveString::test("hvBMMb1t79YssFZkpetYsM3deyVuQv4r88Uj9gvYe08=");
+        let key = "hvBMMb1t79YssFZkpetYsM3deyVuQv4r88Uj9gvYe08=".to_string();
         let key = SymmetricCryptoKey::try_from(key).unwrap();
 
         let enc_str = "0.NQfjHLr6za7VQVAbrpL81w==|wfrjmyJ0bfwkQlySrhw8dA==";
@@ -405,7 +405,7 @@ mod tests {
 
     #[test]
     fn test_decrypt_cbc128_hmac() {
-        let key = SensitiveString::test("Gt1aZ8kTTgkF80bLtb7LiMZBcxEA2FA5mbvV4x7K208=");
+        let key = "Gt1aZ8kTTgkF80bLtb7LiMZBcxEA2FA5mbvV4x7K208=".to_string();
         let key = SymmetricCryptoKey::try_from(key).unwrap();
 
         let enc_str = "1.CU/oG4VZuxbHoZSDZjCLQw==|kb1HGwAk+fQ275ORfLf5Ew==|8UaEYHyqRZcG37JWhYBOBdEatEXd1u1/wN7OuImolcM=";

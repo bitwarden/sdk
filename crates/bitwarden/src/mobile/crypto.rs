@@ -88,7 +88,7 @@ pub enum AuthRequestMethod {
 
 #[cfg(feature = "internal")]
 pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequest) -> Result<()> {
-    use bitwarden_crypto::{DecryptedString, DeviceKey};
+    use bitwarden_crypto::DeviceKey;
 
     use crate::auth::{auth_request_decrypt_master_key, auth_request_decrypt_user_key};
 
@@ -103,7 +103,6 @@ pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequ
             client.initialize_user_crypto_master_key(master_key, user_key, private_key)?;
         }
         InitUserCryptoMethod::DecryptedKey { decrypted_user_key } => {
-            let decrypted_user_key = DecryptedString::new(Box::new(decrypted_user_key));
             let user_key = SymmetricCryptoKey::try_from(decrypted_user_key)?;
             client.initialize_user_crypto_decrypted_key(user_key, private_key)?;
         }
@@ -138,7 +137,6 @@ pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequ
             protected_device_private_key,
             device_protected_user_key,
         } => {
-            let device_key = DecryptedString::new(Box::new(device_key));
             let device_key = DeviceKey::try_from(device_key)?;
             let user_key = device_key
                 .decrypt_user_key(protected_device_private_key, device_protected_user_key)?;
@@ -175,7 +173,7 @@ pub async fn initialize_org_crypto(client: &mut Client, req: InitOrgCryptoReques
 }
 
 #[cfg(feature = "internal")]
-pub async fn get_user_encryption_key(client: &mut Client) -> Result<SensitiveString> {
+pub async fn get_user_encryption_key(client: &mut Client) -> Result<String> {
     let user_key = client
         .get_encryption_settings()?
         .get_key(&None)
@@ -315,7 +313,7 @@ pub(super) fn enroll_admin_password_reset(
     let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
 
     Ok(AsymmetricEncString::encrypt_rsa2048_oaep_sha1(
-        key.to_vec().expose(),
+        &key.to_vec(),
         &public_key,
     )?)
 }
@@ -536,6 +534,6 @@ mod tests {
             .unwrap()
             .get_key(&None)
             .unwrap();
-        assert_eq!(&decrypted, expected.to_vec().expose());
+        assert_eq!(&decrypted, &expected.to_vec());
     }
 }

@@ -5,9 +5,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::utils::{derive_kdf_key, stretch_kdf_key};
-use crate::{
-    util, CryptoError, EncString, KeyDecryptable, Result, SensitiveVec, SymmetricCryptoKey, UserKey,
-};
+use crate::{util, CryptoError, EncString, KeyDecryptable, Result, SymmetricCryptoKey, UserKey};
 
 /// Key Derivation Function for Bitwarden Account
 ///
@@ -71,17 +69,13 @@ impl MasterKey {
     }
 
     /// Derives a users master key from their password, email and KDF.
-    pub fn derive(password: &SensitiveVec, email: &[u8], kdf: &Kdf) -> Result<Self> {
-        derive_kdf_key(password.expose(), email, kdf).map(Self)
+    pub fn derive(password: &[u8], email: &[u8], kdf: &Kdf) -> Result<Self> {
+        derive_kdf_key(password, email, kdf).map(Self)
     }
 
     /// Derive the master key hash, used for local and remote password validation.
-    pub fn derive_master_key_hash(
-        &self,
-        password: &SensitiveVec,
-        purpose: HashPurpose,
-    ) -> Result<String> {
-        let hash = util::pbkdf2(&self.0.key, password.expose(), purpose as u32);
+    pub fn derive_master_key_hash(&self, password: &[u8], purpose: HashPurpose) -> Result<String> {
+        let hash = util::pbkdf2(&self.0.key, password, purpose as u32);
 
         Ok(STANDARD.encode(hash))
     }
@@ -103,7 +97,7 @@ impl MasterKey {
         let stretched_key = stretch_kdf_key(&self.0)?;
 
         EncString::encrypt_aes256_hmac(
-            user_key.to_vec().expose(),
+            &user_key.to_vec(),
             stretched_key
                 .mac_key
                 .as_ref()
@@ -130,14 +124,12 @@ mod tests {
     use rand::SeedableRng;
 
     use super::{make_user_key, HashPurpose, Kdf, MasterKey};
-    use crate::{
-        keys::symmetric_crypto_key::derive_symmetric_key, SensitiveVec, SymmetricCryptoKey,
-    };
+    use crate::{keys::symmetric_crypto_key::derive_symmetric_key, SymmetricCryptoKey};
 
     #[test]
     fn test_master_key_derive_pbkdf2() {
         let master_key = MasterKey::derive(
-            &SensitiveVec::test(b"67t9b5g67$%Dh89n"),
+            b"67t9b5g67$%Dh89n",
             b"test_key",
             &Kdf::PBKDF2 {
                 iterations: NonZeroU32::new(10000).unwrap(),
@@ -158,7 +150,7 @@ mod tests {
     #[test]
     fn test_master_key_derive_argon2() {
         let master_key = MasterKey::derive(
-            &SensitiveVec::test(b"67t9b5g67$%Dh89n"),
+            b"67t9b5g67$%Dh89n",
             b"test_key",
             &Kdf::Argon2id {
                 iterations: NonZeroU32::new(4).unwrap(),
@@ -180,25 +172,25 @@ mod tests {
 
     #[test]
     fn test_password_hash_pbkdf2() {
-        let password = SensitiveVec::test(b"asdfasdf");
+        let password = b"asdfasdf";
         let salt = b"test_salt";
         let kdf = Kdf::PBKDF2 {
             iterations: NonZeroU32::new(100_000).unwrap(),
         };
 
-        let master_key = MasterKey::derive(&password, salt, &kdf).unwrap();
+        let master_key = MasterKey::derive(password, salt, &kdf).unwrap();
 
         assert_eq!(
             "ZF6HjxUTSyBHsC+HXSOhZoXN+UuMnygV5YkWXCY4VmM=",
             master_key
-                .derive_master_key_hash(&password, HashPurpose::ServerAuthorization)
+                .derive_master_key_hash(password, HashPurpose::ServerAuthorization)
                 .unwrap(),
         );
     }
 
     #[test]
     fn test_password_hash_argon2id() {
-        let password = SensitiveVec::test(b"asdfasdf");
+        let password = b"asdfasdf";
         let salt = b"test_salt";
         let kdf = Kdf::Argon2id {
             iterations: NonZeroU32::new(4).unwrap(),
@@ -206,12 +198,12 @@ mod tests {
             parallelism: NonZeroU32::new(2).unwrap(),
         };
 
-        let master_key = MasterKey::derive(&password, salt, &kdf).unwrap();
+        let master_key = MasterKey::derive(password, salt, &kdf).unwrap();
 
         assert_eq!(
             "PR6UjYmjmppTYcdyTiNbAhPJuQQOmynKbdEl1oyi/iQ=",
             master_key
-                .derive_master_key_hash(&password, HashPurpose::ServerAuthorization)
+                .derive_master_key_hash(password, HashPurpose::ServerAuthorization)
                 .unwrap(),
         );
     }

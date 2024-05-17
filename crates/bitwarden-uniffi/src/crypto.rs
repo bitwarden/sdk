@@ -40,7 +40,7 @@ impl ClientCrypto {
 
     /// Get the uses's decrypted encryption key. Note: It's very important
     /// to keep this key safe, as it can be used to decrypt all of the user's data
-    pub async fn get_user_encryption_key(&self) -> Result<SensitiveString> {
+    pub async fn get_user_encryption_key(&self) -> Result<String> {
         Ok(self
             .0
              .0

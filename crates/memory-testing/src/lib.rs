@@ -43,6 +43,9 @@ pub enum CaseCommand {
         email: String,
         kdf: Kdf,
     },
+    String {
+        parts: Vec<String>,
+    },
 }
 
 #[derive(serde::Deserialize)]

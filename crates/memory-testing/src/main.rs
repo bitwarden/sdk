@@ -21,6 +21,7 @@ fn main() {
 
     let mut symmetric_keys = Vec::new();
     let mut master_keys = Vec::new();
+    let mut strings = Vec::new();
 
     for case in cases.cases {
         match case.command {
@@ -45,6 +46,10 @@ fn main() {
 
                 master_keys.push((key, hash));
             }
+            memory_testing::CaseCommand::String { parts } => {
+                let s = parts.join(" ");
+                strings.push(s);
+            }
         }
     }
 
@@ -53,7 +58,7 @@ fn main() {
 
     // Put all the variables through a black box to prevent them from being optimized out before we
     // get to this point, and then drop them
-    let _ = std::hint::black_box((test_string, symmetric_keys, master_keys));
+    let _ = std::hint::black_box((test_string, symmetric_keys, master_keys, strings));
 
     // After the variables are dropped, we want to make another dump
     wait_for_dump();

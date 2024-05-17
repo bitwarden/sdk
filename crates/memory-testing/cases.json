@@ -73,6 +73,38 @@
           "hex": "947929add391948095278526c22f78533fe70132ba63b21fedefa216869bce1d"
         }
       ]
+    },
+    {
+      "name": "Simple",
+      "string": {
+        "parts": ["Hello"]
+      },
+      "memory_lookups": [
+        {
+          "name": "String",
+          "string": "Hello"
+        }
+      ]
+    },
+    {
+      "name": "Join",
+      "string": {
+        "parts": ["battery", "horse", "staple"]
+      },
+      "memory_lookups": [
+        {
+          "name": "String",
+          "string": "battery"
+        },
+        {
+          "name": "String",
+          "string": "horse"
+        },
+        {
+          "name": "String",
+          "string": "battery horse staple"
+        }
+      ]
     }
   ]
 }

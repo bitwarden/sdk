@@ -115,31 +115,6 @@ impl SensitiveString {
 
         Ok(value)
     }
-
-    #[inline(always)]
-    pub fn len(&self) -> usize {
-        self.value.len()
-    }
-
-    #[inline(always)]
-    pub fn is_empty(&self) -> bool {
-        self.value.is_empty()
-    }
-
-    // The predicate is specifically a fn() and not a closure to forbid capturing values
-    // from the environment, which would make it easier to accidentally leak some data.
-    // For example, the following won't compile with fn() but would work with impl Fn():
-    // ```
-    // let mut chars = Mutex::new(Vec::new());
-    // self.any_chars(|c| {chars.lock().unwrap().push(c); true});
-    // ```
-    // Note that this is not a perfect solution, as it is still possible to leak the characters by
-    // using a global variable or a static variable. Also `char` implements Copy so it's hard to
-    // ensure the compiler is not making a copy of the character.
-    #[inline(always)]
-    pub fn any_chars(&self, predicate: fn(char) -> bool) -> bool {
-        self.value.chars().any(predicate)
-    }
 }
 
 impl<T: Zeroize + AsRef<[u8]>> Sensitive<T> {

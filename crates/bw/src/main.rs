@@ -2,6 +2,7 @@ use bitwarden::{
     auth::RegisterRequest,
     client::client_settings::ClientSettings,
     generators::{PassphraseGeneratorRequest, PasswordGeneratorRequest},
+    ZeroizingAllocator,
 };
 use bitwarden_cli::{install_color_eyre, text_prompt_when_none, Color};
 use bitwarden_crypto::SensitiveString;
@@ -12,6 +13,9 @@ use render::Output;
 
 mod auth;
 mod render;
+
+#[global_allocator]
+static ALLOC: ZeroizingAllocator<std::alloc::System> = ZeroizingAllocator(std::alloc::System);
 
 #[derive(Parser, Clone)]
 #[command(name = "Bitwarden CLI", version, about = "Bitwarden CLI", long_about = None)]

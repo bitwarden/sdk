@@ -9,7 +9,7 @@ use std::{
 /// This is highly recommended to be enabled when using the Bitwarden crates to avoid sensitive data
 /// persisting in memory after it has been deallocated.
 ///
-/// This allocator is a decorator around another allocator that zeroizes memory before.
+/// This allocator is a decorator around another allocator.
 pub struct ZeroizingAllocator<Alloc: GlobalAlloc>(pub Alloc);
 
 unsafe impl<T: GlobalAlloc> GlobalAlloc for ZeroizingAllocator<T> {
@@ -201,7 +201,7 @@ mod tests {
         assert_eq!(
             unsafe { std::slice::from_raw_parts(p2, c2) },
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            "expanded string was not zeroized"
+            "expanded vec was not zeroized"
         );
     }
 }

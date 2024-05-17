@@ -1,8 +1,12 @@
 use std::{ffi::CStr, os::raw::c_char, str};
 
+use bitwarden::ZeroizingAllocator;
 use bitwarden_json::client::Client;
 
 use crate::{box_ptr, ffi_ref};
+
+#[global_allocator]
+static ALLOC: ZeroizingAllocator<std::alloc::System> = ZeroizingAllocator(std::alloc::System);
 
 #[no_mangle]
 #[tokio::main]

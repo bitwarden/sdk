@@ -28,7 +28,8 @@ use crate::{
     Client,
 };
 
-// AAGUID: d548826e-79b4-db40-a3d8-11116f7e8349
+// This is the AAGUID for the Bitwarden Passkey provider (d548826e-79b4-db40-a3d8-11116f7e8349)
+// It is used for the Relaying Parties to identify the authenticator during registration
 const AAGUID: Aaguid = Aaguid([
     0xd5, 0x48, 0x82, 0x6e, 0x79, 0xb4, 0xdb, 0x40, 0xa3, 0xd8, 0x11, 0x11, 0x6f, 0x7e, 0x83, 0x49,
 ]);

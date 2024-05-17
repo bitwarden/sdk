@@ -13,8 +13,6 @@ use bitwarden::{
 
 use crate::{error::Result, Client};
 
-/// At the moment this is just a stub implementation that doesn't do anything. It's here to make
-/// it possible to check the usability API on the native clients.
 #[derive(uniffi::Object)]
 pub struct ClientFido2(pub(crate) Arc<Client>);
 

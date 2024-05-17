@@ -460,7 +460,6 @@ dependencies = [
  "bitwarden-crypto",
  "chrono",
  "csv",
- "itertools 0.12.1",
  "serde",
  "serde_json",
  "thiserror",

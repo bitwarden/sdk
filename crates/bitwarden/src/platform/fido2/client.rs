@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use bitwarden_crypto::{KeyEncryptable, SensitiveString};
+use bitwarden_crypto::KeyEncryptable;
 use passkey::{authenticator::Authenticator, types::ctap2::Aaguid};
 use reqwest::Url;
 use serde::Serialize;
@@ -84,8 +84,8 @@ impl<'a> Fido2Client<'a> {
                     folder_id: None,
                     collection_ids: vec![],
                     key: None,
-                    name: SensitiveString::new(Box::new("".to_string())),
-                    notes: Some(SensitiveString::new(Box::new("".to_string()))),
+                    name: "".to_string(),
+                    notes: Some("".to_string()),
                     r#type: crate::vault::CipherType::Login,
                     login: Some(LoginView {
                         username: None,
@@ -192,8 +192,8 @@ impl<'a> Fido2Client<'a> {
                     folder_id: None,
                     collection_ids: vec![],
                     key: None,
-                    name: SensitiveString::new(Box::new("".to_string())),
-                    notes: Some(SensitiveString::new(Box::new("".to_string()))),
+                    name: "".to_string(),
+                    notes: Some("".to_string()),
                     r#type: crate::vault::CipherType::Login,
                     login: Some(LoginView {
                         username: None,

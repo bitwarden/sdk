@@ -6,8 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use super::utils::{derive_kdf_key, stretch_kdf_key};
 use crate::{
-    util, CryptoError, DecryptedVec, EncString, KeyDecryptable, Result, SensitiveVec,
-    SymmetricCryptoKey, UserKey,
+    util, CryptoError, EncString, KeyDecryptable, Result, SensitiveVec, SymmetricCryptoKey, UserKey,
 };
 
 /// Key Derivation Function for Bitwarden Account
@@ -96,8 +95,8 @@ impl MasterKey {
     pub fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey> {
         let stretched_key = stretch_kdf_key(&self.0)?;
 
-        let dec: DecryptedVec = user_key.decrypt_with_key(&stretched_key)?;
-        SymmetricCryptoKey::try_from(dec)
+        let mut dec: Vec<u8> = user_key.decrypt_with_key(&stretched_key)?;
+        SymmetricCryptoKey::try_from(dec.as_mut_slice())
     }
 
     pub fn encrypt_user_key(&self, user_key: &SymmetricCryptoKey) -> Result<EncString> {

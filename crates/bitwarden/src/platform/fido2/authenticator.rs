@@ -11,8 +11,8 @@ use passkey::{
 };
 
 use super::{
-    crypto::attested_credential_data_into_iter, types::*, CheckUserOptions, CipherViewContainer,
-    Fido2CredentialStore, Fido2UserInterface, SelectedCredential, AAGUID,
+    types::*, CheckUserOptions, CipherViewContainer, Fido2CredentialStore, Fido2UserInterface,
+    SelectedCredential, AAGUID,
 };
 use crate::{
     error::{require, Error, Result},
@@ -99,8 +99,7 @@ impl<'a> Fido2Authenticator<'a> {
 
         Ok(MakeCredentialResult {
             authenticator_data,
-            attested_credential_data: attested_credential_data_into_iter(attested_credential_data)
-                .collect(),
+            attested_credential_data: attested_credential_data.into_iter().collect(),
             credential_id,
         })
     }

@@ -116,7 +116,7 @@ mod tests {
 
         s.push_str(" world");
 
-        let p2: *const u8 = s.as_str().as_ptr();
+        let p2 = s.as_str().as_ptr();
         let c2 = s.capacity();
 
         // We allocated a new string
@@ -161,6 +161,47 @@ mod tests {
             unsafe { std::slice::from_raw_parts(p1, c1) },
             [0, 0, 0, 0, 0],
             "vec was not zeroized after dropping"
+        );
+    }
+
+    #[test]
+    fn vec_expand() {
+        let mut v = vec![1, 2, 3, 4, 5];
+
+        let p1 = v.as_slice().as_ptr();
+        let c1 = v.capacity();
+
+        assert_eq!(
+            unsafe { std::slice::from_raw_parts(p1, c1) },
+            [1, 2, 3, 4, 5],
+            "vec is not at the expected memory location"
+        );
+
+        v.extend_from_slice(&[6, 7, 8, 9, 10]);
+
+        let p2 = v.as_slice().as_ptr();
+        let c2 = v.capacity();
+
+        // We allocated a new vector
+        assert_ne!(p1, p2);
+        assert_eq!(
+            unsafe { std::slice::from_raw_parts(p1, c1) },
+            [0, 0, 0, 0, 0],
+            "old vec was not zeroized"
+        );
+
+        assert_eq!(
+            unsafe { std::slice::from_raw_parts(p2, c2) },
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        );
+
+        // Drop the expanded vector
+        drop(v);
+
+        assert_eq!(
+            unsafe { std::slice::from_raw_parts(p2, c2) },
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            "expanded string was not zeroized"
         );
     }
 }

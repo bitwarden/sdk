@@ -54,7 +54,7 @@ impl ClientAuth {
         password: SensitiveString,
         kdf_params: Kdf,
         purpose: HashPurpose,
-    ) -> Result<SensitiveString> {
+    ) -> Result<String> {
         Ok(self
             .0
              .0
@@ -103,7 +103,7 @@ impl ClientAuth {
     pub async fn validate_password(
         &self,
         password: SensitiveString,
-        password_hash: SensitiveString,
+        password_hash: String,
     ) -> Result<bool> {
         Ok(self
             .0
@@ -111,7 +111,7 @@ impl ClientAuth {
             .write()
             .await
             .auth()
-            .validate_password(password, password_hash)?)
+            .validate_password(password, password_hash.to_string())?)
     }
 
     /// Validate the user password without knowing the password hash
@@ -124,7 +124,7 @@ impl ClientAuth {
         &self,
         password: SensitiveString,
         encrypted_user_key: String,
-    ) -> Result<SensitiveString> {
+    ) -> Result<String> {
         Ok(self
             .0
              .0

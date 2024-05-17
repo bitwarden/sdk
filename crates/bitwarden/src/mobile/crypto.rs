@@ -190,7 +190,7 @@ pub async fn get_user_encryption_key(client: &mut Client) -> Result<SensitiveStr
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct UpdatePasswordResponse {
     /// Hash of the new password
-    password_hash: SensitiveString,
+    password_hash: String,
     /// User key, encrypted with the new password
     new_key: EncString,
 }

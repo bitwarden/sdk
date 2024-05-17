@@ -39,18 +39,9 @@ where
     Sensitive::new(Box::new(rand::thread_rng().gen::<T>()))
 }
 
-#[inline(always)]
-pub fn pbkdf2(
-    password: &[u8],
-    salt: &[u8],
-    rounds: u32,
-) -> Sensitive<[u8; PBKDF_SHA256_HMAC_OUT_SIZE]> {
-    let mut hash = Sensitive::new(Box::new([0u8; PBKDF_SHA256_HMAC_OUT_SIZE]));
-
-    pbkdf2::pbkdf2::<PbkdfSha256Hmac>(password, salt, rounds, hash.expose_mut())
-        .expect("hash is a valid fixed size");
-
-    hash
+pub fn pbkdf2(password: &[u8], salt: &[u8], rounds: u32) -> [u8; PBKDF_SHA256_HMAC_OUT_SIZE] {
+    pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(password, salt, rounds)
+        .expect("hash is a valid fixed size")
 }
 
 #[cfg(test)]

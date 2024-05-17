@@ -36,13 +36,8 @@ pub(crate) async fn login_password(
     let password_hash =
         master_key.derive_master_key_hash(&password_vec, HashPurpose::ServerAuthorization)?;
 
-    let response = request_identity_tokens(
-        client,
-        &input.email,
-        &input.two_factor,
-        password_hash.expose(),
-    )
-    .await?;
+    let response =
+        request_identity_tokens(client, &input.email, &input.two_factor, &password_hash).await?;
 
     if let IdentityTokenResponse::Authenticated(r) = &response {
         client.set_tokens(

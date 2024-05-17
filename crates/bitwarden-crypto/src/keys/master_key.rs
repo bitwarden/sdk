@@ -1,13 +1,13 @@
 use std::num::NonZeroU32;
 
-use base64::engine::general_purpose::STANDARD;
+use base64::{engine::general_purpose::STANDARD, Engine};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::utils::{derive_kdf_key, stretch_kdf_key};
 use crate::{
-    util, CryptoError, DecryptedVec, EncString, KeyDecryptable, Result, SensitiveString,
-    SensitiveVec, SymmetricCryptoKey, UserKey,
+    util, CryptoError, DecryptedVec, EncString, KeyDecryptable, Result, SensitiveVec,
+    SymmetricCryptoKey, UserKey,
 };
 
 /// Key Derivation Function for Bitwarden Account
@@ -64,7 +64,6 @@ pub enum HashPurpose {
 /// Master Key.
 ///
 /// Derived from the users master password, used to protect the [UserKey].
-#[derive(Debug)]
 pub struct MasterKey(SymmetricCryptoKey);
 
 impl MasterKey {
@@ -74,7 +73,7 @@ impl MasterKey {
 
     /// Derives a users master key from their password, email and KDF.
     pub fn derive(password: &SensitiveVec, email: &[u8], kdf: &Kdf) -> Result<Self> {
-        derive_kdf_key(password, email, kdf).map(Self)
+        derive_kdf_key(password.expose(), email, kdf).map(Self)
     }
 
     /// Derive the master key hash, used for local and remote password validation.
@@ -82,9 +81,10 @@ impl MasterKey {
         &self,
         password: &SensitiveVec,
         purpose: HashPurpose,
-    ) -> Result<SensitiveString> {
+    ) -> Result<String> {
         let hash = util::pbkdf2(&self.0.key, password.expose(), purpose as u32);
-        Ok(hash.encode_base64(STANDARD))
+
+        Ok(STANDARD.encode(hash))
     }
 
     /// Generate a new random user key and encrypt it with the master key.

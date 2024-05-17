@@ -8,7 +8,7 @@ pub async fn hash_password(
     password: SensitiveString,
     kdf_params: Kdf,
     purpose: HashPurpose,
-) -> Result<SensitiveString> {
+) -> Result<String> {
     let password_vec = password.into();
     let master_key = MasterKey::derive(&password_vec, email.as_bytes(), &kdf_params)?;
 

@@ -1,8 +1,11 @@
-use base64::engine::general_purpose::{STANDARD, URL_SAFE_NO_PAD};
+use base64::{
+    engine::general_purpose::{STANDARD, URL_SAFE_NO_PAD},
+    Engine,
+};
 use bitwarden_api_api::models::{SendFileModel, SendResponseModel, SendTextModel};
 use bitwarden_crypto::{
     derive_shareable_key, generate_random_bytes, CryptoError, DecryptedString, DecryptedVec,
-    EncString, KeyDecryptable, KeyEncryptable, LocateKey, Sensitive, SensitiveString, SensitiveVec,
+    EncString, KeyDecryptable, KeyEncryptable, LocateKey, Sensitive, SensitiveVec,
     SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
@@ -71,7 +74,7 @@ pub struct Send {
     pub name: EncString,
     pub notes: Option<EncString>,
     pub key: EncString,
-    pub password: Option<SensitiveString>,
+    pub password: Option<String>,
 
     pub r#type: SendType,
     pub file: Option<SendFile>,
@@ -281,7 +284,7 @@ impl KeyEncryptable<SymmetricCryptoKey, Send> for SendView {
             password: self.new_password.map(|password| {
                 let password =
                     bitwarden_crypto::pbkdf2(password.as_bytes(), k.expose(), SEND_ITERATIONS);
-                password.encode_base64(STANDARD)
+                STANDARD.encode(password)
             }),
 
             r#type: self.r#type,
@@ -310,7 +313,7 @@ impl TryFrom<SendResponseModel> for Send {
             name: require!(send.name).parse()?,
             notes: EncString::try_from_optional(send.notes)?,
             key: require!(send.key).parse()?,
-            password: send.password.map(|p| SensitiveString::new(Box::new(p))),
+            password: send.password,
             r#type: require!(send.r#type).into(),
             file: send.file.map(|f| (*f).try_into()).transpose()?,
             text: send.text.map(|t| (*t).try_into()).transpose()?,
@@ -582,8 +585,8 @@ mod tests {
         let send: Send = view.encrypt_with_key(key).unwrap();
 
         assert_eq!(
-            send.password.clone().unwrap(),
-            "vTIDfdj3FTDbejmMf+mJWpYdMXsxfeSd1Sma3sjCtiQ="
+            send.password,
+            Some("vTIDfdj3FTDbejmMf+mJWpYdMXsxfeSd1Sma3sjCtiQ=".to_owned())
         );
 
         let v: SendView = send.decrypt_with_key(key).unwrap();

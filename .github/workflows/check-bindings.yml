@@ -1,0 +1,95 @@
+---
+name: Check bitwarden-api-* bindings
+
+on:
+  pull_request:
+    paths:
+      - "crates/bitwarden-api-api/src/**"
+      - "crates/memory-api-identity/src/**"
+  push:
+    paths:
+      - "crates/bitwarden-api-api/src/**"
+      - "crates/memory-api-identity/src/**"
+    branches:
+      - "main"
+      - "rc"
+      - "hotfix-rc"
+
+jobs:
+  check-bindings:
+    name: Check bitwarden-api-* bindings
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Check out SDK repo
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        with:
+          path: sdk
+
+      - name: Check out server repo
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        with:
+          path: server
+          repository: bitwarden/server
+          # TODO: Read this from a file somewhere?
+          ref: 0b5c21accaf6cd72c82fd171d29f5598f9e56046
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@3447fd6a9f9e57506b15f895c5b76d3b197dc7c2 # v3.2.0
+        with:
+          global-json-file: "server/global.json"
+
+      - name: Set up Node
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          cache: "npm"
+          cache-dependency-path: "sdk/package-lock.json"
+          node-version: "16"
+
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@d8352f6b1d2e870bc5716e7a6d9b65c4cc244a1a # stable
+        with:
+          toolchain: nightly
+          components: rustfmt
+
+      - name: Print environment
+        run: |
+          dotnet --info
+          nuget help | grep Version
+          echo "GitHub ref: $GITHUB_REF"
+          echo "GitHub event: $GITHUB_EVENT"
+
+      - name: Generate swagger Api spec
+        working-directory: server/src/Api
+        run: |
+          dotnet build
+          dotnet tool restore
+          dotnet swagger tofile --output ../../api.json ./bin/Debug/net8.0/Api.dll internal
+
+      - name: Generate swagger Identity spec
+        working-directory: server/src/Identity
+        run: |
+          dotnet build
+          dotnet tool restore
+          dotnet swagger tofile --output ../../identity.json ./bin/Debug/net8.0/Identity.dll v1
+        env:
+          ASPNETCORE_ENVIRONMENT: development
+          GLOBALSETTINGS__SQLSERVER_CONNECTIONSTRING: placeholder
+          GLOBALSETTINGS__SELFHOSTED: True
+
+      - name: Generate Rust bindings
+        working-directory: sdk
+        run: |
+          npm ci
+          ./support/build-api.sh
+
+      - name: Discard Cargo.toml changes
+        working-directory: sdk
+        run: |
+          git checkout crates/bitwarden-api-api/Cargo.toml
+          git checkout crates/bitwarden-api-identity/Cargo.toml
+
+      - name: Check for any Git changes
+        working-directory: sdk
+        run: |
+          git diff --color --exit-code

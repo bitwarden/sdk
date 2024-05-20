@@ -104,6 +104,7 @@ struct SchemaTypes {
     secret: Response<bitwarden::secrets_manager::secrets::SecretResponse>,
     secrets: Response<bitwarden::secrets_manager::secrets::SecretsResponse>,
     secrets_delete: Response<bitwarden::secrets_manager::secrets::SecretsDeleteResponse>,
+    secrets_sync: Response<bitwarden::secrets_manager::secrets::SecretsSyncResponse>,
     project: Response<bitwarden::secrets_manager::projects::ProjectResponse>,
     projects: Response<bitwarden::secrets_manager::projects::ProjectsResponse>,
     projects_delete: Response<bitwarden::secrets_manager::projects::ProjectsDeleteResponse>,

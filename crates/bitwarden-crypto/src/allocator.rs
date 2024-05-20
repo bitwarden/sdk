@@ -27,7 +27,6 @@ unsafe impl<T: GlobalAlloc> GlobalAlloc for ZeroizingAllocator<T> {
     }
 }
 
-/*
 #[cfg(test)]
 mod tests {
     #[global_allocator]
@@ -35,6 +34,7 @@ mod tests {
         super::ZeroizingAllocator(std::alloc::System);
 
     #[test]
+    #[ignore = "It produces inconsistent results on some platforms"]
     fn string() {
         let s = String::from("hello");
 
@@ -57,6 +57,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "It produces inconsistent results on some platforms"]
     fn string_expand() {
         let mut s = String::from("hello");
 
@@ -94,6 +95,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "It produces inconsistent results on some platforms"]
     fn vec() {
         let v = vec![1, 2, 3, 4, 5];
 
@@ -116,6 +118,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "It produces inconsistent results on some platforms"]
     fn vec_expand() {
         let mut v = vec![1, 2, 3, 4, 5];
 
@@ -156,4 +159,3 @@ mod tests {
         );
     }
 }
-*/

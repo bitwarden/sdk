@@ -93,6 +93,15 @@ pub struct Options {
     pub uv: UV,
 }
 
+impl From<super::CheckUserOptions> for Options {
+    fn from(value: super::CheckUserOptions) -> Self {
+        Self {
+            rk: value.require_presence,
+            uv: value.require_verification.into(),
+        }
+    }
+}
+
 #[derive(Eq, PartialEq, Clone, Copy)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum UV {
@@ -107,6 +116,16 @@ impl From<UV> for Verification {
             UV::Discouraged => Verification::Discouraged,
             UV::Preferred => Verification::Preferred,
             UV::Required => Verification::Required,
+        }
+    }
+}
+
+impl From<Verification> for UV {
+    fn from(value: Verification) -> Self {
+        match value {
+            Verification::Discouraged => UV::Discouraged,
+            Verification::Preferred => UV::Preferred,
+            Verification::Required => UV::Required,
         }
     }
 }

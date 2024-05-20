@@ -4,9 +4,10 @@ use bitwarden::{
     error::Result as BitResult,
     platform::fido2::{
         CheckUserOptions, ClientData, GetAssertionRequest, GetAssertionResult,
-        MakeCredentialRequest, MakeCredentialResult,
+        MakeCredentialRequest, MakeCredentialResult, Options,
         PublicKeyCredentialAuthenticatorAssertionResponse,
-        PublicKeyCredentialAuthenticatorAttestationResponse,
+        PublicKeyCredentialAuthenticatorAttestationResponse, PublicKeyCredentialRpEntity,
+        PublicKeyCredentialUserEntity,
     },
     vault::{Cipher, CipherView, Fido2CredentialNewView, Fido2CredentialView},
 };
@@ -153,11 +154,7 @@ pub struct CheckUserResult {
 #[uniffi::export(with_foreign)]
 #[async_trait::async_trait]
 pub trait Fido2UserInterface: Send + Sync {
-    async fn check_user(
-        &self,
-        options: CheckUserOptions,
-        credential: Option<CipherView>,
-    ) -> Result<CheckUserResult>;
+    async fn check_user(&self, options: CheckUserOptions, hint: UIHint) -> Result<CheckUserResult>;
     async fn pick_credential_for_authentication(
         &self,
         available_credentials: Vec<CipherView>,
@@ -217,15 +214,57 @@ pub struct CipherViewWrapper {
     cipher: CipherView,
 }
 
+#[derive(uniffi::Enum)]
+pub enum UIHint {
+    InformExcludedCredentialFound(CipherView),
+    InformNoCredentialsFound,
+    RequestNewCredential(
+        PublicKeyCredentialUserEntity,
+        PublicKeyCredentialRpEntity,
+        Options,
+    ),
+    RequestExistingCredential(CipherView),
+}
+
+impl UIHint {
+    fn from_bw_hint(
+        hint: bitwarden::platform::fido2::UIHint<'_, CipherView>,
+        options: CheckUserOptions,
+    ) -> Self {
+        use bitwarden::platform::fido2::UIHint as BWUIHint;
+        match hint {
+            BWUIHint::InformExcludedCredentialFound(cipher) => {
+                UIHint::InformExcludedCredentialFound(cipher.clone())
+            }
+            BWUIHint::InformNoCredentialsFound => UIHint::InformNoCredentialsFound,
+            BWUIHint::RequestNewCredential(user, rp, _) => UIHint::RequestNewCredential(
+                PublicKeyCredentialUserEntity {
+                    id: user.id.clone().into(),
+                    name: user.name.clone().unwrap_or_default(),
+                    display_name: user.display_name.clone().unwrap_or_default(),
+                },
+                PublicKeyCredentialRpEntity {
+                    id: rp.id.clone(),
+                    name: rp.name.clone(),
+                },
+                options.into(),
+            ),
+            BWUIHint::RequestExistingCredential(cipher) => {
+                UIHint::RequestExistingCredential(cipher.clone())
+            }
+        }
+    }
+}
+
 #[async_trait::async_trait]
 impl bitwarden::platform::fido2::Fido2UserInterface for UniffiTraitBridge<&dyn Fido2UserInterface> {
-    async fn check_user(
+    async fn check_user<'a>(
         &self,
         options: CheckUserOptions,
-        credential: Option<CipherView>,
+        hint: bitwarden::platform::fido2::UIHint<'a, CipherView>,
     ) -> BitResult<bitwarden::platform::fido2::CheckUserResult> {
         self.0
-            .check_user(options, credential)
+            .check_user(options.clone(), UIHint::from_bw_hint(hint, options))
             .await
             .map(|r| bitwarden::platform::fido2::CheckUserResult {
                 user_present: r.user_present,

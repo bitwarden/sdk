@@ -9,6 +9,8 @@ mod crypto;
 mod traits;
 mod types;
 
+pub use passkey::authenticator::UIHint;
+
 pub use authenticator::Fido2Authenticator;
 pub use client::Fido2Client;
 pub use traits::{
@@ -16,9 +18,10 @@ pub use traits::{
 };
 pub use types::{
     AuthenticatorAssertionResponse, AuthenticatorAttestationResponse, ClientData,
-    GetAssertionRequest, GetAssertionResult, MakeCredentialRequest, MakeCredentialResult,
+    GetAssertionRequest, GetAssertionResult, MakeCredentialRequest, MakeCredentialResult, Options,
     PublicKeyCredentialAuthenticatorAssertionResponse,
-    PublicKeyCredentialAuthenticatorAttestationResponse,
+    PublicKeyCredentialAuthenticatorAttestationResponse, PublicKeyCredentialRpEntity,
+    PublicKeyCredentialUserEntity,
 };
 
 use self::crypto::{cose_key_to_pkcs8, pkcs8_to_cose_key};

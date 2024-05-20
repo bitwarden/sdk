@@ -3,7 +3,7 @@ use std::{ops::Deref, sync::Mutex};
 use bitwarden_crypto::KeyEncryptable;
 use log::error;
 use passkey::{
-    authenticator::{Authenticator, DiscoverabilitySupport, StoreInfo, UserCheck},
+    authenticator::{Authenticator, DiscoverabilitySupport, StoreInfo, UIHint, UserCheck},
     types::{
         ctap2::{self, Ctap2Error, StatusCode, VendorError},
         Passkey,
@@ -403,9 +403,9 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
 impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'_> {
     type PasskeyItem = CipherViewContainer;
 
-    async fn check_user(
+    async fn check_user<'a>(
         &self,
-        credential: Option<Self::PasskeyItem>,
+        hint: UIHint<'a, Self::PasskeyItem>,
         presence: bool,
         // TODO(Fido2): This is not used as we're using the UV stored in get_assertion and
         // make_credential Should we validate that it matches with what we stored?
@@ -427,7 +427,7 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
         let result = self
             .authenticator
             .user_interface
-            .check_user(options, credential.map(|c| c.cipher))
+            .check_user(options, map_ui_hint(hint))
             .await
             .map_err(|e| {
                 error!("Error checking user: {e:?}");
@@ -451,5 +451,15 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
                 .is_verification_enabled()
                 .await,
         )
+    }
+}
+
+fn map_ui_hint(hint: UIHint<'_, CipherViewContainer>) -> UIHint<'_, CipherView> {
+    use UIHint::*;
+    match hint {
+        InformExcludedCredentialFound(c) => InformExcludedCredentialFound(&c.cipher),
+        InformNoCredentialsFound => InformNoCredentialsFound,
+        RequestNewCredential(u, r, o) => RequestNewCredential(u, r, o),
+        RequestExistingCredential(c) => RequestExistingCredential(&c.cipher),
     }
 }

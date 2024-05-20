@@ -51,7 +51,7 @@ getrandom = { version = ">=0.2.9, <0.3", features = ["js"] }
 hmac = ">=0.12.1, <0.13"
 log = ">=0.4.18, <0.5"
 p256 = ">=0.13.2, <0.14"
-passkey = { git = "https://github.com/bitwarden/passkey-rs", rev = "4712cab6168a164f743df1efc65477845bc0c8dd", optional = true }
+passkey = { git = "https://github.com/bitwarden/passkey-rs", rev = "8b6a533dad8c93c7aa25582fca82d8ea13c78ba8", optional = true }
 rand = ">=0.8.5, <0.9"
 reqwest = { version = ">=0.12, <0.13", features = [
     "http2",

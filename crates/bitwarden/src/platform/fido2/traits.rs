@@ -1,3 +1,5 @@
+use passkey::authenticator::UIHint;
+
 use crate::{
     error::Result,
     vault::{Cipher, CipherView, Fido2CredentialNewView},
@@ -5,10 +7,10 @@ use crate::{
 
 #[async_trait::async_trait]
 pub trait Fido2UserInterface: Send + Sync {
-    async fn check_user(
+    async fn check_user<'a>(
         &self,
         options: CheckUserOptions,
-        credential: Option<CipherView>,
+        hint: UIHint<'a, CipherView>,
     ) -> Result<CheckUserResult>;
     async fn pick_credential_for_authentication(
         &self,
@@ -33,11 +35,14 @@ pub trait Fido2CredentialStore: Send + Sync {
     async fn save_credential(&self, cred: Cipher) -> Result<()>;
 }
 
+#[derive(Clone)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct CheckUserOptions {
     pub require_presence: bool,
     pub require_verification: Verification,
 }
+
+#[derive(Clone)]
 #[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum Verification {
     Discouraged,

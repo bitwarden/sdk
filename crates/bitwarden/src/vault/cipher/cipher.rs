@@ -1,6 +1,6 @@
 use bitwarden_api_api::models::CipherDetailsResponseModel;
 use bitwarden_crypto::{
-    CryptoError, EncString, KeyContainer, KeyDecryptable, KeyEncryptable, LocateKey, SensitiveVec,
+    CryptoError, EncString, KeyContainer, KeyDecryptable, KeyEncryptable, LocateKey,
     SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
@@ -341,8 +341,8 @@ impl CipherView {
                 .get_key(&Some(organization_id))
                 .ok_or(Error::VaultLocked)?;
 
-            let dec_cipher_key = SensitiveVec::new(Box::new(cipher_key.decrypt_with_key(old_key)?));
-            *cipher_key = dec_cipher_key.expose().encrypt_with_key(new_key)?;
+            let dec_cipher_key: Vec<u8> = cipher_key.decrypt_with_key(old_key)?;
+            *cipher_key = dec_cipher_key.encrypt_with_key(new_key)?;
         }
 
         self.organization_id = Some(organization_id);

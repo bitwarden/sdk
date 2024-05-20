@@ -5,7 +5,7 @@ use base64::{
 use bitwarden_api_api::models::{SendFileModel, SendResponseModel, SendTextModel};
 use bitwarden_crypto::{
     derive_shareable_key, generate_random_bytes, CryptoError, EncString, KeyDecryptable,
-    KeyEncryptable, LocateKey, Sensitive, SensitiveVec, SymmetricCryptoKey,
+    KeyEncryptable, LocateKey, Sensitive, SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
@@ -268,7 +268,7 @@ impl KeyEncryptable<SymmetricCryptoKey, Send> for SendView {
             // New send, generate random key
             (None, None) => {
                 let key: Sensitive<[u8; 16]> = generate_random_bytes();
-                SensitiveVec::from(key).expose().to_owned()
+                key.expose().to_vec()
             }
             // Existing send without key
             _ => return Err(CryptoError::InvalidKey),

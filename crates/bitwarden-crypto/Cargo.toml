@@ -58,7 +58,6 @@ harness = false
 [[bench]]
 name = "zeroizing_allocator"
 harness = false
-features = ["bench_allocator"]
 
 [lints]
 workspace = true

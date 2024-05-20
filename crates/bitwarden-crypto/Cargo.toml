@@ -47,8 +47,17 @@ uuid = { version = ">=1.3.3, <2.0", features = ["serde"] }
 zeroize = { version = ">=1.7.0, <2.0", features = ["derive", "aarch64"] }
 
 [dev-dependencies]
+criterion = "0.5.1"
 rand_chacha = "0.3.1"
 serde_json = ">=1.0.96, <2.0"
+
+[[bench]]
+name = "default_allocator"
+harness = false
+
+[[bench]]
+name = "zeroizing_allocator"
+harness = false
 
 [lints]
 workspace = true

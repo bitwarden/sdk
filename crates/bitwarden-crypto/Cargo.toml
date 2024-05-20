@@ -52,8 +52,13 @@ rand_chacha = "0.3.1"
 serde_json = ">=1.0.96, <2.0"
 
 [[bench]]
-name = "allocator"
+name = "default_allocator"
 harness = false
+
+[[bench]]
+name = "zeroizing_allocator"
+harness = false
+features = ["bench_allocator"]
 
 [lints]
 workspace = true

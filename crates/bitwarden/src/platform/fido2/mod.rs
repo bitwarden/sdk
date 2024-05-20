@@ -9,10 +9,9 @@ mod crypto;
 mod traits;
 mod types;
 
-pub use passkey::authenticator::UIHint;
-
 pub use authenticator::Fido2Authenticator;
 pub use client::Fido2Client;
+pub use passkey::authenticator::UIHint;
 pub use traits::{
     CheckUserOptions, CheckUserResult, Fido2CredentialStore, Fido2UserInterface, Verification,
 };

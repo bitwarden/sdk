@@ -547,7 +547,6 @@ name = "bitwarden-wasm"
 version = "0.1.0"
 dependencies = [
  "argon2",
- "bitwarden-crypto",
  "bitwarden-json",
  "console_error_panic_hook",
  "console_log",

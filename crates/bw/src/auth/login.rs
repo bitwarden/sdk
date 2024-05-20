@@ -7,7 +7,6 @@ use bitwarden::{
     Client,
 };
 use bitwarden_cli::text_prompt_when_none;
-use bitwarden_crypto::SensitiveString;
 use color_eyre::eyre::{bail, Result};
 use inquire::{Password, Text};
 use log::{debug, error, info};
@@ -15,15 +14,13 @@ use log::{debug, error, info};
 pub(crate) async fn login_password(mut client: Client, email: Option<String>) -> Result<()> {
     let email = text_prompt_when_none("Email", email)?;
 
-    let password = SensitiveString::new(Box::new(
-        Password::new("Password").without_confirmation().prompt()?,
-    ));
+    let password = Password::new("Password").without_confirmation().prompt()?;
 
     let kdf = client.auth().prelogin(email.clone()).await?;
 
     let result = client
         .auth()
-        .login_password(PasswordLoginRequest {
+        .login_password(&PasswordLoginRequest {
             email: email.clone(),
             password: password.clone(),
             two_factor: None,
@@ -51,7 +48,7 @@ pub(crate) async fn login_password(mut client: Client, email: Option<String>) ->
             // Send token
             client
                 .auth()
-                .send_two_factor_email(TwoFactorEmailRequest {
+                .send_two_factor_email(&TwoFactorEmailRequest {
                     email: email.clone(),
                     password: password.clone(),
                 })
@@ -71,7 +68,7 @@ pub(crate) async fn login_password(mut client: Client, email: Option<String>) ->
 
         let result = client
             .auth()
-            .login_password(PasswordLoginRequest {
+            .login_password(&PasswordLoginRequest {
                 email,
                 password,
                 two_factor,
@@ -102,13 +99,11 @@ pub(crate) async fn login_api_key(
     let client_id = text_prompt_when_none("Client ID", client_id)?;
     let client_secret = text_prompt_when_none("Client Secret", client_secret)?;
 
-    let password = SensitiveString::new(Box::new(
-        Password::new("Password").without_confirmation().prompt()?,
-    ));
+    let password = Password::new("Password").without_confirmation().prompt()?;
 
     let result = client
         .auth()
-        .login_api_key(ApiKeyLoginRequest {
+        .login_api_key(&ApiKeyLoginRequest {
             client_id,
             client_secret,
             password,

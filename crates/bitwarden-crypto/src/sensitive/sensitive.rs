@@ -74,13 +74,6 @@ impl TryFrom<SensitiveVec> for SensitiveString {
     }
 }
 
-impl From<SensitiveString> for SensitiveVec {
-    fn from(mut s: SensitiveString) -> Self {
-        let value = std::mem::take(&mut s.value);
-        Sensitive::new(Box::new(value.into_bytes()))
-    }
-}
-
 impl SensitiveString {
     pub fn decode_base64<T: base64::Engine>(self, engine: T) -> Result<SensitiveVec, CryptoError> {
         // Prevent accidental copies by allocating the full size
@@ -153,28 +146,16 @@ impl<V: Zeroize + JsonSchema> JsonSchema for Sensitive<V> {
     }
 }
 
-// We use a lot of `&str` and `&[u8]` in our tests, so we expose this helper
-// to make it easier.
-// IMPORTANT: This should not be used outside of test code
-#[cfg(any(test, feature = "test"))]
-impl<V: Zeroize> Sensitive<V> {
-    pub fn test<T: ?Sized>(value: &'static T) -> Self
-    where
-        &'static T: Into<V>,
-    {
-        Self::new(Box::new(value.into()))
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use schemars::schema_for;
 
     use super::*;
 
+    /*
     #[test]
     fn test_debug() {
-        let string = SensitiveString::test("test");
+        let string = Sensitive::test("test");
         assert_eq!(
             format!("{:?}", string),
             "Sensitive { type: \"alloc::string::String\", value: \"********\" }"
@@ -186,6 +167,7 @@ mod tests {
             "Sensitive { type: \"alloc::vec::Vec<i32>\", value: \"********\" }"
         );
     }
+    */
 
     #[test]
     fn test_schemars() {

@@ -5,7 +5,6 @@ use bitwarden::{
     ZeroizingAllocator,
 };
 use bitwarden_cli::{install_color_eyre, text_prompt_when_none, Color};
-use bitwarden_crypto::SensitiveString;
 use clap::{command, Args, CommandFactory, Parser, Subcommand};
 use color_eyre::eyre::Result;
 use inquire::Password;
@@ -196,11 +195,11 @@ async fn process_commands() -> Result<()> {
             let mut client = bitwarden::Client::new(settings);
 
             let email = text_prompt_when_none("Email", email)?;
-            let password = SensitiveString::new(Box::new(Password::new("Password").prompt()?));
+            let password = Password::new("Password").prompt()?;
 
             client
                 .auth()
-                .register(RegisterRequest {
+                .register(&RegisterRequest {
                     email,
                     name,
                     password,

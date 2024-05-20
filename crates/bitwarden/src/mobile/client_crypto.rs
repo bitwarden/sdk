@@ -1,5 +1,5 @@
 #[cfg(feature = "internal")]
-use bitwarden_crypto::{AsymmetricEncString, EncString, SensitiveString};
+use bitwarden_crypto::{AsymmetricEncString, EncString};
 
 use crate::Client;
 #[cfg(feature = "internal")]
@@ -35,13 +35,13 @@ impl<'a> ClientCrypto<'a> {
     #[cfg(feature = "internal")]
     pub async fn update_password(
         &mut self,
-        new_password: SensitiveString,
+        new_password: String,
     ) -> Result<UpdatePasswordResponse> {
         update_password(self.client, new_password)
     }
 
     #[cfg(feature = "internal")]
-    pub async fn derive_pin_key(&mut self, pin: SensitiveString) -> Result<DerivePinKeyResponse> {
+    pub async fn derive_pin_key(&mut self, pin: String) -> Result<DerivePinKeyResponse> {
         derive_pin_key(self.client, pin)
     }
 

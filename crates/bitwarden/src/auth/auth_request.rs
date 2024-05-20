@@ -122,7 +122,7 @@ fn test_auth_request() {
 mod tests {
     use std::num::NonZeroU32;
 
-    use bitwarden_crypto::{Kdf, SensitiveVec};
+    use bitwarden_crypto::Kdf;
 
     use super::*;
     use crate::mobile::crypto::{AuthRequestMethod, InitUserCryptoMethod, InitUserCryptoRequest};
@@ -132,7 +132,7 @@ mod tests {
         let mut client = Client::new(None);
 
         let master_key = bitwarden_crypto::MasterKey::derive(
-            &SensitiveVec::test(b"asdfasdfasdf"),
+            "asdfasdfasdf".as_bytes(),
             "test@bitwarden.com".as_bytes(),
             &Kdf::PBKDF2 {
                 iterations: NonZeroU32::new(600_000).unwrap(),
@@ -206,12 +206,9 @@ mod tests {
         // Initialize an existing client which is unlocked
         let mut existing_device = Client::new(None);
 
-        let master_key = bitwarden_crypto::MasterKey::derive(
-            &SensitiveVec::test(b"asdfasdfasdf"),
-            email.as_bytes(),
-            &kdf,
-        )
-        .unwrap();
+        let master_key =
+            bitwarden_crypto::MasterKey::derive("asdfasdfasdf".as_bytes(), email.as_bytes(), &kdf)
+                .unwrap();
 
         existing_device
             .initialize_user_crypto_master_key(master_key, user_key, private_key.parse().unwrap())

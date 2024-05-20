@@ -1,6 +1,6 @@
-use base64::engine::general_purpose::STANDARD;
+use base64::{engine::general_purpose::STANDARD, Engine};
 use bitwarden_crypto::{
-    generate_random_bytes, Kdf, KeyEncryptable, PinKey, Sensitive, SensitiveVec,
+    generate_random_bytes, Kdf, KeyEncryptable, PinKey, Sensitive,
 };
 use serde::Serialize;
 use thiserror::Error;
@@ -46,15 +46,15 @@ pub(crate) fn export_encrypted_json(
     };
 
     let salt: Sensitive<[u8; 16]> = generate_random_bytes();
-    let salt = SensitiveVec::from(salt).encode_base64(STANDARD);
-    let key = PinKey::derive(password.as_bytes(), salt.expose().as_bytes(), &kdf)?;
+    let salt = STANDARD.encode(salt.expose());
+    let key = PinKey::derive(password.as_bytes(), salt.as_bytes(), &kdf)?;
 
     let enc_key_validation = Uuid::new_v4().to_string();
 
     let encrypted_export = EncryptedJsonExport {
         encrypted: true,
         password_protected: true,
-        salt: salt.expose().to_string(),
+        salt,
         kdf_type,
         kdf_iterations,
         kdf_memory,

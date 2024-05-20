@@ -1,6 +1,6 @@
 #![allow(dead_code, unused_mut, unused_imports, unused_variables)]
 
-use bitwarden_crypto::{EncString, KeyEncryptable, SensitiveString};
+use bitwarden_crypto::{EncString, KeyEncryptable};
 use chrono::DateTime;
 use passkey::{
     authenticator::{Authenticator, UserCheck},

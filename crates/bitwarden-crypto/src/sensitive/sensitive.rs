@@ -7,8 +7,6 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
-use crate::CryptoError;
-
 /// Wrapper for sensitive values which makes a best effort to enforce zeroization of the inner value
 /// on drop. The inner value exposes a [`Sensitive::expose`] method which returns a reference to the
 /// inner value. Care must be taken to avoid accidentally exposing the inner value through copying
@@ -26,12 +24,6 @@ pub struct Sensitive<V: Zeroize> {
 /// new allocation and the old allocation will not be zeroized.
 /// To avoid this, use Vec::with_capacity to preallocate the capacity you need.
 pub type SensitiveVec = Sensitive<Vec<u8>>;
-
-/// Important: This type does not protect against reallocations made by the String.
-/// This means that if you insert any characters past the capacity, the data will be copied to a
-/// new allocation and the old allocation will not be zeroized.
-/// To avoid this, use String::with_capacity to preallocate the capacity you need.
-pub type SensitiveString = Sensitive<String>;
 
 impl<V: Zeroize> Sensitive<V> {
     /// Create a new [`Sensitive`] value. In an attempt to avoid accidentally placing this on the
@@ -58,48 +50,6 @@ impl<V: Zeroize> Sensitive<V> {
 impl<const N: usize> From<Sensitive<[u8; N]>> for SensitiveVec {
     fn from(sensitive: Sensitive<[u8; N]>) -> Self {
         SensitiveVec::new(Box::new(sensitive.value.to_vec()))
-    }
-}
-
-/// Helper to convert a `Sensitive<Vec<u8>>` to a `Sensitive<String>`, care is taken to ensure any
-/// intermediate copies are zeroed to avoid leaking sensitive data.
-impl TryFrom<SensitiveVec> for SensitiveString {
-    type Error = CryptoError;
-
-    fn try_from(mut v: SensitiveVec) -> Result<Self, CryptoError> {
-        let value = std::mem::take(&mut v.value);
-
-        let rtn = String::from_utf8(*value).map_err(|_| CryptoError::InvalidUtf8String);
-        rtn.map(|v| Sensitive::new(Box::new(v)))
-    }
-}
-
-impl SensitiveString {
-    pub fn decode_base64<T: base64::Engine>(self, engine: T) -> Result<SensitiveVec, CryptoError> {
-        // Prevent accidental copies by allocating the full size
-        let len = base64::decoded_len_estimate(self.value.len());
-        let mut value = SensitiveVec::new(Box::new(Vec::with_capacity(len)));
-
-        engine
-            .decode_vec(self.value.as_ref(), &mut value.value)
-            .map_err(|_| CryptoError::InvalidKey)?;
-
-        Ok(value)
-    }
-}
-
-impl SensitiveVec {
-    pub fn encode_base64<T: base64::Engine>(self, engine: T) -> SensitiveString {
-        use base64::engine::Config;
-
-        // Prevent accidental copies by allocating the full size
-        let padding = engine.config().encode_padding();
-        let len = base64::encoded_len(self.value.len(), padding).expect("Valid length");
-        let mut value = SensitiveString::new(Box::new(String::with_capacity(len)));
-
-        engine.encode_string(self.value.as_ref(), &mut value.value);
-
-        value
     }
 }
 
@@ -174,8 +124,6 @@ mod tests {
         #[derive(JsonSchema)]
         struct TestStruct {
             #[allow(dead_code)]
-            s: SensitiveString,
-            #[allow(dead_code)]
             v: SensitiveVec,
         }
 
@@ -185,11 +133,8 @@ mod tests {
             "$schema": "http://json-schema.org/draft-07/schema#",
             "title": "TestStruct",
             "type": "object",
-            "required": ["s", "v"],
+            "required": ["v"],
             "properties": {
-                "s": {
-                    "$ref": "#/definitions/String"
-                },
                 "v": {
                     "$ref": "#/definitions/Array_of_uint8"
                 }
@@ -202,9 +147,6 @@ mod tests {
                         "format": "uint8",
                         "minimum": 0.0
                     }
-                },
-                "String": {
-                    "type": "string"
                 }
             }
         }"##;

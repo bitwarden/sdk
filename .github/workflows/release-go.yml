@@ -264,7 +264,7 @@ jobs:
           done
 
           ls -hal libbitwarden_c_files-* # rm after testing
-          ls ./libbitwarden_c_files-x86_64-apple-darwin-$_PKG_VERSION -lRa
+          ls ./libbitwarden_c_files-x86_64-apple-darwin-$_PKG_VERSION.zip -lRa
 
       - name: Create release
         if: ${{ inputs.release_type != 'Dry Run' }}

@@ -5,13 +5,14 @@ use base64::{
 use bitwarden_api_api::models::{SendFileModel, SendResponseModel, SendTextModel};
 use bitwarden_crypto::{
     derive_shareable_key, generate_random_bytes, CryptoError, EncString, KeyDecryptable,
-    KeyEncryptable, LocateKey, Sensitive, SymmetricCryptoKey,
+    KeyEncryptable, LocateKey, SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use uuid::Uuid;
+use zeroize::Zeroizing;
 
 use crate::error::{require, Error, Result};
 
@@ -149,9 +150,7 @@ impl Send {
     }
 
     fn derive_shareable_key(key: &[u8]) -> Result<SymmetricCryptoKey, CryptoError> {
-        let key = Sensitive::new(Box::new(
-            key.try_into().map_err(|_| CryptoError::InvalidKeyLen)?,
-        ));
+        let key = Zeroizing::new(key.try_into().map_err(|_| CryptoError::InvalidKeyLen)?);
         Ok(derive_shareable_key(key, "send", Some("send")))
     }
 }
@@ -267,8 +266,8 @@ impl KeyEncryptable<SymmetricCryptoKey, Send> for SendView {
                 .map_err(|_| CryptoError::InvalidKey)?,
             // New send, generate random key
             (None, None) => {
-                let key: Sensitive<[u8; 16]> = generate_random_bytes();
-                key.expose().to_vec()
+                let key = generate_random_bytes::<[u8; 16]>();
+                key.to_vec()
             }
             // Existing send without key
             _ => return Err(CryptoError::InvalidKey),

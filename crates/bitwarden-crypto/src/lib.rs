@@ -70,8 +70,6 @@ pub use util::generate_random_bytes;
 mod wordlist;
 pub use util::pbkdf2;
 pub use wordlist::EFF_LONG_WORD_LIST;
-mod sensitive;
-pub use sensitive::*;
 mod allocator;
 pub use allocator::ZeroizingAllocator;
 

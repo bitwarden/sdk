@@ -16,7 +16,6 @@ bench = false
 
 [target.'cfg(not(target_arch="wasm32"))'.dependencies]
 tokio = { version = ">=1.28.2, <2.0", features = ["rt-multi-thread", "macros"] }
-bitwarden = { path = "../bitwarden", features = ["secrets"] }
 bitwarden-json = { path = "../bitwarden-json", features = ["secrets"] }
 
 [dependencies]

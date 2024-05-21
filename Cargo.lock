@@ -412,7 +412,6 @@ dependencies = [
 name = "bitwarden-c"
 version = "0.1.0"
 dependencies = [
- "bitwarden",
  "bitwarden-json",
  "env_logger",
  "tokio",

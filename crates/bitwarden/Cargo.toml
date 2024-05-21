@@ -37,7 +37,7 @@ async-trait = ">=0.1.80, <0.2"
 base64 = ">=0.21.2, <0.23"
 bitwarden-api-api = { workspace = true }
 bitwarden-api-identity = { workspace = true }
-bitwarden-crypto = { workspace = true, no-default-features = true }
+bitwarden-crypto = { workspace = true }
 bitwarden-exporters = { workspace = true, optional = true }
 bitwarden-generators = { workspace = true, optional = true }
 chrono = { version = ">=0.4.26, <0.5", features = [

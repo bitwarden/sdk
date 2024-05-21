@@ -16,8 +16,8 @@ keywords.workspace = true
 [features]
 default = []
 
-no-memory-hardening = [] # Disable memory hardening features
 mobile = ["dep:uniffi"]  # Mobile-specific features
+no-memory-hardening = [] # Disable memory hardening features
 test = []                # Test methods
 
 [dependencies]

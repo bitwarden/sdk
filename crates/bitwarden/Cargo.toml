@@ -16,18 +16,20 @@ license-file.workspace = true
 [features]
 default = ["secrets"]
 
-secrets = [] # Secrets manager API
 internal = [
     "dep:bitwarden-exporters",
     "dep:bitwarden-generators",
 ] # Internal testing methods
+no-memory-hardening = [
+    "bitwarden-crypto/no-memory-hardening",
+] # Disable memory hardening features
 mobile = [
     "internal",
     "dep:uniffi",
     "bitwarden-crypto/mobile",
     "bitwarden-generators/mobile",
 ] # Mobile-specific features
-
+secrets = [] # Secrets manager API
 wasm-bindgen = ["chrono/wasmbind"]
 
 [dependencies]
@@ -35,7 +37,7 @@ async-trait = ">=0.1.80, <0.2"
 base64 = ">=0.21.2, <0.23"
 bitwarden-api-api = { workspace = true }
 bitwarden-api-identity = { workspace = true }
-bitwarden-crypto = { workspace = true }
+bitwarden-crypto = { workspace = true, no-default-features = true }
 bitwarden-exporters = { workspace = true, optional = true }
 bitwarden-generators = { workspace = true, optional = true }
 chrono = { version = ">=0.4.26, <0.5", features = [

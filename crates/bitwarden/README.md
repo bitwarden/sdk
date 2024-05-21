@@ -23,13 +23,9 @@ use bitwarden::{
     client::client_settings::{ClientSettings, DeviceType},
     error::Result,
     secrets_manager::secrets::SecretIdentifiersRequest,
-    Client, ZeroizingAllocator,
+    Client,
 };
 use uuid::Uuid;
-
-// We highly recommend using the zeroizing-allocator to avoid persisting sensitive values in memory.
-#[global_allocator]
-static ALLOC: ZeroizingAllocator<std::alloc::System> = ZeroizingAllocator(std::alloc::System);
 
 async fn test() -> Result<()> {
     // Use the default values

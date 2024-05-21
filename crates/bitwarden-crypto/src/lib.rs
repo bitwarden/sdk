@@ -55,6 +55,10 @@
 //! - MasterKey operations such as `makeMasterKey` and `hashMasterKey` are moved to the MasterKey
 //!   struct.
 
+#[cfg(not(feature = "no-memory-hardening"))]
+#[global_allocator]
+static ALLOC: ZeroizingAllocator<std::alloc::System> = ZeroizingAllocator(std::alloc::System);
+
 mod aes;
 mod enc_string;
 pub use enc_string::{AsymmetricEncString, EncString};

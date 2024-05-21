@@ -29,10 +29,6 @@ unsafe impl<T: GlobalAlloc> GlobalAlloc for ZeroizingAllocator<T> {
 
 #[cfg(test)]
 mod tests {
-    #[global_allocator]
-    static ALLOC: super::ZeroizingAllocator<std::alloc::System> =
-        super::ZeroizingAllocator(std::alloc::System);
-
     #[test]
     #[ignore = "It produces inconsistent results on some platforms"]
     fn string() {

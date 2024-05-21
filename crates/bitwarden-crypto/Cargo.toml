@@ -16,8 +16,9 @@ keywords.workspace = true
 [features]
 default = []
 
-mobile = ["dep:uniffi"] # Mobile-specific features
-test = []               # Test methods
+no-memory-hardening = [] # Disable memory hardening features
+mobile = ["dep:uniffi"]  # Mobile-specific features
+test = []                # Test methods
 
 [dependencies]
 aes = { version = ">=0.8.2, <0.9", features = ["zeroize"] }
@@ -54,10 +55,12 @@ serde_json = ">=1.0.96, <2.0"
 [[bench]]
 name = "default_allocator"
 harness = false
+required-features = ["no-memory-hardening"]
 
 [[bench]]
 name = "zeroizing_allocator"
 harness = false
+required-features = ["no-memory-hardening"]
 
 [lints]
 workspace = true

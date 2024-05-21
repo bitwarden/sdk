@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use bitwarden_crypto::{Kdf, ZeroizingAllocator};
+use bitwarden_crypto::Kdf;
 use zeroize::{Zeroize, Zeroizing};
 
 pub const TEST_STRING: &str = "THIS IS USED TO CHECK THAT THE MEMORY IS DUMPED CORRECTLY";

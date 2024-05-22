@@ -1,35 +1,18 @@
 [package]
 name = "{{{packageName}}}"
-version = "{{#lambdaVersion}}{{{packageVersion}}}{{/lambdaVersion}}"
-{{#infoEmail}}
-authors = ["{{{.}}}"]
-{{/infoEmail}}
-{{^infoEmail}}
-authors = ["OpenAPI Generator team and contributors"]
-{{/infoEmail}}
-{{#appDescription}}
+{{#packageDescription}}
 description = "{{{.}}}"
-{{/appDescription}}
-{{#licenseInfo}}
-license = "{{.}}"
-{{/licenseInfo}}
-{{^licenseInfo}}
-# Override this license by providing a License Object in the OpenAPI.
-license = "Unlicense"
-{{/licenseInfo}}
-edition = "2021"
-{{#publishRustRegistry}}
-publish = ["{{.}}"]
-{{/publishRustRegistry}}
-{{#repositoryUrl}}
-repository = "{{.}}"
-{{/repositoryUrl}}
-{{#documentationUrl}}
-documentation = "{{.}}"
-{{/documentationUrl}}
-{{#homePageUrl}}
-homepage = "{{.}}
-{{/homePageUrl}}
+{{/packageDescription}}
+categories = ["api-bindings"]
+
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+keywords.workspace = true
 
 [dependencies]
 serde = { version = "^1.0", features = ["derive"] }
@@ -37,6 +20,7 @@ serde = { version = "^1.0", features = ["derive"] }
 serde_with = { version = "^3.8", default-features = false, features = ["base64", "std", "macros"] }
 {{/serdeWith}}
 serde_json = "^1.0"
+serde_repr = "^0.1"
 url = "^2.5"
 uuid = { version = "^1.8", features = ["serde", "v4"] }
 {{#hyper}}
@@ -59,7 +43,7 @@ reqwest-middleware = { version = "^0.3", features = ["json", "blocking", "multip
 {{/supportMiddleware}}
 {{/supportAsync}}
 {{#supportAsync}}
-reqwest = { version = "^0.12", features = ["json", "multipart"] }
+reqwest = { version = "^0.12", features = ["json", "multipart", "http2"], default-features = false }
 {{#supportMiddleware}}
 reqwest-middleware = { version = "^0.3", features = ["json", "multipart"] }
 {{/supportMiddleware}}

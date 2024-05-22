@@ -9,9 +9,10 @@
  */
 
 use reqwest;
+use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::apis::ResponseContent;
+use crate::{apis::ResponseContent, models};
 
 /// struct for typed errors of method [`organizations_organization_id_secrets_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -73,7 +74,7 @@ pub async fn organizations_organization_id_secrets_get(
     configuration: &configuration::Configuration,
     organization_id: uuid::Uuid,
 ) -> Result<
-    crate::models::SecretWithProjectsListResponseModel,
+    models::SecretWithProjectsListResponseModel,
     Error<OrganizationsOrganizationIdSecretsGetError>,
 > {
     let local_var_configuration = configuration;
@@ -119,9 +120,8 @@ pub async fn organizations_organization_id_secrets_get(
 pub async fn organizations_organization_id_secrets_post(
     configuration: &configuration::Configuration,
     organization_id: uuid::Uuid,
-    secret_create_request_model: Option<crate::models::SecretCreateRequestModel>,
-) -> Result<crate::models::SecretResponseModel, Error<OrganizationsOrganizationIdSecretsPostError>>
-{
+    secret_create_request_model: Option<models::SecretCreateRequestModel>,
+) -> Result<models::SecretResponseModel, Error<OrganizationsOrganizationIdSecretsPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -167,10 +167,8 @@ pub async fn organizations_organization_id_secrets_sync_get(
     configuration: &configuration::Configuration,
     organization_id: uuid::Uuid,
     last_synced_date: Option<String>,
-) -> Result<
-    crate::models::SecretsSyncResponseModel,
-    Error<OrganizationsOrganizationIdSecretsSyncGetError>,
-> {
+) -> Result<models::SecretsSyncResponseModel, Error<OrganizationsOrganizationIdSecretsSyncGetError>>
+{
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -218,10 +216,7 @@ pub async fn organizations_organization_id_secrets_sync_get(
 pub async fn projects_project_id_secrets_get(
     configuration: &configuration::Configuration,
     project_id: uuid::Uuid,
-) -> Result<
-    crate::models::SecretWithProjectsListResponseModel,
-    Error<ProjectsProjectIdSecretsGetError>,
-> {
+) -> Result<models::SecretWithProjectsListResponseModel, Error<ProjectsProjectIdSecretsGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -265,8 +260,7 @@ pub async fn projects_project_id_secrets_get(
 pub async fn secrets_delete_post(
     configuration: &configuration::Configuration,
     uuid_colon_colon_uuid: Option<Vec<uuid::Uuid>>,
-) -> Result<crate::models::BulkDeleteResponseModelListResponseModel, Error<SecretsDeletePostError>>
-{
+) -> Result<models::BulkDeleteResponseModelListResponseModel, Error<SecretsDeletePostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -306,9 +300,8 @@ pub async fn secrets_delete_post(
 
 pub async fn secrets_get_by_ids_post(
     configuration: &configuration::Configuration,
-    get_secrets_request_model: Option<crate::models::GetSecretsRequestModel>,
-) -> Result<crate::models::BaseSecretResponseModelListResponseModel, Error<SecretsGetByIdsPostError>>
-{
+    get_secrets_request_model: Option<models::GetSecretsRequestModel>,
+) -> Result<models::BaseSecretResponseModelListResponseModel, Error<SecretsGetByIdsPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -349,7 +342,7 @@ pub async fn secrets_get_by_ids_post(
 pub async fn secrets_id_get(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-) -> Result<crate::models::SecretResponseModel, Error<SecretsIdGetError>> {
+) -> Result<models::SecretResponseModel, Error<SecretsIdGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -393,8 +386,8 @@ pub async fn secrets_id_get(
 pub async fn secrets_id_put(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    secret_update_request_model: Option<crate::models::SecretUpdateRequestModel>,
-) -> Result<crate::models::SecretResponseModel, Error<SecretsIdPutError>> {
+    secret_update_request_model: Option<models::SecretUpdateRequestModel>,
+) -> Result<models::SecretResponseModel, Error<SecretsIdPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;

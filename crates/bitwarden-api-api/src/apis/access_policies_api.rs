@@ -9,9 +9,10 @@
  */
 
 use reqwest;
+use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::apis::ResponseContent;
+use crate::{apis::ResponseContent, models};
 
 /// struct for typed errors of method
 /// [`organizations_id_access_policies_people_potential_grantees_get`]
@@ -97,7 +98,7 @@ pub async fn organizations_id_access_policies_people_potential_grantees_get(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
 ) -> Result<
-    crate::models::PotentialGranteeResponseModelListResponseModel,
+    models::PotentialGranteeResponseModelListResponseModel,
     Error<OrganizationsIdAccessPoliciesPeoplePotentialGranteesGetError>,
 > {
     let local_var_configuration = configuration;
@@ -144,7 +145,7 @@ pub async fn organizations_id_access_policies_projects_potential_grantees_get(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
 ) -> Result<
-    crate::models::PotentialGranteeResponseModelListResponseModel,
+    models::PotentialGranteeResponseModelListResponseModel,
     Error<OrganizationsIdAccessPoliciesProjectsPotentialGranteesGetError>,
 > {
     let local_var_configuration = configuration;
@@ -192,7 +193,7 @@ pub async fn organizations_id_access_policies_service_accounts_potential_grantee
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
 ) -> Result<
-    crate::models::PotentialGranteeResponseModelListResponseModel,
+    models::PotentialGranteeResponseModelListResponseModel,
     Error<OrganizationsIdAccessPoliciesServiceAccountsPotentialGranteesGetError>,
 > {
     let local_var_configuration = configuration;
@@ -240,7 +241,7 @@ pub async fn projects_id_access_policies_people_get(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
 ) -> Result<
-    crate::models::ProjectPeopleAccessPoliciesResponseModel,
+    models::ProjectPeopleAccessPoliciesResponseModel,
     Error<ProjectsIdAccessPoliciesPeopleGetError>,
 > {
     let local_var_configuration = configuration;
@@ -286,9 +287,9 @@ pub async fn projects_id_access_policies_people_get(
 pub async fn projects_id_access_policies_people_put(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    people_access_policies_request_model: Option<crate::models::PeopleAccessPoliciesRequestModel>,
+    people_access_policies_request_model: Option<models::PeopleAccessPoliciesRequestModel>,
 ) -> Result<
-    crate::models::ProjectPeopleAccessPoliciesResponseModel,
+    models::ProjectPeopleAccessPoliciesResponseModel,
     Error<ProjectsIdAccessPoliciesPeoplePutError>,
 > {
     let local_var_configuration = configuration;
@@ -336,7 +337,7 @@ pub async fn projects_id_access_policies_service_accounts_get(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
 ) -> Result<
-    crate::models::ProjectServiceAccountsAccessPoliciesResponseModel,
+    models::ProjectServiceAccountsAccessPoliciesResponseModel,
     Error<ProjectsIdAccessPoliciesServiceAccountsGetError>,
 > {
     let local_var_configuration = configuration;
@@ -383,10 +384,10 @@ pub async fn projects_id_access_policies_service_accounts_put(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
     project_service_accounts_access_policies_request_model: Option<
-        crate::models::ProjectServiceAccountsAccessPoliciesRequestModel,
+        models::ProjectServiceAccountsAccessPoliciesRequestModel,
     >,
 ) -> Result<
-    crate::models::ProjectServiceAccountsAccessPoliciesResponseModel,
+    models::ProjectServiceAccountsAccessPoliciesResponseModel,
     Error<ProjectsIdAccessPoliciesServiceAccountsPutError>,
 > {
     let local_var_configuration = configuration;
@@ -435,7 +436,7 @@ pub async fn service_accounts_id_access_policies_people_get(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
 ) -> Result<
-    crate::models::ServiceAccountPeopleAccessPoliciesResponseModel,
+    models::ServiceAccountPeopleAccessPoliciesResponseModel,
     Error<ServiceAccountsIdAccessPoliciesPeopleGetError>,
 > {
     let local_var_configuration = configuration;
@@ -481,9 +482,9 @@ pub async fn service_accounts_id_access_policies_people_get(
 pub async fn service_accounts_id_access_policies_people_put(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    people_access_policies_request_model: Option<crate::models::PeopleAccessPoliciesRequestModel>,
+    people_access_policies_request_model: Option<models::PeopleAccessPoliciesRequestModel>,
 ) -> Result<
-    crate::models::ServiceAccountPeopleAccessPoliciesResponseModel,
+    models::ServiceAccountPeopleAccessPoliciesResponseModel,
     Error<ServiceAccountsIdAccessPoliciesPeoplePutError>,
 > {
     let local_var_configuration = configuration;
@@ -531,7 +532,7 @@ pub async fn service_accounts_id_granted_policies_get(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
 ) -> Result<
-    crate::models::ServiceAccountGrantedPoliciesPermissionDetailsResponseModel,
+    models::ServiceAccountGrantedPoliciesPermissionDetailsResponseModel,
     Error<ServiceAccountsIdGrantedPoliciesGetError>,
 > {
     let local_var_configuration = configuration;
@@ -578,10 +579,10 @@ pub async fn service_accounts_id_granted_policies_put(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
     service_account_granted_policies_request_model: Option<
-        crate::models::ServiceAccountGrantedPoliciesRequestModel,
+        models::ServiceAccountGrantedPoliciesRequestModel,
     >,
 ) -> Result<
-    crate::models::ServiceAccountGrantedPoliciesPermissionDetailsResponseModel,
+    models::ServiceAccountGrantedPoliciesPermissionDetailsResponseModel,
     Error<ServiceAccountsIdGrantedPoliciesPutError>,
 > {
     let local_var_configuration = configuration;

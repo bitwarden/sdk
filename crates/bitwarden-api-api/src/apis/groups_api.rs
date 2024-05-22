@@ -9,9 +9,10 @@
  */
 
 use reqwest;
+use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::apis::ResponseContent;
+use crate::{apis::ResponseContent, models};
 
 /// struct for typed errors of method [`organizations_org_id_groups_delete`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -108,7 +109,7 @@ pub enum OrganizationsOrgIdGroupsPostError {
 pub async fn organizations_org_id_groups_delete(
     configuration: &configuration::Configuration,
     org_id: &str,
-    group_bulk_request_model: Option<crate::models::GroupBulkRequestModel>,
+    group_bulk_request_model: Option<models::GroupBulkRequestModel>,
 ) -> Result<(), Error<OrganizationsOrgIdGroupsDeleteError>> {
     let local_var_configuration = configuration;
 
@@ -117,7 +118,7 @@ pub async fn organizations_org_id_groups_delete(
     let local_var_uri_str = format!(
         "{}/organizations/{orgId}/groups",
         local_var_configuration.base_path,
-        orgId = crate::apis::urlencode(org_id.to_string())
+        orgId = crate::apis::urlencode(org_id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::DELETE, local_var_uri_str.as_str());
@@ -154,7 +155,7 @@ pub async fn organizations_org_id_groups_delete(
 pub async fn organizations_org_id_groups_delete_post(
     configuration: &configuration::Configuration,
     org_id: &str,
-    group_bulk_request_model: Option<crate::models::GroupBulkRequestModel>,
+    group_bulk_request_model: Option<models::GroupBulkRequestModel>,
 ) -> Result<(), Error<OrganizationsOrgIdGroupsDeletePostError>> {
     let local_var_configuration = configuration;
 
@@ -163,7 +164,7 @@ pub async fn organizations_org_id_groups_delete_post(
     let local_var_uri_str = format!(
         "{}/organizations/{orgId}/groups/delete",
         local_var_configuration.base_path,
-        orgId = crate::apis::urlencode(org_id.to_string())
+        orgId = crate::apis::urlencode(org_id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -201,7 +202,7 @@ pub async fn organizations_org_id_groups_get(
     configuration: &configuration::Configuration,
     org_id: uuid::Uuid,
 ) -> Result<
-    crate::models::GroupDetailsResponseModelListResponseModel,
+    models::GroupDetailsResponseModelListResponseModel,
     Error<OrganizationsOrgIdGroupsGetError>,
 > {
     let local_var_configuration = configuration;
@@ -256,8 +257,8 @@ pub async fn organizations_org_id_groups_id_delete(
     let local_var_uri_str = format!(
         "{}/organizations/{orgId}/groups/{id}",
         local_var_configuration.base_path,
-        orgId = crate::apis::urlencode(org_id.to_string()),
-        id = crate::apis::urlencode(id.to_string())
+        orgId = crate::apis::urlencode(org_id),
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::DELETE, local_var_uri_str.as_str());
@@ -302,8 +303,8 @@ pub async fn organizations_org_id_groups_id_delete_post(
     let local_var_uri_str = format!(
         "{}/organizations/{orgId}/groups/{id}/delete",
         local_var_configuration.base_path,
-        orgId = crate::apis::urlencode(org_id.to_string()),
-        id = crate::apis::urlencode(id.to_string())
+        orgId = crate::apis::urlencode(org_id),
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -349,9 +350,9 @@ pub async fn organizations_org_id_groups_id_delete_user_org_user_id_post(
     let local_var_uri_str = format!(
         "{}/organizations/{orgId}/groups/{id}/delete-user/{orgUserId}",
         local_var_configuration.base_path,
-        orgId = crate::apis::urlencode(org_id.to_string()),
-        id = crate::apis::urlencode(id.to_string()),
-        orgUserId = crate::apis::urlencode(org_user_id.to_string())
+        orgId = crate::apis::urlencode(org_id),
+        id = crate::apis::urlencode(id),
+        orgUserId = crate::apis::urlencode(org_user_id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -388,10 +389,7 @@ pub async fn organizations_org_id_groups_id_details_get(
     configuration: &configuration::Configuration,
     org_id: &str,
     id: &str,
-) -> Result<
-    crate::models::GroupDetailsResponseModel,
-    Error<OrganizationsOrgIdGroupsIdDetailsGetError>,
-> {
+) -> Result<models::GroupDetailsResponseModel, Error<OrganizationsOrgIdGroupsIdDetailsGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -399,8 +397,8 @@ pub async fn organizations_org_id_groups_id_details_get(
     let local_var_uri_str = format!(
         "{}/organizations/{orgId}/groups/{id}/details",
         local_var_configuration.base_path,
-        orgId = crate::apis::urlencode(org_id.to_string()),
-        id = crate::apis::urlencode(id.to_string())
+        orgId = crate::apis::urlencode(org_id),
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -437,7 +435,7 @@ pub async fn organizations_org_id_groups_id_get(
     configuration: &configuration::Configuration,
     org_id: &str,
     id: &str,
-) -> Result<crate::models::GroupResponseModel, Error<OrganizationsOrgIdGroupsIdGetError>> {
+) -> Result<models::GroupResponseModel, Error<OrganizationsOrgIdGroupsIdGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -445,8 +443,8 @@ pub async fn organizations_org_id_groups_id_get(
     let local_var_uri_str = format!(
         "{}/organizations/{orgId}/groups/{id}",
         local_var_configuration.base_path,
-        orgId = crate::apis::urlencode(org_id.to_string()),
-        id = crate::apis::urlencode(id.to_string())
+        orgId = crate::apis::urlencode(org_id),
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -483,8 +481,8 @@ pub async fn organizations_org_id_groups_id_post(
     configuration: &configuration::Configuration,
     org_id: uuid::Uuid,
     id: uuid::Uuid,
-    group_request_model: Option<crate::models::GroupRequestModel>,
-) -> Result<crate::models::GroupResponseModel, Error<OrganizationsOrgIdGroupsIdPostError>> {
+    group_request_model: Option<models::GroupRequestModel>,
+) -> Result<models::GroupResponseModel, Error<OrganizationsOrgIdGroupsIdPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -531,8 +529,8 @@ pub async fn organizations_org_id_groups_id_put(
     configuration: &configuration::Configuration,
     org_id: uuid::Uuid,
     id: uuid::Uuid,
-    group_request_model: Option<crate::models::GroupRequestModel>,
-) -> Result<crate::models::GroupResponseModel, Error<OrganizationsOrgIdGroupsIdPutError>> {
+    group_request_model: Option<models::GroupRequestModel>,
+) -> Result<models::GroupResponseModel, Error<OrganizationsOrgIdGroupsIdPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -588,9 +586,9 @@ pub async fn organizations_org_id_groups_id_user_org_user_id_delete(
     let local_var_uri_str = format!(
         "{}/organizations/{orgId}/groups/{id}/user/{orgUserId}",
         local_var_configuration.base_path,
-        orgId = crate::apis::urlencode(org_id.to_string()),
-        id = crate::apis::urlencode(id.to_string()),
-        orgUserId = crate::apis::urlencode(org_user_id.to_string())
+        orgId = crate::apis::urlencode(org_id),
+        id = crate::apis::urlencode(id),
+        orgUserId = crate::apis::urlencode(org_user_id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::DELETE, local_var_uri_str.as_str());
@@ -635,8 +633,8 @@ pub async fn organizations_org_id_groups_id_users_get(
     let local_var_uri_str = format!(
         "{}/organizations/{orgId}/groups/{id}/users",
         local_var_configuration.base_path,
-        orgId = crate::apis::urlencode(org_id.to_string()),
-        id = crate::apis::urlencode(id.to_string())
+        orgId = crate::apis::urlencode(org_id),
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -672,8 +670,8 @@ pub async fn organizations_org_id_groups_id_users_get(
 pub async fn organizations_org_id_groups_post(
     configuration: &configuration::Configuration,
     org_id: uuid::Uuid,
-    group_request_model: Option<crate::models::GroupRequestModel>,
-) -> Result<crate::models::GroupResponseModel, Error<OrganizationsOrgIdGroupsPostError>> {
+    group_request_model: Option<models::GroupRequestModel>,
+) -> Result<models::GroupResponseModel, Error<OrganizationsOrgIdGroupsPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;

@@ -13,7 +13,6 @@ use bitwarden::{
             SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest, SecretsGetRequest,
         },
     },
-    ZeroizingAllocator,
 };
 use bitwarden_cli::install_color_eyre;
 use clap::{CommandFactory, Parser};
@@ -28,9 +27,6 @@ mod render;
 mod state;
 
 use crate::{cli::*, render::serialize_response};
-
-#[global_allocator]
-static ALLOC: ZeroizingAllocator<std::alloc::System> = ZeroizingAllocator(std::alloc::System);
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {

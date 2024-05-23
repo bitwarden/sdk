@@ -8,8 +8,8 @@ import (
 
 type BitwardenClientInterface interface {
 	AccessTokenLogin(accessToken string, statePath *string) error
-	GetProjects() ProjectsInterface
-	GetSecrets() SecretsInterface
+	Projects() ProjectsInterface
+	Secrets() SecretsInterface
 	Close()
 }
 
@@ -17,8 +17,8 @@ type BitwardenClient struct {
 	client        cinterface.ClientPointer
 	lib           cinterface.BitwardenLibrary
 	commandRunner CommandRunnerInterface
-	Projects      ProjectsInterface
-	Secrets       SecretsInterface
+	projects      ProjectsInterface
+	secrets       SecretsInterface
 }
 
 func NewBitwardenClient(apiURL *string, identityURL *string) (BitwardenClientInterface, error) {
@@ -47,8 +47,8 @@ func NewBitwardenClient(apiURL *string, identityURL *string) (BitwardenClientInt
 		lib:           lib,
 		client:        client,
 		commandRunner: runner,
-		Projects:      NewProjects(runner),
-		Secrets:       NewSecrets(runner),
+		projects:      NewProjects(runner),
+		secrets:       NewSecrets(runner),
 	}, nil
 }
 
@@ -65,12 +65,12 @@ func (c *BitwardenClient) AccessTokenLogin(accessToken string, statePath *string
 	return checkSuccessAndError(responseStr, &response)
 }
 
-func (c *BitwardenClient) GetProjects() ProjectsInterface {
-	return c.Projects
+func (c *BitwardenClient) Projects() ProjectsInterface {
+	return c.projects
 }
 
-func (c *BitwardenClient) GetSecrets() SecretsInterface {
-	return c.Secrets
+func (c *BitwardenClient) Secrets() SecretsInterface {
+	return c.secrets
 }
 
 func (c *BitwardenClient) Close() {

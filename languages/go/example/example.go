@@ -39,7 +39,7 @@ func main() {
 		panic(err)
 	}
 
-	project, err := bitwardenClient.Projects.Create(organizationID.String(), projectName)
+	project, err := bitwardenClient.Projects().Create(organizationID.String(), projectName)
 	if err != nil {
 		panic(err)
 	}
@@ -47,15 +47,15 @@ func main() {
 	projectID := project.ID
 	fmt.Println(projectID)
 
-	if _, err = bitwardenClient.Projects.List(organizationID.String()); err != nil {
+	if _, err = bitwardenClient.Projects().List(organizationID.String()); err != nil {
 		panic(err)
 	}
 
-	if _, err = bitwardenClient.Projects.Get(projectID); err != nil {
+	if _, err = bitwardenClient.Projects().Get(projectID); err != nil {
 		panic(err)
 	}
 
-	if _, err = bitwardenClient.Projects.Update(projectID, organizationID.String(), projectName+"2"); err != nil {
+	if _, err = bitwardenClient.Projects().Update(projectID, organizationID.String(), projectName+"2"); err != nil {
 		panic(err)
 	}
 
@@ -63,33 +63,33 @@ func main() {
 	value := "value"
 	note := "note"
 
-	secret, err := bitwardenClient.Secrets.Create(key, value, note, organizationID.String(), []string{projectID})
+	secret, err := bitwardenClient.Secrets().Create(key, value, note, organizationID.String(), []string{projectID})
 	if err != nil {
 		panic(err)
 	}
 	secretID := secret.ID
 
-	if _, err = bitwardenClient.Secrets.List(organizationID.String()); err != nil {
+	if _, err = bitwardenClient.Secrets().List(organizationID.String()); err != nil {
 		panic(err)
 	}
 
-	if _, err = bitwardenClient.Secrets.Get(secretID); err != nil {
+	if _, err = bitwardenClient.Secrets().Get(secretID); err != nil {
 		panic(err)
 	}
 
-	if _, err = bitwardenClient.Secrets.Update(secretID, key, value, note, organizationID.String(), []string{projectID}); err != nil {
+	if _, err = bitwardenClient.Secrets().Update(secretID, key, value, note, organizationID.String(), []string{projectID}); err != nil {
 		panic(err)
 	}
 
-	if _, err = bitwardenClient.Secrets.Delete([]string{secretID}); err != nil {
+	if _, err = bitwardenClient.Secrets().Delete([]string{secretID}); err != nil {
 		panic(err)
 	}
 
-	if _, err = bitwardenClient.Projects.Delete([]string{projectID}); err != nil {
+	if _, err = bitwardenClient.Projects().Delete([]string{projectID}); err != nil {
 		panic(err)
 	}
 
-	secretIdentifiers, err := bitwardenClient.Secrets.List(organizationID.String())
+	secretIdentifiers, err := bitwardenClient.Secrets().List(organizationID.String())
 	if err != nil {
 		panic(err)
 	}
@@ -100,7 +100,7 @@ func main() {
 		secretIDs[i] = identifier.ID
 	}
 
-	secrets, err := bitwardenClient.Secrets.GetByIDS(secretIDs)
+	secrets, err := bitwardenClient.Secrets().GetByIDS(secretIDs)
 	if err != nil {
 		log.Fatalf("Error getting secrets: %v", err)
 	}

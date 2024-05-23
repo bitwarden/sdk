@@ -334,23 +334,23 @@ struct ContentView: View {
     }
 
     func authenticatorTest(clientFido: ClientFido2) async throws {
-        let ui = UserInterfaceImpl()
-        let cs = CredentialStoreImpl()
+        let ui = Fido2UserInterfaceImpl()
+        let cs = Fido2CredentialStoreImpl()
         let authenticator = clientFido.authenticator(userInterface: ui, credentialStore: cs)
 
         // Make credential
-        try await authenticator.makeCredential(request: MakeCredentialRequest(
+        let _ = try await authenticator.makeCredential(request: MakeCredentialRequest(
             clientDataHash: Data(),
             rp: PublicKeyCredentialRpEntity(id: "abc", name: "test"),
             user: PublicKeyCredentialUserEntity(id: Data(), displayName: "b", name: "c"),
             pubKeyCredParams: [PublicKeyCredentialParameters(ty: "public-key", alg: 0)],
             excludeList: nil,
-            requireResidentKey: true,
+            options: Options(rk:true, uv:.preferred),
             extensions: nil
         ))
 
         // Get Assertion
-        try await authenticator.getAssertion(request: GetAssertionRequest(
+        let _ = try await authenticator.getAssertion(request: GetAssertionRequest(
             rpId: "",
             clientDataHash: Data(),
             allowList: nil,
@@ -358,12 +358,12 @@ struct ContentView: View {
             extensions: nil
         ))
 
-        try await authenticator.silentlyDiscoverCredentials(rpId: "")
+        let _ = try await authenticator.silentlyDiscoverCredentials(rpId: "")
 
         // Only on android!
         let client = clientFido.client(userInterface: ui, credentialStore: cs)
-        try await client.authenticate(origin: "test", request: "test", clientData: ClientData.defaultWithExtraData(androidPackageName: "abc"))
-        try await client.register(origin: "test", request: "test", clientData: ClientData.defaultWithExtraData(androidPackageName: "abc"))
+        let _ = try await client.authenticate(origin: "test", request: "test", clientData: ClientData.defaultWithExtraData(androidPackageName: "abc"))
+        let _ = try await client.register(origin: "test", request: "test", clientData: ClientData.defaultWithExtraData(androidPackageName: "abc"))
     }
 
 }
@@ -395,22 +395,26 @@ extension IgnoreHttpsDelegate: URLSessionDelegate {
     }
 }
 
-class UserInterfaceImpl: Fido2UserInterface {
-    func pickCredentialForAuthentication(availableCredentials: [BitwardenSdk.Cipher]) async throws -> BitwardenSdk.CipherViewWrapper {
+class Fido2UserInterfaceImpl: Fido2UserInterface {
+    func pickCredentialForAuthentication(availableCredentials: [BitwardenSdk.CipherView]) async throws -> BitwardenSdk.CipherViewWrapper {
         abort()
     }
 
-    func pickCredentialForCreation(availableCredentials: [BitwardenSdk.Cipher], newCredential: BitwardenSdk.Fido2Credential) async throws -> BitwardenSdk.CipherViewWrapper {
+    func pickCredentialForCreation(availableCredentials: [BitwardenSdk.CipherView], newCredential: BitwardenSdk.Fido2CredentialNewView) async throws -> BitwardenSdk.CipherViewWrapper {
         abort()
     }
 
-    func checkUser(options: BitwardenSdk.CheckUserOptions, credential: BitwardenSdk.CipherView?) async throws -> BitwardenSdk.CheckUserResult {
+    func checkUser(options: BitwardenSdk.CheckUserOptions, hint: UiHint) async throws -> BitwardenSdk.CheckUserResult {
         return CheckUserResult(userPresent: true, userVerified: true)
+    }
+    
+    func isVerificationEnabled() async  -> Bool {
+        true
     }
 }
 
-class CredentialStoreImpl: Fido2CredentialStore {
-    func findCredentials(ids: [Data]?, ripId: String) async throws -> [BitwardenSdk.Cipher] {
+class Fido2CredentialStoreImpl: Fido2CredentialStore {
+    func findCredentials(ids: [Data]?, ripId: String) async throws -> [BitwardenSdk.CipherView] {
         abort()
     }
 

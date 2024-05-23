@@ -14,10 +14,10 @@ use zeroize::Zeroize;
 ///
 /// This example shows how to use the `ZeroizingAllocator` with the system allocator.
 ///
-/// ```rust
+/// ```rust,ignore
 /// #[global_allocator]
-/// static ALLOC: ZeroizingAllocator<std::alloc::System> =
-///    ZeroizingAllocator(std::alloc::System);
+/// static ALLOC: bitwarden_crypto::ZeroizingAllocator<std::alloc::System> =
+///    bitwarden_crypto::ZeroizingAllocator(std::alloc::System);
 /// ```
 pub struct ZeroizingAllocator<Alloc: GlobalAlloc>(pub Alloc);
 

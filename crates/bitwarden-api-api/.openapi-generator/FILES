@@ -22,6 +22,7 @@ src/apis/licenses_api.rs
 src/apis/misc_api.rs
 src/apis/mod.rs
 src/apis/organization_auth_requests_api.rs
+src/apis/organization_billing_api.rs
 src/apis/organization_connections_api.rs
 src/apis/organization_domain_api.rs
 src/apis/organization_export_api.rs
@@ -31,6 +32,8 @@ src/apis/organizations_api.rs
 src/apis/plans_api.rs
 src/apis/policies_api.rs
 src/apis/projects_api.rs
+src/apis/provider_billing_api.rs
+src/apis/provider_clients_api.rs
 src/apis/provider_organizations_api.rs
 src/apis/provider_users_api.rs
 src/apis/providers_api.rs
@@ -49,9 +52,7 @@ src/apis/two_factor_api.rs
 src/apis/users_api.rs
 src/apis/web_authn_api.rs
 src/lib.rs
-src/models/access_policies_create_request.rs
 src/models/access_policy_request.rs
-src/models/access_policy_update_request.rs
 src/models/access_token_create_request_model.rs
 src/models/access_token_creation_response_model.rs
 src/models/access_token_response_model.rs
@@ -77,7 +78,6 @@ src/models/authenticator_attachment.rs
 src/models/authenticator_attestation_raw_response.rs
 src/models/authenticator_selection.rs
 src/models/authenticator_transport.rs
-src/models/base_access_policy_response_model.rs
 src/models/base_secret_response_model.rs
 src/models/base_secret_response_model_list_response_model.rs
 src/models/billing_customer_discount.rs
@@ -100,6 +100,7 @@ src/models/cipher_bulk_delete_request_model.rs
 src/models/cipher_bulk_move_request_model.rs
 src/models/cipher_bulk_restore_request_model.rs
 src/models/cipher_bulk_share_request_model.rs
+src/models/cipher_bulk_update_collections_request_model.rs
 src/models/cipher_card_model.rs
 src/models/cipher_collections_request_model.rs
 src/models/cipher_create_request_model.rs
@@ -133,6 +134,7 @@ src/models/collection_response_model.rs
 src/models/collection_response_model_list_response_model.rs
 src/models/collection_with_id_request_model.rs
 src/models/config_response_model.rs
+src/models/create_client_organization_request_body.rs
 src/models/credential_create_options.rs
 src/models/delete_recover_request_model.rs
 src/models/device_keys_request_model.rs
@@ -164,6 +166,7 @@ src/models/event_response_model.rs
 src/models/event_response_model_list_response_model.rs
 src/models/event_system_user.rs
 src/models/event_type.rs
+src/models/expanded_tax_info_update_request_model.rs
 src/models/fido2_user.rs
 src/models/field_type.rs
 src/models/file_upload_type.rs
@@ -196,6 +199,7 @@ src/models/int32_int32_key_value_pair.rs
 src/models/kdf_request_model.rs
 src/models/kdf_type.rs
 src/models/key_model.rs
+src/models/key_pair_request_body.rs
 src/models/keys_request_model.rs
 src/models/keys_response_model.rs
 src/models/license_type.rs
@@ -208,6 +212,7 @@ src/models/organization_api_key_information_list_response_model.rs
 src/models/organization_api_key_request_model.rs
 src/models/organization_api_key_type.rs
 src/models/organization_auto_enroll_status_response_model.rs
+src/models/organization_billing_status_response_model.rs
 src/models/organization_collection_management_update_request_model.rs
 src/models/organization_connection_request_model.rs
 src/models/organization_connection_response_model.rs
@@ -223,7 +228,6 @@ src/models/organization_keys_response_model.rs
 src/models/organization_license.rs
 src/models/organization_public_key_response_model.rs
 src/models/organization_response_model.rs
-src/models/organization_risks_subscription_failure_response_model.rs
 src/models/organization_seat_request_model.rs
 src/models/organization_sponsorship_create_request_model.rs
 src/models/organization_sponsorship_redeem_request_model.rs
@@ -235,7 +239,6 @@ src/models/organization_sso_request_model.rs
 src/models/organization_sso_response_model.rs
 src/models/organization_subscription_response_model.rs
 src/models/organization_subscription_update_request_model.rs
-src/models/organization_tax_info_update_request_model.rs
 src/models/organization_update_request_model.rs
 src/models/organization_upgrade_request_model.rs
 src/models/organization_user_accept_init_request_model.rs
@@ -255,7 +258,6 @@ src/models/organization_user_reset_password_enrollment_request_model.rs
 src/models/organization_user_reset_password_request_model.rs
 src/models/organization_user_status_type.rs
 src/models/organization_user_type.rs
-src/models/organization_user_update_groups_request_model.rs
 src/models/organization_user_update_request_model.rs
 src/models/organization_user_user_details_response_model.rs
 src/models/organization_user_user_details_response_model_list_response_model.rs
@@ -289,11 +291,12 @@ src/models/profile_organization_response_model_list_response_model.rs
 src/models/profile_provider_organization_response_model.rs
 src/models/profile_provider_response_model.rs
 src/models/profile_response_model.rs
-src/models/project_access_policies_response_model.rs
 src/models/project_create_request_model.rs
 src/models/project_people_access_policies_response_model.rs
 src/models/project_response_model.rs
 src/models/project_response_model_list_response_model.rs
+src/models/project_service_accounts_access_policies_request_model.rs
+src/models/project_service_accounts_access_policies_response_model.rs
 src/models/project_update_request_model.rs
 src/models/protected_device_response_model.rs
 src/models/provider_organization_add_request_model.rs
@@ -303,6 +306,7 @@ src/models/provider_organization_organization_details_response_model_list_respon
 src/models/provider_organization_response_model.rs
 src/models/provider_response_model.rs
 src/models/provider_setup_request_model.rs
+src/models/provider_status_type.rs
 src/models/provider_type.rs
 src/models/provider_update_request_model.rs
 src/models/provider_user_accept_request_model.rs
@@ -321,10 +325,12 @@ src/models/provider_user_type.rs
 src/models/provider_user_update_request_model.rs
 src/models/provider_user_user_details_response_model.rs
 src/models/provider_user_user_details_response_model_list_response_model.rs
+src/models/provider_verify_delete_recover_request_model.rs
 src/models/pub_key_cred_param.rs
 src/models/public_key_credential_descriptor.rs
 src/models/public_key_credential_rp_entity.rs
 src/models/public_key_credential_type.rs
+src/models/push_device_request_model.rs
 src/models/push_registration_request_model.rs
 src/models/push_send_request_model.rs
 src/models/push_type.rs
@@ -347,6 +353,7 @@ src/models/secret_with_projects_list_response_model.rs
 src/models/secrets_manager_plan_features_response_model.rs
 src/models/secrets_manager_subscribe_request_model.rs
 src/models/secrets_manager_subscription_update_request_model.rs
+src/models/secrets_sync_response_model.rs
 src/models/secrets_with_projects_inner_secret.rs
 src/models/secure_note_type.rs
 src/models/selection_read_only_request_model.rs
@@ -363,9 +370,11 @@ src/models/send_type.rs
 src/models/send_with_id_request_model.rs
 src/models/server_config_response_model.rs
 src/models/service_account_create_request_model.rs
+src/models/service_account_granted_policies_permission_details_response_model.rs
+src/models/service_account_granted_policies_request_model.rs
 src/models/service_account_people_access_policies_response_model.rs
+src/models/service_account_project_access_policy_permission_details_response_model.rs
 src/models/service_account_project_access_policy_response_model.rs
-src/models/service_account_project_access_policy_response_model_list_response_model.rs
 src/models/service_account_response_model.rs
 src/models/service_account_secrets_details_response_model.rs
 src/models/service_account_secrets_details_response_model_list_response_model.rs
@@ -379,6 +388,7 @@ src/models/sso_configuration_data_request.rs
 src/models/sso_type.rs
 src/models/sso_urls.rs
 src/models/storage_request_model.rs
+src/models/subscription_cancellation_request_model.rs
 src/models/subscription_response_model.rs
 src/models/sync_response_model.rs
 src/models/tax_info_response_model.rs
@@ -401,6 +411,7 @@ src/models/two_factor_web_authn_request_model.rs
 src/models/two_factor_web_authn_response_model.rs
 src/models/two_factor_yubi_key_response_model.rs
 src/models/update_avatar_request_model.rs
+src/models/update_client_organization_request_body.rs
 src/models/update_devices_trust_request_model.rs
 src/models/update_domains_request_model.rs
 src/models/update_key_request_model.rs

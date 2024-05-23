@@ -34,10 +34,6 @@ All URIs are relative to _http://localhost_
 | _InfoApi_     | [**alive_get**](docs/InfoApi.md#alive_get)                                                                 | **GET** /alive                               |
 | _InfoApi_     | [**now_get**](docs/InfoApi.md#now_get)                                                                     | **GET** /now                                 |
 | _InfoApi_     | [**version_get**](docs/InfoApi.md#version_get)                                                             | **GET** /version                             |
-| _SsoApi_      | [**account_external_callback_get**](docs/SsoApi.md#account_external_callback_get)                          | **GET** /account/ExternalCallback            |
-| _SsoApi_      | [**account_external_challenge_get**](docs/SsoApi.md#account_external_challenge_get)                        | **GET** /account/ExternalChallenge           |
-| _SsoApi_      | [**account_login_get**](docs/SsoApi.md#account_login_get)                                                  | **GET** /account/Login                       |
-| _SsoApi_      | [**account_pre_validate_get**](docs/SsoApi.md#account_pre_validate_get)                                    | **GET** /account/PreValidate                 |
 | _SsoApi_      | [**sso_external_callback_get**](docs/SsoApi.md#sso_external_callback_get)                                  | **GET** /sso/ExternalCallback                |
 | _SsoApi_      | [**sso_external_challenge_get**](docs/SsoApi.md#sso_external_challenge_get)                                | **GET** /sso/ExternalChallenge               |
 | _SsoApi_      | [**sso_login_get**](docs/SsoApi.md#sso_login_get)                                                          | **GET** /sso/Login                           |

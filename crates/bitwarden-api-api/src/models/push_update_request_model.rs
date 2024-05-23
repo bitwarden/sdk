@@ -10,16 +10,19 @@
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PushUpdateRequestModel {
-    #[serde(rename = "deviceIds")]
-    pub device_ids: Vec<String>,
+    #[serde(rename = "devices")]
+    pub devices: Vec<crate::models::PushDeviceRequestModel>,
     #[serde(rename = "organizationId")]
     pub organization_id: String,
 }
 
 impl PushUpdateRequestModel {
-    pub fn new(device_ids: Vec<String>, organization_id: String) -> PushUpdateRequestModel {
+    pub fn new(
+        devices: Vec<crate::models::PushDeviceRequestModel>,
+        organization_id: String,
+    ) -> PushUpdateRequestModel {
         PushUpdateRequestModel {
-            device_ids,
+            devices,
             organization_id,
         }
     }

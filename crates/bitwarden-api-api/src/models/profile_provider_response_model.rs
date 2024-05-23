@@ -30,6 +30,8 @@ pub struct ProfileProviderResponseModel {
     pub user_id: Option<uuid::Uuid>,
     #[serde(rename = "useEvents", skip_serializing_if = "Option::is_none")]
     pub use_events: Option<bool>,
+    #[serde(rename = "providerStatus", skip_serializing_if = "Option::is_none")]
+    pub provider_status: Option<crate::models::ProviderStatusType>,
 }
 
 impl ProfileProviderResponseModel {
@@ -45,6 +47,7 @@ impl ProfileProviderResponseModel {
             permissions: None,
             user_id: None,
             use_events: None,
+            provider_status: None,
         }
     }
 }

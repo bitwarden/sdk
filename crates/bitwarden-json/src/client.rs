@@ -73,6 +73,7 @@ impl Client {
                 SecretsCommand::List(req) => client.secrets().list(&req).await.into_string(),
                 SecretsCommand::Update(req) => client.secrets().update(&req).await.into_string(),
                 SecretsCommand::Delete(req) => client.secrets().delete(req).await.into_string(),
+                SecretsCommand::Sync(req) => client.secrets().sync(&req).await.into_string(),
             },
 
             #[cfg(feature = "secrets")]

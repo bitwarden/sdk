@@ -32,6 +32,8 @@ pub struct ProviderResponseModel {
     pub billing_email: Option<String>,
     #[serde(rename = "creationDate", skip_serializing_if = "Option::is_none")]
     pub creation_date: Option<String>,
+    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
+    pub r#type: Option<crate::models::ProviderType>,
 }
 
 impl ProviderResponseModel {
@@ -48,6 +50,7 @@ impl ProviderResponseModel {
             business_tax_number: None,
             billing_email: None,
             creation_date: None,
+            r#type: None,
         }
     }
 }

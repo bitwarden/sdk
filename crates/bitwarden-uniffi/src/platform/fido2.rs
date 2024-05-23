@@ -1,11 +1,10 @@
 use std::sync::Arc;
 
 use bitwarden::{
-    error::Result as BitResult,
     platform::fido2::{
-        CheckUserOptions, ClientData, GetAssertionRequest, GetAssertionResult,
-        MakeCredentialRequest, MakeCredentialResult, Options,
-        PublicKeyCredentialAuthenticatorAssertionResponse,
+        CheckUserOptions, ClientData, Fido2CallbackError as BitFido2CallbackError,
+        GetAssertionRequest, GetAssertionResult, MakeCredentialRequest, MakeCredentialResult,
+        Options, PublicKeyCredentialAuthenticatorAssertionResponse,
         PublicKeyCredentialAuthenticatorAttestationResponse, PublicKeyCredentialRpEntity,
         PublicKeyCredentialUserEntity,
     },
@@ -151,19 +150,54 @@ pub struct CheckUserResult {
     user_verified: bool,
 }
 
+#[derive(Debug, thiserror::Error, uniffi::Error)]
+pub enum Fido2CallbackError {
+    #[error("The operation requires user interaction")]
+    UserInterfaceRequired,
+
+    #[error("The operation was cancelled by the user")]
+    OperationCancelled,
+
+    #[error("Unknown error: {reason}")]
+    Unknown { reason: String },
+}
+
+// Need to implement this From<> impl in order to handle unexpected callback errors.  See the
+// following page in the Uniffi user guide:
+// <https://mozilla.github.io/uniffi-rs/foreign_traits.html#error-handling>
+impl From<uniffi::UnexpectedUniFFICallbackError> for Fido2CallbackError {
+    fn from(e: uniffi::UnexpectedUniFFICallbackError) -> Self {
+        Self::Unknown { reason: e.reason }
+    }
+}
+
+impl From<Fido2CallbackError> for BitFido2CallbackError {
+    fn from(val: Fido2CallbackError) -> Self {
+        match val {
+            Fido2CallbackError::UserInterfaceRequired => Self::UserInterfaceRequired,
+            Fido2CallbackError::OperationCancelled => Self::OperationCancelled,
+            Fido2CallbackError::Unknown { reason } => Self::Unknown(reason),
+        }
+    }
+}
+
 #[uniffi::export(with_foreign)]
 #[async_trait::async_trait]
 pub trait Fido2UserInterface: Send + Sync {
-    async fn check_user(&self, options: CheckUserOptions, hint: UIHint) -> Result<CheckUserResult>;
+    async fn check_user(
+        &self,
+        options: CheckUserOptions,
+        hint: UIHint,
+    ) -> Result<CheckUserResult, Fido2CallbackError>;
     async fn pick_credential_for_authentication(
         &self,
         available_credentials: Vec<CipherView>,
-    ) -> Result<CipherViewWrapper>;
+    ) -> Result<CipherViewWrapper, Fido2CallbackError>;
     async fn pick_credential_for_creation(
         &self,
         available_credentials: Vec<CipherView>,
         new_credential: Fido2CredentialNewView,
-    ) -> Result<CipherViewWrapper>;
+    ) -> Result<CipherViewWrapper, Fido2CallbackError>;
     async fn is_verification_enabled(&self) -> bool;
 }
 
@@ -174,9 +208,9 @@ pub trait Fido2CredentialStore: Send + Sync {
         &self,
         ids: Option<Vec<Vec<u8>>>,
         rip_id: String,
-    ) -> Result<Vec<CipherView>>;
+    ) -> Result<Vec<CipherView>, Fido2CallbackError>;
 
-    async fn save_credential(&self, cred: Cipher) -> Result<()>;
+    async fn save_credential(&self, cred: Cipher) -> Result<(), Fido2CallbackError>;
 }
 
 // Because uniffi doesn't support external traits, we have to make a copy of the trait here.
@@ -193,14 +227,14 @@ impl bitwarden::platform::fido2::Fido2CredentialStore
         &self,
         ids: Option<Vec<Vec<u8>>>,
         rip_id: String,
-    ) -> BitResult<Vec<CipherView>> {
+    ) -> Result<Vec<CipherView>, BitFido2CallbackError> {
         self.0
             .find_credentials(ids, rip_id)
             .await
             .map_err(Into::into)
     }
 
-    async fn save_credential(&self, cred: Cipher) -> BitResult<()> {
+    async fn save_credential(&self, cred: Cipher) -> Result<(), BitFido2CallbackError> {
         self.0.save_credential(cred).await.map_err(Into::into)
     }
 }
@@ -262,7 +296,7 @@ impl bitwarden::platform::fido2::Fido2UserInterface for UniffiTraitBridge<&dyn F
         &self,
         options: CheckUserOptions,
         hint: bitwarden::platform::fido2::UIHint<'a, CipherView>,
-    ) -> BitResult<bitwarden::platform::fido2::CheckUserResult> {
+    ) -> Result<bitwarden::platform::fido2::CheckUserResult, BitFido2CallbackError> {
         self.0
             .check_user(options.clone(), UIHint::from_bw_hint(hint, options))
             .await
@@ -275,7 +309,7 @@ impl bitwarden::platform::fido2::Fido2UserInterface for UniffiTraitBridge<&dyn F
     async fn pick_credential_for_authentication(
         &self,
         available_credentials: Vec<CipherView>,
-    ) -> BitResult<CipherView> {
+    ) -> Result<CipherView, BitFido2CallbackError> {
         self.0
             .pick_credential_for_authentication(available_credentials)
             .await
@@ -286,7 +320,7 @@ impl bitwarden::platform::fido2::Fido2UserInterface for UniffiTraitBridge<&dyn F
         &self,
         available_credentials: Vec<CipherView>,
         new_credential: Fido2CredentialNewView,
-    ) -> BitResult<CipherView> {
+    ) -> Result<CipherView, BitFido2CallbackError> {
         self.0
             .pick_credential_for_creation(available_credentials, new_credential)
             .await

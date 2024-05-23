@@ -76,7 +76,11 @@ pub enum Error {
 
     #[cfg(feature = "mobile")]
     #[error("Uniffi callback error: {0}")]
-    UniffiCallback(#[from] uniffi::UnexpectedUniFFICallbackError),
+    UniffiCallbackError(#[from] uniffi::UnexpectedUniFFICallbackError),
+
+    #[cfg(feature = "mobile")]
+    #[error("Fido2 Callback error: {0:?}")]
+    Fido2CallbackError(#[from] crate::platform::fido2::Fido2CallbackError),
 
     #[error("Internal error: {0}")]
     Internal(Cow<'static, str>),

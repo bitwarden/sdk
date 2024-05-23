@@ -13,7 +13,8 @@ pub use authenticator::Fido2Authenticator;
 pub use client::Fido2Client;
 pub use passkey::authenticator::UIHint;
 pub use traits::{
-    CheckUserOptions, CheckUserResult, Fido2CredentialStore, Fido2UserInterface, Verification,
+    CheckUserOptions, CheckUserResult, Fido2CallbackError, Fido2CredentialStore,
+    Fido2UserInterface, Verification,
 };
 pub use types::{
     AuthenticatorAssertionResponse, AuthenticatorAttestationResponse, ClientData,

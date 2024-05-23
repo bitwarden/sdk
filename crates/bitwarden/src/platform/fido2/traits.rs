@@ -1,9 +1,22 @@
 use passkey::authenticator::UIHint;
+use thiserror::Error;
 
 use crate::{
     error::Result,
     vault::{Cipher, CipherView, Fido2CredentialNewView},
 };
+
+#[derive(Debug, Error)]
+pub enum Fido2CallbackError {
+    #[error("The operation requires user interaction")]
+    UserInterfaceRequired,
+
+    #[error("The operation was cancelled by the user")]
+    OperationCancelled,
+
+    #[error("Unknown error: {0}")]
+    Unknown(String),
+}
 
 #[async_trait::async_trait]
 pub trait Fido2UserInterface: Send + Sync {
@@ -11,16 +24,16 @@ pub trait Fido2UserInterface: Send + Sync {
         &self,
         options: CheckUserOptions,
         hint: UIHint<'a, CipherView>,
-    ) -> Result<CheckUserResult>;
+    ) -> Result<CheckUserResult, Fido2CallbackError>;
     async fn pick_credential_for_authentication(
         &self,
         available_credentials: Vec<CipherView>,
-    ) -> Result<CipherView>;
+    ) -> Result<CipherView, Fido2CallbackError>;
     async fn pick_credential_for_creation(
         &self,
         available_credentials: Vec<CipherView>,
         new_credential: Fido2CredentialNewView,
-    ) -> Result<CipherView>;
+    ) -> Result<CipherView, Fido2CallbackError>;
     async fn is_verification_enabled(&self) -> bool;
 }
 
@@ -30,9 +43,9 @@ pub trait Fido2CredentialStore: Send + Sync {
         &self,
         ids: Option<Vec<Vec<u8>>>,
         rip_id: String,
-    ) -> Result<Vec<CipherView>>;
+    ) -> Result<Vec<CipherView>, Fido2CallbackError>;
 
-    async fn save_credential(&self, cred: Cipher) -> Result<()>;
+    async fn save_credential(&self, cred: Cipher) -> Result<(), Fido2CallbackError>;
 }
 
 #[derive(Clone)]

@@ -19,7 +19,6 @@ use zeroize::Zeroize;
 /// static ALLOC: ZeroizingAllocator<std::alloc::System> =
 ///    ZeroizingAllocator(std::alloc::System);
 /// ```
-///
 pub struct ZeroizingAllocator<Alloc: GlobalAlloc>(pub Alloc);
 
 unsafe impl<T: GlobalAlloc> GlobalAlloc for ZeroizingAllocator<T> {

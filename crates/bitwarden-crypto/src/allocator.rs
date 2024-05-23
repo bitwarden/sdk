@@ -9,6 +9,17 @@ use zeroize::Zeroize;
 /// persisting in memory after it has been deallocated.
 ///
 /// This allocator is a decorator around another allocator.
+///
+/// # Example
+///
+/// This example shows how to use the `ZeroizingAllocator` with the system allocator.
+///
+/// ```rust
+/// #[global_allocator]
+/// static ALLOC: ZeroizingAllocator<std::alloc::System> =
+///    ZeroizingAllocator(std::alloc::System);
+/// ```
+///
 pub struct ZeroizingAllocator<Alloc: GlobalAlloc>(pub Alloc);
 
 unsafe impl<T: GlobalAlloc> GlobalAlloc for ZeroizingAllocator<T> {

@@ -20,6 +20,7 @@ fn main() {
     let cases = memory_testing::load_cases(base_dir);
 
     let mut symmetric_keys = Vec::new();
+    let mut asymmetric_keys = Vec::new();
     let mut master_keys = Vec::new();
 
     for case in cases.cases {
@@ -28,6 +29,11 @@ fn main() {
                 let key = SensitiveString::new(Box::new(key));
                 let key = SymmetricCryptoKey::try_from(key).unwrap();
                 symmetric_keys.push((key.to_vec(), key));
+            }
+            memory_testing::CaseCommand::AsymmetricKey { private_key } => {
+                let private_key = SensitiveString::new(Box::new(private_key));
+                let key = bitwarden_crypto::AsymmetricCryptoKey::from_pem(private_key).unwrap();
+                asymmetric_keys.push(key);
             }
             memory_testing::CaseCommand::MasterKey {
                 password,
@@ -53,7 +59,7 @@ fn main() {
 
     // Put all the variables through a black box to prevent them from being optimized out before we
     // get to this point, and then drop them
-    let _ = std::hint::black_box((test_string, symmetric_keys, master_keys));
+    let _ = std::hint::black_box((test_string, symmetric_keys, asymmetric_keys, master_keys));
 
     // After the variables are dropped, we want to make another dump
     wait_for_dump();

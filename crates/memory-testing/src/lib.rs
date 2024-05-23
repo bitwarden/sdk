@@ -1,10 +1,7 @@
 use std::path::Path;
 
-use bitwarden_crypto::{Kdf, ZeroizingAllocator};
+use bitwarden_crypto::Kdf;
 use zeroize::{Zeroize, Zeroizing};
-
-#[global_allocator]
-static ALLOC: ZeroizingAllocator<std::alloc::System> = ZeroizingAllocator(std::alloc::System);
 
 pub const TEST_STRING: &str = "THIS IS USED TO CHECK THAT THE MEMORY IS DUMPED CORRECTLY";
 
@@ -37,6 +34,9 @@ pub struct Case {
 pub enum CaseCommand {
     SymmetricKey {
         key: String,
+    },
+    AsymmetricKey {
+        private_key: String,
     },
     MasterKey {
         password: String,

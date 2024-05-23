@@ -9,6 +9,16 @@ use zeroize::Zeroize;
 /// persisting in memory after it has been deallocated.
 ///
 /// This allocator is a decorator around another allocator.
+///
+/// # Example
+///
+/// This example shows how to use the `ZeroizingAllocator` with the system allocator.
+///
+/// ```rust,ignore
+/// #[global_allocator]
+/// static ALLOC: bitwarden_crypto::ZeroizingAllocator<std::alloc::System> =
+///    bitwarden_crypto::ZeroizingAllocator(std::alloc::System);
+/// ```
 pub struct ZeroizingAllocator<Alloc: GlobalAlloc>(pub Alloc);
 
 unsafe impl<T: GlobalAlloc> GlobalAlloc for ZeroizingAllocator<T> {
@@ -29,10 +39,6 @@ unsafe impl<T: GlobalAlloc> GlobalAlloc for ZeroizingAllocator<T> {
 
 #[cfg(test)]
 mod tests {
-    #[global_allocator]
-    static ALLOC: super::ZeroizingAllocator<std::alloc::System> =
-        super::ZeroizingAllocator(std::alloc::System);
-
     #[test]
     #[ignore = "It produces inconsistent results on some platforms"]
     fn string() {

@@ -149,12 +149,18 @@ pub enum ClientData {
     DefaultWithCustomHash { hash: Vec<u8> },
 }
 
-// TODO(Fido2): I'm implementing this to convert into a generic passkey::client::ClientData.
-// We need a custom implementation to  make sure the extra_client_data can serialize to () instead
-// of None
+// To keep compatibility with passkey-rs ClientData, we want extra_client_data to return a type
+// that serializes to Object | Unit. If we just used an Option it would serialize to Object | None
+// So we create our own wrapper types that serialize to the correct values and make the ClientData
+// implementation return that.
 #[derive(Clone)]
-pub struct OptionalAndroidClientData {
-    pub data: Option<AndroidClientData>,
+pub(super) struct OptionalAndroidClientData {
+    data: Option<AndroidClientData>,
+}
+
+#[derive(Serialize, Clone)]
+struct AndroidClientData {
+    android_package_name: String,
 }
 
 impl Serialize for OptionalAndroidClientData {
@@ -167,11 +173,6 @@ impl Serialize for OptionalAndroidClientData {
             None => serde::Serializer::serialize_unit(serializer),
         }
     }
-}
-
-#[derive(Serialize, Clone)]
-pub struct AndroidClientData {
-    pub android_package_name: String,
 }
 
 impl passkey::client::ClientData<OptionalAndroidClientData> for ClientData {

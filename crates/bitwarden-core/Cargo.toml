@@ -1,5 +1,5 @@
 [package]
-name = "bitwarden"
+name = "bitwarden-core"
 description = """
 Bitwarden Secrets Manager SDK
 """

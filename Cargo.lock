@@ -368,36 +368,12 @@ checksum = "cf4b9d6a944f767f8e5e0db018570623c85f3d925ac718db4e06d0187adb21c1"
 name = "bitwarden"
 version = "0.5.0"
 dependencies = [
- "async-trait",
- "base64 0.22.1",
  "bitwarden-api-api",
  "bitwarden-api-identity",
+ "bitwarden-core",
  "bitwarden-crypto",
  "bitwarden-exporters",
  "bitwarden-generators",
- "chrono",
- "getrandom",
- "hmac",
- "log",
- "passkey",
- "rand",
- "rand_chacha",
- "reqwest",
- "rustls-platform-verifier",
- "schemars",
- "serde",
- "serde_json",
- "serde_qs",
- "serde_repr",
- "sha1",
- "sha2",
- "thiserror",
- "tokio",
- "uniffi",
- "uuid",
- "wiremock",
- "zeroize",
- "zxcvbn",
 ]
 
 [[package]]
@@ -443,6 +419,42 @@ dependencies = [
  "color-eyre",
  "inquire",
  "supports-color",
+]
+
+[[package]]
+name = "bitwarden-core"
+version = "0.5.0"
+dependencies = [
+ "async-trait",
+ "base64 0.21.7",
+ "bitwarden-api-api",
+ "bitwarden-api-identity",
+ "bitwarden-crypto",
+ "bitwarden-exporters",
+ "bitwarden-generators",
+ "chrono",
+ "getrandom",
+ "hmac",
+ "log",
+ "passkey",
+ "rand",
+ "rand_chacha",
+ "reqwest",
+ "rustls-platform-verifier",
+ "schemars",
+ "serde",
+ "serde_json",
+ "serde_qs",
+ "serde_repr",
+ "sha1",
+ "sha2",
+ "thiserror",
+ "tokio",
+ "uniffi",
+ "uuid",
+ "wiremock",
+ "zeroize",
+ "zxcvbn",
 ]
 
 [[package]]

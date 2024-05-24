@@ -5,7 +5,6 @@ use bitwarden_crypto::{
 };
 #[cfg(feature = "mobile")]
 use bitwarden_crypto::{EncString, KeyDecryptable, SymmetricCryptoKey};
-use bitwarden_generators::{password, PasswordGeneratorRequest};
 
 use crate::{error::Error, Client};
 
@@ -41,14 +40,7 @@ pub(crate) fn new_auth_request(email: &str) -> Result<AuthRequestResponse, Error
         private_key: key.to_der()?.encode_base64(STANDARD),
         public_key: b64,
         fingerprint,
-        access_code: password(PasswordGeneratorRequest {
-            length: 25,
-            lowercase: true,
-            uppercase: true,
-            numbers: true,
-            special: false,
-            ..Default::default()
-        })?,
+        access_code: todo!("Generate access code"),
     })
 }
 

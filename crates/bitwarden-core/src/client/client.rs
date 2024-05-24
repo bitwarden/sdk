@@ -176,7 +176,7 @@ impl Client {
     }
 
     #[cfg(feature = "mobile")]
-    pub(crate) fn get_http_client(&self) -> &reqwest::Client {
+    pub fn get_http_client(&self) -> &reqwest::Client {
         &self.__api_configurations.external_client
     }
 

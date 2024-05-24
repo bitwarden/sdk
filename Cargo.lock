@@ -426,12 +426,11 @@ name = "bitwarden-core"
 version = "0.5.0"
 dependencies = [
  "async-trait",
- "base64 0.21.7",
+ "base64 0.22.1",
  "bitwarden-api-api",
  "bitwarden-api-identity",
  "bitwarden-crypto",
  "bitwarden-exporters",
- "bitwarden-generators",
  "chrono",
  "getrandom",
  "hmac",
@@ -507,6 +506,7 @@ dependencies = [
 name = "bitwarden-generators"
 version = "0.5.0"
 dependencies = [
+ "bitwarden-core",
  "bitwarden-crypto",
  "rand",
  "rand_chacha",

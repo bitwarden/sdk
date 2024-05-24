@@ -75,11 +75,4 @@ pub use client::Client;
 #[doc = include_str!("../README.md")]
 mod readme {}
 
-#[cfg(feature = "internal")]
-pub mod generators {
-    pub use bitwarden_generators::{
-        PassphraseGeneratorRequest, PasswordGeneratorRequest, UsernameGeneratorRequest,
-    };
-}
-
 pub use bitwarden_crypto::ZeroizingAllocator;

@@ -15,7 +15,7 @@ license-file.workspace = true
 keywords.workspace = true
 
 [dependencies]
-base64 = ">=0.21.2, <0.23"
+base64 = ">=0.22.1, <0.23"
 bitwarden-crypto = { workspace = true }
 chrono = { version = ">=0.4.26, <0.5", features = [
     "clock",

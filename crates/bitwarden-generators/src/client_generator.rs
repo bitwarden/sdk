@@ -1,16 +1,19 @@
-use bitwarden_generators::{passphrase, password, username};
+use bitwarden_core::Client;
 
 use crate::{
-    error::Result,
-    generators::{PassphraseGeneratorRequest, PasswordGeneratorRequest, UsernameGeneratorRequest},
-    Client,
+    passphrase, password, username, PassphraseError, PassphraseGeneratorRequest, PasswordError,
+    PasswordGeneratorRequest, UsernameError, UsernameGeneratorRequest,
 };
 
 pub struct ClientGenerator<'a> {
-    pub(crate) client: &'a crate::Client,
+    client: &'a Client,
 }
 
 impl<'a> ClientGenerator<'a> {
+    fn new(client: &'a Client) -> Self {
+        Self { client }
+    }
+
     /// Generates a random password.
     ///
     /// The character sets and password length can be customized using the `input` parameter.
@@ -32,8 +35,8 @@ impl<'a> ClientGenerator<'a> {
     ///     Ok(())
     /// }
     /// ```
-    pub async fn password(&self, input: PasswordGeneratorRequest) -> Result<String> {
-        Ok(password(input)?)
+    pub async fn password(&self, input: PasswordGeneratorRequest) -> Result<String, PasswordError> {
+        password(input)
     }
 
     /// Generates a random passphrase.
@@ -57,8 +60,11 @@ impl<'a> ClientGenerator<'a> {
     ///     Ok(())
     /// }
     /// ```
-    pub async fn passphrase(&self, input: PassphraseGeneratorRequest) -> Result<String> {
-        Ok(passphrase(input)?)
+    pub async fn passphrase(
+        &self,
+        input: PassphraseGeneratorRequest,
+    ) -> Result<String, PassphraseError> {
+        passphrase(input)
     }
 
     /// Generates a random username.
@@ -80,13 +86,17 @@ impl<'a> ClientGenerator<'a> {
     ///     Ok(())
     /// }
     /// ```
-    pub async fn username(&self, input: UsernameGeneratorRequest) -> Result<String> {
-        Ok(username(input, self.client.get_http_client()).await?)
+    pub async fn username(&self, input: UsernameGeneratorRequest) -> Result<String, UsernameError> {
+        username(input, self.client.get_http_client()).await
     }
 }
 
-impl<'a> Client {
-    pub fn generator(&'a self) -> ClientGenerator<'a> {
-        ClientGenerator { client: self }
+pub trait ClientGeneratorExt<'a> {
+    fn generator(&'a self) -> ClientGenerator<'a>;
+}
+
+impl<'a> ClientGeneratorExt<'a> for Client {
+    fn generator(&'a self) -> ClientGenerator<'a> {
+        ClientGenerator::new(self)
     }
 }

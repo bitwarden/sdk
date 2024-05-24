@@ -207,6 +207,7 @@ src/models/master_password_policy_response_model.rs
 src/models/member_decryption_type.rs
 src/models/mod.rs
 src/models/open_id_connect_redirect_behavior.rs
+src/models/optional_cipher_details_response_model.rs
 src/models/organization_api_key_information.rs
 src/models/organization_api_key_information_list_response_model.rs
 src/models/organization_api_key_request_model.rs
@@ -262,6 +263,7 @@ src/models/organization_user_update_request_model.rs
 src/models/organization_user_user_details_response_model.rs
 src/models/organization_user_user_details_response_model_list_response_model.rs
 src/models/organization_verify_bank_request_model.rs
+src/models/organization_verify_delete_recover_request_model.rs
 src/models/other_device_keys_update_request_model.rs
 src/models/password_hint_request_model.rs
 src/models/password_manager_plan_features_response_model.rs

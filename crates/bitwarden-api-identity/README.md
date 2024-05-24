@@ -10,7 +10,8 @@ using the [openapi-spec](https://openapis.org) from a remote server, you can eas
 client.
 
 - API version: v1
-- Package version: 1.0.0
+- Package version: 0.5.0
+- Generator version: 7.6.0
 - Build package: `org.openapitools.codegen.languages.RustClientCodegen`
 
 ## Installation

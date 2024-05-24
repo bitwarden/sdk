@@ -13,15 +13,13 @@ use serde::{Deserialize, Serialize};
 use crate::models;
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
-pub struct ProviderUserBulkConfirmRequestModelEntry {
-    #[serde(rename = "id")]
-    pub id: uuid::Uuid,
-    #[serde(rename = "key")]
-    pub key: String,
+pub struct OrganizationVerifyDeleteRecoverRequestModel {
+    #[serde(rename = "token")]
+    pub token: String,
 }
 
-impl ProviderUserBulkConfirmRequestModelEntry {
-    pub fn new(id: uuid::Uuid, key: String) -> ProviderUserBulkConfirmRequestModelEntry {
-        ProviderUserBulkConfirmRequestModelEntry { id, key }
+impl OrganizationVerifyDeleteRecoverRequestModel {
+    pub fn new(token: String) -> OrganizationVerifyDeleteRecoverRequestModel {
+        OrganizationVerifyDeleteRecoverRequestModel { token }
     }
 }

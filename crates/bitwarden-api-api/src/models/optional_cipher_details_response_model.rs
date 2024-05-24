@@ -13,21 +13,21 @@ use serde::{Deserialize, Serialize};
 use crate::models;
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
-pub struct WebAuthnLoginAssertionOptionsResponseModel {
+pub struct OptionalCipherDetailsResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
-    #[serde(rename = "options", skip_serializing_if = "Option::is_none")]
-    pub options: Option<Box<models::AssertionOptions>>,
-    #[serde(rename = "token", skip_serializing_if = "Option::is_none")]
-    pub token: Option<String>,
+    #[serde(rename = "unavailable", skip_serializing_if = "Option::is_none")]
+    pub unavailable: Option<bool>,
+    #[serde(rename = "cipher", skip_serializing_if = "Option::is_none")]
+    pub cipher: Option<Box<models::CipherDetailsResponseModel>>,
 }
 
-impl WebAuthnLoginAssertionOptionsResponseModel {
-    pub fn new() -> WebAuthnLoginAssertionOptionsResponseModel {
-        WebAuthnLoginAssertionOptionsResponseModel {
+impl OptionalCipherDetailsResponseModel {
+    pub fn new() -> OptionalCipherDetailsResponseModel {
+        OptionalCipherDetailsResponseModel {
             object: None,
-            options: None,
-            token: None,
+            unavailable: None,
+            cipher: None,
         }
     }
 }

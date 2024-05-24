@@ -9,9 +9,10 @@
  */
 
 use reqwest;
+use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::apis::ResponseContent;
+use crate::{apis::ResponseContent, models};
 
 /// struct for typed errors of method [`organizations_organization_id_service_accounts_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -74,7 +75,7 @@ pub async fn organizations_organization_id_service_accounts_get(
     organization_id: uuid::Uuid,
     include_access_to_secrets: Option<bool>,
 ) -> Result<
-    crate::models::ServiceAccountSecretsDetailsResponseModelListResponseModel,
+    models::ServiceAccountSecretsDetailsResponseModelListResponseModel,
     Error<OrganizationsOrganizationIdServiceAccountsGetError>,
 > {
     let local_var_configuration = configuration;
@@ -124,9 +125,9 @@ pub async fn organizations_organization_id_service_accounts_get(
 pub async fn organizations_organization_id_service_accounts_post(
     configuration: &configuration::Configuration,
     organization_id: uuid::Uuid,
-    service_account_create_request_model: Option<crate::models::ServiceAccountCreateRequestModel>,
+    service_account_create_request_model: Option<models::ServiceAccountCreateRequestModel>,
 ) -> Result<
-    crate::models::ServiceAccountResponseModel,
+    models::ServiceAccountResponseModel,
     Error<OrganizationsOrganizationIdServiceAccountsPostError>,
 > {
     let local_var_configuration = configuration;
@@ -173,10 +174,8 @@ pub async fn organizations_organization_id_service_accounts_post(
 pub async fn service_accounts_delete_post(
     configuration: &configuration::Configuration,
     uuid_colon_colon_uuid: Option<Vec<uuid::Uuid>>,
-) -> Result<
-    crate::models::BulkDeleteResponseModelListResponseModel,
-    Error<ServiceAccountsDeletePostError>,
-> {
+) -> Result<models::BulkDeleteResponseModelListResponseModel, Error<ServiceAccountsDeletePostError>>
+{
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -221,7 +220,7 @@ pub async fn service_accounts_id_access_tokens_get(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
 ) -> Result<
-    crate::models::AccessTokenResponseModelListResponseModel,
+    models::AccessTokenResponseModelListResponseModel,
     Error<ServiceAccountsIdAccessTokensGetError>,
 > {
     let local_var_configuration = configuration;
@@ -267,11 +266,9 @@ pub async fn service_accounts_id_access_tokens_get(
 pub async fn service_accounts_id_access_tokens_post(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    access_token_create_request_model: Option<crate::models::AccessTokenCreateRequestModel>,
-) -> Result<
-    crate::models::AccessTokenCreationResponseModel,
-    Error<ServiceAccountsIdAccessTokensPostError>,
-> {
+    access_token_create_request_model: Option<models::AccessTokenCreateRequestModel>,
+) -> Result<models::AccessTokenCreationResponseModel, Error<ServiceAccountsIdAccessTokensPostError>>
+{
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -316,7 +313,7 @@ pub async fn service_accounts_id_access_tokens_post(
 pub async fn service_accounts_id_access_tokens_revoke_post(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    revoke_access_tokens_request: Option<crate::models::RevokeAccessTokensRequest>,
+    revoke_access_tokens_request: Option<models::RevokeAccessTokensRequest>,
 ) -> Result<(), Error<ServiceAccountsIdAccessTokensRevokePostError>> {
     let local_var_configuration = configuration;
 
@@ -362,7 +359,7 @@ pub async fn service_accounts_id_access_tokens_revoke_post(
 pub async fn service_accounts_id_get(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-) -> Result<crate::models::ServiceAccountResponseModel, Error<ServiceAccountsIdGetError>> {
+) -> Result<models::ServiceAccountResponseModel, Error<ServiceAccountsIdGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -406,8 +403,8 @@ pub async fn service_accounts_id_get(
 pub async fn service_accounts_id_put(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    service_account_update_request_model: Option<crate::models::ServiceAccountUpdateRequestModel>,
-) -> Result<crate::models::ServiceAccountResponseModel, Error<ServiceAccountsIdPutError>> {
+    service_account_update_request_model: Option<models::ServiceAccountUpdateRequestModel>,
+) -> Result<models::ServiceAccountResponseModel, Error<ServiceAccountsIdPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;

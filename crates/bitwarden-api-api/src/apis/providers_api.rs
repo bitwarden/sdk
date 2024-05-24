@@ -9,9 +9,10 @@
  */
 
 use reqwest;
+use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::apis::ResponseContent;
+use crate::{apis::ResponseContent, models};
 
 /// struct for typed errors of method [`providers_id_delete`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -154,7 +155,7 @@ pub async fn providers_id_delete_recover_token_post(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
     provider_verify_delete_recover_request_model: Option<
-        crate::models::ProviderVerifyDeleteRecoverRequestModel,
+        models::ProviderVerifyDeleteRecoverRequestModel,
     >,
 ) -> Result<(), Error<ProvidersIdDeleteRecoverTokenPostError>> {
     let local_var_configuration = configuration;
@@ -202,7 +203,7 @@ pub async fn providers_id_delete_recover_token_post(
 pub async fn providers_id_get(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-) -> Result<crate::models::ProviderResponseModel, Error<ProvidersIdGetError>> {
+) -> Result<models::ProviderResponseModel, Error<ProvidersIdGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -246,8 +247,8 @@ pub async fn providers_id_get(
 pub async fn providers_id_post(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    provider_update_request_model: Option<crate::models::ProviderUpdateRequestModel>,
-) -> Result<crate::models::ProviderResponseModel, Error<ProvidersIdPostError>> {
+    provider_update_request_model: Option<models::ProviderUpdateRequestModel>,
+) -> Result<models::ProviderResponseModel, Error<ProvidersIdPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -292,8 +293,8 @@ pub async fn providers_id_post(
 pub async fn providers_id_put(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    provider_update_request_model: Option<crate::models::ProviderUpdateRequestModel>,
-) -> Result<crate::models::ProviderResponseModel, Error<ProvidersIdPutError>> {
+    provider_update_request_model: Option<models::ProviderUpdateRequestModel>,
+) -> Result<models::ProviderResponseModel, Error<ProvidersIdPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -338,8 +339,8 @@ pub async fn providers_id_put(
 pub async fn providers_id_setup_post(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    provider_setup_request_model: Option<crate::models::ProviderSetupRequestModel>,
-) -> Result<crate::models::ProviderResponseModel, Error<ProvidersIdSetupPostError>> {
+    provider_setup_request_model: Option<models::ProviderSetupRequestModel>,
+) -> Result<models::ProviderResponseModel, Error<ProvidersIdSetupPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;

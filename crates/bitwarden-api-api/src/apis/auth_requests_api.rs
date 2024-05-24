@@ -9,9 +9,10 @@
  */
 
 use reqwest;
+use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::apis::ResponseContent;
+use crate::{apis::ResponseContent, models};
 
 /// struct for typed errors of method [`auth_requests_admin_request_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -57,8 +58,8 @@ pub enum AuthRequestsPostError {
 
 pub async fn auth_requests_admin_request_post(
     configuration: &configuration::Configuration,
-    auth_request_create_request_model: Option<crate::models::AuthRequestCreateRequestModel>,
-) -> Result<crate::models::AuthRequestResponseModel, Error<AuthRequestsAdminRequestPostError>> {
+    auth_request_create_request_model: Option<models::AuthRequestCreateRequestModel>,
+) -> Result<models::AuthRequestResponseModel, Error<AuthRequestsAdminRequestPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -101,7 +102,7 @@ pub async fn auth_requests_admin_request_post(
 
 pub async fn auth_requests_get(
     configuration: &configuration::Configuration,
-) -> Result<crate::models::AuthRequestResponseModelListResponseModel, Error<AuthRequestsGetError>> {
+) -> Result<models::AuthRequestResponseModelListResponseModel, Error<AuthRequestsGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -141,7 +142,7 @@ pub async fn auth_requests_get(
 pub async fn auth_requests_id_get(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-) -> Result<crate::models::AuthRequestResponseModel, Error<AuthRequestsIdGetError>> {
+) -> Result<models::AuthRequestResponseModel, Error<AuthRequestsIdGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -185,8 +186,8 @@ pub async fn auth_requests_id_get(
 pub async fn auth_requests_id_put(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    auth_request_update_request_model: Option<crate::models::AuthRequestUpdateRequestModel>,
-) -> Result<crate::models::AuthRequestResponseModel, Error<AuthRequestsIdPutError>> {
+    auth_request_update_request_model: Option<models::AuthRequestUpdateRequestModel>,
+) -> Result<models::AuthRequestResponseModel, Error<AuthRequestsIdPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -232,7 +233,7 @@ pub async fn auth_requests_id_response_get(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
     code: Option<&str>,
-) -> Result<crate::models::AuthRequestResponseModel, Error<AuthRequestsIdResponseGetError>> {
+) -> Result<models::AuthRequestResponseModel, Error<AuthRequestsIdResponseGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -279,8 +280,8 @@ pub async fn auth_requests_id_response_get(
 
 pub async fn auth_requests_post(
     configuration: &configuration::Configuration,
-    auth_request_create_request_model: Option<crate::models::AuthRequestCreateRequestModel>,
-) -> Result<crate::models::AuthRequestResponseModel, Error<AuthRequestsPostError>> {
+    auth_request_create_request_model: Option<models::AuthRequestCreateRequestModel>,
+) -> Result<models::AuthRequestResponseModel, Error<AuthRequestsPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;

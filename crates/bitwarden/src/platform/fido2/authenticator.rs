@@ -26,7 +26,7 @@ pub struct Fido2Authenticator<'a> {
     pub(crate) credential_store: &'a dyn Fido2CredentialStore,
 
     pub(crate) selected_credential: Mutex<Option<CipherView>>,
-    pub(crate) selected_uv: Mutex<Option<UV>>,
+    pub(crate) requested_uv: Mutex<Option<UV>>,
 }
 
 impl<'a> Fido2Authenticator<'a> {
@@ -37,18 +37,10 @@ impl<'a> Fido2Authenticator<'a> {
         let mut authenticator = self.get_authenticator();
 
         // Insert the received UV to be able to return it later in check_user
-        self.selected_uv
+        self.requested_uv
             .lock()
             .expect("Mutex is not poisoned")
             .replace(request.options.uv);
-
-        let verification_enabled = self.user_interface.is_verification_enabled().await;
-        let uv = match (request.options.uv, verification_enabled) {
-            (UV::Preferred, true) => true,
-            (UV::Preferred, false) => false,
-            (UV::Required, _) => true,
-            (UV::Discouraged, _) => false,
-        };
 
         let response = authenticator
             .make_credential(ctap2::make_credential::Request {
@@ -78,7 +70,7 @@ impl<'a> Fido2Authenticator<'a> {
                 options: passkey::types::ctap2::make_credential::Options {
                     rk: request.options.rk,
                     up: true,
-                    uv,
+                    uv: self.convert_requested_uv(request.options.uv).await,
                 },
                 pin_auth: None,
                 pin_protocol: None,
@@ -111,7 +103,7 @@ impl<'a> Fido2Authenticator<'a> {
         let mut authenticator = self.get_authenticator();
 
         // Insert the received UV to be able to return it later in check_user
-        self.selected_uv
+        self.requested_uv
             .lock()
             .expect("Mutex is not poisoned")
             .replace(request.options.uv);
@@ -135,7 +127,7 @@ impl<'a> Fido2Authenticator<'a> {
                 options: passkey::types::ctap2::make_credential::Options {
                     rk: request.options.rk,
                     up: true,
-                    uv: request.options.uv != UV::Discouraged,
+                    uv: self.convert_requested_uv(request.options.uv).await,
                 },
                 pin_auth: None,
                 pin_protocol: None,
@@ -189,6 +181,16 @@ impl<'a> Fido2Authenticator<'a> {
                 authenticator: self,
             },
         )
+    }
+
+    async fn convert_requested_uv(&self, uv: UV) -> bool {
+        let verification_enabled = self.user_interface.is_verification_enabled().await;
+        match (uv, verification_enabled) {
+            (UV::Preferred, true) => true,
+            (UV::Preferred, false) => false,
+            (UV::Required, _) => true,
+            (UV::Discouraged, _) => false,
+        }
     }
 
     pub(super) fn get_selected_credential(&self) -> Result<SelectedCredential> {
@@ -410,7 +412,7 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
     ) -> Result<UserCheck, Ctap2Error> {
         let verification = self
             .authenticator
-            .selected_uv
+            .requested_uv
             .lock()
             .expect("Mutex is not poisoned")
             .take()

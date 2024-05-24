@@ -54,7 +54,7 @@ impl<'a> ClientFido2<'a> {
             user_interface,
             credential_store,
             selected_credential: Mutex::new(None),
-            selected_uv: Mutex::new(None),
+            requested_uv: Mutex::new(None),
         })
     }
 

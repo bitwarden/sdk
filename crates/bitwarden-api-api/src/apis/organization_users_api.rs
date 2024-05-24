@@ -9,9 +9,10 @@
  */
 
 use reqwest;
+use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::apis::ResponseContent;
+use crate::{apis::ResponseContent, models};
 
 /// struct for typed errors of method [`organizations_org_id_users_confirm_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -230,10 +231,10 @@ pub async fn organizations_org_id_users_confirm_post(
     configuration: &configuration::Configuration,
     org_id: &str,
     organization_user_bulk_confirm_request_model: Option<
-        crate::models::OrganizationUserBulkConfirmRequestModel,
+        models::OrganizationUserBulkConfirmRequestModel,
     >,
 ) -> Result<
-    crate::models::OrganizationUserBulkResponseModelListResponseModel,
+    models::OrganizationUserBulkResponseModelListResponseModel,
     Error<OrganizationsOrgIdUsersConfirmPostError>,
 > {
     let local_var_configuration = configuration;
@@ -243,7 +244,7 @@ pub async fn organizations_org_id_users_confirm_post(
     let local_var_uri_str = format!(
         "{}/organizations/{orgId}/users/confirm",
         local_var_configuration.base_path,
-        orgId = crate::apis::urlencode(org_id.to_string())
+        orgId = crate::apis::urlencode(org_id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -281,9 +282,9 @@ pub async fn organizations_org_id_users_confirm_post(
 pub async fn organizations_org_id_users_delete(
     configuration: &configuration::Configuration,
     org_id: &str,
-    organization_user_bulk_request_model: Option<crate::models::OrganizationUserBulkRequestModel>,
+    organization_user_bulk_request_model: Option<models::OrganizationUserBulkRequestModel>,
 ) -> Result<
-    crate::models::OrganizationUserBulkResponseModelListResponseModel,
+    models::OrganizationUserBulkResponseModelListResponseModel,
     Error<OrganizationsOrgIdUsersDeleteError>,
 > {
     let local_var_configuration = configuration;
@@ -293,7 +294,7 @@ pub async fn organizations_org_id_users_delete(
     let local_var_uri_str = format!(
         "{}/organizations/{orgId}/users",
         local_var_configuration.base_path,
-        orgId = crate::apis::urlencode(org_id.to_string())
+        orgId = crate::apis::urlencode(org_id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::DELETE, local_var_uri_str.as_str());
@@ -330,9 +331,9 @@ pub async fn organizations_org_id_users_delete(
 pub async fn organizations_org_id_users_delete_post(
     configuration: &configuration::Configuration,
     org_id: &str,
-    organization_user_bulk_request_model: Option<crate::models::OrganizationUserBulkRequestModel>,
+    organization_user_bulk_request_model: Option<models::OrganizationUserBulkRequestModel>,
 ) -> Result<
-    crate::models::OrganizationUserBulkResponseModelListResponseModel,
+    models::OrganizationUserBulkResponseModelListResponseModel,
     Error<OrganizationsOrgIdUsersDeletePostError>,
 > {
     let local_var_configuration = configuration;
@@ -342,7 +343,7 @@ pub async fn organizations_org_id_users_delete_post(
     let local_var_uri_str = format!(
         "{}/organizations/{orgId}/users/delete",
         local_var_configuration.base_path,
-        orgId = crate::apis::urlencode(org_id.to_string())
+        orgId = crate::apis::urlencode(org_id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -379,7 +380,7 @@ pub async fn organizations_org_id_users_delete_post(
 pub async fn organizations_org_id_users_enable_secrets_manager_patch(
     configuration: &configuration::Configuration,
     org_id: uuid::Uuid,
-    organization_user_bulk_request_model: Option<crate::models::OrganizationUserBulkRequestModel>,
+    organization_user_bulk_request_model: Option<models::OrganizationUserBulkRequestModel>,
 ) -> Result<(), Error<OrganizationsOrgIdUsersEnableSecretsManagerPatchError>> {
     let local_var_configuration = configuration;
 
@@ -425,7 +426,7 @@ pub async fn organizations_org_id_users_enable_secrets_manager_patch(
 pub async fn organizations_org_id_users_enable_secrets_manager_put(
     configuration: &configuration::Configuration,
     org_id: uuid::Uuid,
-    organization_user_bulk_request_model: Option<crate::models::OrganizationUserBulkRequestModel>,
+    organization_user_bulk_request_model: Option<models::OrganizationUserBulkRequestModel>,
 ) -> Result<(), Error<OrganizationsOrgIdUsersEnableSecretsManagerPutError>> {
     let local_var_configuration = configuration;
 
@@ -474,7 +475,7 @@ pub async fn organizations_org_id_users_get(
     include_groups: Option<bool>,
     include_collections: Option<bool>,
 ) -> Result<
-    crate::models::OrganizationUserUserDetailsResponseModelListResponseModel,
+    models::OrganizationUserUserDetailsResponseModelListResponseModel,
     Error<OrganizationsOrgIdUsersGetError>,
 > {
     let local_var_configuration = configuration;
@@ -529,9 +530,7 @@ pub async fn organizations_org_id_users_id_confirm_post(
     configuration: &configuration::Configuration,
     org_id: &str,
     id: &str,
-    organization_user_confirm_request_model: Option<
-        crate::models::OrganizationUserConfirmRequestModel,
-    >,
+    organization_user_confirm_request_model: Option<models::OrganizationUserConfirmRequestModel>,
 ) -> Result<(), Error<OrganizationsOrgIdUsersIdConfirmPostError>> {
     let local_var_configuration = configuration;
 
@@ -540,8 +539,8 @@ pub async fn organizations_org_id_users_id_confirm_post(
     let local_var_uri_str = format!(
         "{}/organizations/{orgId}/users/{id}/confirm",
         local_var_configuration.base_path,
-        orgId = crate::apis::urlencode(org_id.to_string()),
-        id = crate::apis::urlencode(id.to_string())
+        orgId = crate::apis::urlencode(org_id),
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -587,8 +586,8 @@ pub async fn organizations_org_id_users_id_delete(
     let local_var_uri_str = format!(
         "{}/organizations/{orgId}/users/{id}",
         local_var_configuration.base_path,
-        orgId = crate::apis::urlencode(org_id.to_string()),
-        id = crate::apis::urlencode(id.to_string())
+        orgId = crate::apis::urlencode(org_id),
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::DELETE, local_var_uri_str.as_str());
@@ -633,8 +632,8 @@ pub async fn organizations_org_id_users_id_delete_post(
     let local_var_uri_str = format!(
         "{}/organizations/{orgId}/users/{id}/delete",
         local_var_configuration.base_path,
-        orgId = crate::apis::urlencode(org_id.to_string()),
-        id = crate::apis::urlencode(id.to_string())
+        orgId = crate::apis::urlencode(org_id),
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -672,10 +671,8 @@ pub async fn organizations_org_id_users_id_get(
     id: &str,
     org_id: &str,
     include_groups: Option<bool>,
-) -> Result<
-    crate::models::OrganizationUserDetailsResponseModel,
-    Error<OrganizationsOrgIdUsersIdGetError>,
-> {
+) -> Result<models::OrganizationUserDetailsResponseModel, Error<OrganizationsOrgIdUsersIdGetError>>
+{
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -683,8 +680,8 @@ pub async fn organizations_org_id_users_id_get(
     let local_var_uri_str = format!(
         "{}/organizations/{orgId}/users/{id}",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string()),
-        orgId = crate::apis::urlencode(org_id.to_string())
+        id = crate::apis::urlencode(id),
+        orgId = crate::apis::urlencode(org_id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -733,8 +730,8 @@ pub async fn organizations_org_id_users_id_groups_get(
     let local_var_uri_str = format!(
         "{}/organizations/{orgId}/users/{id}/groups",
         local_var_configuration.base_path,
-        orgId = crate::apis::urlencode(org_id.to_string()),
-        id = crate::apis::urlencode(id.to_string())
+        orgId = crate::apis::urlencode(org_id),
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -771,9 +768,7 @@ pub async fn organizations_org_id_users_id_post(
     configuration: &configuration::Configuration,
     org_id: uuid::Uuid,
     id: uuid::Uuid,
-    organization_user_update_request_model: Option<
-        crate::models::OrganizationUserUpdateRequestModel,
-    >,
+    organization_user_update_request_model: Option<models::OrganizationUserUpdateRequestModel>,
 ) -> Result<(), Error<OrganizationsOrgIdUsersIdPostError>> {
     let local_var_configuration = configuration;
 
@@ -821,9 +816,7 @@ pub async fn organizations_org_id_users_id_put(
     configuration: &configuration::Configuration,
     org_id: uuid::Uuid,
     id: uuid::Uuid,
-    organization_user_update_request_model: Option<
-        crate::models::OrganizationUserUpdateRequestModel,
-    >,
+    organization_user_update_request_model: Option<models::OrganizationUserUpdateRequestModel>,
 ) -> Result<(), Error<OrganizationsOrgIdUsersIdPutError>> {
     let local_var_configuration = configuration;
 
@@ -879,8 +872,8 @@ pub async fn organizations_org_id_users_id_reinvite_post(
     let local_var_uri_str = format!(
         "{}/organizations/{orgId}/users/{id}/reinvite",
         local_var_configuration.base_path,
-        orgId = crate::apis::urlencode(org_id.to_string()),
-        id = crate::apis::urlencode(id.to_string())
+        orgId = crate::apis::urlencode(org_id),
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -918,7 +911,7 @@ pub async fn organizations_org_id_users_id_reset_password_details_get(
     org_id: &str,
     id: &str,
 ) -> Result<
-    crate::models::OrganizationUserResetPasswordDetailsResponseModel,
+    models::OrganizationUserResetPasswordDetailsResponseModel,
     Error<OrganizationsOrgIdUsersIdResetPasswordDetailsGetError>,
 > {
     let local_var_configuration = configuration;
@@ -928,8 +921,8 @@ pub async fn organizations_org_id_users_id_reset_password_details_get(
     let local_var_uri_str = format!(
         "{}/organizations/{orgId}/users/{id}/reset-password-details",
         local_var_configuration.base_path,
-        orgId = crate::apis::urlencode(org_id.to_string()),
-        id = crate::apis::urlencode(id.to_string())
+        orgId = crate::apis::urlencode(org_id),
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -967,7 +960,7 @@ pub async fn organizations_org_id_users_id_reset_password_put(
     org_id: &str,
     id: &str,
     organization_user_reset_password_request_model: Option<
-        crate::models::OrganizationUserResetPasswordRequestModel,
+        models::OrganizationUserResetPasswordRequestModel,
     >,
 ) -> Result<(), Error<OrganizationsOrgIdUsersIdResetPasswordPutError>> {
     let local_var_configuration = configuration;
@@ -977,8 +970,8 @@ pub async fn organizations_org_id_users_id_reset_password_put(
     let local_var_uri_str = format!(
         "{}/organizations/{orgId}/users/{id}/reset-password",
         local_var_configuration.base_path,
-        orgId = crate::apis::urlencode(org_id.to_string()),
-        id = crate::apis::urlencode(id.to_string())
+        orgId = crate::apis::urlencode(org_id),
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::PUT, local_var_uri_str.as_str());
@@ -1200,9 +1193,7 @@ pub async fn organizations_org_id_users_id_revoke_put(
 pub async fn organizations_org_id_users_invite_post(
     configuration: &configuration::Configuration,
     org_id: uuid::Uuid,
-    organization_user_invite_request_model: Option<
-        crate::models::OrganizationUserInviteRequestModel,
-    >,
+    organization_user_invite_request_model: Option<models::OrganizationUserInviteRequestModel>,
 ) -> Result<(), Error<OrganizationsOrgIdUsersInvitePostError>> {
     let local_var_configuration = configuration;
 
@@ -1250,7 +1241,7 @@ pub async fn organizations_org_id_users_organization_user_id_accept_init_post(
     org_id: uuid::Uuid,
     organization_user_id: uuid::Uuid,
     organization_user_accept_init_request_model: Option<
-        crate::models::OrganizationUserAcceptInitRequestModel,
+        models::OrganizationUserAcceptInitRequestModel,
     >,
 ) -> Result<(), Error<OrganizationsOrgIdUsersOrganizationUserIdAcceptInitPostError>> {
     let local_var_configuration = configuration;
@@ -1300,9 +1291,7 @@ pub async fn organizations_org_id_users_organization_user_id_accept_post(
     configuration: &configuration::Configuration,
     org_id: uuid::Uuid,
     organization_user_id: uuid::Uuid,
-    organization_user_accept_request_model: Option<
-        crate::models::OrganizationUserAcceptRequestModel,
-    >,
+    organization_user_accept_request_model: Option<models::OrganizationUserAcceptRequestModel>,
 ) -> Result<(), Error<OrganizationsOrgIdUsersOrganizationUserIdAcceptPostError>> {
     let local_var_configuration = configuration;
 
@@ -1349,9 +1338,9 @@ pub async fn organizations_org_id_users_organization_user_id_accept_post(
 pub async fn organizations_org_id_users_public_keys_post(
     configuration: &configuration::Configuration,
     org_id: &str,
-    organization_user_bulk_request_model: Option<crate::models::OrganizationUserBulkRequestModel>,
+    organization_user_bulk_request_model: Option<models::OrganizationUserBulkRequestModel>,
 ) -> Result<
-    crate::models::OrganizationUserPublicKeyResponseModelListResponseModel,
+    models::OrganizationUserPublicKeyResponseModelListResponseModel,
     Error<OrganizationsOrgIdUsersPublicKeysPostError>,
 > {
     let local_var_configuration = configuration;
@@ -1361,7 +1350,7 @@ pub async fn organizations_org_id_users_public_keys_post(
     let local_var_uri_str = format!(
         "{}/organizations/{orgId}/users/public-keys",
         local_var_configuration.base_path,
-        orgId = crate::apis::urlencode(org_id.to_string())
+        orgId = crate::apis::urlencode(org_id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -1398,9 +1387,9 @@ pub async fn organizations_org_id_users_public_keys_post(
 pub async fn organizations_org_id_users_reinvite_post(
     configuration: &configuration::Configuration,
     org_id: &str,
-    organization_user_bulk_request_model: Option<crate::models::OrganizationUserBulkRequestModel>,
+    organization_user_bulk_request_model: Option<models::OrganizationUserBulkRequestModel>,
 ) -> Result<
-    crate::models::OrganizationUserBulkResponseModelListResponseModel,
+    models::OrganizationUserBulkResponseModelListResponseModel,
     Error<OrganizationsOrgIdUsersReinvitePostError>,
 > {
     let local_var_configuration = configuration;
@@ -1410,7 +1399,7 @@ pub async fn organizations_org_id_users_reinvite_post(
     let local_var_uri_str = format!(
         "{}/organizations/{orgId}/users/reinvite",
         local_var_configuration.base_path,
-        orgId = crate::apis::urlencode(org_id.to_string())
+        orgId = crate::apis::urlencode(org_id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -1447,9 +1436,9 @@ pub async fn organizations_org_id_users_reinvite_post(
 pub async fn organizations_org_id_users_restore_patch(
     configuration: &configuration::Configuration,
     org_id: uuid::Uuid,
-    organization_user_bulk_request_model: Option<crate::models::OrganizationUserBulkRequestModel>,
+    organization_user_bulk_request_model: Option<models::OrganizationUserBulkRequestModel>,
 ) -> Result<
-    crate::models::OrganizationUserBulkResponseModelListResponseModel,
+    models::OrganizationUserBulkResponseModelListResponseModel,
     Error<OrganizationsOrgIdUsersRestorePatchError>,
 > {
     let local_var_configuration = configuration;
@@ -1496,9 +1485,9 @@ pub async fn organizations_org_id_users_restore_patch(
 pub async fn organizations_org_id_users_restore_put(
     configuration: &configuration::Configuration,
     org_id: uuid::Uuid,
-    organization_user_bulk_request_model: Option<crate::models::OrganizationUserBulkRequestModel>,
+    organization_user_bulk_request_model: Option<models::OrganizationUserBulkRequestModel>,
 ) -> Result<
-    crate::models::OrganizationUserBulkResponseModelListResponseModel,
+    models::OrganizationUserBulkResponseModelListResponseModel,
     Error<OrganizationsOrgIdUsersRestorePutError>,
 > {
     let local_var_configuration = configuration;
@@ -1545,9 +1534,9 @@ pub async fn organizations_org_id_users_restore_put(
 pub async fn organizations_org_id_users_revoke_patch(
     configuration: &configuration::Configuration,
     org_id: uuid::Uuid,
-    organization_user_bulk_request_model: Option<crate::models::OrganizationUserBulkRequestModel>,
+    organization_user_bulk_request_model: Option<models::OrganizationUserBulkRequestModel>,
 ) -> Result<
-    crate::models::OrganizationUserBulkResponseModelListResponseModel,
+    models::OrganizationUserBulkResponseModelListResponseModel,
     Error<OrganizationsOrgIdUsersRevokePatchError>,
 > {
     let local_var_configuration = configuration;
@@ -1594,9 +1583,9 @@ pub async fn organizations_org_id_users_revoke_patch(
 pub async fn organizations_org_id_users_revoke_put(
     configuration: &configuration::Configuration,
     org_id: uuid::Uuid,
-    organization_user_bulk_request_model: Option<crate::models::OrganizationUserBulkRequestModel>,
+    organization_user_bulk_request_model: Option<models::OrganizationUserBulkRequestModel>,
 ) -> Result<
-    crate::models::OrganizationUserBulkResponseModelListResponseModel,
+    models::OrganizationUserBulkResponseModelListResponseModel,
     Error<OrganizationsOrgIdUsersRevokePutError>,
 > {
     let local_var_configuration = configuration;
@@ -1645,7 +1634,7 @@ pub async fn organizations_org_id_users_user_id_reset_password_enrollment_put(
     org_id: uuid::Uuid,
     user_id: uuid::Uuid,
     organization_user_reset_password_enrollment_request_model: Option<
-        crate::models::OrganizationUserResetPasswordEnrollmentRequestModel,
+        models::OrganizationUserResetPasswordEnrollmentRequestModel,
     >,
 ) -> Result<(), Error<OrganizationsOrgIdUsersUserIdResetPasswordEnrollmentPutError>> {
     let local_var_configuration = configuration;

@@ -81,3 +81,5 @@ pub mod generators {
         PassphraseGeneratorRequest, PasswordGeneratorRequest, UsernameGeneratorRequest,
     };
 }
+
+pub use bitwarden_crypto::ZeroizingAllocator;

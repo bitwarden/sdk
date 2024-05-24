@@ -16,11 +16,13 @@ license-file.workspace = true
 [features]
 default = ["secrets"]
 
-secrets = [] # Secrets manager API
 internal = [
     "dep:bitwarden-exporters",
     "dep:bitwarden-generators",
 ] # Internal testing methods
+no-memory-hardening = [
+    "bitwarden-crypto/no-memory-hardening",
+] # Disable memory hardening features
 mobile = [
     "internal",
     "dep:uniffi",
@@ -30,7 +32,7 @@ mobile = [
     "bitwarden-crypto/mobile",
     "bitwarden-generators/mobile",
 ] # Mobile-specific features
-
+secrets = [] # Secrets manager API
 wasm-bindgen = ["chrono/wasmbind"]
 
 [dependencies]

@@ -9,9 +9,10 @@
  */
 
 use reqwest;
+use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::apis::ResponseContent;
+use crate::{apis::ResponseContent, models};
 
 /// struct for typed errors of method [`settings_domains_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -37,7 +38,7 @@ pub enum SettingsDomainsPutError {
 pub async fn settings_domains_get(
     configuration: &configuration::Configuration,
     excluded: Option<bool>,
-) -> Result<crate::models::DomainsResponseModel, Error<SettingsDomainsGetError>> {
+) -> Result<models::DomainsResponseModel, Error<SettingsDomainsGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -80,8 +81,8 @@ pub async fn settings_domains_get(
 
 pub async fn settings_domains_post(
     configuration: &configuration::Configuration,
-    update_domains_request_model: Option<crate::models::UpdateDomainsRequestModel>,
-) -> Result<crate::models::DomainsResponseModel, Error<SettingsDomainsPostError>> {
+    update_domains_request_model: Option<models::UpdateDomainsRequestModel>,
+) -> Result<models::DomainsResponseModel, Error<SettingsDomainsPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -121,8 +122,8 @@ pub async fn settings_domains_post(
 
 pub async fn settings_domains_put(
     configuration: &configuration::Configuration,
-    update_domains_request_model: Option<crate::models::UpdateDomainsRequestModel>,
-) -> Result<crate::models::DomainsResponseModel, Error<SettingsDomainsPutError>> {
+    update_domains_request_model: Option<models::UpdateDomainsRequestModel>,
+) -> Result<models::DomainsResponseModel, Error<SettingsDomainsPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;

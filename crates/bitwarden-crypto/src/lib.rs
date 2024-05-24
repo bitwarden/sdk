@@ -54,6 +54,16 @@
 //!   `derive_shareable_key`
 //! - MasterKey operations such as `makeMasterKey` and `hashMasterKey` are moved to the MasterKey
 //!   struct.
+//!
+//! ## Crate features
+//!
+//! - `no-memory-hardening` - Disables memory hardening which ensures that allocated memory is
+//! zeroed on drop. This feature primarily exists in case you do not want to use the standard
+//! allocator, and we advise to still define a `global_allocator` using the [`ZeroizingAllocator`].
+
+#[cfg(not(feature = "no-memory-hardening"))]
+#[global_allocator]
+static ALLOC: ZeroizingAllocator<std::alloc::System> = ZeroizingAllocator(std::alloc::System);
 
 mod aes;
 mod enc_string;
@@ -74,6 +84,8 @@ pub use util::pbkdf2;
 pub use wordlist::EFF_LONG_WORD_LIST;
 mod sensitive;
 pub use sensitive::*;
+mod allocator;
+pub use allocator::ZeroizingAllocator;
 
 #[cfg(feature = "mobile")]
 uniffi::setup_scaffolding!();

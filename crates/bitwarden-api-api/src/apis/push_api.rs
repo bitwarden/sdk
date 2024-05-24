@@ -9,9 +9,10 @@
  */
 
 use reqwest;
+use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::apis::ResponseContent;
+use crate::{apis::ResponseContent, models};
 
 /// struct for typed errors of method [`push_add_organization_put`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -50,7 +51,7 @@ pub enum PushSendPostError {
 
 pub async fn push_add_organization_put(
     configuration: &configuration::Configuration,
-    push_update_request_model: Option<crate::models::PushUpdateRequestModel>,
+    push_update_request_model: Option<models::PushUpdateRequestModel>,
 ) -> Result<(), Error<PushAddOrganizationPutError>> {
     let local_var_configuration = configuration;
 
@@ -94,7 +95,7 @@ pub async fn push_add_organization_put(
 
 pub async fn push_delete_organization_put(
     configuration: &configuration::Configuration,
-    push_update_request_model: Option<crate::models::PushUpdateRequestModel>,
+    push_update_request_model: Option<models::PushUpdateRequestModel>,
 ) -> Result<(), Error<PushDeleteOrganizationPutError>> {
     let local_var_configuration = configuration;
 
@@ -138,7 +139,7 @@ pub async fn push_delete_organization_put(
 
 pub async fn push_delete_post(
     configuration: &configuration::Configuration,
-    push_device_request_model: Option<crate::models::PushDeviceRequestModel>,
+    push_device_request_model: Option<models::PushDeviceRequestModel>,
 ) -> Result<(), Error<PushDeletePostError>> {
     let local_var_configuration = configuration;
 
@@ -179,7 +180,7 @@ pub async fn push_delete_post(
 
 pub async fn push_register_post(
     configuration: &configuration::Configuration,
-    push_registration_request_model: Option<crate::models::PushRegistrationRequestModel>,
+    push_registration_request_model: Option<models::PushRegistrationRequestModel>,
 ) -> Result<(), Error<PushRegisterPostError>> {
     let local_var_configuration = configuration;
 
@@ -220,7 +221,7 @@ pub async fn push_register_post(
 
 pub async fn push_send_post(
     configuration: &configuration::Configuration,
-    push_send_request_model: Option<crate::models::PushSendRequestModel>,
+    push_send_request_model: Option<models::PushSendRequestModel>,
 ) -> Result<(), Error<PushSendPostError>> {
     let local_var_configuration = configuration;
 

@@ -145,12 +145,9 @@ impl Fido2CredentialFullView {
             rp_name: rp.name.map(|n| SensitiveString::new(Box::new(n))),
             user_handle: Some(SensitiveVec::new(Box::new(cred_id))),
 
-            // TODO(Fido2): Storing the counter as a string seems like a bad idea, but we don't have
-            // support for EncString -> number decryption
             counter: SensitiveString::new(Box::new(value.counter.unwrap_or(0).to_string())),
             user_name: user.name.map(|n| SensitiveString::new(Box::new(n))),
             user_display_name: user.display_name.map(|n| SensitiveString::new(Box::new(n))),
-            // TODO(Fido2): Same as the counter, but with booleans this time
             discoverable: SensitiveString::new(Box::new("true".to_owned())),
             creation_date: chrono::offset::Utc::now(),
         })

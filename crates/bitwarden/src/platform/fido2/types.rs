@@ -56,8 +56,6 @@ impl TryFrom<PublicKeyCredentialDescriptor>
     }
 }
 
-// TODO(Fido2): What type do we need this to be? We probably can't use Serialize over the FFI
-// boundary
 pub type Extensions = Option<String>;
 
 #[cfg_attr(feature = "mobile", derive(uniffi::Record))]

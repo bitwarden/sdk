@@ -164,7 +164,7 @@ impl<'a> Fido2Authenticator<'a> {
         })
     }
 
-    // TODO(Fido2): We need some changes in the passkey crate to do this
+    // TODO(Fido2): We need some changes in the passkey crate to do this correctly
     pub async fn silently_discover_credentials(
         &mut self,
         rp_id: String,
@@ -281,7 +281,6 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
         cred: Passkey,
         user: passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
         rp: passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
-        // TODO(Fido2): Use this
         _options: passkey::types::ctap2::get_assertion::Options,
     ) -> Result<(), StatusCode> {
         // This is just a wrapper around the actual implementation to allow for ? error handling
@@ -407,8 +406,6 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
         &self,
         hint: UIHint<'a, Self::PasskeyItem>,
         presence: bool,
-        // TODO(Fido2): This is not used as we're using the UV stored in get_assertion and
-        // make_credential Should we validate that it matches with what we stored?
         _verification: bool,
     ) -> Result<UserCheck, Ctap2Error> {
         let verification = self

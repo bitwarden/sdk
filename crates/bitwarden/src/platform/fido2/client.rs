@@ -80,7 +80,6 @@ impl<'a> Fido2Client<'a> {
             raw_id: result.raw_id.into(),
             ty: get_string_name_from_enum(result.ty)?,
 
-            // TODO(Fido2): Had to change this type to Option, should we just use a default?
             authenticator_attachment: result
                 .authenticator_attachment
                 .map(get_string_name_from_enum)

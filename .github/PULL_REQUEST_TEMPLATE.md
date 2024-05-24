@@ -19,7 +19,8 @@
 - Used internationalization (i18n) for all UI strings
 - CI builds passed
 - Communicated to DevOps any deployment requirements
-- Updated any necessary documentation (Confluence, contributing docs) or informed the documentation team
+- Updated any necessary documentation (Confluence, contributing docs) or informed the documentation
+  team
 
 ## 🦮 Reviewer guidelines
 
@@ -28,7 +29,8 @@
 - 👍 (`:+1:`) or similar for great changes
 - 📝 (`:memo:`) or ℹ️ (`:information_source:`) for notes or general info
 - ❓ (`:question:`) for questions
-- 🤔 (`:thinking:`) or 💭 (`:thought_balloon:`) for more open inquiry that's not quite a confirmed issue and could potentially benefit from discussion
+- 🤔 (`:thinking:`) or 💭 (`:thought_balloon:`) for more open inquiry that's not quite a confirmed
+  issue and could potentially benefit from discussion
 - 🎨 (`:art:`) for suggestions / improvements
 - ❌ (`:x:`) or ⚠️ (`:warning:`) for more significant problems or concerns needing attention
 - 🌱 (`:seedling:`) or ♻️ (`:recycle:`) for future improvements or indications of technical debt

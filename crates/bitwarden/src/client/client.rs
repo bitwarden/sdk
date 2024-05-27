@@ -163,7 +163,7 @@ impl Client {
         self.flags = Flags::load_from_map(flags);
     }
 
-    #[cfg(feature = "mobile")]
+    #[cfg(feature = "internal")]
     pub(crate) fn get_flags(&self) -> &Flags {
         &self.flags
     }
@@ -175,7 +175,7 @@ impl Client {
         &self.__api_configurations
     }
 
-    #[cfg(feature = "mobile")]
+    #[cfg(feature = "internal")]
     pub(crate) fn get_http_client(&self) -> &reqwest::Client {
         &self.__api_configurations.external_client
     }
@@ -274,7 +274,7 @@ impl Client {
             )?))
     }
 
-    #[cfg(feature = "mobile")]
+    #[cfg(feature = "internal")]
     pub(crate) fn initialize_user_crypto_pin(
         &mut self,
         pin_key: MasterKey,

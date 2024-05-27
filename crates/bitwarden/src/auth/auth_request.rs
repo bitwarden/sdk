@@ -3,7 +3,7 @@ use bitwarden_crypto::{
     fingerprint, AsymmetricCryptoKey, AsymmetricEncString, AsymmetricPublicCryptoKey,
     SensitiveString,
 };
-#[cfg(feature = "mobile")]
+#[cfg(feature = "internal")]
 use bitwarden_crypto::{EncString, KeyDecryptable, SymmetricCryptoKey};
 use bitwarden_generators::{password, PasswordGeneratorRequest};
 
@@ -53,7 +53,7 @@ pub(crate) fn new_auth_request(email: &str) -> Result<AuthRequestResponse, Error
 }
 
 /// Decrypt the user key using the private key generated previously.
-#[cfg(feature = "mobile")]
+#[cfg(feature = "internal")]
 pub(crate) fn auth_request_decrypt_user_key(
     private_key: SensitiveString,
     user_key: AsymmetricEncString,
@@ -67,7 +67,7 @@ pub(crate) fn auth_request_decrypt_user_key(
 }
 
 /// Decrypt the user key using the private key generated previously.
-#[cfg(feature = "mobile")]
+#[cfg(feature = "internal")]
 pub(crate) fn auth_request_decrypt_master_key(
     private_key: SensitiveString,
     master_key: AsymmetricEncString,

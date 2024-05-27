@@ -306,6 +306,19 @@ impl Client {
         enc.set_org_keys(org_keys)?;
         Ok(&*enc)
     }
+
+    #[doc(hidden)]
+    pub fn internal(&mut self) -> InternalClient {
+        InternalClient(self)
+    }
+}
+
+pub struct InternalClient<'a>(&'a mut Client);
+
+impl InternalClient<'_> {
+    pub fn test() -> i32 {
+        1
+    }
 }
 
 #[cfg(test)]

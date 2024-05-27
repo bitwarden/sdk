@@ -5,6 +5,7 @@ pub(crate) use client::*;
 mod client;
 pub mod client_settings;
 pub mod encryption_settings;
+pub use client::InternalClient;
 
 #[cfg(feature = "internal")]
 mod flags;

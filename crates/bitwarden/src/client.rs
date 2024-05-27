@@ -1,6 +1,6 @@
 use bitwarden_core::{
     auth::client_auth::ClientAuth,
-    client::client_settings::ClientSettings,
+    client::{client_settings::ClientSettings, InternalClient},
     error::Error,
     mobile::ClientKdf,
     platform::{SyncRequest, SyncResponse},
@@ -93,5 +93,10 @@ impl Client {
     #[cfg(feature = "secrets")]
     pub fn projects(&mut self) -> ClientProjects {
         self.0.projects()
+    }
+
+    #[doc(hidden)]
+    pub fn internal(&mut self) -> InternalClient {
+        self.internal()
     }
 }

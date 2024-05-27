@@ -2,7 +2,6 @@ use std::{path::PathBuf, process, str::FromStr};
 
 use bitwarden::{
     auth::{login::AccessTokenLoginRequest, AccessToken},
-    client::client_settings::ClientSettings,
     secrets_manager::{
         projects::{
             ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
@@ -13,7 +12,7 @@ use bitwarden::{
             SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest, SecretsGetRequest,
         },
     },
-    ClientProjectsExt, ClientSecretsExt,
+    ClientSettings,
 };
 use bitwarden_cli::install_color_eyre;
 use clap::{CommandFactory, Parser};

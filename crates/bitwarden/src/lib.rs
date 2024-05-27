@@ -1,7 +1,10 @@
+#[allow(hidden_glob_reexports)]
+mod client;
+pub use client::Client;
+
+pub use bitwarden_core::client::client_settings::ClientSettings;
 pub use bitwarden_core::*;
 
-#[cfg(feature = "internal")]
-pub use bitwarden_generators::ClientGeneratorExt;
 #[cfg(feature = "internal")]
 pub mod generators {
     pub use bitwarden_generators::{
@@ -9,10 +12,6 @@ pub mod generators {
     };
 }
 
-#[cfg(feature = "secrets")]
-pub use bitwarden_sm::ClientProjectsExt;
-#[cfg(feature = "secrets")]
-pub use bitwarden_sm::ClientSecretsExt;
 #[cfg(feature = "secrets")]
 pub mod secrets_manager {
     pub mod projects {

@@ -1,5 +1,5 @@
 use async_lock::Mutex;
-use bitwarden::client::client_settings::ClientSettings;
+use bitwarden::ClientSettings;
 
 #[cfg(feature = "secrets")]
 use crate::command::{ProjectsCommand, SecretsCommand};
@@ -7,10 +7,6 @@ use crate::{
     command::Command,
     response::{Response, ResponseIntoString},
 };
-#[cfg(feature = "secrets")]
-use bitwarden::ClientProjectsExt;
-#[cfg(feature = "secrets")]
-use bitwarden::ClientSecretsExt;
 
 pub struct Client(Mutex<bitwarden::Client>);
 

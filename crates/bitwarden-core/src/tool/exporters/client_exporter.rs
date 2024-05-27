@@ -6,7 +6,7 @@ use crate::{
 };
 
 pub struct ClientExporters<'a> {
-    pub(crate) client: &'a crate::Client,
+    client: &'a crate::Client,
 }
 
 impl<'a> ClientExporters<'a> {

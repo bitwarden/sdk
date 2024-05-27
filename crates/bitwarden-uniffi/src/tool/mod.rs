@@ -5,7 +5,6 @@ use bitwarden::{
     generators::{PassphraseGeneratorRequest, PasswordGeneratorRequest, UsernameGeneratorRequest},
     tool::ExportFormat,
     vault::{Cipher, Collection, Folder},
-    ClientGeneratorExt,
 };
 
 use crate::{error::Result, Client};

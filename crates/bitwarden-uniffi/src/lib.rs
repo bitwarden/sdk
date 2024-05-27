@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use async_lock::RwLock;
 use auth::ClientAuth;
-use bitwarden::client::client_settings::ClientSettings;
+use bitwarden::ClientSettings;
 
 pub mod auth;
 pub mod crypto;

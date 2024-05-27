@@ -30,7 +30,7 @@ mobile = [
     "bitwarden-crypto/mobile",
     "bitwarden-generators/mobile",
 ] # Mobile-specific features
-secrets = ["bitwarden-core/internal"] # Secrets manager API
+secrets = ["bitwarden-core/internal", "dep:bitwarden-sm"] # Secrets manager API
 
 [dependencies]
 bitwarden-api-api = { workspace = true }
@@ -39,6 +39,7 @@ bitwarden-core = { workspace = true }
 bitwarden-crypto = { workspace = true }
 bitwarden-exporters = { workspace = true, optional = true }
 bitwarden-generators = { workspace = true, optional = true }
+bitwarden-sm = { workspace = true, optional = true }
 
 [lints]
 workspace = true

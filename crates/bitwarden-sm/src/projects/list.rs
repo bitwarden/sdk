@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::ProjectResponse;
-use crate::{
+use bitwarden_core::{
     client::{encryption_settings::EncryptionSettings, Client},
     error::Result,
 };

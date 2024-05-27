@@ -7,6 +7,10 @@ use crate::{
     command::Command,
     response::{Response, ResponseIntoString},
 };
+#[cfg(feature = "secrets")]
+use bitwarden::ClientProjectsExt;
+#[cfg(feature = "secrets")]
+use bitwarden::ClientSecretsExt;
 
 pub struct Client(Mutex<bitwarden::Client>);
 

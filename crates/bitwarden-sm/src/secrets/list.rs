@@ -6,10 +6,12 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{
+use bitwarden_core::{
     client::{encryption_settings::EncryptionSettings, Client},
-    error::{require, Result},
+    error::Result,
 };
+
+use crate::require;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

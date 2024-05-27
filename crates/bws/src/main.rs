@@ -13,6 +13,7 @@ use bitwarden::{
             SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest, SecretsGetRequest,
         },
     },
+    ClientProjectsExt, ClientSecretsExt,
 };
 use bitwarden_cli::install_color_eyre;
 use clap::{CommandFactory, Parser};

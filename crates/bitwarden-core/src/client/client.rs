@@ -29,7 +29,7 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub(crate) struct ApiConfigurations {
+pub struct ApiConfigurations {
     pub identity: bitwarden_api_identity::apis::configuration::Configuration,
     pub api: bitwarden_api_api::apis::configuration::Configuration,
     /// Reqwest client useable for external integrations like email forwarders, HIBP.
@@ -168,7 +168,7 @@ impl Client {
         &self.flags
     }
 
-    pub(crate) async fn get_api_configurations(&mut self) -> &ApiConfigurations {
+    pub async fn get_api_configurations(&mut self) -> &ApiConfigurations {
         // At the moment we ignore the error result from the token renewal, if it fails,
         // the token will end up expiring and the next operation is going to fail anyway.
         self.auth().renew_token().await.ok();
@@ -217,7 +217,7 @@ impl Client {
         }
     }
 
-    pub(crate) fn get_encryption_settings(&self) -> Result<&EncryptionSettings> {
+    pub fn get_encryption_settings(&self) -> Result<&EncryptionSettings> {
         self.encryption_settings.as_ref().ok_or(Error::VaultLocked)
     }
 

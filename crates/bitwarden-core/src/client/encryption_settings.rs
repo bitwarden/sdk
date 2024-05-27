@@ -93,7 +93,7 @@ impl EncryptionSettings {
         Ok(self)
     }
 
-    pub(crate) fn get_key(&self, org_id: &Option<Uuid>) -> Option<&SymmetricCryptoKey> {
+    pub fn get_key(&self, org_id: &Option<Uuid>) -> Option<&SymmetricCryptoKey> {
         // If we don't have a private key set (to decode multiple org keys), we just use the main
         // user key
         if self.private_key.is_none() {

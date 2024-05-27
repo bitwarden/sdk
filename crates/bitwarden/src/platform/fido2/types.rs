@@ -134,10 +134,7 @@ pub struct GetAssertionResult {
     pub authenticator_data: Vec<u8>,
     pub signature: Vec<u8>,
     pub user_handle: Vec<u8>,
-    /**
-     * SDK IMPL NOTE: This is not part of the spec and is not returned by passkey-rs.
-     * The SDK needs to add this after the response from passkey-rs is received.
-     */
+
     pub selected_credential: SelectedCredential,
 }
 

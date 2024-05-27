@@ -47,7 +47,7 @@
 //! }
 //! ```
 
-#[cfg(feature = "mobile")]
+#[cfg(feature = "uniffi")]
 uniffi::setup_scaffolding!();
 
 #[cfg(feature = "internal")]
@@ -63,7 +63,7 @@ pub mod platform;
 pub mod secrets_manager;
 #[cfg(feature = "mobile")]
 pub mod tool;
-#[cfg(feature = "mobile")]
+#[cfg(feature = "uniffi")]
 pub(crate) mod uniffi_support;
 mod util;
 #[cfg(feature = "internal")]

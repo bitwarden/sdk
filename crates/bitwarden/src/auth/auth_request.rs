@@ -9,7 +9,7 @@ use bitwarden_generators::{password, PasswordGeneratorRequest};
 
 use crate::{error::Error, Client};
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct AuthRequestResponse {
     /// Base64 encoded private key
     /// This key is temporarily passed back and will most likely not be available in the future

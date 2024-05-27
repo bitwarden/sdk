@@ -72,7 +72,7 @@ pub enum Error {
     #[error("Webauthn error: {0:?}")]
     WebauthnError(passkey::client::WebauthnError),
 
-    #[cfg(feature = "mobile")]
+    #[cfg(feature = "uniffi")]
     #[error("Uniffi callback error: {0}")]
     UniffiCallback(#[from] uniffi::UnexpectedUniFFICallbackError),
 

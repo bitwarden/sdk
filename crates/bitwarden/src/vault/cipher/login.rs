@@ -16,7 +16,7 @@ use crate::error::{require, Error, Result};
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum UriMatchType {
     Domain = 0,
     Host = 1,
@@ -28,7 +28,7 @@ pub enum UriMatchType {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct LoginUri {
     pub uri: Option<EncString>,
     pub r#match: Option<UriMatchType>,
@@ -37,7 +37,7 @@ pub struct LoginUri {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct LoginUriView {
     pub uri: Option<DecryptedString>,
     pub r#match: Option<UriMatchType>,
@@ -80,7 +80,7 @@ impl LoginUriView {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct Fido2Credential {
     pub credential_id: EncString,
     pub key_type: EncString,
@@ -99,7 +99,7 @@ pub struct Fido2Credential {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct Fido2CredentialView {
     pub credential_id: SensitiveString,
     pub key_type: SensitiveString,
@@ -118,7 +118,7 @@ pub struct Fido2CredentialView {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct Login {
     pub username: Option<EncString>,
     pub password: Option<EncString>,
@@ -133,7 +133,7 @@ pub struct Login {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct LoginView {
     pub username: Option<DecryptedString>,
     pub password: Option<DecryptedString>,

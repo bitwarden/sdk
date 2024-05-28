@@ -1,6 +1,5 @@
-use crate::{error::Result, Client};
-
 use super::sync::{sync, SyncRequest, SyncResponse};
+use crate::{error::Result, Client};
 
 pub struct ClientVault<'a> {
     pub(crate) client: &'a mut crate::Client,

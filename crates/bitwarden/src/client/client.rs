@@ -11,6 +11,8 @@ use uuid::Uuid;
 
 #[cfg(feature = "secrets")]
 use crate::auth::login::{AccessTokenLoginRequest, AccessTokenLoginResponse};
+#[cfg(feature = "internal")]
+use crate::client::flags::Flags;
 use crate::{
     auth::AccessToken,
     client::{
@@ -18,11 +20,6 @@ use crate::{
         encryption_settings::EncryptionSettings,
     },
     error::{Error, Result},
-};
-#[cfg(feature = "internal")]
-use crate::{
-    client::flags::Flags,
-    platform::{sync, SyncRequest, SyncResponse},
 };
 
 #[derive(Debug)]
@@ -184,11 +181,6 @@ impl Client {
         input: &AccessTokenLoginRequest,
     ) -> Result<AccessTokenLoginResponse> {
         self.auth().login_access_token(input).await
-    }
-
-    #[cfg(feature = "internal")]
-    pub async fn sync(&mut self, input: &SyncRequest) -> Result<SyncResponse> {
-        sync(self, input).await
     }
 
     #[cfg(feature = "internal")]

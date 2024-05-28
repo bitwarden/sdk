@@ -61,7 +61,7 @@ impl Client {
             #[cfg(feature = "internal")]
             Command::ApiKeyLogin(req) => client.auth().login_api_key(req).await.into_string(),
             #[cfg(feature = "internal")]
-            Command::Sync(req) => client.sync(&req).await.into_string(),
+            Command::Sync(req) => client.vault().sync(&req).await.into_string(),
             #[cfg(feature = "internal")]
             Command::Fingerprint(req) => client.platform().fingerprint(&req).into_string(),
 

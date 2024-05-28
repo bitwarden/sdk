@@ -9,6 +9,8 @@ use chrono::Utc;
 use reqwest::header::{self, HeaderValue};
 use uuid::Uuid;
 
+#[cfg(feature = "internal")]
+use crate::client::flags::Flags;
 use crate::{
     auth::AccessToken,
     client::{
@@ -16,14 +18,6 @@ use crate::{
         encryption_settings::EncryptionSettings,
     },
     error::{Error, Result},
-};
-#[cfg(feature = "internal")]
-use crate::{
-    client::flags::Flags,
-    platform::{
-        get_user_api_key, sync, SecretVerificationRequest, SyncRequest, SyncResponse,
-        UserApiKeyResponse,
-    },
 };
 
 #[derive(Debug)]
@@ -176,19 +170,6 @@ impl Client {
     #[cfg(feature = "internal")]
     pub(crate) fn get_http_client(&self) -> &reqwest::Client {
         &self.__api_configurations.external_client
-    }
-
-    #[cfg(feature = "internal")]
-    pub async fn sync(&mut self, input: &SyncRequest) -> Result<SyncResponse> {
-        sync(self, input).await
-    }
-
-    #[cfg(feature = "internal")]
-    pub async fn get_user_api_key(
-        &mut self,
-        input: SecretVerificationRequest,
-    ) -> Result<UserApiKeyResponse> {
-        get_user_api_key(self, input).await
     }
 
     #[cfg(feature = "internal")]

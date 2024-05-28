@@ -1,6 +1,6 @@
 use std::{path::Path, sync::Arc};
 
-use bitwarden::vault::{Send, SendListView, SendView};
+use bitwarden::tool::{Send, SendListView, SendView};
 
 use crate::{Client, Result};
 
@@ -11,15 +11,7 @@ pub struct ClientSends(pub Arc<Client>);
 impl ClientSends {
     /// Encrypt send
     pub async fn encrypt(&self, send: SendView) -> Result<Send> {
-        Ok(self
-            .0
-             .0
-            .write()
-            .await
-            .vault()
-            .sends()
-            .encrypt(send)
-            .await?)
+        Ok(self.0 .0.write().await.sends().encrypt(send).await?)
     }
 
     /// Encrypt a send file in memory
@@ -29,7 +21,6 @@ impl ClientSends {
              .0
             .write()
             .await
-            .vault()
             .sends()
             .encrypt_buffer(send, &buffer)
             .await?)
@@ -47,7 +38,6 @@ impl ClientSends {
              .0
             .write()
             .await
-            .vault()
             .sends()
             .encrypt_file(
                 send,
@@ -59,28 +49,12 @@ impl ClientSends {
 
     /// Decrypt send
     pub async fn decrypt(&self, send: Send) -> Result<SendView> {
-        Ok(self
-            .0
-             .0
-            .write()
-            .await
-            .vault()
-            .sends()
-            .decrypt(send)
-            .await?)
+        Ok(self.0 .0.write().await.sends().decrypt(send).await?)
     }
 
     /// Decrypt send list
     pub async fn decrypt_list(&self, sends: Vec<Send>) -> Result<Vec<SendListView>> {
-        Ok(self
-            .0
-             .0
-            .write()
-            .await
-            .vault()
-            .sends()
-            .decrypt_list(sends)
-            .await?)
+        Ok(self.0 .0.write().await.sends().decrypt_list(sends).await?)
     }
 
     /// Decrypt a send file in memory
@@ -90,7 +64,6 @@ impl ClientSends {
              .0
             .write()
             .await
-            .vault()
             .sends()
             .decrypt_buffer(send, &buffer)
             .await?)
@@ -108,7 +81,6 @@ impl ClientSends {
              .0
             .write()
             .await
-            .vault()
             .sends()
             .decrypt_file(
                 send,

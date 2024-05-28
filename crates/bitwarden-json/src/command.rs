@@ -10,13 +10,13 @@ use bitwarden::{
             SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretPutRequest,
             SecretsDeleteRequest, SecretsGetRequest, SecretsSyncRequest,
         },
-        vault::SyncRequest,
     },
 };
 #[cfg(feature = "internal")]
 use bitwarden::{
     auth::login::{ApiKeyLoginRequest, PasswordLoginRequest},
     platform::{FingerprintRequest, SecretVerificationRequest},
+    vault::SyncRequest,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

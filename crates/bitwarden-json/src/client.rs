@@ -55,7 +55,9 @@ impl Client {
                 client.auth().login_access_token(&req).await.into_string()
             }
             #[cfg(feature = "internal")]
-            Command::GetUserApiKey(req) => client.get_user_api_key(req).await.into_string(),
+            Command::GetUserApiKey(req) => {
+                client.platform().get_user_api_key(req).await.into_string()
+            }
             #[cfg(feature = "internal")]
             Command::ApiKeyLogin(req) => client.auth().login_api_key(req).await.into_string(),
             #[cfg(feature = "internal")]

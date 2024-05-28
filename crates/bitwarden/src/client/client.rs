@@ -22,10 +22,7 @@ use crate::{
 #[cfg(feature = "internal")]
 use crate::{
     client::flags::Flags,
-    platform::{
-        get_user_api_key, sync, SecretVerificationRequest, SyncRequest, SyncResponse,
-        UserApiKeyResponse,
-    },
+    platform::{sync, SyncRequest, SyncResponse},
 };
 
 #[derive(Debug)]
@@ -192,14 +189,6 @@ impl Client {
     #[cfg(feature = "internal")]
     pub async fn sync(&mut self, input: &SyncRequest) -> Result<SyncResponse> {
         sync(self, input).await
-    }
-
-    #[cfg(feature = "internal")]
-    pub async fn get_user_api_key(
-        &mut self,
-        input: SecretVerificationRequest,
-    ) -> Result<UserApiKeyResponse> {
-        get_user_api_key(self, input).await
     }
 
     #[cfg(feature = "internal")]

@@ -635,11 +635,8 @@ async fn process_commands() -> Result<()> {
             project_id,
         } => {
             let shell = match std::env::consts::OS {
-                os if os == "linux" || os == "macos" || os.contains("bsd") => {
-                    shell.unwrap_or_else(|| "sh".to_string())
-                }
                 "windows" => shell.unwrap_or_else(|| "powershell".to_string()),
-                _ => unreachable!(),
+                  _ =>   shell.unwrap_or_else(|| "sh".to_string())
             };
 
             if which(&shell).is_err() {

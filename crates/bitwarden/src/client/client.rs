@@ -9,8 +9,6 @@ use chrono::Utc;
 use reqwest::header::{self, HeaderValue};
 use uuid::Uuid;
 
-#[cfg(feature = "secrets")]
-use crate::auth::login::{AccessTokenLoginRequest, AccessTokenLoginResponse};
 use crate::{
     auth::AccessToken,
     client::{
@@ -178,15 +176,6 @@ impl Client {
     #[cfg(feature = "mobile")]
     pub(crate) fn get_http_client(&self) -> &reqwest::Client {
         &self.__api_configurations.external_client
-    }
-
-    #[cfg(feature = "secrets")]
-    #[deprecated(note = "Use auth().login_access_token() instead")]
-    pub async fn access_token_login(
-        &mut self,
-        input: &AccessTokenLoginRequest,
-    ) -> Result<AccessTokenLoginResponse> {
-        self.auth().login_access_token(input).await
     }
 
     #[cfg(feature = "internal")]

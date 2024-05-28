@@ -238,15 +238,6 @@ enum DeleteCommand {
     Secret { secret_ids: Vec<Uuid> },
 }
 
-#[derive(Subcommand, Debug)]
-enum RunCommand {
-    Command {
-        command: Vec<String>,
-        project_id: Option<Uuid>,
-        shell: Option<String>,
-    },
-}
-
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();

@@ -683,8 +683,8 @@ async fn process_commands() -> Result<()> {
                 .data;
 
             let environment = secrets
-                .iter()
-                .map(|s| (s.key.clone(), s.value.clone()))
+                .into_iter()
+                .map(|s| (s.key, s.value))
                 .collect::<std::collections::HashMap<String, String>>();
 
             let valid_key_regex =

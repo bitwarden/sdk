@@ -87,8 +87,8 @@ pub use sensitive::*;
 mod allocator;
 pub use allocator::ZeroizingAllocator;
 
-#[cfg(feature = "mobile")]
+#[cfg(feature = "uniffi")]
 uniffi::setup_scaffolding!();
 
-#[cfg(feature = "mobile")]
+#[cfg(feature = "uniffi")]
 mod uniffi_support;

@@ -15,7 +15,7 @@ pub enum PassphraseError {
 /// Passphrase generator request options.
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct PassphraseGeneratorRequest {
     /// Number of words in the generated passphrase.
     /// This value must be between 3 and 20.

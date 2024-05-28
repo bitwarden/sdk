@@ -56,7 +56,7 @@
 #[doc = include_str!("../README.md")]
 mod readme {}
 
-#[cfg(feature = "mobile")]
+#[cfg(feature = "uniffi")]
 uniffi::setup_scaffolding!();
 
 #[cfg(feature = "internal")]
@@ -64,15 +64,15 @@ pub mod admin_console;
 pub mod auth;
 pub mod client;
 pub mod error;
-#[cfg(feature = "mobile")]
+#[cfg(feature = "internal")]
 pub mod mobile;
 #[cfg(feature = "internal")]
 pub mod platform;
 #[cfg(feature = "secrets")]
 pub mod secrets_manager;
-#[cfg(feature = "mobile")]
+#[cfg(feature = "internal")]
 pub mod tool;
-#[cfg(feature = "mobile")]
+#[cfg(feature = "uniffi")]
 pub(crate) mod uniffi_support;
 mod util;
 #[cfg(feature = "internal")]

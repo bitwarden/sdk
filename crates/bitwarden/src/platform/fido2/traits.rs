@@ -32,12 +32,12 @@ pub trait CredentialStore: Send + Sync {
     async fn save_credential(&self, cred: Cipher) -> Result<()>;
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum CheckUserOptions {
     RequirePresence(bool),
     RequireVerification(Verification),
 }
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum Verification {
     Discouraged,
     Preferred,

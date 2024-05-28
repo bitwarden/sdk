@@ -1,7 +1,7 @@
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{AsymmetricEncString, DeviceKey, SensitiveString, TrustDeviceResponse};
 
-#[cfg(feature = "mobile")]
+#[cfg(feature = "internal")]
 use crate::auth::login::NewAuthRequestResponse;
 #[cfg(feature = "secrets")]
 use crate::auth::login::{login_access_token, AccessTokenLoginRequest, AccessTokenLoginResponse};
@@ -141,7 +141,7 @@ impl<'a> ClientAuth<'a> {
     }
 }
 
-#[cfg(feature = "mobile")]
+#[cfg(feature = "internal")]
 impl<'a> ClientAuth<'a> {
     pub async fn login_device(
         &mut self,

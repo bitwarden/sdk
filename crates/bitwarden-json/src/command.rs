@@ -69,7 +69,7 @@ pub enum Command {
     /// > Requires Authentication
     /// Retrieve all user data, ciphers and organizations the user is a part of
     ///
-    /// Returns: [SyncResponse](bitwarden::platform::SyncResponse)
+    /// Returns: [SyncResponse](bitwarden::vault::SyncResponse)
     Sync(SyncRequest),
 
     #[cfg(feature = "secrets")]

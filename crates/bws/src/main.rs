@@ -16,12 +16,12 @@ use bitwarden::{
 };
 use bitwarden_cli::install_color_eyre;
 use clap::{CommandFactory, Parser};
-use clap_complete::Shell;
 use color_eyre::eyre::{bail, Result};
 use log::error;
 use uuid::Uuid;
 
 mod cli;
+mod command;
 mod config;
 mod render;
 mod state;
@@ -51,47 +51,21 @@ async fn process_commands() -> Result<()> {
     // These commands don't require authentication, so we process them first
     match command {
         Commands::Completions { shell } => {
-            let Some(shell) = shell.or_else(Shell::from_env) else {
-                eprintln!("Couldn't autodetect a valid shell. Run `bws completions --help` for more info.");
-                std::process::exit(1);
-            };
-
-            let mut cmd = Cli::command();
-            let name = cmd.get_name().to_string();
-            clap_complete::generate(shell, &mut cmd, name, &mut std::io::stdout());
-            return Ok(());
+            return command::completions::execute(shell);
         }
         Commands::Config {
             name,
             value,
             delete,
         } => {
-            let profile = if let Some(profile) = cli.profile {
-                profile
-            } else if let Some(access_token) = cli.access_token {
-                AccessToken::from_str(&access_token)?
-                    .access_token_id
-                    .to_string()
-            } else {
-                String::from("default")
-            };
-
-            if delete {
-                config::delete_profile(cli.config_file.as_deref(), profile)?;
-                println!("Profile deleted successfully!");
-            } else {
-                let (name, value) = match (name, value) {
-                    (None, None) => bail!("Missing `name` and `value`"),
-                    (None, Some(_)) => bail!("Missing `value`"),
-                    (Some(_), None) => bail!("Missing `name`"),
-                    (Some(name), Some(value)) => (name, value),
-                };
-
-                config::update_profile(cli.config_file.as_deref(), profile, name, value)?;
-                println!("Profile updated successfully!");
-            };
-
-            return Ok(());
+            return command::config::execute(
+                name,
+                value,
+                delete,
+                cli.profile,
+                cli.access_token,
+                cli.config_file,
+            );
         }
         _ => (),
     }

@@ -1,4 +1,3 @@
-use bitwarden::vault::SyncRequest;
 #[cfg(feature = "secrets")]
 use bitwarden::{
     auth::login::AccessTokenLoginRequest,
@@ -11,6 +10,7 @@ use bitwarden::{
             SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretPutRequest,
             SecretsDeleteRequest, SecretsGetRequest, SecretsSyncRequest,
         },
+        vault::SyncRequest,
     },
 };
 #[cfg(feature = "internal")]

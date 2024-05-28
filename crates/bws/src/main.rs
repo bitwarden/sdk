@@ -636,7 +636,7 @@ async fn process_commands() -> Result<()> {
         } => {
             let shell = match std::env::consts::OS {
                 "windows" => shell.unwrap_or_else(|| "powershell".to_string()),
-                  _ =>   shell.unwrap_or_else(|| "sh".to_string())
+                _ => shell.unwrap_or_else(|| "sh".to_string()),
             };
 
             if which(&shell).is_err() {

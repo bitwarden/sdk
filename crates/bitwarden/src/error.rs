@@ -122,9 +122,9 @@ pub enum AccessTokenInvalidError {
 #[derive(Debug, Error)]
 pub enum ValidationError {
     #[error("{0} must not exceed {1} characters in length")]
-    ExceedsCharacterLength(String, i64),
+    ExceedsCharacterLength(String, u64),
     #[error("{0} must not contain only whitespaces")]
-    OnlyWhitespaces(String),
+    Empty(String),
 }
 
 // Ensure that the error messages implement Send and Sync
@@ -175,6 +175,9 @@ pub(crate) use require;
 pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 // Validation
+const VALIDATION_LENGTH_CODE: &str = "length";
+pub const VALIDATION_EMPTY_CODE: &str = "empty";
+
 macro_rules! validate {
     ($val:expr) => {
         match $val.validate() {
@@ -185,9 +188,9 @@ macro_rules! validate {
 }
 pub(crate) use validate;
 
-pub fn validate_whitespaces_only(value: &str) -> Result<(), validator::ValidationError> {
+pub fn validate_not_empty(value: &str) -> Result<(), validator::ValidationError> {
     if value.trim().is_empty() {
-        return Err(validator::ValidationError::new("empty"));
+        return Err(validator::ValidationError::new(VALIDATION_EMPTY_CODE));
     }
     Ok(())
 }
@@ -198,14 +201,16 @@ impl From<validator::ValidationErrors> for Error {
             for error in errors {
                 let message = error.message.as_ref().unwrap().to_string();
                 match error.code.as_ref() {
-                    "length_exceeded" => {
-                        return Error::ValidationError(ValidationError::ExceedsCharacterLength(
-                            message,
-                            error.params["max"].as_i64().unwrap()
-                        ));
+                    VALIDATION_LENGTH_CODE => {
+                        if error.params.contains_key("max") {
+                            return Error::ValidationError(ValidationError::ExceedsCharacterLength(
+                                message,
+                                error.params["max"].as_u64().unwrap(),
+                            ));
+                        }
                     }
-                    "empty" => {
-                        return Error::ValidationError(ValidationError::OnlyWhitespaces(
+                    VALIDATION_EMPTY_CODE => {
+                        return Error::ValidationError(ValidationError::Empty(
                             message
                         ));
                     }

@@ -7,15 +7,19 @@ use uuid::Uuid;
 use super::ProjectResponse;
 use crate::{
     client::Client,
-    error::{Error, Result},
+    error::{validate, Error, Result, validate_whitespaces_only},
 };
+use validator::{Validate};
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Validate)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ProjectCreateRequest {
     /// Organization where the project will be created
     pub organization_id: Uuid,
-
+    #[validate(
+        length(max = 500, code = "length_exceeded", message = "project name"),
+        custom(function = "validate_whitespaces_only", message = "project name")
+    )]
     pub name: String,
 }
 
@@ -23,13 +27,15 @@ pub(crate) async fn create_project(
     client: &mut Client,
     input: &ProjectCreateRequest,
 ) -> Result<ProjectResponse> {
+    validate!(input);
+
     let key = client
         .get_encryption_settings()?
         .get_key(&Some(input.organization_id))
         .ok_or(Error::VaultLocked)?;
 
     let project = Some(ProjectCreateRequestModel {
-        name: input.name.clone().encrypt_with_key(key)?.to_string(),
+        name: input.name.trim().to_string().clone().encrypt_with_key(key)?.to_string(),
     });
 
     let config = client.get_api_configurations().await;

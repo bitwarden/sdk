@@ -48,6 +48,9 @@ pub enum Error {
     #[error("Received error message from server: [{}] {}", .status, .message)]
     ResponseContent { status: StatusCode, message: String },
 
+    #[error(transparent)]
+    ValidationError(#[from] ValidationError),
+
     #[error("The state file version is invalid")]
     InvalidStateFileVersion,
 
@@ -116,6 +119,14 @@ pub enum AccessTokenInvalidError {
     InvalidBase64Length { expected: usize, got: usize },
 }
 
+#[derive(Debug, Error)]
+pub enum ValidationError {
+    #[error("{0} must not exceed {1} characters in length")]
+    ExceedsCharacterLength(String, i64),
+    #[error("{0} must not contain only whitespaces")]
+    OnlyWhitespaces(String),
+}
+
 // Ensure that the error messages implement Send and Sync
 #[cfg(test)]
 const _: () = {
@@ -162,3 +173,46 @@ macro_rules! require {
 pub(crate) use require;
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
+
+// Validation
+macro_rules! validate {
+    ($val:expr) => {
+        match $val.validate() {
+            Ok(_) => (),
+            Err(e) => return Err(e.into()),
+        }
+    };
+}
+pub(crate) use validate;
+
+pub fn validate_whitespaces_only(value: &str) -> Result<(), validator::ValidationError> {
+    if value.trim().is_empty() {
+        return Err(validator::ValidationError::new("empty"));
+    }
+    Ok(())
+}
+
+impl From<validator::ValidationErrors> for Error {
+    fn from(e: validator::ValidationErrors) -> Self {
+        for (_, errors) in e.field_errors() {
+            for error in errors {
+                let message = error.message.as_ref().unwrap().to_string();
+                match error.code.as_ref() {
+                    "length_exceeded" => {
+                        return Error::ValidationError(ValidationError::ExceedsCharacterLength(
+                            message,
+                            error.params["max"].as_i64().unwrap()
+                        ));
+                    }
+                    "empty" => {
+                        return Error::ValidationError(ValidationError::OnlyWhitespaces(
+                            message
+                        ));
+                    }
+                    _ => {}
+                }
+            }
+        }
+        "Unknown validation error".into()
+    }
+}

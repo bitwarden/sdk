@@ -144,44 +144,22 @@ pub enum ClientData {
     DefaultWithCustomHash { hash: Vec<u8> },
 }
 
-// To keep compatibility with passkey-rs ClientData, we want extra_client_data to return a type
-// that serializes to Object | Unit. If we just used an Option it would serialize to Object | None
-// So we create our own wrapper types that serialize to the correct values and make the ClientData
-// implementation return that.
-#[derive(Clone)]
-pub(super) struct OptionalAndroidClientData {
-    data: Option<AndroidClientData>,
-}
-
 #[derive(Serialize, Clone)]
-struct AndroidClientData {
+#[serde(rename_all = "camelCase")]
+pub(super) struct AndroidClientData {
     android_package_name: String,
 }
 
-impl Serialize for OptionalAndroidClientData {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        match &self.data {
-            Some(d) => d.serialize(serializer),
-            None => serde::Serializer::serialize_unit(serializer),
-        }
-    }
-}
-
-impl passkey::client::ClientData<OptionalAndroidClientData> for ClientData {
-    fn extra_client_data(&self) -> OptionalAndroidClientData {
-        let data = match self {
+impl passkey::client::ClientData<Option<AndroidClientData>> for ClientData {
+    fn extra_client_data(&self) -> Option<AndroidClientData> {
+        match self {
             ClientData::DefaultWithExtraData {
                 android_package_name,
             } => Some(AndroidClientData {
                 android_package_name: android_package_name.clone(),
             }),
             ClientData::DefaultWithCustomHash { .. } => None,
-        };
-
-        OptionalAndroidClientData { data }
+        }
     }
 
     fn client_data_hash(&self) -> Option<Vec<u8>> {
@@ -250,4 +228,64 @@ pub struct AuthenticatorAssertionResponse {
     pub authenticator_data: Vec<u8>,
     pub signature: Vec<u8>,
     pub user_handle: Vec<u8>,
+}
+
+#[cfg(test)]
+mod tests {
+    use serde::{Deserialize, Serialize};
+
+    use crate::platform::fido2::types::AndroidClientData;
+
+    // This is a stripped down of the passkey-rs implementation, to test the
+    // serialization of the `ClientData` enum, and to make sure that () and None
+    // are serialized the same way when going through #[serde(flatten)].
+    #[derive(Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct CollectedClientData<E = ()>
+    where
+        E: Serialize,
+    {
+        pub origin: String,
+
+        #[serde(flatten)]
+        pub extra_data: E,
+    }
+
+    #[test]
+    fn test_serialize_unit_data() {
+        let data = CollectedClientData {
+            origin: "https://example.com".to_owned(),
+            extra_data: (),
+        };
+
+        let serialized = serde_json::to_string(&data).unwrap();
+        assert_eq!(serialized, r#"{"origin":"https://example.com"}"#);
+    }
+
+    #[test]
+    fn test_serialize_none_data() {
+        let data = CollectedClientData {
+            origin: "https://example.com".to_owned(),
+            extra_data: Option::<AndroidClientData>::None,
+        };
+
+        let serialized = serde_json::to_string(&data).unwrap();
+        assert_eq!(serialized, r#"{"origin":"https://example.com"}"#);
+    }
+
+    #[test]
+    fn test_serialize_android_data() {
+        let data = CollectedClientData {
+            origin: "https://example.com".to_owned(),
+            extra_data: Some(AndroidClientData {
+                android_package_name: "com.example.app".to_owned(),
+            }),
+        };
+
+        let serialized = serde_json::to_string(&data).unwrap();
+        assert_eq!(
+            serialized,
+            r#"{"origin":"https://example.com","androidPackageName":"com.example.app"}"#
+        );
+    }
 }

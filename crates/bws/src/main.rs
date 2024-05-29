@@ -6,7 +6,6 @@ use bitwarden::{
     secrets_manager::{
         projects::{
             ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
-            ProjectsListRequest,
         },
         secrets::{
             SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
@@ -51,14 +50,14 @@ async fn process_commands() -> Result<()> {
     // These commands don't require authentication, so we process them first
     match command {
         Commands::Completions { shell } => {
-            return command::completions::execute(shell);
+            return command::completions(shell);
         }
         Commands::Config {
             name,
             value,
             delete,
         } => {
-            return command::config::execute(
+            return command::config(
                 name,
                 value,
                 delete,
@@ -126,12 +125,7 @@ async fn process_commands() -> Result<()> {
         | Commands::List {
             cmd: ListCommand::Projects,
         } => {
-            let projects = client
-                .projects()
-                .list(&ProjectsListRequest { organization_id })
-                .await?
-                .data;
-            serialize_response(projects, cli.output, color);
+            return command::project::list(client, organization_id, cli.output, color).await;
         }
 
         Commands::Project {

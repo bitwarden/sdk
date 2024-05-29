@@ -114,28 +114,21 @@ async fn process_commands() -> Result<()> {
         }
         | Commands::List {
             cmd: ListCommand::Projects,
-        } => {
-            return command::project::list(client, organization_id, cli.output, color).await;
-        }
+        } => command::project::list(client, organization_id, cli.output, color).await,
 
         Commands::Project {
             cmd: ProjectCommand::Get { project_id },
         }
         | Commands::Get {
             cmd: GetCommand::Project { project_id },
-        } => {
-            return command::project::get(client, project_id, cli.output, color).await;
-        }
+        } => command::project::get(client, project_id, cli.output, color).await,
 
         Commands::Project {
             cmd: ProjectCommand::Create { name },
         }
         | Commands::Create {
             cmd: CreateCommand::Project { name },
-        } => {
-            return command::project::create(client, organization_id, name, cli.output, color)
-                .await;
-        }
+        } => command::project::create(client, organization_id, name, cli.output, color).await,
 
         Commands::Project {
             cmd: ProjectCommand::Edit { project_id, name },
@@ -143,15 +136,8 @@ async fn process_commands() -> Result<()> {
         | Commands::Edit {
             cmd: EditCommand::Project { project_id, name },
         } => {
-            return command::project::edit(
-                client,
-                organization_id,
-                project_id,
-                name,
-                cli.output,
-                color,
-            )
-            .await;
+            command::project::edit(client, organization_id, project_id, name, cli.output, color)
+                .await
         }
 
         Commands::Project {
@@ -159,28 +145,21 @@ async fn process_commands() -> Result<()> {
         }
         | Commands::Delete {
             cmd: DeleteCommand::Project { project_ids },
-        } => {
-            return command::project::delete(client, project_ids).await;
-        }
+        } => command::project::delete(client, project_ids).await,
 
         Commands::Secret {
             cmd: SecretCommand::List { project_id },
         }
         | Commands::List {
             cmd: ListCommand::Secrets { project_id },
-        } => {
-            return command::secret::list(client, organization_id, project_id, cli.output, color)
-                .await;
-        }
+        } => command::secret::list(client, organization_id, project_id, cli.output, color).await,
 
         Commands::Secret {
             cmd: SecretCommand::Get { secret_id },
         }
         | Commands::Get {
             cmd: GetCommand::Secret { secret_id },
-        } => {
-            return command::secret::get(client, secret_id, cli.output, color).await;
-        }
+        } => command::secret::get(client, secret_id, cli.output, color).await,
 
         Commands::Secret {
             cmd:
@@ -200,7 +179,7 @@ async fn process_commands() -> Result<()> {
                     project_id,
                 },
         } => {
-            return command::secret::create(
+            command::secret::create(
                 client,
                 organization_id,
                 project_id,
@@ -210,7 +189,7 @@ async fn process_commands() -> Result<()> {
                 cli.output,
                 color,
             )
-            .await;
+            .await
         }
 
         Commands::Secret {
@@ -233,7 +212,7 @@ async fn process_commands() -> Result<()> {
                     project_id,
                 },
         } => {
-            return command::secret::edit(
+            command::secret::edit(
                 client,
                 organization_id,
                 project_id,
@@ -244,7 +223,7 @@ async fn process_commands() -> Result<()> {
                 cli.output,
                 color,
             )
-            .await;
+            .await
         }
 
         Commands::Secret {
@@ -252,9 +231,7 @@ async fn process_commands() -> Result<()> {
         }
         | Commands::Delete {
             cmd: DeleteCommand::Secret { secret_ids },
-        } => {
-            return command::secret::delete(client, secret_ids).await;
-        }
+        } => command::secret::delete(client, secret_ids).await,
 
         Commands::Config { .. } | Commands::Completions { .. } => {
             unreachable!()

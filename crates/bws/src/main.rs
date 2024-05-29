@@ -1,18 +1,13 @@
-use std::{path::PathBuf, process, str::FromStr};
+use std::{path::PathBuf, str::FromStr};
 
 use bitwarden::{
     auth::{login::AccessTokenLoginRequest, AccessToken},
     client::client_settings::ClientSettings,
-    secrets_manager::secrets::{
-        SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
-        SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest, SecretsGetRequest,
-    },
 };
 use bitwarden_cli::install_color_eyre;
 use clap::{CommandFactory, Parser};
 use color_eyre::eyre::{bail, Result};
 use log::error;
-use uuid::Uuid;
 
 mod cli;
 mod command;
@@ -20,7 +15,7 @@ mod config;
 mod render;
 mod state;
 
-use crate::{cli::*, render::serialize_response};
+use crate::cli::*;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
@@ -174,25 +169,8 @@ async fn process_commands() -> Result<()> {
         | Commands::List {
             cmd: ListCommand::Secrets { project_id },
         } => {
-            let res = if let Some(project_id) = project_id {
-                client
-                    .secrets()
-                    .list_by_project(&SecretIdentifiersByProjectRequest { project_id })
-                    .await?
-            } else {
-                client
-                    .secrets()
-                    .list(&SecretIdentifiersRequest { organization_id })
-                    .await?
-            };
-
-            let secret_ids = res.data.into_iter().map(|e| e.id).collect();
-            let secrets = client
-                .secrets()
-                .get_by_ids(SecretsGetRequest { ids: secret_ids })
-                .await?
-                .data;
-            serialize_response(secrets, cli.output, color);
+            return command::secret::list(client, organization_id, project_id, cli.output, color)
+                .await;
         }
 
         Commands::Secret {
@@ -201,11 +179,7 @@ async fn process_commands() -> Result<()> {
         | Commands::Get {
             cmd: GetCommand::Secret { secret_id },
         } => {
-            let secret = client
-                .secrets()
-                .get(&SecretGetRequest { id: secret_id })
-                .await?;
-            serialize_response(secret, cli.output, color);
+            return command::secret::get(client, secret_id, cli.output, color).await;
         }
 
         Commands::Secret {
@@ -226,17 +200,17 @@ async fn process_commands() -> Result<()> {
                     project_id,
                 },
         } => {
-            let secret = client
-                .secrets()
-                .create(&SecretCreateRequest {
-                    organization_id,
-                    key,
-                    value,
-                    note: note.unwrap_or_default(),
-                    project_ids: Some(vec![project_id]),
-                })
-                .await?;
-            serialize_response(secret, cli.output, color);
+            return command::secret::create(
+                client,
+                organization_id,
+                project_id,
+                key,
+                value,
+                note,
+                cli.output,
+                color,
+            )
+            .await;
         }
 
         Commands::Secret {
@@ -259,29 +233,18 @@ async fn process_commands() -> Result<()> {
                     project_id,
                 },
         } => {
-            let old_secret = client
-                .secrets()
-                .get(&SecretGetRequest { id: secret_id })
-                .await?;
-
-            let secret = client
-                .secrets()
-                .update(&SecretPutRequest {
-                    id: secret_id,
-                    organization_id,
-                    key: key.unwrap_or(old_secret.key),
-                    value: value.unwrap_or(old_secret.value),
-                    note: note.unwrap_or(old_secret.note),
-                    project_ids: match project_id {
-                        Some(id) => Some(vec![id]),
-                        None => match old_secret.project_id {
-                            Some(id) => Some(vec![id]),
-                            None => bail!("Editing a secret requires a project_id."),
-                        },
-                    },
-                })
-                .await?;
-            serialize_response(secret, cli.output, color);
+            return command::secret::edit(
+                client,
+                organization_id,
+                project_id,
+                secret_id,
+                key,
+                value,
+                note,
+                cli.output,
+                color,
+            )
+            .await;
         }
 
         Commands::Secret {
@@ -290,47 +253,13 @@ async fn process_commands() -> Result<()> {
         | Commands::Delete {
             cmd: DeleteCommand::Secret { secret_ids },
         } => {
-            let count = secret_ids.len();
-
-            let result = client
-                .secrets()
-                .delete(SecretsDeleteRequest { ids: secret_ids })
-                .await?;
-
-            let secrets_failed: Vec<(Uuid, String)> = result
-                .data
-                .into_iter()
-                .filter_map(|r| r.error.map(|e| (r.id, e)))
-                .collect();
-            let deleted_secrets = count - secrets_failed.len();
-
-            if deleted_secrets > 1 {
-                println!("{} secrets deleted successfully.", deleted_secrets);
-            } else if deleted_secrets == 1 {
-                println!("{} secret deleted successfully.", deleted_secrets);
-            }
-
-            if secrets_failed.len() > 1 {
-                eprintln!("{} secrets had errors:", secrets_failed.len());
-            } else if secrets_failed.len() == 1 {
-                eprintln!("{} secret had an error:", secrets_failed.len());
-            }
-
-            for secret in &secrets_failed {
-                eprintln!("{}: {}", secret.0, secret.1);
-            }
-
-            if !secrets_failed.is_empty() {
-                process::exit(1);
-            }
+            return command::secret::delete(client, secret_ids).await;
         }
 
         Commands::Config { .. } | Commands::Completions { .. } => {
             unreachable!()
         }
     }
-
-    Ok(())
 }
 
 fn get_config_profile(

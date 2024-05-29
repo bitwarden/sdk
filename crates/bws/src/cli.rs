@@ -89,6 +89,20 @@ pub(crate) enum Commands {
         #[command(subcommand)]
         cmd: SecretCommand,
     },
+    #[command(long_about = "Run a command with secrets injected")]
+    Run {
+        #[arg(help = "The command to run")]
+        command: Vec<String>,
+        #[arg(long, help = "The shell to use")]
+        shell: Option<String>,
+        #[arg(
+            long,
+            help = "Don't inherit environment variables from the current shell"
+        )]
+        no_inherit_env: bool,
+        #[arg(long, help = "The ID of the project to use")]
+        project_id: Option<Uuid>,
+    },
     #[command(long_about = "Create a single item (deprecated)", hide(true))]
     Create {
         #[command(subcommand)]
@@ -225,4 +239,13 @@ pub(crate) enum EditCommand {
 pub(crate) enum DeleteCommand {
     Project { project_ids: Vec<Uuid> },
     Secret { secret_ids: Vec<Uuid> },
+}
+
+#[derive(Subcommand, Debug)]
+pub(crate) enum RunCommand {
+    Command {
+        command: Vec<String>,
+        project_id: Option<Uuid>,
+        shell: Option<String>,
+    },
 }

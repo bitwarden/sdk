@@ -34,13 +34,13 @@ impl<'a> Fido2Authenticator<'a> {
         &mut self,
         request: MakeCredentialRequest,
     ) -> Result<MakeCredentialResult> {
-        let mut authenticator = self.get_authenticator();
-
         // Insert the received UV to be able to return it later in check_user
         self.requested_uv
-            .lock()
+            .get_mut()
             .expect("Mutex is not poisoned")
             .replace(request.options.uv);
+
+        let mut authenticator = self.get_authenticator();
 
         let response = authenticator
             .make_credential(ctap2::make_credential::Request {
@@ -100,13 +100,13 @@ impl<'a> Fido2Authenticator<'a> {
         &mut self,
         request: GetAssertionRequest,
     ) -> Result<GetAssertionResult> {
-        let mut authenticator = self.get_authenticator();
-
         // Insert the received UV to be able to return it later in check_user
         self.requested_uv
-            .lock()
+            .get_mut()
             .expect("Mutex is not poisoned")
             .replace(request.options.uv);
+
+        let mut authenticator = self.get_authenticator();
 
         let response = authenticator
             .get_assertion(ctap2::get_assertion::Request {
@@ -197,7 +197,7 @@ impl<'a> Fido2Authenticator<'a> {
             .selected_credential
             .lock()
             .expect("Mutex is not poisoned")
-            .take()
+            .clone()
             .ok_or("No selected credential available")?;
 
         let login = require!(cipher.login.as_ref());
@@ -414,7 +414,6 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
             .requested_uv
             .lock()
             .expect("Mutex is not poisoned")
-            .take()
             .ok_or(Ctap2Error::UserVerificationInvalid)?;
 
         let options = CheckUserOptions {

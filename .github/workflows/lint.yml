@@ -17,10 +17,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@bb45937a053e097f8591208d8e74c90db1873d07 # stable
+        uses: dtolnay/rust-toolchain@d8352f6b1d2e870bc5716e7a6d9b65c4cc244a1a # stable
         with:
           toolchain: stable
 
@@ -45,7 +45,7 @@ jobs:
           RUSTFLAGS: "-D warnings"
 
       - name: Upload Clippy results to GitHub
-        uses: github/codeql-action/upload-sarif@47b3d888fe66b639e431abf22ebca059152f1eea # v3.24.5
+        uses: github/codeql-action/upload-sarif@d39d31e687223d841ef683f52467bd88e9b21c14 # v3.25.3
         with:
           sarif_file: clippy_result.sarif
 

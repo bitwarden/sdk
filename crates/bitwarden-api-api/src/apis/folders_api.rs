@@ -9,9 +9,10 @@
  */
 
 use reqwest;
+use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::apis::ResponseContent;
+use crate::{apis::ResponseContent, models};
 
 /// struct for typed errors of method [`folders_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -64,7 +65,7 @@ pub enum FoldersPostError {
 
 pub async fn folders_get(
     configuration: &configuration::Configuration,
-) -> Result<crate::models::FolderResponseModelListResponseModel, Error<FoldersGetError>> {
+) -> Result<models::FolderResponseModelListResponseModel, Error<FoldersGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -112,7 +113,7 @@ pub async fn folders_id_delete(
     let local_var_uri_str = format!(
         "{}/folders/{id}",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::DELETE, local_var_uri_str.as_str());
@@ -156,7 +157,7 @@ pub async fn folders_id_delete_post(
     let local_var_uri_str = format!(
         "{}/folders/{id}/delete",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -192,7 +193,7 @@ pub async fn folders_id_delete_post(
 pub async fn folders_id_get(
     configuration: &configuration::Configuration,
     id: &str,
-) -> Result<crate::models::FolderResponseModel, Error<FoldersIdGetError>> {
+) -> Result<models::FolderResponseModel, Error<FoldersIdGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -200,7 +201,7 @@ pub async fn folders_id_get(
     let local_var_uri_str = format!(
         "{}/folders/{id}",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -236,8 +237,8 @@ pub async fn folders_id_get(
 pub async fn folders_id_post(
     configuration: &configuration::Configuration,
     id: &str,
-    folder_request_model: Option<crate::models::FolderRequestModel>,
-) -> Result<crate::models::FolderResponseModel, Error<FoldersIdPostError>> {
+    folder_request_model: Option<models::FolderRequestModel>,
+) -> Result<models::FolderResponseModel, Error<FoldersIdPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -245,7 +246,7 @@ pub async fn folders_id_post(
     let local_var_uri_str = format!(
         "{}/folders/{id}",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -282,8 +283,8 @@ pub async fn folders_id_post(
 pub async fn folders_id_put(
     configuration: &configuration::Configuration,
     id: &str,
-    folder_request_model: Option<crate::models::FolderRequestModel>,
-) -> Result<crate::models::FolderResponseModel, Error<FoldersIdPutError>> {
+    folder_request_model: Option<models::FolderRequestModel>,
+) -> Result<models::FolderResponseModel, Error<FoldersIdPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -291,7 +292,7 @@ pub async fn folders_id_put(
     let local_var_uri_str = format!(
         "{}/folders/{id}",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::PUT, local_var_uri_str.as_str());
@@ -327,8 +328,8 @@ pub async fn folders_id_put(
 
 pub async fn folders_post(
     configuration: &configuration::Configuration,
-    folder_request_model: Option<crate::models::FolderRequestModel>,
-) -> Result<crate::models::FolderResponseModel, Error<FoldersPostError>> {
+    folder_request_model: Option<models::FolderRequestModel>,
+) -> Result<models::FolderResponseModel, Error<FoldersPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;

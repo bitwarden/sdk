@@ -11,7 +11,15 @@ pub struct ClientSends(pub Arc<Client>);
 impl ClientSends {
     /// Encrypt send
     pub async fn encrypt(&self, send: SendView) -> Result<Send> {
-        Ok(self.0 .0.read().await.vault().sends().encrypt(send).await?)
+        Ok(self
+            .0
+             .0
+            .write()
+            .await
+            .vault()
+            .sends()
+            .encrypt(send)
+            .await?)
     }
 
     /// Encrypt a send file in memory
@@ -19,7 +27,7 @@ impl ClientSends {
         Ok(self
             .0
              .0
-            .read()
+            .write()
             .await
             .vault()
             .sends()
@@ -37,7 +45,7 @@ impl ClientSends {
         Ok(self
             .0
              .0
-            .read()
+            .write()
             .await
             .vault()
             .sends()
@@ -51,7 +59,15 @@ impl ClientSends {
 
     /// Decrypt send
     pub async fn decrypt(&self, send: Send) -> Result<SendView> {
-        Ok(self.0 .0.read().await.vault().sends().decrypt(send).await?)
+        Ok(self
+            .0
+             .0
+            .write()
+            .await
+            .vault()
+            .sends()
+            .decrypt(send)
+            .await?)
     }
 
     /// Decrypt send list
@@ -59,7 +75,7 @@ impl ClientSends {
         Ok(self
             .0
              .0
-            .read()
+            .write()
             .await
             .vault()
             .sends()
@@ -72,7 +88,7 @@ impl ClientSends {
         Ok(self
             .0
              .0
-            .read()
+            .write()
             .await
             .vault()
             .sends()
@@ -90,7 +106,7 @@ impl ClientSends {
         Ok(self
             .0
              .0
-            .read()
+            .write()
             .await
             .vault()
             .sends()

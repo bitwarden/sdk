@@ -104,6 +104,7 @@ struct SchemaTypes {
     secret: Response<bitwarden::secrets_manager::secrets::SecretResponse>,
     secrets: Response<bitwarden::secrets_manager::secrets::SecretsResponse>,
     secrets_delete: Response<bitwarden::secrets_manager::secrets::SecretsDeleteResponse>,
+    secrets_sync: Response<bitwarden::secrets_manager::secrets::SecretsSyncResponse>,
     project: Response<bitwarden::secrets_manager::projects::ProjectResponse>,
     projects: Response<bitwarden::secrets_manager::projects::ProjectsResponse>,
     projects_delete: Response<bitwarden::secrets_manager::projects::ProjectsDeleteResponse>,
@@ -111,7 +112,7 @@ struct SchemaTypes {
     #[cfg(feature = "internal")]
     fingerprint: Response<bitwarden::platform::FingerprintResponse>,
     #[cfg(feature = "internal")]
-    sync: Response<bitwarden::platform::SyncResponse>,
+    sync: Response<bitwarden::vault::SyncResponse>,
     #[cfg(feature = "internal")]
     user_api_key: Response<bitwarden::platform::UserApiKeyResponse>,
 }

@@ -2,20 +2,10 @@ use crate::util::is_valid_posix_name;
 use bitwarden::secrets_manager::{projects::ProjectResponse, secrets::SecretResponse};
 use bitwarden_cli::Color;
 use chrono::{DateTime, Utc};
-use clap::ValueEnum;
 use comfy_table::Table;
 use serde::Serialize;
 
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
-#[allow(clippy::upper_case_acronyms)]
-pub(crate) enum Output {
-    JSON,
-    YAML,
-    Env,
-    Table,
-    TSV,
-    None,
-}
+use crate::cli::Output;
 
 const ASCII_HEADER_ONLY: &str = "     --            ";
 

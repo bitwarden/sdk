@@ -84,6 +84,7 @@ pub(crate) async fn edit(
     Ok(())
 }
 
+#[allow(clippy::comparison_chain)]
 pub(crate) async fn delete(mut client: Client, project_ids: Vec<Uuid>) -> Result<()> {
     let count = project_ids.len();
 

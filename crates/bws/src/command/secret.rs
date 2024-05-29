@@ -58,6 +58,7 @@ pub(crate) async fn get(
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) async fn create(
     mut client: Client,
     organization_id: Uuid,
@@ -83,6 +84,7 @@ pub(crate) async fn create(
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) async fn edit(
     mut client: Client,
     organization_id: Uuid,
@@ -121,6 +123,7 @@ pub(crate) async fn edit(
     Ok(())
 }
 
+#[allow(clippy::comparison_chain)]
 pub(crate) async fn delete(mut client: Client, secret_ids: Vec<Uuid>) -> Result<()> {
     let count = secret_ids.len();
 

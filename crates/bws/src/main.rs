@@ -24,9 +24,11 @@ use log::error;
 mod config;
 mod render;
 mod state;
+mod util;
 
 use config::ProfileKey;
 use render::{serialize_response, Output};
+use util::is_valid_posix_name;
 use uuid::Uuid;
 use which::which;
 
@@ -678,11 +680,8 @@ async fn process_commands() -> Result<()> {
                 .map(|s| (s.key, s.value))
                 .collect::<std::collections::HashMap<String, String>>();
 
-            let valid_key_regex =
-                regex::Regex::new("^[a-zA-Z_][a-zA-Z0-9_]*$").expect("valid regex");
-
             for key in environment.keys() {
-                if !valid_key_regex.is_match(key) {
+                if !is_valid_posix_name(key) {
                     eprintln!(
                         "Warning: secret '{}' does not have a POSIX-compliant name",
                         key

@@ -1,3 +1,4 @@
+use crate::util::is_valid_posix_name;
 use bitwarden::secrets_manager::{projects::ProjectResponse, secrets::SecretResponse};
 use bitwarden_cli::Color;
 use chrono::{DateTime, Utc};
@@ -37,15 +38,12 @@ pub(crate) fn serialize_response<T: Serialize + TableSerialize<N>, const N: usiz
             pretty_print("yaml", &text, color);
         }
         Output::Env => {
-            let valid_key_regex =
-                regex::Regex::new("^[a-zA-Z_][a-zA-Z0-9_]*$").expect("regex is valid");
-
             let mut commented_out = false;
             let mut text: Vec<String> = data
                 .get_values()
                 .into_iter()
                 .map(|row| {
-                    if valid_key_regex.is_match(&row[1]) {
+                    if is_valid_posix_name(&row[1]) {
                         format!("{}=\"{}\"", row[1], row[2])
                     } else {
                         commented_out = true;

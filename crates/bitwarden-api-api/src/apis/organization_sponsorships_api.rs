@@ -9,10 +9,9 @@
  */
 
 use reqwest;
-use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::{apis::ResponseContent, models};
+use crate::apis::ResponseContent;
 
 /// struct for typed errors of method [`organization_sponsorship_redeem_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -92,7 +91,7 @@ pub async fn organization_sponsorship_redeem_post(
     configuration: &configuration::Configuration,
     sponsorship_token: Option<&str>,
     organization_sponsorship_redeem_request_model: Option<
-        models::OrganizationSponsorshipRedeemRequestModel,
+        crate::models::OrganizationSponsorshipRedeemRequestModel,
     >,
 ) -> Result<(), Error<OrganizationSponsorshipRedeemPostError>> {
     let local_var_configuration = configuration;
@@ -233,7 +232,7 @@ pub async fn organization_sponsorship_sponsoring_org_id_families_for_enterprise_
     configuration: &configuration::Configuration,
     sponsoring_org_id: uuid::Uuid,
     organization_sponsorship_create_request_model: Option<
-        models::OrganizationSponsorshipCreateRequestModel,
+        crate::models::OrganizationSponsorshipCreateRequestModel,
     >,
 ) -> Result<(), Error<OrganizationSponsorshipSponsoringOrgIdFamiliesForEnterprisePostError>> {
     let local_var_configuration = configuration;
@@ -460,10 +459,10 @@ pub async fn organization_sponsorship_sponsoring_organization_id_delete_post(
 pub async fn organization_sponsorship_sync_post(
     configuration: &configuration::Configuration,
     organization_sponsorship_sync_request_model: Option<
-        models::OrganizationSponsorshipSyncRequestModel,
+        crate::models::OrganizationSponsorshipSyncRequestModel,
     >,
 ) -> Result<
-    models::OrganizationSponsorshipSyncResponseModel,
+    crate::models::OrganizationSponsorshipSyncResponseModel,
     Error<OrganizationSponsorshipSyncPostError>,
 > {
     let local_var_configuration = configuration;

@@ -1,5 +1,3 @@
-use std::fmt;
-
 use bitwarden_crypto::{DecryptedString, Kdf, SensitiveString};
 use chrono::{DateTime, Utc};
 use thiserror::Error;
@@ -10,7 +8,6 @@ use crate::csv::export_csv;
 mod json;
 use json::export_json;
 mod encrypted_json;
-
 use encrypted_json::export_encrypted_json;
 
 pub enum Format {
@@ -66,13 +63,13 @@ pub enum CipherType {
     Identity(Box<Identity>),
 }
 
-impl fmt::Display for CipherType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl ToString for CipherType {
+    fn to_string(&self) -> String {
         match self {
-            CipherType::Login(_) => write!(f, "login"),
-            CipherType::SecureNote(_) => write!(f, "note"),
-            CipherType::Card(_) => write!(f, "card"),
-            CipherType::Identity(_) => write!(f, "identity"),
+            CipherType::Login(_) => "login".to_string(),
+            CipherType::SecureNote(_) => "note".to_string(),
+            CipherType::Card(_) => "card".to_string(),
+            CipherType::Identity(_) => "identity".to_string(),
         }
     }
 }

@@ -9,10 +9,9 @@
  */
 
 use reqwest;
-use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::{apis::ResponseContent, models};
+use crate::apis::ResponseContent;
 
 /// struct for typed errors of method [`installations_id_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -31,7 +30,7 @@ pub enum InstallationsPostError {
 pub async fn installations_id_get(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-) -> Result<models::InstallationResponseModel, Error<InstallationsIdGetError>> {
+) -> Result<crate::models::InstallationResponseModel, Error<InstallationsIdGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -74,8 +73,8 @@ pub async fn installations_id_get(
 
 pub async fn installations_post(
     configuration: &configuration::Configuration,
-    installation_request_model: Option<models::InstallationRequestModel>,
-) -> Result<models::InstallationResponseModel, Error<InstallationsPostError>> {
+    installation_request_model: Option<crate::models::InstallationRequestModel>,
+) -> Result<crate::models::InstallationResponseModel, Error<InstallationsPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;

@@ -9,10 +9,9 @@
  */
 
 use reqwest;
-use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::{apis::ResponseContent, models};
+use crate::apis::ResponseContent;
 
 /// struct for typed errors of method [`bitpay_invoice_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -30,7 +29,7 @@ pub enum SetupPaymentPostError {
 
 pub async fn bitpay_invoice_post(
     configuration: &configuration::Configuration,
-    bit_pay_invoice_request_model: Option<models::BitPayInvoiceRequestModel>,
+    bit_pay_invoice_request_model: Option<crate::models::BitPayInvoiceRequestModel>,
 ) -> Result<String, Error<BitpayInvoicePostError>> {
     let local_var_configuration = configuration;
 

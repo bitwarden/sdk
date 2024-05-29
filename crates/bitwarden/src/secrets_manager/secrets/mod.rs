@@ -4,7 +4,6 @@ mod get;
 mod get_by_ids;
 mod list;
 mod secret_response;
-mod sync;
 mod update;
 
 pub(crate) use create::create_secret;
@@ -20,7 +19,5 @@ pub use list::{
     SecretIdentifiersByProjectRequest, SecretIdentifiersRequest, SecretIdentifiersResponse,
 };
 pub use secret_response::{SecretResponse, SecretsResponse};
-pub(crate) use sync::sync_secrets;
-pub use sync::{SecretsSyncRequest, SecretsSyncResponse};
 pub(crate) use update::update_secret;
 pub use update::SecretPutRequest;

@@ -14,13 +14,13 @@ repository.workspace = true
 license-file.workspace = true
 
 [dependencies]
-bitwarden = { workspace = true, features = ["internal"] }
+bitwarden = { workspace = true, features = ["internal", "mobile"] }
 bitwarden-cli = { workspace = true }
 bitwarden-crypto = { workspace = true }
-clap = { version = "4.5.4", features = ["derive", "env"] }
-color-eyre = "0.6.3"
+clap = { version = "4.5.1", features = ["derive", "env"] }
+color-eyre = "0.6"
 env_logger = "0.11.1"
-inquire = "0.7.0"
+inquire = "0.6.2"
 log = "0.4.20"
 tokio = { version = "1.36.0", features = ["rt-multi-thread", "macros"] }
 

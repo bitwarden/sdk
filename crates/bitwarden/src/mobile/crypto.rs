@@ -19,7 +19,7 @@ use crate::{
 #[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct InitUserCryptoRequest {
     /// The user's KDF parameters, as received from the prelogin request
     pub kdf_params: Kdf,
@@ -34,7 +34,7 @@ pub struct InitUserCryptoRequest {
 #[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
+#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum InitUserCryptoMethod {
     Password {
         /// The user's master password
@@ -44,7 +44,7 @@ pub enum InitUserCryptoMethod {
     },
     DecryptedKey {
         /// The user's decrypted encryption key, obtained using `get_user_encryption_key`
-        decrypted_user_key: SensitiveString,
+        decrypted_user_key: String,
     },
     Pin {
         /// The user's PIN
@@ -61,7 +61,7 @@ pub enum InitUserCryptoMethod {
     },
     DeviceKey {
         /// The device's DeviceKey
-        device_key: SensitiveString,
+        device_key: String,
         /// The Device Private Key
         protected_device_private_key: EncString,
         /// The user's symmetric crypto key, encrypted with the Device Key.
@@ -72,7 +72,7 @@ pub enum InitUserCryptoMethod {
 #[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
+#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum AuthRequestMethod {
     UserKey {
         /// User Key protected by the private key provided in `AuthRequestResponse`.
@@ -88,7 +88,7 @@ pub enum AuthRequestMethod {
 
 #[cfg(feature = "internal")]
 pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequest) -> Result<()> {
-    use bitwarden_crypto::DeviceKey;
+    use bitwarden_crypto::{DecryptedString, DeviceKey};
 
     use crate::auth::{auth_request_decrypt_master_key, auth_request_decrypt_user_key};
 
@@ -103,6 +103,7 @@ pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequ
             client.initialize_user_crypto_master_key(master_key, user_key, private_key)?;
         }
         InitUserCryptoMethod::DecryptedKey { decrypted_user_key } => {
+            let decrypted_user_key = DecryptedString::new(Box::new(decrypted_user_key));
             let user_key = SymmetricCryptoKey::try_from(decrypted_user_key)?;
             client.initialize_user_crypto_decrypted_key(user_key, private_key)?;
         }
@@ -137,6 +138,7 @@ pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequ
             protected_device_private_key,
             device_protected_user_key,
         } => {
+            let device_key = DecryptedString::new(Box::new(device_key));
             let device_key = DeviceKey::try_from(device_key)?;
             let user_key = device_key
                 .decrypt_user_key(protected_device_private_key, device_protected_user_key)?;
@@ -159,7 +161,7 @@ pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequ
 #[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct InitOrgCryptoRequest {
     /// The encryption keys for all the organizations the user is a part of
     pub organization_keys: HashMap<uuid::Uuid, AsymmetricEncString>,
@@ -185,7 +187,7 @@ pub async fn get_user_encryption_key(client: &mut Client) -> Result<SensitiveStr
 #[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct UpdatePasswordResponse {
     /// Hash of the new password
     password_hash: SensitiveString,
@@ -234,7 +236,7 @@ pub fn update_password(
 #[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct DerivePinKeyResponse {
     /// [UserKey](bitwarden_crypto::UserKey) protected by PIN
     pin_protected_user_key: EncString,

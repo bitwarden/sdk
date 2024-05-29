@@ -10,4 +10,3 @@ pub(crate) mod encryption_settings;
 mod flags;
 
 pub use client::Client;
-pub use client_settings::{ClientSettings, DeviceType};

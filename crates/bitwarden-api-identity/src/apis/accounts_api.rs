@@ -9,10 +9,9 @@
  */
 
 use reqwest;
-use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::{apis::ResponseContent, models};
+use crate::apis::ResponseContent;
 
 /// struct for typed errors of method [`accounts_prelogin_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -37,8 +36,8 @@ pub enum AccountsWebauthnAssertionOptionsGetError {
 
 pub async fn accounts_prelogin_post(
     configuration: &configuration::Configuration,
-    prelogin_request_model: Option<models::PreloginRequestModel>,
-) -> Result<models::PreloginResponseModel, Error<AccountsPreloginPostError>> {
+    prelogin_request_model: Option<crate::models::PreloginRequestModel>,
+) -> Result<crate::models::PreloginResponseModel, Error<AccountsPreloginPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -75,8 +74,8 @@ pub async fn accounts_prelogin_post(
 
 pub async fn accounts_register_post(
     configuration: &configuration::Configuration,
-    register_request_model: Option<models::RegisterRequestModel>,
-) -> Result<models::RegisterResponseModel, Error<AccountsRegisterPostError>> {
+    register_request_model: Option<crate::models::RegisterRequestModel>,
+) -> Result<crate::models::RegisterResponseModel, Error<AccountsRegisterPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -114,7 +113,7 @@ pub async fn accounts_register_post(
 pub async fn accounts_webauthn_assertion_options_get(
     configuration: &configuration::Configuration,
 ) -> Result<
-    models::WebAuthnLoginAssertionOptionsResponseModel,
+    crate::models::WebAuthnLoginAssertionOptionsResponseModel,
     Error<AccountsWebauthnAssertionOptionsGetError>,
 > {
     let local_var_configuration = configuration;

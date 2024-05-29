@@ -4,8 +4,6 @@ use bitwarden::platform::FingerprintRequest;
 
 use crate::{error::Result, Client};
 
-mod fido2;
-
 #[derive(uniffi::Object)]
 pub struct ClientPlatform(pub(crate) Arc<Client>);
 
@@ -38,10 +36,5 @@ impl ClientPlatform {
     pub async fn load_flags(&self, flags: std::collections::HashMap<String, bool>) -> Result<()> {
         self.0 .0.write().await.load_flags(flags);
         Ok(())
-    }
-
-    /// FIDO2 operations
-    pub fn fido2(self: Arc<Self>) -> Arc<fido2::ClientFido2> {
-        Arc::new(fido2::ClientFido2(self.0.clone()))
     }
 }

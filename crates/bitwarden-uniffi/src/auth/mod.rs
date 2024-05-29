@@ -18,7 +18,7 @@ impl ClientAuth {
     /// **API Draft:** Calculate Password Strength
     pub async fn password_strength(
         &self,
-        password: SensitiveString,
+        password: String,
         email: String,
         additional_inputs: Vec<String>,
     ) -> u8 {
@@ -34,7 +34,7 @@ impl ClientAuth {
     /// Evaluate if the provided password satisfies the provided policy
     pub async fn satisfies_policy(
         &self,
-        password: SensitiveString,
+        password: String,
         strength: u8,
         policy: MasterPasswordPolicyOptions,
     ) -> bool {

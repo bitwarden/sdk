@@ -14,7 +14,7 @@ impl ClientCollections {
         Ok(self
             .0
              .0
-            .write()
+            .read()
             .await
             .vault()
             .collections()
@@ -27,7 +27,7 @@ impl ClientCollections {
         Ok(self
             .0
              .0
-            .write()
+            .read()
             .await
             .vault()
             .collections()

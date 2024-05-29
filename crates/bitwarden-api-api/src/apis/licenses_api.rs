@@ -9,10 +9,9 @@
  */
 
 use reqwest;
-use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::{apis::ResponseContent, models};
+use crate::apis::ResponseContent;
 
 /// struct for typed errors of method [`licenses_organization_id_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -32,9 +31,9 @@ pub async fn licenses_organization_id_get(
     configuration: &configuration::Configuration,
     id: &str,
     self_hosted_organization_license_request_model: Option<
-        models::SelfHostedOrganizationLicenseRequestModel,
+        crate::models::SelfHostedOrganizationLicenseRequestModel,
     >,
-) -> Result<models::OrganizationLicense, Error<LicensesOrganizationIdGetError>> {
+) -> Result<crate::models::OrganizationLicense, Error<LicensesOrganizationIdGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -42,7 +41,7 @@ pub async fn licenses_organization_id_get(
     let local_var_uri_str = format!(
         "{}/licenses/organization/{id}",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id)
+        id = crate::apis::urlencode(id.to_string())
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -81,7 +80,7 @@ pub async fn licenses_user_id_get(
     configuration: &configuration::Configuration,
     id: &str,
     key: Option<&str>,
-) -> Result<models::UserLicense, Error<LicensesUserIdGetError>> {
+) -> Result<crate::models::UserLicense, Error<LicensesUserIdGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -89,7 +88,7 @@ pub async fn licenses_user_id_get(
     let local_var_uri_str = format!(
         "{}/licenses/user/{id}",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id)
+        id = crate::apis::urlencode(id.to_string())
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());

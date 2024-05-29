@@ -1,7 +1,5 @@
 package sdk
 
-import "time"
-
 type SecretsInterface interface {
 	Create(key, value, note string, organizationID string, projectIDs []string) (*SecretResponse, error)
 	List(organizationID string) (*SecretIdentifiersResponse, error)
@@ -9,7 +7,6 @@ type SecretsInterface interface {
 	GetByIDS(secretIDs []string) (*SecretsResponse, error)
 	Update(secretID string, key, value, note string, organizationID string, projectIDs []string) (*SecretResponse, error)
 	Delete(secretIDs []string) (*SecretsDeleteResponse, error)
-	Sync(organizationID string, lastSyncedDate *time.Time) (*SecretsSyncResponse, error)
 }
 
 type Secrets struct {
@@ -127,29 +124,6 @@ func (s *Secrets) Delete(ids []string) (*SecretsDeleteResponse, error) {
 	}
 
 	var response SecretsDeleteResponse
-	if err := s.executeCommand(command, &response); err != nil {
-		return nil, err
-	}
-	return &response, nil
-}
-
-func (s *Secrets) Sync(organizationID string, lastSyncedDate *time.Time) (*SecretsSyncResponse, error) {
-	var lastSyncedDateString *string
-	if lastSyncedDate != nil {
-		tempRfc3339 := lastSyncedDate.UTC().Format(time.RFC3339)
-		lastSyncedDateString = &tempRfc3339
-	}
-
-	command := Command{
-		Secrets: &SecretsCommand{
-			Sync: &SecretsSyncRequest{
-				OrganizationID: organizationID,
-				LastSyncedDate: lastSyncedDateString,
-			},
-		},
-	}
-
-	var response SecretsSyncResponse
 	if err := s.executeCommand(command, &response); err != nil {
 		return nil, err
 	}

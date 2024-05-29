@@ -9,10 +9,9 @@
  */
 
 use reqwest;
-use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::{apis::ResponseContent, models};
+use crate::apis::ResponseContent;
 
 /// struct for typed errors of method [`config_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -23,7 +22,7 @@ pub enum ConfigGetError {
 
 pub async fn config_get(
     configuration: &configuration::Configuration,
-) -> Result<models::ConfigResponseModel, Error<ConfigGetError>> {
+) -> Result<crate::models::ConfigResponseModel, Error<ConfigGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;

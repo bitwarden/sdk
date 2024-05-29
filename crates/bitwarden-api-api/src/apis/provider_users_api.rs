@@ -9,10 +9,9 @@
  */
 
 use reqwest;
-use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::{apis::ResponseContent, models};
+use crate::apis::ResponseContent;
 
 /// struct for typed errors of method [`providers_provider_id_users_confirm_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -122,9 +121,11 @@ pub enum ProvidersProviderIdUsersReinvitePostError {
 pub async fn providers_provider_id_users_confirm_post(
     configuration: &configuration::Configuration,
     provider_id: uuid::Uuid,
-    provider_user_bulk_confirm_request_model: Option<models::ProviderUserBulkConfirmRequestModel>,
+    provider_user_bulk_confirm_request_model: Option<
+        crate::models::ProviderUserBulkConfirmRequestModel,
+    >,
 ) -> Result<
-    models::ProviderUserBulkResponseModelListResponseModel,
+    crate::models::ProviderUserBulkResponseModelListResponseModel,
     Error<ProvidersProviderIdUsersConfirmPostError>,
 > {
     let local_var_configuration = configuration;
@@ -171,9 +172,9 @@ pub async fn providers_provider_id_users_confirm_post(
 pub async fn providers_provider_id_users_delete(
     configuration: &configuration::Configuration,
     provider_id: uuid::Uuid,
-    provider_user_bulk_request_model: Option<models::ProviderUserBulkRequestModel>,
+    provider_user_bulk_request_model: Option<crate::models::ProviderUserBulkRequestModel>,
 ) -> Result<
-    models::ProviderUserBulkResponseModelListResponseModel,
+    crate::models::ProviderUserBulkResponseModelListResponseModel,
     Error<ProvidersProviderIdUsersDeleteError>,
 > {
     let local_var_configuration = configuration;
@@ -220,9 +221,9 @@ pub async fn providers_provider_id_users_delete(
 pub async fn providers_provider_id_users_delete_post(
     configuration: &configuration::Configuration,
     provider_id: uuid::Uuid,
-    provider_user_bulk_request_model: Option<models::ProviderUserBulkRequestModel>,
+    provider_user_bulk_request_model: Option<crate::models::ProviderUserBulkRequestModel>,
 ) -> Result<
-    models::ProviderUserBulkResponseModelListResponseModel,
+    crate::models::ProviderUserBulkResponseModelListResponseModel,
     Error<ProvidersProviderIdUsersDeletePostError>,
 > {
     let local_var_configuration = configuration;
@@ -270,7 +271,7 @@ pub async fn providers_provider_id_users_get(
     configuration: &configuration::Configuration,
     provider_id: uuid::Uuid,
 ) -> Result<
-    models::ProviderUserUserDetailsResponseModelListResponseModel,
+    crate::models::ProviderUserUserDetailsResponseModelListResponseModel,
     Error<ProvidersProviderIdUsersGetError>,
 > {
     let local_var_configuration = configuration;
@@ -317,7 +318,7 @@ pub async fn providers_provider_id_users_id_accept_post(
     configuration: &configuration::Configuration,
     provider_id: uuid::Uuid,
     id: uuid::Uuid,
-    provider_user_accept_request_model: Option<models::ProviderUserAcceptRequestModel>,
+    provider_user_accept_request_model: Option<crate::models::ProviderUserAcceptRequestModel>,
 ) -> Result<(), Error<ProvidersProviderIdUsersIdAcceptPostError>> {
     let local_var_configuration = configuration;
 
@@ -365,7 +366,7 @@ pub async fn providers_provider_id_users_id_confirm_post(
     configuration: &configuration::Configuration,
     provider_id: uuid::Uuid,
     id: uuid::Uuid,
-    provider_user_confirm_request_model: Option<models::ProviderUserConfirmRequestModel>,
+    provider_user_confirm_request_model: Option<crate::models::ProviderUserConfirmRequestModel>,
 ) -> Result<(), Error<ProvidersProviderIdUsersIdConfirmPostError>> {
     let local_var_configuration = configuration;
 
@@ -505,7 +506,7 @@ pub async fn providers_provider_id_users_id_get(
     configuration: &configuration::Configuration,
     provider_id: uuid::Uuid,
     id: uuid::Uuid,
-) -> Result<models::ProviderUserResponseModel, Error<ProvidersProviderIdUsersIdGetError>> {
+) -> Result<crate::models::ProviderUserResponseModel, Error<ProvidersProviderIdUsersIdGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -551,7 +552,7 @@ pub async fn providers_provider_id_users_id_post(
     configuration: &configuration::Configuration,
     provider_id: uuid::Uuid,
     id: uuid::Uuid,
-    provider_user_update_request_model: Option<models::ProviderUserUpdateRequestModel>,
+    provider_user_update_request_model: Option<crate::models::ProviderUserUpdateRequestModel>,
 ) -> Result<(), Error<ProvidersProviderIdUsersIdPostError>> {
     let local_var_configuration = configuration;
 
@@ -599,7 +600,7 @@ pub async fn providers_provider_id_users_id_put(
     configuration: &configuration::Configuration,
     provider_id: uuid::Uuid,
     id: uuid::Uuid,
-    provider_user_update_request_model: Option<models::ProviderUserUpdateRequestModel>,
+    provider_user_update_request_model: Option<crate::models::ProviderUserUpdateRequestModel>,
 ) -> Result<(), Error<ProvidersProviderIdUsersIdPutError>> {
     let local_var_configuration = configuration;
 
@@ -692,7 +693,7 @@ pub async fn providers_provider_id_users_id_reinvite_post(
 pub async fn providers_provider_id_users_invite_post(
     configuration: &configuration::Configuration,
     provider_id: uuid::Uuid,
-    provider_user_invite_request_model: Option<models::ProviderUserInviteRequestModel>,
+    provider_user_invite_request_model: Option<crate::models::ProviderUserInviteRequestModel>,
 ) -> Result<(), Error<ProvidersProviderIdUsersInvitePostError>> {
     let local_var_configuration = configuration;
 
@@ -738,9 +739,9 @@ pub async fn providers_provider_id_users_invite_post(
 pub async fn providers_provider_id_users_public_keys_post(
     configuration: &configuration::Configuration,
     provider_id: uuid::Uuid,
-    provider_user_bulk_request_model: Option<models::ProviderUserBulkRequestModel>,
+    provider_user_bulk_request_model: Option<crate::models::ProviderUserBulkRequestModel>,
 ) -> Result<
-    models::ProviderUserPublicKeyResponseModelListResponseModel,
+    crate::models::ProviderUserPublicKeyResponseModelListResponseModel,
     Error<ProvidersProviderIdUsersPublicKeysPostError>,
 > {
     let local_var_configuration = configuration;
@@ -787,9 +788,9 @@ pub async fn providers_provider_id_users_public_keys_post(
 pub async fn providers_provider_id_users_reinvite_post(
     configuration: &configuration::Configuration,
     provider_id: uuid::Uuid,
-    provider_user_bulk_request_model: Option<models::ProviderUserBulkRequestModel>,
+    provider_user_bulk_request_model: Option<crate::models::ProviderUserBulkRequestModel>,
 ) -> Result<
-    models::ProviderUserBulkResponseModelListResponseModel,
+    crate::models::ProviderUserBulkResponseModelListResponseModel,
     Error<ProvidersProviderIdUsersReinvitePostError>,
 > {
     let local_var_configuration = configuration;

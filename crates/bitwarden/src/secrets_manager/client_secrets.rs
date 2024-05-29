@@ -2,11 +2,10 @@ use crate::{
     error::Result,
     secrets_manager::secrets::{
         create_secret, delete_secrets, get_secret, get_secrets_by_ids, list_secrets,
-        list_secrets_by_project, sync_secrets, update_secret, SecretCreateRequest,
-        SecretGetRequest, SecretIdentifiersByProjectRequest, SecretIdentifiersRequest,
-        SecretIdentifiersResponse, SecretPutRequest, SecretResponse, SecretsDeleteRequest,
-        SecretsDeleteResponse, SecretsGetRequest, SecretsResponse, SecretsSyncRequest,
-        SecretsSyncResponse,
+        list_secrets_by_project, update_secret, SecretCreateRequest, SecretGetRequest,
+        SecretIdentifiersByProjectRequest, SecretIdentifiersRequest, SecretIdentifiersResponse,
+        SecretPutRequest, SecretResponse, SecretsDeleteRequest, SecretsDeleteResponse,
+        SecretsGetRequest, SecretsResponse,
     },
     Client,
 };
@@ -48,10 +47,6 @@ impl<'a> ClientSecrets<'a> {
 
     pub async fn delete(&mut self, input: SecretsDeleteRequest) -> Result<SecretsDeleteResponse> {
         delete_secrets(self.client, input).await
-    }
-
-    pub async fn sync(&mut self, input: &SecretsSyncRequest) -> Result<SecretsSyncResponse> {
-        sync_secrets(self.client, input).await
     }
 }
 

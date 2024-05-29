@@ -12,7 +12,7 @@ use crate::error::{require, Error, Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Folder {
     id: Option<Uuid>,
     name: EncString,
@@ -21,7 +21,7 @@ pub struct Folder {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct FolderView {
     pub id: Option<Uuid>,
     pub name: DecryptedString,

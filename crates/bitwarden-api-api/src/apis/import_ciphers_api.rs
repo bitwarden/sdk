@@ -9,10 +9,9 @@
  */
 
 use reqwest;
-use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::{apis::ResponseContent, models};
+use crate::apis::ResponseContent;
 
 /// struct for typed errors of method [`ciphers_import_organization_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -32,7 +31,7 @@ pub async fn ciphers_import_organization_post(
     configuration: &configuration::Configuration,
     organization_id: Option<&str>,
     import_organization_ciphers_request_model: Option<
-        models::ImportOrganizationCiphersRequestModel,
+        crate::models::ImportOrganizationCiphersRequestModel,
     >,
 ) -> Result<(), Error<CiphersImportOrganizationPostError>> {
     let local_var_configuration = configuration;
@@ -81,7 +80,7 @@ pub async fn ciphers_import_organization_post(
 
 pub async fn ciphers_import_post(
     configuration: &configuration::Configuration,
-    import_ciphers_request_model: Option<models::ImportCiphersRequestModel>,
+    import_ciphers_request_model: Option<crate::models::ImportCiphersRequestModel>,
 ) -> Result<(), Error<CiphersImportPostError>> {
     let local_var_configuration = configuration;
 

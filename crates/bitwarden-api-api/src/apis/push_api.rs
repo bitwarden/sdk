@@ -9,10 +9,9 @@
  */
 
 use reqwest;
-use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::{apis::ResponseContent, models};
+use crate::apis::ResponseContent;
 
 /// struct for typed errors of method [`push_add_organization_put`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -28,10 +27,10 @@ pub enum PushDeleteOrganizationPutError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`push_delete_post`]
+/// struct for typed errors of method [`push_id_delete`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum PushDeletePostError {
+pub enum PushIdDeleteError {
     UnknownValue(serde_json::Value),
 }
 
@@ -51,7 +50,7 @@ pub enum PushSendPostError {
 
 pub async fn push_add_organization_put(
     configuration: &configuration::Configuration,
-    push_update_request_model: Option<models::PushUpdateRequestModel>,
+    push_update_request_model: Option<crate::models::PushUpdateRequestModel>,
 ) -> Result<(), Error<PushAddOrganizationPutError>> {
     let local_var_configuration = configuration;
 
@@ -95,7 +94,7 @@ pub async fn push_add_organization_put(
 
 pub async fn push_delete_organization_put(
     configuration: &configuration::Configuration,
-    push_update_request_model: Option<models::PushUpdateRequestModel>,
+    push_update_request_model: Option<crate::models::PushUpdateRequestModel>,
 ) -> Result<(), Error<PushDeleteOrganizationPutError>> {
     let local_var_configuration = configuration;
 
@@ -137,17 +136,21 @@ pub async fn push_delete_organization_put(
     }
 }
 
-pub async fn push_delete_post(
+pub async fn push_id_delete(
     configuration: &configuration::Configuration,
-    push_device_request_model: Option<models::PushDeviceRequestModel>,
-) -> Result<(), Error<PushDeletePostError>> {
+    id: &str,
+) -> Result<(), Error<PushIdDeleteError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
 
-    let local_var_uri_str = format!("{}/push/delete", local_var_configuration.base_path);
+    let local_var_uri_str = format!(
+        "{}/push/{id}",
+        local_var_configuration.base_path,
+        id = crate::apis::urlencode(id.to_string())
+    );
     let mut local_var_req_builder =
-        local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
+        local_var_client.request(reqwest::Method::DELETE, local_var_uri_str.as_str());
 
     if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
         local_var_req_builder =
@@ -156,7 +159,6 @@ pub async fn push_delete_post(
     if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
         local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
     };
-    local_var_req_builder = local_var_req_builder.json(&push_device_request_model);
 
     let local_var_req = local_var_req_builder.build()?;
     let local_var_resp = local_var_client.execute(local_var_req).await?;
@@ -167,7 +169,7 @@ pub async fn push_delete_post(
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
         Ok(())
     } else {
-        let local_var_entity: Option<PushDeletePostError> =
+        let local_var_entity: Option<PushIdDeleteError> =
             serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,
@@ -180,7 +182,7 @@ pub async fn push_delete_post(
 
 pub async fn push_register_post(
     configuration: &configuration::Configuration,
-    push_registration_request_model: Option<models::PushRegistrationRequestModel>,
+    push_registration_request_model: Option<crate::models::PushRegistrationRequestModel>,
 ) -> Result<(), Error<PushRegisterPostError>> {
     let local_var_configuration = configuration;
 
@@ -221,7 +223,7 @@ pub async fn push_register_post(
 
 pub async fn push_send_post(
     configuration: &configuration::Configuration,
-    push_send_request_model: Option<models::PushSendRequestModel>,
+    push_send_request_model: Option<crate::models::PushSendRequestModel>,
 ) -> Result<(), Error<PushSendPostError>> {
     let local_var_configuration = configuration;
 

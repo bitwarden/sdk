@@ -14,7 +14,7 @@ impl ClientFolders {
         Ok(self
             .0
              .0
-            .write()
+            .read()
             .await
             .vault()
             .folders()
@@ -27,7 +27,7 @@ impl ClientFolders {
         Ok(self
             .0
              .0
-            .write()
+            .read()
             .await
             .vault()
             .folders()
@@ -40,7 +40,7 @@ impl ClientFolders {
         Ok(self
             .0
              .0
-            .write()
+            .read()
             .await
             .vault()
             .folders()

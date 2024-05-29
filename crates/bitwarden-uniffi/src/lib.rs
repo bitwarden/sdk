@@ -31,7 +31,6 @@ impl Client {
     /// Initialize a new instance of the SDK client
     #[uniffi::constructor]
     pub fn new(settings: Option<ClientSettings>) -> Arc<Self> {
-        init_logger();
         Arc::new(Self(RwLock::new(bitwarden::Client::new(settings))))
     }
 
@@ -68,15 +67,4 @@ impl Client {
     pub fn echo(&self, msg: String) -> String {
         msg
     }
-}
-
-fn init_logger() {
-    #[cfg(not(target_os = "android"))]
-    let _ = env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info"))
-        .try_init();
-
-    #[cfg(target_os = "android")]
-    android_logger::init_once(
-        android_logger::Config::default().with_max_level(uniffi::deps::log::LevelFilter::Info),
-    );
 }

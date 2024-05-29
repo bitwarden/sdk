@@ -17,7 +17,7 @@ const SEND_ITERATIONS: u32 = 100_000;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SendFile {
     pub id: Option<String>,
     pub file_name: EncString,
@@ -28,7 +28,7 @@ pub struct SendFile {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, PartialEq, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SendFileView {
     pub id: Option<String>,
     pub file_name: DecryptedString,
@@ -39,7 +39,7 @@ pub struct SendFileView {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SendText {
     pub text: Option<EncString>,
     pub hidden: bool,
@@ -47,7 +47,7 @@ pub struct SendText {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, PartialEq, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SendTextView {
     pub text: Option<DecryptedString>,
     pub hidden: bool,
@@ -55,7 +55,7 @@ pub struct SendTextView {
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema, PartialEq)]
 #[repr(u8)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
+#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum SendType {
     Text = 0,
     File = 1,
@@ -63,7 +63,7 @@ pub enum SendType {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Send {
     pub id: Option<Uuid>,
     pub access_id: Option<String>,
@@ -89,7 +89,7 @@ pub struct Send {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, PartialEq, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SendView {
     pub id: Option<Uuid>,
     pub access_id: Option<String>,
@@ -122,7 +122,7 @@ pub struct SendView {
 
 #[derive(Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct SendListView {
     pub id: Option<Uuid>,
     pub access_id: Option<String>,

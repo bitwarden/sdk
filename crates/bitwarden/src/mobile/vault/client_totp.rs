@@ -1,8 +1,9 @@
 use chrono::{DateTime, Utc};
 
+use super::client_vault::ClientVault;
 use crate::{
     error::Result,
-    vault::{generate_totp, ClientVault, TotpResponse},
+    vault::{generate_totp, TotpResponse},
 };
 
 impl<'a> ClientVault<'a> {

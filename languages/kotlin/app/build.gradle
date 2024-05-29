@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace 'com.bitwarden.myapplication'
-    compileSdk 34
+    compileSdk 33
 
     defaultConfig {
         applicationId "com.bitwarden.myapplication"
         minSdk 28
-        targetSdk 34
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 
@@ -38,7 +38,7 @@ android {
         compose true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion '1.5.12'
+        kotlinCompilerExtensionVersion '1.4.8'
     }
     packagingOptions {
         resources {

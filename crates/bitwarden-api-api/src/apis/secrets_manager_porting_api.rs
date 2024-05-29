@@ -9,10 +9,9 @@
  */
 
 use reqwest;
-use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::{apis::ResponseContent, models};
+use crate::apis::ResponseContent;
 
 /// struct for typed errors of method [`sm_organization_id_export_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -31,7 +30,7 @@ pub enum SmOrganizationIdImportPostError {
 pub async fn sm_organization_id_export_get(
     configuration: &configuration::Configuration,
     organization_id: uuid::Uuid,
-) -> Result<models::SmExportResponseModel, Error<SmOrganizationIdExportGetError>> {
+) -> Result<crate::models::SmExportResponseModel, Error<SmOrganizationIdExportGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -75,7 +74,7 @@ pub async fn sm_organization_id_export_get(
 pub async fn sm_organization_id_import_post(
     configuration: &configuration::Configuration,
     organization_id: uuid::Uuid,
-    sm_import_request_model: Option<models::SmImportRequestModel>,
+    sm_import_request_model: Option<crate::models::SmImportRequestModel>,
 ) -> Result<(), Error<SmOrganizationIdImportPostError>> {
     let local_var_configuration = configuration;
 

@@ -16,7 +16,7 @@ use crate::{
 /// Enum represents all the possible KDFs.
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
+#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum Kdf {
     PBKDF2 {
         iterations: NonZeroU32,
@@ -55,7 +55,7 @@ pub fn default_argon2_parallelism() -> NonZeroU32 {
 }
 
 #[derive(Copy, Clone, JsonSchema)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
+#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
 pub enum HashPurpose {
     ServerAuthorization = 1,
     LocalAuthorization = 2,

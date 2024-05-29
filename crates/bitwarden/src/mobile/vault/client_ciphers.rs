@@ -1,9 +1,10 @@
 use bitwarden_crypto::{CryptoError, KeyDecryptable, KeyEncryptable, LocateKey};
 use uuid::Uuid;
 
+use super::client_vault::ClientVault;
 use crate::{
     error::{Error, Result},
-    vault::{Cipher, CipherListView, CipherView, ClientVault},
+    vault::{Cipher, CipherListView, CipherView},
     Client,
 };
 

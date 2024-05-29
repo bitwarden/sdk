@@ -49,7 +49,7 @@ pub(super) fn make_register_tde_keys(
     })
 }
 
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct RegisterTdeKeyResponse {
     pub private_key: EncString,
     pub public_key: String,

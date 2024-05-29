@@ -51,7 +51,7 @@ jobs:
               strip *.node
     steps:
       - name: Checkout repo
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Setup Node
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
@@ -61,7 +61,7 @@ jobs:
           cache-dependency-path: crates/bitwarden-napi/package-lock.json
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@d8352f6b1d2e870bc5716e7a6d9b65c4cc244a1a # stable
+        uses: dtolnay/rust-toolchain@bb45937a053e097f8591208d8e74c90db1873d07 # stable
         with:
           toolchain: stable
           targets: ${{ matrix.settings.target }}
@@ -72,7 +72,7 @@ jobs:
           key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.os }}
 
       - name: Retrieve schemas
-        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
+        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
         with:
           name: schemas.ts
           path: ${{ github.workspace }}/crates/bitwarden-napi/src-ts/bitwarden_client/
@@ -84,7 +84,7 @@ jobs:
         run: ${{ matrix.settings.build }}
 
       - name: Upload artifact
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
           name: sdk-bitwarden-napi-${{ matrix.settings.target }}
           path: ${{ github.workspace }}/crates/bitwarden-napi/sdk-napi.*.node

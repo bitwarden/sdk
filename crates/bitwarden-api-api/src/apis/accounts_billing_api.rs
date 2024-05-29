@@ -9,10 +9,9 @@
  */
 
 use reqwest;
-use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::{apis::ResponseContent, models};
+use crate::apis::ResponseContent;
 
 /// struct for typed errors of method [`accounts_billing_history_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -30,7 +29,7 @@ pub enum AccountsBillingPaymentMethodGetError {
 
 pub async fn accounts_billing_history_get(
     configuration: &configuration::Configuration,
-) -> Result<models::BillingHistoryResponseModel, Error<AccountsBillingHistoryGetError>> {
+) -> Result<crate::models::BillingHistoryResponseModel, Error<AccountsBillingHistoryGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -72,7 +71,8 @@ pub async fn accounts_billing_history_get(
 
 pub async fn accounts_billing_payment_method_get(
     configuration: &configuration::Configuration,
-) -> Result<models::BillingPaymentResponseModel, Error<AccountsBillingPaymentMethodGetError>> {
+) -> Result<crate::models::BillingPaymentResponseModel, Error<AccountsBillingPaymentMethodGetError>>
+{
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;

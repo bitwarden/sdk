@@ -9,10 +9,9 @@
  */
 
 use reqwest;
-use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::{apis::ResponseContent, models};
+use crate::apis::ResponseContent;
 
 /// struct for typed errors of method [`providers_provider_id_organizations_add_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -52,7 +51,9 @@ pub enum ProvidersProviderIdOrganizationsPostError {
 pub async fn providers_provider_id_organizations_add_post(
     configuration: &configuration::Configuration,
     provider_id: uuid::Uuid,
-    provider_organization_add_request_model: Option<models::ProviderOrganizationAddRequestModel>,
+    provider_organization_add_request_model: Option<
+        crate::models::ProviderOrganizationAddRequestModel,
+    >,
 ) -> Result<(), Error<ProvidersProviderIdOrganizationsAddPostError>> {
     let local_var_configuration = configuration;
 
@@ -99,7 +100,7 @@ pub async fn providers_provider_id_organizations_get(
     configuration: &configuration::Configuration,
     provider_id: uuid::Uuid,
 ) -> Result<
-    models::ProviderOrganizationOrganizationDetailsResponseModelListResponseModel,
+    crate::models::ProviderOrganizationOrganizationDetailsResponseModelListResponseModel,
     Error<ProvidersProviderIdOrganizationsGetError>,
 > {
     let local_var_configuration = configuration;
@@ -238,10 +239,10 @@ pub async fn providers_provider_id_organizations_post(
     configuration: &configuration::Configuration,
     provider_id: uuid::Uuid,
     provider_organization_create_request_model: Option<
-        models::ProviderOrganizationCreateRequestModel,
+        crate::models::ProviderOrganizationCreateRequestModel,
     >,
 ) -> Result<
-    models::ProviderOrganizationResponseModel,
+    crate::models::ProviderOrganizationResponseModel,
     Error<ProvidersProviderIdOrganizationsPostError>,
 > {
     let local_var_configuration = configuration;

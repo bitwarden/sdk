@@ -9,10 +9,9 @@
  */
 
 use reqwest;
-use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::{apis::ResponseContent, models};
+use crate::apis::ResponseContent;
 
 /// struct for typed errors of method [`secrets_organization_id_trash_empty_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -84,8 +83,10 @@ pub async fn secrets_organization_id_trash_empty_post(
 pub async fn secrets_organization_id_trash_get(
     configuration: &configuration::Configuration,
     organization_id: uuid::Uuid,
-) -> Result<models::SecretWithProjectsListResponseModel, Error<SecretsOrganizationIdTrashGetError>>
-{
+) -> Result<
+    crate::models::SecretWithProjectsListResponseModel,
+    Error<SecretsOrganizationIdTrashGetError>,
+> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;

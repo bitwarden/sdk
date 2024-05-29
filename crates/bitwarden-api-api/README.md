@@ -10,8 +10,7 @@ using the [openapi-spec](https://openapis.org) from a remote server, you can eas
 client.
 
 - API version: latest
-- Package version: 0.5.0
-- Generator version: 7.6.0
+- Package version: 1.0.0
 - Build package: `org.openapitools.codegen.languages.RustClientCodegen`
 
 ## Installation
@@ -29,21 +28,23 @@ All URIs are relative to _http://localhost_
 
 | Class                                   | Method                                                                                                                                                                                                                       | HTTP request                                                                             | Description                                                                                                                                                                                                               |
 | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| _AccessPoliciesApi_                     | [**access_policies_id_delete**](docs/AccessPoliciesApi.md#access_policies_id_delete)                                                                                                                                         | **DELETE** /access-policies/{id}                                                         |
+| _AccessPoliciesApi_                     | [**access_policies_id_put**](docs/AccessPoliciesApi.md#access_policies_id_put)                                                                                                                                               | **PUT** /access-policies/{id}                                                            |
 | _AccessPoliciesApi_                     | [**organizations_id_access_policies_people_potential_grantees_get**](docs/AccessPoliciesApi.md#organizations_id_access_policies_people_potential_grantees_get)                                                               | **GET** /organizations/{id}/access-policies/people/potential-grantees                    |
 | _AccessPoliciesApi_                     | [**organizations_id_access_policies_projects_potential_grantees_get**](docs/AccessPoliciesApi.md#organizations_id_access_policies_projects_potential_grantees_get)                                                           | **GET** /organizations/{id}/access-policies/projects/potential-grantees                  |
 | _AccessPoliciesApi_                     | [**organizations_id_access_policies_service_accounts_potential_grantees_get**](docs/AccessPoliciesApi.md#organizations_id_access_policies_service_accounts_potential_grantees_get)                                           | **GET** /organizations/{id}/access-policies/service-accounts/potential-grantees          |
+| _AccessPoliciesApi_                     | [**projects_id_access_policies_get**](docs/AccessPoliciesApi.md#projects_id_access_policies_get)                                                                                                                             | **GET** /projects/{id}/access-policies                                                   |
 | _AccessPoliciesApi_                     | [**projects_id_access_policies_people_get**](docs/AccessPoliciesApi.md#projects_id_access_policies_people_get)                                                                                                               | **GET** /projects/{id}/access-policies/people                                            |
 | _AccessPoliciesApi_                     | [**projects_id_access_policies_people_put**](docs/AccessPoliciesApi.md#projects_id_access_policies_people_put)                                                                                                               | **PUT** /projects/{id}/access-policies/people                                            |
-| _AccessPoliciesApi_                     | [**projects_id_access_policies_service_accounts_get**](docs/AccessPoliciesApi.md#projects_id_access_policies_service_accounts_get)                                                                                           | **GET** /projects/{id}/access-policies/service-accounts                                  |
-| _AccessPoliciesApi_                     | [**projects_id_access_policies_service_accounts_put**](docs/AccessPoliciesApi.md#projects_id_access_policies_service_accounts_put)                                                                                           | **PUT** /projects/{id}/access-policies/service-accounts                                  |
+| _AccessPoliciesApi_                     | [**projects_id_access_policies_post**](docs/AccessPoliciesApi.md#projects_id_access_policies_post)                                                                                                                           | **POST** /projects/{id}/access-policies                                                  |
 | _AccessPoliciesApi_                     | [**service_accounts_id_access_policies_people_get**](docs/AccessPoliciesApi.md#service_accounts_id_access_policies_people_get)                                                                                               | **GET** /service-accounts/{id}/access-policies/people                                    |
 | _AccessPoliciesApi_                     | [**service_accounts_id_access_policies_people_put**](docs/AccessPoliciesApi.md#service_accounts_id_access_policies_people_put)                                                                                               | **PUT** /service-accounts/{id}/access-policies/people                                    |
 | _AccessPoliciesApi_                     | [**service_accounts_id_granted_policies_get**](docs/AccessPoliciesApi.md#service_accounts_id_granted_policies_get)                                                                                                           | **GET** /service-accounts/{id}/granted-policies                                          |
-| _AccessPoliciesApi_                     | [**service_accounts_id_granted_policies_put**](docs/AccessPoliciesApi.md#service_accounts_id_granted_policies_put)                                                                                                           | **PUT** /service-accounts/{id}/granted-policies                                          |
+| _AccessPoliciesApi_                     | [**service_accounts_id_granted_policies_post**](docs/AccessPoliciesApi.md#service_accounts_id_granted_policies_post)                                                                                                         | **POST** /service-accounts/{id}/granted-policies                                         |
 | _AccountsApi_                           | [**accounts_api_key_post**](docs/AccountsApi.md#accounts_api_key_post)                                                                                                                                                       | **POST** /accounts/api-key                                                               |
 | _AccountsApi_                           | [**accounts_avatar_post**](docs/AccountsApi.md#accounts_avatar_post)                                                                                                                                                         | **POST** /accounts/avatar                                                                |
 | _AccountsApi_                           | [**accounts_avatar_put**](docs/AccountsApi.md#accounts_avatar_put)                                                                                                                                                           | **PUT** /accounts/avatar                                                                 |
-| _AccountsApi_                           | [**accounts_cancel_post**](docs/AccountsApi.md#accounts_cancel_post)                                                                                                                                                         | **POST** /accounts/cancel                                                                |
+| _AccountsApi_                           | [**accounts_cancel_premium_post**](docs/AccountsApi.md#accounts_cancel_premium_post)                                                                                                                                         | **POST** /accounts/cancel-premium                                                        |
 | _AccountsApi_                           | [**accounts_convert_to_key_connector_post**](docs/AccountsApi.md#accounts_convert_to_key_connector_post)                                                                                                                     | **POST** /accounts/convert-to-key-connector                                              |
 | _AccountsApi_                           | [**accounts_delete**](docs/AccountsApi.md#accounts_delete)                                                                                                                                                                   | **DELETE** /accounts                                                                     |
 | _AccountsApi_                           | [**accounts_delete_post**](docs/AccountsApi.md#accounts_delete_post)                                                                                                                                                         | **POST** /accounts/delete                                                                |
@@ -95,7 +96,6 @@ All URIs are relative to _http://localhost_
 | _CiphersApi_                            | [**ciphers_admin_delete**](docs/CiphersApi.md#ciphers_admin_delete)                                                                                                                                                          | **DELETE** /ciphers/admin                                                                |
 | _CiphersApi_                            | [**ciphers_admin_post**](docs/CiphersApi.md#ciphers_admin_post)                                                                                                                                                              | **POST** /ciphers/admin                                                                  |
 | _CiphersApi_                            | [**ciphers_attachment_validate_azure_post**](docs/CiphersApi.md#ciphers_attachment_validate_azure_post)                                                                                                                      | **POST** /ciphers/attachment/validate/azure                                              |
-| _CiphersApi_                            | [**ciphers_bulk_collections_post**](docs/CiphersApi.md#ciphers_bulk_collections_post)                                                                                                                                        | **POST** /ciphers/bulk-collections                                                       |
 | _CiphersApi_                            | [**ciphers_create_post**](docs/CiphersApi.md#ciphers_create_post)                                                                                                                                                            | **POST** /ciphers/create                                                                 |
 | _CiphersApi_                            | [**ciphers_delete**](docs/CiphersApi.md#ciphers_delete)                                                                                                                                                                      | **DELETE** /ciphers                                                                      |
 | _CiphersApi_                            | [**ciphers_delete_admin_post**](docs/CiphersApi.md#ciphers_delete_admin_post)                                                                                                                                                | **POST** /ciphers/delete-admin                                                           |
@@ -103,7 +103,6 @@ All URIs are relative to _http://localhost_
 | _CiphersApi_                            | [**ciphers_delete_post**](docs/CiphersApi.md#ciphers_delete_post)                                                                                                                                                            | **POST** /ciphers/delete                                                                 |
 | _CiphersApi_                            | [**ciphers_delete_put**](docs/CiphersApi.md#ciphers_delete_put)                                                                                                                                                              | **PUT** /ciphers/delete                                                                  |
 | _CiphersApi_                            | [**ciphers_get**](docs/CiphersApi.md#ciphers_get)                                                                                                                                                                            | **GET** /ciphers                                                                         |
-| _CiphersApi_                            | [**ciphers_has_unassigned_ciphers_get**](docs/CiphersApi.md#ciphers_has_unassigned_ciphers_get)                                                                                                                              | **GET** /ciphers/has-unassigned-ciphers                                                  | Returns true if the user is an admin or owner of an organization with unassigned ciphers (i.e. ciphers that are not assigned to a collection).                                                                            |
 | _CiphersApi_                            | [**ciphers_id_admin_delete**](docs/CiphersApi.md#ciphers_id_admin_delete)                                                                                                                                                    | **DELETE** /ciphers/{id}/admin                                                           |
 | _CiphersApi_                            | [**ciphers_id_admin_get**](docs/CiphersApi.md#ciphers_id_admin_get)                                                                                                                                                          | **GET** /ciphers/{id}/admin                                                              |
 | _CiphersApi_                            | [**ciphers_id_admin_post**](docs/CiphersApi.md#ciphers_id_admin_post)                                                                                                                                                        | **POST** /ciphers/{id}/admin                                                             |
@@ -123,8 +122,6 @@ All URIs are relative to _http://localhost_
 | _CiphersApi_                            | [**ciphers_id_collections_admin_put**](docs/CiphersApi.md#ciphers_id_collections_admin_put)                                                                                                                                  | **PUT** /ciphers/{id}/collections-admin                                                  |
 | _CiphersApi_                            | [**ciphers_id_collections_post**](docs/CiphersApi.md#ciphers_id_collections_post)                                                                                                                                            | **POST** /ciphers/{id}/collections                                                       |
 | _CiphersApi_                            | [**ciphers_id_collections_put**](docs/CiphersApi.md#ciphers_id_collections_put)                                                                                                                                              | **PUT** /ciphers/{id}/collections                                                        |
-| _CiphersApi_                            | [**ciphers_id_collections_v2_post**](docs/CiphersApi.md#ciphers_id_collections_v2_post)                                                                                                                                      | **POST** /ciphers/{id}/collections_v2                                                    |
-| _CiphersApi_                            | [**ciphers_id_collections_v2_put**](docs/CiphersApi.md#ciphers_id_collections_v2_put)                                                                                                                                        | **PUT** /ciphers/{id}/collections_v2                                                     |
 | _CiphersApi_                            | [**ciphers_id_delete**](docs/CiphersApi.md#ciphers_id_delete)                                                                                                                                                                | **DELETE** /ciphers/{id}                                                                 |
 | _CiphersApi_                            | [**ciphers_id_delete_admin_post**](docs/CiphersApi.md#ciphers_id_delete_admin_post)                                                                                                                                          | **POST** /ciphers/{id}/delete-admin                                                      |
 | _CiphersApi_                            | [**ciphers_id_delete_admin_put**](docs/CiphersApi.md#ciphers_id_delete_admin_put)                                                                                                                                            | **PUT** /ciphers/{id}/delete-admin                                                       |
@@ -143,7 +140,6 @@ All URIs are relative to _http://localhost_
 | _CiphersApi_                            | [**ciphers_id_share_put**](docs/CiphersApi.md#ciphers_id_share_put)                                                                                                                                                          | **PUT** /ciphers/{id}/share                                                              |
 | _CiphersApi_                            | [**ciphers_move_post**](docs/CiphersApi.md#ciphers_move_post)                                                                                                                                                                | **POST** /ciphers/move                                                                   |
 | _CiphersApi_                            | [**ciphers_move_put**](docs/CiphersApi.md#ciphers_move_put)                                                                                                                                                                  | **PUT** /ciphers/move                                                                    |
-| _CiphersApi_                            | [**ciphers_organization_details_assigned_get**](docs/CiphersApi.md#ciphers_organization_details_assigned_get)                                                                                                                | **GET** /ciphers/organization-details/assigned                                           |
 | _CiphersApi_                            | [**ciphers_organization_details_get**](docs/CiphersApi.md#ciphers_organization_details_get)                                                                                                                                  | **GET** /ciphers/organization-details                                                    |
 | _CiphersApi_                            | [**ciphers_post**](docs/CiphersApi.md#ciphers_post)                                                                                                                                                                          | **POST** /ciphers                                                                        |
 | _CiphersApi_                            | [**ciphers_purge_post**](docs/CiphersApi.md#ciphers_purge_post)                                                                                                                                                              | **POST** /ciphers/purge                                                                  |
@@ -231,6 +227,7 @@ All URIs are relative to _http://localhost_
 | _GroupsApi_                             | [**organizations_org_id_groups_id_put**](docs/GroupsApi.md#organizations_org_id_groups_id_put)                                                                                                                               | **PUT** /organizations/{orgId}/groups/{id}                                               |
 | _GroupsApi_                             | [**organizations_org_id_groups_id_user_org_user_id_delete**](docs/GroupsApi.md#organizations_org_id_groups_id_user_org_user_id_delete)                                                                                       | **DELETE** /organizations/{orgId}/groups/{id}/user/{orgUserId}                           |
 | _GroupsApi_                             | [**organizations_org_id_groups_id_users_get**](docs/GroupsApi.md#organizations_org_id_groups_id_users_get)                                                                                                                   | **GET** /organizations/{orgId}/groups/{id}/users                                         |
+| _GroupsApi_                             | [**organizations_org_id_groups_id_users_put**](docs/GroupsApi.md#organizations_org_id_groups_id_users_put)                                                                                                                   | **PUT** /organizations/{orgId}/groups/{id}/users                                         |
 | _GroupsApi_                             | [**organizations_org_id_groups_post**](docs/GroupsApi.md#organizations_org_id_groups_post)                                                                                                                                   | **POST** /organizations/{orgId}/groups                                                   |
 | _HibpApi_                               | [**hibp_breach_get**](docs/HibpApi.md#hibp_breach_get)                                                                                                                                                                       | **GET** /hibp/breach                                                                     |
 | _ImportCiphersApi_                      | [**ciphers_import_organization_post**](docs/ImportCiphersApi.md#ciphers_import_organization_post)                                                                                                                            | **POST** /ciphers/import-organization                                                    |
@@ -248,8 +245,6 @@ All URIs are relative to _http://localhost_
 | _OrganizationAuthRequestsApi_           | [**organizations_org_id_auth_requests_deny_post**](docs/OrganizationAuthRequestsApi.md#organizations_org_id_auth_requests_deny_post)                                                                                         | **POST** /organizations/{orgId}/auth-requests/deny                                       |
 | _OrganizationAuthRequestsApi_           | [**organizations_org_id_auth_requests_get**](docs/OrganizationAuthRequestsApi.md#organizations_org_id_auth_requests_get)                                                                                                     | **GET** /organizations/{orgId}/auth-requests                                             |
 | _OrganizationAuthRequestsApi_           | [**organizations_org_id_auth_requests_request_id_post**](docs/OrganizationAuthRequestsApi.md#organizations_org_id_auth_requests_request_id_post)                                                                             | **POST** /organizations/{orgId}/auth-requests/{requestId}                                |
-| _OrganizationBillingApi_                | [**organizations_organization_id_billing_get**](docs/OrganizationBillingApi.md#organizations_organization_id_billing_get)                                                                                                    | **GET** /organizations/{organizationId}/billing                                          |
-| _OrganizationBillingApi_                | [**organizations_organization_id_billing_metadata_get**](docs/OrganizationBillingApi.md#organizations_organization_id_billing_metadata_get)                                                                                  | **GET** /organizations/{organizationId}/billing/metadata                                 |
 | _OrganizationConnectionsApi_            | [**organizations_connections_enabled_get**](docs/OrganizationConnectionsApi.md#organizations_connections_enabled_get)                                                                                                        | **GET** /organizations/connections/enabled                                               |
 | _OrganizationConnectionsApi_            | [**organizations_connections_organization_connection_id_delete**](docs/OrganizationConnectionsApi.md#organizations_connections_organization_connection_id_delete)                                                            | **DELETE** /organizations/connections/{organizationConnectionId}                         |
 | _OrganizationConnectionsApi_            | [**organizations_connections_organization_connection_id_delete_post**](docs/OrganizationConnectionsApi.md#organizations_connections_organization_connection_id_delete_post)                                                  | **POST** /organizations/connections/{organizationConnectionId}/delete                    |
@@ -285,6 +280,8 @@ All URIs are relative to _http://localhost_
 | _OrganizationUsersApi_                  | [**organizations_org_id_users_id_delete_post**](docs/OrganizationUsersApi.md#organizations_org_id_users_id_delete_post)                                                                                                      | **POST** /organizations/{orgId}/users/{id}/delete                                        |
 | _OrganizationUsersApi_                  | [**organizations_org_id_users_id_get**](docs/OrganizationUsersApi.md#organizations_org_id_users_id_get)                                                                                                                      | **GET** /organizations/{orgId}/users/{id}                                                |
 | _OrganizationUsersApi_                  | [**organizations_org_id_users_id_groups_get**](docs/OrganizationUsersApi.md#organizations_org_id_users_id_groups_get)                                                                                                        | **GET** /organizations/{orgId}/users/{id}/groups                                         |
+| _OrganizationUsersApi_                  | [**organizations_org_id_users_id_groups_post**](docs/OrganizationUsersApi.md#organizations_org_id_users_id_groups_post)                                                                                                      | **POST** /organizations/{orgId}/users/{id}/groups                                        |
+| _OrganizationUsersApi_                  | [**organizations_org_id_users_id_groups_put**](docs/OrganizationUsersApi.md#organizations_org_id_users_id_groups_put)                                                                                                        | **PUT** /organizations/{orgId}/users/{id}/groups                                         |
 | _OrganizationUsersApi_                  | [**organizations_org_id_users_id_post**](docs/OrganizationUsersApi.md#organizations_org_id_users_id_post)                                                                                                                    | **POST** /organizations/{orgId}/users/{id}                                               |
 | _OrganizationUsersApi_                  | [**organizations_org_id_users_id_put**](docs/OrganizationUsersApi.md#organizations_org_id_users_id_put)                                                                                                                      | **PUT** /organizations/{orgId}/users/{id}                                                |
 | _OrganizationUsersApi_                  | [**organizations_org_id_users_id_reinvite_post**](docs/OrganizationUsersApi.md#organizations_org_id_users_id_reinvite_post)                                                                                                  | **POST** /organizations/{orgId}/users/{id}/reinvite                                      |
@@ -307,12 +304,11 @@ All URIs are relative to _http://localhost_
 | _OrganizationsApi_                      | [**organizations_get**](docs/OrganizationsApi.md#organizations_get)                                                                                                                                                          | **GET** /organizations                                                                   |
 | _OrganizationsApi_                      | [**organizations_id_api_key_information_type_get**](docs/OrganizationsApi.md#organizations_id_api_key_information_type_get)                                                                                                  | **GET** /organizations/{id}/api-key-information/{type}                                   |
 | _OrganizationsApi_                      | [**organizations_id_api_key_post**](docs/OrganizationsApi.md#organizations_id_api_key_post)                                                                                                                                  | **POST** /organizations/{id}/api-key                                                     |
-| _OrganizationsApi_                      | [**organizations_id_billing_status_get**](docs/OrganizationsApi.md#organizations_id_billing_status_get)                                                                                                                      | **GET** /organizations/{id}/billing-status                                               |
+| _OrganizationsApi_                      | [**organizations_id_billing_get**](docs/OrganizationsApi.md#organizations_id_billing_get)                                                                                                                                    | **GET** /organizations/{id}/billing                                                      |
 | _OrganizationsApi_                      | [**organizations_id_cancel_post**](docs/OrganizationsApi.md#organizations_id_cancel_post)                                                                                                                                    | **POST** /organizations/{id}/cancel                                                      |
 | _OrganizationsApi_                      | [**organizations_id_collection_management_put**](docs/OrganizationsApi.md#organizations_id_collection_management_put)                                                                                                        | **PUT** /organizations/{id}/collection-management                                        |
 | _OrganizationsApi_                      | [**organizations_id_delete**](docs/OrganizationsApi.md#organizations_id_delete)                                                                                                                                              | **DELETE** /organizations/{id}                                                           |
 | _OrganizationsApi_                      | [**organizations_id_delete_post**](docs/OrganizationsApi.md#organizations_id_delete_post)                                                                                                                                    | **POST** /organizations/{id}/delete                                                      |
-| _OrganizationsApi_                      | [**organizations_id_delete_recover_token_post**](docs/OrganizationsApi.md#organizations_id_delete_recover_token_post)                                                                                                        | **POST** /organizations/{id}/delete-recover-token                                        |
 | _OrganizationsApi_                      | [**organizations_id_enable_collection_enhancements_post**](docs/OrganizationsApi.md#organizations_id_enable_collection_enhancements_post)                                                                                    | **POST** /organizations/{id}/enable-collection-enhancements                              | Migrates user, collection, and group data to the new Flexible Collections permissions scheme, then sets organization.FlexibleCollections to true to enable these new features for the organization. This is irreversible. |
 | _OrganizationsApi_                      | [**organizations_id_get**](docs/OrganizationsApi.md#organizations_id_get)                                                                                                                                                    | **GET** /organizations/{id}                                                              |
 | _OrganizationsApi_                      | [**organizations_id_import_post**](docs/OrganizationsApi.md#organizations_id_import_post)                                                                                                                                    | **POST** /organizations/{id}/import                                                      |
@@ -325,6 +321,7 @@ All URIs are relative to _http://localhost_
 | _OrganizationsApi_                      | [**organizations_id_public_key_get**](docs/OrganizationsApi.md#organizations_id_public_key_get)                                                                                                                              | **GET** /organizations/{id}/public-key                                                   |
 | _OrganizationsApi_                      | [**organizations_id_put**](docs/OrganizationsApi.md#organizations_id_put)                                                                                                                                                    | **PUT** /organizations/{id}                                                              |
 | _OrganizationsApi_                      | [**organizations_id_reinstate_post**](docs/OrganizationsApi.md#organizations_id_reinstate_post)                                                                                                                              | **POST** /organizations/{id}/reinstate                                                   |
+| _OrganizationsApi_                      | [**organizations_id_risks_subscription_failure_get**](docs/OrganizationsApi.md#organizations_id_risks_subscription_failure_get)                                                                                              | **GET** /organizations/{id}/risks-subscription-failure                                   |
 | _OrganizationsApi_                      | [**organizations_id_rotate_api_key_post**](docs/OrganizationsApi.md#organizations_id_rotate_api_key_post)                                                                                                                    | **POST** /organizations/{id}/rotate-api-key                                              |
 | _OrganizationsApi_                      | [**organizations_id_seat_post**](docs/OrganizationsApi.md#organizations_id_seat_post)                                                                                                                                        | **POST** /organizations/{id}/seat                                                        |
 | _OrganizationsApi_                      | [**organizations_id_sm_subscription_post**](docs/OrganizationsApi.md#organizations_id_sm_subscription_post)                                                                                                                  | **POST** /organizations/{id}/sm-subscription                                             |
@@ -353,9 +350,6 @@ All URIs are relative to _http://localhost_
 | _ProjectsApi_                           | [**projects_delete_post**](docs/ProjectsApi.md#projects_delete_post)                                                                                                                                                         | **POST** /projects/delete                                                                |
 | _ProjectsApi_                           | [**projects_id_get**](docs/ProjectsApi.md#projects_id_get)                                                                                                                                                                   | **GET** /projects/{id}                                                                   |
 | _ProjectsApi_                           | [**projects_id_put**](docs/ProjectsApi.md#projects_id_put)                                                                                                                                                                   | **PUT** /projects/{id}                                                                   |
-| _ProviderBillingApi_                    | [**providers_provider_id_billing_subscription_get**](docs/ProviderBillingApi.md#providers_provider_id_billing_subscription_get)                                                                                              | **GET** /providers/{providerId}/billing/subscription                                     |
-| _ProviderClientsApi_                    | [**providers_provider_id_clients_post**](docs/ProviderClientsApi.md#providers_provider_id_clients_post)                                                                                                                      | **POST** /providers/{providerId}/clients                                                 |
-| _ProviderClientsApi_                    | [**providers_provider_id_clients_provider_organization_id_put**](docs/ProviderClientsApi.md#providers_provider_id_clients_provider_organization_id_put)                                                                      | **PUT** /providers/{providerId}/clients/{providerOrganizationId}                         |
 | _ProviderOrganizationsApi_              | [**providers_provider_id_organizations_add_post**](docs/ProviderOrganizationsApi.md#providers_provider_id_organizations_add_post)                                                                                            | **POST** /providers/{providerId}/organizations/add                                       |
 | _ProviderOrganizationsApi_              | [**providers_provider_id_organizations_get**](docs/ProviderOrganizationsApi.md#providers_provider_id_organizations_get)                                                                                                      | **GET** /providers/{providerId}/organizations                                            |
 | _ProviderOrganizationsApi_              | [**providers_provider_id_organizations_id_delete**](docs/ProviderOrganizationsApi.md#providers_provider_id_organizations_id_delete)                                                                                          | **DELETE** /providers/{providerId}/organizations/{id}                                    |
@@ -376,21 +370,17 @@ All URIs are relative to _http://localhost_
 | _ProviderUsersApi_                      | [**providers_provider_id_users_invite_post**](docs/ProviderUsersApi.md#providers_provider_id_users_invite_post)                                                                                                              | **POST** /providers/{providerId}/users/invite                                            |
 | _ProviderUsersApi_                      | [**providers_provider_id_users_public_keys_post**](docs/ProviderUsersApi.md#providers_provider_id_users_public_keys_post)                                                                                                    | **POST** /providers/{providerId}/users/public-keys                                       |
 | _ProviderUsersApi_                      | [**providers_provider_id_users_reinvite_post**](docs/ProviderUsersApi.md#providers_provider_id_users_reinvite_post)                                                                                                          | **POST** /providers/{providerId}/users/reinvite                                          |
-| _ProvidersApi_                          | [**providers_id_delete**](docs/ProvidersApi.md#providers_id_delete)                                                                                                                                                          | **DELETE** /providers/{id}                                                               |
-| _ProvidersApi_                          | [**providers_id_delete_post**](docs/ProvidersApi.md#providers_id_delete_post)                                                                                                                                                | **POST** /providers/{id}/delete                                                          |
-| _ProvidersApi_                          | [**providers_id_delete_recover_token_post**](docs/ProvidersApi.md#providers_id_delete_recover_token_post)                                                                                                                    | **POST** /providers/{id}/delete-recover-token                                            |
 | _ProvidersApi_                          | [**providers_id_get**](docs/ProvidersApi.md#providers_id_get)                                                                                                                                                                | **GET** /providers/{id}                                                                  |
 | _ProvidersApi_                          | [**providers_id_post**](docs/ProvidersApi.md#providers_id_post)                                                                                                                                                              | **POST** /providers/{id}                                                                 |
 | _ProvidersApi_                          | [**providers_id_put**](docs/ProvidersApi.md#providers_id_put)                                                                                                                                                                | **PUT** /providers/{id}                                                                  |
 | _ProvidersApi_                          | [**providers_id_setup_post**](docs/ProvidersApi.md#providers_id_setup_post)                                                                                                                                                  | **POST** /providers/{id}/setup                                                           |
 | _PushApi_                               | [**push_add_organization_put**](docs/PushApi.md#push_add_organization_put)                                                                                                                                                   | **PUT** /push/add-organization                                                           |
 | _PushApi_                               | [**push_delete_organization_put**](docs/PushApi.md#push_delete_organization_put)                                                                                                                                             | **PUT** /push/delete-organization                                                        |
-| _PushApi_                               | [**push_delete_post**](docs/PushApi.md#push_delete_post)                                                                                                                                                                     | **POST** /push/delete                                                                    |
+| _PushApi_                               | [**push_id_delete**](docs/PushApi.md#push_id_delete)                                                                                                                                                                         | **DELETE** /push/{id}                                                                    |
 | _PushApi_                               | [**push_register_post**](docs/PushApi.md#push_register_post)                                                                                                                                                                 | **POST** /push/register                                                                  |
 | _PushApi_                               | [**push_send_post**](docs/PushApi.md#push_send_post)                                                                                                                                                                         | **POST** /push/send                                                                      |
 | _SecretsApi_                            | [**organizations_organization_id_secrets_get**](docs/SecretsApi.md#organizations_organization_id_secrets_get)                                                                                                                | **GET** /organizations/{organizationId}/secrets                                          |
 | _SecretsApi_                            | [**organizations_organization_id_secrets_post**](docs/SecretsApi.md#organizations_organization_id_secrets_post)                                                                                                              | **POST** /organizations/{organizationId}/secrets                                         |
-| _SecretsApi_                            | [**organizations_organization_id_secrets_sync_get**](docs/SecretsApi.md#organizations_organization_id_secrets_sync_get)                                                                                                      | **GET** /organizations/{organizationId}/secrets/sync                                     |
 | _SecretsApi_                            | [**projects_project_id_secrets_get**](docs/SecretsApi.md#projects_project_id_secrets_get)                                                                                                                                    | **GET** /projects/{projectId}/secrets                                                    |
 | _SecretsApi_                            | [**secrets_delete_post**](docs/SecretsApi.md#secrets_delete_post)                                                                                                                                                            | **POST** /secrets/delete                                                                 |
 | _SecretsApi_                            | [**secrets_get_by_ids_post**](docs/SecretsApi.md#secrets_get_by_ids_post)                                                                                                                                                    | **POST** /secrets/get-by-ids                                                             |
@@ -474,7 +464,9 @@ All URIs are relative to _http://localhost_
 
 ## Documentation For Models
 
+- [AccessPoliciesCreateRequest](docs/AccessPoliciesCreateRequest.md)
 - [AccessPolicyRequest](docs/AccessPolicyRequest.md)
+- [AccessPolicyUpdateRequest](docs/AccessPolicyUpdateRequest.md)
 - [AccessTokenCreateRequestModel](docs/AccessTokenCreateRequestModel.md)
 - [AccessTokenCreationResponseModel](docs/AccessTokenCreationResponseModel.md)
 - [AccessTokenResponseModel](docs/AccessTokenResponseModel.md)
@@ -500,6 +492,7 @@ All URIs are relative to _http://localhost_
 - [AuthenticatorAttestationRawResponse](docs/AuthenticatorAttestationRawResponse.md)
 - [AuthenticatorSelection](docs/AuthenticatorSelection.md)
 - [AuthenticatorTransport](docs/AuthenticatorTransport.md)
+- [BaseAccessPolicyResponseModel](docs/BaseAccessPolicyResponseModel.md)
 - [BaseSecretResponseModel](docs/BaseSecretResponseModel.md)
 - [BaseSecretResponseModelListResponseModel](docs/BaseSecretResponseModelListResponseModel.md)
 - [BillingCustomerDiscount](docs/BillingCustomerDiscount.md)
@@ -522,7 +515,6 @@ All URIs are relative to _http://localhost_
 - [CipherBulkMoveRequestModel](docs/CipherBulkMoveRequestModel.md)
 - [CipherBulkRestoreRequestModel](docs/CipherBulkRestoreRequestModel.md)
 - [CipherBulkShareRequestModel](docs/CipherBulkShareRequestModel.md)
-- [CipherBulkUpdateCollectionsRequestModel](docs/CipherBulkUpdateCollectionsRequestModel.md)
 - [CipherCardModel](docs/CipherCardModel.md)
 - [CipherCollectionsRequestModel](docs/CipherCollectionsRequestModel.md)
 - [CipherCreateRequestModel](docs/CipherCreateRequestModel.md)
@@ -556,7 +548,6 @@ All URIs are relative to _http://localhost_
 - [CollectionResponseModelListResponseModel](docs/CollectionResponseModelListResponseModel.md)
 - [CollectionWithIdRequestModel](docs/CollectionWithIdRequestModel.md)
 - [ConfigResponseModel](docs/ConfigResponseModel.md)
-- [CreateClientOrganizationRequestBody](docs/CreateClientOrganizationRequestBody.md)
 - [CredentialCreateOptions](docs/CredentialCreateOptions.md)
 - [DeleteRecoverRequestModel](docs/DeleteRecoverRequestModel.md)
 - [DeviceKeysRequestModel](docs/DeviceKeysRequestModel.md)
@@ -588,7 +579,6 @@ All URIs are relative to _http://localhost_
 - [EventResponseModelListResponseModel](docs/EventResponseModelListResponseModel.md)
 - [EventSystemUser](docs/EventSystemUser.md)
 - [EventType](docs/EventType.md)
-- [ExpandedTaxInfoUpdateRequestModel](docs/ExpandedTaxInfoUpdateRequestModel.md)
 - [Fido2User](docs/Fido2User.md)
 - [FieldType](docs/FieldType.md)
 - [FileUploadType](docs/FileUploadType.md)
@@ -621,20 +611,17 @@ All URIs are relative to _http://localhost_
 - [KdfRequestModel](docs/KdfRequestModel.md)
 - [KdfType](docs/KdfType.md)
 - [KeyModel](docs/KeyModel.md)
-- [KeyPairRequestBody](docs/KeyPairRequestBody.md)
 - [KeysRequestModel](docs/KeysRequestModel.md)
 - [KeysResponseModel](docs/KeysResponseModel.md)
 - [LicenseType](docs/LicenseType.md)
 - [MasterPasswordPolicyResponseModel](docs/MasterPasswordPolicyResponseModel.md)
 - [MemberDecryptionType](docs/MemberDecryptionType.md)
 - [OpenIdConnectRedirectBehavior](docs/OpenIdConnectRedirectBehavior.md)
-- [OptionalCipherDetailsResponseModel](docs/OptionalCipherDetailsResponseModel.md)
 - [OrganizationApiKeyInformation](docs/OrganizationApiKeyInformation.md)
 - [OrganizationApiKeyInformationListResponseModel](docs/OrganizationApiKeyInformationListResponseModel.md)
 - [OrganizationApiKeyRequestModel](docs/OrganizationApiKeyRequestModel.md)
 - [OrganizationApiKeyType](docs/OrganizationApiKeyType.md)
 - [OrganizationAutoEnrollStatusResponseModel](docs/OrganizationAutoEnrollStatusResponseModel.md)
-- [OrganizationBillingStatusResponseModel](docs/OrganizationBillingStatusResponseModel.md)
 - [OrganizationCollectionManagementUpdateRequestModel](docs/OrganizationCollectionManagementUpdateRequestModel.md)
 - [OrganizationConnectionRequestModel](docs/OrganizationConnectionRequestModel.md)
 - [OrganizationConnectionResponseModel](docs/OrganizationConnectionResponseModel.md)
@@ -650,6 +637,7 @@ All URIs are relative to _http://localhost_
 - [OrganizationLicense](docs/OrganizationLicense.md)
 - [OrganizationPublicKeyResponseModel](docs/OrganizationPublicKeyResponseModel.md)
 - [OrganizationResponseModel](docs/OrganizationResponseModel.md)
+- [OrganizationRisksSubscriptionFailureResponseModel](docs/OrganizationRisksSubscriptionFailureResponseModel.md)
 - [OrganizationSeatRequestModel](docs/OrganizationSeatRequestModel.md)
 - [OrganizationSponsorshipCreateRequestModel](docs/OrganizationSponsorshipCreateRequestModel.md)
 - [OrganizationSponsorshipRedeemRequestModel](docs/OrganizationSponsorshipRedeemRequestModel.md)
@@ -661,6 +649,7 @@ All URIs are relative to _http://localhost_
 - [OrganizationSsoResponseModel](docs/OrganizationSsoResponseModel.md)
 - [OrganizationSubscriptionResponseModel](docs/OrganizationSubscriptionResponseModel.md)
 - [OrganizationSubscriptionUpdateRequestModel](docs/OrganizationSubscriptionUpdateRequestModel.md)
+- [OrganizationTaxInfoUpdateRequestModel](docs/OrganizationTaxInfoUpdateRequestModel.md)
 - [OrganizationUpdateRequestModel](docs/OrganizationUpdateRequestModel.md)
 - [OrganizationUpgradeRequestModel](docs/OrganizationUpgradeRequestModel.md)
 - [OrganizationUserAcceptInitRequestModel](docs/OrganizationUserAcceptInitRequestModel.md)
@@ -680,11 +669,11 @@ All URIs are relative to _http://localhost_
 - [OrganizationUserResetPasswordRequestModel](docs/OrganizationUserResetPasswordRequestModel.md)
 - [OrganizationUserStatusType](docs/OrganizationUserStatusType.md)
 - [OrganizationUserType](docs/OrganizationUserType.md)
+- [OrganizationUserUpdateGroupsRequestModel](docs/OrganizationUserUpdateGroupsRequestModel.md)
 - [OrganizationUserUpdateRequestModel](docs/OrganizationUserUpdateRequestModel.md)
 - [OrganizationUserUserDetailsResponseModel](docs/OrganizationUserUserDetailsResponseModel.md)
 - [OrganizationUserUserDetailsResponseModelListResponseModel](docs/OrganizationUserUserDetailsResponseModelListResponseModel.md)
 - [OrganizationVerifyBankRequestModel](docs/OrganizationVerifyBankRequestModel.md)
-- [OrganizationVerifyDeleteRecoverRequestModel](docs/OrganizationVerifyDeleteRecoverRequestModel.md)
 - [OtherDeviceKeysUpdateRequestModel](docs/OtherDeviceKeysUpdateRequestModel.md)
 - [PasswordHintRequestModel](docs/PasswordHintRequestModel.md)
 - [PasswordManagerPlanFeaturesResponseModel](docs/PasswordManagerPlanFeaturesResponseModel.md)
@@ -714,12 +703,11 @@ All URIs are relative to _http://localhost_
 - [ProfileProviderOrganizationResponseModel](docs/ProfileProviderOrganizationResponseModel.md)
 - [ProfileProviderResponseModel](docs/ProfileProviderResponseModel.md)
 - [ProfileResponseModel](docs/ProfileResponseModel.md)
+- [ProjectAccessPoliciesResponseModel](docs/ProjectAccessPoliciesResponseModel.md)
 - [ProjectCreateRequestModel](docs/ProjectCreateRequestModel.md)
 - [ProjectPeopleAccessPoliciesResponseModel](docs/ProjectPeopleAccessPoliciesResponseModel.md)
 - [ProjectResponseModel](docs/ProjectResponseModel.md)
 - [ProjectResponseModelListResponseModel](docs/ProjectResponseModelListResponseModel.md)
-- [ProjectServiceAccountsAccessPoliciesRequestModel](docs/ProjectServiceAccountsAccessPoliciesRequestModel.md)
-- [ProjectServiceAccountsAccessPoliciesResponseModel](docs/ProjectServiceAccountsAccessPoliciesResponseModel.md)
 - [ProjectUpdateRequestModel](docs/ProjectUpdateRequestModel.md)
 - [ProtectedDeviceResponseModel](docs/ProtectedDeviceResponseModel.md)
 - [ProviderOrganizationAddRequestModel](docs/ProviderOrganizationAddRequestModel.md)
@@ -729,7 +717,6 @@ All URIs are relative to _http://localhost_
 - [ProviderOrganizationResponseModel](docs/ProviderOrganizationResponseModel.md)
 - [ProviderResponseModel](docs/ProviderResponseModel.md)
 - [ProviderSetupRequestModel](docs/ProviderSetupRequestModel.md)
-- [ProviderStatusType](docs/ProviderStatusType.md)
 - [ProviderType](docs/ProviderType.md)
 - [ProviderUpdateRequestModel](docs/ProviderUpdateRequestModel.md)
 - [ProviderUserAcceptRequestModel](docs/ProviderUserAcceptRequestModel.md)
@@ -748,12 +735,10 @@ All URIs are relative to _http://localhost_
 - [ProviderUserUpdateRequestModel](docs/ProviderUserUpdateRequestModel.md)
 - [ProviderUserUserDetailsResponseModel](docs/ProviderUserUserDetailsResponseModel.md)
 - [ProviderUserUserDetailsResponseModelListResponseModel](docs/ProviderUserUserDetailsResponseModelListResponseModel.md)
-- [ProviderVerifyDeleteRecoverRequestModel](docs/ProviderVerifyDeleteRecoverRequestModel.md)
 - [PubKeyCredParam](docs/PubKeyCredParam.md)
 - [PublicKeyCredentialDescriptor](docs/PublicKeyCredentialDescriptor.md)
 - [PublicKeyCredentialRpEntity](docs/PublicKeyCredentialRpEntity.md)
 - [PublicKeyCredentialType](docs/PublicKeyCredentialType.md)
-- [PushDeviceRequestModel](docs/PushDeviceRequestModel.md)
 - [PushRegistrationRequestModel](docs/PushRegistrationRequestModel.md)
 - [PushSendRequestModel](docs/PushSendRequestModel.md)
 - [PushType](docs/PushType.md)
@@ -776,7 +761,6 @@ All URIs are relative to _http://localhost_
 - [SecretsManagerPlanFeaturesResponseModel](docs/SecretsManagerPlanFeaturesResponseModel.md)
 - [SecretsManagerSubscribeRequestModel](docs/SecretsManagerSubscribeRequestModel.md)
 - [SecretsManagerSubscriptionUpdateRequestModel](docs/SecretsManagerSubscriptionUpdateRequestModel.md)
-- [SecretsSyncResponseModel](docs/SecretsSyncResponseModel.md)
 - [SecretsWithProjectsInnerSecret](docs/SecretsWithProjectsInnerSecret.md)
 - [SecureNoteType](docs/SecureNoteType.md)
 - [SelectionReadOnlyRequestModel](docs/SelectionReadOnlyRequestModel.md)
@@ -793,11 +777,9 @@ All URIs are relative to _http://localhost_
 - [SendWithIdRequestModel](docs/SendWithIdRequestModel.md)
 - [ServerConfigResponseModel](docs/ServerConfigResponseModel.md)
 - [ServiceAccountCreateRequestModel](docs/ServiceAccountCreateRequestModel.md)
-- [ServiceAccountGrantedPoliciesPermissionDetailsResponseModel](docs/ServiceAccountGrantedPoliciesPermissionDetailsResponseModel.md)
-- [ServiceAccountGrantedPoliciesRequestModel](docs/ServiceAccountGrantedPoliciesRequestModel.md)
 - [ServiceAccountPeopleAccessPoliciesResponseModel](docs/ServiceAccountPeopleAccessPoliciesResponseModel.md)
-- [ServiceAccountProjectAccessPolicyPermissionDetailsResponseModel](docs/ServiceAccountProjectAccessPolicyPermissionDetailsResponseModel.md)
 - [ServiceAccountProjectAccessPolicyResponseModel](docs/ServiceAccountProjectAccessPolicyResponseModel.md)
+- [ServiceAccountProjectAccessPolicyResponseModelListResponseModel](docs/ServiceAccountProjectAccessPolicyResponseModelListResponseModel.md)
 - [ServiceAccountResponseModel](docs/ServiceAccountResponseModel.md)
 - [ServiceAccountSecretsDetailsResponseModel](docs/ServiceAccountSecretsDetailsResponseModel.md)
 - [ServiceAccountSecretsDetailsResponseModelListResponseModel](docs/ServiceAccountSecretsDetailsResponseModelListResponseModel.md)
@@ -811,7 +793,6 @@ All URIs are relative to _http://localhost_
 - [SsoType](docs/SsoType.md)
 - [SsoUrls](docs/SsoUrls.md)
 - [StorageRequestModel](docs/StorageRequestModel.md)
-- [SubscriptionCancellationRequestModel](docs/SubscriptionCancellationRequestModel.md)
 - [SubscriptionResponseModel](docs/SubscriptionResponseModel.md)
 - [SyncResponseModel](docs/SyncResponseModel.md)
 - [TaxInfoResponseModel](docs/TaxInfoResponseModel.md)
@@ -834,7 +815,6 @@ All URIs are relative to _http://localhost_
 - [TwoFactorWebAuthnResponseModel](docs/TwoFactorWebAuthnResponseModel.md)
 - [TwoFactorYubiKeyResponseModel](docs/TwoFactorYubiKeyResponseModel.md)
 - [UpdateAvatarRequestModel](docs/UpdateAvatarRequestModel.md)
-- [UpdateClientOrganizationRequestBody](docs/UpdateClientOrganizationRequestBody.md)
 - [UpdateDevicesTrustRequestModel](docs/UpdateDevicesTrustRequestModel.md)
 - [UpdateDomainsRequestModel](docs/UpdateDomainsRequestModel.md)
 - [UpdateKeyRequestModel](docs/UpdateKeyRequestModel.md)

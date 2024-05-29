@@ -9,10 +9,9 @@
  */
 
 use reqwest;
-use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::{apis::ResponseContent, models};
+use crate::apis::ResponseContent;
 
 /// struct for typed errors of method [`plans_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -30,7 +29,7 @@ pub enum PlansSalesTaxRatesGetError {
 
 pub async fn plans_get(
     configuration: &configuration::Configuration,
-) -> Result<models::PlanResponseModelListResponseModel, Error<PlansGetError>> {
+) -> Result<crate::models::PlanResponseModelListResponseModel, Error<PlansGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -68,7 +67,8 @@ pub async fn plans_get(
 
 pub async fn plans_sales_tax_rates_get(
     configuration: &configuration::Configuration,
-) -> Result<models::TaxRateResponseModelListResponseModel, Error<PlansSalesTaxRatesGetError>> {
+) -> Result<crate::models::TaxRateResponseModelListResponseModel, Error<PlansSalesTaxRatesGetError>>
+{
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;

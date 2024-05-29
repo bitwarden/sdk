@@ -15,7 +15,7 @@ impl ClientCiphers {
         Ok(self
             .0
              .0
-            .write()
+            .read()
             .await
             .vault()
             .ciphers()
@@ -28,7 +28,7 @@ impl ClientCiphers {
         Ok(self
             .0
              .0
-            .write()
+            .read()
             .await
             .vault()
             .ciphers()
@@ -41,7 +41,7 @@ impl ClientCiphers {
         Ok(self
             .0
              .0
-            .write()
+            .read()
             .await
             .vault()
             .ciphers()
@@ -58,7 +58,7 @@ impl ClientCiphers {
         Ok(self
             .0
              .0
-            .write()
+            .read()
             .await
             .vault()
             .ciphers()

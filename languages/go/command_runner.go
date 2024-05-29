@@ -3,7 +3,7 @@ package sdk
 import (
 	"encoding/json"
 
-	"github.com/bitwarden/sm-sdk-go/internal/cinterface"
+	"github.com/bitwarden/sdk/languages/go/internal/cinterface"
 )
 
 type CommandRunnerInterface interface {

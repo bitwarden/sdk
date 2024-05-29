@@ -9,10 +9,9 @@
  */
 
 use reqwest;
-use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::{apis::ResponseContent, models};
+use crate::apis::ResponseContent;
 
 /// struct for typed errors of method [`ciphers_id_events_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -62,7 +61,7 @@ pub async fn ciphers_id_events_get(
     start: Option<String>,
     end: Option<String>,
     continuation_token: Option<&str>,
-) -> Result<models::EventResponseModelListResponseModel, Error<CiphersIdEventsGetError>> {
+) -> Result<crate::models::EventResponseModelListResponseModel, Error<CiphersIdEventsGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -70,7 +69,7 @@ pub async fn ciphers_id_events_get(
     let local_var_uri_str = format!(
         "{}/ciphers/{id}/events",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id)
+        id = crate::apis::urlencode(id.to_string())
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -119,7 +118,7 @@ pub async fn events_get(
     start: Option<String>,
     end: Option<String>,
     continuation_token: Option<&str>,
-) -> Result<models::EventResponseModelListResponseModel, Error<EventsGetError>> {
+) -> Result<crate::models::EventResponseModelListResponseModel, Error<EventsGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -173,7 +172,8 @@ pub async fn organizations_id_events_get(
     start: Option<String>,
     end: Option<String>,
     continuation_token: Option<&str>,
-) -> Result<models::EventResponseModelListResponseModel, Error<OrganizationsIdEventsGetError>> {
+) -> Result<crate::models::EventResponseModelListResponseModel, Error<OrganizationsIdEventsGetError>>
+{
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -181,7 +181,7 @@ pub async fn organizations_id_events_get(
     let local_var_uri_str = format!(
         "{}/organizations/{id}/events",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id)
+        id = crate::apis::urlencode(id.to_string())
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -233,7 +233,7 @@ pub async fn organizations_org_id_users_id_events_get(
     end: Option<String>,
     continuation_token: Option<&str>,
 ) -> Result<
-    models::EventResponseModelListResponseModel,
+    crate::models::EventResponseModelListResponseModel,
     Error<OrganizationsOrgIdUsersIdEventsGetError>,
 > {
     let local_var_configuration = configuration;
@@ -243,8 +243,8 @@ pub async fn organizations_org_id_users_id_events_get(
     let local_var_uri_str = format!(
         "{}/organizations/{orgId}/users/{id}/events",
         local_var_configuration.base_path,
-        orgId = crate::apis::urlencode(org_id),
-        id = crate::apis::urlencode(id)
+        orgId = crate::apis::urlencode(org_id.to_string()),
+        id = crate::apis::urlencode(id.to_string())
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -294,7 +294,10 @@ pub async fn providers_provider_id_events_get(
     start: Option<String>,
     end: Option<String>,
     continuation_token: Option<&str>,
-) -> Result<models::EventResponseModelListResponseModel, Error<ProvidersProviderIdEventsGetError>> {
+) -> Result<
+    crate::models::EventResponseModelListResponseModel,
+    Error<ProvidersProviderIdEventsGetError>,
+> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -354,7 +357,7 @@ pub async fn providers_provider_id_users_id_events_get(
     end: Option<String>,
     continuation_token: Option<&str>,
 ) -> Result<
-    models::EventResponseModelListResponseModel,
+    crate::models::EventResponseModelListResponseModel,
     Error<ProvidersProviderIdUsersIdEventsGetError>,
 > {
     let local_var_configuration = configuration;

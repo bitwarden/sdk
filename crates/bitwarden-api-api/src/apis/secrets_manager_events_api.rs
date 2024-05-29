@@ -9,10 +9,9 @@
  */
 
 use reqwest;
-use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::{apis::ResponseContent, models};
+use crate::apis::ResponseContent;
 
 /// struct for typed errors of method [`sm_events_service_accounts_service_account_id_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -28,7 +27,7 @@ pub async fn sm_events_service_accounts_service_account_id_get(
     end: Option<String>,
     continuation_token: Option<&str>,
 ) -> Result<
-    models::EventResponseModelListResponseModel,
+    crate::models::EventResponseModelListResponseModel,
     Error<SmEventsServiceAccountsServiceAccountIdGetError>,
 > {
     let local_var_configuration = configuration;

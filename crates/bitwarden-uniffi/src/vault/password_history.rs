@@ -14,7 +14,7 @@ impl ClientPasswordHistory {
         Ok(self
             .0
              .0
-            .write()
+            .read()
             .await
             .vault()
             .password_history()
@@ -30,7 +30,7 @@ impl ClientPasswordHistory {
         Ok(self
             .0
              .0
-            .write()
+            .read()
             .await
             .vault()
             .password_history()

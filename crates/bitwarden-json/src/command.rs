@@ -8,15 +8,14 @@ use bitwarden::{
         },
         secrets::{
             SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretPutRequest,
-            SecretsDeleteRequest, SecretsGetRequest, SecretsSyncRequest,
+            SecretsDeleteRequest, SecretsGetRequest,
         },
     },
 };
 #[cfg(feature = "internal")]
 use bitwarden::{
     auth::login::{ApiKeyLoginRequest, PasswordLoginRequest},
-    platform::{FingerprintRequest, SecretVerificationRequest},
-    vault::SyncRequest,
+    platform::{FingerprintRequest, SecretVerificationRequest, SyncRequest},
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -69,7 +68,7 @@ pub enum Command {
     /// > Requires Authentication
     /// Retrieve all user data, ciphers and organizations the user is a part of
     ///
-    /// Returns: [SyncResponse](bitwarden::vault::SyncResponse)
+    /// Returns: [SyncResponse](bitwarden::platform::SyncResponse)
     Sync(SyncRequest),
 
     #[cfg(feature = "secrets")]
@@ -124,16 +123,6 @@ pub enum SecretsCommand {
     ///
     /// Returns: [SecretsDeleteResponse](bitwarden::secrets_manager::secrets::SecretsDeleteResponse)
     Delete(SecretsDeleteRequest),
-
-    /// > Requires Authentication
-    /// > Requires using an Access Token for login
-    /// Retrieve the secrets accessible by the authenticated machine account
-    /// Optionally, provide the last synced date to assess whether any changes have occurred
-    /// If changes are detected, retrieves all the secrets accessible by the authenticated machine
-    /// account
-    ///
-    /// Returns: [SecretsSyncResponse](bitwarden::secrets_manager::secrets::SecretsSyncResponse)
-    Sync(SecretsSyncRequest),
 }
 
 #[cfg(feature = "secrets")]

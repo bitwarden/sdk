@@ -9,10 +9,9 @@
  */
 
 use reqwest;
-use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::{apis::ResponseContent, models};
+use crate::apis::ResponseContent;
 
 /// struct for typed errors of method [`organizations_organization_id_projects_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -53,7 +52,7 @@ pub async fn organizations_organization_id_projects_get(
     configuration: &configuration::Configuration,
     organization_id: uuid::Uuid,
 ) -> Result<
-    models::ProjectResponseModelListResponseModel,
+    crate::models::ProjectResponseModelListResponseModel,
     Error<OrganizationsOrganizationIdProjectsGetError>,
 > {
     let local_var_configuration = configuration;
@@ -99,8 +98,9 @@ pub async fn organizations_organization_id_projects_get(
 pub async fn organizations_organization_id_projects_post(
     configuration: &configuration::Configuration,
     organization_id: uuid::Uuid,
-    project_create_request_model: Option<models::ProjectCreateRequestModel>,
-) -> Result<models::ProjectResponseModel, Error<OrganizationsOrganizationIdProjectsPostError>> {
+    project_create_request_model: Option<crate::models::ProjectCreateRequestModel>,
+) -> Result<crate::models::ProjectResponseModel, Error<OrganizationsOrganizationIdProjectsPostError>>
+{
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -145,7 +145,8 @@ pub async fn organizations_organization_id_projects_post(
 pub async fn projects_delete_post(
     configuration: &configuration::Configuration,
     uuid_colon_colon_uuid: Option<Vec<uuid::Uuid>>,
-) -> Result<models::BulkDeleteResponseModelListResponseModel, Error<ProjectsDeletePostError>> {
+) -> Result<crate::models::BulkDeleteResponseModelListResponseModel, Error<ProjectsDeletePostError>>
+{
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -186,7 +187,7 @@ pub async fn projects_delete_post(
 pub async fn projects_id_get(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-) -> Result<models::ProjectResponseModel, Error<ProjectsIdGetError>> {
+) -> Result<crate::models::ProjectResponseModel, Error<ProjectsIdGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -230,8 +231,8 @@ pub async fn projects_id_get(
 pub async fn projects_id_put(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    project_update_request_model: Option<models::ProjectUpdateRequestModel>,
-) -> Result<models::ProjectResponseModel, Error<ProjectsIdPutError>> {
+    project_update_request_model: Option<crate::models::ProjectUpdateRequestModel>,
+) -> Result<crate::models::ProjectResponseModel, Error<ProjectsIdPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;

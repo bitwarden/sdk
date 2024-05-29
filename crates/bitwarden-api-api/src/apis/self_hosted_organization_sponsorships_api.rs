@@ -9,10 +9,9 @@
  */
 
 use reqwest;
-use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::{apis::ResponseContent, models};
+use crate::apis::ResponseContent;
 
 /// struct for typed errors of method
 /// [`organization_sponsorship_self_hosted_sponsoring_org_id_delete`]
@@ -131,7 +130,7 @@ pub async fn organization_sponsorship_self_hosted_sponsoring_org_id_families_for
     configuration: &configuration::Configuration,
     sponsoring_org_id: uuid::Uuid,
     organization_sponsorship_create_request_model: Option<
-        models::OrganizationSponsorshipCreateRequestModel,
+        crate::models::OrganizationSponsorshipCreateRequestModel,
     >,
 ) -> Result<(), Error<OrganizationSponsorshipSelfHostedSponsoringOrgIdFamiliesForEnterprisePostError>>
 {

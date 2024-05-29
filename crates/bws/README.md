@@ -62,15 +62,3 @@ To use a configuration file, utilize docker
 ```bash
 docker run --rm -it -v "$HOME"/.bws:/home/app/.bws bitwarden/bws --help
 ```
-
-## How to build manpages
-
-The manpages get built during compilation of the `bws` crate through the use of a build script. The
-output path of this build script can be located as follows:
-
-```
-MANPAGES_DIR=$(cargo build -p bws --message-format json | jq -r --slurp '.[] | select (.reason == "build-script-executed") | select(.package_id|contains("crates/bws")) .out_dir')
-```
-
-After running the provided commands, the built manpages should be located in
-`$MANPAGES_DIR/manpages`

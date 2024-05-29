@@ -9,10 +9,9 @@
  */
 
 use reqwest;
-use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::{apis::ResponseContent, models};
+use crate::apis::ResponseContent;
 
 /// struct for typed errors of method [`sync_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -24,7 +23,7 @@ pub enum SyncGetError {
 pub async fn sync_get(
     configuration: &configuration::Configuration,
     exclude_domains: Option<bool>,
-) -> Result<models::SyncResponseModel, Error<SyncGetError>> {
+) -> Result<crate::models::SyncResponseModel, Error<SyncGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;

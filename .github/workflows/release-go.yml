@@ -26,7 +26,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Branch check
         if: ${{ inputs.release_type != 'Dry Run' }}
@@ -52,15 +52,14 @@ jobs:
       _BOT_EMAIL: 106330231+bitwarden-devops-bot@users.noreply.github.com
       _BOT_NAME: bitwarden-devops-bot
       _PKG_VERSION: ${{ needs.validate.outputs.version }}
-
     steps:
       - name: Checkout SDK repo
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # v4.0.0
         with:
           path: sdk
 
       - name: Login to Azure - Prod Subscription
-        uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
+        uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
         with:
           creds: ${{ secrets.AZURE_CI_SERVICE_PRINCIPAL }}
 
@@ -72,7 +71,7 @@ jobs:
           secrets: "github-pat-bitwarden-devops-bot-repo-scope"
 
       - name: Checkout SDK-Go repo
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # v4.0.0
         with:
           repository: bitwarden/sm-sdk-go
           path: sm-sdk-go
@@ -85,66 +84,10 @@ jobs:
           git config --local user.email "${{ env._BOT_EMAIL }}"
           git config --local user.name "${{ env._BOT_NAME }}"
 
-      - name: Download x86_64-apple-darwin artifact
-        uses: bitwarden/gh-actions/download-artifacts@main
-        with:
-          workflow: build-rust-cross-platform.yml
-          workflow_conclusion: success
-          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
-          artifacts: libbitwarden_c_files-x86_64-apple-darwin
-          skip_unpack: true
-
-      - name: Download aarch64-apple-darwin artifact
-        uses: bitwarden/gh-actions/download-artifacts@main
-        with:
-          workflow: build-rust-cross-platform.yml
-          workflow_conclusion: success
-          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
-          artifacts: libbitwarden_c_files-aarch64-apple-darwin
-          skip_unpack: true
-
-      - name: Download x86_64-unknown-linux-musl artifact
-        uses: bitwarden/gh-actions/download-artifacts@main
-        with:
-          workflow: build-rust-cross-platform.yml
-          workflow_conclusion: success
-          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
-          artifacts: libbitwarden_c_files-x86_64-unknown-linux-musl
-          skip_unpack: true
-
-      - name: Download aarch64-unknown-linux-musl artifact
-        uses: bitwarden/gh-actions/download-artifacts@main
-        with:
-          workflow: build-rust-cross-platform.yml
-          workflow_conclusion: success
-          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
-          artifacts: libbitwarden_c_files-aarch64-unknown-linux-musl
-          skip_unpack: true
-
-      - name: Download x86_64-pc-windows-gnu artifact
-        uses: bitwarden/gh-actions/download-artifacts@main
-        with:
-          workflow: build-rust-cross-platform.yml
-          workflow_conclusion: success
-          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
-          artifacts: libbitwarden_c_files-x86_64-pc-windows-gnu
-          skip_unpack: true
-
       - name: Update files
         run: |
           # Copy files to local sm-sdk-go repo path
           cp --verbose -rf sdk/languages/go/. sm-sdk-go
-          # Remove the old cinterface lib files
-          rm -rf sm-sdk-go/internal/cinterface/lib/*
-          mkdir -p sm-sdk-go/internal/cinterface/lib/{darwin-{x64,arm64},linux-{x64,arm64},windows-x64}
-
-      - name: Extract static libs to their respective directories
-        run: |
-          unzip 'libbitwarden_c_files-x86_64-apple-darwin.zip' '*.a' -d sm-sdk-go/internal/cinterface/lib/darwin-x64
-          unzip 'libbitwarden_c_files-aarch64-apple-darwin.zip' '*.a' -d sm-sdk-go/internal/cinterface/lib/darwin-arm64
-          unzip 'libbitwarden_c_files-x86_64-unknown-linux-musl.zip' '*.a' -d sm-sdk-go/internal/cinterface/lib/linux-x64
-          unzip 'libbitwarden_c_files-aarch64-unknown-linux-musl.zip' '*.a' -d sm-sdk-go/internal/cinterface/lib/linux-arm64
-          unzip 'libbitwarden_c_files-x86_64-pc-windows-gnu.zip' '*.a' -d sm-sdk-go/internal/cinterface/lib/windows-x64
 
       - name: Download artifacts
         uses: bitwarden/gh-actions/download-artifacts@main
@@ -154,6 +97,12 @@ jobs:
           workflow_conclusion: success
           branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
           artifacts: schemas.go
+
+      - name: Replace repo name
+        working-directory: sm-sdk-go
+        run: |
+          find . -name '*' -exec \
+          gsed -i -e 's/github.com\/bitwarden\/sdk\/languages\/go/github.com\/bitwarden\/sm-sdk-go/g' {} \;
 
       - name: Push changes
         working-directory: sm-sdk-go
@@ -196,7 +145,7 @@ jobs:
       _PKG_VERSION: ${{ needs.validate.outputs.version }}
     steps:
       - name: Login to Azure - Prod Subscription
-        uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
+        uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
         with:
           creds: ${{ secrets.AZURE_CI_SERVICE_PRINCIPAL }}
 
@@ -225,36 +174,27 @@ jobs:
           artifacts: libbitwarden_c_files-aarch64-apple-darwin
           skip_unpack: true
 
-      - name: Download x86_64-unknown-linux-musl artifact
+      - name: Download x86_64-unknown-linux-gnu artifact
         uses: bitwarden/gh-actions/download-artifacts@main
         with:
           workflow: build-rust-cross-platform.yml
           workflow_conclusion: success
           branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
-          artifacts: libbitwarden_c_files-x86_64-unknown-linux-musl
+          artifacts: libbitwarden_c_files-x86_64-unknown-linux-gnu
           skip_unpack: true
 
-      - name: Download aarch64-unknown-linux-musl artifact
+      - name: Download x86_64-pc-windows-msvc artifact
         uses: bitwarden/gh-actions/download-artifacts@main
         with:
           workflow: build-rust-cross-platform.yml
           workflow_conclusion: success
           branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
-          artifacts: libbitwarden_c_files-aarch64-unknown-linux-musl
-          skip_unpack: true
-
-      - name: Download x86_64-pc-windows-gnu artifact
-        uses: bitwarden/gh-actions/download-artifacts@main
-        with:
-          workflow: build-rust-cross-platform.yml
-          workflow_conclusion: success
-          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
-          artifacts: libbitwarden_c_files-x86_64-pc-windows-gnu
+          artifacts: libbitwarden_c_files-x86_64-pc-windows-msvc
           skip_unpack: true
 
       - name: Rename build artifacts
         run: |
-          artifacts=("x86_64-apple-darwin" "aarch64-apple-darwin" "x86_64-unknown-linux-musl" "aarch64-unknown-linux-musl" "x86_64-pc-windows-gnu")
+          artifacts=("x86_64-apple-darwin" "aarch64-apple-darwin" "x86_64-unknown-linux-gnu" "x86_64-pc-windows-msvc") # aarch64-unknown-linux-gnu)
           for value in "${artifacts[@]}"
           do
             unzip libbitwarden_c_files-$value.zip -d libbitwarden_c_files-$value
@@ -263,11 +203,11 @@ jobs:
             cd ..
           done
 
-          ls ./libbitwarden_c_files-x86_64-apple-darwin-$_PKG_VERSION.zip -lRa
+          ls ./libbitwarden_c_files-x86_64-apple-darwin-$_PKG_VERSION -lRa
 
       - name: Create release
         if: ${{ inputs.release_type != 'Dry Run' }}
-        uses: ncipollo/release-action@2c591bcc8ecdcd2db72b97d6147f871fcd833ba5 # v1.14.0
+        uses: ncipollo/release-action@6c75be85e571768fa31b40abf38de58ba0397db5 # v1.13.0
         with:
           tag: v${{ env._PKG_VERSION }}
           name: v${{ env._PKG_VERSION }}
@@ -278,6 +218,5 @@ jobs:
           owner: bitwarden
           artifacts: "libbitwarden_c_files-x86_64-apple-darwin-${{ env._PKG_VERSION }}.zip,
             libbitwarden_c_files-aarch64-apple-darwin-${{ env._PKG_VERSION }}.zip,
-            libbitwarden_c_files-x86_64-unknown-linux-musl-${{ env._PKG_VERSION }}.zip,
-            libbitwarden_c_files-aarch64-unknown-linux-musl-${{ env._PKG_VERSION }}.zip,
-            libbitwarden_c_files-x86_64-pc-windows-gnu-${{ env._PKG_VERSION }}.zip"
+            libbitwarden_c_files-x86_64-unknown-linux-gnu-${{ env._PKG_VERSION }}.zip,
+            libbitwarden_c_files-x86_64-pc-windows-msvc-${{ env._PKG_VERSION }}.zip"

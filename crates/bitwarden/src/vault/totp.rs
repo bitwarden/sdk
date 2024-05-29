@@ -21,7 +21,7 @@ const DEFAULT_PERIOD: u32 = 30;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct TotpResponse {
     /// Generated TOTP code
     pub code: String,

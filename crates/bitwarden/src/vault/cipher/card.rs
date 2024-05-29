@@ -7,9 +7,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::error::{Error, Result};
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct Card {
     pub cardholder_name: Option<EncString>,
     pub exp_month: Option<EncString>,
@@ -19,9 +19,9 @@ pub struct Card {
     pub number: Option<EncString>,
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct CardView {
     pub cardholder_name: Option<DecryptedString>,
     pub exp_month: Option<DecryptedString>,

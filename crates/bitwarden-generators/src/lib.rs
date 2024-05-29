@@ -7,5 +7,5 @@ mod username;
 pub use username::{username, ForwarderServiceType, UsernameError, UsernameGeneratorRequest};
 mod username_forwarders;
 
-#[cfg(feature = "uniffi")]
+#[cfg(feature = "mobile")]
 uniffi::setup_scaffolding!();

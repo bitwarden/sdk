@@ -4,11 +4,10 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use clap::ValueEnum;
 use color_eyre::eyre::{bail, Result};
 use directories::BaseDirs;
 use serde::{Deserialize, Serialize};
-
-use crate::cli::{ProfileKey, DEFAULT_CONFIG_DIRECTORY, DEFAULT_CONFIG_FILENAME};
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub(crate) struct Config {
@@ -23,6 +22,16 @@ pub(crate) struct Profile {
     pub state_file_dir: Option<String>,
 }
 
+// TODO: This could probably be derived with a macro if we start adding more fields
+#[allow(non_camel_case_types)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
+pub(crate) enum ProfileKey {
+    server_base,
+    server_api,
+    server_identity,
+    state_file_dir,
+}
+
 impl ProfileKey {
     fn update_profile_value(&self, p: &mut Profile, value: String) {
         match self {
@@ -34,6 +43,9 @@ impl ProfileKey {
     }
 }
 
+pub(crate) const FILENAME: &str = "config";
+pub(crate) const DIRECTORY: &str = ".bws";
+
 fn get_config_path(config_file: Option<&Path>, ensure_folder_exists: bool) -> Result<PathBuf> {
     let config_file = match config_file {
         Some(path) => path.to_owned(),
@@ -41,10 +53,7 @@ fn get_config_path(config_file: Option<&Path>, ensure_folder_exists: bool) -> Re
             let Some(base_dirs) = BaseDirs::new() else {
                 bail!("A valid home directory doesn't exist");
             };
-            base_dirs
-                .home_dir()
-                .join(DEFAULT_CONFIG_DIRECTORY)
-                .join(DEFAULT_CONFIG_FILENAME)
+            base_dirs.home_dir().join(DIRECTORY).join(FILENAME)
         }
     };
 

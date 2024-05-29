@@ -9,10 +9,9 @@
  */
 
 use reqwest;
-use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::{apis::ResponseContent, models};
+use crate::apis::ResponseContent;
 
 /// struct for typed errors of method [`organizations_id_two_factor_disable_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -234,9 +233,11 @@ pub enum TwoFactorYubikeyPutError {
 pub async fn organizations_id_two_factor_disable_post(
     configuration: &configuration::Configuration,
     id: &str,
-    two_factor_provider_request_model: Option<models::TwoFactorProviderRequestModel>,
-) -> Result<models::TwoFactorProviderResponseModel, Error<OrganizationsIdTwoFactorDisablePostError>>
-{
+    two_factor_provider_request_model: Option<crate::models::TwoFactorProviderRequestModel>,
+) -> Result<
+    crate::models::TwoFactorProviderResponseModel,
+    Error<OrganizationsIdTwoFactorDisablePostError>,
+> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -244,7 +245,7 @@ pub async fn organizations_id_two_factor_disable_post(
     let local_var_uri_str = format!(
         "{}/organizations/{id}/two-factor/disable",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id)
+        id = crate::apis::urlencode(id.to_string())
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -281,9 +282,11 @@ pub async fn organizations_id_two_factor_disable_post(
 pub async fn organizations_id_two_factor_disable_put(
     configuration: &configuration::Configuration,
     id: &str,
-    two_factor_provider_request_model: Option<models::TwoFactorProviderRequestModel>,
-) -> Result<models::TwoFactorProviderResponseModel, Error<OrganizationsIdTwoFactorDisablePutError>>
-{
+    two_factor_provider_request_model: Option<crate::models::TwoFactorProviderRequestModel>,
+) -> Result<
+    crate::models::TwoFactorProviderResponseModel,
+    Error<OrganizationsIdTwoFactorDisablePutError>,
+> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -291,7 +294,7 @@ pub async fn organizations_id_two_factor_disable_put(
     let local_var_uri_str = format!(
         "{}/organizations/{id}/two-factor/disable",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id)
+        id = crate::apis::urlencode(id.to_string())
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::PUT, local_var_uri_str.as_str());
@@ -328,8 +331,8 @@ pub async fn organizations_id_two_factor_disable_put(
 pub async fn organizations_id_two_factor_duo_post(
     configuration: &configuration::Configuration,
     id: &str,
-    update_two_factor_duo_request_model: Option<models::UpdateTwoFactorDuoRequestModel>,
-) -> Result<models::TwoFactorDuoResponseModel, Error<OrganizationsIdTwoFactorDuoPostError>> {
+    update_two_factor_duo_request_model: Option<crate::models::UpdateTwoFactorDuoRequestModel>,
+) -> Result<crate::models::TwoFactorDuoResponseModel, Error<OrganizationsIdTwoFactorDuoPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -337,7 +340,7 @@ pub async fn organizations_id_two_factor_duo_post(
     let local_var_uri_str = format!(
         "{}/organizations/{id}/two-factor/duo",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id)
+        id = crate::apis::urlencode(id.to_string())
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -374,8 +377,8 @@ pub async fn organizations_id_two_factor_duo_post(
 pub async fn organizations_id_two_factor_duo_put(
     configuration: &configuration::Configuration,
     id: &str,
-    update_two_factor_duo_request_model: Option<models::UpdateTwoFactorDuoRequestModel>,
-) -> Result<models::TwoFactorDuoResponseModel, Error<OrganizationsIdTwoFactorDuoPutError>> {
+    update_two_factor_duo_request_model: Option<crate::models::UpdateTwoFactorDuoRequestModel>,
+) -> Result<crate::models::TwoFactorDuoResponseModel, Error<OrganizationsIdTwoFactorDuoPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -383,7 +386,7 @@ pub async fn organizations_id_two_factor_duo_put(
     let local_var_uri_str = format!(
         "{}/organizations/{id}/two-factor/duo",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id)
+        id = crate::apis::urlencode(id.to_string())
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::PUT, local_var_uri_str.as_str());
@@ -421,7 +424,7 @@ pub async fn organizations_id_two_factor_get(
     configuration: &configuration::Configuration,
     id: &str,
 ) -> Result<
-    models::TwoFactorProviderResponseModelListResponseModel,
+    crate::models::TwoFactorProviderResponseModelListResponseModel,
     Error<OrganizationsIdTwoFactorGetError>,
 > {
     let local_var_configuration = configuration;
@@ -431,7 +434,7 @@ pub async fn organizations_id_two_factor_get(
     let local_var_uri_str = format!(
         "{}/organizations/{id}/two-factor",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id)
+        id = crate::apis::urlencode(id.to_string())
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -467,8 +470,9 @@ pub async fn organizations_id_two_factor_get(
 pub async fn organizations_id_two_factor_get_duo_post(
     configuration: &configuration::Configuration,
     id: &str,
-    secret_verification_request_model: Option<models::SecretVerificationRequestModel>,
-) -> Result<models::TwoFactorDuoResponseModel, Error<OrganizationsIdTwoFactorGetDuoPostError>> {
+    secret_verification_request_model: Option<crate::models::SecretVerificationRequestModel>,
+) -> Result<crate::models::TwoFactorDuoResponseModel, Error<OrganizationsIdTwoFactorGetDuoPostError>>
+{
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -476,7 +480,7 @@ pub async fn organizations_id_two_factor_get_duo_post(
     let local_var_uri_str = format!(
         "{}/organizations/{id}/two-factor/get-duo",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id)
+        id = crate::apis::urlencode(id.to_string())
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -513,9 +517,12 @@ pub async fn organizations_id_two_factor_get_duo_post(
 pub async fn two_factor_authenticator_post(
     configuration: &configuration::Configuration,
     update_two_factor_authenticator_request_model: Option<
-        models::UpdateTwoFactorAuthenticatorRequestModel,
+        crate::models::UpdateTwoFactorAuthenticatorRequestModel,
     >,
-) -> Result<models::TwoFactorAuthenticatorResponseModel, Error<TwoFactorAuthenticatorPostError>> {
+) -> Result<
+    crate::models::TwoFactorAuthenticatorResponseModel,
+    Error<TwoFactorAuthenticatorPostError>,
+> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -560,9 +567,10 @@ pub async fn two_factor_authenticator_post(
 pub async fn two_factor_authenticator_put(
     configuration: &configuration::Configuration,
     update_two_factor_authenticator_request_model: Option<
-        models::UpdateTwoFactorAuthenticatorRequestModel,
+        crate::models::UpdateTwoFactorAuthenticatorRequestModel,
     >,
-) -> Result<models::TwoFactorAuthenticatorResponseModel, Error<TwoFactorAuthenticatorPutError>> {
+) -> Result<crate::models::TwoFactorAuthenticatorResponseModel, Error<TwoFactorAuthenticatorPutError>>
+{
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -606,9 +614,9 @@ pub async fn two_factor_authenticator_put(
 
 pub async fn two_factor_device_verification_settings_put(
     configuration: &configuration::Configuration,
-    device_verification_request_model: Option<models::DeviceVerificationRequestModel>,
+    device_verification_request_model: Option<crate::models::DeviceVerificationRequestModel>,
 ) -> Result<
-    models::DeviceVerificationResponseModel,
+    crate::models::DeviceVerificationResponseModel,
     Error<TwoFactorDeviceVerificationSettingsPutError>,
 > {
     let local_var_configuration = configuration;
@@ -653,8 +661,8 @@ pub async fn two_factor_device_verification_settings_put(
 
 pub async fn two_factor_disable_post(
     configuration: &configuration::Configuration,
-    two_factor_provider_request_model: Option<models::TwoFactorProviderRequestModel>,
-) -> Result<models::TwoFactorProviderResponseModel, Error<TwoFactorDisablePostError>> {
+    two_factor_provider_request_model: Option<crate::models::TwoFactorProviderRequestModel>,
+) -> Result<crate::models::TwoFactorProviderResponseModel, Error<TwoFactorDisablePostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -694,8 +702,8 @@ pub async fn two_factor_disable_post(
 
 pub async fn two_factor_disable_put(
     configuration: &configuration::Configuration,
-    two_factor_provider_request_model: Option<models::TwoFactorProviderRequestModel>,
-) -> Result<models::TwoFactorProviderResponseModel, Error<TwoFactorDisablePutError>> {
+    two_factor_provider_request_model: Option<crate::models::TwoFactorProviderRequestModel>,
+) -> Result<crate::models::TwoFactorProviderResponseModel, Error<TwoFactorDisablePutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -735,8 +743,8 @@ pub async fn two_factor_disable_put(
 
 pub async fn two_factor_duo_post(
     configuration: &configuration::Configuration,
-    update_two_factor_duo_request_model: Option<models::UpdateTwoFactorDuoRequestModel>,
-) -> Result<models::TwoFactorDuoResponseModel, Error<TwoFactorDuoPostError>> {
+    update_two_factor_duo_request_model: Option<crate::models::UpdateTwoFactorDuoRequestModel>,
+) -> Result<crate::models::TwoFactorDuoResponseModel, Error<TwoFactorDuoPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -776,8 +784,8 @@ pub async fn two_factor_duo_post(
 
 pub async fn two_factor_duo_put(
     configuration: &configuration::Configuration,
-    update_two_factor_duo_request_model: Option<models::UpdateTwoFactorDuoRequestModel>,
-) -> Result<models::TwoFactorDuoResponseModel, Error<TwoFactorDuoPutError>> {
+    update_two_factor_duo_request_model: Option<crate::models::UpdateTwoFactorDuoRequestModel>,
+) -> Result<crate::models::TwoFactorDuoResponseModel, Error<TwoFactorDuoPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -817,8 +825,8 @@ pub async fn two_factor_duo_put(
 
 pub async fn two_factor_email_post(
     configuration: &configuration::Configuration,
-    update_two_factor_email_request_model: Option<models::UpdateTwoFactorEmailRequestModel>,
-) -> Result<models::TwoFactorEmailResponseModel, Error<TwoFactorEmailPostError>> {
+    update_two_factor_email_request_model: Option<crate::models::UpdateTwoFactorEmailRequestModel>,
+) -> Result<crate::models::TwoFactorEmailResponseModel, Error<TwoFactorEmailPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -858,8 +866,8 @@ pub async fn two_factor_email_post(
 
 pub async fn two_factor_email_put(
     configuration: &configuration::Configuration,
-    update_two_factor_email_request_model: Option<models::UpdateTwoFactorEmailRequestModel>,
-) -> Result<models::TwoFactorEmailResponseModel, Error<TwoFactorEmailPutError>> {
+    update_two_factor_email_request_model: Option<crate::models::UpdateTwoFactorEmailRequestModel>,
+) -> Result<crate::models::TwoFactorEmailResponseModel, Error<TwoFactorEmailPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -899,7 +907,8 @@ pub async fn two_factor_email_put(
 
 pub async fn two_factor_get(
     configuration: &configuration::Configuration,
-) -> Result<models::TwoFactorProviderResponseModelListResponseModel, Error<TwoFactorGetError>> {
+) -> Result<crate::models::TwoFactorProviderResponseModelListResponseModel, Error<TwoFactorGetError>>
+{
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -938,9 +947,11 @@ pub async fn two_factor_get(
 
 pub async fn two_factor_get_authenticator_post(
     configuration: &configuration::Configuration,
-    secret_verification_request_model: Option<models::SecretVerificationRequestModel>,
-) -> Result<models::TwoFactorAuthenticatorResponseModel, Error<TwoFactorGetAuthenticatorPostError>>
-{
+    secret_verification_request_model: Option<crate::models::SecretVerificationRequestModel>,
+) -> Result<
+    crate::models::TwoFactorAuthenticatorResponseModel,
+    Error<TwoFactorGetAuthenticatorPostError>,
+> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -984,7 +995,7 @@ pub async fn two_factor_get_authenticator_post(
 pub async fn two_factor_get_device_verification_settings_get(
     configuration: &configuration::Configuration,
 ) -> Result<
-    models::DeviceVerificationResponseModel,
+    crate::models::DeviceVerificationResponseModel,
     Error<TwoFactorGetDeviceVerificationSettingsGetError>,
 > {
     let local_var_configuration = configuration;
@@ -1028,8 +1039,8 @@ pub async fn two_factor_get_device_verification_settings_get(
 
 pub async fn two_factor_get_duo_post(
     configuration: &configuration::Configuration,
-    secret_verification_request_model: Option<models::SecretVerificationRequestModel>,
-) -> Result<models::TwoFactorDuoResponseModel, Error<TwoFactorGetDuoPostError>> {
+    secret_verification_request_model: Option<crate::models::SecretVerificationRequestModel>,
+) -> Result<crate::models::TwoFactorDuoResponseModel, Error<TwoFactorGetDuoPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1069,8 +1080,8 @@ pub async fn two_factor_get_duo_post(
 
 pub async fn two_factor_get_email_post(
     configuration: &configuration::Configuration,
-    secret_verification_request_model: Option<models::SecretVerificationRequestModel>,
-) -> Result<models::TwoFactorEmailResponseModel, Error<TwoFactorGetEmailPostError>> {
+    secret_verification_request_model: Option<crate::models::SecretVerificationRequestModel>,
+) -> Result<crate::models::TwoFactorEmailResponseModel, Error<TwoFactorGetEmailPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1110,8 +1121,8 @@ pub async fn two_factor_get_email_post(
 
 pub async fn two_factor_get_recover_post(
     configuration: &configuration::Configuration,
-    secret_verification_request_model: Option<models::SecretVerificationRequestModel>,
-) -> Result<models::TwoFactorRecoverResponseModel, Error<TwoFactorGetRecoverPostError>> {
+    secret_verification_request_model: Option<crate::models::SecretVerificationRequestModel>,
+) -> Result<crate::models::TwoFactorRecoverResponseModel, Error<TwoFactorGetRecoverPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1154,8 +1165,8 @@ pub async fn two_factor_get_recover_post(
 
 pub async fn two_factor_get_webauthn_post(
     configuration: &configuration::Configuration,
-    secret_verification_request_model: Option<models::SecretVerificationRequestModel>,
-) -> Result<models::TwoFactorWebAuthnResponseModel, Error<TwoFactorGetWebauthnPostError>> {
+    secret_verification_request_model: Option<crate::models::SecretVerificationRequestModel>,
+) -> Result<crate::models::TwoFactorWebAuthnResponseModel, Error<TwoFactorGetWebauthnPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1198,8 +1209,8 @@ pub async fn two_factor_get_webauthn_post(
 
 pub async fn two_factor_get_yubikey_post(
     configuration: &configuration::Configuration,
-    secret_verification_request_model: Option<models::SecretVerificationRequestModel>,
-) -> Result<models::TwoFactorYubiKeyResponseModel, Error<TwoFactorGetYubikeyPostError>> {
+    secret_verification_request_model: Option<crate::models::SecretVerificationRequestModel>,
+) -> Result<crate::models::TwoFactorYubiKeyResponseModel, Error<TwoFactorGetYubikeyPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1242,7 +1253,7 @@ pub async fn two_factor_get_yubikey_post(
 
 pub async fn two_factor_recover_post(
     configuration: &configuration::Configuration,
-    two_factor_recovery_request_model: Option<models::TwoFactorRecoveryRequestModel>,
+    two_factor_recovery_request_model: Option<crate::models::TwoFactorRecoveryRequestModel>,
 ) -> Result<(), Error<TwoFactorRecoverPostError>> {
     let local_var_configuration = configuration;
 
@@ -1283,7 +1294,7 @@ pub async fn two_factor_recover_post(
 
 pub async fn two_factor_send_email_login_post(
     configuration: &configuration::Configuration,
-    two_factor_email_request_model: Option<models::TwoFactorEmailRequestModel>,
+    two_factor_email_request_model: Option<crate::models::TwoFactorEmailRequestModel>,
 ) -> Result<(), Error<TwoFactorSendEmailLoginPostError>> {
     let local_var_configuration = configuration;
 
@@ -1327,7 +1338,7 @@ pub async fn two_factor_send_email_login_post(
 
 pub async fn two_factor_send_email_post(
     configuration: &configuration::Configuration,
-    two_factor_email_request_model: Option<models::TwoFactorEmailRequestModel>,
+    two_factor_email_request_model: Option<crate::models::TwoFactorEmailRequestModel>,
 ) -> Result<(), Error<TwoFactorSendEmailPostError>> {
     let local_var_configuration = configuration;
 
@@ -1371,8 +1382,10 @@ pub async fn two_factor_send_email_post(
 
 pub async fn two_factor_webauthn_delete(
     configuration: &configuration::Configuration,
-    two_factor_web_authn_delete_request_model: Option<models::TwoFactorWebAuthnDeleteRequestModel>,
-) -> Result<models::TwoFactorWebAuthnResponseModel, Error<TwoFactorWebauthnDeleteError>> {
+    two_factor_web_authn_delete_request_model: Option<
+        crate::models::TwoFactorWebAuthnDeleteRequestModel,
+    >,
+) -> Result<crate::models::TwoFactorWebAuthnResponseModel, Error<TwoFactorWebauthnDeleteError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1412,8 +1425,8 @@ pub async fn two_factor_webauthn_delete(
 
 pub async fn two_factor_webauthn_post(
     configuration: &configuration::Configuration,
-    two_factor_web_authn_request_model: Option<models::TwoFactorWebAuthnRequestModel>,
-) -> Result<models::TwoFactorWebAuthnResponseModel, Error<TwoFactorWebauthnPostError>> {
+    two_factor_web_authn_request_model: Option<crate::models::TwoFactorWebAuthnRequestModel>,
+) -> Result<crate::models::TwoFactorWebAuthnResponseModel, Error<TwoFactorWebauthnPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1453,8 +1466,8 @@ pub async fn two_factor_webauthn_post(
 
 pub async fn two_factor_webauthn_put(
     configuration: &configuration::Configuration,
-    two_factor_web_authn_request_model: Option<models::TwoFactorWebAuthnRequestModel>,
-) -> Result<models::TwoFactorWebAuthnResponseModel, Error<TwoFactorWebauthnPutError>> {
+    two_factor_web_authn_request_model: Option<crate::models::TwoFactorWebAuthnRequestModel>,
+) -> Result<crate::models::TwoFactorWebAuthnResponseModel, Error<TwoFactorWebauthnPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1495,9 +1508,9 @@ pub async fn two_factor_webauthn_put(
 pub async fn two_factor_yubikey_post(
     configuration: &configuration::Configuration,
     update_two_factor_yubico_otp_request_model: Option<
-        models::UpdateTwoFactorYubicoOtpRequestModel,
+        crate::models::UpdateTwoFactorYubicoOtpRequestModel,
     >,
-) -> Result<models::TwoFactorYubiKeyResponseModel, Error<TwoFactorYubikeyPostError>> {
+) -> Result<crate::models::TwoFactorYubiKeyResponseModel, Error<TwoFactorYubikeyPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1538,9 +1551,9 @@ pub async fn two_factor_yubikey_post(
 pub async fn two_factor_yubikey_put(
     configuration: &configuration::Configuration,
     update_two_factor_yubico_otp_request_model: Option<
-        models::UpdateTwoFactorYubicoOtpRequestModel,
+        crate::models::UpdateTwoFactorYubicoOtpRequestModel,
     >,
-) -> Result<models::TwoFactorYubiKeyResponseModel, Error<TwoFactorYubikeyPutError>> {
+) -> Result<crate::models::TwoFactorYubiKeyResponseModel, Error<TwoFactorYubikeyPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;

@@ -9,10 +9,9 @@
  */
 
 use reqwest;
-use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::{apis::ResponseContent, models};
+use crate::apis::ResponseContent;
 
 /// struct for typed errors of method [`sends_access_id_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -108,7 +107,7 @@ pub enum SendsPostError {
 pub async fn sends_access_id_post(
     configuration: &configuration::Configuration,
     id: &str,
-    send_access_request_model: Option<models::SendAccessRequestModel>,
+    send_access_request_model: Option<crate::models::SendAccessRequestModel>,
 ) -> Result<(), Error<SendsAccessIdPostError>> {
     let local_var_configuration = configuration;
 
@@ -117,7 +116,7 @@ pub async fn sends_access_id_post(
     let local_var_uri_str = format!(
         "{}/sends/access/{id}",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id)
+        id = crate::apis::urlencode(id.to_string())
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -155,7 +154,7 @@ pub async fn sends_encoded_send_id_access_file_file_id_post(
     configuration: &configuration::Configuration,
     encoded_send_id: &str,
     file_id: &str,
-    send_access_request_model: Option<models::SendAccessRequestModel>,
+    send_access_request_model: Option<crate::models::SendAccessRequestModel>,
 ) -> Result<(), Error<SendsEncodedSendIdAccessFileFileIdPostError>> {
     let local_var_configuration = configuration;
 
@@ -164,8 +163,8 @@ pub async fn sends_encoded_send_id_access_file_file_id_post(
     let local_var_uri_str = format!(
         "{}/sends/{encodedSendId}/access/file/{fileId}",
         local_var_configuration.base_path,
-        encodedSendId = crate::apis::urlencode(encoded_send_id),
-        fileId = crate::apis::urlencode(file_id)
+        encodedSendId = crate::apis::urlencode(encoded_send_id.to_string()),
+        fileId = crate::apis::urlencode(file_id.to_string())
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -201,7 +200,7 @@ pub async fn sends_encoded_send_id_access_file_file_id_post(
 
 pub async fn sends_file_post(
     configuration: &configuration::Configuration,
-) -> Result<models::SendResponseModel, Error<SendsFilePostError>> {
+) -> Result<crate::models::SendResponseModel, Error<SendsFilePostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -240,8 +239,8 @@ pub async fn sends_file_post(
 
 pub async fn sends_file_v2_post(
     configuration: &configuration::Configuration,
-    send_request_model: Option<models::SendRequestModel>,
-) -> Result<models::SendFileUploadDataResponseModel, Error<SendsFileV2PostError>> {
+    send_request_model: Option<crate::models::SendRequestModel>,
+) -> Result<crate::models::SendFileUploadDataResponseModel, Error<SendsFileV2PostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -323,7 +322,7 @@ pub async fn sends_file_validate_azure_post(
 
 pub async fn sends_get(
     configuration: &configuration::Configuration,
-) -> Result<models::SendResponseModelListResponseModel, Error<SendsGetError>> {
+) -> Result<crate::models::SendResponseModelListResponseModel, Error<SendsGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -370,7 +369,7 @@ pub async fn sends_id_delete(
     let local_var_uri_str = format!(
         "{}/sends/{id}",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id)
+        id = crate::apis::urlencode(id.to_string())
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::DELETE, local_var_uri_str.as_str());
@@ -407,7 +406,7 @@ pub async fn sends_id_file_file_id_get(
     configuration: &configuration::Configuration,
     id: &str,
     file_id: &str,
-) -> Result<models::SendFileUploadDataResponseModel, Error<SendsIdFileFileIdGetError>> {
+) -> Result<crate::models::SendFileUploadDataResponseModel, Error<SendsIdFileFileIdGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -415,8 +414,8 @@ pub async fn sends_id_file_file_id_get(
     let local_var_uri_str = format!(
         "{}/sends/{id}/file/{fileId}",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id),
-        fileId = crate::apis::urlencode(file_id)
+        id = crate::apis::urlencode(id.to_string()),
+        fileId = crate::apis::urlencode(file_id.to_string())
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -461,8 +460,8 @@ pub async fn sends_id_file_file_id_post(
     let local_var_uri_str = format!(
         "{}/sends/{id}/file/{fileId}",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id),
-        fileId = crate::apis::urlencode(file_id)
+        id = crate::apis::urlencode(id.to_string()),
+        fileId = crate::apis::urlencode(file_id.to_string())
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -498,7 +497,7 @@ pub async fn sends_id_file_file_id_post(
 pub async fn sends_id_get(
     configuration: &configuration::Configuration,
     id: &str,
-) -> Result<models::SendResponseModel, Error<SendsIdGetError>> {
+) -> Result<crate::models::SendResponseModel, Error<SendsIdGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -506,7 +505,7 @@ pub async fn sends_id_get(
     let local_var_uri_str = format!(
         "{}/sends/{id}",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id)
+        id = crate::apis::urlencode(id.to_string())
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -542,8 +541,8 @@ pub async fn sends_id_get(
 pub async fn sends_id_put(
     configuration: &configuration::Configuration,
     id: &str,
-    send_request_model: Option<models::SendRequestModel>,
-) -> Result<models::SendResponseModel, Error<SendsIdPutError>> {
+    send_request_model: Option<crate::models::SendRequestModel>,
+) -> Result<crate::models::SendResponseModel, Error<SendsIdPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -551,7 +550,7 @@ pub async fn sends_id_put(
     let local_var_uri_str = format!(
         "{}/sends/{id}",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id)
+        id = crate::apis::urlencode(id.to_string())
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::PUT, local_var_uri_str.as_str());
@@ -588,7 +587,7 @@ pub async fn sends_id_put(
 pub async fn sends_id_remove_password_put(
     configuration: &configuration::Configuration,
     id: &str,
-) -> Result<models::SendResponseModel, Error<SendsIdRemovePasswordPutError>> {
+) -> Result<crate::models::SendResponseModel, Error<SendsIdRemovePasswordPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -596,7 +595,7 @@ pub async fn sends_id_remove_password_put(
     let local_var_uri_str = format!(
         "{}/sends/{id}/remove-password",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id)
+        id = crate::apis::urlencode(id.to_string())
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::PUT, local_var_uri_str.as_str());
@@ -631,8 +630,8 @@ pub async fn sends_id_remove_password_put(
 
 pub async fn sends_post(
     configuration: &configuration::Configuration,
-    send_request_model: Option<models::SendRequestModel>,
-) -> Result<models::SendResponseModel, Error<SendsPostError>> {
+    send_request_model: Option<crate::models::SendRequestModel>,
+) -> Result<crate::models::SendResponseModel, Error<SendsPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;

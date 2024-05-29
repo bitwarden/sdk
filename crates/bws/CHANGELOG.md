@@ -7,8 +7,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-## [0.5.0] - 2024-04-26
-
 ### Added
 
 - Add a `BWS_CONFIG_FILE` environment variable to specify the location of the config file (#571)

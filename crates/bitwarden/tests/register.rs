@@ -1,5 +1,5 @@
 /// Integration test for registering a new user and unlocking the vault
-#[cfg(feature = "internal")]
+#[cfg(feature = "mobile")]
 #[tokio::test]
 async fn test_register_initialize_crypto() {
     use std::num::NonZeroU32;

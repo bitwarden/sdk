@@ -18,7 +18,7 @@ pub use register::{RegisterKeyResponse, RegisterRequest};
 mod auth_request;
 #[cfg(feature = "internal")]
 pub use auth_request::AuthRequestResponse;
-#[cfg(feature = "internal")]
+#[cfg(feature = "mobile")]
 pub(crate) use auth_request::{auth_request_decrypt_master_key, auth_request_decrypt_user_key};
 #[cfg(feature = "internal")]
 mod tde;

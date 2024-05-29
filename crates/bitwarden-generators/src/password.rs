@@ -16,7 +16,7 @@ pub enum PasswordError {
 /// Password generator request options.
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
 pub struct PasswordGeneratorRequest {
     /// Include lowercase characters (a-z).
     pub lowercase: bool,

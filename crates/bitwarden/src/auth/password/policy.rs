@@ -1,8 +1,9 @@
+use bitwarden_crypto::SensitiveString;
 use schemars::JsonSchema;
 
 /// Validate the provided password passes the provided Master Password Requirements Policy.
 pub(crate) fn satisfies_policy(
-    password: String,
+    password: SensitiveString,
     strength: u8,
     policy: &MasterPasswordPolicyOptions,
 ) -> bool {
@@ -14,19 +15,19 @@ pub(crate) fn satisfies_policy(
         return false;
     }
 
-    if policy.require_upper && password.to_lowercase() == password {
+    if policy.require_upper && !password.any_chars(char::is_uppercase) {
         return false;
     }
 
-    if policy.require_lower && password.to_uppercase() == password {
+    if policy.require_lower && !password.any_chars(char::is_lowercase) {
         return false;
     }
 
-    if policy.require_numbers && !password.chars().any(|c| c.is_numeric()) {
+    if policy.require_numbers && !password.any_chars(char::is_numeric) {
         return false;
     }
 
-    if policy.require_special && !password.chars().any(|c| "!@#$%^&*".contains(c)) {
+    if policy.require_special && !password.any_chars(|c| "!@#$%^&*".contains(c)) {
         return false;
     }
 
@@ -34,7 +35,7 @@ pub(crate) fn satisfies_policy(
 }
 
 #[derive(Debug, JsonSchema)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 #[allow(dead_code)]
 pub struct MasterPasswordPolicyOptions {
     min_complexity: u8,
@@ -53,11 +54,13 @@ pub struct MasterPasswordPolicyOptions {
 #[cfg(test)]
 mod tests {
 
+    use bitwarden_crypto::SensitiveString;
+
     use super::{satisfies_policy, MasterPasswordPolicyOptions};
 
     #[test]
     fn satisfies_policy_gives_success() {
-        let password = "lkasfo!icbb$2323ALKJCO22".to_string();
+        let password = SensitiveString::test("lkasfo!icbb$2323ALKJCO22");
         let options = MasterPasswordPolicyOptions {
             min_complexity: 3,
             min_length: 5,
@@ -74,7 +77,7 @@ mod tests {
 
     #[test]
     fn satisfies_policy_evaluates_strength() {
-        let password = "password123".to_string();
+        let password = SensitiveString::test("password123");
         let options = MasterPasswordPolicyOptions {
             min_complexity: 3,
             min_length: 0,
@@ -91,7 +94,7 @@ mod tests {
 
     #[test]
     fn satisfies_policy_evaluates_length() {
-        let password = "password123".to_string();
+        let password = SensitiveString::test("password123");
         let options = MasterPasswordPolicyOptions {
             min_complexity: 0,
             min_length: 20,
@@ -108,7 +111,7 @@ mod tests {
 
     #[test]
     fn satisfies_policy_evaluates_upper() {
-        let password = "password123".to_string();
+        let password = SensitiveString::test("password123");
         let options = MasterPasswordPolicyOptions {
             min_complexity: 0,
             min_length: 0,
@@ -125,7 +128,7 @@ mod tests {
 
     #[test]
     fn satisfies_policy_evaluates_lower() {
-        let password = "ABCDEFG123".to_string();
+        let password = SensitiveString::test("ABCDEFG123");
         let options = MasterPasswordPolicyOptions {
             min_complexity: 0,
             min_length: 0,
@@ -142,7 +145,7 @@ mod tests {
 
     #[test]
     fn satisfies_policy_evaluates_numbers() {
-        let password = "password".to_string();
+        let password = SensitiveString::test("password");
         let options = MasterPasswordPolicyOptions {
             min_complexity: 0,
             min_length: 0,
@@ -159,7 +162,7 @@ mod tests {
 
     #[test]
     fn satisfies_policy_evaluates_special() {
-        let password = "Password123".to_string();
+        let password = SensitiveString::test("Password123");
         let options = MasterPasswordPolicyOptions {
             min_complexity: 0,
             min_length: 0,

@@ -55,11 +55,13 @@ impl Client {
                 client.auth().login_access_token(&req).await.into_string()
             }
             #[cfg(feature = "internal")]
-            Command::GetUserApiKey(req) => client.get_user_api_key(req).await.into_string(),
+            Command::GetUserApiKey(req) => {
+                client.platform().get_user_api_key(req).await.into_string()
+            }
             #[cfg(feature = "internal")]
             Command::ApiKeyLogin(req) => client.auth().login_api_key(req).await.into_string(),
             #[cfg(feature = "internal")]
-            Command::Sync(req) => client.sync(&req).await.into_string(),
+            Command::Sync(req) => client.vault().sync(&req).await.into_string(),
             #[cfg(feature = "internal")]
             Command::Fingerprint(req) => client.platform().fingerprint(&req).into_string(),
 
@@ -73,6 +75,7 @@ impl Client {
                 SecretsCommand::List(req) => client.secrets().list(&req).await.into_string(),
                 SecretsCommand::Update(req) => client.secrets().update(&req).await.into_string(),
                 SecretsCommand::Delete(req) => client.secrets().delete(req).await.into_string(),
+                SecretsCommand::Sync(req) => client.secrets().sync(&req).await.into_string(),
             },
 
             #[cfg(feature = "secrets")]

@@ -19,7 +19,7 @@ impl ClientAttachments {
         Ok(self
             .0
              .0
-            .read()
+            .write()
             .await
             .vault()
             .attachments()
@@ -38,7 +38,7 @@ impl ClientAttachments {
         Ok(self
             .0
              .0
-            .read()
+            .write()
             .await
             .vault()
             .attachments()
@@ -60,7 +60,7 @@ impl ClientAttachments {
         Ok(self
             .0
              .0
-            .read()
+            .write()
             .await
             .vault()
             .attachments()
@@ -79,7 +79,7 @@ impl ClientAttachments {
         Ok(self
             .0
              .0
-            .read()
+            .write()
             .await
             .vault()
             .attachments()

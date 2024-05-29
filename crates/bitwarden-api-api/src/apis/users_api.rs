@@ -9,9 +9,10 @@
  */
 
 use reqwest;
+use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::apis::ResponseContent;
+use crate::{apis::ResponseContent, models};
 
 /// struct for typed errors of method [`users_id_public_key_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -23,7 +24,7 @@ pub enum UsersIdPublicKeyGetError {
 pub async fn users_id_public_key_get(
     configuration: &configuration::Configuration,
     id: &str,
-) -> Result<crate::models::UserKeyResponseModel, Error<UsersIdPublicKeyGetError>> {
+) -> Result<models::UserKeyResponseModel, Error<UsersIdPublicKeyGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -31,7 +32,7 @@ pub async fn users_id_public_key_get(
     let local_var_uri_str = format!(
         "{}/users/{id}/public-key",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());

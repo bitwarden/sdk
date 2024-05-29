@@ -2,12 +2,11 @@ use std::path::Path;
 
 use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey};
 
-use super::client_vault::ClientVault;
 use crate::{
     error::{Error, Result},
     vault::{
         Attachment, AttachmentEncryptResult, AttachmentFile, AttachmentFileView, AttachmentView,
-        Cipher,
+        Cipher, ClientVault,
     },
     Client,
 };

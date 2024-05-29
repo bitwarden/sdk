@@ -44,6 +44,7 @@ thiserror = "1.0.57"
 tokio = { version = "1.36.0", features = ["rt-multi-thread", "macros"] }
 toml = "0.8.10"
 uuid = { version = "1.7.0", features = ["serde"] }
+which = "6.0.0"
 
 [build-dependencies]
 bitwarden-cli = { workspace = true }

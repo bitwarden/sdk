@@ -35,7 +35,7 @@ pub(crate) fn satisfies_policy(
 }
 
 #[derive(Debug, JsonSchema)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 #[allow(dead_code)]
 pub struct MasterPasswordPolicyOptions {
     min_complexity: u8,

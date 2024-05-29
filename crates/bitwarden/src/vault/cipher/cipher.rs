@@ -14,7 +14,7 @@ use super::{
     local_data::{LocalData, LocalDataView},
     login, secure_note,
 };
-#[cfg(feature = "mobile")]
+#[cfg(feature = "uniffi")]
 use crate::vault::Fido2CredentialFullView;
 use crate::{
     error::{require, Error, Result},
@@ -23,7 +23,7 @@ use crate::{
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum CipherType {
     Login = 1,
     SecureNote = 2,
@@ -33,7 +33,7 @@ pub enum CipherType {
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum CipherRepromptType {
     None = 0,
     Password = 1,
@@ -41,7 +41,7 @@ pub enum CipherRepromptType {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct Cipher {
     pub id: Option<Uuid>,
     pub organization_id: Option<Uuid>,
@@ -79,7 +79,7 @@ pub struct Cipher {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct CipherView {
     pub id: Option<Uuid>,
     pub organization_id: Option<Uuid>,
@@ -115,7 +115,7 @@ pub struct CipherView {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct CipherListView {
     pub id: Option<Uuid>,
     pub organization_id: Option<Uuid>,
@@ -409,7 +409,7 @@ impl CipherView {
         Ok(())
     }
 
-    #[cfg(feature = "mobile")]
+    #[cfg(feature = "uniffi")]
     pub(crate) fn set_new_fido2_credentials(
         &mut self,
         enc: &dyn KeyContainer,
@@ -428,7 +428,7 @@ impl CipherView {
         Ok(())
     }
 
-    #[cfg(feature = "mobile")]
+    #[cfg(feature = "uniffi")]
     pub(crate) fn get_fido2_credentials(
         &self,
         enc: &dyn KeyContainer,

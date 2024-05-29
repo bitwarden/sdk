@@ -1,9 +1,8 @@
 use bitwarden_crypto::{CryptoError, KeyDecryptable};
 
-use super::client_vault::ClientVault;
 use crate::{
     error::Result,
-    vault::{Collection, CollectionView},
+    vault::{ClientVault, Collection, CollectionView},
     Client,
 };
 

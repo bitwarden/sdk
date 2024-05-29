@@ -2,10 +2,9 @@ use std::path::Path;
 
 use bitwarden_crypto::{DecryptedVec, EncString, KeyDecryptable, KeyEncryptable};
 
-use super::client_vault::ClientVault;
 use crate::{
     error::{Error, Result},
-    vault::{Send, SendListView, SendView},
+    vault::{ClientVault, Send, SendListView, SendView},
     Client,
 };
 

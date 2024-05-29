@@ -49,14 +49,14 @@ pub trait Fido2CredentialStore: Send + Sync {
 }
 
 #[derive(Clone)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct CheckUserOptions {
     pub require_presence: bool,
     pub require_verification: Verification,
 }
 
 #[derive(Clone)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum Verification {
     Discouraged,
     Preferred,

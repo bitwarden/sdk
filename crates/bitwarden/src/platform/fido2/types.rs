@@ -2,20 +2,20 @@ use serde::Serialize;
 
 use super::{get_enum_from_string_name, SelectedCredential, Verification};
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct PublicKeyCredentialRpEntity {
     pub id: String,
     pub name: Option<String>,
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct PublicKeyCredentialUserEntity {
     pub id: Vec<u8>,
     pub display_name: String,
     pub name: String,
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct PublicKeyCredentialParameters {
     pub ty: String,
     pub alg: i64,
@@ -35,7 +35,7 @@ impl TryFrom<PublicKeyCredentialParameters>
     }
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct PublicKeyCredentialDescriptor {
     pub ty: String,
     pub id: Vec<u8>,
@@ -58,7 +58,7 @@ impl TryFrom<PublicKeyCredentialDescriptor>
 
 pub type Extensions = Option<String>;
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct MakeCredentialRequest {
     pub client_data_hash: Vec<u8>,
     pub rp: PublicKeyCredentialRpEntity,
@@ -69,14 +69,14 @@ pub struct MakeCredentialRequest {
     pub extensions: Extensions,
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct MakeCredentialResult {
     pub authenticator_data: Vec<u8>,
     pub attested_credential_data: Vec<u8>,
     pub credential_id: Vec<u8>,
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct GetAssertionRequest {
     pub rp_id: String,
     pub client_data_hash: Vec<u8>,
@@ -85,7 +85,7 @@ pub struct GetAssertionRequest {
     pub extensions: Extensions,
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct Options {
     pub rk: bool,
     pub uv: UV,
@@ -101,7 +101,7 @@ impl From<super::CheckUserOptions> for Options {
 }
 
 #[derive(Eq, PartialEq, Clone, Copy)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum UV {
     Discouraged,
     Preferred,
@@ -128,7 +128,7 @@ impl From<Verification> for UV {
     }
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct GetAssertionResult {
     pub credential_id: Vec<u8>,
     pub authenticator_data: Vec<u8>,
@@ -138,7 +138,7 @@ pub struct GetAssertionResult {
     pub selected_credential: SelectedCredential,
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum ClientData {
     DefaultWithExtraData { android_package_name: String },
     DefaultWithCustomHash { hash: Vec<u8> },
@@ -192,12 +192,12 @@ impl passkey::client::ClientData<OptionalAndroidClientData> for ClientData {
     }
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct ClientExtensionResults {
     pub cred_props: Option<CredPropsResult>,
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct CredPropsResult {
     pub rk: Option<bool>,
     pub authenticator_display_name: Option<String>,
@@ -212,7 +212,7 @@ impl From<passkey::types::webauthn::CredentialPropertiesOutput> for CredPropsRes
     }
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct PublicKeyCredentialAuthenticatorAttestationResponse {
     pub id: String,
     pub raw_id: Vec<u8>,
@@ -223,7 +223,7 @@ pub struct PublicKeyCredentialAuthenticatorAttestationResponse {
     pub selected_credential: SelectedCredential,
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct AuthenticatorAttestationResponse {
     pub client_data_json: Vec<u8>,
     pub authenticator_data: Vec<u8>,
@@ -233,7 +233,7 @@ pub struct AuthenticatorAttestationResponse {
     pub transports: Option<Vec<String>>,
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct PublicKeyCredentialAuthenticatorAssertionResponse {
     pub id: String,
     pub raw_id: Vec<u8>,
@@ -244,7 +244,7 @@ pub struct PublicKeyCredentialAuthenticatorAssertionResponse {
     pub selected_credential: SelectedCredential,
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct AuthenticatorAssertionResponse {
     pub client_data_json: Vec<u8>,
     pub authenticator_data: Vec<u8>,

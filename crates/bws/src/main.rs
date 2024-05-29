@@ -3,14 +3,9 @@ use std::{path::PathBuf, process, str::FromStr};
 use bitwarden::{
     auth::{login::AccessTokenLoginRequest, AccessToken},
     client::client_settings::ClientSettings,
-    secrets_manager::{
-        projects::{
-            ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
-        },
-        secrets::{
-            SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
-            SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest, SecretsGetRequest,
-        },
+    secrets_manager::secrets::{
+        SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
+        SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest, SecretsGetRequest,
     },
 };
 use bitwarden_cli::install_color_eyre;
@@ -134,11 +129,7 @@ async fn process_commands() -> Result<()> {
         | Commands::Get {
             cmd: GetCommand::Project { project_id },
         } => {
-            let project = client
-                .projects()
-                .get(&ProjectGetRequest { id: project_id })
-                .await?;
-            serialize_response(project, cli.output, color);
+            return command::project::get(client, project_id, cli.output, color).await;
         }
 
         Commands::Project {
@@ -147,14 +138,8 @@ async fn process_commands() -> Result<()> {
         | Commands::Create {
             cmd: CreateCommand::Project { name },
         } => {
-            let project = client
-                .projects()
-                .create(&ProjectCreateRequest {
-                    organization_id,
-                    name,
-                })
-                .await?;
-            serialize_response(project, cli.output, color);
+            return command::project::create(client, organization_id, name, cli.output, color)
+                .await;
         }
 
         Commands::Project {
@@ -163,15 +148,15 @@ async fn process_commands() -> Result<()> {
         | Commands::Edit {
             cmd: EditCommand::Project { project_id, name },
         } => {
-            let project = client
-                .projects()
-                .update(&ProjectPutRequest {
-                    id: project_id,
-                    organization_id,
-                    name,
-                })
-                .await?;
-            serialize_response(project, cli.output, color);
+            return command::project::edit(
+                client,
+                organization_id,
+                project_id,
+                name,
+                cli.output,
+                color,
+            )
+            .await;
         }
 
         Commands::Project {
@@ -180,39 +165,7 @@ async fn process_commands() -> Result<()> {
         | Commands::Delete {
             cmd: DeleteCommand::Project { project_ids },
         } => {
-            let count = project_ids.len();
-
-            let result = client
-                .projects()
-                .delete(ProjectsDeleteRequest { ids: project_ids })
-                .await?;
-
-            let projects_failed: Vec<(Uuid, String)> = result
-                .data
-                .into_iter()
-                .filter_map(|r| r.error.map(|e| (r.id, e)))
-                .collect();
-            let deleted_projects = count - projects_failed.len();
-
-            if deleted_projects > 1 {
-                println!("{} projects deleted successfully.", deleted_projects);
-            } else if deleted_projects == 1 {
-                println!("{} project deleted successfully.", deleted_projects);
-            }
-
-            if projects_failed.len() > 1 {
-                eprintln!("{} projects had errors:", projects_failed.len());
-            } else if projects_failed.len() == 1 {
-                eprintln!("{} project had an error:", projects_failed.len());
-            }
-
-            for project in &projects_failed {
-                eprintln!("{}: {}", project.0, project.1);
-            }
-
-            if !projects_failed.is_empty() {
-                process::exit(1);
-            }
+            return command::project::delete(client, project_ids).await;
         }
 
         Commands::Secret {

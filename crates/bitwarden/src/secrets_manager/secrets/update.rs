@@ -7,7 +7,7 @@ use uuid::Uuid;
 use super::SecretResponse;
 use crate::{
     client::Client,
-    error::{validate, Error, Result, validate_not_empty},
+    error::{validate, Error, Result, validate_only_whitespaces},
 };
 use validator::Validate;
 
@@ -18,17 +18,11 @@ pub struct SecretPutRequest {
     pub id: Uuid,
     /// Organization ID of the secret to modify
     pub organization_id: Uuid,
-    #[validate(
-        length(max = 500, message = "secret key"),
-        custom(function = validate_not_empty, message = "secret key")
-    )]
+    #[validate(length(min = 1, max = 500), custom(function = validate_only_whitespaces))]
     pub key: String,
-    #[validate(length(max = 25_000, message = "secret value"))]
+    #[validate(length(min = 1, max = 25_000))]
     pub value: String,
-    #[validate(
-        length(max = 7_000, message = "secret note"),
-        custom(function = validate_not_empty, message = "secret note")
-    )]
+    #[validate(length(max = 7_000), custom(function = validate_only_whitespaces))]
     pub note: String,
     pub project_ids: Option<Vec<Uuid>>,
 }

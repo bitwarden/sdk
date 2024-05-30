@@ -7,7 +7,7 @@ use uuid::Uuid;
 use super::ProjectResponse;
 use crate::{
     client::Client,
-    error::{validate, Error, Result, validate_not_empty},
+    error::{validate, Error, Result, validate_only_whitespaces},
 };
 use validator::Validate;
 
@@ -16,10 +16,7 @@ use validator::Validate;
 pub struct ProjectCreateRequest {
     /// Organization where the project will be created
     pub organization_id: Uuid,
-    #[validate(
-        length(max = 500, message = "project name"),
-        custom(function = validate_not_empty, message = "project name")
-    )]
+    #[validate(length(min = 1, max = 500), custom(function = validate_only_whitespaces))]
     pub name: String,
 }
 

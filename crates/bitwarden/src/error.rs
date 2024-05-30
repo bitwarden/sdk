@@ -1,6 +1,7 @@
 //! Errors that can occur when using this SDK
 
 use std::{borrow::Cow, fmt::Debug};
+use log::debug;
 
 use bitwarden_api_api::apis::Error as ApiError;
 use bitwarden_api_identity::apis::Error as IdentityError;
@@ -121,10 +122,12 @@ pub enum AccessTokenInvalidError {
 
 #[derive(Debug, Error)]
 pub enum ValidationError {
+    #[error("{0} must not be empty")]
+    Required(String),
     #[error("{0} must not exceed {1} characters in length")]
     ExceedsCharacterLength(String, u64),
     #[error("{0} must not contain only whitespaces")]
-    Empty(String),
+    OnlyWhitespaces(String),
 }
 
 // Ensure that the error messages implement Send and Sync
@@ -176,7 +179,7 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 // Validation
 const VALIDATION_LENGTH_CODE: &str = "length";
-pub const VALIDATION_EMPTY_CODE: &str = "empty";
+pub const VALIDATION_ONLY_WHITESPACES_CODE: &str = "all_whitespaces";
 
 macro_rules! validate {
     ($val:expr) => {
@@ -188,30 +191,36 @@ macro_rules! validate {
 }
 pub(crate) use validate;
 
-pub fn validate_not_empty(value: &str) -> Result<(), validator::ValidationError> {
-    if value.trim().is_empty() {
-        return Err(validator::ValidationError::new(VALIDATION_EMPTY_CODE));
+pub fn validate_only_whitespaces(value: &str) -> Result<(), validator::ValidationError> {
+    if !value.is_empty() && value.trim().is_empty() {
+        return Err(validator::ValidationError::new(VALIDATION_ONLY_WHITESPACES_CODE));
     }
     Ok(())
 }
 
 impl From<validator::ValidationErrors> for Error {
     fn from(e: validator::ValidationErrors) -> Self {
-        for (_, errors) in e.field_errors() {
+        debug!("Validation errors: {:#?}", e);
+        for (field_name, errors) in e.field_errors() {
             for error in errors {
-                let message = error.message.as_ref().unwrap().to_string();
                 match error.code.as_ref() {
                     VALIDATION_LENGTH_CODE => {
-                        if error.params.contains_key("max") {
+                        if error.params.contains_key("min")
+                            && error.params["min"].as_u64().unwrap() == 1
+                            && error.params["value"].as_str().unwrap().is_empty() {
+                            return Error::ValidationError(ValidationError::Required(
+                                field_name.to_string()
+                            ));
+                        } else if error.params.contains_key("max") {
                             return Error::ValidationError(ValidationError::ExceedsCharacterLength(
-                                message,
+                                field_name.to_string(),
                                 error.params["max"].as_u64().unwrap(),
                             ));
                         }
                     }
-                    VALIDATION_EMPTY_CODE => {
-                        return Error::ValidationError(ValidationError::Empty(
-                            message
+                    VALIDATION_ONLY_WHITESPACES_CODE => {
+                        return Error::ValidationError(ValidationError::OnlyWhitespaces(
+                            field_name.to_string()
                         ));
                     }
                     _ => {}

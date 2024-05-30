@@ -1,5 +1,6 @@
 use std::sync::Mutex;
 
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use bitwarden_crypto::{KeyContainer, SensitiveString, SensitiveVec};
 use passkey::types::{ctap2::Aaguid, Passkey};
 
@@ -213,10 +214,15 @@ pub fn guid_bytes_to_string(source: &[u8]) -> Result<String> {
 }
 
 pub fn string_to_guid_bytes(source: &str) -> Result<Vec<u8>> {
-    let Ok(uuid) = uuid::Uuid::parse_str(source) else {
-        return Err(Error::Internal("Input should be a valid GUID".into()));
-    };
-    Ok(uuid.as_bytes().to_vec())
+    if source.starts_with("b64.") {
+        let bytes = URL_SAFE_NO_PAD.decode(source.trim_start_matches("b64."))?;
+        Ok(bytes)
+    } else {
+        let Ok(uuid) = uuid::Uuid::try_parse(source) else {
+            return Err(Error::Internal("Input should be a valid GUID".into()));
+        };
+        Ok(uuid.as_bytes().to_vec())
+    }
 }
 
 // Some utilities to convert back and forth between enums and strings
@@ -248,6 +254,26 @@ mod tests {
         assert_eq!(
             get_enum_from_string_name::<AuthenticatorAttachment>("cross-platform").unwrap(),
             AuthenticatorAttachment::CrossPlatform
+        );
+    }
+
+    #[test]
+    fn string_to_guid_with_uuid_works() {
+        let uuid = "d548826e-79b4-db40-a3d8-11116f7e8349";
+        let bytes = super::string_to_guid_bytes(uuid).unwrap();
+        assert_eq!(
+            bytes,
+            vec![213, 72, 130, 110, 121, 180, 219, 64, 163, 216, 17, 17, 111, 126, 131, 73]
+        );
+    }
+
+    #[test]
+    fn string_to_guid_with_b64_works() {
+        let b64 = "b64.1UiCbnm020Cj2BERb36DSQ";
+        let bytes = super::string_to_guid_bytes(b64).unwrap();
+        assert_eq!(
+            bytes,
+            vec![213, 72, 130, 110, 121, 180, 219, 64, 163, 216, 17, 17, 111, 126, 131, 73]
         );
     }
 }

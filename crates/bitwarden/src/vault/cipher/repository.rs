@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+
 use rusqlite::{params, Connection};
 use uuid::Uuid;
 
@@ -21,22 +23,24 @@ struct CipherRow {
 }
 
 pub struct CipherSqliteRepository {
-    conn: Connection,
+    conn: Arc<Mutex<Connection>>,
 }
 
 impl CipherSqliteRepository {
-    pub fn new(conn: Connection) -> Self {
+    pub fn new(conn: Arc<Mutex<Connection>>) -> Self {
+        let guard = conn.lock().unwrap();
         // TODO: Handle schema migrations
-        conn.execute(
-            "CREATE TABLE IF NOT EXISTS ciphers (
+        guard
+            .execute(
+                "CREATE TABLE IF NOT EXISTS ciphers (
                 id TEXT PRIMARY KEY,
                 value TEXT NOT NULL
          )",
-            (),
-        )
-        .unwrap();
+                (),
+            )
+            .unwrap();
 
-        Self { conn }
+        Self { conn: conn.clone() }
     }
 }
 
@@ -45,7 +49,9 @@ impl CipherRepository for CipherSqliteRepository {
         let id = cipher.id.unwrap();
         let serialized = serde_json::to_string(cipher)?;
 
-        let mut stmt = self.conn.prepare(
+        let guard = self.conn.lock().unwrap();
+
+        let mut stmt = guard.prepare(
             "
                 INSERT INTO ciphers (id, value)
                 VALUES (?1, ?2)
@@ -59,7 +65,9 @@ impl CipherRepository for CipherSqliteRepository {
     }
 
     fn replace_all(&mut self, ciphers: &[Cipher]) -> Result<(), Error> {
-        let tx = self.conn.transaction()?;
+        let mut guard = self.conn.lock().unwrap();
+
+        let tx = guard.transaction()?;
         {
             tx.execute("DELETE FROM ciphers", [])?;
 
@@ -83,14 +91,18 @@ impl CipherRepository for CipherSqliteRepository {
     }
 
     fn delete_by_id(&self, id: Uuid) -> Result<(), Error> {
-        let mut stmt = self.conn.prepare("DELETE FROM ciphers WHERE id = ?1")?;
+        let guard = self.conn.lock().unwrap();
+
+        let mut stmt = guard.prepare("DELETE FROM ciphers WHERE id = ?1")?;
         stmt.execute(params![id])?;
 
         Ok(())
     }
 
     fn get_all(&self) -> Result<Vec<Cipher>, Error> {
-        let mut stmt = self.conn.prepare("SELECT id, value FROM ciphers")?;
+        let guard = self.conn.lock().unwrap();
+
+        let mut stmt = guard.prepare("SELECT id, value FROM ciphers")?;
         let rows = stmt.query_map([], |row| {
             Ok(CipherRow {
                 id: row.get(0)?,
@@ -149,7 +161,7 @@ mod tests {
     #[test]
     fn test_save_get_all() {
         let conn = Connection::open_in_memory().unwrap();
-        let repo = CipherSqliteRepository::new(conn);
+        let repo = CipherSqliteRepository::new(Arc::new(Mutex::new(conn)));
 
         let cipher = mock_cipher("d55d65d7-c161-40a4-94ca-b0d20184d91a".parse().unwrap());
 
@@ -164,7 +176,7 @@ mod tests {
     #[test]
     fn test_delete_by_id() {
         let conn = Connection::open_in_memory().unwrap();
-        let repo = CipherSqliteRepository::new(conn);
+        let repo = CipherSqliteRepository::new(Arc::new(Mutex::new(conn)));
 
         let cipher = mock_cipher("d55d65d7-c161-40a4-94ca-b0d20184d91a".parse().unwrap());
         repo.save(&cipher).unwrap();
@@ -180,7 +192,7 @@ mod tests {
     #[test]
     fn test_replace_all() {
         let conn = Connection::open_in_memory().unwrap();
-        let mut repo = CipherSqliteRepository::new(conn);
+        let mut repo = CipherSqliteRepository::new(Arc::new(Mutex::new(conn)));
 
         let old_cipher = mock_cipher("d55d65d7-c161-40a4-94ca-b0d20184d91a".parse().unwrap());
 

@@ -37,11 +37,13 @@ pub(crate) async fn sync(client: &mut Client, input: &SyncRequest) -> Result<Syn
 
     let res = SyncResponse::process_response(sync, enc)?;
 
-    let mut repositories = client.repositories.lock().unwrap();
-
     let ciphers = res.ciphers.as_slice();
 
-    repositories.cipher.as_mut().replace_all(ciphers)?;
+    client
+        .vault()
+        .cipher_repository
+        .as_mut()
+        .replace_all(ciphers)?;
 
     Ok(res)
 }

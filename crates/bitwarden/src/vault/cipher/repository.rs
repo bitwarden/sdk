@@ -3,20 +3,27 @@ use std::sync::{Arc, Mutex};
 use rusqlite::{params, Connection};
 use uuid::Uuid;
 
-use crate::error::Error;
+use crate::error::{require, Error};
 
 use super::Cipher;
 
 pub trait CipherRepository {
+    /// Save a cipher to the repository.
     fn save(&self, cipher: &Cipher) -> Result<(), Error>;
+
     /// Replace all ciphers in the repository with the given ciphers.
     ///
     /// Typically used during a sync operation.
     fn replace_all(&mut self, ciphers: &[Cipher]) -> Result<(), Error>;
+
+    /// Delete a cipher by its ID.
     fn delete_by_id(&self, id: Uuid) -> Result<(), Error>;
+
+    /// Get all ciphers from the repository.
     fn get_all(&self) -> Result<Vec<Cipher>, Error>;
 }
 
+/// A row in the ciphers table.
 struct CipherRow {
     id: Uuid,
     value: String,
@@ -28,8 +35,9 @@ pub struct CipherSqliteRepository {
 
 impl CipherSqliteRepository {
     pub fn new(conn: Arc<Mutex<Connection>>) -> Self {
-        let guard = conn.lock().unwrap();
-        // TODO: Handle schema migrations
+        let guard = conn.lock().expect("Unable to acquire lock on database");
+
+        // TODO: Move into a separate util
         guard
             .execute(
                 "CREATE TABLE IF NOT EXISTS ciphers (
@@ -46,10 +54,10 @@ impl CipherSqliteRepository {
 
 impl CipherRepository for CipherSqliteRepository {
     fn save(&self, cipher: &Cipher) -> Result<(), Error> {
-        let id = cipher.id.unwrap();
+        let id = require!(cipher.id);
         let serialized = serde_json::to_string(cipher)?;
 
-        let guard = self.conn.lock().unwrap();
+        let guard = self.conn.lock().map_err(|_| Error::DatabaseLock)?;
 
         let mut stmt = guard.prepare(
             "
@@ -65,7 +73,7 @@ impl CipherRepository for CipherSqliteRepository {
     }
 
     fn replace_all(&mut self, ciphers: &[Cipher]) -> Result<(), Error> {
-        let mut guard = self.conn.lock().unwrap();
+        let mut guard = self.conn.lock().map_err(|_| Error::DatabaseLock)?;
 
         let tx = guard.transaction()?;
         {
@@ -79,7 +87,7 @@ impl CipherRepository for CipherSqliteRepository {
             )?;
 
             for cipher in ciphers {
-                let id = cipher.id.unwrap();
+                let id = require!(cipher.id);
                 let serialized = serde_json::to_string(&cipher)?;
 
                 stmt.execute(params![id, serialized])?;
@@ -91,7 +99,7 @@ impl CipherRepository for CipherSqliteRepository {
     }
 
     fn delete_by_id(&self, id: Uuid) -> Result<(), Error> {
-        let guard = self.conn.lock().unwrap();
+        let guard = self.conn.lock().map_err(|_| Error::DatabaseLock)?;
 
         let mut stmt = guard.prepare("DELETE FROM ciphers WHERE id = ?1")?;
         stmt.execute(params![id])?;
@@ -100,7 +108,7 @@ impl CipherRepository for CipherSqliteRepository {
     }
 
     fn get_all(&self) -> Result<Vec<Cipher>, Error> {
-        let guard = self.conn.lock().unwrap();
+        let guard = self.conn.lock().map_err(|_| Error::DatabaseLock)?;
 
         let mut stmt = guard.prepare("SELECT id, value FROM ciphers")?;
         let rows = stmt.query_map([], |row| {

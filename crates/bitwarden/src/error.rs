@@ -47,6 +47,9 @@ pub enum Error {
     #[error(transparent)]
     Sqlite(#[from] rusqlite::Error),
 
+    #[error("Unable to acquire lock on database")]
+    DatabaseLock,
+
     #[error("Received error message from server: [{}] {}", .status, .message)]
     ResponseContent { status: StatusCode, message: String },
 

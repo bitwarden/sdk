@@ -9,7 +9,7 @@ use crate::{
     client::Client,
     error::{validate, Error, Result, validate_not_empty},
 };
-use validator::{Validate};
+use validator::Validate;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Validate)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

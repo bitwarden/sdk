@@ -7,17 +7,21 @@ use uuid::Uuid;
 use super::ProjectResponse;
 use crate::{
     client::Client,
-    error::{Error, Result},
+    error::{validate, Error, Result, validate_not_empty},
 };
+use validator::Validate;
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Validate)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ProjectPutRequest {
     /// ID of the project to modify
     pub id: Uuid,
     /// Organization ID of the project to modify
     pub organization_id: Uuid,
-
+    #[validate(
+        length(max = 500, message = "project name"),
+        custom(function = validate_not_empty, message = "project name")
+    )]
     pub name: String,
 }
 
@@ -25,13 +29,15 @@ pub(crate) async fn update_project(
     client: &mut Client,
     input: &ProjectPutRequest,
 ) -> Result<ProjectResponse> {
+    validate!(input);
+
     let key = client
         .get_encryption_settings()?
         .get_key(&Some(input.organization_id))
         .ok_or(Error::VaultLocked)?;
 
     let project = Some(ProjectUpdateRequestModel {
-        name: input.name.clone().encrypt_with_key(key)?.to_string(),
+        name: input.name.trim().to_string().clone().encrypt_with_key(key)?.to_string(),
     });
 
     let config = client.get_api_configurations().await;

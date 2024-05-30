@@ -22,15 +22,26 @@ impl<'a> Fido2Client<'a> {
         request: String,
         client_data: ClientData,
     ) -> Result<PublicKeyCredentialAuthenticatorAttestationResponse> {
-        let mut client = passkey::client::Client::new(self.authenticator.get_authenticator());
-
         let origin = Url::parse(&origin).map_err(|e| format!("Invalid origin: {}", e))?;
 
         let request: passkey::types::webauthn::CredentialCreationOptions =
             serde_json::from_str(&request)?;
 
+        // Insert the received UV to be able to return it later in check_user
+        let uv = request
+            .public_key
+            .authenticator_selection
+            .as_ref()
+            .map(|s| s.user_verification.into());
+        *self
+            .authenticator
+            .requested_uv
+            .get_mut()
+            .expect("Mutex is not poisoned") = uv;
+
         let rp_id = request.public_key.rp.id.clone();
 
+        let mut client = passkey::client::Client::new(self.authenticator.get_authenticator(true));
         let result = client.register(&origin, request, client_data).await?;
 
         Ok(PublicKeyCredentialAuthenticatorAttestationResponse {
@@ -66,13 +77,20 @@ impl<'a> Fido2Client<'a> {
         request: String,
         client_data: ClientData,
     ) -> Result<PublicKeyCredentialAuthenticatorAssertionResponse> {
-        let mut client = passkey::client::Client::new(self.authenticator.get_authenticator());
-
         let origin = Url::parse(&origin).map_err(|e| format!("Invalid origin: {}", e))?;
 
         let request: passkey::types::webauthn::CredentialRequestOptions =
             serde_json::from_str(&request)?;
 
+        // Insert the received UV to be able to return it later in check_user
+        let uv = request.public_key.user_verification.into();
+        self.authenticator
+            .requested_uv
+            .get_mut()
+            .expect("Mutex is not poisoned")
+            .replace(uv);
+
+        let mut client = passkey::client::Client::new(self.authenticator.get_authenticator(false));
         let result = client.authenticate(&origin, request, client_data).await?;
 
         Ok(PublicKeyCredentialAuthenticatorAssertionResponse {

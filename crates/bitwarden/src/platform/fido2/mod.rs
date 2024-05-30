@@ -27,7 +27,7 @@ pub use types::{
 use self::crypto::{cose_key_to_pkcs8, pkcs8_to_cose_key};
 use crate::{
     error::{Error, Result},
-    vault::{CipherView, Fido2CredentialFullView, Fido2CredentialView},
+    vault::{CipherView, Fido2CredentialFullView, Fido2CredentialNewView, Fido2CredentialView},
     Client,
 };
 
@@ -123,6 +123,57 @@ impl TryFrom<Fido2CredentialFullView> for Passkey {
             rp_id: value.rp_id.expose().clone(),
             user_handle: value.user_handle.map(|u| u.expose().to_vec().into()),
             counter,
+        })
+    }
+}
+
+impl Fido2CredentialView {
+    pub(crate) fn fill_with_credential(&self, value: Passkey) -> Result<Fido2CredentialFullView> {
+        let cred_id: Vec<u8> = value.credential_id.into();
+
+        Ok(Fido2CredentialFullView {
+            credential_id: SensitiveString::new(Box::new(guid_bytes_to_string(&cred_id)?)),
+            key_type: SensitiveString::new(Box::new("public-key".to_owned())),
+            key_algorithm: SensitiveString::new(Box::new("ECDSA".to_owned())),
+            key_curve: SensitiveString::new(Box::new("P-256".to_owned())),
+            key_value: SensitiveVec::new(Box::new(cose_key_to_pkcs8(&value.key)?)),
+            rp_id: SensitiveString::new(Box::new(value.rp_id)),
+            rp_name: self.rp_name.clone(),
+            user_handle: Some(SensitiveVec::new(Box::new(cred_id))),
+
+            counter: SensitiveString::new(Box::new(value.counter.unwrap_or(0).to_string())),
+            user_name: self.user_name.clone(),
+            user_display_name: self.user_display_name.clone(),
+            discoverable: SensitiveString::new(Box::new("true".to_owned())),
+            creation_date: chrono::offset::Utc::now(),
+        })
+    }
+}
+
+impl Fido2CredentialNewView {
+    pub(crate) fn try_from_credential(
+        user: &passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
+        rp: &passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
+    ) -> Result<Self> {
+        let cred_id: Vec<u8> = vec![0; 16];
+
+        Ok(Fido2CredentialNewView {
+            credential_id: SensitiveString::new(Box::new(guid_bytes_to_string(&cred_id)?)),
+            key_type: SensitiveString::new(Box::new("public-key".to_owned())),
+            key_algorithm: SensitiveString::new(Box::new("ECDSA".to_owned())),
+            key_curve: SensitiveString::new(Box::new("P-256".to_owned())),
+            rp_id: SensitiveString::new(Box::new(rp.id.clone())),
+            rp_name: rp.name.clone().map(|n| SensitiveString::new(Box::new(n))),
+            user_handle: Some(SensitiveVec::new(Box::new(cred_id))),
+
+            counter: SensitiveString::new(Box::new(0.to_string())),
+            user_name: user.name.clone().map(|n| SensitiveString::new(Box::new(n))),
+            user_display_name: user
+                .display_name
+                .clone()
+                .map(|n| SensitiveString::new(Box::new(n))),
+            discoverable: SensitiveString::new(Box::new("true".to_owned())),
+            creation_date: chrono::offset::Utc::now(),
         })
     }
 }

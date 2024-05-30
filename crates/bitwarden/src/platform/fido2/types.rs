@@ -1,3 +1,4 @@
+use passkey::types::webauthn::UserVerificationRequirement;
 use serde::Serialize;
 
 use super::{get_enum_from_string_name, SelectedCredential, Verification};
@@ -39,6 +40,7 @@ impl TryFrom<PublicKeyCredentialParameters>
 pub struct PublicKeyCredentialDescriptor {
     pub ty: String,
     pub id: Vec<u8>,
+    pub transports: Option<Vec<String>>,
 }
 
 impl TryFrom<PublicKeyCredentialDescriptor>
@@ -50,8 +52,14 @@ impl TryFrom<PublicKeyCredentialDescriptor>
         Ok(Self {
             ty: get_enum_from_string_name(&value.ty)?,
             id: value.id.into(),
-            // TODO(Fido2): Do we need to expose this?
-            transports: None,
+            transports: value
+                .transports
+                .map(|tt| {
+                    tt.into_iter()
+                        .map(|t| get_enum_from_string_name(&t))
+                        .collect::<Result<Vec<_>, Self::Error>>()
+                })
+                .transpose()?,
         })
     }
 }
@@ -100,6 +108,15 @@ impl From<super::CheckUserOptions> for Options {
     }
 }
 
+impl From<Options> for super::CheckUserOptions {
+    fn from(value: Options) -> Self {
+        Self {
+            require_presence: value.rk,
+            require_verification: value.uv.into(),
+        }
+    }
+}
+
 #[derive(Eq, PartialEq, Clone, Copy)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum UV {
@@ -124,6 +141,16 @@ impl From<Verification> for UV {
             Verification::Discouraged => UV::Discouraged,
             Verification::Preferred => UV::Preferred,
             Verification::Required => UV::Required,
+        }
+    }
+}
+
+impl From<UserVerificationRequirement> for UV {
+    fn from(value: UserVerificationRequirement) -> Self {
+        match value {
+            UserVerificationRequirement::Discouraged => UV::Discouraged,
+            UserVerificationRequirement::Preferred => UV::Preferred,
+            UserVerificationRequirement::Required => UV::Required,
         }
     }
 }

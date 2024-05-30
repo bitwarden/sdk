@@ -193,9 +193,9 @@ pub trait Fido2UserInterface: Send + Sync {
         &self,
         available_credentials: Vec<CipherView>,
     ) -> Result<CipherViewWrapper, Fido2CallbackError>;
-    async fn pick_credential_for_creation(
+    async fn check_user_and_pick_credential_for_creation(
         &self,
-        available_credentials: Vec<CipherView>,
+        options: CheckUserOptions,
         new_credential: Fido2CredentialNewView,
     ) -> Result<CipherViewWrapper, Fido2CallbackError>;
     async fn is_verification_enabled(&self) -> bool;
@@ -316,13 +316,13 @@ impl bitwarden::platform::fido2::Fido2UserInterface for UniffiTraitBridge<&dyn F
             .map(|v| v.cipher)
             .map_err(Into::into)
     }
-    async fn pick_credential_for_creation(
+    async fn check_user_and_pick_credential_for_creation(
         &self,
-        available_credentials: Vec<CipherView>,
+        options: CheckUserOptions,
         new_credential: Fido2CredentialNewView,
     ) -> Result<CipherView, BitFido2CallbackError> {
         self.0
-            .pick_credential_for_creation(available_credentials, new_credential)
+            .check_user_and_pick_credential_for_creation(options, new_credential)
             .await
             .map(|v| v.cipher)
             .map_err(Into::into)

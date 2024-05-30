@@ -1,15 +1,22 @@
 use std::num::NonZeroU32;
 
-use base64::{engine::general_purpose::STANDARD, Engine};
+use base64::engine::general_purpose::STANDARD;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::utils::{derive_kdf_key, stretch_kdf_key};
-use crate::{util, EncString, KeyDecryptable, Result, SymmetricCryptoKey, UserKey};
+use crate::{
+    util, CryptoError, DecryptedVec, EncString, KeyDecryptable, Result, SensitiveString,
+    SensitiveVec, SymmetricCryptoKey, UserKey,
+};
 
+/// Key Derivation Function for Bitwarden Account
+///
+/// In Bitwarden accounts can use multiple KDFs to derive their master key from their password. This
+/// Enum represents all the possible KDFs.
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum Kdf {
     PBKDF2 {
         iterations: NonZeroU32,
@@ -21,8 +28,34 @@ pub enum Kdf {
     },
 }
 
+impl Default for Kdf {
+    /// Default KDF for new accounts.
+    fn default() -> Self {
+        Kdf::PBKDF2 {
+            iterations: default_pbkdf2_iterations(),
+        }
+    }
+}
+
+/// Default PBKDF2 iterations
+pub fn default_pbkdf2_iterations() -> NonZeroU32 {
+    NonZeroU32::new(600_000).expect("Non-zero number")
+}
+/// Default Argon2 iterations
+pub fn default_argon2_iterations() -> NonZeroU32 {
+    NonZeroU32::new(3).expect("Non-zero number")
+}
+/// Default Argon2 memory
+pub fn default_argon2_memory() -> NonZeroU32 {
+    NonZeroU32::new(64).expect("Non-zero number")
+}
+/// Default Argon2 parallelism
+pub fn default_argon2_parallelism() -> NonZeroU32 {
+    NonZeroU32::new(4).expect("Non-zero number")
+}
+
 #[derive(Copy, Clone, JsonSchema)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum HashPurpose {
     ServerAuthorization = 1,
     LocalAuthorization = 2,
@@ -31,6 +64,7 @@ pub enum HashPurpose {
 /// Master Key.
 ///
 /// Derived from the users master password, used to protect the [UserKey].
+#[derive(Debug)]
 pub struct MasterKey(SymmetricCryptoKey);
 
 impl MasterKey {
@@ -39,15 +73,18 @@ impl MasterKey {
     }
 
     /// Derives a users master key from their password, email and KDF.
-    pub fn derive(password: &[u8], email: &[u8], kdf: &Kdf) -> Result<Self> {
+    pub fn derive(password: &SensitiveVec, email: &[u8], kdf: &Kdf) -> Result<Self> {
         derive_kdf_key(password, email, kdf).map(Self)
     }
 
     /// Derive the master key hash, used for local and remote password validation.
-    pub fn derive_master_key_hash(&self, password: &[u8], purpose: HashPurpose) -> Result<String> {
-        let hash = util::pbkdf2(&self.0.key, password, purpose as u32);
-
-        Ok(STANDARD.encode(hash))
+    pub fn derive_master_key_hash(
+        &self,
+        password: &SensitiveVec,
+        purpose: HashPurpose,
+    ) -> Result<SensitiveString> {
+        let hash = util::pbkdf2(&self.0.key, password.expose(), purpose as u32);
+        Ok(hash.encode_base64(STANDARD))
     }
 
     /// Generate a new random user key and encrypt it with the master key.
@@ -59,16 +96,19 @@ impl MasterKey {
     pub fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey> {
         let stretched_key = stretch_kdf_key(&self.0)?;
 
-        let mut dec: Vec<u8> = user_key.decrypt_with_key(&stretched_key)?;
-        SymmetricCryptoKey::try_from(dec.as_mut_slice())
+        let dec: DecryptedVec = user_key.decrypt_with_key(&stretched_key)?;
+        SymmetricCryptoKey::try_from(dec)
     }
 
     pub fn encrypt_user_key(&self, user_key: &SymmetricCryptoKey) -> Result<EncString> {
         let stretched_key = stretch_kdf_key(&self.0)?;
 
         EncString::encrypt_aes256_hmac(
-            user_key.to_vec().as_slice(),
-            stretched_key.mac_key.as_ref().unwrap(),
+            user_key.to_vec().expose(),
+            stretched_key
+                .mac_key
+                .as_ref()
+                .ok_or(CryptoError::InvalidMac)?,
             &stretched_key.key,
         )
     }
@@ -91,13 +131,15 @@ mod tests {
     use rand::SeedableRng;
 
     use super::{make_user_key, HashPurpose, Kdf, MasterKey};
-    use crate::{keys::symmetric_crypto_key::derive_symmetric_key, SymmetricCryptoKey};
+    use crate::{
+        keys::symmetric_crypto_key::derive_symmetric_key, SensitiveVec, SymmetricCryptoKey,
+    };
 
     #[test]
     fn test_master_key_derive_pbkdf2() {
         let master_key = MasterKey::derive(
-            &b"67t9b5g67$%Dh89n"[..],
-            "test_key".as_bytes(),
+            &SensitiveVec::test(b"67t9b5g67$%Dh89n"),
+            b"test_key",
             &Kdf::PBKDF2 {
                 iterations: NonZeroU32::new(10000).unwrap(),
             },
@@ -117,8 +159,8 @@ mod tests {
     #[test]
     fn test_master_key_derive_argon2() {
         let master_key = MasterKey::derive(
-            &b"67t9b5g67$%Dh89n"[..],
-            "test_key".as_bytes(),
+            &SensitiveVec::test(b"67t9b5g67$%Dh89n"),
+            b"test_key",
             &Kdf::Argon2id {
                 iterations: NonZeroU32::new(4).unwrap(),
                 memory: NonZeroU32::new(32).unwrap(),
@@ -139,39 +181,39 @@ mod tests {
 
     #[test]
     fn test_password_hash_pbkdf2() {
-        let password = "asdfasdf".as_bytes();
-        let salt = "test_salt".as_bytes();
+        let password = SensitiveVec::test(b"asdfasdf");
+        let salt = b"test_salt";
         let kdf = Kdf::PBKDF2 {
             iterations: NonZeroU32::new(100_000).unwrap(),
         };
 
-        let master_key = MasterKey::derive(password, salt, &kdf).unwrap();
+        let master_key = MasterKey::derive(&password, salt, &kdf).unwrap();
 
         assert_eq!(
-            "ZF6HjxUTSyBHsC+HXSOhZoXN+UuMnygV5YkWXCY4VmM=",
             master_key
-                .derive_master_key_hash(password, HashPurpose::ServerAuthorization)
+                .derive_master_key_hash(&password, HashPurpose::ServerAuthorization)
                 .unwrap(),
+            "ZF6HjxUTSyBHsC+HXSOhZoXN+UuMnygV5YkWXCY4VmM=",
         );
     }
 
     #[test]
     fn test_password_hash_argon2id() {
-        let password = "asdfasdf".as_bytes();
-        let salt = "test_salt".as_bytes();
+        let password = SensitiveVec::test(b"asdfasdf");
+        let salt = b"test_salt";
         let kdf = Kdf::Argon2id {
             iterations: NonZeroU32::new(4).unwrap(),
             memory: NonZeroU32::new(32).unwrap(),
             parallelism: NonZeroU32::new(2).unwrap(),
         };
 
-        let master_key = MasterKey::derive(password, salt, &kdf).unwrap();
+        let master_key = MasterKey::derive(&password, salt, &kdf).unwrap();
 
         assert_eq!(
-            "PR6UjYmjmppTYcdyTiNbAhPJuQQOmynKbdEl1oyi/iQ=",
             master_key
-                .derive_master_key_hash(password, HashPurpose::ServerAuthorization)
+                .derive_master_key_hash(&password, HashPurpose::ServerAuthorization)
                 .unwrap(),
+            "PR6UjYmjmppTYcdyTiNbAhPJuQQOmynKbdEl1oyi/iQ=",
         );
     }
 

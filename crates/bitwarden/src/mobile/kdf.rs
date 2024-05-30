@@ -1,15 +1,16 @@
-use bitwarden_crypto::{HashPurpose, Kdf, MasterKey};
+use bitwarden_crypto::{HashPurpose, Kdf, MasterKey, SensitiveString};
 
 use crate::{error::Result, Client};
 
 pub async fn hash_password(
     _client: &Client,
     email: String,
-    password: String,
+    password: SensitiveString,
     kdf_params: Kdf,
     purpose: HashPurpose,
-) -> Result<String> {
-    let master_key = MasterKey::derive(password.as_bytes(), email.as_bytes(), &kdf_params)?;
+) -> Result<SensitiveString> {
+    let password_vec = password.into();
+    let master_key = MasterKey::derive(&password_vec, email.as_bytes(), &kdf_params)?;
 
-    Ok(master_key.derive_master_key_hash(password.as_bytes(), purpose)?)
+    Ok(master_key.derive_master_key_hash(&password_vec, purpose)?)
 }

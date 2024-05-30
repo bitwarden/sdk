@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+      - rc
+      - hotfix-rc
+  pull_request:
+  workflow_dispatch:
 
 jobs:
   generate_schemas:
@@ -12,19 +16,38 @@ jobs:
   build_rust:
     uses: ./.github/workflows/build-rust-cross-platform.yml
 
+  version:
+    name: Get version
+    runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+
+      - name: Install xmllint
+        run: sudo apt-get install -y libxml2-utils
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(xmllint --xpath 'string(/Project/PropertyGroup/Version)' languages/csharp/Bitwarden.Sdk/Bitwarden.Sdk.csproj)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
   build_dotnet:
     name: Build .NET
     runs-on: ubuntu-22.04
     needs:
       - generate_schemas
       - build_rust
+      - version
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
 
       - name: Download C# schemas artifact
-        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
+        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
         with:
           name: schemas.cs
           path: languages/csharp/Bitwarden.Sdk
@@ -35,44 +58,42 @@ jobs:
           global-json-file: languages/csharp/global.json
 
       - name: Download x86_64-apple-darwin files
-        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
+        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
         with:
           name: libbitwarden_c_files-x86_64-apple-darwin
           path: languages/csharp/Bitwarden.Sdk/macos-x64
 
       - name: Download aarch64-apple-darwin files
-        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
+        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
         with:
           name: libbitwarden_c_files-aarch64-apple-darwin
           path: languages/csharp/Bitwarden.Sdk/macos-arm64
 
       - name: Download x86_64-unknown-linux-gnu files
-        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
+        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
         with:
           name: libbitwarden_c_files-x86_64-unknown-linux-gnu
           path: languages/csharp/Bitwarden.Sdk/linux-x64
 
       - name: Download x86_64-pc-windows-msvc files
-        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
+        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
         with:
           name: libbitwarden_c_files-x86_64-pc-windows-msvc
           path: languages/csharp/Bitwarden.Sdk/windows-x64
 
-      - name: Build .NET 6 Project
+      - name: Build .NET Project
         working-directory: languages/csharp/Bitwarden.Sdk
         run: |
           dotnet restore
           dotnet build --configuration Release
 
       - name: Pack NuGet Package
-        env:
-          VERSION: 0.0.1
-        run: dotnet pack --configuration Release -p:PackageID=Bitwarden.Sdk -p:Version=${VERSION} --output ./nuget-output /nologo /v:n
+        run: dotnet pack --configuration Release --output ./nuget-output /nologo /v:n
         working-directory: languages/csharp/Bitwarden.Sdk
 
       - name: Upload NuGet package
-        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
         with:
-          name: Bitwarden.Sdk.0.0.1.nupkg
+          name: Bitwarden.Sdk.${{ needs.version.outputs.version }}.nupkg
           path: |
             ./languages/csharp/Bitwarden.Sdk/nuget-output/*.nupkg

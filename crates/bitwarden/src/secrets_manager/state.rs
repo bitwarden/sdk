@@ -1,10 +1,12 @@
 use std::{fmt::Debug, path::Path};
 
-use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable};
+use bitwarden_crypto::{
+    DecryptedString, EncString, KeyDecryptable, KeyEncryptable, SensitiveString,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    client::AccessToken,
+    auth::AccessToken,
     error::{Error, Result},
 };
 
@@ -15,11 +17,11 @@ const STATE_VERSION: u32 = 1;
 pub struct ClientState {
     pub(crate) version: u32,
     pub(crate) token: String,
-    pub(crate) encryption_key: String,
+    pub(crate) encryption_key: SensitiveString,
 }
 
 impl ClientState {
-    pub fn new(token: String, encryption_key: String) -> Self {
+    pub fn new(token: String, encryption_key: SensitiveString) -> Self {
         Self {
             version: STATE_VERSION,
             token,
@@ -32,8 +34,9 @@ pub fn get(state_file: &Path, access_token: &AccessToken) -> Result<ClientState>
     let file_content = std::fs::read_to_string(state_file)?;
 
     let encrypted_state: EncString = file_content.parse()?;
-    let decrypted_state: String = encrypted_state.decrypt_with_key(&access_token.encryption_key)?;
-    let client_state: ClientState = serde_json::from_str(&decrypted_state)?;
+    let decrypted_state: DecryptedString =
+        encrypted_state.decrypt_with_key(&access_token.encryption_key)?;
+    let client_state: ClientState = serde_json::from_str(decrypted_state.expose())?;
 
     if client_state.version != STATE_VERSION {
         return Err(Error::InvalidStateFileVersion);

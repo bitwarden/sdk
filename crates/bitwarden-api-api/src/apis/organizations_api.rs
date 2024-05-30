@@ -9,9 +9,10 @@
  */
 
 use reqwest;
+use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::apis::ResponseContent;
+use crate::{apis::ResponseContent, models};
 
 /// struct for typed errors of method [`organizations_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -34,10 +35,10 @@ pub enum OrganizationsIdApiKeyPostError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`organizations_id_billing_get`]
+/// struct for typed errors of method [`organizations_id_billing_status_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum OrganizationsIdBillingGetError {
+pub enum OrganizationsIdBillingStatusGetError {
     UnknownValue(serde_json::Value),
 }
 
@@ -66,6 +67,13 @@ pub enum OrganizationsIdDeleteError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationsIdDeletePostError {
+    UnknownValue(serde_json::Value),
+}
+
+/// struct for typed errors of method [`organizations_id_delete_recover_token_post`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum OrganizationsIdDeleteRecoverTokenPostError {
     UnknownValue(serde_json::Value),
 }
 
@@ -150,13 +158,6 @@ pub enum OrganizationsIdPutError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationsIdReinstatePostError {
-    UnknownValue(serde_json::Value),
-}
-
-/// struct for typed errors of method [`organizations_id_risks_subscription_failure_get`]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum OrganizationsIdRisksSubscriptionFailureGetError {
     UnknownValue(serde_json::Value),
 }
 
@@ -267,10 +268,8 @@ pub enum OrganizationsPostError {
 
 pub async fn organizations_get(
     configuration: &configuration::Configuration,
-) -> Result<
-    crate::models::ProfileOrganizationResponseModelListResponseModel,
-    Error<OrganizationsGetError>,
-> {
+) -> Result<models::ProfileOrganizationResponseModelListResponseModel, Error<OrganizationsGetError>>
+{
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -310,9 +309,9 @@ pub async fn organizations_get(
 pub async fn organizations_id_api_key_information_type_get(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    r#type: crate::models::OrganizationApiKeyType,
+    r#type: models::OrganizationApiKeyType,
 ) -> Result<
-    crate::models::OrganizationApiKeyInformationListResponseModel,
+    models::OrganizationApiKeyInformationListResponseModel,
     Error<OrganizationsIdApiKeyInformationTypeGetError>,
 > {
     let local_var_configuration = configuration;
@@ -354,8 +353,8 @@ pub async fn organizations_id_api_key_information_type_get(
 pub async fn organizations_id_api_key_post(
     configuration: &configuration::Configuration,
     id: &str,
-    organization_api_key_request_model: Option<crate::models::OrganizationApiKeyRequestModel>,
-) -> Result<crate::models::ApiKeyResponseModel, Error<OrganizationsIdApiKeyPostError>> {
+    organization_api_key_request_model: Option<models::OrganizationApiKeyRequestModel>,
+) -> Result<models::ApiKeyResponseModel, Error<OrganizationsIdApiKeyPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -363,7 +362,7 @@ pub async fn organizations_id_api_key_post(
     let local_var_uri_str = format!(
         "{}/organizations/{id}/api-key",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -397,16 +396,19 @@ pub async fn organizations_id_api_key_post(
     }
 }
 
-pub async fn organizations_id_billing_get(
+pub async fn organizations_id_billing_status_get(
     configuration: &configuration::Configuration,
-    id: &str,
-) -> Result<crate::models::BillingResponseModel, Error<OrganizationsIdBillingGetError>> {
+    id: uuid::Uuid,
+) -> Result<
+    models::OrganizationBillingStatusResponseModel,
+    Error<OrganizationsIdBillingStatusGetError>,
+> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
 
     let local_var_uri_str = format!(
-        "{}/organizations/{id}/billing",
+        "{}/organizations/{id}/billing-status",
         local_var_configuration.base_path,
         id = crate::apis::urlencode(id.to_string())
     );
@@ -430,7 +432,7 @@ pub async fn organizations_id_billing_get(
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
         serde_json::from_str(&local_var_content).map_err(Error::from)
     } else {
-        let local_var_entity: Option<OrganizationsIdBillingGetError> =
+        let local_var_entity: Option<OrganizationsIdBillingStatusGetError> =
             serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,
@@ -443,7 +445,8 @@ pub async fn organizations_id_billing_get(
 
 pub async fn organizations_id_cancel_post(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
+    subscription_cancellation_request_model: Option<models::SubscriptionCancellationRequestModel>,
 ) -> Result<(), Error<OrganizationsIdCancelPostError>> {
     let local_var_configuration = configuration;
 
@@ -464,6 +467,7 @@ pub async fn organizations_id_cancel_post(
     if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
         local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
     };
+    local_var_req_builder = local_var_req_builder.json(&subscription_cancellation_request_model);
 
     let local_var_req = local_var_req_builder.build()?;
     let local_var_resp = local_var_client.execute(local_var_req).await?;
@@ -489,12 +493,9 @@ pub async fn organizations_id_collection_management_put(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
     organization_collection_management_update_request_model: Option<
-        crate::models::OrganizationCollectionManagementUpdateRequestModel,
+        models::OrganizationCollectionManagementUpdateRequestModel,
     >,
-) -> Result<
-    crate::models::OrganizationResponseModel,
-    Error<OrganizationsIdCollectionManagementPutError>,
-> {
+) -> Result<models::OrganizationResponseModel, Error<OrganizationsIdCollectionManagementPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -540,7 +541,7 @@ pub async fn organizations_id_collection_management_put(
 pub async fn organizations_id_delete(
     configuration: &configuration::Configuration,
     id: &str,
-    secret_verification_request_model: Option<crate::models::SecretVerificationRequestModel>,
+    secret_verification_request_model: Option<models::SecretVerificationRequestModel>,
 ) -> Result<(), Error<OrganizationsIdDeleteError>> {
     let local_var_configuration = configuration;
 
@@ -549,7 +550,7 @@ pub async fn organizations_id_delete(
     let local_var_uri_str = format!(
         "{}/organizations/{id}",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::DELETE, local_var_uri_str.as_str());
@@ -586,7 +587,7 @@ pub async fn organizations_id_delete(
 pub async fn organizations_id_delete_post(
     configuration: &configuration::Configuration,
     id: &str,
-    secret_verification_request_model: Option<crate::models::SecretVerificationRequestModel>,
+    secret_verification_request_model: Option<models::SecretVerificationRequestModel>,
 ) -> Result<(), Error<OrganizationsIdDeletePostError>> {
     let local_var_configuration = configuration;
 
@@ -595,7 +596,7 @@ pub async fn organizations_id_delete_post(
     let local_var_uri_str = format!(
         "{}/organizations/{id}/delete",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -619,6 +620,55 @@ pub async fn organizations_id_delete_post(
         Ok(())
     } else {
         let local_var_entity: Option<OrganizationsIdDeletePostError> =
+            serde_json::from_str(&local_var_content).ok();
+        let local_var_error = ResponseContent {
+            status: local_var_status,
+            content: local_var_content,
+            entity: local_var_entity,
+        };
+        Err(Error::ResponseError(local_var_error))
+    }
+}
+
+pub async fn organizations_id_delete_recover_token_post(
+    configuration: &configuration::Configuration,
+    id: uuid::Uuid,
+    organization_verify_delete_recover_request_model: Option<
+        models::OrganizationVerifyDeleteRecoverRequestModel,
+    >,
+) -> Result<(), Error<OrganizationsIdDeleteRecoverTokenPostError>> {
+    let local_var_configuration = configuration;
+
+    let local_var_client = &local_var_configuration.client;
+
+    let local_var_uri_str = format!(
+        "{}/organizations/{id}/delete-recover-token",
+        local_var_configuration.base_path,
+        id = crate::apis::urlencode(id.to_string())
+    );
+    let mut local_var_req_builder =
+        local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
+
+    if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
+        local_var_req_builder =
+            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
+    }
+    if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
+        local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
+    };
+    local_var_req_builder =
+        local_var_req_builder.json(&organization_verify_delete_recover_request_model);
+
+    let local_var_req = local_var_req_builder.build()?;
+    let local_var_resp = local_var_client.execute(local_var_req).await?;
+
+    let local_var_status = local_var_resp.status();
+    let local_var_content = local_var_resp.text().await?;
+
+    if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
+        Ok(())
+    } else {
+        let local_var_entity: Option<OrganizationsIdDeleteRecoverTokenPostError> =
             serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,
@@ -676,7 +726,7 @@ pub async fn organizations_id_enable_collection_enhancements_post(
 pub async fn organizations_id_get(
     configuration: &configuration::Configuration,
     id: &str,
-) -> Result<crate::models::OrganizationResponseModel, Error<OrganizationsIdGetError>> {
+) -> Result<models::OrganizationResponseModel, Error<OrganizationsIdGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -684,7 +734,7 @@ pub async fn organizations_id_get(
     let local_var_uri_str = format!(
         "{}/organizations/{id}",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -720,9 +770,7 @@ pub async fn organizations_id_get(
 pub async fn organizations_id_import_post(
     configuration: &configuration::Configuration,
     id: &str,
-    import_organization_users_request_model: Option<
-        crate::models::ImportOrganizationUsersRequestModel,
-    >,
+    import_organization_users_request_model: Option<models::ImportOrganizationUsersRequestModel>,
 ) -> Result<(), Error<OrganizationsIdImportPostError>> {
     let local_var_configuration = configuration;
 
@@ -731,7 +779,7 @@ pub async fn organizations_id_import_post(
     let local_var_uri_str = format!(
         "{}/organizations/{id}/import",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -768,7 +816,7 @@ pub async fn organizations_id_import_post(
 pub async fn organizations_id_keys_get(
     configuration: &configuration::Configuration,
     id: &str,
-) -> Result<crate::models::OrganizationPublicKeyResponseModel, Error<OrganizationsIdKeysGetError>> {
+) -> Result<models::OrganizationPublicKeyResponseModel, Error<OrganizationsIdKeysGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -776,7 +824,7 @@ pub async fn organizations_id_keys_get(
     let local_var_uri_str = format!(
         "{}/organizations/{id}/keys",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -812,8 +860,8 @@ pub async fn organizations_id_keys_get(
 pub async fn organizations_id_keys_post(
     configuration: &configuration::Configuration,
     id: &str,
-    organization_keys_request_model: Option<crate::models::OrganizationKeysRequestModel>,
-) -> Result<crate::models::OrganizationKeysResponseModel, Error<OrganizationsIdKeysPostError>> {
+    organization_keys_request_model: Option<models::OrganizationKeysRequestModel>,
+) -> Result<models::OrganizationKeysResponseModel, Error<OrganizationsIdKeysPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -821,7 +869,7 @@ pub async fn organizations_id_keys_post(
     let local_var_uri_str = format!(
         "{}/organizations/{id}/keys",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -866,7 +914,7 @@ pub async fn organizations_id_leave_post(
     let local_var_uri_str = format!(
         "{}/organizations/{id}/leave",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -901,9 +949,9 @@ pub async fn organizations_id_leave_post(
 
 pub async fn organizations_id_license_get(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     installation_id: Option<uuid::Uuid>,
-) -> Result<crate::models::OrganizationLicense, Error<OrganizationsIdLicenseGetError>> {
+) -> Result<models::OrganizationLicense, Error<OrganizationsIdLicenseGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -950,8 +998,8 @@ pub async fn organizations_id_license_get(
 
 pub async fn organizations_id_payment_post(
     configuration: &configuration::Configuration,
-    id: &str,
-    payment_request_model: Option<crate::models::PaymentRequestModel>,
+    id: uuid::Uuid,
+    payment_request_model: Option<models::PaymentRequestModel>,
 ) -> Result<(), Error<OrganizationsIdPaymentPostError>> {
     let local_var_configuration = configuration;
 
@@ -997,8 +1045,8 @@ pub async fn organizations_id_payment_post(
 pub async fn organizations_id_post(
     configuration: &configuration::Configuration,
     id: &str,
-    organization_update_request_model: Option<crate::models::OrganizationUpdateRequestModel>,
-) -> Result<crate::models::OrganizationResponseModel, Error<OrganizationsIdPostError>> {
+    organization_update_request_model: Option<models::OrganizationUpdateRequestModel>,
+) -> Result<models::OrganizationResponseModel, Error<OrganizationsIdPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1006,7 +1054,7 @@ pub async fn organizations_id_post(
     let local_var_uri_str = format!(
         "{}/organizations/{id}",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -1043,10 +1091,7 @@ pub async fn organizations_id_post(
 pub async fn organizations_id_public_key_get(
     configuration: &configuration::Configuration,
     id: &str,
-) -> Result<
-    crate::models::OrganizationPublicKeyResponseModel,
-    Error<OrganizationsIdPublicKeyGetError>,
-> {
+) -> Result<models::OrganizationPublicKeyResponseModel, Error<OrganizationsIdPublicKeyGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1054,7 +1099,7 @@ pub async fn organizations_id_public_key_get(
     let local_var_uri_str = format!(
         "{}/organizations/{id}/public-key",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -1090,8 +1135,8 @@ pub async fn organizations_id_public_key_get(
 pub async fn organizations_id_put(
     configuration: &configuration::Configuration,
     id: &str,
-    organization_update_request_model: Option<crate::models::OrganizationUpdateRequestModel>,
-) -> Result<crate::models::OrganizationResponseModel, Error<OrganizationsIdPutError>> {
+    organization_update_request_model: Option<models::OrganizationUpdateRequestModel>,
+) -> Result<models::OrganizationResponseModel, Error<OrganizationsIdPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1099,7 +1144,7 @@ pub async fn organizations_id_put(
     let local_var_uri_str = format!(
         "{}/organizations/{id}",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::PUT, local_var_uri_str.as_str());
@@ -1135,7 +1180,7 @@ pub async fn organizations_id_put(
 
 pub async fn organizations_id_reinstate_post(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
 ) -> Result<(), Error<OrganizationsIdReinstatePostError>> {
     let local_var_configuration = configuration;
 
@@ -1177,58 +1222,11 @@ pub async fn organizations_id_reinstate_post(
     }
 }
 
-pub async fn organizations_id_risks_subscription_failure_get(
-    configuration: &configuration::Configuration,
-    id: uuid::Uuid,
-) -> Result<
-    crate::models::OrganizationRisksSubscriptionFailureResponseModel,
-    Error<OrganizationsIdRisksSubscriptionFailureGetError>,
-> {
-    let local_var_configuration = configuration;
-
-    let local_var_client = &local_var_configuration.client;
-
-    let local_var_uri_str = format!(
-        "{}/organizations/{id}/risks-subscription-failure",
-        local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
-    );
-    let mut local_var_req_builder =
-        local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
-
-    if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
-        local_var_req_builder =
-            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
-    }
-    if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
-        local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
-    };
-
-    let local_var_req = local_var_req_builder.build()?;
-    let local_var_resp = local_var_client.execute(local_var_req).await?;
-
-    let local_var_status = local_var_resp.status();
-    let local_var_content = local_var_resp.text().await?;
-
-    if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
-        serde_json::from_str(&local_var_content).map_err(Error::from)
-    } else {
-        let local_var_entity: Option<OrganizationsIdRisksSubscriptionFailureGetError> =
-            serde_json::from_str(&local_var_content).ok();
-        let local_var_error = ResponseContent {
-            status: local_var_status,
-            content: local_var_content,
-            entity: local_var_entity,
-        };
-        Err(Error::ResponseError(local_var_error))
-    }
-}
-
 pub async fn organizations_id_rotate_api_key_post(
     configuration: &configuration::Configuration,
     id: &str,
-    organization_api_key_request_model: Option<crate::models::OrganizationApiKeyRequestModel>,
-) -> Result<crate::models::ApiKeyResponseModel, Error<OrganizationsIdRotateApiKeyPostError>> {
+    organization_api_key_request_model: Option<models::OrganizationApiKeyRequestModel>,
+) -> Result<models::ApiKeyResponseModel, Error<OrganizationsIdRotateApiKeyPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1236,7 +1234,7 @@ pub async fn organizations_id_rotate_api_key_post(
     let local_var_uri_str = format!(
         "{}/organizations/{id}/rotate-api-key",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -1272,9 +1270,9 @@ pub async fn organizations_id_rotate_api_key_post(
 
 pub async fn organizations_id_seat_post(
     configuration: &configuration::Configuration,
-    id: &str,
-    organization_seat_request_model: Option<crate::models::OrganizationSeatRequestModel>,
-) -> Result<crate::models::PaymentResponseModel, Error<OrganizationsIdSeatPostError>> {
+    id: uuid::Uuid,
+    organization_seat_request_model: Option<models::OrganizationSeatRequestModel>,
+) -> Result<models::PaymentResponseModel, Error<OrganizationsIdSeatPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1320,7 +1318,7 @@ pub async fn organizations_id_sm_subscription_post(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
     secrets_manager_subscription_update_request_model: Option<
-        crate::models::SecretsManagerSubscriptionUpdateRequestModel,
+        models::SecretsManagerSubscriptionUpdateRequestModel,
     >,
 ) -> Result<(), Error<OrganizationsIdSmSubscriptionPostError>> {
     let local_var_configuration = configuration;
@@ -1368,7 +1366,7 @@ pub async fn organizations_id_sm_subscription_post(
 pub async fn organizations_id_sso_get(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-) -> Result<crate::models::OrganizationSsoResponseModel, Error<OrganizationsIdSsoGetError>> {
+) -> Result<models::OrganizationSsoResponseModel, Error<OrganizationsIdSsoGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1412,8 +1410,8 @@ pub async fn organizations_id_sso_get(
 pub async fn organizations_id_sso_post(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    organization_sso_request_model: Option<crate::models::OrganizationSsoRequestModel>,
-) -> Result<crate::models::OrganizationSsoResponseModel, Error<OrganizationsIdSsoPostError>> {
+    organization_sso_request_model: Option<models::OrganizationSsoRequestModel>,
+) -> Result<models::OrganizationSsoResponseModel, Error<OrganizationsIdSsoPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1458,8 +1456,8 @@ pub async fn organizations_id_sso_post(
 pub async fn organizations_id_storage_post(
     configuration: &configuration::Configuration,
     id: &str,
-    storage_request_model: Option<crate::models::StorageRequestModel>,
-) -> Result<crate::models::PaymentResponseModel, Error<OrganizationsIdStoragePostError>> {
+    storage_request_model: Option<models::StorageRequestModel>,
+) -> Result<models::PaymentResponseModel, Error<OrganizationsIdStoragePostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1467,7 +1465,7 @@ pub async fn organizations_id_storage_post(
     let local_var_uri_str = format!(
         "{}/organizations/{id}/storage",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -1504,11 +1502,9 @@ pub async fn organizations_id_storage_post(
 pub async fn organizations_id_subscribe_secrets_manager_post(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    secrets_manager_subscribe_request_model: Option<
-        crate::models::SecretsManagerSubscribeRequestModel,
-    >,
+    secrets_manager_subscribe_request_model: Option<models::SecretsManagerSubscribeRequestModel>,
 ) -> Result<
-    crate::models::ProfileOrganizationResponseModel,
+    models::ProfileOrganizationResponseModel,
     Error<OrganizationsIdSubscribeSecretsManagerPostError>,
 > {
     let local_var_configuration = configuration;
@@ -1554,11 +1550,9 @@ pub async fn organizations_id_subscribe_secrets_manager_post(
 
 pub async fn organizations_id_subscription_get(
     configuration: &configuration::Configuration,
-    id: &str,
-) -> Result<
-    crate::models::OrganizationSubscriptionResponseModel,
-    Error<OrganizationsIdSubscriptionGetError>,
-> {
+    id: uuid::Uuid,
+) -> Result<models::OrganizationSubscriptionResponseModel, Error<OrganizationsIdSubscriptionGetError>>
+{
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1601,9 +1595,9 @@ pub async fn organizations_id_subscription_get(
 
 pub async fn organizations_id_subscription_post(
     configuration: &configuration::Configuration,
-    id: &str,
+    id: uuid::Uuid,
     organization_subscription_update_request_model: Option<
-        crate::models::OrganizationSubscriptionUpdateRequestModel,
+        models::OrganizationSubscriptionUpdateRequestModel,
     >,
 ) -> Result<(), Error<OrganizationsIdSubscriptionPostError>> {
     let local_var_configuration = configuration;
@@ -1650,8 +1644,8 @@ pub async fn organizations_id_subscription_post(
 
 pub async fn organizations_id_tax_get(
     configuration: &configuration::Configuration,
-    id: &str,
-) -> Result<crate::models::TaxInfoResponseModel, Error<OrganizationsIdTaxGetError>> {
+    id: uuid::Uuid,
+) -> Result<models::TaxInfoResponseModel, Error<OrganizationsIdTaxGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1694,10 +1688,8 @@ pub async fn organizations_id_tax_get(
 
 pub async fn organizations_id_tax_put(
     configuration: &configuration::Configuration,
-    id: &str,
-    organization_tax_info_update_request_model: Option<
-        crate::models::OrganizationTaxInfoUpdateRequestModel,
-    >,
+    id: uuid::Uuid,
+    expanded_tax_info_update_request_model: Option<models::ExpandedTaxInfoUpdateRequestModel>,
 ) -> Result<(), Error<OrganizationsIdTaxPutError>> {
     let local_var_configuration = configuration;
 
@@ -1718,7 +1710,7 @@ pub async fn organizations_id_tax_put(
     if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
         local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
     };
-    local_var_req_builder = local_var_req_builder.json(&organization_tax_info_update_request_model);
+    local_var_req_builder = local_var_req_builder.json(&expanded_tax_info_update_request_model);
 
     let local_var_req = local_var_req_builder.build()?;
     let local_var_resp = local_var_client.execute(local_var_req).await?;
@@ -1742,9 +1734,9 @@ pub async fn organizations_id_tax_put(
 
 pub async fn organizations_id_upgrade_post(
     configuration: &configuration::Configuration,
-    id: &str,
-    organization_upgrade_request_model: Option<crate::models::OrganizationUpgradeRequestModel>,
-) -> Result<crate::models::PaymentResponseModel, Error<OrganizationsIdUpgradePostError>> {
+    id: uuid::Uuid,
+    organization_upgrade_request_model: Option<models::OrganizationUpgradeRequestModel>,
+) -> Result<models::PaymentResponseModel, Error<OrganizationsIdUpgradePostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1788,10 +1780,8 @@ pub async fn organizations_id_upgrade_post(
 
 pub async fn organizations_id_verify_bank_post(
     configuration: &configuration::Configuration,
-    id: &str,
-    organization_verify_bank_request_model: Option<
-        crate::models::OrganizationVerifyBankRequestModel,
-    >,
+    id: uuid::Uuid,
+    organization_verify_bank_request_model: Option<models::OrganizationVerifyBankRequestModel>,
 ) -> Result<(), Error<OrganizationsIdVerifyBankPostError>> {
     let local_var_configuration = configuration;
 
@@ -1838,7 +1828,7 @@ pub async fn organizations_identifier_auto_enroll_status_get(
     configuration: &configuration::Configuration,
     identifier: &str,
 ) -> Result<
-    crate::models::OrganizationAutoEnrollStatusResponseModel,
+    models::OrganizationAutoEnrollStatusResponseModel,
     Error<OrganizationsIdentifierAutoEnrollStatusGetError>,
 > {
     let local_var_configuration = configuration;
@@ -1848,7 +1838,7 @@ pub async fn organizations_identifier_auto_enroll_status_get(
     let local_var_uri_str = format!(
         "{}/organizations/{identifier}/auto-enroll-status",
         local_var_configuration.base_path,
-        identifier = crate::apis::urlencode(identifier.to_string())
+        identifier = crate::apis::urlencode(identifier)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -1883,8 +1873,8 @@ pub async fn organizations_identifier_auto_enroll_status_get(
 
 pub async fn organizations_post(
     configuration: &configuration::Configuration,
-    organization_create_request_model: Option<crate::models::OrganizationCreateRequestModel>,
-) -> Result<crate::models::OrganizationResponseModel, Error<OrganizationsPostError>> {
+    organization_create_request_model: Option<models::OrganizationCreateRequestModel>,
+) -> Result<models::OrganizationResponseModel, Error<OrganizationsPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;

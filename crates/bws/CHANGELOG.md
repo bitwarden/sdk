@@ -7,10 +7,22 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.5.0] - 2024-04-26
+
+### Added
+
+- Add a `BWS_CONFIG_FILE` environment variable to specify the location of the config file (#571)
+- The `bws` CLI is now available as a Docker image (`docker run -it bitwarden/bws --help`) (#305)
+- The `bws` CLI releases are now code signed on Windows and Mac (#534, #535)
+
+### Fixed
+
+- Re-add output options to the help menu after they were accidentally removed (#477)
+
 ### Changed
 
-- Switched TLS backend to `rustls`, removing the dependency on `OpenSSL`.
-- Add a `BWS_CONFIG_FILE` environment variable to specify the location of the config file (#571)
+- Switched TLS backend to `rusttls`, removing the dependency on `OpenSSL` (#374)
+- Updated MSRV for `bws` to `1.71.0` (#589)
 
 ## [0.4.0] - 2023-12-21
 

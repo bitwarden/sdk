@@ -4,25 +4,25 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::error::{Error, Result};
+use crate::error::{require, Error, Result};
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum SecureNoteType {
     Generic = 0,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct SecureNote {
     r#type: SecureNoteType,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct SecureNoteView {
     pub(crate) r#type: SecureNoteType,
 }
@@ -48,7 +48,7 @@ impl TryFrom<CipherSecureNoteModel> for SecureNote {
 
     fn try_from(model: CipherSecureNoteModel) -> Result<Self> {
         Ok(Self {
-            r#type: model.r#type.map(|t| t.into()).ok_or(Error::MissingFields)?,
+            r#type: require!(model.r#type).into(),
         })
     }
 }

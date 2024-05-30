@@ -1,16 +1,17 @@
 use bitwarden_api_api::models::CollectionDetailsResponseModel;
 use bitwarden_crypto::{
-    CryptoError, EncString, KeyContainer, KeyDecryptable, LocateKey, SymmetricCryptoKey,
+    CryptoError, DecryptedString, EncString, KeyContainer, KeyDecryptable, LocateKey,
+    SymmetricCryptoKey,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::error::{Error, Result};
+use crate::error::{require, Error, Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct Collection {
     id: Option<Uuid>,
     organization_id: Uuid,
@@ -24,12 +25,12 @@ pub struct Collection {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct CollectionView {
     id: Option<Uuid>,
     organization_id: Uuid,
 
-    name: String,
+    name: DecryptedString,
 
     external_id: Option<String>,
     hide_passwords: bool,
@@ -66,8 +67,8 @@ impl TryFrom<CollectionDetailsResponseModel> for Collection {
     fn try_from(collection: CollectionDetailsResponseModel) -> Result<Self> {
         Ok(Collection {
             id: collection.id,
-            organization_id: collection.organization_id.ok_or(Error::MissingFields)?,
-            name: collection.name.ok_or(Error::MissingFields)?.parse()?,
+            organization_id: require!(collection.organization_id),
+            name: require!(collection.name).parse()?,
             external_id: collection.external_id,
             hide_passwords: collection.hide_passwords.unwrap_or(false),
             read_only: collection.read_only.unwrap_or(false),

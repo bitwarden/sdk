@@ -15,7 +15,7 @@ pub enum PassphraseError {
 /// Passphrase generator request options.
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct PassphraseGeneratorRequest {
     /// Number of words in the generated passphrase.
     /// This value must be between 3 and 20.
@@ -170,8 +170,8 @@ mod tests {
 
         let input = PassphraseGeneratorRequest {
             num_words: 4,
-            word_separator: "👨🏻‍❤️‍💋‍👨🏻".into(), /* This emoji is 35 bytes long, but represented
-                                                   * as a single character */
+            // This emoji is 35 bytes long, but represented as a single character
+            word_separator: "👨🏻‍❤️‍💋‍👨🏻".into(),
             capitalize: false,
             include_number: true,
         }

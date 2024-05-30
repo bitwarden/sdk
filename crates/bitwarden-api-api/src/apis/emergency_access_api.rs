@@ -9,9 +9,10 @@
  */
 
 use reqwest;
+use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::apis::ResponseContent;
+use crate::{apis::ResponseContent, models};
 
 /// struct for typed errors of method [`emergency_access_granted_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -149,7 +150,7 @@ pub enum EmergencyAccessTrustedGetError {
 pub async fn emergency_access_granted_get(
     configuration: &configuration::Configuration,
 ) -> Result<
-    crate::models::EmergencyAccessGrantorDetailsResponseModelListResponseModel,
+    models::EmergencyAccessGrantorDetailsResponseModelListResponseModel,
     Error<EmergencyAccessGrantedGetError>,
 > {
     let local_var_configuration = configuration;
@@ -194,9 +195,7 @@ pub async fn emergency_access_granted_get(
 pub async fn emergency_access_id_accept_post(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    organization_user_accept_request_model: Option<
-        crate::models::OrganizationUserAcceptRequestModel,
-    >,
+    organization_user_accept_request_model: Option<models::OrganizationUserAcceptRequestModel>,
 ) -> Result<(), Error<EmergencyAccessIdAcceptPostError>> {
     let local_var_configuration = configuration;
 
@@ -289,7 +288,7 @@ pub async fn emergency_access_id_cipher_id_attachment_attachment_id_get(
     cipher_id: uuid::Uuid,
     attachment_id: &str,
 ) -> Result<
-    crate::models::AttachmentResponseModel,
+    models::AttachmentResponseModel,
     Error<EmergencyAccessIdCipherIdAttachmentAttachmentIdGetError>,
 > {
     let local_var_configuration = configuration;
@@ -301,7 +300,7 @@ pub async fn emergency_access_id_cipher_id_attachment_attachment_id_get(
         local_var_configuration.base_path,
         id = crate::apis::urlencode(id.to_string()),
         cipherId = crate::apis::urlencode(cipher_id.to_string()),
-        attachmentId = crate::apis::urlencode(attachment_id.to_string())
+        attachmentId = crate::apis::urlencode(attachment_id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -337,9 +336,7 @@ pub async fn emergency_access_id_cipher_id_attachment_attachment_id_get(
 pub async fn emergency_access_id_confirm_post(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    organization_user_confirm_request_model: Option<
-        crate::models::OrganizationUserConfirmRequestModel,
-    >,
+    organization_user_confirm_request_model: Option<models::OrganizationUserConfirmRequestModel>,
 ) -> Result<(), Error<EmergencyAccessIdConfirmPostError>> {
     let local_var_configuration = configuration;
 
@@ -473,10 +470,7 @@ pub async fn emergency_access_id_delete_post(
 pub async fn emergency_access_id_get(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-) -> Result<
-    crate::models::EmergencyAccessGranteeDetailsResponseModel,
-    Error<EmergencyAccessIdGetError>,
-> {
+) -> Result<models::EmergencyAccessGranteeDetailsResponseModel, Error<EmergencyAccessIdGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -564,9 +558,7 @@ pub async fn emergency_access_id_initiate_post(
 pub async fn emergency_access_id_password_post(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    emergency_access_password_request_model: Option<
-        crate::models::EmergencyAccessPasswordRequestModel,
-    >,
+    emergency_access_password_request_model: Option<models::EmergencyAccessPasswordRequestModel>,
 ) -> Result<(), Error<EmergencyAccessIdPasswordPostError>> {
     let local_var_configuration = configuration;
 
@@ -612,10 +604,8 @@ pub async fn emergency_access_id_password_post(
 pub async fn emergency_access_id_policies_get(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-) -> Result<
-    crate::models::PolicyResponseModelListResponseModel,
-    Error<EmergencyAccessIdPoliciesGetError>,
-> {
+) -> Result<models::PolicyResponseModelListResponseModel, Error<EmergencyAccessIdPoliciesGetError>>
+{
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -659,7 +649,7 @@ pub async fn emergency_access_id_policies_get(
 pub async fn emergency_access_id_post(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    emergency_access_update_request_model: Option<crate::models::EmergencyAccessUpdateRequestModel>,
+    emergency_access_update_request_model: Option<models::EmergencyAccessUpdateRequestModel>,
 ) -> Result<(), Error<EmergencyAccessIdPostError>> {
     let local_var_configuration = configuration;
 
@@ -705,7 +695,7 @@ pub async fn emergency_access_id_post(
 pub async fn emergency_access_id_put(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    emergency_access_update_request_model: Option<crate::models::EmergencyAccessUpdateRequestModel>,
+    emergency_access_update_request_model: Option<models::EmergencyAccessUpdateRequestModel>,
 ) -> Result<(), Error<EmergencyAccessIdPutError>> {
     let local_var_configuration = configuration;
 
@@ -839,10 +829,8 @@ pub async fn emergency_access_id_reject_post(
 pub async fn emergency_access_id_takeover_post(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-) -> Result<
-    crate::models::EmergencyAccessTakeoverResponseModel,
-    Error<EmergencyAccessIdTakeoverPostError>,
-> {
+) -> Result<models::EmergencyAccessTakeoverResponseModel, Error<EmergencyAccessIdTakeoverPostError>>
+{
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -886,8 +874,7 @@ pub async fn emergency_access_id_takeover_post(
 pub async fn emergency_access_id_view_post(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-) -> Result<crate::models::EmergencyAccessViewResponseModel, Error<EmergencyAccessIdViewPostError>>
-{
+) -> Result<models::EmergencyAccessViewResponseModel, Error<EmergencyAccessIdViewPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -930,7 +917,7 @@ pub async fn emergency_access_id_view_post(
 
 pub async fn emergency_access_invite_post(
     configuration: &configuration::Configuration,
-    emergency_access_invite_request_model: Option<crate::models::EmergencyAccessInviteRequestModel>,
+    emergency_access_invite_request_model: Option<models::EmergencyAccessInviteRequestModel>,
 ) -> Result<(), Error<EmergencyAccessInvitePostError>> {
     let local_var_configuration = configuration;
 
@@ -975,7 +962,7 @@ pub async fn emergency_access_invite_post(
 pub async fn emergency_access_trusted_get(
     configuration: &configuration::Configuration,
 ) -> Result<
-    crate::models::EmergencyAccessGranteeDetailsResponseModelListResponseModel,
+    models::EmergencyAccessGranteeDetailsResponseModelListResponseModel,
     Error<EmergencyAccessTrustedGetError>,
 > {
     let local_var_configuration = configuration;

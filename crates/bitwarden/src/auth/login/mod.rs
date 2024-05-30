@@ -29,11 +29,11 @@ pub(crate) use api_key::login_api_key;
 #[cfg(feature = "internal")]
 pub use api_key::{ApiKeyLoginRequest, ApiKeyLoginResponse};
 
-#[cfg(feature = "mobile")]
+#[cfg(feature = "internal")]
 mod auth_request;
-#[cfg(feature = "mobile")]
+#[cfg(feature = "internal")]
 pub use auth_request::NewAuthRequestResponse;
-#[cfg(feature = "mobile")]
+#[cfg(feature = "internal")]
 pub(crate) use auth_request::{complete_auth_request, send_new_auth_request};
 
 #[cfg(feature = "secrets")]
@@ -58,8 +58,7 @@ pub(crate) fn parse_prelogin(response: PreloginResponseModel) -> Result<Kdf> {
     use std::num::NonZeroU32;
 
     use bitwarden_api_identity::models::KdfType;
-
-    use crate::util::{
+    use bitwarden_crypto::{
         default_argon2_iterations, default_argon2_memory, default_argon2_parallelism,
         default_pbkdf2_iterations,
     };

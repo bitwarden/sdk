@@ -75,7 +75,7 @@ pub struct SyncResponse {
     pub ciphers: Vec<Cipher>,
     pub domains: Option<DomainResponse>,
     pub policies: Vec<Policy>,
-    pub sends: Vec<crate::vault::Send>,
+    pub sends: Vec<crate::tool::Send>,
 }
 
 impl SyncResponse {

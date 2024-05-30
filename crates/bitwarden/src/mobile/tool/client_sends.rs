@@ -4,7 +4,7 @@ use bitwarden_crypto::{DecryptedVec, EncString, KeyDecryptable, KeyEncryptable};
 
 use crate::{
     error::{Error, Result},
-    vault::{ClientVault, Send, SendListView, SendView},
+    tool::{Send, SendListView, SendView},
     Client,
 };
 
@@ -87,10 +87,8 @@ impl<'a> ClientSends<'a> {
     }
 }
 
-impl<'a> ClientVault<'a> {
-    pub fn sends(&'a self) -> ClientSends<'a> {
-        ClientSends {
-            client: self.client,
-        }
+impl<'a> Client {
+    pub fn sends(&'a mut self) -> ClientSends<'a> {
+        ClientSends { client: self }
     }
 }

@@ -15,9 +15,6 @@ pub use folder::{Folder, FolderView};
 mod password_history;
 pub use password_history::{PasswordHistory, PasswordHistoryView};
 
-mod send;
-pub use send::{Send, SendListView, SendView};
-
 #[cfg(feature = "internal")]
 mod sync;
 #[cfg(feature = "internal")]

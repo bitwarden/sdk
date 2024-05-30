@@ -3,9 +3,8 @@ use std::sync::{Arc, Mutex};
 use rusqlite::{params, Connection};
 use uuid::Uuid;
 
-use crate::error::{require, Error};
-
 use super::Cipher;
+use crate::error::{require, Error};
 
 pub trait CipherRepository {
     /// Save a cipher to the repository.
@@ -132,10 +131,10 @@ impl CipherRepository for CipherSqliteRepository {
 
 #[cfg(test)]
 mod tests {
-    use crate::vault::{CipherRepromptType, CipherType};
+    use rusqlite::Connection;
 
     use super::*;
-    use rusqlite::Connection;
+    use crate::vault::{CipherRepromptType, CipherType};
 
     fn mock_cipher(id: Uuid) -> Cipher {
         Cipher {

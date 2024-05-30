@@ -138,7 +138,7 @@ impl Client {
             api_key: None,
         };
 
-        let conn = Connection::open("test.sqlite").unwrap();
+        let conn = Connection::open("test.sqlite").expect("Failed to open sqlite connection");
 
         Self {
             token: None,

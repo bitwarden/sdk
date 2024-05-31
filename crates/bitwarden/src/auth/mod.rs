@@ -41,8 +41,10 @@ fn determine_password_hash(
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "internal")]
     use std::num::NonZeroU32;
 
+    #[cfg(feature = "internal")]
     use super::*;
 
     #[cfg(feature = "internal")]

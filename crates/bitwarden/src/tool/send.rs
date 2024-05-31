@@ -2,7 +2,7 @@ use base64::engine::general_purpose::{STANDARD, URL_SAFE_NO_PAD};
 use bitwarden_api_api::models::{SendFileModel, SendResponseModel, SendTextModel};
 use bitwarden_crypto::{
     derive_shareable_key, generate_random_bytes, CryptoError, DecryptedString, DecryptedVec,
-    EncString, KeyDecryptable, KeyEncryptable, LocateKey, Sensitive, SensitiveString, SensitiveVec,
+    EncString, KeyDecryptable, KeyEncryptable, Sensitive, SensitiveString, SensitiveVec,
     SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
@@ -192,7 +192,6 @@ impl KeyEncryptable<SymmetricCryptoKey, SendFile> for SendFileView {
     }
 }
 
-impl LocateKey for Send {}
 impl KeyDecryptable<SymmetricCryptoKey, SendView> for Send {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendView, CryptoError> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full
@@ -250,7 +249,6 @@ impl KeyDecryptable<SymmetricCryptoKey, SendListView> for Send {
     }
 }
 
-impl LocateKey for SendView {}
 impl KeyEncryptable<SymmetricCryptoKey, Send> for SendView {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Send, CryptoError> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full

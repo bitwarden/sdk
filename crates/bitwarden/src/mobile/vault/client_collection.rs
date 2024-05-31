@@ -1,4 +1,4 @@
-use bitwarden_crypto::{CryptoError, KeyDecryptable};
+use bitwarden_crypto::{CryptoError, KeyDecryptable, LocateKey};
 
 use crate::{
     error::Result,
@@ -13,7 +13,9 @@ pub struct ClientCollections<'a> {
 impl<'a> ClientCollections<'a> {
     pub async fn decrypt(&self, collection: Collection) -> Result<CollectionView> {
         let enc = self.client.get_encryption_settings()?;
-        let key = enc.get_key(&None).ok_or(CryptoError::MissingKey)?;
+        let key = collection
+            .locate_key(enc, &None)
+            .ok_or(CryptoError::MissingKey)?;
 
         let view = collection.decrypt_with_key(key)?;
 
@@ -22,11 +24,16 @@ impl<'a> ClientCollections<'a> {
 
     pub async fn decrypt_list(&self, collections: Vec<Collection>) -> Result<Vec<CollectionView>> {
         let enc = self.client.get_encryption_settings()?;
-        let key = enc.get_key(&None).ok_or(CryptoError::MissingKey)?;
 
-        let views = collections.decrypt_with_key(key)?;
+        let views: Result<Vec<CollectionView>> = collections
+            .iter()
+            .map(|c| -> Result<CollectionView> {
+                let key = c.locate_key(enc, &None).ok_or(CryptoError::MissingKey)?;
+                Ok(c.decrypt_with_key(key)?)
+            })
+            .collect();
 
-        Ok(views)
+        views
     }
 }
 

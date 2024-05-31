@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use bitwarden_crypto::{Kdf, SensitiveString};
-use uuid::Uuid;
 
 use crate::{
     mobile::crypto::{
@@ -119,12 +118,6 @@ pub struct TestAccount {
 /// );
 /// ```
 pub fn test_bitwarden_com_account() -> TestAccount {
-    let mut organization_keys = HashMap::new();
-    organization_keys.insert(
-        Uuid::parse_str("1bc9ac1e-f5aa-45f2-94bf-b181009709b8").unwrap(),
-        "4.rY01mZFXHOsBAg5Fq4gyXuklWfm6mQASm42DJpx05a+e2mmp+P5W6r54WU2hlREX0uoTxyP91bKKwickSPdCQQ58J45LXHdr9t2uzOYyjVzpzebFcdMw1eElR9W2DW8wEk9+mvtWvKwu7yTebzND+46y1nRMoFydi5zPVLSlJEf81qZZ4Uh1UUMLwXz+NRWfixnGXgq2wRq1bH0n3mqDhayiG4LJKgGdDjWXC8W8MMXDYx24SIJrJu9KiNEMprJE+XVF9nQVNijNAjlWBqkDpsfaWTUfeVLRLctfAqW1blsmIv4RQ91PupYJZDNc8nO9ZTF3TEVM+2KHoxzDJrLs2Q==".parse().unwrap()
-    );
-
     TestAccount {
         user: InitUserCryptoRequest {
             kdf_params: Kdf::PBKDF2 {
@@ -139,7 +132,10 @@ pub fn test_bitwarden_com_account() -> TestAccount {
             }
         },
         org: Some(InitOrgCryptoRequest {
-            organization_keys
+            organization_keys: HashMap::from([(
+                "1bc9ac1e-f5aa-45f2-94bf-b181009709b8".parse().unwrap(),
+                "4.rY01mZFXHOsBAg5Fq4gyXuklWfm6mQASm42DJpx05a+e2mmp+P5W6r54WU2hlREX0uoTxyP91bKKwickSPdCQQ58J45LXHdr9t2uzOYyjVzpzebFcdMw1eElR9W2DW8wEk9+mvtWvKwu7yTebzND+46y1nRMoFydi5zPVLSlJEf81qZZ4Uh1UUMLwXz+NRWfixnGXgq2wRq1bH0n3mqDhayiG4LJKgGdDjWXC8W8MMXDYx24SIJrJu9KiNEMprJE+XVF9nQVNijNAjlWBqkDpsfaWTUfeVLRLctfAqW1blsmIv4RQ91PupYJZDNc8nO9ZTF3TEVM+2KHoxzDJrLs2Q==".parse().unwrap()
+            )])
         }),
     }
 }

@@ -136,8 +136,9 @@ impl std::fmt::Debug for SymmetricCryptoKey {
 
 #[cfg(test)]
 pub fn derive_symmetric_key(name: &str) -> SymmetricCryptoKey {
-    use crate::{derive_shareable_key, generate_random_bytes};
     use zeroize::Zeroizing;
+
+    use crate::{derive_shareable_key, generate_random_bytes};
 
     let secret: Zeroizing<[u8; 16]> = generate_random_bytes();
     derive_shareable_key(secret, name, None)

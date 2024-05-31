@@ -52,7 +52,7 @@ impl<'a> ClientFido2<'a> {
 }
 
 #[allow(dead_code)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct SelectedCredential {
     cipher: CipherView,
     credential: Fido2Credential,

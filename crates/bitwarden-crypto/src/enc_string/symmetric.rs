@@ -290,9 +290,7 @@ mod tests {
     use schemars::schema_for;
 
     use super::EncString;
-    use crate::{
-        derive_symmetric_key, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
-    };
+    use crate::{derive_symmetric_key, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
 
     #[test]
     fn test_enc_string_roundtrip() {

@@ -2,13 +2,13 @@ use base64::{engine::general_purpose::STANDARD, Engine};
 use bitwarden_crypto::{
     fingerprint, AsymmetricCryptoKey, AsymmetricEncString, AsymmetricPublicCryptoKey,
 };
-#[cfg(feature = "mobile")]
+#[cfg(feature = "internal")]
 use bitwarden_crypto::{EncString, KeyDecryptable, SymmetricCryptoKey};
 use bitwarden_generators::{password, PasswordGeneratorRequest};
 
 use crate::{error::Error, Client};
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct AuthRequestResponse {
     /// Base64 encoded private key
     /// This key is temporarily passed back and will most likely not be available in the future
@@ -52,7 +52,7 @@ pub(crate) fn new_auth_request(email: &str) -> Result<AuthRequestResponse, Error
 }
 
 /// Decrypt the user key using the private key generated previously.
-#[cfg(feature = "mobile")]
+#[cfg(feature = "internal")]
 pub(crate) fn auth_request_decrypt_user_key(
     private_key: String,
     user_key: AsymmetricEncString,
@@ -64,7 +64,7 @@ pub(crate) fn auth_request_decrypt_user_key(
 }
 
 /// Decrypt the user key using the private key generated previously.
-#[cfg(feature = "mobile")]
+#[cfg(feature = "internal")]
 pub(crate) fn auth_request_decrypt_master_key(
     private_key: String,
     master_key: AsymmetricEncString,

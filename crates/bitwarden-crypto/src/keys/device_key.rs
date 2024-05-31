@@ -11,7 +11,7 @@ use crate::{
 pub struct DeviceKey(SymmetricCryptoKey);
 
 #[derive(Debug)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct TrustDeviceResponse {
     /// Base64 encoded device key
     pub device_key: String,

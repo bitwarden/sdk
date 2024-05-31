@@ -17,7 +17,7 @@ use crate::{
 #[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct InitUserCryptoRequest {
     /// The user's KDF parameters, as received from the prelogin request
     pub kdf_params: Kdf,
@@ -32,7 +32,7 @@ pub struct InitUserCryptoRequest {
 #[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum InitUserCryptoMethod {
     Password {
         /// The user's master password
@@ -70,7 +70,7 @@ pub enum InitUserCryptoMethod {
 #[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum AuthRequestMethod {
     UserKey {
         /// User Key protected by the private key provided in `AuthRequestResponse`.
@@ -157,7 +157,7 @@ pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequ
 #[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct InitOrgCryptoRequest {
     /// The encryption keys for all the organizations the user is a part of
     pub organization_keys: HashMap<uuid::Uuid, AsymmetricEncString>,
@@ -183,7 +183,7 @@ pub async fn get_user_encryption_key(client: &mut Client) -> Result<String> {
 #[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct UpdatePasswordResponse {
     /// Hash of the new password
     password_hash: String,
@@ -230,7 +230,7 @@ pub fn update_password(
 #[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct DerivePinKeyResponse {
     /// [UserKey](bitwarden_crypto::UserKey) protected by PIN
     pin_protected_user_key: EncString,

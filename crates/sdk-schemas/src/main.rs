@@ -112,7 +112,7 @@ struct SchemaTypes {
     #[cfg(feature = "internal")]
     fingerprint: Response<bitwarden::platform::FingerprintResponse>,
     #[cfg(feature = "internal")]
-    sync: Response<bitwarden::platform::SyncResponse>,
+    sync: Response<bitwarden::vault::SyncResponse>,
     #[cfg(feature = "internal")]
     user_api_key: Response<bitwarden::platform::UserApiKeyResponse>,
 }

@@ -10,30 +10,30 @@ use crate::error::{require, Error, Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct Collection {
-    id: Option<Uuid>,
-    organization_id: Uuid,
+    pub id: Option<Uuid>,
+    pub organization_id: Uuid,
 
-    name: EncString,
+    pub name: EncString,
 
-    external_id: Option<String>,
-    hide_passwords: bool,
-    read_only: bool,
+    pub external_id: Option<String>,
+    pub hide_passwords: bool,
+    pub read_only: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct CollectionView {
-    id: Option<Uuid>,
-    organization_id: Uuid,
+    pub id: Option<Uuid>,
+    pub organization_id: Uuid,
 
-    name: String,
+    pub name: String,
 
-    external_id: Option<String>,
-    hide_passwords: bool,
-    read_only: bool,
+    pub external_id: Option<String>,
+    pub hide_passwords: bool,
+    pub read_only: bool,
 }
 
 impl LocateKey for Collection {

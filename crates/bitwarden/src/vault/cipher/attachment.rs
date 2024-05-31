@@ -9,7 +9,7 @@ use crate::error::{Error, Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct Attachment {
     pub id: Option<String>,
     pub url: Option<String>,
@@ -22,7 +22,7 @@ pub struct Attachment {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct AttachmentView {
     pub id: Option<String>,
     pub url: Option<String>,
@@ -34,7 +34,7 @@ pub struct AttachmentView {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct AttachmentEncryptResult {
     pub attachment: Attachment,
     pub contents: Vec<u8>,

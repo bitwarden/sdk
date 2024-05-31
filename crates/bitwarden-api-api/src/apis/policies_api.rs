@@ -9,9 +9,10 @@
  */
 
 use reqwest;
+use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::apis::ResponseContent;
+use crate::{apis::ResponseContent, models};
 
 /// struct for typed errors of method [`organizations_org_id_policies_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -58,10 +59,8 @@ pub enum OrganizationsOrgIdPoliciesTypePutError {
 pub async fn organizations_org_id_policies_get(
     configuration: &configuration::Configuration,
     org_id: &str,
-) -> Result<
-    crate::models::PolicyResponseModelListResponseModel,
-    Error<OrganizationsOrgIdPoliciesGetError>,
-> {
+) -> Result<models::PolicyResponseModelListResponseModel, Error<OrganizationsOrgIdPoliciesGetError>>
+{
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -69,7 +68,7 @@ pub async fn organizations_org_id_policies_get(
     let local_var_uri_str = format!(
         "{}/organizations/{orgId}/policies",
         local_var_configuration.base_path,
-        orgId = crate::apis::urlencode(org_id.to_string())
+        orgId = crate::apis::urlencode(org_id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -107,7 +106,7 @@ pub async fn organizations_org_id_policies_invited_user_get(
     org_id: uuid::Uuid,
     user_id: Option<uuid::Uuid>,
 ) -> Result<
-    crate::models::PolicyResponseModelListResponseModel,
+    models::PolicyResponseModelListResponseModel,
     Error<OrganizationsOrgIdPoliciesInvitedUserGetError>,
 > {
     let local_var_configuration = configuration;
@@ -157,10 +156,7 @@ pub async fn organizations_org_id_policies_invited_user_get(
 pub async fn organizations_org_id_policies_master_password_get(
     configuration: &configuration::Configuration,
     org_id: uuid::Uuid,
-) -> Result<
-    crate::models::PolicyResponseModel,
-    Error<OrganizationsOrgIdPoliciesMasterPasswordGetError>,
-> {
+) -> Result<models::PolicyResponseModel, Error<OrganizationsOrgIdPoliciesMasterPasswordGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -208,7 +204,7 @@ pub async fn organizations_org_id_policies_token_get(
     token: Option<&str>,
     organization_user_id: Option<uuid::Uuid>,
 ) -> Result<
-    crate::models::PolicyResponseModelListResponseModel,
+    models::PolicyResponseModelListResponseModel,
     Error<OrganizationsOrgIdPoliciesTokenGetError>,
 > {
     let local_var_configuration = configuration;
@@ -267,12 +263,12 @@ pub async fn organizations_org_id_policies_type_get(
     configuration: &configuration::Configuration,
     org_id: &str,
     r#type: i32,
-) -> Result<crate::models::PolicyResponseModel, Error<OrganizationsOrgIdPoliciesTypeGetError>> {
+) -> Result<models::PolicyResponseModel, Error<OrganizationsOrgIdPoliciesTypeGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
 
-    let local_var_uri_str = format!("{}/organizations/{orgId}/policies/{type}", local_var_configuration.base_path, orgId=crate::apis::urlencode(org_id.to_string()), type=r#type.to_string());
+    let local_var_uri_str = format!("{}/organizations/{orgId}/policies/{type}", local_var_configuration.base_path, orgId=crate::apis::urlencode(org_id), type=r#type);
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
 
@@ -308,13 +304,13 @@ pub async fn organizations_org_id_policies_type_put(
     configuration: &configuration::Configuration,
     org_id: &str,
     r#type: i32,
-    policy_request_model: Option<crate::models::PolicyRequestModel>,
-) -> Result<crate::models::PolicyResponseModel, Error<OrganizationsOrgIdPoliciesTypePutError>> {
+    policy_request_model: Option<models::PolicyRequestModel>,
+) -> Result<models::PolicyResponseModel, Error<OrganizationsOrgIdPoliciesTypePutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
 
-    let local_var_uri_str = format!("{}/organizations/{orgId}/policies/{type}", local_var_configuration.base_path, orgId=crate::apis::urlencode(org_id.to_string()), type=r#type.to_string());
+    let local_var_uri_str = format!("{}/organizations/{orgId}/policies/{type}", local_var_configuration.base_path, orgId=crate::apis::urlencode(org_id), type=r#type);
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::PUT, local_var_uri_str.as_str());
 

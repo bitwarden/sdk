@@ -1,6 +1,6 @@
 use bitwarden_api_api::models::FolderResponseModel;
 use bitwarden_crypto::{
-    CryptoError, EncString, KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey,
+    CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
@@ -11,7 +11,7 @@ use crate::error::{require, Error, Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct Folder {
     id: Option<Uuid>,
     name: EncString,
@@ -20,14 +20,13 @@ pub struct Folder {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct FolderView {
     pub id: Option<Uuid>,
     pub name: String,
     pub revision_date: DateTime<Utc>,
 }
 
-impl LocateKey for FolderView {}
 impl KeyEncryptable<SymmetricCryptoKey, Folder> for FolderView {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Folder, CryptoError> {
         Ok(Folder {
@@ -38,7 +37,6 @@ impl KeyEncryptable<SymmetricCryptoKey, Folder> for FolderView {
     }
 }
 
-impl LocateKey for Folder {}
 impl KeyDecryptable<SymmetricCryptoKey, FolderView> for Folder {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<FolderView, CryptoError> {
         Ok(FolderView {

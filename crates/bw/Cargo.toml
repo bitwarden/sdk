@@ -14,7 +14,7 @@ repository.workspace = true
 license-file.workspace = true
 
 [dependencies]
-bitwarden = { workspace = true, features = ["internal", "mobile"] }
+bitwarden = { workspace = true, features = ["internal"] }
 bitwarden-cli = { workspace = true }
 bitwarden-crypto = { workspace = true }
 clap = { version = "4.5.4", features = ["derive", "env"] }

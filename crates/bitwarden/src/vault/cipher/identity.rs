@@ -9,7 +9,7 @@ use crate::error::{Error, Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct Identity {
     pub title: Option<EncString>,
     pub first_name: Option<EncString>,
@@ -33,7 +33,7 @@ pub struct Identity {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct IdentityView {
     pub title: Option<String>,
     pub first_name: Option<String>,

@@ -16,7 +16,7 @@ mod client_exporter;
 pub use client_exporter::ClientExporters;
 
 #[derive(JsonSchema)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum ExportFormat {
     Csv,
     Json,

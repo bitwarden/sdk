@@ -5,7 +5,7 @@ use base64::{
 use bitwarden_api_api::models::{SendFileModel, SendResponseModel, SendTextModel};
 use bitwarden_crypto::{
     derive_shareable_key, generate_random_bytes, CryptoError, EncString, KeyDecryptable,
-    KeyEncryptable, LocateKey, SymmetricCryptoKey,
+    KeyEncryptable, SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
@@ -20,7 +20,7 @@ const SEND_ITERATIONS: u32 = 100_000;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct SendFile {
     pub id: Option<String>,
     pub file_name: EncString,
@@ -31,7 +31,7 @@ pub struct SendFile {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, PartialEq, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct SendFileView {
     pub id: Option<String>,
     pub file_name: String,
@@ -42,7 +42,7 @@ pub struct SendFileView {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct SendText {
     pub text: Option<EncString>,
     pub hidden: bool,
@@ -50,7 +50,7 @@ pub struct SendText {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, PartialEq, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct SendTextView {
     pub text: Option<String>,
     pub hidden: bool,
@@ -58,7 +58,7 @@ pub struct SendTextView {
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema, PartialEq)]
 #[repr(u8)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum SendType {
     Text = 0,
     File = 1,
@@ -66,7 +66,7 @@ pub enum SendType {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct Send {
     pub id: Option<Uuid>,
     pub access_id: Option<String>,
@@ -92,7 +92,7 @@ pub struct Send {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, PartialEq, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct SendView {
     pub id: Option<Uuid>,
     pub access_id: Option<String>,
@@ -125,7 +125,7 @@ pub struct SendView {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct SendListView {
     pub id: Option<Uuid>,
     pub access_id: Option<String>,
@@ -195,7 +195,6 @@ impl KeyEncryptable<SymmetricCryptoKey, SendFile> for SendFileView {
     }
 }
 
-impl LocateKey for Send {}
 impl KeyDecryptable<SymmetricCryptoKey, SendView> for Send {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendView, CryptoError> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full
@@ -253,7 +252,6 @@ impl KeyDecryptable<SymmetricCryptoKey, SendListView> for Send {
     }
 }
 
-impl LocateKey for SendView {}
 impl KeyEncryptable<SymmetricCryptoKey, Send> for SendView {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Send, CryptoError> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full
@@ -367,7 +365,7 @@ mod tests {
     use super::{Send, SendText, SendTextView, SendType};
     use crate::{
         client::{encryption_settings::EncryptionSettings, Kdf},
-        vault::SendView,
+        tool::SendView,
     };
 
     #[test]

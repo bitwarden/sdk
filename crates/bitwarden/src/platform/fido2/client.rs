@@ -240,7 +240,7 @@ impl<'a> Fido2Client<'a> {
     }
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum ClientData {
     DefaultWithExtraData { android_package_name: String },
     DefaultWithCustomHash { hash: Vec<u8> },
@@ -274,7 +274,7 @@ impl passkey::client::ClientData<Option<AndroidClientData>> for ClientData {
     }
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct PublicKeyCredentialAuthenticatorAttestationResponse {
     id: String,
     raw_id: Vec<u8>,
@@ -285,7 +285,7 @@ pub struct PublicKeyCredentialAuthenticatorAttestationResponse {
     selected_credential: SelectedCredential,
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct AuthenticatorAttestationResponse {
     client_data_json: Vec<u8>,
     authenticator_data: Vec<u8>,
@@ -295,7 +295,7 @@ pub struct AuthenticatorAttestationResponse {
     transports: Option<Vec<String>>,
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct PublicKeyCredentialAuthenticatorAssertionResponse {
     id: String,
     raw_id: Vec<u8>,
@@ -306,7 +306,7 @@ pub struct PublicKeyCredentialAuthenticatorAssertionResponse {
     selected_credential: SelectedCredential,
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct AuthenticatorAssertionResponse {
     client_data_json: Vec<u8>,
     authenticator_data: Vec<u8>,

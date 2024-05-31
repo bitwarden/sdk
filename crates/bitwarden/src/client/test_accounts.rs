@@ -29,11 +29,13 @@ impl Client {
 
 /// Test Account
 ///
-/// Many of the SDK tests are based on encrypted data provided by the other Bitwarden clients. In order
-/// to provide a consistent method of retrieving the data we provide a test account with user keys.
+/// Many of the SDK tests are based on encrypted data provided by the other Bitwarden clients. In
+/// order to provide a consistent method of retrieving the data we provide a test account with user
+/// keys.
 ///
 /// **Disclaimer:** The server typically encrypts and protects certain fields. In order to allow
-/// accounts to be used on other servers this protection was explicitly removed from these data dumps.
+/// accounts to be used on other servers this protection was explicitly removed from these data
+/// dumps.
 pub struct TestAccount {
     user: InitUserCryptoRequest,
     org: Option<InitOrgCryptoRequest>,

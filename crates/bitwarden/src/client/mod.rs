@@ -11,3 +11,6 @@ mod flags;
 
 pub use client::Client;
 pub use client_settings::{ClientSettings, DeviceType};
+
+#[cfg(test)]
+pub(crate) mod test_accounts;

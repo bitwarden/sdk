@@ -249,56 +249,94 @@ impl Cipher {
                 let Some(card) = &self.card else {
                     return Ok(String::new());
                 };
-                let mut sub_title = String::new();
 
-                if let Some(brand) = &card.brand {
-                    let brand: String = brand.decrypt_with_key(key)?;
-                    sub_title.push_str(&brand);
-                }
-
-                if let Some(number) = &card.number {
-                    let number: String = number.decrypt_with_key(key)?;
-                    let number_len = number.len();
-                    if number_len > 4 {
-                        if !sub_title.is_empty() {
-                            sub_title.push_str(", ");
-                        }
-
-                        // On AMEX cards we show 5 digits instead of 4
-                        let digit_count = match &number[0..2] {
-                            "34" | "37" => 5,
-                            _ => 4,
-                        };
-
-                        sub_title.push_str(&number[(number_len - digit_count)..]);
-                    }
-                }
-
-                sub_title
+                build_subtitle_card(
+                    card.brand
+                        .as_ref()
+                        .map(|b| b.decrypt_with_key(key))
+                        .transpose()?,
+                    card.number
+                        .as_ref()
+                        .map(|n| n.decrypt_with_key(key))
+                        .transpose()?,
+                )
             }
             CipherType::Identity => {
                 let Some(identity) = &self.identity else {
                     return Ok(String::new());
                 };
-                let mut sub_title = String::new();
 
-                if let Some(first_name) = &identity.first_name {
-                    let first_name: String = first_name.decrypt_with_key(key)?;
-                    sub_title.push_str(&first_name);
-                }
-
-                if let Some(last_name) = &identity.last_name {
-                    if !sub_title.is_empty() {
-                        sub_title.push(' ');
-                    }
-                    let last_name: String = last_name.decrypt_with_key(key)?;
-                    sub_title.push_str(&last_name);
-                }
-
-                sub_title
+                build_subtitle_identity(
+                    identity
+                        .first_name
+                        .as_ref()
+                        .map(|f| f.decrypt_with_key(key))
+                        .transpose()?,
+                    identity
+                        .last_name
+                        .as_ref()
+                        .map(|l| l.decrypt_with_key(key))
+                        .transpose()?,
+                )
             }
         })
     }
+}
+
+/// Builds the subtitle for a card cipher
+fn build_subtitle_card(brand: Option<String>, number: Option<String>) -> String {
+    // Attempt to pre-allocate the string with the expected max-size
+    let mut sub_title =
+        String::with_capacity(brand.as_ref().map(|b| b.len()).unwrap_or_default() + 8);
+
+    if let Some(brand) = brand {
+        sub_title.push_str(&brand);
+    }
+
+    if let Some(number) = number {
+        let number_len = number.len();
+        if number_len > 4 {
+            if !sub_title.is_empty() {
+                sub_title.push_str(", ");
+            }
+
+            // On AMEX cards we show 5 digits instead of 4
+            let digit_count = match &number[0..2] {
+                "34" | "37" => 5,
+                _ => 4,
+            };
+
+            sub_title.push('*');
+            sub_title.push_str(&number[(number_len - digit_count)..]);
+        }
+    }
+
+    sub_title
+}
+
+/// Builds the subtitle for a card cipher
+fn build_subtitle_identity(first_name: Option<String>, last_name: Option<String>) -> String {
+    let len = match (first_name.as_ref(), last_name.as_ref()) {
+        (Some(first_name), Some(last_name)) => first_name.len() + last_name.len() + 1,
+        (Some(first_name), None) => first_name.len(),
+        (None, Some(last_name)) => last_name.len(),
+        (None, None) => 0,
+    };
+
+    let mut sub_title = String::with_capacity(len);
+
+    if let Some(first_name) = &first_name {
+        sub_title.push_str(first_name);
+    }
+
+    if let Some(last_name) = &last_name {
+        if !sub_title.is_empty() {
+            sub_title.push(' ');
+        }
+        sub_title.push_str(last_name);
+    }
+
+    sub_title
 }
 
 impl CipherView {
@@ -584,5 +622,95 @@ mod tests {
         // cipher key is tied to the user key and not the org key
         let org_key = enc.get_key(&Some(org)).unwrap();
         assert!(cipher.encrypt_with_key(org_key).is_err());
+    }
+
+    #[test]
+    fn test_build_subtitle_card_visa() {
+        let brand = Some("Visa".to_owned());
+        let number = Some("4111111111111111".to_owned());
+
+        let subtitle = build_subtitle_card(brand, number);
+        assert_eq!(subtitle, "Visa, *1111");
+    }
+
+    #[test]
+    fn test_build_subtitle_card_mastercard() {
+        let brand = Some("Mastercard".to_owned());
+        let number = Some("5555555555554444".to_owned());
+
+        let subtitle = build_subtitle_card(brand, number);
+        assert_eq!(subtitle, "Mastercard, *4444");
+    }
+
+    #[test]
+    fn test_build_subtitle_card_amex() {
+        let brand = Some("Amex".to_owned());
+        let number = Some("378282246310005".to_owned());
+
+        let subtitle = build_subtitle_card(brand, number);
+        assert_eq!(subtitle, "Amex, *10005");
+    }
+
+    #[test]
+    fn test_build_subtitle_card_underflow() {
+        let brand = Some("Mastercard".to_owned());
+        let number = Some("4".to_owned());
+
+        let subtitle = build_subtitle_card(brand, number);
+        assert_eq!(subtitle, "Mastercard");
+    }
+
+    #[test]
+    fn test_build_subtitle_card_only_brand() {
+        let brand = Some("Mastercard".to_owned());
+        let number = None;
+
+        let subtitle = build_subtitle_card(brand, number);
+        assert_eq!(subtitle, "Mastercard");
+    }
+
+    #[test]
+    fn test_build_subtitle_card_only_card() {
+        let brand = None;
+        let number = Some("5555555555554444".to_owned());
+
+        let subtitle = build_subtitle_card(brand, number);
+        assert_eq!(subtitle, "*4444");
+    }
+
+    #[test]
+    fn test_build_subtitle_identity() {
+        let first_name = Some("John".to_owned());
+        let last_name = Some("Doe".to_owned());
+
+        let subtitle = build_subtitle_identity(first_name, last_name);
+        assert_eq!(subtitle, "John Doe");
+    }
+
+    #[test]
+    fn test_build_subtitle_identity_only_first() {
+        let first_name = Some("John".to_owned());
+        let last_name = None;
+
+        let subtitle = build_subtitle_identity(first_name, last_name);
+        assert_eq!(subtitle, "John");
+    }
+
+    #[test]
+    fn test_build_subtitle_identity_only_last() {
+        let first_name = None;
+        let last_name = Some("Doe".to_owned());
+
+        let subtitle = build_subtitle_identity(first_name, last_name);
+        assert_eq!(subtitle, "Doe");
+    }
+
+    #[test]
+    fn test_build_subtitle_identity_none() {
+        let first_name = None;
+        let last_name = None;
+
+        let subtitle = build_subtitle_identity(first_name, last_name);
+        assert_eq!(subtitle, "");
     }
 }

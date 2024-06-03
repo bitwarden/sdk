@@ -411,7 +411,7 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
         };
 
         let result = match hint {
-            UIHint::RequestNewCredential(user, rp, _) => {
+            UIHint::RequestNewCredential(user, rp) => {
                 let new_credential = Fido2CredentialNewView::try_from_credential(user, rp)
                     .map_err(|_| Ctap2Error::InvalidCredential)?;
 
@@ -471,7 +471,7 @@ fn map_ui_hint(hint: UIHint<'_, CipherViewContainer>) -> UIHint<'_, CipherView> 
     match hint {
         InformExcludedCredentialFound(c) => InformExcludedCredentialFound(&c.cipher),
         InformNoCredentialsFound => InformNoCredentialsFound,
-        RequestNewCredential(u, r, o) => RequestNewCredential(u, r, o),
+        RequestNewCredential(u, r) => RequestNewCredential(u, r),
         RequestExistingCredential(c) => RequestExistingCredential(&c.cipher),
     }
 }

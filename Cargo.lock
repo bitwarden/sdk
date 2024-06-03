@@ -2553,7 +2553,7 @@ dependencies = [
 [[package]]
 name = "passkey"
 version = "0.3.1"
-source = "git+https://github.com/bitwarden/passkey-rs?rev=8b6a533dad8c93c7aa25582fca82d8ea13c78ba8#8b6a533dad8c93c7aa25582fca82d8ea13c78ba8"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a#c48c2ddfd6b884b2d754432576c66cb2b1985a3a"
 dependencies = [
  "passkey-authenticator",
  "passkey-client",
@@ -2564,7 +2564,7 @@ dependencies = [
 [[package]]
 name = "passkey-authenticator"
 version = "0.3.0"
-source = "git+https://github.com/bitwarden/passkey-rs?rev=8b6a533dad8c93c7aa25582fca82d8ea13c78ba8#8b6a533dad8c93c7aa25582fca82d8ea13c78ba8"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a#c48c2ddfd6b884b2d754432576c66cb2b1985a3a"
 dependencies = [
  "async-trait",
  "coset",
@@ -2577,7 +2577,7 @@ dependencies = [
 [[package]]
 name = "passkey-client"
 version = "0.3.1"
-source = "git+https://github.com/bitwarden/passkey-rs?rev=8b6a533dad8c93c7aa25582fca82d8ea13c78ba8#8b6a533dad8c93c7aa25582fca82d8ea13c78ba8"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a#c48c2ddfd6b884b2d754432576c66cb2b1985a3a"
 dependencies = [
  "ciborium",
  "coset",
@@ -2594,12 +2594,12 @@ dependencies = [
 [[package]]
 name = "passkey-transports"
 version = "0.1.0"
-source = "git+https://github.com/bitwarden/passkey-rs?rev=8b6a533dad8c93c7aa25582fca82d8ea13c78ba8#8b6a533dad8c93c7aa25582fca82d8ea13c78ba8"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a#c48c2ddfd6b884b2d754432576c66cb2b1985a3a"
 
 [[package]]
 name = "passkey-types"
 version = "0.2.1"
-source = "git+https://github.com/bitwarden/passkey-rs?rev=8b6a533dad8c93c7aa25582fca82d8ea13c78ba8#8b6a533dad8c93c7aa25582fca82d8ea13c78ba8"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a#c48c2ddfd6b884b2d754432576c66cb2b1985a3a"
 dependencies = [
  "bitflags 2.5.0",
  "ciborium",
@@ -2811,7 +2811,7 @@ dependencies = [
 [[package]]
 name = "public-suffix"
 version = "0.1.1"
-source = "git+https://github.com/bitwarden/passkey-rs?rev=8b6a533dad8c93c7aa25582fca82d8ea13c78ba8#8b6a533dad8c93c7aa25582fca82d8ea13c78ba8"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a#c48c2ddfd6b884b2d754432576c66cb2b1985a3a"
 
 [[package]]
 name = "pyo3"

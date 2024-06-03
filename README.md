@@ -113,8 +113,7 @@ The list of developer tools is:
 
 ## Cargo fmt
 
-In order to sort and group imports, as well as wrap long comments, we need the nightly version of
-cargo-fmt.
+We use certain unstable features for formatting which require the nightly version of cargo-fmt.
 
 To install:
 

@@ -3,9 +3,8 @@ use std::cmp::Ordering;
 use log::info;
 use rusqlite::Connection;
 
-use crate::error::Error;
-
 use super::{DatabaseError, MigratorError};
+use crate::error::Error;
 
 #[derive(Debug)]
 pub struct SqliteDatabase {

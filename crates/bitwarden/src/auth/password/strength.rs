@@ -1,10 +1,9 @@
-use bitwarden_crypto::SensitiveString;
 use zxcvbn::zxcvbn;
 
 const GLOBAL_INPUTS: [&str; 3] = ["bitwarden", "bit", "warden"];
 
 pub(crate) fn password_strength(
-    password: SensitiveString,
+    password: String,
     email: String,
     additional_inputs: Vec<String>,
 ) -> u8 {
@@ -14,7 +13,7 @@ pub(crate) fn password_strength(
     let mut arr: Vec<_> = inputs.iter().map(String::as_str).collect();
     arr.extend(GLOBAL_INPUTS);
 
-    zxcvbn(password.expose(), &arr).map_or(0, |e| e.score())
+    zxcvbn(&password, &arr).map_or(0, |e| e.score())
 }
 
 fn email_to_user_inputs(email: &str) -> Vec<String> {
@@ -32,8 +31,6 @@ fn email_to_user_inputs(email: &str) -> Vec<String> {
 
 #[cfg(test)]
 mod tests {
-    use bitwarden_crypto::SensitiveString;
-
     use super::{email_to_user_inputs, password_strength};
 
     #[test]
@@ -47,8 +44,7 @@ mod tests {
         ];
 
         for (password, email, expected) in cases {
-            let result =
-                password_strength(SensitiveString::test(password), email.to_owned(), vec![]);
+            let result = password_strength(password.to_owned(), email.to_owned(), vec![]);
             assert_eq!(expected, result, "{email}: {password}");
         }
     }
@@ -58,14 +54,14 @@ mod tests {
         let password = "asdfjkhkjwer!";
 
         let result = password_strength(
-            SensitiveString::test(password),
+            password.to_owned(),
             "random@bitwarden.com".to_owned(),
             vec![],
         );
         assert_eq!(result, 4);
 
         let result = password_strength(
-            SensitiveString::test(password),
+            password.to_owned(),
             "asdfjkhkjwer@bitwarden.com".to_owned(),
             vec![],
         );

@@ -9,9 +9,10 @@
  */
 
 use reqwest;
+use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::apis::ResponseContent;
+use crate::{apis::ResponseContent, models};
 
 /// struct for typed errors of method [`webauthn_assertion_options_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -57,9 +58,9 @@ pub enum WebauthnPutError {
 
 pub async fn webauthn_assertion_options_post(
     configuration: &configuration::Configuration,
-    secret_verification_request_model: Option<crate::models::SecretVerificationRequestModel>,
+    secret_verification_request_model: Option<models::SecretVerificationRequestModel>,
 ) -> Result<
-    crate::models::WebAuthnLoginAssertionOptionsResponseModel,
+    models::WebAuthnLoginAssertionOptionsResponseModel,
     Error<WebauthnAssertionOptionsPostError>,
 > {
     let local_var_configuration = configuration;
@@ -104,9 +105,9 @@ pub async fn webauthn_assertion_options_post(
 
 pub async fn webauthn_attestation_options_post(
     configuration: &configuration::Configuration,
-    secret_verification_request_model: Option<crate::models::SecretVerificationRequestModel>,
+    secret_verification_request_model: Option<models::SecretVerificationRequestModel>,
 ) -> Result<
-    crate::models::WebAuthnCredentialCreateOptionsResponseModel,
+    models::WebAuthnCredentialCreateOptionsResponseModel,
     Error<WebauthnAttestationOptionsPostError>,
 > {
     let local_var_configuration = configuration;
@@ -151,8 +152,7 @@ pub async fn webauthn_attestation_options_post(
 
 pub async fn webauthn_get(
     configuration: &configuration::Configuration,
-) -> Result<crate::models::WebAuthnCredentialResponseModelListResponseModel, Error<WebauthnGetError>>
-{
+) -> Result<models::WebAuthnCredentialResponseModelListResponseModel, Error<WebauthnGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -192,7 +192,7 @@ pub async fn webauthn_get(
 pub async fn webauthn_id_delete_post(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    secret_verification_request_model: Option<crate::models::SecretVerificationRequestModel>,
+    secret_verification_request_model: Option<models::SecretVerificationRequestModel>,
 ) -> Result<(), Error<WebauthnIdDeletePostError>> {
     let local_var_configuration = configuration;
 
@@ -238,7 +238,7 @@ pub async fn webauthn_id_delete_post(
 pub async fn webauthn_post(
     configuration: &configuration::Configuration,
     web_authn_login_credential_create_request_model: Option<
-        crate::models::WebAuthnLoginCredentialCreateRequestModel,
+        models::WebAuthnLoginCredentialCreateRequestModel,
     >,
 ) -> Result<(), Error<WebauthnPostError>> {
     let local_var_configuration = configuration;
@@ -282,7 +282,7 @@ pub async fn webauthn_post(
 pub async fn webauthn_put(
     configuration: &configuration::Configuration,
     web_authn_login_credential_update_request_model: Option<
-        crate::models::WebAuthnLoginCredentialUpdateRequestModel,
+        models::WebAuthnLoginCredentialUpdateRequestModel,
     >,
 ) -> Result<(), Error<WebauthnPutError>> {
     let local_var_configuration = configuration;

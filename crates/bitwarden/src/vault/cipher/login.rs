@@ -1,22 +1,19 @@
-use base64::engine::general_purpose::STANDARD;
+use base64::{engine::general_purpose::STANDARD, Engine};
 use bitwarden_api_api::models::{CipherLoginModel, CipherLoginUriModel};
 use bitwarden_crypto::{
-    CryptoError, DecryptedString, EncString, KeyDecryptable, KeyEncryptable, Sensitive,
-    SensitiveString, SensitiveVec, SymmetricCryptoKey,
+    CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
-use hmac::digest::generic_array::GenericArray;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use sha2::Digest;
 
 use crate::error::{require, Error, Result};
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum UriMatchType {
     Domain = 0,
     Host = 1,
@@ -28,7 +25,7 @@ pub enum UriMatchType {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct LoginUri {
     pub uri: Option<EncString>,
     pub r#match: Option<UriMatchType>,
@@ -37,11 +34,11 @@ pub struct LoginUri {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct LoginUriView {
-    pub uri: Option<DecryptedString>,
+    pub uri: Option<String>,
     pub r#match: Option<UriMatchType>,
-    pub uri_checksum: Option<DecryptedString>,
+    pub uri_checksum: Option<String>,
 }
 
 impl LoginUriView {
@@ -52,35 +49,29 @@ impl LoginUriView {
         let Some(cs) = &self.uri_checksum else {
             return false;
         };
-        let Ok(cs) = cs.clone().decode_base64(STANDARD) else {
+        let Ok(cs) = STANDARD.decode(cs) else {
             return false;
         };
 
-        let uri_hash: Sensitive<GenericArray<u8, _>> = Sensitive::new(Box::new(
-            sha2::Sha256::new()
-                .chain_update(uri.expose().as_bytes())
-                .finalize(),
-        ));
+        use sha2::Digest;
+        let uri_hash = sha2::Sha256::new().chain_update(uri.as_bytes()).finalize();
 
-        cs == uri_hash.expose().as_slice()
+        uri_hash.as_slice() == cs
     }
 
     pub(crate) fn generate_checksum(&mut self) {
         if let Some(uri) = &self.uri {
-            let uri_hash: SensitiveVec = Sensitive::new(Box::new(
-                sha2::Sha256::new()
-                    .chain_update(uri.expose().as_bytes())
-                    .finalize(),
-            ))
-            .into();
-            self.uri_checksum = Some(uri_hash.encode_base64(STANDARD))
+            use sha2::Digest;
+            let uri_hash = sha2::Sha256::new().chain_update(uri.as_bytes()).finalize();
+            let uri_hash = STANDARD.encode(uri_hash.as_slice());
+            self.uri_checksum = Some(uri_hash);
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct Fido2Credential {
     pub credential_id: EncString,
     pub key_type: EncString,
@@ -99,26 +90,26 @@ pub struct Fido2Credential {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct Fido2CredentialView {
-    pub credential_id: SensitiveString,
-    pub key_type: SensitiveString,
-    pub key_algorithm: SensitiveString,
-    pub key_curve: SensitiveString,
-    pub key_value: SensitiveString,
-    pub rp_id: SensitiveString,
-    pub user_handle: Option<SensitiveString>,
-    pub user_name: Option<SensitiveString>,
-    pub counter: SensitiveString,
-    pub rp_name: Option<SensitiveString>,
-    pub user_display_name: Option<SensitiveString>,
-    pub discoverable: SensitiveString,
+    pub credential_id: String,
+    pub key_type: String,
+    pub key_algorithm: String,
+    pub key_curve: String,
+    pub key_value: String,
+    pub rp_id: String,
+    pub user_handle: Option<String>,
+    pub user_name: Option<String>,
+    pub counter: String,
+    pub rp_name: Option<String>,
+    pub user_display_name: Option<String>,
+    pub discoverable: String,
     pub creation_date: DateTime<Utc>,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct Login {
     pub username: Option<EncString>,
     pub password: Option<EncString>,
@@ -133,14 +124,14 @@ pub struct Login {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct LoginView {
-    pub username: Option<DecryptedString>,
-    pub password: Option<DecryptedString>,
+    pub username: Option<String>,
+    pub password: Option<String>,
     pub password_revision_date: Option<DateTime<Utc>>,
 
     pub uris: Option<Vec<LoginUriView>>,
-    pub totp: Option<DecryptedString>,
+    pub totp: Option<String>,
     pub autofill_on_page_load: Option<bool>,
 
     // TODO: Remove this once the SDK supports state
@@ -316,16 +307,12 @@ impl TryFrom<bitwarden_api_api::models::CipherFido2CredentialModel> for Fido2Cre
 
 #[cfg(test)]
 mod tests {
-    use bitwarden_crypto::SensitiveString;
-
     #[test]
     fn test_valid_checksum() {
         let uri = super::LoginUriView {
-            uri: Some(SensitiveString::test("https://example.com")),
+            uri: Some("https://example.com".to_string()),
             r#match: Some(super::UriMatchType::Domain),
-            uri_checksum: Some(SensitiveString::test(
-                "EAaArVRs5qV39C9S3zO0z9ynVoWeZkuNfeMpsVDQnOk=",
-            )),
+            uri_checksum: Some("EAaArVRs5qV39C9S3zO0z9ynVoWeZkuNfeMpsVDQnOk=".to_string()),
         };
         assert!(uri.is_checksum_valid());
     }
@@ -333,11 +320,9 @@ mod tests {
     #[test]
     fn test_invalid_checksum() {
         let uri = super::LoginUriView {
-            uri: Some(SensitiveString::test("https://example.com")),
+            uri: Some("https://example.com".to_string()),
             r#match: Some(super::UriMatchType::Domain),
-            uri_checksum: Some(SensitiveString::test(
-                "UtSgIv8LYfEdOu7yqjF7qXWhmouYGYC8RSr7/ryZg5Q=",
-            )),
+            uri_checksum: Some("UtSgIv8LYfEdOu7yqjF7qXWhmouYGYC8RSr7/ryZg5Q=".to_string()),
         };
         assert!(!uri.is_checksum_valid());
     }
@@ -345,7 +330,7 @@ mod tests {
     #[test]
     fn test_missing_checksum() {
         let uri = super::LoginUriView {
-            uri: Some(SensitiveString::test("https://example.com")),
+            uri: Some("https://example.com".to_string()),
             r#match: Some(super::UriMatchType::Domain),
             uri_checksum: None,
         };
@@ -355,7 +340,7 @@ mod tests {
     #[test]
     fn test_generate_checksum() {
         let mut uri = super::LoginUriView {
-            uri: Some(SensitiveString::test("https://test.com")),
+            uri: Some("https://test.com".to_string()),
             r#match: Some(super::UriMatchType::Domain),
             uri_checksum: None,
         };
@@ -363,7 +348,7 @@ mod tests {
         uri.generate_checksum();
 
         assert_eq!(
-            uri.uri_checksum.unwrap().expose(),
+            uri.uri_checksum.unwrap().as_str(),
             "OWk2vQvwYD1nhLZdA+ltrpBWbDa2JmHyjUEWxRZSS8w="
         );
     }

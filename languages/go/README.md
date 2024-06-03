@@ -27,7 +27,7 @@ Download the SDK files and place them in your Go project directory.
 To initialize the client, you need to import the SDK and create a new `BitwardenClient` instance.
 
 ```go
-import "github.com/bitwarden/sdk/languages/go"
+import "github.com/bitwarden/sm-sdk-go"
 
 bitwardenClient, _ := sdk.NewBitwardenClient(&apiURL, &identityURL)
 ```
@@ -36,7 +36,8 @@ bitwardenClient, _ := sdk.NewBitwardenClient(&apiURL, &identityURL)
 
 ### Login
 
-To login using an access token. Define some `statePath` and pass it to use state, or pass `nil` instead to not use state.
+To login using an access token. Define some `statePath` and pass it to use state, or pass `nil`
+instead to not use state.
 
 ```go
 statePath := os.Getenv("STATE_PATH")
@@ -51,25 +52,25 @@ err := bitwardenClient.AccessTokenLogin(accessToken, &statePath)
 #### Create a Project
 
 ```go
-project, err := client.Projects.Create("organization_id", "project_name")
+project, err := client.Projects().Create("organization_id", "project_name")
 ```
 
 #### List Projects
 
 ```go
-projects, err := client.Projects.List("organization_id")
+projects, err := client.Projects().List("organization_id")
 ```
 
 #### Update a Project
 
 ```go
-project, err := client.Projects.Update("project_id", "organization_id", "new_project_name")
+project, err := client.Projects().Update("project_id", "organization_id", "new_project_name")
 ```
 
 #### Delete Projects
 
 ```go
-project, err := client.Projects.Delete([]string{"project_id_1", "project_id_2"})
+project, err := client.Projects().Delete([]string{"project_id_1", "project_id_2"})
 ```
 
 ---
@@ -79,34 +80,34 @@ project, err := client.Projects.Delete([]string{"project_id_1", "project_id_2"})
 #### Create a Secret
 
 ```go
-secret, err := client.Secrets.Create("key", "value", "note", "organization_id", []string{"project_id"})
+secret, err := client.Secrets().Create("key", "value", "note", "organization_id", []string{"project_id"})
 ```
 
 #### List Secrets
 
 ```go
-secrets, err := client.Secrets.List("organization_id")
+secrets, err := client.Secrets().List("organization_id")
 ```
 
 #### Update a Secret
 
 ```go
-secret, err := client.Secrets.Update("secret_id", "new_key", "new_value", "new_note", "organization_id", []string{"project_id"})
+secret, err := client.Secrets().Update("secret_id", "new_key", "new_value", "new_note", "organization_id", []string{"project_id"})
 ```
 
 #### Delete Secrets
 
 ```go
-secret, err := client.Secrets.Delete([]string{"secret_id_1", "secret_id_2"})
+secret, err := client.Secrets().Delete([]string{"secret_id_1", "secret_id_2"})
 ```
 
 #### Secrets Sync
 
 ```go
-secretsSync, err := client.Secrets.Sync("organization_id", nil)
+secretsSync, err := client.Secrets().Sync("organization_id", nil)
 
 lastSyncedDate := time.Now()
-secretsSync, err := client.Secrets.Sync("organization_id", lastSyncedDate)
+secretsSync, err := client.Secrets().Sync("organization_id", lastSyncedDate)
 ```
 
 ---

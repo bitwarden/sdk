@@ -9,9 +9,10 @@
  */
 
 use reqwest;
+use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::apis::ResponseContent;
+use crate::{apis::ResponseContent, models};
 
 /// struct for typed errors of method [`ciphers_admin_delete`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -230,6 +231,20 @@ pub enum CiphersIdCollectionsPutError {
     UnknownValue(serde_json::Value),
 }
 
+/// struct for typed errors of method [`ciphers_id_collections_v2_post`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum CiphersIdCollectionsV2PostError {
+    UnknownValue(serde_json::Value),
+}
+
+/// struct for typed errors of method [`ciphers_id_collections_v2_put`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum CiphersIdCollectionsV2PutError {
+    UnknownValue(serde_json::Value),
+}
+
 /// struct for typed errors of method [`ciphers_id_delete`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -414,7 +429,7 @@ pub enum CiphersSharePutError {
 
 pub async fn ciphers_admin_delete(
     configuration: &configuration::Configuration,
-    cipher_bulk_delete_request_model: Option<crate::models::CipherBulkDeleteRequestModel>,
+    cipher_bulk_delete_request_model: Option<models::CipherBulkDeleteRequestModel>,
 ) -> Result<(), Error<CiphersAdminDeleteError>> {
     let local_var_configuration = configuration;
 
@@ -455,8 +470,8 @@ pub async fn ciphers_admin_delete(
 
 pub async fn ciphers_admin_post(
     configuration: &configuration::Configuration,
-    cipher_create_request_model: Option<crate::models::CipherCreateRequestModel>,
-) -> Result<crate::models::CipherMiniResponseModel, Error<CiphersAdminPostError>> {
+    cipher_create_request_model: Option<models::CipherCreateRequestModel>,
+) -> Result<models::CipherMiniResponseModel, Error<CiphersAdminPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -539,7 +554,7 @@ pub async fn ciphers_attachment_validate_azure_post(
 pub async fn ciphers_bulk_collections_post(
     configuration: &configuration::Configuration,
     cipher_bulk_update_collections_request_model: Option<
-        crate::models::CipherBulkUpdateCollectionsRequestModel,
+        models::CipherBulkUpdateCollectionsRequestModel,
     >,
 ) -> Result<(), Error<CiphersBulkCollectionsPostError>> {
     let local_var_configuration = configuration;
@@ -585,8 +600,8 @@ pub async fn ciphers_bulk_collections_post(
 
 pub async fn ciphers_create_post(
     configuration: &configuration::Configuration,
-    cipher_create_request_model: Option<crate::models::CipherCreateRequestModel>,
-) -> Result<crate::models::CipherResponseModel, Error<CiphersCreatePostError>> {
+    cipher_create_request_model: Option<models::CipherCreateRequestModel>,
+) -> Result<models::CipherResponseModel, Error<CiphersCreatePostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -626,7 +641,7 @@ pub async fn ciphers_create_post(
 
 pub async fn ciphers_delete(
     configuration: &configuration::Configuration,
-    cipher_bulk_delete_request_model: Option<crate::models::CipherBulkDeleteRequestModel>,
+    cipher_bulk_delete_request_model: Option<models::CipherBulkDeleteRequestModel>,
 ) -> Result<(), Error<CiphersDeleteError>> {
     let local_var_configuration = configuration;
 
@@ -667,7 +682,7 @@ pub async fn ciphers_delete(
 
 pub async fn ciphers_delete_admin_post(
     configuration: &configuration::Configuration,
-    cipher_bulk_delete_request_model: Option<crate::models::CipherBulkDeleteRequestModel>,
+    cipher_bulk_delete_request_model: Option<models::CipherBulkDeleteRequestModel>,
 ) -> Result<(), Error<CiphersDeleteAdminPostError>> {
     let local_var_configuration = configuration;
 
@@ -708,7 +723,7 @@ pub async fn ciphers_delete_admin_post(
 
 pub async fn ciphers_delete_admin_put(
     configuration: &configuration::Configuration,
-    cipher_bulk_delete_request_model: Option<crate::models::CipherBulkDeleteRequestModel>,
+    cipher_bulk_delete_request_model: Option<models::CipherBulkDeleteRequestModel>,
 ) -> Result<(), Error<CiphersDeleteAdminPutError>> {
     let local_var_configuration = configuration;
 
@@ -749,7 +764,7 @@ pub async fn ciphers_delete_admin_put(
 
 pub async fn ciphers_delete_post(
     configuration: &configuration::Configuration,
-    cipher_bulk_delete_request_model: Option<crate::models::CipherBulkDeleteRequestModel>,
+    cipher_bulk_delete_request_model: Option<models::CipherBulkDeleteRequestModel>,
 ) -> Result<(), Error<CiphersDeletePostError>> {
     let local_var_configuration = configuration;
 
@@ -790,7 +805,7 @@ pub async fn ciphers_delete_post(
 
 pub async fn ciphers_delete_put(
     configuration: &configuration::Configuration,
-    cipher_bulk_delete_request_model: Option<crate::models::CipherBulkDeleteRequestModel>,
+    cipher_bulk_delete_request_model: Option<models::CipherBulkDeleteRequestModel>,
 ) -> Result<(), Error<CiphersDeletePutError>> {
     let local_var_configuration = configuration;
 
@@ -831,7 +846,7 @@ pub async fn ciphers_delete_put(
 
 pub async fn ciphers_get(
     configuration: &configuration::Configuration,
-) -> Result<crate::models::CipherDetailsResponseModelListResponseModel, Error<CiphersGetError>> {
+) -> Result<models::CipherDetailsResponseModelListResponseModel, Error<CiphersGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -921,7 +936,7 @@ pub async fn ciphers_id_admin_delete(
     let local_var_uri_str = format!(
         "{}/ciphers/{id}/admin",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::DELETE, local_var_uri_str.as_str());
@@ -957,7 +972,7 @@ pub async fn ciphers_id_admin_delete(
 pub async fn ciphers_id_admin_get(
     configuration: &configuration::Configuration,
     id: &str,
-) -> Result<crate::models::CipherMiniResponseModel, Error<CiphersIdAdminGetError>> {
+) -> Result<models::CipherMiniResponseModel, Error<CiphersIdAdminGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -965,7 +980,7 @@ pub async fn ciphers_id_admin_get(
     let local_var_uri_str = format!(
         "{}/ciphers/{id}/admin",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -1001,8 +1016,8 @@ pub async fn ciphers_id_admin_get(
 pub async fn ciphers_id_admin_post(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    cipher_request_model: Option<crate::models::CipherRequestModel>,
-) -> Result<crate::models::CipherMiniResponseModel, Error<CiphersIdAdminPostError>> {
+    cipher_request_model: Option<models::CipherRequestModel>,
+) -> Result<models::CipherMiniResponseModel, Error<CiphersIdAdminPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1047,8 +1062,8 @@ pub async fn ciphers_id_admin_post(
 pub async fn ciphers_id_admin_put(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    cipher_request_model: Option<crate::models::CipherRequestModel>,
-) -> Result<crate::models::CipherMiniResponseModel, Error<CiphersIdAdminPutError>> {
+    cipher_request_model: Option<models::CipherRequestModel>,
+) -> Result<models::CipherMiniResponseModel, Error<CiphersIdAdminPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1093,7 +1108,7 @@ pub async fn ciphers_id_admin_put(
 pub async fn ciphers_id_attachment_admin_post(
     configuration: &configuration::Configuration,
     id: &str,
-) -> Result<crate::models::CipherMiniResponseModel, Error<CiphersIdAttachmentAdminPostError>> {
+) -> Result<models::CipherMiniResponseModel, Error<CiphersIdAttachmentAdminPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1101,7 +1116,7 @@ pub async fn ciphers_id_attachment_admin_post(
     let local_var_uri_str = format!(
         "{}/ciphers/{id}/attachment-admin",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -1146,8 +1161,8 @@ pub async fn ciphers_id_attachment_attachment_id_admin_delete(
     let local_var_uri_str = format!(
         "{}/ciphers/{id}/attachment/{attachmentId}/admin",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string()),
-        attachmentId = crate::apis::urlencode(attachment_id.to_string())
+        id = crate::apis::urlencode(id),
+        attachmentId = crate::apis::urlencode(attachment_id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::DELETE, local_var_uri_str.as_str());
@@ -1193,7 +1208,7 @@ pub async fn ciphers_id_attachment_attachment_id_delete(
         "{}/ciphers/{id}/attachment/{attachmentId}",
         local_var_configuration.base_path,
         id = crate::apis::urlencode(id.to_string()),
-        attachmentId = crate::apis::urlencode(attachment_id.to_string())
+        attachmentId = crate::apis::urlencode(attachment_id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::DELETE, local_var_uri_str.as_str());
@@ -1238,8 +1253,8 @@ pub async fn ciphers_id_attachment_attachment_id_delete_admin_post(
     let local_var_uri_str = format!(
         "{}/ciphers/{id}/attachment/{attachmentId}/delete-admin",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string()),
-        attachmentId = crate::apis::urlencode(attachment_id.to_string())
+        id = crate::apis::urlencode(id),
+        attachmentId = crate::apis::urlencode(attachment_id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -1285,7 +1300,7 @@ pub async fn ciphers_id_attachment_attachment_id_delete_post(
         "{}/ciphers/{id}/attachment/{attachmentId}/delete",
         local_var_configuration.base_path,
         id = crate::apis::urlencode(id.to_string()),
-        attachmentId = crate::apis::urlencode(attachment_id.to_string())
+        attachmentId = crate::apis::urlencode(attachment_id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -1322,8 +1337,7 @@ pub async fn ciphers_id_attachment_attachment_id_get(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
     attachment_id: &str,
-) -> Result<crate::models::AttachmentResponseModel, Error<CiphersIdAttachmentAttachmentIdGetError>>
-{
+) -> Result<models::AttachmentResponseModel, Error<CiphersIdAttachmentAttachmentIdGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1332,7 +1346,7 @@ pub async fn ciphers_id_attachment_attachment_id_get(
         "{}/ciphers/{id}/attachment/{attachmentId}",
         local_var_configuration.base_path,
         id = crate::apis::urlencode(id.to_string()),
-        attachmentId = crate::apis::urlencode(attachment_id.to_string())
+        attachmentId = crate::apis::urlencode(attachment_id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -1378,7 +1392,7 @@ pub async fn ciphers_id_attachment_attachment_id_post(
         "{}/ciphers/{id}/attachment/{attachmentId}",
         local_var_configuration.base_path,
         id = crate::apis::urlencode(id.to_string()),
-        attachmentId = crate::apis::urlencode(attachment_id.to_string())
+        attachmentId = crate::apis::urlencode(attachment_id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -1416,7 +1430,7 @@ pub async fn ciphers_id_attachment_attachment_id_renew_get(
     id: uuid::Uuid,
     attachment_id: &str,
 ) -> Result<
-    crate::models::AttachmentUploadDataResponseModel,
+    models::AttachmentUploadDataResponseModel,
     Error<CiphersIdAttachmentAttachmentIdRenewGetError>,
 > {
     let local_var_configuration = configuration;
@@ -1427,7 +1441,7 @@ pub async fn ciphers_id_attachment_attachment_id_renew_get(
         "{}/ciphers/{id}/attachment/{attachmentId}/renew",
         local_var_configuration.base_path,
         id = crate::apis::urlencode(id.to_string()),
-        attachmentId = crate::apis::urlencode(attachment_id.to_string())
+        attachmentId = crate::apis::urlencode(attachment_id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -1473,8 +1487,8 @@ pub async fn ciphers_id_attachment_attachment_id_share_post(
     let local_var_uri_str = format!(
         "{}/ciphers/{id}/attachment/{attachmentId}/share",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string()),
-        attachmentId = crate::apis::urlencode(attachment_id.to_string())
+        id = crate::apis::urlencode(id),
+        attachmentId = crate::apis::urlencode(attachment_id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -1514,7 +1528,7 @@ pub async fn ciphers_id_attachment_attachment_id_share_post(
 pub async fn ciphers_id_attachment_post(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-) -> Result<crate::models::CipherResponseModel, Error<CiphersIdAttachmentPostError>> {
+) -> Result<models::CipherResponseModel, Error<CiphersIdAttachmentPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1558,9 +1572,8 @@ pub async fn ciphers_id_attachment_post(
 pub async fn ciphers_id_attachment_v2_post(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    attachment_request_model: Option<crate::models::AttachmentRequestModel>,
-) -> Result<crate::models::AttachmentUploadDataResponseModel, Error<CiphersIdAttachmentV2PostError>>
-{
+    attachment_request_model: Option<models::AttachmentRequestModel>,
+) -> Result<models::AttachmentUploadDataResponseModel, Error<CiphersIdAttachmentV2PostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1605,7 +1618,7 @@ pub async fn ciphers_id_attachment_v2_post(
 pub async fn ciphers_id_collections_admin_post(
     configuration: &configuration::Configuration,
     id: &str,
-    cipher_collections_request_model: Option<crate::models::CipherCollectionsRequestModel>,
+    cipher_collections_request_model: Option<models::CipherCollectionsRequestModel>,
 ) -> Result<(), Error<CiphersIdCollectionsAdminPostError>> {
     let local_var_configuration = configuration;
 
@@ -1614,7 +1627,7 @@ pub async fn ciphers_id_collections_admin_post(
     let local_var_uri_str = format!(
         "{}/ciphers/{id}/collections-admin",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -1651,7 +1664,7 @@ pub async fn ciphers_id_collections_admin_post(
 pub async fn ciphers_id_collections_admin_put(
     configuration: &configuration::Configuration,
     id: &str,
-    cipher_collections_request_model: Option<crate::models::CipherCollectionsRequestModel>,
+    cipher_collections_request_model: Option<models::CipherCollectionsRequestModel>,
 ) -> Result<(), Error<CiphersIdCollectionsAdminPutError>> {
     let local_var_configuration = configuration;
 
@@ -1660,7 +1673,7 @@ pub async fn ciphers_id_collections_admin_put(
     let local_var_uri_str = format!(
         "{}/ciphers/{id}/collections-admin",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::PUT, local_var_uri_str.as_str());
@@ -1697,8 +1710,8 @@ pub async fn ciphers_id_collections_admin_put(
 pub async fn ciphers_id_collections_post(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    cipher_collections_request_model: Option<crate::models::CipherCollectionsRequestModel>,
-) -> Result<crate::models::CipherDetailsResponseModel, Error<CiphersIdCollectionsPostError>> {
+    cipher_collections_request_model: Option<models::CipherCollectionsRequestModel>,
+) -> Result<models::CipherDetailsResponseModel, Error<CiphersIdCollectionsPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1743,8 +1756,8 @@ pub async fn ciphers_id_collections_post(
 pub async fn ciphers_id_collections_put(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    cipher_collections_request_model: Option<crate::models::CipherCollectionsRequestModel>,
-) -> Result<crate::models::CipherDetailsResponseModel, Error<CiphersIdCollectionsPutError>> {
+    cipher_collections_request_model: Option<models::CipherCollectionsRequestModel>,
+) -> Result<models::CipherDetailsResponseModel, Error<CiphersIdCollectionsPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1776,6 +1789,98 @@ pub async fn ciphers_id_collections_put(
         serde_json::from_str(&local_var_content).map_err(Error::from)
     } else {
         let local_var_entity: Option<CiphersIdCollectionsPutError> =
+            serde_json::from_str(&local_var_content).ok();
+        let local_var_error = ResponseContent {
+            status: local_var_status,
+            content: local_var_content,
+            entity: local_var_entity,
+        };
+        Err(Error::ResponseError(local_var_error))
+    }
+}
+
+pub async fn ciphers_id_collections_v2_post(
+    configuration: &configuration::Configuration,
+    id: uuid::Uuid,
+    cipher_collections_request_model: Option<models::CipherCollectionsRequestModel>,
+) -> Result<models::OptionalCipherDetailsResponseModel, Error<CiphersIdCollectionsV2PostError>> {
+    let local_var_configuration = configuration;
+
+    let local_var_client = &local_var_configuration.client;
+
+    let local_var_uri_str = format!(
+        "{}/ciphers/{id}/collections_v2",
+        local_var_configuration.base_path,
+        id = crate::apis::urlencode(id.to_string())
+    );
+    let mut local_var_req_builder =
+        local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
+
+    if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
+        local_var_req_builder =
+            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
+    }
+    if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
+        local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
+    };
+    local_var_req_builder = local_var_req_builder.json(&cipher_collections_request_model);
+
+    let local_var_req = local_var_req_builder.build()?;
+    let local_var_resp = local_var_client.execute(local_var_req).await?;
+
+    let local_var_status = local_var_resp.status();
+    let local_var_content = local_var_resp.text().await?;
+
+    if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
+        serde_json::from_str(&local_var_content).map_err(Error::from)
+    } else {
+        let local_var_entity: Option<CiphersIdCollectionsV2PostError> =
+            serde_json::from_str(&local_var_content).ok();
+        let local_var_error = ResponseContent {
+            status: local_var_status,
+            content: local_var_content,
+            entity: local_var_entity,
+        };
+        Err(Error::ResponseError(local_var_error))
+    }
+}
+
+pub async fn ciphers_id_collections_v2_put(
+    configuration: &configuration::Configuration,
+    id: uuid::Uuid,
+    cipher_collections_request_model: Option<models::CipherCollectionsRequestModel>,
+) -> Result<models::OptionalCipherDetailsResponseModel, Error<CiphersIdCollectionsV2PutError>> {
+    let local_var_configuration = configuration;
+
+    let local_var_client = &local_var_configuration.client;
+
+    let local_var_uri_str = format!(
+        "{}/ciphers/{id}/collections_v2",
+        local_var_configuration.base_path,
+        id = crate::apis::urlencode(id.to_string())
+    );
+    let mut local_var_req_builder =
+        local_var_client.request(reqwest::Method::PUT, local_var_uri_str.as_str());
+
+    if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
+        local_var_req_builder =
+            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
+    }
+    if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
+        local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
+    };
+    local_var_req_builder = local_var_req_builder.json(&cipher_collections_request_model);
+
+    let local_var_req = local_var_req_builder.build()?;
+    let local_var_resp = local_var_client.execute(local_var_req).await?;
+
+    let local_var_status = local_var_resp.status();
+    let local_var_content = local_var_resp.text().await?;
+
+    if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
+        serde_json::from_str(&local_var_content).map_err(Error::from)
+    } else {
+        let local_var_entity: Option<CiphersIdCollectionsV2PutError> =
             serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,
@@ -1841,7 +1946,7 @@ pub async fn ciphers_id_delete_admin_post(
     let local_var_uri_str = format!(
         "{}/ciphers/{id}/delete-admin",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -1885,7 +1990,7 @@ pub async fn ciphers_id_delete_admin_put(
     let local_var_uri_str = format!(
         "{}/ciphers/{id}/delete-admin",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::PUT, local_var_uri_str.as_str());
@@ -2009,7 +2114,7 @@ pub async fn ciphers_id_delete_put(
 pub async fn ciphers_id_details_get(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-) -> Result<crate::models::CipherDetailsResponseModel, Error<CiphersIdDetailsGetError>> {
+) -> Result<models::CipherDetailsResponseModel, Error<CiphersIdDetailsGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -2053,7 +2158,7 @@ pub async fn ciphers_id_details_get(
 pub async fn ciphers_id_full_details_get(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-) -> Result<crate::models::CipherDetailsResponseModel, Error<CiphersIdFullDetailsGetError>> {
+) -> Result<models::CipherDetailsResponseModel, Error<CiphersIdFullDetailsGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -2097,7 +2202,7 @@ pub async fn ciphers_id_full_details_get(
 pub async fn ciphers_id_get(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-) -> Result<crate::models::CipherResponseModel, Error<CiphersIdGetError>> {
+) -> Result<models::CipherResponseModel, Error<CiphersIdGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -2141,8 +2246,8 @@ pub async fn ciphers_id_get(
 pub async fn ciphers_id_partial_post(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    cipher_partial_request_model: Option<crate::models::CipherPartialRequestModel>,
-) -> Result<crate::models::CipherResponseModel, Error<CiphersIdPartialPostError>> {
+    cipher_partial_request_model: Option<models::CipherPartialRequestModel>,
+) -> Result<models::CipherResponseModel, Error<CiphersIdPartialPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -2187,8 +2292,8 @@ pub async fn ciphers_id_partial_post(
 pub async fn ciphers_id_partial_put(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    cipher_partial_request_model: Option<crate::models::CipherPartialRequestModel>,
-) -> Result<crate::models::CipherResponseModel, Error<CiphersIdPartialPutError>> {
+    cipher_partial_request_model: Option<models::CipherPartialRequestModel>,
+) -> Result<models::CipherResponseModel, Error<CiphersIdPartialPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -2233,8 +2338,8 @@ pub async fn ciphers_id_partial_put(
 pub async fn ciphers_id_post(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    cipher_request_model: Option<crate::models::CipherRequestModel>,
-) -> Result<crate::models::CipherResponseModel, Error<CiphersIdPostError>> {
+    cipher_request_model: Option<models::CipherRequestModel>,
+) -> Result<models::CipherResponseModel, Error<CiphersIdPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -2279,8 +2384,8 @@ pub async fn ciphers_id_post(
 pub async fn ciphers_id_put(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    cipher_request_model: Option<crate::models::CipherRequestModel>,
-) -> Result<crate::models::CipherResponseModel, Error<CiphersIdPutError>> {
+    cipher_request_model: Option<models::CipherRequestModel>,
+) -> Result<models::CipherResponseModel, Error<CiphersIdPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -2325,7 +2430,7 @@ pub async fn ciphers_id_put(
 pub async fn ciphers_id_restore_admin_put(
     configuration: &configuration::Configuration,
     id: &str,
-) -> Result<crate::models::CipherMiniResponseModel, Error<CiphersIdRestoreAdminPutError>> {
+) -> Result<models::CipherMiniResponseModel, Error<CiphersIdRestoreAdminPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -2333,7 +2438,7 @@ pub async fn ciphers_id_restore_admin_put(
     let local_var_uri_str = format!(
         "{}/ciphers/{id}/restore-admin",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::PUT, local_var_uri_str.as_str());
@@ -2369,7 +2474,7 @@ pub async fn ciphers_id_restore_admin_put(
 pub async fn ciphers_id_restore_put(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-) -> Result<crate::models::CipherResponseModel, Error<CiphersIdRestorePutError>> {
+) -> Result<models::CipherResponseModel, Error<CiphersIdRestorePutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -2413,8 +2518,8 @@ pub async fn ciphers_id_restore_put(
 pub async fn ciphers_id_share_post(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    cipher_share_request_model: Option<crate::models::CipherShareRequestModel>,
-) -> Result<crate::models::CipherResponseModel, Error<CiphersIdSharePostError>> {
+    cipher_share_request_model: Option<models::CipherShareRequestModel>,
+) -> Result<models::CipherResponseModel, Error<CiphersIdSharePostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -2459,8 +2564,8 @@ pub async fn ciphers_id_share_post(
 pub async fn ciphers_id_share_put(
     configuration: &configuration::Configuration,
     id: uuid::Uuid,
-    cipher_share_request_model: Option<crate::models::CipherShareRequestModel>,
-) -> Result<crate::models::CipherResponseModel, Error<CiphersIdSharePutError>> {
+    cipher_share_request_model: Option<models::CipherShareRequestModel>,
+) -> Result<models::CipherResponseModel, Error<CiphersIdSharePutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -2504,7 +2609,7 @@ pub async fn ciphers_id_share_put(
 
 pub async fn ciphers_move_post(
     configuration: &configuration::Configuration,
-    cipher_bulk_move_request_model: Option<crate::models::CipherBulkMoveRequestModel>,
+    cipher_bulk_move_request_model: Option<models::CipherBulkMoveRequestModel>,
 ) -> Result<(), Error<CiphersMovePostError>> {
     let local_var_configuration = configuration;
 
@@ -2545,7 +2650,7 @@ pub async fn ciphers_move_post(
 
 pub async fn ciphers_move_put(
     configuration: &configuration::Configuration,
-    cipher_bulk_move_request_model: Option<crate::models::CipherBulkMoveRequestModel>,
+    cipher_bulk_move_request_model: Option<models::CipherBulkMoveRequestModel>,
 ) -> Result<(), Error<CiphersMovePutError>> {
     let local_var_configuration = configuration;
 
@@ -2588,7 +2693,7 @@ pub async fn ciphers_organization_details_assigned_get(
     configuration: &configuration::Configuration,
     organization_id: Option<uuid::Uuid>,
 ) -> Result<
-    crate::models::CipherDetailsResponseModelListResponseModel,
+    models::CipherDetailsResponseModelListResponseModel,
     Error<CiphersOrganizationDetailsAssignedGetError>,
 > {
     let local_var_configuration = configuration;
@@ -2638,7 +2743,7 @@ pub async fn ciphers_organization_details_get(
     configuration: &configuration::Configuration,
     organization_id: Option<uuid::Uuid>,
 ) -> Result<
-    crate::models::CipherMiniDetailsResponseModelListResponseModel,
+    models::CipherMiniDetailsResponseModelListResponseModel,
     Error<CiphersOrganizationDetailsGetError>,
 > {
     let local_var_configuration = configuration;
@@ -2686,8 +2791,8 @@ pub async fn ciphers_organization_details_get(
 
 pub async fn ciphers_post(
     configuration: &configuration::Configuration,
-    cipher_request_model: Option<crate::models::CipherRequestModel>,
-) -> Result<crate::models::CipherResponseModel, Error<CiphersPostError>> {
+    cipher_request_model: Option<models::CipherRequestModel>,
+) -> Result<models::CipherResponseModel, Error<CiphersPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -2728,7 +2833,7 @@ pub async fn ciphers_post(
 pub async fn ciphers_purge_post(
     configuration: &configuration::Configuration,
     organization_id: Option<&str>,
-    secret_verification_request_model: Option<crate::models::SecretVerificationRequestModel>,
+    secret_verification_request_model: Option<models::SecretVerificationRequestModel>,
 ) -> Result<(), Error<CiphersPurgePostError>> {
     let local_var_configuration = configuration;
 
@@ -2773,11 +2878,8 @@ pub async fn ciphers_purge_post(
 
 pub async fn ciphers_restore_admin_put(
     configuration: &configuration::Configuration,
-    cipher_bulk_restore_request_model: Option<crate::models::CipherBulkRestoreRequestModel>,
-) -> Result<
-    crate::models::CipherMiniResponseModelListResponseModel,
-    Error<CiphersRestoreAdminPutError>,
-> {
+    cipher_bulk_restore_request_model: Option<models::CipherBulkRestoreRequestModel>,
+) -> Result<models::CipherMiniResponseModelListResponseModel, Error<CiphersRestoreAdminPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -2820,9 +2922,8 @@ pub async fn ciphers_restore_admin_put(
 
 pub async fn ciphers_restore_put(
     configuration: &configuration::Configuration,
-    cipher_bulk_restore_request_model: Option<crate::models::CipherBulkRestoreRequestModel>,
-) -> Result<crate::models::CipherMiniResponseModelListResponseModel, Error<CiphersRestorePutError>>
-{
+    cipher_bulk_restore_request_model: Option<models::CipherBulkRestoreRequestModel>,
+) -> Result<models::CipherMiniResponseModelListResponseModel, Error<CiphersRestorePutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -2862,7 +2963,7 @@ pub async fn ciphers_restore_put(
 
 pub async fn ciphers_share_post(
     configuration: &configuration::Configuration,
-    cipher_bulk_share_request_model: Option<crate::models::CipherBulkShareRequestModel>,
+    cipher_bulk_share_request_model: Option<models::CipherBulkShareRequestModel>,
 ) -> Result<(), Error<CiphersSharePostError>> {
     let local_var_configuration = configuration;
 
@@ -2903,7 +3004,7 @@ pub async fn ciphers_share_post(
 
 pub async fn ciphers_share_put(
     configuration: &configuration::Configuration,
-    cipher_bulk_share_request_model: Option<crate::models::CipherBulkShareRequestModel>,
+    cipher_bulk_share_request_model: Option<models::CipherBulkShareRequestModel>,
 ) -> Result<(), Error<CiphersSharePutError>> {
     let local_var_configuration = configuration;
 

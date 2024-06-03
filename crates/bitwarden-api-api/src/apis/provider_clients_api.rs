@@ -9,9 +9,10 @@
  */
 
 use reqwest;
+use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::apis::ResponseContent;
+use crate::{apis::ResponseContent, models};
 
 /// struct for typed errors of method [`providers_provider_id_clients_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -30,9 +31,7 @@ pub enum ProvidersProviderIdClientsProviderOrganizationIdPutError {
 pub async fn providers_provider_id_clients_post(
     configuration: &configuration::Configuration,
     provider_id: uuid::Uuid,
-    create_client_organization_request_body: Option<
-        crate::models::CreateClientOrganizationRequestBody,
-    >,
+    create_client_organization_request_body: Option<models::CreateClientOrganizationRequestBody>,
 ) -> Result<(), Error<ProvidersProviderIdClientsPostError>> {
     let local_var_configuration = configuration;
 
@@ -79,9 +78,7 @@ pub async fn providers_provider_id_clients_provider_organization_id_put(
     configuration: &configuration::Configuration,
     provider_id: uuid::Uuid,
     provider_organization_id: uuid::Uuid,
-    update_client_organization_request_body: Option<
-        crate::models::UpdateClientOrganizationRequestBody,
-    >,
+    update_client_organization_request_body: Option<models::UpdateClientOrganizationRequestBody>,
 ) -> Result<(), Error<ProvidersProviderIdClientsProviderOrganizationIdPutError>> {
     let local_var_configuration = configuration;
 

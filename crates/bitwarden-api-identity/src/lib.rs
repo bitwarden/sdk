@@ -1,10 +1,9 @@
-#![allow(warnings)]
-#![allow(clippy::all)]
-
-#[macro_use]
-extern crate serde_derive;
-#[macro_use]
-extern crate serde_repr;
+#![allow(unused_imports, unused_variables, unused_mut, non_camel_case_types)]
+#![allow(
+    clippy::too_many_arguments,
+    clippy::empty_docs,
+    clippy::to_string_in_format_args
+)]
 
 extern crate reqwest;
 extern crate serde;

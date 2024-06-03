@@ -1,6 +1,6 @@
 use bitwarden_api_api::models::CipherFieldModel;
 use bitwarden_crypto::{
-    CryptoError, DecryptedString, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
+    CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -11,7 +11,7 @@ use crate::error::{require, Error, Result};
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum FieldType {
     Text = 0,
     Hidden = 1,
@@ -21,7 +21,7 @@ pub enum FieldType {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct Field {
     name: Option<EncString>,
     value: Option<EncString>,
@@ -32,10 +32,10 @@ pub struct Field {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct FieldView {
-    pub(crate) name: Option<DecryptedString>,
-    pub(crate) value: Option<DecryptedString>,
+    pub(crate) name: Option<String>,
+    pub(crate) value: Option<String>,
     pub(crate) r#type: FieldType,
 
     pub(crate) linked_id: Option<LinkedIdType>,

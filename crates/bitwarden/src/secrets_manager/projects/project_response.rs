@@ -1,5 +1,5 @@
 use bitwarden_api_api::models::ProjectResponseModel;
-use bitwarden_crypto::{CryptoError, DecryptedString, EncString, KeyDecryptable};
+use bitwarden_crypto::{CryptoError, EncString, KeyDecryptable};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -30,14 +30,14 @@ impl ProjectResponse {
             .get_key(&Some(organization_id))
             .ok_or(CryptoError::MissingKey)?;
 
-        let name: DecryptedString = require!(response.name)
+        let name = require!(response.name)
             .parse::<EncString>()?
             .decrypt_with_key(enc_key)?;
 
         Ok(ProjectResponse {
             id: require!(response.id),
             organization_id,
-            name: name.expose().to_owned(),
+            name,
 
             creation_date: require!(response.creation_date).parse()?,
             revision_date: require!(response.revision_date).parse()?,

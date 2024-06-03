@@ -35,10 +35,16 @@ pub enum CaseCommand {
     SymmetricKey {
         key: String,
     },
+    AsymmetricKey {
+        private_key: String,
+    },
     MasterKey {
         password: String,
         email: String,
         kdf: Kdf,
+    },
+    String {
+        parts: Vec<String>,
     },
 }
 

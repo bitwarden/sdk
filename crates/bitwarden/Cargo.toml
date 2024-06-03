@@ -16,18 +16,19 @@ license-file.workspace = true
 [features]
 default = ["secrets"]
 
-secrets = [] # Secrets manager API
 internal = [
     "dep:bitwarden-exporters",
     "dep:bitwarden-generators",
 ] # Internal testing methods
-mobile = [
-    "internal",
+no-memory-hardening = [
+    "bitwarden-crypto/no-memory-hardening",
+] # Disable memory hardening features
+uniffi = [
+    "bitwarden-crypto/uniffi",
+    "bitwarden-generators/uniffi",
     "dep:uniffi",
-    "bitwarden-crypto/mobile",
-    "bitwarden-generators/mobile",
-] # Mobile-specific features
-
+] # Uniffi bindings
+secrets = [] # Secrets manager API
 wasm-bindgen = ["chrono/wasmbind"]
 
 [dependencies]
@@ -61,8 +62,9 @@ serde_repr = ">=0.1.12, <0.2"
 sha1 = ">=0.10.5, <0.11"
 sha2 = ">=0.10.6, <0.11"
 thiserror = ">=1.0.40, <2.0"
-uniffi = { version = "=0.27.1", optional = true, features = ["tokio"] }
+uniffi = { version = "=0.27.2", optional = true, features = ["tokio"] }
 uuid = { version = ">=1.3.3, <2.0", features = ["serde"] }
+zeroize = { version = ">=1.7.0, <2.0", features = ["derive", "aarch64"] }
 zxcvbn = ">= 2.2.2, <3.0"
 
 [target.'cfg(all(not(target_os = "android"), not(target_arch="wasm32")))'.dependencies]

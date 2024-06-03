@@ -1,6 +1,6 @@
 #![allow(dead_code, unused_mut, unused_imports, unused_variables)]
 
-use bitwarden_crypto::{EncString, KeyEncryptable, SensitiveString};
+use bitwarden_crypto::{EncString, KeyEncryptable};
 use chrono::DateTime;
 use passkey::{
     authenticator::{Authenticator, UserCheck},
@@ -125,8 +125,8 @@ impl<'a> Fido2Authenticator<'a> {
                     folder_id: None,
                     collection_ids: vec![],
                     key: None,
-                    name: SensitiveString::new(Box::new("".to_string())),
-                    notes: Some(SensitiveString::new(Box::new("".to_string()))),
+                    name: "".to_string(),
+                    notes: Some("".to_string()),
                     r#type: crate::vault::CipherType::Login,
                     login: Some(LoginView {
                         username: None,
@@ -253,32 +253,32 @@ impl passkey::authenticator::UserValidationMethod for UserInterfaceImpl<'_> {
 // What type do we need this to be? We probably can't use Serialize over the FFI boundary
 pub type Extensions = Option<std::collections::HashMap<String, String>>;
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct PublicKeyCredentialRpEntity {
     pub id: String,
     pub name: Option<String>,
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct PublicKeyCredentialUserEntity {
     pub id: Vec<u8>,
     pub display_name: String,
     pub name: String,
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct PublicKeyCredentialParameters {
     pub ty: String,
     pub alg: i64,
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct PublicKeyCredentialDescriptor {
     pub ty: i64,
     pub id: Vec<u8>,
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct MakeCredentialRequest {
     client_data_hash: Vec<u8>,
     rp: PublicKeyCredentialRpEntity,
@@ -289,7 +289,7 @@ pub struct MakeCredentialRequest {
     extensions: Extensions,
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct MakeCredentialResult {
     // TODO
     // authenticator_data: Vec<u8>,
@@ -297,7 +297,7 @@ pub struct MakeCredentialResult {
     credential_id: Vec<u8>,
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct GetAssertionRequest {
     rp_id: String,
     client_data_hash: Vec<u8>,
@@ -306,20 +306,20 @@ pub struct GetAssertionRequest {
     extensions: Extensions,
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct Options {
     rk: bool,
     uv: UV,
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum UV {
     Discouraged,
     Preferred,
     Required,
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct GetAssertionResult {
     credential_id: Vec<u8>,
     authenticator_data: Vec<u8>,

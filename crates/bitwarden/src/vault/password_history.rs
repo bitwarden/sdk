@@ -1,7 +1,6 @@
 use bitwarden_api_api::models::CipherPasswordHistoryModel;
 use bitwarden_crypto::{
-    CryptoError, DecryptedString, EncString, KeyDecryptable, KeyEncryptable, LocateKey,
-    SymmetricCryptoKey,
+    CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
@@ -11,7 +10,7 @@ use crate::error::{Error, Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct PasswordHistory {
     password: EncString,
     last_used_date: DateTime<Utc>,
@@ -19,13 +18,12 @@ pub struct PasswordHistory {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct PasswordHistoryView {
-    password: DecryptedString,
+    password: String,
     last_used_date: DateTime<Utc>,
 }
 
-impl LocateKey for PasswordHistoryView {}
 impl KeyEncryptable<SymmetricCryptoKey, PasswordHistory> for PasswordHistoryView {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<PasswordHistory, CryptoError> {
         Ok(PasswordHistory {
@@ -35,7 +33,6 @@ impl KeyEncryptable<SymmetricCryptoKey, PasswordHistory> for PasswordHistoryView
     }
 }
 
-impl LocateKey for PasswordHistory {}
 impl KeyDecryptable<SymmetricCryptoKey, PasswordHistoryView> for PasswordHistory {
     fn decrypt_with_key(
         &self,

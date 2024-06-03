@@ -3,11 +3,8 @@ use bitwarden::{
     generators::{PassphraseGeneratorRequest, PasswordGeneratorRequest},
     mobile::crypto::{InitOrgCryptoRequest, InitUserCryptoRequest},
     platform::FingerprintRequest,
-    tool::ExportFormat,
-    vault::{
-        Cipher, CipherView, Collection, Folder, FolderView, Send, SendListView, SendView,
-        TotpResponse,
-    },
+    tool::{ExportFormat, Send, SendListView, SendView},
+    vault::{Cipher, CipherView, Collection, Folder, FolderView, TotpResponse},
 };
 use bitwarden_crypto::{HashPurpose, Kdf};
 use schemars::JsonSchema;

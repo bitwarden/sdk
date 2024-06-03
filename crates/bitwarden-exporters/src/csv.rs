@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
-use bitwarden_crypto::{DecryptedString, Sensitive};
 use csv::Writer;
 use serde::Serializer;
 use thiserror::Error;
+use uuid::Uuid;
 
 use crate::{Cipher, CipherType, Field, Folder};
 
@@ -14,7 +14,7 @@ pub enum CsvError {
 }
 
 pub(crate) fn export_csv(folders: Vec<Folder>, ciphers: Vec<Cipher>) -> Result<String, CsvError> {
-    let folders: HashMap<_, _> = folders.into_iter().map(|f| (f.id, f.name)).collect();
+    let folders: HashMap<Uuid, String> = folders.into_iter().map(|f| (f.id, f.name)).collect();
 
     let rows = ciphers
         .into_iter()
@@ -59,30 +59,27 @@ pub(crate) fn export_csv(folders: Vec<Folder>, ciphers: Vec<Cipher>) -> Result<S
 /// Be careful when changing this struct to maintain compatibility with old exports.
 #[derive(serde::Serialize)]
 struct CsvRow {
-    folder: Option<DecryptedString>,
+    folder: Option<String>,
     #[serde(serialize_with = "bool_serialize")]
     favorite: bool,
     r#type: String,
-    name: DecryptedString,
-    notes: Option<DecryptedString>,
+    name: String,
+    notes: Option<String>,
     #[serde(serialize_with = "fields_serialize")]
     fields: Vec<Field>,
     reprompt: u8,
     #[serde(serialize_with = "vec_serialize")]
-    login_uri: Vec<DecryptedString>,
-    login_username: Option<DecryptedString>,
-    login_password: Option<DecryptedString>,
-    login_totp: Option<DecryptedString>,
+    login_uri: Vec<String>,
+    login_username: Option<String>,
+    login_password: Option<String>,
+    login_totp: Option<String>,
 }
 
-fn vec_serialize<S>(x: &[DecryptedString], s: S) -> Result<S::Ok, S::Error>
+fn vec_serialize<S>(x: &[String], s: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
-    let iter = itertools::Itertools::intersperse(x.iter().map(|s| s.expose().as_str()), ",");
-    let result: Sensitive<String> = Sensitive::new(Box::new(iter.collect()));
-
-    s.serialize_str(result.expose())
+    s.serialize_str(x.join(",").as_str())
 }
 
 fn bool_serialize<S>(x: &bool, s: S) -> Result<S::Ok, S::Error>
@@ -101,14 +98,8 @@ where
             .map(|f| {
                 format!(
                     "{}: {}",
-                    f.name
-                        .as_ref()
-                        .map(|n| n.expose().as_str())
-                        .unwrap_or_default(),
-                    f.value
-                        .as_ref()
-                        .map(|n| n.expose().as_str())
-                        .unwrap_or_default(),
+                    f.name.to_owned().unwrap_or_default(),
+                    f.value.to_owned().unwrap_or_default()
                 )
             })
             .collect::<Vec<String>>()
@@ -127,24 +118,24 @@ mod tests {
         let folders = vec![
             Folder {
                 id: "d55d65d7-c161-40a4-94ca-b0d20184d91a".parse().unwrap(),
-                name: DecryptedString::test("Test Folder A"),
+                name: "Test Folder A".to_string(),
             },
             Folder {
                 id: "583e7665-0126-4d37-9139-b0d20184dd86".parse().unwrap(),
-                name: DecryptedString::test("Test Folder B"),
+                name: "Test Folder B".to_string(),
             },
         ];
         let ciphers = vec![
             Cipher {
                 id: "d55d65d7-c161-40a4-94ca-b0d20184d91a".parse().unwrap(),
                 folder_id: None,
-                name: DecryptedString::test("test@bitwarden.com"),
+                name: "test@bitwarden.com".to_string(),
                 notes: None,
                 r#type: CipherType::Login(Box::new(Login {
-                    username: Some(DecryptedString::test("test@bitwarden.com")),
-                    password: Some(DecryptedString::test("Abc123")),
+                    username: Some("test@bitwarden.com".to_string()),
+                    password: Some("Abc123".to_string()),
                     login_uris: vec![LoginUri {
-                        uri: Some(DecryptedString::test("https://google.com")),
+                        uri: Some("https://google.com".to_string()),
                         r#match: None,
                     }],
                     totp: None,
@@ -159,29 +150,29 @@ mod tests {
             Cipher {
                 id: "7dd81bd0-cc72-4f42-96e7-b0fc014e71a3".parse().unwrap(),
                 folder_id: Some("583e7665-0126-4d37-9139-b0d20184dd86".parse().unwrap()),
-                name: DecryptedString::test("Steam Account"),
+                name: "Steam Account".to_string(),
                 notes: None,
                 r#type: CipherType::Login(Box::new(Login {
-                    username: Some(DecryptedString::test("steam")),
-                    password: Some(DecryptedString::test("3Pvb8u7EfbV*nJ")),
+                    username: Some("steam".to_string()),
+                    password: Some("3Pvb8u7EfbV*nJ".to_string()),
                     login_uris: vec![LoginUri {
-                        uri: Some(DecryptedString::test("https://steampowered.com")),
+                        uri: Some("https://steampowered.com".to_string()),
                         r#match: None,
                     }],
-                    totp: Some(DecryptedString::test("steam://ABCD123")),
+                    totp: Some("steam://ABCD123".to_string()),
                 })),
                 favorite: true,
                 reprompt: 0,
                 fields: vec![
                     Field {
-                        name: Some(DecryptedString::test("Test")),
-                        value: Some(DecryptedString::test("v")),
+                        name: Some("Test".to_string()),
+                        value: Some("v".to_string()),
                         r#type: 0,
                         linked_id: None,
                     },
                     Field {
-                        name: Some(DecryptedString::test("Hidden")),
-                        value: Some(DecryptedString::test("asdfer")),
+                        name: Some("Hidden".to_string()),
+                        value: Some("asdfer".to_string()),
                         r#type: 1,
                         linked_id: None,
                     },
@@ -209,7 +200,7 @@ mod tests {
         let ciphers = vec![Cipher {
             id: "d55d65d7-c161-40a4-94ca-b0d20184d91a".parse().unwrap(),
             folder_id: None,
-            name: DecryptedString::test("My Card"),
+            name: "My Card".to_string(),
             notes: None,
             r#type: CipherType::Card(Box::new(Card {
                 cardholder_name: None,
@@ -238,7 +229,7 @@ mod tests {
         let ciphers = vec![Cipher {
             id: "d55d65d7-c161-40a4-94ca-b0d20184d91a".parse().unwrap(),
             folder_id: None,
-            name: DecryptedString::test("My Identity"),
+            name: "My Identity".to_string(),
             notes: None,
             r#type: CipherType::Identity(Box::new(Identity {
                 title: None,

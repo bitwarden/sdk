@@ -1,4 +1,4 @@
-use bitwarden_crypto::{HashPurpose, SensitiveString};
+use bitwarden_crypto::HashPurpose;
 
 use crate::{client::Kdf, error::Result, mobile::kdf::hash_password, Client};
 
@@ -10,10 +10,10 @@ impl<'a> ClientKdf<'a> {
     pub async fn hash_password(
         &self,
         email: String,
-        password: SensitiveString,
+        password: String,
         kdf_params: Kdf,
         purpose: HashPurpose,
-    ) -> Result<SensitiveString> {
+    ) -> Result<String> {
         hash_password(self.client, email, password, kdf_params, purpose).await
     }
 }

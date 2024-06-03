@@ -1,6 +1,6 @@
 use std::num::NonZeroU32;
 
-use bitwarden_crypto::{AsymmetricEncString, EncString, SensitiveString, SensitiveVec};
+use bitwarden_crypto::{AsymmetricEncString, EncString};
 use uuid::Uuid;
 
 use crate::UniffiCustomTypeConverter;
@@ -12,12 +12,7 @@ uniffi::ffi_converter_forward!(
     bitwarden_crypto::UniFfiTag,
     crate::UniFfiTag
 );
-uniffi::ffi_converter_forward!(
-    SensitiveString,
-    bitwarden_crypto::UniFfiTag,
-    crate::UniFfiTag
-);
-uniffi::ffi_converter_forward!(SensitiveVec, bitwarden_crypto::UniFfiTag, crate::UniFfiTag);
+
 type DateTime = chrono::DateTime<chrono::Utc>;
 uniffi::custom_type!(DateTime, std::time::SystemTime);
 

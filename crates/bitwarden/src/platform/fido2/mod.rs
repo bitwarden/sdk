@@ -1,7 +1,7 @@
 use std::sync::Mutex;
 
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
-use bitwarden_crypto::{KeyContainer, SensitiveString, SensitiveVec};
+use bitwarden_crypto::KeyContainer;
 use passkey::types::{ctap2::Aaguid, Passkey};
 
 mod authenticator;
@@ -113,16 +113,16 @@ impl TryFrom<Fido2CredentialFullView> for Passkey {
     type Error = crate::error::Error;
 
     fn try_from(value: Fido2CredentialFullView) -> Result<Self, Self::Error> {
-        let counter: u32 = value.counter.expose().parse().expect("Invalid counter");
+        let counter: u32 = value.counter.parse().expect("Invalid counter");
         let counter = (counter != 0).then_some(counter);
 
-        let key = pkcs8_to_cose_key(value.key_value.expose().as_ref())?;
+        let key = pkcs8_to_cose_key(&value.key_value)?;
 
         Ok(Self {
             key,
-            credential_id: string_to_guid_bytes(value.credential_id.expose())?.into(),
-            rp_id: value.rp_id.expose().clone(),
-            user_handle: value.user_handle.map(|u| u.expose().to_vec().into()),
+            credential_id: string_to_guid_bytes(&value.credential_id)?.into(),
+            rp_id: value.rp_id.clone(),
+            user_handle: value.user_handle.map(|u| u.into()),
             counter,
         })
     }
@@ -133,19 +133,19 @@ impl Fido2CredentialView {
         let cred_id: Vec<u8> = value.credential_id.into();
 
         Ok(Fido2CredentialFullView {
-            credential_id: SensitiveString::new(Box::new(guid_bytes_to_string(&cred_id)?)),
-            key_type: SensitiveString::new(Box::new("public-key".to_owned())),
-            key_algorithm: SensitiveString::new(Box::new("ECDSA".to_owned())),
-            key_curve: SensitiveString::new(Box::new("P-256".to_owned())),
-            key_value: SensitiveVec::new(Box::new(cose_key_to_pkcs8(&value.key)?)),
-            rp_id: SensitiveString::new(Box::new(value.rp_id)),
+            credential_id: guid_bytes_to_string(&cred_id)?,
+            key_type: "public-key".to_owned(),
+            key_algorithm: "ECDSA".to_owned(),
+            key_curve: "P-256".to_owned(),
+            key_value: cose_key_to_pkcs8(&value.key)?,
+            rp_id: value.rp_id,
             rp_name: self.rp_name.clone(),
-            user_handle: Some(SensitiveVec::new(Box::new(cred_id))),
+            user_handle: Some(cred_id),
 
-            counter: SensitiveString::new(Box::new(value.counter.unwrap_or(0).to_string())),
+            counter: value.counter.unwrap_or(0).to_string(),
             user_name: self.user_name.clone(),
             user_display_name: self.user_display_name.clone(),
-            discoverable: SensitiveString::new(Box::new("true".to_owned())),
+            discoverable: "true".to_owned(),
             creation_date: chrono::offset::Utc::now(),
         })
     }
@@ -159,21 +159,18 @@ impl Fido2CredentialNewView {
         let cred_id: Vec<u8> = vec![0; 16];
 
         Ok(Fido2CredentialNewView {
-            credential_id: SensitiveString::new(Box::new(guid_bytes_to_string(&cred_id)?)),
-            key_type: SensitiveString::new(Box::new("public-key".to_owned())),
-            key_algorithm: SensitiveString::new(Box::new("ECDSA".to_owned())),
-            key_curve: SensitiveString::new(Box::new("P-256".to_owned())),
-            rp_id: SensitiveString::new(Box::new(rp.id.clone())),
-            rp_name: rp.name.clone().map(|n| SensitiveString::new(Box::new(n))),
-            user_handle: Some(SensitiveVec::new(Box::new(cred_id))),
+            credential_id: guid_bytes_to_string(&cred_id)?,
+            key_type: "public-key".to_owned(),
+            key_algorithm: "ECDSA".to_owned(),
+            key_curve: "P-256".to_owned(),
+            rp_id: rp.id.clone(),
+            rp_name: rp.name.clone(),
+            user_handle: Some(cred_id),
 
-            counter: SensitiveString::new(Box::new(0.to_string())),
-            user_name: user.name.clone().map(|n| SensitiveString::new(Box::new(n))),
-            user_display_name: user
-                .display_name
-                .clone()
-                .map(|n| SensitiveString::new(Box::new(n))),
-            discoverable: SensitiveString::new(Box::new("true".to_owned())),
+            counter: 0.to_string(),
+            user_name: user.name.clone(),
+            user_display_name: user.display_name.clone(),
+            discoverable: "true".to_owned(),
             creation_date: chrono::offset::Utc::now(),
         })
     }
@@ -188,19 +185,19 @@ impl Fido2CredentialFullView {
         let cred_id: Vec<u8> = value.credential_id.into();
 
         Ok(Fido2CredentialFullView {
-            credential_id: SensitiveString::new(Box::new(guid_bytes_to_string(&cred_id)?)),
-            key_type: SensitiveString::new(Box::new("public-key".to_owned())),
-            key_algorithm: SensitiveString::new(Box::new("ECDSA".to_owned())),
-            key_curve: SensitiveString::new(Box::new("P-256".to_owned())),
-            key_value: SensitiveVec::new(Box::new(cose_key_to_pkcs8(&value.key)?)),
-            rp_id: SensitiveString::new(Box::new(value.rp_id)),
-            rp_name: rp.name.map(|n| SensitiveString::new(Box::new(n))),
-            user_handle: Some(SensitiveVec::new(Box::new(cred_id))),
+            credential_id: guid_bytes_to_string(&cred_id)?,
+            key_type: "public-key".to_owned(),
+            key_algorithm: "ECDSA".to_owned(),
+            key_curve: "P-256".to_owned(),
+            key_value: cose_key_to_pkcs8(&value.key)?,
+            rp_id: value.rp_id,
+            rp_name: rp.name,
+            user_handle: Some(cred_id),
 
-            counter: SensitiveString::new(Box::new(value.counter.unwrap_or(0).to_string())),
-            user_name: user.name.map(|n| SensitiveString::new(Box::new(n))),
-            user_display_name: user.display_name.map(|n| SensitiveString::new(Box::new(n))),
-            discoverable: SensitiveString::new(Box::new("true".to_owned())),
+            counter: value.counter.unwrap_or(0).to_string(),
+            user_name: user.name,
+            user_display_name: user.display_name,
+            discoverable: "true".to_owned(),
             creation_date: chrono::offset::Utc::now(),
         })
     }

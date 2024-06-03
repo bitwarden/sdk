@@ -1,9 +1,6 @@
 use std::{num::NonZeroU32, str::FromStr};
 
-use crate::{
-    AsymmetricEncString, CryptoError, EncString, SensitiveString, SensitiveVec,
-    UniffiCustomTypeConverter,
-};
+use crate::{AsymmetricEncString, CryptoError, EncString, UniffiCustomTypeConverter};
 
 uniffi::custom_type!(NonZeroU32, u32);
 
@@ -45,39 +42,4 @@ impl UniffiCustomTypeConverter for AsymmetricEncString {
     fn from_custom(obj: Self) -> Self::Builtin {
         obj.to_string()
     }
-}
-
-uniffi::custom_type!(SensitiveString, String);
-
-impl UniffiCustomTypeConverter for SensitiveString {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(SensitiveString::new(Box::new(val)))
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.expose().to_owned()
-    }
-}
-
-uniffi::custom_type!(SensitiveVec, Vec<u8>);
-
-impl UniffiCustomTypeConverter for SensitiveVec {
-    type Builtin = Vec<u8>;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(SensitiveVec::new(Box::new(val)))
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.expose().to_owned()
-    }
-}
-
-/// Uniffi doesn't seem to be generating the SensitiveVec unless it's being used by
-/// a record somewhere. This is a workaround to make sure the type is generated.
-#[derive(uniffi::Record)]
-struct SupportSensitiveVec {
-    sensitive_string: SensitiveVec,
 }

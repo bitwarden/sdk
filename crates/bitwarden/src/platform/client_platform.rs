@@ -24,7 +24,7 @@ impl<'a> ClientPlatform<'a> {
         &mut self,
         input: SecretVerificationRequest,
     ) -> Result<UserApiKeyResponse> {
-        get_user_api_key(self.client, input).await
+        get_user_api_key(self.client, &input).await
     }
 
     #[cfg(feature = "uniffi")]

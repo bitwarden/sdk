@@ -46,4 +46,4 @@ RUN apt-get update && apt-get install -y --no-install-recommends gdb=13.1-3 && a
 COPY --from=build /app/target/release/memory-testing /app/target/release/capture-dumps ./
 COPY crates/memory-testing/cases.json .
 
-CMD [ "/capture-dumps", "./memory-testing", "/output" ]
+CMD [ "/capture-dumps", "./memory-testing", "/" ]

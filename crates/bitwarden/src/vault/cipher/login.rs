@@ -1,15 +1,12 @@
-use base64::engine::general_purpose::STANDARD;
+use base64::{engine::general_purpose::STANDARD, Engine};
 use bitwarden_api_api::models::{CipherLoginModel, CipherLoginUriModel};
 use bitwarden_crypto::{
-    CryptoError, DecryptedString, DecryptedVec, EncString, KeyDecryptable, KeyEncryptable,
-    Sensitive, SensitiveVec, SymmetricCryptoKey,
+    CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
-use hmac::digest::generic_array::GenericArray;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use sha2::Digest;
 
 use crate::error::{require, Error, Result};
 
@@ -39,9 +36,9 @@ pub struct LoginUri {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct LoginUriView {
-    pub uri: Option<DecryptedString>,
+    pub uri: Option<String>,
     pub r#match: Option<UriMatchType>,
-    pub uri_checksum: Option<DecryptedString>,
+    pub uri_checksum: Option<String>,
 }
 
 impl LoginUriView {
@@ -52,28 +49,22 @@ impl LoginUriView {
         let Some(cs) = &self.uri_checksum else {
             return false;
         };
-        let Ok(cs) = cs.clone().decode_base64(STANDARD) else {
+        let Ok(cs) = STANDARD.decode(cs) else {
             return false;
         };
 
-        let uri_hash: Sensitive<GenericArray<u8, _>> = Sensitive::new(Box::new(
-            sha2::Sha256::new()
-                .chain_update(uri.expose().as_bytes())
-                .finalize(),
-        ));
+        use sha2::Digest;
+        let uri_hash = sha2::Sha256::new().chain_update(uri.as_bytes()).finalize();
 
-        cs == uri_hash.expose().as_slice()
+        uri_hash.as_slice() == cs
     }
 
     pub(crate) fn generate_checksum(&mut self) {
         if let Some(uri) = &self.uri {
-            let uri_hash: SensitiveVec = Sensitive::new(Box::new(
-                sha2::Sha256::new()
-                    .chain_update(uri.expose().as_bytes())
-                    .finalize(),
-            ))
-            .into();
-            self.uri_checksum = Some(uri_hash.encode_base64(STANDARD))
+            use sha2::Digest;
+            let uri_hash = sha2::Sha256::new().chain_update(uri.as_bytes()).finalize();
+            let uri_hash = STANDARD.encode(uri_hash.as_slice());
+            self.uri_checksum = Some(uri_hash);
         }
     }
 }
@@ -101,20 +92,20 @@ pub struct Fido2Credential {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct Fido2CredentialView {
-    pub credential_id: DecryptedString,
-    pub key_type: DecryptedString,
-    pub key_algorithm: DecryptedString,
-    pub key_curve: DecryptedString,
+    pub credential_id: String,
+    pub key_type: String,
+    pub key_algorithm: String,
+    pub key_curve: String,
     // This value doesn't need to be returned to the client
     // so we keep it encrypted until we need it
     pub key_value: EncString,
-    pub rp_id: DecryptedString,
-    pub user_handle: Option<DecryptedVec>,
-    pub user_name: Option<DecryptedString>,
-    pub counter: DecryptedString,
-    pub rp_name: Option<DecryptedString>,
-    pub user_display_name: Option<DecryptedString>,
-    pub discoverable: DecryptedString,
+    pub rp_id: String,
+    pub user_handle: Option<Vec<u8>>,
+    pub user_name: Option<String>,
+    pub counter: String,
+    pub rp_name: Option<String>,
+    pub user_display_name: Option<String>,
+    pub discoverable: String,
     pub creation_date: DateTime<Utc>,
 }
 
@@ -123,18 +114,18 @@ pub struct Fido2CredentialView {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(crate) struct Fido2CredentialFullView {
-    pub credential_id: DecryptedString,
-    pub key_type: DecryptedString,
-    pub key_algorithm: DecryptedString,
-    pub key_curve: DecryptedString,
-    pub key_value: DecryptedVec,
-    pub rp_id: DecryptedString,
-    pub user_handle: Option<DecryptedVec>,
-    pub user_name: Option<DecryptedString>,
-    pub counter: DecryptedString,
-    pub rp_name: Option<DecryptedString>,
-    pub user_display_name: Option<DecryptedString>,
-    pub discoverable: DecryptedString,
+    pub credential_id: String,
+    pub key_type: String,
+    pub key_algorithm: String,
+    pub key_curve: String,
+    pub key_value: Vec<u8>,
+    pub rp_id: String,
+    pub user_handle: Option<Vec<u8>>,
+    pub user_name: Option<String>,
+    pub counter: String,
+    pub rp_name: Option<String>,
+    pub user_display_name: Option<String>,
+    pub discoverable: String,
     pub creation_date: DateTime<Utc>,
 }
 
@@ -145,17 +136,17 @@ pub(crate) struct Fido2CredentialFullView {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct Fido2CredentialNewView {
-    pub credential_id: DecryptedString,
-    pub key_type: DecryptedString,
-    pub key_algorithm: DecryptedString,
-    pub key_curve: DecryptedString,
-    pub rp_id: DecryptedString,
-    pub user_handle: Option<DecryptedVec>,
-    pub user_name: Option<DecryptedString>,
-    pub counter: DecryptedString,
-    pub rp_name: Option<DecryptedString>,
-    pub user_display_name: Option<DecryptedString>,
-    pub discoverable: DecryptedString,
+    pub credential_id: String,
+    pub key_type: String,
+    pub key_algorithm: String,
+    pub key_curve: String,
+    pub rp_id: String,
+    pub user_handle: Option<Vec<u8>>,
+    pub user_name: Option<String>,
+    pub counter: String,
+    pub rp_name: Option<String>,
+    pub user_display_name: Option<String>,
+    pub discoverable: String,
     pub creation_date: DateTime<Utc>,
 }
 
@@ -188,7 +179,7 @@ impl KeyEncryptable<SymmetricCryptoKey, Fido2CredentialView> for Fido2Credential
             key_type: self.key_type,
             key_algorithm: self.key_algorithm,
             key_curve: self.key_curve,
-            key_value: self.key_value.expose().encrypt_with_key(key)?,
+            key_value: self.key_value.encrypt_with_key(key)?,
             rp_id: self.rp_id,
             user_handle: self.user_handle,
             user_name: self.user_name,
@@ -266,12 +257,12 @@ pub struct Login {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct LoginView {
-    pub username: Option<DecryptedString>,
-    pub password: Option<DecryptedString>,
+    pub username: Option<String>,
+    pub password: Option<String>,
     pub password_revision_date: Option<DateTime<Utc>>,
 
     pub uris: Option<Vec<LoginUriView>>,
-    pub totp: Option<DecryptedString>,
+    pub totp: Option<String>,
     pub autofill_on_page_load: Option<bool>,
 
     // TODO: Remove this once the SDK supports state
@@ -337,7 +328,7 @@ impl KeyEncryptable<SymmetricCryptoKey, Fido2Credential> for Fido2CredentialView
             rp_id: self.rp_id.encrypt_with_key(key)?,
             user_handle: self
                 .user_handle
-                .map(|h| h.expose().encrypt_with_key(key))
+                .map(|h| h.encrypt_with_key(key))
                 .transpose()?,
             user_name: self
                 .user_name
@@ -453,16 +444,12 @@ impl TryFrom<bitwarden_api_api::models::CipherFido2CredentialModel> for Fido2Cre
 
 #[cfg(test)]
 mod tests {
-    use bitwarden_crypto::SensitiveString;
-
     #[test]
     fn test_valid_checksum() {
         let uri = super::LoginUriView {
-            uri: Some(SensitiveString::test("https://example.com")),
+            uri: Some("https://example.com".to_string()),
             r#match: Some(super::UriMatchType::Domain),
-            uri_checksum: Some(SensitiveString::test(
-                "EAaArVRs5qV39C9S3zO0z9ynVoWeZkuNfeMpsVDQnOk=",
-            )),
+            uri_checksum: Some("EAaArVRs5qV39C9S3zO0z9ynVoWeZkuNfeMpsVDQnOk=".to_string()),
         };
         assert!(uri.is_checksum_valid());
     }
@@ -470,11 +457,9 @@ mod tests {
     #[test]
     fn test_invalid_checksum() {
         let uri = super::LoginUriView {
-            uri: Some(SensitiveString::test("https://example.com")),
+            uri: Some("https://example.com".to_string()),
             r#match: Some(super::UriMatchType::Domain),
-            uri_checksum: Some(SensitiveString::test(
-                "UtSgIv8LYfEdOu7yqjF7qXWhmouYGYC8RSr7/ryZg5Q=",
-            )),
+            uri_checksum: Some("UtSgIv8LYfEdOu7yqjF7qXWhmouYGYC8RSr7/ryZg5Q=".to_string()),
         };
         assert!(!uri.is_checksum_valid());
     }
@@ -482,7 +467,7 @@ mod tests {
     #[test]
     fn test_missing_checksum() {
         let uri = super::LoginUriView {
-            uri: Some(SensitiveString::test("https://example.com")),
+            uri: Some("https://example.com".to_string()),
             r#match: Some(super::UriMatchType::Domain),
             uri_checksum: None,
         };
@@ -492,7 +477,7 @@ mod tests {
     #[test]
     fn test_generate_checksum() {
         let mut uri = super::LoginUriView {
-            uri: Some(SensitiveString::test("https://test.com")),
+            uri: Some("https://test.com".to_string()),
             r#match: Some(super::UriMatchType::Domain),
             uri_checksum: None,
         };
@@ -500,7 +485,7 @@ mod tests {
         uri.generate_checksum();
 
         assert_eq!(
-            uri.uri_checksum.unwrap().expose(),
+            uri.uri_checksum.unwrap().as_str(),
             "OWk2vQvwYD1nhLZdA+ltrpBWbDa2JmHyjUEWxRZSS8w="
         );
     }

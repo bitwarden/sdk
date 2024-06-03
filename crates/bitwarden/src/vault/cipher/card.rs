@@ -1,6 +1,6 @@
 use bitwarden_api_api::models::CipherCardModel;
 use bitwarden_crypto::{
-    CryptoError, DecryptedString, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
+    CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -23,12 +23,12 @@ pub struct Card {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct CardView {
-    pub cardholder_name: Option<DecryptedString>,
-    pub exp_month: Option<DecryptedString>,
-    pub exp_year: Option<DecryptedString>,
-    pub code: Option<DecryptedString>,
-    pub brand: Option<DecryptedString>,
-    pub number: Option<DecryptedString>,
+    pub cardholder_name: Option<String>,
+    pub exp_month: Option<String>,
+    pub exp_year: Option<String>,
+    pub code: Option<String>,
+    pub brand: Option<String>,
+    pub number: Option<String>,
 }
 
 impl KeyEncryptable<SymmetricCryptoKey, Card> for CardView {

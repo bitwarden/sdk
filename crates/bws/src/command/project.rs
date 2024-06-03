@@ -7,24 +7,23 @@ use bitwarden::{
     },
     Client,
 };
-use bitwarden_cli::Color;
 use color_eyre::eyre::Result;
 use uuid::Uuid;
 
-use crate::{cli::Output, render::serialize_response};
+use super::OutputSettings;
+use crate::render::serialize_response;
 
 pub(crate) async fn list(
     mut client: Client,
     organization_id: Uuid,
-    output: Output,
-    color: Color,
+    output_settings: OutputSettings,
 ) -> Result<()> {
     let projects = client
         .projects()
         .list(&ProjectsListRequest { organization_id })
         .await?
         .data;
-    serialize_response(projects, output, color);
+    serialize_response(projects, output_settings.output, output_settings.color);
 
     Ok(())
 }
@@ -32,14 +31,13 @@ pub(crate) async fn list(
 pub(crate) async fn get(
     mut client: Client,
     project_id: Uuid,
-    output: Output,
-    color: Color,
+    output_settings: OutputSettings,
 ) -> Result<()> {
     let project = client
         .projects()
         .get(&ProjectGetRequest { id: project_id })
         .await?;
-    serialize_response(project, output, color);
+    serialize_response(project, output_settings.output, output_settings.color);
 
     Ok(())
 }
@@ -48,8 +46,7 @@ pub(crate) async fn create(
     mut client: Client,
     organization_id: Uuid,
     name: String,
-    output: Output,
-    color: Color,
+    output_settings: OutputSettings,
 ) -> Result<()> {
     let project = client
         .projects()
@@ -58,7 +55,7 @@ pub(crate) async fn create(
             name,
         })
         .await?;
-    serialize_response(project, output, color);
+    serialize_response(project, output_settings.output, output_settings.color);
 
     Ok(())
 }
@@ -68,8 +65,7 @@ pub(crate) async fn edit(
     organization_id: Uuid,
     project_id: Uuid,
     name: String,
-    output: Output,
-    color: Color,
+    output_settings: OutputSettings,
 ) -> Result<()> {
     let project = client
         .projects()
@@ -79,7 +75,7 @@ pub(crate) async fn edit(
             name,
         })
         .await?;
-    serialize_response(project, output, color);
+    serialize_response(project, output_settings.output, output_settings.color);
 
     Ok(())
 }

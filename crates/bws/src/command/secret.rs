@@ -7,18 +7,17 @@ use bitwarden::{
     },
     Client,
 };
-use bitwarden_cli::Color;
 use color_eyre::eyre::{bail, Result};
 use uuid::Uuid;
 
-use crate::{cli::Output, render::serialize_response};
+use super::OutputSettings;
+use crate::render::serialize_response;
 
 pub(crate) async fn list(
     mut client: Client,
     organization_id: Uuid,
     project_id: Option<Uuid>,
-    output: Output,
-    color: Color,
+    output_settings: OutputSettings,
 ) -> Result<()> {
     let res = if let Some(project_id) = project_id {
         client
@@ -38,7 +37,7 @@ pub(crate) async fn list(
         .get_by_ids(SecretsGetRequest { ids: secret_ids })
         .await?
         .data;
-    serialize_response(secrets, output, color);
+    serialize_response(secrets, output_settings.output, output_settings.color);
 
     Ok(())
 }
@@ -46,14 +45,13 @@ pub(crate) async fn list(
 pub(crate) async fn get(
     mut client: Client,
     secret_id: Uuid,
-    output: Output,
-    color: Color,
+    output_settings: OutputSettings,
 ) -> Result<()> {
     let secret = client
         .secrets()
         .get(&SecretGetRequest { id: secret_id })
         .await?;
-    serialize_response(secret, output, color);
+    serialize_response(secret, output_settings.output, output_settings.color);
 
     Ok(())
 }
@@ -66,8 +64,7 @@ pub(crate) async fn create(
     key: String,
     value: String,
     note: Option<String>,
-    output: Output,
-    color: Color,
+    output_settings: OutputSettings,
 ) -> Result<()> {
     let secret = client
         .secrets()
@@ -79,7 +76,7 @@ pub(crate) async fn create(
             project_ids: Some(vec![project_id]),
         })
         .await?;
-    serialize_response(secret, output, color);
+    serialize_response(secret, output_settings.output, output_settings.color);
 
     Ok(())
 }
@@ -93,8 +90,7 @@ pub(crate) async fn edit(
     key: Option<String>,
     value: Option<String>,
     note: Option<String>,
-    output: Output,
-    color: Color,
+    output_settings: OutputSettings,
 ) -> Result<()> {
     let old_secret = client
         .secrets()
@@ -118,7 +114,7 @@ pub(crate) async fn edit(
             },
         })
         .await?;
-    serialize_response(secret, output, color);
+    serialize_response(secret, output_settings.output, output_settings.color);
 
     Ok(())
 }

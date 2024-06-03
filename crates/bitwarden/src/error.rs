@@ -47,9 +47,6 @@ pub enum Error {
     #[error(transparent)]
     Sqlite(#[from] rusqlite::Error),
 
-    #[error("Unable to acquire lock on database")]
-    DatabaseLock,
-
     #[error(transparent)]
     Database(#[from] DatabaseError),
 

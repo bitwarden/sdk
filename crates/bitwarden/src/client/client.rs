@@ -152,7 +152,7 @@ impl Client {
                 device_type: settings.device_type,
             },
             encryption_settings: None,
-            db: Arc::new(Mutex::new(SqliteDatabase::default())),
+            db: Arc::new(Mutex::new(SqliteDatabase::default().unwrap())),
         }
     }
 

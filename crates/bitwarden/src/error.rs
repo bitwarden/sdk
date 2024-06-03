@@ -50,6 +50,9 @@ pub enum Error {
     #[error("Unable to acquire lock on database")]
     DatabaseLock,
 
+    #[error(transparent)]
+    Database(#[from] DatabaseError),
+
     #[error("Received error message from server: [{}] {}", .status, .message)]
     ResponseContent { status: StatusCode, message: String },
 
@@ -165,5 +168,7 @@ macro_rules! require {
     };
 }
 pub(crate) use require;
+
+use crate::client::database::DatabaseError;
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

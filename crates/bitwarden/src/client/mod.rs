@@ -4,7 +4,7 @@ pub(crate) use client::*;
 #[allow(clippy::module_inception)]
 mod client;
 pub mod client_settings;
-mod database;
+pub(crate) mod database;
 pub(crate) use database::SqliteDatabase;
 pub(crate) mod encryption_settings;
 

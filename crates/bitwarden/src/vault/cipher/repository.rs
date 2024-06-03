@@ -27,6 +27,7 @@ pub trait CipherRepository {
 
 /// A row in the ciphers table.
 struct CipherRow {
+    #[allow(dead_code)]
     id: Uuid,
     value: String,
 }

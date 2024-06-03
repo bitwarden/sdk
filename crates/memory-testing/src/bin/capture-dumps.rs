@@ -6,9 +6,16 @@ use std::{
 };
 
 fn dump_process_to_bytearray(pid: u32, output_dir: &Path, output_name: &Path) -> io::Result<u64> {
-    Command::new("gcore")
+    let output = Command::new("gcore")
         .args(["-a", &pid.to_string()])
         .output()?;
+
+    if !output.status.success() {
+        return io::Result::Err(io::Error::new(
+            io::ErrorKind::Other,
+            format!("Failed to dump process: {:?}", output),
+        ));
+    }
 
     let core_path = format!("core.{}", pid);
     let output_path = output_dir.join(output_name);

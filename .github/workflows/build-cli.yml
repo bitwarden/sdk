@@ -140,10 +140,10 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-          - os: macos-12
+          - os: macos-13
             target: x86_64-apple-darwin
 
-          - os: macos-12
+          - os: macos-13
             target: aarch64-apple-darwin
 
     steps:
@@ -300,7 +300,7 @@ jobs:
 
   macos-universal-binary:
     name: Generate universal macOS binary
-    runs-on: macos-12
+    runs-on: macos-13
     needs:
       - setup
       - build-macos

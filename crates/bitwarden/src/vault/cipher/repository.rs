@@ -1,10 +1,13 @@
 use std::sync::{Arc, Mutex};
 
-use rusqlite::{params, Connection};
+use rusqlite::params;
 use uuid::Uuid;
 
 use super::Cipher;
-use crate::error::{require, Error};
+use crate::{
+    client::SqliteDatabase,
+    error::{require, Error},
+};
 
 pub trait CipherRepository {
     /// Save a cipher to the repository.
@@ -29,25 +32,12 @@ struct CipherRow {
 }
 
 pub struct CipherSqliteRepository {
-    conn: Arc<Mutex<Connection>>,
+    db: Arc<Mutex<SqliteDatabase>>,
 }
 
 impl CipherSqliteRepository {
-    pub fn new(conn: Arc<Mutex<Connection>>) -> Self {
-        let guard = conn.lock().expect("Unable to acquire lock on database");
-
-        // TODO: Move into a separate util
-        guard
-            .execute(
-                "CREATE TABLE IF NOT EXISTS ciphers (
-                id TEXT PRIMARY KEY,
-                value TEXT NOT NULL
-         )",
-                (),
-            )
-            .unwrap();
-
-        Self { conn: conn.clone() }
+    pub fn new(db: Arc<Mutex<SqliteDatabase>>) -> Self {
+        Self { db: db.clone() }
     }
 }
 
@@ -56,9 +46,9 @@ impl CipherRepository for CipherSqliteRepository {
         let id = require!(cipher.id);
         let serialized = serde_json::to_string(cipher)?;
 
-        let guard = self.conn.lock().map_err(|_| Error::DatabaseLock)?;
+        let guard = self.db.lock().map_err(|_| Error::DatabaseLock)?;
 
-        let mut stmt = guard.prepare(
+        let mut stmt = guard.conn.prepare(
             "
                 INSERT INTO ciphers (id, value)
                 VALUES (?1, ?2)
@@ -72,9 +62,9 @@ impl CipherRepository for CipherSqliteRepository {
     }
 
     fn replace_all(&mut self, ciphers: &[Cipher]) -> Result<(), Error> {
-        let mut guard = self.conn.lock().map_err(|_| Error::DatabaseLock)?;
+        let mut guard = self.db.lock().map_err(|_| Error::DatabaseLock)?;
 
-        let tx = guard.transaction()?;
+        let tx = guard.conn.transaction()?;
         {
             tx.execute("DELETE FROM ciphers", [])?;
 
@@ -98,18 +88,18 @@ impl CipherRepository for CipherSqliteRepository {
     }
 
     fn delete_by_id(&self, id: Uuid) -> Result<(), Error> {
-        let guard = self.conn.lock().map_err(|_| Error::DatabaseLock)?;
+        let guard = self.db.lock().map_err(|_| Error::DatabaseLock)?;
 
-        let mut stmt = guard.prepare("DELETE FROM ciphers WHERE id = ?1")?;
+        let mut stmt = guard.conn.prepare("DELETE FROM ciphers WHERE id = ?1")?;
         stmt.execute(params![id])?;
 
         Ok(())
     }
 
     fn get_all(&self) -> Result<Vec<Cipher>, Error> {
-        let guard = self.conn.lock().map_err(|_| Error::DatabaseLock)?;
+        let guard = self.db.lock().map_err(|_| Error::DatabaseLock)?;
 
-        let mut stmt = guard.prepare("SELECT id, value FROM ciphers")?;
+        let mut stmt = guard.conn.prepare("SELECT id, value FROM ciphers")?;
         let rows = stmt.query_map([], |row| {
             Ok(CipherRow {
                 id: row.get(0)?,
@@ -131,8 +121,6 @@ impl CipherRepository for CipherSqliteRepository {
 
 #[cfg(test)]
 mod tests {
-    use rusqlite::Connection;
-
     use super::*;
     use crate::vault::{CipherRepromptType, CipherType};
 
@@ -167,8 +155,7 @@ mod tests {
 
     #[test]
     fn test_save_get_all() {
-        let conn = Connection::open_in_memory().unwrap();
-        let repo = CipherSqliteRepository::new(Arc::new(Mutex::new(conn)));
+        let repo = CipherSqliteRepository::new(Arc::new(Mutex::new(SqliteDatabase::new_test())));
 
         let cipher = mock_cipher("d55d65d7-c161-40a4-94ca-b0d20184d91a".parse().unwrap());
 
@@ -182,8 +169,7 @@ mod tests {
 
     #[test]
     fn test_delete_by_id() {
-        let conn = Connection::open_in_memory().unwrap();
-        let repo = CipherSqliteRepository::new(Arc::new(Mutex::new(conn)));
+        let repo = CipherSqliteRepository::new(Arc::new(Mutex::new(SqliteDatabase::new_test())));
 
         let cipher = mock_cipher("d55d65d7-c161-40a4-94ca-b0d20184d91a".parse().unwrap());
         repo.save(&cipher).unwrap();
@@ -198,8 +184,8 @@ mod tests {
 
     #[test]
     fn test_replace_all() {
-        let conn = Connection::open_in_memory().unwrap();
-        let mut repo = CipherSqliteRepository::new(Arc::new(Mutex::new(conn)));
+        let mut repo =
+            CipherSqliteRepository::new(Arc::new(Mutex::new(SqliteDatabase::new_test())));
 
         let old_cipher = mock_cipher("d55d65d7-c161-40a4-94ca-b0d20184d91a".parse().unwrap());
 

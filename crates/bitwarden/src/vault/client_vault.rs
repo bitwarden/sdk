@@ -17,7 +17,7 @@ impl<'a> ClientVault<'a> {
 
 impl<'a> Client {
     pub fn vault(&'a mut self) -> ClientVault<'a> {
-        let t = self.sqlite_conn.clone();
+        let t = self.db.clone();
         ClientVault {
             client: self,
             cipher_repository: Box::new(CipherSqliteRepository::new(t)),

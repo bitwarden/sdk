@@ -10,7 +10,6 @@ use bitwarden_crypto::SymmetricCryptoKey;
 use bitwarden_crypto::{AsymmetricEncString, EncString, MasterKey};
 use chrono::Utc;
 use reqwest::header::{self, HeaderValue};
-use rusqlite::Connection;
 use uuid::Uuid;
 
 #[cfg(feature = "internal")]
@@ -20,6 +19,7 @@ use crate::{
     client::{
         client_settings::{ClientSettings, DeviceType},
         encryption_settings::EncryptionSettings,
+        SqliteDatabase,
     },
     error::{Error, Result},
 };
@@ -86,7 +86,7 @@ pub struct Client {
     pub(crate) __api_configurations: ApiConfigurations,
 
     encryption_settings: Option<EncryptionSettings>,
-    pub sqlite_conn: Arc<Mutex<Connection>>,
+    pub db: Arc<Mutex<SqliteDatabase>>,
 }
 
 impl Client {
@@ -138,8 +138,6 @@ impl Client {
             api_key: None,
         };
 
-        let conn = Connection::open("test.sqlite").expect("Failed to open sqlite connection");
-
         Self {
             token: None,
             refresh_token: None,
@@ -154,7 +152,7 @@ impl Client {
                 device_type: settings.device_type,
             },
             encryption_settings: None,
-            sqlite_conn: Arc::new(Mutex::new(conn)),
+            db: Arc::new(Mutex::new(SqliteDatabase::default())),
         }
     }
 

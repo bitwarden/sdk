@@ -18,10 +18,7 @@ pub(crate) struct OutputSettings {
 
 impl OutputSettings {
     pub(crate) fn new(output: Output, color: Color) -> Self {
-        OutputSettings {
-            output: output,
-            color: color,
-        }
+        OutputSettings { output, color }
     }
 }
 

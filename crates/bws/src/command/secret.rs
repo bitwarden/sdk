@@ -13,6 +13,23 @@ use uuid::Uuid;
 use super::OutputSettings;
 use crate::render::serialize_response;
 
+#[derive(Debug)]
+pub(crate) struct SecretCreateCommandModel {
+    pub(crate) key: String,
+    pub(crate) value: String,
+    pub(crate) note: Option<String>,
+    pub(crate) project_id: Uuid,
+}
+
+#[derive(Debug)]
+pub(crate) struct SecretEditCommandModel {
+    pub(crate) id: Uuid,
+    pub(crate) key: Option<String>,
+    pub(crate) value: Option<String>,
+    pub(crate) note: Option<String>,
+    pub(crate) project_id: Option<Uuid>,
+}
+
 pub(crate) async fn list(
     mut client: Client,
     organization_id: Uuid,
@@ -56,24 +73,20 @@ pub(crate) async fn get(
     Ok(())
 }
 
-#[allow(clippy::too_many_arguments)]
 pub(crate) async fn create(
     mut client: Client,
     organization_id: Uuid,
-    project_id: Uuid,
-    key: String,
-    value: String,
-    note: Option<String>,
+    secret: SecretCreateCommandModel,
     output_settings: OutputSettings,
 ) -> Result<()> {
     let secret = client
         .secrets()
         .create(&SecretCreateRequest {
             organization_id,
-            key,
-            value,
-            note: note.unwrap_or_default(),
-            project_ids: Some(vec![project_id]),
+            key: secret.key,
+            value: secret.value,
+            note: secret.note.unwrap_or_default(),
+            project_ids: Some(vec![secret.project_id]),
         })
         .await?;
     serialize_response(secret, output_settings.output, output_settings.color);
@@ -81,31 +94,26 @@ pub(crate) async fn create(
     Ok(())
 }
 
-#[allow(clippy::too_many_arguments)]
 pub(crate) async fn edit(
     mut client: Client,
     organization_id: Uuid,
-    project_id: Option<Uuid>,
-    secret_id: Uuid,
-    key: Option<String>,
-    value: Option<String>,
-    note: Option<String>,
+    secret: SecretEditCommandModel,
     output_settings: OutputSettings,
 ) -> Result<()> {
     let old_secret = client
         .secrets()
-        .get(&SecretGetRequest { id: secret_id })
+        .get(&SecretGetRequest { id: secret.id })
         .await?;
 
-    let secret = client
+    let new_secret = client
         .secrets()
         .update(&SecretPutRequest {
-            id: secret_id,
+            id: secret.id,
             organization_id,
-            key: key.unwrap_or(old_secret.key),
-            value: value.unwrap_or(old_secret.value),
-            note: note.unwrap_or(old_secret.note),
-            project_ids: match project_id {
+            key: secret.key.unwrap_or(old_secret.key),
+            value: secret.value.unwrap_or(old_secret.value),
+            note: secret.note.unwrap_or(old_secret.note),
+            project_ids: match secret.project_id {
                 Some(id) => Some(vec![id]),
                 None => match old_secret.project_id {
                     Some(id) => Some(vec![id]),
@@ -114,7 +122,7 @@ pub(crate) async fn edit(
             },
         })
         .await?;
-    serialize_response(secret, output_settings.output, output_settings.color);
+    serialize_response(new_secret, output_settings.output, output_settings.color);
 
     Ok(())
 }

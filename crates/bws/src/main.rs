@@ -7,7 +7,10 @@ use bitwarden::{
 use bitwarden_cli::install_color_eyre;
 use clap::{CommandFactory, Parser};
 use color_eyre::eyre::{bail, Result};
-use command::OutputSettings;
+use command::{
+    secret::{SecretCreateCommandModel, SecretEditCommandModel},
+    OutputSettings,
+};
 use log::error;
 
 mod cli;
@@ -214,10 +217,12 @@ async fn process_commands() -> Result<()> {
             command::secret::create(
                 client,
                 organization_id,
-                project_id,
-                key,
-                value,
-                note,
+                SecretCreateCommandModel {
+                    key,
+                    value,
+                    note,
+                    project_id,
+                },
                 OutputSettings::new(cli.output, color),
             )
             .await
@@ -246,11 +251,13 @@ async fn process_commands() -> Result<()> {
             command::secret::edit(
                 client,
                 organization_id,
-                project_id,
-                secret_id,
-                key,
-                value,
-                note,
+                SecretEditCommandModel {
+                    id: secret_id,
+                    key,
+                    value,
+                    note,
+                    project_id,
+                },
                 OutputSettings::new(cli.output, color),
             )
             .await

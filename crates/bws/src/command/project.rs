@@ -84,7 +84,6 @@ pub(crate) async fn edit(
     Ok(())
 }
 
-#[allow(clippy::comparison_chain)]
 pub(crate) async fn delete(mut client: Client, project_ids: Vec<Uuid>) -> Result<()> {
     let count = project_ids.len();
 
@@ -100,16 +99,16 @@ pub(crate) async fn delete(mut client: Client, project_ids: Vec<Uuid>) -> Result
         .collect();
     let deleted_projects = count - projects_failed.len();
 
-    if deleted_projects > 1 {
-        println!("{} projects deleted successfully.", deleted_projects);
-    } else if deleted_projects == 1 {
-        println!("{} project deleted successfully.", deleted_projects);
+    match deleted_projects {
+        2.. => println!("{} projects deleted successfully.", deleted_projects),
+        1 => println!("{} project deleted successfully.", deleted_projects),
+        _ => (),
     }
 
-    if projects_failed.len() > 1 {
-        eprintln!("{} projects had errors:", projects_failed.len());
-    } else if projects_failed.len() == 1 {
-        eprintln!("{} project had an error:", projects_failed.len());
+    match projects_failed.len() {
+        2.. => eprintln!("{} projects had errors:", projects_failed.len()),
+        1 => eprintln!("{} project had an error:", projects_failed.len()),
+        _ => (),
     }
 
     for project in &projects_failed {

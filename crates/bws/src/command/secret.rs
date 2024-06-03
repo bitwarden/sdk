@@ -123,7 +123,6 @@ pub(crate) async fn edit(
     Ok(())
 }
 
-#[allow(clippy::comparison_chain)]
 pub(crate) async fn delete(mut client: Client, secret_ids: Vec<Uuid>) -> Result<()> {
     let count = secret_ids.len();
 
@@ -139,16 +138,16 @@ pub(crate) async fn delete(mut client: Client, secret_ids: Vec<Uuid>) -> Result<
         .collect();
     let deleted_secrets = count - secrets_failed.len();
 
-    if deleted_secrets > 1 {
-        println!("{} secrets deleted successfully.", deleted_secrets);
-    } else if deleted_secrets == 1 {
-        println!("{} secret deleted successfully.", deleted_secrets);
+    match deleted_secrets {
+        2.. => println!("{} secrets deleted successfully.", deleted_secrets),
+        1 => println!("{} secret deleted successfully.", deleted_secrets),
+        _ => (),
     }
 
-    if secrets_failed.len() > 1 {
-        eprintln!("{} secrets had errors:", secrets_failed.len());
-    } else if secrets_failed.len() == 1 {
-        eprintln!("{} secret had an error:", secrets_failed.len());
+    match secrets_failed.len() {
+        2.. => eprintln!("{} secrets had errors:", secrets_failed.len()),
+        1 => eprintln!("{} secret had an error:", secrets_failed.len()),
+        _ => (),
     }
 
     for secret in &secrets_failed {

@@ -22,7 +22,7 @@ impl<'a> ClientPlatform<'a> {
         &mut self,
         input: SecretVerificationRequest,
     ) -> Result<UserApiKeyResponse> {
-        get_user_api_key(self.client, input).await
+        get_user_api_key(self.client, &input).await
     }
 
     /// At the moment this is just a stub implementation that doesn't do anything. It's here to make

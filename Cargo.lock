@@ -484,7 +484,6 @@ dependencies = [
  "bitwarden-crypto",
  "chrono",
  "csv",
- "itertools 0.12.1",
  "serde",
  "serde_json",
  "thiserror",
@@ -567,7 +566,6 @@ name = "bitwarden-wasm"
 version = "0.1.0"
 dependencies = [
  "argon2",
- "bitwarden-crypto",
  "bitwarden-json",
  "console_error_panic_hook",
  "console_log",

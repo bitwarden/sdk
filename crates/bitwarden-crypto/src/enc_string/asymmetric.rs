@@ -9,8 +9,7 @@ use super::{from_b64_vec, split_enc_string};
 use crate::{
     error::{CryptoError, EncStringParseError, Result},
     rsa::encrypt_rsa2048_oaep_sha1,
-    AsymmetricCryptoKey, AsymmetricEncryptable, DecryptedString, DecryptedVec, KeyDecryptable,
-    SensitiveVec,
+    AsymmetricCryptoKey, AsymmetricEncryptable, KeyDecryptable,
 };
 
 // This module is a workaround to avoid deprecated warnings that come from the ZeroizeOnDrop
@@ -147,10 +146,10 @@ impl serde::Serialize for AsymmetricEncString {
 impl AsymmetricEncString {
     /// Encrypt and produce a [AsymmetricEncString::Rsa2048_OaepSha1_B64] variant.
     pub fn encrypt_rsa2048_oaep_sha1(
-        data_dec: SensitiveVec,
+        data_dec: &[u8],
         key: &dyn AsymmetricEncryptable,
     ) -> Result<AsymmetricEncString> {
-        let enc = encrypt_rsa2048_oaep_sha1(key.to_public_key(), data_dec.expose())?;
+        let enc = encrypt_rsa2048_oaep_sha1(key.to_public_key(), data_dec)?;
         Ok(AsymmetricEncString::Rsa2048_OaepSha1_B64 { data: enc })
     }
 
@@ -167,8 +166,8 @@ impl AsymmetricEncString {
     }
 }
 
-impl KeyDecryptable<AsymmetricCryptoKey, DecryptedVec> for AsymmetricEncString {
-    fn decrypt_with_key(&self, key: &AsymmetricCryptoKey) -> Result<DecryptedVec> {
+impl KeyDecryptable<AsymmetricCryptoKey, Vec<u8>> for AsymmetricEncString {
+    fn decrypt_with_key(&self, key: &AsymmetricCryptoKey) -> Result<Vec<u8>> {
         use AsymmetricEncString::*;
         match self {
             Rsa2048_OaepSha256_B64 { data } => key.key.decrypt(Oaep::new::<sha2::Sha256>(), data),
@@ -182,15 +181,14 @@ impl KeyDecryptable<AsymmetricCryptoKey, DecryptedVec> for AsymmetricEncString {
                 key.key.decrypt(Oaep::new::<sha1::Sha1>(), data)
             }
         }
-        .map(|v| DecryptedVec::new(Box::new(v)))
         .map_err(|_| CryptoError::KeyDecrypt)
     }
 }
 
-impl KeyDecryptable<AsymmetricCryptoKey, DecryptedString> for AsymmetricEncString {
-    fn decrypt_with_key(&self, key: &AsymmetricCryptoKey) -> Result<DecryptedString> {
-        let dec: DecryptedVec = self.decrypt_with_key(key)?;
-        dec.try_into()
+impl KeyDecryptable<AsymmetricCryptoKey, String> for AsymmetricEncString {
+    fn decrypt_with_key(&self, key: &AsymmetricCryptoKey) -> Result<String> {
+        let dec: Vec<u8> = self.decrypt_with_key(key)?;
+        String::from_utf8(dec).map_err(|_| CryptoError::InvalidUtf8String)
     }
 }
 
@@ -211,11 +209,8 @@ mod tests {
     use schemars::schema_for;
 
     use super::{AsymmetricCryptoKey, AsymmetricEncString, KeyDecryptable};
-    use crate::{DecryptedString, SensitiveString};
 
-    fn rsa_private_key_string() -> SensitiveString {
-        SensitiveString::test(
-            "-----BEGIN PRIVATE KEY-----
+    const RSA_PRIVATE_KEY: &str = "-----BEGIN PRIVATE KEY-----
 MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCXRVrCX+2hfOQS
 8HzYUS2oc/jGVTZpv+/Ryuoh9d8ihYX9dd0cYh2tl6KWdFc88lPUH11Oxqy20Rk2
 e5r/RF6T9yM0Me3NPnaKt+hlhLtfoc0h86LnhD56A9FDUfuI0dVnPcrwNv0YJIo9
@@ -242,43 +237,41 @@ AoEZ18y6/KIjpSMpqC92Nnk/EBM9EYe6Cf4eA9ApAoGAeqEUg46UTlJySkBKURGp
 Is3v1kkf5I0X8DnOhwb+HPxNaiEdmO7ckm8+tPVgppLcG0+tMdLjigFQiDUQk2y3
 WjyxP5ZvXu7U96jaJRI8PFMoE06WeVYcdIzrID2HvqH+w0UQJFrLJ/0Mn4stFAEz
 XKZBokBGnjFnTnKcs7nv/O8=
------END PRIVATE KEY-----",
-        )
-    }
+-----END PRIVATE KEY-----";
 
     #[test]
     fn test_enc_string_rsa2048_oaep_sha256_b64() {
-        let private_key = AsymmetricCryptoKey::from_pem(rsa_private_key_string()).unwrap();
+        let private_key = AsymmetricCryptoKey::from_pem(RSA_PRIVATE_KEY).unwrap();
         let enc_str: &str = "3.YFqzW9LL/uLjCnl0RRLtndzGJ1FV27mcwQwGjfJPOVrgCX9nJSUYCCDd0iTIyOZ/zRxG47b6L1Z3qgkEfcxjmrSBq60gijc3E2TBMAg7OCLVcjORZ+i1sOVOudmOPWro6uA8refMrg4lqbieDlbLMzjVEwxfi5WpcL876cD0vYyRwvLO3bzFrsE7x33HHHtZeOPW79RqMn5efsB5Dj9wVheC9Ix9AYDjbo+rjg9qR6guwKmS7k2MSaIQlrDR7yu8LP+ePtiSjx+gszJV5jQGfcx60dtiLQzLS/mUD+RmU7B950Bpx0H7x56lT5yXZbWK5YkoP6qd8B8D2aKbP68Ywg==";
         let enc_string: AsymmetricEncString = enc_str.parse().unwrap();
 
         assert_eq!(enc_string.enc_type(), 3);
 
-        let res: DecryptedString = enc_string.decrypt_with_key(&private_key).unwrap();
+        let res: String = enc_string.decrypt_with_key(&private_key).unwrap();
         assert_eq!(res, "EncryptMe!");
     }
 
     #[test]
     fn test_enc_string_rsa2048_oaep_sha1_b64() {
-        let private_key = AsymmetricCryptoKey::from_pem(rsa_private_key_string()).unwrap();
+        let private_key = AsymmetricCryptoKey::from_pem(RSA_PRIVATE_KEY).unwrap();
         let enc_str: &str = "4.ZheRb3PCfAunyFdQYPfyrFqpuvmln9H9w5nDjt88i5A7ug1XE0LJdQHCIYJl0YOZ1gCOGkhFu/CRY2StiLmT3iRKrrVBbC1+qRMjNNyDvRcFi91LWsmRXhONVSPjywzrJJXglsztDqGkLO93dKXNhuKpcmtBLsvgkphk/aFvxbaOvJ/FHdK/iV0dMGNhc/9tbys8laTdwBlI5xIChpRcrfH+XpSFM88+Bu03uK67N9G6eU1UmET+pISJwJvMuIDMqH+qkT7OOzgL3t6I0H2LDj+CnsumnQmDsvQzDiNfTR0IgjpoE9YH2LvPXVP2wVUkiTwXD9cG/E7XeoiduHyHjw==";
         let enc_string: AsymmetricEncString = enc_str.parse().unwrap();
 
         assert_eq!(enc_string.enc_type(), 4);
 
-        let res: DecryptedString = enc_string.decrypt_with_key(&private_key).unwrap();
+        let res: String = enc_string.decrypt_with_key(&private_key).unwrap();
         assert_eq!(res, "EncryptMe!");
     }
 
     #[test]
     fn test_enc_string_rsa2048_oaep_sha1_hmac_sha256_b64() {
-        let private_key = AsymmetricCryptoKey::from_pem(rsa_private_key_string()).unwrap();
+        let private_key = AsymmetricCryptoKey::from_pem(RSA_PRIVATE_KEY).unwrap();
         let enc_str: &str = "6.ThnNc67nNr7GELyuhGGfsXNP2zJnNqhrIsjntEQ27r2qmn8vwdHbTbfO0cwt6YgSibDN0PjiCZ1O3Wb/IFq+vwvyRwFqF9145wBF8CQCbkhV+M0XvO99kh0daovtt120Nve/5ETI5PbPag9VdalKRQWZypJaqQHm5TAQVf4F5wtLlCLMBkzqTk+wkFe7BPMTGn07T+O3eJbTxXvyMZewQ7icJF0MZVA7VyWX9qElmZ89FCKowbf1BMr5pbcQ+0KdXcSVW3to43VkTp7k7COwsuH3M/i1AuVP5YN8ixjyRpvaeGqX/ap2nCHK2Wj5VxgCGT7XEls6ZknnAp9nB9qVjQ==|s3ntw5H/KKD/qsS0lUghTHl5Sm9j6m7YEdNHf0OeAFQ=";
         let enc_string: AsymmetricEncString = enc_str.parse().unwrap();
 
         assert_eq!(enc_string.enc_type(), 6);
 
-        let res: DecryptedString = enc_string.decrypt_with_key(&private_key).unwrap();
+        let res: String = enc_string.decrypt_with_key(&private_key).unwrap();
         assert_eq!(res, "EncryptMe!");
     }
 

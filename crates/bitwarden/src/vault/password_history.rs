@@ -1,6 +1,6 @@
 use bitwarden_api_api::models::CipherPasswordHistoryModel;
 use bitwarden_crypto::{
-    CryptoError, DecryptedString, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
+    CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
@@ -20,7 +20,7 @@ pub struct PasswordHistory {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct PasswordHistoryView {
-    password: DecryptedString,
+    password: String,
     last_used_date: DateTime<Utc>,
 }
 

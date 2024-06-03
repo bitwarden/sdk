@@ -64,7 +64,6 @@ impl<'a> ClientAttachments<'a> {
         }
         .decrypt_with_key(key)
         .map_err(Error::Crypto)
-        .map(|s| s.expose().to_owned())
     }
     pub async fn decrypt_file(
         &self,

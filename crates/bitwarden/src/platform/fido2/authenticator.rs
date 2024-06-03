@@ -1,6 +1,6 @@
 #![allow(dead_code, unused_mut, unused_imports, unused_variables)]
 
-use bitwarden_crypto::{EncString, KeyEncryptable, SensitiveString};
+use bitwarden_crypto::{EncString, KeyEncryptable};
 use chrono::DateTime;
 use passkey::{
     authenticator::{Authenticator, UserCheck},
@@ -125,8 +125,8 @@ impl<'a> Fido2Authenticator<'a> {
                     folder_id: None,
                     collection_ids: vec![],
                     key: None,
-                    name: SensitiveString::new(Box::new("".to_string())),
-                    notes: Some(SensitiveString::new(Box::new("".to_string()))),
+                    name: "".to_string(),
+                    notes: Some("".to_string()),
                     r#type: crate::vault::CipherType::Login,
                     login: Some(LoginView {
                         username: None,

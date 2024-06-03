@@ -1,7 +1,6 @@
 use bitwarden_api_api::models::CollectionDetailsResponseModel;
 use bitwarden_crypto::{
-    CryptoError, DecryptedString, EncString, KeyContainer, KeyDecryptable, LocateKey,
-    SymmetricCryptoKey,
+    CryptoError, EncString, KeyContainer, KeyDecryptable, LocateKey, SymmetricCryptoKey,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -30,7 +29,7 @@ pub struct CollectionView {
     pub id: Option<Uuid>,
     pub organization_id: Uuid,
 
-    pub name: DecryptedString,
+    pub name: String,
 
     pub external_id: Option<String>,
     pub hide_passwords: bool,

@@ -1,6 +1,6 @@
 use bitwarden_api_api::models::FolderResponseModel;
 use bitwarden_crypto::{
-    CryptoError, DecryptedString, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
+    CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
@@ -23,7 +23,7 @@ pub struct Folder {
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct FolderView {
     pub id: Option<Uuid>,
-    pub name: DecryptedString,
+    pub name: String,
     pub revision_date: DateTime<Utc>,
 }
 

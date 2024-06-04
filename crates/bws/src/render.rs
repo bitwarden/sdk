@@ -1,11 +1,10 @@
-use crate::util::is_valid_posix_name;
 use bitwarden::secrets_manager::{projects::ProjectResponse, secrets::SecretResponse};
 use bitwarden_cli::Color;
 use chrono::{DateTime, Utc};
 use comfy_table::Table;
 use serde::Serialize;
 
-use crate::cli::Output;
+use crate::{cli::Output, util::is_valid_posix_name};
 
 const ASCII_HEADER_ONLY: &str = "     --            ";
 

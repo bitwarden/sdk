@@ -1,24 +1,42 @@
-use crate::{
-    error::Result,
-    vault::{login::Fido2Credential, CipherView},
-    Client,
-};
+use std::sync::Mutex;
+
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
+use bitwarden_crypto::KeyContainer;
+use passkey::types::{ctap2::Aaguid, Passkey};
 
 mod authenticator;
 mod client;
+mod crypto;
 mod traits;
+mod types;
 
-pub use authenticator::{
-    Fido2Authenticator, GetAssertionRequest, GetAssertionResult, MakeCredentialRequest,
-    MakeCredentialResult,
+pub use authenticator::Fido2Authenticator;
+pub use client::Fido2Client;
+pub use passkey::authenticator::UIHint;
+pub use traits::{
+    CheckUserOptions, CheckUserResult, Fido2CallbackError, Fido2CredentialStore,
+    Fido2UserInterface, Verification,
 };
-pub use client::{
-    AuthenticatorAssertionResponse, AuthenticatorAttestationResponse, ClientData, Fido2Client,
+pub use types::{
+    AuthenticatorAssertionResponse, AuthenticatorAttestationResponse, ClientData,
+    GetAssertionRequest, GetAssertionResult, MakeCredentialRequest, MakeCredentialResult, Options,
     PublicKeyCredentialAuthenticatorAssertionResponse,
-    PublicKeyCredentialAuthenticatorAttestationResponse,
+    PublicKeyCredentialAuthenticatorAttestationResponse, PublicKeyCredentialRpEntity,
+    PublicKeyCredentialUserEntity,
 };
-use passkey::types::Passkey;
-pub use traits::{CheckUserOptions, CheckUserResult, CredentialStore, UserInterface, Verification};
+
+use self::crypto::{cose_key_to_pkcs8, pkcs8_to_cose_key};
+use crate::{
+    error::{Error, Result},
+    vault::{CipherView, Fido2CredentialFullView, Fido2CredentialNewView, Fido2CredentialView},
+    Client,
+};
+
+// This is the AAGUID for the Bitwarden Passkey provider (d548826e-79b4-db40-a3d8-11116f7e8349)
+// It is used for the Relaying Parties to identify the authenticator during registration
+const AAGUID: Aaguid = Aaguid([
+    0xd5, 0x48, 0x82, 0x6e, 0x79, 0xb4, 0xdb, 0x40, 0xa3, 0xd8, 0x11, 0x11, 0x6f, 0x7e, 0x83, 0x49,
+]);
 
 pub struct ClientFido2<'a> {
     #[allow(dead_code)]
@@ -29,21 +47,23 @@ impl<'a> ClientFido2<'a> {
     pub fn create_authenticator(
         &'a mut self,
 
-        user_interface: &'a dyn UserInterface,
-        credential_store: &'a dyn CredentialStore,
+        user_interface: &'a dyn Fido2UserInterface,
+        credential_store: &'a dyn Fido2CredentialStore,
     ) -> Result<Fido2Authenticator<'a>> {
         Ok(Fido2Authenticator {
             client: self.client,
             user_interface,
             credential_store,
+            selected_credential: Mutex::new(None),
+            requested_uv: Mutex::new(None),
         })
     }
 
     pub fn create_client(
         &'a mut self,
 
-        user_interface: &'a dyn UserInterface,
-        credential_store: &'a dyn CredentialStore,
+        user_interface: &'a dyn Fido2UserInterface,
+        credential_store: &'a dyn Fido2CredentialStore,
     ) -> Result<Fido2Client<'a>> {
         Ok(Fido2Client {
             authenticator: self.create_authenticator(user_interface, credential_store)?,
@@ -55,18 +75,202 @@ impl<'a> ClientFido2<'a> {
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct SelectedCredential {
     cipher: CipherView,
-    credential: Fido2Credential,
+    credential: Fido2CredentialView,
 }
 
-impl TryFrom<CipherView> for Passkey {
+// This container is needed so we can properly implement the TryFrom trait for Passkey
+// Otherwise we need to decrypt the Fido2 credentials every time we create a CipherView
+#[derive(Clone)]
+pub(crate) struct CipherViewContainer {
+    cipher: CipherView,
+    fido2_credentials: Vec<Fido2CredentialFullView>,
+}
+
+impl CipherViewContainer {
+    fn new(cipher: CipherView, enc: &dyn KeyContainer) -> Result<Self> {
+        let fido2_credentials = cipher.get_fido2_credentials(enc)?;
+        Ok(Self {
+            cipher,
+            fido2_credentials,
+        })
+    }
+}
+
+impl TryFrom<CipherViewContainer> for Passkey {
     type Error = crate::error::Error;
 
-    fn try_from(value: CipherView) -> std::prelude::v1::Result<Self, Self::Error> {
-        let _creds = value
-            .login
-            .and_then(|l| l.fido2_credentials)
-            .ok_or("No Fido2Credential")?;
+    fn try_from(value: CipherViewContainer) -> Result<Self, Self::Error> {
+        let cred = value
+            .fido2_credentials
+            .first()
+            .ok_or(Error::Internal("No Fido2 credentials found".into()))?;
 
-        todo!("We have more than one credential, we need to pick one?")
+        cred.clone().try_into()
+    }
+}
+
+impl TryFrom<Fido2CredentialFullView> for Passkey {
+    type Error = crate::error::Error;
+
+    fn try_from(value: Fido2CredentialFullView) -> Result<Self, Self::Error> {
+        let counter: u32 = value.counter.parse().expect("Invalid counter");
+        let counter = (counter != 0).then_some(counter);
+
+        let key = pkcs8_to_cose_key(&value.key_value)?;
+
+        Ok(Self {
+            key,
+            credential_id: string_to_guid_bytes(&value.credential_id)?.into(),
+            rp_id: value.rp_id.clone(),
+            user_handle: value.user_handle.map(|u| u.into()),
+            counter,
+        })
+    }
+}
+
+impl Fido2CredentialView {
+    pub(crate) fn fill_with_credential(&self, value: Passkey) -> Result<Fido2CredentialFullView> {
+        let cred_id: Vec<u8> = value.credential_id.into();
+
+        Ok(Fido2CredentialFullView {
+            credential_id: guid_bytes_to_string(&cred_id)?,
+            key_type: "public-key".to_owned(),
+            key_algorithm: "ECDSA".to_owned(),
+            key_curve: "P-256".to_owned(),
+            key_value: cose_key_to_pkcs8(&value.key)?,
+            rp_id: value.rp_id,
+            rp_name: self.rp_name.clone(),
+            user_handle: Some(cred_id),
+
+            counter: value.counter.unwrap_or(0).to_string(),
+            user_name: self.user_name.clone(),
+            user_display_name: self.user_display_name.clone(),
+            discoverable: "true".to_owned(),
+            creation_date: chrono::offset::Utc::now(),
+        })
+    }
+}
+
+impl Fido2CredentialNewView {
+    pub(crate) fn try_from_credential(
+        user: &passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
+        rp: &passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
+    ) -> Result<Self> {
+        let cred_id: Vec<u8> = vec![0; 16];
+
+        Ok(Fido2CredentialNewView {
+            credential_id: guid_bytes_to_string(&cred_id)?,
+            key_type: "public-key".to_owned(),
+            key_algorithm: "ECDSA".to_owned(),
+            key_curve: "P-256".to_owned(),
+            rp_id: rp.id.clone(),
+            rp_name: rp.name.clone(),
+            user_handle: Some(cred_id),
+
+            counter: 0.to_string(),
+            user_name: user.name.clone(),
+            user_display_name: user.display_name.clone(),
+            discoverable: "true".to_owned(),
+            creation_date: chrono::offset::Utc::now(),
+        })
+    }
+}
+
+impl Fido2CredentialFullView {
+    pub(crate) fn try_from_credential(
+        value: Passkey,
+        user: passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
+        rp: passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
+    ) -> Result<Self> {
+        let cred_id: Vec<u8> = value.credential_id.into();
+
+        Ok(Fido2CredentialFullView {
+            credential_id: guid_bytes_to_string(&cred_id)?,
+            key_type: "public-key".to_owned(),
+            key_algorithm: "ECDSA".to_owned(),
+            key_curve: "P-256".to_owned(),
+            key_value: cose_key_to_pkcs8(&value.key)?,
+            rp_id: value.rp_id,
+            rp_name: rp.name,
+            user_handle: Some(cred_id),
+
+            counter: value.counter.unwrap_or(0).to_string(),
+            user_name: user.name,
+            user_display_name: user.display_name,
+            discoverable: "true".to_owned(),
+            creation_date: chrono::offset::Utc::now(),
+        })
+    }
+}
+
+pub fn guid_bytes_to_string(source: &[u8]) -> Result<String> {
+    if source.len() != 16 {
+        return Err(Error::Internal("Input should be a 16 byte array".into()));
+    }
+    Ok(uuid::Uuid::from_bytes(source.try_into().expect("Invalid length")).to_string())
+}
+
+pub fn string_to_guid_bytes(source: &str) -> Result<Vec<u8>> {
+    if source.starts_with("b64.") {
+        let bytes = URL_SAFE_NO_PAD.decode(source.trim_start_matches("b64."))?;
+        Ok(bytes)
+    } else {
+        let Ok(uuid) = uuid::Uuid::try_parse(source) else {
+            return Err(Error::Internal("Input should be a valid GUID".into()));
+        };
+        Ok(uuid.as_bytes().to_vec())
+    }
+}
+
+// Some utilities to convert back and forth between enums and strings
+fn get_enum_from_string_name<T: serde::de::DeserializeOwned>(s: &str) -> Result<T> {
+    let serialized = format!(r#""{}""#, s);
+    let deserialized: T = serde_json::from_str(&serialized)?;
+    Ok(deserialized)
+}
+
+fn get_string_name_from_enum(s: impl serde::Serialize) -> Result<String> {
+    let serialized = serde_json::to_string(&s)?;
+    let deserialized: String = serde_json::from_str(&serialized)?;
+    Ok(deserialized)
+}
+
+#[cfg(test)]
+mod tests {
+    use passkey::types::webauthn::AuthenticatorAttachment;
+
+    use super::{get_enum_from_string_name, get_string_name_from_enum};
+
+    #[test]
+    fn test_enum_string_conversion_works_as_expected() {
+        assert_eq!(
+            get_string_name_from_enum(AuthenticatorAttachment::CrossPlatform).unwrap(),
+            "cross-platform"
+        );
+
+        assert_eq!(
+            get_enum_from_string_name::<AuthenticatorAttachment>("cross-platform").unwrap(),
+            AuthenticatorAttachment::CrossPlatform
+        );
+    }
+
+    #[test]
+    fn string_to_guid_with_uuid_works() {
+        let uuid = "d548826e-79b4-db40-a3d8-11116f7e8349";
+        let bytes = super::string_to_guid_bytes(uuid).unwrap();
+        assert_eq!(
+            bytes,
+            vec![213, 72, 130, 110, 121, 180, 219, 64, 163, 216, 17, 17, 111, 126, 131, 73]
+        );
+    }
+
+    #[test]
+    fn string_to_guid_with_b64_works() {
+        let b64 = "b64.1UiCbnm020Cj2BERb36DSQ";
+        let bytes = super::string_to_guid_bytes(b64).unwrap();
+        assert_eq!(
+            bytes,
+            vec![213, 72, 130, 110, 121, 180, 219, 64, 163, 216, 17, 17, 111, 126, 131, 73]
+        );
     }
 }

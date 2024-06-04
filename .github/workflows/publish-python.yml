@@ -50,7 +50,7 @@ jobs:
         run: pip install twine
 
       - name: Download artifacts
-        uses: dawidd6/action-download-artifact@09f2f74827fd3a8607589e5ad7f9398816f540fe # v3.1.4
+        uses: bitwarden/gh-actions/download-artifacts@main
         with:
           workflow: build-python-wheels.yml
           path: ${{ github.workspace }}/target/wheels/dist

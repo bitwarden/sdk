@@ -16,6 +16,7 @@ use super::{
 };
 use crate::{
     error::{require, Error, Result},
+    platform::fido2::string_to_guid_bytes,
     vault::{
         login::Fido2CredentialView, CipherView, Fido2CredentialFullView, Fido2CredentialNewView,
     },
@@ -347,6 +348,14 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
 
             // Get the previously selected cipher and update the credential
             let selected = this.authenticator.get_selected_credential()?;
+
+            // Check that the provided credential ID matches the selected credential
+            let new_id: &Vec<u8> = &cred.credential_id;
+            let selected_id = string_to_guid_bytes(&selected.credential.credential_id)?;
+            if new_id != &selected_id {
+                return Err("Credential ID does not match selected credential".into());
+            }
+
             let cred = selected.credential.fill_with_credential(cred)?;
 
             let mut selected = selected.cipher;

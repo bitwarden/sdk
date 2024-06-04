@@ -9,8 +9,8 @@ use chrono::Utc;
 use reqwest::header::{self, HeaderValue};
 use uuid::Uuid;
 
-#[cfg(feature = "secrets")]
-use crate::auth::login::{AccessTokenLoginRequest, AccessTokenLoginResponse};
+#[cfg(feature = "internal")]
+use crate::client::flags::Flags;
 use crate::{
     auth::AccessToken,
     client::{
@@ -18,14 +18,6 @@ use crate::{
         encryption_settings::EncryptionSettings,
     },
     error::{Error, Result},
-};
-#[cfg(feature = "internal")]
-use crate::{
-    client::flags::Flags,
-    platform::{
-        get_user_api_key, sync, SecretVerificationRequest, SyncRequest, SyncResponse,
-        UserApiKeyResponse,
-    },
 };
 
 #[derive(Debug)]
@@ -163,7 +155,7 @@ impl Client {
         self.flags = Flags::load_from_map(flags);
     }
 
-    #[cfg(feature = "mobile")]
+    #[cfg(feature = "internal")]
     pub(crate) fn get_flags(&self) -> &Flags {
         &self.flags
     }
@@ -175,31 +167,9 @@ impl Client {
         &self.__api_configurations
     }
 
-    #[cfg(feature = "mobile")]
+    #[cfg(feature = "internal")]
     pub fn get_http_client(&self) -> &reqwest::Client {
         &self.__api_configurations.external_client
-    }
-
-    #[cfg(feature = "secrets")]
-    #[deprecated(note = "Use auth().login_access_token() instead")]
-    pub async fn access_token_login(
-        &mut self,
-        input: &AccessTokenLoginRequest,
-    ) -> Result<AccessTokenLoginResponse> {
-        self.auth().login_access_token(input).await
-    }
-
-    #[cfg(feature = "internal")]
-    pub async fn sync(&mut self, input: &SyncRequest) -> Result<SyncResponse> {
-        sync(self, input).await
-    }
-
-    #[cfg(feature = "internal")]
-    pub async fn get_user_api_key(
-        &mut self,
-        input: SecretVerificationRequest,
-    ) -> Result<UserApiKeyResponse> {
-        get_user_api_key(self, input).await
     }
 
     #[cfg(feature = "internal")]
@@ -274,7 +244,7 @@ impl Client {
             )?))
     }
 
-    #[cfg(feature = "mobile")]
+    #[cfg(feature = "internal")]
     pub(crate) fn initialize_user_crypto_pin(
         &mut self,
         pin_key: MasterKey,

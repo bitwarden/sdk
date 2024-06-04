@@ -24,12 +24,11 @@ internal = [
 no-memory-hardening = [
     "bitwarden-core/no-memory-hardening",
 ] # Disable memory hardening features
-mobile = [
-    "internal",
-    "bitwarden-core/mobile",
-    "bitwarden-crypto/mobile",
-    "bitwarden-generators/mobile",
-] # Mobile-specific features
+uniffi = [
+    "bitwarden-core/uniffi",
+    "bitwarden-crypto/uniffi",
+    "bitwarden-generators/uniffi",
+] # Uniffi bindings
 secrets = ["bitwarden-core/internal", "dep:bitwarden-sm"] # Secrets manager API
 
 [dependencies]

@@ -3,18 +3,25 @@ package sdk
 import (
 	"encoding/json"
 
-	"github.com/bitwarden/sm-sdk-go/internal/cinterface"
+	"github.com/bitwarden/sdk-go/internal/cinterface"
 )
+
+type BitwardenClientInterface interface {
+	AccessTokenLogin(accessToken string, statePath *string) error
+	Projects() ProjectsInterface
+	Secrets() SecretsInterface
+	Close()
+}
 
 type BitwardenClient struct {
 	client        cinterface.ClientPointer
 	lib           cinterface.BitwardenLibrary
 	commandRunner CommandRunnerInterface
-	Projects      ProjectsInterface
-	Secrets       SecretsInterface
+	projects      ProjectsInterface
+	secrets       SecretsInterface
 }
 
-func NewBitwardenClient(apiURL *string, identityURL *string) (*BitwardenClient, error) {
+func NewBitwardenClient(apiURL *string, identityURL *string) (BitwardenClientInterface, error) {
 	deviceType := DeviceType("SDK")
 	userAgent := "Bitwarden GOLANG-SDK"
 	clientSettings := ClientSettings{
@@ -40,8 +47,8 @@ func NewBitwardenClient(apiURL *string, identityURL *string) (*BitwardenClient, 
 		lib:           lib,
 		client:        client,
 		commandRunner: runner,
-		Projects:      NewProjects(runner),
-		Secrets:       NewSecrets(runner),
+		projects:      NewProjects(runner),
+		secrets:       NewSecrets(runner),
 	}, nil
 }
 
@@ -56,6 +63,14 @@ func (c *BitwardenClient) AccessTokenLogin(accessToken string, statePath *string
 
 	var response APIKeyLoginResponse
 	return checkSuccessAndError(responseStr, &response)
+}
+
+func (c *BitwardenClient) Projects() ProjectsInterface {
+	return c.projects
+}
+
+func (c *BitwardenClient) Secrets() SecretsInterface {
+	return c.secrets
 }
 
 func (c *BitwardenClient) Close() {

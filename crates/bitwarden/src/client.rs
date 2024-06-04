@@ -1,21 +1,17 @@
 use bitwarden_core::{
-    auth::client_auth::ClientAuth,
-    client::client_settings::ClientSettings,
-    error::Error,
-    mobile::ClientKdf,
-    platform::{SyncRequest, SyncResponse},
+    auth::client_auth::ClientAuth, client::client_settings::ClientSettings, mobile::ClientKdf,
 };
 
 #[cfg(feature = "secrets")]
 use bitwarden_sm::{ClientProjects, ClientProjectsExt, ClientSecrets, ClientSecretsExt};
 
-#[cfg(feature = "mobile")]
-use bitwarden_core::mobile::{vault::ClientVault, ClientCrypto};
+#[cfg(feature = "uniffi")]
+use bitwarden_core::mobile::ClientCrypto;
 
 #[cfg(feature = "internal")]
 use bitwarden_core::{
-    platform::{client_platform::ClientPlatform, SecretVerificationRequest, UserApiKeyResponse},
-    tool::ClientExporters,
+    platform::client_platform::ClientPlatform, tool::ClientExporters, tool::ClientSends,
+    vault::ClientVault,
 };
 
 #[cfg(feature = "internal")]
@@ -39,19 +35,6 @@ impl Client {
     }
 
     #[cfg(feature = "internal")]
-    pub async fn sync(&mut self, input: &SyncRequest) -> Result<SyncResponse, Error> {
-        self.0.sync(input).await
-    }
-
-    #[cfg(feature = "internal")]
-    pub async fn get_user_api_key(
-        &mut self,
-        input: SecretVerificationRequest,
-    ) -> Result<UserApiKeyResponse, Error> {
-        self.0.get_user_api_key(input).await
-    }
-
-    #[cfg(feature = "mobile")]
     pub fn kdf(&self) -> ClientKdf {
         self.0.kdf()
     }
@@ -60,14 +43,19 @@ impl Client {
         self.0.auth()
     }
 
-    #[cfg(feature = "mobile")]
-    pub fn vault(&self) -> ClientVault {
+    #[cfg(feature = "internal")]
+    pub fn vault(&mut self) -> ClientVault {
         self.0.vault()
     }
 
     #[cfg(feature = "internal")]
     pub fn platform(&mut self) -> ClientPlatform {
         self.0.platform()
+    }
+
+    #[cfg(feature = "internal")]
+    pub fn sends(&mut self) -> ClientSends {
+        self.0.sends()
     }
 
     #[cfg(feature = "internal")]
@@ -80,7 +68,7 @@ impl Client {
         self.0.exporters()
     }
 
-    #[cfg(feature = "mobile")]
+    #[cfg(feature = "internal")]
     pub fn crypto(&mut self) -> ClientCrypto {
         self.0.crypto()
     }

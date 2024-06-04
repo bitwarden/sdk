@@ -1,8 +1,9 @@
 use std::{fmt::Debug, str::FromStr};
 
 use base64::Engine;
-use bitwarden_crypto::{derive_shareable_key, Sensitive, SymmetricCryptoKey};
+use bitwarden_crypto::{derive_shareable_key, SymmetricCryptoKey};
 use uuid::Uuid;
+use zeroize::Zeroizing;
 
 use crate::{error::AccessTokenInvalidError, util::STANDARD_INDIFFERENT};
 
@@ -45,7 +46,7 @@ impl FromStr for AccessToken {
         let encryption_key = STANDARD_INDIFFERENT
             .decode(encryption_key)
             .map_err(AccessTokenInvalidError::InvalidBase64)?;
-        let encryption_key = Sensitive::new(encryption_key.try_into().map_err(|e: Vec<_>| {
+        let encryption_key = Zeroizing::new(encryption_key.try_into().map_err(|e: Vec<_>| {
             AccessTokenInvalidError::InvalidBase64Length {
                 expected: 16,
                 got: e.len(),

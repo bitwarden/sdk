@@ -14,7 +14,7 @@ license-file.workspace = true
 keywords.workspace = true
 
 [features]
-mobile = ["dep:uniffi"] # Mobile-specific features
+uniffi = ["dep:uniffi"] # Uniffi bindings
 
 [dependencies]
 bitwarden-core = { workspace = true }

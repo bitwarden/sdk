@@ -1,4 +1,4 @@
-use bitwarden_crypto::{KeyDecryptable, SensitiveString};
+use bitwarden_crypto::KeyDecryptable;
 use bitwarden_exporters::export;
 use schemars::JsonSchema;
 
@@ -16,11 +16,11 @@ mod client_exporter;
 pub use client_exporter::ClientExporters;
 
 #[derive(JsonSchema)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum ExportFormat {
     Csv,
     Json,
-    EncryptedJson { password: SensitiveString },
+    EncryptedJson { password: String },
 }
 
 pub(super) fn export_vault(
@@ -207,7 +207,7 @@ impl From<SecureNoteType> for bitwarden_exporters::SecureNoteType {
 mod tests {
     use std::num::NonZeroU32;
 
-    use bitwarden_crypto::{DecryptedString, Kdf};
+    use bitwarden_crypto::Kdf;
     use chrono::{DateTime, Utc};
 
     use super::*;
@@ -217,7 +217,7 @@ mod tests {
     fn test_try_from_folder_view() {
         let view = FolderView {
             id: Some("fd411a1a-fec8-4070-985d-0e6560860e69".parse().unwrap()),
-            name: DecryptedString::test("test_name"),
+            name: "test_name".to_string(),
             revision_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
         };
 
@@ -227,7 +227,7 @@ mod tests {
             f.id,
             "fd411a1a-fec8-4070-985d-0e6560860e69".parse().unwrap()
         );
-        assert_eq!(f.name, "test_name");
+        assert_eq!(f.name, "test_name".to_string());
     }
 
     #[test]
@@ -235,8 +235,8 @@ mod tests {
         let cipher_view = CipherView {
             r#type: CipherType::Login,
             login: Some(LoginView {
-                username: Some(DecryptedString::test("test_username")),
-                password: Some(DecryptedString::test("test_password")),
+                username: Some("test_username".to_string()),
+                password: Some("test_password".to_string()),
                 password_revision_date: None,
                 uris: None,
                 totp: None,
@@ -248,7 +248,7 @@ mod tests {
             folder_id: None,
             collection_ids: vec![],
             key: None,
-            name: DecryptedString::test("My login"),
+            name: "My login".to_string(),
             notes: None,
             identity: None,
             card: None,
@@ -274,7 +274,7 @@ mod tests {
             "fd411a1a-fec8-4070-985d-0e6560860e69".parse().unwrap()
         );
         assert_eq!(cipher.folder_id, None);
-        assert_eq!(cipher.name, "My login");
+        assert_eq!(cipher.name, "My login".to_string());
         assert_eq!(cipher.notes, None);
         assert!(!cipher.favorite);
         assert_eq!(cipher.reprompt, 0);
@@ -290,8 +290,8 @@ mod tests {
         assert_eq!(cipher.deleted_date, None);
 
         if let bitwarden_exporters::CipherType::Login(l) = cipher.r#type {
-            assert_eq!(l.username.unwrap(), "test_username");
-            assert_eq!(l.password.unwrap(), "test_password");
+            assert_eq!(l.username, Some("test_username".to_string()));
+            assert_eq!(l.password, Some("test_password".to_string()));
             assert!(l.login_uris.is_empty());
             assert_eq!(l.totp, None);
         } else {
@@ -322,7 +322,7 @@ mod tests {
             convert_format(
                 &client,
                 ExportFormat::EncryptedJson {
-                    password: SensitiveString::test("password")
+                    password: "password".to_string()
                 }
             )
             .unwrap(),

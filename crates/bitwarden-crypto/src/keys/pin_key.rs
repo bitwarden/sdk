@@ -3,7 +3,7 @@ use crate::{
         key_encryptable::CryptoKey,
         utils::{derive_kdf_key, stretch_kdf_key},
     },
-    EncString, Kdf, KeyEncryptable, Result, SensitiveVec, SymmetricCryptoKey,
+    EncString, Kdf, KeyEncryptable, Result, SymmetricCryptoKey,
 };
 
 /// Pin Key.
@@ -17,7 +17,7 @@ impl PinKey {
     }
 
     /// Derives a users pin key from their password, email and KDF.
-    pub fn derive(password: &SensitiveVec, salt: &[u8], kdf: &Kdf) -> Result<Self> {
+    pub fn derive(password: &[u8], salt: &[u8], kdf: &Kdf) -> Result<Self> {
         derive_kdf_key(password, salt, kdf).map(Self)
     }
 }

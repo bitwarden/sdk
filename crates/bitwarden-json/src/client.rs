@@ -49,17 +49,19 @@ impl Client {
 
         match cmd {
             #[cfg(feature = "internal")]
-            Command::PasswordLogin(req) => client.auth().login_password(req).await.into_string(),
+            Command::PasswordLogin(req) => client.auth().login_password(&req).await.into_string(),
             #[cfg(feature = "secrets")]
             Command::AccessTokenLogin(req) => {
                 client.auth().login_access_token(&req).await.into_string()
             }
             #[cfg(feature = "internal")]
-            Command::GetUserApiKey(req) => client.get_user_api_key(req).await.into_string(),
+            Command::GetUserApiKey(req) => {
+                client.platform().get_user_api_key(req).await.into_string()
+            }
             #[cfg(feature = "internal")]
-            Command::ApiKeyLogin(req) => client.auth().login_api_key(req).await.into_string(),
+            Command::ApiKeyLogin(req) => client.auth().login_api_key(&req).await.into_string(),
             #[cfg(feature = "internal")]
-            Command::Sync(req) => client.sync(&req).await.into_string(),
+            Command::Sync(req) => client.vault().sync(&req).await.into_string(),
             #[cfg(feature = "internal")]
             Command::Fingerprint(req) => client.platform().fingerprint(&req).into_string(),
 

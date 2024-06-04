@@ -8,7 +8,7 @@ use crate::error::Result;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct FingerprintRequest {
     /// The input material, used in the fingerprint generation process.
     pub fingerprint_material: String,
@@ -54,8 +54,6 @@ pub(crate) fn generate_user_fingerprint(
 mod tests {
     use std::num::NonZeroU32;
 
-    use bitwarden_crypto::SensitiveVec;
-
     use super::*;
     use crate::{client::Kdf, Client};
 
@@ -68,7 +66,7 @@ mod tests {
         let mut client = Client::new(None);
 
         let master_key = bitwarden_crypto::MasterKey::derive(
-            &SensitiveVec::test(b"asdfasdfasdf"),
+            "asdfasdfasdf".as_bytes(),
             "robb@stark.com".as_bytes(),
             &Kdf::PBKDF2 {
                 iterations: NonZeroU32::new(600_000).unwrap(),

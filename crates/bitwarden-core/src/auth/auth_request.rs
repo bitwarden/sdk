@@ -1,18 +1,17 @@
 use base64::{engine::general_purpose::STANDARD, Engine};
 use bitwarden_crypto::{
     fingerprint, AsymmetricCryptoKey, AsymmetricEncString, AsymmetricPublicCryptoKey,
-    SensitiveString,
 };
-#[cfg(feature = "mobile")]
+#[cfg(feature = "internal")]
 use bitwarden_crypto::{EncString, KeyDecryptable, SymmetricCryptoKey};
 
 use crate::{error::Error, Client};
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct AuthRequestResponse {
     /// Base64 encoded private key
     /// This key is temporarily passed back and will most likely not be available in the future
-    pub private_key: SensitiveString,
+    pub private_key: String,
     /// Base64 encoded public key
     pub public_key: String,
     /// Fingerprint of the public key
@@ -34,10 +33,10 @@ pub(crate) fn new_auth_request(email: &str) -> Result<AuthRequestResponse, Error
     let spki = key.to_public_der()?;
 
     let fingerprint = fingerprint(email, &spki)?;
-    let b64 = STANDARD.encode(spki);
+    let b64 = STANDARD.encode(&spki);
 
     Ok(AuthRequestResponse {
-        private_key: key.to_der()?.encode_base64(STANDARD),
+        private_key: STANDARD.encode(key.to_der()?),
         public_key: b64,
         fingerprint,
         access_code: todo!("Generate access code"),
@@ -45,31 +44,29 @@ pub(crate) fn new_auth_request(email: &str) -> Result<AuthRequestResponse, Error
 }
 
 /// Decrypt the user key using the private key generated previously.
-#[cfg(feature = "mobile")]
+#[cfg(feature = "internal")]
 pub(crate) fn auth_request_decrypt_user_key(
-    private_key: SensitiveString,
+    private_key: String,
     user_key: AsymmetricEncString,
 ) -> Result<SymmetricCryptoKey, Error> {
-    use bitwarden_crypto::DecryptedVec;
+    let key = AsymmetricCryptoKey::from_der(&STANDARD.decode(private_key)?)?;
+    let mut key: Vec<u8> = user_key.decrypt_with_key(&key)?;
 
-    let key = AsymmetricCryptoKey::from_der(private_key.decode_base64(STANDARD)?)?;
-    let key: DecryptedVec = user_key.decrypt_with_key(&key)?;
-
-    Ok(SymmetricCryptoKey::try_from(key)?)
+    Ok(SymmetricCryptoKey::try_from(key.as_mut_slice())?)
 }
 
 /// Decrypt the user key using the private key generated previously.
-#[cfg(feature = "mobile")]
+#[cfg(feature = "internal")]
 pub(crate) fn auth_request_decrypt_master_key(
-    private_key: SensitiveString,
+    private_key: String,
     master_key: AsymmetricEncString,
     user_key: EncString,
 ) -> Result<SymmetricCryptoKey, Error> {
-    use bitwarden_crypto::{DecryptedVec, MasterKey};
+    use bitwarden_crypto::MasterKey;
 
-    let key = AsymmetricCryptoKey::from_der(private_key.decode_base64(STANDARD)?)?;
-    let master_key: DecryptedVec = master_key.decrypt_with_key(&key)?;
-    let master_key = MasterKey::new(SymmetricCryptoKey::try_from(master_key)?);
+    let key = AsymmetricCryptoKey::from_der(&STANDARD.decode(private_key)?)?;
+    let mut master_key: Vec<u8> = master_key.decrypt_with_key(&key)?;
+    let master_key = MasterKey::new(SymmetricCryptoKey::try_from(master_key.as_mut_slice())?);
 
     Ok(master_key.decrypt_user_key(user_key)?)
 }
@@ -87,7 +84,7 @@ pub(crate) fn approve_auth_request(
     let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
 
     Ok(AsymmetricEncString::encrypt_rsa2048_oaep_sha1(
-        key.to_vec(),
+        &key.to_vec(),
         &public_key,
     )?)
 }
@@ -96,31 +93,28 @@ pub(crate) fn approve_auth_request(
 fn test_auth_request() {
     let request = new_auth_request("test@bitwarden.com").unwrap();
 
-    let secret = bitwarden_crypto::SensitiveVec::test(&[
+    let secret: &[u8] = &[
         111, 32, 97, 169, 4, 241, 174, 74, 239, 206, 113, 86, 174, 68, 216, 238, 52, 85, 156, 27,
         134, 149, 54, 55, 91, 147, 45, 130, 131, 237, 51, 31, 191, 106, 155, 14, 160, 82, 47, 40,
         96, 31, 114, 127, 212, 187, 167, 110, 205, 116, 198, 243, 218, 72, 137, 53, 248, 43, 255,
         67, 35, 61, 245, 93,
-    ]);
+    ];
 
     let private_key =
-        AsymmetricCryptoKey::from_der(request.private_key.clone().decode_base64(STANDARD).unwrap())
-            .unwrap();
+        AsymmetricCryptoKey::from_der(&STANDARD.decode(&request.private_key).unwrap()).unwrap();
 
-    let encrypted =
-        AsymmetricEncString::encrypt_rsa2048_oaep_sha1(secret.clone(), &private_key).unwrap();
+    let encrypted = AsymmetricEncString::encrypt_rsa2048_oaep_sha1(secret, &private_key).unwrap();
 
     let decrypted = auth_request_decrypt_user_key(request.private_key, encrypted).unwrap();
 
-    assert_eq!(decrypted.to_vec(), secret);
+    assert_eq!(&decrypted.to_vec(), secret);
 }
 
 #[cfg(test)]
 mod tests {
     use std::num::NonZeroU32;
 
-    use base64::Engine;
-    use bitwarden_crypto::{Kdf, SensitiveVec};
+    use bitwarden_crypto::Kdf;
 
     use super::*;
     use crate::mobile::crypto::{AuthRequestMethod, InitUserCryptoMethod, InitUserCryptoRequest};
@@ -130,7 +124,7 @@ mod tests {
         let mut client = Client::new(None);
 
         let master_key = bitwarden_crypto::MasterKey::derive(
-            &SensitiveVec::test(b"asdfasdfasdf"),
+            "asdfasdfasdf".as_bytes(),
             "test@bitwarden.com".as_bytes(),
             &Kdf::PBKDF2 {
                 iterations: NonZeroU32::new(600_000).unwrap(),
@@ -159,19 +153,14 @@ mod tests {
         let private_key = "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCzLtEUdxfcLxDj84yaGFsVF5hZ8Hjlb08NMQDy1RnBma06I3ZESshLYzVz4r/gegMn9OOltfV/Yxlyvida8oW6qdlfJ7AVz6Oa8pV7BiL40C7b76+oqraQpyYw2HChANB1AhXL9SqWngKmLZwjA7qiCrmcc0kZHeOb4KnKtp9iVvPVs+8veFvKgYO4ba2AAOHKFdR0W55/agXfAy+fWUAkC8mc9ikyJdQWaPV6OZvC2XFkOseBQm9Rynudh3BQpoWiL6w620efe7t5k+02/EyOFJL9f/XEEjM/+Yo0t3LAfkuhHGeKiRST59Xc9hTEmyJTeVXROtz+0fjqOp3xkaObAgMBAAECggEACs4xhnO0HaZhh1/iH7zORMIRXKeyxP2LQiTR8xwN5JJ9wRWmGAR9VasS7EZFTDidIGVME2u/h4s5EqXnhxfO+0gGksVvgNXJ/qw87E8K2216g6ZNo6vSGA7H1GH2voWwejJ4/k/cJug6dz2S402rRAKh2Wong1arYHSkVlQp3diiMa5FHAOSE+Cy09O2ZsaF9IXQYUtlW6AVXFrBEPYH2kvkaPXchh8VETMijo6tbvoKLnUHe+wTaDMls7hy8exjtVyI59r3DNzjy1lNGaGb5QSnFMXR+eHhPZc844Wv02MxC15zKABADrl58gpJyjTl6XpDdHCYGsmGpVGH3X9TQQKBgQDz/9beFjzq59ve6rGwn+EtnQfSsyYT+jr7GN8lNEXb3YOFXBgPhfFIcHRh2R00Vm9w2ApfAx2cd8xm2I6HuvQ1Os7g26LWazvuWY0Qzb+KaCLQTEGH1RnTq6CCG+BTRq/a3J8M4t38GV5TWlzv8wr9U4dl6FR4efjb65HXs1GQ4QKBgQC7/uHfrOTEHrLeIeqEuSl0vWNqEotFKdKLV6xpOvNuxDGbgW4/r/zaxDqt0YBOXmRbQYSEhmO3oy9J6XfE1SUln0gbavZeW0HESCAmUIC88bDnspUwS9RxauqT5aF8ODKN/bNCWCnBM1xyonPOs1oT1nyparJVdQoG//Y7vkB3+wKBgBqLqPq8fKAp3XfhHLfUjREDVoiLyQa/YI9U42IOz9LdxKNLo6p8rgVthpvmnRDGnpUuS+KOWjhdqDVANjF6G3t3DG7WNl8Rh5Gk2H4NhFswfSkgQrjebFLlBy9gjQVCWXt8KSmjvPbiY6q52Aaa8IUjA0YJAregvXxfopxO+/7BAoGARicvEtDp7WWnSc1OPoj6N14VIxgYcI7SyrzE0d/1x3ffKzB5e7qomNpxKzvqrVP8DzG7ydh8jaKPmv1MfF8tpYRy3AhmN3/GYwCnPqT75YYrhcrWcVdax5gmQVqHkFtIQkRSCIftzPLlpMGKha/YBV8c1fvC4LD0NPh/Ynv0gtECgYEAyOZg95/kte0jpgUEgwuMrzkhY/AaUJULFuR5MkyvReEbtSBQwV5tx60+T95PHNiFooWWVXiLMsAgyI2IbkxVR1Pzdri3gWK5CTfqb7kLuaj/B7SGvBa2Sxo478KS5K8tBBBWkITqo+wLC0mn3uZi1dyMWO1zopTA+KtEGF2dtGQ=";
 
         let enc_user_key = "4.dxbd5OMwi/Avy7DQxvLV+Z7kDJgHBtg/jAbgYNO7QU0Zii4rLFNco2lS5aS9z42LTZHc2p5HYwn2ZwkZNfHsQ6//d5q40MDgGYJMKBXOZP62ZHhct1XsvYBmtcUtIOm5j2HSjt2pjEuGAc1LbyGIWRJJQ3Lp1ULbL2m71I+P23GF36JyOM8SUWvpvxE/3+qqVhRFPG2VqMCYa2kLLxwVfUmpV+KKjX1TXsrq6pfJIwHNwHw4h7MSfD8xTy2bx4MiBt638Z9Vt1pGsSQkh9RgPvCbnhuCpZQloUgJ8ByLVEcrlKx3yaaxiQXvte+ZhuOI7rGdjmoVoOzisooje4JgYw==".parse().unwrap();
-        let dec = auth_request_decrypt_user_key(
-            SensitiveString::new(Box::new(private_key.to_owned())),
-            enc_user_key,
-        )
-        .unwrap();
+        let dec = auth_request_decrypt_user_key(private_key.to_owned(), enc_user_key).unwrap();
 
         assert_eq!(
-            dec.to_vec(),
-            [
+            &dec.to_vec(),
+            &[
                 201, 37, 234, 213, 21, 75, 40, 70, 149, 213, 234, 16, 19, 251, 162, 245, 161, 74,
                 34, 245, 211, 151, 211, 192, 95, 10, 117, 50, 88, 223, 23, 157
             ]
-            .as_slice()
         );
     }
 
@@ -181,22 +170,18 @@ mod tests {
 
         let enc_master_key = "4.dxbd5OMwi/Avy7DQxvLV+Z7kDJgHBtg/jAbgYNO7QU0Zii4rLFNco2lS5aS9z42LTZHc2p5HYwn2ZwkZNfHsQ6//d5q40MDgGYJMKBXOZP62ZHhct1XsvYBmtcUtIOm5j2HSjt2pjEuGAc1LbyGIWRJJQ3Lp1ULbL2m71I+P23GF36JyOM8SUWvpvxE/3+qqVhRFPG2VqMCYa2kLLxwVfUmpV+KKjX1TXsrq6pfJIwHNwHw4h7MSfD8xTy2bx4MiBt638Z9Vt1pGsSQkh9RgPvCbnhuCpZQloUgJ8ByLVEcrlKx3yaaxiQXvte+ZhuOI7rGdjmoVoOzisooje4JgYw==".parse().unwrap();
         let enc_user_key = "2.Q/2PhzcC7GdeiMHhWguYAQ==|GpqzVdr0go0ug5cZh1n+uixeBC3oC90CIe0hd/HWA/pTRDZ8ane4fmsEIcuc8eMKUt55Y2q/fbNzsYu41YTZzzsJUSeqVjT8/iTQtgnNdpo=|dwI+uyvZ1h/iZ03VQ+/wrGEFYVewBUUl/syYgjsNMbE=".parse().unwrap();
-        let dec = auth_request_decrypt_master_key(
-            SensitiveString::new(Box::new(private_key.to_owned())),
-            enc_master_key,
-            enc_user_key,
-        )
-        .unwrap();
+        let dec =
+            auth_request_decrypt_master_key(private_key.to_owned(), enc_master_key, enc_user_key)
+                .unwrap();
 
         assert_eq!(
-            dec.to_vec(),
-            [
+            &dec.to_vec(),
+            &[
                 109, 128, 172, 147, 206, 123, 134, 95, 16, 36, 155, 113, 201, 18, 186, 230, 216,
                 212, 173, 188, 74, 11, 134, 131, 137, 242, 105, 178, 105, 126, 52, 139, 248, 91,
                 215, 21, 128, 91, 226, 222, 165, 67, 251, 34, 83, 81, 77, 147, 225, 76, 13, 41,
                 102, 45, 183, 218, 106, 89, 254, 208, 251, 101, 130, 10,
             ]
-            .as_slice()
         );
     }
 
@@ -213,12 +198,9 @@ mod tests {
         // Initialize an existing client which is unlocked
         let mut existing_device = Client::new(None);
 
-        let master_key = bitwarden_crypto::MasterKey::derive(
-            &SensitiveVec::test(b"asdfasdfasdf"),
-            email.as_bytes(),
-            &kdf,
-        )
-        .unwrap();
+        let master_key =
+            bitwarden_crypto::MasterKey::derive("asdfasdfasdf".as_bytes(), email.as_bytes(), &kdf)
+                .unwrap();
 
         existing_device
             .initialize_user_crypto_master_key(master_key, user_key, private_key.parse().unwrap())

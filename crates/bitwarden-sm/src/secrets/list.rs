@@ -1,7 +1,7 @@
 use bitwarden_api_api::models::{
     SecretWithProjectsListResponseModel, SecretsWithProjectsInnerSecret,
 };
-use bitwarden_crypto::{CryptoError, DecryptedString, EncString, KeyDecryptable};
+use bitwarden_crypto::{CryptoError, EncString, KeyDecryptable};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -100,14 +100,14 @@ impl SecretIdentifierResponse {
             .get_key(&Some(organization_id))
             .ok_or(CryptoError::MissingKey)?;
 
-        let key: DecryptedString = require!(response.key)
+        let key = require!(response.key)
             .parse::<EncString>()?
             .decrypt_with_key(enc_key)?;
 
         Ok(SecretIdentifierResponse {
             id: require!(response.id),
             organization_id,
-            key: key.expose().to_owned(),
+            key,
         })
     }
 }

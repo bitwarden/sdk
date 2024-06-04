@@ -9,5 +9,5 @@ mod client_generator;
 pub use client_generator::{ClientGenerator, ClientGeneratorExt};
 mod username_forwarders;
 
-#[cfg(feature = "mobile")]
+#[cfg(feature = "uniffi")]
 uniffi::setup_scaffolding!();

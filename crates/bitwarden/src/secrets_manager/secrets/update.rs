@@ -137,7 +137,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_update_secret_request_key_501_character_length() {
-        let response = update_secret(Some("a".repeat(501).into()), None, None).await;
+        let response = update_secret(Some("a".repeat(501)), None, None).await;
         assert!(response.is_err());
         assert_eq!(
             response.err().unwrap().to_string(),
@@ -157,7 +157,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_update_secret_request_value_25001_character_length() {
-        let response = update_secret(None, Some("a".repeat(25001).into()), None).await;
+        let response = update_secret(None, Some("a".repeat(25001)), None).await;
         assert!(response.is_err());
         assert_eq!(
             response.err().unwrap().to_string(),
@@ -207,7 +207,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_update_secret_request_note_7001_character_length() {
-        let response = update_secret(None, None, Some("a".repeat(7001).into())).await;
+        let response = update_secret(None, None, Some("a".repeat(7001))).await;
         assert!(response.is_err());
         assert_eq!(
             response.err().unwrap().to_string(),

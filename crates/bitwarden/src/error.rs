@@ -215,8 +215,11 @@ impl From<validator::ValidationErrors> for Error {
                 match error.code.as_ref() {
                     VALIDATION_LENGTH_CODE => {
                         if error.params.contains_key("min")
-                            && error.params["min"].as_u64().unwrap() == 1
-                            && error.params["value"].as_str().unwrap().is_empty()
+                            && error.params["min"].as_u64().expect("Min provided") == 1
+                            && error.params["value"]
+                                .as_str()
+                                .expect("Value provided")
+                                .is_empty()
                         {
                             return Error::ValidationError(ValidationError::Required(
                                 field_name.to_string(),
@@ -225,7 +228,7 @@ impl From<validator::ValidationErrors> for Error {
                             return Error::ValidationError(
                                 ValidationError::ExceedsCharacterLength(
                                     field_name.to_string(),
-                                    error.params["max"].as_u64().unwrap(),
+                                    error.params["max"].as_u64().expect("Max provided"),
                                 ),
                             );
                         }

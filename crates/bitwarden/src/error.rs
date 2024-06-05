@@ -1,6 +1,5 @@
 //! Errors that can occur when using this SDK
 
-use log::debug;
 use std::{borrow::Cow, fmt::Debug};
 
 use bitwarden_api_api::apis::Error as ApiError;
@@ -9,6 +8,7 @@ use bitwarden_api_identity::apis::Error as IdentityError;
 use bitwarden_exporters::ExportError;
 #[cfg(feature = "internal")]
 use bitwarden_generators::{PassphraseError, PasswordError, UsernameError};
+use log::debug;
 #[cfg(feature = "uniffi")]
 use passkey::client::WebauthnError;
 use reqwest::StatusCode;

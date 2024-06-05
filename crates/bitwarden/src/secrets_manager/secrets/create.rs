@@ -3,13 +3,13 @@ use bitwarden_crypto::KeyEncryptable;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use validator::Validate;
 
 use super::SecretResponse;
 use crate::{
     error::{validate, validate_only_whitespaces, Error, Result},
     Client,
 };
-use validator::Validate;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Validate)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

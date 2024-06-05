@@ -1,7 +1,7 @@
 //! Errors that can occur when using this SDK
 
-use std::{borrow::Cow, fmt::Debug};
 use log::debug;
+use std::{borrow::Cow, fmt::Debug};
 
 use bitwarden_api_api::apis::Error as ApiError;
 use bitwarden_api_identity::apis::Error as IdentityError;
@@ -179,7 +179,7 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 // Validation
 const VALIDATION_LENGTH_CODE: &str = "length";
-pub const VALIDATION_ONLY_WHITESPACES_CODE: &str = "all_whitespaces";
+const VALIDATION_ONLY_WHITESPACES_CODE: &str = "only_whitespaces";
 
 macro_rules! validate {
     ($val:expr) => {
@@ -191,9 +191,11 @@ macro_rules! validate {
 }
 pub(crate) use validate;
 
-pub fn validate_only_whitespaces(value: &str) -> Result<(), validator::ValidationError> {
+pub(crate) fn validate_only_whitespaces(value: &str) -> Result<(), validator::ValidationError> {
     if !value.is_empty() && value.trim().is_empty() {
-        return Err(validator::ValidationError::new(VALIDATION_ONLY_WHITESPACES_CODE));
+        return Err(validator::ValidationError::new(
+            VALIDATION_ONLY_WHITESPACES_CODE,
+        ));
     }
     Ok(())
 }
@@ -207,20 +209,23 @@ impl From<validator::ValidationErrors> for Error {
                     VALIDATION_LENGTH_CODE => {
                         if error.params.contains_key("min")
                             && error.params["min"].as_u64().unwrap() == 1
-                            && error.params["value"].as_str().unwrap().is_empty() {
+                            && error.params["value"].as_str().unwrap().is_empty()
+                        {
                             return Error::ValidationError(ValidationError::Required(
-                                field_name.to_string()
+                                field_name.to_string(),
                             ));
                         } else if error.params.contains_key("max") {
-                            return Error::ValidationError(ValidationError::ExceedsCharacterLength(
-                                field_name.to_string(),
-                                error.params["max"].as_u64().unwrap(),
-                            ));
+                            return Error::ValidationError(
+                                ValidationError::ExceedsCharacterLength(
+                                    field_name.to_string(),
+                                    error.params["max"].as_u64().unwrap(),
+                                ),
+                            );
                         }
                     }
                     VALIDATION_ONLY_WHITESPACES_CODE => {
                         return Error::ValidationError(ValidationError::OnlyWhitespaces(
-                            field_name.to_string()
+                            field_name.to_string(),
                         ));
                     }
                     _ => {}

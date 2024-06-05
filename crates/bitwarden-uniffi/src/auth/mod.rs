@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use bitwarden::auth::{
     password::MasterPasswordPolicyOptions, AuthRequestResponse, RegisterKeyResponse,
+    RegisterTdeKeyResponse,
 };
 use bitwarden_crypto::{AsymmetricEncString, HashPurpose, Kdf, TrustDeviceResponse};
 
@@ -78,6 +79,20 @@ impl ClientAuth {
             .make_register_keys(email, password, kdf)?)
     }
 
+    /// Generate keys needed for TDE process
+    pub async fn make_register_tde_keys(
+        &self,
+        email: String,
+        org_public_key: String,
+        remember_device: bool,
+    ) -> Result<RegisterTdeKeyResponse> {
+        Ok(self.0 .0.write().await.auth().make_register_tde_keys(
+            email,
+            org_public_key,
+            remember_device,
+        )?)
+    }
+
     /// Validate the user password
     ///
     /// To retrieve the user's password hash, use [`ClientAuth::hash_password`] with
@@ -90,7 +105,7 @@ impl ClientAuth {
             .write()
             .await
             .auth()
-            .validate_password(password, password_hash.to_string())?)
+            .validate_password(password, password_hash)?)
     }
 
     /// Validate the user password without knowing the password hash

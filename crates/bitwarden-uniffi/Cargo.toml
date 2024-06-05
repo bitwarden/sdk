@@ -1,8 +1,14 @@
 [package]
 name = "bitwarden-uniffi"
 version = "0.1.0"
-edition = "2021"
-rust-version = "1.71"
+publish = false
+
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
 
 [features]
 docs = ["dep:schemars"] # Docs
@@ -13,21 +19,25 @@ bench = false
 
 [dependencies]
 async-lock = "3.3.0"
+async-trait = "0.1.80"
+bitwarden = { workspace = true, features = ["internal", "uniffi"] }
+bitwarden-crypto = { workspace = true, features = ["uniffi"] }
+bitwarden-generators = { workspace = true, features = ["uniffi"] }
 chrono = { version = ">=0.4.26, <0.5", features = [
     "serde",
     "std",
 ], default-features = false }
+log = "0.4.20"
 env_logger = "0.11.1"
 schemars = { version = ">=0.8, <0.9", optional = true }
-uniffi = "=0.26.1"
+uniffi = "=0.27.2"
+uuid = ">=1.3.3, <2"
 
-bitwarden = { path = "../bitwarden", features = ["mobile", "internal"] }
-bitwarden-crypto = { path = "../bitwarden-crypto", version = "=0.1.0", features = [
-    "mobile",
-] }
-bitwarden-generators = { path = "../bitwarden-generators", version = "=0.1.0", features = [
-    "mobile",
-] }
+[target.'cfg(target_os = "android")'.dependencies]
+android_logger = "0.13"
 
 [build-dependencies]
-uniffi = { version = "=0.26.1", features = ["build"] }
+uniffi = { version = "=0.27.2", features = ["build"] }
+
+[lints]
+workspace = true

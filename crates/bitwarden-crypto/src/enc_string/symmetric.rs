@@ -119,15 +119,15 @@ impl EncString {
         match enc_type {
             0 => {
                 check_length(buf, 18)?;
-                let iv = buf[1..17].try_into().unwrap();
+                let iv = buf[1..17].try_into().expect("Valid length");
                 let data = buf[17..].to_vec();
 
                 Ok(EncString::AesCbc256_B64 { iv, data })
             }
             1 | 2 => {
                 check_length(buf, 50)?;
-                let iv = buf[1..17].try_into().unwrap();
-                let mac = buf[17..49].try_into().unwrap();
+                let iv = buf[1..17].try_into().expect("Valid length");
+                let mac = buf[17..49].try_into().expect("Valid length");
                 let data = buf[49..].to_vec();
 
                 if enc_type == 1 {
@@ -296,8 +296,8 @@ mod tests {
     fn test_enc_string_roundtrip() {
         let key = derive_symmetric_key("test");
 
-        let test_string = "encrypted_test_string".to_string();
-        let cipher = test_string.clone().encrypt_with_key(&key).unwrap();
+        let test_string = "encrypted_test_string";
+        let cipher = test_string.to_owned().encrypt_with_key(&key).unwrap();
 
         let decrypted_str: String = cipher.decrypt_with_key(&key).unwrap();
         assert_eq!(decrypted_str, test_string);
@@ -390,8 +390,8 @@ mod tests {
 
     #[test]
     fn test_decrypt_cbc256() {
-        let key = "hvBMMb1t79YssFZkpetYsM3deyVuQv4r88Uj9gvYe08=";
-        let key: SymmetricCryptoKey = key.parse().unwrap();
+        let key = "hvBMMb1t79YssFZkpetYsM3deyVuQv4r88Uj9gvYe08=".to_string();
+        let key = SymmetricCryptoKey::try_from(key).unwrap();
 
         let enc_str = "0.NQfjHLr6za7VQVAbrpL81w==|wfrjmyJ0bfwkQlySrhw8dA==";
         let enc_string: EncString = enc_str.parse().unwrap();
@@ -403,8 +403,8 @@ mod tests {
 
     #[test]
     fn test_decrypt_cbc128_hmac() {
-        let key = "Gt1aZ8kTTgkF80bLtb7LiMZBcxEA2FA5mbvV4x7K208=";
-        let key: SymmetricCryptoKey = key.parse().unwrap();
+        let key = "Gt1aZ8kTTgkF80bLtb7LiMZBcxEA2FA5mbvV4x7K208=".to_string();
+        let key = SymmetricCryptoKey::try_from(key).unwrap();
 
         let enc_str = "1.CU/oG4VZuxbHoZSDZjCLQw==|kb1HGwAk+fQ275ORfLf5Ew==|8UaEYHyqRZcG37JWhYBOBdEatEXd1u1/wN7OuImolcM=";
         let enc_string: EncString = enc_str.parse().unwrap();

@@ -1,46 +1,28 @@
 [package]
 name = "{{{packageName}}}"
-version = "{{#lambdaVersion}}{{{packageVersion}}}{{/lambdaVersion}}"
-{{#infoEmail}}
-authors = ["{{{.}}}"]
-{{/infoEmail}}
-{{^infoEmail}}
-authors = ["OpenAPI Generator team and contributors"]
-{{/infoEmail}}
-{{#appDescription}}
+{{#packageDescription}}
 description = "{{{.}}}"
-{{/appDescription}}
-{{#licenseInfo}}
-license = "{{.}}"
-{{/licenseInfo}}
-{{^licenseInfo}}
-# Override this license by providing a License Object in the OpenAPI.
-license = "Unlicense"
-{{/licenseInfo}}
-edition = "2018"
-{{#publishRustRegistry}}
-publish = ["{{.}}"]
-{{/publishRustRegistry}}
-{{#repositoryUrl}}
-repository = "{{.}}"
-{{/repositoryUrl}}
-{{#documentationUrl}}
-documentation = "{{.}}"
-{{/documentationUrl}}
-{{#homePageUrl}}
-homepage = "{{.}}
-{{/homePageUrl}}
+{{/packageDescription}}
+categories = ["api-bindings"]
+
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+keywords.workspace = true
 
 [dependencies]
-serde = "^1.0"
-serde_derive = "^1.0"
+serde = { version = "^1.0", features = ["derive"] }
 {{#serdeWith}}
-serde_with = "^2.0"
+serde_with = { version = "^3.8", default-features = false, features = ["base64", "std", "macros"] }
 {{/serdeWith}}
 serde_json = "^1.0"
 serde_repr = "^0.1"
-url = "^2.2"
-uuid = { version = "^1.0", features = ["serde", "v4"] }
+url = "^2.5"
+uuid = { version = "^1.8", features = ["serde", "v4"] }
 {{#hyper}}
 hyper = { version = "~0.14", features = ["full"] }
 hyper-tls = "~0.5"
@@ -55,17 +37,15 @@ secrecy = "0.8.0"
 {{/withAWSV4Signature}}
 {{#reqwest}}
 {{^supportAsync}}
-[dependencies.reqwest]
-version = "^0.11"
-features = ["json", "blocking", "multipart"]
+reqwest = { version = "^0.12", features = ["json", "blocking", "multipart"] }
+{{#supportMiddleware}}
+reqwest-middleware = { version = "^0.3", features = ["json", "blocking", "multipart"] }
+{{/supportMiddleware}}
 {{/supportAsync}}
 {{#supportAsync}}
+reqwest = { version = "^0.12", features = ["json", "multipart", "http2"], default-features = false }
 {{#supportMiddleware}}
-reqwest-middleware = "0.2.0"
+reqwest-middleware = { version = "^0.3", features = ["json", "multipart"] }
 {{/supportMiddleware}}
-[dependencies.reqwest]
-version = "^0.11"
-features = ["json", "multipart"]
-default-features = false
 {{/supportAsync}}
 {{/reqwest}}

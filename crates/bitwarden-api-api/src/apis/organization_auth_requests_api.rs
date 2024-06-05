@@ -9,9 +9,10 @@
  */
 
 use reqwest;
+use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::apis::ResponseContent;
+use crate::{apis::ResponseContent, models};
 
 /// struct for typed errors of method [`organizations_org_id_auth_requests_deny_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -38,7 +39,7 @@ pub async fn organizations_org_id_auth_requests_deny_post(
     configuration: &configuration::Configuration,
     org_id: uuid::Uuid,
     bulk_deny_admin_auth_request_request_model: Option<
-        crate::models::BulkDenyAdminAuthRequestRequestModel,
+        models::BulkDenyAdminAuthRequestRequestModel,
     >,
 ) -> Result<(), Error<OrganizationsOrgIdAuthRequestsDenyPostError>> {
     let local_var_configuration = configuration;
@@ -86,7 +87,7 @@ pub async fn organizations_org_id_auth_requests_get(
     configuration: &configuration::Configuration,
     org_id: uuid::Uuid,
 ) -> Result<
-    crate::models::PendingOrganizationAuthRequestResponseModelListResponseModel,
+    models::PendingOrganizationAuthRequestResponseModelListResponseModel,
     Error<OrganizationsOrgIdAuthRequestsGetError>,
 > {
     let local_var_configuration = configuration;
@@ -133,9 +134,7 @@ pub async fn organizations_org_id_auth_requests_request_id_post(
     configuration: &configuration::Configuration,
     org_id: uuid::Uuid,
     request_id: uuid::Uuid,
-    admin_auth_request_update_request_model: Option<
-        crate::models::AdminAuthRequestUpdateRequestModel,
-    >,
+    admin_auth_request_update_request_model: Option<models::AdminAuthRequestUpdateRequestModel>,
 ) -> Result<(), Error<OrganizationsOrgIdAuthRequestsRequestIdPostError>> {
     let local_var_configuration = configuration;
 

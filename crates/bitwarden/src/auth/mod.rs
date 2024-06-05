@@ -1,3 +1,4 @@
+mod access_token;
 pub(super) mod api;
 pub mod client_auth;
 mod jwt_token;
@@ -5,6 +6,7 @@ pub mod login;
 #[cfg(feature = "internal")]
 pub mod password;
 pub mod renew;
+pub use access_token::AccessToken;
 pub use jwt_token::JWTToken;
 #[cfg(feature = "internal")]
 mod register;
@@ -16,8 +18,12 @@ pub use register::{RegisterKeyResponse, RegisterRequest};
 mod auth_request;
 #[cfg(feature = "internal")]
 pub use auth_request::AuthRequestResponse;
-#[cfg(feature = "mobile")]
+#[cfg(feature = "internal")]
 pub(crate) use auth_request::{auth_request_decrypt_master_key, auth_request_decrypt_user_key};
+#[cfg(feature = "internal")]
+mod tde;
+#[cfg(feature = "internal")]
+pub use tde::RegisterTdeKeyResponse;
 
 #[cfg(feature = "internal")]
 use crate::{client::Kdf, error::Result};
@@ -35,8 +41,10 @@ fn determine_password_hash(
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "internal")]
     use std::num::NonZeroU32;
 
+    #[cfg(feature = "internal")]
     use super::*;
 
     #[cfg(feature = "internal")]

@@ -3,7 +3,7 @@ use bitwarden::{
         ApiKeyLoginRequest, PasswordLoginRequest, TwoFactorEmailRequest, TwoFactorProvider,
         TwoFactorRequest,
     },
-    platform::SyncRequest,
+    vault::SyncRequest,
     Client,
 };
 use bitwarden_cli::text_prompt_when_none;
@@ -82,6 +82,7 @@ pub(crate) async fn login_password(mut client: Client, email: Option<String>) ->
     }
 
     let res = client
+        .vault()
         .sync(&SyncRequest {
             exclude_subdomains: Some(true),
         })
@@ -123,17 +124,13 @@ pub(crate) async fn login_device(
     let email = text_prompt_when_none("Email", email)?;
     let device_identifier = text_prompt_when_none("Device Identifier", device_identifier)?;
 
-    let auth = client
-        .auth()
-        .login_device(email, device_identifier)
-        .await
-        .unwrap();
+    let auth = client.auth().login_device(email, device_identifier).await?;
 
     println!("Fingerprint: {}", auth.fingerprint);
 
     Text::new("Press enter once approved").prompt()?;
 
-    client.auth().login_device_complete(auth).await.unwrap();
+    client.auth().login_device_complete(auth).await?;
 
     Ok(())
 }

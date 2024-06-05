@@ -7,9 +7,9 @@ use serde::{Deserialize, Serialize};
 use super::Cipher;
 use crate::error::{Error, Result};
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct Attachment {
     pub id: Option<String>,
     pub url: Option<String>,
@@ -20,9 +20,9 @@ pub struct Attachment {
     pub key: Option<EncString>,
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct AttachmentView {
     pub id: Option<String>,
     pub url: Option<String>,
@@ -34,7 +34,7 @@ pub struct AttachmentView {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct AttachmentEncryptResult {
     pub attachment: Attachment,
     pub contents: Vec<u8>,
@@ -145,7 +145,7 @@ mod tests {
 
     #[test]
     fn test_attachment_key() {
-        let user_key : SymmetricCryptoKey = "w2LO+nwV4oxwswVYCxlOfRUseXfvU03VzvKQHrqeklPgiMZrspUe6sOBToCnDn9Ay0tuCBn8ykVVRb7PWhub2Q==".parse().unwrap();
+        let user_key : SymmetricCryptoKey = "w2LO+nwV4oxwswVYCxlOfRUseXfvU03VzvKQHrqeklPgiMZrspUe6sOBToCnDn9Ay0tuCBn8ykVVRb7PWhub2Q==".to_string().try_into().unwrap();
 
         let attachment = Attachment {
             id: None,

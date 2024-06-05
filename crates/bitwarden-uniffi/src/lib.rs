@@ -20,7 +20,7 @@ pub mod docs;
 use crypto::ClientCrypto;
 use error::Result;
 use platform::ClientPlatform;
-use tool::{ClientExporters, ClientGenerators};
+use tool::{ClientExporters, ClientGenerators, ClientSends};
 use vault::ClientVault;
 
 #[derive(uniffi::Object)]
@@ -31,6 +31,7 @@ impl Client {
     /// Initialize a new instance of the SDK client
     #[uniffi::constructor]
     pub fn new(settings: Option<ClientSettings>) -> Arc<Self> {
+        init_logger();
         Arc::new(Self(RwLock::new(bitwarden::Client::new(settings))))
     }
 
@@ -58,6 +59,11 @@ impl Client {
         Arc::new(ClientExporters(self))
     }
 
+    /// Sends operations
+    pub fn sends(self: Arc<Self>) -> Arc<ClientSends> {
+        Arc::new(ClientSends(self))
+    }
+
     /// Auth operations
     pub fn auth(self: Arc<Self>) -> Arc<ClientAuth> {
         Arc::new(ClientAuth(self))
@@ -67,4 +73,15 @@ impl Client {
     pub fn echo(&self, msg: String) -> String {
         msg
     }
+}
+
+fn init_logger() {
+    #[cfg(not(target_os = "android"))]
+    let _ = env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info"))
+        .try_init();
+
+    #[cfg(target_os = "android")]
+    android_logger::init_once(
+        android_logger::Config::default().with_max_level(uniffi::deps::log::LevelFilter::Info),
+    );
 }

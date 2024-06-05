@@ -1,10 +1,10 @@
-use bitwarden_crypto::Decryptable;
+use bitwarden_crypto::KeyDecryptable;
 use bitwarden_exporters::export;
 use schemars::JsonSchema;
 
 use crate::{
     client::{LoginMethod, UserLoginMethod},
-    error::{Error, Result},
+    error::{require, Error, Result},
     vault::{
         login::LoginUriView, Cipher, CipherType, CipherView, Collection, FieldView, Folder,
         FolderView, SecureNoteType,
@@ -16,7 +16,7 @@ mod client_exporter;
 pub use client_exporter::ClientExporters;
 
 #[derive(JsonSchema)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum ExportFormat {
     Csv,
     Json,
@@ -30,12 +30,13 @@ pub(super) fn export_vault(
     format: ExportFormat,
 ) -> Result<String> {
     let enc = client.get_encryption_settings()?;
+    let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
 
-    let folders: Vec<FolderView> = folders.decrypt(enc, &None)?;
+    let folders: Vec<FolderView> = folders.decrypt_with_key(key)?;
     let folders: Vec<bitwarden_exporters::Folder> =
         folders.into_iter().flat_map(|f| f.try_into()).collect();
 
-    let ciphers: Vec<CipherView> = ciphers.decrypt(enc, &None)?;
+    let ciphers: Vec<CipherView> = ciphers.decrypt_with_key(key)?;
     let ciphers: Vec<bitwarden_exporters::Cipher> =
         ciphers.into_iter().flat_map(|c| c.try_into()).collect();
 
@@ -83,7 +84,7 @@ impl TryFrom<FolderView> for bitwarden_exporters::Folder {
 
     fn try_from(value: FolderView) -> Result<Self, Self::Error> {
         Ok(Self {
-            id: value.id.ok_or(Error::MissingFields)?,
+            id: require!(value.id),
             name: value.name,
         })
     }
@@ -95,7 +96,7 @@ impl TryFrom<CipherView> for bitwarden_exporters::Cipher {
     fn try_from(value: CipherView) -> Result<Self, Self::Error> {
         let r = match value.r#type {
             CipherType::Login => {
-                let l = value.login.ok_or(Error::MissingFields)?;
+                let l = require!(value.login);
                 bitwarden_exporters::CipherType::Login(Box::new(bitwarden_exporters::Login {
                     username: l.username,
                     password: l.password,
@@ -118,7 +119,7 @@ impl TryFrom<CipherView> for bitwarden_exporters::Cipher {
                 },
             )),
             CipherType::Card => {
-                let c = value.card.ok_or(Error::MissingFields)?;
+                let c = require!(value.card);
                 bitwarden_exporters::CipherType::Card(Box::new(bitwarden_exporters::Card {
                     cardholder_name: c.cardholder_name,
                     exp_month: c.exp_month,
@@ -129,7 +130,7 @@ impl TryFrom<CipherView> for bitwarden_exporters::Cipher {
                 }))
             }
             CipherType::Identity => {
-                let i = value.identity.ok_or(Error::MissingFields)?;
+                let i = require!(value.identity);
                 bitwarden_exporters::CipherType::Identity(Box::new(bitwarden_exporters::Identity {
                     title: i.title,
                     first_name: i.first_name,
@@ -154,7 +155,7 @@ impl TryFrom<CipherView> for bitwarden_exporters::Cipher {
         };
 
         Ok(Self {
-            id: value.id.ok_or(Error::MissingFields)?,
+            id: require!(value.id),
             folder_id: value.folder_id,
             name: value.name,
             notes: value.notes,
@@ -240,6 +241,7 @@ mod tests {
                 uris: None,
                 totp: None,
                 autofill_on_page_load: None,
+                fido2_credentials: None,
             }),
             id: "fd411a1a-fec8-4070-985d-0e6560860e69".parse().ok(),
             organization_id: None,

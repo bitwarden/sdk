@@ -1,0 +1,76 @@
+---
+name: Build @bitwarden/sdk-wasm
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "main"
+      - "rc"
+      - "hotfix-rc"
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+    working-directory: crates/bitwarden-wasm
+
+jobs:
+  build:
+    name: Building @bitwarden/sdk-wasm
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+
+      - name: Setup Node
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: 18
+          registry-url: "https://npm.pkg.github.com"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm i -g binaryen
+
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@d8352f6b1d2e870bc5716e7a6d9b65c4cc244a1a # stable
+        with:
+          toolchain: stable
+          targets: wasm32-unknown-unknown
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
+        with:
+          key: wasm-cargo-cache
+
+      - name: Install wasm-bindgen-cli
+        run: cargo install wasm-bindgen-cli
+
+      - name: Build
+        run: ./build.sh -r
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        with:
+          name: sdk-bitwarden-wasm
+          path: ${{ github.workspace }}/languages/js/wasm/*
+          if-no-files-found: error
+
+      - name: Set version
+        if: ${{ github.ref == 'refs/heads/main' }}
+        # Fetches current version from registry and uses prerelease to bump it
+        run: |
+          npm version --no-git-tag-version $(npm view @bitwarden/sdk-wasm@latest version)
+          npm version --no-git-tag-version prerelease
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: languages/js/wasm
+
+      - name: Publish NPM
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: languages/js/wasm

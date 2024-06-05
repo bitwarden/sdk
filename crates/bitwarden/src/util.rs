@@ -1,25 +1,7 @@
-use std::num::NonZeroU32;
-
 use base64::{
     alphabet,
     engine::{DecodePaddingMode, GeneralPurpose, GeneralPurposeConfig},
 };
-
-pub fn default_pbkdf2_iterations() -> NonZeroU32 {
-    NonZeroU32::new(600_000).unwrap()
-}
-#[cfg(feature = "internal")]
-pub fn default_argon2_iterations() -> NonZeroU32 {
-    NonZeroU32::new(3).unwrap()
-}
-#[cfg(feature = "internal")]
-pub fn default_argon2_memory() -> NonZeroU32 {
-    NonZeroU32::new(64).unwrap()
-}
-#[cfg(feature = "internal")]
-pub fn default_argon2_parallelism() -> NonZeroU32 {
-    NonZeroU32::new(4).unwrap()
-}
 
 const INDIFFERENT: GeneralPurposeConfig =
     GeneralPurposeConfig::new().with_decode_padding_mode(DecodePaddingMode::Indifferent);

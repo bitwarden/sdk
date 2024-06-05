@@ -1,18 +1,24 @@
 [package]
 name = "bitwarden-py"
 version = "0.1.0"
-edition = "2021"
-rust-version = "1.71"
+publish = false
+
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+keywords.workspace = true
 
 [lib]
 name = "bitwarden_py"
 crate-type = ["cdylib"]
 
 [dependencies]
+bitwarden-json = { path = "../bitwarden-json", features = ["secrets"] }
 pyo3 = { version = "0.20.2", features = ["extension-module"] }
 pyo3-log = "0.9.0"
-
-bitwarden-json = { path = "../bitwarden-json", features = ["secrets"] }
 
 [build-dependencies]
 pyo3-build-config = { version = "0.20.2" }
@@ -23,3 +29,6 @@ pyo3-asyncio = { version = "0.20.0", features = [
     "attributes",
     "tokio-runtime",
 ] }
+
+[lints]
+workspace = true

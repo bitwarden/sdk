@@ -7,6 +7,7 @@ use rand::{
     distributions::{Distribution, Standard},
     Rng,
 };
+use zeroize::{Zeroize, Zeroizing};
 
 use crate::{CryptoError, Result};
 
@@ -30,11 +31,12 @@ pub(crate) fn hkdf_expand<T: ArrayLength<u8>>(
 }
 
 /// Generate random bytes that are cryptographically secure
-pub fn generate_random_bytes<T>() -> T
+pub fn generate_random_bytes<T>() -> Zeroizing<T>
 where
     Standard: Distribution<T>,
+    T: Zeroize,
 {
-    rand::thread_rng().gen()
+    Zeroizing::new(rand::thread_rng().gen::<T>())
 }
 
 pub fn pbkdf2(password: &[u8], salt: &[u8], rounds: u32) -> [u8; PBKDF_SHA256_HMAC_OUT_SIZE] {

@@ -11,11 +11,11 @@ pub enum LinkedIdType {
 }
 
 use crate::error::{Error, Result};
-#[cfg(feature = "mobile")]
+#[cfg(feature = "uniffi")]
 use crate::UniffiCustomTypeConverter;
-#[cfg(feature = "mobile")]
+#[cfg(feature = "uniffi")]
 uniffi::custom_type!(LinkedIdType, u32);
-#[cfg(feature = "mobile")]
+#[cfg(feature = "uniffi")]
 impl UniffiCustomTypeConverter for LinkedIdType {
     type Builtin = u32;
 
@@ -112,7 +112,7 @@ impl TryFrom<u32> for LinkedIdType {
             416 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::FirstName)),
             417 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::LastName)),
             418 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::FullName)),
-            _ => Err(Error::MissingFields),
+            _ => Err(Error::MissingFields("LinkedIdType")),
         }
     }
 }
@@ -138,7 +138,7 @@ mod tests {
         assert_eq!(serialized, json);
     }
 
-    #[cfg(feature = "mobile")]
+    #[cfg(feature = "uniffi")]
     #[test]
     fn test_linked_id_serialization_uniffi() {
         use super::{CardLinkedIdType, LinkedIdType, LoginLinkedIdType};

@@ -6,7 +6,6 @@
 
 use num_bigint::BigUint;
 use num_traits::cast::ToPrimitive;
-use sha2::Digest;
 use thiserror::Error;
 
 use crate::{error::Result, wordlist::EFF_LONG_WORD_LIST, CryptoError};
@@ -17,10 +16,6 @@ use crate::{error::Result, wordlist::EFF_LONG_WORD_LIST, CryptoError};
 /// - `fingerprint_material`: user's id.
 /// - `public_key`: user's public key.
 pub fn fingerprint(fingerprint_material: &str, public_key: &[u8]) -> Result<String> {
-    let mut h = sha2::Sha256::new();
-    h.update(public_key);
-    h.finalize();
-
     let hkdf =
         hkdf::Hkdf::<sha2::Sha256>::from_prk(public_key).map_err(|_| CryptoError::InvalidKeyLen)?;
 
@@ -51,7 +46,10 @@ fn hash_word(hash: [u8; 32]) -> Result<String> {
         let remainder = hash_number.clone() % EFF_LONG_WORD_LIST.len();
         hash_number /= EFF_LONG_WORD_LIST.len();
 
-        phrase.push(EFF_LONG_WORD_LIST[remainder.to_usize().unwrap()].to_string());
+        let index = remainder
+            .to_usize()
+            .expect("Remainder is less than EFF_LONG_WORD_LIST.len()");
+        phrase.push(EFF_LONG_WORD_LIST[index].to_string());
     }
 
     Ok(phrase.join("-"))

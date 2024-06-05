@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use crate::{
     error::Result, AsymmetricCryptoKey, AsymmetricEncString, CryptoError, EncString,
     KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
@@ -13,7 +11,7 @@ use crate::{
 pub struct DeviceKey(SymmetricCryptoKey);
 
 #[derive(Debug)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct TrustDeviceResponse {
     /// Base64 encoded device key
     pub device_key: String,
@@ -65,10 +63,10 @@ impl DeviceKey {
         protected_user_key: AsymmetricEncString,
     ) -> Result<SymmetricCryptoKey> {
         let device_private_key: Vec<u8> = protected_device_private_key.decrypt_with_key(&self.0)?;
-        let device_private_key = AsymmetricCryptoKey::from_der(device_private_key.as_slice())?;
+        let device_private_key = AsymmetricCryptoKey::from_der(&device_private_key)?;
 
-        let mut dec: Vec<u8> = protected_user_key.decrypt_with_key(&device_private_key)?;
-        let user_key: SymmetricCryptoKey = dec.as_mut_slice().try_into()?;
+        let dec: Vec<u8> = protected_user_key.decrypt_with_key(&device_private_key)?;
+        let user_key = SymmetricCryptoKey::try_from(dec)?;
 
         Ok(user_key)
     }
@@ -78,12 +76,11 @@ impl DeviceKey {
     }
 }
 
-impl FromStr for DeviceKey {
-    type Err = CryptoError;
+impl TryFrom<String> for DeviceKey {
+    type Error = CryptoError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let key = s.parse::<SymmetricCryptoKey>()?;
-        Ok(DeviceKey(key))
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        SymmetricCryptoKey::try_from(value).map(DeviceKey)
     }
 }
 
@@ -98,10 +95,8 @@ mod tests {
 
         let result = DeviceKey::trust_device(&key).unwrap();
 
-        let decrypted = result
-            .device_key
-            .parse::<DeviceKey>()
-            .unwrap()
+        let device_key = DeviceKey::try_from(result.device_key).unwrap();
+        let decrypted = device_key
             .decrypt_user_key(
                 result.protected_device_private_key,
                 result.protected_user_key,

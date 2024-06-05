@@ -149,7 +149,8 @@ pub fn decrypt_aes128_hmac(
 
 /// Generate a MAC using HMAC-SHA256.
 fn generate_mac(mac_key: &[u8], iv: &[u8], data: &[u8]) -> Result<[u8; 32]> {
-    let mut hmac = PbkdfSha256Hmac::new_from_slice(mac_key).expect("HMAC can take key of any size");
+    let mut hmac =
+        PbkdfSha256Hmac::new_from_slice(mac_key).expect("hmac new_from_slice should not fail");
     hmac.update(iv);
     hmac.update(data);
     let mac: [u8; PBKDF_SHA256_HMAC_OUT_SIZE] = (*hmac.finalize().into_bytes())

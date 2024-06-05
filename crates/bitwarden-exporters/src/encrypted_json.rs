@@ -43,7 +43,7 @@ pub(crate) fn export_encrypted_json(
         ),
     };
 
-    let salt: [u8; 16] = generate_random_bytes();
+    let salt = generate_random_bytes::<[u8; 16]>();
     let salt = STANDARD.encode(salt);
     let key = PinKey::derive(password.as_bytes(), salt.as_bytes(), &kdf)?;
 

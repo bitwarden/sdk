@@ -5,11 +5,15 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::utils::{derive_kdf_key, stretch_kdf_key};
-use crate::{util, EncString, KeyDecryptable, Result, SymmetricCryptoKey, UserKey};
+use crate::{util, CryptoError, EncString, KeyDecryptable, Result, SymmetricCryptoKey, UserKey};
 
+/// Key Derivation Function for Bitwarden Account
+///
+/// In Bitwarden accounts can use multiple KDFs to derive their master key from their password. This
+/// Enum represents all the possible KDFs.
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum Kdf {
     PBKDF2 {
         iterations: NonZeroU32,
@@ -21,8 +25,34 @@ pub enum Kdf {
     },
 }
 
+impl Default for Kdf {
+    /// Default KDF for new accounts.
+    fn default() -> Self {
+        Kdf::PBKDF2 {
+            iterations: default_pbkdf2_iterations(),
+        }
+    }
+}
+
+/// Default PBKDF2 iterations
+pub fn default_pbkdf2_iterations() -> NonZeroU32 {
+    NonZeroU32::new(600_000).expect("Non-zero number")
+}
+/// Default Argon2 iterations
+pub fn default_argon2_iterations() -> NonZeroU32 {
+    NonZeroU32::new(3).expect("Non-zero number")
+}
+/// Default Argon2 memory
+pub fn default_argon2_memory() -> NonZeroU32 {
+    NonZeroU32::new(64).expect("Non-zero number")
+}
+/// Default Argon2 parallelism
+pub fn default_argon2_parallelism() -> NonZeroU32 {
+    NonZeroU32::new(4).expect("Non-zero number")
+}
+
 #[derive(Copy, Clone, JsonSchema)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum HashPurpose {
     ServerAuthorization = 1,
     LocalAuthorization = 2,
@@ -67,8 +97,11 @@ impl MasterKey {
         let stretched_key = stretch_kdf_key(&self.0)?;
 
         EncString::encrypt_aes256_hmac(
-            user_key.to_vec().as_slice(),
-            stretched_key.mac_key.as_ref().unwrap(),
+            &user_key.to_vec(),
+            stretched_key
+                .mac_key
+                .as_ref()
+                .ok_or(CryptoError::InvalidMac)?,
             &stretched_key.key,
         )
     }
@@ -96,8 +129,8 @@ mod tests {
     #[test]
     fn test_master_key_derive_pbkdf2() {
         let master_key = MasterKey::derive(
-            &b"67t9b5g67$%Dh89n"[..],
-            "test_key".as_bytes(),
+            b"67t9b5g67$%Dh89n",
+            b"test_key",
             &Kdf::PBKDF2 {
                 iterations: NonZeroU32::new(10000).unwrap(),
             },
@@ -117,8 +150,8 @@ mod tests {
     #[test]
     fn test_master_key_derive_argon2() {
         let master_key = MasterKey::derive(
-            &b"67t9b5g67$%Dh89n"[..],
-            "test_key".as_bytes(),
+            b"67t9b5g67$%Dh89n",
+            b"test_key",
             &Kdf::Argon2id {
                 iterations: NonZeroU32::new(4).unwrap(),
                 memory: NonZeroU32::new(32).unwrap(),
@@ -139,8 +172,8 @@ mod tests {
 
     #[test]
     fn test_password_hash_pbkdf2() {
-        let password = "asdfasdf".as_bytes();
-        let salt = "test_salt".as_bytes();
+        let password = b"asdfasdf";
+        let salt = b"test_salt";
         let kdf = Kdf::PBKDF2 {
             iterations: NonZeroU32::new(100_000).unwrap(),
         };
@@ -157,8 +190,8 @@ mod tests {
 
     #[test]
     fn test_password_hash_argon2id() {
-        let password = "asdfasdf".as_bytes();
-        let salt = "test_salt".as_bytes();
+        let password = b"asdfasdf";
+        let salt = b"test_salt";
         let kdf = Kdf::Argon2id {
             iterations: NonZeroU32::new(4).unwrap(),
             memory: NonZeroU32::new(32).unwrap(),

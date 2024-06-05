@@ -6,34 +6,34 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::error::{Error, Result};
+use crate::error::{require, Error, Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct Collection {
-    id: Option<Uuid>,
-    organization_id: Uuid,
+    pub id: Option<Uuid>,
+    pub organization_id: Uuid,
 
-    name: EncString,
+    pub name: EncString,
 
-    external_id: Option<String>,
-    hide_passwords: bool,
-    read_only: bool,
+    pub external_id: Option<String>,
+    pub hide_passwords: bool,
+    pub read_only: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct CollectionView {
-    id: Option<Uuid>,
-    organization_id: Uuid,
+    pub id: Option<Uuid>,
+    pub organization_id: Uuid,
 
-    name: String,
+    pub name: String,
 
-    external_id: Option<String>,
-    hide_passwords: bool,
-    read_only: bool,
+    pub external_id: Option<String>,
+    pub hide_passwords: bool,
+    pub read_only: bool,
 }
 
 impl LocateKey for Collection {
@@ -66,8 +66,8 @@ impl TryFrom<CollectionDetailsResponseModel> for Collection {
     fn try_from(collection: CollectionDetailsResponseModel) -> Result<Self> {
         Ok(Collection {
             id: collection.id,
-            organization_id: collection.organization_id.ok_or(Error::MissingFields)?,
-            name: collection.name.ok_or(Error::MissingFields)?.parse()?,
+            organization_id: require!(collection.organization_id),
+            name: require!(collection.name).parse()?,
             external_id: collection.external_id,
             hide_passwords: collection.hide_passwords.unwrap_or(false),
             read_only: collection.read_only.unwrap_or(false),

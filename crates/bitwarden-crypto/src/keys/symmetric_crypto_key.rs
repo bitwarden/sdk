@@ -1,10 +1,10 @@
-use std::{pin::Pin, str::FromStr};
+use std::pin::Pin;
 
 use aes::cipher::typenum::U32;
 use base64::{engine::general_purpose::STANDARD, Engine};
 use generic_array::GenericArray;
 use rand::Rng;
-use zeroize::{Zeroize, Zeroizing};
+use zeroize::Zeroize;
 
 use super::key_encryptable::CryptoKey;
 use crate::CryptoError;
@@ -60,30 +60,36 @@ impl SymmetricCryptoKey {
     }
 
     pub fn to_base64(&self) -> String {
-        let mut buf = self.to_vec();
-
-        let result = STANDARD.encode(&buf);
-        buf.zeroize();
-        result
+        STANDARD.encode(self.to_vec())
     }
 
-    pub fn to_vec(&self) -> Zeroizing<Vec<u8>> {
+    pub fn to_vec(&self) -> Vec<u8> {
         let mut buf = Vec::with_capacity(self.total_len());
 
         buf.extend_from_slice(&self.key);
         if let Some(mac) = &self.mac_key {
             buf.extend_from_slice(mac);
         }
-        Zeroizing::new(buf)
+        buf
     }
 }
 
-impl FromStr for SymmetricCryptoKey {
-    type Err = CryptoError;
+impl TryFrom<String> for SymmetricCryptoKey {
+    type Error = CryptoError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut bytes = STANDARD.decode(s).map_err(|_| CryptoError::InvalidKey)?;
-        SymmetricCryptoKey::try_from(bytes.as_mut_slice())
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        let b = STANDARD
+            .decode(value)
+            .map_err(|_| CryptoError::InvalidKey)?;
+        SymmetricCryptoKey::try_from(b)
+    }
+}
+
+impl TryFrom<Vec<u8>> for SymmetricCryptoKey {
+    type Error = CryptoError;
+
+    fn try_from(mut value: Vec<u8>) -> Result<Self, Self::Error> {
+        SymmetricCryptoKey::try_from(value.as_mut_slice())
     }
 }
 
@@ -130,27 +136,27 @@ impl std::fmt::Debug for SymmetricCryptoKey {
 
 #[cfg(test)]
 pub fn derive_symmetric_key(name: &str) -> SymmetricCryptoKey {
+    use zeroize::Zeroizing;
+
     use crate::{derive_shareable_key, generate_random_bytes};
 
-    let secret: [u8; 16] = generate_random_bytes();
+    let secret: Zeroizing<[u8; 16]> = generate_random_bytes();
     derive_shareable_key(secret, name, None)
 }
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
-
     use super::{derive_symmetric_key, SymmetricCryptoKey};
 
     #[test]
     fn test_symmetric_crypto_key() {
         let key = derive_symmetric_key("test");
-        let key2 = SymmetricCryptoKey::from_str(&key.to_base64()).unwrap();
+        let key2 = SymmetricCryptoKey::try_from(key.to_base64()).unwrap();
         assert_eq!(key.key, key2.key);
         assert_eq!(key.mac_key, key2.mac_key);
 
-        let key = "UY4B5N4DA4UisCNClgZtRr6VLy9ZF5BXXC7cDZRqourKi4ghEMgISbCsubvgCkHf5DZctQjVot11/vVvN9NNHQ==";
-        let key2 = SymmetricCryptoKey::from_str(key).unwrap();
+        let key = "UY4B5N4DA4UisCNClgZtRr6VLy9ZF5BXXC7cDZRqourKi4ghEMgISbCsubvgCkHf5DZctQjVot11/vVvN9NNHQ==".to_string();
+        let key2 = SymmetricCryptoKey::try_from(key.clone()).unwrap();
         assert_eq!(key, key2.to_base64());
     }
 }

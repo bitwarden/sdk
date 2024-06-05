@@ -10,7 +10,6 @@ pub mod ciphers;
 pub mod collections;
 pub mod folders;
 pub mod password_history;
-pub mod sends;
 
 #[derive(uniffi::Object)]
 pub struct ClientVault(pub(crate) Arc<Client>);
@@ -37,11 +36,6 @@ impl ClientVault {
         Arc::new(password_history::ClientPasswordHistory(self.0.clone()))
     }
 
-    /// Sends operations
-    pub fn sends(self: Arc<Self>) -> Arc<sends::ClientSends> {
-        Arc::new(sends::ClientSends(self.0.clone()))
-    }
-
     /// Attachment file operations
     pub fn attachments(self: Arc<Self>) -> Arc<attachments::ClientAttachments> {
         Arc::new(attachments::ClientAttachments(self.0.clone()))
@@ -58,6 +52,6 @@ impl ClientVault {
         key: String,
         time: Option<DateTime<Utc>>,
     ) -> Result<TotpResponse> {
-        Ok(self.0 .0.read().await.vault().generate_totp(key, time)?)
+        Ok(self.0 .0.write().await.vault().generate_totp(key, time)?)
     }
 }

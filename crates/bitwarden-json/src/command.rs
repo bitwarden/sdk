@@ -15,7 +15,8 @@ use bitwarden::{
 #[cfg(feature = "internal")]
 use bitwarden::{
     auth::login::{ApiKeyLoginRequest, PasswordLoginRequest},
-    platform::{FingerprintRequest, SecretVerificationRequest, SyncRequest},
+    platform::{FingerprintRequest, SecretVerificationRequest},
+    vault::SyncRequest,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -68,7 +69,7 @@ pub enum Command {
     /// > Requires Authentication
     /// Retrieve all user data, ciphers and organizations the user is a part of
     ///
-    /// Returns: [SyncResponse](bitwarden::platform::SyncResponse)
+    /// Returns: [SyncResponse](bitwarden::vault::SyncResponse)
     Sync(SyncRequest),
 
     #[cfg(feature = "secrets")]

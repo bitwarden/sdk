@@ -1,16 +1,29 @@
 mod cipher;
+pub use cipher::*;
+
+#[cfg(feature = "internal")]
+mod client_vault;
+#[cfg(feature = "internal")]
+pub use client_vault::ClientVault;
+
 mod collection;
+pub use collection::{Collection, CollectionView};
+
 mod folder;
+pub use folder::{Folder, FolderView};
+
 mod password_history;
-mod send;
+pub use password_history::{PasswordHistory, PasswordHistoryView};
+
+#[cfg(feature = "internal")]
+mod sync;
+#[cfg(feature = "internal")]
+pub use sync::{SyncRequest, SyncResponse};
+#[cfg(feature = "internal")]
+mod domain;
+
 #[cfg(feature = "internal")]
 mod totp;
-
-pub use cipher::*;
-pub use collection::{Collection, CollectionView};
-pub use folder::{Folder, FolderView};
-pub use password_history::{PasswordHistory, PasswordHistoryView};
-pub use send::{Send, SendListView, SendView};
 #[cfg(feature = "internal")]
 pub(crate) use totp::generate_totp;
 #[cfg(feature = "internal")]

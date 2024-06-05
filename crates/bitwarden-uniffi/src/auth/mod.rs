@@ -4,9 +4,7 @@ use bitwarden::auth::{
     password::MasterPasswordPolicyOptions, AuthRequestResponse, RegisterKeyResponse,
     RegisterTdeKeyResponse,
 };
-use bitwarden_crypto::{
-    AsymmetricEncString, HashPurpose, Kdf, SensitiveString, TrustDeviceResponse,
-};
+use bitwarden_crypto::{AsymmetricEncString, HashPurpose, Kdf, TrustDeviceResponse};
 
 use crate::{error::Result, Client};
 
@@ -18,7 +16,7 @@ impl ClientAuth {
     /// **API Draft:** Calculate Password Strength
     pub async fn password_strength(
         &self,
-        password: SensitiveString,
+        password: String,
         email: String,
         additional_inputs: Vec<String>,
     ) -> u8 {
@@ -34,7 +32,7 @@ impl ClientAuth {
     /// Evaluate if the provided password satisfies the provided policy
     pub async fn satisfies_policy(
         &self,
-        password: SensitiveString,
+        password: String,
         strength: u8,
         policy: MasterPasswordPolicyOptions,
     ) -> bool {
@@ -51,10 +49,10 @@ impl ClientAuth {
     pub async fn hash_password(
         &self,
         email: String,
-        password: SensitiveString,
+        password: String,
         kdf_params: Kdf,
         purpose: HashPurpose,
-    ) -> Result<SensitiveString> {
+    ) -> Result<String> {
         Ok(self
             .0
              .0
@@ -69,7 +67,7 @@ impl ClientAuth {
     pub async fn make_register_keys(
         &self,
         email: String,
-        password: SensitiveString,
+        password: String,
         kdf: Kdf,
     ) -> Result<RegisterKeyResponse> {
         Ok(self
@@ -100,11 +98,7 @@ impl ClientAuth {
     /// To retrieve the user's password hash, use [`ClientAuth::hash_password`] with
     /// `HashPurpose::LocalAuthentication` during login and persist it. If the login method has no
     /// password, use the email OTP.
-    pub async fn validate_password(
-        &self,
-        password: SensitiveString,
-        password_hash: SensitiveString,
-    ) -> Result<bool> {
+    pub async fn validate_password(&self, password: String, password_hash: String) -> Result<bool> {
         Ok(self
             .0
              .0
@@ -122,9 +116,9 @@ impl ClientAuth {
     /// This works by comparing the provided password against the encrypted user key.
     pub async fn validate_password_user_key(
         &self,
-        password: SensitiveString,
+        password: String,
         encrypted_user_key: String,
-    ) -> Result<SensitiveString> {
+    ) -> Result<String> {
         Ok(self
             .0
              .0

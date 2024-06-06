@@ -5,7 +5,7 @@ set -u
 # An installer for the bws command line utility. #
 ##################################################
 
-BWS_VERSION="${BWS_VERSION:-0.4.0}"
+BWS_VERSION="${BWS_VERSION:-0.5.0}"
 
 main() {
   check_required

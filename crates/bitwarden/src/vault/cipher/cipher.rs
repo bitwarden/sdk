@@ -343,10 +343,12 @@ fn build_subtitle_identity(first_name: Option<String>, last_name: Option<String>
 
 impl CipherView {
     pub fn generate_cipher_key(&mut self, key: &SymmetricCryptoKey) -> Result<()> {
-        let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
-        let key = ciphers_key.as_ref().unwrap_or(key);
+        let old_ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
+        let old_key = old_ciphers_key.as_ref().unwrap_or(key);
 
         let new_key = SymmetricCryptoKey::generate(rand::thread_rng());
+
+        self.reencrypt_attachment_keys(old_key, &new_key)?;
 
         self.key = Some(new_key.to_vec().encrypt_with_key(key)?);
         Ok(())
@@ -364,6 +366,30 @@ impl CipherView {
         if let Some(uris) = self.login.as_mut().and_then(|l| l.uris.as_mut()) {
             uris.retain(|u| u.is_checksum_valid());
         }
+    }
+
+    fn reencrypt_attachment_keys(
+        &mut self,
+        old_key: &SymmetricCryptoKey,
+        new_key: &SymmetricCryptoKey,
+    ) -> Result<()> {
+        // If the cipher does not have a key, we need to reencrypt all attachment keys
+        if let Some(attachments) = &mut self.attachments {
+            // If any attachment is missing a key we can't move the cipher
+            if attachments.iter().any(|a| a.key.is_none()) {
+                return Err("This cipher contains attachments without keys. Those attachments need to be reuploaded before the cipher can be moved".into());
+            }
+
+            for attachment in attachments {
+                let attachment_key = attachment
+                    .key
+                    .as_mut()
+                    .expect("Key is asserted to be present");
+                let dec_attachment_key: Vec<u8> = attachment_key.decrypt_with_key(old_key)?;
+                *attachment_key = dec_attachment_key.encrypt_with_key(new_key)?;
+            }
+        }
+        Ok(())
     }
 
     pub fn move_to_organization(
@@ -384,22 +410,7 @@ impl CipherView {
             let dec_cipher_key: Vec<u8> = cipher_key.decrypt_with_key(old_key)?;
             *cipher_key = dec_cipher_key.encrypt_with_key(new_key)?;
         } else {
-            // If the cipher does not have a key, we need to reencrypt all attachment keys
-            if let Some(attachments) = &mut self.attachments {
-                // If any attachment is missing a key we can't move the cipher
-                if attachments.iter().any(|a| a.key.is_none()) {
-                    return Err("This cipher contains attachments without keys. Those attachments need to be reuploaded before the cipher can be moved".into());
-                }
-
-                for attachment in attachments {
-                    let attachment_key = attachment
-                        .key
-                        .as_mut()
-                        .expect("Key is asserted to be present");
-                    let dec_attachment_key: Vec<u8> = attachment_key.decrypt_with_key(old_key)?;
-                    *attachment_key = dec_attachment_key.encrypt_with_key(new_key)?;
-                }
-            }
+            self.reencrypt_attachment_keys(old_key, new_key)?;
         }
 
         self.organization_id = Some(organization_id);
@@ -624,6 +635,22 @@ mod tests {
         let key_cipher_dec: CipherView = key_cipher_enc.decrypt_with_key(&key).unwrap();
         assert!(key_cipher_dec.key.is_some());
         assert_eq!(key_cipher_dec.name, original_cipher.name);
+    }
+
+    #[test]
+    fn test_generate_cipher_key_when_a_cipher_key_already_exists() {
+        let key = SymmetricCryptoKey::generate(rand::thread_rng());
+
+        let cipher_key = SymmetricCryptoKey::generate(rand::thread_rng());
+        let cipher_key = cipher_key.to_vec().encrypt_with_key(&key).unwrap();
+
+        let mut original_cipher = generate_cipher();
+        original_cipher.key = Some(cipher_key.clone());
+
+        original_cipher.generate_cipher_key(&key).unwrap();
+
+        // Make sure that the cipher key is decryptable
+        let _: Vec<u8> = original_cipher.key.unwrap().decrypt_with_key(&key).unwrap();
     }
 
     struct MockKeyContainer(HashMap<Option<Uuid>, SymmetricCryptoKey>);

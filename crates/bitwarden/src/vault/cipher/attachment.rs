@@ -43,6 +43,11 @@ pub struct AttachmentEncryptResult {
 pub struct AttachmentFile {
     pub cipher: Cipher,
     pub attachment: Attachment,
+
+    /// There are three different ways attachments are encrypted.
+    /// 1. UserKey / OrgKey (Contents) - Legacy
+    /// 2. AttachmentKey(Contents) - Pre CipherKey
+    /// 3. CipherKey(AttachmentKey(Contents)) - Current
     pub contents: EncString,
 }
 
@@ -80,20 +85,16 @@ impl KeyDecryptable<SymmetricCryptoKey, Vec<u8>> for AttachmentFile {
         let ciphers_key = Cipher::get_cipher_key(key, &self.cipher.key)?;
         let ciphers_key = ciphers_key.as_ref().unwrap_or(key);
 
-        // Decrypt the attachment key if there is one
-        let attachment_key = self
-            .attachment
-            .key
-            .as_ref()
-            .map(|k| {
-                let mut attachment_key: Vec<u8> = k.decrypt_with_key(ciphers_key)?;
-                SymmetricCryptoKey::try_from(attachment_key.as_mut_slice())
-            })
-            .transpose()?;
+        // Version 2 or 3, `AttachmentKey` or `CipherKey(AttachmentKey)`
+        if let Some(attachment_key) = &self.attachment.key {
+            let mut content_key: Vec<u8> = attachment_key.decrypt_with_key(ciphers_key)?;
+            let content_key = SymmetricCryptoKey::try_from(content_key.as_mut_slice())?;
 
-        let final_key = attachment_key.as_ref().unwrap_or(ciphers_key);
-
-        self.contents.decrypt_with_key(final_key)
+            self.contents.decrypt_with_key(&content_key)
+        } else {
+            // Legacy attachment version 1, use user/org key
+            self.contents.decrypt_with_key(key)
+        }
     }
 }
 

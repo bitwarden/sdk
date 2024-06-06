@@ -33,6 +33,25 @@ function Invoke-BwsDownload {
   return $outputPath
 }
 
+function Validate-Checksum {
+  param($zipPath)
+  Write-Host "Validating checksum..."
+  
+  $checksumUrl = "https://github.com/bitwarden/sdk/releases/download/bws-v$bwsVersion/bws-sha256-checksums-$bwsVersion.txt"
+  $checksumFile = Join-Path $env:TEMP "bws-checksums.txt"
+  Invoke-WebRequest -Uri $checksumUrl -OutFile $checksumFile
+
+  $expectedChecksum = (Get-Content $checksumFile | Where-Object { $_ -match "bws-(.*?)-pc-windows-msvc-$bwsVersion.zip" }).Split(" ")[0]
+  
+  $actualChecksum = (Get-FileHash -Algorithm SHA256 -Path $zipPath).Hash
+
+  if ($actualChecksum -ne $expectedChecksum) {
+    throw "Checksum validation failed. Expected: $expectedChecksum, Actual: $actualChecksum"
+  } else {
+    Write-Host "Checksum validation successful."
+  }
+}
+
 function Install-Bws {
   param($zipPath)
   Write-Host "Installing bws..."
@@ -56,5 +75,7 @@ function Test-Bws {
 
 Test-BwsInstallation
 $zipPath = Invoke-BwsDownload
+Validate-Checksum -zipPath $zipPath
 Install-Bws -zipPath $zipPath
 Test-Bws
+

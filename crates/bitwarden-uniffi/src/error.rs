@@ -14,23 +14,6 @@ impl From<bitwarden::error::Error> for BitwardenError {
     }
 }
 
-impl From<BitwardenError> for bitwarden::error::Error {
-    fn from(val: BitwardenError) -> Self {
-        match val {
-            BitwardenError::E(e) => e,
-        }
-    }
-}
-
-// Need to implement this From<> impl in order to handle unexpected callback errors.  See the
-// following page in the Uniffi user guide:
-// <https://mozilla.github.io/uniffi-rs/foreign_traits.html#error-handling>
-impl From<uniffi::UnexpectedUniFFICallbackError> for BitwardenError {
-    fn from(e: uniffi::UnexpectedUniFFICallbackError) -> Self {
-        Self::E(bitwarden::error::Error::UniffiCallback(e))
-    }
-}
-
 impl Display for BitwardenError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {

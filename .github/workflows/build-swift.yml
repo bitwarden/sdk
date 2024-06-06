@@ -55,7 +55,6 @@ jobs:
         working-directory: languages/swift
         id: build
         run: |
-          chmod +x build.sh
           ./build.sh
 
           # SHA Short

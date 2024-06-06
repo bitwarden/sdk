@@ -14,6 +14,11 @@ impl Client {
     pub async fn init_test_account(account: TestAccount) -> Self {
         let mut client = Client::new(None);
 
+        client.load_flags(HashMap::from([(
+            "enableCipherKeyEncryption".to_owned(),
+            true,
+        )]));
+
         initialize_user_crypto(&mut client, account.user)
             .await
             .unwrap();

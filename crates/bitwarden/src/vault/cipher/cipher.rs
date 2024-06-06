@@ -343,10 +343,12 @@ fn build_subtitle_identity(first_name: Option<String>, last_name: Option<String>
 
 impl CipherView {
     pub fn generate_cipher_key(&mut self, key: &SymmetricCryptoKey) -> Result<()> {
-        let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
-        let key = ciphers_key.as_ref().unwrap_or(key);
+        let old_ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
+        let old_key = old_ciphers_key.as_ref().unwrap_or(key);
 
         let new_key = SymmetricCryptoKey::generate(rand::thread_rng());
+
+        self.reencrypt_attachment_keys(old_key, &new_key)?;
 
         self.key = Some(new_key.to_vec().encrypt_with_key(key)?);
         Ok(())
@@ -366,23 +368,47 @@ impl CipherView {
         }
     }
 
+    fn reencrypt_attachment_keys(
+        &mut self,
+        old_key: &SymmetricCryptoKey,
+        new_key: &SymmetricCryptoKey,
+    ) -> Result<()> {
+        if let Some(attachments) = &mut self.attachments {
+            for attachment in attachments {
+                if let Some(attachment_key) = &mut attachment.key {
+                    let dec_attachment_key: Vec<u8> = attachment_key.decrypt_with_key(old_key)?;
+                    *attachment_key = dec_attachment_key.encrypt_with_key(new_key)?;
+                }
+            }
+        }
+        Ok(())
+    }
+
     pub fn move_to_organization(
         &mut self,
         enc: &dyn KeyContainer,
         organization_id: Uuid,
     ) -> Result<()> {
+        let old_key = enc
+            .get_key(&self.organization_id)
+            .ok_or(Error::VaultLocked)?;
+
+        let new_key = enc
+            .get_key(&Some(organization_id))
+            .ok_or(Error::VaultLocked)?;
+
+        // If any attachment is missing a key we can't reencrypt the attachment keys
+        if self.attachments.iter().flatten().any(|a| a.key.is_none()) {
+            return Err("This cipher contains attachments without keys. Those attachments will need to be reuploaded to complete the operation".into());
+        }
+
         // If the cipher has a key, we need to re-encrypt it with the new organization key
         if let Some(cipher_key) = &mut self.key {
-            let old_key = enc
-                .get_key(&self.organization_id)
-                .ok_or(Error::VaultLocked)?;
-
-            let new_key = enc
-                .get_key(&Some(organization_id))
-                .ok_or(Error::VaultLocked)?;
-
             let dec_cipher_key: Vec<u8> = cipher_key.decrypt_with_key(old_key)?;
             *cipher_key = dec_cipher_key.encrypt_with_key(new_key)?;
+        } else {
+            // If the cipher does not have a key, we need to reencrypt all attachment keys
+            self.reencrypt_attachment_keys(old_key, new_key)?;
         }
 
         self.organization_id = Some(organization_id);
@@ -545,6 +571,8 @@ mod tests {
 
     use std::collections::HashMap;
 
+    use attachment::AttachmentView;
+
     use super::*;
 
     fn generate_cipher() -> CipherView {
@@ -607,6 +635,41 @@ mod tests {
         assert_eq!(key_cipher_dec.name, original_cipher.name);
     }
 
+    #[test]
+    fn test_generate_cipher_key_when_a_cipher_key_already_exists() {
+        let key = SymmetricCryptoKey::generate(rand::thread_rng());
+
+        let cipher_key = SymmetricCryptoKey::generate(rand::thread_rng());
+        let cipher_key = cipher_key.to_vec().encrypt_with_key(&key).unwrap();
+
+        let mut original_cipher = generate_cipher();
+        original_cipher.key = Some(cipher_key.clone());
+
+        original_cipher.generate_cipher_key(&key).unwrap();
+
+        // Make sure that the cipher key is decryptable
+        let _: Vec<u8> = original_cipher.key.unwrap().decrypt_with_key(&key).unwrap();
+    }
+
+    #[test]
+    fn test_generate_cipher_key_ignores_attachments_without_key() {
+        let key = SymmetricCryptoKey::generate(rand::thread_rng());
+
+        let mut cipher = generate_cipher();
+        let attachment = AttachmentView {
+            id: None,
+            url: None,
+            size: None,
+            size_name: None,
+            file_name: Some("Attachment test name".into()),
+            key: None,
+        };
+        cipher.attachments = Some(vec![attachment]);
+
+        cipher.generate_cipher_key(&key).unwrap();
+        assert!(cipher.attachments.unwrap()[0].key.is_none());
+    }
+
     struct MockKeyContainer(HashMap<Option<Uuid>, SymmetricCryptoKey>);
     impl KeyContainer for MockKeyContainer {
         fn get_key<'a>(&'a self, org_id: &Option<Uuid>) -> Option<&'a SymmetricCryptoKey> {
@@ -661,6 +724,131 @@ mod tests {
         // cipher key is tied to the user key and not the org key
         let org_key = enc.get_key(&Some(org)).unwrap();
         assert!(cipher.encrypt_with_key(org_key).is_err());
+    }
+
+    #[test]
+    fn test_move_user_cipher_with_attachment_without_key_to_org() {
+        let org = uuid::Uuid::new_v4();
+
+        let enc = MockKeyContainer(HashMap::from([
+            (None, SymmetricCryptoKey::generate(rand::thread_rng())),
+            (Some(org), SymmetricCryptoKey::generate(rand::thread_rng())),
+        ]));
+
+        let mut cipher = generate_cipher();
+        let attachment = AttachmentView {
+            id: None,
+            url: None,
+            size: None,
+            size_name: None,
+            file_name: Some("Attachment test name".into()),
+            key: None,
+        };
+        cipher.attachments = Some(vec![attachment]);
+
+        // Neither cipher nor attachment have keys, so the cipher can't be moved
+        assert!(cipher.move_to_organization(&enc, org).is_err());
+    }
+
+    #[test]
+    fn test_move_user_cipher_with_attachment_with_key_to_org() {
+        let org = uuid::Uuid::new_v4();
+
+        let enc = MockKeyContainer(HashMap::from([
+            (None, SymmetricCryptoKey::generate(rand::thread_rng())),
+            (Some(org), SymmetricCryptoKey::generate(rand::thread_rng())),
+        ]));
+
+        // Attachment has a key that is encrypted with the user key, as the cipher has no key itself
+        let attachment_key = SymmetricCryptoKey::generate(rand::thread_rng());
+        let attachment_key_enc = attachment_key
+            .to_vec()
+            .encrypt_with_key(enc.get_key(&None).unwrap())
+            .unwrap();
+
+        let mut cipher = generate_cipher();
+        let attachment = AttachmentView {
+            id: None,
+            url: None,
+            size: None,
+            size_name: None,
+            file_name: Some("Attachment test name".into()),
+            key: Some(attachment_key_enc),
+        };
+        cipher.attachments = Some(vec![attachment]);
+
+        cipher.move_to_organization(&enc, org).unwrap();
+
+        assert!(cipher.key.is_none());
+
+        // Check that the attachment key has been re-encrypted with the org key,
+        // and the value matches with the original attachment key
+        let new_attachment_key = cipher.attachments.unwrap()[0].key.clone().unwrap();
+        let new_attachment_key_dec: Vec<_> = new_attachment_key
+            .decrypt_with_key(enc.get_key(&Some(org)).unwrap())
+            .unwrap();
+        let new_attachment_key_dec: SymmetricCryptoKey = new_attachment_key_dec.try_into().unwrap();
+        assert_eq!(new_attachment_key_dec.to_vec(), attachment_key.to_vec());
+    }
+
+    #[test]
+    fn test_move_user_cipher_with_key_with_attachment_with_key_to_org() {
+        let org = uuid::Uuid::new_v4();
+
+        let enc = MockKeyContainer(HashMap::from([
+            (None, SymmetricCryptoKey::generate(rand::thread_rng())),
+            (Some(org), SymmetricCryptoKey::generate(rand::thread_rng())),
+        ]));
+
+        let cipher_key = SymmetricCryptoKey::generate(rand::thread_rng());
+        let cipher_key_enc = cipher_key
+            .to_vec()
+            .encrypt_with_key(enc.get_key(&None).unwrap())
+            .unwrap();
+
+        // Attachment has a key that is encrypted with the cipher key
+        let attachment_key = SymmetricCryptoKey::generate(rand::thread_rng());
+        let attachment_key_enc = attachment_key
+            .to_vec()
+            .encrypt_with_key(&cipher_key)
+            .unwrap();
+
+        let mut cipher = generate_cipher();
+        cipher.key = Some(cipher_key_enc);
+
+        let attachment = AttachmentView {
+            id: None,
+            url: None,
+            size: None,
+            size_name: None,
+            file_name: Some("Attachment test name".into()),
+            key: Some(attachment_key_enc.clone()),
+        };
+        cipher.attachments = Some(vec![attachment]);
+
+        cipher.move_to_organization(&enc, org).unwrap();
+
+        // Check that the cipher key has been re-encrypted with the org key,
+        let new_cipher_key_dec: Vec<_> = cipher
+            .key
+            .clone()
+            .unwrap()
+            .decrypt_with_key(enc.get_key(&Some(org)).unwrap())
+            .unwrap();
+
+        let new_cipher_key_dec: SymmetricCryptoKey = new_cipher_key_dec.try_into().unwrap();
+
+        assert_eq!(new_cipher_key_dec.to_vec(), cipher_key.to_vec());
+
+        // Check that the attachment key hasn't changed
+        assert_eq!(
+            cipher.attachments.unwrap()[0]
+                .key
+                .as_ref()
+                .unwrap()
+                .to_string(),
+            attachment_key_enc.to_string()
+        );
     }
 
     #[test]

@@ -78,7 +78,6 @@ downloader() {
 }
 
 extract() {
-  # TODO: support other zip utilities
   unzip -o "$1" -d "$2"
 }
 
@@ -131,7 +130,7 @@ install_bws() {
       error "Installation failed. bws was not found in ${user_bin_dir}"
     fi
 
-    echo "bws installed to ${user_bin_dir}/bws"
+    echo "bws installed at ${user_bin_dir}/bws"
     echo "Please add ${user_bin_dir} to your PATH by adding the following line to your ~/.profile or shell rc file:"
     echo "export PATH=\"\$PATH:${user_bin_dir}\""
   fi

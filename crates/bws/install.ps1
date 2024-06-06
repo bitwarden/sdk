@@ -1,7 +1,8 @@
 $ErrorActionPreference = "Stop"
 
-$bwsVersion = "0.4.0"
-$installDir = [Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData) | Join-Path -ChildPath "Programs" | Join-Path -ChildPath "bws"
+$bwsVersion = if ($env:bwsVersion) { $env:bwsVersion } else { "0.4.0" }
+$installDir = [Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData) | Join-Path -ChildPath "Programs" | Join-Path -C
+hildPath "Bitwarden"
 
 function Test-BwsInstallation {
   $existingBws = Get-Command bws -ErrorAction SilentlyContinue

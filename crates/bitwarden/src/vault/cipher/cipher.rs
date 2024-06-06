@@ -348,7 +348,7 @@ impl CipherView {
 
         let new_key = SymmetricCryptoKey::generate(rand::thread_rng());
 
-        self.reencrypt_attachment_keys(old_key, &new_key)?;
+        self.reencrypt_attachment_keys(old_key, &new_key, true)?;
 
         self.key = Some(new_key.to_vec().encrypt_with_key(key)?);
         Ok(())
@@ -372,20 +372,19 @@ impl CipherView {
         &mut self,
         old_key: &SymmetricCryptoKey,
         new_key: &SymmetricCryptoKey,
+        ignore_null_keys: bool,
     ) -> Result<()> {
         if let Some(attachments) = &mut self.attachments {
             // If any attachment is missing a key we can't reencrypt the attachment keys
-            if attachments.iter().any(|a| a.key.is_none()) {
+            if !ignore_null_keys && attachments.iter().any(|a| a.key.is_none()) {
                 return Err("This cipher contains attachments without keys. Those attachments will need to be reuploaded to complete the operation".into());
             }
 
             for attachment in attachments {
-                let attachment_key = attachment
-                    .key
-                    .as_mut()
-                    .expect("Key is asserted to be present");
-                let dec_attachment_key: Vec<u8> = attachment_key.decrypt_with_key(old_key)?;
-                *attachment_key = dec_attachment_key.encrypt_with_key(new_key)?;
+                if let Some(attachment_key) = &mut attachment.key {
+                    let dec_attachment_key: Vec<u8> = attachment_key.decrypt_with_key(old_key)?;
+                    *attachment_key = dec_attachment_key.encrypt_with_key(new_key)?;
+                }
             }
         }
         Ok(())
@@ -410,7 +409,7 @@ impl CipherView {
             *cipher_key = dec_cipher_key.encrypt_with_key(new_key)?;
         } else {
             // If the cipher does not have a key, we need to reencrypt all attachment keys
-            self.reencrypt_attachment_keys(old_key, new_key)?;
+            self.reencrypt_attachment_keys(old_key, new_key, false)?;
         }
 
         self.organization_id = Some(organization_id);
@@ -651,6 +650,25 @@ mod tests {
 
         // Make sure that the cipher key is decryptable
         let _: Vec<u8> = original_cipher.key.unwrap().decrypt_with_key(&key).unwrap();
+    }
+
+    #[test]
+    fn test_generate_cipher_key_ignores_attachments_without_key() {
+        let key = SymmetricCryptoKey::generate(rand::thread_rng());
+
+        let mut cipher = generate_cipher();
+        let attachment = AttachmentView {
+            id: None,
+            url: None,
+            size: None,
+            size_name: None,
+            file_name: Some("Attachment test name".into()),
+            key: None,
+        };
+        cipher.attachments = Some(vec![attachment]);
+
+        cipher.generate_cipher_key(&key).unwrap();
+        assert!(cipher.attachments.unwrap()[0].key.is_none());
     }
 
     struct MockKeyContainer(HashMap<Option<Uuid>, SymmetricCryptoKey>);

@@ -8,6 +8,8 @@ use bitwarden_api_identity::apis::Error as IdentityError;
 use bitwarden_exporters::ExportError;
 #[cfg(feature = "internal")]
 use bitwarden_generators::{PassphraseError, PasswordError, UsernameError};
+#[cfg(feature = "uniffi")]
+use passkey::client::WebauthnError;
 use reqwest::StatusCode;
 use thiserror::Error;
 
@@ -68,8 +70,27 @@ pub enum Error {
     #[error(transparent)]
     ExportError(#[from] ExportError),
 
+    #[cfg(feature = "uniffi")]
+    #[error("Webauthn error: {0:?}")]
+    WebauthnError(WebauthnError),
+
+    #[cfg(feature = "uniffi")]
+    #[error("Uniffi callback error: {0}")]
+    UniffiCallbackError(#[from] uniffi::UnexpectedUniFFICallbackError),
+
+    #[cfg(feature = "uniffi")]
+    #[error("Fido2 Callback error: {0:?}")]
+    Fido2CallbackError(#[from] crate::platform::fido2::Fido2CallbackError),
+
     #[error("Internal error: {0}")]
     Internal(Cow<'static, str>),
+}
+
+#[cfg(feature = "uniffi")]
+impl From<WebauthnError> for Error {
+    fn from(e: WebauthnError) -> Self {
+        Self::WebauthnError(e)
+    }
 }
 
 impl From<String> for Error {

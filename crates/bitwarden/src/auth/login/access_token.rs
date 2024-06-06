@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
-use base64::engine::general_purpose::STANDARD;
-use bitwarden_crypto::{EncString, KeyDecryptable, SensitiveString, SymmetricCryptoKey};
+use base64::{engine::general_purpose::STANDARD, Engine};
+use bitwarden_crypto::{EncString, KeyDecryptable, SymmetricCryptoKey};
 use chrono::Utc;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -59,11 +59,11 @@ pub(crate) async fn login_access_token(
         #[derive(serde::Deserialize)]
         struct Payload {
             #[serde(rename = "encryptionKey")]
-            encryption_key: SensitiveString,
+            encryption_key: String,
         }
 
         let payload: Payload = serde_json::from_slice(&decrypted_payload)?;
-        let encryption_key = payload.encryption_key.clone().decode_base64(STANDARD)?;
+        let encryption_key = STANDARD.decode(&payload.encryption_key)?;
         let encryption_key = SymmetricCryptoKey::try_from(encryption_key)?;
 
         let access_token_obj: JWTToken = r.access_token.parse()?;

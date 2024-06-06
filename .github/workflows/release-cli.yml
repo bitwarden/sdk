@@ -29,7 +29,7 @@ jobs:
       release-version: ${{ steps.version.outputs.version }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
 
       - name: Branch check
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
@@ -106,7 +106,7 @@ jobs:
 
       - name: Update deployment status to Success
         if: ${{ github.event.inputs.release_type != 'Dry Run' && success() }}
-        uses: chrnorm/deployment-status@2afb7d27101260f4a764219439564d954d10b5b0 # v2.0.1
+        uses: chrnorm/deployment-status@9a72af4586197112e0491ea843682b5dc280d806 # v2.0.3
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
           state: "success"
@@ -114,7 +114,7 @@ jobs:
 
       - name: Update deployment status to Failure
         if: ${{ github.event.inputs.release_type != 'Dry Run' && failure() }}
-        uses: chrnorm/deployment-status@2afb7d27101260f4a764219439564d954d10b5b0 # v2.0.1
+        uses: chrnorm/deployment-status@9a72af4586197112e0491ea843682b5dc280d806 # v2.0.3
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
           state: "failure"
@@ -127,7 +127,7 @@ jobs:
       - setup
     steps:
       - name: Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
 
       - name: Login to Azure
         uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
@@ -142,7 +142,7 @@ jobs:
           secrets: "cratesio-api-token"
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@bb45937a053e097f8591208d8e74c90db1873d07 # stable
+        uses: dtolnay/rust-toolchain@d8352f6b1d2e870bc5716e7a6d9b65c4cc244a1a # stable
         with:
           toolchain: stable
 
@@ -165,7 +165,7 @@ jobs:
     needs: setup
     steps:
       - name: Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
 
       - name: Generate tag list
         id: tag-list
@@ -186,7 +186,7 @@ jobs:
         uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
+        uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16ece964efeb # v3.3.0
 
       ########## Login to Docker registries ##########
       - name: Login to Azure - Prod Subscription
@@ -216,7 +216,7 @@ jobs:
           azure-keyvault-name: "bitwarden-ci"
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
+        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0 # v5.3.0
         with:
           context: .
           file: crates/bws/Dockerfile

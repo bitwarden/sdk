@@ -1,5 +1,8 @@
 [package]
 name = "bitwarden-cli"
+description = """
+Internal crate for the bws crate. Do not use.
+"""
 
 version.workspace = true
 authors.workspace = true
@@ -11,9 +14,9 @@ license-file.workspace = true
 keywords.workspace = true
 
 [dependencies]
-clap = { version = "4.5.1", features = ["derive"] }
-color-eyre = "0.6"
-inquire = "0.6.2"
+clap = { version = "4.5.4", features = ["derive"] }
+color-eyre = "0.6.3"
+inquire = "0.7.0"
 supports-color = "3.0.0"
 
 [lints]

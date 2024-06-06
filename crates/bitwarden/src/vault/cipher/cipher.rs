@@ -1,6 +1,6 @@
 use bitwarden_api_api::models::CipherDetailsResponseModel;
 use bitwarden_crypto::{
-    CryptoError, EncString, KeyContainer, KeyDecryptable, KeyEncryptable, LocateKey, SensitiveVec,
+    CryptoError, EncString, KeyContainer, KeyDecryptable, KeyEncryptable, LocateKey,
     SymmetricCryptoKey,
 };
 use chrono::{DateTime, Utc};
@@ -14,6 +14,8 @@ use super::{
     local_data::{LocalData, LocalDataView},
     login, secure_note,
 };
+#[cfg(feature = "uniffi")]
+use crate::vault::Fido2CredentialFullView;
 use crate::{
     error::{require, Error, Result},
     vault::password_history,
@@ -21,7 +23,7 @@ use crate::{
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum CipherType {
     Login = 1,
     SecureNote = 2,
@@ -31,15 +33,15 @@ pub enum CipherType {
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum CipherRepromptType {
     None = 0,
     Password = 1,
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct Cipher {
     pub id: Option<Uuid>,
     pub organization_id: Option<Uuid>,
@@ -75,9 +77,9 @@ pub struct Cipher {
     pub revision_date: DateTime<Utc>,
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct CipherView {
     pub id: Option<Uuid>,
     pub organization_id: Option<Uuid>,
@@ -113,7 +115,7 @@ pub struct CipherView {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct CipherListView {
     pub id: Option<Uuid>,
     pub organization_id: Option<Uuid>,
@@ -249,66 +251,106 @@ impl Cipher {
                 let Some(card) = &self.card else {
                     return Ok(String::new());
                 };
-                let mut sub_title = String::new();
 
-                if let Some(brand) = &card.brand {
-                    let brand: String = brand.decrypt_with_key(key)?;
-                    sub_title.push_str(&brand);
-                }
-
-                if let Some(number) = &card.number {
-                    let number: String = number.decrypt_with_key(key)?;
-                    let number_len = number.len();
-                    if number_len > 4 {
-                        if !sub_title.is_empty() {
-                            sub_title.push_str(", ");
-                        }
-
-                        // On AMEX cards we show 5 digits instead of 4
-                        let digit_count = match &number[0..2] {
-                            "34" | "37" => 5,
-                            _ => 4,
-                        };
-
-                        sub_title.push_str(&number[(number_len - digit_count)..]);
-                    }
-                }
-
-                sub_title
+                build_subtitle_card(
+                    card.brand
+                        .as_ref()
+                        .map(|b| b.decrypt_with_key(key))
+                        .transpose()?,
+                    card.number
+                        .as_ref()
+                        .map(|n| n.decrypt_with_key(key))
+                        .transpose()?,
+                )
             }
             CipherType::Identity => {
                 let Some(identity) = &self.identity else {
                     return Ok(String::new());
                 };
-                let mut sub_title = String::new();
 
-                if let Some(first_name) = &identity.first_name {
-                    let first_name: String = first_name.decrypt_with_key(key)?;
-                    sub_title.push_str(&first_name);
-                }
-
-                if let Some(last_name) = &identity.last_name {
-                    if !sub_title.is_empty() {
-                        sub_title.push(' ');
-                    }
-                    let last_name: String = last_name.decrypt_with_key(key)?;
-                    sub_title.push_str(&last_name);
-                }
-
-                sub_title
+                build_subtitle_identity(
+                    identity
+                        .first_name
+                        .as_ref()
+                        .map(|f| f.decrypt_with_key(key))
+                        .transpose()?,
+                    identity
+                        .last_name
+                        .as_ref()
+                        .map(|l| l.decrypt_with_key(key))
+                        .transpose()?,
+                )
             }
         })
     }
 }
 
+/// Builds the subtitle for a card cipher
+fn build_subtitle_card(brand: Option<String>, number: Option<String>) -> String {
+    // Attempt to pre-allocate the string with the expected max-size
+    let mut sub_title =
+        String::with_capacity(brand.as_ref().map(|b| b.len()).unwrap_or_default() + 8);
+
+    if let Some(brand) = brand {
+        sub_title.push_str(&brand);
+    }
+
+    if let Some(number) = number {
+        let number_len = number.len();
+        if number_len > 4 {
+            if !sub_title.is_empty() {
+                sub_title.push_str(", ");
+            }
+
+            // On AMEX cards we show 5 digits instead of 4
+            let digit_count = match &number[0..2] {
+                "34" | "37" => 5,
+                _ => 4,
+            };
+
+            sub_title.push('*');
+            sub_title.push_str(&number[(number_len - digit_count)..]);
+        }
+    }
+
+    sub_title
+}
+
+/// Builds the subtitle for a card cipher
+fn build_subtitle_identity(first_name: Option<String>, last_name: Option<String>) -> String {
+    let len = match (first_name.as_ref(), last_name.as_ref()) {
+        (Some(first_name), Some(last_name)) => first_name.len() + last_name.len() + 1,
+        (Some(first_name), None) => first_name.len(),
+        (None, Some(last_name)) => last_name.len(),
+        (None, None) => 0,
+    };
+
+    let mut sub_title = String::with_capacity(len);
+
+    if let Some(first_name) = &first_name {
+        sub_title.push_str(first_name);
+    }
+
+    if let Some(last_name) = &last_name {
+        if !sub_title.is_empty() {
+            sub_title.push(' ');
+        }
+        sub_title.push_str(last_name);
+    }
+
+    sub_title
+}
+
 impl CipherView {
     pub fn generate_cipher_key(&mut self, key: &SymmetricCryptoKey) -> Result<()> {
-        let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
-        let key = ciphers_key.as_ref().unwrap_or(key);
+        let old_ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
+        let old_key = old_ciphers_key.as_ref().unwrap_or(key);
 
         let new_key = SymmetricCryptoKey::generate(rand::thread_rng());
 
-        self.key = Some(new_key.to_vec().expose().encrypt_with_key(key)?);
+        self.reencrypt_attachment_keys(old_key, &new_key)?;
+
+        self.key = Some(new_key.to_vec().encrypt_with_key(key)?);
         Ok(())
     }
 
@@ -326,27 +368,88 @@ impl CipherView {
         }
     }
 
+    fn reencrypt_attachment_keys(
+        &mut self,
+        old_key: &SymmetricCryptoKey,
+        new_key: &SymmetricCryptoKey,
+    ) -> Result<()> {
+        if let Some(attachments) = &mut self.attachments {
+            for attachment in attachments {
+                if let Some(attachment_key) = &mut attachment.key {
+                    let dec_attachment_key: Vec<u8> = attachment_key.decrypt_with_key(old_key)?;
+                    *attachment_key = dec_attachment_key.encrypt_with_key(new_key)?;
+                }
+            }
+        }
+        Ok(())
+    }
+
     pub fn move_to_organization(
         &mut self,
         enc: &dyn KeyContainer,
         organization_id: Uuid,
     ) -> Result<()> {
+        let old_key = enc
+            .get_key(&self.organization_id)
+            .ok_or(Error::VaultLocked)?;
+
+        let new_key = enc
+            .get_key(&Some(organization_id))
+            .ok_or(Error::VaultLocked)?;
+
+        // If any attachment is missing a key we can't reencrypt the attachment keys
+        if self.attachments.iter().flatten().any(|a| a.key.is_none()) {
+            return Err("This cipher contains attachments without keys. Those attachments will need to be reuploaded to complete the operation".into());
+        }
+
         // If the cipher has a key, we need to re-encrypt it with the new organization key
         if let Some(cipher_key) = &mut self.key {
-            let old_key = enc
-                .get_key(&self.organization_id)
-                .ok_or(Error::VaultLocked)?;
-
-            let new_key = enc
-                .get_key(&Some(organization_id))
-                .ok_or(Error::VaultLocked)?;
-
-            let dec_cipher_key = SensitiveVec::new(Box::new(cipher_key.decrypt_with_key(old_key)?));
-            *cipher_key = dec_cipher_key.expose().encrypt_with_key(new_key)?;
+            let dec_cipher_key: Vec<u8> = cipher_key.decrypt_with_key(old_key)?;
+            *cipher_key = dec_cipher_key.encrypt_with_key(new_key)?;
+        } else {
+            // If the cipher does not have a key, we need to reencrypt all attachment keys
+            self.reencrypt_attachment_keys(old_key, new_key)?;
         }
 
         self.organization_id = Some(organization_id);
         Ok(())
+    }
+
+    #[cfg(feature = "uniffi")]
+    pub(crate) fn set_new_fido2_credentials(
+        &mut self,
+        enc: &dyn KeyContainer,
+        creds: Vec<Fido2CredentialFullView>,
+    ) -> Result<()> {
+        let key = enc
+            .get_key(&self.organization_id)
+            .ok_or(Error::VaultLocked)?;
+
+        let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
+        let ciphers_key = ciphers_key.as_ref().unwrap_or(key);
+
+        require!(self.login.as_mut()).fido2_credentials =
+            Some(creds.encrypt_with_key(ciphers_key)?);
+
+        Ok(())
+    }
+
+    #[cfg(feature = "uniffi")]
+    pub(crate) fn get_fido2_credentials(
+        &self,
+        enc: &dyn KeyContainer,
+    ) -> Result<Vec<Fido2CredentialFullView>> {
+        let key = enc
+            .get_key(&self.organization_id)
+            .ok_or(Error::VaultLocked)?;
+
+        let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
+        let ciphers_key = ciphers_key.as_ref().unwrap_or(key);
+
+        let login = require!(self.login.as_ref());
+        let creds = require!(login.fido2_credentials.as_ref());
+        let res = creds.decrypt_with_key(ciphers_key)?;
+        Ok(res)
     }
 }
 
@@ -468,6 +571,8 @@ mod tests {
 
     use std::collections::HashMap;
 
+    use attachment::AttachmentView;
+
     use super::*;
 
     fn generate_cipher() -> CipherView {
@@ -530,6 +635,41 @@ mod tests {
         assert_eq!(key_cipher_dec.name, original_cipher.name);
     }
 
+    #[test]
+    fn test_generate_cipher_key_when_a_cipher_key_already_exists() {
+        let key = SymmetricCryptoKey::generate(rand::thread_rng());
+
+        let cipher_key = SymmetricCryptoKey::generate(rand::thread_rng());
+        let cipher_key = cipher_key.to_vec().encrypt_with_key(&key).unwrap();
+
+        let mut original_cipher = generate_cipher();
+        original_cipher.key = Some(cipher_key.clone());
+
+        original_cipher.generate_cipher_key(&key).unwrap();
+
+        // Make sure that the cipher key is decryptable
+        let _: Vec<u8> = original_cipher.key.unwrap().decrypt_with_key(&key).unwrap();
+    }
+
+    #[test]
+    fn test_generate_cipher_key_ignores_attachments_without_key() {
+        let key = SymmetricCryptoKey::generate(rand::thread_rng());
+
+        let mut cipher = generate_cipher();
+        let attachment = AttachmentView {
+            id: None,
+            url: None,
+            size: None,
+            size_name: None,
+            file_name: Some("Attachment test name".into()),
+            key: None,
+        };
+        cipher.attachments = Some(vec![attachment]);
+
+        cipher.generate_cipher_key(&key).unwrap();
+        assert!(cipher.attachments.unwrap()[0].key.is_none());
+    }
+
     struct MockKeyContainer(HashMap<Option<Uuid>, SymmetricCryptoKey>);
     impl KeyContainer for MockKeyContainer {
         fn get_key<'a>(&'a self, org_id: &Option<Uuid>) -> Option<&'a SymmetricCryptoKey> {
@@ -584,5 +724,220 @@ mod tests {
         // cipher key is tied to the user key and not the org key
         let org_key = enc.get_key(&Some(org)).unwrap();
         assert!(cipher.encrypt_with_key(org_key).is_err());
+    }
+
+    #[test]
+    fn test_move_user_cipher_with_attachment_without_key_to_org() {
+        let org = uuid::Uuid::new_v4();
+
+        let enc = MockKeyContainer(HashMap::from([
+            (None, SymmetricCryptoKey::generate(rand::thread_rng())),
+            (Some(org), SymmetricCryptoKey::generate(rand::thread_rng())),
+        ]));
+
+        let mut cipher = generate_cipher();
+        let attachment = AttachmentView {
+            id: None,
+            url: None,
+            size: None,
+            size_name: None,
+            file_name: Some("Attachment test name".into()),
+            key: None,
+        };
+        cipher.attachments = Some(vec![attachment]);
+
+        // Neither cipher nor attachment have keys, so the cipher can't be moved
+        assert!(cipher.move_to_organization(&enc, org).is_err());
+    }
+
+    #[test]
+    fn test_move_user_cipher_with_attachment_with_key_to_org() {
+        let org = uuid::Uuid::new_v4();
+
+        let enc = MockKeyContainer(HashMap::from([
+            (None, SymmetricCryptoKey::generate(rand::thread_rng())),
+            (Some(org), SymmetricCryptoKey::generate(rand::thread_rng())),
+        ]));
+
+        // Attachment has a key that is encrypted with the user key, as the cipher has no key itself
+        let attachment_key = SymmetricCryptoKey::generate(rand::thread_rng());
+        let attachment_key_enc = attachment_key
+            .to_vec()
+            .encrypt_with_key(enc.get_key(&None).unwrap())
+            .unwrap();
+
+        let mut cipher = generate_cipher();
+        let attachment = AttachmentView {
+            id: None,
+            url: None,
+            size: None,
+            size_name: None,
+            file_name: Some("Attachment test name".into()),
+            key: Some(attachment_key_enc),
+        };
+        cipher.attachments = Some(vec![attachment]);
+
+        cipher.move_to_organization(&enc, org).unwrap();
+
+        assert!(cipher.key.is_none());
+
+        // Check that the attachment key has been re-encrypted with the org key,
+        // and the value matches with the original attachment key
+        let new_attachment_key = cipher.attachments.unwrap()[0].key.clone().unwrap();
+        let new_attachment_key_dec: Vec<_> = new_attachment_key
+            .decrypt_with_key(enc.get_key(&Some(org)).unwrap())
+            .unwrap();
+        let new_attachment_key_dec: SymmetricCryptoKey = new_attachment_key_dec.try_into().unwrap();
+        assert_eq!(new_attachment_key_dec.to_vec(), attachment_key.to_vec());
+    }
+
+    #[test]
+    fn test_move_user_cipher_with_key_with_attachment_with_key_to_org() {
+        let org = uuid::Uuid::new_v4();
+
+        let enc = MockKeyContainer(HashMap::from([
+            (None, SymmetricCryptoKey::generate(rand::thread_rng())),
+            (Some(org), SymmetricCryptoKey::generate(rand::thread_rng())),
+        ]));
+
+        let cipher_key = SymmetricCryptoKey::generate(rand::thread_rng());
+        let cipher_key_enc = cipher_key
+            .to_vec()
+            .encrypt_with_key(enc.get_key(&None).unwrap())
+            .unwrap();
+
+        // Attachment has a key that is encrypted with the cipher key
+        let attachment_key = SymmetricCryptoKey::generate(rand::thread_rng());
+        let attachment_key_enc = attachment_key
+            .to_vec()
+            .encrypt_with_key(&cipher_key)
+            .unwrap();
+
+        let mut cipher = generate_cipher();
+        cipher.key = Some(cipher_key_enc);
+
+        let attachment = AttachmentView {
+            id: None,
+            url: None,
+            size: None,
+            size_name: None,
+            file_name: Some("Attachment test name".into()),
+            key: Some(attachment_key_enc.clone()),
+        };
+        cipher.attachments = Some(vec![attachment]);
+
+        cipher.move_to_organization(&enc, org).unwrap();
+
+        // Check that the cipher key has been re-encrypted with the org key,
+        let new_cipher_key_dec: Vec<_> = cipher
+            .key
+            .clone()
+            .unwrap()
+            .decrypt_with_key(enc.get_key(&Some(org)).unwrap())
+            .unwrap();
+
+        let new_cipher_key_dec: SymmetricCryptoKey = new_cipher_key_dec.try_into().unwrap();
+
+        assert_eq!(new_cipher_key_dec.to_vec(), cipher_key.to_vec());
+
+        // Check that the attachment key hasn't changed
+        assert_eq!(
+            cipher.attachments.unwrap()[0]
+                .key
+                .as_ref()
+                .unwrap()
+                .to_string(),
+            attachment_key_enc.to_string()
+        );
+    }
+
+    #[test]
+    fn test_build_subtitle_card_visa() {
+        let brand = Some("Visa".to_owned());
+        let number = Some("4111111111111111".to_owned());
+
+        let subtitle = build_subtitle_card(brand, number);
+        assert_eq!(subtitle, "Visa, *1111");
+    }
+
+    #[test]
+    fn test_build_subtitle_card_mastercard() {
+        let brand = Some("Mastercard".to_owned());
+        let number = Some("5555555555554444".to_owned());
+
+        let subtitle = build_subtitle_card(brand, number);
+        assert_eq!(subtitle, "Mastercard, *4444");
+    }
+
+    #[test]
+    fn test_build_subtitle_card_amex() {
+        let brand = Some("Amex".to_owned());
+        let number = Some("378282246310005".to_owned());
+
+        let subtitle = build_subtitle_card(brand, number);
+        assert_eq!(subtitle, "Amex, *10005");
+    }
+
+    #[test]
+    fn test_build_subtitle_card_underflow() {
+        let brand = Some("Mastercard".to_owned());
+        let number = Some("4".to_owned());
+
+        let subtitle = build_subtitle_card(brand, number);
+        assert_eq!(subtitle, "Mastercard");
+    }
+
+    #[test]
+    fn test_build_subtitle_card_only_brand() {
+        let brand = Some("Mastercard".to_owned());
+        let number = None;
+
+        let subtitle = build_subtitle_card(brand, number);
+        assert_eq!(subtitle, "Mastercard");
+    }
+
+    #[test]
+    fn test_build_subtitle_card_only_card() {
+        let brand = None;
+        let number = Some("5555555555554444".to_owned());
+
+        let subtitle = build_subtitle_card(brand, number);
+        assert_eq!(subtitle, "*4444");
+    }
+
+    #[test]
+    fn test_build_subtitle_identity() {
+        let first_name = Some("John".to_owned());
+        let last_name = Some("Doe".to_owned());
+
+        let subtitle = build_subtitle_identity(first_name, last_name);
+        assert_eq!(subtitle, "John Doe");
+    }
+
+    #[test]
+    fn test_build_subtitle_identity_only_first() {
+        let first_name = Some("John".to_owned());
+        let last_name = None;
+
+        let subtitle = build_subtitle_identity(first_name, last_name);
+        assert_eq!(subtitle, "John");
+    }
+
+    #[test]
+    fn test_build_subtitle_identity_only_last() {
+        let first_name = None;
+        let last_name = Some("Doe".to_owned());
+
+        let subtitle = build_subtitle_identity(first_name, last_name);
+        assert_eq!(subtitle, "Doe");
+    }
+
+    #[test]
+    fn test_build_subtitle_identity_none() {
+        let first_name = None;
+        let last_name = None;
+
+        let subtitle = build_subtitle_identity(first_name, last_name);
+        assert_eq!(subtitle, "");
     }
 }

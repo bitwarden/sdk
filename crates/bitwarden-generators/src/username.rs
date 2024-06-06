@@ -23,7 +23,7 @@ pub enum UsernameError {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum AppendType {
     /// Generates a random string of 8 lowercase characters as part of your username
     Random,
@@ -33,7 +33,7 @@ pub enum AppendType {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 /// Configures the email forwarding service to use.
 /// For instructions on how to configure each service, see the documentation:
 /// <https://bitwarden.com/help/generator/#username-types>
@@ -64,7 +64,7 @@ pub enum ForwarderServiceType {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum UsernameGeneratorRequest {
     /// Generates a single word username
     Word {
@@ -173,7 +173,7 @@ fn random_number(mut rng: impl RngCore) -> String {
 }
 
 /// Generate a username using a plus addressed email address
-/// The format is <username>+<random-or-website>@<domain>
+/// The format is `<username>+<random-or-website>@<domain>`
 fn username_subaddress(mut rng: impl RngCore, r#type: AppendType, email: String) -> String {
     if email.len() < 3 {
         return email;
@@ -195,7 +195,7 @@ fn username_subaddress(mut rng: impl RngCore, r#type: AppendType, email: String)
 }
 
 /// Generate a username using a catchall email address
-/// The format is <random-or-website>@<domain>
+/// The format is `<random-or-website>@<domain>`
 fn username_catchall(mut rng: impl RngCore, r#type: AppendType, domain: String) -> String {
     if domain.is_empty() {
         return domain;

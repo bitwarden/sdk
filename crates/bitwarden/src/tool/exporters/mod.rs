@@ -1,4 +1,4 @@
-use bitwarden_crypto::Decryptable;
+use bitwarden_crypto::KeyDecryptable;
 use bitwarden_exporters::export;
 use schemars::JsonSchema;
 
@@ -16,7 +16,7 @@ mod client_exporter;
 pub use client_exporter::ClientExporters;
 
 #[derive(JsonSchema)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Enum))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum ExportFormat {
     Csv,
     Json,
@@ -30,12 +30,13 @@ pub(super) fn export_vault(
     format: ExportFormat,
 ) -> Result<String> {
     let enc = client.get_encryption_settings()?;
+    let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
 
-    let folders: Vec<FolderView> = folders.decrypt(enc, &None)?;
+    let folders: Vec<FolderView> = folders.decrypt_with_key(key)?;
     let folders: Vec<bitwarden_exporters::Folder> =
         folders.into_iter().flat_map(|f| f.try_into()).collect();
 
-    let ciphers: Vec<CipherView> = ciphers.decrypt(enc, &None)?;
+    let ciphers: Vec<CipherView> = ciphers.decrypt_with_key(key)?;
     let ciphers: Vec<bitwarden_exporters::Cipher> =
         ciphers.into_iter().flat_map(|c| c.try_into()).collect();
 

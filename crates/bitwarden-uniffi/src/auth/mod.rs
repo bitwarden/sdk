@@ -105,7 +105,7 @@ impl ClientAuth {
             .write()
             .await
             .auth()
-            .validate_password(password, password_hash.to_string())?)
+            .validate_password(password, password_hash)?)
     }
 
     /// Validate the user password without knowing the password hash

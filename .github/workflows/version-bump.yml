@@ -18,6 +18,8 @@ on:
           - go-sdk
           - dotnet-sdk
           - php-sdk
+          - java-sdk
+          - cpp-sdk
       version_number:
         description: "New version (example: '2024.1.0')"
         required: true
@@ -32,7 +34,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Install rust
-        uses: dtolnay/rust-toolchain@bb45937a053e097f8591208d8e74c90db1873d07 # stable
+        uses: dtolnay/rust-toolchain@d8352f6b1d2e870bc5716e7a6d9b65c4cc244a1a # stable
         with:
           toolchain: stable
 
@@ -57,7 +59,7 @@ jobs:
             github-pat-bitwarden-devops-bot-repo-scope"
 
       - name: Checkout Branch
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
         with:
           ref: main
           repository: bitwarden/sdk
@@ -140,6 +142,18 @@ jobs:
         run: |
           sed -i 's/"version": "[0-9]\.[0-9]\.[0-9]"/"version": "${{ inputs.version_number }}"/' ./languages/php/composer.json
 
+      ### java sdk
+      - name: Bump java-sdk Version
+        if: ${{ inputs.project == 'java-sdk' }}
+        run: |
+          sed -i 's/version = "[0-9]\.[0-9]\.[0-9]"/version = "${{ inputs.version_number }}"/' ./languages/java/build.gradle
+
+      ### cpp sdk
+      - name: Bump C++ SDK Version
+        if: ${{ inputs.project == 'cpp-sdk' }}
+        run: |
+          sed -i 's/"version": "[0-9]\.[0-9]\.[0-9]"/"version": "${{ inputs.version_number }}"/' ./languages/cpp/vcpkg.json
+
       ############################
       # VERSION BUMP SECTION END #
       ############################
@@ -219,7 +233,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
         with:
           ref: main
 

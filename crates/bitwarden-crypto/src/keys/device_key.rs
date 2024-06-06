@@ -1,6 +1,6 @@
 use crate::{
-    error::Result, AsymmetricCryptoKey, AsymmetricEncString, CryptoError, DecryptedVec, EncString,
-    KeyDecryptable, KeyEncryptable, SensitiveString, SymmetricCryptoKey,
+    error::Result, AsymmetricCryptoKey, AsymmetricEncString, CryptoError, EncString,
+    KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
 };
 
 /// Device Key
@@ -11,10 +11,10 @@ use crate::{
 pub struct DeviceKey(SymmetricCryptoKey);
 
 #[derive(Debug)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct TrustDeviceResponse {
     /// Base64 encoded device key
-    pub device_key: SensitiveString,
+    pub device_key: String,
     /// UserKey encrypted with DevicePublicKey
     pub protected_user_key: AsymmetricEncString,
     /// DevicePrivateKey encrypted with [DeviceKey]
@@ -38,7 +38,7 @@ impl DeviceKey {
         let data = user_key.to_vec();
 
         let protected_user_key =
-            AsymmetricEncString::encrypt_rsa2048_oaep_sha1(data.expose(), &device_private_key)?;
+            AsymmetricEncString::encrypt_rsa2048_oaep_sha1(&data, &device_private_key)?;
 
         let protected_device_public_key = device_private_key
             .to_public_der()?
@@ -66,21 +66,20 @@ impl DeviceKey {
         let device_private_key = AsymmetricCryptoKey::from_der(&device_private_key)?;
 
         let dec: Vec<u8> = protected_user_key.decrypt_with_key(&device_private_key)?;
-        let dec = DecryptedVec::new(Box::new(dec));
         let user_key = SymmetricCryptoKey::try_from(dec)?;
 
         Ok(user_key)
     }
 
-    fn to_base64(&self) -> SensitiveString {
+    fn to_base64(&self) -> String {
         self.0.to_base64()
     }
 }
 
-impl TryFrom<SensitiveString> for DeviceKey {
+impl TryFrom<String> for DeviceKey {
     type Error = CryptoError;
 
-    fn try_from(value: SensitiveString) -> Result<Self, Self::Error> {
+    fn try_from(value: String) -> Result<Self, Self::Error> {
         SymmetricCryptoKey::try_from(value).map(DeviceKey)
     }
 }

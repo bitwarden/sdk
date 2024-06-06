@@ -13,7 +13,7 @@ use crate::{
 /// RSA Key Pair
 ///
 /// Consists of a public key and an encrypted private key.
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct RsaKeyPair {
     /// Base64 encoded DER representation of the public key
     pub public: String,
@@ -21,6 +21,7 @@ pub struct RsaKeyPair {
     pub private: EncString,
 }
 
+/// Generate a new RSA key pair of 2048 bits
 pub(crate) fn make_key_pair(key: &SymmetricCryptoKey) -> Result<RsaKeyPair> {
     let mut rng = rand::thread_rng();
     let bits = 2048;
@@ -48,6 +49,7 @@ pub(crate) fn make_key_pair(key: &SymmetricCryptoKey) -> Result<RsaKeyPair> {
     })
 }
 
+/// Encrypt data using RSA-OAEP-SHA1 with a 2048 bit key
 pub(super) fn encrypt_rsa2048_oaep_sha1(public_key: &RsaPublicKey, data: &[u8]) -> Result<Vec<u8>> {
     let mut rng = rand::thread_rng();
 

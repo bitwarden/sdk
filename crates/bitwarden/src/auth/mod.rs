@@ -18,7 +18,7 @@ pub use register::{RegisterKeyResponse, RegisterRequest};
 mod auth_request;
 #[cfg(feature = "internal")]
 pub use auth_request::AuthRequestResponse;
-#[cfg(feature = "mobile")]
+#[cfg(feature = "internal")]
 pub(crate) use auth_request::{auth_request_decrypt_master_key, auth_request_decrypt_user_key};
 #[cfg(feature = "internal")]
 mod tde;
@@ -41,8 +41,10 @@ fn determine_password_hash(
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "internal")]
     use std::num::NonZeroU32;
 
+    #[cfg(feature = "internal")]
     use super::*;
 
     #[cfg(feature = "internal")]

@@ -7,9 +7,9 @@ use serde::{Deserialize, Serialize};
 use super::Cipher;
 use crate::error::{Error, Result};
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct Attachment {
     pub id: Option<String>,
     pub url: Option<String>,
@@ -20,9 +20,9 @@ pub struct Attachment {
     pub key: Option<EncString>,
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct AttachmentView {
     pub id: Option<String>,
     pub url: Option<String>,
@@ -34,7 +34,7 @@ pub struct AttachmentView {
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct AttachmentEncryptResult {
     pub attachment: Attachment,
     pub contents: Vec<u8>,
@@ -43,6 +43,11 @@ pub struct AttachmentEncryptResult {
 pub struct AttachmentFile {
     pub cipher: Cipher,
     pub attachment: Attachment,
+
+    /// There are three different ways attachments are encrypted.
+    /// 1. UserKey / OrgKey (Contents) - Legacy
+    /// 2. AttachmentKey(Contents) - Pre CipherKey
+    /// 3. CipherKey(AttachmentKey(Contents)) - Current
     pub contents: EncString,
 }
 
@@ -66,12 +71,7 @@ impl<'a> KeyEncryptable<SymmetricCryptoKey, AttachmentEncryptResult> for Attachm
         // with it, and then encrypt the key with the cipher key
         let attachment_key = SymmetricCryptoKey::generate(rand::thread_rng());
         let encrypted_contents = self.contents.encrypt_with_key(&attachment_key)?;
-        attachment.key = Some(
-            attachment_key
-                .to_vec()
-                .expose()
-                .encrypt_with_key(ciphers_key)?,
-        );
+        attachment.key = Some(attachment_key.to_vec().encrypt_with_key(ciphers_key)?);
 
         Ok(AttachmentEncryptResult {
             attachment: attachment.encrypt_with_key(ciphers_key)?,
@@ -85,15 +85,16 @@ impl KeyDecryptable<SymmetricCryptoKey, Vec<u8>> for AttachmentFile {
         let ciphers_key = Cipher::get_cipher_key(key, &self.cipher.key)?;
         let ciphers_key = ciphers_key.as_ref().unwrap_or(key);
 
-        let mut attachment_key: Vec<u8> = self
-            .attachment
-            .key
-            .as_ref()
-            .ok_or(CryptoError::MissingKey)?
-            .decrypt_with_key(ciphers_key)?;
-        let attachment_key = SymmetricCryptoKey::try_from(attachment_key.as_mut_slice())?;
+        // Version 2 or 3, `AttachmentKey` or `CipherKey(AttachmentKey)`
+        if let Some(attachment_key) = &self.attachment.key {
+            let mut content_key: Vec<u8> = attachment_key.decrypt_with_key(ciphers_key)?;
+            let content_key = SymmetricCryptoKey::try_from(content_key.as_mut_slice())?;
 
-        self.contents.decrypt_with_key(&attachment_key)
+            self.contents.decrypt_with_key(&content_key)
+        } else {
+            // Legacy attachment version 1, use user/org key
+            self.contents.decrypt_with_key(key)
+        }
     }
 }
 
@@ -141,7 +142,7 @@ impl TryFrom<bitwarden_api_api::models::AttachmentResponseModel> for Attachment 
 #[cfg(test)]
 mod tests {
     use base64::{engine::general_purpose::STANDARD, Engine};
-    use bitwarden_crypto::{EncString, KeyDecryptable, SensitiveString, SymmetricCryptoKey};
+    use bitwarden_crypto::{EncString, KeyDecryptable, SymmetricCryptoKey};
 
     use crate::vault::{
         cipher::cipher::{CipherRepromptType, CipherType},
@@ -150,7 +151,7 @@ mod tests {
 
     #[test]
     fn test_attachment_key() {
-        let user_key : SymmetricCryptoKey = SensitiveString::test("w2LO+nwV4oxwswVYCxlOfRUseXfvU03VzvKQHrqeklPgiMZrspUe6sOBToCnDn9Ay0tuCBn8ykVVRb7PWhub2Q==").try_into().unwrap();
+        let user_key: SymmetricCryptoKey = "w2LO+nwV4oxwswVYCxlOfRUseXfvU03VzvKQHrqeklPgiMZrspUe6sOBToCnDn9Ay0tuCBn8ykVVRb7PWhub2Q==".to_string().try_into().unwrap();
 
         let attachment = Attachment {
             id: None,
@@ -189,6 +190,60 @@ mod tests {
         };
 
         let enc_file = STANDARD.decode(b"Ao00qr1xLsV+ZNQpYZ/UwEwOWo3hheKwCYcOGIbsorZ6JIG2vLWfWEXCVqP0hDuzRvmx8otApNZr8pJYLNwCe1aQ+ySHQYGkdubFjoMojulMbQ959Y4SJ6Its/EnVvpbDnxpXTDpbutDxyhxfq1P3lstL2G9rObJRrxiwdGlRGu1h94UA1fCCkIUQux5LcqUee6W4MyQmRnsUziH8gGzmtI=").unwrap();
+        let original = STANDARD.decode(b"rMweTemxOL9D0iWWfRxiY3enxiZ5IrwWD6ef2apGO6MvgdGhy2fpwmATmn7BpSj9lRumddLLXm7u8zSp6hnXt1hS71YDNh78LjGKGhGL4sbg8uNnpa/I6GK/83jzqGYN7+ESbg==").unwrap();
+
+        let dec = AttachmentFile {
+            cipher,
+            attachment,
+            contents: EncString::from_buffer(&enc_file).unwrap(),
+        }
+        .decrypt_with_key(&user_key)
+        .unwrap();
+
+        assert_eq!(dec, original);
+    }
+
+    #[test]
+    fn test_attachment_without_key() {
+        let user_key: SymmetricCryptoKey = "w2LO+nwV4oxwswVYCxlOfRUseXfvU03VzvKQHrqeklPgiMZrspUe6sOBToCnDn9Ay0tuCBn8ykVVRb7PWhub2Q==".to_string().try_into().unwrap();
+
+        let attachment = Attachment {
+            id: None,
+            url: None,
+            size: Some("161".into()),
+            size_name: Some("161 Bytes".into()),
+            file_name: Some("2.qTJdrgQe+tLCHTlPHMJXLw==|0we9+uYJPEY3FU5SblX2hg==|+fL/wTF/WgpoV+BNzmsmi284O0QNdVBUYmfqqs0CG1E=".parse().unwrap()),
+            key: None,
+        };
+
+        let cipher  = Cipher {
+            id: None,
+            organization_id: None,
+            folder_id: None,
+            collection_ids: Vec::new(),
+            key: None,
+            name: "2.d24xECyEdMZ3MG9s6SrGNw==|XvJlTeu5KJ22M3jKosy6iw==|8xGiQty4X61cDMx6PVqkJfSQ0ZTdA/5L9TpG7QfovoM=".parse().unwrap(),
+            notes: None,
+            r#type: CipherType::Login,
+            login: None,
+            identity: None,
+            card: None,
+            secure_note: None,
+            favorite: false,
+            reprompt: CipherRepromptType::None,
+            organization_use_totp: false,
+            edit: true,
+            view_password: true,
+            local_data: None,
+            attachments: None,
+            fields: None,
+            password_history: None,
+            creation_date: "2023-07-24T12:05:09.466666700Z".parse().unwrap(),
+            deleted_date: None,
+            revision_date: "2023-07-27T19:28:05.240Z".parse().unwrap(),
+        };
+
+        let enc_file = STANDARD.decode(b"AsQLXOBHrJ8porroTUlPxeJOm9XID7LL9D2+KwYATXEpR1EFjLBpcCvMmnqcnYLXIEefe9TCeY4Us50ux43kRSpvdB7YkjxDKV0O1/y6tB7qC4vvv9J9+O/uDEnMx/9yXuEhAW/LA/TsU/WAgxkOM0uTvm8JdD9LUR1z9Ql7zOWycMVzkvGsk2KBNcqAdrotS5FlDftZOXyU8pWecNeyA/w=").unwrap();
         let original = STANDARD.decode(b"rMweTemxOL9D0iWWfRxiY3enxiZ5IrwWD6ef2apGO6MvgdGhy2fpwmATmn7BpSj9lRumddLLXm7u8zSp6hnXt1hS71YDNh78LjGKGhGL4sbg8uNnpa/I6GK/83jzqGYN7+ESbg==").unwrap();
 
         let dec = AttachmentFile {

@@ -61,7 +61,7 @@ platform_detect() {
 arch_detect() {
   if [ "$(uname -m)" = "x86_64" ]; then
     ARCH="x86_64"
-  elif [ "$(uname -m)" = "arm64" ]; then
+  elif [ "$(uname -m)" = "aarch64" ]; then
     ARCH="aarch64"
   else
     error "Unsupported architecture: $(uname -m)"
@@ -106,7 +106,7 @@ install_bws() {
     mkdir -p "${user_bin_dir}"
     install -m 755 "$tmp_dir/bws" "${user_bin_dir}/bws"
 
-    if ! command -v" ${user_bin_dir}/bws" >/dev/null; then
+    if ! command -v "${user_bin_dir}/bws" >/dev/null; then
       error "Installation failed. bws was not found in ${user_bin_dir}"
     fi
 

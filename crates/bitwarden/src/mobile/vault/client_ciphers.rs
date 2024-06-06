@@ -17,7 +17,18 @@ impl<'a> ClientCiphers<'a> {
 
         // TODO: Once this flag is removed, the key generation logic should
         // be moved directly into the KeyEncryptable implementation
-        if cipher_view.key.is_none() && self.client.get_flags().enable_cipher_key_encryption {
+
+        // If any attachments have no keys, they will need to be reuploaded before we can
+        // generate them a cipher key, so in that case we skip them even if the flag is set
+        let all_attachments_have_keys = cipher_view
+            .attachments
+            .iter()
+            .flatten()
+            .all(|a| a.key.is_some());
+        if cipher_view.key.is_none()
+            && self.client.get_flags().enable_cipher_key_encryption
+            && all_attachments_have_keys
+        {
             let key = cipher_view
                 .locate_key(enc, &None)
                 .ok_or(Error::VaultLocked)?;

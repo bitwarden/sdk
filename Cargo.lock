@@ -439,7 +439,6 @@ dependencies = [
  "bitwarden-api-api",
  "bitwarden-api-identity",
  "bitwarden-crypto",
- "bitwarden-exporters",
  "chrono",
  "coset",
  "getrandom",
@@ -504,12 +503,15 @@ name = "bitwarden-exporters"
 version = "0.5.0"
 dependencies = [
  "base64 0.22.1",
+ "bitwarden-core",
  "bitwarden-crypto",
  "chrono",
  "csv",
+ "schemars",
  "serde",
  "serde_json",
  "thiserror",
+ "uniffi",
  "uuid",
 ]
 

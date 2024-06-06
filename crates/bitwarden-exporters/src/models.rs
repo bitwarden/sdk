@@ -1,86 +1,124 @@
-use bitwarden_crypto::KeyDecryptable;
-use bitwarden_exporters::export;
-use schemars::JsonSchema;
+use std::fmt;
 
-use crate::{
-    client::{LoginMethod, UserLoginMethod},
-    error::{require, Error, Result},
-    vault::{
-        login::LoginUriView, Cipher, CipherType, CipherView, Collection, FieldView, Folder,
-        FolderView, SecureNoteType,
-    },
-    Client,
+use bitwarden_core::{
+    require,
+    vault::{CipherView, FieldView, FolderView, LoginUriView},
 };
+use chrono::{DateTime, Utc};
+use uuid::Uuid;
 
-mod client_exporter;
-pub use client_exporter::ClientExporters;
+use crate::ExportError;
 
-#[derive(JsonSchema)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
-pub enum ExportFormat {
-    Csv,
-    Json,
-    EncryptedJson { password: String },
+/// Export representation of a Bitwarden folder.
+///
+/// These are mostly duplicated from the `bitwarden` vault models to facilitate a stable export API
+/// that is not tied to the internal vault models. We may revisit this in the future.
+pub(crate) struct Folder {
+    pub id: Uuid,
+    pub name: String,
 }
 
-pub(super) fn export_vault(
-    client: &Client,
-    folders: Vec<Folder>,
-    ciphers: Vec<Cipher>,
-    format: ExportFormat,
-) -> Result<String> {
-    let enc = client.get_encryption_settings()?;
-    let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
+/// Export representation of a Bitwarden cipher.
+///
+/// These are mostly duplicated from the `bitwarden` vault models to facilitate a stable export API
+/// that is not tied to the internal vault models. We may revisit this in the future.
+pub(crate) struct Cipher {
+    pub id: Uuid,
+    pub folder_id: Option<Uuid>,
 
-    let folders: Vec<FolderView> = folders.decrypt_with_key(key)?;
-    let folders: Vec<bitwarden_exporters::Folder> =
-        folders.into_iter().flat_map(|f| f.try_into()).collect();
+    pub name: String,
+    pub notes: Option<String>,
 
-    let ciphers: Vec<CipherView> = ciphers.decrypt_with_key(key)?;
-    let ciphers: Vec<bitwarden_exporters::Cipher> =
-        ciphers.into_iter().flat_map(|c| c.try_into()).collect();
+    pub r#type: CipherType,
 
-    let format = convert_format(client, format)?;
+    pub favorite: bool,
+    pub reprompt: u8,
 
-    Ok(export(folders, ciphers, format)?)
+    pub fields: Vec<Field>,
+
+    pub revision_date: DateTime<Utc>,
+    pub creation_date: DateTime<Utc>,
+    pub deleted_date: Option<DateTime<Utc>>,
 }
 
-fn convert_format(
-    client: &Client,
-    format: ExportFormat,
-) -> Result<bitwarden_exporters::Format, Error> {
-    let login_method = client
-        .login_method
-        .as_ref()
-        .ok_or(Error::NotAuthenticated)?;
-
-    let kdf = match login_method {
-        LoginMethod::User(
-            UserLoginMethod::Username { kdf, .. } | UserLoginMethod::ApiKey { kdf, .. },
-        ) => kdf,
-        _ => return Err(Error::NotAuthenticated),
-    };
-
-    Ok(match format {
-        ExportFormat::Csv => bitwarden_exporters::Format::Csv,
-        ExportFormat::Json => bitwarden_exporters::Format::Json,
-        ExportFormat::EncryptedJson { password } => bitwarden_exporters::Format::EncryptedJson {
-            password,
-            kdf: kdf.clone(),
-        },
-    })
+#[derive(Clone)]
+pub(crate) struct Field {
+    pub name: Option<String>,
+    pub value: Option<String>,
+    pub r#type: u8,
+    pub linked_id: Option<u32>,
 }
 
-pub(super) fn export_organization_vault(
-    _collections: Vec<Collection>,
-    _ciphers: Vec<Cipher>,
-    _format: ExportFormat,
-) -> Result<String> {
-    todo!();
+pub(crate) enum CipherType {
+    Login(Box<Login>),
+    SecureNote(Box<SecureNote>),
+    Card(Box<Card>),
+    Identity(Box<Identity>),
 }
 
-impl TryFrom<FolderView> for bitwarden_exporters::Folder {
-    type Error = Error;
+impl fmt::Display for CipherType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            CipherType::Login(_) => write!(f, "login"),
+            CipherType::SecureNote(_) => write!(f, "note"),
+            CipherType::Card(_) => write!(f, "card"),
+            CipherType::Identity(_) => write!(f, "identity"),
+        }
+    }
+}
+
+pub(crate) struct Login {
+    pub username: Option<String>,
+    pub password: Option<String>,
+    pub login_uris: Vec<LoginUri>,
+    pub totp: Option<String>,
+}
+
+pub(crate) struct LoginUri {
+    pub uri: Option<String>,
+    pub r#match: Option<u8>,
+}
+
+pub(crate) struct Card {
+    pub cardholder_name: Option<String>,
+    pub exp_month: Option<String>,
+    pub exp_year: Option<String>,
+    pub code: Option<String>,
+    pub brand: Option<String>,
+    pub number: Option<String>,
+}
+
+pub(crate) struct SecureNote {
+    pub r#type: SecureNoteType,
+}
+
+pub(crate) enum SecureNoteType {
+    Generic = 0,
+}
+
+pub(crate) struct Identity {
+    pub title: Option<String>,
+    pub first_name: Option<String>,
+    pub middle_name: Option<String>,
+    pub last_name: Option<String>,
+    pub address1: Option<String>,
+    pub address2: Option<String>,
+    pub address3: Option<String>,
+    pub city: Option<String>,
+    pub state: Option<String>,
+    pub postal_code: Option<String>,
+    pub country: Option<String>,
+    pub company: Option<String>,
+    pub email: Option<String>,
+    pub phone: Option<String>,
+    pub ssn: Option<String>,
+    pub username: Option<String>,
+    pub passport_number: Option<String>,
+    pub license_number: Option<String>,
+}
+
+impl TryFrom<FolderView> for Folder {
+    type Error = ExportError;
 
     fn try_from(value: FolderView) -> Result<Self, Self::Error> {
         Ok(Self {
@@ -90,14 +128,14 @@ impl TryFrom<FolderView> for bitwarden_exporters::Folder {
     }
 }
 
-impl TryFrom<CipherView> for bitwarden_exporters::Cipher {
-    type Error = Error;
+impl TryFrom<CipherView> for Cipher {
+    type Error = ExportError;
 
     fn try_from(value: CipherView) -> Result<Self, Self::Error> {
         let r = match value.r#type {
-            CipherType::Login => {
+            bitwarden_core::vault::CipherType::Login => {
                 let l = require!(value.login);
-                bitwarden_exporters::CipherType::Login(Box::new(bitwarden_exporters::Login {
+                CipherType::Login(Box::new(Login {
                     username: l.username,
                     password: l.password,
                     login_uris: l
@@ -109,18 +147,18 @@ impl TryFrom<CipherView> for bitwarden_exporters::Cipher {
                     totp: l.totp,
                 }))
             }
-            CipherType::SecureNote => bitwarden_exporters::CipherType::SecureNote(Box::new(
-                bitwarden_exporters::SecureNote {
+            bitwarden_core::vault::CipherType::SecureNote => {
+                CipherType::SecureNote(Box::new(SecureNote {
                     r#type: value
                         .secure_note
                         .map(|t| t.r#type)
-                        .unwrap_or(SecureNoteType::Generic)
+                        .unwrap_or(bitwarden_core::vault::SecureNoteType::Generic)
                         .into(),
-                },
-            )),
-            CipherType::Card => {
+                }))
+            }
+            bitwarden_core::vault::CipherType::Card => {
                 let c = require!(value.card);
-                bitwarden_exporters::CipherType::Card(Box::new(bitwarden_exporters::Card {
+                CipherType::Card(Box::new(Card {
                     cardholder_name: c.cardholder_name,
                     exp_month: c.exp_month,
                     exp_year: c.exp_year,
@@ -129,9 +167,9 @@ impl TryFrom<CipherView> for bitwarden_exporters::Cipher {
                     number: c.number,
                 }))
             }
-            CipherType::Identity => {
+            bitwarden_core::vault::CipherType::Identity => {
                 let i = require!(value.identity);
-                bitwarden_exporters::CipherType::Identity(Box::new(bitwarden_exporters::Identity {
+                CipherType::Identity(Box::new(Identity {
                     title: i.title,
                     first_name: i.first_name,
                     middle_name: i.middle_name,
@@ -175,7 +213,7 @@ impl TryFrom<CipherView> for bitwarden_exporters::Cipher {
     }
 }
 
-impl From<FieldView> for bitwarden_exporters::Field {
+impl From<FieldView> for Field {
     fn from(value: FieldView) -> Self {
         Self {
             name: value.name,
@@ -186,7 +224,7 @@ impl From<FieldView> for bitwarden_exporters::Field {
     }
 }
 
-impl From<LoginUriView> for bitwarden_exporters::LoginUri {
+impl From<LoginUriView> for LoginUri {
     fn from(value: LoginUriView) -> Self {
         Self {
             r#match: value.r#match.map(|v| v as u8),
@@ -195,23 +233,20 @@ impl From<LoginUriView> for bitwarden_exporters::LoginUri {
     }
 }
 
-impl From<SecureNoteType> for bitwarden_exporters::SecureNoteType {
-    fn from(value: SecureNoteType) -> Self {
+impl From<bitwarden_core::vault::SecureNoteType> for SecureNoteType {
+    fn from(value: bitwarden_core::vault::SecureNoteType) -> Self {
         match value {
-            SecureNoteType::Generic => bitwarden_exporters::SecureNoteType::Generic,
+            bitwarden_core::vault::SecureNoteType::Generic => SecureNoteType::Generic,
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::num::NonZeroU32;
-
-    use bitwarden_crypto::Kdf;
     use chrono::{DateTime, Utc};
 
     use super::*;
-    use crate::vault::{login::LoginView, CipherRepromptType};
+    use bitwarden_core::vault::{CipherRepromptType, LoginView};
 
     #[test]
     fn test_try_from_folder_view() {
@@ -221,7 +256,7 @@ mod tests {
             revision_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
         };
 
-        let f: bitwarden_exporters::Folder = view.try_into().unwrap();
+        let f: Folder = view.try_into().unwrap();
 
         assert_eq!(
             f.id,
@@ -233,7 +268,7 @@ mod tests {
     #[test]
     fn test_try_from_cipher_view_login() {
         let cipher_view = CipherView {
-            r#type: CipherType::Login,
+            r#type: bitwarden_core::vault::CipherType::Login,
             login: Some(LoginView {
                 username: Some("test_username".to_string()),
                 password: Some("test_password".to_string()),
@@ -267,7 +302,7 @@ mod tests {
             revision_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
         };
 
-        let cipher: bitwarden_exporters::Cipher = cipher_view.try_into().unwrap();
+        let cipher: Cipher = cipher_view.try_into().unwrap();
 
         assert_eq!(
             cipher.id,
@@ -289,7 +324,7 @@ mod tests {
         );
         assert_eq!(cipher.deleted_date, None);
 
-        if let bitwarden_exporters::CipherType::Login(l) = cipher.r#type {
+        if let CipherType::Login(l) = cipher.r#type {
             assert_eq!(l.username, Some("test_username".to_string()));
             assert_eq!(l.password, Some("test_password".to_string()));
             assert!(l.login_uris.is_empty());
@@ -297,36 +332,5 @@ mod tests {
         } else {
             panic!("Expected login type");
         }
-    }
-
-    #[test]
-    fn test_convert_format() {
-        let mut client = Client::new(None);
-        client.set_login_method(LoginMethod::User(UserLoginMethod::Username {
-            client_id: "7b821276-e27c-400b-9853-606393c87f18".to_owned(),
-            email: "test@bitwarden.com".to_owned(),
-            kdf: Kdf::PBKDF2 {
-                iterations: NonZeroU32::new(600_000).unwrap(),
-            },
-        }));
-
-        assert!(matches!(
-            convert_format(&client, ExportFormat::Csv).unwrap(),
-            bitwarden_exporters::Format::Csv
-        ));
-        assert!(matches!(
-            convert_format(&client, ExportFormat::Json).unwrap(),
-            bitwarden_exporters::Format::Json
-        ));
-        assert!(matches!(
-            convert_format(
-                &client,
-                ExportFormat::EncryptedJson {
-                    password: "password".to_string()
-                }
-            )
-            .unwrap(),
-            bitwarden_exporters::Format::EncryptedJson { .. }
-        ));
     }
 }

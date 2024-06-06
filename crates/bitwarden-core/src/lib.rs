@@ -70,8 +70,6 @@ pub mod mobile;
 pub mod platform;
 #[cfg(feature = "secrets")]
 pub mod secrets_manager;
-#[cfg(feature = "internal")]
-pub mod tool;
 #[cfg(feature = "uniffi")]
 pub(crate) mod uniffi_support;
 mod util;

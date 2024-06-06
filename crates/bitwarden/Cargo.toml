@@ -28,6 +28,7 @@ no-memory-hardening = [
 uniffi = [
     "bitwarden-core/uniffi",
     "bitwarden-crypto/uniffi",
+    "bitwarden-exporters/uniffi",
     "bitwarden-generators/uniffi",
     "bitwarden-send/uniffi",
 ] # Uniffi bindings

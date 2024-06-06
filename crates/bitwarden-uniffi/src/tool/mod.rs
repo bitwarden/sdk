@@ -2,11 +2,11 @@ use std::sync::Arc;
 
 use bitwarden::{
     error::Error,
+    exporters::{ClientExportersExt, ExportFormat},
     generators::{
         ClientGeneratorExt, PassphraseGeneratorRequest, PasswordGeneratorRequest,
         UsernameGeneratorRequest,
     },
-    tool::ExportFormat,
     vault::{Cipher, Collection, Folder},
 };
 

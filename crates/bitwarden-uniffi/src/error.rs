@@ -6,6 +6,7 @@ use std::fmt::{Display, Formatter};
 #[uniffi(flat_error)]
 pub enum BitwardenError {
     E(bitwarden::error::Error),
+    Ee(bitwarden::exporters::ExportError),
 }
 
 impl From<bitwarden::error::Error> for BitwardenError {
@@ -14,10 +15,17 @@ impl From<bitwarden::error::Error> for BitwardenError {
     }
 }
 
+impl From<bitwarden::exporters::ExportError> for BitwardenError {
+    fn from(e: bitwarden::exporters::ExportError) -> Self {
+        Self::Ee(e)
+    }
+}
+
 impl Display for BitwardenError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::E(e) => Display::fmt(e, f),
+            Self::Ee(e) => Display::fmt(e, f),
         }
     }
 }
@@ -26,6 +34,7 @@ impl std::error::Error for BitwardenError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             BitwardenError::E(e) => Some(e),
+            BitwardenError::Ee(e) => Some(e),
         }
     }
 }

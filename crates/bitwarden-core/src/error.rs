@@ -4,8 +4,6 @@ use std::{borrow::Cow, fmt::Debug};
 
 use bitwarden_api_api::apis::Error as ApiError;
 use bitwarden_api_identity::apis::Error as IdentityError;
-#[cfg(feature = "internal")]
-use bitwarden_exporters::ExportError;
 #[cfg(feature = "uniffi")]
 use passkey::client::WebauthnError;
 use reqwest::StatusCode;
@@ -52,10 +50,6 @@ pub enum Error {
 
     #[error("The state file could not be read")]
     InvalidStateFile,
-
-    #[cfg(feature = "internal")]
-    #[error(transparent)]
-    ExportError(#[from] ExportError),
 
     #[cfg(feature = "uniffi")]
     #[error("Webauthn error: {0:?}")]
@@ -150,7 +144,7 @@ macro_rules! require {
     ($val:expr) => {
         match $val {
             Some(val) => val,
-            None => return Err($crate::error::Error::MissingFields(stringify!($val))),
+            None => return Err($crate::error::Error::MissingFields(stringify!($val)).into()),
         }
     };
 }

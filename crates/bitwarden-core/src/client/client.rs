@@ -276,6 +276,15 @@ impl Client {
         enc.set_org_keys(org_keys)?;
         Ok(&*enc)
     }
+
+    pub fn get_kdf(&self) -> Result<Kdf> {
+        match &self.login_method {
+            Some(LoginMethod::User(
+                UserLoginMethod::Username { kdf, .. } | UserLoginMethod::ApiKey { kdf, .. },
+            )) => Ok(kdf.clone()),
+            _ => Err(Error::NotAuthenticated),
+        }
+    }
 }
 
 #[cfg(test)]

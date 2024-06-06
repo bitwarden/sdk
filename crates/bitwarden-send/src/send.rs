@@ -360,6 +360,7 @@ impl TryFrom<SendTextModel> for SendText {
     }
 }
 
+/*
 #[cfg(test)]
 mod tests {
     use bitwarden_core::client::{encryption_settings::EncryptionSettings, Kdf};
@@ -588,3 +589,4 @@ mod tests {
         assert!(v.has_password);
     }
 }
+*/

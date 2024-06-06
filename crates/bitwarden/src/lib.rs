@@ -6,6 +6,10 @@ pub mod internal {
         pub use bitwarden_generators::*;
     }
 
+    pub mod exporters {
+        pub use bitwarden_exporters::*;
+    }
+
     pub mod send {
         pub use bitwarden_send::*;
     }

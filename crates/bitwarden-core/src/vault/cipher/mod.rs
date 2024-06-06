@@ -16,5 +16,7 @@ pub use cipher::{Cipher, CipherListView, CipherRepromptType, CipherType, CipherV
 pub use field::FieldView;
 #[cfg(feature = "uniffi")]
 pub(crate) use login::Fido2CredentialFullView;
-pub use login::{Fido2Credential, Fido2CredentialNewView, Fido2CredentialView};
+pub use login::{
+    Fido2Credential, Fido2CredentialNewView, Fido2CredentialView, LoginUriView, LoginView,
+};
 pub use secure_note::SecureNoteType;

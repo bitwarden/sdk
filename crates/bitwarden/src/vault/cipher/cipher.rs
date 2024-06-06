@@ -348,7 +348,7 @@ impl CipherView {
 
         let new_key = SymmetricCryptoKey::generate(rand::thread_rng());
 
-        self.reencrypt_attachment_keys(old_key, &new_key, true)?;
+        self.reencrypt_attachment_keys(old_key, &new_key)?;
 
         self.key = Some(new_key.to_vec().encrypt_with_key(key)?);
         Ok(())
@@ -372,14 +372,8 @@ impl CipherView {
         &mut self,
         old_key: &SymmetricCryptoKey,
         new_key: &SymmetricCryptoKey,
-        ignore_null_keys: bool,
     ) -> Result<()> {
         if let Some(attachments) = &mut self.attachments {
-            // If any attachment is missing a key we can't reencrypt the attachment keys
-            if !ignore_null_keys && attachments.iter().any(|a| a.key.is_none()) {
-                return Err("This cipher contains attachments without keys. Those attachments will need to be reuploaded to complete the operation".into());
-            }
-
             for attachment in attachments {
                 if let Some(attachment_key) = &mut attachment.key {
                     let dec_attachment_key: Vec<u8> = attachment_key.decrypt_with_key(old_key)?;
@@ -403,13 +397,18 @@ impl CipherView {
             .get_key(&Some(organization_id))
             .ok_or(Error::VaultLocked)?;
 
+        // If any attachment is missing a key we can't reencrypt the attachment keys
+        if self.attachments.iter().flatten().any(|a| a.key.is_none()) {
+            return Err("This cipher contains attachments without keys. Those attachments will need to be reuploaded to complete the operation".into());
+        }
+
         // If the cipher has a key, we need to re-encrypt it with the new organization key
         if let Some(cipher_key) = &mut self.key {
             let dec_cipher_key: Vec<u8> = cipher_key.decrypt_with_key(old_key)?;
             *cipher_key = dec_cipher_key.encrypt_with_key(new_key)?;
         } else {
             // If the cipher does not have a key, we need to reencrypt all attachment keys
-            self.reencrypt_attachment_keys(old_key, new_key, false)?;
+            self.reencrypt_attachment_keys(old_key, new_key)?;
         }
 
         self.organization_id = Some(organization_id);

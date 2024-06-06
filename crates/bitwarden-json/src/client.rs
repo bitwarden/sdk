@@ -1,4 +1,6 @@
 use async_lock::Mutex;
+#[cfg(feature = "secrets")]
+use bitwarden::secrets_manager::{ClientProjectsExt, ClientSecretsExt};
 use bitwarden::ClientSettings;
 
 #[cfg(feature = "secrets")]

@@ -11,6 +11,7 @@ use bitwarden::{
             SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
             SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest, SecretsGetRequest,
         },
+        ClientProjectsExt, ClientSecretsExt,
     },
     ClientSettings,
 };

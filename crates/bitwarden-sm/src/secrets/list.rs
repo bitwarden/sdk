@@ -1,17 +1,15 @@
 use bitwarden_api_api::models::{
     SecretWithProjectsListResponseModel, SecretsWithProjectsInnerSecret,
 };
+use bitwarden_core::{
+    client::{encryption_settings::EncryptionSettings, Client},
+    error::Result,
+    require,
+};
 use bitwarden_crypto::{CryptoError, EncString, KeyDecryptable};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-
-use bitwarden_core::{
-    client::{encryption_settings::EncryptionSettings, Client},
-    error::Result,
-};
-
-use crate::require;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

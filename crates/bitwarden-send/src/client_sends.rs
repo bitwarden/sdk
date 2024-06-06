@@ -1,18 +1,22 @@
 use std::path::Path;
 
-use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable};
-
-use crate::{
+use bitwarden_core::{
     error::{Error, Result},
-    tool::{Send, SendListView, SendView},
     Client,
 };
+use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable};
+
+use crate::{Send, SendListView, SendView};
 
 pub struct ClientSends<'a> {
-    pub(crate) client: &'a Client,
+    client: &'a Client,
 }
 
 impl<'a> ClientSends<'a> {
+    fn new(client: &'a Client) -> Self {
+        Self { client }
+    }
+
     pub async fn decrypt(&self, send: Send) -> Result<SendView> {
         let enc = self.client.get_encryption_settings()?;
         let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
@@ -86,8 +90,12 @@ impl<'a> ClientSends<'a> {
     }
 }
 
-impl<'a> Client {
-    pub fn sends(&'a mut self) -> ClientSends<'a> {
-        ClientSends { client: self }
+pub trait ClientSendsExt<'a> {
+    fn sends(&'a self) -> ClientSends<'a>;
+}
+
+impl<'a> ClientSendsExt<'a> for Client {
+    fn sends(&'a self) -> ClientSends<'a> {
+        ClientSends::new(self)
     }
 }

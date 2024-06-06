@@ -16,11 +16,8 @@
 //!
 //! ```rust
 //! use bitwarden::{
-//!     auth::login::AccessTokenLoginRequest,
-//!     client::client_settings::{ClientSettings, DeviceType},
-//!     error::Result,
-//!     secrets_manager::secrets::SecretIdentifiersRequest,
-//!     Client,
+//!     auth::login::AccessTokenLoginRequest, error::Result,
+//!     secrets_manager::secrets::SecretIdentifiersRequest, Client, ClientSettings, DeviceType,
 //! };
 //! use uuid::Uuid;
 //!
@@ -38,14 +35,26 @@
 //!     let mut client = Client::new(Some(settings));
 //!
 //!     // Before we operate, we need to authenticate with a token
-//!     let token = AccessTokenLoginRequest { access_token: String::from(""), state_file: None };
+//!     let token = AccessTokenLoginRequest {
+//!         access_token: String::from(""),
+//!         state_file: None,
+//!     };
 //!     client.auth().login_access_token(&token).await.unwrap();
 //!
-//!     let org_id = SecretIdentifiersRequest { organization_id: Uuid::parse_str("00000000-0000-0000-0000-000000000000").unwrap() };
-//!     println!("Stored secrets: {:#?}", client.secrets().list(&org_id).await.unwrap());
+//!     let org_id = SecretIdentifiersRequest {
+//!         organization_id: Uuid::parse_str("00000000-0000-0000-0000-000000000000").unwrap(),
+//!     };
+//!     println!(
+//!         "Stored secrets: {:#?}",
+//!         client.secrets().list(&org_id).await.unwrap()
+//!     );
 //!     Ok(())
 //! }
 //! ```
+
+// Ensure the readme docs compile
+#[doc = include_str!("../README.md")]
+mod readme {}
 
 #[cfg(feature = "uniffi")]
 uniffi::setup_scaffolding!();
@@ -63,16 +72,11 @@ pub mod platform;
 pub mod secrets_manager;
 #[cfg(feature = "internal")]
 pub mod tool;
-#[cfg(feature = "internal")]
+#[cfg(feature = "uniffi")]
 pub(crate) mod uniffi_support;
 mod util;
 #[cfg(feature = "internal")]
 pub mod vault;
 
-pub use client::Client;
-
-// Ensure the readme docs compile
-#[doc = include_str!("../README.md")]
-mod readme {}
-
 pub use bitwarden_crypto::ZeroizingAllocator;
+pub use client::{Client, ClientSettings, DeviceType};

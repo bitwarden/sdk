@@ -145,6 +145,7 @@ impl_bitwarden_error!(IdentityError);
 /// It is equivalent to using `val.ok_or(Error::MissingFields)?`, but easier to use and
 /// with a more descriptive error message.
 /// Note that this macro will return early from the function if the value is not present.
+#[macro_export]
 macro_rules! require {
     ($val:expr) => {
         match $val {

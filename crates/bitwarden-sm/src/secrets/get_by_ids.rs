@@ -1,10 +1,10 @@
 use bitwarden_api_api::models::GetSecretsRequestModel;
+use bitwarden_core::{client::Client, error::Result};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::SecretsResponse;
-use bitwarden_core::{client::Client, error::Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

@@ -1,9 +1,9 @@
+use bitwarden_core::{error::Result, Client};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::SecretResponse;
-use bitwarden_core::{error::Result, Client};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

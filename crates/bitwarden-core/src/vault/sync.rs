@@ -75,7 +75,7 @@ pub struct SyncResponse {
     pub ciphers: Vec<Cipher>,
     pub domains: Option<DomainResponse>,
     pub policies: Vec<Policy>,
-    pub sends: Vec<crate::tool::Send>,
+    //pub sends: Vec<crate::tool::Send>,
 }
 
 impl SyncResponse {
@@ -102,7 +102,7 @@ impl SyncResponse {
             ciphers: try_into_iter(ciphers)?,
             domains: response.domains.map(|d| (*d).try_into()).transpose()?,
             policies: try_into_iter(require!(response.policies))?,
-            sends: try_into_iter(require!(response.sends))?,
+            //sends: try_into_iter(require!(response.sends))?,
         })
     }
 }

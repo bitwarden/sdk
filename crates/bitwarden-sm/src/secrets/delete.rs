@@ -1,13 +1,10 @@
 use bitwarden_api_api::models::{
     BulkDeleteResponseModel, BulkDeleteResponseModelListResponseModel,
 };
+use bitwarden_core::{client::Client, error::Result, require};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-
-use bitwarden_core::{client::Client, error::Result};
-
-use crate::require;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

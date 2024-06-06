@@ -1,14 +1,14 @@
 use bitwarden_api_api::models::ProjectUpdateRequestModel;
+use bitwarden_core::{
+    client::Client,
+    error::{Error, Result},
+};
 use bitwarden_crypto::KeyEncryptable;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::ProjectResponse;
-use bitwarden_core::{
-    client::Client,
-    error::{Error, Result},
-};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

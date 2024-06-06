@@ -1,6 +1,6 @@
 use std::{path::Path, sync::Arc};
 
-use bitwarden::tool::{Send, SendListView, SendView};
+use bitwarden::send::{ClientSendsExt, Send, SendListView, SendView};
 
 use crate::{Client, Result};
 

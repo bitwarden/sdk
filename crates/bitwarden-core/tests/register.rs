@@ -4,7 +4,7 @@
 async fn test_register_initialize_crypto() {
     use std::num::NonZeroU32;
 
-    use bitwarden::{
+    use bitwarden_core::{
         mobile::crypto::{InitUserCryptoMethod, InitUserCryptoRequest},
         Client,
     };

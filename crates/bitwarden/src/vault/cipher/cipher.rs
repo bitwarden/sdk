@@ -373,11 +373,10 @@ impl CipherView {
         old_key: &SymmetricCryptoKey,
         new_key: &SymmetricCryptoKey,
     ) -> Result<()> {
-        // If the cipher does not have a key, we need to reencrypt all attachment keys
         if let Some(attachments) = &mut self.attachments {
-            // If any attachment is missing a key we can't move the cipher
+            // If any attachment is missing a key we can't reencrypt the attachment keys
             if attachments.iter().any(|a| a.key.is_none()) {
-                return Err("This cipher contains attachments without keys. Those attachments need to be reuploaded before the cipher can be moved".into());
+                return Err("This cipher contains attachments without keys. Those attachments will need to be reuploaded to complete the operation".into());
             }
 
             for attachment in attachments {
@@ -410,6 +409,7 @@ impl CipherView {
             let dec_cipher_key: Vec<u8> = cipher_key.decrypt_with_key(old_key)?;
             *cipher_key = dec_cipher_key.encrypt_with_key(new_key)?;
         } else {
+            // If the cipher does not have a key, we need to reencrypt all attachment keys
             self.reencrypt_attachment_keys(old_key, new_key)?;
         }
 

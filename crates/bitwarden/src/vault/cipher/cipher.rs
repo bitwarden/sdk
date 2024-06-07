@@ -17,8 +17,9 @@ use super::{
 #[cfg(feature = "uniffi")]
 use crate::vault::Fido2CredentialFullView;
 use crate::{
+    client::encryption_settings::EncryptionSettings,
     error::{require, Error, Result},
-    vault::password_history,
+    vault::{password_history, Fido2CredentialView},
 };
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
@@ -382,6 +383,24 @@ impl CipherView {
             }
         }
         Ok(())
+    }
+
+    pub(crate) fn decrypt_fido2_credentials(
+        &self,
+        enc: &EncryptionSettings,
+    ) -> Result<Vec<Fido2CredentialView>> {
+        let key = self.locate_key(enc, &None).ok_or(Error::VaultLocked)?;
+        let cipher_key = Cipher::get_cipher_key(key, &self.key)?;
+
+        let key = cipher_key.as_ref().unwrap_or(key);
+
+        Ok(self
+            .login
+            .as_ref()
+            .and_then(|l| l.fido2_credentials.as_ref())
+            .map(|f| f.decrypt_with_key(key))
+            .transpose()?
+            .unwrap_or_default())
     }
 
     fn reencrypt_fido2_credentials(

@@ -608,6 +608,7 @@ mod tests {
     use std::collections::HashMap;
 
     use attachment::AttachmentView;
+    use login::Fido2Credential;
 
     use super::*;
 
@@ -645,6 +646,24 @@ mod tests {
             creation_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
             deleted_date: None,
             revision_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
+        }
+    }
+
+    fn generate_fido2(key: &SymmetricCryptoKey) -> Fido2Credential {
+        Fido2Credential {
+            credential_id: "123".to_string().encrypt_with_key(key).unwrap(),
+            key_type: "public-key".to_string().encrypt_with_key(key).unwrap(),
+            key_algorithm: "ECDSA".to_string().encrypt_with_key(key).unwrap(),
+            key_curve: "P-256".to_string().encrypt_with_key(key).unwrap(),
+            key_value: "123".to_string().encrypt_with_key(key).unwrap(),
+            rp_id: "123".to_string().encrypt_with_key(key).unwrap(),
+            user_handle: None,
+            user_name: None,
+            counter: "123".to_string().encrypt_with_key(key).unwrap(),
+            rp_name: None,
+            user_display_name: None,
+            discoverable: "true".to_string().encrypt_with_key(key).unwrap(),
+            creation_date: "2024-06-07T14:12:36.150Z".parse().unwrap(),
         }
     }
 
@@ -812,6 +831,8 @@ mod tests {
             key: Some(attachment_key_enc),
         };
         cipher.attachments = Some(vec![attachment]);
+        let cred = generate_fido2(enc.get_key(&None).unwrap());
+        cipher.login.as_mut().unwrap().fido2_credentials = Some(vec![cred]);
 
         cipher.move_to_organization(&enc, org).unwrap();
 
@@ -825,6 +846,18 @@ mod tests {
             .unwrap();
         let new_attachment_key_dec: SymmetricCryptoKey = new_attachment_key_dec.try_into().unwrap();
         assert_eq!(new_attachment_key_dec.to_vec(), attachment_key.to_vec());
+
+        let cred2: Fido2CredentialFullView = cipher
+            .login
+            .unwrap()
+            .fido2_credentials
+            .unwrap()
+            .first()
+            .unwrap()
+            .decrypt_with_key(enc.get_key(&Some(org)).unwrap())
+            .unwrap();
+
+        assert_eq!(cred2.credential_id, "123");
     }
 
     #[test]
@@ -862,6 +895,9 @@ mod tests {
         };
         cipher.attachments = Some(vec![attachment]);
 
+        let cred = generate_fido2(&cipher_key);
+        cipher.login.as_mut().unwrap().fido2_credentials = Some(vec![cred.clone()]);
+
         cipher.move_to_organization(&enc, org).unwrap();
 
         // Check that the cipher key has been re-encrypted with the org key,
@@ -884,6 +920,20 @@ mod tests {
                 .unwrap()
                 .to_string(),
             attachment_key_enc.to_string()
+        );
+
+        let cred2: Fido2Credential = cipher
+            .login
+            .unwrap()
+            .fido2_credentials
+            .unwrap()
+            .first()
+            .unwrap()
+            .clone();
+
+        assert_eq!(
+            cred2.credential_id.to_string(),
+            cred.credential_id.to_string()
         );
     }
 

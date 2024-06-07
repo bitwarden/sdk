@@ -349,6 +349,7 @@ impl CipherView {
         let new_key = SymmetricCryptoKey::generate(rand::thread_rng());
 
         self.reencrypt_attachment_keys(old_key, &new_key)?;
+        self.reencrypt_fido2_credentials(old_key, &new_key)?;
 
         self.key = Some(new_key.to_vec().encrypt_with_key(key)?);
         Ok(())

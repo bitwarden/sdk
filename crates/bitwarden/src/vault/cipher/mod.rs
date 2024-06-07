@@ -14,7 +14,7 @@ pub use attachment::{
 };
 pub use cipher::{Cipher, CipherListView, CipherRepromptType, CipherType, CipherView};
 pub use field::FieldView;
-#[cfg(feature = "uniffi")]
+
 pub(crate) use login::Fido2CredentialFullView;
 pub use login::{Fido2Credential, Fido2CredentialNewView, Fido2CredentialView};
 pub use secure_note::SecureNoteType;

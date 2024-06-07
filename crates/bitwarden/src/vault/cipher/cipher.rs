@@ -384,6 +384,21 @@ impl CipherView {
         Ok(())
     }
 
+    fn reencrypt_fido2_credentials(
+        &mut self,
+        old_key: &SymmetricCryptoKey,
+        new_key: &SymmetricCryptoKey,
+    ) -> Result<()> {
+        if let Some(login) = self.login.as_mut() {
+            if let Some(fido2_credentials) = &mut login.fido2_credentials {
+                let dec_fido2_credentials: Vec<Fido2CredentialFullView> =
+                    fido2_credentials.decrypt_with_key(old_key)?;
+                *fido2_credentials = dec_fido2_credentials.encrypt_with_key(new_key)?;
+            }
+        }
+        Ok(())
+    }
+
     pub fn move_to_organization(
         &mut self,
         enc: &dyn KeyContainer,
@@ -409,6 +424,7 @@ impl CipherView {
         } else {
             // If the cipher does not have a key, we need to reencrypt all attachment keys
             self.reencrypt_attachment_keys(old_key, new_key)?;
+            self.reencrypt_fido2_credentials(old_key, new_key)?;
         }
 
         self.organization_id = Some(organization_id);

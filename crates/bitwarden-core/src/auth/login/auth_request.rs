@@ -30,7 +30,7 @@ pub(crate) async fn send_new_auth_request(
     email: String,
     device_identifier: String,
 ) -> Result<NewAuthRequestResponse> {
-    let config = client.get_api_configurations().await;
+    let config = client.internal.get_api_configurations().await;
 
     let auth = new_auth_request(&email)?;
 
@@ -58,7 +58,7 @@ pub(crate) async fn complete_auth_request(
     client: &mut Client,
     auth_req: NewAuthRequestResponse,
 ) -> Result<()> {
-    let config = client.get_api_configurations().await;
+    let config = client.internal.get_api_configurations().await;
 
     let res = auth_requests_id_response_get(
         &config.api,
@@ -86,16 +86,18 @@ pub(crate) async fn complete_auth_request(
     if let IdentityTokenResponse::Authenticated(r) = response {
         let kdf = Kdf::default();
 
-        client.set_tokens(
+        client.internal.set_tokens(
             r.access_token.clone(),
             r.refresh_token.clone(),
             r.expires_in,
         );
-        client.set_login_method(LoginMethod::User(UserLoginMethod::Username {
-            client_id: "web".to_owned(),
-            email: auth_req.email.to_owned(),
-            kdf: kdf.clone(),
-        }));
+        client
+            .internal
+            .set_login_method(LoginMethod::User(UserLoginMethod::Username {
+                client_id: "web".to_owned(),
+                email: auth_req.email.to_owned(),
+                kdf: kdf.clone(),
+            }));
 
         let method = match res.master_password_hash {
             Some(_) => AuthRequestMethod::MasterKey {

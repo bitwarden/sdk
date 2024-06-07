@@ -24,15 +24,16 @@ pub(crate) async fn get_user_api_key(
     let auth_settings = get_login_method(client)?;
     let request = get_secret_verification_request(auth_settings, input)?;
 
-    let config = client.get_api_configurations().await;
+    let config = client.internal.get_api_configurations().await;
 
     let response = accounts_api_key_post(&config.api, Some(request)).await?;
     UserApiKeyResponse::process_response(response)
 }
 
 fn get_login_method(client: &Client) -> Result<&LoginMethod> {
-    if client.is_authed() {
+    if client.internal.is_authed() {
         client
+            .internal
             .get_login_method()
             .as_ref()
             .ok_or(Error::NotAuthenticated)

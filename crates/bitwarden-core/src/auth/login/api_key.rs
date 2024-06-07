@@ -32,7 +32,7 @@ pub(crate) async fn login_api_key(
 
         let kdf = client.auth().prelogin(email.clone()).await?;
 
-        client.set_tokens(
+        client.internal.set_tokens(
             r.access_token.clone(),
             r.refresh_token.clone(),
             r.expires_in,
@@ -40,17 +40,21 @@ pub(crate) async fn login_api_key(
 
         let master_key = MasterKey::derive(input.password.as_bytes(), email.as_bytes(), &kdf)?;
 
-        client.set_login_method(LoginMethod::User(UserLoginMethod::ApiKey {
-            client_id: input.client_id.to_owned(),
-            client_secret: input.client_secret.to_owned(),
-            email,
-            kdf,
-        }));
+        client
+            .internal
+            .set_login_method(LoginMethod::User(UserLoginMethod::ApiKey {
+                client_id: input.client_id.to_owned(),
+                client_secret: input.client_secret.to_owned(),
+                email,
+                kdf,
+            }));
 
         let user_key: EncString = require!(r.key.as_deref()).parse()?;
         let private_key: EncString = require!(r.private_key.as_deref()).parse()?;
 
-        client.initialize_user_crypto_master_key(master_key, user_key, private_key)?;
+        client
+            .internal
+            .initialize_user_crypto_master_key(master_key, user_key, private_key)?;
     }
 
     ApiKeyLoginResponse::process_response(response)
@@ -60,7 +64,7 @@ async fn request_api_identity_tokens(
     client: &mut Client,
     input: &ApiKeyLoginRequest,
 ) -> Result<IdentityTokenResponse> {
-    let config = client.get_api_configurations().await;
+    let config = client.internal.get_api_configurations().await;
     ApiTokenRequest::new(&input.client_id, &input.client_secret)
         .send(config)
         .await

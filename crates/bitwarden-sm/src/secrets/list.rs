@@ -22,14 +22,14 @@ pub(crate) async fn list_secrets(
     client: &mut Client,
     input: &SecretIdentifiersRequest,
 ) -> Result<SecretIdentifiersResponse> {
-    let config = client.get_api_configurations().await;
+    let config = client.internal.get_api_configurations().await;
     let res = bitwarden_api_api::apis::secrets_api::organizations_organization_id_secrets_get(
         &config.api,
         input.organization_id,
     )
     .await?;
 
-    let enc = client.get_encryption_settings()?;
+    let enc = client.internal.get_encryption_settings()?;
 
     SecretIdentifiersResponse::process_response(res, enc)
 }
@@ -45,14 +45,14 @@ pub(crate) async fn list_secrets_by_project(
     client: &mut Client,
     input: &SecretIdentifiersByProjectRequest,
 ) -> Result<SecretIdentifiersResponse> {
-    let config = client.get_api_configurations().await;
+    let config = client.internal.get_api_configurations().await;
     let res = bitwarden_api_api::apis::secrets_api::projects_project_id_secrets_get(
         &config.api,
         input.project_id,
     )
     .await?;
 
-    let enc = client.get_encryption_settings()?;
+    let enc = client.internal.get_encryption_settings()?;
 
     SecretIdentifiersResponse::process_response(res, enc)
 }

@@ -38,7 +38,7 @@ pub(crate) fn generate_user_fingerprint(
 ) -> Result<String> {
     info!("Generating fingerprint");
 
-    let enc_settings = client.get_encryption_settings()?;
+    let enc_settings = client.internal.get_encryption_settings()?;
     let private_key = enc_settings
         .private_key
         .as_ref()
@@ -75,6 +75,7 @@ mod tests {
         .unwrap();
 
         client
+            .internal
             .initialize_user_crypto_master_key(
                 master_key,
                 user_key.parse().unwrap(),

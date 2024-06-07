@@ -16,7 +16,7 @@ pub(crate) fn export_vault(
     ciphers: Vec<Cipher>,
     format: ExportFormat,
 ) -> Result<String, ExportError> {
-    let enc = client.get_encryption_settings()?;
+    let enc = client.internal.get_encryption_settings()?;
     let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
 
     let folders: Vec<FolderView> = folders.decrypt_with_key(key)?;
@@ -34,7 +34,7 @@ pub(crate) fn export_vault(
             folders,
             ciphers,
             password,
-            client.get_kdf()?,
+            client.internal.get_kdf()?,
         )?),
     }
 }

@@ -158,7 +158,7 @@ impl<'a> ClientAuth<'a> {
 
 #[cfg(feature = "internal")]
 fn trust_device(client: &Client) -> Result<TrustDeviceResponse> {
-    let enc = client.get_encryption_settings()?;
+    let enc = client.internal.get_encryption_settings()?;
 
     let user_key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
 

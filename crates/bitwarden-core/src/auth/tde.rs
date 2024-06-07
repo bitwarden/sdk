@@ -31,14 +31,18 @@ pub(super) fn make_register_tde_keys(
         None
     };
 
-    client.set_login_method(crate::client::LoginMethod::User(
-        crate::client::UserLoginMethod::Username {
-            client_id: "".to_owned(),
-            email,
-            kdf: Kdf::default(),
-        },
-    ));
-    client.initialize_user_crypto_decrypted_key(user_key.0, key_pair.private.clone())?;
+    client
+        .internal
+        .set_login_method(crate::client::LoginMethod::User(
+            crate::client::UserLoginMethod::Username {
+                client_id: "".to_owned(),
+                email,
+                kdf: Kdf::default(),
+            },
+        ));
+    client
+        .internal
+        .initialize_user_crypto_decrypted_key(user_key.0, key_pair.private.clone())?;
 
     Ok(RegisterTdeKeyResponse {
         private_key: key_pair.private,

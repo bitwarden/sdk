@@ -29,6 +29,7 @@ pub(crate) async fn update_secret(
     input: &SecretPutRequest,
 ) -> Result<SecretResponse> {
     let key = client
+        .internal
         .get_encryption_settings()?
         .get_key(&Some(input.organization_id))
         .ok_or(Error::VaultLocked)?;
@@ -40,11 +41,11 @@ pub(crate) async fn update_secret(
         project_ids: input.project_ids.clone(),
     });
 
-    let config = client.get_api_configurations().await;
+    let config = client.internal.get_api_configurations().await;
     let res =
         bitwarden_api_api::apis::secrets_api::secrets_id_put(&config.api, input.id, secret).await?;
 
-    let enc = client.get_encryption_settings()?;
+    let enc = client.internal.get_encryption_settings()?;
 
     SecretResponse::process_response(res, enc)
 }

@@ -17,7 +17,7 @@ pub(crate) async fn delete_projects(
     client: &mut Client,
     input: ProjectsDeleteRequest,
 ) -> Result<ProjectsDeleteResponse> {
-    let config = client.get_api_configurations().await;
+    let config = client.internal.get_api_configurations().await;
     let res =
         bitwarden_api_api::apis::projects_api::projects_delete_post(&config.api, Some(input.ids))
             .await?;

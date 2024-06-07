@@ -19,12 +19,12 @@ pub(crate) async fn get_secrets_by_ids(
 ) -> Result<SecretsResponse> {
     let request = Some(GetSecretsRequestModel { ids: input.ids });
 
-    let config = client.get_api_configurations().await;
+    let config = client.internal.get_api_configurations().await;
 
     let res =
         bitwarden_api_api::apis::secrets_api::secrets_get_by_ids_post(&config.api, request).await?;
 
-    let enc = client.get_encryption_settings()?;
+    let enc = client.internal.get_encryption_settings()?;
 
     SecretsResponse::process_response(res, enc)
 }

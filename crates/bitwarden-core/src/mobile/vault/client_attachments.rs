@@ -22,7 +22,7 @@ impl<'a> ClientAttachments<'a> {
         attachment: AttachmentView,
         buffer: &[u8],
     ) -> Result<AttachmentEncryptResult> {
-        let enc = self.client.get_encryption_settings()?;
+        let enc = self.client.internal.get_encryption_settings()?;
         let key = cipher.locate_key(enc, &None).ok_or(Error::VaultLocked)?;
 
         Ok(AttachmentFileView {
@@ -54,7 +54,7 @@ impl<'a> ClientAttachments<'a> {
         attachment: Attachment,
         encrypted_buffer: &[u8],
     ) -> Result<Vec<u8>> {
-        let enc = self.client.get_encryption_settings()?;
+        let enc = self.client.internal.get_encryption_settings()?;
         let key = cipher.locate_key(enc, &None).ok_or(Error::VaultLocked)?;
 
         AttachmentFile {

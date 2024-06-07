@@ -87,7 +87,7 @@ impl<'a> ClientGenerator<'a> {
     /// }
     /// ```
     pub async fn username(&self, input: UsernameGeneratorRequest) -> Result<String, UsernameError> {
-        username(input, self.client.get_http_client()).await
+        username(input, self.client.internal.get_http_client()).await
     }
 }
 

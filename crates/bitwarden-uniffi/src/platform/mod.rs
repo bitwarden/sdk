@@ -36,7 +36,7 @@ impl ClientPlatform {
 
     /// Load feature flags into the client
     pub async fn load_flags(&self, flags: std::collections::HashMap<String, bool>) -> Result<()> {
-        self.0 .0.write().await.load_flags(flags);
+        self.0 .0.write().await.internal.load_flags(flags);
         Ok(())
     }
 

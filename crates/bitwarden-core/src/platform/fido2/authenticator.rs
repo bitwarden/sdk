@@ -245,7 +245,11 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                 .find_credentials(ids, rp_id.to_string())
                 .await?;
 
-            let enc = this.authenticator.client.get_encryption_settings()?;
+            let enc = this
+                .authenticator
+                .client
+                .internal
+                .get_encryption_settings()?;
 
             // Remove any that don't have Fido2 credentials
             let creds: Vec<_> = ciphers
@@ -304,7 +308,11 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             user: passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
             rp: passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
         ) -> Result<()> {
-            let enc = this.authenticator.client.get_encryption_settings()?;
+            let enc = this
+                .authenticator
+                .client
+                .internal
+                .get_encryption_settings()?;
 
             let cred = Fido2CredentialFullView::try_from_credential(cred, user, rp)?;
 
@@ -344,7 +352,11 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
     async fn update_credential(&mut self, cred: Passkey) -> Result<(), StatusCode> {
         // This is just a wrapper around the actual implementation to allow for ? error handling
         async fn inner(this: &mut CredentialStoreImpl<'_>, cred: Passkey) -> Result<()> {
-            let enc = this.authenticator.client.get_encryption_settings()?;
+            let enc = this
+                .authenticator
+                .client
+                .internal
+                .get_encryption_settings()?;
 
             // Get the previously selected cipher and update the credential
             let selected = this.authenticator.get_selected_credential()?;

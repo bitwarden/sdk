@@ -12,7 +12,7 @@ pub struct ClientCollections<'a> {
 
 impl<'a> ClientCollections<'a> {
     pub async fn decrypt(&self, collection: Collection) -> Result<CollectionView> {
-        let enc = self.client.get_encryption_settings()?;
+        let enc = self.client.internal.get_encryption_settings()?;
         let key = collection
             .locate_key(enc, &None)
             .ok_or(CryptoError::MissingKey)?;
@@ -23,7 +23,7 @@ impl<'a> ClientCollections<'a> {
     }
 
     pub async fn decrypt_list(&self, collections: Vec<Collection>) -> Result<Vec<CollectionView>> {
-        let enc = self.client.get_encryption_settings()?;
+        let enc = self.client.internal.get_encryption_settings()?;
 
         let views: Result<Vec<CollectionView>> = collections
             .iter()

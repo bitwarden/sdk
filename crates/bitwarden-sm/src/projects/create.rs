@@ -21,6 +21,7 @@ pub(crate) async fn create_project(
     input: &ProjectCreateRequest,
 ) -> Result<ProjectResponse, Error> {
     let key = client
+        .internal
         .get_encryption_settings()?
         .get_key(&Some(input.organization_id))
         .ok_or(Error::VaultLocked)?;
@@ -29,7 +30,7 @@ pub(crate) async fn create_project(
         name: input.name.clone().encrypt_with_key(key)?.to_string(),
     });
 
-    let config = client.get_api_configurations().await;
+    let config = client.internal.get_api_configurations().await;
     let res = bitwarden_api_api::apis::projects_api::organizations_organization_id_projects_post(
         &config.api,
         input.organization_id,
@@ -37,7 +38,7 @@ pub(crate) async fn create_project(
     )
     .await?;
 
-    let enc = client.get_encryption_settings()?;
+    let enc = client.internal.get_encryption_settings()?;
 
     ProjectResponse::process_response(res, enc)
 }

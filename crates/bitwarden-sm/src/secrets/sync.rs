@@ -22,7 +22,7 @@ pub(crate) async fn sync_secrets(
     client: &mut Client,
     input: &SecretsSyncRequest,
 ) -> Result<SecretsSyncResponse> {
-    let config = client.get_api_configurations().await;
+    let config = client.internal.get_api_configurations().await;
     let last_synced_date = input.last_synced_date.map(|date| date.to_rfc3339());
 
     let res = bitwarden_api_api::apis::secrets_api::organizations_organization_id_secrets_sync_get(
@@ -32,7 +32,7 @@ pub(crate) async fn sync_secrets(
     )
     .await?;
 
-    let enc = client.get_encryption_settings()?;
+    let enc = client.internal.get_encryption_settings()?;
 
     SecretsSyncResponse::process_response(res, enc)
 }

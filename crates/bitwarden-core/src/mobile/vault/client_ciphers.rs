@@ -13,11 +13,17 @@ pub struct ClientCiphers<'a> {
 
 impl<'a> ClientCiphers<'a> {
     pub async fn encrypt(&self, mut cipher_view: CipherView) -> Result<Cipher> {
-        let enc = self.client.get_encryption_settings()?;
+        let enc = self.client.internal.get_encryption_settings()?;
 
         // TODO: Once this flag is removed, the key generation logic should
         // be moved directly into the KeyEncryptable implementation
-        if cipher_view.key.is_none() && self.client.get_flags().enable_cipher_key_encryption {
+        if cipher_view.key.is_none()
+            && self
+                .client
+                .internal
+                .get_flags()
+                .enable_cipher_key_encryption
+        {
             let key = cipher_view
                 .locate_key(enc, &None)
                 .ok_or(Error::VaultLocked)?;
@@ -33,7 +39,7 @@ impl<'a> ClientCiphers<'a> {
     }
 
     pub async fn decrypt(&self, cipher: Cipher) -> Result<CipherView> {
-        let enc = self.client.get_encryption_settings()?;
+        let enc = self.client.internal.get_encryption_settings()?;
         let key = cipher
             .locate_key(enc, &None)
             .ok_or(CryptoError::MissingKey)?;
@@ -44,7 +50,7 @@ impl<'a> ClientCiphers<'a> {
     }
 
     pub async fn decrypt_list(&self, ciphers: Vec<Cipher>) -> Result<Vec<CipherListView>> {
-        let enc = self.client.get_encryption_settings()?;
+        let enc = self.client.internal.get_encryption_settings()?;
 
         let cipher_views: Result<Vec<CipherListView>> = ciphers
             .iter()
@@ -62,7 +68,7 @@ impl<'a> ClientCiphers<'a> {
         mut cipher_view: CipherView,
         organization_id: Uuid,
     ) -> Result<CipherView> {
-        let enc = self.client.get_encryption_settings()?;
+        let enc = self.client.internal.get_encryption_settings()?;
         cipher_view.move_to_organization(enc, organization_id)?;
         Ok(cipher_view)
     }

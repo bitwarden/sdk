@@ -21,7 +21,7 @@ pub struct SyncRequest {
 }
 
 pub(crate) async fn sync(client: &mut Client, input: &SyncRequest) -> Result<SyncResponse> {
-    let config = client.get_api_configurations().await;
+    let config = client.internal.get_api_configurations().await;
     let sync =
         bitwarden_api_api::apis::sync_api::sync_get(&config.api, input.exclude_subdomains).await?;
 
@@ -33,7 +33,7 @@ pub(crate) async fn sync(client: &mut Client, input: &SyncRequest) -> Result<Syn
         .filter_map(|o| o.id.zip(o.key.as_deref().and_then(|k| k.parse().ok())))
         .collect();
 
-    let enc = client.initialize_org_crypto(org_keys)?;
+    let enc = client.internal.initialize_org_crypto(org_keys)?;
 
     SyncResponse::process_response(sync, enc)
 }

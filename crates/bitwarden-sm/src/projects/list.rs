@@ -20,14 +20,14 @@ pub(crate) async fn list_projects(
     client: &mut Client,
     input: &ProjectsListRequest,
 ) -> Result<ProjectsResponse> {
-    let config = client.get_api_configurations().await;
+    let config = client.internal.get_api_configurations().await;
     let res = bitwarden_api_api::apis::projects_api::organizations_organization_id_projects_get(
         &config.api,
         input.organization_id,
     )
     .await?;
 
-    let enc = client.get_encryption_settings()?;
+    let enc = client.internal.get_encryption_settings()?;
 
     ProjectsResponse::process_response(res, enc)
 }

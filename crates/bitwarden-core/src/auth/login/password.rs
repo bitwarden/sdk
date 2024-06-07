@@ -39,21 +39,25 @@ pub(crate) async fn login_password(
     let response = request_identity_tokens(client, input, &password_hash).await?;
 
     if let IdentityTokenResponse::Authenticated(r) = &response {
-        client.set_tokens(
+        client.internal.set_tokens(
             r.access_token.clone(),
             r.refresh_token.clone(),
             r.expires_in,
         );
-        client.set_login_method(LoginMethod::User(UserLoginMethod::Username {
-            client_id: "web".to_owned(),
-            email: input.email.to_owned(),
-            kdf: input.kdf.to_owned(),
-        }));
+        client
+            .internal
+            .set_login_method(LoginMethod::User(UserLoginMethod::Username {
+                client_id: "web".to_owned(),
+                email: input.email.to_owned(),
+                kdf: input.kdf.to_owned(),
+            }));
 
         let user_key: EncString = require!(r.key.as_deref()).parse()?;
         let private_key: EncString = require!(r.private_key.as_deref()).parse()?;
 
-        client.initialize_user_crypto_master_key(master_key, user_key, private_key)?;
+        client
+            .internal
+            .initialize_user_crypto_master_key(master_key, user_key, private_key)?;
     }
 
     PasswordLoginResponse::process_response(response)
@@ -67,7 +71,7 @@ async fn request_identity_tokens(
 ) -> Result<IdentityTokenResponse> {
     use crate::client::client_settings::DeviceType;
 
-    let config = client.get_api_configurations().await;
+    let config = client.internal.get_api_configurations().await;
     PasswordTokenRequest::new(
         &input.email,
         password_hash,

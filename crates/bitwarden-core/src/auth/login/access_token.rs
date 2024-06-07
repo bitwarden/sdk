@@ -30,13 +30,15 @@ pub(crate) async fn login_access_token(
 
     if let Some(state_file) = &input.state_file {
         if let Ok(organization_id) = load_tokens_from_state(client, state_file, &access_token) {
-            client.set_login_method(LoginMethod::ServiceAccount(
-                ServiceAccountLoginMethod::AccessToken {
-                    access_token,
-                    organization_id,
-                    state_file: Some(state_file.to_path_buf()),
-                },
-            ));
+            client
+                .internal
+                .set_login_method(LoginMethod::ServiceAccount(
+                    ServiceAccountLoginMethod::AccessToken {
+                        access_token,
+                        organization_id,
+                        state_file: Some(state_file.to_path_buf()),
+                    },
+                ));
 
             return Ok(AccessTokenLoginResponse {
                 authenticated: true,
@@ -78,20 +80,22 @@ pub(crate) async fn login_access_token(
             _ = state::set(state_file, &access_token, state);
         }
 
-        client.set_tokens(
+        client.internal.set_tokens(
             r.access_token.clone(),
             r.refresh_token.clone(),
             r.expires_in,
         );
-        client.set_login_method(LoginMethod::ServiceAccount(
-            ServiceAccountLoginMethod::AccessToken {
-                access_token,
-                organization_id,
-                state_file: input.state_file.clone(),
-            },
-        ));
+        client
+            .internal
+            .set_login_method(LoginMethod::ServiceAccount(
+                ServiceAccountLoginMethod::AccessToken {
+                    access_token,
+                    organization_id,
+                    state_file: input.state_file.clone(),
+                },
+            ));
 
-        client.initialize_crypto_single_key(encryption_key);
+        client.internal.initialize_crypto_single_key(encryption_key);
     }
 
     AccessTokenLoginResponse::process_response(response)
@@ -101,7 +105,7 @@ async fn request_access_token(
     client: &mut Client,
     input: &AccessToken,
 ) -> Result<IdentityTokenResponse> {
-    let config = client.get_api_configurations().await;
+    let config = client.internal.get_api_configurations().await;
     AccessTokenRequest::new(input.access_token_id, &input.client_secret)
         .send(config)
         .await
@@ -125,8 +129,10 @@ fn load_tokens_from_state(
                 .map_err(|_| "Bad organization id.")?;
             let encryption_key = SymmetricCryptoKey::try_from(client_state.encryption_key)?;
 
-            client.set_tokens(client_state.token, None, time_till_expiration as u64);
-            client.initialize_crypto_single_key(encryption_key);
+            client
+                .internal
+                .set_tokens(client_state.token, None, time_till_expiration as u64);
+            client.internal.initialize_crypto_single_key(encryption_key);
 
             return Ok(organization_id);
         }

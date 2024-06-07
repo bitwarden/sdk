@@ -14,13 +14,12 @@ use super::{
     local_data::{LocalData, LocalDataView},
     login, secure_note,
 };
+#[cfg(feature = "uniffi")]
+use crate::{client::encryption_settings::EncryptionSettings, vault::Fido2CredentialView};
 use crate::{
     error::{require, Error, Result},
     vault::{password_history, Fido2CredentialFullView},
 };
-
-#[cfg(feature = "uniffi")]
-use crate::{client::encryption_settings::EncryptionSettings, vault::Fido2CredentialView};
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]

@@ -30,3 +30,10 @@ impl UniffiCustomTypeConverter for Uuid {
         obj.to_string()
     }
 }
+
+#[allow(dead_code)]
+#[derive(uniffi::Record)]
+struct Test {
+    uuid: Uuid,
+    date: DateTime,
+}

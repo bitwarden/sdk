@@ -1,5 +1,5 @@
 use bitwarden_api_api::models::CipherDetailsResponseModel;
-use bitwarden_core::require;
+use bitwarden_core::{require, MissingFieldError, VaultLocked};
 use bitwarden_crypto::{
     CryptoError, EncString, KeyContainer, KeyDecryptable, KeyEncryptable, LocateKey,
     SymmetricCryptoKey,
@@ -8,6 +8,7 @@ use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
+use thiserror::Error;
 use uuid::Uuid;
 
 use super::{
@@ -16,11 +17,20 @@ use super::{
     login, secure_note,
 };
 #[cfg(feature = "uniffi")]
-use crate::{client::encryption_settings::EncryptionSettings, vault::Fido2CredentialView};
-use crate::{
-    error::{Error, Result},
-    vault::{password_history, Fido2CredentialFullView},
-};
+use crate::Fido2CredentialView;
+use crate::{password_history, Fido2CredentialFullView, VaultParseError};
+
+#[derive(Debug, Error)]
+pub enum CipherError {
+    #[error(transparent)]
+    MissingFieldError(#[from] MissingFieldError),
+    #[error(transparent)]
+    VaultLocked(#[from] VaultLocked),
+    #[error(transparent)]
+    CryptoError(#[from] CryptoError),
+    #[error("This cipher contains attachments without keys. Those attachments will need to be reuploaded to complete the operation")]
+    AttachmentsWithoutKeys,
+}
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
@@ -343,7 +353,7 @@ fn build_subtitle_identity(first_name: Option<String>, last_name: Option<String>
 }
 
 impl CipherView {
-    pub fn generate_cipher_key(&mut self, key: &SymmetricCryptoKey) -> Result<()> {
+    pub fn generate_cipher_key(&mut self, key: &SymmetricCryptoKey) -> Result<(), CryptoError> {
         let old_ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let old_key = old_ciphers_key.as_ref().unwrap_or(key);
 
@@ -374,7 +384,7 @@ impl CipherView {
         &mut self,
         old_key: &SymmetricCryptoKey,
         new_key: &SymmetricCryptoKey,
-    ) -> Result<()> {
+    ) -> Result<(), CryptoError> {
         if let Some(attachments) = &mut self.attachments {
             for attachment in attachments {
                 if let Some(attachment_key) = &mut attachment.key {
@@ -387,11 +397,11 @@ impl CipherView {
     }
 
     #[cfg(feature = "uniffi")]
-    pub(crate) fn decrypt_fido2_credentials(
+    pub fn decrypt_fido2_credentials(
         &self,
-        enc: &EncryptionSettings,
-    ) -> Result<Vec<Fido2CredentialView>> {
-        let key = self.locate_key(enc, &None).ok_or(Error::VaultLocked)?;
+        enc: &dyn KeyContainer,
+    ) -> Result<Vec<Fido2CredentialView>, CipherError> {
+        let key = self.locate_key(enc, &None).ok_or(VaultLocked)?;
         let cipher_key = Cipher::get_cipher_key(key, &self.key)?;
 
         let key = cipher_key.as_ref().unwrap_or(key);
@@ -409,7 +419,7 @@ impl CipherView {
         &mut self,
         old_key: &SymmetricCryptoKey,
         new_key: &SymmetricCryptoKey,
-    ) -> Result<()> {
+    ) -> Result<(), CryptoError> {
         if let Some(login) = self.login.as_mut() {
             if let Some(fido2_credentials) = &mut login.fido2_credentials {
                 let dec_fido2_credentials: Vec<Fido2CredentialFullView> =
@@ -424,18 +434,14 @@ impl CipherView {
         &mut self,
         enc: &dyn KeyContainer,
         organization_id: Uuid,
-    ) -> Result<()> {
-        let old_key = enc
-            .get_key(&self.organization_id)
-            .ok_or(Error::VaultLocked)?;
+    ) -> Result<(), CipherError> {
+        let old_key = enc.get_key(&self.organization_id).ok_or(VaultLocked)?;
 
-        let new_key = enc
-            .get_key(&Some(organization_id))
-            .ok_or(Error::VaultLocked)?;
+        let new_key = enc.get_key(&Some(organization_id)).ok_or(VaultLocked)?;
 
         // If any attachment is missing a key we can't reencrypt the attachment keys
         if self.attachments.iter().flatten().any(|a| a.key.is_none()) {
-            return Err("This cipher contains attachments without keys. Those attachments will need to be reuploaded to complete the operation".into());
+            return Err(CipherError::AttachmentsWithoutKeys);
         }
 
         // If the cipher has a key, we need to re-encrypt it with the new organization key
@@ -453,14 +459,12 @@ impl CipherView {
     }
 
     #[cfg(feature = "uniffi")]
-    pub(crate) fn set_new_fido2_credentials(
+    pub fn set_new_fido2_credentials(
         &mut self,
         enc: &dyn KeyContainer,
         creds: Vec<Fido2CredentialFullView>,
-    ) -> Result<()> {
-        let key = enc
-            .get_key(&self.organization_id)
-            .ok_or(Error::VaultLocked)?;
+    ) -> Result<(), CipherError> {
+        let key = enc.get_key(&self.organization_id).ok_or(VaultLocked)?;
 
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let ciphers_key = ciphers_key.as_ref().unwrap_or(key);
@@ -472,13 +476,11 @@ impl CipherView {
     }
 
     #[cfg(feature = "uniffi")]
-    pub(crate) fn get_fido2_credentials(
+    pub fn get_fido2_credentials(
         &self,
         enc: &dyn KeyContainer,
-    ) -> Result<Vec<Fido2CredentialFullView>> {
-        let key = enc
-            .get_key(&self.organization_id)
-            .ok_or(Error::VaultLocked)?;
+    ) -> Result<Vec<Fido2CredentialFullView>, CipherError> {
+        let key = enc.get_key(&self.organization_id).ok_or(VaultLocked)?;
 
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let ciphers_key = ciphers_key.as_ref().unwrap_or(key);
@@ -539,9 +541,9 @@ impl LocateKey for CipherView {
 }
 
 impl TryFrom<CipherDetailsResponseModel> for Cipher {
-    type Error = Error;
+    type Error = VaultParseError;
 
-    fn try_from(cipher: CipherDetailsResponseModel) -> Result<Self> {
+    fn try_from(cipher: CipherDetailsResponseModel) -> Result<Self, Self::Error> {
         Ok(Self {
             id: cipher.id,
             organization_id: cipher.organization_id,

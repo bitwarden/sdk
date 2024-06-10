@@ -1,11 +1,9 @@
+use bitwarden_core::VaultLocked;
 use bitwarden_crypto::{CryptoError, KeyDecryptable, KeyEncryptable, LocateKey};
+use bitwarden_vault::{Cipher, CipherListView, CipherView};
 use uuid::Uuid;
 
-use crate::{
-    error::{Error, Result},
-    vault::{Cipher, CipherListView, CipherView, ClientVault},
-    Client,
-};
+use crate::{error::Result, vault::ClientVault, Client};
 
 pub struct ClientCiphers<'a> {
     pub(crate) client: &'a Client,
@@ -18,15 +16,11 @@ impl<'a> ClientCiphers<'a> {
         // TODO: Once this flag is removed, the key generation logic should
         // be moved directly into the KeyEncryptable implementation
         if cipher_view.key.is_none() && self.client.get_flags().enable_cipher_key_encryption {
-            let key = cipher_view
-                .locate_key(enc, &None)
-                .ok_or(Error::VaultLocked)?;
+            let key = cipher_view.locate_key(enc, &None).ok_or(VaultLocked)?;
             cipher_view.generate_cipher_key(key)?;
         }
 
-        let key = cipher_view
-            .locate_key(enc, &None)
-            .ok_or(Error::VaultLocked)?;
+        let key = cipher_view.locate_key(enc, &None).ok_or(VaultLocked)?;
         let cipher = cipher_view.encrypt_with_key(key)?;
 
         Ok(cipher)
@@ -79,11 +73,10 @@ impl<'a> ClientVault<'a> {
 #[cfg(test)]
 mod tests {
 
+    use bitwarden_vault::{Attachment, CipherRepromptType, CipherType, Login};
+
     use super::*;
-    use crate::{
-        client::test_accounts::test_bitwarden_com_account,
-        vault::{login::Login, Attachment, CipherRepromptType, CipherType},
-    };
+    use crate::client::test_accounts::test_bitwarden_com_account;
 
     #[tokio::test]
     async fn test_decrypt_list() {

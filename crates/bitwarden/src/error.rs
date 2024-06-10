@@ -17,11 +17,11 @@ use thiserror::Error;
 pub enum Error {
     #[error(transparent)]
     MissingFieldError(#[from] bitwarden_core::MissingFieldError),
+    #[error(transparent)]
+    VaultLocked(#[from] bitwarden_core::VaultLocked),
+
     #[error("The client is not authenticated or the session has expired")]
     NotAuthenticated,
-
-    #[error("The client vault is locked and needs to be unlocked before use")]
-    VaultLocked,
 
     #[error("Access token is not in a valid format: {0}")]
     AccessTokenInvalid(#[from] AccessTokenInvalidError),
@@ -65,6 +65,17 @@ pub enum Error {
     #[cfg(feature = "internal")]
     #[error(transparent)]
     PasswordError(#[from] PasswordError),
+
+    // Vault
+    #[cfg(feature = "internal")]
+    #[error(transparent)]
+    Cipher(#[from] bitwarden_vault::CipherError),
+    #[cfg(feature = "internal")]
+    #[error(transparent)]
+    VaultParse(#[from] bitwarden_vault::VaultParseError),
+    #[cfg(feature = "internal")]
+    #[error(transparent)]
+    Totp(#[from] bitwarden_vault::TotpError),
 
     #[cfg(feature = "internal")]
     #[error(transparent)]

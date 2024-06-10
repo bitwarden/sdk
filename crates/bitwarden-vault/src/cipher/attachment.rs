@@ -5,7 +5,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::Cipher;
-use crate::error::{Error, Result};
+use crate::VaultParseError;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -125,9 +125,11 @@ impl KeyDecryptable<SymmetricCryptoKey, AttachmentView> for Attachment {
 }
 
 impl TryFrom<bitwarden_api_api::models::AttachmentResponseModel> for Attachment {
-    type Error = Error;
+    type Error = VaultParseError;
 
-    fn try_from(attachment: bitwarden_api_api::models::AttachmentResponseModel) -> Result<Self> {
+    fn try_from(
+        attachment: bitwarden_api_api::models::AttachmentResponseModel,
+    ) -> Result<Self, Self::Error> {
         Ok(Self {
             id: attachment.id,
             url: attachment.url,
@@ -144,7 +146,7 @@ mod tests {
     use base64::{engine::general_purpose::STANDARD, Engine};
     use bitwarden_crypto::{EncString, KeyDecryptable, SymmetricCryptoKey};
 
-    use crate::vault::{
+    use crate::{
         cipher::cipher::{CipherRepromptType, CipherType},
         Attachment, AttachmentFile, Cipher,
     };

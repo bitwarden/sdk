@@ -24,6 +24,7 @@ no-memory-hardening = [
     "bitwarden-crypto/no-memory-hardening",
 ] # Disable memory hardening features
 uniffi = [
+    "bitwarden-core/uniffi",
     "bitwarden-crypto/uniffi",
     "bitwarden-generators/uniffi",
     "dep:uniffi",
@@ -39,6 +40,7 @@ async-trait = ">=0.1.80, <0.2"
 base64 = ">=0.21.2, <0.23"
 bitwarden-api-api = { workspace = true }
 bitwarden-api-identity = { workspace = true }
+bitwarden-core = { workspace = true }
 bitwarden-crypto = { workspace = true }
 bitwarden-exporters = { workspace = true, optional = true }
 bitwarden-generators = { workspace = true, optional = true }
@@ -95,7 +97,6 @@ reqwest = { version = ">=0.12, <0.13", features = [
 security-framework = { version = "=2.10" }
 
 [dev-dependencies]
-bitwarden-crypto = { workspace = true, features = ["test"] }
 rand_chacha = "0.3.1"
 tokio = { version = "1.36.0", features = ["rt", "macros"] }
 wiremock = "0.6.0"

@@ -1,4 +1,5 @@
 use bitwarden_api_api::models::CipherDetailsResponseModel;
+use bitwarden_core::require;
 use bitwarden_crypto::{
     CryptoError, EncString, KeyContainer, KeyDecryptable, KeyEncryptable, LocateKey,
     SymmetricCryptoKey,
@@ -17,7 +18,7 @@ use super::{
 #[cfg(feature = "uniffi")]
 use crate::{client::encryption_settings::EncryptionSettings, vault::Fido2CredentialView};
 use crate::{
-    error::{require, Error, Result},
+    error::{Error, Result},
     vault::{password_history, Fido2CredentialFullView},
 };
 

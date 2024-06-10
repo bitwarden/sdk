@@ -54,6 +54,11 @@ on:
         required: true
         default: true
         type: boolean
+      publish_bitwarden-send:
+        description: "Publish bitwarden-send crate"
+        required: true
+        default: true
+        type: boolean
 
 defaults:
   run:
@@ -91,6 +96,7 @@ jobs:
           PUBLISH_BITWARDEN_CLI: ${{ github.event.inputs.publish_bitwarden-cli }}
           PUBLISH_BITWARDEN_GENERATORS: ${{ github.event.inputs.publish_bitwarden-generators }}
           PUBLISH_BITWARDEN_EXPORTERS: ${{ github.event.inputs.publish_bitwarden-exporters }}
+          PUBLISH_BITWARDEN_SEND: ${{ github.event.inputs.publish_bitwarden-send }}
         run: |
           if [[ "$PUBLISH_BITWARDEN" == "false" ]] && [[ "$PUBLISH_BITWARDEN_API_API" == "false" ]] && [[ "$PUBLISH_BITWARDEN_API_IDENTITY" == "false" ]]; then
             echo "==================================="
@@ -140,6 +146,11 @@ jobs:
           if [[ "$PUBLISH_BITWARDEN_EXPORTERS" == "true" ]]; then
             PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-exporters"
             PACKAGES_LIST="$PACKAGES_LIST bitwarden-exporters"
+          fi
+
+          if [[ "$PUBLISH_BITWARDEN_SEND" == "true" ]]; then
+            PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-send"
+            PACKAGES_LIST="$PACKAGES_LIST bitwarden-send"
           fi
 
           echo "Packages command: " $PACKAGES_COMMAND

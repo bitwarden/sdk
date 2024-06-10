@@ -9,7 +9,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::error::{Error, Result};
+use crate::VaultParseError;
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
@@ -114,7 +114,7 @@ pub struct Fido2CredentialView {
 // Only meant to be used internally and not exposed to the outside world
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(crate) struct Fido2CredentialFullView {
+pub struct Fido2CredentialFullView {
     pub credential_id: String,
     pub key_type: String,
     pub key_algorithm: String,
@@ -368,9 +368,9 @@ impl KeyDecryptable<SymmetricCryptoKey, Fido2CredentialView> for Fido2Credential
 }
 
 impl TryFrom<CipherLoginModel> for Login {
-    type Error = Error;
+    type Error = VaultParseError;
 
-    fn try_from(login: CipherLoginModel) -> Result<Self> {
+    fn try_from(login: CipherLoginModel) -> Result<Self, Self::Error> {
         Ok(Self {
             username: EncString::try_from_optional(login.username)?,
             password: EncString::try_from_optional(login.password)?,
@@ -393,9 +393,9 @@ impl TryFrom<CipherLoginModel> for Login {
 }
 
 impl TryFrom<CipherLoginUriModel> for LoginUri {
-    type Error = Error;
+    type Error = VaultParseError;
 
-    fn try_from(uri: CipherLoginUriModel) -> Result<Self> {
+    fn try_from(uri: CipherLoginUriModel) -> Result<Self, Self::Error> {
         Ok(Self {
             uri: EncString::try_from_optional(uri.uri)?,
             r#match: uri.r#match.map(|m| m.into()),
@@ -418,9 +418,11 @@ impl From<bitwarden_api_api::models::UriMatchType> for UriMatchType {
 }
 
 impl TryFrom<bitwarden_api_api::models::CipherFido2CredentialModel> for Fido2Credential {
-    type Error = Error;
+    type Error = VaultParseError;
 
-    fn try_from(value: bitwarden_api_api::models::CipherFido2CredentialModel) -> Result<Self> {
+    fn try_from(
+        value: bitwarden_api_api::models::CipherFido2CredentialModel,
+    ) -> Result<Self, Self::Error> {
         Ok(Self {
             credential_id: require!(value.credential_id).parse()?,
             key_type: require!(value.key_type).parse()?,

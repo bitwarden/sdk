@@ -7,7 +7,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::error::{Error, Result};
+use crate::VaultParseError;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -62,9 +62,9 @@ impl KeyDecryptable<SymmetricCryptoKey, CollectionView> for Collection {
 }
 
 impl TryFrom<CollectionDetailsResponseModel> for Collection {
-    type Error = Error;
+    type Error = VaultParseError;
 
-    fn try_from(collection: CollectionDetailsResponseModel) -> Result<Self> {
+    fn try_from(collection: CollectionDetailsResponseModel) -> Result<Self, Self::Error> {
         Ok(Collection {
             id: collection.id,
             organization_id: require!(collection.organization_id),

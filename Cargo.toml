@@ -26,6 +26,7 @@ bitwarden-crypto = { path = "crates/bitwarden-crypto", version = "=0.5.0" }
 bitwarden-exporters = { path = "crates/bitwarden-exporters", version = "=0.5.0" }
 bitwarden-generators = { path = "crates/bitwarden-generators", version = "=0.5.0" }
 bitwarden-send = { path = "crates/bitwarden-send", version = "=0.5.0" }
+bitwarden-vault = { path = "crates/bitwarden-vault", version = "=0.5.0" }
 
 [workspace.lints.clippy]
 unwrap_used = "deny"

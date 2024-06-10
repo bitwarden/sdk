@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use bitwarden_core::VaultLocked;
 #[cfg(feature = "internal")]
 pub use bitwarden_crypto::Kdf;
 use bitwarden_crypto::SymmetricCryptoKey;
@@ -17,7 +18,7 @@ use crate::{
         client_settings::{ClientSettings, DeviceType},
         encryption_settings::EncryptionSettings,
     },
-    error::{Error, Result},
+    error::Result,
 };
 
 #[derive(Debug)]
@@ -188,7 +189,7 @@ impl Client {
     }
 
     pub(crate) fn get_encryption_settings(&self) -> Result<&EncryptionSettings> {
-        self.encryption_settings.as_ref().ok_or(Error::VaultLocked)
+        self.encryption_settings.as_ref().ok_or(VaultLocked.into())
     }
 
     pub(crate) fn set_login_method(&mut self, login_method: LoginMethod) {
@@ -268,10 +269,7 @@ impl Client {
         &mut self,
         org_keys: Vec<(Uuid, AsymmetricEncString)>,
     ) -> Result<&EncryptionSettings> {
-        let enc = self
-            .encryption_settings
-            .as_mut()
-            .ok_or(Error::VaultLocked)?;
+        let enc = self.encryption_settings.as_mut().ok_or(VaultLocked)?;
 
         enc.set_org_keys(org_keys)?;
         Ok(&*enc)

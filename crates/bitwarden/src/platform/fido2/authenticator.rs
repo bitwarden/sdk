@@ -1,6 +1,8 @@
 use std::sync::Mutex;
 
+use bitwarden_core::VaultLocked;
 use bitwarden_crypto::KeyEncryptable;
+use bitwarden_vault::{CipherView, Fido2CredentialView};
 use log::error;
 use passkey::{
     authenticator::{Authenticator, DiscoverabilitySupport, StoreInfo, UIHint, UserCheck},
@@ -11,15 +13,12 @@ use passkey::{
 };
 
 use super::{
-    types::*, CheckUserOptions, CheckUserResult, CipherViewContainer, Fido2CredentialStore,
-    Fido2UserInterface, SelectedCredential, AAGUID,
+    try_from_credential_new_view, types::*, CheckUserOptions, CheckUserResult, CipherViewContainer,
+    Fido2CredentialStore, Fido2UserInterface, SelectedCredential, AAGUID,
 };
 use crate::{
-    error::{Error, Result},
-    platform::fido2::string_to_guid_bytes,
-    vault::{
-        login::Fido2CredentialView, CipherView, Fido2CredentialFullView, Fido2CredentialNewView,
-    },
+    error::Result,
+    platform::fido2::{fill_with_credential, string_to_guid_bytes, try_from_credential_full},
     Client,
 };
 
@@ -309,7 +308,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
         ) -> Result<()> {
             let enc = this.authenticator.client.get_encryption_settings()?;
 
-            let cred = Fido2CredentialFullView::try_from_credential(cred, user, rp)?;
+            let cred = try_from_credential_full(cred, user, rp)?;
 
             // Get the previously selected cipher and add the new credential to it
             let mut selected: CipherView = this.authenticator.get_selected_credential()?.cipher;
@@ -323,9 +322,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                 .replace(selected.clone());
 
             // Encrypt the updated cipher before sending it to the clients to be stored
-            let key = enc
-                .get_key(&selected.organization_id)
-                .ok_or(Error::VaultLocked)?;
+            let key = enc.get_key(&selected.organization_id).ok_or(VaultLocked)?;
             let encrypted = selected.encrypt_with_key(key)?;
 
             this.authenticator
@@ -359,7 +356,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                 return Err("Credential ID does not match selected credential".into());
             }
 
-            let cred = selected.credential.fill_with_credential(cred)?;
+            let cred = fill_with_credential(&selected.credential, cred)?;
 
             let mut selected = selected.cipher;
             selected.set_new_fido2_credentials(enc, vec![cred])?;
@@ -372,9 +369,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                 .replace(selected.clone());
 
             // Encrypt the updated cipher before sending it to the clients to be stored
-            let key = enc
-                .get_key(&selected.organization_id)
-                .ok_or(Error::VaultLocked)?;
+            let key = enc.get_key(&selected.organization_id).ok_or(VaultLocked)?;
             let encrypted = selected.encrypt_with_key(key)?;
 
             this.authenticator
@@ -424,7 +419,7 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
 
         let result = match hint {
             UIHint::RequestNewCredential(user, rp) => {
-                let new_credential = Fido2CredentialNewView::try_from_credential(user, rp)
+                let new_credential = try_from_credential_new_view(user, rp)
                     .map_err(|_| Ctap2Error::InvalidCredential)?;
 
                 let cipher_view = self

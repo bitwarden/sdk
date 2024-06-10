@@ -5,7 +5,7 @@ use bitwarden_crypto::{
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::error::{Error, Result};
+use crate::VaultParseError;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -106,9 +106,9 @@ impl KeyDecryptable<SymmetricCryptoKey, IdentityView> for Identity {
 }
 
 impl TryFrom<CipherIdentityModel> for Identity {
-    type Error = Error;
+    type Error = VaultParseError;
 
-    fn try_from(identity: CipherIdentityModel) -> Result<Self> {
+    fn try_from(identity: CipherIdentityModel) -> Result<Self, Self::Error> {
         Ok(Self {
             title: EncString::try_from_optional(identity.title)?,
             first_name: EncString::try_from_optional(identity.first_name)?,

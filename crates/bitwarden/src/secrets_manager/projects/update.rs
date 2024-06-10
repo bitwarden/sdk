@@ -1,14 +1,12 @@
 use bitwarden_api_api::models::ProjectUpdateRequestModel;
+use bitwarden_core::VaultLocked;
 use bitwarden_crypto::KeyEncryptable;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::ProjectResponse;
-use crate::{
-    client::Client,
-    error::{Error, Result},
-};
+use crate::{client::Client, error::Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -28,7 +26,7 @@ pub(crate) async fn update_project(
     let key = client
         .get_encryption_settings()?
         .get_key(&Some(input.organization_id))
-        .ok_or(Error::VaultLocked)?;
+        .ok_or(VaultLocked())?;
 
     let project = Some(ProjectUpdateRequestModel {
         name: input.name.clone().encrypt_with_key(key)?.to_string(),

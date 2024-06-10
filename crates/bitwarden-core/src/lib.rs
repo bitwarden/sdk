@@ -4,4 +4,4 @@ uniffi::setup_scaffolding!();
 mod uniffi_support;
 
 mod error;
-pub use error::MissingFieldError;
+pub use error::{MissingFieldError, VaultLocked};

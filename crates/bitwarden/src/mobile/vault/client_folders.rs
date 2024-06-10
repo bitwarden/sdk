@@ -1,10 +1,7 @@
 use bitwarden_crypto::{CryptoError, KeyDecryptable, KeyEncryptable};
+use bitwarden_vault::{Folder, FolderView};
 
-use crate::{
-    error::Result,
-    vault::{ClientVault, Folder, FolderView},
-    Client,
-};
+use crate::{error::Result, vault::ClientVault, Client};
 
 pub struct ClientFolders<'a> {
     pub(crate) client: &'a Client,

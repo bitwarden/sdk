@@ -6,7 +6,7 @@ use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::error::{Error, Result};
+use crate::VaultParseError;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -46,9 +46,9 @@ impl KeyDecryptable<SymmetricCryptoKey, PasswordHistoryView> for PasswordHistory
 }
 
 impl TryFrom<CipherPasswordHistoryModel> for PasswordHistory {
-    type Error = Error;
+    type Error = VaultParseError;
 
-    fn try_from(model: CipherPasswordHistoryModel) -> Result<Self> {
+    fn try_from(model: CipherPasswordHistoryModel) -> Result<Self, Self::Error> {
         Ok(Self {
             password: model.password.parse()?,
             last_used_date: model.last_used_date.parse()?,

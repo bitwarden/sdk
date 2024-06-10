@@ -1,7 +1,8 @@
+use bitwarden_vault::{Cipher, Collection, Folder};
+
 use crate::{
     error::Result,
     tool::exporters::{export_organization_vault, export_vault, ExportFormat},
-    vault::{Cipher, Collection, Folder},
     Client,
 };
 

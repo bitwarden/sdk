@@ -11,6 +11,8 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum Error {
+    #[error(transparent)]
+    MissingFieldError(#[from] MissingFieldError),
     #[error("The client is not authenticated or the session has expired")]
     NotAuthenticated,
 
@@ -22,8 +24,6 @@ pub enum Error {
 
     #[error("The response received was invalid and could not be processed")]
     InvalidResponse,
-    #[error("The response received was missing some of the required fields: {0}")]
-    MissingFields(&'static str),
 
     #[error("Cryptography error, {0}")]
     Crypto(#[from] bitwarden_crypto::CryptoError),
@@ -135,6 +135,12 @@ macro_rules! impl_bitwarden_error {
 impl_bitwarden_error!(ApiError);
 impl_bitwarden_error!(IdentityError);
 
+pub type Result<T, E = Error> = std::result::Result<T, E>;
+
+#[derive(Debug, Error)]
+#[error("The response received was missing a required field: {0}")]
+pub struct MissingFieldError(pub &'static str);
+
 /// This macro is used to require that a value is present or return an error otherwise.
 /// It is equivalent to using `val.ok_or(Error::MissingFields)?`, but easier to use and
 /// with a more descriptive error message.
@@ -144,10 +150,7 @@ macro_rules! require {
     ($val:expr) => {
         match $val {
             Some(val) => val,
-            None => return Err($crate::error::Error::MissingFields(stringify!($val)).into()),
+            None => return Err($crate::MissingFieldError(stringify!($val)).into()),
         }
     };
 }
-pub(crate) use require;
-
-pub type Result<T, E = Error> = std::result::Result<T, E>;

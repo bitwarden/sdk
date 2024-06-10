@@ -89,7 +89,7 @@ reqwest = { version = ">=0.12, <0.13", features = [
 security-framework = { version = "=2.10" }
 
 [dev-dependencies]
-bitwarden-crypto = { workspace = true, features = ["test"] }
+bitwarden-crypto = { workspace = true }
 rand_chacha = "0.3.1"
 tokio = { version = "1.36.0", features = ["rt", "macros"] }
 wiremock = "0.6.0"

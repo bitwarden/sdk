@@ -1,7 +1,8 @@
+use crate::require;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::error::{require, Error, Result};
+use crate::error::{Error, Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 pub struct GlobalDomains {

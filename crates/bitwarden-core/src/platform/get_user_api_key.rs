@@ -1,3 +1,4 @@
+use crate::require;
 use bitwarden_api_api::{
     apis::accounts_api::accounts_api_key_post,
     models::{ApiKeyResponseModel, SecretVerificationRequestModel},
@@ -10,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use super::SecretVerificationRequest;
 use crate::{
     client::{LoginMethod, UserLoginMethod},
-    error::{require, Error, Result},
+    error::{Error, Result},
     Client,
 };
 

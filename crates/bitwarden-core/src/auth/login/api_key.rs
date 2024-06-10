@@ -1,3 +1,4 @@
+use crate::require;
 use bitwarden_crypto::{EncString, MasterKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -9,7 +10,7 @@ use crate::{
         JWTToken,
     },
     client::{LoginMethod, UserLoginMethod},
-    error::{require, Result},
+    error::Result,
     Client,
 };
 

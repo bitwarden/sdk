@@ -2,6 +2,9 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum ExportError {
+    #[error(transparent)]
+    MissingField(#[from] bitwarden_core::MissingFieldError),
+
     #[error("CSV error: {0}")]
     Csv(#[from] crate::csv::CsvError),
     #[error("JSON error: {0}")]

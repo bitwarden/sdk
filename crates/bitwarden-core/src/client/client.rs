@@ -1,15 +1,10 @@
 #[cfg(feature = "internal")]
 pub use bitwarden_crypto::Kdf;
-use chrono::Utc;
 use reqwest::header::{self, HeaderValue};
-use uuid::Uuid;
 
 #[cfg(feature = "internal")]
 use crate::client::flags::Flags;
-use crate::{
-    client::{client_settings::ClientSettings, internal::ApiConfigurations},
-    error::{Error, Result},
-};
+use crate::client::{client_settings::ClientSettings, internal::ApiConfigurations};
 
 use super::internal::InternalClient;
 

@@ -58,20 +58,21 @@ mod readme {}
 
 #[cfg(feature = "uniffi")]
 uniffi::setup_scaffolding!();
+#[cfg(feature = "uniffi")]
+mod uniffi_support;
 
 #[cfg(feature = "internal")]
 pub mod admin_console;
 pub mod auth;
 pub mod client;
 pub mod error;
+pub use error::MissingFieldError;
 #[cfg(feature = "internal")]
 pub mod mobile;
 #[cfg(feature = "internal")]
 pub mod platform;
 #[cfg(feature = "secrets")]
 pub mod secrets_manager;
-#[cfg(feature = "uniffi")]
-pub(crate) mod uniffi_support;
 mod util;
 #[cfg(feature = "internal")]
 pub mod vault;

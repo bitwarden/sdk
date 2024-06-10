@@ -1,3 +1,4 @@
+use crate::require;
 use base64::{engine::general_purpose::STANDARD, Engine};
 use bitwarden_api_api::models::{CipherLoginModel, CipherLoginUriModel};
 use bitwarden_crypto::{
@@ -8,7 +9,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::error::{require, Error, Result};
+use crate::error::{Error, Result};
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
@@ -169,24 +170,24 @@ impl From<Fido2CredentialFullView> for Fido2CredentialNewView {
     }
 }
 
-impl KeyEncryptable<SymmetricCryptoKey, Fido2CredentialView> for Fido2CredentialFullView {
-    fn encrypt_with_key(
-        self,
-        key: &SymmetricCryptoKey,
-    ) -> Result<Fido2CredentialView, CryptoError> {
-        Ok(Fido2CredentialView {
-            credential_id: self.credential_id,
-            key_type: self.key_type,
-            key_algorithm: self.key_algorithm,
-            key_curve: self.key_curve,
+impl KeyEncryptable<SymmetricCryptoKey, Fido2Credential> for Fido2CredentialFullView {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Fido2Credential, CryptoError> {
+        Ok(Fido2Credential {
+            credential_id: self.credential_id.encrypt_with_key(key)?,
+            key_type: self.key_type.encrypt_with_key(key)?,
+            key_algorithm: self.key_algorithm.encrypt_with_key(key)?,
+            key_curve: self.key_curve.encrypt_with_key(key)?,
             key_value: self.key_value.encrypt_with_key(key)?,
-            rp_id: self.rp_id,
-            user_handle: self.user_handle,
-            user_name: self.user_name,
-            counter: self.counter,
-            rp_name: self.rp_name,
-            user_display_name: self.user_display_name,
-            discoverable: self.discoverable,
+            rp_id: self.rp_id.encrypt_with_key(key)?,
+            user_handle: self
+                .user_handle
+                .map(|h| h.encrypt_with_key(key))
+                .transpose()?,
+            user_name: self.user_name.encrypt_with_key(key)?,
+            counter: self.counter.encrypt_with_key(key)?,
+            rp_name: self.rp_name.encrypt_with_key(key)?,
+            user_display_name: self.user_display_name.encrypt_with_key(key)?,
+            discoverable: self.discoverable.encrypt_with_key(key)?,
             creation_date: self.creation_date,
         })
     }
@@ -266,7 +267,7 @@ pub struct LoginView {
     pub autofill_on_page_load: Option<bool>,
 
     // TODO: Remove this once the SDK supports state
-    pub fido2_credentials: Option<Vec<Fido2CredentialView>>,
+    pub fido2_credentials: Option<Vec<Fido2Credential>>,
 }
 
 impl KeyEncryptable<SymmetricCryptoKey, LoginUri> for LoginUriView {
@@ -288,7 +289,7 @@ impl KeyEncryptable<SymmetricCryptoKey, Login> for LoginView {
             uris: self.uris.encrypt_with_key(key)?,
             totp: self.totp.encrypt_with_key(key)?,
             autofill_on_page_load: self.autofill_on_page_load,
-            fido2_credentials: self.fido2_credentials.encrypt_with_key(key)?,
+            fido2_credentials: self.fido2_credentials,
         })
     }
 }
@@ -312,7 +313,7 @@ impl KeyDecryptable<SymmetricCryptoKey, LoginView> for Login {
             uris: self.uris.decrypt_with_key(key).ok().flatten(),
             totp: self.totp.decrypt_with_key(key).ok().flatten(),
             autofill_on_page_load: self.autofill_on_page_load,
-            fido2_credentials: self.fido2_credentials.decrypt_with_key(key).ok().flatten(),
+            fido2_credentials: self.fido2_credentials.clone(),
         })
     }
 }

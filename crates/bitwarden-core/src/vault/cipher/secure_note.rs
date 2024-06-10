@@ -1,10 +1,11 @@
+use crate::require;
 use bitwarden_api_api::models::CipherSecureNoteModel;
 use bitwarden_crypto::{CryptoError, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::error::{require, Error, Result};
+use crate::error::{Error, Result};
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]

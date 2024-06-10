@@ -15,7 +15,7 @@ use super::{
     Fido2UserInterface, SelectedCredential, AAGUID,
 };
 use crate::{
-    error::{require, Error, Result},
+    error::{Error, Result},
     platform::fido2::string_to_guid_bytes,
     vault::{
         login::Fido2CredentialView, CipherView, Fido2CredentialFullView, Fido2CredentialNewView,
@@ -163,10 +163,12 @@ impl<'a> Fido2Authenticator<'a> {
         &mut self,
         rp_id: String,
     ) -> Result<Vec<Fido2CredentialView>> {
+        let enc = self.client.internal.get_encryption_settings()?;
         let result = self.credential_store.find_credentials(None, rp_id).await?;
+
         Ok(result
             .into_iter()
-            .filter_map(|c| c.login?.fido2_credentials)
+            .flat_map(|c| c.decrypt_fido2_credentials(enc))
             .flatten()
             .collect())
     }
@@ -198,6 +200,8 @@ impl<'a> Fido2Authenticator<'a> {
     }
 
     pub(super) fn get_selected_credential(&self) -> Result<SelectedCredential> {
+        let enc = self.client.internal.get_encryption_settings()?;
+
         let cipher = self
             .selected_credential
             .lock()
@@ -205,8 +209,7 @@ impl<'a> Fido2Authenticator<'a> {
             .clone()
             .ok_or("No selected credential available")?;
 
-        let login = require!(cipher.login.as_ref());
-        let creds = require!(login.fido2_credentials.as_ref());
+        let creds = cipher.decrypt_fido2_credentials(enc)?;
 
         let credential = creds.first().ok_or("No Fido2 credentials found")?.clone();
 

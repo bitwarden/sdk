@@ -1,4 +1,5 @@
 use bitwarden_api_api::models::CollectionDetailsResponseModel;
+use bitwarden_core::require;
 use bitwarden_crypto::{
     CryptoError, EncString, KeyContainer, KeyDecryptable, LocateKey, SymmetricCryptoKey,
 };
@@ -6,7 +7,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::error::{require, Error, Result};
+use crate::error::{Error, Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

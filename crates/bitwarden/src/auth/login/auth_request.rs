@@ -2,6 +2,7 @@ use bitwarden_api_api::{
     apis::auth_requests_api::{auth_requests_id_response_get, auth_requests_post},
     models::{AuthRequestCreateRequestModel, AuthRequestType},
 };
+use bitwarden_core::require;
 use bitwarden_crypto::Kdf;
 use uuid::Uuid;
 
@@ -11,7 +12,7 @@ use crate::{
         auth_request::new_auth_request,
     },
     client::{LoginMethod, UserLoginMethod},
-    error::{require, Result},
+    error::Result,
     mobile::crypto::{AuthRequestMethod, InitUserCryptoMethod, InitUserCryptoRequest},
     Client,
 };

@@ -16,16 +16,3 @@
 .github/workflows/publish-rust-crates.yml @bitwarden/dept-bre
 .github/workflows/release-cpp.yml @bitwarden/dept-bre
 .github/workflows/publish-dotnet.yml @bitwarden/dept-bre
-
-# BRE for release workflow changes
-.github/workflows/publish-java.yml @bitwarden/dept-bre
-.github/workflows/publish-python.yml @bitwarden/dept-bre
-.github/workflows/release-go.yml @bitwarden/dept-bre
-.github/workflows/publish-php.yml @bitwarden/dept-bre
-.github/workflows/publish-ruby.yml @bitwarden/dept-bre
-.github/workflows/release-cli.yml @bitwarden/dept-bre
-.github/workflows/release-napi.yml @bitwarden/dept-bre
-.github/workflows/release-wasm.yml @bitwarden/dept-bre
-.github/workflows/publish-rust-crates.yml @bitwarden/dept-bre
-.github/workflows/release-cpp.yml @bitwarden/dept-bre
-.github/workflows/publish-dotnet.yml @bitwarden/dept-bre

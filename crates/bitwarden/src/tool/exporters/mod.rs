@@ -1,10 +1,11 @@
+use bitwarden_core::require;
 use bitwarden_crypto::KeyDecryptable;
 use bitwarden_exporters::export;
 use schemars::JsonSchema;
 
 use crate::{
     client::{LoginMethod, UserLoginMethod},
-    error::{require, Error, Result},
+    error::{Error, Result},
     vault::{
         login::LoginUriView, Cipher, CipherType, CipherView, Collection, FieldView, Folder,
         FolderView, SecureNoteType,

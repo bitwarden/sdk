@@ -1,3 +1,4 @@
+use bitwarden_core::MissingFieldError;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
@@ -112,7 +113,7 @@ impl TryFrom<u32> for LinkedIdType {
             416 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::FirstName)),
             417 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::LastName)),
             418 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::FullName)),
-            _ => Err(Error::MissingFields("LinkedIdType")),
+            _ => Err(MissingFieldError("LinkedIdType").into()),
         }
     }
 }

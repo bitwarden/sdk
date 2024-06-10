@@ -369,9 +369,10 @@ name = "bitwarden"
 version = "0.5.0"
 dependencies = [
  "async-trait",
- "base64 0.22.1",
+ "base64 0.21.7",
  "bitwarden-api-api",
  "bitwarden-api-identity",
+ "bitwarden-core",
  "bitwarden-crypto",
  "bitwarden-exporters",
  "bitwarden-generators",
@@ -446,6 +447,16 @@ dependencies = [
  "color-eyre",
  "inquire",
  "supports-color",
+]
+
+[[package]]
+name = "bitwarden-core"
+version = "0.5.0"
+dependencies = [
+ "chrono",
+ "thiserror",
+ "uniffi",
+ "uuid",
 ]
 
 [[package]]
@@ -554,6 +565,7 @@ dependencies = [
  "async-lock",
  "async-trait",
  "bitwarden",
+ "bitwarden-core",
  "bitwarden-crypto",
  "bitwarden-generators",
  "chrono",

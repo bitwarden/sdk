@@ -1,6 +1,7 @@
 use bitwarden_api_api::models::{
     DomainsResponseModel, ProfileOrganizationResponseModel, ProfileResponseModel, SyncResponseModel,
 };
+use bitwarden_core::require;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -9,7 +10,7 @@ use super::domain::GlobalDomains;
 use crate::{
     admin_console::Policy,
     client::{encryption_settings::EncryptionSettings, Client},
-    error::{require, Error, Result},
+    error::{Error, Result},
     vault::{Cipher, Collection, Folder},
 };
 

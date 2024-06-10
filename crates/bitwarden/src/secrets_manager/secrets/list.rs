@@ -1,6 +1,7 @@
 use bitwarden_api_api::models::{
     SecretWithProjectsListResponseModel, SecretsWithProjectsInnerSecret,
 };
+use bitwarden_core::require;
 use bitwarden_crypto::{CryptoError, EncString, KeyDecryptable};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -8,7 +9,7 @@ use uuid::Uuid;
 
 use crate::{
     client::{encryption_settings::EncryptionSettings, Client},
-    error::{require, Result},
+    error::Result,
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

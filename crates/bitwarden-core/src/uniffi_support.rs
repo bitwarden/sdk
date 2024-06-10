@@ -30,6 +30,7 @@ impl UniffiCustomTypeConverter for Uuid {
         obj.to_string()
     }
 }
+
 // Uniffi doesn't emit unused types, this is a dummy record to ensure that the custom type
 // converters are emitted
 #[allow(dead_code)]

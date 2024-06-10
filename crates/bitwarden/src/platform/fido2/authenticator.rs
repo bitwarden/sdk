@@ -13,7 +13,7 @@ use passkey::{
 };
 
 use super::{
-    try_from_credential, types::*, CheckUserOptions, CheckUserResult, CipherViewContainer,
+    try_from_credential_new_view, types::*, CheckUserOptions, CheckUserResult, CipherViewContainer,
     Fido2CredentialStore, Fido2UserInterface, SelectedCredential, AAGUID,
 };
 use crate::{
@@ -423,8 +423,8 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
 
         let result = match hint {
             UIHint::RequestNewCredential(user, rp) => {
-                let new_credential =
-                    try_from_credential(user, rp).map_err(|_| Ctap2Error::InvalidCredential)?;
+                let new_credential = try_from_credential_new_view(user, rp)
+                    .map_err(|_| Ctap2Error::InvalidCredential)?;
 
                 let cipher_view = self
                     .authenticator

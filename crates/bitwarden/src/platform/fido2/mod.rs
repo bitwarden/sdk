@@ -107,11 +107,11 @@ impl TryFrom<CipherViewContainer> for Passkey {
             .first()
             .ok_or(Error::Internal("No Fido2 credentials found".into()))?;
 
-        try_from_credential_view(cred.clone())
+        try_from_credential_full_view(cred.clone())
     }
 }
 
-fn try_from_credential_view(value: Fido2CredentialFullView) -> Result<Passkey, Error> {
+fn try_from_credential_full_view(value: Fido2CredentialFullView) -> Result<Passkey, Error> {
     let counter: u32 = value.counter.parse().expect("Invalid counter");
     let counter = (counter != 0).then_some(counter);
 
@@ -150,7 +150,7 @@ pub fn fill_with_credential(
     })
 }
 
-pub(crate) fn try_from_credential(
+pub(crate) fn try_from_credential_new_view(
     user: &passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
     rp: &passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
 ) -> Result<Fido2CredentialNewView> {

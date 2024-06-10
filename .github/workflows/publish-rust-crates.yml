@@ -157,6 +157,7 @@ jobs:
           if [[ "$PUBLISH_BITWARDEN_SEND" == "true" ]]; then
             PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-send"
             PACKAGES_LIST="$PACKAGES_LIST bitwarden-send"
+          fi
 
           if [[ "$PUBLISH_BITWARDEN_VAULT" == "true" ]]; then
             PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-vault"

@@ -32,6 +32,15 @@ pub(super) fn derive_kdf_key(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<Sy
 
             let mut hash = [0u8; 32];
             argon.hash_password_into(secret, &salt_sha, &mut hash)?;
+
+            // Argon2 is using some stack memory that is not zeroed. Eventually some function will
+            // overwrite the stack, but we use this trick to force the used stack to be zeroed.
+            #[inline(never)]
+            fn clear_stack() {
+                std::hint::black_box([0u8; 4096]);
+            }
+            clear_stack();
+
             hash
         }
     };

@@ -67,10 +67,13 @@ pub enum Error {
     PasswordError(#[from] PasswordError),
 
     // Vault
+    #[cfg(feature = "internal")]
     #[error(transparent)]
     Cipher(#[from] bitwarden_vault::CipherError),
+    #[cfg(feature = "internal")]
     #[error(transparent)]
     VaultParse(#[from] bitwarden_vault::VaultParseError),
+    #[cfg(feature = "internal")]
     #[error(transparent)]
     Totp(#[from] bitwarden_vault::TotpError),
 

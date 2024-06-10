@@ -16,11 +16,11 @@ impl<'a> ClientCiphers<'a> {
         // TODO: Once this flag is removed, the key generation logic should
         // be moved directly into the KeyEncryptable implementation
         if cipher_view.key.is_none() && self.client.get_flags().enable_cipher_key_encryption {
-            let key = cipher_view.locate_key(enc, &None).ok_or(VaultLocked())?;
+            let key = cipher_view.locate_key(enc, &None).ok_or(VaultLocked)?;
             cipher_view.generate_cipher_key(key)?;
         }
 
-        let key = cipher_view.locate_key(enc, &None).ok_or(VaultLocked())?;
+        let key = cipher_view.locate_key(enc, &None).ok_or(VaultLocked)?;
         let cipher = cipher_view.encrypt_with_key(key)?;
 
         Ok(cipher)

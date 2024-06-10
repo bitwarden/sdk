@@ -59,11 +59,9 @@ pub(crate) fn validate_password_user_key(
                     .decrypt_user_key(encrypted_user_key.parse()?)
                     .map_err(|_| "wrong password")?;
 
-                let enc = client
-                    .get_encryption_settings()
-                    .map_err(|_| VaultLocked())?;
+                let enc = client.get_encryption_settings().map_err(|_| VaultLocked)?;
 
-                let existing_key = enc.get_key(&None).ok_or(VaultLocked())?;
+                let existing_key = enc.get_key(&None).ok_or(VaultLocked)?;
 
                 if user_key.to_vec() != existing_key.to_vec() {
                     return Err("wrong user key".into());

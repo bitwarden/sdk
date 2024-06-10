@@ -29,7 +29,7 @@ pub(crate) async fn create_secret(
     let key = client
         .get_encryption_settings()?
         .get_key(&Some(input.organization_id))
-        .ok_or(VaultLocked())?;
+        .ok_or(VaultLocked)?;
 
     let secret = Some(SecretCreateRequestModel {
         key: input.key.clone().encrypt_with_key(key)?.to_string(),

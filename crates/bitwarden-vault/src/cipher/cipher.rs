@@ -401,7 +401,7 @@ impl CipherView {
         &self,
         enc: &dyn KeyContainer,
     ) -> Result<Vec<Fido2CredentialView>, CipherError> {
-        let key = self.locate_key(enc, &None).ok_or(VaultLocked())?;
+        let key = self.locate_key(enc, &None).ok_or(VaultLocked)?;
         let cipher_key = Cipher::get_cipher_key(key, &self.key)?;
 
         let key = cipher_key.as_ref().unwrap_or(key);
@@ -435,9 +435,9 @@ impl CipherView {
         enc: &dyn KeyContainer,
         organization_id: Uuid,
     ) -> Result<(), CipherError> {
-        let old_key = enc.get_key(&self.organization_id).ok_or(VaultLocked())?;
+        let old_key = enc.get_key(&self.organization_id).ok_or(VaultLocked)?;
 
-        let new_key = enc.get_key(&Some(organization_id)).ok_or(VaultLocked())?;
+        let new_key = enc.get_key(&Some(organization_id)).ok_or(VaultLocked)?;
 
         // If any attachment is missing a key we can't reencrypt the attachment keys
         if self.attachments.iter().flatten().any(|a| a.key.is_none()) {
@@ -464,7 +464,7 @@ impl CipherView {
         enc: &dyn KeyContainer,
         creds: Vec<Fido2CredentialFullView>,
     ) -> Result<(), CipherError> {
-        let key = enc.get_key(&self.organization_id).ok_or(VaultLocked())?;
+        let key = enc.get_key(&self.organization_id).ok_or(VaultLocked)?;
 
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let ciphers_key = ciphers_key.as_ref().unwrap_or(key);
@@ -480,7 +480,7 @@ impl CipherView {
         &self,
         enc: &dyn KeyContainer,
     ) -> Result<Vec<Fido2CredentialFullView>, CipherError> {
-        let key = enc.get_key(&self.organization_id).ok_or(VaultLocked())?;
+        let key = enc.get_key(&self.organization_id).ok_or(VaultLocked)?;
 
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let ciphers_key = ciphers_key.as_ref().unwrap_or(key);

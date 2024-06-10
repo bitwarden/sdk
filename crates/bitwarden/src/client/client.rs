@@ -189,9 +189,7 @@ impl Client {
     }
 
     pub(crate) fn get_encryption_settings(&self) -> Result<&EncryptionSettings> {
-        self.encryption_settings
-            .as_ref()
-            .ok_or(VaultLocked().into())
+        self.encryption_settings.as_ref().ok_or(VaultLocked.into())
     }
 
     pub(crate) fn set_login_method(&mut self, login_method: LoginMethod) {
@@ -271,7 +269,7 @@ impl Client {
         &mut self,
         org_keys: Vec<(Uuid, AsymmetricEncString)>,
     ) -> Result<&EncryptionSettings> {
-        let enc = self.encryption_settings.as_mut().ok_or(VaultLocked())?;
+        let enc = self.encryption_settings.as_mut().ok_or(VaultLocked)?;
 
         enc.set_org_keys(org_keys)?;
         Ok(&*enc)

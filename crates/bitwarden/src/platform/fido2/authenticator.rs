@@ -322,9 +322,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                 .replace(selected.clone());
 
             // Encrypt the updated cipher before sending it to the clients to be stored
-            let key = enc
-                .get_key(&selected.organization_id)
-                .ok_or(VaultLocked())?;
+            let key = enc.get_key(&selected.organization_id).ok_or(VaultLocked)?;
             let encrypted = selected.encrypt_with_key(key)?;
 
             this.authenticator
@@ -371,9 +369,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                 .replace(selected.clone());
 
             // Encrypt the updated cipher before sending it to the clients to be stored
-            let key = enc
-                .get_key(&selected.organization_id)
-                .ok_or(VaultLocked())?;
+            let key = enc.get_key(&selected.organization_id).ok_or(VaultLocked)?;
             let encrypted = selected.encrypt_with_key(key)?;
 
             this.authenticator

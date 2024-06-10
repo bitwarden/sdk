@@ -24,7 +24,7 @@ pub(crate) async fn create_project(
     let key = client
         .get_encryption_settings()?
         .get_key(&Some(input.organization_id))
-        .ok_or(VaultLocked())?;
+        .ok_or(VaultLocked)?;
 
     let project = Some(ProjectCreateRequestModel {
         name: input.name.clone().encrypt_with_key(key)?.to_string(),

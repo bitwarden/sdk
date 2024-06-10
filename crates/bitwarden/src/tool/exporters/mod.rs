@@ -28,7 +28,7 @@ pub(super) fn export_vault(
     format: ExportFormat,
 ) -> Result<String> {
     let enc = client.get_encryption_settings()?;
-    let key = enc.get_key(&None).ok_or(VaultLocked())?;
+    let key = enc.get_key(&None).ok_or(VaultLocked)?;
 
     let folders: Vec<FolderView> = folders.decrypt_with_key(key)?;
     let folders: Vec<bitwarden_exporters::Folder> =

@@ -74,7 +74,7 @@ impl EncryptionSettings {
         use bitwarden_core::VaultLocked;
         use bitwarden_crypto::KeyDecryptable;
 
-        let private_key = self.private_key.as_ref().ok_or(VaultLocked())?;
+        let private_key = self.private_key.as_ref().ok_or(VaultLocked)?;
 
         // Make sure we only keep the keys given in the arguments and not any of the previous
         // ones, which might be from organizations that the user is no longer a part of anymore

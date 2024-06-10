@@ -161,7 +161,7 @@ fn trust_device(client: &Client) -> Result<TrustDeviceResponse> {
 
     let enc = client.get_encryption_settings()?;
 
-    let user_key = enc.get_key(&None).ok_or(VaultLocked())?;
+    let user_key = enc.get_key(&None).ok_or(VaultLocked)?;
 
     Ok(DeviceKey::trust_device(user_key)?)
 }

@@ -6,7 +6,7 @@ pub struct MissingFieldError(pub &'static str);
 
 #[derive(Debug, Error)]
 #[error("The client vault is locked and needs to be unlocked before use")]
-pub struct VaultLocked();
+pub struct VaultLocked;
 
 /// This macro is used to require that a value is present or return an error otherwise.
 /// It is equivalent to using `val.ok_or(Error::MissingFields)?`, but easier to use and

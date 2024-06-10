@@ -1,7 +1,8 @@
-use crate::MissingFieldError;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
+
+use crate::MissingFieldError;
 
 #[derive(Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(untagged)]

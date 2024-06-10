@@ -243,10 +243,10 @@ impl From<bitwarden_core::vault::SecureNoteType> for SecureNoteType {
 
 #[cfg(test)]
 mod tests {
+    use bitwarden_core::vault::{CipherRepromptType, LoginView};
     use chrono::{DateTime, Utc};
 
     use super::*;
-    use bitwarden_core::vault::{CipherRepromptType, LoginView};
 
     #[test]
     fn test_try_from_folder_view() {

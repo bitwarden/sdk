@@ -1,4 +1,3 @@
-use crate::require;
 use bitwarden_api_api::models::CipherDetailsResponseModel;
 use bitwarden_crypto::{
     CryptoError, EncString, KeyContainer, KeyDecryptable, KeyEncryptable, LocateKey,
@@ -19,6 +18,7 @@ use super::{
 use crate::{client::encryption_settings::EncryptionSettings, vault::Fido2CredentialView};
 use crate::{
     error::{Error, Result},
+    require,
     vault::{password_history, Fido2CredentialFullView},
 };
 

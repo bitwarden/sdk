@@ -1,4 +1,3 @@
-use crate::require;
 use bitwarden_api_api::models::FolderResponseModel;
 use bitwarden_crypto::{
     CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
@@ -8,7 +7,10 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::error::{Error, Result};
+use crate::{
+    error::{Error, Result},
+    require,
+};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]

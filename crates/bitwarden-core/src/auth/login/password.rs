@@ -22,10 +22,9 @@ pub(crate) async fn login_password(
     client: &mut Client,
     input: &PasswordLoginRequest,
 ) -> Result<PasswordLoginResponse> {
-    use crate::require;
     use bitwarden_crypto::{EncString, HashPurpose, MasterKey};
 
-    use crate::client::UserLoginMethod;
+    use crate::{client::UserLoginMethod, require};
 
     info!("password logging in");
 

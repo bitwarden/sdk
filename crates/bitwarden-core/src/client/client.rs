@@ -2,11 +2,10 @@
 pub use bitwarden_crypto::Kdf;
 use reqwest::header::{self, HeaderValue};
 
+use super::internal::InternalClient;
 #[cfg(feature = "internal")]
 use crate::client::flags::Flags;
 use crate::client::{client_settings::ClientSettings, internal::ApiConfigurations};
-
-use super::internal::InternalClient;
 
 /// The main struct to interact with the Bitwarden SDK.
 #[derive(Debug)]

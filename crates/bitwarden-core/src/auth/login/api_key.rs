@@ -1,4 +1,3 @@
-use crate::require;
 use bitwarden_crypto::{EncString, MasterKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -11,7 +10,7 @@ use crate::{
     },
     client::{LoginMethod, UserLoginMethod},
     error::Result,
-    Client,
+    require, Client,
 };
 
 pub(crate) async fn login_api_key(

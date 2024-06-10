@@ -1,6 +1,5 @@
 use std::path::{Path, PathBuf};
 
-use crate::require;
 use base64::{engine::general_purpose::STANDARD, Engine};
 use bitwarden_crypto::{EncString, KeyDecryptable, SymmetricCryptoKey};
 use chrono::Utc;
@@ -16,6 +15,7 @@ use crate::{
     },
     client::{LoginMethod, ServiceAccountLoginMethod},
     error::{Error, Result},
+    require,
     secrets_manager::state::{self, ClientState},
     Client,
 };

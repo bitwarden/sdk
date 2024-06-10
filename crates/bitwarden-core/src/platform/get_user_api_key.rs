@@ -1,4 +1,3 @@
-use crate::require;
 use bitwarden_api_api::{
     apis::accounts_api::accounts_api_key_post,
     models::{ApiKeyResponseModel, SecretVerificationRequestModel},
@@ -12,7 +11,7 @@ use super::SecretVerificationRequest;
 use crate::{
     client::{LoginMethod, UserLoginMethod},
     error::{Error, Result},
-    Client,
+    require, Client,
 };
 
 pub(crate) async fn get_user_api_key(

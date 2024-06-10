@@ -1,13 +1,15 @@
 use std::collections::HashMap;
 
-use crate::require;
 use bitwarden_api_api::models::PolicyResponseModel;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use uuid::Uuid;
 
-use crate::error::{Error, Result};
+use crate::{
+    error::{Error, Result},
+    require,
+};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 pub struct Policy {

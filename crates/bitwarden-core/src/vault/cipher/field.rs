@@ -1,4 +1,3 @@
-use crate::require;
 use bitwarden_api_api::models::CipherFieldModel;
 use bitwarden_crypto::{
     CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
@@ -8,7 +7,10 @@ use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use super::linked_id::LinkedIdType;
-use crate::error::{Error, Result};
+use crate::{
+    error::{Error, Result},
+    require,
+};
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]

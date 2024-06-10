@@ -1,20 +1,19 @@
-use crate::{
-    error::{Error, Result},
-    DeviceType,
-};
-
-use super::{
-    encryption_settings::EncryptionSettings,
-    flags::Flags,
-    login_method::{LoginMethod, ServiceAccountLoginMethod, UserLoginMethod},
-};
-
 use bitwarden_crypto::Kdf;
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{AsymmetricEncString, EncString, MasterKey, SymmetricCryptoKey};
 use chrono::Utc;
 #[cfg(feature = "internal")]
 use uuid::Uuid;
+
+use super::{
+    encryption_settings::EncryptionSettings,
+    flags::Flags,
+    login_method::{LoginMethod, ServiceAccountLoginMethod, UserLoginMethod},
+};
+use crate::{
+    error::{Error, Result},
+    DeviceType,
+};
 
 #[derive(Debug)]
 pub struct ApiConfigurations {

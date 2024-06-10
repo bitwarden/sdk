@@ -1,4 +1,3 @@
-use crate::require;
 use bitwarden_api_api::{
     apis::auth_requests_api::{auth_requests_id_response_get, auth_requests_post},
     models::{AuthRequestCreateRequestModel, AuthRequestType},
@@ -14,7 +13,7 @@ use crate::{
     client::{LoginMethod, UserLoginMethod},
     error::Result,
     mobile::crypto::{AuthRequestMethod, InitUserCryptoMethod, InitUserCryptoRequest},
-    Client,
+    require, Client,
 };
 
 pub struct NewAuthRequestResponse {

@@ -563,6 +563,7 @@ dependencies = [
  "async-lock",
  "async-trait",
  "bitwarden",
+ "bitwarden-core",
  "bitwarden-crypto",
  "bitwarden-generators",
  "chrono",

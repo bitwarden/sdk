@@ -5,8 +5,7 @@ use hmac::{Hmac, Mac};
 use reqwest::Url;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
-use crate::error::{Error, Result};
+use thiserror::Error;
 
 type HmacSha1 = Hmac<sha1::Sha1>;
 type HmacSha256 = Hmac<sha2::Sha256>;
@@ -18,6 +17,14 @@ const STEAM_CHARS: &str = "23456789BCDFGHJKMNPQRTVWXY";
 const DEFAULT_ALGORITHM: Algorithm = Algorithm::Sha1;
 const DEFAULT_DIGITS: u32 = 6;
 const DEFAULT_PERIOD: u32 = 30;
+
+#[derive(Debug, Error)]
+pub enum TotpError {
+    #[error("Invalid otpauth")]
+    InvalidOtpauth,
+    #[error("Missing secret")]
+    MissingSecret,
+}
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -43,7 +50,7 @@ pub struct TotpResponse {
 /// Arguments:
 /// - `key` - The key to generate the TOTP code from
 /// - `time` - The time in UTC to generate the TOTP code for, defaults to current system time
-pub(crate) fn generate_totp(key: String, time: Option<DateTime<Utc>>) -> Result<TotpResponse> {
+pub fn generate_totp(key: String, time: Option<DateTime<Utc>>) -> Result<TotpResponse, TotpError> {
     let params: Totp = key.parse()?;
 
     let time = time.unwrap_or_else(Utc::now);
@@ -119,7 +126,7 @@ impl Totp {
 }
 
 impl FromStr for Totp {
-    type Err = Error;
+    type Err = TotpError;
 
     /// Parses the provided key and returns the corresponding `Totp`.
     ///
@@ -127,9 +134,9 @@ impl FromStr for Totp {
     /// - A base32 encoded string
     /// - OTP Auth URI
     /// - Steam URI
-    fn from_str(key: &str) -> Result<Self> {
+    fn from_str(key: &str) -> Result<Self, Self::Err> {
         let params = if key.starts_with("otpauth://") {
-            let url = Url::parse(key).map_err(|_| "Unable to parse URL")?;
+            let url = Url::parse(key).map_err(|_| TotpError::InvalidOtpauth)?;
             let parts: HashMap<_, _> = url.query_pairs().collect();
 
             Totp {
@@ -156,7 +163,7 @@ impl FromStr for Totp {
                     &parts
                         .get("secret")
                         .map(|v| v.to_string())
-                        .ok_or("Missing secret in otpauth URI")?,
+                        .ok_or(TotpError::MissingSecret)?,
                 ),
             }
         } else if let Some(secret) = key.strip_prefix("steam://") {

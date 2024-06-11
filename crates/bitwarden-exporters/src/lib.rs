@@ -1,6 +1,6 @@
 use std::fmt;
 
-use bitwarden_crypto::{DecryptedString, Kdf, SensitiveString};
+use bitwarden_crypto::Kdf;
 use chrono::{DateTime, Utc};
 use thiserror::Error;
 use uuid::Uuid;
@@ -10,13 +10,13 @@ use crate::csv::export_csv;
 mod json;
 use json::export_json;
 mod encrypted_json;
-
 use encrypted_json::export_encrypted_json;
+mod models;
 
 pub enum Format {
     Csv,
     Json,
-    EncryptedJson { password: SensitiveString, kdf: Kdf },
+    EncryptedJson { password: String, kdf: Kdf },
 }
 
 /// Export representation of a Bitwarden folder.
@@ -25,7 +25,7 @@ pub enum Format {
 /// that is not tied to the internal vault models. We may revisit this in the future.
 pub struct Folder {
     pub id: Uuid,
-    pub name: DecryptedString,
+    pub name: String,
 }
 
 /// Export representation of a Bitwarden cipher.
@@ -36,8 +36,8 @@ pub struct Cipher {
     pub id: Uuid,
     pub folder_id: Option<Uuid>,
 
-    pub name: DecryptedString,
-    pub notes: Option<DecryptedString>,
+    pub name: String,
+    pub notes: Option<String>,
 
     pub r#type: CipherType,
 
@@ -53,8 +53,8 @@ pub struct Cipher {
 
 #[derive(Clone)]
 pub struct Field {
-    pub name: Option<DecryptedString>,
-    pub value: Option<DecryptedString>,
+    pub name: Option<String>,
+    pub value: Option<String>,
     pub r#type: u8,
     pub linked_id: Option<u32>,
 }
@@ -78,24 +78,24 @@ impl fmt::Display for CipherType {
 }
 
 pub struct Login {
-    pub username: Option<DecryptedString>,
-    pub password: Option<DecryptedString>,
+    pub username: Option<String>,
+    pub password: Option<String>,
     pub login_uris: Vec<LoginUri>,
-    pub totp: Option<DecryptedString>,
+    pub totp: Option<String>,
 }
 
 pub struct LoginUri {
-    pub uri: Option<DecryptedString>,
+    pub uri: Option<String>,
     pub r#match: Option<u8>,
 }
 
 pub struct Card {
-    pub cardholder_name: Option<DecryptedString>,
-    pub exp_month: Option<DecryptedString>,
-    pub exp_year: Option<DecryptedString>,
-    pub code: Option<DecryptedString>,
-    pub brand: Option<DecryptedString>,
-    pub number: Option<DecryptedString>,
+    pub cardholder_name: Option<String>,
+    pub exp_month: Option<String>,
+    pub exp_year: Option<String>,
+    pub code: Option<String>,
+    pub brand: Option<String>,
+    pub number: Option<String>,
 }
 
 pub struct SecureNote {
@@ -107,24 +107,24 @@ pub enum SecureNoteType {
 }
 
 pub struct Identity {
-    pub title: Option<DecryptedString>,
-    pub first_name: Option<DecryptedString>,
-    pub middle_name: Option<DecryptedString>,
-    pub last_name: Option<DecryptedString>,
-    pub address1: Option<DecryptedString>,
-    pub address2: Option<DecryptedString>,
-    pub address3: Option<DecryptedString>,
-    pub city: Option<DecryptedString>,
-    pub state: Option<DecryptedString>,
-    pub postal_code: Option<DecryptedString>,
-    pub country: Option<DecryptedString>,
-    pub company: Option<DecryptedString>,
-    pub email: Option<DecryptedString>,
-    pub phone: Option<DecryptedString>,
-    pub ssn: Option<DecryptedString>,
-    pub username: Option<DecryptedString>,
-    pub passport_number: Option<DecryptedString>,
-    pub license_number: Option<DecryptedString>,
+    pub title: Option<String>,
+    pub first_name: Option<String>,
+    pub middle_name: Option<String>,
+    pub last_name: Option<String>,
+    pub address1: Option<String>,
+    pub address2: Option<String>,
+    pub address3: Option<String>,
+    pub city: Option<String>,
+    pub state: Option<String>,
+    pub postal_code: Option<String>,
+    pub country: Option<String>,
+    pub company: Option<String>,
+    pub email: Option<String>,
+    pub phone: Option<String>,
+    pub ssn: Option<String>,
+    pub username: Option<String>,
+    pub passport_number: Option<String>,
+    pub license_number: Option<String>,
 }
 
 #[derive(Error, Debug)]

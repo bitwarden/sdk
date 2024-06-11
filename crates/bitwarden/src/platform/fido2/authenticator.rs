@@ -1,30 +1,34 @@
-#![allow(dead_code, unused_mut, unused_imports, unused_variables)]
+use std::sync::Mutex;
 
-use bitwarden_crypto::{EncString, KeyEncryptable, SensitiveString};
-use chrono::DateTime;
+use bitwarden_core::VaultLocked;
+use bitwarden_crypto::KeyEncryptable;
+use bitwarden_vault::{CipherView, Fido2CredentialView};
+use log::error;
 use passkey::{
-    authenticator::{Authenticator, UserCheck},
+    authenticator::{Authenticator, DiscoverabilitySupport, StoreInfo, UIHint, UserCheck},
     types::{
-        ctap2::{make_credential::Request, Aaguid, Ctap2Error, StatusCode},
+        ctap2::{self, Ctap2Error, StatusCode, VendorError},
         Passkey,
     },
 };
-use uuid::Uuid;
 
-use super::{CredentialStore, SelectedCredential, UserInterface};
+use super::{
+    try_from_credential_new_view, types::*, CheckUserOptions, CheckUserResult, CipherViewContainer,
+    Fido2CredentialStore, Fido2UserInterface, SelectedCredential, AAGUID,
+};
 use crate::{
-    error::{Error, Result},
-    vault::{
-        login::{Fido2CredentialView, LoginView},
-        CipherView, Fido2Credential,
-    },
+    error::Result,
+    platform::fido2::{fill_with_credential, string_to_guid_bytes, try_from_credential_full},
     Client,
 };
 
 pub struct Fido2Authenticator<'a> {
     pub(crate) client: &'a mut Client,
-    pub(crate) user_interface: &'a dyn UserInterface,
-    pub(crate) credential_store: &'a dyn CredentialStore,
+    pub(crate) user_interface: &'a dyn Fido2UserInterface,
+    pub(crate) credential_store: &'a dyn Fido2CredentialStore,
+
+    pub(crate) selected_cipher: Mutex<Option<CipherView>>,
+    pub(crate) requested_uv: Mutex<Option<UV>>,
 }
 
 impl<'a> Fido2Authenticator<'a> {
@@ -32,17 +36,16 @@ impl<'a> Fido2Authenticator<'a> {
         &mut self,
         request: MakeCredentialRequest,
     ) -> Result<MakeCredentialResult> {
-        // TODO: Placeholder value
-        let my_aaguid = Aaguid::new_empty();
+        // Insert the received UV to be able to return it later in check_user
+        self.requested_uv
+            .get_mut()
+            .expect("Mutex is not poisoned")
+            .replace(request.options.uv);
 
-        let mut authenticator = Authenticator::new(
-            my_aaguid,
-            self.to_credential_store(),
-            self.to_user_interface(),
-        );
+        let mut authenticator = self.get_authenticator(true);
 
-        /*let response = authenticator
-            .make_credential(Request {
+        let response = authenticator
+            .make_credential(ctap2::make_credential::Request {
                 client_data_hash: request.client_data_hash.into(),
                 rp: passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity {
                     id: request.rp.id,
@@ -56,31 +59,20 @@ impl<'a> Fido2Authenticator<'a> {
                 pub_key_cred_params: request
                     .pub_key_cred_params
                     .into_iter()
-                    .map(
-                        |x| passkey::types::webauthn::PublicKeyCredentialParameters {
-                            ty: todo!(),
-                            alg: todo!(),
-                        },
-                    )
-                    .collect(),
+                    .map(TryInto::try_into)
+                    .collect::<Result<_, _>>()?,
                 exclude_list: request
                     .exclude_list
-                    .map(|x: Vec<PublicKeyCredentialDescriptor>| {
-                        x.into_iter()
-                            .map(
-                                |x| passkey::types::webauthn::PublicKeyCredentialDescriptor {
-                                    ty: todo!(),
-                                    id: todo!(),
-                                    transports: None,
-                                },
-                            )
-                            .collect()
-                    }),
-                extensions: None, // TODO: request.extensions,
+                    .map(|x| x.into_iter().map(TryInto::try_into).collect())
+                    .transpose()?,
+                extensions: request
+                    .extensions
+                    .map(|e| serde_json::from_str(&e))
+                    .transpose()?,
                 options: passkey::types::ctap2::make_credential::Options {
-                    rk: true,
+                    rk: request.options.rk,
                     up: true,
-                    uv: true,
+                    uv: self.convert_requested_uv(request.options.uv).await,
                 },
                 pin_auth: None,
                 pin_protocol: None,
@@ -92,17 +84,17 @@ impl<'a> Fido2Authenticator<'a> {
             Err(e) => return Err(format!("make_credential error: {e:?}").into()),
         };
 
-        Ok(MakeCredentialResult {
-            credential_id: response
-                .auth_data
-                .attested_credential_data
-                .expect("Missing attested_credential_data")
-                .credential_id()
-                .to_vec(),
-        })*/
+        let authenticator_data = response.auth_data.to_vec();
+        let attested_credential_data = response
+            .auth_data
+            .attested_credential_data
+            .ok_or("Missing attested_credential_data")?;
+        let credential_id = attested_credential_data.credential_id().to_vec();
 
         Ok(MakeCredentialResult {
-            credential_id: vec![],
+            authenticator_data,
+            attested_credential_data: attested_credential_data.into_iter().collect(),
+            credential_id,
         })
     }
 
@@ -110,105 +102,194 @@ impl<'a> Fido2Authenticator<'a> {
         &mut self,
         request: GetAssertionRequest,
     ) -> Result<GetAssertionResult> {
-        let enc = self.client.get_encryption_settings()?;
-        let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
+        // Insert the received UV to be able to return it later in check_user
+        self.requested_uv
+            .get_mut()
+            .expect("Mutex is not poisoned")
+            .replace(request.options.uv);
+
+        let mut authenticator = self.get_authenticator(false);
+
+        let response = authenticator
+            .get_assertion(ctap2::get_assertion::Request {
+                rp_id: request.rp_id,
+                client_data_hash: request.client_data_hash.into(),
+                allow_list: request
+                    .allow_list
+                    .map(|l| {
+                        l.into_iter()
+                            .map(TryInto::try_into)
+                            .collect::<Result<Vec<_>, _>>()
+                    })
+                    .transpose()?,
+                extensions: request
+                    .extensions
+                    .map(|e| serde_json::from_str(&e))
+                    .transpose()?,
+                options: passkey::types::ctap2::make_credential::Options {
+                    rk: request.options.rk,
+                    up: true,
+                    uv: self.convert_requested_uv(request.options.uv).await,
+                },
+                pin_auth: None,
+                pin_protocol: None,
+            })
+            .await;
+
+        let response = match response {
+            Ok(x) => x,
+            Err(e) => return Err(format!("get_assertion error: {e:?}").into()),
+        };
+
+        let authenticator_data = response.auth_data.to_vec();
+        let credential_id = response
+            .auth_data
+            .attested_credential_data
+            .ok_or("Missing attested_credential_data")?
+            .credential_id()
+            .to_vec();
 
         Ok(GetAssertionResult {
-            credential_id: vec![],
-            authenticator_data: vec![],
-            signature: vec![],
-            user_handle: vec![],
-            selected_credential: SelectedCredential {
-                cipher: CipherView {
-                    id: Some(Uuid::new_v4()),
-                    organization_id: None,
-                    folder_id: None,
-                    collection_ids: vec![],
-                    key: None,
-                    name: SensitiveString::new(Box::new("".to_string())),
-                    notes: Some(SensitiveString::new(Box::new("".to_string()))),
-                    r#type: crate::vault::CipherType::Login,
-                    login: Some(LoginView {
-                        username: None,
-                        password: None,
-                        password_revision_date: None,
-                        uris: None,
-                        totp: None,
-                        autofill_on_page_load: None,
-                        fido2_credentials: Some(vec![]),
-                    }),
-                    identity: None,
-                    card: None,
-                    secure_note: None,
-                    favorite: false,
-                    reprompt: crate::vault::CipherRepromptType::None,
-                    organization_use_totp: true,
-                    edit: true,
-                    view_password: true,
-                    local_data: None,
-                    attachments: Some(vec![]),
-                    fields: Some(vec![]),
-                    password_history: Some(vec![]),
-                    creation_date: chrono::offset::Utc::now(),
-                    deleted_date: None,
-                    revision_date: chrono::offset::Utc::now(),
-                },
-                credential: Fido2Credential {
-                    credential_id: "".to_owned().encrypt_with_key(key)?,
-                    key_type: "".to_owned().encrypt_with_key(key)?,
-                    key_algorithm: "".to_owned().encrypt_with_key(key)?,
-                    key_curve: "".to_owned().encrypt_with_key(key)?,
-                    key_value: "".to_owned().encrypt_with_key(key)?,
-                    rp_id: "".to_owned().encrypt_with_key(key)?,
-                    user_handle: Some("".to_owned().encrypt_with_key(key)?),
-                    user_name: Some("".to_owned().encrypt_with_key(key)?),
-                    counter: "".to_owned().encrypt_with_key(key)?,
-                    rp_name: Some("".to_owned().encrypt_with_key(key)?),
-                    user_display_name: Some("".to_owned().encrypt_with_key(key)?),
-                    discoverable: "".to_owned().encrypt_with_key(key)?,
-                    creation_date: chrono::offset::Utc::now(),
-                },
-            },
+            credential_id,
+            authenticator_data,
+            signature: response.signature.into(),
+            user_handle: response.user.ok_or("Missing user")?.id.into(),
+            selected_credential: self.get_selected_credential()?,
         })
     }
 
-    // TODO: Fido2CredentialView contains all the fields, maybe we need a Fido2CredentialListView?
     pub async fn silently_discover_credentials(
         &mut self,
         rp_id: String,
     ) -> Result<Vec<Fido2CredentialView>> {
-        Ok(vec![])
+        let enc = self.client.get_encryption_settings()?;
+        let result = self.credential_store.find_credentials(None, rp_id).await?;
+
+        Ok(result
+            .into_iter()
+            .flat_map(|c| c.decrypt_fido2_credentials(enc))
+            .flatten()
+            .collect())
     }
 
-    pub(crate) fn to_user_interface(&'a self) -> UserInterfaceImpl<'_> {
-        UserInterfaceImpl {
-            authenticator: self,
+    pub(super) fn get_authenticator(
+        &self,
+        create_credential: bool,
+    ) -> Authenticator<CredentialStoreImpl, UserValidationMethodImpl> {
+        Authenticator::new(
+            AAGUID,
+            CredentialStoreImpl {
+                authenticator: self,
+                create_credential,
+            },
+            UserValidationMethodImpl {
+                authenticator: self,
+            },
+        )
+    }
+
+    async fn convert_requested_uv(&self, uv: UV) -> bool {
+        let verification_enabled = self.user_interface.is_verification_enabled().await;
+        match (uv, verification_enabled) {
+            (UV::Preferred, true) => true,
+            (UV::Preferred, false) => false,
+            (UV::Required, _) => true,
+            (UV::Discouraged, _) => false,
         }
     }
-    pub(crate) fn to_credential_store(&'a self) -> CredentialStoreImpl<'_> {
-        CredentialStoreImpl {
-            authenticator: self,
-        }
+
+    pub(super) fn get_selected_credential(&self) -> Result<SelectedCredential> {
+        let enc = self.client.get_encryption_settings()?;
+
+        let cipher = self
+            .selected_cipher
+            .lock()
+            .expect("Mutex is not poisoned")
+            .clone()
+            .ok_or("No selected credential available")?;
+
+        let creds = cipher.decrypt_fido2_credentials(enc)?;
+
+        let credential = creds.first().ok_or("No Fido2 credentials found")?.clone();
+
+        Ok(SelectedCredential { cipher, credential })
     }
 }
 
-pub(crate) struct CredentialStoreImpl<'a> {
+pub(super) struct CredentialStoreImpl<'a> {
     authenticator: &'a Fido2Authenticator<'a>,
+    create_credential: bool,
 }
-pub(crate) struct UserInterfaceImpl<'a> {
+pub(super) struct UserValidationMethodImpl<'a> {
     authenticator: &'a Fido2Authenticator<'a>,
 }
 
 #[async_trait::async_trait]
 impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
-    type PasskeyItem = CipherView;
-
+    type PasskeyItem = CipherViewContainer;
     async fn find_credentials(
         &self,
         ids: Option<&[passkey::types::webauthn::PublicKeyCredentialDescriptor]>,
         rp_id: &str,
     ) -> Result<Vec<Self::PasskeyItem>, StatusCode> {
-        Ok(vec![])
+        // This is just a wrapper around the actual implementation to allow for ? error handling
+        async fn inner(
+            this: &CredentialStoreImpl<'_>,
+            ids: Option<&[passkey::types::webauthn::PublicKeyCredentialDescriptor]>,
+            rp_id: &str,
+        ) -> Result<Vec<CipherViewContainer>> {
+            let ids: Option<Vec<Vec<u8>>> =
+                ids.map(|ids| ids.iter().map(|id| id.id.clone().into()).collect());
+
+            let ciphers = this
+                .authenticator
+                .credential_store
+                .find_credentials(ids, rp_id.to_string())
+                .await?;
+
+            let enc = this.authenticator.client.get_encryption_settings()?;
+
+            // Remove any that don't have Fido2 credentials
+            let creds: Vec<_> = ciphers
+                .into_iter()
+                .filter(|c| {
+                    c.login
+                        .as_ref()
+                        .and_then(|l| l.fido2_credentials.as_ref())
+                        .is_some()
+                })
+                .collect();
+
+            // When using the credential for authentication we have to ask the user to pick one.
+            if this.create_credential {
+                creds
+                    .into_iter()
+                    .map(|c| CipherViewContainer::new(c, enc))
+                    .collect()
+            } else {
+                let picked = this
+                    .authenticator
+                    .user_interface
+                    .pick_credential_for_authentication(creds)
+                    .await?;
+
+                // Store the selected credential for later use
+                this.authenticator
+                    .selected_cipher
+                    .lock()
+                    .expect("Mutex is not poisoned")
+                    .replace(picked.clone());
+
+                Ok(vec![CipherViewContainer::new(picked, enc)?])
+            }
+        }
+
+        inner(self, ids, rp_id).await.map_err(|e| {
+            error!("Error finding credentials: {e:?}");
+            VendorError::try_from(0xF0)
+                .expect("Valid vendor error code")
+                .into()
+        })
     }
 
     async fn save_credential(
@@ -216,118 +297,195 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
         cred: Passkey,
         user: passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
         rp: passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
+        _options: passkey::types::ctap2::get_assertion::Options,
     ) -> Result<(), StatusCode> {
-        Ok(())
+        // This is just a wrapper around the actual implementation to allow for ? error handling
+        async fn inner(
+            this: &mut CredentialStoreImpl<'_>,
+            cred: Passkey,
+            user: passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
+            rp: passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
+        ) -> Result<()> {
+            let enc = this.authenticator.client.get_encryption_settings()?;
+
+            let cred = try_from_credential_full(cred, user, rp)?;
+
+            // Get the previously selected cipher and add the new credential to it
+            let mut selected: CipherView = this
+                .authenticator
+                .selected_cipher
+                .lock()
+                .expect("Mutex is not poisoned")
+                .clone()
+                .ok_or("No selected cipher available")?;
+
+            selected.set_new_fido2_credentials(enc, vec![cred])?;
+
+            // Store the updated credential for later use
+            this.authenticator
+                .selected_cipher
+                .lock()
+                .expect("Mutex is not poisoned")
+                .replace(selected.clone());
+
+            // Encrypt the updated cipher before sending it to the clients to be stored
+            let key = enc.get_key(&selected.organization_id).ok_or(VaultLocked)?;
+            let encrypted = selected.encrypt_with_key(key)?;
+
+            this.authenticator
+                .credential_store
+                .save_credential(encrypted)
+                .await?;
+
+            Ok(())
+        }
+
+        inner(self, cred, user, rp).await.map_err(|e| {
+            error!("Error saving credential: {e:?}");
+            VendorError::try_from(0xF1)
+                .expect("Valid vendor error code")
+                .into()
+        })
     }
 
     async fn update_credential(&mut self, cred: Passkey) -> Result<(), StatusCode> {
-        Ok(())
+        // This is just a wrapper around the actual implementation to allow for ? error handling
+        async fn inner(this: &mut CredentialStoreImpl<'_>, cred: Passkey) -> Result<()> {
+            let enc = this.authenticator.client.get_encryption_settings()?;
+
+            // Get the previously selected cipher and update the credential
+            let selected = this.authenticator.get_selected_credential()?;
+
+            // Check that the provided credential ID matches the selected credential
+            let new_id: &Vec<u8> = &cred.credential_id;
+            let selected_id = string_to_guid_bytes(&selected.credential.credential_id)?;
+            if new_id != &selected_id {
+                return Err("Credential ID does not match selected credential".into());
+            }
+
+            let cred = fill_with_credential(&selected.credential, cred)?;
+
+            let mut selected = selected.cipher;
+            selected.set_new_fido2_credentials(enc, vec![cred])?;
+
+            // Store the updated credential for later use
+            this.authenticator
+                .selected_cipher
+                .lock()
+                .expect("Mutex is not poisoned")
+                .replace(selected.clone());
+
+            // Encrypt the updated cipher before sending it to the clients to be stored
+            let key = enc.get_key(&selected.organization_id).ok_or(VaultLocked)?;
+            let encrypted = selected.encrypt_with_key(key)?;
+
+            this.authenticator
+                .credential_store
+                .save_credential(encrypted)
+                .await?;
+
+            Ok(())
+        }
+
+        inner(self, cred).await.map_err(|e| {
+            error!("Error updating credential: {e:?}");
+            VendorError::try_from(0xF2)
+                .expect("Valid vendor error code")
+                .into()
+        })
+    }
+
+    async fn get_info(&self) -> StoreInfo {
+        StoreInfo {
+            discoverability: DiscoverabilitySupport::Full,
+        }
     }
 }
 
 #[async_trait::async_trait]
-impl passkey::authenticator::UserValidationMethod for UserInterfaceImpl<'_> {
-    type PasskeyItem = CipherView;
+impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'_> {
+    type PasskeyItem = CipherViewContainer;
 
-    async fn check_user(
+    async fn check_user<'a>(
         &self,
-        credential: Option<Self::PasskeyItem>,
+        hint: UIHint<'a, Self::PasskeyItem>,
         presence: bool,
-        verification: bool,
+        _verification: bool,
     ) -> Result<UserCheck, Ctap2Error> {
+        let verification = self
+            .authenticator
+            .requested_uv
+            .lock()
+            .expect("Mutex is not poisoned")
+            .ok_or(Ctap2Error::UserVerificationInvalid)?;
+
+        let options = CheckUserOptions {
+            require_presence: presence,
+            require_verification: verification.into(),
+        };
+
+        let result = match hint {
+            UIHint::RequestNewCredential(user, rp) => {
+                let new_credential = try_from_credential_new_view(user, rp)
+                    .map_err(|_| Ctap2Error::InvalidCredential)?;
+
+                let cipher_view = self
+                    .authenticator
+                    .user_interface
+                    .check_user_and_pick_credential_for_creation(options, new_credential)
+                    .await
+                    .map_err(|_| Ctap2Error::OperationDenied)?;
+
+                self.authenticator
+                    .selected_cipher
+                    .lock()
+                    .expect("Mutex is not poisoned")
+                    .replace(cipher_view);
+
+                Ok(CheckUserResult {
+                    user_present: true,
+                    user_verified: verification != UV::Discouraged,
+                })
+            }
+            _ => {
+                self.authenticator
+                    .user_interface
+                    .check_user(options, map_ui_hint(hint))
+                    .await
+            }
+        };
+
+        let result = result.map_err(|e| {
+            error!("Error checking user: {e:?}");
+            Ctap2Error::UserVerificationInvalid
+        })?;
+
         Ok(UserCheck {
-            presence,
-            verification,
+            presence: result.user_present,
+            verification: result.user_verified,
         })
     }
 
-    fn is_presence_enabled(&self) -> bool {
+    async fn is_presence_enabled(&self) -> bool {
         true
     }
 
-    fn is_verification_enabled(&self) -> Option<bool> {
-        Some(true)
+    async fn is_verification_enabled(&self) -> Option<bool> {
+        Some(
+            self.authenticator
+                .user_interface
+                .is_verification_enabled()
+                .await,
+        )
     }
 }
 
-// What type do we need this to be? We probably can't use Serialize over the FFI boundary
-pub type Extensions = Option<std::collections::HashMap<String, String>>;
-
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
-pub struct PublicKeyCredentialRpEntity {
-    pub id: String,
-    pub name: Option<String>,
-}
-
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
-pub struct PublicKeyCredentialUserEntity {
-    pub id: Vec<u8>,
-    pub display_name: String,
-    pub name: String,
-}
-
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
-pub struct PublicKeyCredentialParameters {
-    pub ty: String,
-    pub alg: i64,
-}
-
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
-pub struct PublicKeyCredentialDescriptor {
-    pub ty: i64,
-    pub id: Vec<u8>,
-}
-
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
-pub struct MakeCredentialRequest {
-    client_data_hash: Vec<u8>,
-    rp: PublicKeyCredentialRpEntity,
-    user: PublicKeyCredentialUserEntity,
-    pub_key_cred_params: Vec<PublicKeyCredentialParameters>,
-    exclude_list: Option<Vec<PublicKeyCredentialDescriptor>>,
-    require_resident_key: bool,
-    extensions: Extensions,
-}
-
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
-pub struct MakeCredentialResult {
-    // TODO
-    // authenticator_data: Vec<u8>,
-    // attested_credential_data: Vec<u8>,
-    credential_id: Vec<u8>,
-}
-
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
-pub struct GetAssertionRequest {
-    rp_id: String,
-    client_data_hash: Vec<u8>,
-    allow_list: Option<Vec<PublicKeyCredentialDescriptor>>,
-    options: Options,
-    extensions: Extensions,
-}
-
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
-pub struct Options {
-    rk: bool,
-    uv: UV,
-}
-
-#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
-pub enum UV {
-    Discouraged,
-    Preferred,
-    Required,
-}
-
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
-pub struct GetAssertionResult {
-    credential_id: Vec<u8>,
-    authenticator_data: Vec<u8>,
-    signature: Vec<u8>,
-    user_handle: Vec<u8>,
-    /**
-     * SDK IMPL NOTE: This is not part of the spec and is not returned by passkey-rs.
-     * The SDK needs to add this after the response from passkey-rs is received.
-     */
-    selected_credential: SelectedCredential,
+fn map_ui_hint(hint: UIHint<'_, CipherViewContainer>) -> UIHint<'_, CipherView> {
+    use UIHint::*;
+    match hint {
+        InformExcludedCredentialFound(c) => InformExcludedCredentialFound(&c.cipher),
+        InformNoCredentialsFound => InformNoCredentialsFound,
+        RequestNewCredential(u, r) => RequestNewCredential(u, r),
+        RequestExistingCredential(c) => RequestExistingCredential(&c.cipher),
+    }
 }

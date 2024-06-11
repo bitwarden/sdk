@@ -1,6 +1,4 @@
 #[cfg(feature = "internal")]
-use bitwarden_crypto::SensitiveString;
-#[cfg(feature = "internal")]
 use log::info;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -22,27 +20,24 @@ use crate::{
 #[cfg(feature = "internal")]
 pub(crate) async fn login_password(
     client: &mut Client,
-    input: PasswordLoginRequest,
+    input: &PasswordLoginRequest,
 ) -> Result<PasswordLoginResponse> {
+    use bitwarden_core::require;
     use bitwarden_crypto::{EncString, HashPurpose, MasterKey};
 
-    use crate::{client::UserLoginMethod, error::require};
+    use crate::client::UserLoginMethod;
 
     info!("password logging in");
 
-    let password_vec = input.password.into();
+    let master_key = MasterKey::derive(
+        input.password.as_bytes(),
+        input.email.as_bytes(),
+        &input.kdf,
+    )?;
+    let password_hash = master_key
+        .derive_master_key_hash(input.password.as_bytes(), HashPurpose::ServerAuthorization)?;
 
-    let master_key = MasterKey::derive(&password_vec, input.email.as_bytes(), &input.kdf)?;
-    let password_hash =
-        master_key.derive_master_key_hash(&password_vec, HashPurpose::ServerAuthorization)?;
-
-    let response = request_identity_tokens(
-        client,
-        &input.email,
-        &input.two_factor,
-        password_hash.expose(),
-    )
-    .await?;
+    let response = request_identity_tokens(client, input, &password_hash).await?;
 
     if let IdentityTokenResponse::Authenticated(r) = &response {
         client.set_tokens(
@@ -68,19 +63,18 @@ pub(crate) async fn login_password(
 #[cfg(feature = "internal")]
 async fn request_identity_tokens(
     client: &mut Client,
-    email: &str,
-    two_factor: &Option<TwoFactorRequest>,
+    input: &PasswordLoginRequest,
     password_hash: &str,
 ) -> Result<IdentityTokenResponse> {
     use crate::client::client_settings::DeviceType;
 
     let config = client.get_api_configurations().await;
     PasswordTokenRequest::new(
-        email,
+        &input.email,
         password_hash,
         DeviceType::ChromeBrowser,
         "b86dd6ab-4265-4ddf-a7f1-eb28d5677f33",
-        two_factor,
+        &input.two_factor,
     )
     .send(config)
     .await
@@ -94,7 +88,7 @@ pub struct PasswordLoginRequest {
     /// Bitwarden account email address
     pub email: String,
     /// Bitwarden account master password
-    pub password: SensitiveString,
+    pub password: String,
     // Two-factor authentication
     pub two_factor: Option<TwoFactorRequest>,
     /// Kdf from prelogin

@@ -8,6 +8,9 @@ use bitwarden::{
 
 use crate::{error::Result, Client};
 
+mod sends;
+pub use sends::ClientSends;
+
 #[derive(uniffi::Object)]
 pub struct ClientGenerators(pub(crate) Arc<Client>);
 

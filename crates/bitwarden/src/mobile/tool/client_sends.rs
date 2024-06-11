@@ -1,10 +1,11 @@
 use std::path::Path;
 
-use bitwarden_crypto::{DecryptedVec, EncString, KeyDecryptable, KeyEncryptable};
+use bitwarden_core::VaultLocked;
+use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable};
 
 use crate::{
-    error::{Error, Result},
-    vault::{ClientVault, Send, SendListView, SendView},
+    error::Result,
+    tool::{Send, SendListView, SendView},
     Client,
 };
 
@@ -15,7 +16,7 @@ pub struct ClientSends<'a> {
 impl<'a> ClientSends<'a> {
     pub async fn decrypt(&self, send: Send) -> Result<SendView> {
         let enc = self.client.get_encryption_settings()?;
-        let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
+        let key = enc.get_key(&None).ok_or(VaultLocked)?;
 
         let send_view = send.decrypt_with_key(key)?;
 
@@ -24,7 +25,7 @@ impl<'a> ClientSends<'a> {
 
     pub async fn decrypt_list(&self, sends: Vec<Send>) -> Result<Vec<SendListView>> {
         let enc = self.client.get_encryption_settings()?;
-        let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
+        let key = enc.get_key(&None).ok_or(VaultLocked)?;
 
         let send_views = sends.decrypt_with_key(key)?;
 
@@ -45,17 +46,16 @@ impl<'a> ClientSends<'a> {
 
     pub async fn decrypt_buffer(&self, send: Send, encrypted_buffer: &[u8]) -> Result<Vec<u8>> {
         let enc = self.client.get_encryption_settings()?;
-        let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
+        let key = enc.get_key(&None).ok_or(VaultLocked)?;
         let key = Send::get_key(&send.key, key)?;
 
         let buf = EncString::from_buffer(encrypted_buffer)?;
-        let dec: DecryptedVec = buf.decrypt_with_key(&key)?;
-        Ok(dec.expose().to_owned())
+        Ok(buf.decrypt_with_key(&key)?)
     }
 
     pub async fn encrypt(&self, send_view: SendView) -> Result<Send> {
         let enc = self.client.get_encryption_settings()?;
-        let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
+        let key = enc.get_key(&None).ok_or(VaultLocked)?;
 
         let send = send_view.encrypt_with_key(key)?;
 
@@ -79,7 +79,7 @@ impl<'a> ClientSends<'a> {
             .client
             .get_encryption_settings()?
             .get_key(&None)
-            .ok_or(Error::VaultLocked)?;
+            .ok_or(VaultLocked)?;
         let key = Send::get_key(&send.key, key)?;
 
         let enc = buffer.encrypt_with_key(&key)?;
@@ -87,10 +87,8 @@ impl<'a> ClientSends<'a> {
     }
 }
 
-impl<'a> ClientVault<'a> {
-    pub fn sends(&'a self) -> ClientSends<'a> {
-        ClientSends {
-            client: self.client,
-        }
+impl<'a> Client {
+    pub fn sends(&'a mut self) -> ClientSends<'a> {
+        ClientSends { client: self }
     }
 }

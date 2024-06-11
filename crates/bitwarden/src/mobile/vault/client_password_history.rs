@@ -1,10 +1,7 @@
 use bitwarden_crypto::{CryptoError, KeyDecryptable, KeyEncryptable};
+use bitwarden_vault::{PasswordHistory, PasswordHistoryView};
 
-use crate::{
-    error::Result,
-    vault::{ClientVault, PasswordHistory, PasswordHistoryView},
-    Client,
-};
+use crate::{error::Result, vault::ClientVault, Client};
 
 pub struct ClientPasswordHistory<'a> {
     pub(crate) client: &'a Client,

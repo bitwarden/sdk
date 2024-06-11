@@ -1,13 +1,14 @@
 use std::path::Path;
 
+use bitwarden_core::VaultLocked;
 use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey};
+use bitwarden_vault::{
+    Attachment, AttachmentEncryptResult, AttachmentFile, AttachmentFileView, AttachmentView, Cipher,
+};
 
 use crate::{
     error::{Error, Result},
-    vault::{
-        Attachment, AttachmentEncryptResult, AttachmentFile, AttachmentFileView, AttachmentView,
-        Cipher, ClientVault,
-    },
+    vault::ClientVault,
     Client,
 };
 
@@ -23,7 +24,7 @@ impl<'a> ClientAttachments<'a> {
         buffer: &[u8],
     ) -> Result<AttachmentEncryptResult> {
         let enc = self.client.get_encryption_settings()?;
-        let key = cipher.locate_key(enc, &None).ok_or(Error::VaultLocked)?;
+        let key = cipher.locate_key(enc, &None).ok_or(VaultLocked)?;
 
         Ok(AttachmentFileView {
             cipher,
@@ -55,7 +56,7 @@ impl<'a> ClientAttachments<'a> {
         encrypted_buffer: &[u8],
     ) -> Result<Vec<u8>> {
         let enc = self.client.get_encryption_settings()?;
-        let key = cipher.locate_key(enc, &None).ok_or(Error::VaultLocked)?;
+        let key = cipher.locate_key(enc, &None).ok_or(VaultLocked)?;
 
         AttachmentFile {
             cipher,
@@ -64,7 +65,6 @@ impl<'a> ClientAttachments<'a> {
         }
         .decrypt_with_key(key)
         .map_err(Error::Crypto)
-        .map(|s| s.expose().to_owned())
     }
     pub async fn decrypt_file(
         &self,

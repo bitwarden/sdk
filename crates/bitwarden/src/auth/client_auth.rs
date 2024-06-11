@@ -1,5 +1,5 @@
 #[cfg(feature = "internal")]
-use bitwarden_crypto::{AsymmetricEncString, DeviceKey, SensitiveString, TrustDeviceResponse};
+use bitwarden_crypto::{AsymmetricEncString, DeviceKey, TrustDeviceResponse};
 
 #[cfg(feature = "internal")]
 use crate::auth::login::NewAuthRequestResponse;
@@ -24,7 +24,6 @@ use crate::{
         AuthRequestResponse, RegisterKeyResponse, RegisterRequest,
     },
     client::Kdf,
-    error::Error,
 };
 
 pub struct ClientAuth<'a> {
@@ -49,7 +48,7 @@ impl<'a> ClientAuth<'a> {
 impl<'a> ClientAuth<'a> {
     pub async fn password_strength(
         &self,
-        password: SensitiveString,
+        password: String,
         email: String,
         additional_inputs: Vec<String>,
     ) -> u8 {
@@ -58,7 +57,7 @@ impl<'a> ClientAuth<'a> {
 
     pub async fn satisfies_policy(
         &self,
-        password: SensitiveString,
+        password: String,
         strength: u8,
         policy: &MasterPasswordPolicyOptions,
     ) -> bool {
@@ -68,7 +67,7 @@ impl<'a> ClientAuth<'a> {
     pub fn make_register_keys(
         &self,
         email: String,
-        password: SensitiveString,
+        password: String,
         kdf: Kdf,
     ) -> Result<RegisterKeyResponse> {
         make_register_keys(email, password, kdf)
@@ -83,7 +82,7 @@ impl<'a> ClientAuth<'a> {
         make_register_tde_keys(self.client, email, org_public_key, remember_device)
     }
 
-    pub async fn register(&mut self, input: RegisterRequest) -> Result<()> {
+    pub async fn register(&mut self, input: &RegisterRequest) -> Result<()> {
         register(self.client, input).await
     }
 
@@ -96,35 +95,31 @@ impl<'a> ClientAuth<'a> {
 
     pub async fn login_password(
         &mut self,
-        input: PasswordLoginRequest,
+        input: &PasswordLoginRequest,
     ) -> Result<PasswordLoginResponse> {
         login_password(self.client, input).await
     }
 
     pub async fn login_api_key(
         &mut self,
-        input: ApiKeyLoginRequest,
+        input: &ApiKeyLoginRequest,
     ) -> Result<ApiKeyLoginResponse> {
         login_api_key(self.client, input).await
     }
 
-    pub async fn send_two_factor_email(&mut self, tf: TwoFactorEmailRequest) -> Result<()> {
+    pub async fn send_two_factor_email(&mut self, tf: &TwoFactorEmailRequest) -> Result<()> {
         send_two_factor_email(self.client, tf).await
     }
 
-    pub fn validate_password(
-        &self,
-        password: SensitiveString,
-        password_hash: SensitiveString,
-    ) -> Result<bool> {
+    pub fn validate_password(&self, password: String, password_hash: String) -> Result<bool> {
         validate_password(self.client, password, password_hash)
     }
 
     pub fn validate_password_user_key(
         &self,
-        password: SensitiveString,
+        password: String,
         encrypted_user_key: String,
-    ) -> Result<SensitiveString> {
+    ) -> Result<String> {
         validate_password_user_key(self.client, password, encrypted_user_key)
     }
 
@@ -162,9 +157,11 @@ impl<'a> ClientAuth<'a> {
 
 #[cfg(feature = "internal")]
 fn trust_device(client: &Client) -> Result<TrustDeviceResponse> {
+    use bitwarden_core::VaultLocked;
+
     let enc = client.get_encryption_settings()?;
 
-    let user_key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
+    let user_key = enc.get_key(&None).ok_or(VaultLocked)?;
 
     Ok(DeviceKey::trust_device(user_key)?)
 }

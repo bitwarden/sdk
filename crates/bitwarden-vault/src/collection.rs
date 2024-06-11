@@ -1,40 +1,40 @@
 use bitwarden_api_api::models::CollectionDetailsResponseModel;
+use bitwarden_core::require;
 use bitwarden_crypto::{
-    CryptoError, DecryptedString, EncString, KeyContainer, KeyDecryptable, LocateKey,
-    SymmetricCryptoKey,
+    CryptoError, EncString, KeyContainer, KeyDecryptable, LocateKey, SymmetricCryptoKey,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::error::{require, Error, Result};
+use crate::VaultParseError;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct Collection {
-    id: Option<Uuid>,
-    organization_id: Uuid,
+    pub id: Option<Uuid>,
+    pub organization_id: Uuid,
 
-    name: EncString,
+    pub name: EncString,
 
-    external_id: Option<String>,
-    hide_passwords: bool,
-    read_only: bool,
+    pub external_id: Option<String>,
+    pub hide_passwords: bool,
+    pub read_only: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct CollectionView {
-    id: Option<Uuid>,
-    organization_id: Uuid,
+    pub id: Option<Uuid>,
+    pub organization_id: Uuid,
 
-    name: DecryptedString,
+    pub name: String,
 
-    external_id: Option<String>,
-    hide_passwords: bool,
-    read_only: bool,
+    pub external_id: Option<String>,
+    pub hide_passwords: bool,
+    pub read_only: bool,
 }
 
 impl LocateKey for Collection {
@@ -62,9 +62,9 @@ impl KeyDecryptable<SymmetricCryptoKey, CollectionView> for Collection {
 }
 
 impl TryFrom<CollectionDetailsResponseModel> for Collection {
-    type Error = Error;
+    type Error = VaultParseError;
 
-    fn try_from(collection: CollectionDetailsResponseModel) -> Result<Self> {
+    fn try_from(collection: CollectionDetailsResponseModel) -> Result<Self, Self::Error> {
         Ok(Collection {
             id: collection.id,
             organization_id: require!(collection.organization_id),

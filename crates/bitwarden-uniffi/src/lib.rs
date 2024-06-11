@@ -20,7 +20,7 @@ pub mod docs;
 use crypto::ClientCrypto;
 use error::Result;
 use platform::ClientPlatform;
-use tool::{ClientExporters, ClientGenerators};
+use tool::{ClientExporters, ClientGenerators, ClientSends};
 use vault::ClientVault;
 
 #[derive(uniffi::Object)]
@@ -57,6 +57,11 @@ impl Client {
     /// Exporters
     pub fn exporters(self: Arc<Self>) -> Arc<ClientExporters> {
         Arc::new(ClientExporters(self))
+    }
+
+    /// Sends operations
+    pub fn sends(self: Arc<Self>) -> Arc<ClientSends> {
+        Arc::new(ClientSends(self))
     }
 
     /// Auth operations

@@ -1,4 +1,4 @@
-use bitwarden_core::{error::Error, Client};
+use bitwarden_core::{Client, Error};
 
 use crate::projects::{
     create_project, delete_projects, get_project, list_projects, update_project,

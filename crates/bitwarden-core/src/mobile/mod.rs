@@ -1,6 +1,6 @@
 pub mod crypto;
 pub mod kdf;
-pub mod vault;
+//pub mod vault;
 
 mod client_crypto;
 mod client_kdf;

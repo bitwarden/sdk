@@ -11,7 +11,7 @@ use super::{
     login_method::{LoginMethod, ServiceAccountLoginMethod, UserLoginMethod},
 };
 use crate::{
-    error::{Error, Result},
+    error::{Error, Result, VaultLocked},
     DeviceType,
 };
 
@@ -50,7 +50,7 @@ impl InternalClient {
     }
 
     #[cfg(feature = "internal")]
-    pub(crate) fn get_flags(&self) -> &Flags {
+    pub fn get_flags(&self) -> &Flags {
         &self.flags
     }
 
@@ -115,8 +115,8 @@ impl InternalClient {
         &self.__api_configurations.external_client
     }
 
-    pub fn get_encryption_settings(&self) -> Result<&EncryptionSettings> {
-        self.encryption_settings.as_ref().ok_or(Error::VaultLocked)
+    pub fn get_encryption_settings(&self) -> Result<&EncryptionSettings, VaultLocked> {
+        self.encryption_settings.as_ref().ok_or(VaultLocked)
     }
 
     #[cfg(feature = "internal")]
@@ -167,14 +167,11 @@ impl InternalClient {
     }
 
     #[cfg(feature = "internal")]
-    pub(crate) fn initialize_org_crypto(
+    pub fn initialize_org_crypto(
         &mut self,
         org_keys: Vec<(Uuid, AsymmetricEncString)>,
     ) -> Result<&EncryptionSettings> {
-        let enc = self
-            .encryption_settings
-            .as_mut()
-            .ok_or(Error::VaultLocked)?;
+        let enc = self.encryption_settings.as_mut().ok_or(VaultLocked)?;
 
         enc.set_org_keys(org_keys)?;
         Ok(&*enc)

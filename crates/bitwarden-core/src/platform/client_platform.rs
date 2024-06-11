@@ -1,5 +1,3 @@
-#[cfg(feature = "uniffi")]
-use super::ClientFido2;
 use super::{
     generate_fingerprint::{generate_fingerprint, generate_user_fingerprint},
     get_user_api_key, FingerprintRequest, FingerprintResponse, SecretVerificationRequest,
@@ -25,13 +23,6 @@ impl<'a> ClientPlatform<'a> {
         input: SecretVerificationRequest,
     ) -> Result<UserApiKeyResponse> {
         get_user_api_key(self.client, &input).await
-    }
-
-    #[cfg(feature = "uniffi")]
-    pub fn fido2(&'a mut self) -> ClientFido2<'a> {
-        ClientFido2 {
-            client: self.client,
-        }
     }
 }
 

@@ -80,8 +80,7 @@
       "memory_lookups": [
         {
           "name": "Key",
-          "hex": "3bc0520a0abff0097d521ce0ee5e5b1cee301939a84742623c0c1697d7a4bd46",
-          "allowed_count": 3
+          "hex": "3bc0520a0abff0097d521ce0ee5e5b1cee301939a84742623c0c1697d7a4bd46"
         },
         {
           "name": "Hash B64",

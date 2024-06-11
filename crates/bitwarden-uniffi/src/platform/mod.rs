@@ -40,8 +40,8 @@ impl ClientPlatform {
         Ok(())
     }
 
-    /// FIDO2 operations
-    pub fn fido2(self: Arc<Self>) -> Arc<fido2::ClientFido2> {
-        Arc::new(fido2::ClientFido2(self.0.clone()))
-    }
+    // /// FIDO2 operations
+    //pub fn fido2(self: Arc<Self>) -> Arc<fido2::ClientFido2> {
+    //    Arc::new(fido2::ClientFido2(self.0.clone()))
+    //}
 }

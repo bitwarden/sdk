@@ -4,6 +4,9 @@ use bitwarden::secrets_manager::{ClientProjectsExt, ClientSecretsExt};
 use bitwarden::ClientSettings;
 
 #[cfg(feature = "secrets")]
+use bitwarden::vault::ClientVaultExt;
+
+#[cfg(feature = "secrets")]
 use crate::command::{ProjectsCommand, SecretsCommand};
 use crate::{
     command::Command,

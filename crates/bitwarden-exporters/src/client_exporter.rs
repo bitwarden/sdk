@@ -1,8 +1,5 @@
-use bitwarden_core::{
-    error::Result,
-    vault::{Cipher, Collection, Folder},
-    Client,
-};
+use bitwarden_core::Client;
+use bitwarden_vault::{Cipher, Collection, Folder};
 
 use crate::{
     export::{export_organization_vault, export_vault},

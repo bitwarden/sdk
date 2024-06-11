@@ -1,8 +1,7 @@
+use bitwarden_core::MissingFieldError;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-
-use crate::MissingFieldError;
 
 #[derive(Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(untagged)]
@@ -12,7 +11,6 @@ pub enum LinkedIdType {
     Identity(IdentityLinkedIdType),
 }
 
-use crate::error::{Error, Result};
 #[cfg(feature = "uniffi")]
 use crate::UniffiCustomTypeConverter;
 #[cfg(feature = "uniffi")]
@@ -83,9 +81,9 @@ pub enum IdentityLinkedIdType {
 }
 
 impl TryFrom<u32> for LinkedIdType {
-    type Error = Error;
+    type Error = MissingFieldError;
 
-    fn try_from(value: u32) -> Result<Self> {
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
         match value {
             100 => Ok(LinkedIdType::Login(LoginLinkedIdType::Username)),
             101 => Ok(LinkedIdType::Login(LoginLinkedIdType::Password)),

@@ -1,18 +1,26 @@
+use crate::{Cipher, Collection, Folder, GlobalDomains, VaultParseError};
 use bitwarden_api_api::models::{
     DomainsResponseModel, ProfileOrganizationResponseModel, ProfileResponseModel, SyncResponseModel,
 };
+use bitwarden_core::{
+    client::encryption_settings::EncryptionSettings, require, Client, Error, MissingFieldError,
+};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 use uuid::Uuid;
 
-use super::domain::GlobalDomains;
-use crate::{
-    admin_console::Policy,
-    client::{encryption_settings::EncryptionSettings, Client},
-    error::{Error, Result},
-    require,
-    vault::{Cipher, Collection, Folder},
-};
+#[derive(Debug, Error)]
+pub enum SyncError {
+    #[error(transparent)]
+    Core(#[from] bitwarden_core::Error),
+
+    #[error(transparent)]
+    MissingFieldError(#[from] MissingFieldError),
+
+    #[error(transparent)]
+    VaultParse(#[from] VaultParseError),
+}
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -21,10 +29,14 @@ pub struct SyncRequest {
     pub exclude_subdomains: Option<bool>,
 }
 
-pub(crate) async fn sync(client: &mut Client, input: &SyncRequest) -> Result<SyncResponse> {
+pub(crate) async fn sync(
+    client: &mut Client,
+    input: &SyncRequest,
+) -> Result<SyncResponse, SyncError> {
     let config = client.internal.get_api_configurations().await;
-    let sync =
-        bitwarden_api_api::apis::sync_api::sync_get(&config.api, input.exclude_subdomains).await?;
+    let sync = bitwarden_api_api::apis::sync_api::sync_get(&config.api, input.exclude_subdomains)
+        .await
+        .map_err(|e| SyncError::Core(e.into()))?;
 
     let org_keys: Vec<_> = require!(sync.profile.as_ref())
         .organizations
@@ -75,15 +87,15 @@ pub struct SyncResponse {
     /// List of ciphers accessible by the user
     pub ciphers: Vec<Cipher>,
     pub domains: Option<DomainResponse>,
-    pub policies: Vec<Policy>,
-    //pub sends: Vec<crate::tool::Send>,
+    //pub policies: Vec<Policy>,
+    //pub sends: Vec<Send>,
 }
 
 impl SyncResponse {
     pub(crate) fn process_response(
         response: SyncResponseModel,
         enc: &EncryptionSettings,
-    ) -> Result<SyncResponse> {
+    ) -> Result<SyncResponse, SyncError> {
         let profile = require!(response.profile);
         let ciphers = require!(response.ciphers);
 
@@ -102,7 +114,7 @@ impl SyncResponse {
             collections: try_into_iter(require!(response.collections))?,
             ciphers: try_into_iter(ciphers)?,
             domains: response.domains.map(|d| (*d).try_into()).transpose()?,
-            policies: try_into_iter(require!(response.policies))?,
+            //policies: try_into_iter(require!(response.policies))?,
             //sends: try_into_iter(require!(response.sends))?,
         })
     }
@@ -111,7 +123,7 @@ impl SyncResponse {
 impl ProfileOrganizationResponse {
     fn process_response(
         response: ProfileOrganizationResponseModel,
-    ) -> Result<ProfileOrganizationResponse> {
+    ) -> Result<ProfileOrganizationResponse, Error> {
         Ok(ProfileOrganizationResponse {
             id: require!(response.id),
         })
@@ -122,7 +134,7 @@ impl ProfileResponse {
     fn process_response(
         response: ProfileResponseModel,
         _enc: &EncryptionSettings,
-    ) -> Result<ProfileResponse> {
+    ) -> Result<ProfileResponse, Error> {
         Ok(ProfileResponse {
             id: require!(response.id),
             name: require!(response.name),
@@ -140,8 +152,9 @@ impl ProfileResponse {
 }
 
 impl TryFrom<DomainsResponseModel> for DomainResponse {
-    type Error = Error;
-    fn try_from(value: DomainsResponseModel) -> Result<Self> {
+    type Error = SyncError;
+
+    fn try_from(value: DomainsResponseModel) -> Result<Self, Self::Error> {
         Ok(Self {
             equivalent_domains: value.equivalent_domains.unwrap_or_default(),
             global_equivalent_domains: value
@@ -149,7 +162,7 @@ impl TryFrom<DomainsResponseModel> for DomainResponse {
                 .unwrap_or_default()
                 .into_iter()
                 .map(|s| s.try_into())
-                .collect::<Result<Vec<GlobalDomains>>>()?,
+                .collect::<Result<Vec<GlobalDomains>, _>>()?,
         })
     }
 }

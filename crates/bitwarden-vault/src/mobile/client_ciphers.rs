@@ -1,18 +1,16 @@
+use crate::{Cipher, CipherError, CipherListView, CipherView, ClientVault};
+use bitwarden_core::VaultLocked;
 use bitwarden_crypto::{CryptoError, KeyDecryptable, KeyEncryptable, LocateKey};
 use uuid::Uuid;
 
-use crate::{
-    error::{Error, Result},
-    vault::{Cipher, CipherListView, CipherView, ClientVault},
-    Client,
-};
+use bitwarden_core::{Client, Error};
 
 pub struct ClientCiphers<'a> {
     pub(crate) client: &'a Client,
 }
 
 impl<'a> ClientCiphers<'a> {
-    pub async fn encrypt(&self, mut cipher_view: CipherView) -> Result<Cipher> {
+    pub async fn encrypt(&self, mut cipher_view: CipherView) -> Result<Cipher, Error> {
         let enc = self.client.internal.get_encryption_settings()?;
 
         // TODO: Once this flag is removed, the key generation logic should
@@ -24,21 +22,17 @@ impl<'a> ClientCiphers<'a> {
                 .get_flags()
                 .enable_cipher_key_encryption
         {
-            let key = cipher_view
-                .locate_key(enc, &None)
-                .ok_or(Error::VaultLocked)?;
+            let key = cipher_view.locate_key(enc, &None).ok_or(VaultLocked)?;
             cipher_view.generate_cipher_key(key)?;
         }
 
-        let key = cipher_view
-            .locate_key(enc, &None)
-            .ok_or(Error::VaultLocked)?;
+        let key = cipher_view.locate_key(enc, &None).ok_or(VaultLocked)?;
         let cipher = cipher_view.encrypt_with_key(key)?;
 
         Ok(cipher)
     }
 
-    pub async fn decrypt(&self, cipher: Cipher) -> Result<CipherView> {
+    pub async fn decrypt(&self, cipher: Cipher) -> Result<CipherView, Error> {
         let enc = self.client.internal.get_encryption_settings()?;
         let key = cipher
             .locate_key(enc, &None)
@@ -49,12 +43,12 @@ impl<'a> ClientCiphers<'a> {
         Ok(cipher_view)
     }
 
-    pub async fn decrypt_list(&self, ciphers: Vec<Cipher>) -> Result<Vec<CipherListView>> {
+    pub async fn decrypt_list(&self, ciphers: Vec<Cipher>) -> Result<Vec<CipherListView>, Error> {
         let enc = self.client.internal.get_encryption_settings()?;
 
-        let cipher_views: Result<Vec<CipherListView>> = ciphers
+        let cipher_views: Result<Vec<CipherListView>, _> = ciphers
             .iter()
-            .map(|c| -> Result<CipherListView> {
+            .map(|c| -> Result<CipherListView, _> {
                 let key = c.locate_key(enc, &None).ok_or(CryptoError::MissingKey)?;
                 Ok(c.decrypt_with_key(key)?)
             })
@@ -67,7 +61,7 @@ impl<'a> ClientCiphers<'a> {
         &self,
         mut cipher_view: CipherView,
         organization_id: Uuid,
-    ) -> Result<CipherView> {
+    ) -> Result<CipherView, CipherError> {
         let enc = self.client.internal.get_encryption_settings()?;
         cipher_view.move_to_organization(enc, organization_id)?;
         Ok(cipher_view)
@@ -85,11 +79,11 @@ impl<'a> ClientVault<'a> {
 #[cfg(test)]
 mod tests {
 
+    use bitwarden_core::client::test_accounts::test_bitwarden_com_account;
+
+    use crate::{Attachment, CipherRepromptType, CipherType, ClientVaultExt, Login};
+
     use super::*;
-    use crate::{
-        client::test_accounts::test_bitwarden_com_account,
-        vault::{login::Login, Attachment, CipherRepromptType, CipherType},
-    };
 
     #[tokio::test]
     async fn test_decrypt_list() {

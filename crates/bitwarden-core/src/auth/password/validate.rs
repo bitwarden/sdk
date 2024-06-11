@@ -44,6 +44,8 @@ pub(crate) fn validate_password_user_key(
     password: String,
     encrypted_user_key: String,
 ) -> Result<String> {
+    use crate::VaultLocked;
+
     let login_method = client
         .internal
         .login_method
@@ -62,9 +64,9 @@ pub(crate) fn validate_password_user_key(
                 let enc = client
                     .internal
                     .get_encryption_settings()
-                    .map_err(|_| Error::VaultLocked)?;
+                    .map_err(|_| VaultLocked)?;
 
-                let existing_key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
+                let existing_key = enc.get_key(&None).ok_or(VaultLocked)?;
 
                 if user_key.to_vec() != existing_key.to_vec() {
                     return Err("wrong user key".into());

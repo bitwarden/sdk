@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used)]
 use std::collections::HashMap;
 
 use bitwarden_crypto::Kdf;

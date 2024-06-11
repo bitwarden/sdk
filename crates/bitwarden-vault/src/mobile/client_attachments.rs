@@ -1,15 +1,13 @@
 use std::path::Path;
 
+use crate::{
+    Attachment, AttachmentEncryptResult, AttachmentFile, AttachmentFileView, AttachmentView,
+    Cipher, ClientVault,
+};
+use bitwarden_core::VaultLocked;
 use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey};
 
-use crate::{
-    error::{Error, Result},
-    vault::{
-        Attachment, AttachmentEncryptResult, AttachmentFile, AttachmentFileView, AttachmentView,
-        Cipher, ClientVault,
-    },
-    Client,
-};
+use bitwarden_core::{Client, Error};
 
 pub struct ClientAttachments<'a> {
     pub(crate) client: &'a Client,
@@ -21,9 +19,9 @@ impl<'a> ClientAttachments<'a> {
         cipher: Cipher,
         attachment: AttachmentView,
         buffer: &[u8],
-    ) -> Result<AttachmentEncryptResult> {
+    ) -> Result<AttachmentEncryptResult, Error> {
         let enc = self.client.internal.get_encryption_settings()?;
-        let key = cipher.locate_key(enc, &None).ok_or(Error::VaultLocked)?;
+        let key = cipher.locate_key(enc, &None).ok_or(VaultLocked)?;
 
         Ok(AttachmentFileView {
             cipher,
@@ -38,7 +36,7 @@ impl<'a> ClientAttachments<'a> {
         attachment: AttachmentView,
         decrypted_file_path: &Path,
         encrypted_file_path: &Path,
-    ) -> Result<Attachment> {
+    ) -> Result<Attachment, Error> {
         let data = std::fs::read(decrypted_file_path)?;
         let AttachmentEncryptResult {
             attachment,
@@ -53,9 +51,9 @@ impl<'a> ClientAttachments<'a> {
         cipher: Cipher,
         attachment: Attachment,
         encrypted_buffer: &[u8],
-    ) -> Result<Vec<u8>> {
+    ) -> Result<Vec<u8>, Error> {
         let enc = self.client.internal.get_encryption_settings()?;
-        let key = cipher.locate_key(enc, &None).ok_or(Error::VaultLocked)?;
+        let key = cipher.locate_key(enc, &None).ok_or(VaultLocked)?;
 
         AttachmentFile {
             cipher,
@@ -71,7 +69,7 @@ impl<'a> ClientAttachments<'a> {
         attachment: Attachment,
         encrypted_file_path: &Path,
         decrypted_file_path: &Path,
-    ) -> Result<()> {
+    ) -> Result<(), Error> {
         let data = std::fs::read(encrypted_file_path)?;
         let decrypted = self.decrypt_buffer(cipher, attachment, &data).await?;
         std::fs::write(decrypted_file_path, decrypted)?;

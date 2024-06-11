@@ -13,11 +13,11 @@ use thiserror::Error;
 pub enum Error {
     #[error(transparent)]
     MissingFieldError(#[from] MissingFieldError),
+    #[error(transparent)]
+    VaultLocked(#[from] VaultLocked),
+
     #[error("The client is not authenticated or the session has expired")]
     NotAuthenticated,
-
-    #[error("The client vault is locked and needs to be unlocked before use")]
-    VaultLocked,
 
     #[error("Access token is not in a valid format: {0}")]
     AccessTokenInvalid(#[from] AccessTokenInvalidError),
@@ -59,10 +59,9 @@ pub enum Error {
     #[error("Uniffi callback error: {0}")]
     UniffiCallbackError(#[from] uniffi::UnexpectedUniFFICallbackError),
 
-    #[cfg(feature = "uniffi")]
-    #[error("Fido2 Callback error: {0:?}")]
-    Fido2CallbackError(#[from] crate::platform::fido2::Fido2CallbackError),
-
+    //#[cfg(feature = "uniffi")]
+    //#[error("Fido2 Callback error: {0:?}")]
+    //Fido2CallbackError(#[from] crate::platform::fido2::Fido2CallbackError),
     #[error("Internal error: {0}")]
     Internal(Cow<'static, str>),
 }
@@ -140,6 +139,10 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 #[derive(Debug, Error)]
 #[error("The response received was missing a required field: {0}")]
 pub struct MissingFieldError(pub &'static str);
+
+#[derive(Debug, Error)]
+#[error("The client vault is locked and needs to be unlocked before use")]
+pub struct VaultLocked;
 
 /// This macro is used to require that a value is present or return an error otherwise.
 /// It is equivalent to using `val.ok_or(Error::MissingFields)?`, but easier to use and

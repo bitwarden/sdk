@@ -1,9 +1,6 @@
-use bitwarden_core::{
-    error::Error,
-    vault::{Cipher, CipherView, Collection, Folder, FolderView},
-    Client,
-};
+use bitwarden_core::{Client, VaultLocked};
 use bitwarden_crypto::KeyDecryptable;
+use bitwarden_vault::{Cipher, CipherView, Collection, Folder, FolderView};
 
 use crate::{
     csv::export_csv, encrypted_json::export_encrypted_json, json::export_json, ExportError,
@@ -17,7 +14,7 @@ pub(crate) fn export_vault(
     format: ExportFormat,
 ) -> Result<String, ExportError> {
     let enc = client.internal.get_encryption_settings()?;
-    let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
+    let key = enc.get_key(&None).ok_or(VaultLocked)?;
 
     let folders: Vec<FolderView> = folders.decrypt_with_key(key)?;
     let folders: Vec<crate::models::Folder> =

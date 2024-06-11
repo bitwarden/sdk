@@ -1,9 +1,8 @@
 use std::fmt;
 
-use bitwarden_core::{
-    require,
-    vault::{CipherView, FieldView, FolderView, LoginUriView},
-};
+use bitwarden_core::require;
+use bitwarden_vault::{CipherView, FieldView, FolderView, LoginUriView};
+
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
@@ -133,7 +132,7 @@ impl TryFrom<CipherView> for Cipher {
 
     fn try_from(value: CipherView) -> Result<Self, Self::Error> {
         let r = match value.r#type {
-            bitwarden_core::vault::CipherType::Login => {
+            bitwarden_vault::CipherType::Login => {
                 let l = require!(value.login);
                 CipherType::Login(Box::new(Login {
                     username: l.username,
@@ -147,16 +146,16 @@ impl TryFrom<CipherView> for Cipher {
                     totp: l.totp,
                 }))
             }
-            bitwarden_core::vault::CipherType::SecureNote => {
+            bitwarden_vault::CipherType::SecureNote => {
                 CipherType::SecureNote(Box::new(SecureNote {
                     r#type: value
                         .secure_note
                         .map(|t| t.r#type)
-                        .unwrap_or(bitwarden_core::vault::SecureNoteType::Generic)
+                        .unwrap_or(bitwarden_vault::SecureNoteType::Generic)
                         .into(),
                 }))
             }
-            bitwarden_core::vault::CipherType::Card => {
+            bitwarden_vault::CipherType::Card => {
                 let c = require!(value.card);
                 CipherType::Card(Box::new(Card {
                     cardholder_name: c.cardholder_name,
@@ -167,7 +166,7 @@ impl TryFrom<CipherView> for Cipher {
                     number: c.number,
                 }))
             }
-            bitwarden_core::vault::CipherType::Identity => {
+            bitwarden_vault::CipherType::Identity => {
                 let i = require!(value.identity);
                 CipherType::Identity(Box::new(Identity {
                     title: i.title,
@@ -233,17 +232,17 @@ impl From<LoginUriView> for LoginUri {
     }
 }
 
-impl From<bitwarden_core::vault::SecureNoteType> for SecureNoteType {
-    fn from(value: bitwarden_core::vault::SecureNoteType) -> Self {
+impl From<bitwarden_vault::SecureNoteType> for SecureNoteType {
+    fn from(value: bitwarden_vault::SecureNoteType) -> Self {
         match value {
-            bitwarden_core::vault::SecureNoteType::Generic => SecureNoteType::Generic,
+            bitwarden_vault::SecureNoteType::Generic => SecureNoteType::Generic,
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use bitwarden_core::vault::{CipherRepromptType, LoginView};
+    use bitwarden_vault::{CipherRepromptType, LoginView};
     use chrono::{DateTime, Utc};
 
     use super::*;
@@ -268,7 +267,7 @@ mod tests {
     #[test]
     fn test_try_from_cipher_view_login() {
         let cipher_view = CipherView {
-            r#type: bitwarden_core::vault::CipherType::Login,
+            r#type: bitwarden_vault::CipherType::Login,
             login: Some(LoginView {
                 username: Some("test_username".to_string()),
                 password: Some("test_password".to_string()),

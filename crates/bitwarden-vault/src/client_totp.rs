@@ -1,9 +1,6 @@
 use chrono::{DateTime, Utc};
 
-use crate::{
-    error::Result,
-    vault::{generate_totp, ClientVault, TotpResponse},
-};
+use crate::{generate_totp, ClientVault, TotpError, TotpResponse};
 
 impl<'a> ClientVault<'a> {
     /// Generate a TOTP code from a provided key.
@@ -16,7 +13,7 @@ impl<'a> ClientVault<'a> {
         &'a self,
         key: String,
         time: Option<DateTime<Utc>>,
-    ) -> Result<TotpResponse> {
+    ) -> Result<TotpResponse, TotpError> {
         generate_totp(key, time)
     }
 }

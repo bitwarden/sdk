@@ -1,8 +1,5 @@
 use bitwarden_api_api::models::ProjectUpdateRequestModel;
-use bitwarden_core::{
-    client::Client,
-    error::{Error, Result},
-};
+use bitwarden_core::{client::Client, Error, VaultLocked};
 use bitwarden_crypto::KeyEncryptable;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -24,12 +21,12 @@ pub struct ProjectPutRequest {
 pub(crate) async fn update_project(
     client: &mut Client,
     input: &ProjectPutRequest,
-) -> Result<ProjectResponse> {
+) -> Result<ProjectResponse, Error> {
     let key = client
         .internal
         .get_encryption_settings()?
         .get_key(&Some(input.organization_id))
-        .ok_or(Error::VaultLocked)?;
+        .ok_or(VaultLocked)?;
 
     let project = Some(ProjectUpdateRequestModel {
         name: input.name.clone().encrypt_with_key(key)?.to_string(),

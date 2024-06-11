@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "internal")]
 use crate::client::{LoginMethod, UserLoginMethod};
+use crate::VaultLocked;
 use crate::{
     client::Kdf,
     error::{Error, Result},
@@ -190,7 +191,7 @@ pub async fn get_user_encryption_key(client: &mut Client) -> Result<String> {
         .internal
         .get_encryption_settings()?
         .get_key(&None)
-        .ok_or(Error::VaultLocked)?;
+        .ok_or(VaultLocked)?;
 
     Ok(user_key.to_base64())
 }
@@ -214,7 +215,7 @@ pub fn update_password(
         .internal
         .get_encryption_settings()?
         .get_key(&None)
-        .ok_or(Error::VaultLocked)?;
+        .ok_or(VaultLocked)?;
 
     let login_method = client
         .internal
@@ -261,7 +262,7 @@ pub fn derive_pin_key(client: &mut Client, pin: String) -> Result<DerivePinKeyRe
         .internal
         .get_encryption_settings()?
         .get_key(&None)
-        .ok_or(Error::VaultLocked)?;
+        .ok_or(VaultLocked)?;
 
     let login_method = client
         .internal
@@ -283,7 +284,7 @@ pub fn derive_pin_user_key(client: &mut Client, encrypted_pin: EncString) -> Res
         .internal
         .get_encryption_settings()?
         .get_key(&None)
-        .ok_or(Error::VaultLocked)?;
+        .ok_or(VaultLocked)?;
 
     let pin: String = encrypted_pin.decrypt_with_key(user_key)?;
     let login_method = client
@@ -322,7 +323,7 @@ pub(super) fn enroll_admin_password_reset(
 
     let public_key = AsymmetricPublicCryptoKey::from_der(&STANDARD.decode(public_key)?)?;
     let enc = client.internal.get_encryption_settings()?;
-    let key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
+    let key = enc.get_key(&None).ok_or(VaultLocked)?;
 
     Ok(AsymmetricEncString::encrypt_rsa2048_oaep_sha1(
         &key.to_vec(),

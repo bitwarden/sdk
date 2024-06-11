@@ -65,17 +65,16 @@ mod uniffi_support;
 pub mod admin_console;
 pub mod auth;
 pub mod client;
-pub mod error;
-pub use error::MissingFieldError;
+mod error;
+pub use error::Error;
 #[cfg(feature = "internal")]
 pub mod mobile;
+pub use error::{MissingFieldError, VaultLocked};
 #[cfg(feature = "internal")]
 pub mod platform;
 #[cfg(feature = "secrets")]
 pub mod secrets_manager;
 mod util;
-#[cfg(feature = "internal")]
-pub mod vault;
 
 pub use bitwarden_crypto::ZeroizingAllocator;
 pub use client::{Client, ClientSettings, DeviceType};

@@ -23,7 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import com.bitwarden.core.DateTime
-import com.bitwarden.bitwarden.Folder
+import com.bitwarden.vault.Folder
 import com.bitwarden.bitwarden.InitOrgCryptoRequest
 import com.bitwarden.bitwarden.InitUserCryptoMethod
 import com.bitwarden.bitwarden.InitUserCryptoRequest

@@ -1,4 +1,5 @@
 pub use bitwarden_core::*;
+pub mod error;
 
 #[cfg(feature = "internal")]
 pub mod internal {
@@ -12,6 +13,10 @@ pub mod internal {
 
     pub mod send {
         pub use bitwarden_send::*;
+    }
+
+    pub mod vault {
+        pub use bitwarden_vault::*;
     }
 }
 #[cfg(feature = "internal")]

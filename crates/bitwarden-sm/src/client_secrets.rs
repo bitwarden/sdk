@@ -1,4 +1,4 @@
-use bitwarden_core::{error::Error, Client};
+use bitwarden_core::{Client, Error};
 
 use crate::secrets::{
     create_secret, delete_secrets, get_secret, get_secrets_by_ids, list_secrets,

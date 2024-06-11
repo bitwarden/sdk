@@ -1,16 +1,19 @@
 use std::sync::Arc;
 
 use bitwarden::{
-    error::Error,
     exporters::{ClientExportersExt, ExportFormat},
     generators::{
         ClientGeneratorExt, PassphraseGeneratorRequest, PasswordGeneratorRequest,
         UsernameGeneratorRequest,
     },
     vault::{Cipher, Collection, Folder},
+    Error, VaultLocked,
 };
 
-use crate::{error::Result, Client};
+use crate::{
+    error::{BitwardenError, Result},
+    Client,
+};
 
 mod sends;
 pub use sends::ClientSends;
@@ -30,7 +33,7 @@ impl ClientGenerators {
             .generator()
             .password(settings)
             .await
-            .map_err(|_| Error::VaultLocked)?)
+            .map_err(|_| Error::VaultLocked(VaultLocked))?)
     }
 
     /// **API Draft:** Generate Passphrase
@@ -43,7 +46,7 @@ impl ClientGenerators {
             .generator()
             .passphrase(settings)
             .await
-            .map_err(|_| Error::VaultLocked)?)
+            .map_err(|_| Error::VaultLocked(VaultLocked))?)
     }
 
     /// **API Draft:** Generate Username
@@ -56,7 +59,7 @@ impl ClientGenerators {
             .generator()
             .username(settings)
             .await
-            .map_err(|_| Error::VaultLocked)?)
+            .map_err(|_| BitwardenError::E2(bitwarden::error::Error::VaultLocked(VaultLocked)))?)
     }
 }
 

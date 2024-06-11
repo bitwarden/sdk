@@ -1,9 +1,12 @@
 use std::sync::Arc;
 
-use bitwarden::vault::TotpResponse;
+use bitwarden::vault::{ClientVaultExt, TotpResponse};
 use chrono::{DateTime, Utc};
 
-use crate::{error::Result, Client};
+use crate::{
+    error::{BitwardenError, Result},
+    Client,
+};
 
 pub mod attachments;
 pub mod ciphers;
@@ -52,6 +55,13 @@ impl ClientVault {
         key: String,
         time: Option<DateTime<Utc>>,
     ) -> Result<TotpResponse> {
-        Ok(self.0 .0.write().await.vault().generate_totp(key, time)?)
+        Ok(self
+            .0
+             .0
+            .write()
+            .await
+            .vault()
+            .generate_totp(key, time)
+            .map_err(BitwardenError::Totp)?)
     }
 }

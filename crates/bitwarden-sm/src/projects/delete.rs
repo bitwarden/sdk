@@ -1,7 +1,7 @@
 use bitwarden_api_api::models::{
     BulkDeleteResponseModel, BulkDeleteResponseModelListResponseModel,
 };
-use bitwarden_core::{client::Client, error::Result, require};
+use bitwarden_core::{client::Client, require, Error};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -16,7 +16,7 @@ pub struct ProjectsDeleteRequest {
 pub(crate) async fn delete_projects(
     client: &mut Client,
     input: ProjectsDeleteRequest,
-) -> Result<ProjectsDeleteResponse> {
+) -> Result<ProjectsDeleteResponse, Error> {
     let config = client.internal.get_api_configurations().await;
     let res =
         bitwarden_api_api::apis::projects_api::projects_delete_post(&config.api, Some(input.ids))
@@ -34,7 +34,7 @@ pub struct ProjectsDeleteResponse {
 impl ProjectsDeleteResponse {
     pub(crate) fn process_response(
         response: BulkDeleteResponseModelListResponseModel,
-    ) -> Result<ProjectsDeleteResponse> {
+    ) -> Result<ProjectsDeleteResponse, Error> {
         Ok(ProjectsDeleteResponse {
             data: response
                 .data
@@ -56,7 +56,7 @@ pub struct ProjectDeleteResponse {
 impl ProjectDeleteResponse {
     pub(crate) fn process_response(
         response: BulkDeleteResponseModel,
-    ) -> Result<ProjectDeleteResponse> {
+    ) -> Result<ProjectDeleteResponse, Error> {
         Ok(ProjectDeleteResponse {
             id: require!(response.id),
             error: response.error,

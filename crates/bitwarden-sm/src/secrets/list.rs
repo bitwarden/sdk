@@ -3,8 +3,7 @@ use bitwarden_api_api::models::{
 };
 use bitwarden_core::{
     client::{encryption_settings::EncryptionSettings, Client},
-    error::Result,
-    require,
+    require, Error,
 };
 use bitwarden_crypto::{CryptoError, EncString, KeyDecryptable};
 use schemars::JsonSchema;
@@ -21,7 +20,7 @@ pub struct SecretIdentifiersRequest {
 pub(crate) async fn list_secrets(
     client: &mut Client,
     input: &SecretIdentifiersRequest,
-) -> Result<SecretIdentifiersResponse> {
+) -> Result<SecretIdentifiersResponse, Error> {
     let config = client.internal.get_api_configurations().await;
     let res = bitwarden_api_api::apis::secrets_api::organizations_organization_id_secrets_get(
         &config.api,
@@ -44,7 +43,7 @@ pub struct SecretIdentifiersByProjectRequest {
 pub(crate) async fn list_secrets_by_project(
     client: &mut Client,
     input: &SecretIdentifiersByProjectRequest,
-) -> Result<SecretIdentifiersResponse> {
+) -> Result<SecretIdentifiersResponse, Error> {
     let config = client.internal.get_api_configurations().await;
     let res = bitwarden_api_api::apis::secrets_api::projects_project_id_secrets_get(
         &config.api,
@@ -67,7 +66,7 @@ impl SecretIdentifiersResponse {
     pub(crate) fn process_response(
         response: SecretWithProjectsListResponseModel,
         enc: &EncryptionSettings,
-    ) -> Result<SecretIdentifiersResponse> {
+    ) -> Result<SecretIdentifiersResponse, Error> {
         Ok(SecretIdentifiersResponse {
             data: response
                 .secrets
@@ -92,7 +91,7 @@ impl SecretIdentifierResponse {
     pub(crate) fn process_response(
         response: SecretsWithProjectsInnerSecret,
         enc: &EncryptionSettings,
-    ) -> Result<SecretIdentifierResponse> {
+    ) -> Result<SecretIdentifierResponse, Error> {
         let organization_id = require!(response.organization_id);
         let enc_key = enc
             .get_key(&Some(organization_id))

@@ -1,8 +1,5 @@
 use bitwarden_api_api::models::SecretUpdateRequestModel;
-use bitwarden_core::{
-    client::Client,
-    error::{Error, Result},
-};
+use bitwarden_core::{client::Client, Error, VaultLocked};
 use bitwarden_crypto::KeyEncryptable;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -27,12 +24,12 @@ pub struct SecretPutRequest {
 pub(crate) async fn update_secret(
     client: &mut Client,
     input: &SecretPutRequest,
-) -> Result<SecretResponse> {
+) -> Result<SecretResponse, Error> {
     let key = client
         .internal
         .get_encryption_settings()?
         .get_key(&Some(input.organization_id))
-        .ok_or(Error::VaultLocked)?;
+        .ok_or(VaultLocked)?;
 
     let secret = Some(SecretUpdateRequestModel {
         key: input.key.clone().encrypt_with_key(key)?.to_string(),

@@ -1,17 +1,13 @@
+use crate::{ClientVault, Collection, CollectionView};
+use bitwarden_core::{Client, Error};
 use bitwarden_crypto::{CryptoError, KeyDecryptable, LocateKey};
-
-use crate::{
-    error::Result,
-    vault::{ClientVault, Collection, CollectionView},
-    Client,
-};
 
 pub struct ClientCollections<'a> {
     pub(crate) client: &'a Client,
 }
 
 impl<'a> ClientCollections<'a> {
-    pub async fn decrypt(&self, collection: Collection) -> Result<CollectionView> {
+    pub async fn decrypt(&self, collection: Collection) -> Result<CollectionView, Error> {
         let enc = self.client.internal.get_encryption_settings()?;
         let key = collection
             .locate_key(enc, &None)
@@ -22,12 +18,15 @@ impl<'a> ClientCollections<'a> {
         Ok(view)
     }
 
-    pub async fn decrypt_list(&self, collections: Vec<Collection>) -> Result<Vec<CollectionView>> {
+    pub async fn decrypt_list(
+        &self,
+        collections: Vec<Collection>,
+    ) -> Result<Vec<CollectionView>, Error> {
         let enc = self.client.internal.get_encryption_settings()?;
 
-        let views: Result<Vec<CollectionView>> = collections
+        let views: Result<Vec<CollectionView>, _> = collections
             .iter()
-            .map(|c| -> Result<CollectionView> {
+            .map(|c| -> Result<CollectionView, _> {
                 let key = c.locate_key(enc, &None).ok_or(CryptoError::MissingKey)?;
                 Ok(c.decrypt_with_key(key)?)
             })
@@ -47,7 +46,11 @@ impl<'a> ClientVault<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{client::test_accounts::test_bitwarden_com_account, vault::Collection, Client};
+    use bitwarden_core::client::test_accounts::test_bitwarden_com_account;
+
+    use crate::ClientVaultExt;
+
+    use super::*;
 
     #[tokio::test]
     async fn test_decrypt_list() {

@@ -382,7 +382,8 @@ dependencies = [
  "bitwarden-generators",
  "bitwarden-send",
  "bitwarden-sm",
- "uuid",
+ "bitwarden-vault",
+ "thiserror",
 ]
 
 [[package]]
@@ -505,6 +506,7 @@ dependencies = [
  "base64 0.22.1",
  "bitwarden-core",
  "bitwarden-crypto",
+ "bitwarden-vault",
  "chrono",
  "csv",
  "schemars",
@@ -618,11 +620,36 @@ dependencies = [
  "bitwarden-core",
  "bitwarden-crypto",
  "bitwarden-generators",
+ "bitwarden-vault",
  "chrono",
  "env_logger 0.11.3",
  "log",
  "schemars",
  "thiserror",
+ "uniffi",
+ "uuid",
+]
+
+[[package]]
+name = "bitwarden-vault"
+version = "0.5.0"
+dependencies = [
+ "base64 0.21.7",
+ "bitwarden-api-api",
+ "bitwarden-core",
+ "bitwarden-crypto",
+ "chrono",
+ "hmac",
+ "rand",
+ "reqwest",
+ "schemars",
+ "serde",
+ "serde_json",
+ "serde_repr",
+ "sha1",
+ "sha2",
+ "thiserror",
+ "tokio",
  "uniffi",
  "uuid",
 ]

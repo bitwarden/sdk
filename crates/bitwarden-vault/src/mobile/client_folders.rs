@@ -1,17 +1,14 @@
+use crate::{ClientVault, Folder, FolderView};
 use bitwarden_crypto::{CryptoError, KeyDecryptable, KeyEncryptable};
 
-use crate::{
-    error::Result,
-    vault::{ClientVault, Folder, FolderView},
-    Client,
-};
+use bitwarden_core::{Client, Error};
 
 pub struct ClientFolders<'a> {
     pub(crate) client: &'a Client,
 }
 
 impl<'a> ClientFolders<'a> {
-    pub async fn encrypt(&self, folder_view: FolderView) -> Result<Folder> {
+    pub async fn encrypt(&self, folder_view: FolderView) -> Result<Folder, Error> {
         let enc = self.client.internal.get_encryption_settings()?;
         let key = enc.get_key(&None).ok_or(CryptoError::MissingKey)?;
 
@@ -20,7 +17,7 @@ impl<'a> ClientFolders<'a> {
         Ok(folder)
     }
 
-    pub async fn decrypt(&self, folder: Folder) -> Result<FolderView> {
+    pub async fn decrypt(&self, folder: Folder) -> Result<FolderView, Error> {
         let enc = self.client.internal.get_encryption_settings()?;
         let key = enc.get_key(&None).ok_or(CryptoError::MissingKey)?;
 
@@ -29,7 +26,7 @@ impl<'a> ClientFolders<'a> {
         Ok(folder_view)
     }
 
-    pub async fn decrypt_list(&self, folders: Vec<Folder>) -> Result<Vec<FolderView>> {
+    pub async fn decrypt_list(&self, folders: Vec<Folder>) -> Result<Vec<FolderView>, Error> {
         let enc = self.client.internal.get_encryption_settings()?;
         let key = enc.get_key(&None).ok_or(CryptoError::MissingKey)?;
 

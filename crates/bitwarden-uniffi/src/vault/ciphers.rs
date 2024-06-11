@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
-use bitwarden::vault::{Cipher, CipherListView, CipherView};
+use bitwarden::vault::{Cipher, CipherListView, CipherView, ClientVaultExt};
 use uuid::Uuid;
 
-use crate::{Client, Result};
+use crate::{error::BitwardenError, Client, Result};
 
 #[derive(uniffi::Object)]
 pub struct ClientCiphers(pub Arc<Client>);
@@ -63,6 +63,7 @@ impl ClientCiphers {
             .vault()
             .ciphers()
             .move_to_organization(cipher, organization_id)
-            .await?)
+            .await
+            .map_err(|e| BitwardenError::E2(bitwarden::error::Error::Cipher(e)))?)
     }
 }

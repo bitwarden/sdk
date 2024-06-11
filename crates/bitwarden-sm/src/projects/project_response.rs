@@ -1,5 +1,5 @@
 use bitwarden_api_api::models::ProjectResponseModel;
-use bitwarden_core::{client::encryption_settings::EncryptionSettings, error::Result, require};
+use bitwarden_core::{client::encryption_settings::EncryptionSettings, require, Error};
 use bitwarden_crypto::{CryptoError, EncString, KeyDecryptable};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
@@ -20,7 +20,7 @@ impl ProjectResponse {
     pub(crate) fn process_response(
         response: ProjectResponseModel,
         enc: &EncryptionSettings,
-    ) -> Result<Self> {
+    ) -> Result<Self, Error> {
         let organization_id = require!(response.organization_id);
         let enc_key = enc
             .get_key(&Some(organization_id))

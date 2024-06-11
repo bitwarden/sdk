@@ -1,7 +1,7 @@
 use bitwarden_api_api::models::{
     BaseSecretResponseModel, BaseSecretResponseModelListResponseModel, SecretResponseModel,
 };
-use bitwarden_core::{client::encryption_settings::EncryptionSettings, error::Result, require};
+use bitwarden_core::{client::encryption_settings::EncryptionSettings, require, Error};
 use bitwarden_crypto::{CryptoError, EncString, KeyDecryptable};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
@@ -27,7 +27,7 @@ impl SecretResponse {
     pub(crate) fn process_response(
         response: SecretResponseModel,
         enc: &EncryptionSettings,
-    ) -> Result<SecretResponse> {
+    ) -> Result<SecretResponse, Error> {
         let base = BaseSecretResponseModel {
             object: response.object,
             id: response.id,
@@ -44,7 +44,7 @@ impl SecretResponse {
     pub(crate) fn process_base_response(
         response: BaseSecretResponseModel,
         enc: &EncryptionSettings,
-    ) -> Result<SecretResponse> {
+    ) -> Result<SecretResponse, Error> {
         let org_id = response.organization_id;
         let enc_key = enc.get_key(&org_id).ok_or(CryptoError::MissingKey)?;
 
@@ -87,7 +87,7 @@ impl SecretsResponse {
     pub(crate) fn process_response(
         response: BaseSecretResponseModelListResponseModel,
         enc: &EncryptionSettings,
-    ) -> Result<SecretsResponse> {
+    ) -> Result<SecretsResponse, Error> {
         Ok(SecretsResponse {
             data: response
                 .data

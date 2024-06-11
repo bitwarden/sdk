@@ -71,11 +71,10 @@ impl EncryptionSettings {
         &mut self,
         org_enc_keys: Vec<(Uuid, AsymmetricEncString)>,
     ) -> Result<&mut Self> {
+        use crate::VaultLocked;
         use bitwarden_crypto::KeyDecryptable;
 
-        use crate::error::Error;
-
-        let private_key = self.private_key.as_ref().ok_or(Error::VaultLocked)?;
+        let private_key = self.private_key.as_ref().ok_or(VaultLocked)?;
 
         // Make sure we only keep the keys given in the arguments and not any of the previous
         // ones, which might be from organizations that the user is no longer a part of anymore

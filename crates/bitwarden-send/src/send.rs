@@ -3,10 +3,7 @@ use base64::{
     Engine,
 };
 use bitwarden_api_api::models::{SendFileModel, SendResponseModel, SendTextModel};
-use bitwarden_core::{
-    error::{Error, Result},
-    require,
-};
+use bitwarden_core::{require, Error};
 use bitwarden_crypto::{
     derive_shareable_key, generate_random_bytes, CryptoError, EncString, KeyDecryptable,
     KeyEncryptable, SymmetricCryptoKey,
@@ -305,7 +302,7 @@ impl KeyEncryptable<SymmetricCryptoKey, Send> for SendView {
 impl TryFrom<SendResponseModel> for Send {
     type Error = Error;
 
-    fn try_from(send: SendResponseModel) -> Result<Self> {
+    fn try_from(send: SendResponseModel) -> Result<Self, Self::Error> {
         Ok(Send {
             id: send.id,
             access_id: send.access_id,
@@ -339,7 +336,7 @@ impl From<bitwarden_api_api::models::SendType> for SendType {
 impl TryFrom<SendFileModel> for SendFile {
     type Error = Error;
 
-    fn try_from(file: SendFileModel) -> Result<Self> {
+    fn try_from(file: SendFileModel) -> Result<Self, Self::Error> {
         Ok(SendFile {
             id: file.id,
             file_name: require!(file.file_name).parse()?,
@@ -352,7 +349,7 @@ impl TryFrom<SendFileModel> for SendFile {
 impl TryFrom<SendTextModel> for SendText {
     type Error = Error;
 
-    fn try_from(text: SendTextModel) -> Result<Self> {
+    fn try_from(text: SendTextModel) -> Result<Self, Self::Error> {
         Ok(SendText {
             text: EncString::try_from_optional(text.text)?,
             hidden: text.hidden.unwrap_or(false),

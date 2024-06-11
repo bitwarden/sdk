@@ -17,5 +17,4 @@ pub use client::Client;
 pub use client_settings::{ClientSettings, DeviceType};
 
 #[cfg(feature = "internal")]
-#[cfg(test)]
-pub(crate) mod test_accounts;
+pub mod test_accounts;

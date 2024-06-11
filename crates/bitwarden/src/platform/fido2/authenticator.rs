@@ -317,7 +317,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                 .lock()
                 .expect("Mutex is not poisoned")
                 .clone()
-                .ok_or("No selected credential available")?;
+                .ok_or("No selected cipher available")?;
 
             selected.set_new_fido2_credentials(enc, vec![cred])?;
 

@@ -1,4 +1,5 @@
 use bitwarden_api_api::models::FolderResponseModel;
+use bitwarden_core::require;
 use bitwarden_crypto::{
     CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
 };
@@ -7,7 +8,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::error::{require, Error, Result};
+use crate::VaultParseError;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -48,9 +49,9 @@ impl KeyDecryptable<SymmetricCryptoKey, FolderView> for Folder {
 }
 
 impl TryFrom<FolderResponseModel> for Folder {
-    type Error = Error;
+    type Error = VaultParseError;
 
-    fn try_from(folder: FolderResponseModel) -> Result<Self> {
+    fn try_from(folder: FolderResponseModel) -> Result<Self, Self::Error> {
         Ok(Folder {
             id: folder.id,
             name: require!(EncString::try_from_optional(folder.name)?),

@@ -1,4 +1,5 @@
 use bitwarden_api_api::models::CipherFieldModel;
+use bitwarden_core::require;
 use bitwarden_crypto::{
     CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
 };
@@ -7,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use super::linked_id::LinkedIdType;
-use crate::error::{require, Error, Result};
+use crate::VaultParseError;
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
@@ -34,11 +35,11 @@ pub struct Field {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct FieldView {
-    pub(crate) name: Option<String>,
-    pub(crate) value: Option<String>,
-    pub(crate) r#type: FieldType,
+    pub name: Option<String>,
+    pub value: Option<String>,
+    pub r#type: FieldType,
 
-    pub(crate) linked_id: Option<LinkedIdType>,
+    pub linked_id: Option<LinkedIdType>,
 }
 
 impl KeyEncryptable<SymmetricCryptoKey, Field> for FieldView {
@@ -64,9 +65,9 @@ impl KeyDecryptable<SymmetricCryptoKey, FieldView> for Field {
 }
 
 impl TryFrom<CipherFieldModel> for Field {
-    type Error = Error;
+    type Error = VaultParseError;
 
-    fn try_from(model: CipherFieldModel) -> Result<Self> {
+    fn try_from(model: CipherFieldModel) -> Result<Self, Self::Error> {
         Ok(Self {
             name: EncString::try_from_optional(model.name)?,
             value: EncString::try_from_optional(model.value)?,

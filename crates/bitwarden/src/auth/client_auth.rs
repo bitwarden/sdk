@@ -24,7 +24,6 @@ use crate::{
         AuthRequestResponse, RegisterKeyResponse, RegisterRequest,
     },
     client::Kdf,
-    error::Error,
 };
 
 pub struct ClientAuth<'a> {
@@ -158,9 +157,11 @@ impl<'a> ClientAuth<'a> {
 
 #[cfg(feature = "internal")]
 fn trust_device(client: &Client) -> Result<TrustDeviceResponse> {
+    use bitwarden_core::VaultLocked;
+
     let enc = client.get_encryption_settings()?;
 
-    let user_key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
+    let user_key = enc.get_key(&None).ok_or(VaultLocked)?;
 
     Ok(DeviceKey::trust_device(user_key)?)
 }

@@ -1,14 +1,12 @@
 use bitwarden_api_api::models::SecretCreateRequestModel;
+use bitwarden_core::VaultLocked;
 use bitwarden_crypto::KeyEncryptable;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::SecretResponse;
-use crate::{
-    error::{Error, Result},
-    Client,
-};
+use crate::{error::Result, Client};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -31,7 +29,7 @@ pub(crate) async fn create_secret(
     let key = client
         .get_encryption_settings()?
         .get_key(&Some(input.organization_id))
-        .ok_or(Error::VaultLocked)?;
+        .ok_or(VaultLocked)?;
 
     let secret = Some(SecretCreateRequestModel {
         key: input.key.clone().encrypt_with_key(key)?.to_string(),

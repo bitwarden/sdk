@@ -3,6 +3,7 @@ use base64::{
     Engine,
 };
 use bitwarden_api_api::models::{SendFileModel, SendResponseModel, SendTextModel};
+use bitwarden_core::require;
 use bitwarden_crypto::{
     derive_shareable_key, generate_random_bytes, CryptoError, EncString, KeyDecryptable,
     KeyEncryptable, SymmetricCryptoKey,
@@ -14,7 +15,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 use uuid::Uuid;
 use zeroize::Zeroizing;
 
-use crate::error::{require, Error, Result};
+use crate::error::{Error, Result};
 
 const SEND_ITERATIONS: u32 = 100_000;
 

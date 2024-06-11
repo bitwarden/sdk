@@ -2,6 +2,9 @@ use std::sync::Mutex;
 
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use bitwarden_crypto::KeyContainer;
+use bitwarden_vault::{
+    CipherView, Fido2CredentialFullView, Fido2CredentialNewView, Fido2CredentialView,
+};
 use passkey::types::{ctap2::Aaguid, Passkey};
 
 mod authenticator;
@@ -28,7 +31,6 @@ pub use types::{
 use self::crypto::{cose_key_to_pkcs8, pkcs8_to_cose_key};
 use crate::{
     error::{Error, Result},
-    vault::{CipherView, Fido2CredentialFullView, Fido2CredentialNewView, Fido2CredentialView},
     Client,
 };
 
@@ -54,7 +56,7 @@ impl<'a> ClientFido2<'a> {
             client: self.client,
             user_interface,
             credential_store,
-            selected_credential: Mutex::new(None),
+            selected_cipher: Mutex::new(None),
             requested_uv: Mutex::new(None),
         })
     }
@@ -105,102 +107,95 @@ impl TryFrom<CipherViewContainer> for Passkey {
             .first()
             .ok_or(Error::Internal("No Fido2 credentials found".into()))?;
 
-        cred.clone().try_into()
+        try_from_credential_full_view(cred.clone())
     }
 }
 
-impl TryFrom<Fido2CredentialFullView> for Passkey {
-    type Error = crate::error::Error;
+fn try_from_credential_full_view(value: Fido2CredentialFullView) -> Result<Passkey, Error> {
+    let counter: u32 = value.counter.parse().expect("Invalid counter");
+    let counter = (counter != 0).then_some(counter);
 
-    fn try_from(value: Fido2CredentialFullView) -> Result<Self, Self::Error> {
-        let counter: u32 = value.counter.parse().expect("Invalid counter");
-        let counter = (counter != 0).then_some(counter);
+    let key = pkcs8_to_cose_key(&value.key_value)?;
 
-        let key = pkcs8_to_cose_key(&value.key_value)?;
-
-        Ok(Self {
-            key,
-            credential_id: string_to_guid_bytes(&value.credential_id)?.into(),
-            rp_id: value.rp_id.clone(),
-            user_handle: value.user_handle.map(|u| u.into()),
-            counter,
-        })
-    }
+    Ok(Passkey {
+        key,
+        credential_id: string_to_guid_bytes(&value.credential_id)?.into(),
+        rp_id: value.rp_id.clone(),
+        user_handle: value.user_handle.map(|u| u.into()),
+        counter,
+    })
 }
 
-impl Fido2CredentialView {
-    pub(crate) fn fill_with_credential(&self, value: Passkey) -> Result<Fido2CredentialFullView> {
-        let cred_id: Vec<u8> = value.credential_id.into();
+pub fn fill_with_credential(
+    view: &Fido2CredentialView,
+    value: Passkey,
+) -> Result<Fido2CredentialFullView> {
+    let cred_id: Vec<u8> = value.credential_id.into();
 
-        Ok(Fido2CredentialFullView {
-            credential_id: guid_bytes_to_string(&cred_id)?,
-            key_type: "public-key".to_owned(),
-            key_algorithm: "ECDSA".to_owned(),
-            key_curve: "P-256".to_owned(),
-            key_value: cose_key_to_pkcs8(&value.key)?,
-            rp_id: value.rp_id,
-            rp_name: self.rp_name.clone(),
-            user_handle: Some(cred_id),
+    Ok(Fido2CredentialFullView {
+        credential_id: guid_bytes_to_string(&cred_id)?,
+        key_type: "public-key".to_owned(),
+        key_algorithm: "ECDSA".to_owned(),
+        key_curve: "P-256".to_owned(),
+        key_value: cose_key_to_pkcs8(&value.key)?,
+        rp_id: value.rp_id,
+        rp_name: view.rp_name.clone(),
+        user_handle: Some(cred_id),
 
-            counter: value.counter.unwrap_or(0).to_string(),
-            user_name: self.user_name.clone(),
-            user_display_name: self.user_display_name.clone(),
-            discoverable: "true".to_owned(),
-            creation_date: chrono::offset::Utc::now(),
-        })
-    }
+        counter: value.counter.unwrap_or(0).to_string(),
+        user_name: view.user_name.clone(),
+        user_display_name: view.user_display_name.clone(),
+        discoverable: "true".to_owned(),
+        creation_date: chrono::offset::Utc::now(),
+    })
 }
 
-impl Fido2CredentialNewView {
-    pub(crate) fn try_from_credential(
-        user: &passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
-        rp: &passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
-    ) -> Result<Self> {
-        let cred_id: Vec<u8> = vec![0; 16];
+pub(crate) fn try_from_credential_new_view(
+    user: &passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
+    rp: &passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
+) -> Result<Fido2CredentialNewView> {
+    let cred_id: Vec<u8> = vec![0; 16];
 
-        Ok(Fido2CredentialNewView {
-            credential_id: guid_bytes_to_string(&cred_id)?,
-            key_type: "public-key".to_owned(),
-            key_algorithm: "ECDSA".to_owned(),
-            key_curve: "P-256".to_owned(),
-            rp_id: rp.id.clone(),
-            rp_name: rp.name.clone(),
-            user_handle: Some(cred_id),
+    Ok(Fido2CredentialNewView {
+        credential_id: guid_bytes_to_string(&cred_id)?,
+        key_type: "public-key".to_owned(),
+        key_algorithm: "ECDSA".to_owned(),
+        key_curve: "P-256".to_owned(),
+        rp_id: rp.id.clone(),
+        rp_name: rp.name.clone(),
+        user_handle: Some(cred_id),
 
-            counter: 0.to_string(),
-            user_name: user.name.clone(),
-            user_display_name: user.display_name.clone(),
-            discoverable: "true".to_owned(),
-            creation_date: chrono::offset::Utc::now(),
-        })
-    }
+        counter: 0.to_string(),
+        user_name: user.name.clone(),
+        user_display_name: user.display_name.clone(),
+        discoverable: "true".to_owned(),
+        creation_date: chrono::offset::Utc::now(),
+    })
 }
 
-impl Fido2CredentialFullView {
-    pub(crate) fn try_from_credential(
-        value: Passkey,
-        user: passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
-        rp: passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
-    ) -> Result<Self> {
-        let cred_id: Vec<u8> = value.credential_id.into();
+pub(crate) fn try_from_credential_full(
+    value: Passkey,
+    user: passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
+    rp: passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
+) -> Result<Fido2CredentialFullView> {
+    let cred_id: Vec<u8> = value.credential_id.into();
 
-        Ok(Fido2CredentialFullView {
-            credential_id: guid_bytes_to_string(&cred_id)?,
-            key_type: "public-key".to_owned(),
-            key_algorithm: "ECDSA".to_owned(),
-            key_curve: "P-256".to_owned(),
-            key_value: cose_key_to_pkcs8(&value.key)?,
-            rp_id: value.rp_id,
-            rp_name: rp.name,
-            user_handle: Some(cred_id),
+    Ok(Fido2CredentialFullView {
+        credential_id: guid_bytes_to_string(&cred_id)?,
+        key_type: "public-key".to_owned(),
+        key_algorithm: "ECDSA".to_owned(),
+        key_curve: "P-256".to_owned(),
+        key_value: cose_key_to_pkcs8(&value.key)?,
+        rp_id: value.rp_id,
+        rp_name: rp.name,
+        user_handle: Some(cred_id),
 
-            counter: value.counter.unwrap_or(0).to_string(),
-            user_name: user.name,
-            user_display_name: user.display_name,
-            discoverable: "true".to_owned(),
-            creation_date: chrono::offset::Utc::now(),
-        })
-    }
+        counter: value.counter.unwrap_or(0).to_string(),
+        user_name: user.name,
+        user_display_name: user.display_name,
+        discoverable: "true".to_owned(),
+        creation_date: chrono::offset::Utc::now(),
+    })
 }
 
 pub fn guid_bytes_to_string(source: &[u8]) -> Result<String> {

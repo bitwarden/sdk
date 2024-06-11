@@ -1,6 +1,8 @@
 use std::sync::Mutex;
 
+use bitwarden_core::VaultLocked;
 use bitwarden_crypto::KeyEncryptable;
+use bitwarden_vault::{CipherView, Fido2CredentialView};
 use log::error;
 use passkey::{
     authenticator::{Authenticator, DiscoverabilitySupport, StoreInfo, UIHint, UserCheck},
@@ -11,15 +13,12 @@ use passkey::{
 };
 
 use super::{
-    types::*, CheckUserOptions, CheckUserResult, CipherViewContainer, Fido2CredentialStore,
-    Fido2UserInterface, SelectedCredential, AAGUID,
+    try_from_credential_new_view, types::*, CheckUserOptions, CheckUserResult, CipherViewContainer,
+    Fido2CredentialStore, Fido2UserInterface, SelectedCredential, AAGUID,
 };
 use crate::{
-    error::{require, Error, Result},
-    platform::fido2::string_to_guid_bytes,
-    vault::{
-        login::Fido2CredentialView, CipherView, Fido2CredentialFullView, Fido2CredentialNewView,
-    },
+    error::Result,
+    platform::fido2::{fill_with_credential, string_to_guid_bytes, try_from_credential_full},
     Client,
 };
 
@@ -28,7 +27,7 @@ pub struct Fido2Authenticator<'a> {
     pub(crate) user_interface: &'a dyn Fido2UserInterface,
     pub(crate) credential_store: &'a dyn Fido2CredentialStore,
 
-    pub(crate) selected_credential: Mutex<Option<CipherView>>,
+    pub(crate) selected_cipher: Mutex<Option<CipherView>>,
     pub(crate) requested_uv: Mutex<Option<UV>>,
 }
 
@@ -163,10 +162,12 @@ impl<'a> Fido2Authenticator<'a> {
         &mut self,
         rp_id: String,
     ) -> Result<Vec<Fido2CredentialView>> {
+        let enc = self.client.get_encryption_settings()?;
         let result = self.credential_store.find_credentials(None, rp_id).await?;
+
         Ok(result
             .into_iter()
-            .filter_map(|c| c.login?.fido2_credentials)
+            .flat_map(|c| c.decrypt_fido2_credentials(enc))
             .flatten()
             .collect())
     }
@@ -198,15 +199,16 @@ impl<'a> Fido2Authenticator<'a> {
     }
 
     pub(super) fn get_selected_credential(&self) -> Result<SelectedCredential> {
+        let enc = self.client.get_encryption_settings()?;
+
         let cipher = self
-            .selected_credential
+            .selected_cipher
             .lock()
             .expect("Mutex is not poisoned")
             .clone()
             .ok_or("No selected credential available")?;
 
-        let login = require!(cipher.login.as_ref());
-        let creds = require!(login.fido2_credentials.as_ref());
+        let creds = cipher.decrypt_fido2_credentials(enc)?;
 
         let credential = creds.first().ok_or("No Fido2 credentials found")?.clone();
 
@@ -273,7 +275,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
 
                 // Store the selected credential for later use
                 this.authenticator
-                    .selected_credential
+                    .selected_cipher
                     .lock()
                     .expect("Mutex is not poisoned")
                     .replace(picked.clone());
@@ -306,23 +308,28 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
         ) -> Result<()> {
             let enc = this.authenticator.client.get_encryption_settings()?;
 
-            let cred = Fido2CredentialFullView::try_from_credential(cred, user, rp)?;
+            let cred = try_from_credential_full(cred, user, rp)?;
 
             // Get the previously selected cipher and add the new credential to it
-            let mut selected: CipherView = this.authenticator.get_selected_credential()?.cipher;
+            let mut selected: CipherView = this
+                .authenticator
+                .selected_cipher
+                .lock()
+                .expect("Mutex is not poisoned")
+                .clone()
+                .ok_or("No selected cipher available")?;
+
             selected.set_new_fido2_credentials(enc, vec![cred])?;
 
             // Store the updated credential for later use
             this.authenticator
-                .selected_credential
+                .selected_cipher
                 .lock()
                 .expect("Mutex is not poisoned")
                 .replace(selected.clone());
 
             // Encrypt the updated cipher before sending it to the clients to be stored
-            let key = enc
-                .get_key(&selected.organization_id)
-                .ok_or(Error::VaultLocked)?;
+            let key = enc.get_key(&selected.organization_id).ok_or(VaultLocked)?;
             let encrypted = selected.encrypt_with_key(key)?;
 
             this.authenticator
@@ -356,22 +363,20 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                 return Err("Credential ID does not match selected credential".into());
             }
 
-            let cred = selected.credential.fill_with_credential(cred)?;
+            let cred = fill_with_credential(&selected.credential, cred)?;
 
             let mut selected = selected.cipher;
             selected.set_new_fido2_credentials(enc, vec![cred])?;
 
             // Store the updated credential for later use
             this.authenticator
-                .selected_credential
+                .selected_cipher
                 .lock()
                 .expect("Mutex is not poisoned")
                 .replace(selected.clone());
 
             // Encrypt the updated cipher before sending it to the clients to be stored
-            let key = enc
-                .get_key(&selected.organization_id)
-                .ok_or(Error::VaultLocked)?;
+            let key = enc.get_key(&selected.organization_id).ok_or(VaultLocked)?;
             let encrypted = selected.encrypt_with_key(key)?;
 
             this.authenticator
@@ -421,7 +426,7 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
 
         let result = match hint {
             UIHint::RequestNewCredential(user, rp) => {
-                let new_credential = Fido2CredentialNewView::try_from_credential(user, rp)
+                let new_credential = try_from_credential_new_view(user, rp)
                     .map_err(|_| Ctap2Error::InvalidCredential)?;
 
                 let cipher_view = self
@@ -432,7 +437,7 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
                     .map_err(|_| Ctap2Error::OperationDenied)?;
 
                 self.authenticator
-                    .selected_credential
+                    .selected_cipher
                     .lock()
                     .expect("Mutex is not poisoned")
                     .replace(cipher_view);

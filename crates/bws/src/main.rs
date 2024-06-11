@@ -463,19 +463,21 @@ async fn process_commands() -> Result<()> {
                 .await?
                 .data;
 
-            let environment = secrets
-                .into_iter()
-                .map(|s| (s.key, s.value))
-                .collect::<std::collections::HashMap<String, String>>();
+            let mut environment = std::collections::HashMap::new();
 
-            for key in environment.keys() {
-                if !is_valid_posix_name(key) {
+            secrets.into_iter().for_each(|s| {
+                if !is_valid_posix_name(&s.key) {
                     eprintln!(
                         "Warning: secret '{}' does not have a POSIX-compliant name",
-                        key
+                        s.key
                     );
                 }
-            }
+                if let Some(_) = environment.insert(s.key.clone(), s.value) {
+                    eprintln!("Error: multiple secrets with name '{}' found. Use --uuids-as-keynames or use unique names for secrets.",
+                    s.key);
+                    std::process::exit(1);
+                };
+            });
 
             let mut command = process::Command::new(shell);
             command

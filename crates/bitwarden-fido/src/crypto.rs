@@ -11,7 +11,7 @@ pub enum CoseKeyToPkcs8Error {
     FailedToConvertP256PrivateKeyToPkcs8,
 }
 
-pub fn cose_key_to_pkcs8(cose_key: &CoseKey) -> Result<Vec<u8>, CoseKeyToPkcs8Error> {
+pub(crate) fn cose_key_to_pkcs8(cose_key: &CoseKey) -> Result<Vec<u8>, CoseKeyToPkcs8Error> {
     // cose_key.
     let secret_key = private_key_from_cose_key(cose_key).map_err(|error| {
         log::error!("Failed to extract private key from cose_key: {:?}", error);

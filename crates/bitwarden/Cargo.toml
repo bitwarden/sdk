@@ -29,6 +29,7 @@ uniffi = [
     "bitwarden-crypto/uniffi",
     "bitwarden-generators/uniffi",
     "bitwarden-vault/uniffi",
+    "bitwarden-fido/uniffi",
     "dep:uniffi",
     "dep:passkey",
     "dep:coset",
@@ -45,6 +46,7 @@ bitwarden-api-identity = { workspace = true }
 bitwarden-core = { workspace = true }
 bitwarden-crypto = { workspace = true }
 bitwarden-exporters = { workspace = true, optional = true }
+bitwarden-fido = { workspace = true, optional = true }
 bitwarden-generators = { workspace = true, optional = true }
 bitwarden-vault = { workspace = true, optional = true }
 chrono = { version = ">=0.4.26, <0.5", features = [

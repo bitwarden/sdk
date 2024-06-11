@@ -272,7 +272,7 @@ pub struct AuthenticatorAssertionResponse {
 mod tests {
     use serde::{Deserialize, Serialize};
 
-    use crate::platform::fido2::types::AndroidClientData;
+    use super::AndroidClientData;
 
     // This is a stripped down of the passkey-rs implementation, to test the
     // serialization of the `ClientData` enum, and to make sure that () and None

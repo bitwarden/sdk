@@ -1,5 +1,3 @@
-use std::sync::Mutex;
-
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use bitwarden_crypto::KeyContainer;
 use bitwarden_vault::{
@@ -8,14 +6,17 @@ use bitwarden_vault::{
 use crypto::{CoseKeyToPkcs8Error, PrivateKeyFromSecretKeyError};
 use passkey::types::{ctap2::Aaguid, Passkey};
 
+#[cfg(feature = "uniffi")]
+uniffi::setup_scaffolding!();
+
 mod authenticator;
 mod client;
 mod crypto;
 mod traits;
 mod types;
-
 pub use authenticator::{
-    Fido2Authenticator, GetAssertionError, MakeCredentialError, SilentlyDiscoverCredentialsError,
+    Fido2Authenticator, FidoEncryptionSettingStore, GetAssertionError, MakeCredentialError,
+    SilentlyDiscoverCredentialsError,
 };
 pub use client::{Fido2Client, Fido2ClientError};
 pub use passkey::authenticator::UIHint;
@@ -33,44 +34,12 @@ pub use types::{
 };
 
 use self::crypto::{cose_key_to_pkcs8, pkcs8_to_cose_key};
-use crate::Client;
 
 // This is the AAGUID for the Bitwarden Passkey provider (d548826e-79b4-db40-a3d8-11116f7e8349)
 // It is used for the Relaying Parties to identify the authenticator during registration
 const AAGUID: Aaguid = Aaguid([
     0xd5, 0x48, 0x82, 0x6e, 0x79, 0xb4, 0xdb, 0x40, 0xa3, 0xd8, 0x11, 0x11, 0x6f, 0x7e, 0x83, 0x49,
 ]);
-
-pub struct ClientFido2<'a> {
-    #[allow(dead_code)]
-    pub(crate) client: &'a Client,
-}
-
-impl<'a> ClientFido2<'a> {
-    pub fn create_authenticator(
-        &'a self,
-        user_interface: &'a dyn Fido2UserInterface,
-        credential_store: &'a dyn Fido2CredentialStore,
-    ) -> Fido2Authenticator<'a> {
-        Fido2Authenticator {
-            client: self.client,
-            user_interface,
-            credential_store,
-            selected_cipher: Mutex::new(None),
-            requested_uv: Mutex::new(None),
-        }
-    }
-
-    pub fn create_client(
-        &'a self,
-        user_interface: &'a dyn Fido2UserInterface,
-        credential_store: &'a dyn Fido2CredentialStore,
-    ) -> Fido2Client<'a> {
-        Fido2Client {
-            authenticator: self.create_authenticator(user_interface, credential_store),
-        }
-    }
-}
 
 #[allow(dead_code)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]

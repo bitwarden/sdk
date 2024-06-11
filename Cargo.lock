@@ -375,6 +375,7 @@ dependencies = [
  "bitwarden-core",
  "bitwarden-crypto",
  "bitwarden-exporters",
+ "bitwarden-fido",
  "bitwarden-generators",
  "bitwarden-vault",
  "chrono",
@@ -505,6 +506,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "bitwarden-fido"
+version = "0.5.0"
+dependencies = [
+ "async-trait",
+ "base64 0.21.7",
+ "bitwarden-core",
+ "bitwarden-crypto",
+ "bitwarden-vault",
+ "chrono",
+ "coset",
+ "log",
+ "p256",
+ "passkey",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "uniffi",
+ "uuid",
+]
+
+[[package]]
 name = "bitwarden-generators"
 version = "0.5.0"
 dependencies = [
@@ -567,6 +590,7 @@ dependencies = [
  "bitwarden",
  "bitwarden-core",
  "bitwarden-crypto",
+ "bitwarden-fido",
  "bitwarden-generators",
  "bitwarden-vault",
  "chrono",

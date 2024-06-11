@@ -1,7 +1,7 @@
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use bitwarden_core::VaultLocked;
-use bitwarden_crypto::{CryptoError, KeyEncryptable};
+use bitwarden_crypto::{CryptoError, KeyContainer, KeyEncryptable};
 use bitwarden_vault::{CipherError, CipherView, Fido2CredentialView};
 use log::error;
 use passkey::{
@@ -13,16 +13,14 @@ use passkey::{
 };
 use thiserror::Error;
 
+use crate::{
+    fill_with_credential, string_to_guid_bytes, try_from_credential_full, Fido2CallbackError,
+    FillCredentialError, InvalidGuid,
+};
+
 use super::{
     try_from_credential_new_view, types::*, CheckUserOptions, CheckUserResult, CipherViewContainer,
     Fido2CredentialStore, Fido2UserInterface, SelectedCredential, UnknownEnum, AAGUID,
-};
-use crate::{
-    platform::fido2::{
-        fill_with_credential, string_to_guid_bytes, try_from_credential_full, Fido2CallbackError,
-        FillCredentialError, InvalidGuid,
-    },
-    Client,
 };
 
 #[derive(Debug, Error)]
@@ -76,13 +74,17 @@ pub enum SilentlyDiscoverCredentialsError {
     Fido2CallbackError(#[from] Fido2CallbackError),
 }
 
-pub struct Fido2Authenticator<'a> {
-    pub(crate) client: &'a Client,
-    pub(crate) user_interface: &'a dyn Fido2UserInterface,
-    pub(crate) credential_store: &'a dyn Fido2CredentialStore,
+pub trait FidoEncryptionSettingStore: Send + Sync {
+    fn get_encryption_settings(&self) -> Result<Arc<dyn KeyContainer>, VaultLocked>;
+}
 
-    pub(crate) selected_cipher: Mutex<Option<CipherView>>,
-    pub(crate) requested_uv: Mutex<Option<UV>>,
+pub struct Fido2Authenticator<'a> {
+    pub client: &'a dyn FidoEncryptionSettingStore,
+    pub user_interface: &'a dyn Fido2UserInterface,
+    pub credential_store: &'a dyn Fido2CredentialStore,
+
+    pub selected_cipher: Mutex<Option<CipherView>>,
+    pub requested_uv: Mutex<Option<UV>>,
 }
 
 impl<'a> Fido2Authenticator<'a> {
@@ -225,7 +227,7 @@ impl<'a> Fido2Authenticator<'a> {
 
         Ok(result
             .into_iter()
-            .flat_map(|c| c.decrypt_fido2_credentials(&enc))
+            .flat_map(|c| c.decrypt_fido2_credentials(&*enc))
             .flatten()
             .collect())
     }
@@ -268,7 +270,7 @@ impl<'a> Fido2Authenticator<'a> {
             .clone()
             .ok_or(GetSelectedCredentialError::NoSelectedCredential)?;
 
-        let creds = cipher.decrypt_fido2_credentials(&enc)?;
+        let creds = cipher.decrypt_fido2_credentials(&*enc)?;
 
         let credential = creds
             .first()
@@ -339,7 +341,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             if this.create_credential {
                 Ok(creds
                     .into_iter()
-                    .map(|c| CipherViewContainer::new(c, &enc))
+                    .map(|c| CipherViewContainer::new(c, &*enc))
                     .collect::<Result<_, _>>()?)
             } else {
                 let picked = this
@@ -355,7 +357,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                     .expect("Mutex is not poisoned")
                     .replace(picked.clone());
 
-                Ok(vec![CipherViewContainer::new(picked, &enc)?])
+                Ok(vec![CipherViewContainer::new(picked, &*enc)?])
             }
         }
 
@@ -411,7 +413,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                 .clone()
                 .ok_or(InnerError::NoSelectedCredential)?;
 
-            selected.set_new_fido2_credentials(&enc, vec![cred])?;
+            selected.set_new_fido2_credentials(&*enc, vec![cred])?;
 
             // Store the updated credential for later use
             this.authenticator
@@ -481,7 +483,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             let cred = fill_with_credential(&selected.credential, cred)?;
 
             let mut selected = selected.cipher;
-            selected.set_new_fido2_credentials(&enc, vec![cred])?;
+            selected.set_new_fido2_credentials(&*enc, vec![cred])?;
 
             // Store the updated credential for later use
             this.authenticator

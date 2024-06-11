@@ -311,7 +311,14 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             let cred = try_from_credential_full(cred, user, rp)?;
 
             // Get the previously selected cipher and add the new credential to it
-            let mut selected: CipherView = this.authenticator.get_selected_credential()?.cipher;
+            let mut selected: CipherView = this
+                .authenticator
+                .selected_credential
+                .lock()
+                .expect("Mutex is not poisoned")
+                .clone()
+                .ok_or("No selected cipher available")?;
+
             selected.set_new_fido2_credentials(enc, vec![cred])?;
 
             // Store the updated credential for later use

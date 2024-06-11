@@ -103,16 +103,19 @@ jobs:
         run: cargo set-version -p bitwarden-napi ${{ inputs.version_number }}
 
       ### bitwarden
-
       - name: Bump bitwarden crate Version
         if: ${{ inputs.project == 'bitwarden' }}
         run: cargo set-version -p bitwarden ${{ inputs.version_number }}
 
       ### bws
-
       - name: Bump bws Version
         if: ${{ inputs.project == 'bws' }}
-        run: cargo set-version -p bws ${{ inputs.version_number }}
+        run: |
+          cargo set-version -p bws ${{ inputs.version_number }}
+          # bump the version in install.sh
+          sed -i 's/BWS_VERSION="${BWS_VERSION:-[0-9]\+\.[0-9]\+\.[0-9]\+}"/BWS_VERSION="${BWS_VERSION:-${{ inputs.version_number }}}"/' ./crates/bws/install.sh
+          # bump the version in install.ps1
+          sed -i 's/{ \$env:bwsVersion } else { "[0-9]\+\.[0-9]\+\.[0-9]\+" }/\{ \$env:bwsVersion } else { "${{ inputs.version_number }}" }/' ./crates/bws/install.ps1
 
       ### python
       - name: Bump python-sdk Version

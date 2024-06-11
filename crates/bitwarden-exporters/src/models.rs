@@ -1,5 +1,4 @@
 use bitwarden_core::{require, MissingFieldError};
-
 use bitwarden_vault::{
     CipherType, CipherView, FieldView, FolderView, LoginUriView, SecureNoteType,
 };
@@ -128,10 +127,10 @@ impl From<SecureNoteType> for crate::SecureNoteType {
 
 #[cfg(test)]
 mod tests {
+    use bitwarden_vault::{CipherRepromptType, LoginView};
     use chrono::{DateTime, Utc};
 
     use super::*;
-    use bitwarden_vault::{CipherRepromptType, LoginView};
 
     #[test]
     fn test_try_from_folder_view() {

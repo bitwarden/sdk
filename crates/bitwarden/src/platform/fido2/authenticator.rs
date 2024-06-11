@@ -27,7 +27,7 @@ pub struct Fido2Authenticator<'a> {
     pub(crate) user_interface: &'a dyn Fido2UserInterface,
     pub(crate) credential_store: &'a dyn Fido2CredentialStore,
 
-    pub(crate) selected_credential: Mutex<Option<CipherView>>,
+    pub(crate) selected_cipher: Mutex<Option<CipherView>>,
     pub(crate) requested_uv: Mutex<Option<UV>>,
 }
 
@@ -202,7 +202,7 @@ impl<'a> Fido2Authenticator<'a> {
         let enc = self.client.get_encryption_settings()?;
 
         let cipher = self
-            .selected_credential
+            .selected_cipher
             .lock()
             .expect("Mutex is not poisoned")
             .clone()
@@ -275,7 +275,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
 
                 // Store the selected credential for later use
                 this.authenticator
-                    .selected_credential
+                    .selected_cipher
                     .lock()
                     .expect("Mutex is not poisoned")
                     .replace(picked.clone());
@@ -313,7 +313,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             // Get the previously selected cipher and add the new credential to it
             let mut selected: CipherView = this
                 .authenticator
-                .selected_credential
+                .selected_cipher
                 .lock()
                 .expect("Mutex is not poisoned")
                 .clone()
@@ -323,7 +323,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
 
             // Store the updated credential for later use
             this.authenticator
-                .selected_credential
+                .selected_cipher
                 .lock()
                 .expect("Mutex is not poisoned")
                 .replace(selected.clone());
@@ -370,7 +370,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
 
             // Store the updated credential for later use
             this.authenticator
-                .selected_credential
+                .selected_cipher
                 .lock()
                 .expect("Mutex is not poisoned")
                 .replace(selected.clone());
@@ -437,7 +437,7 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
                     .map_err(|_| Ctap2Error::OperationDenied)?;
 
                 self.authenticator
-                    .selected_credential
+                    .selected_cipher
                     .lock()
                     .expect("Mutex is not poisoned")
                     .replace(cipher_view);

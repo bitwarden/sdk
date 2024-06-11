@@ -28,7 +28,7 @@ mod render;
 mod state;
 mod util;
 
-use util::is_valid_posix_name;
+use util::{is_valid_posix_name, uuid_to_posix};
 use which::which;
 
 use crate::{cli::*, render::serialize_response};
@@ -414,6 +414,7 @@ async fn process_commands() -> Result<()> {
             shell,
             no_inherit_env,
             project_id,
+            uuids_as_keynames,
         } => {
             let shell = match std::env::consts::OS {
                 "windows" => shell.unwrap_or_else(|| "powershell".to_string()),
@@ -466,17 +467,31 @@ async fn process_commands() -> Result<()> {
             let mut environment = std::collections::HashMap::new();
 
             secrets.into_iter().for_each(|s| {
-                if !is_valid_posix_name(&s.key) {
+                let key = if uuids_as_keynames {
+                    uuid_to_posix(&s.id)
+                } else {
+                    s.key
+                };
+
+                if !is_valid_posix_name(&key) {
                     eprintln!(
                         "Warning: secret '{}' does not have a POSIX-compliant name",
-                        s.key
+                        key
                     );
                 }
-                if let Some(_) = environment.insert(s.key.clone(), s.value) {
-                    eprintln!("Error: multiple secrets with name '{}' found. Use --uuids-as-keynames or use unique names for secrets.",
-                    s.key);
-                    std::process::exit(1);
-                };
+
+                match environment.entry(key) {
+                    std::collections::hash_map::Entry::Occupied(duplicate) => {
+                        eprintln!(
+                            "Error: multiple secrets with name '{}' found. Use --uuids-as-keynames or use unique names for secrets.",
+                            duplicate.key()
+                        );
+                        std::process::exit(1);
+                    }
+                    std::collections::hash_map::Entry::Vacant(entry) => {
+                        entry.insert(s.value);
+                    }
+                }
             });
 
             let mut command = process::Command::new(shell);

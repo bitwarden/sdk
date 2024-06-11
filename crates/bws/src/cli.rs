@@ -10,6 +10,8 @@ pub(crate) const CONFIG_FILE_KEY_VAR_NAME: &str = "BWS_CONFIG_FILE";
 pub(crate) const PROFILE_KEY_VAR_NAME: &str = "BWS_PROFILE";
 pub(crate) const SERVER_URL_KEY_VAR_NAME: &str = "BWS_SERVER_URL";
 
+pub(crate) const UUIDS_AS_KEYNAMES: &str = "BWS_UUIDS_AS_KEYNAMES";
+
 pub(crate) const DEFAULT_CONFIG_FILENAME: &str = "config";
 pub(crate) const DEFAULT_CONFIG_DIRECTORY: &str = ".bws";
 
@@ -102,6 +104,13 @@ pub(crate) enum Commands {
         no_inherit_env: bool,
         #[arg(long, help = "The ID of the project to use")]
         project_id: Option<Uuid>,
+        #[arg(
+            long,
+            global = true,
+            env = UUIDS_AS_KEYNAMES,
+            help = "Use the secret UUID (in its POSIX form) instead of the key name for the environment variable"
+        )]
+        uuids_as_keynames: bool,
     },
     #[command(long_about = "Create a single item (deprecated)", hide(true))]
     Create {

@@ -16,6 +16,6 @@ pub use cipher::{Cipher, CipherError, CipherListView, CipherRepromptType, Cipher
 pub use field::FieldView;
 pub use login::{
     Fido2Credential, Fido2CredentialFullView, Fido2CredentialNewView, Fido2CredentialView, Login,
-    LoginView,
+    LoginUriView, LoginView,
 };
 pub use secure_note::SecureNoteType;

@@ -17,4 +17,3 @@ mod totp;
 pub use totp::{generate_totp, TotpError, TotpResponse};
 mod error;
 pub use error::VaultParseError;
-mod exporters;

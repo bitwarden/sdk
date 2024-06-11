@@ -112,7 +112,7 @@ impl TryFrom<u32> for LinkedIdType {
             416 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::FirstName)),
             417 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::LastName)),
             418 => Ok(LinkedIdType::Identity(IdentityLinkedIdType::FullName)),
-            _ => Err(MissingFieldError("LinkedIdType").into()),
+            _ => Err(MissingFieldError("LinkedIdType")),
         }
     }
 }

@@ -7,10 +7,7 @@ use bitwarden::{
 use bitwarden_cli::install_color_eyre;
 use clap::{CommandFactory, Parser};
 use color_eyre::eyre::{bail, Result};
-use command::{
-    secret::{SecretCreateCommandModel, SecretEditCommandModel},
-    OutputSettings,
-};
+use command::OutputSettings;
 use log::error;
 
 mod cli;
@@ -113,13 +110,9 @@ async fn process_commands() -> Result<()> {
 
     // And finally we process all the commands which require authentication
     match command {
-        Commands::Project {
-            cmd: ProjectCommand::List,
-        }
-        | Commands::List {
-            cmd: ListCommand::Projects,
-        } => {
-            command::project::list(
+        Commands::Project { cmd } => {
+            command::project::process_command(
+                cmd,
                 client,
                 organization_id,
                 OutputSettings::new(cli.output, color),
@@ -127,148 +120,15 @@ async fn process_commands() -> Result<()> {
             .await
         }
 
-        Commands::Project {
-            cmd: ProjectCommand::Get { project_id },
-        }
-        | Commands::Get {
-            cmd: GetCommand::Project { project_id },
-        } => {
-            command::project::get(client, project_id, OutputSettings::new(cli.output, color)).await
-        }
-
-        Commands::Project {
-            cmd: ProjectCommand::Create { name },
-        }
-        | Commands::Create {
-            cmd: CreateCommand::Project { name },
-        } => {
-            command::project::create(
+        Commands::Secret { cmd } => {
+            command::secret::process_command(
+                cmd,
                 client,
                 organization_id,
-                name,
                 OutputSettings::new(cli.output, color),
             )
             .await
         }
-
-        Commands::Project {
-            cmd: ProjectCommand::Edit { project_id, name },
-        }
-        | Commands::Edit {
-            cmd: EditCommand::Project { project_id, name },
-        } => {
-            command::project::edit(
-                client,
-                organization_id,
-                project_id,
-                name,
-                OutputSettings::new(cli.output, color),
-            )
-            .await
-        }
-
-        Commands::Project {
-            cmd: ProjectCommand::Delete { project_ids },
-        }
-        | Commands::Delete {
-            cmd: DeleteCommand::Project { project_ids },
-        } => command::project::delete(client, project_ids).await,
-
-        Commands::Secret {
-            cmd: SecretCommand::List { project_id },
-        }
-        | Commands::List {
-            cmd: ListCommand::Secrets { project_id },
-        } => {
-            command::secret::list(
-                client,
-                organization_id,
-                project_id,
-                OutputSettings::new(cli.output, color),
-            )
-            .await
-        }
-
-        Commands::Secret {
-            cmd: SecretCommand::Get { secret_id },
-        }
-        | Commands::Get {
-            cmd: GetCommand::Secret { secret_id },
-        } => command::secret::get(client, secret_id, OutputSettings::new(cli.output, color)).await,
-
-        Commands::Secret {
-            cmd:
-                SecretCommand::Create {
-                    key,
-                    value,
-                    note,
-                    project_id,
-                },
-        }
-        | Commands::Create {
-            cmd:
-                CreateCommand::Secret {
-                    key,
-                    value,
-                    note,
-                    project_id,
-                },
-        } => {
-            command::secret::create(
-                client,
-                organization_id,
-                SecretCreateCommandModel {
-                    key,
-                    value,
-                    note,
-                    project_id,
-                },
-                OutputSettings::new(cli.output, color),
-            )
-            .await
-        }
-
-        Commands::Secret {
-            cmd:
-                SecretCommand::Edit {
-                    secret_id,
-                    key,
-                    value,
-                    note,
-                    project_id,
-                },
-        }
-        | Commands::Edit {
-            cmd:
-                EditCommand::Secret {
-                    secret_id,
-                    key,
-                    value,
-                    note,
-                    project_id,
-                },
-        } => {
-            command::secret::edit(
-                client,
-                organization_id,
-                SecretEditCommandModel {
-                    id: secret_id,
-                    key,
-                    value,
-                    note,
-                    project_id,
-                },
-                OutputSettings::new(cli.output, color),
-            )
-            .await
-        }
-
-        Commands::Secret {
-            cmd: SecretCommand::Delete { secret_ids },
-        }
-        | Commands::Delete {
-            cmd: DeleteCommand::Secret { secret_ids },
-        } => command::secret::delete(client, secret_ids).await,
 
         Commands::Config { .. } | Commands::Completions { .. } => {
             unreachable!()

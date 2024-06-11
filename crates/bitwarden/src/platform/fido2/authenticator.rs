@@ -14,7 +14,7 @@ use passkey::{
 
 use super::{
     try_from_credential_new_view, types::*, CheckUserOptions, CheckUserResult, CipherViewContainer,
-    Fido2CredentialStore, Fido2UserInterface, SelectedCredential, AAGUID,
+    Fido2CredentialStore, Fido2UserInterface, SelectedCredential, UnknownEnum, AAGUID,
 };
 use crate::{
     error::Result,
@@ -60,11 +60,13 @@ impl<'a> Fido2Authenticator<'a> {
                     .pub_key_cred_params
                     .into_iter()
                     .map(TryInto::try_into)
-                    .collect::<Result<_, _>>()?,
+                    .collect::<Result<_, _>>()
+                    .map_err(|e: PublicKeyCredentialParametersError| e.to_string())?,
                 exclude_list: request
                     .exclude_list
                     .map(|x| x.into_iter().map(TryInto::try_into).collect())
-                    .transpose()?,
+                    .transpose()
+                    .map_err(|e: UnknownEnum| e.to_string())?,
                 extensions: request
                     .extensions
                     .map(|e| serde_json::from_str(&e))
@@ -121,7 +123,8 @@ impl<'a> Fido2Authenticator<'a> {
                             .map(TryInto::try_into)
                             .collect::<Result<Vec<_>, _>>()
                     })
-                    .transpose()?,
+                    .transpose()
+                    .map_err(|e: UnknownEnum| e.to_string())?,
                 extensions: request
                     .extensions
                     .map(|e| serde_json::from_str(&e))
@@ -358,7 +361,8 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
 
             // Check that the provided credential ID matches the selected credential
             let new_id: &Vec<u8> = &cred.credential_id;
-            let selected_id = string_to_guid_bytes(&selected.credential.credential_id)?;
+            let selected_id = string_to_guid_bytes(&selected.credential.credential_id)
+                .map_err(|e| e.to_string())?;
             if new_id != &selected_id {
                 return Err("Credential ID does not match selected credential".into());
             }

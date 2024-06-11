@@ -1,7 +1,8 @@
 use passkey::types::webauthn::UserVerificationRequirement;
 use serde::Serialize;
+use thiserror::Error;
 
-use super::{get_enum_from_string_name, SelectedCredential, Verification};
+use super::{get_enum_from_string_name, SelectedCredential, UnknownEnum, Verification};
 
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct PublicKeyCredentialRpEntity {
@@ -22,16 +23,26 @@ pub struct PublicKeyCredentialParameters {
     pub alg: i64,
 }
 
+#[derive(Debug, Error)]
+pub enum PublicKeyCredentialParametersError {
+    #[error("Invalid algorithm")]
+    InvalidAlgorithm,
+
+    #[error("Unknown type")]
+    UnknownEnum(#[from] UnknownEnum),
+}
+
 impl TryFrom<PublicKeyCredentialParameters>
     for passkey::types::webauthn::PublicKeyCredentialParameters
 {
-    type Error = crate::error::Error;
+    type Error = PublicKeyCredentialParametersError;
 
     fn try_from(value: PublicKeyCredentialParameters) -> Result<Self, Self::Error> {
         use coset::iana::EnumI64;
         Ok(Self {
             ty: get_enum_from_string_name(&value.ty)?,
-            alg: coset::iana::Algorithm::from_i64(value.alg).ok_or("Invalid algorithm")?,
+            alg: coset::iana::Algorithm::from_i64(value.alg)
+                .ok_or(PublicKeyCredentialParametersError::InvalidAlgorithm)?,
         })
     }
 }
@@ -46,7 +57,7 @@ pub struct PublicKeyCredentialDescriptor {
 impl TryFrom<PublicKeyCredentialDescriptor>
     for passkey::types::webauthn::PublicKeyCredentialDescriptor
 {
-    type Error = crate::error::Error;
+    type Error = UnknownEnum;
 
     fn try_from(value: PublicKeyCredentialDescriptor) -> Result<Self, Self::Error> {
         Ok(Self {

@@ -5,6 +5,7 @@ use bitwarden_crypto::KeyContainer;
 use bitwarden_vault::{
     CipherView, Fido2CredentialFullView, Fido2CredentialNewView, Fido2CredentialView,
 };
+use crypto::PrivateKeyFromSecretKeyError;
 use passkey::types::{ctap2::Aaguid, Passkey};
 
 mod authenticator;
@@ -16,6 +17,7 @@ mod types;
 pub use authenticator::Fido2Authenticator;
 pub use client::Fido2Client;
 pub use passkey::authenticator::UIHint;
+use thiserror::Error;
 pub use traits::{
     CheckUserOptions, CheckUserResult, Fido2CallbackError, Fido2CredentialStore,
     Fido2UserInterface, Verification,
@@ -98,20 +100,35 @@ impl CipherViewContainer {
     }
 }
 
+#[derive(Debug, Error)]
+pub enum Fido2Error {
+    #[error(transparent)]
+    UnknownEnum(#[from] UnknownEnum),
+
+    #[error(transparent)]
+    InvalidGuid(#[from] InvalidGuid),
+
+    #[error(transparent)]
+    PrivateKeyFromSecretKeyError(#[from] PrivateKeyFromSecretKeyError),
+
+    #[error("No Fido2 credentials found")]
+    NoFido2CredentialsFound,
+}
+
 impl TryFrom<CipherViewContainer> for Passkey {
-    type Error = crate::error::Error;
+    type Error = Fido2Error;
 
     fn try_from(value: CipherViewContainer) -> Result<Self, Self::Error> {
         let cred = value
             .fido2_credentials
             .first()
-            .ok_or(Error::Internal("No Fido2 credentials found".into()))?;
+            .ok_or(Fido2Error::NoFido2CredentialsFound)?;
 
         try_from_credential_full_view(cred.clone())
     }
 }
 
-fn try_from_credential_full_view(value: Fido2CredentialFullView) -> Result<Passkey, Error> {
+fn try_from_credential_full_view(value: Fido2CredentialFullView) -> Result<Passkey, Fido2Error> {
     let counter: u32 = value.counter.parse().expect("Invalid counter");
     let counter = (counter != 0).then_some(counter);
 
@@ -137,7 +154,7 @@ pub fn fill_with_credential(
         key_type: "public-key".to_owned(),
         key_algorithm: "ECDSA".to_owned(),
         key_curve: "P-256".to_owned(),
-        key_value: cose_key_to_pkcs8(&value.key)?,
+        key_value: cose_key_to_pkcs8(&value.key).map_err(|e| e.to_string())?,
         rp_id: value.rp_id,
         rp_name: view.rp_name.clone(),
         user_handle: Some(cred_id),
@@ -185,7 +202,7 @@ pub(crate) fn try_from_credential_full(
         key_type: "public-key".to_owned(),
         key_algorithm: "ECDSA".to_owned(),
         key_curve: "P-256".to_owned(),
-        key_value: cose_key_to_pkcs8(&value.key)?,
+        key_value: cose_key_to_pkcs8(&value.key).map_err(|e| e.to_string())?,
         rp_id: value.rp_id,
         rp_name: rp.name,
         user_handle: Some(cred_id),
@@ -205,26 +222,36 @@ pub fn guid_bytes_to_string(source: &[u8]) -> Result<String> {
     Ok(uuid::Uuid::from_bytes(source.try_into().expect("Invalid length")).to_string())
 }
 
-pub fn string_to_guid_bytes(source: &str) -> Result<Vec<u8>> {
+#[derive(Debug, Error)]
+#[error("Invalid GUID")]
+pub struct InvalidGuid;
+
+pub fn string_to_guid_bytes(source: &str) -> Result<Vec<u8>, InvalidGuid> {
     if source.starts_with("b64.") {
-        let bytes = URL_SAFE_NO_PAD.decode(source.trim_start_matches("b64."))?;
+        let bytes = URL_SAFE_NO_PAD
+            .decode(source.trim_start_matches("b64."))
+            .map_err(|_| InvalidGuid)?;
         Ok(bytes)
     } else {
         let Ok(uuid) = uuid::Uuid::try_parse(source) else {
-            return Err(Error::Internal("Input should be a valid GUID".into()));
+            return Err(InvalidGuid);
         };
         Ok(uuid.as_bytes().to_vec())
     }
 }
 
+#[derive(Debug, Error)]
+#[error("Unknown enum value")]
+pub struct UnknownEnum;
+
 // Some utilities to convert back and forth between enums and strings
-fn get_enum_from_string_name<T: serde::de::DeserializeOwned>(s: &str) -> Result<T> {
+fn get_enum_from_string_name<T: serde::de::DeserializeOwned>(s: &str) -> Result<T, UnknownEnum> {
     let serialized = format!(r#""{}""#, s);
-    let deserialized: T = serde_json::from_str(&serialized)?;
+    let deserialized: T = serde_json::from_str(&serialized).map_err(|_| UnknownEnum)?;
     Ok(deserialized)
 }
 
-fn get_string_name_from_enum(s: impl serde::Serialize) -> Result<String> {
+fn get_string_name_from_enum(s: impl serde::Serialize) -> Result<String, serde_json::Error> {
     let serialized = serde_json::to_string(&s)?;
     let deserialized: String = serde_json::from_str(&serialized)?;
     Ok(deserialized)

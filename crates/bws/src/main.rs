@@ -492,6 +492,7 @@ async fn process_commands() -> Result<()> {
                 command.env("PATH", path); // PATH is always necessary
                 command.envs(&environment);
             } else {
+                command.env_remove(ACCESS_TOKEN_KEY_VAR_NAME);
                 command.envs(&environment);
             }
 

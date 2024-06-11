@@ -96,13 +96,9 @@ validate_checksum() {
   checksum_file="$tmp_dir/bws-checksums.txt"
   downloader "$checksum_url" "$checksum_file"
 
-  # Extract checksum for the downloaded binary
   expected_checksum="$(grep "bws-${ARCH}-${PLATFORM}-${BWS_VERSION}.zip" "$checksum_file" | awk '{print $1}')"
-
-  # Calculate actual checksum
   actual_checksum="$(sha256sum "$tmp_dir/bws.zip" | awk '{print $1}')"
 
-  # Compare checksums
   if [ "$actual_checksum" != "$expected_checksum" ]; then
     error "Checksum validation failed. Expected: $expected_checksum, Actual: $actual_checksum"
   else

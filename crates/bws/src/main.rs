@@ -480,16 +480,16 @@ async fn process_commands() -> Result<()> {
                     );
                 }
 
-                match environment.entry(key) {
-                    std::collections::hash_map::Entry::Occupied(duplicate) => {
+                match environment.contains_key(&key) {
+                    true => {
                         eprintln!(
                             "Error: multiple secrets with name '{}' found. Use --uuids-as-keynames or use unique names for secrets.",
-                            duplicate.key()
+                            key
                         );
                         std::process::exit(1);
                     }
-                    std::collections::hash_map::Entry::Vacant(entry) => {
-                        entry.insert(s.value);
+                    false => {
+                        environment.insert(key, s.value);
                     }
                 }
             });

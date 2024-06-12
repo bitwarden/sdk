@@ -15,7 +15,7 @@ use crate::{
 };
 
 pub(crate) async fn login_api_key(
-    client: &mut Client,
+    client: &Client,
     input: &ApiKeyLoginRequest,
 ) -> Result<ApiKeyLoginResponse> {
     //info!("api key logging in");
@@ -58,7 +58,7 @@ pub(crate) async fn login_api_key(
 }
 
 async fn request_api_identity_tokens(
-    client: &mut Client,
+    client: &Client,
     input: &ApiKeyLoginRequest,
 ) -> Result<IdentityTokenResponse> {
     let config = client.get_api_configurations().await;

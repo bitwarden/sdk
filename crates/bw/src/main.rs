@@ -188,7 +188,7 @@ async fn process_commands() -> Result<()> {
                 identity_url: format!("{}/identity", server),
                 ..Default::default()
             });
-            let mut client = bitwarden::Client::new(settings);
+            let client = bitwarden::Client::new(settings);
 
             let email = text_prompt_when_none("Email", email)?;
             let password = Password::new("Password").prompt()?;

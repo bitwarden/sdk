@@ -23,7 +23,7 @@ use crate::{
 };
 
 pub struct Fido2Authenticator<'a> {
-    pub(crate) client: &'a mut Client,
+    pub(crate) client: &'a Client,
     pub(crate) user_interface: &'a dyn Fido2UserInterface,
     pub(crate) credential_store: &'a dyn Fido2CredentialStore,
 

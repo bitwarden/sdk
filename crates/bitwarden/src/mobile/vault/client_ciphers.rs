@@ -80,7 +80,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_decrypt_list() {
-        let mut client = Client::init_test_account(test_bitwarden_com_account()).await;
+        let client = Client::init_test_account(test_bitwarden_com_account()).await;
 
         let dec = client
             .vault()
@@ -181,7 +181,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_move_user_cipher_with_attachment_without_key_to_org_fails() {
-        let mut client = Client::init_test_account(test_bitwarden_com_account()).await;
+        let client = Client::init_test_account(test_bitwarden_com_account()).await;
 
         let mut cipher = test_cipher();
         cipher.attachments = Some(vec![test_attachment_legacy()]);
@@ -208,7 +208,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_encrypt_cipher_with_legacy_attachment_without_key() {
-        let mut client = Client::init_test_account(test_bitwarden_com_account()).await;
+        let client = Client::init_test_account(test_bitwarden_com_account()).await;
 
         let mut cipher = test_cipher();
         let attachment = test_attachment_legacy();
@@ -253,7 +253,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_encrypt_cipher_with_v1_attachment_without_key() {
-        let mut client = Client::init_test_account(test_bitwarden_com_account()).await;
+        let client = Client::init_test_account(test_bitwarden_com_account()).await;
 
         let mut cipher = test_cipher();
         let attachment = test_attachment_v2();

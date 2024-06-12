@@ -16,7 +16,7 @@ use crate::{
 };
 
 pub(crate) async fn get_user_api_key(
-    client: &mut Client,
+    client: &Client,
     input: &SecretVerificationRequest,
 ) -> Result<UserApiKeyResponse> {
     info!("Getting Api Key");

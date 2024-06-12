@@ -13,14 +13,7 @@ pub struct ClientPlatform(pub(crate) Arc<Client>);
 impl ClientPlatform {
     /// Fingerprint (public key)
     pub async fn fingerprint(&self, req: FingerprintRequest) -> Result<String> {
-        Ok(self
-            .0
-             .0
-            .write()
-            .await
-            .platform()
-            .fingerprint(&req)?
-            .fingerprint)
+        Ok(self.0 .0.platform().fingerprint(&req)?.fingerprint)
     }
 
     /// Fingerprint using logged in user's public key
@@ -28,15 +21,13 @@ impl ClientPlatform {
         Ok(self
             .0
              .0
-            .write()
-            .await
             .platform()
             .user_fingerprint(fingerprint_material)?)
     }
 
     /// Load feature flags into the client
     pub async fn load_flags(&self, flags: std::collections::HashMap<String, bool>) -> Result<()> {
-        self.0 .0.write().await.load_flags(flags);
+        self.0 .0.load_flags(flags);
         Ok(())
     }
 

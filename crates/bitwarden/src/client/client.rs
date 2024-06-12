@@ -152,7 +152,7 @@ impl Client {
     }
 
     #[cfg(feature = "internal")]
-    pub fn load_flags(&mut self, flags: std::collections::HashMap<String, bool>) {
+    pub fn load_flags(&self, flags: std::collections::HashMap<String, bool>) {
         self.flags = Flags::load_from_map(flags);
     }
 
@@ -161,7 +161,7 @@ impl Client {
         &self.flags
     }
 
-    pub(crate) async fn get_api_configurations(&mut self) -> &ApiConfigurations {
+    pub(crate) async fn get_api_configurations(&self) -> &ApiConfigurations {
         // At the moment we ignore the error result from the token renewal, if it fails,
         // the token will end up expiring and the next operation is going to fail anyway.
         self.auth().renew_token().await.ok();
@@ -192,19 +192,14 @@ impl Client {
         self.encryption_settings.as_ref().ok_or(VaultLocked.into())
     }
 
-    pub(crate) fn set_login_method(&mut self, login_method: LoginMethod) {
+    pub(crate) fn set_login_method(&self, login_method: LoginMethod) {
         use log::debug;
 
         debug! {"setting login method: {:#?}", login_method}
         self.login_method = Some(login_method);
     }
 
-    pub(crate) fn set_tokens(
-        &mut self,
-        token: String,
-        refresh_token: Option<String>,
-        expires_in: u64,
-    ) {
+    pub(crate) fn set_tokens(&self, token: String, refresh_token: Option<String>, expires_in: u64) {
         self.token = Some(token.clone());
         self.refresh_token = refresh_token;
         self.token_expires_on = Some(Utc::now().timestamp() + expires_in as i64);
@@ -219,7 +214,7 @@ impl Client {
 
     #[cfg(feature = "internal")]
     pub(crate) fn initialize_user_crypto_master_key(
-        &mut self,
+        &self,
         master_key: MasterKey,
         user_key: EncString,
         private_key: EncString,
@@ -233,7 +228,7 @@ impl Client {
 
     #[cfg(feature = "internal")]
     pub(crate) fn initialize_user_crypto_decrypted_key(
-        &mut self,
+        &self,
         user_key: SymmetricCryptoKey,
         private_key: EncString,
     ) -> Result<&EncryptionSettings> {
@@ -247,7 +242,7 @@ impl Client {
 
     #[cfg(feature = "internal")]
     pub(crate) fn initialize_user_crypto_pin(
-        &mut self,
+        &self,
         pin_key: MasterKey,
         pin_protected_user_key: EncString,
         private_key: EncString,
@@ -257,7 +252,7 @@ impl Client {
     }
 
     pub(crate) fn initialize_crypto_single_key(
-        &mut self,
+        &self,
         key: SymmetricCryptoKey,
     ) -> &EncryptionSettings {
         self.encryption_settings
@@ -266,7 +261,7 @@ impl Client {
 
     #[cfg(feature = "internal")]
     pub(crate) fn initialize_org_crypto(
-        &mut self,
+        &self,
         org_keys: Vec<(Uuid, AsymmetricEncString)>,
     ) -> Result<&EncryptionSettings> {
         let enc = self.encryption_settings.as_mut().ok_or(VaultLocked)?;

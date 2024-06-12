@@ -11,15 +11,7 @@ pub struct ClientCollections(pub Arc<Client>);
 impl ClientCollections {
     /// Decrypt collection
     pub async fn decrypt(&self, collection: Collection) -> Result<CollectionView> {
-        Ok(self
-            .0
-             .0
-            .write()
-            .await
-            .vault()
-            .collections()
-            .decrypt(collection)
-            .await?)
+        Ok(self.0 .0.vault().collections().decrypt(collection).await?)
     }
 
     /// Decrypt collection list
@@ -27,8 +19,6 @@ impl ClientCollections {
         Ok(self
             .0
              .0
-            .write()
-            .await
             .vault()
             .collections()
             .decrypt_list(collections)

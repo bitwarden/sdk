@@ -12,19 +12,17 @@ use crate::{
 
 impl Client {
     pub async fn init_test_account(account: TestAccount) -> Self {
-        let mut client = Client::new(None);
+        let client = Client::new(None);
 
         client.load_flags(HashMap::from([(
             "enableCipherKeyEncryption".to_owned(),
             true,
         )]));
 
-        initialize_user_crypto(&mut client, account.user)
-            .await
-            .unwrap();
+        initialize_user_crypto(&client, account.user).await.unwrap();
 
         if let Some(org) = account.org {
-            initialize_org_crypto(&mut client, org).await.unwrap();
+            initialize_org_crypto(&client, org).await.unwrap();
         }
 
         client

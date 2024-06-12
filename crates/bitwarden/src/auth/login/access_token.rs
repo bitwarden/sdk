@@ -21,7 +21,7 @@ use crate::{
 };
 
 pub(crate) async fn login_access_token(
-    client: &mut Client,
+    client: &Client,
     input: &AccessTokenLoginRequest,
 ) -> Result<AccessTokenLoginResponse> {
     //info!("api key logging in");
@@ -99,7 +99,7 @@ pub(crate) async fn login_access_token(
 }
 
 async fn request_access_token(
-    client: &mut Client,
+    client: &Client,
     input: &AccessToken,
 ) -> Result<IdentityTokenResponse> {
     let config = client.get_api_configurations().await;
@@ -109,7 +109,7 @@ async fn request_access_token(
 }
 
 fn load_tokens_from_state(
-    client: &mut Client,
+    client: &Client,
     state_file: &Path,
     access_token: &AccessToken,
 ) -> Result<Uuid> {

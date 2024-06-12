@@ -19,8 +19,6 @@ impl ClientAttachments {
         Ok(self
             .0
              .0
-            .write()
-            .await
             .vault()
             .attachments()
             .encrypt_buffer(cipher, attachment, &buffer)
@@ -38,8 +36,6 @@ impl ClientAttachments {
         Ok(self
             .0
              .0
-            .write()
-            .await
             .vault()
             .attachments()
             .encrypt_file(
@@ -60,8 +56,6 @@ impl ClientAttachments {
         Ok(self
             .0
              .0
-            .write()
-            .await
             .vault()
             .attachments()
             .decrypt_buffer(cipher, attachment, &buffer)
@@ -79,8 +73,6 @@ impl ClientAttachments {
         Ok(self
             .0
              .0
-            .write()
-            .await
             .vault()
             .attachments()
             .decrypt_file(

@@ -86,7 +86,7 @@ mod tests {
 
         use crate::client::{Client, Kdf, LoginMethod, UserLoginMethod};
 
-        let mut client = Client::new(None);
+        let client = Client::new(None);
         client.set_login_method(LoginMethod::User(UserLoginMethod::Username {
             email: "test@bitwarden.com".to_string(),
             kdf: Kdf::PBKDF2 {
@@ -110,7 +110,7 @@ mod tests {
 
         use crate::client::{Client, Kdf, LoginMethod, UserLoginMethod};
 
-        let mut client = Client::new(None);
+        let client = Client::new(None);
 
         let password = "asdfasdfasdf";
         let email = "test@bitwarden.com";
@@ -150,7 +150,7 @@ mod tests {
 
         use crate::client::{Client, Kdf, LoginMethod, UserLoginMethod};
 
-        let mut client = Client::new(None);
+        let client = Client::new(None);
 
         let password = b"asdfasdfasdf";
         let email = "test@bitwarden.com";

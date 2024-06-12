@@ -14,8 +14,6 @@ impl ClientPasswordHistory {
         Ok(self
             .0
              .0
-            .write()
-            .await
             .vault()
             .password_history()
             .encrypt(password_history)
@@ -30,8 +28,6 @@ impl ClientPasswordHistory {
         Ok(self
             .0
              .0
-            .write()
-            .await
             .vault()
             .password_history()
             .decrypt_list(list)

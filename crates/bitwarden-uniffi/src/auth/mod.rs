@@ -22,8 +22,6 @@ impl ClientAuth {
     ) -> u8 {
         self.0
              .0
-            .write()
-            .await
             .auth()
             .password_strength(password, email, additional_inputs)
             .await
@@ -38,8 +36,6 @@ impl ClientAuth {
     ) -> bool {
         self.0
              .0
-            .write()
-            .await
             .auth()
             .satisfies_policy(password, strength, &policy)
             .await
@@ -56,8 +52,6 @@ impl ClientAuth {
         Ok(self
             .0
              .0
-            .read()
-            .await
             .kdf()
             .hash_password(email, password, kdf_params, purpose)
             .await?)
@@ -70,13 +64,7 @@ impl ClientAuth {
         password: String,
         kdf: Kdf,
     ) -> Result<RegisterKeyResponse> {
-        Ok(self
-            .0
-             .0
-            .write()
-            .await
-            .auth()
-            .make_register_keys(email, password, kdf)?)
+        Ok(self.0 .0.auth().make_register_keys(email, password, kdf)?)
     }
 
     /// Generate keys needed for TDE process
@@ -86,11 +74,11 @@ impl ClientAuth {
         org_public_key: String,
         remember_device: bool,
     ) -> Result<RegisterTdeKeyResponse> {
-        Ok(self.0 .0.write().await.auth().make_register_tde_keys(
-            email,
-            org_public_key,
-            remember_device,
-        )?)
+        Ok(self
+            .0
+             .0
+            .auth()
+            .make_register_tde_keys(email, org_public_key, remember_device)?)
     }
 
     /// Validate the user password
@@ -102,8 +90,6 @@ impl ClientAuth {
         Ok(self
             .0
              .0
-            .write()
-            .await
             .auth()
             .validate_password(password, password_hash)?)
     }
@@ -122,30 +108,22 @@ impl ClientAuth {
         Ok(self
             .0
              .0
-            .write()
-            .await
             .auth()
             .validate_password_user_key(password, encrypted_user_key)?)
     }
 
     /// Initialize a new auth request
     pub async fn new_auth_request(&self, email: String) -> Result<AuthRequestResponse> {
-        Ok(self.0 .0.write().await.auth().new_auth_request(&email)?)
+        Ok(self.0 .0.auth().new_auth_request(&email)?)
     }
 
     /// Approve an auth request
     pub async fn approve_auth_request(&self, public_key: String) -> Result<AsymmetricEncString> {
-        Ok(self
-            .0
-             .0
-            .write()
-            .await
-            .auth()
-            .approve_auth_request(public_key)?)
+        Ok(self.0 .0.auth().approve_auth_request(public_key)?)
     }
 
     /// Trust the current device
     pub async fn trust_device(&self) -> Result<TrustDeviceResponse> {
-        Ok(self.0 .0.write().await.auth().trust_device()?)
+        Ok(self.0 .0.auth().trust_device()?)
     }
 }

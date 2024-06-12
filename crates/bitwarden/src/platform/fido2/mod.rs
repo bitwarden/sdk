@@ -42,12 +42,12 @@ const AAGUID: Aaguid = Aaguid([
 
 pub struct ClientFido2<'a> {
     #[allow(dead_code)]
-    pub(crate) client: &'a mut Client,
+    pub(crate) client: &'a Client,
 }
 
 impl<'a> ClientFido2<'a> {
     pub fn create_authenticator(
-        &'a mut self,
+        &'a self,
 
         user_interface: &'a dyn Fido2UserInterface,
         credential_store: &'a dyn Fido2CredentialStore,
@@ -62,7 +62,7 @@ impl<'a> ClientFido2<'a> {
     }
 
     pub fn create_client(
-        &'a mut self,
+        &'a self,
 
         user_interface: &'a dyn Fido2UserInterface,
         credential_store: &'a dyn Fido2CredentialStore,

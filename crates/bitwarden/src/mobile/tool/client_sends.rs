@@ -88,7 +88,7 @@ impl<'a> ClientSends<'a> {
 }
 
 impl<'a> Client {
-    pub fn sends(&'a mut self) -> ClientSends<'a> {
+    pub fn sends(&'a self) -> ClientSends<'a> {
         ClientSends { client: self }
     }
 }

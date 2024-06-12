@@ -3,6 +3,16 @@ $ErrorActionPreference = "Stop"
 $bwsVersion = if ($env:bwsVersion) { $env:bwsVersion } else { "0.5.0" }
 $installDir = [Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData) | Join-Path -ChildPath "Programs" | Join-Path -ChildPath "Bitwarden"
 
+# https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-processor#properties
+$processorArch = (Get-CimInstance -ClassName Win32_Processor).Architecture
+if ($processorArch -eq 9) {
+  $arch = "x86_64"
+} elseif ($processorArch -eq 12) {
+  $arch = "aarch64"
+} else {
+  throw "Unsupported architecture: $processorArch"
+}
+
 function Test-BwsInstallation {
   $existingBws = Get-Command bws -ErrorAction SilentlyContinue
   if ($null -ne $existingBws) {
@@ -15,16 +25,7 @@ function Test-BwsInstallation {
 }
 
 function Invoke-BwsDownload {
-  # https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-processor#properties
-  $processorArch = (Get-CimInstance -ClassName Win32_Processor).Architecture
-  Write-Host "Detected architecture: $processorArch"
-  if ($processorArch -eq 9) {
-    $arch = "x86_64"
-  } elseif ($processorArch -eq 12) {
-    $arch = "aarch64"
-  } else {
-    throw "Unsupported architecture: $processorArch"
-  }
+  Write-Host "Detected architecture: $arch"
 
   $bwsUrl = "https://github.com/bitwarden/sdk/releases/download/bws-v$bwsVersion/bws-$arch-pc-windows-msvc-$bwsVersion.zip"
   Write-Host "Downloading bws from: $bwsUrl"
@@ -41,7 +42,7 @@ function Test-Checksum {
   $checksumFile = Join-Path $env:TEMP "bws-checksums.txt"
   Invoke-WebRequest -Uri $checksumUrl -OutFile $checksumFile
 
-  $expectedChecksum = (Get-Content $checksumFile | Where-Object { $_ -match "bws-(.*?)-pc-windows-msvc-$bwsVersion.zip" }).Split(" ")[0]
+  $expectedChecksum = (Get-Content $checksumFile | Where-Object { $_ -match "bws-$arch-pc-windows-msvc-$bwsVersion.zip" }).Split(" ")[0]
   $actualChecksum = (Get-FileHash -Algorithm SHA256 -Path $zipPath).Hash
 
   if ($actualChecksum -ne $expectedChecksum) {
@@ -77,4 +78,3 @@ $zipPath = Invoke-BwsDownload
 Test-Checksum -zipPath $zipPath
 Install-Bws -zipPath $zipPath
 Test-Bws
-

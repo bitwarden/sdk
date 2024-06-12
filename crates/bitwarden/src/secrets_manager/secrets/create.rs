@@ -26,8 +26,8 @@ pub(crate) async fn create_secret(
     client: &mut Client,
     input: &SecretCreateRequest,
 ) -> Result<SecretResponse> {
-    let key = client
-        .get_encryption_settings()?
+    let enc = client.get_encryption_settings()?;
+    let key = enc
         .get_key(&Some(input.organization_id))
         .ok_or(VaultLocked)?;
 
@@ -48,5 +48,5 @@ pub(crate) async fn create_secret(
 
     let enc = client.get_encryption_settings()?;
 
-    SecretResponse::process_response(res, enc)
+    SecretResponse::process_response(res, &enc)
 }

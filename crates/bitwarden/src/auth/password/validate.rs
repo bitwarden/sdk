@@ -13,12 +13,9 @@ pub(crate) fn validate_password(
     password: String,
     password_hash: String,
 ) -> Result<bool> {
-    let login_method = client
-        .login_method
-        .as_ref()
-        .ok_or(Error::NotAuthenticated)?;
+    let login_method = client.get_login_method().ok_or(Error::NotAuthenticated)?;
 
-    if let LoginMethod::User(login_method) = login_method {
+    if let LoginMethod::User(login_method) = login_method.as_ref() {
         match login_method {
             UserLoginMethod::Username { email, kdf, .. }
             | UserLoginMethod::ApiKey { email, kdf, .. } => {
@@ -45,12 +42,9 @@ pub(crate) fn validate_password_user_key(
 ) -> Result<String> {
     use bitwarden_core::VaultLocked;
 
-    let login_method = client
-        .login_method
-        .as_ref()
-        .ok_or(Error::NotAuthenticated)?;
+    let login_method = client.get_login_method().ok_or(Error::NotAuthenticated)?;
 
-    if let LoginMethod::User(login_method) = login_method {
+    if let LoginMethod::User(login_method) = login_method.as_ref() {
         match login_method {
             UserLoginMethod::Username { email, kdf, .. }
             | UserLoginMethod::ApiKey { email, kdf, .. } => {

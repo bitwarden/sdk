@@ -173,10 +173,8 @@ pub async fn initialize_org_crypto(client: &Client, req: InitOrgCryptoRequest) -
 
 #[cfg(feature = "internal")]
 pub async fn get_user_encryption_key(client: &Client) -> Result<String> {
-    let user_key = client
-        .get_encryption_settings()?
-        .get_key(&None)
-        .ok_or(VaultLocked)?;
+    let enc = client.get_encryption_settings()?;
+    let user_key = enc.get_key(&None).ok_or(VaultLocked)?;
 
     Ok(user_key.to_base64())
 }
@@ -193,18 +191,13 @@ pub struct UpdatePasswordResponse {
 }
 
 pub fn update_password(client: &Client, new_password: String) -> Result<UpdatePasswordResponse> {
-    let user_key = client
-        .get_encryption_settings()?
-        .get_key(&None)
-        .ok_or(VaultLocked)?;
+    let enc = client.get_encryption_settings()?;
+    let user_key = enc.get_key(&None).ok_or(VaultLocked)?;
 
-    let login_method = client
-        .login_method
-        .as_ref()
-        .ok_or(Error::NotAuthenticated)?;
+    let login_method = client.get_login_method().ok_or(Error::NotAuthenticated)?;
 
     // Derive a new master key from password
-    let new_master_key = match login_method {
+    let new_master_key = match login_method.as_ref() {
         LoginMethod::User(
             UserLoginMethod::Username { email, kdf, .. }
             | UserLoginMethod::ApiKey { email, kdf, .. },
@@ -238,17 +231,12 @@ pub struct DerivePinKeyResponse {
 
 #[cfg(feature = "internal")]
 pub fn derive_pin_key(client: &Client, pin: String) -> Result<DerivePinKeyResponse> {
-    let user_key = client
-        .get_encryption_settings()?
-        .get_key(&None)
-        .ok_or(VaultLocked)?;
+    let enc = client.get_encryption_settings()?;
+    let user_key = enc.get_key(&None).ok_or(VaultLocked)?;
 
-    let login_method = client
-        .login_method
-        .as_ref()
-        .ok_or(Error::NotAuthenticated)?;
+    let login_method = client.get_login_method().ok_or(Error::NotAuthenticated)?;
 
-    let pin_protected_user_key = derive_pin_protected_user_key(&pin, login_method, user_key)?;
+    let pin_protected_user_key = derive_pin_protected_user_key(&pin, &login_method, user_key)?;
 
     Ok(DerivePinKeyResponse {
         pin_protected_user_key,
@@ -258,18 +246,13 @@ pub fn derive_pin_key(client: &Client, pin: String) -> Result<DerivePinKeyRespon
 
 #[cfg(feature = "internal")]
 pub fn derive_pin_user_key(client: &Client, encrypted_pin: EncString) -> Result<EncString> {
-    let user_key = client
-        .get_encryption_settings()?
-        .get_key(&None)
-        .ok_or(VaultLocked)?;
+    let enc = client.get_encryption_settings()?;
+    let user_key = enc.get_key(&None).ok_or(VaultLocked)?;
 
     let pin: String = encrypted_pin.decrypt_with_key(user_key)?;
-    let login_method = client
-        .login_method
-        .as_ref()
-        .ok_or(Error::NotAuthenticated)?;
+    let login_method = client.get_login_method().ok_or(Error::NotAuthenticated)?;
 
-    derive_pin_protected_user_key(&pin, login_method, user_key)
+    derive_pin_protected_user_key(&pin, &login_method, user_key)
 }
 
 #[cfg(feature = "internal")]
@@ -516,11 +499,8 @@ mod tests {
             AsymmetricCryptoKey::from_der(&STANDARD.decode(private_key).unwrap()).unwrap();
         let decrypted: Vec<u8> = encrypted.decrypt_with_key(&private_key).unwrap();
 
-        let expected = client
-            .get_encryption_settings()
-            .unwrap()
-            .get_key(&None)
-            .unwrap();
+        let enc = client.get_encryption_settings().unwrap();
+        let expected = enc.get_key(&None).unwrap();
         assert_eq!(&decrypted, &expected.to_vec());
     }
 }

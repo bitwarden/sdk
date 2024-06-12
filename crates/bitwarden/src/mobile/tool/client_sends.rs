@@ -75,11 +75,8 @@ impl<'a> ClientSends<'a> {
     }
 
     pub async fn encrypt_buffer(&self, send: Send, buffer: &[u8]) -> Result<Vec<u8>> {
-        let key = self
-            .client
-            .get_encryption_settings()?
-            .get_key(&None)
-            .ok_or(VaultLocked)?;
+        let enc = self.client.get_encryption_settings()?;
+        let key = enc.get_key(&None).ok_or(VaultLocked)?;
         let key = Send::get_key(&send.key, key)?;
 
         let enc = buffer.encrypt_with_key(&key)?;

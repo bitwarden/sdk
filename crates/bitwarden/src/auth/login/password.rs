@@ -76,7 +76,7 @@ async fn request_identity_tokens(
         "b86dd6ab-4265-4ddf-a7f1-eb28d5677f33",
         &input.two_factor,
     )
-    .send(config)
+    .send(&config)
     .await
 }
 

@@ -22,5 +22,5 @@ pub(crate) async fn get_project(
 
     let enc = client.get_encryption_settings()?;
 
-    ProjectResponse::process_response(res, enc)
+    ProjectResponse::process_response(res, &enc)
 }

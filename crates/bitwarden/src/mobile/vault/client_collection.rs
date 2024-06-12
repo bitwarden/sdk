@@ -11,7 +11,7 @@ impl<'a> ClientCollections<'a> {
     pub async fn decrypt(&self, collection: Collection) -> Result<CollectionView> {
         let enc = self.client.get_encryption_settings()?;
         let key = collection
-            .locate_key(enc, &None)
+            .locate_key(&enc, &None)
             .ok_or(CryptoError::MissingKey)?;
 
         let view = collection.decrypt_with_key(key)?;
@@ -25,7 +25,7 @@ impl<'a> ClientCollections<'a> {
         let views: Result<Vec<CollectionView>> = collections
             .iter()
             .map(|c| -> Result<CollectionView> {
-                let key = c.locate_key(enc, &None).ok_or(CryptoError::MissingKey)?;
+                let key = c.locate_key(&enc, &None).ok_or(CryptoError::MissingKey)?;
                 Ok(c.decrypt_with_key(key)?)
             })
             .collect();

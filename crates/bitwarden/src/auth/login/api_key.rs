@@ -63,7 +63,7 @@ async fn request_api_identity_tokens(
 ) -> Result<IdentityTokenResponse> {
     let config = client.get_api_configurations().await;
     ApiTokenRequest::new(&input.client_id, &input.client_secret)
-        .send(config)
+        .send(&config)
         .await
 }
 

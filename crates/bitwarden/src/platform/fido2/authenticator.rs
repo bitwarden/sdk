@@ -167,7 +167,7 @@ impl<'a> Fido2Authenticator<'a> {
 
         Ok(result
             .into_iter()
-            .flat_map(|c| c.decrypt_fido2_credentials(enc))
+            .flat_map(|c| c.decrypt_fido2_credentials(&enc))
             .flatten()
             .collect())
     }
@@ -208,7 +208,7 @@ impl<'a> Fido2Authenticator<'a> {
             .clone()
             .ok_or("No selected credential available")?;
 
-        let creds = cipher.decrypt_fido2_credentials(enc)?;
+        let creds = cipher.decrypt_fido2_credentials(&enc)?;
 
         let credential = creds.first().ok_or("No Fido2 credentials found")?.clone();
 
@@ -264,7 +264,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             if this.create_credential {
                 creds
                     .into_iter()
-                    .map(|c| CipherViewContainer::new(c, enc))
+                    .map(|c| CipherViewContainer::new(c, &enc))
                     .collect()
             } else {
                 let picked = this
@@ -280,7 +280,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                     .expect("Mutex is not poisoned")
                     .replace(picked.clone());
 
-                Ok(vec![CipherViewContainer::new(picked, enc)?])
+                Ok(vec![CipherViewContainer::new(picked, &enc)?])
             }
         }
 
@@ -319,7 +319,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                 .clone()
                 .ok_or("No selected cipher available")?;
 
-            selected.set_new_fido2_credentials(enc, vec![cred])?;
+            selected.set_new_fido2_credentials(&enc, vec![cred])?;
 
             // Store the updated credential for later use
             this.authenticator
@@ -366,7 +366,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             let cred = fill_with_credential(&selected.credential, cred)?;
 
             let mut selected = selected.cipher;
-            selected.set_new_fido2_credentials(enc, vec![cred])?;
+            selected.set_new_fido2_credentials(&enc, vec![cred])?;
 
             // Store the updated credential for later use
             this.authenticator

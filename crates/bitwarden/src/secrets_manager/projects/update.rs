@@ -23,8 +23,8 @@ pub(crate) async fn update_project(
     client: &mut Client,
     input: &ProjectPutRequest,
 ) -> Result<ProjectResponse> {
-    let key = client
-        .get_encryption_settings()?
+    let enc = client.get_encryption_settings()?;
+    let key = enc
         .get_key(&Some(input.organization_id))
         .ok_or(VaultLocked)?;
 
@@ -39,5 +39,5 @@ pub(crate) async fn update_project(
 
     let enc = client.get_encryption_settings()?;
 
-    ProjectResponse::process_response(res, enc)
+    ProjectResponse::process_response(res, &enc)
 }

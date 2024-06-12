@@ -13,5 +13,5 @@ pub(crate) fn is_valid_posix_name(input_text: &str) -> bool {
 pub(crate) fn uuid_to_posix(uuid: &Uuid) -> String {
     // POSIX environment variable names must start with a letter or an underscore
     // and can only contain letters, numbers, and underscores.
-    format!("_{}", uuid.to_string().replace("-", "_"))
+    format!("_{}", uuid.to_string().replace('-', "_"))
 }

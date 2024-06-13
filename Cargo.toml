@@ -29,6 +29,7 @@ bitwarden-vault = { path = "crates/bitwarden-vault", version = "=0.5.0" }
 
 [workspace.lints.clippy]
 unwrap_used = "deny"
+unused_async = "deny"
 
 # Compile all dependencies with some optimizations when building this crate on debug
 # This slows down clean builds by about 50%, but the resulting binaries can be orders of magnitude faster

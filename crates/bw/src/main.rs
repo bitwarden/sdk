@@ -217,30 +217,24 @@ async fn process_commands() -> Result<()> {
         Commands::Sync {} => todo!(),
         Commands::Generate { command } => match command {
             GeneratorCommands::Password(args) => {
-                let password = client
-                    .generator()
-                    .password(PasswordGeneratorRequest {
-                        lowercase: args.lowercase,
-                        uppercase: args.uppercase,
-                        numbers: args.numbers,
-                        special: args.special,
-                        length: args.length,
-                        ..Default::default()
-                    })
-                    .await?;
+                let password = client.generator().password(PasswordGeneratorRequest {
+                    lowercase: args.lowercase,
+                    uppercase: args.uppercase,
+                    numbers: args.numbers,
+                    special: args.special,
+                    length: args.length,
+                    ..Default::default()
+                })?;
 
                 println!("{}", password);
             }
             GeneratorCommands::Passphrase(args) => {
-                let passphrase = client
-                    .generator()
-                    .passphrase(PassphraseGeneratorRequest {
-                        num_words: args.words,
-                        word_separator: args.separator.to_string(),
-                        capitalize: args.capitalize,
-                        include_number: args.include_number,
-                    })
-                    .await?;
+                let passphrase = client.generator().passphrase(PassphraseGeneratorRequest {
+                    num_words: args.words,
+                    word_separator: args.separator.to_string(),
+                    capitalize: args.capitalize,
+                    include_number: args.include_number,
+                })?;
 
                 println!("{}", passphrase);
             }

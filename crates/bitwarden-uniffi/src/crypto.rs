@@ -33,25 +33,20 @@ impl ClientCrypto {
     /// Update the user's password, which will re-encrypt the user's encryption key with the new
     /// password. This returns the new encrypted user key and the new password hash.
     pub async fn update_password(&self, new_password: String) -> Result<UpdatePasswordResponse> {
-        Ok(self.0 .0.crypto().update_password(new_password).await?)
+        Ok(self.0 .0.crypto().update_password(new_password)?)
     }
 
     /// Generates a PIN protected user key from the provided PIN. The result can be stored and later
     /// used to initialize another client instance by using the PIN and the PIN key with
     /// `initialize_user_crypto`.
     pub async fn derive_pin_key(&self, pin: String) -> Result<DerivePinKeyResponse> {
-        Ok(self.0 .0.crypto().derive_pin_key(pin).await?)
+        Ok(self.0 .0.crypto().derive_pin_key(pin)?)
     }
 
     /// Derives the pin protected user key from encrypted pin. Used when pin requires master
     /// password on first unlock.
     pub async fn derive_pin_user_key(&self, encrypted_pin: EncString) -> Result<EncString> {
-        Ok(self
-            .0
-             .0
-            .crypto()
-            .derive_pin_user_key(encrypted_pin)
-            .await?)
+        Ok(self.0 .0.crypto().derive_pin_user_key(encrypted_pin)?)
     }
 
     pub async fn enroll_admin_password_reset(

@@ -11,16 +11,16 @@ pub struct ClientFolders(pub Arc<Client>);
 impl ClientFolders {
     /// Encrypt folder
     pub async fn encrypt(&self, folder: FolderView) -> Result<Folder> {
-        Ok(self.0 .0.vault().folders().encrypt(folder).await?)
+        Ok(self.0 .0.vault().folders().encrypt(folder)?)
     }
 
     /// Decrypt folder
     pub async fn decrypt(&self, folder: Folder) -> Result<FolderView> {
-        Ok(self.0 .0.vault().folders().decrypt(folder).await?)
+        Ok(self.0 .0.vault().folders().decrypt(folder)?)
     }
 
     /// Decrypt folder list
     pub async fn decrypt_list(&self, folders: Vec<Folder>) -> Result<Vec<FolderView>> {
-        Ok(self.0 .0.vault().folders().decrypt_list(folders).await?)
+        Ok(self.0 .0.vault().folders().decrypt_list(folders)?)
     }
 }

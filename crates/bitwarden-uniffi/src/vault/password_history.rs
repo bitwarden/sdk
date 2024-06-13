@@ -16,8 +16,7 @@ impl ClientPasswordHistory {
              .0
             .vault()
             .password_history()
-            .encrypt(password_history)
-            .await?)
+            .encrypt(password_history)?)
     }
 
     /// Decrypt password history
@@ -25,12 +24,6 @@ impl ClientPasswordHistory {
         &self,
         list: Vec<PasswordHistory>,
     ) -> Result<Vec<PasswordHistoryView>> {
-        Ok(self
-            .0
-             .0
-            .vault()
-            .password_history()
-            .decrypt_list(list)
-            .await?)
+        Ok(self.0 .0.vault().password_history().decrypt_list(list)?)
     }
 }

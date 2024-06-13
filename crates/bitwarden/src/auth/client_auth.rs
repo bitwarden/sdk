@@ -46,7 +46,7 @@ impl<'a> ClientAuth<'a> {
 
 #[cfg(feature = "internal")]
 impl<'a> ClientAuth<'a> {
-    pub async fn password_strength(
+    pub fn password_strength(
         &self,
         password: String,
         email: String,
@@ -55,7 +55,7 @@ impl<'a> ClientAuth<'a> {
         password_strength(password, email, additional_inputs)
     }
 
-    pub async fn satisfies_policy(
+    pub fn satisfies_policy(
         &self,
         password: String,
         strength: u8,

@@ -8,7 +8,7 @@ pub struct ClientFolders<'a> {
 }
 
 impl<'a> ClientFolders<'a> {
-    pub async fn encrypt(&self, folder_view: FolderView) -> Result<Folder> {
+    pub fn encrypt(&self, folder_view: FolderView) -> Result<Folder> {
         let enc = self.client.get_encryption_settings()?;
         let key = enc.get_key(&None).ok_or(CryptoError::MissingKey)?;
 
@@ -17,7 +17,7 @@ impl<'a> ClientFolders<'a> {
         Ok(folder)
     }
 
-    pub async fn decrypt(&self, folder: Folder) -> Result<FolderView> {
+    pub fn decrypt(&self, folder: Folder) -> Result<FolderView> {
         let enc = self.client.get_encryption_settings()?;
         let key = enc.get_key(&None).ok_or(CryptoError::MissingKey)?;
 
@@ -26,7 +26,7 @@ impl<'a> ClientFolders<'a> {
         Ok(folder_view)
     }
 
-    pub async fn decrypt_list(&self, folders: Vec<Folder>) -> Result<Vec<FolderView>> {
+    pub fn decrypt_list(&self, folders: Vec<Folder>) -> Result<Vec<FolderView>> {
         let enc = self.client.get_encryption_settings()?;
         let key = enc.get_key(&None).ok_or(CryptoError::MissingKey)?;
 

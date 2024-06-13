@@ -17,7 +17,7 @@ pub struct ClientAttachments<'a> {
 }
 
 impl<'a> ClientAttachments<'a> {
-    pub async fn encrypt_buffer(
+    pub fn encrypt_buffer(
         &self,
         cipher: Cipher,
         attachment: AttachmentView,
@@ -33,7 +33,7 @@ impl<'a> ClientAttachments<'a> {
         }
         .encrypt_with_key(key)?)
     }
-    pub async fn encrypt_file(
+    pub fn encrypt_file(
         &self,
         cipher: Cipher,
         attachment: AttachmentView,
@@ -44,12 +44,12 @@ impl<'a> ClientAttachments<'a> {
         let AttachmentEncryptResult {
             attachment,
             contents,
-        } = self.encrypt_buffer(cipher, attachment, &data).await?;
+        } = self.encrypt_buffer(cipher, attachment, &data)?;
         std::fs::write(encrypted_file_path, contents)?;
         Ok(attachment)
     }
 
-    pub async fn decrypt_buffer(
+    pub fn decrypt_buffer(
         &self,
         cipher: Cipher,
         attachment: Attachment,
@@ -66,7 +66,7 @@ impl<'a> ClientAttachments<'a> {
         .decrypt_with_key(key)
         .map_err(Error::Crypto)
     }
-    pub async fn decrypt_file(
+    pub fn decrypt_file(
         &self,
         cipher: Cipher,
         attachment: Attachment,
@@ -74,7 +74,7 @@ impl<'a> ClientAttachments<'a> {
         decrypted_file_path: &Path,
     ) -> Result<()> {
         let data = std::fs::read(encrypted_file_path)?;
-        let decrypted = self.decrypt_buffer(cipher, attachment, &data).await?;
+        let decrypted = self.decrypt_buffer(cipher, attachment, &data)?;
         std::fs::write(decrypted_file_path, decrypted)?;
         Ok(())
     }

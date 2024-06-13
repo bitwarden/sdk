@@ -11,17 +11,11 @@ pub struct ClientCollections(pub Arc<Client>);
 impl ClientCollections {
     /// Decrypt collection
     pub async fn decrypt(&self, collection: Collection) -> Result<CollectionView> {
-        Ok(self.0 .0.vault().collections().decrypt(collection).await?)
+        Ok(self.0 .0.vault().collections().decrypt(collection)?)
     }
 
     /// Decrypt collection list
     pub async fn decrypt_list(&self, collections: Vec<Collection>) -> Result<Vec<CollectionView>> {
-        Ok(self
-            .0
-             .0
-            .vault()
-            .collections()
-            .decrypt_list(collections)
-            .await?)
+        Ok(self.0 .0.vault().collections().decrypt_list(collections)?)
     }
 }

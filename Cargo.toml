@@ -28,6 +28,7 @@ bitwarden-generators = { path = "crates/bitwarden-generators", version = "=0.5.0
 bitwarden-vault = { path = "crates/bitwarden-vault", version = "=0.5.0" }
 
 [workspace.lints.clippy]
+unused_async = "deny"
 unwrap_used = "deny"
 
 # Compile all dependencies with some optimizations when building this crate on debug

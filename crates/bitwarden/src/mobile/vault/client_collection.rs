@@ -8,7 +8,7 @@ pub struct ClientCollections<'a> {
 }
 
 impl<'a> ClientCollections<'a> {
-    pub async fn decrypt(&self, collection: Collection) -> Result<CollectionView> {
+    pub fn decrypt(&self, collection: Collection) -> Result<CollectionView> {
         let enc = self.client.get_encryption_settings()?;
         let key = collection
             .locate_key(&enc, &None)
@@ -19,7 +19,7 @@ impl<'a> ClientCollections<'a> {
         Ok(view)
     }
 
-    pub async fn decrypt_list(&self, collections: Vec<Collection>) -> Result<Vec<CollectionView>> {
+    pub fn decrypt_list(&self, collections: Vec<Collection>) -> Result<Vec<CollectionView>> {
         let enc = self.client.get_encryption_settings()?;
 
         let views: Result<Vec<CollectionView>> = collections
@@ -59,7 +59,7 @@ mod tests {
             external_id: None,
             hide_passwords: false,
             read_only: false,
-        }]).await.unwrap();
+        }]).unwrap();
 
         assert_eq!(dec[0].name, "Default collection");
     }
@@ -75,7 +75,7 @@ mod tests {
             external_id: None,
             hide_passwords: false,
             read_only: false,
-        }).await.unwrap();
+        }).unwrap();
 
         assert_eq!(dec.name, "Default collection");
     }

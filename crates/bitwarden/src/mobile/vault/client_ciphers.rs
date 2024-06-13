@@ -10,7 +10,7 @@ pub struct ClientCiphers<'a> {
 }
 
 impl<'a> ClientCiphers<'a> {
-    pub async fn encrypt(&self, mut cipher_view: CipherView) -> Result<Cipher> {
+    pub fn encrypt(&self, mut cipher_view: CipherView) -> Result<Cipher> {
         let enc = self.client.get_encryption_settings()?;
 
         // TODO: Once this flag is removed, the key generation logic should
@@ -26,7 +26,7 @@ impl<'a> ClientCiphers<'a> {
         Ok(cipher)
     }
 
-    pub async fn decrypt(&self, cipher: Cipher) -> Result<CipherView> {
+    pub fn decrypt(&self, cipher: Cipher) -> Result<CipherView> {
         let enc = self.client.get_encryption_settings()?;
         let key = cipher
             .locate_key(&enc, &None)
@@ -37,7 +37,7 @@ impl<'a> ClientCiphers<'a> {
         Ok(cipher_view)
     }
 
-    pub async fn decrypt_list(&self, ciphers: Vec<Cipher>) -> Result<Vec<CipherListView>> {
+    pub fn decrypt_list(&self, ciphers: Vec<Cipher>) -> Result<Vec<CipherListView>> {
         let enc = self.client.get_encryption_settings()?;
 
         let cipher_views: Result<Vec<CipherListView>> = ciphers
@@ -51,7 +51,7 @@ impl<'a> ClientCiphers<'a> {
         cipher_views
     }
 
-    pub async fn move_to_organization(
+    pub fn move_to_organization(
         &self,
         mut cipher_view: CipherView,
         organization_id: Uuid,
@@ -114,7 +114,7 @@ mod tests {
                 deleted_date: None,
                 revision_date: "2024-05-31T09:35:55.12Z".parse().unwrap(),
             }])
-            .await
+
             .unwrap();
 
         assert_eq!(dec[0].name, "Test item");
@@ -186,22 +186,13 @@ mod tests {
         let mut cipher = test_cipher();
         cipher.attachments = Some(vec![test_attachment_legacy()]);
 
-        let view = client
-            .vault()
-            .ciphers()
-            .decrypt(cipher.clone())
-            .await
-            .unwrap();
+        let view = client.vault().ciphers().decrypt(cipher.clone()).unwrap();
 
         //  Move cipher to organization
-        let res = client
-            .vault()
-            .ciphers()
-            .move_to_organization(
-                view,
-                "1bc9ac1e-f5aa-45f2-94bf-b181009709b8".parse().unwrap(),
-            )
-            .await;
+        let res = client.vault().ciphers().move_to_organization(
+            view,
+            "1bc9ac1e-f5aa-45f2-94bf-b181009709b8".parse().unwrap(),
+        );
 
         assert!(res.is_err());
     }
@@ -214,20 +205,15 @@ mod tests {
         let attachment = test_attachment_legacy();
         cipher.attachments = Some(vec![attachment.clone()]);
 
-        let view = client
-            .vault()
-            .ciphers()
-            .decrypt(cipher.clone())
-            .await
-            .unwrap();
+        let view = client.vault().ciphers().decrypt(cipher.clone()).unwrap();
 
         assert!(cipher.key.is_none());
 
         // Assert the cipher has a key, and the attachment is still readable
-        let new_cipher = client.vault().ciphers().encrypt(view).await.unwrap();
+        let new_cipher = client.vault().ciphers().encrypt(view).unwrap();
         assert!(new_cipher.key.is_some());
 
-        let view = client.vault().ciphers().decrypt(new_cipher).await.unwrap();
+        let view = client.vault().ciphers().decrypt(new_cipher).unwrap();
         let attachments = view.clone().attachments.unwrap();
         let attachment_view = attachments.first().unwrap().clone();
         assert!(attachment_view.key.is_none());
@@ -245,7 +231,6 @@ mod tests {
             .vault()
             .attachments()
             .decrypt_buffer(cipher, attachment, buf.as_slice())
-            .await
             .unwrap();
 
         assert_eq!(content, b"Hello");
@@ -259,20 +244,15 @@ mod tests {
         let attachment = test_attachment_v2();
         cipher.attachments = Some(vec![attachment.clone()]);
 
-        let view = client
-            .vault()
-            .ciphers()
-            .decrypt(cipher.clone())
-            .await
-            .unwrap();
+        let view = client.vault().ciphers().decrypt(cipher.clone()).unwrap();
 
         assert!(cipher.key.is_none());
 
         // Assert the cipher has a key, and the attachment is still readable
-        let new_cipher = client.vault().ciphers().encrypt(view).await.unwrap();
+        let new_cipher = client.vault().ciphers().encrypt(view).unwrap();
         assert!(new_cipher.key.is_some());
 
-        let view = client.vault().ciphers().decrypt(new_cipher).await.unwrap();
+        let view = client.vault().ciphers().decrypt(new_cipher).unwrap();
         let attachments = view.clone().attachments.unwrap();
         let attachment_view = attachments.first().unwrap().clone();
         assert!(attachment_view.key.is_some());
@@ -296,7 +276,6 @@ mod tests {
             .vault()
             .attachments()
             .decrypt_buffer(cipher, attachment, buf.as_slice())
-            .await
             .unwrap();
 
         assert_eq!(content, b"Hello");
@@ -309,9 +288,8 @@ mod tests {
                 view,
                 "1bc9ac1e-f5aa-45f2-94bf-b181009709b8".parse().unwrap(),
             )
-            .await
             .unwrap();
-        let new_cipher = client.vault().ciphers().encrypt(new_view).await.unwrap();
+        let new_cipher = client.vault().ciphers().encrypt(new_view).unwrap();
 
         let attachment = new_cipher
             .clone()
@@ -331,7 +309,6 @@ mod tests {
             .vault()
             .attachments()
             .decrypt_buffer(new_cipher, attachment, buf.as_slice())
-            .await
             .unwrap();
 
         assert_eq!(content, b"Hello");

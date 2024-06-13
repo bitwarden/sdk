@@ -33,17 +33,17 @@ impl<'a> ClientCrypto<'a> {
     }
 
     #[cfg(feature = "internal")]
-    pub async fn update_password(&self, new_password: String) -> Result<UpdatePasswordResponse> {
+    pub fn update_password(&self, new_password: String) -> Result<UpdatePasswordResponse> {
         update_password(self.client, new_password)
     }
 
     #[cfg(feature = "internal")]
-    pub async fn derive_pin_key(&self, pin: String) -> Result<DerivePinKeyResponse> {
+    pub fn derive_pin_key(&self, pin: String) -> Result<DerivePinKeyResponse> {
         derive_pin_key(self.client, pin)
     }
 
     #[cfg(feature = "internal")]
-    pub async fn derive_pin_user_key(&self, encrypted_pin: EncString) -> Result<EncString> {
+    pub fn derive_pin_user_key(&self, encrypted_pin: EncString) -> Result<EncString> {
         derive_pin_user_key(self.client, encrypted_pin)
     }
 

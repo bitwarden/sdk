@@ -19,21 +19,12 @@ impl ClientCiphers {
             .await
             .vault()
             .ciphers()
-            .encrypt(cipher_view)
-            .await?)
+            .encrypt(cipher_view)?)
     }
 
     /// Decrypt cipher
     pub async fn decrypt(&self, cipher: Cipher) -> Result<CipherView> {
-        Ok(self
-            .0
-             .0
-            .write()
-            .await
-            .vault()
-            .ciphers()
-            .decrypt(cipher)
-            .await?)
+        Ok(self.0 .0.write().await.vault().ciphers().decrypt(cipher)?)
     }
 
     /// Decrypt cipher list
@@ -45,8 +36,7 @@ impl ClientCiphers {
             .await
             .vault()
             .ciphers()
-            .decrypt_list(ciphers)
-            .await?)
+            .decrypt_list(ciphers)?)
     }
 
     /// Move a cipher to an organization, reencrypting the cipher key if necessary
@@ -62,7 +52,6 @@ impl ClientCiphers {
             .await
             .vault()
             .ciphers()
-            .move_to_organization(cipher, organization_id)
-            .await?)
+            .move_to_organization(cipher, organization_id)?)
     }
 }

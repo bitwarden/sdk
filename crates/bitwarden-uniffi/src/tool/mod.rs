@@ -18,26 +18,12 @@ pub struct ClientGenerators(pub(crate) Arc<Client>);
 impl ClientGenerators {
     /// **API Draft:** Generate Password
     pub async fn password(&self, settings: PasswordGeneratorRequest) -> Result<String> {
-        Ok(self
-            .0
-             .0
-            .read()
-            .await
-            .generator()
-            .password(settings)
-            .await?)
+        Ok(self.0 .0.read().await.generator().password(settings)?)
     }
 
     /// **API Draft:** Generate Passphrase
     pub async fn passphrase(&self, settings: PassphraseGeneratorRequest) -> Result<String> {
-        Ok(self
-            .0
-             .0
-            .read()
-            .await
-            .generator()
-            .passphrase(settings)
-            .await?)
+        Ok(self.0 .0.read().await.generator().passphrase(settings)?)
     }
 
     /// **API Draft:** Generate Username
@@ -71,8 +57,7 @@ impl ClientExporters {
             .read()
             .await
             .exporters()
-            .export_vault(folders, ciphers, format)
-            .await?)
+            .export_vault(folders, ciphers, format)?)
     }
 
     /// **API Draft:** Export organization vault
@@ -88,7 +73,6 @@ impl ClientExporters {
             .read()
             .await
             .exporters()
-            .export_organization_vault(collections, ciphers, format)
-            .await?)
+            .export_organization_vault(collections, ciphers, format)?)
     }
 }

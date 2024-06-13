@@ -18,8 +18,7 @@ impl ClientPasswordHistory {
             .await
             .vault()
             .password_history()
-            .encrypt(password_history)
-            .await?)
+            .encrypt(password_history)?)
     }
 
     /// Decrypt password history
@@ -34,7 +33,6 @@ impl ClientPasswordHistory {
             .await
             .vault()
             .password_history()
-            .decrypt_list(list)
-            .await?)
+            .decrypt_list(list)?)
     }
 }

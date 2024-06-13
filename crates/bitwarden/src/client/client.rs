@@ -66,12 +66,18 @@ pub(crate) enum ServiceAccountLoginMethod {
     },
 }
 
+#[derive(Debug, Default, Clone)]
+pub(crate) struct Tokens {
+    access_token: Option<String>,
+    pub(crate) expires_on: Option<i64>,
+
+    pub(crate) refresh_token: Option<String>,
+}
+
 /// The main struct to interact with the Bitwarden SDK.
 #[derive(Debug)]
 pub struct Client {
-    token: RwLock<Option<String>>,
-    pub(crate) refresh_token: RwLock<Option<String>>,
-    pub(crate) token_expires_on: RwLock<Option<i64>>,
+    pub(crate) tokens: RwLock<Tokens>,
     pub(crate) login_method: RwLock<Option<Arc<LoginMethod>>>,
 
     #[cfg(feature = "internal")]
@@ -139,9 +145,7 @@ impl Client {
         };
 
         Self {
-            token: RwLock::new(None),
-            refresh_token: RwLock::new(None),
-            token_expires_on: RwLock::new(None),
+            tokens: RwLock::new(Tokens::default()),
             login_method: RwLock::new(None),
             #[cfg(feature = "internal")]
             flags: RwLock::new(Flags::default()),
@@ -219,13 +223,11 @@ impl Client {
     }
 
     pub(crate) fn set_tokens(&self, token: String, refresh_token: Option<String>, expires_in: u64) {
-        *self.token.write().expect("RwLock is not poisoned") = Some(token.clone());
-        *self.refresh_token.write().expect("RwLock is not poisoned") = refresh_token;
-        *self
-            .token_expires_on
-            .write()
-            .expect("RwLock is not poisoned") = Some(Utc::now().timestamp() + expires_in as i64);
-
+        *self.tokens.write().expect("RwLock is not poisoned") = Tokens {
+            access_token: Some(token.clone()),
+            expires_on: Some(Utc::now().timestamp() + expires_in as i64),
+            refresh_token,
+        };
         let mut guard = self
             .__api_configurations
             .write()
@@ -240,12 +242,19 @@ impl Client {
 
     #[cfg(feature = "internal")]
     pub fn is_authed(&self) -> bool {
-        self.token.read().expect("RwLock is not poisoned").is_some()
-            || self
-                .login_method
-                .read()
-                .expect("RwLock is not poisoned")
-                .is_some()
+        let is_token_set = self
+            .tokens
+            .read()
+            .expect("RwLock is not poisoned")
+            .access_token
+            .is_some();
+        let is_login_method_set = self
+            .login_method
+            .read()
+            .expect("RwLock is not poisoned")
+            .is_some();
+
+        is_token_set || is_login_method_set
     }
 
     #[cfg(feature = "internal")]

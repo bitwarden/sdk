@@ -12,17 +12,18 @@ use crate::{
 pub(crate) async fn renew_token(client: &Client) -> Result<()> {
     const TOKEN_RENEW_MARGIN_SECONDS: i64 = 5 * 60;
 
-    let expires = *client
-        .token_expires_on
+    let tokens = client
+        .tokens
         .read()
-        .expect("RwLock is not poisoned");
+        .expect("RwLock is not poisoned")
+        .clone();
     let login_method = client
         .login_method
         .read()
         .expect("RwLock is not poisoned")
         .clone();
 
-    if let (Some(expires), Some(login_method)) = (expires, login_method) {
+    if let (Some(expires), Some(login_method)) = (tokens.expires_on, login_method) {
         if Utc::now().timestamp() < expires - TOKEN_RENEW_MARGIN_SECONDS {
             return Ok(());
         }
@@ -37,12 +38,7 @@ pub(crate) async fn renew_token(client: &Client) -> Result<()> {
             #[cfg(feature = "internal")]
             LoginMethod::User(u) => match u {
                 UserLoginMethod::Username { client_id, .. } => {
-                    let refresh = client
-                        .refresh_token
-                        .read()
-                        .expect("RwLock is not poisoned")
-                        .clone()
-                        .ok_or(Error::NotAuthenticated)?;
+                    let refresh = tokens.refresh_token.ok_or(Error::NotAuthenticated)?;
 
                     crate::auth::api::request::RenewTokenRequest::new(refresh, client_id.to_owned())
                         .send(&config)

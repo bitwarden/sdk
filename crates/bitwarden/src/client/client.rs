@@ -211,12 +211,12 @@ impl Client {
         }
     }
 
-    pub(crate) fn get_encryption_settings(&self) -> Result<Arc<EncryptionSettings>> {
+    pub(crate) fn get_encryption_settings(&self) -> Result<Arc<EncryptionSettings>, VaultLocked> {
         self.encryption_settings
             .read()
             .expect("RwLock is not poisoned")
             .clone()
-            .ok_or(VaultLocked.into())
+            .ok_or(VaultLocked)
     }
 
     pub(crate) fn set_login_method(&self, login_method: LoginMethod) {

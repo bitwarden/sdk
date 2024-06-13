@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use bitwarden::{
+    error::Error,
     platform::fido2::{
         CheckUserOptions, ClientData, Fido2CallbackError as BitFido2CallbackError,
         GetAssertionRequest, GetAssertionResult, MakeCredentialRequest, MakeCredentialResult,
@@ -60,9 +61,12 @@ impl ClientFido2Authenticator {
         let fido2 = platform.fido2();
         let ui = UniffiTraitBridge(self.1.as_ref());
         let cs = UniffiTraitBridge(self.2.as_ref());
-        let mut auth = fido2.create_authenticator(&ui, &cs)?;
+        let mut auth = fido2.create_authenticator(&ui, &cs);
 
-        let result = auth.make_credential(request).await?;
+        let result = auth
+            .make_credential(request)
+            .await
+            .map_err(Error::MakeCredential)?;
         Ok(result)
     }
 
@@ -71,9 +75,12 @@ impl ClientFido2Authenticator {
         let fido2 = platform.fido2();
         let ui = UniffiTraitBridge(self.1.as_ref());
         let cs = UniffiTraitBridge(self.2.as_ref());
-        let mut auth = fido2.create_authenticator(&ui, &cs)?;
+        let mut auth = fido2.create_authenticator(&ui, &cs);
 
-        let result = auth.get_assertion(request).await?;
+        let result = auth
+            .get_assertion(request)
+            .await
+            .map_err(Error::GetAssertion)?;
         Ok(result)
     }
 
@@ -85,9 +92,12 @@ impl ClientFido2Authenticator {
         let fido2 = platform.fido2();
         let ui = UniffiTraitBridge(self.1.as_ref());
         let cs = UniffiTraitBridge(self.2.as_ref());
-        let mut auth = fido2.create_authenticator(&ui, &cs)?;
+        let mut auth = fido2.create_authenticator(&ui, &cs);
 
-        let result = auth.silently_discover_credentials(rp_id).await?;
+        let result = auth
+            .silently_discover_credentials(rp_id)
+            .await
+            .map_err(Error::SilentlyDiscoverCredentials)?;
         Ok(result)
     }
 }
@@ -107,9 +117,12 @@ impl ClientFido2Client {
         let fido2 = platform.fido2();
         let ui = UniffiTraitBridge(self.0 .1.as_ref());
         let cs = UniffiTraitBridge(self.0 .2.as_ref());
-        let mut client = fido2.create_client(&ui, &cs)?;
+        let mut client = fido2.create_client(&ui, &cs);
 
-        let result = client.register(origin, request, client_data).await?;
+        let result = client
+            .register(origin, request, client_data)
+            .await
+            .map_err(Error::Fido2Client)?;
         Ok(result)
     }
 
@@ -123,9 +136,12 @@ impl ClientFido2Client {
         let fido2 = platform.fido2();
         let ui = UniffiTraitBridge(self.0 .1.as_ref());
         let cs = UniffiTraitBridge(self.0 .2.as_ref());
-        let mut client = fido2.create_client(&ui, &cs)?;
+        let mut client = fido2.create_client(&ui, &cs);
 
-        let result = client.authenticate(origin, request, client_data).await?;
+        let result = client
+            .authenticate(origin, request, client_data)
+            .await
+            .map_err(Error::Fido2Client)?;
         Ok(result)
     }
 }

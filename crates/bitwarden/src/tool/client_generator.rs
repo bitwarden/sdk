@@ -27,12 +27,12 @@ impl<'a> ClientGenerator<'a> {
     ///         length: 20,
     ///         ..Default::default()
     ///     };
-    ///     let password = Client::new(None).generator().password(input).await.unwrap();
+    ///     let password = Client::new(None).generator().password(input).unwrap();
     ///     println!("{}", password);
     ///     Ok(())
     /// }
     /// ```
-    pub async fn password(&self, input: PasswordGeneratorRequest) -> Result<String> {
+    pub fn password(&self, input: PasswordGeneratorRequest) -> Result<String> {
         Ok(password(input)?)
     }
 
@@ -52,12 +52,12 @@ impl<'a> ClientGenerator<'a> {
     ///         num_words: 4,
     ///         ..Default::default()
     ///     };
-    ///     let passphrase = Client::new(None).generator().passphrase(input).await.unwrap();
+    ///     let passphrase = Client::new(None).generator().passphrase(input).unwrap();
     ///     println!("{}", passphrase);
     ///     Ok(())
     /// }
     /// ```
-    pub async fn passphrase(&self, input: PassphraseGeneratorRequest) -> Result<String> {
+    pub fn passphrase(&self, input: PassphraseGeneratorRequest) -> Result<String> {
         Ok(passphrase(input)?)
     }
 

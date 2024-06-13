@@ -18,8 +18,7 @@ impl ClientCollections {
             .await
             .vault()
             .collections()
-            .decrypt(collection)
-            .await?)
+            .decrypt(collection)?)
     }
 
     /// Decrypt collection list
@@ -31,7 +30,6 @@ impl ClientCollections {
             .await
             .vault()
             .collections()
-            .decrypt_list(collections)
-            .await?)
+            .decrypt_list(collections)?)
     }
 }

@@ -26,7 +26,6 @@ impl ClientAuth {
             .await
             .auth()
             .password_strength(password, email, additional_inputs)
-            .await
     }
 
     /// Evaluate if the provided password satisfies the provided policy
@@ -42,7 +41,6 @@ impl ClientAuth {
             .await
             .auth()
             .satisfies_policy(password, strength, &policy)
-            .await
     }
 
     /// Hash the user password

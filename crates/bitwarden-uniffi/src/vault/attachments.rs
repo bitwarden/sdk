@@ -23,8 +23,7 @@ impl ClientAttachments {
             .await
             .vault()
             .attachments()
-            .encrypt_buffer(cipher, attachment, &buffer)
-            .await?)
+            .encrypt_buffer(cipher, attachment, &buffer)?)
     }
 
     /// Encrypt an attachment file located in the file system
@@ -35,20 +34,12 @@ impl ClientAttachments {
         decrypted_file_path: String,
         encrypted_file_path: String,
     ) -> Result<Attachment> {
-        Ok(self
-            .0
-             .0
-            .write()
-            .await
-            .vault()
-            .attachments()
-            .encrypt_file(
-                cipher,
-                attachment,
-                Path::new(&decrypted_file_path),
-                Path::new(&encrypted_file_path),
-            )
-            .await?)
+        Ok(self.0 .0.write().await.vault().attachments().encrypt_file(
+            cipher,
+            attachment,
+            Path::new(&decrypted_file_path),
+            Path::new(&encrypted_file_path),
+        )?)
     }
     /// Decrypt an attachment file in memory
     pub async fn decrypt_buffer(
@@ -64,8 +55,7 @@ impl ClientAttachments {
             .await
             .vault()
             .attachments()
-            .decrypt_buffer(cipher, attachment, &buffer)
-            .await?)
+            .decrypt_buffer(cipher, attachment, &buffer)?)
     }
 
     /// Decrypt an attachment file located in the file system
@@ -76,19 +66,11 @@ impl ClientAttachments {
         encrypted_file_path: String,
         decrypted_file_path: String,
     ) -> Result<()> {
-        Ok(self
-            .0
-             .0
-            .write()
-            .await
-            .vault()
-            .attachments()
-            .decrypt_file(
-                cipher,
-                attachment,
-                Path::new(&encrypted_file_path),
-                Path::new(&decrypted_file_path),
-            )
-            .await?)
+        Ok(self.0 .0.write().await.vault().attachments().decrypt_file(
+            cipher,
+            attachment,
+            Path::new(&encrypted_file_path),
+            Path::new(&decrypted_file_path),
+        )?)
     }
 }

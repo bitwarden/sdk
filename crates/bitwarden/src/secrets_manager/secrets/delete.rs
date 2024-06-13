@@ -16,7 +16,7 @@ pub struct SecretsDeleteRequest {
 }
 
 pub(crate) async fn delete_secrets(
-    client: &mut Client,
+    client: &Client,
     input: SecretsDeleteRequest,
 ) -> Result<SecretsDeleteResponse> {
     let config = client.get_api_configurations().await;

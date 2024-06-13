@@ -180,7 +180,7 @@ mod tests {
         use crate::{auth::login::AccessTokenLoginRequest, secrets_manager::secrets::*};
 
         // Create the mock server with the necessary routes for this test
-        let (_server, mut client) = crate::util::start_mock(vec![
+        let (_server, client) = crate::util::start_mock(vec![
             Mock::given(matchers::path("/identity/connect/token"))
             .respond_with(ResponseTemplate::new(200).set_body_json(
                 serde_json::json!({

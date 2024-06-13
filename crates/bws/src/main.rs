@@ -125,7 +125,7 @@ async fn process_commands() -> Result<()> {
         access_token_obj.access_token_id.to_string(),
     )?;
 
-    let mut client = bitwarden::Client::new(settings);
+    let client = bitwarden::Client::new(settings);
 
     // Load session or return if no session exists
     let _ = client

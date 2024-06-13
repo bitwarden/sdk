@@ -7,10 +7,10 @@ use crate::{Client, Result};
 #[derive(uniffi::Object)]
 pub struct ClientPasswordHistory(pub Arc<Client>);
 
-#[uniffi::export(async_runtime = "tokio")]
+#[uniffi::export]
 impl ClientPasswordHistory {
     /// Encrypt password history
-    pub async fn encrypt(&self, password_history: PasswordHistoryView) -> Result<PasswordHistory> {
+    pub fn encrypt(&self, password_history: PasswordHistoryView) -> Result<PasswordHistory> {
         Ok(self
             .0
              .0
@@ -20,10 +20,7 @@ impl ClientPasswordHistory {
     }
 
     /// Decrypt password history
-    pub async fn decrypt_list(
-        &self,
-        list: Vec<PasswordHistory>,
-    ) -> Result<Vec<PasswordHistoryView>> {
+    pub fn decrypt_list(&self, list: Vec<PasswordHistory>) -> Result<Vec<PasswordHistoryView>> {
         Ok(self.0 .0.vault().password_history().decrypt_list(list)?)
     }
 }

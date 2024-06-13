@@ -7,10 +7,10 @@ use crate::{Client, Result};
 #[derive(uniffi::Object)]
 pub struct ClientAttachments(pub Arc<Client>);
 
-#[uniffi::export(async_runtime = "tokio")]
+#[uniffi::export]
 impl ClientAttachments {
     /// Encrypt an attachment file in memory
-    pub async fn encrypt_buffer(
+    pub fn encrypt_buffer(
         &self,
         cipher: Cipher,
         attachment: AttachmentView,
@@ -25,7 +25,7 @@ impl ClientAttachments {
     }
 
     /// Encrypt an attachment file located in the file system
-    pub async fn encrypt_file(
+    pub fn encrypt_file(
         &self,
         cipher: Cipher,
         attachment: AttachmentView,
@@ -40,7 +40,7 @@ impl ClientAttachments {
         )?)
     }
     /// Decrypt an attachment file in memory
-    pub async fn decrypt_buffer(
+    pub fn decrypt_buffer(
         &self,
         cipher: Cipher,
         attachment: Attachment,
@@ -55,7 +55,7 @@ impl ClientAttachments {
     }
 
     /// Decrypt an attachment file located in the file system
-    pub async fn decrypt_file(
+    pub fn decrypt_file(
         &self,
         cipher: Cipher,
         attachment: Attachment,

@@ -8,25 +8,25 @@ use crate::{Client, Result};
 #[derive(uniffi::Object)]
 pub struct ClientCiphers(pub Arc<Client>);
 
-#[uniffi::export(async_runtime = "tokio")]
+#[uniffi::export]
 impl ClientCiphers {
     /// Encrypt cipher
-    pub async fn encrypt(&self, cipher_view: CipherView) -> Result<Cipher> {
+    pub fn encrypt(&self, cipher_view: CipherView) -> Result<Cipher> {
         Ok(self.0 .0.vault().ciphers().encrypt(cipher_view)?)
     }
 
     /// Decrypt cipher
-    pub async fn decrypt(&self, cipher: Cipher) -> Result<CipherView> {
+    pub fn decrypt(&self, cipher: Cipher) -> Result<CipherView> {
         Ok(self.0 .0.vault().ciphers().decrypt(cipher)?)
     }
 
     /// Decrypt cipher list
-    pub async fn decrypt_list(&self, ciphers: Vec<Cipher>) -> Result<Vec<CipherListView>> {
+    pub fn decrypt_list(&self, ciphers: Vec<Cipher>) -> Result<Vec<CipherListView>> {
         Ok(self.0 .0.vault().ciphers().decrypt_list(ciphers)?)
     }
 
     /// Move a cipher to an organization, reencrypting the cipher key if necessary
-    pub async fn move_to_organization(
+    pub fn move_to_organization(
         &self,
         cipher: CipherView,
         organization_id: Uuid,

@@ -71,6 +71,14 @@ arch_detect() {
   fi
 }
 
+checksum() {
+  if command -v sha256sum >/dev/null; then
+    sha256sum "$1"
+  else
+    shasum -a 256 "$1"
+  fi
+}
+
 downloader() {
   if command -v curl >/dev/null; then
     curl -L -o "$2" "$1"
@@ -97,7 +105,7 @@ validate_checksum() {
   downloader "$checksum_url" "$checksum_file"
 
   expected_checksum="$(grep "bws-${ARCH}-${PLATFORM}-${BWS_VERSION}.zip" "$checksum_file" | awk '{print $1}')"
-  actual_checksum="$(sha256sum "$tmp_dir/bws.zip" | awk '{print $1}')"
+  actual_checksum="$(checksum "$tmp_dir/bws.zip" | awk '{print $1}')"
 
   if [ "$actual_checksum" != "$expected_checksum" ]; then
     error "Checksum validation failed. Expected: $expected_checksum, Actual: $actual_checksum"

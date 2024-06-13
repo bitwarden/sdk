@@ -68,9 +68,14 @@ pub(crate) enum ServiceAccountLoginMethod {
 
 #[derive(Debug, Default, Clone)]
 pub(crate) struct Tokens {
+    // These two fields are always written to, but they are not read
+    // from the secrets manager SDK. 
+
+    #[cfg_attr(not(feature = "internal"), allow(dead_code))]
     access_token: Option<String>,
     pub(crate) expires_on: Option<i64>,
 
+    #[cfg_attr(not(feature = "internal"), allow(dead_code))]
     pub(crate) refresh_token: Option<String>,
 }
 
@@ -240,7 +245,6 @@ impl Client {
         *guard = Arc::new(inner);
     }
 
-    #[cfg(feature = "internal")]
     pub fn is_authed(&self) -> bool {
         let is_token_set = self
             .tokens

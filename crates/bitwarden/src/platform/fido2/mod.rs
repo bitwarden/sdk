@@ -3,9 +3,9 @@ use std::sync::Mutex;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use bitwarden_crypto::KeyContainer;
 use bitwarden_vault::{
-    CipherView, Fido2CredentialFullView, Fido2CredentialNewView, Fido2CredentialView,
+    CipherError, CipherView, Fido2CredentialFullView, Fido2CredentialNewView, Fido2CredentialView,
 };
-use crypto::PrivateKeyFromSecretKeyError;
+use crypto::{CoseKeyToPkcs8Error, PrivateKeyFromSecretKeyError};
 use passkey::types::{ctap2::Aaguid, Passkey};
 
 mod authenticator;
@@ -14,8 +14,10 @@ mod crypto;
 mod traits;
 mod types;
 
-pub use authenticator::Fido2Authenticator;
-pub use client::Fido2Client;
+pub use authenticator::{
+    Fido2Authenticator, GetAssertionError, MakeCredentialError, SilentlyDiscoverCredentialsError,
+};
+pub use client::{Fido2Client, Fido2ClientError};
 pub use passkey::authenticator::UIHint;
 use thiserror::Error;
 pub use traits::{
@@ -31,10 +33,7 @@ pub use types::{
 };
 
 use self::crypto::{cose_key_to_pkcs8, pkcs8_to_cose_key};
-use crate::{
-    error::{Error, Result},
-    Client,
-};
+use crate::Client;
 
 // This is the AAGUID for the Bitwarden Passkey provider (d548826e-79b4-db40-a3d8-11116f7e8349)
 // It is used for the Relaying Parties to identify the authenticator during registration
@@ -50,28 +49,26 @@ pub struct ClientFido2<'a> {
 impl<'a> ClientFido2<'a> {
     pub fn create_authenticator(
         &'a mut self,
-
         user_interface: &'a dyn Fido2UserInterface,
         credential_store: &'a dyn Fido2CredentialStore,
-    ) -> Result<Fido2Authenticator<'a>> {
-        Ok(Fido2Authenticator {
+    ) -> Fido2Authenticator<'a> {
+        Fido2Authenticator {
             client: self.client,
             user_interface,
             credential_store,
             selected_cipher: Mutex::new(None),
             requested_uv: Mutex::new(None),
-        })
+        }
     }
 
     pub fn create_client(
         &'a mut self,
-
         user_interface: &'a dyn Fido2UserInterface,
         credential_store: &'a dyn Fido2CredentialStore,
-    ) -> Result<Fido2Client<'a>> {
-        Ok(Fido2Client {
-            authenticator: self.create_authenticator(user_interface, credential_store)?,
-        })
+    ) -> Fido2Client<'a> {
+        Fido2Client {
+            authenticator: self.create_authenticator(user_interface, credential_store),
+        }
     }
 }
 
@@ -91,7 +88,7 @@ pub(crate) struct CipherViewContainer {
 }
 
 impl CipherViewContainer {
-    fn new(cipher: CipherView, enc: &dyn KeyContainer) -> Result<Self> {
+    fn new(cipher: CipherView, enc: &dyn KeyContainer) -> Result<Self, CipherError> {
         let fido2_credentials = cipher.get_fido2_credentials(enc)?;
         Ok(Self {
             cipher,
@@ -143,10 +140,18 @@ fn try_from_credential_full_view(value: Fido2CredentialFullView) -> Result<Passk
     })
 }
 
+#[derive(Debug, Error)]
+pub enum FillCredentialError {
+    #[error(transparent)]
+    InvalidInputLength(#[from] InvalidInputLength),
+    #[error(transparent)]
+    CoseKeyToPkcs8Error(#[from] CoseKeyToPkcs8Error),
+}
+
 pub fn fill_with_credential(
     view: &Fido2CredentialView,
     value: Passkey,
-) -> Result<Fido2CredentialFullView> {
+) -> Result<Fido2CredentialFullView, FillCredentialError> {
     let cred_id: Vec<u8> = value.credential_id.into();
 
     Ok(Fido2CredentialFullView {
@@ -154,7 +159,7 @@ pub fn fill_with_credential(
         key_type: "public-key".to_owned(),
         key_algorithm: "ECDSA".to_owned(),
         key_curve: "P-256".to_owned(),
-        key_value: cose_key_to_pkcs8(&value.key).map_err(|e| e.to_string())?,
+        key_value: cose_key_to_pkcs8(&value.key)?,
         rp_id: value.rp_id,
         rp_name: view.rp_name.clone(),
         user_handle: Some(cred_id),
@@ -170,7 +175,7 @@ pub fn fill_with_credential(
 pub(crate) fn try_from_credential_new_view(
     user: &passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
     rp: &passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
-) -> Result<Fido2CredentialNewView> {
+) -> Result<Fido2CredentialNewView, InvalidInputLength> {
     let cred_id: Vec<u8> = vec![0; 16];
 
     Ok(Fido2CredentialNewView {
@@ -194,7 +199,7 @@ pub(crate) fn try_from_credential_full(
     value: Passkey,
     user: passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
     rp: passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
-) -> Result<Fido2CredentialFullView> {
+) -> Result<Fido2CredentialFullView, FillCredentialError> {
     let cred_id: Vec<u8> = value.credential_id.into();
 
     Ok(Fido2CredentialFullView {
@@ -202,7 +207,7 @@ pub(crate) fn try_from_credential_full(
         key_type: "public-key".to_owned(),
         key_algorithm: "ECDSA".to_owned(),
         key_curve: "P-256".to_owned(),
-        key_value: cose_key_to_pkcs8(&value.key).map_err(|e| e.to_string())?,
+        key_value: cose_key_to_pkcs8(&value.key)?,
         rp_id: value.rp_id,
         rp_name: rp.name,
         user_handle: Some(cred_id),
@@ -215,9 +220,13 @@ pub(crate) fn try_from_credential_full(
     })
 }
 
-pub fn guid_bytes_to_string(source: &[u8]) -> Result<String> {
+#[derive(Debug, Error)]
+#[error("Input should be a 16 byte array")]
+pub struct InvalidInputLength;
+
+pub fn guid_bytes_to_string(source: &[u8]) -> Result<String, InvalidInputLength> {
     if source.len() != 16 {
-        return Err(Error::Internal("Input should be a 16 byte array".into()));
+        return Err(InvalidInputLength);
     }
     Ok(uuid::Uuid::from_bytes(source.try_into().expect("Invalid length")).to_string())
 }

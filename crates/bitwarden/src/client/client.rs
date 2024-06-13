@@ -188,8 +188,8 @@ impl Client {
         }
     }
 
-    pub(crate) fn get_encryption_settings(&self) -> Result<&EncryptionSettings> {
-        self.encryption_settings.as_ref().ok_or(VaultLocked.into())
+    pub(crate) fn get_encryption_settings(&self) -> Result<&EncryptionSettings, VaultLocked> {
+        self.encryption_settings.as_ref().ok_or(VaultLocked)
     }
 
     pub(crate) fn set_login_method(&mut self, login_method: LoginMethod) {

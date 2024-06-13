@@ -1,6 +1,9 @@
+use passkey::client::WebauthnError;
 use reqwest::Url;
+use thiserror::Error;
 
 use super::{
+    authenticator::GetSelectedCredentialError,
     get_string_name_from_enum,
     types::{
         AuthenticatorAssertionResponse, AuthenticatorAttestationResponse, ClientData,
@@ -9,7 +12,29 @@ use super::{
     Fido2Authenticator, PublicKeyCredentialAuthenticatorAssertionResponse,
     PublicKeyCredentialAuthenticatorAttestationResponse,
 };
-use crate::error::Result;
+
+#[derive(Debug, Error)]
+#[error("Invalid origin: {0}")]
+pub struct InvalidOriginError(String);
+
+#[derive(Debug, Error)]
+pub enum Fido2ClientError {
+    #[error(transparent)]
+    InvalidOrigin(#[from] InvalidOriginError),
+    #[error(transparent)]
+    Serde(#[from] serde_json::Error),
+    #[error(transparent)]
+    GetSelectedCredentialError(#[from] GetSelectedCredentialError),
+
+    #[error("Webauthn error: {0:?}")]
+    Webauthn(WebauthnError),
+}
+
+impl From<WebauthnError> for Fido2ClientError {
+    fn from(e: WebauthnError) -> Self {
+        Self::Webauthn(e)
+    }
+}
 
 pub struct Fido2Client<'a> {
     pub(crate) authenticator: Fido2Authenticator<'a>,
@@ -21,8 +46,8 @@ impl<'a> Fido2Client<'a> {
         origin: String,
         request: String,
         client_data: ClientData,
-    ) -> Result<PublicKeyCredentialAuthenticatorAttestationResponse> {
-        let origin = Url::parse(&origin).map_err(|e| format!("Invalid origin: {}", e))?;
+    ) -> Result<PublicKeyCredentialAuthenticatorAttestationResponse, Fido2ClientError> {
+        let origin = Url::parse(&origin).map_err(|e| InvalidOriginError(format!("{}", e)))?;
 
         let request: passkey::types::webauthn::CredentialCreationOptions =
             serde_json::from_str(&request)?;
@@ -76,8 +101,8 @@ impl<'a> Fido2Client<'a> {
         origin: String,
         request: String,
         client_data: ClientData,
-    ) -> Result<PublicKeyCredentialAuthenticatorAssertionResponse> {
-        let origin = Url::parse(&origin).map_err(|e| format!("Invalid origin: {}", e))?;
+    ) -> Result<PublicKeyCredentialAuthenticatorAssertionResponse, Fido2ClientError> {
+        let origin = Url::parse(&origin).map_err(|e| InvalidOriginError(format!("{}", e)))?;
 
         let request: passkey::types::webauthn::CredentialRequestOptions =
             serde_json::from_str(&request)?;

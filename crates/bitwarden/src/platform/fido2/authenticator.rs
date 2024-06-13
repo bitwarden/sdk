@@ -77,7 +77,7 @@ pub enum SilentlyDiscoverCredentialsError {
 }
 
 pub struct Fido2Authenticator<'a> {
-    pub(crate) client: &'a mut Client,
+    pub(crate) client: &'a Client,
     pub(crate) user_interface: &'a dyn Fido2UserInterface,
     pub(crate) credential_store: &'a dyn Fido2CredentialStore,
 
@@ -225,7 +225,7 @@ impl<'a> Fido2Authenticator<'a> {
 
         Ok(result
             .into_iter()
-            .flat_map(|c| c.decrypt_fido2_credentials(enc))
+            .flat_map(|c| c.decrypt_fido2_credentials(&enc))
             .flatten()
             .collect())
     }
@@ -268,7 +268,7 @@ impl<'a> Fido2Authenticator<'a> {
             .clone()
             .ok_or(GetSelectedCredentialError::NoSelectedCredential)?;
 
-        let creds = cipher.decrypt_fido2_credentials(enc)?;
+        let creds = cipher.decrypt_fido2_credentials(&enc)?;
 
         let credential = creds
             .first()
@@ -339,7 +339,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             if this.create_credential {
                 Ok(creds
                     .into_iter()
-                    .map(|c| CipherViewContainer::new(c, enc))
+                    .map(|c| CipherViewContainer::new(c, &enc))
                     .collect::<Result<_, _>>()?)
             } else {
                 let picked = this
@@ -355,7 +355,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                     .expect("Mutex is not poisoned")
                     .replace(picked.clone());
 
-                Ok(vec![CipherViewContainer::new(picked, enc)?])
+                Ok(vec![CipherViewContainer::new(picked, &enc)?])
             }
         }
 
@@ -411,7 +411,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                 .clone()
                 .ok_or(InnerError::NoSelectedCredential)?;
 
-            selected.set_new_fido2_credentials(enc, vec![cred])?;
+            selected.set_new_fido2_credentials(&enc, vec![cred])?;
 
             // Store the updated credential for later use
             this.authenticator
@@ -481,7 +481,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             let cred = fill_with_credential(&selected.credential, cred)?;
 
             let mut selected = selected.cipher;
-            selected.set_new_fido2_credentials(enc, vec![cred])?;
+            selected.set_new_fido2_credentials(&enc, vec![cred])?;
 
             // Store the updated credential for later use
             this.authenticator

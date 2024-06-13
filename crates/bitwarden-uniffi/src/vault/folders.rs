@@ -7,27 +7,20 @@ use crate::{Client, Result};
 #[derive(uniffi::Object)]
 pub struct ClientFolders(pub Arc<Client>);
 
-#[uniffi::export(async_runtime = "tokio")]
+#[uniffi::export]
 impl ClientFolders {
     /// Encrypt folder
-    pub async fn encrypt(&self, folder: FolderView) -> Result<Folder> {
-        Ok(self.0 .0.write().await.vault().folders().encrypt(folder)?)
+    pub fn encrypt(&self, folder: FolderView) -> Result<Folder> {
+        Ok(self.0 .0.vault().folders().encrypt(folder)?)
     }
 
     /// Decrypt folder
-    pub async fn decrypt(&self, folder: Folder) -> Result<FolderView> {
-        Ok(self.0 .0.write().await.vault().folders().decrypt(folder)?)
+    pub fn decrypt(&self, folder: Folder) -> Result<FolderView> {
+        Ok(self.0 .0.vault().folders().decrypt(folder)?)
     }
 
     /// Decrypt folder list
-    pub async fn decrypt_list(&self, folders: Vec<Folder>) -> Result<Vec<FolderView>> {
-        Ok(self
-            .0
-             .0
-            .write()
-            .await
-            .vault()
-            .folders()
-            .decrypt_list(folders)?)
+    pub fn decrypt_list(&self, folders: Vec<Folder>) -> Result<Vec<FolderView>> {
+        Ok(self.0 .0.vault().folders().decrypt_list(folders)?)
     }
 }

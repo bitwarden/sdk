@@ -7,32 +7,26 @@ use crate::{Client, Result};
 #[derive(uniffi::Object)]
 pub struct ClientSends(pub Arc<Client>);
 
-#[uniffi::export(async_runtime = "tokio")]
+#[uniffi::export]
 impl ClientSends {
     /// Encrypt send
-    pub async fn encrypt(&self, send: SendView) -> Result<Send> {
-        Ok(self.0 .0.write().await.sends().encrypt(send)?)
+    pub fn encrypt(&self, send: SendView) -> Result<Send> {
+        Ok(self.0 .0.sends().encrypt(send)?)
     }
 
     /// Encrypt a send file in memory
-    pub async fn encrypt_buffer(&self, send: Send, buffer: Vec<u8>) -> Result<Vec<u8>> {
-        Ok(self
-            .0
-             .0
-            .write()
-            .await
-            .sends()
-            .encrypt_buffer(send, &buffer)?)
+    pub fn encrypt_buffer(&self, send: Send, buffer: Vec<u8>) -> Result<Vec<u8>> {
+        Ok(self.0 .0.sends().encrypt_buffer(send, &buffer)?)
     }
 
     /// Encrypt a send file located in the file system
-    pub async fn encrypt_file(
+    pub fn encrypt_file(
         &self,
         send: Send,
         decrypted_file_path: String,
         encrypted_file_path: String,
     ) -> Result<()> {
-        Ok(self.0 .0.write().await.sends().encrypt_file(
+        Ok(self.0 .0.sends().encrypt_file(
             send,
             Path::new(&decrypted_file_path),
             Path::new(&encrypted_file_path),
@@ -40,34 +34,28 @@ impl ClientSends {
     }
 
     /// Decrypt send
-    pub async fn decrypt(&self, send: Send) -> Result<SendView> {
-        Ok(self.0 .0.write().await.sends().decrypt(send)?)
+    pub fn decrypt(&self, send: Send) -> Result<SendView> {
+        Ok(self.0 .0.sends().decrypt(send)?)
     }
 
     /// Decrypt send list
-    pub async fn decrypt_list(&self, sends: Vec<Send>) -> Result<Vec<SendListView>> {
-        Ok(self.0 .0.write().await.sends().decrypt_list(sends)?)
+    pub fn decrypt_list(&self, sends: Vec<Send>) -> Result<Vec<SendListView>> {
+        Ok(self.0 .0.sends().decrypt_list(sends)?)
     }
 
     /// Decrypt a send file in memory
-    pub async fn decrypt_buffer(&self, send: Send, buffer: Vec<u8>) -> Result<Vec<u8>> {
-        Ok(self
-            .0
-             .0
-            .write()
-            .await
-            .sends()
-            .decrypt_buffer(send, &buffer)?)
+    pub fn decrypt_buffer(&self, send: Send, buffer: Vec<u8>) -> Result<Vec<u8>> {
+        Ok(self.0 .0.sends().decrypt_buffer(send, &buffer)?)
     }
 
     /// Decrypt a send file located in the file system
-    pub async fn decrypt_file(
+    pub fn decrypt_file(
         &self,
         send: Send,
         encrypted_file_path: String,
         decrypted_file_path: String,
     ) -> Result<()> {
-        Ok(self.0 .0.write().await.sends().decrypt_file(
+        Ok(self.0 .0.sends().decrypt_file(
             send,
             Path::new(&encrypted_file_path),
             Path::new(&decrypted_file_path),

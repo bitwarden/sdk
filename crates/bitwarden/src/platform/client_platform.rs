@@ -8,7 +8,7 @@ use super::{
 use crate::{error::Result, Client};
 
 pub struct ClientPlatform<'a> {
-    pub(crate) client: &'a mut Client,
+    pub(crate) client: &'a Client,
 }
 
 impl<'a> ClientPlatform<'a> {
@@ -28,7 +28,7 @@ impl<'a> ClientPlatform<'a> {
     }
 
     #[cfg(feature = "uniffi")]
-    pub fn fido2(&'a mut self) -> ClientFido2<'a> {
+    pub fn fido2(&'a self) -> ClientFido2<'a> {
         ClientFido2 {
             client: self.client,
         }
@@ -36,7 +36,7 @@ impl<'a> ClientPlatform<'a> {
 }
 
 impl<'a> Client {
-    pub fn platform(&'a mut self) -> ClientPlatform<'a> {
+    pub fn platform(&'a self) -> ClientPlatform<'a> {
         ClientPlatform { client: self }
     }
 }

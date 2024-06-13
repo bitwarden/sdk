@@ -57,10 +57,8 @@ impl ClientFido2Authenticator {
         &self,
         request: MakeCredentialRequest,
     ) -> Result<MakeCredentialResult> {
-        let mut client = self.0 .0.write().await;
-
-        let mut platform = client.platform();
-        let mut fido2 = platform.fido2();
+        let platform = self.0 .0.platform();
+        let fido2 = platform.fido2();
         let ui = UniffiTraitBridge(self.1.as_ref());
         let cs = UniffiTraitBridge(self.2.as_ref());
         let mut auth = fido2.create_authenticator(&ui, &cs);
@@ -73,10 +71,8 @@ impl ClientFido2Authenticator {
     }
 
     pub async fn get_assertion(&self, request: GetAssertionRequest) -> Result<GetAssertionResult> {
-        let mut client = self.0 .0.write().await;
-
-        let mut platform = client.platform();
-        let mut fido2 = platform.fido2();
+        let platform = self.0 .0.platform();
+        let fido2 = platform.fido2();
         let ui = UniffiTraitBridge(self.1.as_ref());
         let cs = UniffiTraitBridge(self.2.as_ref());
         let mut auth = fido2.create_authenticator(&ui, &cs);
@@ -92,10 +88,8 @@ impl ClientFido2Authenticator {
         &self,
         rp_id: String,
     ) -> Result<Vec<Fido2CredentialView>> {
-        let mut client = self.0 .0.write().await;
-
-        let mut platform = client.platform();
-        let mut fido2 = platform.fido2();
+        let platform = self.0 .0.platform();
+        let fido2 = platform.fido2();
         let ui = UniffiTraitBridge(self.1.as_ref());
         let cs = UniffiTraitBridge(self.2.as_ref());
         let mut auth = fido2.create_authenticator(&ui, &cs);
@@ -119,10 +113,8 @@ impl ClientFido2Client {
         request: String,
         client_data: ClientData,
     ) -> Result<PublicKeyCredentialAuthenticatorAttestationResponse> {
-        let mut client = self.0 .0 .0.write().await;
-
-        let mut platform = client.platform();
-        let mut fido2 = platform.fido2();
+        let platform = self.0 .0 .0.platform();
+        let fido2 = platform.fido2();
         let ui = UniffiTraitBridge(self.0 .1.as_ref());
         let cs = UniffiTraitBridge(self.0 .2.as_ref());
         let mut client = fido2.create_client(&ui, &cs);
@@ -140,10 +132,8 @@ impl ClientFido2Client {
         request: String,
         client_data: ClientData,
     ) -> Result<PublicKeyCredentialAuthenticatorAssertionResponse> {
-        let mut client = self.0 .0 .0.write().await;
-
-        let mut platform = client.platform();
-        let mut fido2 = platform.fido2();
+        let platform = self.0 .0 .0.platform();
+        let fido2 = platform.fido2();
         let ui = UniffiTraitBridge(self.0 .1.as_ref());
         let cs = UniffiTraitBridge(self.0 .2.as_ref());
         let mut client = fido2.create_client(&ui, &cs);

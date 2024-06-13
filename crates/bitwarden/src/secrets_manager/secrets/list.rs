@@ -32,7 +32,7 @@ pub(crate) async fn list_secrets(
 
     let enc = client.get_encryption_settings()?;
 
-    SecretIdentifiersResponse::process_response(res, enc)
+    SecretIdentifiersResponse::process_response(res, &enc)
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -55,7 +55,7 @@ pub(crate) async fn list_secrets_by_project(
 
     let enc = client.get_encryption_settings()?;
 
-    SecretIdentifiersResponse::process_response(res, enc)
+    SecretIdentifiersResponse::process_response(res, &enc)
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

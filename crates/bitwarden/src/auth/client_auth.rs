@@ -27,17 +27,17 @@ use crate::{
 };
 
 pub struct ClientAuth<'a> {
-    pub(crate) client: &'a mut crate::Client,
+    pub(crate) client: &'a crate::Client,
 }
 
 impl<'a> ClientAuth<'a> {
-    pub async fn renew_token(&mut self) -> Result<()> {
+    pub async fn renew_token(&self) -> Result<()> {
         renew_token(self.client).await
     }
 
     #[cfg(feature = "secrets")]
     pub async fn login_access_token(
-        &mut self,
+        &self,
         input: &AccessTokenLoginRequest,
     ) -> Result<AccessTokenLoginResponse> {
         login_access_token(self.client, input).await
@@ -74,7 +74,7 @@ impl<'a> ClientAuth<'a> {
     }
 
     pub fn make_register_tde_keys(
-        &mut self,
+        &self,
         email: String,
         org_public_key: String,
         remember_device: bool,
@@ -82,11 +82,11 @@ impl<'a> ClientAuth<'a> {
         make_register_tde_keys(self.client, email, org_public_key, remember_device)
     }
 
-    pub async fn register(&mut self, input: &RegisterRequest) -> Result<()> {
+    pub async fn register(&self, input: &RegisterRequest) -> Result<()> {
         register(self.client, input).await
     }
 
-    pub async fn prelogin(&mut self, email: String) -> Result<Kdf> {
+    pub async fn prelogin(&self, email: String) -> Result<Kdf> {
         use crate::auth::login::{parse_prelogin, request_prelogin};
 
         let response = request_prelogin(self.client, email).await?;
@@ -94,20 +94,17 @@ impl<'a> ClientAuth<'a> {
     }
 
     pub async fn login_password(
-        &mut self,
+        &self,
         input: &PasswordLoginRequest,
     ) -> Result<PasswordLoginResponse> {
         login_password(self.client, input).await
     }
 
-    pub async fn login_api_key(
-        &mut self,
-        input: &ApiKeyLoginRequest,
-    ) -> Result<ApiKeyLoginResponse> {
+    pub async fn login_api_key(&self, input: &ApiKeyLoginRequest) -> Result<ApiKeyLoginResponse> {
         login_api_key(self.client, input).await
     }
 
-    pub async fn send_two_factor_email(&mut self, tf: &TwoFactorEmailRequest) -> Result<()> {
+    pub async fn send_two_factor_email(&self, tf: &TwoFactorEmailRequest) -> Result<()> {
         send_two_factor_email(self.client, tf).await
     }
 
@@ -127,7 +124,7 @@ impl<'a> ClientAuth<'a> {
         new_auth_request(email)
     }
 
-    pub fn approve_auth_request(&mut self, public_key: String) -> Result<AsymmetricEncString> {
+    pub fn approve_auth_request(&self, public_key: String) -> Result<AsymmetricEncString> {
         approve_auth_request(self.client, public_key)
     }
 
@@ -139,7 +136,7 @@ impl<'a> ClientAuth<'a> {
 #[cfg(feature = "internal")]
 impl<'a> ClientAuth<'a> {
     pub async fn login_device(
-        &mut self,
+        &self,
         email: String,
         device_identifier: String,
     ) -> Result<NewAuthRequestResponse> {
@@ -148,7 +145,7 @@ impl<'a> ClientAuth<'a> {
         send_new_auth_request(self.client, email, device_identifier).await
     }
 
-    pub async fn login_device_complete(&mut self, auth_req: NewAuthRequestResponse) -> Result<()> {
+    pub async fn login_device_complete(&self, auth_req: NewAuthRequestResponse) -> Result<()> {
         use crate::auth::login::complete_auth_request;
 
         complete_auth_request(self.client, auth_req).await
@@ -167,7 +164,7 @@ fn trust_device(client: &Client) -> Result<TrustDeviceResponse> {
 }
 
 impl<'a> Client {
-    pub fn auth(&'a mut self) -> ClientAuth<'a> {
+    pub fn auth(&'a self) -> ClientAuth<'a> {
         ClientAuth { client: self }
     }
 }

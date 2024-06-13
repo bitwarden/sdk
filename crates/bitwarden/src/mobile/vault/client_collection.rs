@@ -11,7 +11,7 @@ impl<'a> ClientCollections<'a> {
     pub fn decrypt(&self, collection: Collection) -> Result<CollectionView> {
         let enc = self.client.get_encryption_settings()?;
         let key = collection
-            .locate_key(enc, &None)
+            .locate_key(&enc, &None)
             .ok_or(CryptoError::MissingKey)?;
 
         let view = collection.decrypt_with_key(key)?;
@@ -25,7 +25,7 @@ impl<'a> ClientCollections<'a> {
         let views: Result<Vec<CollectionView>> = collections
             .iter()
             .map(|c| -> Result<CollectionView> {
-                let key = c.locate_key(enc, &None).ok_or(CryptoError::MissingKey)?;
+                let key = c.locate_key(&enc, &None).ok_or(CryptoError::MissingKey)?;
                 Ok(c.decrypt_with_key(key)?)
             })
             .collect();
@@ -50,7 +50,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_decrypt_list() {
-        let mut client = Client::init_test_account(test_bitwarden_com_account()).await;
+        let client = Client::init_test_account(test_bitwarden_com_account()).await;
 
         let dec = client.vault().collections().decrypt_list(vec![Collection {
             id: Some("66c5ca57-0868-4c7e-902f-b181009709c0".parse().unwrap()),
@@ -66,7 +66,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_decrypt() {
-        let mut client = Client::init_test_account(test_bitwarden_com_account()).await;
+        let client = Client::init_test_account(test_bitwarden_com_account()).await;
 
         let dec = client.vault().collections().decrypt(Collection {
             id: Some("66c5ca57-0868-4c7e-902f-b181009709c0".parse().unwrap()),

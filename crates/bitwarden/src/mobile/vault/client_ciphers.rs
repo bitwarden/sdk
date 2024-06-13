@@ -16,11 +16,11 @@ impl<'a> ClientCiphers<'a> {
         // TODO: Once this flag is removed, the key generation logic should
         // be moved directly into the KeyEncryptable implementation
         if cipher_view.key.is_none() && self.client.get_flags().enable_cipher_key_encryption {
-            let key = cipher_view.locate_key(enc, &None).ok_or(VaultLocked)?;
+            let key = cipher_view.locate_key(&enc, &None).ok_or(VaultLocked)?;
             cipher_view.generate_cipher_key(key)?;
         }
 
-        let key = cipher_view.locate_key(enc, &None).ok_or(VaultLocked)?;
+        let key = cipher_view.locate_key(&enc, &None).ok_or(VaultLocked)?;
         let cipher = cipher_view.encrypt_with_key(key)?;
 
         Ok(cipher)
@@ -29,7 +29,7 @@ impl<'a> ClientCiphers<'a> {
     pub fn decrypt(&self, cipher: Cipher) -> Result<CipherView> {
         let enc = self.client.get_encryption_settings()?;
         let key = cipher
-            .locate_key(enc, &None)
+            .locate_key(&enc, &None)
             .ok_or(CryptoError::MissingKey)?;
 
         let cipher_view = cipher.decrypt_with_key(key)?;
@@ -43,7 +43,7 @@ impl<'a> ClientCiphers<'a> {
         let cipher_views: Result<Vec<CipherListView>> = ciphers
             .iter()
             .map(|c| -> Result<CipherListView> {
-                let key = c.locate_key(enc, &None).ok_or(CryptoError::MissingKey)?;
+                let key = c.locate_key(&enc, &None).ok_or(CryptoError::MissingKey)?;
                 Ok(c.decrypt_with_key(key)?)
             })
             .collect();
@@ -57,7 +57,7 @@ impl<'a> ClientCiphers<'a> {
         organization_id: Uuid,
     ) -> Result<CipherView> {
         let enc = self.client.get_encryption_settings()?;
-        cipher_view.move_to_organization(enc, organization_id)?;
+        cipher_view.move_to_organization(&enc, organization_id)?;
         Ok(cipher_view)
     }
 }
@@ -80,7 +80,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_decrypt_list() {
-        let mut client = Client::init_test_account(test_bitwarden_com_account()).await;
+        let client = Client::init_test_account(test_bitwarden_com_account()).await;
 
         let dec = client
             .vault()
@@ -181,7 +181,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_move_user_cipher_with_attachment_without_key_to_org_fails() {
-        let mut client = Client::init_test_account(test_bitwarden_com_account()).await;
+        let client = Client::init_test_account(test_bitwarden_com_account()).await;
 
         let mut cipher = test_cipher();
         cipher.attachments = Some(vec![test_attachment_legacy()]);
@@ -199,7 +199,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_encrypt_cipher_with_legacy_attachment_without_key() {
-        let mut client = Client::init_test_account(test_bitwarden_com_account()).await;
+        let client = Client::init_test_account(test_bitwarden_com_account()).await;
 
         let mut cipher = test_cipher();
         let attachment = test_attachment_legacy();
@@ -238,7 +238,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_encrypt_cipher_with_v1_attachment_without_key() {
-        let mut client = Client::init_test_account(test_bitwarden_com_account()).await;
+        let client = Client::init_test_account(test_bitwarden_com_account()).await;
 
         let mut cipher = test_cipher();
         let attachment = test_attachment_v2();

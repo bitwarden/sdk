@@ -37,7 +37,5 @@ pub(crate) async fn update_project(
         bitwarden_api_api::apis::projects_api::projects_id_put(&config.api, input.id, project)
             .await?;
 
-    let enc = client.get_encryption_settings()?;
-
     ProjectResponse::process_response(res, &enc)
 }

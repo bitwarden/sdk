@@ -38,7 +38,5 @@ pub(crate) async fn create_project(
     )
     .await?;
 
-    let enc = client.get_encryption_settings()?;
-
     ProjectResponse::process_response(res, &enc)
 }

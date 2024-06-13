@@ -46,7 +46,5 @@ pub(crate) async fn create_secret(
     )
     .await?;
 
-    let enc = client.get_encryption_settings()?;
-
     SecretResponse::process_response(res, &enc)
 }

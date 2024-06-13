@@ -79,8 +79,8 @@ impl<'a> ClientSends<'a> {
         let key = enc.get_key(&None).ok_or(VaultLocked)?;
         let key = Send::get_key(&send.key, key)?;
 
-        let enc = buffer.encrypt_with_key(&key)?;
-        Ok(enc.to_buffer()?)
+        let encrypted = buffer.encrypt_with_key(&key)?;
+        Ok(encrypted.to_buffer()?)
     }
 }
 

@@ -80,16 +80,16 @@ pub enum Error {
     ExportError(#[from] ExportError),
 
     // Fido
-    #[cfg(feature = "internal")]
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
     #[error(transparent)]
     MakeCredential(#[from] crate::platform::fido2::MakeCredentialError),
-    #[cfg(feature = "internal")]
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
     #[error(transparent)]
     GetAssertion(#[from] crate::platform::fido2::GetAssertionError),
-    #[cfg(feature = "internal")]
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
     #[error(transparent)]
     SilentlyDiscoverCredentials(#[from] crate::platform::fido2::SilentlyDiscoverCredentialsError),
-    #[cfg(feature = "internal")]
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
     #[error(transparent)]
     Fido2Client(#[from] crate::platform::fido2::Fido2ClientError),
 
@@ -97,7 +97,7 @@ pub enum Error {
     #[error("Uniffi callback error: {0}")]
     UniffiCallbackError(#[from] uniffi::UnexpectedUniFFICallbackError),
 
-    #[cfg(feature = "uniffi")]
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
     #[error("Fido2 Callback error: {0:?}")]
     Fido2CallbackError(#[from] crate::platform::fido2::Fido2CallbackError),
 

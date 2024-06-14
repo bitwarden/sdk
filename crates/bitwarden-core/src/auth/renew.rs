@@ -9,33 +9,43 @@ use crate::{
     secrets_manager::state::{self, ClientState},
 };
 
-pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
+pub(crate) async fn renew_token(client: &Client) -> Result<()> {
     const TOKEN_RENEW_MARGIN_SECONDS: i64 = 5 * 60;
 
-    if let (Some(expires), Some(login_method)) = (
-        &client.internal.token_expires_on,
-        &client.internal.login_method,
-    ) {
+    let tokens = client
+        .internal
+        .tokens
+        .read()
+        .expect("RwLock is not poisoned")
+        .clone();
+    let login_method = client
+        .internal
+        .login_method
+        .read()
+        .expect("RwLock is not poisoned")
+        .clone();
+
+    if let (Some(expires), Some(login_method)) = (tokens.expires_on, login_method) {
         if Utc::now().timestamp() < expires - TOKEN_RENEW_MARGIN_SECONDS {
             return Ok(());
         }
 
-        let res = match login_method {
+        let config = client
+            .internal
+            .__api_configurations
+            .read()
+            .expect("RwLock is not poisoned")
+            .clone();
+
+        let res = match login_method.as_ref() {
             #[cfg(feature = "internal")]
             LoginMethod::User(u) => match u {
                 UserLoginMethod::Username { client_id, .. } => {
-                    let refresh = client
-                        .internal
-                        .refresh_token
-                        .as_deref()
-                        .ok_or(Error::NotAuthenticated)?;
+                    let refresh = tokens.refresh_token.ok_or(Error::NotAuthenticated)?;
 
-                    crate::auth::api::request::RenewTokenRequest::new(
-                        refresh.to_owned(),
-                        client_id.to_owned(),
-                    )
-                    .send(&client.internal.__api_configurations)
-                    .await?
+                    crate::auth::api::request::RenewTokenRequest::new(refresh, client_id.to_owned())
+                        .send(&config)
+                        .await?
                 }
                 UserLoginMethod::ApiKey {
                     client_id,
@@ -43,7 +53,7 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
                     ..
                 } => {
                     ApiTokenRequest::new(client_id, client_secret)
-                        .send(&client.internal.__api_configurations)
+                        .send(&config)
                         .await?
                 }
             },
@@ -57,7 +67,7 @@ pub(crate) async fn renew_token(client: &mut Client) -> Result<()> {
                         access_token.access_token_id,
                         &access_token.client_secret,
                     )
-                    .send(&client.internal.__api_configurations)
+                    .send(&config)
                     .await?;
 
                     if let (IdentityTokenResponse::Payload(r), Some(state_file), Ok(enc_settings)) = (

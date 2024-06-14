@@ -32,7 +32,7 @@ pub(crate) async fn sync_secrets(
 
     let enc = client.internal.get_encryption_settings()?;
 
-    SecretsSyncResponse::process_response(res, enc)
+    SecretsSyncResponse::process_response(res, &enc)
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

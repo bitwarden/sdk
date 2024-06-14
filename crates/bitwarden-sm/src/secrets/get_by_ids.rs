@@ -26,5 +26,5 @@ pub(crate) async fn get_secrets_by_ids(
 
     let enc = client.internal.get_encryption_settings()?;
 
-    SecretsResponse::process_response(res, enc)
+    SecretsResponse::process_response(res, &enc)
 }

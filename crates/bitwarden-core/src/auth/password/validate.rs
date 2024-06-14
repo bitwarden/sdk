@@ -15,17 +15,16 @@ pub(crate) fn validate_password(
 ) -> Result<bool> {
     let login_method = client
         .internal
-        .login_method
-        .as_ref()
+        .get_login_method()
         .ok_or(Error::NotAuthenticated)?;
 
-    if let LoginMethod::User(login_method) = login_method {
+    if let LoginMethod::User(login_method) = login_method.as_ref() {
         match login_method {
             UserLoginMethod::Username { email, kdf, .. }
             | UserLoginMethod::ApiKey { email, kdf, .. } => {
                 let hash = determine_password_hash(
-                    email,
-                    kdf,
+                    &email,
+                    &kdf,
                     &password,
                     HashPurpose::LocalAuthorization,
                 )?;
@@ -48,15 +47,14 @@ pub(crate) fn validate_password_user_key(
 
     let login_method = client
         .internal
-        .login_method
-        .as_ref()
+        .get_login_method()
         .ok_or(Error::NotAuthenticated)?;
 
-    if let LoginMethod::User(login_method) = login_method {
+    if let LoginMethod::User(login_method) = login_method.as_ref() {
         match login_method {
             UserLoginMethod::Username { email, kdf, .. }
             | UserLoginMethod::ApiKey { email, kdf, .. } => {
-                let master_key = MasterKey::derive(password.as_bytes(), email.as_bytes(), kdf)?;
+                let master_key = MasterKey::derive(password.as_bytes(), email.as_bytes(), &kdf)?;
                 let user_key = master_key
                     .decrypt_user_key(encrypted_user_key.parse()?)
                     .map_err(|_| "wrong password")?;
@@ -91,7 +89,7 @@ mod tests {
 
         use crate::client::{Client, Kdf, LoginMethod, UserLoginMethod};
 
-        let mut client = Client::new(None);
+        let client = Client::new(None);
         client
             .internal
             .set_login_method(LoginMethod::User(UserLoginMethod::Username {
@@ -117,7 +115,7 @@ mod tests {
 
         use crate::client::{Client, Kdf, LoginMethod, UserLoginMethod};
 
-        let mut client = Client::new(None);
+        let client = Client::new(None);
 
         let password = "asdfasdfasdf";
         let email = "test@bitwarden.com";
@@ -160,7 +158,7 @@ mod tests {
 
         use crate::client::{Client, Kdf, LoginMethod, UserLoginMethod};
 
-        let mut client = Client::new(None);
+        let client = Client::new(None);
 
         let password = b"asdfasdfasdf";
         let email = "test@bitwarden.com";

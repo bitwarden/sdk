@@ -10,7 +10,7 @@ use crate::{error::Result, Client};
 /// generated user key, and encrypts the user key with the organization public key for admin
 /// password reset. If remember_device is true, it also generates a device key.
 pub(super) fn make_register_tde_keys(
-    client: &mut Client,
+    client: &Client,
     email: String,
     org_public_key: String,
     remember_device: bool,

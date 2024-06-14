@@ -26,7 +26,7 @@ pub struct NewAuthRequestResponse {
 }
 
 pub(crate) async fn send_new_auth_request(
-    client: &mut Client,
+    client: &Client,
     email: String,
     device_identifier: String,
 ) -> Result<NewAuthRequestResponse> {
@@ -55,7 +55,7 @@ pub(crate) async fn send_new_auth_request(
 }
 
 pub(crate) async fn complete_auth_request(
-    client: &mut Client,
+    client: &Client,
     auth_req: NewAuthRequestResponse,
 ) -> Result<()> {
     let config = client.internal.get_api_configurations().await;
@@ -80,7 +80,7 @@ pub(crate) async fn complete_auth_request(
         config.device_type,
         &auth_req.device_identifier,
     )
-    .send(config)
+    .send(&config)
     .await?;
 
     if let IdentityTokenResponse::Authenticated(r) = response {

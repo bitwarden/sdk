@@ -22,9 +22,8 @@ pub(crate) async fn update_project(
     client: &mut Client,
     input: &ProjectPutRequest,
 ) -> Result<ProjectResponse, Error> {
-    let key = client
-        .internal
-        .get_encryption_settings()?
+    let enc = client.internal.get_encryption_settings()?;
+    let key = enc
         .get_key(&Some(input.organization_id))
         .ok_or(VaultLocked)?;
 
@@ -37,7 +36,5 @@ pub(crate) async fn update_project(
         bitwarden_api_api::apis::projects_api::projects_id_put(&config.api, input.id, project)
             .await?;
 
-    let enc = client.internal.get_encryption_settings()?;
-
-    ProjectResponse::process_response(res, enc)
+    ProjectResponse::process_response(res, &enc)
 }

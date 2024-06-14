@@ -6,7 +6,7 @@ use super::{
 use crate::{error::Result, Client};
 
 pub struct ClientPlatform<'a> {
-    pub(crate) client: &'a mut Client,
+    pub(crate) client: &'a Client,
 }
 
 impl<'a> ClientPlatform<'a> {
@@ -27,7 +27,7 @@ impl<'a> ClientPlatform<'a> {
 }
 
 impl<'a> Client {
-    pub fn platform(&'a mut self) -> ClientPlatform<'a> {
+    pub fn platform(&'a self) -> ClientPlatform<'a> {
         ClientPlatform { client: self }
     }
 }

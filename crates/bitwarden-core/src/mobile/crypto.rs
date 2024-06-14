@@ -86,7 +86,7 @@ pub enum AuthRequestMethod {
 }
 
 #[cfg(feature = "internal")]
-pub async fn initialize_user_crypto(client: &mut Client, req: InitUserCryptoRequest) -> Result<()> {
+pub async fn initialize_user_crypto(client: &Client, req: InitUserCryptoRequest) -> Result<()> {
     use bitwarden_crypto::DeviceKey;
 
     use crate::auth::{auth_request_decrypt_master_key, auth_request_decrypt_user_key};
@@ -179,19 +179,16 @@ pub struct InitOrgCryptoRequest {
 }
 
 #[cfg(feature = "internal")]
-pub async fn initialize_org_crypto(client: &mut Client, req: InitOrgCryptoRequest) -> Result<()> {
+pub async fn initialize_org_crypto(client: &Client, req: InitOrgCryptoRequest) -> Result<()> {
     let organization_keys = req.organization_keys.into_iter().collect();
     client.internal.initialize_org_crypto(organization_keys)?;
     Ok(())
 }
 
 #[cfg(feature = "internal")]
-pub async fn get_user_encryption_key(client: &mut Client) -> Result<String> {
-    let user_key = client
-        .internal
-        .get_encryption_settings()?
-        .get_key(&None)
-        .ok_or(VaultLocked)?;
+pub async fn get_user_encryption_key(client: &Client) -> Result<String> {
+    let enc = client.internal.get_encryption_settings()?;
+    let user_key = enc.get_key(&None).ok_or(VaultLocked)?;
 
     Ok(user_key.to_base64())
 }
@@ -207,24 +204,17 @@ pub struct UpdatePasswordResponse {
     new_key: EncString,
 }
 
-pub fn update_password(
-    client: &mut Client,
-    new_password: String,
-) -> Result<UpdatePasswordResponse> {
-    let user_key = client
-        .internal
-        .get_encryption_settings()?
-        .get_key(&None)
-        .ok_or(VaultLocked)?;
+pub fn update_password(client: &Client, new_password: String) -> Result<UpdatePasswordResponse> {
+    let enc = client.internal.get_encryption_settings()?;
+    let user_key = enc.get_key(&None).ok_or(VaultLocked)?;
 
     let login_method = client
         .internal
-        .login_method
-        .as_ref()
+        .get_login_method()
         .ok_or(Error::NotAuthenticated)?;
 
     // Derive a new master key from password
-    let new_master_key = match login_method {
+    let new_master_key = match login_method.as_ref() {
         LoginMethod::User(
             UserLoginMethod::Username { email, kdf, .. }
             | UserLoginMethod::ApiKey { email, kdf, .. },
@@ -257,20 +247,16 @@ pub struct DerivePinKeyResponse {
 }
 
 #[cfg(feature = "internal")]
-pub fn derive_pin_key(client: &mut Client, pin: String) -> Result<DerivePinKeyResponse> {
-    let user_key = client
-        .internal
-        .get_encryption_settings()?
-        .get_key(&None)
-        .ok_or(VaultLocked)?;
+pub fn derive_pin_key(client: &Client, pin: String) -> Result<DerivePinKeyResponse> {
+    let enc = client.internal.get_encryption_settings()?;
+    let user_key = enc.get_key(&None).ok_or(VaultLocked)?;
 
     let login_method = client
         .internal
-        .login_method
-        .as_ref()
+        .get_login_method()
         .ok_or(Error::NotAuthenticated)?;
 
-    let pin_protected_user_key = derive_pin_protected_user_key(&pin, login_method, user_key)?;
+    let pin_protected_user_key = derive_pin_protected_user_key(&pin, &login_method, user_key)?;
 
     Ok(DerivePinKeyResponse {
         pin_protected_user_key,
@@ -279,21 +265,17 @@ pub fn derive_pin_key(client: &mut Client, pin: String) -> Result<DerivePinKeyRe
 }
 
 #[cfg(feature = "internal")]
-pub fn derive_pin_user_key(client: &mut Client, encrypted_pin: EncString) -> Result<EncString> {
-    let user_key = client
-        .internal
-        .get_encryption_settings()?
-        .get_key(&None)
-        .ok_or(VaultLocked)?;
+pub fn derive_pin_user_key(client: &Client, encrypted_pin: EncString) -> Result<EncString> {
+    let enc = client.internal.get_encryption_settings()?;
+    let user_key = enc.get_key(&None).ok_or(VaultLocked)?;
 
     let pin: String = encrypted_pin.decrypt_with_key(user_key)?;
     let login_method = client
         .internal
-        .login_method
-        .as_ref()
+        .get_login_method()
         .ok_or(Error::NotAuthenticated)?;
 
-    derive_pin_protected_user_key(&pin, login_method, user_key)
+    derive_pin_protected_user_key(&pin, &login_method, user_key)
 }
 
 #[cfg(feature = "internal")]
@@ -315,7 +297,7 @@ fn derive_pin_protected_user_key(
 
 #[cfg(feature = "internal")]
 pub(super) fn enroll_admin_password_reset(
-    client: &mut Client,
+    client: &Client,
     public_key: String,
 ) -> Result<AsymmetricEncString> {
     use base64::{engine::general_purpose::STANDARD, Engine};
@@ -338,7 +320,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_update_password() {
-        let mut client = Client::new(None);
+        let client = Client::new(None);
 
         let priv_key = "2.kmLY8NJVuiKBFJtNd/ZFpA==|qOodlRXER+9ogCe3yOibRHmUcSNvjSKhdDuztLlucs10jLiNoVVVAc+9KfNErLSpx5wmUF1hBOJM8zwVPjgQTrmnNf/wuDpwiaCxNYb/0v4FygPy7ccAHK94xP1lfqq7U9+tv+/yiZSwgcT+xF0wFpoxQeNdNRFzPTuD9o4134n8bzacD9DV/WjcrXfRjbBCzzuUGj1e78+A7BWN7/5IWLz87KWk8G7O/W4+8PtEzlwkru6Wd1xO19GYU18oArCWCNoegSmcGn7w7NDEXlwD403oY8Oa7ylnbqGE28PVJx+HLPNIdSC6YKXeIOMnVs7Mctd/wXC93zGxAWD6ooTCzHSPVV50zKJmWIG2cVVUS7j35H3rGDtUHLI+ASXMEux9REZB8CdVOZMzp2wYeiOpggebJy6MKOZqPT1R3X0fqF2dHtRFPXrNsVr1Qt6bS9qTyO4ag1/BCvXF3P1uJEsI812BFAne3cYHy5bIOxuozPfipJrTb5WH35bxhElqwT3y/o/6JWOGg3HLDun31YmiZ2HScAsUAcEkA4hhoTNnqy4O2s3yVbCcR7jF7NLsbQc0MDTbnjxTdI4VnqUIn8s2c9hIJy/j80pmO9Bjxp+LQ9a2hUkfHgFhgHxZUVaeGVth8zG2kkgGdrp5VHhxMVFfvB26Ka6q6qE/UcS2lONSv+4T8niVRJz57qwctj8MNOkA3PTEfe/DP/LKMefke31YfT0xogHsLhDkx+mS8FCc01HReTjKLktk/Jh9mXwC5oKwueWWwlxI935ecn+3I2kAuOfMsgPLkoEBlwgiREC1pM7VVX1x8WmzIQVQTHd4iwnX96QewYckGRfNYWz/zwvWnjWlfcg8kRSe+68EHOGeRtC5r27fWLqRc0HNcjwpgHkI/b6czerCe8+07TWql4keJxJxhBYj3iOH7r9ZS8ck51XnOb8tGL1isimAJXodYGzakwktqHAD7MZhS+P02O+6jrg7d+yPC2ZCuS/3TOplYOCHQIhnZtR87PXTUwr83zfOwAwCyv6KP84JUQ45+DItrXLap7nOVZKQ5QxYIlbThAO6eima6Zu5XHfqGPMNWv0bLf5+vAjIa5np5DJrSwz9no/hj6CUh0iyI+SJq4RGI60lKtypMvF6MR3nHLEHOycRUQbZIyTHWl4QQLdHzuwN9lv10ouTEvNr6sFflAX2yb6w3hlCo7oBytH3rJekjb3IIOzBpeTPIejxzVlh0N9OT5MZdh4sNKYHUoWJ8mnfjdM+L4j5Q2Kgk/XiGDgEebkUxiEOQUdVpePF5uSCE+TPav/9FIRGXGiFn6NJMaU7aBsDTFBLloffFLYDpd8/bTwoSvifkj7buwLYM+h/qcnfdy5FWau1cKav+Blq/ZC0qBpo658RTC8ZtseAFDgXoQZuksM10hpP9bzD04Bx30xTGX81QbaSTNwSEEVrOtIhbDrj9OI43KH4O6zLzK+t30QxAv5zjk10RZ4+5SAdYndIlld9Y62opCfPDzRy3ubdve4ZEchpIKWTQvIxq3T5ogOhGaWBVYnkMtM2GVqvWV//46gET5SH/MdcwhACUcZ9kCpMnWH9CyyUwYvTT3UlNyV+DlS27LMPvaw7tx7qa+GfNCoCBd8S4esZpQYK/WReiS8=|pc7qpD42wxyXemdNPuwxbh8iIaryrBPu8f/DGwYdHTw=";
 
@@ -347,7 +329,7 @@ mod tests {
         };
 
         initialize_user_crypto(
-            &mut client,
+            & client,
             InitUserCryptoRequest {
                 kdf_params: kdf.clone(),
                 email: "test@bitwarden.com".into(),
@@ -361,12 +343,12 @@ mod tests {
         .await
         .unwrap();
 
-        let new_password_response = update_password(&mut client, "123412341234".into()).unwrap();
+        let new_password_response = update_password(&client, "123412341234".into()).unwrap();
 
-        let mut client2 = Client::new(None);
+        let client2 = Client::new(None);
 
         initialize_user_crypto(
-            &mut client2,
+            &client2,
             InitUserCryptoRequest {
                 kdf_params: kdf.clone(),
                 email: "test@bitwarden.com".into(),
@@ -413,12 +395,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_initialize_user_crypto_pin() {
-        let mut client = Client::new(None);
+        let client = Client::new(None);
 
         let priv_key = "2.kmLY8NJVuiKBFJtNd/ZFpA==|qOodlRXER+9ogCe3yOibRHmUcSNvjSKhdDuztLlucs10jLiNoVVVAc+9KfNErLSpx5wmUF1hBOJM8zwVPjgQTrmnNf/wuDpwiaCxNYb/0v4FygPy7ccAHK94xP1lfqq7U9+tv+/yiZSwgcT+xF0wFpoxQeNdNRFzPTuD9o4134n8bzacD9DV/WjcrXfRjbBCzzuUGj1e78+A7BWN7/5IWLz87KWk8G7O/W4+8PtEzlwkru6Wd1xO19GYU18oArCWCNoegSmcGn7w7NDEXlwD403oY8Oa7ylnbqGE28PVJx+HLPNIdSC6YKXeIOMnVs7Mctd/wXC93zGxAWD6ooTCzHSPVV50zKJmWIG2cVVUS7j35H3rGDtUHLI+ASXMEux9REZB8CdVOZMzp2wYeiOpggebJy6MKOZqPT1R3X0fqF2dHtRFPXrNsVr1Qt6bS9qTyO4ag1/BCvXF3P1uJEsI812BFAne3cYHy5bIOxuozPfipJrTb5WH35bxhElqwT3y/o/6JWOGg3HLDun31YmiZ2HScAsUAcEkA4hhoTNnqy4O2s3yVbCcR7jF7NLsbQc0MDTbnjxTdI4VnqUIn8s2c9hIJy/j80pmO9Bjxp+LQ9a2hUkfHgFhgHxZUVaeGVth8zG2kkgGdrp5VHhxMVFfvB26Ka6q6qE/UcS2lONSv+4T8niVRJz57qwctj8MNOkA3PTEfe/DP/LKMefke31YfT0xogHsLhDkx+mS8FCc01HReTjKLktk/Jh9mXwC5oKwueWWwlxI935ecn+3I2kAuOfMsgPLkoEBlwgiREC1pM7VVX1x8WmzIQVQTHd4iwnX96QewYckGRfNYWz/zwvWnjWlfcg8kRSe+68EHOGeRtC5r27fWLqRc0HNcjwpgHkI/b6czerCe8+07TWql4keJxJxhBYj3iOH7r9ZS8ck51XnOb8tGL1isimAJXodYGzakwktqHAD7MZhS+P02O+6jrg7d+yPC2ZCuS/3TOplYOCHQIhnZtR87PXTUwr83zfOwAwCyv6KP84JUQ45+DItrXLap7nOVZKQ5QxYIlbThAO6eima6Zu5XHfqGPMNWv0bLf5+vAjIa5np5DJrSwz9no/hj6CUh0iyI+SJq4RGI60lKtypMvF6MR3nHLEHOycRUQbZIyTHWl4QQLdHzuwN9lv10ouTEvNr6sFflAX2yb6w3hlCo7oBytH3rJekjb3IIOzBpeTPIejxzVlh0N9OT5MZdh4sNKYHUoWJ8mnfjdM+L4j5Q2Kgk/XiGDgEebkUxiEOQUdVpePF5uSCE+TPav/9FIRGXGiFn6NJMaU7aBsDTFBLloffFLYDpd8/bTwoSvifkj7buwLYM+h/qcnfdy5FWau1cKav+Blq/ZC0qBpo658RTC8ZtseAFDgXoQZuksM10hpP9bzD04Bx30xTGX81QbaSTNwSEEVrOtIhbDrj9OI43KH4O6zLzK+t30QxAv5zjk10RZ4+5SAdYndIlld9Y62opCfPDzRy3ubdve4ZEchpIKWTQvIxq3T5ogOhGaWBVYnkMtM2GVqvWV//46gET5SH/MdcwhACUcZ9kCpMnWH9CyyUwYvTT3UlNyV+DlS27LMPvaw7tx7qa+GfNCoCBd8S4esZpQYK/WReiS8=|pc7qpD42wxyXemdNPuwxbh8iIaryrBPu8f/DGwYdHTw=";
 
         initialize_user_crypto(
-            &mut client,
+            & client,
             InitUserCryptoRequest {
                 kdf_params: Kdf::PBKDF2 {
                     iterations: 100_000.try_into().unwrap(),
@@ -434,12 +416,12 @@ mod tests {
         .await
         .unwrap();
 
-        let pin_key = derive_pin_key(&mut client, "1234".into()).unwrap();
+        let pin_key = derive_pin_key(&client, "1234".into()).unwrap();
 
         // Verify we can unlock with the pin
-        let mut client2 = Client::new(None);
+        let client2 = Client::new(None);
         initialize_user_crypto(
-            &mut client2,
+            &client2,
             InitUserCryptoRequest {
                 kdf_params: Kdf::PBKDF2 {
                     iterations: 100_000.try_into().unwrap(),
@@ -473,13 +455,12 @@ mod tests {
         );
 
         // Verify we can derive the pin protected user key from the encrypted pin
-        let pin_protected_user_key =
-            derive_pin_user_key(&mut client, pin_key.encrypted_pin).unwrap();
+        let pin_protected_user_key = derive_pin_user_key(&client, pin_key.encrypted_pin).unwrap();
 
-        let mut client3 = Client::new(None);
+        let client3 = Client::new(None);
 
         initialize_user_crypto(
-            &mut client3,
+            &client3,
             InitUserCryptoRequest {
                 kdf_params: Kdf::PBKDF2 {
                     iterations: 100_000.try_into().unwrap(),
@@ -521,7 +502,7 @@ mod tests {
         use base64::{engine::general_purpose::STANDARD, Engine};
         use bitwarden_crypto::AsymmetricCryptoKey;
 
-        let mut client = Client::new(None);
+        let client = Client::new(None);
 
         let master_key = bitwarden_crypto::MasterKey::derive(
             "asdfasdfasdf".as_bytes(),
@@ -541,19 +522,15 @@ mod tests {
 
         let public_key = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsy7RFHcX3C8Q4/OMmhhbFReYWfB45W9PDTEA8tUZwZmtOiN2RErIS2M1c+K/4HoDJ/TjpbX1f2MZcr4nWvKFuqnZXyewFc+jmvKVewYi+NAu2++vqKq2kKcmMNhwoQDQdQIVy/Uqlp4Cpi2cIwO6ogq5nHNJGR3jm+CpyrafYlbz1bPvL3hbyoGDuG2tgADhyhXUdFuef2oF3wMvn1lAJAvJnPYpMiXUFmj1ejmbwtlxZDrHgUJvUcp7nYdwUKaFoi+sOttHn3u7eZPtNvxMjhSS/X/1xBIzP/mKNLdywH5LoRxniokUk+fV3PYUxJsiU3lV0Trc/tH46jqd8ZGjmwIDAQAB";
 
-        let encrypted = enroll_admin_password_reset(&mut client, public_key.to_owned()).unwrap();
+        let encrypted = enroll_admin_password_reset(&client, public_key.to_owned()).unwrap();
 
         let private_key = "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCzLtEUdxfcLxDj84yaGFsVF5hZ8Hjlb08NMQDy1RnBma06I3ZESshLYzVz4r/gegMn9OOltfV/Yxlyvida8oW6qdlfJ7AVz6Oa8pV7BiL40C7b76+oqraQpyYw2HChANB1AhXL9SqWngKmLZwjA7qiCrmcc0kZHeOb4KnKtp9iVvPVs+8veFvKgYO4ba2AAOHKFdR0W55/agXfAy+fWUAkC8mc9ikyJdQWaPV6OZvC2XFkOseBQm9Rynudh3BQpoWiL6w620efe7t5k+02/EyOFJL9f/XEEjM/+Yo0t3LAfkuhHGeKiRST59Xc9hTEmyJTeVXROtz+0fjqOp3xkaObAgMBAAECggEACs4xhnO0HaZhh1/iH7zORMIRXKeyxP2LQiTR8xwN5JJ9wRWmGAR9VasS7EZFTDidIGVME2u/h4s5EqXnhxfO+0gGksVvgNXJ/qw87E8K2216g6ZNo6vSGA7H1GH2voWwejJ4/k/cJug6dz2S402rRAKh2Wong1arYHSkVlQp3diiMa5FHAOSE+Cy09O2ZsaF9IXQYUtlW6AVXFrBEPYH2kvkaPXchh8VETMijo6tbvoKLnUHe+wTaDMls7hy8exjtVyI59r3DNzjy1lNGaGb5QSnFMXR+eHhPZc844Wv02MxC15zKABADrl58gpJyjTl6XpDdHCYGsmGpVGH3X9TQQKBgQDz/9beFjzq59ve6rGwn+EtnQfSsyYT+jr7GN8lNEXb3YOFXBgPhfFIcHRh2R00Vm9w2ApfAx2cd8xm2I6HuvQ1Os7g26LWazvuWY0Qzb+KaCLQTEGH1RnTq6CCG+BTRq/a3J8M4t38GV5TWlzv8wr9U4dl6FR4efjb65HXs1GQ4QKBgQC7/uHfrOTEHrLeIeqEuSl0vWNqEotFKdKLV6xpOvNuxDGbgW4/r/zaxDqt0YBOXmRbQYSEhmO3oy9J6XfE1SUln0gbavZeW0HESCAmUIC88bDnspUwS9RxauqT5aF8ODKN/bNCWCnBM1xyonPOs1oT1nyparJVdQoG//Y7vkB3+wKBgBqLqPq8fKAp3XfhHLfUjREDVoiLyQa/YI9U42IOz9LdxKNLo6p8rgVthpvmnRDGnpUuS+KOWjhdqDVANjF6G3t3DG7WNl8Rh5Gk2H4NhFswfSkgQrjebFLlBy9gjQVCWXt8KSmjvPbiY6q52Aaa8IUjA0YJAregvXxfopxO+/7BAoGARicvEtDp7WWnSc1OPoj6N14VIxgYcI7SyrzE0d/1x3ffKzB5e7qomNpxKzvqrVP8DzG7ydh8jaKPmv1MfF8tpYRy3AhmN3/GYwCnPqT75YYrhcrWcVdax5gmQVqHkFtIQkRSCIftzPLlpMGKha/YBV8c1fvC4LD0NPh/Ynv0gtECgYEAyOZg95/kte0jpgUEgwuMrzkhY/AaUJULFuR5MkyvReEbtSBQwV5tx60+T95PHNiFooWWVXiLMsAgyI2IbkxVR1Pzdri3gWK5CTfqb7kLuaj/B7SGvBa2Sxo478KS5K8tBBBWkITqo+wLC0mn3uZi1dyMWO1zopTA+KtEGF2dtGQ=";
         let private_key =
             AsymmetricCryptoKey::from_der(&STANDARD.decode(private_key).unwrap()).unwrap();
         let decrypted: Vec<u8> = encrypted.decrypt_with_key(&private_key).unwrap();
 
-        let expected = client
-            .internal
-            .get_encryption_settings()
-            .unwrap()
-            .get_key(&None)
-            .unwrap();
+        let enc = client.internal.get_encryption_settings().unwrap();
+        let expected = enc.get_key(&None).unwrap();
         assert_eq!(&decrypted, &expected.to_vec());
     }
 }

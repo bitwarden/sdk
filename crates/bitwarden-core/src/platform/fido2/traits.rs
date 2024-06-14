@@ -2,8 +2,6 @@ use bitwarden_vault::{Cipher, CipherView, Fido2CredentialNewView};
 use passkey::authenticator::UIHint;
 use thiserror::Error;
 
-use crate::error::Result;
-
 #[derive(Debug, Error)]
 pub enum Fido2CallbackError {
     #[error("The operation requires user interaction")]

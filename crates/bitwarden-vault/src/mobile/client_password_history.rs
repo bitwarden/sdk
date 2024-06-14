@@ -8,10 +8,7 @@ pub struct ClientPasswordHistory<'a> {
 }
 
 impl<'a> ClientPasswordHistory<'a> {
-    pub async fn encrypt(
-        &self,
-        history_view: PasswordHistoryView,
-    ) -> Result<PasswordHistory, Error> {
+    pub fn encrypt(&self, history_view: PasswordHistoryView) -> Result<PasswordHistory, Error> {
         let enc = self.client.internal.get_encryption_settings()?;
         let key = enc.get_key(&None).ok_or(CryptoError::MissingKey)?;
 
@@ -20,7 +17,7 @@ impl<'a> ClientPasswordHistory<'a> {
         Ok(history)
     }
 
-    pub async fn decrypt_list(
+    pub fn decrypt_list(
         &self,
         history: Vec<PasswordHistory>,
     ) -> Result<Vec<PasswordHistoryView>, Error> {

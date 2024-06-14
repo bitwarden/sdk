@@ -1,3 +1,5 @@
+use std::sync::{Arc, RwLock};
+
 #[cfg(feature = "internal")]
 pub use bitwarden_crypto::Kdf;
 use reqwest::header::{self, HeaderValue};
@@ -5,7 +7,10 @@ use reqwest::header::{self, HeaderValue};
 use super::internal::InternalClient;
 #[cfg(feature = "internal")]
 use crate::client::flags::Flags;
-use crate::client::{client_settings::ClientSettings, internal::ApiConfigurations};
+use crate::client::{
+    client_settings::ClientSettings,
+    internal::{ApiConfigurations, Tokens},
+};
 
 /// The main struct to interact with the Bitwarden SDK.
 #[derive(Debug)]
@@ -65,20 +70,17 @@ impl Client {
 
         Self {
             internal: InternalClient {
-                token: None,
-                refresh_token: None,
-                token_expires_on: None,
-                login_method: None,
+                tokens: RwLock::new(Tokens::default()),
+                login_method: RwLock::new(None),
                 #[cfg(feature = "internal")]
-                flags: Flags::default(),
-
-                __api_configurations: ApiConfigurations {
+                flags: RwLock::new(Flags::default()),
+                __api_configurations: RwLock::new(Arc::new(ApiConfigurations {
                     identity,
                     api,
-                    external_client,
                     device_type: settings.device_type,
-                },
-                encryption_settings: None,
+                })),
+                external_client,
+                encryption_settings: RwLock::new(None),
             },
         }
     }

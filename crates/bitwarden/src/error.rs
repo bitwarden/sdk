@@ -6,6 +6,7 @@ use std::{borrow::Cow, fmt::Debug};
 use bitwarden_exporters::ExportError;
 #[cfg(feature = "internal")]
 use bitwarden_generators::{PassphraseError, PasswordError, UsernameError};
+use reqwest::StatusCode;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -55,6 +56,28 @@ pub enum Error {
     #[cfg(feature = "internal")]
     #[error(transparent)]
     ExportError(#[from] ExportError),
+
+    // Fido
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
+    #[error(transparent)]
+    MakeCredential(#[from] bitwarden_core::platform::fido2::MakeCredentialError),
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
+    #[error(transparent)]
+    GetAssertion(#[from] crate::platform::fido2::GetAssertionError),
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
+    #[error(transparent)]
+    SilentlyDiscoverCredentials(#[from] crate::platform::fido2::SilentlyDiscoverCredentialsError),
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
+    #[error(transparent)]
+    Fido2Client(#[from] crate::platform::fido2::Fido2ClientError),
+
+    #[cfg(feature = "uniffi")]
+    #[error("Uniffi callback error: {0}")]
+    UniffiCallbackError(#[from] uniffi::UnexpectedUniFFICallbackError),
+
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
+    #[error("Fido2 Callback error: {0:?}")]
+    Fido2CallbackError(#[from] crate::platform::fido2::Fido2CallbackError),
 
     #[error("Internal error: {0}")]
     Internal(Cow<'static, str>),

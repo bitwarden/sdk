@@ -16,7 +16,7 @@ pub struct TwoFactorEmailRequest {
 }
 
 pub(crate) async fn send_two_factor_email(
-    client: &mut Client,
+    client: &Client,
     input: &TwoFactorEmailRequest,
 ) -> Result<()> {
     // TODO: This should be resolved from the client

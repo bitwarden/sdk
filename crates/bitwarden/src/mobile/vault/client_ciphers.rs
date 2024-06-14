@@ -51,6 +51,18 @@ impl<'a> ClientCiphers<'a> {
         cipher_views
     }
 
+    #[cfg(feature = "uniffi")]
+    pub fn decrypt_fido2_credentials(
+        &self,
+        cipher_view: CipherView,
+    ) -> Result<Vec<bitwarden_vault::Fido2CredentialView>> {
+        let enc = self.client.get_encryption_settings()?;
+
+        let credentials = cipher_view.decrypt_fido2_credentials(&enc)?;
+
+        Ok(credentials)
+    }
+
     pub fn move_to_organization(
         &self,
         mut cipher_view: CipherView,

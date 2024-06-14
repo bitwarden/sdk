@@ -8,6 +8,8 @@ use passkey::types::{ctap2::Aaguid, Passkey};
 
 #[cfg(feature = "uniffi")]
 uniffi::setup_scaffolding!();
+#[cfg(feature = "uniffi")]
+mod uniffi_support;
 
 mod authenticator;
 mod client;

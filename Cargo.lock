@@ -358,7 +358,7 @@ name = "bitwarden"
 version = "0.5.0"
 dependencies = [
  "async-trait",
- "base64 0.21.7",
+ "base64 0.22.1",
  "bitwarden-api-api",
  "bitwarden-api-identity",
  "bitwarden-core",
@@ -497,16 +497,18 @@ name = "bitwarden-fido"
 version = "0.5.0"
 dependencies = [
  "async-trait",
- "base64 0.21.7",
+ "base64 0.22.1",
  "bitwarden-core",
  "bitwarden-crypto",
  "bitwarden-vault",
  "chrono",
  "coset",
+ "itertools 0.13.0",
  "log",
  "p256",
  "passkey",
  "reqwest",
+ "schemars",
  "serde",
  "serde_json",
  "thiserror",
@@ -570,7 +572,7 @@ dependencies = [
 name = "bitwarden-send"
 version = "0.5.0"
 dependencies = [
- "base64 0.21.7",
+ "base64 0.22.1",
  "bitwarden-api-api",
  "bitwarden-core",
  "bitwarden-crypto",
@@ -610,7 +612,7 @@ dependencies = [
 name = "bitwarden-vault"
 version = "0.5.0"
 dependencies = [
- "base64 0.21.7",
+ "base64 0.22.1",
  "bitwarden-api-api",
  "bitwarden-core",
  "bitwarden-crypto",
@@ -2150,6 +2152,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "itertools"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2206,7 +2217,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c2a198fb6b0eada2a8df47933734e6d35d350665a33a3593d7164fa52c75c19"
 dependencies = [
  "cfg-if",
- "windows-targets 0.48.5",
+ "windows-targets 0.52.5",
 ]
 
 [[package]]

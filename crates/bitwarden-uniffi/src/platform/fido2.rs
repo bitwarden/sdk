@@ -216,6 +216,8 @@ pub trait Fido2CredentialStore: Send + Sync {
         rip_id: String,
     ) -> Result<Vec<CipherView>, Fido2CallbackError>;
 
+    async fn all_credentials(&self) -> Result<Vec<CipherView>, Fido2CallbackError>;
+
     async fn save_credential(&self, cred: Cipher) -> Result<(), Fido2CallbackError>;
 }
 
@@ -238,6 +240,10 @@ impl bitwarden::platform::fido2::Fido2CredentialStore
             .find_credentials(ids, rip_id)
             .await
             .map_err(Into::into)
+    }
+
+    async fn all_credentials(&self) -> Result<Vec<CipherView>, BitFido2CallbackError> {
+        self.0.all_credentials().await.map_err(Into::into)
     }
 
     async fn save_credential(&self, cred: Cipher) -> Result<(), BitFido2CallbackError> {

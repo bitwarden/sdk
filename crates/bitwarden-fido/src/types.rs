@@ -1,8 +1,71 @@
+use bitwarden_vault::{CipherView, Fido2CredentialFullView};
 use passkey::types::webauthn::UserVerificationRequirement;
-use serde::Serialize;
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use super::{get_enum_from_string_name, SelectedCredential, UnknownEnum, Verification};
+use super::{
+    get_enum_from_string_name, string_to_guid_bytes, InvalidGuid, SelectedCredential, UnknownEnum,
+    Verification,
+};
+
+#[derive(Serialize, Deserialize, Debug, Clone, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+pub struct Fido2CredentialAutofillView {
+    pub credential_id: Vec<u8>,
+    pub cipher_id: uuid::Uuid,
+    pub rp_id: String,
+    pub user_name: Option<String>,
+    pub user_handle: Vec<u8>,
+}
+
+trait NoneWhitespace {
+    /// Convert only whitespace to None
+    fn none_whitespace(&self) -> Option<String>;
+}
+
+impl NoneWhitespace for String {
+    fn none_whitespace(&self) -> Option<String> {
+        match self.trim() {
+            s if s.is_empty() => None,
+            s => Some(s.to_owned()),
+        }
+    }
+}
+
+impl NoneWhitespace for Option<String> {
+    fn none_whitespace(&self) -> Option<String> {
+        self.as_ref().and_then(|s| s.none_whitespace())
+    }
+}
+
+impl Fido2CredentialAutofillView {
+    pub fn from_full_view(
+        cipher: &CipherView,
+        credentials: &Vec<Fido2CredentialFullView>,
+    ) -> Result<Vec<Fido2CredentialAutofillView>, InvalidGuid> {
+        credentials
+            .into_iter()
+            .filter(|c| c.user_handle.is_some())
+            .map(|c| -> Result<_, InvalidGuid> {
+                Ok(Fido2CredentialAutofillView {
+                    credential_id: string_to_guid_bytes(&c.credential_id)?,
+                    cipher_id: cipher
+                        .id
+                        .expect("cipher must be saved to server for autofill"),
+                    rp_id: c.rp_id.clone(),
+                    user_handle: c.user_handle.clone().unwrap(),
+                    user_name: c
+                        .user_name
+                        .none_whitespace()
+                        .or(c.user_display_name.none_whitespace())
+                        .or(cipher.name.none_whitespace()),
+                })
+            })
+            .collect()
+    }
+}
 
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct PublicKeyCredentialRpEntity {

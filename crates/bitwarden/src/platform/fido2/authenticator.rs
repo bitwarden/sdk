@@ -72,6 +72,8 @@ pub enum GetAssertionError {
 #[derive(Debug, Error)]
 pub enum SilentlyDiscoverCredentialsError {
     #[error(transparent)]
+    CipherError(#[from] CipherError),
+    #[error(transparent)]
     VaultLocked(#[from] VaultLocked),
     #[error(transparent)]
     Fido2CallbackError(#[from] Fido2CallbackError),
@@ -236,11 +238,12 @@ impl<'a> Fido2Authenticator<'a> {
         let enc = self.client.get_encryption_settings()?;
         let result = self.credential_store.find_credentials(None, rp_id).await?;
 
-        Ok(result
+        result
             .into_iter()
-            .flat_map(|c| c.decrypt_fido2_credentials(&enc))
-            .flatten()
-            .collect())
+            .map(|c| c.decrypt_fido2_credentials(&enc))
+            .flatten_ok()
+            .collect::<Result<_, _>>()
+            .map_err(Into::into)
     }
 
     /// Returns all Fido2 credentials that can be used for autofill, in a view

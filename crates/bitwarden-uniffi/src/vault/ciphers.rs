@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use bitwarden::vault::{Cipher, CipherListView, CipherView};
+use bitwarden_vault::Fido2CredentialView;
 use uuid::Uuid;
 
 use crate::{Client, Result};
@@ -23,6 +24,18 @@ impl ClientCiphers {
     /// Decrypt cipher list
     pub fn decrypt_list(&self, ciphers: Vec<Cipher>) -> Result<Vec<CipherListView>> {
         Ok(self.0 .0.vault().ciphers().decrypt_list(ciphers)?)
+    }
+
+    pub fn decrypt_fido2_credentials(
+        &self,
+        cipher_view: CipherView,
+    ) -> Result<Vec<Fido2CredentialView>> {
+        Ok(self
+            .0
+             .0
+            .vault()
+            .ciphers()
+            .decrypt_fido2_credentials(cipher_view)?)
     }
 
     /// Move a cipher to an organization, reencrypting the cipher key if necessary

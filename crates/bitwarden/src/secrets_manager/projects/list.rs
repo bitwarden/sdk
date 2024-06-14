@@ -17,7 +17,7 @@ pub struct ProjectsListRequest {
 }
 
 pub(crate) async fn list_projects(
-    client: &mut Client,
+    client: &Client,
     input: &ProjectsListRequest,
 ) -> Result<ProjectsResponse> {
     let config = client.get_api_configurations().await;

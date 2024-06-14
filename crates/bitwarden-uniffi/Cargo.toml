@@ -18,7 +18,6 @@ crate-type = ["lib", "staticlib", "cdylib"]
 bench = false
 
 [dependencies]
-async-lock = "3.3.0"
 async-trait = "0.1.80"
 bitwarden = { workspace = true, features = ["internal", "uniffi"] }
 bitwarden-core = { workspace = true, features = ["uniffi"] }

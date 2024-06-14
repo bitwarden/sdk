@@ -19,6 +19,7 @@ default = ["secrets"]
 internal = [
     "dep:bitwarden-exporters",
     "dep:bitwarden-generators",
+    "dep:bitwarden-send",
     "dep:bitwarden-vault",
 ] # Internal testing methods
 no-memory-hardening = [
@@ -28,6 +29,7 @@ uniffi = [
     "bitwarden-core/uniffi",
     "bitwarden-crypto/uniffi",
     "bitwarden-generators/uniffi",
+    "bitwarden-send/uniffi",
     "bitwarden-vault/uniffi",
     "bitwarden-fido/uniffi",
     "dep:uniffi",
@@ -45,6 +47,7 @@ bitwarden-crypto = { workspace = true }
 bitwarden-exporters = { workspace = true, optional = true }
 bitwarden-fido = { workspace = true, optional = true }
 bitwarden-generators = { workspace = true, optional = true }
+bitwarden-send = { workspace = true, optional = true }
 bitwarden-vault = { workspace = true, optional = true }
 chrono = { version = ">=0.4.26, <0.5", features = [
     "clock",

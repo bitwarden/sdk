@@ -9,33 +9,33 @@ use crate::{
 };
 
 pub struct ClientProjects<'a> {
-    pub(crate) client: &'a mut crate::Client,
+    pub(crate) client: &'a crate::Client,
 }
 
 impl<'a> ClientProjects<'a> {
-    pub async fn get(&mut self, input: &ProjectGetRequest) -> Result<ProjectResponse> {
+    pub async fn get(&self, input: &ProjectGetRequest) -> Result<ProjectResponse> {
         get_project(self.client, input).await
     }
 
-    pub async fn create(&mut self, input: &ProjectCreateRequest) -> Result<ProjectResponse> {
+    pub async fn create(&self, input: &ProjectCreateRequest) -> Result<ProjectResponse> {
         create_project(self.client, input).await
     }
 
-    pub async fn list(&mut self, input: &ProjectsListRequest) -> Result<ProjectsResponse> {
+    pub async fn list(&self, input: &ProjectsListRequest) -> Result<ProjectsResponse> {
         list_projects(self.client, input).await
     }
 
-    pub async fn update(&mut self, input: &ProjectPutRequest) -> Result<ProjectResponse> {
+    pub async fn update(&self, input: &ProjectPutRequest) -> Result<ProjectResponse> {
         update_project(self.client, input).await
     }
 
-    pub async fn delete(&mut self, input: ProjectsDeleteRequest) -> Result<ProjectsDeleteResponse> {
+    pub async fn delete(&self, input: ProjectsDeleteRequest) -> Result<ProjectsDeleteResponse> {
         delete_projects(self.client, input).await
     }
 }
 
 impl<'a> Client {
-    pub fn projects(&'a mut self) -> ClientProjects<'a> {
+    pub fn projects(&'a self) -> ClientProjects<'a> {
         ClientProjects { client: self }
     }
 }

@@ -18,13 +18,13 @@ crate-type = ["lib", "staticlib", "cdylib"]
 bench = false
 
 [dependencies]
-async-lock = "3.3.0"
 async-trait = "0.1.80"
 bitwarden = { workspace = true, features = ["internal", "uniffi"] }
 bitwarden-core = { workspace = true, features = ["uniffi"] }
 bitwarden-crypto = { workspace = true, features = ["uniffi"] }
 bitwarden-fido = { workspace = true, features = ["uniffi"] }
 bitwarden-generators = { workspace = true, features = ["uniffi"] }
+bitwarden-send = { workspace = true, features = ["uniffi"] }
 bitwarden-vault = { workspace = true, features = ["uniffi"] }
 chrono = { version = ">=0.4.26, <0.5", features = [
     "serde",

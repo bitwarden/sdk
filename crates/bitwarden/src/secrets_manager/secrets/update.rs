@@ -23,7 +23,7 @@ pub struct SecretPutRequest {
 }
 
 pub(crate) async fn update_secret(
-    client: &mut Client,
+    client: &Client,
     input: &SecretPutRequest,
 ) -> Result<SecretResponse> {
     let enc = client.get_encryption_settings()?;

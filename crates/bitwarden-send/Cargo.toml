@@ -25,7 +25,10 @@ base64 = ">=0.21.2, <0.23"
 bitwarden-api-api = { workspace = true }
 bitwarden-core = { workspace = true }
 bitwarden-crypto = { workspace = true }
-chrono = { version = ">=0.4.26, <0.5", default-features = false }
+chrono = { version = ">=0.4.26, <0.5", features = [
+    "clock",
+    "serde",
+], default-features = false }
 schemars = { version = ">=0.8.9, <0.9", features = ["uuid1", "chrono"] }
 serde = { version = ">=1.0, <2.0", features = ["derive"] }
 serde_repr = ">=0.1.12, <0.2"

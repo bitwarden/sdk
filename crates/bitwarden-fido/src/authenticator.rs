@@ -270,14 +270,15 @@ impl<'a> Fido2Authenticator<'a> {
 
         all_credentials
             .into_iter()
-            .flat_map(|cipher| {
-                cipher.get_fido2_credentials(&*enc).map(|credentials| {
+            .map(
+                |cipher| -> Result<Vec<Fido2CredentialAutofillView>, CredentialsForAutofillError> {
+                    let credentials = cipher.get_fido2_credentials(&*enc)?;
                     Fido2CredentialAutofillView::from_full_view(&cipher, &credentials)
-                })
-            })
+                        .map_err(Into::into)
+                },
+            )
             .flatten_ok()
-            .collect::<Result<_, _>>()
-            .map_err(|e| e.into())
+            .collect()
     }
 
     pub(super) fn get_authenticator(

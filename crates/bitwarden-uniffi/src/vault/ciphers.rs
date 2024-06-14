@@ -26,6 +26,12 @@ impl ClientCiphers {
     }
 
     /// Move a cipher to an organization, reencrypting the cipher key if necessary
+    ///
+    /// Warning!
+    ///
+    /// This function is potentially dangerous when used on legacy attachments. It does not validate
+    /// that attachments can actually be decrypted with the new key. Care MUST be taken to validate
+    /// attachments before calling this function and to migrate them yourself.
     pub fn move_to_organization(
         &self,
         cipher: CipherView,

@@ -1,6 +1,7 @@
 use std::{path::Path, sync::Arc};
 
 use bitwarden::vault::{Attachment, AttachmentEncryptResult, AttachmentView, Cipher};
+use uuid::Uuid;
 
 use crate::{Client, Result};
 
@@ -22,6 +23,21 @@ impl ClientAttachments {
             .vault()
             .attachments()
             .encrypt_buffer(cipher, attachment, &buffer)?)
+    }
+    /// Encrypt an attachment file in memory
+    pub fn encrypt_buffer_org_id(
+        &self,
+        cipher: Cipher,
+        attachment: AttachmentView,
+        new_org_id: Uuid,
+        buffer: Vec<u8>,
+    ) -> Result<AttachmentEncryptResult> {
+        Ok(self
+            .0
+             .0
+            .vault()
+            .attachments()
+            .encrypt_buffer_org_id(cipher, attachment, new_org_id, &buffer)?)
     }
 
     /// Encrypt an attachment file located in the file system

@@ -430,6 +430,11 @@ impl CipherView {
         Ok(())
     }
 
+    /// Warning!
+    ///
+    /// This function is potentially dangerous when used on legacy attachments. It does not validate
+    /// that attachments can actually be decrypted with the new key. Care MUST be taken to validate
+    /// attachments before calling this function and to migrate them yourself.
     pub fn move_to_organization(
         &mut self,
         enc: &dyn KeyContainer,
@@ -438,11 +443,6 @@ impl CipherView {
         let old_key = enc.get_key(&self.organization_id).ok_or(VaultLocked)?;
 
         let new_key = enc.get_key(&Some(organization_id)).ok_or(VaultLocked)?;
-
-        // If any attachment is missing a key we can't reencrypt the attachment keys
-        if self.attachments.iter().flatten().any(|a| a.key.is_none()) {
-            return Err(CipherError::AttachmentsWithoutKeys);
-        }
 
         // If the cipher has a key, we need to re-encrypt it with the new organization key
         if let Some(cipher_key) = &mut self.key {

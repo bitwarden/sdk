@@ -180,6 +180,8 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore]
+    /// Re-enable when we check integrity of attachments
     async fn test_move_user_cipher_with_attachment_without_key_to_org_fails() {
         let client = Client::init_test_account(test_bitwarden_com_account()).await;
 

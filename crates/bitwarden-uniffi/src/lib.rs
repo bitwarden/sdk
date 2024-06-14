@@ -3,7 +3,7 @@ uniffi::setup_scaffolding!();
 use std::sync::Arc;
 
 use auth::ClientAuth;
-use bitwarden::client::client_settings::ClientSettings;
+use bitwarden::ClientSettings;
 
 pub mod auth;
 pub mod crypto;

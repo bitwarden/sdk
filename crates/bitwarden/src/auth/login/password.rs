@@ -66,7 +66,7 @@ async fn request_identity_tokens(
     input: &PasswordLoginRequest,
     password_hash: &str,
 ) -> Result<IdentityTokenResponse> {
-    use crate::client::client_settings::DeviceType;
+    use crate::DeviceType;
 
     let config = client.get_api_configurations().await;
     PasswordTokenRequest::new(

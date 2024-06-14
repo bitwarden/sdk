@@ -1,4 +1,4 @@
-use bitwarden_vault::{CipherView, Fido2CredentialFullView};
+use bitwarden_vault::{CipherView, Fido2CredentialView};
 use passkey::types::webauthn::UserVerificationRequirement;
 use serde::Serialize;
 use thiserror::Error;
@@ -38,9 +38,9 @@ impl NoneWhitespace for Option<String> {
 }
 
 impl Fido2CredentialAutofillView {
-    pub fn from_full_view(
+    pub fn from_view(
         cipher: &CipherView,
-        credentials: &Vec<Fido2CredentialFullView>,
+        credentials: &Vec<Fido2CredentialView>,
     ) -> Result<Vec<Fido2CredentialAutofillView>, InvalidGuid> {
         credentials
             .into_iter()

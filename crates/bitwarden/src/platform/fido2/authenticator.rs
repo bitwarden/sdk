@@ -2,7 +2,7 @@ use std::sync::Mutex;
 
 use bitwarden_core::VaultLocked;
 use bitwarden_crypto::{CryptoError, KeyEncryptable};
-use bitwarden_vault::{CipherError, CipherView, Fido2CredentialView};
+use bitwarden_vault::{CipherError, CipherView};
 use itertools::Itertools;
 use log::error;
 use passkey::{
@@ -75,6 +75,8 @@ pub enum SilentlyDiscoverCredentialsError {
     CipherError(#[from] CipherError),
     #[error(transparent)]
     VaultLocked(#[from] VaultLocked),
+    #[error(transparent)]
+    InvalidGuid(#[from] InvalidGuid),
     #[error(transparent)]
     Fido2CallbackError(#[from] Fido2CallbackError),
 }
@@ -234,16 +236,21 @@ impl<'a> Fido2Authenticator<'a> {
     pub async fn silently_discover_credentials(
         &mut self,
         rp_id: String,
-    ) -> Result<Vec<Fido2CredentialView>, SilentlyDiscoverCredentialsError> {
+    ) -> Result<Vec<Fido2CredentialAutofillView>, SilentlyDiscoverCredentialsError> {
         let enc = self.client.get_encryption_settings()?;
         let result = self.credential_store.find_credentials(None, rp_id).await?;
 
         result
             .into_iter()
-            .map(|c| c.decrypt_fido2_credentials(&enc))
+            .map(
+                |cipher| -> Result<Vec<Fido2CredentialAutofillView>, SilentlyDiscoverCredentialsError> {
+                    let credentials = cipher.decrypt_fido2_credentials(&enc)?;
+                    Fido2CredentialAutofillView::from_view(&cipher, &credentials)
+                        .map_err(Into::into)
+                },
+            )
             .flatten_ok()
-            .collect::<Result<_, _>>()
-            .map_err(Into::into)
+            .collect()
     }
 
     /// Returns all Fido2 credentials that can be used for autofill, in a view
@@ -258,8 +265,8 @@ impl<'a> Fido2Authenticator<'a> {
             .into_iter()
             .map(
                 |cipher| -> Result<Vec<Fido2CredentialAutofillView>, CredentialsForAutofillError> {
-                    let credentials = cipher.get_fido2_credentials(&enc)?;
-                    Fido2CredentialAutofillView::from_full_view(&cipher, &credentials)
+                    let credentials = cipher.decrypt_fido2_credentials(&enc)?;
+                    Fido2CredentialAutofillView::from_view(&cipher, &credentials)
                         .map_err(Into::into)
                 },
             )

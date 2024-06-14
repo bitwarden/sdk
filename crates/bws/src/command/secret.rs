@@ -30,7 +30,7 @@ pub(crate) struct SecretEditCommandModel {
 }
 
 pub(crate) async fn list(
-    mut client: Client,
+    client: Client,
     organization_id: Uuid,
     project_id: Option<Uuid>,
     output_settings: OutputSettings,
@@ -59,7 +59,7 @@ pub(crate) async fn list(
 }
 
 pub(crate) async fn get(
-    mut client: Client,
+    client: Client,
     secret_id: Uuid,
     output_settings: OutputSettings,
 ) -> Result<()> {
@@ -73,7 +73,7 @@ pub(crate) async fn get(
 }
 
 pub(crate) async fn create(
-    mut client: Client,
+    client: Client,
     organization_id: Uuid,
     secret: SecretCreateCommandModel,
     output_settings: OutputSettings,
@@ -94,7 +94,7 @@ pub(crate) async fn create(
 }
 
 pub(crate) async fn edit(
-    mut client: Client,
+    client: Client,
     organization_id: Uuid,
     secret: SecretEditCommandModel,
     output_settings: OutputSettings,
@@ -126,7 +126,7 @@ pub(crate) async fn edit(
     Ok(())
 }
 
-pub(crate) async fn delete(mut client: Client, secret_ids: Vec<Uuid>) -> Result<()> {
+pub(crate) async fn delete(client: Client, secret_ids: Vec<Uuid>) -> Result<()> {
     let count = secret_ids.len();
 
     let result = client

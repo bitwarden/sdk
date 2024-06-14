@@ -365,6 +365,7 @@ dependencies = [
  "bitwarden-crypto",
  "bitwarden-exporters",
  "bitwarden-generators",
+ "bitwarden-send",
  "bitwarden-vault",
  "chrono",
  "coset",
@@ -546,6 +547,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "bitwarden-send"
+version = "0.5.0"
+dependencies = [
+ "base64 0.21.7",
+ "bitwarden-api-api",
+ "bitwarden-core",
+ "bitwarden-crypto",
+ "chrono",
+ "schemars",
+ "serde",
+ "serde_repr",
+ "thiserror",
+ "uniffi",
+ "uuid",
+ "zeroize",
+]
+
+[[package]]
 name = "bitwarden-uniffi"
 version = "0.1.0"
 dependencies = [
@@ -555,6 +574,7 @@ dependencies = [
  "bitwarden-core",
  "bitwarden-crypto",
  "bitwarden-generators",
+ "bitwarden-send",
  "bitwarden-vault",
  "chrono",
  "env_logger 0.11.3",

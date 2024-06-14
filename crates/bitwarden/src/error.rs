@@ -64,6 +64,11 @@ pub enum Error {
     #[error(transparent)]
     PasswordError(#[from] PasswordError),
 
+    // Send
+    #[cfg(feature = "internal")]
+    #[error(transparent)]
+    SendParseError(#[from] bitwarden_send::SendParseError),
+
     // Vault
     #[cfg(feature = "internal")]
     #[error(transparent)]

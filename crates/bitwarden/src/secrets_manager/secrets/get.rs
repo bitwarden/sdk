@@ -13,7 +13,7 @@ pub struct SecretGetRequest {
 }
 
 pub(crate) async fn get_secret(
-    client: &mut Client,
+    client: &Client,
     input: &SecretGetRequest,
 ) -> Result<SecretResponse> {
     let config = client.get_api_configurations().await;
@@ -21,5 +21,5 @@ pub(crate) async fn get_secret(
 
     let enc = client.get_encryption_settings()?;
 
-    SecretResponse::process_response(res, enc)
+    SecretResponse::process_response(res, &enc)
 }

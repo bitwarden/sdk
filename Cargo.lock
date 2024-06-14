@@ -225,17 +225,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "async-lock"
-version = "3.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d034b430882f8381900d3fe6f0aaa3ad94f2cb4ac519b429692a1bc2dda4ae7b"
-dependencies = [
- "event-listener",
- "event-listener-strategy",
- "pin-project-lite",
-]
-
-[[package]]
 name = "async-trait"
 version = "0.1.80"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -369,17 +358,19 @@ name = "bitwarden"
 version = "0.5.0"
 dependencies = [
  "async-trait",
- "base64 0.22.1",
+ "base64 0.21.7",
  "bitwarden-api-api",
  "bitwarden-api-identity",
+ "bitwarden-core",
  "bitwarden-crypto",
  "bitwarden-exporters",
+ "bitwarden-fido",
  "bitwarden-generators",
+ "bitwarden-send",
+ "bitwarden-vault",
  "chrono",
  "getrandom",
- "hmac",
  "log",
- "passkey",
  "rand",
  "rand_chacha",
  "reqwest",
@@ -390,8 +381,6 @@ dependencies = [
  "serde_json",
  "serde_qs",
  "serde_repr",
- "sha1",
- "sha2",
  "thiserror",
  "tokio",
  "uniffi",
@@ -447,6 +436,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "bitwarden-core"
+version = "0.5.0"
+dependencies = [
+ "chrono",
+ "thiserror",
+ "uniffi",
+ "uuid",
+]
+
+[[package]]
 name = "bitwarden-crypto"
 version = "0.5.0"
 dependencies = [
@@ -482,12 +481,36 @@ name = "bitwarden-exporters"
 version = "0.5.0"
 dependencies = [
  "base64 0.22.1",
+ "bitwarden-core",
  "bitwarden-crypto",
+ "bitwarden-vault",
  "chrono",
  "csv",
  "serde",
  "serde_json",
  "thiserror",
+ "uuid",
+]
+
+[[package]]
+name = "bitwarden-fido"
+version = "0.5.0"
+dependencies = [
+ "async-trait",
+ "base64 0.21.7",
+ "bitwarden-core",
+ "bitwarden-crypto",
+ "bitwarden-vault",
+ "chrono",
+ "coset",
+ "log",
+ "p256",
+ "passkey",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "uniffi",
  "uuid",
 ]
 
@@ -512,7 +535,6 @@ dependencies = [
 name = "bitwarden-json"
 version = "0.3.0"
 dependencies = [
- "async-lock",
  "bitwarden",
  "log",
  "schemars",
@@ -545,19 +567,64 @@ dependencies = [
 ]
 
 [[package]]
+name = "bitwarden-send"
+version = "0.5.0"
+dependencies = [
+ "base64 0.21.7",
+ "bitwarden-api-api",
+ "bitwarden-core",
+ "bitwarden-crypto",
+ "chrono",
+ "schemars",
+ "serde",
+ "serde_repr",
+ "thiserror",
+ "uniffi",
+ "uuid",
+ "zeroize",
+]
+
+[[package]]
 name = "bitwarden-uniffi"
 version = "0.1.0"
 dependencies = [
  "android_logger",
- "async-lock",
  "async-trait",
  "bitwarden",
+ "bitwarden-core",
  "bitwarden-crypto",
+ "bitwarden-fido",
  "bitwarden-generators",
+ "bitwarden-send",
+ "bitwarden-vault",
  "chrono",
  "env_logger 0.11.3",
  "log",
  "schemars",
+ "thiserror",
+ "uniffi",
+ "uuid",
+]
+
+[[package]]
+name = "bitwarden-vault"
+version = "0.5.0"
+dependencies = [
+ "base64 0.21.7",
+ "bitwarden-api-api",
+ "bitwarden-core",
+ "bitwarden-crypto",
+ "chrono",
+ "hmac",
+ "rand",
+ "reqwest",
+ "schemars",
+ "serde",
+ "serde_json",
+ "serde_repr",
+ "sha1",
+ "sha2",
+ "thiserror",
  "uniffi",
  "uuid",
 ]
@@ -809,9 +876,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.5.4"
+version = "4.5.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "90bc066a67923782aa8515dbaea16946c5bcc5addbd668bb80af688e53e548a0"
+checksum = "5db83dced34638ad474f39f250d7fea9598bdd239eaced1bdf45d597da0f433f"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -819,9 +886,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.2"
+version = "4.5.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ae129e2e766ae0ec03484e609954119f123cc1fe650337e155d03b022f24f7b4"
+checksum = "f7e204572485eb3fbf28f871612191521df159bc3e15a9f5064c66dba3a8c05f"
 dependencies = [
  "anstream",
  "anstyle",
@@ -831,18 +898,18 @@ dependencies = [
 
 [[package]]
 name = "clap_complete"
-version = "4.5.2"
+version = "4.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd79504325bf38b10165b02e89b4347300f855f273c4cb30c4a3209e6583275e"
+checksum = "d2020fa13af48afc65a9a87335bda648309ab3d154cd03c7ff95b378c7ed39c4"
 dependencies = [
  "clap",
 ]
 
 [[package]]
 name = "clap_derive"
-version = "4.5.4"
+version = "4.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "528131438037fd55894f62d6e9f068b8f45ac57ffa77517819645d10aed04f64"
+checksum = "c780290ccf4fb26629baa7a1081e68ced113f1d3ec302fa5948f1c381ebf06c6"
 dependencies = [
  "heck 0.5.0",
  "proc-macro2",
@@ -858,9 +925,9 @@ checksum = "98cc8fbded0c607b7ba9dd60cd98df59af97e84d24e49c8557331cfc26d301ce"
 
 [[package]]
 name = "clap_mangen"
-version = "0.2.20"
+version = "0.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e1dd95b5ebb5c1c54581dd6346f3ed6a79a3eef95dd372fc2ac13d535535300e"
+checksum = "74b70fc13e60c0e1d490dc50eb73a749be6d81f4ef03783df1d9b7b0c62bc937"
 dependencies = [
  "clap",
  "roff",
@@ -931,15 +998,6 @@ dependencies = [
  "strum 0.26.2",
  "strum_macros 0.26.2",
  "unicode-width",
-]
-
-[[package]]
-name = "concurrent-queue"
-version = "2.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ca0197aee26d1ae37445ee532fefce43251d24cc7c166799f4d46817f1d3973"
-dependencies = [
- "crossbeam-utils",
 ]
 
 [[package]]
@@ -1492,27 +1550,6 @@ checksum = "534c5cf6194dfab3db3242765c03bbe257cf92f22b38f6bc0c58d59108a820ba"
 dependencies = [
  "libc",
  "windows-sys 0.52.0",
-]
-
-[[package]]
-name = "event-listener"
-version = "4.0.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "67b215c49b2b248c855fb73579eb1f4f26c38ffdc12973e20e07b91d78d5646e"
-dependencies = [
- "concurrent-queue",
- "parking",
- "pin-project-lite",
-]
-
-[[package]]
-name = "event-listener-strategy"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "958e4d70b6d5e81971bebec42271ec641e7ff4e170a6fa605f2b8a8b65cb97d3"
-dependencies = [
- "event-listener",
- "pin-project-lite",
 ]
 
 [[package]]
@@ -2519,12 +2556,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "parking"
-version = "2.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb813b8af86854136c6922af0598d719255ecb2179515e6e7730d468f05c9cae"
-
-[[package]]
 name = "parking_lot"
 version = "0.12.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2550,7 +2581,7 @@ dependencies = [
 [[package]]
 name = "passkey"
 version = "0.3.1"
-source = "git+https://github.com/bitwarden/passkey-rs?rev=12da886102707f87ad97e499c857c0857ece0b85#12da886102707f87ad97e499c857c0857ece0b85"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a#c48c2ddfd6b884b2d754432576c66cb2b1985a3a"
 dependencies = [
  "passkey-authenticator",
  "passkey-client",
@@ -2561,7 +2592,7 @@ dependencies = [
 [[package]]
 name = "passkey-authenticator"
 version = "0.3.0"
-source = "git+https://github.com/bitwarden/passkey-rs?rev=12da886102707f87ad97e499c857c0857ece0b85#12da886102707f87ad97e499c857c0857ece0b85"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a#c48c2ddfd6b884b2d754432576c66cb2b1985a3a"
 dependencies = [
  "async-trait",
  "coset",
@@ -2574,7 +2605,7 @@ dependencies = [
 [[package]]
 name = "passkey-client"
 version = "0.3.1"
-source = "git+https://github.com/bitwarden/passkey-rs?rev=12da886102707f87ad97e499c857c0857ece0b85#12da886102707f87ad97e499c857c0857ece0b85"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a#c48c2ddfd6b884b2d754432576c66cb2b1985a3a"
 dependencies = [
  "ciborium",
  "coset",
@@ -2591,12 +2622,12 @@ dependencies = [
 [[package]]
 name = "passkey-transports"
 version = "0.1.0"
-source = "git+https://github.com/bitwarden/passkey-rs?rev=12da886102707f87ad97e499c857c0857ece0b85#12da886102707f87ad97e499c857c0857ece0b85"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a#c48c2ddfd6b884b2d754432576c66cb2b1985a3a"
 
 [[package]]
 name = "passkey-types"
 version = "0.2.1"
-source = "git+https://github.com/bitwarden/passkey-rs?rev=12da886102707f87ad97e499c857c0857ece0b85#12da886102707f87ad97e499c857c0857ece0b85"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a#c48c2ddfd6b884b2d754432576c66cb2b1985a3a"
 dependencies = [
  "bitflags 2.5.0",
  "ciborium",
@@ -2808,7 +2839,7 @@ dependencies = [
 [[package]]
 name = "public-suffix"
 version = "0.1.1"
-source = "git+https://github.com/bitwarden/passkey-rs?rev=12da886102707f87ad97e499c857c0857ece0b85#12da886102707f87ad97e499c857c0857ece0b85"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a#c48c2ddfd6b884b2d754432576c66cb2b1985a3a"
 
 [[package]]
 name = "pyo3"

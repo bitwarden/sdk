@@ -24,8 +24,8 @@ RUN mkdir /lib64-bws
 RUN ldd /app/target/release/bws | tr -s '[:blank:]' '\n' | grep '^/lib' | xargs -I % cp % /lib-bws
 RUN ldd /app/target/release/bws | tr -s '[:blank:]' '\n' | grep '^/lib64' | xargs -I % cp % /lib64-bws
 
-# Make a HOME directory for the app stage
-RUN mkdir -p /home/app
+# Make a user and HOME directory for the app stage
+RUN useradd -m app
 
 ###############################################
 #                  App stage                  #
@@ -35,10 +35,14 @@ FROM scratch
 ARG TARGETPLATFORM
 LABEL com.bitwarden.product="bitwarden"
 
-# Set a HOME directory
+# Set a HOME directory and copy the user file
 COPY --from=build /home/app /home/app
+COPY --from=build /etc/passwd /etc/passwd
 ENV HOME=/home/app
 WORKDIR /home/app
+
+# Switch to the app user
+USER app
 
 # Copy built project from the build stage
 COPY --from=build /app/target/release/bws /bin/bws

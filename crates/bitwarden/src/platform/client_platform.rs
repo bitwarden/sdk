@@ -1,12 +1,14 @@
+#[cfg(feature = "uniffi")]
+use super::client_fido::ClientFido2;
 use super::{
     generate_fingerprint::{generate_fingerprint, generate_user_fingerprint},
-    get_user_api_key, ClientFido2, FingerprintRequest, FingerprintResponse,
-    SecretVerificationRequest, UserApiKeyResponse,
+    get_user_api_key, FingerprintRequest, FingerprintResponse, SecretVerificationRequest,
+    UserApiKeyResponse,
 };
 use crate::{error::Result, Client};
 
 pub struct ClientPlatform<'a> {
-    pub(crate) client: &'a mut Client,
+    pub(crate) client: &'a Client,
 }
 
 impl<'a> ClientPlatform<'a> {
@@ -25,9 +27,8 @@ impl<'a> ClientPlatform<'a> {
         get_user_api_key(self.client, &input).await
     }
 
-    /// At the moment this is just a stub implementation that doesn't do anything. It's here to make
-    /// it possible to check the usability API on the native clients.
-    pub fn fido2(&'a mut self) -> ClientFido2<'a> {
+    #[cfg(feature = "uniffi")]
+    pub fn fido2(&'a self) -> ClientFido2<'a> {
         ClientFido2 {
             client: self.client,
         }
@@ -35,7 +36,7 @@ impl<'a> ClientPlatform<'a> {
 }
 
 impl<'a> Client {
-    pub fn platform(&'a mut self) -> ClientPlatform<'a> {
+    pub fn platform(&'a self) -> ClientPlatform<'a> {
         ClientPlatform { client: self }
     }
 }

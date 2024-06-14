@@ -1,20 +1,17 @@
 use bitwarden_crypto::{CryptoError, KeyDecryptable, LocateKey};
+use bitwarden_vault::{Collection, CollectionView};
 
-use crate::{
-    error::Result,
-    vault::{ClientVault, Collection, CollectionView},
-    Client,
-};
+use crate::{error::Result, vault::ClientVault, Client};
 
 pub struct ClientCollections<'a> {
     pub(crate) client: &'a Client,
 }
 
 impl<'a> ClientCollections<'a> {
-    pub async fn decrypt(&self, collection: Collection) -> Result<CollectionView> {
+    pub fn decrypt(&self, collection: Collection) -> Result<CollectionView> {
         let enc = self.client.get_encryption_settings()?;
         let key = collection
-            .locate_key(enc, &None)
+            .locate_key(&enc, &None)
             .ok_or(CryptoError::MissingKey)?;
 
         let view = collection.decrypt_with_key(key)?;
@@ -22,13 +19,13 @@ impl<'a> ClientCollections<'a> {
         Ok(view)
     }
 
-    pub async fn decrypt_list(&self, collections: Vec<Collection>) -> Result<Vec<CollectionView>> {
+    pub fn decrypt_list(&self, collections: Vec<Collection>) -> Result<Vec<CollectionView>> {
         let enc = self.client.get_encryption_settings()?;
 
         let views: Result<Vec<CollectionView>> = collections
             .iter()
             .map(|c| -> Result<CollectionView> {
-                let key = c.locate_key(enc, &None).ok_or(CryptoError::MissingKey)?;
+                let key = c.locate_key(&enc, &None).ok_or(CryptoError::MissingKey)?;
                 Ok(c.decrypt_with_key(key)?)
             })
             .collect();
@@ -47,11 +44,13 @@ impl<'a> ClientVault<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{client::test_accounts::test_bitwarden_com_account, vault::Collection, Client};
+    use bitwarden_vault::Collection;
+
+    use crate::{client::test_accounts::test_bitwarden_com_account, Client};
 
     #[tokio::test]
     async fn test_decrypt_list() {
-        let mut client = Client::init_test_account(test_bitwarden_com_account()).await;
+        let client = Client::init_test_account(test_bitwarden_com_account()).await;
 
         let dec = client.vault().collections().decrypt_list(vec![Collection {
             id: Some("66c5ca57-0868-4c7e-902f-b181009709c0".parse().unwrap()),
@@ -60,14 +59,14 @@ mod tests {
             external_id: None,
             hide_passwords: false,
             read_only: false,
-        }]).await.unwrap();
+        }]).unwrap();
 
         assert_eq!(dec[0].name, "Default collection");
     }
 
     #[tokio::test]
     async fn test_decrypt() {
-        let mut client = Client::init_test_account(test_bitwarden_com_account()).await;
+        let client = Client::init_test_account(test_bitwarden_com_account()).await;
 
         let dec = client.vault().collections().decrypt(Collection {
             id: Some("66c5ca57-0868-4c7e-902f-b181009709c0".parse().unwrap()),
@@ -76,7 +75,7 @@ mod tests {
             external_id: None,
             hide_passwords: false,
             read_only: false,
-        }).await.unwrap();
+        }).unwrap();
 
         assert_eq!(dec.name, "Default collection");
     }

@@ -74,13 +74,13 @@ jobs:
       - name: Checkout SDK-Go repo
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
         with:
-          repository: bitwarden/sm-sdk-go
-          path: sm-sdk-go
+          repository: bitwarden/sdk-go
+          path: sdk-go
           ref: main
           token: ${{ steps.retrieve-secrets.outputs.github-pat-bitwarden-devops-bot-repo-scope }}
 
       - name: Setup Git
-        working-directory: sm-sdk-go
+        working-directory: sdk-go
         run: |
           git config --local user.email "${{ env._BOT_EMAIL }}"
           git config --local user.name "${{ env._BOT_NAME }}"
@@ -132,31 +132,31 @@ jobs:
 
       - name: Update files
         run: |
-          # Copy files to local sm-sdk-go repo path
-          cp --verbose -rf sdk/languages/go/. sm-sdk-go
+          # Copy files to local sdk-go repo path
+          cp --verbose -rf sdk/languages/go/. sdk-go
           # Remove the old cinterface lib files
-          rm -rf sm-sdk-go/internal/cinterface/lib/*
-          mkdir -p sm-sdk-go/internal/cinterface/lib/{darwin-{x64,arm64},linux-{x64,arm64},windows-x64}
+          rm -rf sdk-go/internal/cinterface/lib/*
+          mkdir -p sdk-go/internal/cinterface/lib/{darwin-{x64,arm64},linux-{x64,arm64},windows-x64}
 
       - name: Extract static libs to their respective directories
         run: |
-          unzip 'libbitwarden_c_files-x86_64-apple-darwin.zip' '*.a' -d sm-sdk-go/internal/cinterface/lib/darwin-x64
-          unzip 'libbitwarden_c_files-aarch64-apple-darwin.zip' '*.a' -d sm-sdk-go/internal/cinterface/lib/darwin-arm64
-          unzip 'libbitwarden_c_files-x86_64-unknown-linux-musl.zip' '*.a' -d sm-sdk-go/internal/cinterface/lib/linux-x64
-          unzip 'libbitwarden_c_files-aarch64-unknown-linux-musl.zip' '*.a' -d sm-sdk-go/internal/cinterface/lib/linux-arm64
-          unzip 'libbitwarden_c_files-x86_64-pc-windows-gnu.zip' '*.a' -d sm-sdk-go/internal/cinterface/lib/windows-x64
+          unzip 'libbitwarden_c_files-x86_64-apple-darwin.zip' '*.a' -d sdk-go/internal/cinterface/lib/darwin-x64
+          unzip 'libbitwarden_c_files-aarch64-apple-darwin.zip' '*.a' -d sdk-go/internal/cinterface/lib/darwin-arm64
+          unzip 'libbitwarden_c_files-x86_64-unknown-linux-musl.zip' '*.a' -d sdk-go/internal/cinterface/lib/linux-x64
+          unzip 'libbitwarden_c_files-aarch64-unknown-linux-musl.zip' '*.a' -d sdk-go/internal/cinterface/lib/linux-arm64
+          unzip 'libbitwarden_c_files-x86_64-pc-windows-gnu.zip' '*.a' -d sdk-go/internal/cinterface/lib/windows-x64
 
       - name: Download artifacts
         uses: bitwarden/gh-actions/download-artifacts@main
         with:
           workflow: generate_schemas.yml
-          path: sm-sdk-go
+          path: sdk-go
           workflow_conclusion: success
           branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
           artifacts: schemas.go
 
       - name: Push changes
-        working-directory: sm-sdk-go
+        working-directory: sdk-go
         run: |
           git add .
           git commit -m "Update Go SDK to ${{ github.sha }}"
@@ -173,7 +173,7 @@ jobs:
 
       - name: Create release tag on SDK Go repo
         if: ${{ inputs.release_type != 'Dry Run' }}
-        working-directory: sm-sdk-go
+        working-directory: sdk-go
         run: |
           # Check if tag exists, set output then exit 0 if true.
           if git log v${{ env._PKG_VERSION }} >/dev/null 2>&1; then
@@ -274,7 +274,7 @@ jobs:
           body: "<insert release notes here>"
           token: ${{ steps.retrieve-secrets.outputs.github-pat-bitwarden-devops-bot-repo-scope }}
           draft: true
-          repo: sm-sdk-go
+          repo: sdk-go
           owner: bitwarden
           artifacts: "libbitwarden_c_files-x86_64-apple-darwin-${{ env._PKG_VERSION }}.zip,
             libbitwarden_c_files-aarch64-apple-darwin-${{ env._PKG_VERSION }}.zip,

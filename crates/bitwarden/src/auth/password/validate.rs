@@ -13,12 +13,9 @@ pub(crate) fn validate_password(
     password: String,
     password_hash: String,
 ) -> Result<bool> {
-    let login_method = client
-        .login_method
-        .as_ref()
-        .ok_or(Error::NotAuthenticated)?;
+    let login_method = client.get_login_method().ok_or(Error::NotAuthenticated)?;
 
-    if let LoginMethod::User(login_method) = login_method {
+    if let LoginMethod::User(login_method) = login_method.as_ref() {
         match login_method {
             UserLoginMethod::Username { email, kdf, .. }
             | UserLoginMethod::ApiKey { email, kdf, .. } => {
@@ -43,12 +40,11 @@ pub(crate) fn validate_password_user_key(
     password: String,
     encrypted_user_key: String,
 ) -> Result<String> {
-    let login_method = client
-        .login_method
-        .as_ref()
-        .ok_or(Error::NotAuthenticated)?;
+    use bitwarden_core::VaultLocked;
 
-    if let LoginMethod::User(login_method) = login_method {
+    let login_method = client.get_login_method().ok_or(Error::NotAuthenticated)?;
+
+    if let LoginMethod::User(login_method) = login_method.as_ref() {
         match login_method {
             UserLoginMethod::Username { email, kdf, .. }
             | UserLoginMethod::ApiKey { email, kdf, .. } => {
@@ -57,11 +53,9 @@ pub(crate) fn validate_password_user_key(
                     .decrypt_user_key(encrypted_user_key.parse()?)
                     .map_err(|_| "wrong password")?;
 
-                let enc = client
-                    .get_encryption_settings()
-                    .map_err(|_| Error::VaultLocked)?;
+                let enc = client.get_encryption_settings().map_err(|_| VaultLocked)?;
 
-                let existing_key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
+                let existing_key = enc.get_key(&None).ok_or(VaultLocked)?;
 
                 if user_key.to_vec() != existing_key.to_vec() {
                     return Err("wrong user key".into());
@@ -86,7 +80,7 @@ mod tests {
 
         use crate::client::{Client, Kdf, LoginMethod, UserLoginMethod};
 
-        let mut client = Client::new(None);
+        let client = Client::new(None);
         client.set_login_method(LoginMethod::User(UserLoginMethod::Username {
             email: "test@bitwarden.com".to_string(),
             kdf: Kdf::PBKDF2 {
@@ -110,7 +104,7 @@ mod tests {
 
         use crate::client::{Client, Kdf, LoginMethod, UserLoginMethod};
 
-        let mut client = Client::new(None);
+        let client = Client::new(None);
 
         let password = "asdfasdfasdf";
         let email = "test@bitwarden.com";
@@ -150,7 +144,7 @@ mod tests {
 
         use crate::client::{Client, Kdf, LoginMethod, UserLoginMethod};
 
-        let mut client = Client::new(None);
+        let client = Client::new(None);
 
         let password = b"asdfasdfasdf";
         let email = "test@bitwarden.com";

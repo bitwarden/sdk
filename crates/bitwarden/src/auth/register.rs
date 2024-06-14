@@ -18,7 +18,7 @@ pub struct RegisterRequest {
 }
 
 /// Half baked implementation of user registration
-pub(super) async fn register(client: &mut Client, req: &RegisterRequest) -> Result<()> {
+pub(super) async fn register(client: &Client, req: &RegisterRequest) -> Result<()> {
     let config = client.get_api_configurations().await;
 
     let kdf = Kdf::default();

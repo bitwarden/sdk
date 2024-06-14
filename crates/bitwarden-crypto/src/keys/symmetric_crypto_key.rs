@@ -10,6 +10,7 @@ use super::key_encryptable::CryptoKey;
 use crate::CryptoError;
 
 /// A symmetric encryption key. Used to encrypt and decrypt [`EncString`](crate::EncString)
+#[derive(Clone)]
 pub struct SymmetricCryptoKey {
     // GenericArray is equivalent to [u8; N], which is a Copy type placed on the stack.
     // To keep the compiler from making stack copies when moving this struct around,

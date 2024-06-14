@@ -1,15 +1,12 @@
 use bitwarden_api_api::models::SecretsSyncResponseModel;
+use bitwarden_core::require;
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::SecretResponse;
-use crate::{
-    client::encryption_settings::EncryptionSettings,
-    error::{require, Result},
-    Client,
-};
+use crate::{client::encryption_settings::EncryptionSettings, error::Result, Client};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -21,7 +18,7 @@ pub struct SecretsSyncRequest {
 }
 
 pub(crate) async fn sync_secrets(
-    client: &mut Client,
+    client: &Client,
     input: &SecretsSyncRequest,
 ) -> Result<SecretsSyncResponse> {
     let config = client.get_api_configurations().await;
@@ -36,7 +33,7 @@ pub(crate) async fn sync_secrets(
 
     let enc = client.get_encryption_settings()?;
 
-    SecretsSyncResponse::process_response(res, enc)
+    SecretsSyncResponse::process_response(res, &enc)
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

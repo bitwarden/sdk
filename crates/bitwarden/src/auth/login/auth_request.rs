@@ -2,6 +2,7 @@ use bitwarden_api_api::{
     apis::auth_requests_api::{auth_requests_id_response_get, auth_requests_post},
     models::{AuthRequestCreateRequestModel, AuthRequestType},
 };
+use bitwarden_core::require;
 use bitwarden_crypto::Kdf;
 use uuid::Uuid;
 
@@ -11,7 +12,7 @@ use crate::{
         auth_request::new_auth_request,
     },
     client::{LoginMethod, UserLoginMethod},
-    error::{require, Result},
+    error::Result,
     mobile::crypto::{AuthRequestMethod, InitUserCryptoMethod, InitUserCryptoRequest},
     Client,
 };
@@ -26,7 +27,7 @@ pub struct NewAuthRequestResponse {
 }
 
 pub(crate) async fn send_new_auth_request(
-    client: &mut Client,
+    client: &Client,
     email: String,
     device_identifier: String,
 ) -> Result<NewAuthRequestResponse> {
@@ -55,7 +56,7 @@ pub(crate) async fn send_new_auth_request(
 }
 
 pub(crate) async fn complete_auth_request(
-    client: &mut Client,
+    client: &Client,
     auth_req: NewAuthRequestResponse,
 ) -> Result<()> {
     let config = client.get_api_configurations().await;
@@ -80,7 +81,7 @@ pub(crate) async fn complete_auth_request(
         config.device_type,
         &auth_req.device_identifier,
     )
-    .send(config)
+    .send(&config)
     .await?;
 
     if let IdentityTokenResponse::Authenticated(r) = response {

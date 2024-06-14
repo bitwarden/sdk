@@ -1,4 +1,5 @@
-use bitwarden_vault::{CipherView, Fido2CredentialView};
+use bitwarden_crypto::KeyContainer;
+use bitwarden_vault::{CipherError, CipherView};
 use passkey::types::webauthn::UserVerificationRequirement;
 use serde::Serialize;
 use thiserror::Error;
@@ -37,15 +38,26 @@ impl NoneWhitespace for Option<String> {
     }
 }
 
+#[derive(Debug, Error)]
+pub enum Fido2CredentialAutofillViewError {
+    #[error(transparent)]
+    InvalidGuid(#[from] InvalidGuid),
+
+    #[error(transparent)]
+    CipherError(#[from] CipherError),
+}
+
 impl Fido2CredentialAutofillView {
-    pub fn from_view(
+    pub fn from_cipher_view(
         cipher: &CipherView,
-        credentials: &Vec<Fido2CredentialView>,
-    ) -> Result<Vec<Fido2CredentialAutofillView>, InvalidGuid> {
+        enc: &dyn KeyContainer,
+    ) -> Result<Vec<Fido2CredentialAutofillView>, Fido2CredentialAutofillViewError> {
+        let credentials = cipher.decrypt_fido2_credentials(enc)?;
+
         credentials
             .into_iter()
             .filter(|c| c.user_handle.is_some())
-            .map(|c| -> Result<_, InvalidGuid> {
+            .map(|c| -> Result<_, Fido2CredentialAutofillViewError> {
                 Ok(Fido2CredentialAutofillView {
                     credential_id: string_to_guid_bytes(&c.credential_id)?,
                     cipher_id: cipher

@@ -17,7 +17,7 @@ pub struct SecretsSyncRequest {
 }
 
 pub(crate) async fn sync_secrets(
-    client: &mut Client,
+    client: &Client,
     input: &SecretsSyncRequest,
 ) -> Result<SecretsSyncResponse, Error> {
     let config = client.internal.get_api_configurations().await;

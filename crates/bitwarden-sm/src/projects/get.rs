@@ -13,7 +13,7 @@ pub struct ProjectGetRequest {
 }
 
 pub(crate) async fn get_project(
-    client: &mut Client,
+    client: &Client,
     input: &ProjectGetRequest,
 ) -> Result<ProjectResponse, Error> {
     let config = client.internal.get_api_configurations().await;

@@ -14,7 +14,7 @@ pub struct SecretsGetRequest {
 }
 
 pub(crate) async fn get_secrets_by_ids(
-    client: &mut Client,
+    client: &Client,
     input: SecretsGetRequest,
 ) -> Result<SecretsResponse, Error> {
     let request = Some(GetSecretsRequestModel { ids: input.ids });

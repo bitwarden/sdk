@@ -22,7 +22,7 @@ pub struct SecretCreateRequest {
 }
 
 pub(crate) async fn create_secret(
-    client: &mut Client,
+    client: &Client,
     input: &SecretCreateRequest,
 ) -> Result<SecretResponse, Error> {
     let enc = client.internal.get_encryption_settings()?;

@@ -17,7 +17,7 @@ pub struct ProjectCreateRequest {
 }
 
 pub(crate) async fn create_project(
-    client: &mut Client,
+    client: &Client,
     input: &ProjectCreateRequest,
 ) -> Result<ProjectResponse, Error> {
     let enc = client.internal.get_encryption_settings()?;

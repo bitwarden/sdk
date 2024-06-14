@@ -18,7 +18,7 @@ pub struct SecretIdentifiersRequest {
 }
 
 pub(crate) async fn list_secrets(
-    client: &mut Client,
+    client: &Client,
     input: &SecretIdentifiersRequest,
 ) -> Result<SecretIdentifiersResponse, Error> {
     let config = client.internal.get_api_configurations().await;
@@ -41,7 +41,7 @@ pub struct SecretIdentifiersByProjectRequest {
 }
 
 pub(crate) async fn list_secrets_by_project(
-    client: &mut Client,
+    client: &Client,
     input: &SecretIdentifiersByProjectRequest,
 ) -> Result<SecretIdentifiersResponse, Error> {
     let config = client.internal.get_api_configurations().await;

@@ -25,6 +25,18 @@ impl ClientCiphers {
         Ok(self.0 .0.vault().ciphers().decrypt_list(ciphers)?)
     }
 
+    pub fn decrypt_fido2_credentials(
+        &self,
+        cipher_view: CipherView,
+    ) -> Result<Vec<Fido2CredentialView>> {
+        Ok(self
+            .0
+             .0
+            .vault()
+            .ciphers()
+            .decrypt_fido2_credentials(cipher_view)?)
+    }
+
     /// Move a cipher to an organization, reencrypting the cipher key if necessary
     pub fn move_to_organization(
         &self,

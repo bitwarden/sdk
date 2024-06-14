@@ -13,7 +13,7 @@ pub struct SecretGetRequest {
 }
 
 pub(crate) async fn get_secret(
-    client: &mut Client,
+    client: &Client,
     input: &SecretGetRequest,
 ) -> Result<SecretResponse, Error> {
     let config = client.internal.get_api_configurations().await;

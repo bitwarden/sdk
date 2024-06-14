@@ -30,9 +30,11 @@ uniffi = [
     "bitwarden-core/uniffi",
     "bitwarden-crypto/uniffi",
     "bitwarden-exporters/uniffi",
+    "bitwarden-fido/uniffi",
     "bitwarden-generators/uniffi",
     "bitwarden-send/uniffi",
     "bitwarden-vault/uniffi",
+    "dep:uniffi",
 ] # Uniffi bindings
 secrets = ["bitwarden-core/internal", "dep:bitwarden-sm"] # Secrets manager API
 
@@ -42,9 +44,10 @@ bitwarden-api-identity = { workspace = true }
 bitwarden-core = { workspace = true }
 bitwarden-crypto = { workspace = true }
 bitwarden-exporters = { workspace = true, optional = true }
+bitwarden-fido = { workspace = true, optional = true }
 bitwarden-generators = { workspace = true, optional = true }
-bitwarden-sm = { workspace = true, optional = true }
 bitwarden-send = { workspace = true, optional = true }
+bitwarden-sm = { workspace = true, optional = true }
 bitwarden-vault = { workspace = true, optional = true }
 thiserror = ">=1.0.40, <2.0"
 

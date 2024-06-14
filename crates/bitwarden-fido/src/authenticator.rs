@@ -73,6 +73,8 @@ pub enum SilentlyDiscoverCredentialsError {
     Fido2CallbackError(#[from] Fido2CallbackError),
 }
 
+/// Temporary trait for solving a circular dependency. When moving `Client` to `bitwarden-core`
+/// remove this trait.
 pub trait FidoEncryptionSettingStore: Send + Sync {
     fn get_encryption_settings(&self) -> Result<Arc<dyn KeyContainer>, VaultLocked>;
 }

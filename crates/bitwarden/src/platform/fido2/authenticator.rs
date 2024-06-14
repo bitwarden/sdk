@@ -3,6 +3,7 @@ use std::sync::Mutex;
 use bitwarden_core::VaultLocked;
 use bitwarden_crypto::{CryptoError, KeyEncryptable};
 use bitwarden_vault::{CipherError, CipherView, Fido2CredentialView};
+use itertools::Itertools;
 use log::error;
 use passkey::{
     authenticator::{Authenticator, DiscoverabilitySupport, StoreInfo, UIHint, UserCheck},
@@ -72,6 +73,18 @@ pub enum GetAssertionError {
 pub enum SilentlyDiscoverCredentialsError {
     #[error(transparent)]
     VaultLocked(#[from] VaultLocked),
+    #[error(transparent)]
+    Fido2CallbackError(#[from] Fido2CallbackError),
+}
+
+#[derive(Debug, Error)]
+pub enum CredentialsForAutofillError {
+    #[error(transparent)]
+    CipherError(#[from] CipherError),
+    #[error(transparent)]
+    VaultLocked(#[from] VaultLocked),
+    #[error(transparent)]
+    InvalidGuid(#[from] InvalidGuid),
     #[error(transparent)]
     Fido2CallbackError(#[from] Fido2CallbackError),
 }
@@ -228,6 +241,26 @@ impl<'a> Fido2Authenticator<'a> {
             .flat_map(|c| c.decrypt_fido2_credentials(&enc))
             .flatten()
             .collect())
+    }
+
+    /// Returns all Fido2 credentials that can be used for autofill, in a view
+    /// tailored for integration with OS autofill systems.
+    pub async fn credentials_for_autofill(
+        &mut self,
+    ) -> Result<Vec<Fido2CredentialAutofillView>, CredentialsForAutofillError> {
+        let enc = self.client.get_encryption_settings()?;
+        let all_credentials = self.credential_store.all_credentials().await?;
+
+        all_credentials
+            .into_iter()
+            .flat_map(|cipher| {
+                cipher.get_fido2_credentials(&enc).map(|credentials| {
+                    Fido2CredentialAutofillView::from_full_view(&cipher, &credentials)
+                })
+            })
+            .flatten_ok()
+            .collect::<Result<_, _>>()
+            .map_err(|e| e.into())
     }
 
     pub(super) fn get_authenticator(

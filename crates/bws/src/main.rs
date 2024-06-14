@@ -7,11 +7,9 @@ use bitwarden::{
 use bitwarden_cli::install_color_eyre;
 use clap::{CommandFactory, Parser};
 use color_eyre::eyre::{bail, Result};
-use command::{
-    secret::{SecretCreateCommandModel, SecretEditCommandModel},
-    OutputSettings,
-};
+use command::secret::{SecretCreateCommandModel, SecretEditCommandModel};
 use log::error;
+use render::OutputSettings;
 
 mod cli;
 mod command;
@@ -111,6 +109,8 @@ async fn process_commands() -> Result<()> {
         }
     };
 
+    let output_settings = OutputSettings::new(cli.output, color);
+
     // And finally we process all the commands which require authentication
     match command {
         Commands::Project {
@@ -118,38 +118,21 @@ async fn process_commands() -> Result<()> {
         }
         | Commands::List {
             cmd: ListCommand::Projects,
-        } => {
-            command::project::list(
-                client,
-                organization_id,
-                OutputSettings::new(cli.output, color),
-            )
-            .await
-        }
+        } => command::project::list(client, organization_id, output_settings).await,
 
         Commands::Project {
             cmd: ProjectCommand::Get { project_id },
         }
         | Commands::Get {
             cmd: GetCommand::Project { project_id },
-        } => {
-            command::project::get(client, project_id, OutputSettings::new(cli.output, color)).await
-        }
+        } => command::project::get(client, project_id, output_settings).await,
 
         Commands::Project {
             cmd: ProjectCommand::Create { name },
         }
         | Commands::Create {
             cmd: CreateCommand::Project { name },
-        } => {
-            command::project::create(
-                client,
-                organization_id,
-                name,
-                OutputSettings::new(cli.output, color),
-            )
-            .await
-        }
+        } => command::project::create(client, organization_id, name, output_settings).await,
 
         Commands::Project {
             cmd: ProjectCommand::Edit { project_id, name },
@@ -157,14 +140,7 @@ async fn process_commands() -> Result<()> {
         | Commands::Edit {
             cmd: EditCommand::Project { project_id, name },
         } => {
-            command::project::edit(
-                client,
-                organization_id,
-                project_id,
-                name,
-                OutputSettings::new(cli.output, color),
-            )
-            .await
+            command::project::edit(client, organization_id, project_id, name, output_settings).await
         }
 
         Commands::Project {
@@ -179,22 +155,14 @@ async fn process_commands() -> Result<()> {
         }
         | Commands::List {
             cmd: ListCommand::Secrets { project_id },
-        } => {
-            command::secret::list(
-                client,
-                organization_id,
-                project_id,
-                OutputSettings::new(cli.output, color),
-            )
-            .await
-        }
+        } => command::secret::list(client, organization_id, project_id, output_settings).await,
 
         Commands::Secret {
             cmd: SecretCommand::Get { secret_id },
         }
         | Commands::Get {
             cmd: GetCommand::Secret { secret_id },
-        } => command::secret::get(client, secret_id, OutputSettings::new(cli.output, color)).await,
+        } => command::secret::get(client, secret_id, output_settings).await,
 
         Commands::Secret {
             cmd:
@@ -223,7 +191,7 @@ async fn process_commands() -> Result<()> {
                     note,
                     project_id,
                 },
-                OutputSettings::new(cli.output, color),
+                output_settings,
             )
             .await
         }
@@ -258,7 +226,7 @@ async fn process_commands() -> Result<()> {
                     note,
                     project_id,
                 },
-                OutputSettings::new(cli.output, color),
+                output_settings,
             )
             .await
         }

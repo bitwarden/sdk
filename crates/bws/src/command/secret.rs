@@ -10,8 +10,7 @@ use bitwarden::{
 use color_eyre::eyre::{bail, Result};
 use uuid::Uuid;
 
-use super::OutputSettings;
-use crate::render::serialize_response;
+use crate::render::{serialize_response, OutputSettings};
 
 #[derive(Debug)]
 pub(crate) struct SecretCreateCommandModel {
@@ -54,7 +53,7 @@ pub(crate) async fn list(
         .get_by_ids(SecretsGetRequest { ids: secret_ids })
         .await?
         .data;
-    serialize_response(secrets, output_settings.output, output_settings.color);
+    serialize_response(secrets, output_settings);
 
     Ok(())
 }
@@ -68,7 +67,7 @@ pub(crate) async fn get(
         .secrets()
         .get(&SecretGetRequest { id: secret_id })
         .await?;
-    serialize_response(secret, output_settings.output, output_settings.color);
+    serialize_response(secret, output_settings);
 
     Ok(())
 }
@@ -89,7 +88,7 @@ pub(crate) async fn create(
             project_ids: Some(vec![secret.project_id]),
         })
         .await?;
-    serialize_response(secret, output_settings.output, output_settings.color);
+    serialize_response(secret, output_settings);
 
     Ok(())
 }
@@ -122,7 +121,7 @@ pub(crate) async fn edit(
             },
         })
         .await?;
-    serialize_response(new_secret, output_settings.output, output_settings.color);
+    serialize_response(new_secret, output_settings);
 
     Ok(())
 }

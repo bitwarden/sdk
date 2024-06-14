@@ -10,8 +10,7 @@ use bitwarden::{
 use color_eyre::eyre::Result;
 use uuid::Uuid;
 
-use super::OutputSettings;
-use crate::render::serialize_response;
+use crate::render::{serialize_response, OutputSettings};
 
 pub(crate) async fn list(
     mut client: Client,
@@ -23,7 +22,7 @@ pub(crate) async fn list(
         .list(&ProjectsListRequest { organization_id })
         .await?
         .data;
-    serialize_response(projects, output_settings.output, output_settings.color);
+    serialize_response(projects, output_settings);
 
     Ok(())
 }
@@ -37,7 +36,7 @@ pub(crate) async fn get(
         .projects()
         .get(&ProjectGetRequest { id: project_id })
         .await?;
-    serialize_response(project, output_settings.output, output_settings.color);
+    serialize_response(project, output_settings);
 
     Ok(())
 }
@@ -55,7 +54,7 @@ pub(crate) async fn create(
             name,
         })
         .await?;
-    serialize_response(project, output_settings.output, output_settings.color);
+    serialize_response(project, output_settings);
 
     Ok(())
 }
@@ -75,7 +74,7 @@ pub(crate) async fn edit(
             name,
         })
         .await?;
-    serialize_response(project, output_settings.output, output_settings.color);
+    serialize_response(project, output_settings);
 
     Ok(())
 }

@@ -4,12 +4,13 @@ use bitwarden::{
     error::Error,
     platform::fido2::{
         CheckUserOptions, ClientData, Fido2CallbackError as BitFido2CallbackError,
-        GetAssertionRequest, GetAssertionResult, MakeCredentialRequest, MakeCredentialResult,
+        Fido2CredentialAutofillView, GetAssertionRequest, GetAssertionResult,
+        MakeCredentialRequest, MakeCredentialResult,
         PublicKeyCredentialAuthenticatorAssertionResponse,
         PublicKeyCredentialAuthenticatorAttestationResponse, PublicKeyCredentialRpEntity,
         PublicKeyCredentialUserEntity,
     },
-    vault::{Cipher, CipherView, Fido2CredentialNewView, Fido2CredentialView},
+    vault::{Cipher, CipherView, Fido2CredentialNewView},
 };
 
 use crate::{error::Result, Client};
@@ -87,7 +88,7 @@ impl ClientFido2Authenticator {
     pub async fn silently_discover_credentials(
         &self,
         rp_id: String,
-    ) -> Result<Vec<Fido2CredentialView>> {
+    ) -> Result<Vec<Fido2CredentialAutofillView>> {
         let platform = self.0 .0.platform();
         let fido2 = platform.fido2();
         let ui = UniffiTraitBridge(self.1.as_ref());

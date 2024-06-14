@@ -61,10 +61,12 @@ impl<'a> ClientCiphers<'a> {
     pub fn decrypt_fido2_credentials(
         &self,
         cipher_view: CipherView,
-    ) -> Result<Vec<bitwarden_vault::Fido2CredentialView>> {
-        let enc = self.client.get_encryption_settings()?;
+    ) -> Result<Vec<crate::Fido2CredentialView>, Error> {
+        let enc = self.client.internal.get_encryption_settings()?;
 
-        let credentials = cipher_view.decrypt_fido2_credentials(&enc)?;
+        let credentials = cipher_view
+            .decrypt_fido2_credentials(&enc)
+            .map_err(|e| e.to_string())?;
 
         Ok(credentials)
     }

@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use bitwarden_core::VaultLocked;
+use bitwarden_core::{Client, VaultLocked};
 use bitwarden_crypto::{CryptoError, KeyContainer, KeyEncryptable};
 use bitwarden_vault::{CipherError, CipherView, Fido2CredentialView};
 use log::error;
@@ -73,14 +73,8 @@ pub enum SilentlyDiscoverCredentialsError {
     Fido2CallbackError(#[from] Fido2CallbackError),
 }
 
-/// Temporary trait for solving a circular dependency. When moving `Client` to `bitwarden-core`
-/// remove this trait.
-pub trait FidoEncryptionSettingStore: Send + Sync {
-    fn get_encryption_settings(&self) -> Result<Arc<dyn KeyContainer>, VaultLocked>;
-}
-
 pub struct Fido2Authenticator<'a> {
-    pub client: &'a dyn FidoEncryptionSettingStore,
+    pub client: &'a Client,
     pub user_interface: &'a dyn Fido2UserInterface,
     pub credential_store: &'a dyn Fido2CredentialStore,
 
@@ -90,7 +84,7 @@ pub struct Fido2Authenticator<'a> {
 
 impl<'a> Fido2Authenticator<'a> {
     pub fn new(
-        client: &'a dyn FidoEncryptionSettingStore,
+        client: &'a Client,
         user_interface: &'a dyn Fido2UserInterface,
         credential_store: &'a dyn Fido2CredentialStore,
     ) -> Fido2Authenticator<'a> {

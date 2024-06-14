@@ -34,7 +34,6 @@ uniffi = [
     "bitwarden-generators/uniffi",
     "bitwarden-send/uniffi",
     "bitwarden-vault/uniffi",
-    "dep:uniffi",
 ] # Uniffi bindings
 secrets = ["bitwarden-core/internal", "dep:bitwarden-sm"] # Secrets manager API
 

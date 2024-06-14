@@ -1,5 +1,3 @@
-#[cfg(feature = "uniffi")]
-use super::client_fido::ClientFido2;
 use super::{
     generate_fingerprint::{generate_fingerprint, generate_user_fingerprint},
     get_user_api_key, FingerprintRequest, FingerprintResponse, SecretVerificationRequest,

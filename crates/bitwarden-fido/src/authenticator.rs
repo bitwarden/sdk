@@ -13,14 +13,13 @@ use passkey::{
 };
 use thiserror::Error;
 
-use crate::{
-    fill_with_credential, string_to_guid_bytes, try_from_credential_full, Fido2CallbackError,
-    FillCredentialError, InvalidGuid,
-};
-
 use super::{
     try_from_credential_new_view, types::*, CheckUserOptions, CheckUserResult, CipherViewContainer,
     Fido2CredentialStore, Fido2UserInterface, SelectedCredential, UnknownEnum, AAGUID,
+};
+use crate::{
+    fill_with_credential, string_to_guid_bytes, try_from_credential_full, Fido2CallbackError,
+    FillCredentialError, InvalidGuid,
 };
 
 #[derive(Debug, Error)]

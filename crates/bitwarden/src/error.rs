@@ -87,24 +87,23 @@ pub enum Error {
     // Fido
     #[cfg(all(feature = "uniffi", feature = "internal"))]
     #[error(transparent)]
-    MakeCredential(#[from] crate::platform::fido2::MakeCredentialError),
+    MakeCredential(#[from] bitwarden_fido::MakeCredentialError),
     #[cfg(all(feature = "uniffi", feature = "internal"))]
     #[error(transparent)]
-    GetAssertion(#[from] crate::platform::fido2::GetAssertionError),
+    GetAssertion(#[from] bitwarden_fido::GetAssertionError),
     #[cfg(all(feature = "uniffi", feature = "internal"))]
     #[error(transparent)]
-    SilentlyDiscoverCredentials(#[from] crate::platform::fido2::SilentlyDiscoverCredentialsError),
+    SilentlyDiscoverCredentials(#[from] bitwarden_fido::SilentlyDiscoverCredentialsError),
     #[cfg(all(feature = "uniffi", feature = "internal"))]
     #[error(transparent)]
-    Fido2Client(#[from] crate::platform::fido2::Fido2ClientError),
+    Fido2Client(#[from] bitwarden_fido::Fido2ClientError),
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
+    #[error("Fido2 Callback error: {0:?}")]
+    Fido2CallbackError(#[from] bitwarden_fido::Fido2CallbackError),
 
     #[cfg(feature = "uniffi")]
     #[error("Uniffi callback error: {0}")]
     UniffiCallbackError(#[from] uniffi::UnexpectedUniFFICallbackError),
-
-    #[cfg(all(feature = "uniffi", feature = "internal"))]
-    #[error("Fido2 Callback error: {0:?}")]
-    Fido2CallbackError(#[from] crate::platform::fido2::Fido2CallbackError),
 
     #[error("Internal error: {0}")]
     Internal(Cow<'static, str>),

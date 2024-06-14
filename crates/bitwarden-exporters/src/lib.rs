@@ -10,8 +10,8 @@ use crate::csv::export_csv;
 mod json;
 use json::export_json;
 mod encrypted_json;
-
 use encrypted_json::export_encrypted_json;
+mod models;
 
 pub enum Format {
     Csv,

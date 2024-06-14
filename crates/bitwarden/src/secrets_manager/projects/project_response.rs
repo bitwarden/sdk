@@ -1,14 +1,12 @@
 use bitwarden_api_api::models::ProjectResponseModel;
+use bitwarden_core::require;
 use bitwarden_crypto::{CryptoError, EncString, KeyDecryptable};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{
-    client::encryption_settings::EncryptionSettings,
-    error::{require, Result},
-};
+use crate::{client::encryption_settings::EncryptionSettings, error::Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

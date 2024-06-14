@@ -369,16 +369,17 @@ name = "bitwarden"
 version = "0.5.0"
 dependencies = [
  "async-trait",
- "base64 0.22.1",
+ "base64 0.21.7",
  "bitwarden-api-api",
  "bitwarden-api-identity",
+ "bitwarden-core",
  "bitwarden-crypto",
  "bitwarden-exporters",
  "bitwarden-generators",
+ "bitwarden-vault",
  "chrono",
  "coset",
  "getrandom",
- "hmac",
  "log",
  "p256",
  "passkey",
@@ -392,8 +393,6 @@ dependencies = [
  "serde_json",
  "serde_qs",
  "serde_repr",
- "sha1",
- "sha2",
  "thiserror",
  "tokio",
  "uniffi",
@@ -450,6 +449,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "bitwarden-core"
+version = "0.5.0"
+dependencies = [
+ "chrono",
+ "thiserror",
+ "uniffi",
+ "uuid",
+]
+
+[[package]]
 name = "bitwarden-crypto"
 version = "0.5.0"
 dependencies = [
@@ -485,7 +494,9 @@ name = "bitwarden-exporters"
 version = "0.5.0"
 dependencies = [
  "base64 0.22.1",
+ "bitwarden-core",
  "bitwarden-crypto",
+ "bitwarden-vault",
  "chrono",
  "csv",
  "serde",
@@ -555,12 +566,37 @@ dependencies = [
  "async-lock",
  "async-trait",
  "bitwarden",
+ "bitwarden-core",
  "bitwarden-crypto",
  "bitwarden-generators",
+ "bitwarden-vault",
  "chrono",
  "env_logger 0.11.3",
  "log",
  "schemars",
+ "thiserror",
+ "uniffi",
+ "uuid",
+]
+
+[[package]]
+name = "bitwarden-vault"
+version = "0.5.0"
+dependencies = [
+ "base64 0.21.7",
+ "bitwarden-api-api",
+ "bitwarden-core",
+ "bitwarden-crypto",
+ "chrono",
+ "hmac",
+ "rand",
+ "reqwest",
+ "schemars",
+ "serde",
+ "serde_json",
+ "serde_repr",
+ "sha1",
+ "sha2",
  "thiserror",
  "uniffi",
  "uuid",

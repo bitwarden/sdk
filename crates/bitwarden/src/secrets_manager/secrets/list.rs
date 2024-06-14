@@ -1,6 +1,7 @@
 use bitwarden_api_api::models::{
     SecretWithProjectsListResponseModel, SecretsWithProjectsInnerSecret,
 };
+use bitwarden_core::require;
 use bitwarden_crypto::{CryptoError, EncString, KeyDecryptable};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -8,7 +9,7 @@ use uuid::Uuid;
 
 use crate::{
     client::{encryption_settings::EncryptionSettings, Client},
-    error::{require, Result},
+    error::Result,
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -31,7 +32,7 @@ pub(crate) async fn list_secrets(
 
     let enc = client.get_encryption_settings()?;
 
-    SecretIdentifiersResponse::process_response(res, enc)
+    SecretIdentifiersResponse::process_response(res, &enc)
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -54,7 +55,7 @@ pub(crate) async fn list_secrets_by_project(
 
     let enc = client.get_encryption_settings()?;
 
-    SecretIdentifiersResponse::process_response(res, enc)
+    SecretIdentifiersResponse::process_response(res, &enc)
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

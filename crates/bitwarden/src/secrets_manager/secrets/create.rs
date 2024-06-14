@@ -1,4 +1,5 @@
 use bitwarden_api_api::models::SecretCreateRequestModel;
+use bitwarden_core::VaultLocked;
 use bitwarden_crypto::KeyEncryptable;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,7 +8,7 @@ use validator::Validate;
 
 use super::SecretResponse;
 use crate::{
-    error::{validate, validate_only_whitespaces, Error, Result},
+    error::{validate, validate_only_whitespaces, Result},
     Client,
 };
 
@@ -16,12 +17,14 @@ use crate::{
 pub struct SecretCreateRequest {
     /// Organization where the secret will be created
     pub organization_id: Uuid,
+
     #[validate(length(min = 1, max = 500), custom(function = validate_only_whitespaces))]
     pub key: String,
     #[validate(length(min = 1, max = 25_000))]
     pub value: String,
     #[validate(length(max = 7_000), custom(function = validate_only_whitespaces))]
     pub note: String,
+
     /// IDs of the projects that this secret will belong to
     pub project_ids: Option<Vec<Uuid>>,
 }
@@ -32,10 +35,10 @@ pub(crate) async fn create_secret(
 ) -> Result<SecretResponse> {
     validate!(input);
 
-    let key = client
-        .get_encryption_settings()?
+    let enc = client.get_encryption_settings()?;
+    let key = enc
         .get_key(&Some(input.organization_id))
-        .ok_or(Error::VaultLocked)?;
+        .ok_or(VaultLocked)?;
 
     let secret = Some(SecretCreateRequestModel {
         key: input
@@ -64,9 +67,7 @@ pub(crate) async fn create_secret(
     )
     .await?;
 
-    let enc = client.get_encryption_settings()?;
-
-    SecretResponse::process_response(res, enc)
+    SecretResponse::process_response(res, &enc)
 }
 
 #[cfg(test)]

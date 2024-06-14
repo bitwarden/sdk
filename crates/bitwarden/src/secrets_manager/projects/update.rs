@@ -1,4 +1,5 @@
 use bitwarden_api_api::models::ProjectUpdateRequestModel;
+use bitwarden_core::VaultLocked;
 use bitwarden_crypto::KeyEncryptable;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -8,7 +9,7 @@ use validator::Validate;
 use super::ProjectResponse;
 use crate::{
     client::Client,
-    error::{validate, validate_only_whitespaces, Error, Result},
+    error::{validate, validate_only_whitespaces, Result},
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Validate)]
@@ -28,10 +29,10 @@ pub(crate) async fn update_project(
 ) -> Result<ProjectResponse> {
     validate!(input);
 
-    let key = client
-        .get_encryption_settings()?
+    let enc = client.get_encryption_settings()?;
+    let key = enc
         .get_key(&Some(input.organization_id))
-        .ok_or(Error::VaultLocked)?;
+        .ok_or(VaultLocked)?;
 
     let project = Some(ProjectUpdateRequestModel {
         name: input
@@ -48,9 +49,7 @@ pub(crate) async fn update_project(
         bitwarden_api_api::apis::projects_api::projects_id_put(&config.api, input.id, project)
             .await?;
 
-    let enc = client.get_encryption_settings()?;
-
-    ProjectResponse::process_response(res, enc)
+    ProjectResponse::process_response(res, &enc)
 }
 
 #[cfg(test)]

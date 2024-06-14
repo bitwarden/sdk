@@ -19,12 +19,13 @@ use crate::{
 
 #[cfg(feature = "internal")]
 pub(crate) async fn login_password(
-    client: &mut Client,
+    client: &Client,
     input: &PasswordLoginRequest,
 ) -> Result<PasswordLoginResponse> {
+    use bitwarden_core::require;
     use bitwarden_crypto::{EncString, HashPurpose, MasterKey};
 
-    use crate::{client::UserLoginMethod, error::require};
+    use crate::client::UserLoginMethod;
 
     info!("password logging in");
 
@@ -61,7 +62,7 @@ pub(crate) async fn login_password(
 
 #[cfg(feature = "internal")]
 async fn request_identity_tokens(
-    client: &mut Client,
+    client: &Client,
     input: &PasswordLoginRequest,
     password_hash: &str,
 ) -> Result<IdentityTokenResponse> {
@@ -75,7 +76,7 @@ async fn request_identity_tokens(
         "b86dd6ab-4265-4ddf-a7f1-eb28d5677f33",
         &input.two_factor,
     )
-    .send(config)
+    .send(&config)
     .await
 }
 

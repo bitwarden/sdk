@@ -76,6 +76,8 @@ pub enum SilentlyDiscoverCredentialsError {
     InvalidGuid(#[from] InvalidGuid),
     #[error(transparent)]
     Fido2CallbackError(#[from] Fido2CallbackError),
+    #[error(transparent)]
+    FromCipherViewError(#[from] Fido2CredentialAutofillViewError),
 }
 
 #[derive(Debug, Error)]
@@ -88,6 +90,8 @@ pub enum CredentialsForAutofillError {
     InvalidGuid(#[from] InvalidGuid),
     #[error(transparent)]
     Fido2CallbackError(#[from] Fido2CallbackError),
+    #[error(transparent)]
+    FromCipherViewError(#[from] Fido2CredentialAutofillViewError),
 }
 
 /// Temporary trait for solving a circular dependency. When moving `Client` to `bitwarden-core`
@@ -261,9 +265,7 @@ impl<'a> Fido2Authenticator<'a> {
             .into_iter()
             .map(
                 |cipher| -> Result<Vec<Fido2CredentialAutofillView>, SilentlyDiscoverCredentialsError> {
-                    let credentials = cipher.decrypt_fido2_credentials(&*enc)?;
-                    Fido2CredentialAutofillView::from_view(&cipher, &credentials)
-                        .map_err(Into::into)
+                    Ok(Fido2CredentialAutofillView::from_cipher_view(&cipher, &*enc)?)
                 },
             )
             .flatten_ok()
@@ -282,9 +284,9 @@ impl<'a> Fido2Authenticator<'a> {
             .into_iter()
             .map(
                 |cipher| -> Result<Vec<Fido2CredentialAutofillView>, CredentialsForAutofillError> {
-                    let credentials = cipher.decrypt_fido2_credentials(&*enc)?;
-                    Fido2CredentialAutofillView::from_view(&cipher, &credentials)
-                        .map_err(Into::into)
+                    Ok(Fido2CredentialAutofillView::from_cipher_view(
+                        &cipher, &*enc,
+                    )?)
                 },
             )
             .flatten_ok()

@@ -84,11 +84,25 @@ pub struct Fido2Authenticator<'a> {
     pub user_interface: &'a dyn Fido2UserInterface,
     pub credential_store: &'a dyn Fido2CredentialStore,
 
-    pub selected_cipher: Mutex<Option<CipherView>>,
-    pub requested_uv: Mutex<Option<UV>>,
+    pub(crate) selected_cipher: Mutex<Option<CipherView>>,
+    pub(crate) requested_uv: Mutex<Option<UV>>,
 }
 
 impl<'a> Fido2Authenticator<'a> {
+    pub fn new(
+        client: &'a dyn FidoEncryptionSettingStore,
+        user_interface: &'a dyn Fido2UserInterface,
+        credential_store: &'a dyn Fido2CredentialStore,
+    ) -> Fido2Authenticator<'a> {
+        Fido2Authenticator {
+            client,
+            user_interface,
+            credential_store,
+            selected_cipher: Mutex::new(None),
+            requested_uv: Mutex::new(None),
+        }
+    }
+
     pub async fn make_credential(
         &mut self,
         request: MakeCredentialRequest,

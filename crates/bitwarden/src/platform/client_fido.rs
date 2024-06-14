@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use bitwarden_fido::{
     Fido2Authenticator, Fido2Client, Fido2CredentialStore, Fido2UserInterface,
@@ -26,13 +26,7 @@ impl<'a> ClientFido2<'a> {
         user_interface: &'a dyn Fido2UserInterface,
         credential_store: &'a dyn Fido2CredentialStore,
     ) -> Fido2Authenticator<'a> {
-        Fido2Authenticator {
-            client: self.client,
-            user_interface,
-            credential_store,
-            selected_cipher: Mutex::new(None),
-            requested_uv: Mutex::new(None),
-        }
+        Fido2Authenticator::new(self.client, user_interface, credential_store)
     }
 
     pub fn create_client(

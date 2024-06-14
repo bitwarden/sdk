@@ -13,7 +13,7 @@ pub struct Fido2CredentialAutofillView {
     pub credential_id: Vec<u8>,
     pub cipher_id: uuid::Uuid,
     pub rp_id: String,
-    pub user_name: Option<String>,
+    pub user_name_for_ui: Option<String>,
     pub user_handle: Vec<u8>,
 }
 
@@ -53,7 +53,7 @@ impl Fido2CredentialAutofillView {
                         .expect("cipher must be saved to server for autofill"),
                     rp_id: c.rp_id.clone(),
                     user_handle: c.user_handle.clone().unwrap(),
-                    user_name: c
+                    user_name_for_ui: c
                         .user_name
                         .none_whitespace()
                         .or(c.user_display_name.none_whitespace())

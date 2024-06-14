@@ -73,11 +73,27 @@ impl<'a> KeyEncryptable<SymmetricCryptoKey, AttachmentEncryptResult> for Attachm
         let encrypted_contents = self.contents.encrypt_with_key(&attachment_key)?;
         attachment.key = Some(attachment_key.to_vec().encrypt_with_key(ciphers_key)?);
 
+        let contents = encrypted_contents.to_buffer()?;
+
+        // Once we have the encrypted contents, we can set the size of the attachment
+        attachment.size = Some(contents.len().to_string());
+        attachment.size_name = Some(size_name(contents.len()));
+
         Ok(AttachmentEncryptResult {
             attachment: attachment.encrypt_with_key(ciphers_key)?,
-            contents: encrypted_contents.to_buffer()?,
+            contents,
         })
     }
+}
+
+fn size_name(size: usize) -> String {
+    let units = ["Bytes", "KB", "MB", "GB", "TB"];
+    let size = size as f64;
+    let unit = (size.ln() / 1024_f64.ln()).floor() as usize;
+    let size = size / 1024_f64.powi(unit as i32);
+
+    let size_round = (size * 10.0_f64).round() as usize as f64 / 10.0_f64;
+    format!("{} {}", size_round, units[unit])
 }
 
 impl KeyDecryptable<SymmetricCryptoKey, Vec<u8>> for AttachmentFile {
@@ -150,6 +166,18 @@ mod tests {
         cipher::cipher::{CipherRepromptType, CipherType},
         Attachment, AttachmentFile, Cipher,
     };
+
+    #[test]
+    fn test_size_name_conversions() {
+        assert_eq!(super::size_name(0), "0 Bytes");
+        assert_eq!(super::size_name(19), "19 Bytes");
+        assert_eq!(super::size_name(1024), "1 KB");
+        assert_eq!(super::size_name(1570), "1.5 KB");
+        assert_eq!(super::size_name(1024 * 1024), "1 MB");
+        assert_eq!(super::size_name(1024 * 18999), "18.6 MB");
+        assert_eq!(super::size_name(1024 * 1024 * 1024), "1 GB");
+        assert_eq!(super::size_name(1024 * 1024 * 1024 * 1024), "1 TB");
+    }
 
     #[test]
     fn test_attachment_key() {

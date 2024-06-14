@@ -2,6 +2,8 @@ use bitwarden_vault::{Cipher, CipherView, Fido2CredentialNewView};
 use passkey::authenticator::UIHint;
 use thiserror::Error;
 
+use super::Fido2CredentialAutofillView;
+
 #[derive(Debug, Error)]
 pub enum Fido2CallbackError {
     #[error("The operation requires user interaction")]
@@ -19,11 +21,11 @@ pub trait Fido2UserInterface: Send + Sync {
     async fn check_user<'a>(
         &self,
         options: CheckUserOptions,
-        hint: UIHint<'a, CipherView>,
+        hint: UIHint<'a, Fido2CredentialAutofillView>,
     ) -> Result<CheckUserResult, Fido2CallbackError>;
     async fn pick_credential_for_authentication(
         &self,
-        available_credentials: Vec<CipherView>,
+        available_credentials: Vec<Fido2CredentialAutofillView>,
     ) -> Result<CipherView, Fido2CallbackError>;
     async fn check_user_and_pick_credential_for_creation(
         &self,

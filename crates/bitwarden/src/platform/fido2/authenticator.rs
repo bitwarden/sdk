@@ -1,7 +1,7 @@
 use std::sync::Mutex;
 
 use bitwarden_core::VaultLocked;
-use bitwarden_crypto::{CryptoError, KeyEncryptable};
+use bitwarden_crypto::{CryptoError, KeyContainer, KeyEncryptable};
 use bitwarden_vault::{CipherError, CipherView};
 use itertools::Itertools;
 use log::error;
@@ -27,12 +27,16 @@ use crate::{
 };
 
 #[derive(Debug, Error)]
+#[error("No fido2 credentials found")]
+pub struct NoCredentialFound;
+
+#[derive(Debug, Error)]
 pub enum GetSelectedCredentialError {
     #[error("No selected credential available")]
     NoSelectedCredential,
-    #[error("No fido2 credentials found")]
-    NoCredentialFound,
 
+    #[error(transparent)]
+    NoCredentialFound(#[from] NoCredentialFound),
     #[error(transparent)]
     VaultLocked(#[from] VaultLocked),
     #[error(transparent)]
@@ -316,10 +320,7 @@ impl<'a> Fido2Authenticator<'a> {
 
         let creds = cipher.decrypt_fido2_credentials(&enc)?;
 
-        let credential = creds
-            .first()
-            .ok_or(GetSelectedCredentialError::NoCredentialFound)?
-            .clone();
+        let credential = creds.first().ok_or(NoCredentialFound)?.clone();
 
         Ok(SelectedCredential { cipher, credential })
     }
@@ -351,6 +352,8 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             CryptoError(#[from] CryptoError),
             #[error(transparent)]
             Fido2CallbackError(#[from] Fido2CallbackError),
+            #[error(transparent)]
+            Fido2CredentialAutofillViewError(#[from] Fido2CredentialAutofillViewError),
         }
 
         // This is just a wrapper around the actual implementation to allow for ? error handling
@@ -388,10 +391,18 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                     .map(|c| CipherViewContainer::new(c, &enc))
                     .collect::<Result<_, _>>()?)
             } else {
+                let autofill_views = creds
+                    .into_iter()
+                    .map(|c| -> Result<_, Fido2CredentialAutofillViewError> {
+                        Ok(Fido2CredentialAutofillView::from_cipher_view(&c, &enc)?)
+                    })
+                    .flatten_ok()
+                    .collect::<Result<_, _>>()?;
+
                 let picked = this
                     .authenticator
                     .user_interface
-                    .pick_credential_for_authentication(creds)
+                    .pick_credential_for_authentication(autofill_views)
                     .await?;
 
                 // Store the selected credential for later use
@@ -571,55 +582,109 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
         &self,
         hint: UIHint<'a, Self::PasskeyItem>,
         presence: bool,
-        _verification: bool,
+        verification: bool,
     ) -> Result<UserCheck, Ctap2Error> {
-        let verification = self
-            .authenticator
-            .requested_uv
-            .lock()
-            .expect("Mutex is not poisoned")
-            .ok_or(Ctap2Error::UserVerificationInvalid)?;
+        #[derive(Debug, Error)]
+        enum InnerError {
+            #[error("Ctap2Error")]
+            Ctap2Error(Ctap2Error),
 
-        let options = CheckUserOptions {
-            require_presence: presence,
-            require_verification: verification.into(),
-        };
+            #[error(transparent)]
+            VaultLocked(#[from] VaultLocked),
+            #[error(transparent)]
+            Fido2CallbackError(#[from] Fido2CallbackError),
+            #[error(transparent)]
+            NoCredentialFound(#[from] NoCredentialFound),
+            #[error(transparent)]
+            Fido2CredentialAutofillViewError(#[from] Fido2CredentialAutofillViewError),
+        }
 
-        let result = match hint {
-            UIHint::RequestNewCredential(user, rp) => {
-                let new_credential = try_from_credential_new_view(user, rp)
-                    .map_err(|_| Ctap2Error::InvalidCredential)?;
-
-                let cipher_view = self
-                    .authenticator
-                    .user_interface
-                    .check_user_and_pick_credential_for_creation(options, new_credential)
-                    .await
-                    .map_err(|_| Ctap2Error::OperationDenied)?;
-
-                self.authenticator
-                    .selected_cipher
-                    .lock()
-                    .expect("Mutex is not poisoned")
-                    .replace(cipher_view);
-
-                Ok(CheckUserResult {
-                    user_present: true,
-                    user_verified: verification != UV::Discouraged,
-                })
+        impl From<Ctap2Error> for InnerError {
+            fn from(e: Ctap2Error) -> Self {
+                InnerError::Ctap2Error(e)
             }
-            _ => {
-                self.authenticator
-                    .user_interface
-                    .check_user(options, map_ui_hint(hint))
-                    .await
-            }
-        };
+        }
 
-        let result = result.map_err(|e| {
-            error!("Error checking user: {e:?}");
-            Ctap2Error::UserVerificationInvalid
-        })?;
+        async fn inner<'b>(
+            this: &UserValidationMethodImpl<'_>,
+            hint: UIHint<'b, CipherViewContainer>,
+            presence: bool,
+            _verification: bool,
+        ) -> Result<CheckUserResult, InnerError> {
+            let enc = this.authenticator.client.get_encryption_settings()?;
+
+            let verification = this
+                .authenticator
+                .requested_uv
+                .lock()
+                .expect("Mutex is not poisoned")
+                .ok_or(Ctap2Error::UserVerificationInvalid)?;
+
+            let options = CheckUserOptions {
+                require_presence: presence,
+                require_verification: verification.into(),
+            };
+
+            match hint {
+                UIHint::RequestNewCredential(user, rp) => {
+                    let new_credential = try_from_credential_new_view(user, rp)
+                        .map_err(|_| Ctap2Error::InvalidCredential)?;
+
+                    let cipher_view = this
+                        .authenticator
+                        .user_interface
+                        .check_user_and_pick_credential_for_creation(options, new_credential)
+                        .await
+                        .map_err(|_| Ctap2Error::OperationDenied)?;
+
+                    this.authenticator
+                        .selected_cipher
+                        .lock()
+                        .expect("Mutex is not poisoned")
+                        .replace(cipher_view);
+
+                    Ok(CheckUserResult {
+                        user_present: true,
+                        user_verified: verification != UV::Discouraged,
+                    })
+                }
+                _ => {
+                    let mapped_hint: UIHint<'_, Fido2CredentialAutofillView> = {
+                        use UIHint::*;
+                        match hint {
+                            InformExcludedCredentialFound(c) => {
+                                let views =
+                                    Fido2CredentialAutofillView::from_cipher_view(&c.cipher, &enc)?;
+                                let autofill_view = views.first().ok_or(NoCredentialFound)?;
+                                InformExcludedCredentialFound(autofill_view)
+                            }
+                            InformNoCredentialsFound => InformNoCredentialsFound,
+                            RequestNewCredential(u, r) => RequestNewCredential(u, r),
+                            RequestExistingCredential(c) => {
+                                let autofill_view =
+                                    Fido2CredentialAutofillView::from_cipher_view(&c.cipher, &enc)?
+                                        .first()
+                                        .ok_or(NoCredentialFound)?;
+                                RequestExistingCredential(autofill_view)
+                            }
+                        }
+                    };
+
+                    Ok(this
+                        .authenticator
+                        .user_interface
+                        .check_user(options, mapped_hint)
+                        .await?)
+                }
+            }
+        }
+
+        let result = inner(self, hint, presence, verification)
+            .await
+            .map_err(|e| {
+                error!("Error checking user: {e:?}");
+                Ctap2Error::UserVerificationInvalid
+            })?;
 
         Ok(UserCheck {
             presence: result.user_present,
@@ -638,15 +703,5 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
                 .is_verification_enabled()
                 .await,
         )
-    }
-}
-
-fn map_ui_hint(hint: UIHint<'_, CipherViewContainer>) -> UIHint<'_, CipherView> {
-    use UIHint::*;
-    match hint {
-        InformExcludedCredentialFound(c) => InformExcludedCredentialFound(&c.cipher),
-        InformNoCredentialsFound => InformNoCredentialsFound,
-        RequestNewCredential(u, r) => RequestNewCredential(u, r),
-        RequestExistingCredential(c) => RequestExistingCredential(&c.cipher),
     }
 }

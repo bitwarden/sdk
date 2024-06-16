@@ -5,7 +5,7 @@ use bitwarden::{
     },
     Client,
 };
-use color_eyre::eyre::{bail, eyre, Result};
+use color_eyre::eyre::{eyre, Result};
 use uuid::Uuid;
 
 use crate::render::{serialize_response, OutputSettings};
@@ -114,7 +114,7 @@ pub(crate) async fn edit(
                 Some(id) => Some(vec![id]),
                 None => match old_secret.project_id {
                     Some(id) => Some(vec![id]),
-                    None => bail!("Editing a secret requires a project_id."),
+                    None => return Err(eyre!("Editing a secret requires a project_id.")),
                 },
             },
         })

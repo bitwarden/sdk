@@ -1,5 +1,3 @@
-use std::process;
-
 use bitwarden::{
     secrets_manager::secrets::{
         SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
@@ -7,7 +5,7 @@ use bitwarden::{
     },
     Client,
 };
-use color_eyre::eyre::{bail, Result};
+use color_eyre::eyre::{bail, eyre, Result};
 use uuid::Uuid;
 
 use crate::render::{serialize_response, OutputSettings};
@@ -158,7 +156,7 @@ pub(crate) async fn delete(client: Client, secret_ids: Vec<Uuid>) -> Result<()> 
     }
 
     if !secrets_failed.is_empty() {
-        process::exit(1);
+        return Err(eyre!("Errors when attempting to delete secrets."));
     }
 
     Ok(())

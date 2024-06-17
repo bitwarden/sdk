@@ -396,7 +396,6 @@ impl CipherView {
         Ok(())
     }
 
-    #[cfg(feature = "uniffi")]
     pub fn decrypt_fido2_credentials(
         &self,
         enc: &dyn KeyContainer,
@@ -458,7 +457,6 @@ impl CipherView {
         Ok(())
     }
 
-    #[cfg(feature = "uniffi")]
     pub fn set_new_fido2_credentials(
         &mut self,
         enc: &dyn KeyContainer,
@@ -475,7 +473,6 @@ impl CipherView {
         Ok(())
     }
 
-    #[cfg(feature = "uniffi")]
     pub fn get_fido2_credentials(
         &self,
         enc: &dyn KeyContainer,

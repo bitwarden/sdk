@@ -6,8 +6,9 @@ use crate::{
         api::response::IdentityTokenResponse,
         login::{TwoFactorProvider, TwoFactorRequest},
     },
-    client::{client_settings::DeviceType, ApiConfigurations},
+    client::ApiConfigurations,
     error::Result,
+    DeviceType,
 };
 
 #[derive(Serialize, Deserialize, Debug)]

@@ -29,7 +29,7 @@ trait NoneWhitespace {
 impl NoneWhitespace for String {
     fn none_whitespace(&self) -> Option<String> {
         match self.trim() {
-            s if s.is_empty() => None,
+            "" => None,
             s => Some(s.to_owned()),
         }
     }

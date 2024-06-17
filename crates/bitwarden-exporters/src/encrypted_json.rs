@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use crate::{
     json::{self, export_json},
-    models::{Cipher, Folder},
+    Cipher, Folder,
 };
 
 #[derive(Error, Debug)]
@@ -84,7 +84,7 @@ mod tests {
     use std::num::NonZeroU32;
 
     use super::*;
-    use crate::models::{
+    use crate::{
         Card, Cipher, CipherType, Field, Identity, Login, LoginUri, SecureNote, SecureNoteType,
     };
 

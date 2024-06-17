@@ -17,12 +17,10 @@ pub(crate) fn export_vault(
     let key = enc.get_key(&None).ok_or(VaultLocked)?;
 
     let folders: Vec<FolderView> = folders.decrypt_with_key(key)?;
-    let folders: Vec<crate::models::Folder> =
-        folders.into_iter().flat_map(|f| f.try_into()).collect();
+    let folders: Vec<crate::Folder> = folders.into_iter().flat_map(|f| f.try_into()).collect();
 
     let ciphers: Vec<CipherView> = ciphers.decrypt_with_key(key)?;
-    let ciphers: Vec<crate::models::Cipher> =
-        ciphers.into_iter().flat_map(|c| c.try_into()).collect();
+    let ciphers: Vec<crate::Cipher> = ciphers.into_iter().flat_map(|c| c.try_into()).collect();
 
     match format {
         ExportFormat::Csv => Ok(export_csv(folders, ciphers)?),

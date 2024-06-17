@@ -2,9 +2,7 @@ use chrono::{DateTime, Utc};
 use thiserror::Error;
 use uuid::Uuid;
 
-use crate::models::{
-    Card, Cipher, CipherType, Field, Folder, Identity, Login, LoginUri, SecureNote,
-};
+use crate::{Card, Cipher, CipherType, Field, Folder, Identity, Login, LoginUri, SecureNote};
 
 #[derive(Error, Debug)]
 pub enum JsonError {
@@ -272,7 +270,7 @@ mod tests {
     use std::{fs, io::Read, path::PathBuf};
 
     use super::*;
-    use crate::models::{Cipher, Field, LoginUri, SecureNoteType};
+    use crate::{Cipher, Field, LoginUri, SecureNoteType};
 
     #[test]
     fn test_convert_login() {

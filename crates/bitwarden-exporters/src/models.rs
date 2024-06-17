@@ -1,122 +1,10 @@
-use std::fmt;
+use bitwarden_core::{require, MissingFieldError};
+use bitwarden_vault::{
+    CipherType, CipherView, FieldView, FolderView, LoginUriView, SecureNoteType,
+};
 
-use bitwarden_core::require;
-use bitwarden_vault::{CipherView, FieldView, FolderView, LoginUriView};
-use chrono::{DateTime, Utc};
-use uuid::Uuid;
-
-use crate::ExportError;
-
-/// Export representation of a Bitwarden folder.
-///
-/// These are mostly duplicated from the `bitwarden` vault models to facilitate a stable export API
-/// that is not tied to the internal vault models. We may revisit this in the future.
-pub(crate) struct Folder {
-    pub id: Uuid,
-    pub name: String,
-}
-
-/// Export representation of a Bitwarden cipher.
-///
-/// These are mostly duplicated from the `bitwarden` vault models to facilitate a stable export API
-/// that is not tied to the internal vault models. We may revisit this in the future.
-pub(crate) struct Cipher {
-    pub id: Uuid,
-    pub folder_id: Option<Uuid>,
-
-    pub name: String,
-    pub notes: Option<String>,
-
-    pub r#type: CipherType,
-
-    pub favorite: bool,
-    pub reprompt: u8,
-
-    pub fields: Vec<Field>,
-
-    pub revision_date: DateTime<Utc>,
-    pub creation_date: DateTime<Utc>,
-    pub deleted_date: Option<DateTime<Utc>>,
-}
-
-#[derive(Clone)]
-pub(crate) struct Field {
-    pub name: Option<String>,
-    pub value: Option<String>,
-    pub r#type: u8,
-    pub linked_id: Option<u32>,
-}
-
-pub(crate) enum CipherType {
-    Login(Box<Login>),
-    SecureNote(Box<SecureNote>),
-    Card(Box<Card>),
-    Identity(Box<Identity>),
-}
-
-impl fmt::Display for CipherType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            CipherType::Login(_) => write!(f, "login"),
-            CipherType::SecureNote(_) => write!(f, "note"),
-            CipherType::Card(_) => write!(f, "card"),
-            CipherType::Identity(_) => write!(f, "identity"),
-        }
-    }
-}
-
-pub(crate) struct Login {
-    pub username: Option<String>,
-    pub password: Option<String>,
-    pub login_uris: Vec<LoginUri>,
-    pub totp: Option<String>,
-}
-
-pub(crate) struct LoginUri {
-    pub uri: Option<String>,
-    pub r#match: Option<u8>,
-}
-
-pub(crate) struct Card {
-    pub cardholder_name: Option<String>,
-    pub exp_month: Option<String>,
-    pub exp_year: Option<String>,
-    pub code: Option<String>,
-    pub brand: Option<String>,
-    pub number: Option<String>,
-}
-
-pub(crate) struct SecureNote {
-    pub r#type: SecureNoteType,
-}
-
-pub(crate) enum SecureNoteType {
-    Generic = 0,
-}
-
-pub(crate) struct Identity {
-    pub title: Option<String>,
-    pub first_name: Option<String>,
-    pub middle_name: Option<String>,
-    pub last_name: Option<String>,
-    pub address1: Option<String>,
-    pub address2: Option<String>,
-    pub address3: Option<String>,
-    pub city: Option<String>,
-    pub state: Option<String>,
-    pub postal_code: Option<String>,
-    pub country: Option<String>,
-    pub company: Option<String>,
-    pub email: Option<String>,
-    pub phone: Option<String>,
-    pub ssn: Option<String>,
-    pub username: Option<String>,
-    pub passport_number: Option<String>,
-    pub license_number: Option<String>,
-}
-
-impl TryFrom<FolderView> for Folder {
-    type Error = ExportError;
+impl TryFrom<FolderView> for crate::Folder {
+    type Error = MissingFieldError;
 
     fn try_from(value: FolderView) -> Result<Self, Self::Error> {
         Ok(Self {
@@ -126,14 +14,14 @@ impl TryFrom<FolderView> for Folder {
     }
 }
 
-impl TryFrom<CipherView> for Cipher {
-    type Error = ExportError;
+impl TryFrom<CipherView> for crate::Cipher {
+    type Error = MissingFieldError;
 
     fn try_from(value: CipherView) -> Result<Self, Self::Error> {
         let r = match value.r#type {
-            bitwarden_vault::CipherType::Login => {
+            CipherType::Login => {
                 let l = require!(value.login);
-                CipherType::Login(Box::new(Login {
+                crate::CipherType::Login(Box::new(crate::Login {
                     username: l.username,
                     password: l.password,
                     login_uris: l
@@ -145,18 +33,16 @@ impl TryFrom<CipherView> for Cipher {
                     totp: l.totp,
                 }))
             }
-            bitwarden_vault::CipherType::SecureNote => {
-                CipherType::SecureNote(Box::new(SecureNote {
-                    r#type: value
-                        .secure_note
-                        .map(|t| t.r#type)
-                        .unwrap_or(bitwarden_vault::SecureNoteType::Generic)
-                        .into(),
-                }))
-            }
-            bitwarden_vault::CipherType::Card => {
+            CipherType::SecureNote => crate::CipherType::SecureNote(Box::new(crate::SecureNote {
+                r#type: value
+                    .secure_note
+                    .map(|t| t.r#type)
+                    .unwrap_or(SecureNoteType::Generic)
+                    .into(),
+            })),
+            CipherType::Card => {
                 let c = require!(value.card);
-                CipherType::Card(Box::new(Card {
+                crate::CipherType::Card(Box::new(crate::Card {
                     cardholder_name: c.cardholder_name,
                     exp_month: c.exp_month,
                     exp_year: c.exp_year,
@@ -165,9 +51,9 @@ impl TryFrom<CipherView> for Cipher {
                     number: c.number,
                 }))
             }
-            bitwarden_vault::CipherType::Identity => {
+            CipherType::Identity => {
                 let i = require!(value.identity);
-                CipherType::Identity(Box::new(Identity {
+                crate::CipherType::Identity(Box::new(crate::Identity {
                     title: i.title,
                     first_name: i.first_name,
                     middle_name: i.middle_name,
@@ -211,7 +97,7 @@ impl TryFrom<CipherView> for Cipher {
     }
 }
 
-impl From<FieldView> for Field {
+impl From<FieldView> for crate::Field {
     fn from(value: FieldView) -> Self {
         Self {
             name: value.name,
@@ -222,7 +108,7 @@ impl From<FieldView> for Field {
     }
 }
 
-impl From<LoginUriView> for LoginUri {
+impl From<LoginUriView> for crate::LoginUri {
     fn from(value: LoginUriView) -> Self {
         Self {
             r#match: value.r#match.map(|v| v as u8),
@@ -231,10 +117,10 @@ impl From<LoginUriView> for LoginUri {
     }
 }
 
-impl From<bitwarden_vault::SecureNoteType> for SecureNoteType {
-    fn from(value: bitwarden_vault::SecureNoteType) -> Self {
+impl From<SecureNoteType> for crate::SecureNoteType {
+    fn from(value: SecureNoteType) -> Self {
         match value {
-            bitwarden_vault::SecureNoteType::Generic => SecureNoteType::Generic,
+            SecureNoteType::Generic => crate::SecureNoteType::Generic,
         }
     }
 }
@@ -254,7 +140,7 @@ mod tests {
             revision_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
         };
 
-        let f: Folder = view.try_into().unwrap();
+        let f: crate::Folder = view.try_into().unwrap();
 
         assert_eq!(
             f.id,
@@ -266,7 +152,7 @@ mod tests {
     #[test]
     fn test_try_from_cipher_view_login() {
         let cipher_view = CipherView {
-            r#type: bitwarden_vault::CipherType::Login,
+            r#type: CipherType::Login,
             login: Some(LoginView {
                 username: Some("test_username".to_string()),
                 password: Some("test_password".to_string()),
@@ -300,7 +186,7 @@ mod tests {
             revision_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
         };
 
-        let cipher: Cipher = cipher_view.try_into().unwrap();
+        let cipher: crate::Cipher = cipher_view.try_into().unwrap();
 
         assert_eq!(
             cipher.id,
@@ -322,7 +208,7 @@ mod tests {
         );
         assert_eq!(cipher.deleted_date, None);
 
-        if let CipherType::Login(l) = cipher.r#type {
+        if let crate::CipherType::Login(l) = cipher.r#type {
             assert_eq!(l.username, Some("test_username".to_string()));
             assert_eq!(l.password, Some("test_password".to_string()));
             assert!(l.login_uris.is_empty());

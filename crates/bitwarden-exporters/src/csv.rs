@@ -5,7 +5,7 @@ use serde::Serializer;
 use thiserror::Error;
 use uuid::Uuid;
 
-use crate::models::{Cipher, CipherType, Field, Folder};
+use crate::{Cipher, CipherType, Field, Folder};
 
 #[derive(Debug, Error)]
 pub enum CsvError {
@@ -111,7 +111,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::{Card, Identity, Login, LoginUri};
+    use crate::{Card, Identity, Login, LoginUri};
 
     #[test]
     fn test_export_csv() {

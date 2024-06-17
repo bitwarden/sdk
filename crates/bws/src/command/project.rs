@@ -5,7 +5,7 @@ use bitwarden::{
     },
     Client,
 };
-use color_eyre::eyre::{eyre, Result};
+use color_eyre::eyre::{bail, Result};
 use uuid::Uuid;
 
 use crate::render::{serialize_response, OutputSettings};
@@ -109,7 +109,7 @@ pub(crate) async fn delete(client: Client, project_ids: Vec<Uuid>) -> Result<()>
     }
 
     if !projects_failed.is_empty() {
-        return Err(eyre!("Errors when attempting to delete projects."));
+        bail!("Errors when attempting to delete projects.");
     }
 
     Ok(())

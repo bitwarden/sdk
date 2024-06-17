@@ -6,15 +6,13 @@ use std::{path::PathBuf, str::FromStr};
 use bitwarden::auth::AccessToken;
 use clap::CommandFactory;
 use clap_complete::Shell;
-use color_eyre::eyre::{bail, eyre, Result};
+use color_eyre::eyre::{bail, Result};
 
 use crate::{config, Cli, ProfileKey};
 
 pub(crate) fn completions(shell: Option<Shell>) -> Result<()> {
     let Some(shell) = shell.or_else(Shell::from_env) else {
-        return Err(eyre!(
-            "Couldn't autodetect a valid shell. Run `bws completions --help` for more info."
-        ));
+        bail!("Couldn't autodetect a valid shell. Run `bws completions --help` for more info.");
     };
 
     let mut cmd = Cli::command();

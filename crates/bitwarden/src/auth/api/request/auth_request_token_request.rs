@@ -3,9 +3,8 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-    auth::api::response::IdentityTokenResponse,
-    client::{client_settings::DeviceType, ApiConfigurations},
-    error::Result,
+    auth::api::response::IdentityTokenResponse, client::ApiConfigurations, error::Result,
+    DeviceType,
 };
 
 #[derive(Serialize, Deserialize, Debug)]

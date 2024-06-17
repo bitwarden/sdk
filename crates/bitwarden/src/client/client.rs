@@ -16,12 +16,8 @@ use uuid::Uuid;
 #[cfg(feature = "internal")]
 use crate::client::flags::Flags;
 use crate::{
-    auth::AccessToken,
-    client::{
-        client_settings::{ClientSettings, DeviceType},
-        encryption_settings::EncryptionSettings,
-    },
-    error::Result,
+    auth::AccessToken, client::encryption_settings::EncryptionSettings, error::Result,
+    ClientSettings, DeviceType,
 };
 
 #[derive(Debug, Clone)]

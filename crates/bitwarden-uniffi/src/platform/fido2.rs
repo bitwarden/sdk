@@ -54,7 +54,7 @@ impl ClientFido2 {
             .platform()
             .fido2()
             .decrypt_fido2_autofill_credentials(cipher_view)
-            .map_err(|e| Error::DecryptFido2AutofillCredentialsError(e))?;
+            .map_err(Error::DecryptFido2AutofillCredentialsError)?;
 
         Ok(result)
     }

@@ -4,22 +4,20 @@ use chrono::Utc;
 use crate::{auth::api::request::ApiTokenRequest, client::UserLoginMethod};
 use crate::{
     auth::api::{request::AccessTokenRequest, response::IdentityTokenResponse},
-    client::{Client, LoginMethod, ServiceAccountLoginMethod},
+    client::{internal::InternalClient, LoginMethod, ServiceAccountLoginMethod},
     error::{Error, Result},
     secrets_manager::state::{self, ClientState},
 };
 
-pub(crate) async fn renew_token(client: &Client) -> Result<()> {
+pub(crate) async fn renew_token(client: &InternalClient) -> Result<()> {
     const TOKEN_RENEW_MARGIN_SECONDS: i64 = 5 * 60;
 
     let tokens = client
-        .internal
         .tokens
         .read()
         .expect("RwLock is not poisoned")
         .clone();
     let login_method = client
-        .internal
         .login_method
         .read()
         .expect("RwLock is not poisoned")
@@ -31,7 +29,6 @@ pub(crate) async fn renew_token(client: &Client) -> Result<()> {
         }
 
         let config = client
-            .internal
             .__api_configurations
             .read()
             .expect("RwLock is not poisoned")
@@ -70,11 +67,9 @@ pub(crate) async fn renew_token(client: &Client) -> Result<()> {
                     .send(&config)
                     .await?;
 
-                    if let (IdentityTokenResponse::Payload(r), Some(state_file), Ok(enc_settings)) = (
-                        &result,
-                        state_file,
-                        client.internal.get_encryption_settings(),
-                    ) {
+                    if let (IdentityTokenResponse::Payload(r), Some(state_file), Ok(enc_settings)) =
+                        (&result, state_file, client.get_encryption_settings())
+                    {
                         if let Some(enc_key) = enc_settings.get_key(&None) {
                             let state =
                                 ClientState::new(r.access_token.clone(), enc_key.to_base64());
@@ -89,21 +84,15 @@ pub(crate) async fn renew_token(client: &Client) -> Result<()> {
 
         match res {
             IdentityTokenResponse::Refreshed(r) => {
-                client
-                    .internal
-                    .set_tokens(r.access_token, r.refresh_token, r.expires_in);
+                client.set_tokens(r.access_token, r.refresh_token, r.expires_in);
                 return Ok(());
             }
             IdentityTokenResponse::Authenticated(r) => {
-                client
-                    .internal
-                    .set_tokens(r.access_token, r.refresh_token, r.expires_in);
+                client.set_tokens(r.access_token, r.refresh_token, r.expires_in);
                 return Ok(());
             }
             IdentityTokenResponse::Payload(r) => {
-                client
-                    .internal
-                    .set_tokens(r.access_token, r.refresh_token, r.expires_in);
+                client.set_tokens(r.access_token, r.refresh_token, r.expires_in);
                 return Ok(());
             }
             _ => {

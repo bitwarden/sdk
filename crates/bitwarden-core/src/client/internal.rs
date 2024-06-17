@@ -11,6 +11,7 @@ use super::{
 #[cfg(feature = "internal")]
 use super::{flags::Flags, login_method::UserLoginMethod};
 use crate::{
+    auth::renew::renew_token,
     error::{Error, Result, VaultLocked},
     DeviceType,
 };
@@ -148,7 +149,7 @@ impl InternalClient {
     pub async fn get_api_configurations(&self) -> Arc<ApiConfigurations> {
         // At the moment we ignore the error result from the token renewal, if it fails,
         // the token will end up expiring and the next operation is going to fail anyway.
-        // self.auth().renew_token().await.ok();
+        renew_token(self).await.ok();
         self.__api_configurations
             .read()
             .expect("RwLock is not poisoned")

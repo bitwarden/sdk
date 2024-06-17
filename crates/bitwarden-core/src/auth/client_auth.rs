@@ -32,7 +32,7 @@ pub struct ClientAuth<'a> {
 
 impl<'a> ClientAuth<'a> {
     pub async fn renew_token(&self) -> Result<()> {
-        renew_token(self.client).await
+        renew_token(&self.client.internal).await
     }
 
     #[cfg(feature = "secrets")]

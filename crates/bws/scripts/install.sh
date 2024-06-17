@@ -4,7 +4,8 @@
 # An installer for the bws command line utility. #
 ##################################################
 
-BWS_VERSION="${BWS_VERSION:-0.5.0}"
+DEFAULT_BWS_VERSION="0.5.0"
+BWS_VERSION="${BWS_VERSION:-$DEFAULT_BWS_VERSION}"
 
 main() {
   case "$1" in

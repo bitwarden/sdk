@@ -4,7 +4,8 @@ param (
 
 $ErrorActionPreference = "Stop"
 
-$bwsVersion = if ($env:bwsVersion) { $env:bwsVersion } else { "0.5.0" }
+$defaultBwsVersion = "0.5.0"
+$bwsVersion = if ($env:bwsVersion) { $env:bwsVersion } else { $defaultBwsVersion }
 $installDir = [Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData) | Join-Path -ChildPath "Programs" | Join-Path -ChildPath "Bitwarden"
 
 # https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-processor#properties

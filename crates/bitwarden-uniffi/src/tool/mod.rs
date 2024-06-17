@@ -1,19 +1,16 @@
 use std::sync::Arc;
 
 use bitwarden::{
+    error::Error,
     exporters::{ClientExportersExt, ExportFormat},
     generators::{
         ClientGeneratorExt, PassphraseGeneratorRequest, PasswordGeneratorRequest,
         UsernameGeneratorRequest,
     },
     vault::{Cipher, Collection, Folder},
-    Error, VaultLocked,
 };
 
-use crate::{
-    error::{BitwardenError, Result},
-    Client,
-};
+use crate::{error::Result, Client};
 
 mod sends;
 pub use sends::ClientSends;
@@ -30,7 +27,7 @@ impl ClientGenerators {
              .0
             .generator()
             .password(settings)
-            .map_err(|_| Error::VaultLocked(VaultLocked))?)
+            .map_err(Error::PasswordError)?)
     }
 
     /// **API Draft:** Generate Passphrase
@@ -40,7 +37,7 @@ impl ClientGenerators {
              .0
             .generator()
             .passphrase(settings)
-            .map_err(|_| Error::VaultLocked(VaultLocked))?)
+            .map_err(Error::PassphraseError)?)
     }
 
     /// **API Draft:** Generate Username
@@ -51,7 +48,7 @@ impl ClientGenerators {
             .generator()
             .username(settings)
             .await
-            .map_err(|_| BitwardenError::E2(bitwarden::error::Error::VaultLocked(VaultLocked)))?)
+            .map_err(Error::UsernameError)?)
     }
 }
 
@@ -71,7 +68,8 @@ impl ClientExporters {
             .0
              .0
             .exporters()
-            .export_vault(folders, ciphers, format)?)
+            .export_vault(folders, ciphers, format)
+            .map_err(Error::ExportError)?)
     }
 
     /// **API Draft:** Export organization vault
@@ -85,6 +83,7 @@ impl ClientExporters {
             .0
              .0
             .exporters()
-            .export_organization_vault(collections, ciphers, format)?)
+            .export_organization_vault(collections, ciphers, format)
+            .map_err(Error::ExportError)?)
     }
 }

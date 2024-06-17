@@ -11,24 +11,15 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum Error {
     #[error(transparent)]
+    Core(#[from] bitwarden_core::Error),
+
+    #[error(transparent)]
     MissingFieldError(#[from] bitwarden_core::MissingFieldError),
     #[error(transparent)]
     VaultLocked(#[from] bitwarden_core::VaultLocked),
 
-    #[error("The client is not authenticated or the session has expired")]
-    NotAuthenticated,
-
-    #[error("The response received was invalid and could not be processed")]
-    InvalidResponse,
-
     #[error("Cryptography error, {0}")]
     Crypto(#[from] bitwarden_crypto::CryptoError),
-
-    #[error("The state file version is invalid")]
-    InvalidStateFileVersion,
-
-    #[error("The state file could not be read")]
-    InvalidStateFile,
 
     // Generators
     #[cfg(feature = "internal")]

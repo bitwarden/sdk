@@ -18,6 +18,7 @@ pub mod docs;
 
 use crypto::ClientCrypto;
 use error::Result;
+use platform::ClientPlatform;
 //use platform::ClientPlatform;
 use tool::{ClientExporters, ClientGenerators, ClientSends};
 use vault::ClientVault;
@@ -44,11 +45,9 @@ impl Client {
         Arc::new(ClientVault(self))
     }
 
-    /*
     pub fn platform(self: Arc<Self>) -> Arc<ClientPlatform> {
         Arc::new(ClientPlatform(self))
     }
-     */
 
     /// Generator operations
     pub fn generators(self: Arc<Self>) -> Arc<ClientGenerators> {

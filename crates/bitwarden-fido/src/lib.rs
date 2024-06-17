@@ -17,8 +17,8 @@ mod crypto;
 mod traits;
 mod types;
 pub use authenticator::{
-    Fido2Authenticator, FidoEncryptionSettingStore, GetAssertionError, MakeCredentialError,
-    SilentlyDiscoverCredentialsError,
+    CredentialsForAutofillError, Fido2Authenticator, FidoEncryptionSettingStore, GetAssertionError,
+    MakeCredentialError, SilentlyDiscoverCredentialsError,
 };
 pub use client::{Fido2Client, Fido2ClientError};
 pub use passkey::authenticator::UIHint;
@@ -29,8 +29,9 @@ pub use traits::{
 };
 pub use types::{
     AuthenticatorAssertionResponse, AuthenticatorAttestationResponse, ClientData,
-    Fido2CredentialAutofillView, GetAssertionRequest, GetAssertionResult, MakeCredentialRequest,
-    MakeCredentialResult, Options, PublicKeyCredentialAuthenticatorAssertionResponse,
+    Fido2CredentialAutofillView, Fido2CredentialAutofillViewError, GetAssertionRequest,
+    GetAssertionResult, MakeCredentialRequest, MakeCredentialResult, Options,
+    PublicKeyCredentialAuthenticatorAssertionResponse,
     PublicKeyCredentialAuthenticatorAttestationResponse, PublicKeyCredentialRpEntity,
     PublicKeyCredentialUserEntity,
 };

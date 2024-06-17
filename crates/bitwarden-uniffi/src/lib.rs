@@ -19,7 +19,6 @@ pub mod docs;
 use crypto::ClientCrypto;
 use error::Result;
 use platform::ClientPlatform;
-//use platform::ClientPlatform;
 use tool::{ClientExporters, ClientGenerators, ClientSends};
 use vault::ClientVault;
 

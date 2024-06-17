@@ -1,4 +1,4 @@
-use bitwarden::client::client_settings::ClientSettings;
+use bitwarden::ClientSettings;
 
 #[cfg(feature = "secrets")]
 use crate::command::{ProjectsCommand, SecretsCommand};

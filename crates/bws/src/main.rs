@@ -2,7 +2,7 @@ use std::{path::PathBuf, str::FromStr};
 
 use bitwarden::{
     auth::{login::AccessTokenLoginRequest, AccessToken},
-    client::client_settings::ClientSettings,
+    ClientSettings,
 };
 use bitwarden_cli::install_color_eyre;
 use clap::{CommandFactory, Parser};

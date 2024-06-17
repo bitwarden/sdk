@@ -59,20 +59,21 @@ impl Fido2CredentialAutofillView {
 
         credentials
             .into_iter()
-            .filter(|c| c.user_handle.is_some())
-            .map(|c| -> Result<_, Fido2CredentialAutofillViewError> {
-                Ok(Fido2CredentialAutofillView {
-                    credential_id: string_to_guid_bytes(&c.credential_id)?,
-                    cipher_id: cipher
-                        .id
-                        .expect("cipher must be saved to server for autofill"),
-                    rp_id: c.rp_id.clone(),
-                    user_handle: c.user_handle.clone().unwrap(),
-                    user_name_for_ui: c
-                        .user_name
-                        .none_whitespace()
-                        .or(c.user_display_name.none_whitespace())
-                        .or(cipher.name.none_whitespace()),
+            .filter_map(|c| -> Option<Result<_, Fido2CredentialAutofillViewError>> {
+                c.user_handle.map(|user_handle| {
+                    Ok(Fido2CredentialAutofillView {
+                        credential_id: string_to_guid_bytes(&c.credential_id)?,
+                        cipher_id: cipher
+                            .id
+                            .expect("cipher must be saved to server for autofill"),
+                        rp_id: c.rp_id.clone(),
+                        user_handle,
+                        user_name_for_ui: c
+                            .user_name
+                            .none_whitespace()
+                            .or(c.user_display_name.none_whitespace())
+                            .or(cipher.name.none_whitespace()),
+                    })
                 })
             })
             .collect()

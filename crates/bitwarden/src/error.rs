@@ -6,7 +6,6 @@ use std::{borrow::Cow, fmt::Debug};
 use bitwarden_exporters::ExportError;
 #[cfg(feature = "internal")]
 use bitwarden_generators::{PassphraseError, PasswordError, UsernameError};
-use reqwest::StatusCode;
 use thiserror::Error;
 
 #[derive(Debug, Error)]

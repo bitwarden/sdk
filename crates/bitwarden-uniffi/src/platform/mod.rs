@@ -26,13 +26,8 @@ impl ClientPlatform {
     }
 
     /// Load feature flags into the client
-    pub async fn load_flags(&self, flags: std::collections::HashMap<String, bool>) -> Result<()> {
+    pub fn load_flags(&self, flags: std::collections::HashMap<String, bool>) -> Result<()> {
         self.0 .0.internal.load_flags(flags);
         Ok(())
     }
-
-    // /// FIDO2 operations
-    //pub fn fido2(self: Arc<Self>) -> Arc<fido2::ClientFido2> {
-    //    Arc::new(fido2::ClientFido2(self.0.clone()))
-    //}
 }

@@ -1,7 +1,3 @@
-// Ensure the readme docs compile
-#[doc = include_str!("../README.md")]
-mod readme {}
-
 #[cfg(feature = "uniffi")]
 uniffi::setup_scaffolding!();
 #[cfg(feature = "uniffi")]

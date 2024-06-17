@@ -21,7 +21,7 @@ impl<'a> ClientExporters<'a> {
         ciphers: Vec<Cipher>,
         format: ExportFormat,
     ) -> Result<String, ExportError> {
-        export_vault(&self.client, folders, ciphers, format)
+        export_vault(self.client, folders, ciphers, format)
     }
 
     pub fn export_organization_vault(

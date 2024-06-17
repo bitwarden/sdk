@@ -17,6 +17,12 @@ impl From<bitwarden::Error> for BitwardenError {
     }
 }
 
+impl From<bitwarden::error::Error> for BitwardenError {
+    fn from(e: bitwarden::error::Error) -> Self {
+        Self::E2(e)
+    }
+}
+
 impl From<bitwarden::exporters::ExportError> for BitwardenError {
     fn from(e: bitwarden::exporters::ExportError) -> Self {
         Self::Ee(e)

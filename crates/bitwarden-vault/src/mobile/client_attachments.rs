@@ -1,13 +1,12 @@
 use std::path::Path;
 
+use bitwarden_core::{Client, Error, VaultLocked};
+use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey};
+
 use crate::{
     Attachment, AttachmentEncryptResult, AttachmentFile, AttachmentFileView, AttachmentView,
     Cipher, ClientVault,
 };
-use bitwarden_core::VaultLocked;
-use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey};
-
-use bitwarden_core::{Client, Error};
 
 pub struct ClientAttachments<'a> {
     pub(crate) client: &'a Client,

@@ -1,8 +1,7 @@
-use bitwarden_crypto::Kdf;
-use bitwarden_crypto::{AsymmetricEncString, EncString, MasterKey, SymmetricCryptoKey};
+use std::sync::{Arc, RwLock};
+
+use bitwarden_crypto::{AsymmetricEncString, EncString, Kdf, MasterKey, SymmetricCryptoKey};
 use chrono::Utc;
-use std::sync::Arc;
-use std::sync::RwLock;
 use uuid::Uuid;
 
 use super::{

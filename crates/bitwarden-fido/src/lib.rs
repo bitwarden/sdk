@@ -11,6 +11,7 @@ uniffi::setup_scaffolding!();
 
 mod authenticator;
 mod client;
+mod client_fido;
 mod crypto;
 mod traits;
 mod types;
@@ -18,6 +19,7 @@ pub use authenticator::{
     Fido2Authenticator, GetAssertionError, MakeCredentialError, SilentlyDiscoverCredentialsError,
 };
 pub use client::{Fido2Client, Fido2ClientError};
+pub use client_fido::{ClientFido2, ClientFido2Ext};
 pub use passkey::authenticator::UIHint;
 use thiserror::Error;
 pub use traits::{

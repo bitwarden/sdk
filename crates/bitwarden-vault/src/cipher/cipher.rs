@@ -612,9 +612,8 @@ mod tests {
 
     use attachment::AttachmentView;
 
-    use crate::Fido2Credential;
-
     use super::*;
+    use crate::Fido2Credential;
 
     fn generate_cipher() -> CipherView {
         CipherView {

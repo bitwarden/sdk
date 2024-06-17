@@ -18,6 +18,10 @@ pub mod internal {
     pub mod vault {
         pub use bitwarden_vault::*;
     }
+
+    pub mod fido {
+        pub use bitwarden_fido::*;
+    }
 }
 #[cfg(feature = "internal")]
 pub use internal::*;

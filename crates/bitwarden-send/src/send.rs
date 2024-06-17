@@ -359,7 +359,6 @@ impl TryFrom<SendTextModel> for SendText {
     }
 }
 
-/*
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
@@ -600,4 +599,3 @@ mod tests {
         assert!(v.has_password);
     }
 }
-*/

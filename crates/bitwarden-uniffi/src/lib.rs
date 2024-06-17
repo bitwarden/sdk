@@ -8,7 +8,7 @@ use bitwarden::ClientSettings;
 pub mod auth;
 pub mod crypto;
 mod error;
-//pub mod platform;
+pub mod platform;
 pub mod tool;
 mod uniffi_support;
 pub mod vault;

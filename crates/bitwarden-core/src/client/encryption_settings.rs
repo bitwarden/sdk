@@ -72,8 +72,9 @@ impl EncryptionSettings {
         &mut self,
         org_enc_keys: Vec<(Uuid, AsymmetricEncString)>,
     ) -> Result<&Self> {
-        use crate::VaultLocked;
         use bitwarden_crypto::KeyDecryptable;
+
+        use crate::VaultLocked;
 
         let private_key = self.private_key.as_ref().ok_or(VaultLocked)?;
 

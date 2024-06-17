@@ -2,7 +2,6 @@ use std::fmt;
 
 use bitwarden_core::require;
 use bitwarden_vault::{CipherView, FieldView, FolderView, LoginUriView};
-
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 

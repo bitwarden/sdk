@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 
 use bitwarden_core::{Client, VaultLocked};
 use bitwarden_crypto::{CryptoError, KeyContainer, KeyEncryptable};

@@ -1,10 +1,8 @@
-use async_lock::Mutex;
 #[cfg(feature = "secrets")]
 use bitwarden::secrets_manager::{ClientProjectsExt, ClientSecretsExt};
-use bitwarden::ClientSettings;
-
 #[cfg(feature = "internal")]
 use bitwarden::vault::ClientVaultExt;
+use bitwarden::ClientSettings;
 
 #[cfg(feature = "secrets")]
 use crate::command::{ProjectsCommand, SecretsCommand};

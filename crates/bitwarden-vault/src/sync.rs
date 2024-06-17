@@ -1,4 +1,3 @@
-use crate::{Cipher, Collection, Folder, GlobalDomains, VaultParseError};
 use bitwarden_api_api::models::{
     DomainsResponseModel, ProfileOrganizationResponseModel, ProfileResponseModel, SyncResponseModel,
 };
@@ -9,6 +8,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use uuid::Uuid;
+
+use crate::{Cipher, Collection, Folder, GlobalDomains, VaultParseError};
 
 #[derive(Debug, Error)]
 pub enum SyncError {

@@ -8,11 +8,10 @@ use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "internal")]
 use crate::client::{LoginMethod, UserLoginMethod};
-use crate::VaultLocked;
 use crate::{
     client::Kdf,
     error::{Error, Result},
-    Client,
+    Client, VaultLocked,
 };
 
 #[cfg(feature = "internal")]

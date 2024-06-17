@@ -5,8 +5,7 @@ use bitwarden_crypto::{
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{EncString, KeyDecryptable, SymmetricCryptoKey};
 
-use crate::VaultLocked;
-use crate::{error::Error, Client};
+use crate::{error::Error, Client, VaultLocked};
 
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct AuthRequestResponse {

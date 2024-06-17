@@ -367,7 +367,9 @@ dependencies = [
  "bitwarden-send",
  "bitwarden-sm",
  "bitwarden-vault",
+ "reqwest",
  "thiserror",
+ "uniffi",
 ]
 
 [[package]]

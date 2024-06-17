@@ -16,7 +16,7 @@ pub(crate) async fn get_project(
     client: &Client,
     input: &ProjectGetRequest,
 ) -> Result<ProjectResponse, Error> {
-    let config = client.internal.get_api_configurations().await;
+    let config = client.internal.get_api_configurations();
 
     let res = bitwarden_api_api::apis::projects_api::projects_id_get(&config.api, input.id).await?;
 

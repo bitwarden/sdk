@@ -29,7 +29,7 @@ pub(crate) async fn create_project(
         name: input.name.clone().encrypt_with_key(key)?.to_string(),
     });
 
-    let config = client.internal.get_api_configurations().await;
+    let config = client.internal.get_api_configurations();
     let res = bitwarden_api_api::apis::projects_api::organizations_organization_id_projects_post(
         &config.api,
         input.organization_id,

@@ -145,7 +145,7 @@ impl InternalClient {
         }
     }
 
-    pub async fn get_api_configurations(&self) -> Arc<ApiConfigurations> {
+    pub fn get_api_configurations(&self) -> Arc<ApiConfigurations> {
         // At the moment we ignore the error result from the token renewal, if it fails,
         // the token will end up expiring and the next operation is going to fail anyway.
         //self.auth().renew_token().await.ok();

@@ -23,8 +23,8 @@ pub(crate) fn validate_password(
             UserLoginMethod::Username { email, kdf, .. }
             | UserLoginMethod::ApiKey { email, kdf, .. } => {
                 let hash = determine_password_hash(
-                    &email,
-                    &kdf,
+                    email,
+                    kdf,
                     &password,
                     HashPurpose::LocalAuthorization,
                 )?;
@@ -54,7 +54,7 @@ pub(crate) fn validate_password_user_key(
         match login_method {
             UserLoginMethod::Username { email, kdf, .. }
             | UserLoginMethod::ApiKey { email, kdf, .. } => {
-                let master_key = MasterKey::derive(password.as_bytes(), email.as_bytes(), &kdf)?;
+                let master_key = MasterKey::derive(password.as_bytes(), email.as_bytes(), kdf)?;
                 let user_key = master_key
                     .decrypt_user_key(encrypted_user_key.parse()?)
                     .map_err(|_| "wrong password")?;

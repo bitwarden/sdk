@@ -31,7 +31,7 @@ pub(crate) async fn update_project(
         name: input.name.clone().encrypt_with_key(key)?.to_string(),
     });
 
-    let config = client.internal.get_api_configurations();
+    let config = client.internal.get_api_configurations().await;
     let res =
         bitwarden_api_api::apis::projects_api::projects_id_put(&config.api, input.id, project)
             .await?;

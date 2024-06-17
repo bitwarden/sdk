@@ -42,7 +42,7 @@ pub struct InternalClient {
     #[cfg(feature = "internal")]
     pub(super) flags: RwLock<Flags>,
 
-    /// Use Client::get_api_configurations() to access this.
+    /// Use Client::get_api_configurations().await to access this.
     /// It should only be used directly in renew_token
     #[doc(hidden)]
     pub(crate) __api_configurations: RwLock<Arc<ApiConfigurations>>,
@@ -145,10 +145,10 @@ impl InternalClient {
         }
     }
 
-    pub fn get_api_configurations(&self) -> Arc<ApiConfigurations> {
+    pub async fn get_api_configurations(&self) -> Arc<ApiConfigurations> {
         // At the moment we ignore the error result from the token renewal, if it fails,
         // the token will end up expiring and the next operation is going to fail anyway.
-        //self.auth().renew_token().await.ok();
+        // self.auth().renew_token().await.ok();
         self.__api_configurations
             .read()
             .expect("RwLock is not poisoned")

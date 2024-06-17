@@ -49,7 +49,7 @@ pub(crate) async fn request_prelogin(
     email: String,
 ) -> Result<PreloginResponseModel> {
     let request_model = PreloginRequestModel::new(email);
-    let config = client.internal.get_api_configurations();
+    let config = client.internal.get_api_configurations().await;
     Ok(accounts_prelogin_post(&config.identity, Some(request_model)).await?)
 }
 

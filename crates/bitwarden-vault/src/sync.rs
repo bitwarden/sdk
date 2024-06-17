@@ -31,7 +31,7 @@ pub struct SyncRequest {
 }
 
 pub(crate) async fn sync(client: &Client, input: &SyncRequest) -> Result<SyncResponse, SyncError> {
-    let config = client.internal.get_api_configurations();
+    let config = client.internal.get_api_configurations().await;
     let sync = bitwarden_api_api::apis::sync_api::sync_get(&config.api, input.exclude_subdomains)
         .await
         .map_err(|e| SyncError::Core(e.into()))?;

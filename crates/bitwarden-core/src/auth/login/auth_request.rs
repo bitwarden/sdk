@@ -30,7 +30,7 @@ pub(crate) async fn send_new_auth_request(
     email: String,
     device_identifier: String,
 ) -> Result<NewAuthRequestResponse> {
-    let config = client.internal.get_api_configurations();
+    let config = client.internal.get_api_configurations().await;
 
     let auth = new_auth_request(&email)?;
 
@@ -58,7 +58,7 @@ pub(crate) async fn complete_auth_request(
     client: &Client,
     auth_req: NewAuthRequestResponse,
 ) -> Result<()> {
-    let config = client.internal.get_api_configurations();
+    let config = client.internal.get_api_configurations().await;
 
     let res = auth_requests_id_response_get(
         &config.api,

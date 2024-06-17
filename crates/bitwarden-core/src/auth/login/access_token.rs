@@ -106,7 +106,7 @@ async fn request_access_token(
     client: &Client,
     input: &AccessToken,
 ) -> Result<IdentityTokenResponse> {
-    let config = client.internal.get_api_configurations();
+    let config = client.internal.get_api_configurations().await;
     AccessTokenRequest::new(input.access_token_id, &input.client_secret)
         .send(&config)
         .await

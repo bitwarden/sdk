@@ -21,7 +21,7 @@ pub(crate) async fn list_secrets(
     client: &Client,
     input: &SecretIdentifiersRequest,
 ) -> Result<SecretIdentifiersResponse, Error> {
-    let config = client.internal.get_api_configurations();
+    let config = client.internal.get_api_configurations().await;
     let res = bitwarden_api_api::apis::secrets_api::organizations_organization_id_secrets_get(
         &config.api,
         input.organization_id,
@@ -44,7 +44,7 @@ pub(crate) async fn list_secrets_by_project(
     client: &Client,
     input: &SecretIdentifiersByProjectRequest,
 ) -> Result<SecretIdentifiersResponse, Error> {
-    let config = client.internal.get_api_configurations();
+    let config = client.internal.get_api_configurations().await;
     let res = bitwarden_api_api::apis::secrets_api::projects_project_id_secrets_get(
         &config.api,
         input.project_id,

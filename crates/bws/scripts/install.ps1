@@ -1,3 +1,7 @@
+param (
+  [switch]$Uninstall
+)
+
 $ErrorActionPreference = "Stop"
 
 $bwsVersion = if ($env:bwsVersion) { $env:bwsVersion } else { "0.5.0" }
@@ -56,7 +60,7 @@ function Install-Bws {
   param($zipPath)
   Write-Host "Installing bws..."
   New-Item -ItemType Directory -Force -Path $installDir | Out-Null
-  Expand-Archive -Force $zipPath $installDir
+  Expand-Archive -Force $zipPath -DestinationPath $installDir
   Write-Host "bws installed to $installDir"
   setx PATH "$env:PATH;$installDir"
   Write-Host "$installDir has been added to your PATH"
@@ -73,8 +77,31 @@ function Test-Bws {
   }
 }
 
-Test-BwsInstallation
-$zipPath = Invoke-BwsDownload
-Test-Checksum -zipPath $zipPath
-Install-Bws -zipPath $zipPath
-Test-Bws
+function Remove-Bws {
+  Write-Host "Uninstalling bws..."
+
+  if (Test-Path $installDir) {
+    Remove-Item -Path $installDir -Recurse -Force
+    Write-Host "bws uninstalled from $installDir"
+  } else {
+    Write-Host "bws installation directory not found at $installDir. Skipping removal."
+  }
+
+  $configDir = "$env:USERPROFILE\.bws"
+  if (Test-Path $configDir -PathType Container) {
+    Remove-Item -Path $configDir -Recurse -Force
+    Write-Host "bws config directory removed from $configDir"
+  } else {
+    Write-Host "bws config directory not found at $configDir. Skipping removal."
+  }
+}
+
+if ($Uninstall) {
+  Remove-Bws
+} else {
+  Test-BwsInstallation
+  $zipPath = Invoke-BwsDownload
+  Test-Checksum -zipPath $zipPath
+  Install-Bws -zipPath $zipPath
+  Test-Bws
+}

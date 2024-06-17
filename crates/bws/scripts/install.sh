@@ -1,5 +1,4 @@
 #!/bin/sh
-set -u
 
 ##################################################
 # An installer for the bws command line utility. #
@@ -8,12 +7,19 @@ set -u
 BWS_VERSION="${BWS_VERSION:-0.5.0}"
 
 main() {
-  check_required
-  platform_detect
-  arch_detect
-  download_bws
-  validate_checksum
-  install_bws
+  case "$1" in
+  -u | --uninstall)
+    uninstall_bws
+    ;;
+  *)
+    check_required
+    platform_detect
+    arch_detect
+    download_bws
+    validate_checksum
+    install_bws
+    ;;
+  esac
 }
 
 error() {
@@ -40,11 +46,11 @@ can_sudo() {
       echo "Installing bws to /usr/local/bin..."
       return 0
     else
-      echo "sudo is available, but we failed to authenticate. Trying to install to your \$HOME directory..."
+      echo "sudo is available, but we failed to authenticate."
       return 1
     fi
   else
-    echo "sudo is not available. Trying to install to your \$HOME directory..."
+    echo "sudo is not available."
     return 1
   fi
 }
@@ -128,6 +134,7 @@ install_bws() {
 
     echo "bws installed to /usr/local/bin/bws"
   else
+    echo "Installing to your \$HOME directory..."
     user_bin_dir="${HOME}/.local/bin"
     mkdir -p "${user_bin_dir}"
     install -m 755 "$tmp_dir/bws" "${user_bin_dir}/bws"
@@ -144,4 +151,29 @@ install_bws() {
   rm -rf "$tmp_dir"
 }
 
-main
+uninstall_bws() {
+  if command -v bws >/dev/null; then
+    echo "Uninstalling bws..."
+    if can_sudo; then
+      sudo rm "$(command -v bws)"
+    else
+      rm "$(command -v bws)"
+    fi
+
+    # Safely remove the configuration directory
+    if [ -n "$HOME" ]; then
+      echo "Removing bws configuration directory at ${HOME}/.bws"
+      echo "If you use another directory for your configuration, you may want to remove it manually."
+      rm -rf "${HOME}/.bws"
+    else
+      echo "HOME environment variable is not set. Cannot safely remove .bws directory."
+    fi
+
+    echo "bws uninstalled successfully."
+  else
+    echo "bws is not installed."
+  fi
+  exit 0
+}
+
+main "$@"

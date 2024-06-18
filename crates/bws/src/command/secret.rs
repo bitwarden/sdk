@@ -1,5 +1,3 @@
-use std::process;
-
 use bitwarden::{
     secrets_manager::secrets::{
         SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
@@ -10,8 +8,10 @@ use bitwarden::{
 use color_eyre::eyre::{bail, Result};
 use uuid::Uuid;
 
-use super::OutputSettings;
-use crate::{render::serialize_response, SecretCommand};
+use crate::{
+    render::{serialize_response, OutputSettings},
+    SecretCommand,
+};
 
 #[derive(Debug)]
 pub(crate) struct SecretCreateCommandModel {
@@ -86,7 +86,7 @@ pub(crate) async fn process_command(
 }
 
 pub(crate) async fn list(
-    mut client: Client,
+    client: Client,
     organization_id: Uuid,
     project_id: Option<Uuid>,
     output_settings: OutputSettings,
@@ -109,13 +109,13 @@ pub(crate) async fn list(
         .get_by_ids(SecretsGetRequest { ids: secret_ids })
         .await?
         .data;
-    serialize_response(secrets, output_settings.output, output_settings.color);
+    serialize_response(secrets, output_settings);
 
     Ok(())
 }
 
 pub(crate) async fn get(
-    mut client: Client,
+    client: Client,
     secret_id: Uuid,
     output_settings: OutputSettings,
 ) -> Result<()> {
@@ -123,13 +123,13 @@ pub(crate) async fn get(
         .secrets()
         .get(&SecretGetRequest { id: secret_id })
         .await?;
-    serialize_response(secret, output_settings.output, output_settings.color);
+    serialize_response(secret, output_settings);
 
     Ok(())
 }
 
 pub(crate) async fn create(
-    mut client: Client,
+    client: Client,
     organization_id: Uuid,
     secret: SecretCreateCommandModel,
     output_settings: OutputSettings,
@@ -144,13 +144,13 @@ pub(crate) async fn create(
             project_ids: Some(vec![secret.project_id]),
         })
         .await?;
-    serialize_response(secret, output_settings.output, output_settings.color);
+    serialize_response(secret, output_settings);
 
     Ok(())
 }
 
 pub(crate) async fn edit(
-    mut client: Client,
+    client: Client,
     organization_id: Uuid,
     secret: SecretEditCommandModel,
     output_settings: OutputSettings,
@@ -177,12 +177,12 @@ pub(crate) async fn edit(
             },
         })
         .await?;
-    serialize_response(new_secret, output_settings.output, output_settings.color);
+    serialize_response(new_secret, output_settings);
 
     Ok(())
 }
 
-pub(crate) async fn delete(mut client: Client, secret_ids: Vec<Uuid>) -> Result<()> {
+pub(crate) async fn delete(client: Client, secret_ids: Vec<Uuid>) -> Result<()> {
     let count = secret_ids.len();
 
     let result = client
@@ -214,7 +214,7 @@ pub(crate) async fn delete(mut client: Client, secret_ids: Vec<Uuid>) -> Result<
     }
 
     if !secrets_failed.is_empty() {
-        process::exit(1);
+        bail!("Errors when attempting to delete secrets.");
     }
 
     Ok(())

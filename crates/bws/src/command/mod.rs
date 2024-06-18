@@ -4,28 +4,15 @@ pub(crate) mod secret;
 use std::{path::PathBuf, str::FromStr};
 
 use bitwarden::auth::AccessToken;
-use bitwarden_cli::Color;
 use clap::CommandFactory;
 use clap_complete::Shell;
 use color_eyre::eyre::{bail, Result};
 
-use crate::{config, Cli, Output, ProfileKey};
-
-pub(crate) struct OutputSettings {
-    pub(crate) output: Output,
-    pub(crate) color: Color,
-}
-
-impl OutputSettings {
-    pub(crate) fn new(output: Output, color: Color) -> Self {
-        OutputSettings { output, color }
-    }
-}
+use crate::{config, Cli, ProfileKey};
 
 pub(crate) fn completions(shell: Option<Shell>) -> Result<()> {
     let Some(shell) = shell.or_else(Shell::from_env) else {
-        eprintln!("Couldn't autodetect a valid shell. Run `bws completions --help` for more info.");
-        std::process::exit(1);
+        bail!("Couldn't autodetect a valid shell. Run `bws completions --help` for more info.");
     };
 
     let mut cmd = Cli::command();

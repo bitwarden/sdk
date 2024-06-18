@@ -36,6 +36,7 @@ impl AsymmetricEncryptable for AsymmetricPublicCryptoKey {
 
 /// An asymmetric encryption key. Contains both the public and private key. Can be used to both
 /// encrypt and decrypt [`AsymmetricEncString`](crate::AsymmetricEncString).
+#[derive(Clone)]
 pub struct AsymmetricCryptoKey {
     // RsaPrivateKey is not a Copy type so this isn't completely necessary, but
     // to keep the compiler from making stack copies when moving this struct around,

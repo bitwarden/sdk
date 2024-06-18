@@ -21,11 +21,16 @@ bitwarden = { path = "crates/bitwarden", version = "=0.5.0" }
 bitwarden-api-api = { path = "crates/bitwarden-api-api", version = "=0.5.0" }
 bitwarden-api-identity = { path = "crates/bitwarden-api-identity", version = "=0.5.0" }
 bitwarden-cli = { path = "crates/bitwarden-cli", version = "=0.5.0" }
+bitwarden-core = { path = "crates/bitwarden-core", version = "=0.5.0" }
 bitwarden-crypto = { path = "crates/bitwarden-crypto", version = "=0.5.0" }
 bitwarden-exporters = { path = "crates/bitwarden-exporters", version = "=0.5.0" }
+bitwarden-fido = { path = "crates/bitwarden-fido", version = "=0.5.0" }
 bitwarden-generators = { path = "crates/bitwarden-generators", version = "=0.5.0" }
+bitwarden-send = { path = "crates/bitwarden-send", version = "=0.5.0" }
+bitwarden-vault = { path = "crates/bitwarden-vault", version = "=0.5.0" }
 
 [workspace.lints.clippy]
+unused_async = "deny"
 unwrap_used = "deny"
 
 # Compile all dependencies with some optimizations when building this crate on debug

@@ -1,5 +1,3 @@
-use std::process;
-
 use bitwarden::{
     secrets_manager::projects::{
         ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
@@ -7,11 +5,13 @@ use bitwarden::{
     },
     Client,
 };
-use color_eyre::eyre::Result;
+use color_eyre::eyre::{bail, Result};
 use uuid::Uuid;
 
-use super::OutputSettings;
-use crate::{render::serialize_response, ProjectCommand};
+use crate::{
+    render::{serialize_response, OutputSettings},
+    ProjectCommand,
+};
 
 pub(crate) async fn process_command(
     command: ProjectCommand,
@@ -33,7 +33,7 @@ pub(crate) async fn process_command(
 }
 
 pub(crate) async fn list(
-    mut client: Client,
+    client: Client,
     organization_id: Uuid,
     output_settings: OutputSettings,
 ) -> Result<()> {
@@ -42,13 +42,13 @@ pub(crate) async fn list(
         .list(&ProjectsListRequest { organization_id })
         .await?
         .data;
-    serialize_response(projects, output_settings.output, output_settings.color);
+    serialize_response(projects, output_settings);
 
     Ok(())
 }
 
 pub(crate) async fn get(
-    mut client: Client,
+    client: Client,
     project_id: Uuid,
     output_settings: OutputSettings,
 ) -> Result<()> {
@@ -56,13 +56,13 @@ pub(crate) async fn get(
         .projects()
         .get(&ProjectGetRequest { id: project_id })
         .await?;
-    serialize_response(project, output_settings.output, output_settings.color);
+    serialize_response(project, output_settings);
 
     Ok(())
 }
 
 pub(crate) async fn create(
-    mut client: Client,
+    client: Client,
     organization_id: Uuid,
     name: String,
     output_settings: OutputSettings,
@@ -74,13 +74,13 @@ pub(crate) async fn create(
             name,
         })
         .await?;
-    serialize_response(project, output_settings.output, output_settings.color);
+    serialize_response(project, output_settings);
 
     Ok(())
 }
 
 pub(crate) async fn edit(
-    mut client: Client,
+    client: Client,
     organization_id: Uuid,
     project_id: Uuid,
     name: String,
@@ -94,12 +94,12 @@ pub(crate) async fn edit(
             name,
         })
         .await?;
-    serialize_response(project, output_settings.output, output_settings.color);
+    serialize_response(project, output_settings);
 
     Ok(())
 }
 
-pub(crate) async fn delete(mut client: Client, project_ids: Vec<Uuid>) -> Result<()> {
+pub(crate) async fn delete(client: Client, project_ids: Vec<Uuid>) -> Result<()> {
     let count = project_ids.len();
 
     let result = client
@@ -131,7 +131,7 @@ pub(crate) async fn delete(mut client: Client, project_ids: Vec<Uuid>) -> Result
     }
 
     if !projects_failed.is_empty() {
-        process::exit(1);
+        bail!("Errors when attempting to delete projects.");
     }
 
     Ok(())

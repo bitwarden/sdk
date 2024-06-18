@@ -17,7 +17,7 @@ pub struct ProjectsListRequest {
 }
 
 pub(crate) async fn list_projects(
-    client: &mut Client,
+    client: &Client,
     input: &ProjectsListRequest,
 ) -> Result<ProjectsResponse> {
     let config = client.get_api_configurations().await;
@@ -29,7 +29,7 @@ pub(crate) async fn list_projects(
 
     let enc = client.get_encryption_settings()?;
 
-    ProjectsResponse::process_response(res, enc)
+    ProjectsResponse::process_response(res, &enc)
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

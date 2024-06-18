@@ -2,13 +2,13 @@ use std::{path::PathBuf, str::FromStr};
 
 use bitwarden::{
     auth::{login::AccessTokenLoginRequest, AccessToken},
-    client::client_settings::ClientSettings,
+    ClientSettings,
 };
 use bitwarden_cli::install_color_eyre;
 use clap::{CommandFactory, Parser};
 use color_eyre::eyre::{bail, Result};
-use command::OutputSettings;
 use log::error;
+use render::OutputSettings;
 
 mod cli;
 mod command;
@@ -89,7 +89,7 @@ async fn process_commands() -> Result<()> {
         access_token_obj.access_token_id.to_string(),
     )?;
 
-    let mut client = bitwarden::Client::new(settings);
+    let client = bitwarden::Client::new(settings);
 
     // Load session or return if no session exists
     let _ = client
@@ -108,26 +108,16 @@ async fn process_commands() -> Result<()> {
         }
     };
 
+    let output_settings = OutputSettings::new(cli.output, color);
+
     // And finally we process all the commands which require authentication
     match command {
         Commands::Project { cmd } => {
-            command::project::process_command(
-                cmd,
-                client,
-                organization_id,
-                OutputSettings::new(cli.output, color),
-            )
-            .await
+            command::project::process_command(cmd, client, organization_id, output_settings).await
         }
 
         Commands::Secret { cmd } => {
-            command::secret::process_command(
-                cmd,
-                client,
-                organization_id,
-                OutputSettings::new(cli.output, color),
-            )
-            .await
+            command::secret::process_command(cmd, client, organization_id, output_settings).await
         }
 
         Commands::Config { .. } | Commands::Completions { .. } => {

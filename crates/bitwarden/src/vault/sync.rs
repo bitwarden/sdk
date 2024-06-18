@@ -1,16 +1,16 @@
 use bitwarden_api_api::models::{
     DomainsResponseModel, ProfileOrganizationResponseModel, ProfileResponseModel, SyncResponseModel,
 };
+use bitwarden_core::require;
+use bitwarden_vault::{Cipher, Collection, Folder, GlobalDomains};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::domain::GlobalDomains;
 use crate::{
     admin_console::Policy,
     client::{encryption_settings::EncryptionSettings, Client},
-    error::{require, Error, Result},
-    vault::{Cipher, Collection, Folder},
+    error::{Error, Result},
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -20,7 +20,7 @@ pub struct SyncRequest {
     pub exclude_subdomains: Option<bool>,
 }
 
-pub(crate) async fn sync(client: &mut Client, input: &SyncRequest) -> Result<SyncResponse> {
+pub(crate) async fn sync(client: &Client, input: &SyncRequest) -> Result<SyncResponse> {
     let config = client.get_api_configurations().await;
     let sync =
         bitwarden_api_api::apis::sync_api::sync_get(&config.api, input.exclude_subdomains).await?;
@@ -35,7 +35,7 @@ pub(crate) async fn sync(client: &mut Client, input: &SyncRequest) -> Result<Syn
 
     let enc = client.initialize_org_crypto(org_keys)?;
 
-    SyncResponse::process_response(sync, enc)
+    SyncResponse::process_response(sync, &enc)
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -140,14 +140,15 @@ impl ProfileResponse {
 
 impl TryFrom<DomainsResponseModel> for DomainResponse {
     type Error = Error;
-    fn try_from(value: DomainsResponseModel) -> Result<Self> {
+
+    fn try_from(value: DomainsResponseModel) -> Result<Self, Self::Error> {
         Ok(Self {
             equivalent_domains: value.equivalent_domains.unwrap_or_default(),
             global_equivalent_domains: value
                 .global_equivalent_domains
                 .unwrap_or_default()
                 .into_iter()
-                .map(|s| s.try_into())
+                .map(|s| s.try_into().map_err(Error::VaultParse))
                 .collect::<Result<Vec<GlobalDomains>>>()?,
         })
     }

@@ -367,9 +367,7 @@ dependencies = [
  "bitwarden-send",
  "bitwarden-sm",
  "bitwarden-vault",
- "reqwest",
  "thiserror",
- "uniffi",
 ]
 
 [[package]]
@@ -604,17 +602,12 @@ dependencies = [
  "bitwarden-core",
  "bitwarden-crypto",
  "chrono",
- "rand",
- "rand_chacha",
- "reqwest",
  "schemars",
  "serde",
  "serde_json",
  "thiserror",
- "tokio",
  "uniffi",
  "uuid",
- "wiremock",
 ]
 
 [[package]]

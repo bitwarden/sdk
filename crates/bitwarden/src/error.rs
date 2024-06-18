@@ -13,14 +13,6 @@ pub enum Error {
     #[error(transparent)]
     Core(#[from] bitwarden_core::Error),
 
-    #[error(transparent)]
-    MissingFieldError(#[from] bitwarden_core::MissingFieldError),
-    #[error(transparent)]
-    VaultLocked(#[from] bitwarden_core::VaultLocked),
-
-    #[error("Cryptography error, {0}")]
-    Crypto(#[from] bitwarden_crypto::CryptoError),
-
     // Generators
     #[cfg(feature = "internal")]
     #[error(transparent)]
@@ -32,18 +24,10 @@ pub enum Error {
     #[error(transparent)]
     PasswordError(#[from] PasswordError),
 
-    // Send
-    #[cfg(feature = "internal")]
-    #[error(transparent)]
-    SendParseError(#[from] bitwarden_send::SendParseError),
-
     // Vault
     #[cfg(feature = "internal")]
     #[error(transparent)]
     Cipher(#[from] bitwarden_vault::CipherError),
-    #[cfg(feature = "internal")]
-    #[error(transparent)]
-    VaultParse(#[from] bitwarden_vault::VaultParseError),
     #[cfg(feature = "internal")]
     #[error(transparent)]
     Totp(#[from] bitwarden_vault::TotpError),
@@ -65,13 +49,6 @@ pub enum Error {
     #[cfg(all(feature = "uniffi", feature = "internal"))]
     #[error(transparent)]
     Fido2Client(#[from] bitwarden_fido::Fido2ClientError),
-    #[cfg(all(feature = "uniffi", feature = "internal"))]
-    #[error("Fido2 Callback error: {0:?}")]
-    Fido2CallbackError(#[from] bitwarden_fido::Fido2CallbackError),
-
-    #[cfg(feature = "uniffi")]
-    #[error("Uniffi callback error: {0}")]
-    UniffiCallbackError(#[from] uniffi::UnexpectedUniFFICallbackError),
 
     #[error("Internal error: {0}")]
     Internal(Cow<'static, str>),

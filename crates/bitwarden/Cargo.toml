@@ -34,7 +34,6 @@ uniffi = [
     "bitwarden-generators/uniffi",
     "bitwarden-send/uniffi",
     "bitwarden-vault/uniffi",
-    "dep:uniffi",
 ] # Uniffi bindings
 secrets = ["bitwarden-core/internal", "dep:bitwarden-sm"] # Secrets manager API
 
@@ -50,8 +49,6 @@ bitwarden-send = { workspace = true, optional = true }
 bitwarden-sm = { workspace = true, optional = true }
 bitwarden-vault = { workspace = true, optional = true }
 thiserror = ">=1.0.40, <2.0"
-reqwest = { version = ">=0.12, <0.13", default-features = false }
-uniffi = { version = "=0.27.2", optional = true, features = ["tokio"] }
 
 [lints]
 workspace = true

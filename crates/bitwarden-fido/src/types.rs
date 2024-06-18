@@ -43,6 +43,11 @@ impl NoneWhitespace for Option<String> {
 
 #[derive(Debug, Error)]
 pub enum Fido2CredentialAutofillViewError {
+    #[error(
+        "Autofill credentials can only be created from existing ciphers that have a cipher id"
+    )]
+    MissingCipherId,
+
     #[error(transparent)]
     InvalidGuid(#[from] InvalidGuid),
 
@@ -65,7 +70,7 @@ impl Fido2CredentialAutofillView {
                         credential_id: string_to_guid_bytes(&c.credential_id)?,
                         cipher_id: cipher
                             .id
-                            .expect("cipher must be saved to server for autofill"),
+                            .ok_or(Fido2CredentialAutofillViewError::MissingCipherId)?,
                         rp_id: c.rp_id.clone(),
                         user_handle,
                         user_name_for_ui: c

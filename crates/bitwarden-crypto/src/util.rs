@@ -41,7 +41,8 @@ where
 
 /// Generate a random alphanumeric string of a given length
 ///
-/// Note: Do not use this generating user facing passwords. Use the `bitwarden-generator` crate for that.
+/// Note: Do not use this generating user facing passwords. Use the `bitwarden-generator` crate for
+/// that.
 pub fn generate_random_alphanumeric(len: usize) -> String {
     Alphanumeric.sample_string(&mut rand::thread_rng(), len)
 }

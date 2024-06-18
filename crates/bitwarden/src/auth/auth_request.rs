@@ -6,7 +6,6 @@ use bitwarden_crypto::{
 };
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{EncString, KeyDecryptable, SymmetricCryptoKey};
-use bitwarden_generators::{password, PasswordGeneratorRequest};
 
 use crate::{error::Error, Client};
 

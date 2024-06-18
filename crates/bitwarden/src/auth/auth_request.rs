@@ -1,7 +1,8 @@
 use base64::{engine::general_purpose::STANDARD, Engine};
 use bitwarden_core::VaultLocked;
 use bitwarden_crypto::{
-    fingerprint, AsymmetricCryptoKey, AsymmetricEncString, AsymmetricPublicCryptoKey,
+    fingerprint, generate_random_alphanumeric, AsymmetricCryptoKey, AsymmetricEncString,
+    AsymmetricPublicCryptoKey,
 };
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{EncString, KeyDecryptable, SymmetricCryptoKey};
@@ -41,14 +42,7 @@ pub(crate) fn new_auth_request(email: &str) -> Result<AuthRequestResponse, Error
         private_key: STANDARD.encode(key.to_der()?),
         public_key: b64,
         fingerprint,
-        access_code: password(PasswordGeneratorRequest {
-            length: 25,
-            lowercase: true,
-            uppercase: true,
-            numbers: true,
-            special: false,
-            ..Default::default()
-        })?,
+        access_code: generate_random_alphanumeric(25),
     })
 }
 

@@ -8,6 +8,8 @@ use passkey::types::{ctap2::Aaguid, Passkey};
 
 #[cfg(feature = "uniffi")]
 uniffi::setup_scaffolding!();
+#[cfg(feature = "uniffi")]
+mod uniffi_support;
 
 mod authenticator;
 mod client;
@@ -16,10 +18,11 @@ mod crypto;
 mod traits;
 mod types;
 pub use authenticator::{
-    Fido2Authenticator, GetAssertionError, MakeCredentialError, SilentlyDiscoverCredentialsError,
+    CredentialsForAutofillError, Fido2Authenticator, GetAssertionError, MakeCredentialError,
+    SilentlyDiscoverCredentialsError,
 };
 pub use client::{Fido2Client, Fido2ClientError};
-pub use client_fido::{ClientFido2, ClientFido2Ext};
+pub use client_fido::{ClientFido2, ClientFido2Ext, DecryptFido2AutofillCredentialsError};
 pub use passkey::authenticator::UIHint;
 use thiserror::Error;
 pub use traits::{
@@ -28,7 +31,8 @@ pub use traits::{
 };
 pub use types::{
     AuthenticatorAssertionResponse, AuthenticatorAttestationResponse, ClientData,
-    GetAssertionRequest, GetAssertionResult, MakeCredentialRequest, MakeCredentialResult, Options,
+    Fido2CredentialAutofillView, Fido2CredentialAutofillViewError, GetAssertionRequest,
+    GetAssertionResult, MakeCredentialRequest, MakeCredentialResult, Options,
     PublicKeyCredentialAuthenticatorAssertionResponse,
     PublicKeyCredentialAuthenticatorAttestationResponse, PublicKeyCredentialRpEntity,
     PublicKeyCredentialUserEntity,

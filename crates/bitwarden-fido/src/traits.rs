@@ -41,6 +41,8 @@ pub trait Fido2CredentialStore: Send + Sync {
         rip_id: String,
     ) -> Result<Vec<CipherView>, Fido2CallbackError>;
 
+    async fn all_credentials(&self) -> Result<Vec<CipherView>, Fido2CallbackError>;
+
     async fn save_credential(&self, cred: Cipher) -> Result<(), Fido2CallbackError>;
 }
 

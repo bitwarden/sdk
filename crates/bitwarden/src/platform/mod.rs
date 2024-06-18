@@ -13,4 +13,6 @@ pub use secret_verification_request::SecretVerificationRequest;
 #[cfg(feature = "uniffi")]
 pub mod fido2 {
     pub use bitwarden_fido::*;
+
+    pub use super::client_fido::DecryptFido2AutofillCredentialsError;
 }

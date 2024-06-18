@@ -4,12 +4,13 @@ use bitwarden::{
     error::Error,
     platform::fido2::{
         CheckUserOptions, ClientData, Fido2CallbackError as BitFido2CallbackError,
-        GetAssertionRequest, GetAssertionResult, MakeCredentialRequest, MakeCredentialResult,
+        Fido2CredentialAutofillView, GetAssertionRequest, GetAssertionResult,
+        MakeCredentialRequest, MakeCredentialResult,
         PublicKeyCredentialAuthenticatorAssertionResponse,
         PublicKeyCredentialAuthenticatorAttestationResponse, PublicKeyCredentialRpEntity,
         PublicKeyCredentialUserEntity,
     },
-    vault::{Cipher, CipherView, Fido2CredentialNewView, Fido2CredentialView},
+    vault::{Cipher, CipherView, Fido2CredentialNewView},
 };
 
 use crate::{error::Result, Client};
@@ -41,6 +42,21 @@ impl ClientFido2 {
             user_interface,
             credential_store,
         )))
+    }
+
+    pub fn decrypt_fido2_autofill_credentials(
+        self: Arc<Self>,
+        cipher_view: CipherView,
+    ) -> Result<Vec<Fido2CredentialAutofillView>> {
+        let result = self
+            .0
+             .0
+            .platform()
+            .fido2()
+            .decrypt_fido2_autofill_credentials(cipher_view)
+            .map_err(Error::DecryptFido2AutofillCredentialsError)?;
+
+        Ok(result)
     }
 }
 
@@ -87,7 +103,7 @@ impl ClientFido2Authenticator {
     pub async fn silently_discover_credentials(
         &self,
         rp_id: String,
-    ) -> Result<Vec<Fido2CredentialView>> {
+    ) -> Result<Vec<Fido2CredentialAutofillView>> {
         let platform = self.0 .0.platform();
         let fido2 = platform.fido2();
         let ui = UniffiTraitBridge(self.1.as_ref());
@@ -98,6 +114,20 @@ impl ClientFido2Authenticator {
             .silently_discover_credentials(rp_id)
             .await
             .map_err(Error::SilentlyDiscoverCredentials)?;
+        Ok(result)
+    }
+
+    pub async fn credentials_for_autofill(&self) -> Result<Vec<Fido2CredentialAutofillView>> {
+        let platform = self.0 .0.platform();
+        let fido2 = platform.fido2();
+        let ui = UniffiTraitBridge(self.1.as_ref());
+        let cs = UniffiTraitBridge(self.2.as_ref());
+        let mut auth = fido2.create_authenticator(&ui, &cs);
+
+        let result = auth
+            .credentials_for_autofill()
+            .await
+            .map_err(Error::CredentialsForAutofillError)?;
         Ok(result)
     }
 }
@@ -216,6 +246,8 @@ pub trait Fido2CredentialStore: Send + Sync {
         rip_id: String,
     ) -> Result<Vec<CipherView>, Fido2CallbackError>;
 
+    async fn all_credentials(&self) -> Result<Vec<CipherView>, Fido2CallbackError>;
+
     async fn save_credential(&self, cred: Cipher) -> Result<(), Fido2CallbackError>;
 }
 
@@ -238,6 +270,10 @@ impl bitwarden::platform::fido2::Fido2CredentialStore
             .find_credentials(ids, rip_id)
             .await
             .map_err(Into::into)
+    }
+
+    async fn all_credentials(&self) -> Result<Vec<CipherView>, BitFido2CallbackError> {
+        self.0.all_credentials().await.map_err(Into::into)
     }
 
     async fn save_credential(&self, cred: Cipher) -> Result<(), BitFido2CallbackError> {

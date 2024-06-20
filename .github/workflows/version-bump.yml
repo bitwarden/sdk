@@ -10,12 +10,16 @@ on:
         required: true
         type: choice
         options:
-          - napi
           - bitwarden
-          - bitwarden-api-api
-          - bitwarden-api-identity
-          - cli
-          - bitwarden-json
+          - bws
+          - napi
+          - python-sdk
+          - ruby-sdk
+          - go-sdk
+          - dotnet-sdk
+          - php-sdk
+          - java-sdk
+          - cpp-sdk
       version_number:
         description: "New version (example: '2024.1.0')"
         required: true
@@ -30,18 +34,18 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Install rust
-        uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248 # stable
+        uses: dtolnay/rust-toolchain@d8352f6b1d2e870bc5716e7a6d9b65c4cc244a1a # stable
         with:
           toolchain: stable
 
       - name: Cache cargo registry
-        uses: Swatinem/rust-cache@3cf7f8cc28d1b4e7d01e3783be10a97d55d483c8 # v2.7.1
+        uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
 
       - name: Install cargo-release
-        run: cargo install cargo-edit
+        run: cargo install cargo-edit --locked
 
       - name: Login to Azure - CI Subscription
-        uses: Azure/login@de95379fe4dadc2defb305917eaa7e5dde727294 # v1.5.1
+        uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
         with:
           creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
 
@@ -55,7 +59,7 @@ jobs:
             github-pat-bitwarden-devops-bot-repo-scope"
 
       - name: Checkout Branch
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
         with:
           ref: main
           repository: bitwarden/sdk
@@ -96,37 +100,59 @@ jobs:
 
       - name: Bump napi crate Version
         if: ${{ inputs.project == 'napi' }}
-        run: cargo-set-version set-version -p bitwarden-napi ${{ inputs.version_number }}
+        run: cargo set-version -p bitwarden-napi ${{ inputs.version_number }}
 
       ### bitwarden
 
       - name: Bump bitwarden crate Version
         if: ${{ inputs.project == 'bitwarden' }}
-        run: cargo-set-version set-version -p bitwarden ${{ inputs.version_number }}
+        run: cargo set-version -p bitwarden ${{ inputs.version_number }}
 
-      ### bitwarden-api-api
+      ### bws
 
-      - name: Bump bitwarden-api-api crate Version
-        if: ${{ inputs.project == 'bitwarden-api-api' }}
-        run: cargo-set-version set-version -p bitwarden-api-api ${{ inputs.version_number }}
+      - name: Bump bws Version
+        if: ${{ inputs.project == 'bws' }}
+        run: cargo set-version -p bws ${{ inputs.version_number }}
 
-      ### bitwarden-api-identity
+      ### python
+      - name: Bump python-sdk Version
+        if: ${{ inputs.project == 'python-sdk' }}
+        run: |
+          sed -i 's/version = "[0-9]\.[0-9]\.[0-9]"/version = "${{ inputs.version_number }}"/' ./languages/python/pyproject.toml
+          sed -i 's/__version__ = "[0-9]\.[0-9]\.[0-9]"/__version__ = "${{ inputs.version_number }}"/' ./languages/python/bitwarden_sdk/__init__.py
 
-      - name: Bump bitwarden-api-identity crate Version
-        if: ${{ inputs.project == 'bitwarden-api-identity' }}
-        run: cargo-set-version set-version -p bitwarden-api-identity ${{ inputs.version_number }}
+      ### ruby sdk
+      - name: Bump ruby-sdk Version
+        if: ${{ inputs.project == 'ruby-sdk' }}
+        run: sed -i "s/VERSION = '[0-9]\.[0-9]\.[0-9]'/VERSION = '${{ inputs.version_number }}'/" ./languages/ruby/bitwarden_sdk_secrets/lib/version.rb
 
-      ### cli
+      ### go sdk
+      - name: Bump go-sdk Version
+        if: ${{ inputs.project == 'go-sdk' }}
+        run: sed -i 's/[0-9]\.[0-9]\.[0-9]/${{ inputs.version_number }}/' ./languages/go/.version
 
-      - name: Bump cli Version
-        if: ${{ inputs.project == 'cli' }}
-        run: cargo-set-version set-version -p bws ${{ inputs.version_number }}
+      ### dotnet sdk
+      - name: Bump dotnet-sdk Version
+        if: ${{ inputs.project == 'dotnet-sdk' }}
+        run: sed -i 's/<Version>[0-9]\.[0-9]\.[0-9]<\/Version>/<Version>${{ inputs.version_number }}<\/Version>/' languages/csharp/Bitwarden.Sdk/Bitwarden.Sdk.csproj
 
-      ### bitwarden-json
+      ### php sdk
+      - name: Bump php-sdk Version
+        if: ${{ inputs.project == 'php-sdk' }}
+        run: |
+          sed -i 's/"version": "[0-9]\.[0-9]\.[0-9]"/"version": "${{ inputs.version_number }}"/' ./languages/php/composer.json
 
-      - name: Bump bitwarden-json crate Version
-        if: ${{ inputs.project == 'bitwarden-json' }}
-        run: cargo-set-version set-version -p bitwarden-json ${{ inputs.version_number }}
+      ### java sdk
+      - name: Bump java-sdk Version
+        if: ${{ inputs.project == 'java-sdk' }}
+        run: |
+          sed -i 's/version = "[0-9]\.[0-9]\.[0-9]"/version = "${{ inputs.version_number }}"/' ./languages/java/build.gradle
+
+      ### cpp sdk
+      - name: Bump C++ SDK Version
+        if: ${{ inputs.project == 'cpp-sdk' }}
+        run: |
+          sed -i 's/"version": "[0-9]\.[0-9]\.[0-9]"/"version": "${{ inputs.version_number }}"/' ./languages/cpp/vcpkg.json
 
       ############################
       # VERSION BUMP SECTION END #
@@ -207,7 +233,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
         with:
           ref: main
 

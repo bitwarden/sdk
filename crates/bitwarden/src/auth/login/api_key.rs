@@ -1,3 +1,5 @@
+use bitwarden_core::require;
+use bitwarden_crypto::{EncString, MasterKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -8,13 +10,12 @@ use crate::{
         JWTToken,
     },
     client::{LoginMethod, UserLoginMethod},
-    crypto::EncString,
     error::Result,
     Client,
 };
 
 pub(crate) async fn login_api_key(
-    client: &mut Client,
+    client: &Client,
     input: &ApiKeyLoginRequest,
 ) -> Result<ApiKeyLoginResponse> {
     //info!("api key logging in");
@@ -37,6 +38,9 @@ pub(crate) async fn login_api_key(
             r.refresh_token.clone(),
             r.expires_in,
         );
+
+        let master_key = MasterKey::derive(input.password.as_bytes(), email.as_bytes(), &kdf)?;
+
         client.set_login_method(LoginMethod::User(UserLoginMethod::ApiKey {
             client_id: input.client_id.to_owned(),
             client_secret: input.client_secret.to_owned(),
@@ -44,22 +48,22 @@ pub(crate) async fn login_api_key(
             kdf,
         }));
 
-        let user_key: EncString = r.key.as_deref().unwrap().parse().unwrap();
-        let private_key: EncString = r.private_key.as_deref().unwrap().parse().unwrap();
+        let user_key: EncString = require!(r.key.as_deref()).parse()?;
+        let private_key: EncString = require!(r.private_key.as_deref()).parse()?;
 
-        client.initialize_user_crypto(&input.password, user_key, private_key)?;
+        client.initialize_user_crypto_master_key(master_key, user_key, private_key)?;
     }
 
     ApiKeyLoginResponse::process_response(response)
 }
 
 async fn request_api_identity_tokens(
-    client: &mut Client,
+    client: &Client,
     input: &ApiKeyLoginRequest,
 ) -> Result<IdentityTokenResponse> {
     let config = client.get_api_configurations().await;
     ApiTokenRequest::new(&input.client_id, &input.client_secret)
-        .send(config)
+        .send(&config)
         .await
 }
 

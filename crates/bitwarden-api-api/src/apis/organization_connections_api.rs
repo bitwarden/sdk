@@ -9,9 +9,10 @@
  */
 
 use reqwest;
+use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::apis::ResponseContent;
+use crate::{apis::ResponseContent, models};
 
 /// struct for typed errors of method [`organizations_connections_enabled_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -20,14 +21,16 @@ pub enum OrganizationsConnectionsEnabledGetError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`organizations_connections_organization_connection_id_delete`]
+/// struct for typed errors of method
+/// [`organizations_connections_organization_connection_id_delete`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationsConnectionsOrganizationConnectionIdDeleteError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`organizations_connections_organization_connection_id_delete_post`]
+/// struct for typed errors of method
+/// [`organizations_connections_organization_connection_id_delete_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationsConnectionsOrganizationConnectionIdDeletePostError {
@@ -189,11 +192,9 @@ pub async fn organizations_connections_organization_connection_id_delete_post(
 pub async fn organizations_connections_organization_connection_id_put(
     configuration: &configuration::Configuration,
     organization_connection_id: uuid::Uuid,
-    organization_connection_request_model: Option<
-        crate::models::OrganizationConnectionRequestModel,
-    >,
+    organization_connection_request_model: Option<models::OrganizationConnectionRequestModel>,
 ) -> Result<
-    crate::models::OrganizationConnectionResponseModel,
+    models::OrganizationConnectionResponseModel,
     Error<OrganizationsConnectionsOrganizationConnectionIdPutError>,
 > {
     let local_var_configuration = configuration;
@@ -240,9 +241,9 @@ pub async fn organizations_connections_organization_connection_id_put(
 pub async fn organizations_connections_organization_id_type_get(
     configuration: &configuration::Configuration,
     organization_id: uuid::Uuid,
-    r#type: crate::models::OrganizationConnectionType,
+    r#type: models::OrganizationConnectionType,
 ) -> Result<
-    crate::models::OrganizationConnectionResponseModel,
+    models::OrganizationConnectionResponseModel,
     Error<OrganizationsConnectionsOrganizationIdTypeGetError>,
 > {
     let local_var_configuration = configuration;
@@ -283,13 +284,8 @@ pub async fn organizations_connections_organization_id_type_get(
 
 pub async fn organizations_connections_post(
     configuration: &configuration::Configuration,
-    organization_connection_request_model: Option<
-        crate::models::OrganizationConnectionRequestModel,
-    >,
-) -> Result<
-    crate::models::OrganizationConnectionResponseModel,
-    Error<OrganizationsConnectionsPostError>,
-> {
+    organization_connection_request_model: Option<models::OrganizationConnectionRequestModel>,
+) -> Result<models::OrganizationConnectionResponseModel, Error<OrganizationsConnectionsPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;

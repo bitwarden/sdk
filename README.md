@@ -1,7 +1,16 @@
-# Bitwarden Secrets Manager SDK
+# Bitwarden SDK
 
-This repository houses the Bitwarden Secrets Manager SDK. The core SDK is written in Rust and
-provides a Rust API, CLI and Node-API bindings. In the future more language bindings might be added.
+This repository houses the Bitwarden SDKs. We currently provide a public Secrets Manager SDK and an
+internal SDK for the Bitwarden Password Manager which is used for the native mobile applications.
+The SDK is written in Rust and provides a Rust API, CLI and various language bindings.
+
+### Disclaimer
+
+The password manager SDK is not intended for public use and is not supported by Bitwarden at this
+stage. It is solely intended to centralize the business logic and to provide a single source of
+truth for the internal applications. As the SDK evolves into a more stable and feature complete
+state we will re-evaluate the possibility of publishing stable bindings for the public. **The
+password manager interface is unstable and will change without warning.**
 
 # We're Hiring!
 
@@ -17,7 +26,8 @@ cargo build
 
 ## Crates
 
-The project is structured as a monorepo using cargo workspaces.
+The project is structured as a monorepo using cargo workspaces. Some of the more noteworthy crates
+are:
 
 - [`bitwarden`](./crates/bitwarden/): Rust friendly API for interacting with the secrets manager.
 - [`bitwarden-api-api`](./crates/bitwarden-api-api/): Auto-generated API bindings for the API
@@ -28,7 +38,8 @@ The project is structured as a monorepo using cargo workspaces.
 - [`bitwarden-json`](./crates/bitwarden-json/): JSON wrapper around the `bitwarden` crate. Powers
   the other language bindings.
 - [`bitwarden-napi`](./crates/bitwarden-napi/): Node-API bindings.
-- [`bws`](./crates/bws/): CLI for interacting with the secrets manager.
+- [`bws`](./crates/bws/): CLI for interacting with the [Bitwarden Secrets Manager][secrets-manager].
+  Review the [CLI documentation][bws-help].
 - [`sdk-schemas`](./crates/sdk-schemas/): Generator for the _json schemas_.
 
 ## Schemas
@@ -57,43 +68,78 @@ The first step is to generate the swagger documents from the server repository.
 
 ```bash
 # src/Api
-dotnet swagger tofile --output ../../api.json ./bin/Debug/net6.0/Api.dll internal
+dotnet swagger tofile --output ../../api.json ./bin/Debug/net8.0/Api.dll internal
 
 # src/Identity
-ASPNETCORE_ENVIRONMENT=development dotnet swagger tofile --output ../../identity.json ./bin/Debug/net6.0/Identity.dll v1
+ASPNETCORE_ENVIRONMENT=development dotnet swagger tofile --output ../../identity.json ./bin/Debug/net8.0/Identity.dll v1
 ```
 
 ### OpenApi Generator
 
-Runs from the root of the SDK project.
+To generate a new version of the bindings run the following script from the root of the SDK project.
 
 ```bash
-npx openapi-generator-cli generate \
-    -i ../server/api.json \
-    -g rust \
-    -o crates/bitwarden-api-api \
-    --package-name bitwarden-api-api \
-    -t ./support/openapi-template \
-    --additional-properties=packageVersion=1.0.0
-
-npx openapi-generator-cli generate \
-    -i ../server/identity.json \
-    -g rust \
-    -o crates/bitwarden-api-identity \
-    --package-name bitwarden-api-identity \
-    -t ./support/openapi-template \
-    --additional-properties=packageVersion=1.0.0
+./support/build-api.sh
 ```
 
-OpenApi Generator works using templates, we have customized our templates to work better with our
-codebase.
+This project uses customized templates which lives in the `support/openapi-templates` directory.
+These templates resolves some outstanding issues we've experienced with the rust generator. But we
+strive towards modifying the templates as little as possible to ease future upgrades.
 
-- https://github.com/OpenAPITools/openapi-generator/issues/10977
-- https://github.com/OpenAPITools/openapi-generator/issues/12464
+Note: If you don't have the nightly toolchain installed, the `build-api.sh` script will install it
+for you.
 
-There is also a scenario where we have a negative integer enum which completely breaks the openapi
-generation. In that case we excluded the file from being generated and manually patched it.
-`crates/bitwarden-api-api/src/models/organization_user_status_type.rs`
+## Developer tools
 
-The hope going forward is that we can continue to use the generator with minimal manual
-intervention.
+This project recommends the use of certain developer tools, and also includes configurations for
+them to make developers lives easier. The use of these tools is optional and they might require a
+separate installation step.
+
+The list of developer tools is:
+
+- `Visual Studio Code`: We provide a recommended extension list which should show under the
+  `Extensions` tab when opening this project with the editor. We also offer a few launch settings
+  and tasks to build and run the SDK
+- `bacon`: This is a CLI background code checker. We provide a configuration file with some of the
+  most common tasks to run (`check`, `clippy`, `test`, `doc` - run `bacon -l` to see them all). This
+  tool needs to be installed separately by running `cargo install bacon --locked`.
+- `nexttest`: This is a new and faster test runner, capable of running tests in parallel and with a
+  much nicer output compared to `cargo test`. This tool needs to be installed separately by running
+  `cargo install cargo-nextest --locked`. It can be manually run using
+  `cargo nextest run --all-features`
+
+[secrets-manager]: https://bitwarden.com/products/secrets-manager/
+[bws-help]: https://bitwarden.com/help/secrets-manager-cli/
+
+## Cargo fmt
+
+We use certain unstable features for formatting which require the nightly version of cargo-fmt.
+
+To install:
+
+```
+rustup component add rustfmt --toolchain nightly
+```
+
+To run:
+
+```
+cargo +nightly fmt
+```
+
+## Contribute
+
+Code contributions are welcome! Please commit any pull requests against the `main` branch. Learn
+more about how to contribute by reading the
+[Contributing Guidelines](https://contributing.bitwarden.com/contributing/). Check out the
+[Contributing Documentation](https://contributing.bitwarden.com/) for how to get started with your
+first contribution.
+
+Security audits and feedback are welcome. Please open an issue or email us privately if the report
+is sensitive in nature. You can read our security policy in the [`SECURITY.md`](SECURITY.md) file.
+We also run a program on [HackerOne](https://hackerone.com/bitwarden).
+
+No grant of any rights in the trademarks, service marks, or logos of Bitwarden is made (except as
+may be necessary to comply with the notice requirements as applicable), and use of any Bitwarden
+trademarks must comply with
+[Bitwarden Trademark Guidelines](https://github.com/bitwarden/server/blob/main/TRADEMARK_GUIDELINES.md).

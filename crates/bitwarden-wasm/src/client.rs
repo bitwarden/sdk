@@ -1,6 +1,7 @@
 extern crate console_error_panic_hook;
-use std::{rc::Rc, sync::RwLock};
+use std::rc::Rc;
 
+use argon2::{Algorithm, Argon2, Params, Version};
 use bitwarden_json::client::Client as JsonClient;
 use js_sys::Promise;
 use log::Level;
@@ -26,10 +27,10 @@ fn convert_level(level: LogLevel) -> Level {
     }
 }
 
-// Rc<RwLock<...>> is to avoid needing to take ownership of the Client during our async run_command function
-// https://github.com/rustwasm/wasm-bindgen/issues/2195#issuecomment-799588401
+// Rc<...> is to avoid needing to take ownership of the Client during our async run_command
+// function https://github.com/rustwasm/wasm-bindgen/issues/2195#issuecomment-799588401
 #[wasm_bindgen]
-pub struct BitwardenClient(Rc<RwLock<JsonClient>>);
+pub struct BitwardenClient(Rc<JsonClient>);
 
 #[wasm_bindgen]
 impl BitwardenClient {
@@ -42,21 +43,39 @@ impl BitwardenClient {
             panic!("failed to initialize logger: {:?}", e);
         }
 
-        Self(Rc::new(RwLock::new(bitwarden_json::client::Client::new(
-            settings_input,
-        ))))
+        Self(Rc::new(bitwarden_json::client::Client::new(settings_input)))
     }
 
     #[wasm_bindgen]
-    pub fn run_command(&mut self, js_input: String) -> Promise {
+    pub fn run_command(&self, js_input: String) -> Promise {
         let rc = self.0.clone();
-        // TODO: We should probably switch to an async-aware RwLock here,
-        // but it probably doesn't matter much in a single threaded environment
-        #[allow(clippy::await_holding_lock)]
         future_to_promise(async move {
-            let mut client = rc.write().unwrap();
-            let result = client.run_command(&js_input).await;
+            let result = rc.run_command(&js_input).await;
             Ok(result.into())
         })
     }
+}
+
+#[wasm_bindgen]
+pub fn argon2(
+    password: &[u8],
+    salt: &[u8],
+    iterations: u32,
+    memory: u32,
+    parallelism: u32,
+) -> Result<Vec<u8>, JsError> {
+    let argon = Argon2::new(
+        Algorithm::Argon2id,
+        Version::V0x13,
+        Params::new(
+            memory * 1024, // Convert MiB to KiB
+            iterations,
+            parallelism,
+            Some(32),
+        )?,
+    );
+
+    let mut hash = [0u8; 32];
+    argon.hash_password_into(password, salt, &mut hash)?;
+    Ok(hash.to_vec())
 }

@@ -1,13 +1,12 @@
 #[cfg(feature = "internal")]
-use log::{debug, info};
+use log::info;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "internal")]
 use crate::{
     auth::{api::request::PasswordTokenRequest, login::TwoFactorRequest},
-    client::{kdf::Kdf, LoginMethod},
-    crypto::EncString,
+    client::{Kdf, LoginMethod},
     Client,
 };
 use crate::{
@@ -20,21 +19,24 @@ use crate::{
 
 #[cfg(feature = "internal")]
 pub(crate) async fn login_password(
-    client: &mut Client,
+    client: &Client,
     input: &PasswordLoginRequest,
 ) -> Result<PasswordLoginResponse> {
-    use crate::{auth::determine_password_hash, client::UserLoginMethod, crypto::HashPurpose};
+    use bitwarden_core::require;
+    use bitwarden_crypto::{EncString, HashPurpose, MasterKey};
+
+    use crate::client::UserLoginMethod;
 
     info!("password logging in");
-    debug!("{:#?}, {:#?}", client, input);
 
-    let password_hash = determine_password_hash(
-        &input.email,
+    let master_key = MasterKey::derive(
+        input.password.as_bytes(),
+        input.email.as_bytes(),
         &input.kdf,
-        &input.password,
-        HashPurpose::ServerAuthorization,
-    )
-    .await?;
+    )?;
+    let password_hash = master_key
+        .derive_master_key_hash(input.password.as_bytes(), HashPurpose::ServerAuthorization)?;
+
     let response = request_identity_tokens(client, input, &password_hash).await?;
 
     if let IdentityTokenResponse::Authenticated(r) = &response {
@@ -49,10 +51,10 @@ pub(crate) async fn login_password(
             kdf: input.kdf.to_owned(),
         }));
 
-        let user_key: EncString = r.key.as_deref().unwrap().parse().unwrap();
-        let private_key: EncString = r.private_key.as_deref().unwrap().parse().unwrap();
+        let user_key: EncString = require!(r.key.as_deref()).parse()?;
+        let private_key: EncString = require!(r.private_key.as_deref()).parse()?;
 
-        client.initialize_user_crypto(&input.password, user_key, private_key)?;
+        client.initialize_user_crypto_master_key(master_key, user_key, private_key)?;
     }
 
     PasswordLoginResponse::process_response(response)
@@ -60,14 +62,22 @@ pub(crate) async fn login_password(
 
 #[cfg(feature = "internal")]
 async fn request_identity_tokens(
-    client: &mut Client,
+    client: &Client,
     input: &PasswordLoginRequest,
-    password_hash: &String,
+    password_hash: &str,
 ) -> Result<IdentityTokenResponse> {
+    use crate::DeviceType;
+
     let config = client.get_api_configurations().await;
-    PasswordTokenRequest::new(&input.email, password_hash, &input.two_factor)
-        .send(config)
-        .await
+    PasswordTokenRequest::new(
+        &input.email,
+        password_hash,
+        DeviceType::ChromeBrowser,
+        "b86dd6ab-4265-4ddf-a7f1-eb28d5677f33",
+        &input.two_factor,
+    )
+    .send(&config)
+    .await
 }
 
 #[cfg(feature = "internal")]
@@ -93,9 +103,11 @@ pub struct PasswordLoginResponse {
     pub reset_master_password: bool,
     /// Whether or not the user is required to update their master password
     pub force_password_reset: bool,
-    /// The available two factor authentication options. Present only when authentication fails due to requiring a second authentication factor.
+    /// The available two factor authentication options. Present only when authentication fails due
+    /// to requiring a second authentication factor.
     pub two_factor: Option<TwoFactorProviders>,
-    /// The information required to present the user with a captcha challenge. Only present when authentication fails due to requiring validation of a captcha challenge.
+    /// The information required to present the user with a captcha challenge. Only present when
+    /// authentication fails due to requiring validation of a captcha challenge.
     pub captcha: Option<CaptchaResponse>,
 }
 

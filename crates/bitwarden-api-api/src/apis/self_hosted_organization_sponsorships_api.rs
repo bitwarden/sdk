@@ -9,25 +9,29 @@
  */
 
 use reqwest;
+use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::apis::ResponseContent;
+use crate::{apis::ResponseContent, models};
 
-/// struct for typed errors of method [`organization_sponsorship_self_hosted_sponsoring_org_id_delete`]
+/// struct for typed errors of method
+/// [`organization_sponsorship_self_hosted_sponsoring_org_id_delete`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationSponsorshipSelfHostedSponsoringOrgIdDeleteError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`organization_sponsorship_self_hosted_sponsoring_org_id_delete_post`]
+/// struct for typed errors of method
+/// [`organization_sponsorship_self_hosted_sponsoring_org_id_delete_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationSponsorshipSelfHostedSponsoringOrgIdDeletePostError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`organization_sponsorship_self_hosted_sponsoring_org_id_families_for_enterprise_post`]
+/// struct for typed errors of method
+/// [`organization_sponsorship_self_hosted_sponsoring_org_id_families_for_enterprise_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum OrganizationSponsorshipSelfHostedSponsoringOrgIdFamiliesForEnterprisePostError {
@@ -127,7 +131,7 @@ pub async fn organization_sponsorship_self_hosted_sponsoring_org_id_families_for
     configuration: &configuration::Configuration,
     sponsoring_org_id: uuid::Uuid,
     organization_sponsorship_create_request_model: Option<
-        crate::models::OrganizationSponsorshipCreateRequestModel,
+        models::OrganizationSponsorshipCreateRequestModel,
     >,
 ) -> Result<(), Error<OrganizationSponsorshipSelfHostedSponsoringOrgIdFamiliesForEnterprisePostError>>
 {

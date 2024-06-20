@@ -3,8 +3,9 @@ use std::{fs::File, io::Write};
 use anyhow::Result;
 use schemars::{schema::RootSchema, schema_for, JsonSchema};
 
-/// Creates a json schema file for any type passed in using Schemars. The filename and path of the generated
-/// schema file is derived from the namespace passed into the macro or supplied as the first argument.
+/// Creates a json schema file for any type passed in using Schemars. The filename and path of the
+/// generated schema file is derived from the namespace passed into the macro or supplied as the
+/// first argument.
 ///
 /// The schema filename is given by the last namespace element and trims off any `>` characters.
 /// This means the filename will represent the last _generic_ type of the type given.
@@ -30,7 +31,8 @@ use schemars::{schema::RootSchema, schema_for, JsonSchema};
 /// ```
 /// write_schema_for!(response::two_factor_login_response::two_factor_providers::TwoFactorProviders);
 /// ```
-/// will generate `TwoFactorProviders.json` at `{{pwd}}/response/two_factor_login_response/TwoFactorProviders.json`
+/// will generate `TwoFactorProviders.json` at
+/// `{{pwd}}/response/two_factor_login_response/TwoFactorProviders.json`
 ///
 /// ## Path specified
 ///
@@ -89,7 +91,7 @@ use bitwarden_json::response::Response;
 #[derive(JsonSchema)]
 struct SchemaTypes {
     // Input types for new Client
-    client_settings: bitwarden::client::client_settings::ClientSettings,
+    client_settings: bitwarden::ClientSettings,
 
     // Input types for Client::run_command
     input_command: bitwarden_json::command::Command,
@@ -102,6 +104,7 @@ struct SchemaTypes {
     secret: Response<bitwarden::secrets_manager::secrets::SecretResponse>,
     secrets: Response<bitwarden::secrets_manager::secrets::SecretsResponse>,
     secrets_delete: Response<bitwarden::secrets_manager::secrets::SecretsDeleteResponse>,
+    secrets_sync: Response<bitwarden::secrets_manager::secrets::SecretsSyncResponse>,
     project: Response<bitwarden::secrets_manager::projects::ProjectResponse>,
     projects: Response<bitwarden::secrets_manager::projects::ProjectsResponse>,
     projects_delete: Response<bitwarden::secrets_manager::projects::ProjectsDeleteResponse>,
@@ -109,7 +112,7 @@ struct SchemaTypes {
     #[cfg(feature = "internal")]
     fingerprint: Response<bitwarden::platform::FingerprintResponse>,
     #[cfg(feature = "internal")]
-    sync: Response<bitwarden::platform::SyncResponse>,
+    sync: Response<bitwarden::vault::SyncResponse>,
     #[cfg(feature = "internal")]
     user_api_key: Response<bitwarden::platform::UserApiKeyResponse>,
 }

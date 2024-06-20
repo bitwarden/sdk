@@ -16,11 +16,12 @@
     <RepositoryType>Git</RepositoryType>
 
     <PackageProjectUrl>https://bitwarden.com/products/secrets-manager/</PackageProjectUrl>
-    <PackageId>Bitwarden.Sdk</PackageId>
+    <PackageId>Bitwarden.Secrets.Sdk</PackageId>
     <PackageIcon>bitwarden.png</PackageIcon>
-    <PackageTags>Bitwarden;Sdk;.NET</PackageTags>
+    <PackageTags>Bitwarden;Secrets Manager;Sdk;.NET</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <Version>0.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -62,7 +63,7 @@
       <PackageCopyToOutput>true</PackageCopyToOutput>
       <PackagePath>runtimes/osx-arm64/native</PackagePath>
     </Content>
-    <Content Include="ubuntu-x64/libbitwarden_c*.so">
+    <Content Include="linux-x64/libbitwarden_c*.so">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <PackageCopyToOutput>true</PackageCopyToOutput>
       <PackagePath>runtimes/linux-x64/native</PackagePath>

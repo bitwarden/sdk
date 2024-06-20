@@ -1,9 +1,10 @@
 use bitwarden_api_api::models::TwoFactorEmailRequestModel;
+use bitwarden_crypto::HashPurpose;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use crate::{auth::determine_password_hash, crypto::HashPurpose, error::Result, Client};
+use crate::{auth::determine_password_hash, error::Result, Client};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -15,7 +16,7 @@ pub struct TwoFactorEmailRequest {
 }
 
 pub(crate) async fn send_two_factor_email(
-    client: &mut Client,
+    client: &Client,
     input: &TwoFactorEmailRequest,
 ) -> Result<()> {
     // TODO: This should be resolved from the client
@@ -26,8 +27,7 @@ pub(crate) async fn send_two_factor_email(
         &kdf,
         &input.password,
         HashPurpose::ServerAuthorization,
-    )
-    .await?;
+    )?;
 
     let config = client.get_api_configurations().await;
     bitwarden_api_api::apis::two_factor_api::two_factor_send_email_login_post(

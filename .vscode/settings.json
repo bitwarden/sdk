@@ -15,10 +15,14 @@
     "Pbkdf",
     "PKCS8",
     "repr",
+    "reprompt",
     "reqwest",
     "schemars",
+    "totp",
     "uniffi",
     "wordlist",
+    "Zeroize",
     "zxcvbn"
-  ]
+  ],
+  "rust-analyzer.cargo.targetDir": true
 }

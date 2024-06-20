@@ -1,31 +1,58 @@
-# Requirements
+# Build locally
+## Requirements
 
-- Python3
-- setuptools
-  ```bash
-  pip install setuptools
-  ```
-- setuptools_rust
-  ```bash
-  pip install setuptools_rust
-  ```
-- dateutil
-  ```bash
-  pip install python-dateutil
-  ```
+- Python 3
+- `maturin` (install with `pip install maturin`)
+- `npm`
 
-# Installation
+## Build
 
-From the `languages/python/` directory,
-
+From the root of the repository:
 ```bash
-python3 ./setup.py develop
+npm run schemas # generate schemas.py
+
+cd languages/python/
+maturin develop
 ```
 
-Rename the the resulting `.so` file to `bitwarden_py.so`, if it isn't already there.
+You can now import `BitwardenClient` in your Python code with:
+```python
+from bitwarden_sdk import BitwardenClient
+```
+
+# Use without building locally
+
+```bash
+pip install bitwarden-sdk
+```
 
 # Run
 
+Set the `ORGANIZATION_ID` and `ACCESS_TOKEN` environment variables to your organization ID and access token, respectively.
+
 ```bash
-python3 ./login.py
+python3 ./example.py
+```
+
+# Using Virtual Environments
+
+If you would like to build & run the script within a virtual environment you can do the following.
+
+## Build
+
+```bash
+npm run schemas # generate schemas.py
+
+cd languages/python/
+python3 -m venv .venv
+maturin develop
+```
+
+## Run
+
+```bash
+source .venv/bin/activate
+python3 ./example.py
+
+deactivate # run this to close the virtual session
 ```

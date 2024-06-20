@@ -1,6 +1,6 @@
-#[cfg(feature = "internal")]
 pub mod crypto;
 pub mod kdf;
+pub mod tool;
 pub mod vault;
 
 mod client_crypto;

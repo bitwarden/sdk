@@ -1,16 +1,16 @@
 /// Integration test for registering a new user and unlocking the vault
-#[cfg(feature = "mobile")]
+#[cfg(feature = "internal")]
 #[tokio::test]
 async fn test_register_initialize_crypto() {
     use std::num::NonZeroU32;
 
     use bitwarden::{
-        client::kdf::Kdf,
         mobile::crypto::{InitUserCryptoMethod, InitUserCryptoRequest},
         Client,
     };
+    use bitwarden_crypto::Kdf;
 
-    let mut client = Client::new(None);
+    let client = Client::new(None);
 
     let email = "test@bitwarden.com";
     let password = "test123";

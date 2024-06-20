@@ -9,9 +9,10 @@
  */
 
 use reqwest;
+use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::apis::ResponseContent;
+use crate::{apis::ResponseContent, models};
 
 /// struct for typed errors of method [`organizations_domain_sso_details_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -65,10 +66,10 @@ pub enum OrganizationsOrgIdDomainPostError {
 pub async fn organizations_domain_sso_details_post(
     configuration: &configuration::Configuration,
     organization_domain_sso_details_request_model: Option<
-        crate::models::OrganizationDomainSsoDetailsRequestModel,
+        models::OrganizationDomainSsoDetailsRequestModel,
     >,
 ) -> Result<
-    crate::models::OrganizationDomainSsoDetailsResponseModel,
+    models::OrganizationDomainSsoDetailsResponseModel,
     Error<OrganizationsDomainSsoDetailsPostError>,
 > {
     let local_var_configuration = configuration;
@@ -114,9 +115,9 @@ pub async fn organizations_domain_sso_details_post(
 
 pub async fn organizations_org_id_domain_get(
     configuration: &configuration::Configuration,
-    org_id: &str,
+    org_id: uuid::Uuid,
 ) -> Result<
-    crate::models::OrganizationDomainResponseModelListResponseModel,
+    models::OrganizationDomainResponseModelListResponseModel,
     Error<OrganizationsOrgIdDomainGetError>,
 > {
     let local_var_configuration = configuration;
@@ -161,8 +162,8 @@ pub async fn organizations_org_id_domain_get(
 
 pub async fn organizations_org_id_domain_id_delete(
     configuration: &configuration::Configuration,
-    org_id: &str,
-    id: &str,
+    org_id: uuid::Uuid,
+    id: uuid::Uuid,
 ) -> Result<(), Error<OrganizationsOrgIdDomainIdDeleteError>> {
     let local_var_configuration = configuration;
 
@@ -207,10 +208,9 @@ pub async fn organizations_org_id_domain_id_delete(
 
 pub async fn organizations_org_id_domain_id_get(
     configuration: &configuration::Configuration,
-    org_id: &str,
-    id: &str,
-) -> Result<crate::models::OrganizationDomainResponseModel, Error<OrganizationsOrgIdDomainIdGetError>>
-{
+    org_id: uuid::Uuid,
+    id: uuid::Uuid,
+) -> Result<models::OrganizationDomainResponseModel, Error<OrganizationsOrgIdDomainIdGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -254,8 +254,8 @@ pub async fn organizations_org_id_domain_id_get(
 
 pub async fn organizations_org_id_domain_id_remove_post(
     configuration: &configuration::Configuration,
-    org_id: &str,
-    id: &str,
+    org_id: uuid::Uuid,
+    id: uuid::Uuid,
 ) -> Result<(), Error<OrganizationsOrgIdDomainIdRemovePostError>> {
     let local_var_configuration = configuration;
 
@@ -300,12 +300,10 @@ pub async fn organizations_org_id_domain_id_remove_post(
 
 pub async fn organizations_org_id_domain_id_verify_post(
     configuration: &configuration::Configuration,
-    org_id: &str,
-    id: &str,
-) -> Result<
-    crate::models::OrganizationDomainResponseModel,
-    Error<OrganizationsOrgIdDomainIdVerifyPostError>,
-> {
+    org_id: uuid::Uuid,
+    id: uuid::Uuid,
+) -> Result<models::OrganizationDomainResponseModel, Error<OrganizationsOrgIdDomainIdVerifyPostError>>
+{
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -349,10 +347,9 @@ pub async fn organizations_org_id_domain_id_verify_post(
 
 pub async fn organizations_org_id_domain_post(
     configuration: &configuration::Configuration,
-    org_id: &str,
-    organization_domain_request_model: Option<crate::models::OrganizationDomainRequestModel>,
-) -> Result<crate::models::OrganizationDomainResponseModel, Error<OrganizationsOrgIdDomainPostError>>
-{
+    org_id: uuid::Uuid,
+    organization_domain_request_model: Option<models::OrganizationDomainRequestModel>,
+) -> Result<models::OrganizationDomainResponseModel, Error<OrganizationsOrgIdDomainPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;

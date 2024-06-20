@@ -9,9 +9,10 @@
  */
 
 use reqwest;
+use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::apis::ResponseContent;
+use crate::{apis::ResponseContent, models};
 
 /// struct for typed errors of method [`devices_get`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -141,7 +142,7 @@ pub enum DevicesUpdateTrustPostError {
 
 pub async fn devices_get(
     configuration: &configuration::Configuration,
-) -> Result<crate::models::DeviceResponseModelListResponseModel, Error<DevicesGetError>> {
+) -> Result<models::DeviceResponseModelListResponseModel, Error<DevicesGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -189,7 +190,7 @@ pub async fn devices_id_delete(
     let local_var_uri_str = format!(
         "{}/devices/{id}",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::DELETE, local_var_uri_str.as_str());
@@ -233,7 +234,7 @@ pub async fn devices_id_delete_post(
     let local_var_uri_str = format!(
         "{}/devices/{id}/delete",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -269,7 +270,7 @@ pub async fn devices_id_delete_post(
 pub async fn devices_id_get(
     configuration: &configuration::Configuration,
     id: &str,
-) -> Result<crate::models::DeviceResponseModel, Error<DevicesIdGetError>> {
+) -> Result<models::DeviceResponseModel, Error<DevicesIdGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -277,7 +278,7 @@ pub async fn devices_id_get(
     let local_var_uri_str = format!(
         "{}/devices/{id}",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -313,8 +314,8 @@ pub async fn devices_id_get(
 pub async fn devices_id_post(
     configuration: &configuration::Configuration,
     id: &str,
-    device_request_model: Option<crate::models::DeviceRequestModel>,
-) -> Result<crate::models::DeviceResponseModel, Error<DevicesIdPostError>> {
+    device_request_model: Option<models::DeviceRequestModel>,
+) -> Result<models::DeviceResponseModel, Error<DevicesIdPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -322,7 +323,7 @@ pub async fn devices_id_post(
     let local_var_uri_str = format!(
         "{}/devices/{id}",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -359,8 +360,8 @@ pub async fn devices_id_post(
 pub async fn devices_id_put(
     configuration: &configuration::Configuration,
     id: &str,
-    device_request_model: Option<crate::models::DeviceRequestModel>,
-) -> Result<crate::models::DeviceResponseModel, Error<DevicesIdPutError>> {
+    device_request_model: Option<models::DeviceRequestModel>,
+) -> Result<models::DeviceResponseModel, Error<DevicesIdPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -368,7 +369,7 @@ pub async fn devices_id_put(
     let local_var_uri_str = format!(
         "{}/devices/{id}",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::PUT, local_var_uri_str.as_str());
@@ -413,7 +414,7 @@ pub async fn devices_identifier_identifier_clear_token_post(
     let local_var_uri_str = format!(
         "{}/devices/identifier/{identifier}/clear-token",
         local_var_configuration.base_path,
-        identifier = crate::apis::urlencode(identifier.to_string())
+        identifier = crate::apis::urlencode(identifier)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -457,7 +458,7 @@ pub async fn devices_identifier_identifier_clear_token_put(
     let local_var_uri_str = format!(
         "{}/devices/identifier/{identifier}/clear-token",
         local_var_configuration.base_path,
-        identifier = crate::apis::urlencode(identifier.to_string())
+        identifier = crate::apis::urlencode(identifier)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::PUT, local_var_uri_str.as_str());
@@ -493,7 +494,7 @@ pub async fn devices_identifier_identifier_clear_token_put(
 pub async fn devices_identifier_identifier_get(
     configuration: &configuration::Configuration,
     identifier: &str,
-) -> Result<crate::models::DeviceResponseModel, Error<DevicesIdentifierIdentifierGetError>> {
+) -> Result<models::DeviceResponseModel, Error<DevicesIdentifierIdentifierGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -501,7 +502,7 @@ pub async fn devices_identifier_identifier_get(
     let local_var_uri_str = format!(
         "{}/devices/identifier/{identifier}",
         local_var_configuration.base_path,
-        identifier = crate::apis::urlencode(identifier.to_string())
+        identifier = crate::apis::urlencode(identifier)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -537,7 +538,7 @@ pub async fn devices_identifier_identifier_get(
 pub async fn devices_identifier_identifier_token_post(
     configuration: &configuration::Configuration,
     identifier: &str,
-    device_token_request_model: Option<crate::models::DeviceTokenRequestModel>,
+    device_token_request_model: Option<models::DeviceTokenRequestModel>,
 ) -> Result<(), Error<DevicesIdentifierIdentifierTokenPostError>> {
     let local_var_configuration = configuration;
 
@@ -546,7 +547,7 @@ pub async fn devices_identifier_identifier_token_post(
     let local_var_uri_str = format!(
         "{}/devices/identifier/{identifier}/token",
         local_var_configuration.base_path,
-        identifier = crate::apis::urlencode(identifier.to_string())
+        identifier = crate::apis::urlencode(identifier)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -583,7 +584,7 @@ pub async fn devices_identifier_identifier_token_post(
 pub async fn devices_identifier_identifier_token_put(
     configuration: &configuration::Configuration,
     identifier: &str,
-    device_token_request_model: Option<crate::models::DeviceTokenRequestModel>,
+    device_token_request_model: Option<models::DeviceTokenRequestModel>,
 ) -> Result<(), Error<DevicesIdentifierIdentifierTokenPutError>> {
     let local_var_configuration = configuration;
 
@@ -592,7 +593,7 @@ pub async fn devices_identifier_identifier_token_put(
     let local_var_uri_str = format!(
         "{}/devices/identifier/{identifier}/token",
         local_var_configuration.base_path,
-        identifier = crate::apis::urlencode(identifier.to_string())
+        identifier = crate::apis::urlencode(identifier)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::PUT, local_var_uri_str.as_str());
@@ -629,8 +630,8 @@ pub async fn devices_identifier_identifier_token_put(
 pub async fn devices_identifier_keys_post(
     configuration: &configuration::Configuration,
     identifier: &str,
-    device_keys_request_model: Option<crate::models::DeviceKeysRequestModel>,
-) -> Result<crate::models::DeviceResponseModel, Error<DevicesIdentifierKeysPostError>> {
+    device_keys_request_model: Option<models::DeviceKeysRequestModel>,
+) -> Result<models::DeviceResponseModel, Error<DevicesIdentifierKeysPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -638,7 +639,7 @@ pub async fn devices_identifier_keys_post(
     let local_var_uri_str = format!(
         "{}/devices/{identifier}/keys",
         local_var_configuration.base_path,
-        identifier = crate::apis::urlencode(identifier.to_string())
+        identifier = crate::apis::urlencode(identifier)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -675,8 +676,8 @@ pub async fn devices_identifier_keys_post(
 pub async fn devices_identifier_keys_put(
     configuration: &configuration::Configuration,
     identifier: &str,
-    device_keys_request_model: Option<crate::models::DeviceKeysRequestModel>,
-) -> Result<crate::models::DeviceResponseModel, Error<DevicesIdentifierKeysPutError>> {
+    device_keys_request_model: Option<models::DeviceKeysRequestModel>,
+) -> Result<models::DeviceResponseModel, Error<DevicesIdentifierKeysPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -684,7 +685,7 @@ pub async fn devices_identifier_keys_put(
     let local_var_uri_str = format!(
         "{}/devices/{identifier}/keys",
         local_var_configuration.base_path,
-        identifier = crate::apis::urlencode(identifier.to_string())
+        identifier = crate::apis::urlencode(identifier)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::PUT, local_var_uri_str.as_str());
@@ -721,11 +722,8 @@ pub async fn devices_identifier_keys_put(
 pub async fn devices_identifier_retrieve_keys_post(
     configuration: &configuration::Configuration,
     identifier: &str,
-    secret_verification_request_model: Option<crate::models::SecretVerificationRequestModel>,
-) -> Result<
-    crate::models::ProtectedDeviceResponseModel,
-    Error<DevicesIdentifierRetrieveKeysPostError>,
-> {
+    secret_verification_request_model: Option<models::SecretVerificationRequestModel>,
+) -> Result<models::ProtectedDeviceResponseModel, Error<DevicesIdentifierRetrieveKeysPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -733,7 +731,7 @@ pub async fn devices_identifier_retrieve_keys_post(
     let local_var_uri_str = format!(
         "{}/devices/{identifier}/retrieve-keys",
         local_var_configuration.base_path,
-        identifier = crate::apis::urlencode(identifier.to_string())
+        identifier = crate::apis::urlencode(identifier)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -779,8 +777,8 @@ pub async fn devices_knowndevice_email_identifier_get(
     let local_var_uri_str = format!(
         "{}/devices/knowndevice/{email}/{identifier}",
         local_var_configuration.base_path,
-        email = crate::apis::urlencode(email.to_string()),
-        identifier = crate::apis::urlencode(identifier.to_string())
+        email = crate::apis::urlencode(email),
+        identifier = crate::apis::urlencode(identifier)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
@@ -815,8 +813,8 @@ pub async fn devices_knowndevice_email_identifier_get(
 
 pub async fn devices_knowndevice_get(
     configuration: &configuration::Configuration,
-    x_request_email: Option<&str>,
-    x_device_identifier: Option<&str>,
+    x_request_email: &str,
+    x_device_identifier: &str,
 ) -> Result<bool, Error<DevicesKnowndeviceGetError>> {
     let local_var_configuration = configuration;
 
@@ -830,14 +828,10 @@ pub async fn devices_knowndevice_get(
         local_var_req_builder =
             local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
     }
-    if let Some(local_var_param_value) = x_request_email {
-        local_var_req_builder =
-            local_var_req_builder.header("x-Request-Email", local_var_param_value.to_string());
-    }
-    if let Some(local_var_param_value) = x_device_identifier {
-        local_var_req_builder =
-            local_var_req_builder.header("x-Device-Identifier", local_var_param_value.to_string());
-    }
+    local_var_req_builder =
+        local_var_req_builder.header("x-Request-Email", x_request_email.to_string());
+    local_var_req_builder =
+        local_var_req_builder.header("x-Device-Identifier", x_device_identifier.to_string());
     if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
         local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
     };
@@ -864,8 +858,8 @@ pub async fn devices_knowndevice_get(
 
 pub async fn devices_post(
     configuration: &configuration::Configuration,
-    device_request_model: Option<crate::models::DeviceRequestModel>,
-) -> Result<crate::models::DeviceResponseModel, Error<DevicesPostError>> {
+    device_request_model: Option<models::DeviceRequestModel>,
+) -> Result<models::DeviceResponseModel, Error<DevicesPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -905,7 +899,7 @@ pub async fn devices_post(
 
 pub async fn devices_update_trust_post(
     configuration: &configuration::Configuration,
-    update_devices_trust_request_model: Option<crate::models::UpdateDevicesTrustRequestModel>,
+    update_devices_trust_request_model: Option<models::UpdateDevicesTrustRequestModel>,
 ) -> Result<(), Error<DevicesUpdateTrustPostError>> {
     let local_var_configuration = configuration;
 

@@ -12,7 +12,6 @@ x64/
 x86/
 build/
 bld/
-[Bb]in/
 [Oo]bj/
 *.wasm
 
@@ -50,8 +49,7 @@ languages/swift/BitwardenFFI.xcframework
 languages/swift/tmp
 languages/swift/.build
 languages/swift/.swiftpm
-languages/kotlin/sdk/src/main/java/com/bitwarden/sdk/bitwarden_uniffi.kt
-languages/kotlin/sdk/src/main/java/com/bitwarden/core/bitwarden.kt
+languages/kotlin/sdk/src/main/java/com/bitwarden/**/*.kt
 
 # Schemas
 crates/bitwarden-napi/src-ts/bitwarden_client/schemas.ts

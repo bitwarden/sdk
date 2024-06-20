@@ -1,22 +1,17 @@
 use std::collections::HashMap;
 
-use rsa::RsaPrivateKey;
-use uuid::Uuid;
+use bitwarden_crypto::{AsymmetricCryptoKey, KeyContainer, SymmetricCryptoKey};
 #[cfg(feature = "internal")]
-use {
-    crate::{
-        client::UserLoginMethod,
-        crypto::{AsymmEncString, EncString, KeyDecryptable},
-        error::{CryptoError, Result},
-    },
-    rsa::pkcs8::DecodePrivateKey,
-};
+use bitwarden_crypto::{AsymmetricEncString, EncString, MasterKey};
+use uuid::Uuid;
 
-use crate::crypto::SymmetricCryptoKey;
+#[cfg(feature = "internal")]
+use crate::error::Result;
 
+#[derive(Clone)]
 pub struct EncryptionSettings {
     user_key: SymmetricCryptoKey,
-    pub(crate) private_key: Option<RsaPrivateKey>,
+    pub(crate) private_key: Option<AsymmetricCryptoKey>,
     org_keys: HashMap<Uuid, SymmetricCryptoKey>,
 }
 
@@ -27,41 +22,32 @@ impl std::fmt::Debug for EncryptionSettings {
 }
 
 impl EncryptionSettings {
-    /// Initialize the encryption settings with the user password and their encrypted keys
+    /// Initialize the encryption settings with the master key and the encrypted user keys
     #[cfg(feature = "internal")]
     pub(crate) fn new(
-        login_method: &UserLoginMethod,
-        password: &str,
+        master_key: MasterKey,
         user_key: EncString,
         private_key: EncString,
     ) -> Result<Self> {
-        use crate::crypto::MasterKey;
-
-        match login_method {
-            UserLoginMethod::Username { email, kdf, .. }
-            | UserLoginMethod::ApiKey { email, kdf, .. } => {
-                // Derive master key from password
-                let master_key = MasterKey::derive(password.as_bytes(), email.as_bytes(), kdf)?;
-
-                // Decrypt the user key
-                let user_key = master_key.decrypt_user_key(user_key)?;
-
-                Self::new_decrypted_key(user_key, private_key)
-            }
-        }
+        // Decrypt the user key
+        let user_key = master_key.decrypt_user_key(user_key)?;
+        Self::new_decrypted_key(user_key, private_key)
     }
 
-    /// Initialize the encryption settings with the decrypted user key and the encrypted user private key
-    /// This should only be used when unlocking the vault via biometrics or when the vault is set to lock: "never"
-    /// Otherwise handling the decrypted user key is dangerous and discouraged
+    /// Initialize the encryption settings with the decrypted user key and the encrypted user
+    /// private key This should only be used when unlocking the vault via biometrics or when the
+    /// vault is set to lock: "never" Otherwise handling the decrypted user key is dangerous and
+    /// discouraged
     #[cfg(feature = "internal")]
     pub(crate) fn new_decrypted_key(
         user_key: SymmetricCryptoKey,
         private_key: EncString,
     ) -> Result<Self> {
+        use bitwarden_crypto::KeyDecryptable;
+
         let private_key = {
             let dec: Vec<u8> = private_key.decrypt_with_key(&user_key)?;
-            Some(rsa::RsaPrivateKey::from_pkcs8_der(&dec).map_err(|_| CryptoError::InvalidKey)?)
+            Some(AsymmetricCryptoKey::from_der(&dec)?)
         };
 
         Ok(EncryptionSettings {
@@ -84,11 +70,12 @@ impl EncryptionSettings {
     #[cfg(feature = "internal")]
     pub(crate) fn set_org_keys(
         &mut self,
-        org_enc_keys: Vec<(Uuid, AsymmEncString)>,
-    ) -> Result<&mut Self> {
-        use crate::error::Error;
+        org_enc_keys: Vec<(Uuid, AsymmetricEncString)>,
+    ) -> Result<&Self> {
+        use bitwarden_core::VaultLocked;
+        use bitwarden_crypto::KeyDecryptable;
 
-        let private_key = self.private_key.as_ref().ok_or(Error::VaultLocked)?;
+        let private_key = self.private_key.as_ref().ok_or(VaultLocked)?;
 
         // Make sure we only keep the keys given in the arguments and not any of the previous
         // ones, which might be from organizations that the user is no longer a part of anymore
@@ -96,9 +83,9 @@ impl EncryptionSettings {
 
         // Decrypt the org keys with the private key
         for (org_id, org_enc_key) in org_enc_keys {
-            let dec = org_enc_key.decrypt(private_key)?;
+            let mut dec: Vec<u8> = org_enc_key.decrypt_with_key(private_key)?;
 
-            let org_key = SymmetricCryptoKey::try_from(dec.as_slice())?;
+            let org_key = SymmetricCryptoKey::try_from(dec.as_mut_slice())?;
 
             self.org_keys.insert(org_id, org_key);
         }
@@ -107,7 +94,8 @@ impl EncryptionSettings {
     }
 
     pub(crate) fn get_key(&self, org_id: &Option<Uuid>) -> Option<&SymmetricCryptoKey> {
-        // If we don't have a private key set (to decode multiple org keys), we just use the main user key
+        // If we don't have a private key set (to decode multiple org keys), we just use the main
+        // user key
         if self.private_key.is_none() {
             return Some(&self.user_key);
         }
@@ -116,5 +104,11 @@ impl EncryptionSettings {
             Some(org_id) => self.org_keys.get(org_id),
             None => Some(&self.user_key),
         }
+    }
+}
+
+impl KeyContainer for EncryptionSettings {
+    fn get_key(&self, org_id: &Option<Uuid>) -> Option<&SymmetricCryptoKey> {
+        EncryptionSettings::get_key(self, org_id)
     }
 }

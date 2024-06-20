@@ -1,24 +1,23 @@
 # Bitwarden Secrets Manager SDK
 
-Ruby bindings for interacting with the [Bitwarden Secrets Manager]. This is a beta release and might be missing some functionality.
+Ruby bindings for interacting with the [Bitwarden Secrets Manager]. This is a beta release and might
+be missing some functionality.
 
 ## Installation
 
 Requirements: Ruby >= 3.0
 
-Install gem: `gem install bitwarden-sdk`
+Install gem: `gem install bitwarden-sdk-secrets`
 
-Import it: require 'bitwarden-sdk'
-
+Import it: require 'bitwarden-sdk-secrets'
 
 ## Usage
 
-To interact with client first you need to obtain access token from Bitwarden.
-Client will be initialized with default client settings if they are not provided
-via env variables.
+To interact with client first you need to obtain access token from Bitwarden. Client will be
+initialized with default client settings if they are not provided via env variables.
 
 ```ruby
-require 'bitwarden-sdk'
+require 'bitwarden-sdk-secrets'
 
 # then you can initialize BitwardenSettings:
 bitwarden_settings = BitwardenSDK::BitwardenSettings.new(
@@ -34,6 +33,7 @@ puts response
 ```
 
 After successful authorization you can interact with client to manage your projects and secrets.
+
 ```ruby
 
 # CREATE project
@@ -61,6 +61,7 @@ puts response
 ```
 
 Similarly, you interact with secrets:
+
 ```ruby
 # CREATE secret
 key = 'AWS-SES'
@@ -92,4 +93,40 @@ puts response
 response = bw_client.secrets_client.delete_secret([secret_id])
 puts response
 ```
+
+## Development
+
+Prerequisites:
+
+- Ruby >= 3.0 installed
+- Generate schemas `npm run schemas`
+
+```bash
+# Navigate to the ruby language folder
+cd languages/ruby
+
+# Make the binary folder if it doesn't exist already
+mkdir -p ./bitwarden_sdk_secrets/lib/macos-arm64
+
+# Build and copy the bitwarden-c library
+cargo build --package bitwarden-c
+cp ../../target/debug/libbitwarden_c.dylib ./bitwarden_sdk_secrets/lib/macos-arm64/libbitwarden_c.dylib
+
+# Install ruby dependencies
+cd ./bitwarden_sdk_secrets
+bundle install
+
+# Install the gem
+bundle exec rake install
+
+## Run example tests
+cd ..
+export ACCESS_TOKEN=""
+export ORGANIZATION_ID=""
+
+export API_URL=http://localhost:4000
+export IDENTITY_URL=http://localhost:33656
+ruby examples/example.rb
+```
+
 [Bitwarden Secrets Manager]: https://bitwarden.com/products/secrets-manager/

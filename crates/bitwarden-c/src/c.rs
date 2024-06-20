@@ -8,10 +8,11 @@ use crate::{box_ptr, ffi_ref};
 #[tokio::main]
 pub async extern "C" fn run_command(
     c_str_ptr: *const c_char,
-    client_ptr: *mut Client,
+    client_ptr: *const Client,
 ) -> *mut c_char {
     let client = unsafe { ffi_ref!(client_ptr) };
-    let input_str = str::from_utf8(unsafe { CStr::from_ptr(c_str_ptr).to_bytes() }).unwrap();
+    let input_str = str::from_utf8(unsafe { CStr::from_ptr(c_str_ptr) }.to_bytes())
+        .expect("Input should be a valid string");
 
     let result = client.run_command(input_str).await;
     match std::ffi::CString::new(result) {
@@ -28,8 +29,8 @@ pub extern "C" fn init(c_str_ptr: *const c_char) -> *mut Client {
     if c_str_ptr.is_null() {
         box_ptr!(Client::new(None))
     } else {
-        let input_string = str::from_utf8(unsafe { CStr::from_ptr(c_str_ptr).to_bytes() })
-            .unwrap()
+        let input_string = str::from_utf8(unsafe { CStr::from_ptr(c_str_ptr) }.to_bytes())
+            .expect("Input should be a valid string")
             .to_owned();
         box_ptr!(Client::new(Some(input_string)))
     }

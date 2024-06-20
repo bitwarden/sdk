@@ -1,11 +1,23 @@
 [package]
 name = "bitwarden-cli"
-version = "0.1.0"
-edition = "2021"
-rust-version = "1.57"
+description = """
+Internal crate for the bws crate. Do not use.
+"""
+
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+keywords.workspace = true
 
 [dependencies]
-clap = { version = "4.4.13", features = ["derive"] }
-color-eyre = "0.6"
-inquire = "0.6.2"
-supports-color = "2.1.0"
+clap = { version = "4.5.4", features = ["derive"] }
+color-eyre = "0.6.3"
+inquire = "0.7.0"
+supports-color = "3.0.0"
+
+[lints]
+workspace = true

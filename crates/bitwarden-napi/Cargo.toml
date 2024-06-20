@@ -1,30 +1,33 @@
 [package]
 name = "bitwarden-napi"
 version = "0.3.1"
-authors = ["Bitwarden Inc"]
-license-file = "LICENSE"
-repository = "https://github.com/bitwarden/sdk"
-homepage = "https://bitwarden.com"
 description = """
 N-API bindings for the Bitwarden Secrets Manager SDK
 """
-keywords = ["bitwarden", "secrets manager"]
-edition = "2021"
-rust-version = "1.57"
+keywords = ["bitwarden", "secrets-manager"]
+publish = false
+
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-env_logger = "0.10.1"
+bitwarden-json = { path = "../bitwarden-json", version = "0.3.0", features = [
+    "secrets",
+] }
+env_logger = "0.11.1"
 log = "0.4.20"
 napi = { version = "2", features = ["async"] }
 napi-derive = "2"
 
-bitwarden-json = { path = "../bitwarden-json", version = "0.3.0", features = ["secrets"] }
-
 [build-dependencies]
 napi-build = "2.1.0"
 
-[profile.release]
-lto = true
+[lints]
+workspace = true

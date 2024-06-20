@@ -1,4 +1,4 @@
-use bitwarden::client::client_settings::ClientSettings;
+use bitwarden::ClientSettings;
 
 #[cfg(feature = "secrets")]
 use crate::command::{ProjectsCommand, SecretsCommand};
@@ -15,7 +15,7 @@ impl Client {
         Self(bitwarden::Client::new(settings))
     }
 
-    pub async fn run_command(&mut self, input_str: &str) -> String {
+    pub async fn run_command(&self, input_str: &str) -> String {
         const SUBCOMMANDS_TO_CLEAN: &[&str] = &["Secrets"];
         let mut cmd_value: serde_json::Value = match serde_json::from_str(input_str) {
             Ok(cmd) => cmd,
@@ -44,41 +44,46 @@ impl Client {
             }
         };
 
+        let client = &self.0;
+
         match cmd {
             #[cfg(feature = "internal")]
-            Command::PasswordLogin(req) => self.0.auth().login_password(&req).await.into_string(),
+            Command::PasswordLogin(req) => client.auth().login_password(&req).await.into_string(),
             #[cfg(feature = "secrets")]
             Command::AccessTokenLogin(req) => {
-                self.0.auth().login_access_token(&req).await.into_string()
+                client.auth().login_access_token(&req).await.into_string()
             }
             #[cfg(feature = "internal")]
-            Command::GetUserApiKey(req) => self.0.get_user_api_key(&req).await.into_string(),
+            Command::GetUserApiKey(req) => {
+                client.platform().get_user_api_key(req).await.into_string()
+            }
             #[cfg(feature = "internal")]
-            Command::ApiKeyLogin(req) => self.0.auth().login_api_key(&req).await.into_string(),
+            Command::ApiKeyLogin(req) => client.auth().login_api_key(&req).await.into_string(),
             #[cfg(feature = "internal")]
-            Command::Sync(req) => self.0.sync(&req).await.into_string(),
+            Command::Sync(req) => client.vault().sync(&req).await.into_string(),
             #[cfg(feature = "internal")]
-            Command::Fingerprint(req) => self.0.platform().fingerprint(&req).into_string(),
+            Command::Fingerprint(req) => client.platform().fingerprint(&req).into_string(),
 
             #[cfg(feature = "secrets")]
             Command::Secrets(cmd) => match cmd {
-                SecretsCommand::Get(req) => self.0.secrets().get(&req).await.into_string(),
+                SecretsCommand::Get(req) => client.secrets().get(&req).await.into_string(),
                 SecretsCommand::GetByIds(req) => {
-                    self.0.secrets().get_by_ids(req).await.into_string()
+                    client.secrets().get_by_ids(req).await.into_string()
                 }
-                SecretsCommand::Create(req) => self.0.secrets().create(&req).await.into_string(),
-                SecretsCommand::List(req) => self.0.secrets().list(&req).await.into_string(),
-                SecretsCommand::Update(req) => self.0.secrets().update(&req).await.into_string(),
-                SecretsCommand::Delete(req) => self.0.secrets().delete(req).await.into_string(),
+                SecretsCommand::Create(req) => client.secrets().create(&req).await.into_string(),
+                SecretsCommand::List(req) => client.secrets().list(&req).await.into_string(),
+                SecretsCommand::Update(req) => client.secrets().update(&req).await.into_string(),
+                SecretsCommand::Delete(req) => client.secrets().delete(req).await.into_string(),
+                SecretsCommand::Sync(req) => client.secrets().sync(&req).await.into_string(),
             },
 
             #[cfg(feature = "secrets")]
             Command::Projects(cmd) => match cmd {
-                ProjectsCommand::Get(req) => self.0.projects().get(&req).await.into_string(),
-                ProjectsCommand::Create(req) => self.0.projects().create(&req).await.into_string(),
-                ProjectsCommand::List(req) => self.0.projects().list(&req).await.into_string(),
-                ProjectsCommand::Update(req) => self.0.projects().update(&req).await.into_string(),
-                ProjectsCommand::Delete(req) => self.0.projects().delete(req).await.into_string(),
+                ProjectsCommand::Get(req) => client.projects().get(&req).await.into_string(),
+                ProjectsCommand::Create(req) => client.projects().create(&req).await.into_string(),
+                ProjectsCommand::List(req) => client.projects().list(&req).await.into_string(),
+                ProjectsCommand::Update(req) => client.projects().update(&req).await.into_string(),
+                ProjectsCommand::Delete(req) => client.projects().delete(req).await.into_string(),
             },
         }
     }

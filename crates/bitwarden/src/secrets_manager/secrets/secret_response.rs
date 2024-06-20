@@ -1,16 +1,14 @@
 use bitwarden_api_api::models::{
     BaseSecretResponseModel, BaseSecretResponseModelListResponseModel, SecretResponseModel,
 };
+use bitwarden_core::require;
+use bitwarden_crypto::{CryptoError, EncString, KeyDecryptable};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{
-    client::encryption_settings::EncryptionSettings,
-    crypto::{Decryptable, EncString},
-    error::{Error, Result},
-};
+use crate::{client::encryption_settings::EncryptionSettings, error::Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -50,22 +48,17 @@ impl SecretResponse {
         enc: &EncryptionSettings,
     ) -> Result<SecretResponse> {
         let org_id = response.organization_id;
+        let enc_key = enc.get_key(&org_id).ok_or(CryptoError::MissingKey)?;
 
-        let key = response
-            .key
-            .ok_or(Error::MissingFields)?
+        let key = require!(response.key)
             .parse::<EncString>()?
-            .decrypt(enc, &org_id)?;
-        let value = response
-            .value
-            .ok_or(Error::MissingFields)?
+            .decrypt_with_key(enc_key)?;
+        let value = require!(response.value)
             .parse::<EncString>()?
-            .decrypt(enc, &org_id)?;
-        let note = response
-            .note
-            .ok_or(Error::MissingFields)?
+            .decrypt_with_key(enc_key)?;
+        let note = require!(response.note)
             .parse::<EncString>()?
-            .decrypt(enc, &org_id)?;
+            .decrypt_with_key(enc_key)?;
 
         let project = response
             .projects
@@ -73,21 +66,15 @@ impl SecretResponse {
             .and_then(|p| p.id);
 
         Ok(SecretResponse {
-            id: response.id.ok_or(Error::MissingFields)?,
-            organization_id: org_id.ok_or(Error::MissingFields)?,
+            id: require!(response.id),
+            organization_id: require!(org_id),
             project_id: project,
             key,
             value,
             note,
 
-            creation_date: response
-                .creation_date
-                .ok_or(Error::MissingFields)?
-                .parse()?,
-            revision_date: response
-                .revision_date
-                .ok_or(Error::MissingFields)?
-                .parse()?,
+            creation_date: require!(response.creation_date).parse()?,
+            revision_date: require!(response.revision_date).parse()?,
         })
     }
 }

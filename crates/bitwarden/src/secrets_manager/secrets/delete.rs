@@ -1,14 +1,12 @@
 use bitwarden_api_api::models::{
     BulkDeleteResponseModel, BulkDeleteResponseModelListResponseModel,
 };
+use bitwarden_core::require;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{
-    client::Client,
-    error::{Error, Result},
-};
+use crate::{client::Client, error::Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -18,7 +16,7 @@ pub struct SecretsDeleteRequest {
 }
 
 pub(crate) async fn delete_secrets(
-    client: &mut Client,
+    client: &Client,
     input: SecretsDeleteRequest,
 ) -> Result<SecretsDeleteResponse> {
     let config = client.get_api_configurations().await;
@@ -62,7 +60,7 @@ impl SecretDeleteResponse {
         response: BulkDeleteResponseModel,
     ) -> Result<SecretDeleteResponse> {
         Ok(SecretDeleteResponse {
-            id: response.id.ok_or(Error::MissingFields)?,
+            id: require!(response.id),
             error: response.error,
         })
     }

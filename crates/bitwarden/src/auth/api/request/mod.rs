@@ -15,6 +15,11 @@ pub(crate) use password_token_request::*;
 #[cfg(feature = "internal")]
 pub(crate) use renew_token_request::*;
 
+#[cfg(feature = "internal")]
+mod auth_request_token_request;
+#[cfg(feature = "internal")]
+pub(crate) use auth_request_token_request::*;
+
 use crate::{
     auth::api::response::{parse_identity_response, IdentityTokenResponse},
     client::ApiConfigurations,
@@ -49,7 +54,7 @@ async fn send_identity_connect_request(
     }
 
     let response = request
-        .body(serde_qs::to_string(&body).unwrap())
+        .body(serde_qs::to_string(&body).expect("Serialize should be infallible"))
         .send()
         .await?;
 

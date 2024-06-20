@@ -27,7 +27,7 @@ class BitwardenLib
                 $lib_file = __DIR__.'/../../../target/debug/bitwarden_c.dll';
             }
         } elseif (PHP_OS === 'Linux') {
-            $lib_file = '/lib/ubuntu-x64/libbitwarden_c.so';
+            $lib_file = '/lib/linux-x64/libbitwarden_c.so';
             if (file_exists($lib_file) == false) {
                 $lib_file = __DIR__.'/../../../target/debug/libbitwarden_c.so';
             }

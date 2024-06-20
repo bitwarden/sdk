@@ -5,16 +5,16 @@ use chrono::{DateTime, Utc};
 
 use crate::{error::Result, Client};
 
+pub mod attachments;
 pub mod ciphers;
 pub mod collections;
 pub mod folders;
 pub mod password_history;
-pub mod sends;
 
 #[derive(uniffi::Object)]
 pub struct ClientVault(pub(crate) Arc<Client>);
 
-#[uniffi::export(async_runtime = "tokio")]
+#[uniffi::export]
 impl ClientVault {
     /// Folder operations
     pub fn folders(self: Arc<Self>) -> Arc<folders::ClientFolders> {
@@ -36,9 +36,9 @@ impl ClientVault {
         Arc::new(password_history::ClientPasswordHistory(self.0.clone()))
     }
 
-    /// Sends operations
-    pub fn sends(self: Arc<Self>) -> Arc<sends::ClientSends> {
-        Arc::new(sends::ClientSends(self.0.clone()))
+    /// Attachment file operations
+    pub fn attachments(self: Arc<Self>) -> Arc<attachments::ClientAttachments> {
+        Arc::new(attachments::ClientAttachments(self.0.clone()))
     }
 
     /// Generate a TOTP code from a provided key.
@@ -47,11 +47,7 @@ impl ClientVault {
     /// - A base32 encoded string
     /// - OTP Auth URI
     /// - Steam URI
-    pub async fn generate_totp(
-        &self,
-        key: String,
-        time: Option<DateTime<Utc>>,
-    ) -> Result<TotpResponse> {
-        Ok(self.0 .0.read().await.vault().generate_totp(key, time)?)
+    pub fn generate_totp(&self, key: String, time: Option<DateTime<Utc>>) -> Result<TotpResponse> {
+        Ok(self.0 .0.vault().generate_totp(key, time)?)
     }
 }

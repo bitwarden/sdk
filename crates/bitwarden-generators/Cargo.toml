@@ -1,0 +1,38 @@
+[package]
+name = "bitwarden-generators"
+description = """
+Internal crate for the bitwarden crate. Do not use.
+"""
+
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+keywords.workspace = true
+
+[features]
+uniffi = ["dep:uniffi"] # Uniffi bindings
+
+[dependencies]
+bitwarden-crypto = { workspace = true }
+rand = ">=0.8.5, <0.9"
+reqwest = { version = ">=0.12.5, <0.13", features = [
+    "http2",
+    "json",
+], default-features = false }
+schemars = { version = ">=0.8.9, <0.9", features = ["uuid1", "chrono"] }
+serde = { version = ">=1.0, <2.0", features = ["derive"] }
+serde_json = ">=1.0.96, <2.0"
+thiserror = ">=1.0.40, <2.0"
+uniffi = { version = "=0.27.2", optional = true }
+
+[dev-dependencies]
+rand_chacha = "0.3.1"
+tokio = { version = "1.36.0", features = ["rt", "macros"] }
+wiremock = "0.6.0"
+
+[lints]
+workspace = true

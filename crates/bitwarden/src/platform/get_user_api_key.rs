@@ -1,7 +1,11 @@
+use std::sync::Arc;
+
 use bitwarden_api_api::{
     apis::accounts_api::accounts_api_key_post,
     models::{ApiKeyResponseModel, SecretVerificationRequestModel},
 };
+use bitwarden_core::require;
+use bitwarden_crypto::{HashPurpose, MasterKey};
 use log::{debug, info};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -9,20 +13,19 @@ use serde::{Deserialize, Serialize};
 use super::SecretVerificationRequest;
 use crate::{
     client::{LoginMethod, UserLoginMethod},
-    crypto::{HashPurpose, MasterKey},
     error::{Error, Result},
     Client,
 };
 
 pub(crate) async fn get_user_api_key(
-    client: &mut Client,
+    client: &Client,
     input: &SecretVerificationRequest,
 ) -> Result<UserApiKeyResponse> {
     info!("Getting Api Key");
     debug!("{:?}", input);
 
     let auth_settings = get_login_method(client)?;
-    let request = get_secret_verification_request(auth_settings, input)?;
+    let request = get_secret_verification_request(&auth_settings, input)?;
 
     let config = client.get_api_configurations().await;
 
@@ -30,12 +33,9 @@ pub(crate) async fn get_user_api_key(
     UserApiKeyResponse::process_response(response)
 }
 
-fn get_login_method(client: &Client) -> Result<&LoginMethod> {
+fn get_login_method(client: &Client) -> Result<Arc<LoginMethod>> {
     if client.is_authed() {
-        client
-            .get_login_method()
-            .as_ref()
-            .ok_or(Error::NotAuthenticated)
+        client.get_login_method().ok_or(Error::NotAuthenticated)
     } else {
         Err(Error::NotAuthenticated)
     }
@@ -75,9 +75,7 @@ pub struct UserApiKeyResponse {
 
 impl UserApiKeyResponse {
     pub(crate) fn process_response(response: ApiKeyResponseModel) -> Result<UserApiKeyResponse> {
-        match response.api_key {
-            Some(api_key) => Ok(UserApiKeyResponse { api_key }),
-            None => Err(Error::MissingFields),
-        }
+        let api_key = require!(response.api_key);
+        Ok(UserApiKeyResponse { api_key })
     }
 }

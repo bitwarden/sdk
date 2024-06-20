@@ -9,9 +9,10 @@
  */
 
 use reqwest;
+use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::apis::ResponseContent;
+use crate::{apis::ResponseContent, models};
 
 /// struct for typed errors of method [`accounts_api_key_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -34,10 +35,10 @@ pub enum AccountsAvatarPutError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`accounts_cancel_premium_post`]
+/// struct for typed errors of method [`accounts_cancel_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum AccountsCancelPremiumPostError {
+pub enum AccountsCancelPostError {
     UnknownValue(serde_json::Value),
 }
 
@@ -87,13 +88,6 @@ pub enum AccountsEmailPostError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum AccountsEmailTokenPostError {
-    UnknownValue(serde_json::Value),
-}
-
-/// struct for typed errors of method [`accounts_iap_check_post`]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum AccountsIapCheckPostError {
     UnknownValue(serde_json::Value),
 }
 
@@ -330,8 +324,8 @@ pub enum AccountsVerifyPasswordPostError {
 
 pub async fn accounts_api_key_post(
     configuration: &configuration::Configuration,
-    secret_verification_request_model: Option<crate::models::SecretVerificationRequestModel>,
-) -> Result<crate::models::ApiKeyResponseModel, Error<AccountsApiKeyPostError>> {
+    secret_verification_request_model: Option<models::SecretVerificationRequestModel>,
+) -> Result<models::ApiKeyResponseModel, Error<AccountsApiKeyPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -371,8 +365,8 @@ pub async fn accounts_api_key_post(
 
 pub async fn accounts_avatar_post(
     configuration: &configuration::Configuration,
-    update_avatar_request_model: Option<crate::models::UpdateAvatarRequestModel>,
-) -> Result<crate::models::ProfileResponseModel, Error<AccountsAvatarPostError>> {
+    update_avatar_request_model: Option<models::UpdateAvatarRequestModel>,
+) -> Result<models::ProfileResponseModel, Error<AccountsAvatarPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -412,8 +406,8 @@ pub async fn accounts_avatar_post(
 
 pub async fn accounts_avatar_put(
     configuration: &configuration::Configuration,
-    update_avatar_request_model: Option<crate::models::UpdateAvatarRequestModel>,
-) -> Result<crate::models::ProfileResponseModel, Error<AccountsAvatarPutError>> {
+    update_avatar_request_model: Option<models::UpdateAvatarRequestModel>,
+) -> Result<models::ProfileResponseModel, Error<AccountsAvatarPutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -451,17 +445,15 @@ pub async fn accounts_avatar_put(
     }
 }
 
-pub async fn accounts_cancel_premium_post(
+pub async fn accounts_cancel_post(
     configuration: &configuration::Configuration,
-) -> Result<(), Error<AccountsCancelPremiumPostError>> {
+    subscription_cancellation_request_model: Option<models::SubscriptionCancellationRequestModel>,
+) -> Result<(), Error<AccountsCancelPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
 
-    let local_var_uri_str = format!(
-        "{}/accounts/cancel-premium",
-        local_var_configuration.base_path
-    );
+    let local_var_uri_str = format!("{}/accounts/cancel", local_var_configuration.base_path);
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
 
@@ -472,6 +464,7 @@ pub async fn accounts_cancel_premium_post(
     if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
         local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
     };
+    local_var_req_builder = local_var_req_builder.json(&subscription_cancellation_request_model);
 
     let local_var_req = local_var_req_builder.build()?;
     let local_var_resp = local_var_client.execute(local_var_req).await?;
@@ -482,7 +475,7 @@ pub async fn accounts_cancel_premium_post(
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
         Ok(())
     } else {
-        let local_var_entity: Option<AccountsCancelPremiumPostError> =
+        let local_var_entity: Option<AccountsCancelPostError> =
             serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,
@@ -537,7 +530,7 @@ pub async fn accounts_convert_to_key_connector_post(
 
 pub async fn accounts_delete(
     configuration: &configuration::Configuration,
-    secret_verification_request_model: Option<crate::models::SecretVerificationRequestModel>,
+    secret_verification_request_model: Option<models::SecretVerificationRequestModel>,
 ) -> Result<(), Error<AccountsDeleteError>> {
     let local_var_configuration = configuration;
 
@@ -578,7 +571,7 @@ pub async fn accounts_delete(
 
 pub async fn accounts_delete_post(
     configuration: &configuration::Configuration,
-    secret_verification_request_model: Option<crate::models::SecretVerificationRequestModel>,
+    secret_verification_request_model: Option<models::SecretVerificationRequestModel>,
 ) -> Result<(), Error<AccountsDeletePostError>> {
     let local_var_configuration = configuration;
 
@@ -619,7 +612,7 @@ pub async fn accounts_delete_post(
 
 pub async fn accounts_delete_recover_post(
     configuration: &configuration::Configuration,
-    delete_recover_request_model: Option<crate::models::DeleteRecoverRequestModel>,
+    delete_recover_request_model: Option<models::DeleteRecoverRequestModel>,
 ) -> Result<(), Error<AccountsDeleteRecoverPostError>> {
     let local_var_configuration = configuration;
 
@@ -663,7 +656,7 @@ pub async fn accounts_delete_recover_post(
 
 pub async fn accounts_delete_recover_token_post(
     configuration: &configuration::Configuration,
-    verify_delete_recover_request_model: Option<crate::models::VerifyDeleteRecoverRequestModel>,
+    verify_delete_recover_request_model: Option<models::VerifyDeleteRecoverRequestModel>,
 ) -> Result<(), Error<AccountsDeleteRecoverTokenPostError>> {
     let local_var_configuration = configuration;
 
@@ -707,7 +700,7 @@ pub async fn accounts_delete_recover_token_post(
 
 pub async fn accounts_email_post(
     configuration: &configuration::Configuration,
-    email_request_model: Option<crate::models::EmailRequestModel>,
+    email_request_model: Option<models::EmailRequestModel>,
 ) -> Result<(), Error<AccountsEmailPostError>> {
     let local_var_configuration = configuration;
 
@@ -748,7 +741,7 @@ pub async fn accounts_email_post(
 
 pub async fn accounts_email_token_post(
     configuration: &configuration::Configuration,
-    email_token_request_model: Option<crate::models::EmailTokenRequestModel>,
+    email_token_request_model: Option<models::EmailTokenRequestModel>,
 ) -> Result<(), Error<AccountsEmailTokenPostError>> {
     let local_var_configuration = configuration;
 
@@ -787,50 +780,9 @@ pub async fn accounts_email_token_post(
     }
 }
 
-pub async fn accounts_iap_check_post(
-    configuration: &configuration::Configuration,
-    iap_check_request_model: Option<crate::models::IapCheckRequestModel>,
-) -> Result<(), Error<AccountsIapCheckPostError>> {
-    let local_var_configuration = configuration;
-
-    let local_var_client = &local_var_configuration.client;
-
-    let local_var_uri_str = format!("{}/accounts/iap-check", local_var_configuration.base_path);
-    let mut local_var_req_builder =
-        local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
-
-    if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
-        local_var_req_builder =
-            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
-    }
-    if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
-        local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
-    };
-    local_var_req_builder = local_var_req_builder.json(&iap_check_request_model);
-
-    let local_var_req = local_var_req_builder.build()?;
-    let local_var_resp = local_var_client.execute(local_var_req).await?;
-
-    let local_var_status = local_var_resp.status();
-    let local_var_content = local_var_resp.text().await?;
-
-    if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
-        Ok(())
-    } else {
-        let local_var_entity: Option<AccountsIapCheckPostError> =
-            serde_json::from_str(&local_var_content).ok();
-        let local_var_error = ResponseContent {
-            status: local_var_status,
-            content: local_var_content,
-            entity: local_var_entity,
-        };
-        Err(Error::ResponseError(local_var_error))
-    }
-}
-
 pub async fn accounts_kdf_post(
     configuration: &configuration::Configuration,
-    kdf_request_model: Option<crate::models::KdfRequestModel>,
+    kdf_request_model: Option<models::KdfRequestModel>,
 ) -> Result<(), Error<AccountsKdfPostError>> {
     let local_var_configuration = configuration;
 
@@ -871,7 +823,7 @@ pub async fn accounts_kdf_post(
 
 pub async fn accounts_key_post(
     configuration: &configuration::Configuration,
-    update_key_request_model: Option<crate::models::UpdateKeyRequestModel>,
+    update_key_request_model: Option<models::UpdateKeyRequestModel>,
 ) -> Result<(), Error<AccountsKeyPostError>> {
     let local_var_configuration = configuration;
 
@@ -912,7 +864,7 @@ pub async fn accounts_key_post(
 
 pub async fn accounts_keys_get(
     configuration: &configuration::Configuration,
-) -> Result<crate::models::KeysResponseModel, Error<AccountsKeysGetError>> {
+) -> Result<models::KeysResponseModel, Error<AccountsKeysGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -951,8 +903,8 @@ pub async fn accounts_keys_get(
 
 pub async fn accounts_keys_post(
     configuration: &configuration::Configuration,
-    keys_request_model: Option<crate::models::KeysRequestModel>,
-) -> Result<crate::models::KeysResponseModel, Error<AccountsKeysPostError>> {
+    keys_request_model: Option<models::KeysRequestModel>,
+) -> Result<models::KeysResponseModel, Error<AccountsKeysPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1036,7 +988,7 @@ pub async fn accounts_license_post(
 pub async fn accounts_organizations_get(
     configuration: &configuration::Configuration,
 ) -> Result<
-    crate::models::ProfileOrganizationResponseModelListResponseModel,
+    models::ProfileOrganizationResponseModelListResponseModel,
     Error<AccountsOrganizationsGetError>,
 > {
     let local_var_configuration = configuration;
@@ -1080,7 +1032,7 @@ pub async fn accounts_organizations_get(
 
 pub async fn accounts_password_hint_post(
     configuration: &configuration::Configuration,
-    password_hint_request_model: Option<crate::models::PasswordHintRequestModel>,
+    password_hint_request_model: Option<models::PasswordHintRequestModel>,
 ) -> Result<(), Error<AccountsPasswordHintPostError>> {
     let local_var_configuration = configuration;
 
@@ -1124,7 +1076,7 @@ pub async fn accounts_password_hint_post(
 
 pub async fn accounts_password_post(
     configuration: &configuration::Configuration,
-    password_request_model: Option<crate::models::PasswordRequestModel>,
+    password_request_model: Option<models::PasswordRequestModel>,
 ) -> Result<(), Error<AccountsPasswordPostError>> {
     let local_var_configuration = configuration;
 
@@ -1165,7 +1117,7 @@ pub async fn accounts_password_post(
 
 pub async fn accounts_payment_post(
     configuration: &configuration::Configuration,
-    payment_request_model: Option<crate::models::PaymentRequestModel>,
+    payment_request_model: Option<models::PaymentRequestModel>,
 ) -> Result<(), Error<AccountsPaymentPostError>> {
     let local_var_configuration = configuration;
 
@@ -1206,8 +1158,8 @@ pub async fn accounts_payment_post(
 
 pub async fn accounts_prelogin_post(
     configuration: &configuration::Configuration,
-    prelogin_request_model: Option<crate::models::PreloginRequestModel>,
-) -> Result<crate::models::PreloginResponseModel, Error<AccountsPreloginPostError>> {
+    prelogin_request_model: Option<models::PreloginRequestModel>,
+) -> Result<models::PreloginResponseModel, Error<AccountsPreloginPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1247,13 +1199,13 @@ pub async fn accounts_prelogin_post(
 
 pub async fn accounts_premium_post(
     configuration: &configuration::Configuration,
-    payment_method_type: crate::models::PaymentMethodType,
+    payment_method_type: models::PaymentMethodType,
     payment_token: Option<&str>,
     additional_storage_gb: Option<i32>,
     country: Option<&str>,
     postal_code: Option<&str>,
     license: Option<std::path::PathBuf>,
-) -> Result<crate::models::PaymentResponseModel, Error<AccountsPremiumPostError>> {
+) -> Result<models::PaymentResponseModel, Error<AccountsPremiumPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1313,7 +1265,7 @@ pub async fn accounts_premium_post(
 
 pub async fn accounts_profile_get(
     configuration: &configuration::Configuration,
-) -> Result<crate::models::ProfileResponseModel, Error<AccountsProfileGetError>> {
+) -> Result<models::ProfileResponseModel, Error<AccountsProfileGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1352,8 +1304,8 @@ pub async fn accounts_profile_get(
 
 pub async fn accounts_profile_post(
     configuration: &configuration::Configuration,
-    update_profile_request_model: Option<crate::models::UpdateProfileRequestModel>,
-) -> Result<crate::models::ProfileResponseModel, Error<AccountsProfilePostError>> {
+    update_profile_request_model: Option<models::UpdateProfileRequestModel>,
+) -> Result<models::ProfileResponseModel, Error<AccountsProfilePostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1393,8 +1345,8 @@ pub async fn accounts_profile_post(
 
 pub async fn accounts_profile_put(
     configuration: &configuration::Configuration,
-    update_profile_request_model: Option<crate::models::UpdateProfileRequestModel>,
-) -> Result<crate::models::ProfileResponseModel, Error<AccountsProfilePutError>> {
+    update_profile_request_model: Option<models::UpdateProfileRequestModel>,
+) -> Result<models::ProfileResponseModel, Error<AccountsProfilePutError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1434,8 +1386,8 @@ pub async fn accounts_profile_put(
 
 pub async fn accounts_register_post(
     configuration: &configuration::Configuration,
-    register_request_model: Option<crate::models::RegisterRequestModel>,
-) -> Result<crate::models::RegisterResponseModel, Error<AccountsRegisterPostError>> {
+    register_request_model: Option<models::RegisterRequestModel>,
+) -> Result<models::RegisterResponseModel, Error<AccountsRegisterPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1598,8 +1550,8 @@ pub async fn accounts_revision_date_get(
 
 pub async fn accounts_rotate_api_key_post(
     configuration: &configuration::Configuration,
-    secret_verification_request_model: Option<crate::models::SecretVerificationRequestModel>,
-) -> Result<crate::models::ApiKeyResponseModel, Error<AccountsRotateApiKeyPostError>> {
+    secret_verification_request_model: Option<models::SecretVerificationRequestModel>,
+) -> Result<models::ApiKeyResponseModel, Error<AccountsRotateApiKeyPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1642,7 +1594,7 @@ pub async fn accounts_rotate_api_key_post(
 
 pub async fn accounts_security_stamp_post(
     configuration: &configuration::Configuration,
-    secret_verification_request_model: Option<crate::models::SecretVerificationRequestModel>,
+    secret_verification_request_model: Option<models::SecretVerificationRequestModel>,
 ) -> Result<(), Error<AccountsSecurityStampPostError>> {
     let local_var_configuration = configuration;
 
@@ -1686,7 +1638,7 @@ pub async fn accounts_security_stamp_post(
 
 pub async fn accounts_set_key_connector_key_post(
     configuration: &configuration::Configuration,
-    set_key_connector_key_request_model: Option<crate::models::SetKeyConnectorKeyRequestModel>,
+    set_key_connector_key_request_model: Option<models::SetKeyConnectorKeyRequestModel>,
 ) -> Result<(), Error<AccountsSetKeyConnectorKeyPostError>> {
     let local_var_configuration = configuration;
 
@@ -1730,7 +1682,7 @@ pub async fn accounts_set_key_connector_key_post(
 
 pub async fn accounts_set_password_post(
     configuration: &configuration::Configuration,
-    set_password_request_model: Option<crate::models::SetPasswordRequestModel>,
+    set_password_request_model: Option<models::SetPasswordRequestModel>,
 ) -> Result<(), Error<AccountsSetPasswordPostError>> {
     let local_var_configuration = configuration;
 
@@ -1783,7 +1735,7 @@ pub async fn accounts_sso_organization_id_delete(
     let local_var_uri_str = format!(
         "{}/accounts/sso/{organizationId}",
         local_var_configuration.base_path,
-        organizationId = crate::apis::urlencode(organization_id.to_string())
+        organizationId = crate::apis::urlencode(organization_id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::DELETE, local_var_uri_str.as_str());
@@ -1860,8 +1812,8 @@ pub async fn accounts_sso_user_identifier_get(
 
 pub async fn accounts_storage_post(
     configuration: &configuration::Configuration,
-    storage_request_model: Option<crate::models::StorageRequestModel>,
-) -> Result<crate::models::PaymentResponseModel, Error<AccountsStoragePostError>> {
+    storage_request_model: Option<models::StorageRequestModel>,
+) -> Result<models::PaymentResponseModel, Error<AccountsStoragePostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1901,7 +1853,7 @@ pub async fn accounts_storage_post(
 
 pub async fn accounts_subscription_get(
     configuration: &configuration::Configuration,
-) -> Result<crate::models::SubscriptionResponseModel, Error<AccountsSubscriptionGetError>> {
+) -> Result<models::SubscriptionResponseModel, Error<AccountsSubscriptionGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1943,7 +1895,7 @@ pub async fn accounts_subscription_get(
 
 pub async fn accounts_tax_get(
     configuration: &configuration::Configuration,
-) -> Result<crate::models::TaxInfoResponseModel, Error<AccountsTaxGetError>> {
+) -> Result<models::TaxInfoResponseModel, Error<AccountsTaxGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -1982,7 +1934,7 @@ pub async fn accounts_tax_get(
 
 pub async fn accounts_tax_put(
     configuration: &configuration::Configuration,
-    tax_info_update_request_model: Option<crate::models::TaxInfoUpdateRequestModel>,
+    tax_info_update_request_model: Option<models::TaxInfoUpdateRequestModel>,
 ) -> Result<(), Error<AccountsTaxPutError>> {
     let local_var_configuration = configuration;
 
@@ -2023,7 +1975,7 @@ pub async fn accounts_tax_put(
 
 pub async fn accounts_update_temp_password_put(
     configuration: &configuration::Configuration,
-    update_temp_password_request_model: Option<crate::models::UpdateTempPasswordRequestModel>,
+    update_temp_password_request_model: Option<models::UpdateTempPasswordRequestModel>,
 ) -> Result<(), Error<AccountsUpdateTempPasswordPutError>> {
     let local_var_configuration = configuration;
 
@@ -2109,7 +2061,7 @@ pub async fn accounts_verify_email_post(
 
 pub async fn accounts_verify_email_token_post(
     configuration: &configuration::Configuration,
-    verify_email_request_model: Option<crate::models::VerifyEmailRequestModel>,
+    verify_email_request_model: Option<models::VerifyEmailRequestModel>,
 ) -> Result<(), Error<AccountsVerifyEmailTokenPostError>> {
     let local_var_configuration = configuration;
 
@@ -2153,7 +2105,7 @@ pub async fn accounts_verify_email_token_post(
 
 pub async fn accounts_verify_otp_post(
     configuration: &configuration::Configuration,
-    verify_otp_request_model: Option<crate::models::VerifyOtpRequestModel>,
+    verify_otp_request_model: Option<models::VerifyOtpRequestModel>,
 ) -> Result<(), Error<AccountsVerifyOtpPostError>> {
     let local_var_configuration = configuration;
 
@@ -2194,9 +2146,8 @@ pub async fn accounts_verify_otp_post(
 
 pub async fn accounts_verify_password_post(
     configuration: &configuration::Configuration,
-    secret_verification_request_model: Option<crate::models::SecretVerificationRequestModel>,
-) -> Result<crate::models::MasterPasswordPolicyResponseModel, Error<AccountsVerifyPasswordPostError>>
-{
+    secret_verification_request_model: Option<models::SecretVerificationRequestModel>,
+) -> Result<models::MasterPasswordPolicyResponseModel, Error<AccountsVerifyPasswordPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;

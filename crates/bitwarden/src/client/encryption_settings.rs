@@ -8,6 +8,7 @@ use uuid::Uuid;
 #[cfg(feature = "internal")]
 use crate::error::Result;
 
+#[derive(Clone)]
 pub struct EncryptionSettings {
     user_key: SymmetricCryptoKey,
     pub(crate) private_key: Option<AsymmetricCryptoKey>,
@@ -70,7 +71,7 @@ impl EncryptionSettings {
     pub(crate) fn set_org_keys(
         &mut self,
         org_enc_keys: Vec<(Uuid, AsymmetricEncString)>,
-    ) -> Result<&mut Self> {
+    ) -> Result<&Self> {
         use bitwarden_core::VaultLocked;
         use bitwarden_crypto::KeyDecryptable;
 

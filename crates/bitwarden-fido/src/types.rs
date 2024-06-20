@@ -1,7 +1,89 @@
+use bitwarden_crypto::KeyContainer;
+use bitwarden_vault::{CipherError, CipherView};
 use passkey::types::webauthn::UserVerificationRequirement;
-use serde::Serialize;
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
-use super::{get_enum_from_string_name, SelectedCredential, Verification};
+use super::{
+    get_enum_from_string_name, string_to_guid_bytes, InvalidGuid, SelectedCredential, UnknownEnum,
+    Verification,
+};
+
+#[derive(Serialize, Deserialize, Debug, Clone, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+pub struct Fido2CredentialAutofillView {
+    pub credential_id: Vec<u8>,
+    pub cipher_id: uuid::Uuid,
+    pub rp_id: String,
+    pub user_name_for_ui: Option<String>,
+    pub user_handle: Vec<u8>,
+}
+
+trait NoneWhitespace {
+    /// Convert only whitespace to None
+    fn none_whitespace(&self) -> Option<String>;
+}
+
+impl NoneWhitespace for String {
+    fn none_whitespace(&self) -> Option<String> {
+        match self.trim() {
+            "" => None,
+            s => Some(s.to_owned()),
+        }
+    }
+}
+
+impl NoneWhitespace for Option<String> {
+    fn none_whitespace(&self) -> Option<String> {
+        self.as_ref().and_then(|s| s.none_whitespace())
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum Fido2CredentialAutofillViewError {
+    #[error(
+        "Autofill credentials can only be created from existing ciphers that have a cipher id"
+    )]
+    MissingCipherId,
+
+    #[error(transparent)]
+    InvalidGuid(#[from] InvalidGuid),
+
+    #[error(transparent)]
+    CipherError(#[from] CipherError),
+}
+
+impl Fido2CredentialAutofillView {
+    pub fn from_cipher_view(
+        cipher: &CipherView,
+        enc: &dyn KeyContainer,
+    ) -> Result<Vec<Fido2CredentialAutofillView>, Fido2CredentialAutofillViewError> {
+        let credentials = cipher.decrypt_fido2_credentials(enc)?;
+
+        credentials
+            .into_iter()
+            .filter_map(|c| -> Option<Result<_, Fido2CredentialAutofillViewError>> {
+                c.user_handle.map(|user_handle| {
+                    Ok(Fido2CredentialAutofillView {
+                        credential_id: string_to_guid_bytes(&c.credential_id)?,
+                        cipher_id: cipher
+                            .id
+                            .ok_or(Fido2CredentialAutofillViewError::MissingCipherId)?,
+                        rp_id: c.rp_id.clone(),
+                        user_handle,
+                        user_name_for_ui: c
+                            .user_name
+                            .none_whitespace()
+                            .or(c.user_display_name.none_whitespace())
+                            .or(cipher.name.none_whitespace()),
+                    })
+                })
+            })
+            .collect()
+    }
+}
 
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct PublicKeyCredentialRpEntity {
@@ -22,16 +104,26 @@ pub struct PublicKeyCredentialParameters {
     pub alg: i64,
 }
 
+#[derive(Debug, Error)]
+pub enum PublicKeyCredentialParametersError {
+    #[error("Invalid algorithm")]
+    InvalidAlgorithm,
+
+    #[error("Unknown type")]
+    UnknownEnum(#[from] UnknownEnum),
+}
+
 impl TryFrom<PublicKeyCredentialParameters>
     for passkey::types::webauthn::PublicKeyCredentialParameters
 {
-    type Error = crate::error::Error;
+    type Error = PublicKeyCredentialParametersError;
 
     fn try_from(value: PublicKeyCredentialParameters) -> Result<Self, Self::Error> {
         use coset::iana::EnumI64;
         Ok(Self {
             ty: get_enum_from_string_name(&value.ty)?,
-            alg: coset::iana::Algorithm::from_i64(value.alg).ok_or("Invalid algorithm")?,
+            alg: coset::iana::Algorithm::from_i64(value.alg)
+                .ok_or(PublicKeyCredentialParametersError::InvalidAlgorithm)?,
         })
     }
 }
@@ -46,7 +138,7 @@ pub struct PublicKeyCredentialDescriptor {
 impl TryFrom<PublicKeyCredentialDescriptor>
     for passkey::types::webauthn::PublicKeyCredentialDescriptor
 {
-    type Error = crate::error::Error;
+    type Error = UnknownEnum;
 
     fn try_from(value: PublicKeyCredentialDescriptor) -> Result<Self, Self::Error> {
         Ok(Self {
@@ -261,7 +353,7 @@ pub struct AuthenticatorAssertionResponse {
 mod tests {
     use serde::{Deserialize, Serialize};
 
-    use crate::platform::fido2::types::AndroidClientData;
+    use super::AndroidClientData;
 
     // This is a stripped down of the passkey-rs implementation, to test the
     // serialization of the `ClientData` enum, and to make sure that () and None

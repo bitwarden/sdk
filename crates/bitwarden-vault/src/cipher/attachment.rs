@@ -73,11 +73,27 @@ impl<'a> KeyEncryptable<SymmetricCryptoKey, AttachmentEncryptResult> for Attachm
         let encrypted_contents = self.contents.encrypt_with_key(&attachment_key)?;
         attachment.key = Some(attachment_key.to_vec().encrypt_with_key(ciphers_key)?);
 
+        let contents = encrypted_contents.to_buffer()?;
+
+        // Once we have the encrypted contents, we can set the size of the attachment
+        attachment.size = Some(contents.len().to_string());
+        attachment.size_name = Some(size_name(contents.len()));
+
         Ok(AttachmentEncryptResult {
             attachment: attachment.encrypt_with_key(ciphers_key)?,
-            contents: encrypted_contents.to_buffer()?,
+            contents,
         })
     }
+}
+
+fn size_name(size: usize) -> String {
+    let units = ["Bytes", "KB", "MB", "GB", "TB"];
+    let size = size as f64;
+    let unit = (size.ln() / 1024_f64.ln()).floor() as usize;
+    let size = size / 1024_f64.powi(unit as i32);
+
+    let size_round = (size * 10.0_f64).round() as usize as f64 / 10.0_f64;
+    format!("{} {}", size_round, units[unit])
 }
 
 impl KeyDecryptable<SymmetricCryptoKey, Vec<u8>> for AttachmentFile {
@@ -144,12 +160,77 @@ impl TryFrom<bitwarden_api_api::models::AttachmentResponseModel> for Attachment 
 #[cfg(test)]
 mod tests {
     use base64::{engine::general_purpose::STANDARD, Engine};
-    use bitwarden_crypto::{EncString, KeyDecryptable, SymmetricCryptoKey};
+    use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
 
     use crate::{
         cipher::cipher::{CipherRepromptType, CipherType},
-        Attachment, AttachmentFile, Cipher,
+        Attachment, AttachmentFile, AttachmentFileView, AttachmentView, Cipher,
     };
+
+    #[test]
+    fn test_size_name_conversions() {
+        assert_eq!(super::size_name(0), "0 Bytes");
+        assert_eq!(super::size_name(19), "19 Bytes");
+        assert_eq!(super::size_name(1024), "1 KB");
+        assert_eq!(super::size_name(1570), "1.5 KB");
+        assert_eq!(super::size_name(1024 * 1024), "1 MB");
+        assert_eq!(super::size_name(1024 * 18999), "18.6 MB");
+        assert_eq!(super::size_name(1024 * 1024 * 1024), "1 GB");
+        assert_eq!(super::size_name(1024 * 1024 * 1024 * 1024), "1 TB");
+    }
+
+    #[test]
+    fn test_encrypt_attachment() {
+        let user_key: SymmetricCryptoKey = "w2LO+nwV4oxwswVYCxlOfRUseXfvU03VzvKQHrqeklPgiMZrspUe6sOBToCnDn9Ay0tuCBn8ykVVRb7PWhub2Q==".to_string().try_into().unwrap();
+
+        let attachment = AttachmentView {
+            id: None,
+            url: None,
+            size: Some("100".into()),
+            size_name: Some("100 Bytes".into()),
+            file_name: Some("Test.txt".into()),
+            key: None,
+        };
+
+        let contents = b"This is a test file that we will encrypt. It's 100 bytes long, the encrypted version will be longer!";
+
+        let attachment_file = AttachmentFileView {
+            cipher: Cipher {
+                id: None,
+                organization_id: None,
+                folder_id: None,
+                collection_ids: Vec::new(),
+                key: Some("2.Gg8yCM4IIgykCZyq0O4+cA==|GJLBtfvSJTDJh/F7X4cJPkzI6ccnzJm5DYl3yxOW2iUn7DgkkmzoOe61sUhC5dgVdV0kFqsZPcQ0yehlN1DDsFIFtrb4x7LwzJNIkMgxNyg=|1rGkGJ8zcM5o5D0aIIwAyLsjMLrPsP3EWm3CctBO3Fw=".parse().unwrap()),
+                name: "2.d24xECyEdMZ3MG9s6SrGNw==|XvJlTeu5KJ22M3jKosy6iw==|8xGiQty4X61cDMx6PVqkJfSQ0ZTdA/5L9TpG7QfovoM=".parse().unwrap(),
+                notes: None,
+                r#type: CipherType::Login,
+                login: None,
+                identity: None,
+                card: None,
+                secure_note: None,
+                favorite: false,
+                reprompt: CipherRepromptType::None,
+                organization_use_totp: false,
+                edit: true,
+                view_password: true,
+                local_data: None,
+                attachments: None,
+                fields: None,
+                password_history: None,
+                creation_date: "2023-07-24T12:05:09.466666700Z".parse().unwrap(),
+                deleted_date: None,
+                revision_date: "2023-07-27T19:28:05.240Z".parse().unwrap(),
+            },
+            attachment,
+            contents: contents.as_slice(),
+        };
+
+        let result = attachment_file.encrypt_with_key(&user_key).unwrap();
+
+        assert_eq!(result.contents.len(), 161);
+        assert_eq!(result.attachment.size, Some("161".into()));
+        assert_eq!(result.attachment.size_name, Some("161 Bytes".into()));
+    }
 
     #[test]
     fn test_attachment_key() {

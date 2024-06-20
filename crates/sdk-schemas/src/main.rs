@@ -91,7 +91,7 @@ use bitwarden_json::response::Response;
 #[derive(JsonSchema)]
 struct SchemaTypes {
     // Input types for new Client
-    client_settings: bitwarden::client::client_settings::ClientSettings,
+    client_settings: bitwarden::ClientSettings,
 
     // Input types for Client::run_command
     input_command: bitwarden_json::command::Command,

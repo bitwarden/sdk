@@ -13,7 +13,7 @@ pub struct ProjectGetRequest {
 }
 
 pub(crate) async fn get_project(
-    client: &mut Client,
+    client: &Client,
     input: &ProjectGetRequest,
 ) -> Result<ProjectResponse> {
     let config = client.get_api_configurations().await;
@@ -22,5 +22,5 @@ pub(crate) async fn get_project(
 
     let enc = client.get_encryption_settings()?;
 
-    ProjectResponse::process_response(res, enc)
+    ProjectResponse::process_response(res, &enc)
 }

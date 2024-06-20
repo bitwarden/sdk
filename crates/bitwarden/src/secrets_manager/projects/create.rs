@@ -18,11 +18,11 @@ pub struct ProjectCreateRequest {
 }
 
 pub(crate) async fn create_project(
-    client: &mut Client,
+    client: &Client,
     input: &ProjectCreateRequest,
 ) -> Result<ProjectResponse> {
-    let key = client
-        .get_encryption_settings()?
+    let enc = client.get_encryption_settings()?;
+    let key = enc
         .get_key(&Some(input.organization_id))
         .ok_or(VaultLocked)?;
 
@@ -38,7 +38,5 @@ pub(crate) async fn create_project(
     )
     .await?;
 
-    let enc = client.get_encryption_settings()?;
-
-    ProjectResponse::process_response(res, enc)
+    ProjectResponse::process_response(res, &enc)
 }

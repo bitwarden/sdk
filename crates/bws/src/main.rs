@@ -2,7 +2,6 @@ use std::{path::PathBuf, process, str::FromStr};
 
 use bitwarden::{
     auth::{login::AccessTokenLoginRequest, AccessToken},
-    client::client_settings::ClientSettings,
     secrets_manager::{
         projects::{
             ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
@@ -13,6 +12,7 @@ use bitwarden::{
             SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest, SecretsGetRequest,
         },
     },
+    ClientSettings,
 };
 use bitwarden_cli::install_color_eyre;
 use clap::{CommandFactory, Parser};
@@ -125,7 +125,7 @@ async fn process_commands() -> Result<()> {
         access_token_obj.access_token_id.to_string(),
     )?;
 
-    let mut client = bitwarden::Client::new(settings);
+    let client = bitwarden::Client::new(settings);
 
     // Load session or return if no session exists
     let _ = client

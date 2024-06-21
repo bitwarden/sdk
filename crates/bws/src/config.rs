@@ -129,7 +129,7 @@ impl Profile {
             return Ok(format!("{base}/api"));
         }
 
-        bail!("Profile has no `server_base` or `server_api`")
+        bail!("Profile has no `server_base` or `server_api`");
     }
 
     pub(crate) fn identity_url(&self) -> Result<String> {
@@ -141,7 +141,7 @@ impl Profile {
             return Ok(format!("{base}/identity"));
         }
 
-        bail!("Profile has no `server_base` or `server_identity`")
+        bail!("Profile has no `server_base` or `server_identity`");
     }
 }
 

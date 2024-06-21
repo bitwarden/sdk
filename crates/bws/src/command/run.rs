@@ -1,7 +1,5 @@
-use crate::{
-    util::{is_valid_posix_name, uuid_to_posix},
-    ACCESS_TOKEN_KEY_VAR_NAME,
-};
+use std::{io::Read, process};
+
 use atty::Stream;
 use bitwarden::{
     secrets_manager::secrets::{
@@ -11,11 +9,13 @@ use bitwarden::{
 };
 use clap::CommandFactory;
 use color_eyre::eyre::Result;
-use std::{io::Read, process};
 use uuid::Uuid;
 use which::which;
 
-use crate::Cli;
+use crate::{
+    util::{is_valid_posix_name, uuid_to_posix},
+    Cli, ACCESS_TOKEN_KEY_VAR_NAME,
+};
 
 pub(crate) async fn run(
     client: Client,

@@ -2,8 +2,6 @@ use bitwarden_vault::{Cipher, CipherView, Fido2CredentialNewView};
 use passkey::authenticator::UIHint;
 use thiserror::Error;
 
-use crate::error::Result;
-
 #[derive(Debug, Error)]
 pub enum Fido2CallbackError {
     #[error("The operation requires user interaction")]
@@ -42,6 +40,8 @@ pub trait Fido2CredentialStore: Send + Sync {
         ids: Option<Vec<Vec<u8>>>,
         rip_id: String,
     ) -> Result<Vec<CipherView>, Fido2CallbackError>;
+
+    async fn all_credentials(&self) -> Result<Vec<CipherView>, Fido2CallbackError>;
 
     async fn save_credential(&self, cred: Cipher) -> Result<(), Fido2CallbackError>;
 }

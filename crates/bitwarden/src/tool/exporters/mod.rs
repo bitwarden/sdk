@@ -47,12 +47,9 @@ fn convert_format(
     client: &Client,
     format: ExportFormat,
 ) -> Result<bitwarden_exporters::Format, Error> {
-    let login_method = client
-        .login_method
-        .as_ref()
-        .ok_or(Error::NotAuthenticated)?;
+    let login_method = client.get_login_method().ok_or(Error::NotAuthenticated)?;
 
-    let kdf = match login_method {
+    let kdf = match login_method.as_ref() {
         LoginMethod::User(
             UserLoginMethod::Username { kdf, .. } | UserLoginMethod::ApiKey { kdf, .. },
         ) => kdf,
@@ -87,7 +84,7 @@ mod tests {
 
     #[test]
     fn test_convert_format() {
-        let mut client = Client::new(None);
+        let client = Client::new(None);
         client.set_login_method(LoginMethod::User(UserLoginMethod::Username {
             client_id: "7b821276-e27c-400b-9853-606393c87f18".to_owned(),
             email: "test@bitwarden.com".to_owned(),

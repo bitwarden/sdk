@@ -8,8 +8,6 @@ use bitwarden_api_identity::apis::Error as IdentityError;
 use bitwarden_exporters::ExportError;
 #[cfg(feature = "internal")]
 use bitwarden_generators::{PassphraseError, PasswordError, UsernameError};
-#[cfg(feature = "uniffi")]
-use passkey::client::WebauthnError;
 use reqwest::StatusCode;
 use thiserror::Error;
 
@@ -66,6 +64,11 @@ pub enum Error {
     #[error(transparent)]
     PasswordError(#[from] PasswordError),
 
+    // Send
+    #[cfg(feature = "internal")]
+    #[error(transparent)]
+    SendParseError(#[from] bitwarden_send::SendParseError),
+
     // Vault
     #[cfg(feature = "internal")]
     #[error(transparent)]
@@ -81,27 +84,37 @@ pub enum Error {
     #[error(transparent)]
     ExportError(#[from] ExportError),
 
-    #[cfg(feature = "uniffi")]
-    #[error("Webauthn error: {0:?}")]
-    WebauthnError(WebauthnError),
+    // Fido
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
+    #[error(transparent)]
+    MakeCredential(#[from] bitwarden_fido::MakeCredentialError),
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
+    #[error(transparent)]
+    GetAssertion(#[from] bitwarden_fido::GetAssertionError),
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
+    #[error(transparent)]
+    SilentlyDiscoverCredentials(#[from] bitwarden_fido::SilentlyDiscoverCredentialsError),
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
+    #[error(transparent)]
+    CredentialsForAutofillError(#[from] bitwarden_fido::CredentialsForAutofillError),
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
+    #[error(transparent)]
+    DecryptFido2AutofillCredentialsError(
+        #[from] crate::platform::fido2::DecryptFido2AutofillCredentialsError,
+    ),
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
+    #[error(transparent)]
+    Fido2Client(#[from] bitwarden_fido::Fido2ClientError),
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
+    #[error("Fido2 Callback error: {0:?}")]
+    Fido2CallbackError(#[from] bitwarden_fido::Fido2CallbackError),
 
     #[cfg(feature = "uniffi")]
     #[error("Uniffi callback error: {0}")]
     UniffiCallbackError(#[from] uniffi::UnexpectedUniFFICallbackError),
 
-    #[cfg(feature = "uniffi")]
-    #[error("Fido2 Callback error: {0:?}")]
-    Fido2CallbackError(#[from] crate::platform::fido2::Fido2CallbackError),
-
     #[error("Internal error: {0}")]
     Internal(Cow<'static, str>),
-}
-
-#[cfg(feature = "uniffi")]
-impl From<WebauthnError> for Error {
-    fn from(e: WebauthnError) -> Self {
-        Self::WebauthnError(e)
-    }
 }
 
 impl From<String> for Error {

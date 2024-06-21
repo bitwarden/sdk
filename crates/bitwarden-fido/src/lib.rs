@@ -1,77 +1,48 @@
-use std::sync::Mutex;
-
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use bitwarden_crypto::KeyContainer;
 use bitwarden_vault::{
-    CipherView, Fido2CredentialFullView, Fido2CredentialNewView, Fido2CredentialView,
+    CipherError, CipherView, Fido2CredentialFullView, Fido2CredentialNewView, Fido2CredentialView,
 };
+use crypto::{CoseKeyToPkcs8Error, PrivateKeyFromSecretKeyError};
 use passkey::types::{ctap2::Aaguid, Passkey};
+
+#[cfg(feature = "uniffi")]
+uniffi::setup_scaffolding!();
+#[cfg(feature = "uniffi")]
+mod uniffi_support;
 
 mod authenticator;
 mod client;
 mod crypto;
 mod traits;
 mod types;
-
-pub use authenticator::Fido2Authenticator;
-pub use client::Fido2Client;
+pub use authenticator::{
+    CredentialsForAutofillError, Fido2Authenticator, FidoEncryptionSettingStore, GetAssertionError,
+    MakeCredentialError, SilentlyDiscoverCredentialsError,
+};
+pub use client::{Fido2Client, Fido2ClientError};
 pub use passkey::authenticator::UIHint;
+use thiserror::Error;
 pub use traits::{
     CheckUserOptions, CheckUserResult, Fido2CallbackError, Fido2CredentialStore,
     Fido2UserInterface, Verification,
 };
 pub use types::{
     AuthenticatorAssertionResponse, AuthenticatorAttestationResponse, ClientData,
-    GetAssertionRequest, GetAssertionResult, MakeCredentialRequest, MakeCredentialResult, Options,
+    Fido2CredentialAutofillView, Fido2CredentialAutofillViewError, GetAssertionRequest,
+    GetAssertionResult, MakeCredentialRequest, MakeCredentialResult, Options,
     PublicKeyCredentialAuthenticatorAssertionResponse,
     PublicKeyCredentialAuthenticatorAttestationResponse, PublicKeyCredentialRpEntity,
     PublicKeyCredentialUserEntity,
 };
 
 use self::crypto::{cose_key_to_pkcs8, pkcs8_to_cose_key};
-use crate::{
-    error::{Error, Result},
-    Client,
-};
 
 // This is the AAGUID for the Bitwarden Passkey provider (d548826e-79b4-db40-a3d8-11116f7e8349)
 // It is used for the Relaying Parties to identify the authenticator during registration
 const AAGUID: Aaguid = Aaguid([
     0xd5, 0x48, 0x82, 0x6e, 0x79, 0xb4, 0xdb, 0x40, 0xa3, 0xd8, 0x11, 0x11, 0x6f, 0x7e, 0x83, 0x49,
 ]);
-
-pub struct ClientFido2<'a> {
-    #[allow(dead_code)]
-    pub(crate) client: &'a mut Client,
-}
-
-impl<'a> ClientFido2<'a> {
-    pub fn create_authenticator(
-        &'a mut self,
-
-        user_interface: &'a dyn Fido2UserInterface,
-        credential_store: &'a dyn Fido2CredentialStore,
-    ) -> Result<Fido2Authenticator<'a>> {
-        Ok(Fido2Authenticator {
-            client: self.client,
-            user_interface,
-            credential_store,
-            selected_cipher: Mutex::new(None),
-            requested_uv: Mutex::new(None),
-        })
-    }
-
-    pub fn create_client(
-        &'a mut self,
-
-        user_interface: &'a dyn Fido2UserInterface,
-        credential_store: &'a dyn Fido2CredentialStore,
-    ) -> Result<Fido2Client<'a>> {
-        Ok(Fido2Client {
-            authenticator: self.create_authenticator(user_interface, credential_store)?,
-        })
-    }
-}
 
 #[allow(dead_code)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
@@ -89,7 +60,7 @@ pub(crate) struct CipherViewContainer {
 }
 
 impl CipherViewContainer {
-    fn new(cipher: CipherView, enc: &dyn KeyContainer) -> Result<Self> {
+    fn new(cipher: CipherView, enc: &dyn KeyContainer) -> Result<Self, CipherError> {
         let fido2_credentials = cipher.get_fido2_credentials(enc)?;
         Ok(Self {
             cipher,
@@ -98,20 +69,35 @@ impl CipherViewContainer {
     }
 }
 
+#[derive(Debug, Error)]
+pub enum Fido2Error {
+    #[error(transparent)]
+    UnknownEnum(#[from] UnknownEnum),
+
+    #[error(transparent)]
+    InvalidGuid(#[from] InvalidGuid),
+
+    #[error(transparent)]
+    PrivateKeyFromSecretKeyError(#[from] PrivateKeyFromSecretKeyError),
+
+    #[error("No Fido2 credentials found")]
+    NoFido2CredentialsFound,
+}
+
 impl TryFrom<CipherViewContainer> for Passkey {
-    type Error = crate::error::Error;
+    type Error = Fido2Error;
 
     fn try_from(value: CipherViewContainer) -> Result<Self, Self::Error> {
         let cred = value
             .fido2_credentials
             .first()
-            .ok_or(Error::Internal("No Fido2 credentials found".into()))?;
+            .ok_or(Fido2Error::NoFido2CredentialsFound)?;
 
         try_from_credential_full_view(cred.clone())
     }
 }
 
-fn try_from_credential_full_view(value: Fido2CredentialFullView) -> Result<Passkey, Error> {
+fn try_from_credential_full_view(value: Fido2CredentialFullView) -> Result<Passkey, Fido2Error> {
     let counter: u32 = value.counter.parse().expect("Invalid counter");
     let counter = (counter != 0).then_some(counter);
 
@@ -126,10 +112,18 @@ fn try_from_credential_full_view(value: Fido2CredentialFullView) -> Result<Passk
     })
 }
 
+#[derive(Debug, Error)]
+pub enum FillCredentialError {
+    #[error(transparent)]
+    InvalidInputLength(#[from] InvalidInputLength),
+    #[error(transparent)]
+    CoseKeyToPkcs8Error(#[from] CoseKeyToPkcs8Error),
+}
+
 pub fn fill_with_credential(
     view: &Fido2CredentialView,
     value: Passkey,
-) -> Result<Fido2CredentialFullView> {
+) -> Result<Fido2CredentialFullView, FillCredentialError> {
     let cred_id: Vec<u8> = value.credential_id.into();
 
     Ok(Fido2CredentialFullView {
@@ -153,7 +147,7 @@ pub fn fill_with_credential(
 pub(crate) fn try_from_credential_new_view(
     user: &passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
     rp: &passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
-) -> Result<Fido2CredentialNewView> {
+) -> Result<Fido2CredentialNewView, InvalidInputLength> {
     let cred_id: Vec<u8> = vec![0; 16];
 
     Ok(Fido2CredentialNewView {
@@ -177,7 +171,7 @@ pub(crate) fn try_from_credential_full(
     value: Passkey,
     user: passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
     rp: passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
-) -> Result<Fido2CredentialFullView> {
+) -> Result<Fido2CredentialFullView, FillCredentialError> {
     let cred_id: Vec<u8> = value.credential_id.into();
 
     Ok(Fido2CredentialFullView {
@@ -198,33 +192,47 @@ pub(crate) fn try_from_credential_full(
     })
 }
 
-pub fn guid_bytes_to_string(source: &[u8]) -> Result<String> {
+#[derive(Debug, Error)]
+#[error("Input should be a 16 byte array")]
+pub struct InvalidInputLength;
+
+pub fn guid_bytes_to_string(source: &[u8]) -> Result<String, InvalidInputLength> {
     if source.len() != 16 {
-        return Err(Error::Internal("Input should be a 16 byte array".into()));
+        return Err(InvalidInputLength);
     }
     Ok(uuid::Uuid::from_bytes(source.try_into().expect("Invalid length")).to_string())
 }
 
-pub fn string_to_guid_bytes(source: &str) -> Result<Vec<u8>> {
+#[derive(Debug, Error)]
+#[error("Invalid GUID")]
+pub struct InvalidGuid;
+
+pub fn string_to_guid_bytes(source: &str) -> Result<Vec<u8>, InvalidGuid> {
     if source.starts_with("b64.") {
-        let bytes = URL_SAFE_NO_PAD.decode(source.trim_start_matches("b64."))?;
+        let bytes = URL_SAFE_NO_PAD
+            .decode(source.trim_start_matches("b64."))
+            .map_err(|_| InvalidGuid)?;
         Ok(bytes)
     } else {
         let Ok(uuid) = uuid::Uuid::try_parse(source) else {
-            return Err(Error::Internal("Input should be a valid GUID".into()));
+            return Err(InvalidGuid);
         };
         Ok(uuid.as_bytes().to_vec())
     }
 }
 
+#[derive(Debug, Error)]
+#[error("Unknown enum value")]
+pub struct UnknownEnum;
+
 // Some utilities to convert back and forth between enums and strings
-fn get_enum_from_string_name<T: serde::de::DeserializeOwned>(s: &str) -> Result<T> {
+fn get_enum_from_string_name<T: serde::de::DeserializeOwned>(s: &str) -> Result<T, UnknownEnum> {
     let serialized = format!(r#""{}""#, s);
-    let deserialized: T = serde_json::from_str(&serialized)?;
+    let deserialized: T = serde_json::from_str(&serialized).map_err(|_| UnknownEnum)?;
     Ok(deserialized)
 }
 
-fn get_string_name_from_enum(s: impl serde::Serialize) -> Result<String> {
+fn get_string_name_from_enum(s: impl serde::Serialize) -> Result<String, serde_json::Error> {
     let serialized = serde_json::to_string(&s)?;
     let deserialized: String = serde_json::from_str(&serialized)?;
     Ok(deserialized)

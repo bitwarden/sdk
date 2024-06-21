@@ -45,7 +45,7 @@ pub use access_token::{AccessTokenLoginRequest, AccessTokenLoginResponse};
 
 #[cfg(feature = "internal")]
 pub(crate) async fn request_prelogin(
-    client: &mut Client,
+    client: &Client,
     email: String,
 ) -> Result<PreloginResponseModel> {
     let request_model = PreloginRequestModel::new(email);

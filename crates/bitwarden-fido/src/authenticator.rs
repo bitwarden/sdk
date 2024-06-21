@@ -2,7 +2,8 @@ use std::sync::{Arc, Mutex};
 
 use bitwarden_core::VaultLocked;
 use bitwarden_crypto::{CryptoError, KeyContainer, KeyEncryptable};
-use bitwarden_vault::{CipherError, CipherView, Fido2CredentialView};
+use bitwarden_vault::{CipherError, CipherView};
+use itertools::Itertools;
 use log::error;
 use passkey::{
     authenticator::{Authenticator, DiscoverabilitySupport, StoreInfo, UIHint, UserCheck},
@@ -68,9 +69,29 @@ pub enum GetAssertionError {
 #[derive(Debug, Error)]
 pub enum SilentlyDiscoverCredentialsError {
     #[error(transparent)]
+    CipherError(#[from] CipherError),
+    #[error(transparent)]
     VaultLocked(#[from] VaultLocked),
     #[error(transparent)]
+    InvalidGuid(#[from] InvalidGuid),
+    #[error(transparent)]
     Fido2CallbackError(#[from] Fido2CallbackError),
+    #[error(transparent)]
+    FromCipherViewError(#[from] Fido2CredentialAutofillViewError),
+}
+
+#[derive(Debug, Error)]
+pub enum CredentialsForAutofillError {
+    #[error(transparent)]
+    CipherError(#[from] CipherError),
+    #[error(transparent)]
+    VaultLocked(#[from] VaultLocked),
+    #[error(transparent)]
+    InvalidGuid(#[from] InvalidGuid),
+    #[error(transparent)]
+    Fido2CallbackError(#[from] Fido2CallbackError),
+    #[error(transparent)]
+    FromCipherViewError(#[from] Fido2CredentialAutofillViewError),
 }
 
 /// Temporary trait for solving a circular dependency. When moving `Client` to `bitwarden-core`
@@ -236,15 +257,40 @@ impl<'a> Fido2Authenticator<'a> {
     pub async fn silently_discover_credentials(
         &mut self,
         rp_id: String,
-    ) -> Result<Vec<Fido2CredentialView>, SilentlyDiscoverCredentialsError> {
+    ) -> Result<Vec<Fido2CredentialAutofillView>, SilentlyDiscoverCredentialsError> {
         let enc = self.client.get_encryption_settings()?;
         let result = self.credential_store.find_credentials(None, rp_id).await?;
 
-        Ok(result
+        result
             .into_iter()
-            .flat_map(|c| c.decrypt_fido2_credentials(&*enc))
-            .flatten()
-            .collect())
+            .map(
+                |cipher| -> Result<Vec<Fido2CredentialAutofillView>, SilentlyDiscoverCredentialsError> {
+                    Ok(Fido2CredentialAutofillView::from_cipher_view(&cipher, &*enc)?)
+                },
+            )
+            .flatten_ok()
+            .collect()
+    }
+
+    /// Returns all Fido2 credentials that can be used for autofill, in a view
+    /// tailored for integration with OS autofill systems.
+    pub async fn credentials_for_autofill(
+        &mut self,
+    ) -> Result<Vec<Fido2CredentialAutofillView>, CredentialsForAutofillError> {
+        let enc = self.client.get_encryption_settings()?;
+        let all_credentials = self.credential_store.all_credentials().await?;
+
+        all_credentials
+            .into_iter()
+            .map(
+                |cipher| -> Result<Vec<Fido2CredentialAutofillView>, CredentialsForAutofillError> {
+                    Ok(Fido2CredentialAutofillView::from_cipher_view(
+                        &cipher, &*enc,
+                    )?)
+                },
+            )
+            .flatten_ok()
+            .collect()
     }
 
     pub(super) fn get_authenticator(

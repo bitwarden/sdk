@@ -96,6 +96,14 @@ pub enum Error {
     SilentlyDiscoverCredentials(#[from] bitwarden_fido::SilentlyDiscoverCredentialsError),
     #[cfg(all(feature = "uniffi", feature = "internal"))]
     #[error(transparent)]
+    CredentialsForAutofillError(#[from] bitwarden_fido::CredentialsForAutofillError),
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
+    #[error(transparent)]
+    DecryptFido2AutofillCredentialsError(
+        #[from] crate::platform::fido2::DecryptFido2AutofillCredentialsError,
+    ),
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
+    #[error(transparent)]
     Fido2Client(#[from] bitwarden_fido::Fido2ClientError),
     #[cfg(all(feature = "uniffi", feature = "internal"))]
     #[error("Fido2 Callback error: {0:?}")]

@@ -6,14 +6,14 @@
 
 Have the two Bitwarden libraries at the same path:
 
-- `BitwardeClient`
+- `BitwardenClient`
 - `bitwarden_c`
 
 For each OS the library files will be the following:
 
-- macOS: `libBitwardeClient.dylib` and `libbitwarden_c.dylib`
-- Linux: `libBitwardeClient.so` and `libbitwarden_c.so`
-- Windows:  `BitwardeClient.dll` and `bitwarden_c.dll`
+- macOS: `libBitwardenClient.dylib` and `libbitwarden_c.dylib`
+- Linux: `libBitwardenClient.so` and `libbitwarden_c.so`
+- Windows:  `BitwardenClient.dll` and `bitwarden_c.dll`
 
 Follow the [cmake build guide](CMakeBuild.md) to create the libraries locally.
 
@@ -74,7 +74,7 @@ export LD_LIBRARY_PATH=/path/to/your/library:$LD_LIBRARY_PATH
 For Windows:
 
 ```shell
- set PATH=%PATH%;C:\path\to\your\library
+ set "PATH=%PATH%;C:\path\to\your\library"
 ```
 
 Set environment variables used in `Wrapper.cpp`:
@@ -101,9 +101,9 @@ The result is `MyBitwardenApp` in the `examples` directory, and can be ran from 
 ./MyBitwardenApp
 ```
 
-## Example
+#### Example
 
-### macOS
+##### macOS
 
 Set environment variables:
 

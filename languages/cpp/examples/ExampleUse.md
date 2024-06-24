@@ -15,7 +15,7 @@ For each OS the library files will be the following:
 - Linux: `libBitwardenClient.so` and `libbitwarden_c.so`
 - Windows:  `BitwardenClient.dll` and `bitwarden_c.dll`
 
-Follow the [cmake build guide](CMakeBuild.md) to create the libraries locally.
+Follow the [cmake build guide](../CMakeBuild.md) to create the libraries locally.
 
 ### Include Directory
 

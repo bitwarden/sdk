@@ -21,8 +21,10 @@ impl<'a> ClientGenerator<'a> {
     /// # Examples
     ///
     /// ```
-    /// use bitwarden::{Client, generators::PasswordGeneratorRequest, error::Result};
-    /// async fn test() -> Result<()> {
+    /// use bitwarden_core::Client;
+    /// use bitwarden_generators::{ClientGeneratorExt, PassphraseError, PasswordGeneratorRequest};
+    ///
+    /// async fn test() -> Result<(), PassphraseError> {
     ///     let input = PasswordGeneratorRequest {
     ///         lowercase: true,
     ///         uppercase: true,
@@ -49,8 +51,10 @@ impl<'a> ClientGenerator<'a> {
     /// # Examples
     ///
     /// ```
-    /// use bitwarden::{Client, generators::PassphraseGeneratorRequest, error::Result};
-    /// async fn test() -> Result<()> {
+    /// use bitwarden_core::Client;
+    /// use bitwarden_generators::{ClientGeneratorExt, PassphraseError, PassphraseGeneratorRequest};
+    ///
+    /// async fn test() -> Result<(), PassphraseError> {
     ///     let input = PassphraseGeneratorRequest {
     ///         num_words: 4,
     ///         ..Default::default()
@@ -72,8 +76,10 @@ impl<'a> ClientGenerator<'a> {
     /// will use third-party services, which may require a specific setup or API key.
     ///
     /// ```
-    /// use bitwarden::{Client, generators::{UsernameGeneratorRequest}, error::Result};
-    /// async fn test() -> Result<()> {
+    /// use bitwarden_core::Client;
+    /// use bitwarden_generators::{ClientGeneratorExt, UsernameError, UsernameGeneratorRequest};
+    ///
+    /// async fn test() -> Result<(), UsernameError> {
     ///     let input = UsernameGeneratorRequest::Word {
     ///         capitalize: true,
     ///         include_number: true,

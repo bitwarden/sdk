@@ -252,6 +252,6 @@ impl From<validator::ValidationErrors> for Error {
                 }
             }
         }
-        "Unknown validation error".into()
+        format!("Unknown validation error: {:#?}", e).into()
     }
 }

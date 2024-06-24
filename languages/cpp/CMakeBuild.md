@@ -9,6 +9,8 @@ The output contains two dynamic libraries:
 - The C++ client `BitwardenClient`
 - The Bitwarden library used by the C++ client `bitwarden_c`.
 
+See how to use these libraries in the [example use guide](./examples/ExampleUse.md)
+
 ## Prerequisites
 
 - Cmake installed, minimum version 3.15

@@ -733,7 +733,6 @@ dependencies = [
  "tokio",
  "toml 0.8.12",
  "uuid",
- "validator",
 ]
 
 [[package]]

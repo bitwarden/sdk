@@ -114,7 +114,7 @@ macro_rules! impl_bitwarden_error {
 impl_bitwarden_error!(ApiError);
 impl_bitwarden_error!(IdentityError);
 
-pub type Result<T, E = Error> = std::result::Result<T, E>;
+pub(crate) type Result<T, E = Error> = std::result::Result<T, E>;
 
 #[derive(Debug, Error)]
 #[error("The response received was missing a required field: {0}")]

@@ -14,8 +14,6 @@ repository.workspace = true
 license-file.workspace = true
 
 [features]
-default = ["secrets"]
-
 internal = [] # Internal testing methods
 no-memory-hardening = [
     "bitwarden-crypto/no-memory-hardening",
@@ -31,7 +29,7 @@ secrets = [] # Secrets manager API
 
 [dependencies]
 async-trait = ">=0.1.80, <0.2"
-base64 = ">=0.21.2, <0.23"
+base64 = ">=0.22.1, <0.23"
 bitwarden-api-api = { workspace = true }
 bitwarden-api-identity = { workspace = true }
 bitwarden-crypto = { workspace = true }

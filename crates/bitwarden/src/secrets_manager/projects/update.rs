@@ -9,7 +9,7 @@ use validator::Validate;
 use super::ProjectResponse;
 use crate::{
     client::Client,
-    error::{validate, validate_only_whitespaces, Result},
+    error::{validate_only_whitespaces, Result},
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Validate)]
@@ -27,7 +27,7 @@ pub(crate) async fn update_project(
     client: &Client,
     input: &ProjectPutRequest,
 ) -> Result<ProjectResponse> {
-    validate!(input);
+    input.validate()?;
 
     let enc = client.get_encryption_settings()?;
     let key = enc

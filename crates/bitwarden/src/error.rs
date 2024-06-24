@@ -198,16 +198,6 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 const VALIDATION_LENGTH_CODE: &str = "length";
 const VALIDATION_ONLY_WHITESPACES_CODE: &str = "only_whitespaces";
 
-macro_rules! validate {
-    ($val:expr) => {
-        match $val.validate() {
-            Ok(_) => (),
-            Err(e) => return Err(e.into()),
-        }
-    };
-}
-pub(crate) use validate;
-
 pub(crate) fn validate_only_whitespaces(value: &str) -> Result<(), validator::ValidationError> {
     if !value.is_empty() && value.trim().is_empty() {
         return Err(validator::ValidationError::new(

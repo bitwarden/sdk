@@ -9,7 +9,7 @@ use validator::Validate;
 use super::SecretResponse;
 use crate::{
     client::Client,
-    error::{validate, validate_only_whitespaces, Result},
+    error::{validate_only_whitespaces, Result},
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Validate)]
@@ -32,7 +32,7 @@ pub(crate) async fn update_secret(
     client: &Client,
     input: &SecretPutRequest,
 ) -> Result<SecretResponse> {
-    validate!(input);
+    input.validate()?;
 
     let enc = client.get_encryption_settings()?;
     let key = enc

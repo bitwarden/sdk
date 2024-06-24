@@ -101,8 +101,6 @@ for macOS nlohmann and boost libraries installed with homebrew the following can
 -I/opt/homebrew/include
 ```
 
-for Windows `-ldl` should be excluded.
-
 The result is `MyBitwardenApp` in the `examples` directory, and can be ran from the `examples` directory:
 
 ```bash

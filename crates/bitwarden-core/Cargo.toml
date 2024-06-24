@@ -28,7 +28,6 @@ uniffi = [
     "dep:p256",
 ] # Uniffi bindings
 secrets = [] # Secrets manager API
-wasm-bindgen = ["chrono/wasmbind"]
 
 [dependencies]
 async-trait = ">=0.1.80, <0.2"

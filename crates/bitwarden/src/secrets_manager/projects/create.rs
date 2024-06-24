@@ -51,14 +51,13 @@ pub(crate) async fn create_project(
 mod tests {
     use super::*;
 
-    #[warn(dead_code)]
     async fn create_project(name: String) -> Result<ProjectResponse> {
         let input = ProjectCreateRequest {
             organization_id: Uuid::new_v4(),
             name,
         };
 
-        super::create_project(&mut Client::new(None), &input).await
+        super::create_project(&Client::new(None), &input).await
     }
 
     #[tokio::test]

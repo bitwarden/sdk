@@ -57,7 +57,6 @@ pub(crate) async fn update_secret(
 mod tests {
     use super::*;
 
-    #[warn(dead_code)]
     async fn update_secret(
         key: Option<String>,
         value: Option<String>,
@@ -72,7 +71,7 @@ mod tests {
             project_ids: Some(vec![Uuid::new_v4()]),
         };
 
-        super::update_secret(&mut Client::new(None), &input).await
+        super::update_secret(&Client::new(None), &input).await
     }
 
     #[tokio::test]

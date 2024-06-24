@@ -62,7 +62,6 @@ pub(crate) async fn create_secret(
 mod tests {
     use super::*;
 
-    #[warn(dead_code)]
     async fn create_secret(
         key: Option<String>,
         value: Option<String>,
@@ -76,7 +75,7 @@ mod tests {
             project_ids: Some(vec![Uuid::new_v4()]),
         };
 
-        super::create_secret(&mut Client::new(None), &input).await
+        super::create_secret(&Client::new(None), &input).await
     }
 
     #[tokio::test]

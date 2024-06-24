@@ -50,7 +50,6 @@ pub(crate) async fn update_project(
 mod tests {
     use super::*;
 
-    #[warn(dead_code)]
     async fn update_project(name: String) -> Result<ProjectResponse> {
         let input = ProjectPutRequest {
             id: Uuid::new_v4(),
@@ -58,7 +57,7 @@ mod tests {
             name,
         };
 
-        super::update_project(&mut Client::new(None), &input).await
+        super::update_project(&Client::new(None), &input).await
     }
 
     #[tokio::test]

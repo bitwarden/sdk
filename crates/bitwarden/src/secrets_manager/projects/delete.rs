@@ -16,7 +16,7 @@ pub struct ProjectsDeleteRequest {
 }
 
 pub(crate) async fn delete_projects(
-    client: &mut Client,
+    client: &Client,
     input: ProjectsDeleteRequest,
 ) -> Result<ProjectsDeleteResponse> {
     let config = client.get_api_configurations().await;

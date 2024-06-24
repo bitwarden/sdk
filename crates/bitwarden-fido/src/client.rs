@@ -37,7 +37,7 @@ impl From<WebauthnError> for Fido2ClientError {
 }
 
 pub struct Fido2Client<'a> {
-    pub(crate) authenticator: Fido2Authenticator<'a>,
+    pub authenticator: Fido2Authenticator<'a>,
 }
 
 impl<'a> Fido2Client<'a> {

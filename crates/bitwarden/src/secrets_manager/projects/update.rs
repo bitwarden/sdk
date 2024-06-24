@@ -24,7 +24,7 @@ pub struct ProjectPutRequest {
 }
 
 pub(crate) async fn update_project(
-    client: &mut Client,
+    client: &Client,
     input: &ProjectPutRequest,
 ) -> Result<ProjectResponse> {
     validate!(input);

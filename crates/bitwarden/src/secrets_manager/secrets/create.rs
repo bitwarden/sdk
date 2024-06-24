@@ -30,7 +30,7 @@ pub struct SecretCreateRequest {
 }
 
 pub(crate) async fn create_secret(
-    client: &mut Client,
+    client: &Client,
     input: &SecretCreateRequest,
 ) -> Result<SecretResponse> {
     validate!(input);

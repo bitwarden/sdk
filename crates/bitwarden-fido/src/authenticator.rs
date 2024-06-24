@@ -1,8 +1,9 @@
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use bitwarden_core::VaultLocked;
-use bitwarden_crypto::{CryptoError, KeyEncryptable};
-use bitwarden_vault::{CipherError, CipherView, Fido2CredentialView};
+use bitwarden_crypto::{CryptoError, KeyContainer, KeyEncryptable};
+use bitwarden_vault::{CipherError, CipherView};
+use itertools::Itertools;
 use log::error;
 use passkey::{
     authenticator::{Authenticator, DiscoverabilitySupport, StoreInfo, UIHint, UserCheck},
@@ -18,11 +19,8 @@ use super::{
     Fido2CredentialStore, Fido2UserInterface, SelectedCredential, UnknownEnum, AAGUID,
 };
 use crate::{
-    platform::fido2::{
-        fill_with_credential, string_to_guid_bytes, try_from_credential_full, Fido2CallbackError,
-        FillCredentialError, InvalidGuid,
-    },
-    Client,
+    fill_with_credential, string_to_guid_bytes, try_from_credential_full, Fido2CallbackError,
+    FillCredentialError, InvalidGuid,
 };
 
 #[derive(Debug, Error)]
@@ -71,21 +69,61 @@ pub enum GetAssertionError {
 #[derive(Debug, Error)]
 pub enum SilentlyDiscoverCredentialsError {
     #[error(transparent)]
+    CipherError(#[from] CipherError),
+    #[error(transparent)]
     VaultLocked(#[from] VaultLocked),
     #[error(transparent)]
+    InvalidGuid(#[from] InvalidGuid),
+    #[error(transparent)]
     Fido2CallbackError(#[from] Fido2CallbackError),
+    #[error(transparent)]
+    FromCipherViewError(#[from] Fido2CredentialAutofillViewError),
+}
+
+#[derive(Debug, Error)]
+pub enum CredentialsForAutofillError {
+    #[error(transparent)]
+    CipherError(#[from] CipherError),
+    #[error(transparent)]
+    VaultLocked(#[from] VaultLocked),
+    #[error(transparent)]
+    InvalidGuid(#[from] InvalidGuid),
+    #[error(transparent)]
+    Fido2CallbackError(#[from] Fido2CallbackError),
+    #[error(transparent)]
+    FromCipherViewError(#[from] Fido2CredentialAutofillViewError),
+}
+
+/// Temporary trait for solving a circular dependency. When moving `Client` to `bitwarden-core`
+/// remove this trait.
+pub trait FidoEncryptionSettingStore: Send + Sync {
+    fn get_encryption_settings(&self) -> Result<Arc<dyn KeyContainer>, VaultLocked>;
 }
 
 pub struct Fido2Authenticator<'a> {
-    pub(crate) client: &'a Client,
-    pub(crate) user_interface: &'a dyn Fido2UserInterface,
-    pub(crate) credential_store: &'a dyn Fido2CredentialStore,
+    pub client: &'a dyn FidoEncryptionSettingStore,
+    pub user_interface: &'a dyn Fido2UserInterface,
+    pub credential_store: &'a dyn Fido2CredentialStore,
 
     pub(crate) selected_cipher: Mutex<Option<CipherView>>,
     pub(crate) requested_uv: Mutex<Option<UV>>,
 }
 
 impl<'a> Fido2Authenticator<'a> {
+    pub fn new(
+        client: &'a dyn FidoEncryptionSettingStore,
+        user_interface: &'a dyn Fido2UserInterface,
+        credential_store: &'a dyn Fido2CredentialStore,
+    ) -> Fido2Authenticator<'a> {
+        Fido2Authenticator {
+            client,
+            user_interface,
+            credential_store,
+            selected_cipher: Mutex::new(None),
+            requested_uv: Mutex::new(None),
+        }
+    }
+
     pub async fn make_credential(
         &mut self,
         request: MakeCredentialRequest,
@@ -219,15 +257,40 @@ impl<'a> Fido2Authenticator<'a> {
     pub async fn silently_discover_credentials(
         &mut self,
         rp_id: String,
-    ) -> Result<Vec<Fido2CredentialView>, SilentlyDiscoverCredentialsError> {
+    ) -> Result<Vec<Fido2CredentialAutofillView>, SilentlyDiscoverCredentialsError> {
         let enc = self.client.get_encryption_settings()?;
         let result = self.credential_store.find_credentials(None, rp_id).await?;
 
-        Ok(result
+        result
             .into_iter()
-            .flat_map(|c| c.decrypt_fido2_credentials(&enc))
-            .flatten()
-            .collect())
+            .map(
+                |cipher| -> Result<Vec<Fido2CredentialAutofillView>, SilentlyDiscoverCredentialsError> {
+                    Ok(Fido2CredentialAutofillView::from_cipher_view(&cipher, &*enc)?)
+                },
+            )
+            .flatten_ok()
+            .collect()
+    }
+
+    /// Returns all Fido2 credentials that can be used for autofill, in a view
+    /// tailored for integration with OS autofill systems.
+    pub async fn credentials_for_autofill(
+        &mut self,
+    ) -> Result<Vec<Fido2CredentialAutofillView>, CredentialsForAutofillError> {
+        let enc = self.client.get_encryption_settings()?;
+        let all_credentials = self.credential_store.all_credentials().await?;
+
+        all_credentials
+            .into_iter()
+            .map(
+                |cipher| -> Result<Vec<Fido2CredentialAutofillView>, CredentialsForAutofillError> {
+                    Ok(Fido2CredentialAutofillView::from_cipher_view(
+                        &cipher, &*enc,
+                    )?)
+                },
+            )
+            .flatten_ok()
+            .collect()
     }
 
     pub(super) fn get_authenticator(
@@ -268,7 +331,7 @@ impl<'a> Fido2Authenticator<'a> {
             .clone()
             .ok_or(GetSelectedCredentialError::NoSelectedCredential)?;
 
-        let creds = cipher.decrypt_fido2_credentials(&enc)?;
+        let creds = cipher.decrypt_fido2_credentials(&*enc)?;
 
         let credential = creds
             .first()
@@ -339,7 +402,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             if this.create_credential {
                 Ok(creds
                     .into_iter()
-                    .map(|c| CipherViewContainer::new(c, &enc))
+                    .map(|c| CipherViewContainer::new(c, &*enc))
                     .collect::<Result<_, _>>()?)
             } else {
                 let picked = this
@@ -355,7 +418,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                     .expect("Mutex is not poisoned")
                     .replace(picked.clone());
 
-                Ok(vec![CipherViewContainer::new(picked, &enc)?])
+                Ok(vec![CipherViewContainer::new(picked, &*enc)?])
             }
         }
 
@@ -411,7 +474,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                 .clone()
                 .ok_or(InnerError::NoSelectedCredential)?;
 
-            selected.set_new_fido2_credentials(&enc, vec![cred])?;
+            selected.set_new_fido2_credentials(&*enc, vec![cred])?;
 
             // Store the updated credential for later use
             this.authenticator
@@ -481,7 +544,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             let cred = fill_with_credential(&selected.credential, cred)?;
 
             let mut selected = selected.cipher;
-            selected.set_new_fido2_credentials(&enc, vec![cred])?;
+            selected.set_new_fido2_credentials(&*enc, vec![cred])?;
 
             // Store the updated credential for later use
             this.authenticator

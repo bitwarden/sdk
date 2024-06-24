@@ -68,6 +68,11 @@ pub enum Error {
     #[error(transparent)]
     PasswordError(#[from] PasswordError),
 
+    // Send
+    #[cfg(feature = "internal")]
+    #[error(transparent)]
+    SendParseError(#[from] bitwarden_send::SendParseError),
+
     // Vault
     #[cfg(feature = "internal")]
     #[error(transparent)]
@@ -86,24 +91,31 @@ pub enum Error {
     // Fido
     #[cfg(all(feature = "uniffi", feature = "internal"))]
     #[error(transparent)]
-    MakeCredential(#[from] crate::platform::fido2::MakeCredentialError),
+    MakeCredential(#[from] bitwarden_fido::MakeCredentialError),
     #[cfg(all(feature = "uniffi", feature = "internal"))]
     #[error(transparent)]
-    GetAssertion(#[from] crate::platform::fido2::GetAssertionError),
+    GetAssertion(#[from] bitwarden_fido::GetAssertionError),
     #[cfg(all(feature = "uniffi", feature = "internal"))]
     #[error(transparent)]
-    SilentlyDiscoverCredentials(#[from] crate::platform::fido2::SilentlyDiscoverCredentialsError),
+    SilentlyDiscoverCredentials(#[from] bitwarden_fido::SilentlyDiscoverCredentialsError),
     #[cfg(all(feature = "uniffi", feature = "internal"))]
     #[error(transparent)]
-    Fido2Client(#[from] crate::platform::fido2::Fido2ClientError),
+    CredentialsForAutofillError(#[from] bitwarden_fido::CredentialsForAutofillError),
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
+    #[error(transparent)]
+    DecryptFido2AutofillCredentialsError(
+        #[from] crate::platform::fido2::DecryptFido2AutofillCredentialsError,
+    ),
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
+    #[error(transparent)]
+    Fido2Client(#[from] bitwarden_fido::Fido2ClientError),
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
+    #[error("Fido2 Callback error: {0:?}")]
+    Fido2CallbackError(#[from] bitwarden_fido::Fido2CallbackError),
 
     #[cfg(feature = "uniffi")]
     #[error("Uniffi callback error: {0}")]
     UniffiCallbackError(#[from] uniffi::UnexpectedUniFFICallbackError),
-
-    #[cfg(all(feature = "uniffi", feature = "internal"))]
-    #[error("Fido2 Callback error: {0:?}")]
-    Fido2CallbackError(#[from] crate::platform::fido2::Fido2CallbackError),
 
     #[error("Internal error: {0}")]
     Internal(Cow<'static, str>),

@@ -22,7 +22,7 @@ pub struct ProjectCreateRequest {
 }
 
 pub(crate) async fn create_project(
-    client: &mut Client,
+    client: &Client,
     input: &ProjectCreateRequest,
 ) -> Result<ProjectResponse> {
     validate!(input);

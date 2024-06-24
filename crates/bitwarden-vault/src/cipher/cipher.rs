@@ -16,8 +16,10 @@ use super::{
     local_data::{LocalData, LocalDataView},
     secure_note,
 };
-use crate::Fido2CredentialView;
-use crate::{password_history, Fido2CredentialFullView, Login, LoginView, VaultParseError};
+use crate::{
+    password_history, Fido2CredentialFullView, Fido2CredentialView, Login, LoginView,
+    VaultParseError,
+};
 
 #[derive(Debug, Error)]
 pub enum CipherError {

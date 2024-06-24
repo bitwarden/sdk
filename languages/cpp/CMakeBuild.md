@@ -21,7 +21,7 @@ The output contains two dynamic libraries:
 One should be in the root directory of the C++ wrapper (the same level where is CMakeLists.txt placed). Paths of the three libraries should be placed inside the cmake build command:
 
 ```bash
-mkdir build
+mkdir -p build
 cd build
 cmake .. -DNLOHMANN=/path/to/include/nlohmann -DBOOST=/path/to/include/boost -DTARGET=relative/path/to/libbitwarden_c
 cmake --build .

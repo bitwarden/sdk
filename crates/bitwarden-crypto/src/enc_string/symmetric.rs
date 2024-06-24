@@ -266,6 +266,12 @@ impl KeyEncryptable<SymmetricCryptoKey, EncString> for String {
     }
 }
 
+impl KeyEncryptable<SymmetricCryptoKey, EncString> for &str {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<EncString> {
+        self.as_bytes().encrypt_with_key(key)
+    }
+}
+
 impl KeyDecryptable<SymmetricCryptoKey, String> for EncString {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<String> {
         let dec: Vec<u8> = self.decrypt_with_key(key)?;

@@ -40,21 +40,9 @@ pub(crate) async fn update_secret(
         .ok_or(VaultLocked)?;
 
     let secret = Some(SecretUpdateRequestModel {
-        key: input
-            .key
-            .trim()
-            .to_string()
-            .clone()
-            .encrypt_with_key(key)?
-            .to_string(),
+        key: input.key.clone().trim().encrypt_with_key(key)?.to_string(),
         value: input.value.clone().encrypt_with_key(key)?.to_string(),
-        note: input
-            .note
-            .trim()
-            .to_string()
-            .clone()
-            .encrypt_with_key(key)?
-            .to_string(),
+        note: input.note.clone().trim().encrypt_with_key(key)?.to_string(),
         project_ids: input.project_ids.clone(),
     });
 

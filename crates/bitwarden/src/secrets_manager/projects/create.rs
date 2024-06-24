@@ -33,13 +33,7 @@ pub(crate) async fn create_project(
         .ok_or(VaultLocked)?;
 
     let project = Some(ProjectCreateRequestModel {
-        name: input
-            .name
-            .trim()
-            .to_string()
-            .clone()
-            .encrypt_with_key(key)?
-            .to_string(),
+        name: input.name.clone().trim().encrypt_with_key(key)?.to_string(),
     });
 
     let config = client.get_api_configurations().await;

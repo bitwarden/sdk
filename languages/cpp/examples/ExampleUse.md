@@ -90,33 +90,21 @@ Compile:
 
 ```bash
 cd examples
-clang++ -std=c++20 -I../include -I/path/to/include/nlohmann  -I/path/to/include/boost -L../build/ -o MyBitwardenApp Wrapper.cpp -lBitwardenClient -ldl
+clang++ -std=c++20 -I../include -I/path/to/include/nlohmann -I/path/to/include/boost -L../build/ -o MyBitwardenApp Wrapper.cpp -lBitwardenClient -ldl
 ```
 
 for Windows `-ldl` should be excluded,
+
+for macOS nlohmann and boost libraries installed with homebrew the following can be used:
+
+```bash
+-I/opt/homebrew/include
+```
+
+for Windows `-ldl` should be excluded.
 
 The result is `MyBitwardenApp` in the `examples` directory, and can be ran from the `examples` directory:
 
 ```bash
 ./MyBitwardenApp
-```
-
-#### Example
-
-##### macOS
-
-Set environment variables:
-
-```bash
-export DYLD_LIBRARY_PATH=/path/to/your/library:$DYLD_LIBRARY_PATH
-export ACCESS_TOKEN=<"access-token">
-export ORGANIZATION_ID=<"organization-id">
-export API_URL=http://localhost:4000
-export IDENTITY_URL=http://localhost:33656
-```
-
-Compile:
-
-```bash
-clang++ -std=c++20 -I../include -I/opt/homebrew/include -L../build/ -o MyBitwardenApp Wrapper.cpp -lBitwardenClient -ldl
 ```

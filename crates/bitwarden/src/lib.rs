@@ -15,11 +15,13 @@
 //! All operations in this crate are done via a [Client]:
 //!
 //! ```rust
-//! use bitwarden::{
-//!     auth::login::AccessTokenLoginRequest, error::Result,
-//!     secrets_manager::secrets::SecretIdentifiersRequest, Client, ClientSettings, DeviceType,
-//! };
-//! use uuid::Uuid;
+//!  use bitwarden::{
+//!      auth::login::AccessTokenLoginRequest,
+//!      error::Result,
+//!      secrets_manager::{secrets::SecretIdentifiersRequest, ClientSecretsExt},
+//!      Client, ClientSettings, DeviceType,
+//!  };
+//!  use uuid::Uuid;
 //!
 //! async fn test() -> Result<()> {
 //!     // Use the default values

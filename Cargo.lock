@@ -368,6 +368,7 @@ dependencies = [
  "bitwarden-sm",
  "bitwarden-vault",
  "thiserror",
+ "uuid",
 ]
 
 [[package]]

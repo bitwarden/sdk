@@ -1,8 +1,8 @@
-# EXAMPLES
+# Examples
 
-## PREREQUISITES
+## Prerequisites
 
-### BITWARDEN Libraries
+### Bitwarden Libraries
 
 Have the two Bitwarden libraries at the same path:
 
@@ -17,7 +17,7 @@ For each OS the library files will be the following:
 
 Follow the [cmake build guide](CMakeBuild.md) to create the libraries locally.
 
-### INCLUDE directory
+### Include Directory
 
 `include` directory contains:
 
@@ -29,12 +29,12 @@ Follow the [cmake build guide](CMakeBuild.md) to create the libraries locally.
 - `Secrets.h`
 - `schemas.hpp`
 
-### Other libraries
+### Other Libraries
 
 - `nlohmann-json` (<https://github.com/nlohmann/json>)
 - `boost` (<https://www.boost.org/>)
 
-### COMPILING
+### Compiling
 
 Use g++/clang++ for compiling.
 
@@ -57,7 +57,7 @@ Example of the folder structure (macOS):
         --`Wrapper.cpp`
 ```
 
-Add the environment path for the Bitwarden libraries.
+Set the environment variable path for the Bitwarden libraries.
 
 For macOS:
 
@@ -77,7 +77,7 @@ For Windows:
  set PATH=%PATH%;C:\path\to\your\library
 ```
 
-Export environment variables used in `Wrapper.cpp`:
+Set environment variables used in `Wrapper.cpp`:
 
 ```bash
 export ACCESS_TOKEN=<"access-token">
@@ -95,7 +95,7 @@ clang++ -std=c++20 -I../include -I/path/to/include/nlohmann  -I/path/to/include/
 
 for Windows `-ldl` should be excluded,
 
-The result is `MyBitwardenApp` in the `examples` directory, and one can run it from the `examples` directory:
+The result is `MyBitwardenApp` in the `examples` directory, and can be ran from the `examples` directory:
 
 ```bash
 ./MyBitwardenApp
@@ -105,7 +105,7 @@ The result is `MyBitwardenApp` in the `examples` directory, and one can run it f
 
 ### macOS
 
-Export:
+Set environment variables:
 
 ```bash
 export DYLD_LIBRARY_PATH=/path/to/your/library:$DYLD_LIBRARY_PATH

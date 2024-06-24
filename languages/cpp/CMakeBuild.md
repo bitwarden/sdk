@@ -1,19 +1,24 @@
-# CMAKE build
+# CMake Build
 
-## INTRODUCTION
+## Introduction
 
-Cmake is used to build the c++ Bitwarden client library. Output should be placed in the build directory. The output contains two dynamic libraries: one that we are building `BitwardenClient` and another that the building library uses `bitwarden_c`.
+Cmake is used to build the C++ Bitwarden client library. Output should be placed in the build directory.
 
-## PREREQUISITES
+The output contains two dynamic libraries:
+
+- The C++ client `BitwardenClient`
+- The Bitwarden library used by the C++ client `bitwarden_c`.
+
+## Prerequisites
 
 - Cmake installed, minimum version 3.15
 - `schemas.hpp` generated into `include` directory
 - installed `nlohmann-json` library
 - installed `boost` library
 
-## BUILD commands
+## Build Commands
 
-One should be in the root directory of the c++ wrapper (the same level where is CMakeLists.txt placed). Paths of the three libraries should be placed inside the cmake build command:
+One should be in the root directory of the C++ wrapper (the same level where is CMakeLists.txt placed). Paths of the three libraries should be placed inside the cmake build command:
 
 ```bash
 mkdir build
@@ -26,7 +31,7 @@ cmake --build .
 
 ### macOS
 
-#### Install prerequisites
+#### Install Prerequisites
 
 ```bash
 brew install cmake

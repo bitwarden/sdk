@@ -26,6 +26,7 @@ pub struct AuthRequestTokenRequest {
     access_code: String,
 }
 
+#[allow(dead_code)]
 impl AuthRequestTokenRequest {
     pub fn new(
         email: &str,

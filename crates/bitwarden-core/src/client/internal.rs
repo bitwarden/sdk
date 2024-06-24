@@ -1,18 +1,22 @@
 use std::sync::{Arc, RwLock};
 
-use bitwarden_crypto::{AsymmetricEncString, EncString, Kdf, MasterKey, SymmetricCryptoKey};
+#[cfg(any(feature = "internal", feature = "secrets"))]
+use bitwarden_crypto::SymmetricCryptoKey;
+#[cfg(feature = "internal")]
+use bitwarden_crypto::{AsymmetricEncString, EncString, Kdf, MasterKey};
 use chrono::Utc;
 use uuid::Uuid;
 
-use super::{
-    encryption_settings::EncryptionSettings,
-    login_method::{LoginMethod, ServiceAccountLoginMethod},
-};
+#[cfg(feature = "secrets")]
+use super::login_method::ServiceAccountLoginMethod;
+use super::{encryption_settings::EncryptionSettings, login_method::LoginMethod};
 #[cfg(feature = "internal")]
 use super::{flags::Flags, login_method::UserLoginMethod};
+#[cfg(feature = "internal")]
+use crate::error::Error;
 use crate::{
     auth::renew::renew_token,
-    error::{Error, Result, VaultLocked},
+    error::{Result, VaultLocked},
     DeviceType,
 };
 
@@ -81,6 +85,7 @@ impl InternalClient {
             .expect("RwLock is not poisoned")
             .as_deref()
         {
+            #[cfg(feature = "secrets")]
             Some(LoginMethod::ServiceAccount(ServiceAccountLoginMethod::AccessToken {
                 organization_id,
                 ..
@@ -89,6 +94,7 @@ impl InternalClient {
         }
     }
 
+    #[cfg(any(feature = "internal", feature = "secrets"))]
     pub(crate) fn set_login_method(&self, login_method: LoginMethod) {
         use log::debug;
 
@@ -215,6 +221,7 @@ impl InternalClient {
         self.initialize_user_crypto_decrypted_key(decrypted_user_key, private_key)
     }
 
+    #[cfg(feature = "secrets")]
     pub(crate) fn initialize_crypto_single_key(&self, key: SymmetricCryptoKey) {
         *self
             .encryption_settings

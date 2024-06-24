@@ -1,7 +1,5 @@
 use std::sync::{Arc, RwLock};
 
-#[cfg(feature = "internal")]
-pub use bitwarden_crypto::Kdf;
 use reqwest::header::{self, HeaderValue};
 
 use super::internal::InternalClient;

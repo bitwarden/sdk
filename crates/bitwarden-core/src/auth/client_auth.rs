@@ -1,30 +1,26 @@
 #[cfg(feature = "internal")]
-use bitwarden_crypto::{AsymmetricEncString, DeviceKey, TrustDeviceResponse};
+use bitwarden_crypto::{AsymmetricEncString, DeviceKey, Kdf, TrustDeviceResponse};
 
 #[cfg(feature = "internal")]
 use crate::auth::login::NewAuthRequestResponse;
 #[cfg(feature = "secrets")]
 use crate::auth::login::{login_access_token, AccessTokenLoginRequest, AccessTokenLoginResponse};
-use crate::{auth::renew::renew_token, error::Result, Client};
 #[cfg(feature = "internal")]
-use crate::{
-    auth::{
-        auth_request::{approve_auth_request, new_auth_request},
-        login::{
-            login_api_key, login_password, send_two_factor_email, ApiKeyLoginRequest,
-            ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse,
-            TwoFactorEmailRequest,
-        },
-        password::{
-            password_strength, satisfies_policy, validate_password, validate_password_user_key,
-            MasterPasswordPolicyOptions,
-        },
-        register::{make_register_keys, register},
-        tde::{make_register_tde_keys, RegisterTdeKeyResponse},
-        AuthRequestResponse, RegisterKeyResponse, RegisterRequest,
+use crate::auth::{
+    auth_request::{approve_auth_request, new_auth_request},
+    login::{
+        login_api_key, login_password, send_two_factor_email, ApiKeyLoginRequest,
+        ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse, TwoFactorEmailRequest,
     },
-    client::Kdf,
+    password::{
+        password_strength, satisfies_policy, validate_password, validate_password_user_key,
+        MasterPasswordPolicyOptions,
+    },
+    register::{make_register_keys, register},
+    tde::{make_register_tde_keys, RegisterTdeKeyResponse},
+    AuthRequestResponse, RegisterKeyResponse, RegisterRequest,
 };
+use crate::{auth::renew::renew_token, error::Result, Client};
 
 pub struct ClientAuth<'a> {
     pub(crate) client: &'a crate::Client,

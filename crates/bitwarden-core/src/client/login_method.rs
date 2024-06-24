@@ -1,21 +1,25 @@
+#[cfg(feature = "secrets")]
 use std::path::PathBuf;
 
 use bitwarden_crypto::Kdf;
+#[cfg(feature = "secrets")]
 use uuid::Uuid;
 
+#[cfg(feature = "secrets")]
 use crate::auth::AccessToken;
 
 #[derive(Debug)]
 pub(crate) enum LoginMethod {
-    #[cfg(feature = "internal")]
+    #[allow(dead_code)]
     User(UserLoginMethod),
     // TODO: Organizations supports api key
     // Organization(OrganizationLoginMethod),
+    #[cfg(feature = "secrets")]
     ServiceAccount(ServiceAccountLoginMethod),
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
-#[cfg(feature = "internal")]
 pub(crate) enum UserLoginMethod {
     Username {
         client_id: String,
@@ -31,6 +35,7 @@ pub(crate) enum UserLoginMethod {
     },
 }
 
+#[cfg(feature = "secrets")]
 #[derive(Debug)]
 pub(crate) enum ServiceAccountLoginMethod {
     AccessToken {

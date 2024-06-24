@@ -18,6 +18,7 @@ pub(crate) fn validate_password(
         .get_login_method()
         .ok_or(Error::NotAuthenticated)?;
 
+    #[allow(irrefutable_let_patterns)]
     if let LoginMethod::User(login_method) = login_method.as_ref() {
         match login_method {
             UserLoginMethod::Username { email, kdf, .. }
@@ -50,6 +51,7 @@ pub(crate) fn validate_password_user_key(
         .get_login_method()
         .ok_or(Error::NotAuthenticated)?;
 
+    #[allow(irrefutable_let_patterns)]
     if let LoginMethod::User(login_method) = login_method.as_ref() {
         match login_method {
             UserLoginMethod::Username { email, kdf, .. }
@@ -81,13 +83,15 @@ pub(crate) fn validate_password_user_key(
 
 #[cfg(test)]
 mod tests {
+    use bitwarden_crypto::Kdf;
+
     use crate::auth::password::{validate::validate_password_user_key, validate_password};
 
     #[test]
     fn test_validate_password() {
         use std::num::NonZeroU32;
 
-        use crate::client::{Client, Kdf, LoginMethod, UserLoginMethod};
+        use crate::client::{Client, LoginMethod, UserLoginMethod};
 
         let client = Client::new(None);
         client
@@ -113,7 +117,9 @@ mod tests {
     fn test_validate_password_user_key() {
         use std::num::NonZeroU32;
 
-        use crate::client::{Client, Kdf, LoginMethod, UserLoginMethod};
+        use bitwarden_crypto::Kdf;
+
+        use crate::client::{Client, LoginMethod, UserLoginMethod};
 
         let client = Client::new(None);
 
@@ -156,7 +162,9 @@ mod tests {
     fn test_validate_password_user_key_wrong_password() {
         use std::num::NonZeroU32;
 
-        use crate::client::{Client, Kdf, LoginMethod, UserLoginMethod};
+        use bitwarden_crypto::Kdf;
+
+        use crate::client::{Client, LoginMethod, UserLoginMethod};
 
         let client = Client::new(None);
 

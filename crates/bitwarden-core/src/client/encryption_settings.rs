@@ -59,6 +59,7 @@ impl EncryptionSettings {
 
     /// Initialize the encryption settings with only a single decrypted key.
     /// This is used only for logging in Secrets Manager with an access token
+    #[cfg(feature = "secrets")]
     pub(crate) fn new_single_key(key: SymmetricCryptoKey) -> Self {
         EncryptionSettings {
             user_key: key,

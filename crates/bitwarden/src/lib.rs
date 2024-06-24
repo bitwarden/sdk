@@ -79,6 +79,7 @@ pub mod internal {
         pub use bitwarden_vault::*;
     }
 
+    #[cfg(feature = "uniffi")]
     pub mod fido {
         pub use bitwarden_fido::*;
     }

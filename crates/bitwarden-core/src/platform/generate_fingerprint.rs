@@ -54,8 +54,10 @@ pub(crate) fn generate_user_fingerprint(
 mod tests {
     use std::num::NonZeroU32;
 
+    use bitwarden_crypto::Kdf;
+
     use super::*;
-    use crate::{client::Kdf, Client};
+    use crate::Client;
 
     #[test]
     fn test_generate_user_fingerprint() {

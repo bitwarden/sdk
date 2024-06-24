@@ -1,4 +1,6 @@
 #[cfg(feature = "internal")]
+use bitwarden_crypto::Kdf;
+#[cfg(feature = "internal")]
 use log::info;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -6,7 +8,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "internal")]
 use crate::{
     auth::{api::request::PasswordTokenRequest, login::TwoFactorRequest},
-    client::{Kdf, LoginMethod},
+    client::LoginMethod,
     Client,
 };
 use crate::{

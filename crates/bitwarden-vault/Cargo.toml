@@ -23,7 +23,7 @@ uniffi = [
 [dependencies]
 base64 = ">=0.21.2, <0.23"
 bitwarden-api-api = { workspace = true }
-bitwarden-core = { workspace = true }
+bitwarden-core = { workspace = true, features = ["internal"] }
 bitwarden-crypto = { workspace = true }
 chrono = { version = ">=0.4.26, <0.5", features = [
     "clock",

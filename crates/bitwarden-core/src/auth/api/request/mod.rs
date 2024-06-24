@@ -1,21 +1,20 @@
+#[cfg(feature = "secrets")]
 mod access_token_request;
-#[cfg(feature = "internal")]
+#[cfg(feature = "secrets")]
+pub(crate) use access_token_request::*;
+
 mod api_token_request;
+pub(crate) use api_token_request::*;
+
 #[cfg(feature = "internal")]
 mod password_token_request;
 #[cfg(feature = "internal")]
-mod renew_token_request;
-
-pub(crate) use access_token_request::*;
-#[cfg(feature = "internal")]
-pub(crate) use api_token_request::*;
-use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
-#[cfg(feature = "internal")]
 pub(crate) use password_token_request::*;
-#[cfg(feature = "internal")]
+
+mod renew_token_request;
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 pub(crate) use renew_token_request::*;
 
-#[cfg(feature = "internal")]
 mod auth_request_token_request;
 #[cfg(feature = "internal")]
 pub(crate) use auth_request_token_request::*;

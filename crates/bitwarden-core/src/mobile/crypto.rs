@@ -2,14 +2,13 @@ use std::collections::HashMap;
 
 use bitwarden_crypto::{AsymmetricEncString, EncString};
 #[cfg(feature = "internal")]
-use bitwarden_crypto::{KeyDecryptable, KeyEncryptable, MasterKey, SymmetricCryptoKey};
+use bitwarden_crypto::{Kdf, KeyDecryptable, KeyEncryptable, MasterKey, SymmetricCryptoKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "internal")]
 use crate::client::{LoginMethod, UserLoginMethod};
 use crate::{
-    client::Kdf,
     error::{Error, Result},
     Client, VaultLocked,
 };
@@ -218,7 +217,8 @@ pub fn update_password(client: &Client, new_password: String) -> Result<UpdatePa
             UserLoginMethod::Username { email, kdf, .. }
             | UserLoginMethod::ApiKey { email, kdf, .. },
         ) => MasterKey::derive(new_password.as_bytes(), email.as_bytes(), kdf)?,
-        _ => return Err(Error::NotAuthenticated),
+        #[cfg(feature = "secrets")]
+        LoginMethod::ServiceAccount(_) => return Err(Error::NotAuthenticated),
     };
 
     let new_key = new_master_key.encrypt_user_key(user_key)?;
@@ -288,7 +288,8 @@ fn derive_pin_protected_user_key(
             UserLoginMethod::Username { email, kdf, .. }
             | UserLoginMethod::ApiKey { email, kdf, .. },
         ) => MasterKey::derive(pin.as_bytes(), email.as_bytes(), kdf)?,
-        _ => return Err(Error::NotAuthenticated),
+        #[cfg(feature = "secrets")]
+        LoginMethod::ServiceAccount(_) => return Err(Error::NotAuthenticated),
     };
 
     Ok(derived_key.encrypt_user_key(user_key)?)
@@ -315,7 +316,7 @@ pub(super) fn enroll_admin_password_reset(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{client::Kdf, Client};
+    use crate::Client;
 
     #[tokio::test]
     async fn test_update_password() {

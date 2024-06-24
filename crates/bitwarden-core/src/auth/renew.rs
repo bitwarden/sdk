@@ -1,12 +1,15 @@
 use chrono::Utc;
 
-#[cfg(feature = "internal")]
-use crate::{auth::api::request::ApiTokenRequest, client::UserLoginMethod};
+#[cfg(feature = "secrets")]
 use crate::{
-    auth::api::{request::AccessTokenRequest, response::IdentityTokenResponse},
-    client::{internal::InternalClient, LoginMethod, ServiceAccountLoginMethod},
-    error::{Error, Result},
+    auth::api::request::AccessTokenRequest,
+    client::ServiceAccountLoginMethod,
     secrets_manager::state::{self, ClientState},
+};
+use crate::{
+    auth::api::{request::ApiTokenRequest, response::IdentityTokenResponse},
+    client::{internal::InternalClient, LoginMethod, UserLoginMethod},
+    error::{Error, Result},
 };
 
 pub(crate) async fn renew_token(client: &InternalClient) -> Result<()> {
@@ -35,7 +38,6 @@ pub(crate) async fn renew_token(client: &InternalClient) -> Result<()> {
             .clone();
 
         let res = match login_method.as_ref() {
-            #[cfg(feature = "internal")]
             LoginMethod::User(u) => match u {
                 UserLoginMethod::Username { client_id, .. } => {
                     let refresh = tokens.refresh_token.ok_or(Error::NotAuthenticated)?;
@@ -54,6 +56,7 @@ pub(crate) async fn renew_token(client: &InternalClient) -> Result<()> {
                         .await?
                 }
             },
+            #[cfg(feature = "secrets")]
             LoginMethod::ServiceAccount(s) => match s {
                 ServiceAccountLoginMethod::AccessToken {
                     access_token,

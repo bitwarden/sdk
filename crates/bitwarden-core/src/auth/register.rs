@@ -2,11 +2,11 @@ use bitwarden_api_identity::{
     apis::accounts_api::accounts_register_post,
     models::{KeysRequestModel, RegisterRequestModel},
 };
-use bitwarden_crypto::{default_pbkdf2_iterations, HashPurpose, MasterKey, RsaKeyPair};
+use bitwarden_crypto::{default_pbkdf2_iterations, HashPurpose, Kdf, MasterKey, RsaKeyPair};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{client::Kdf, error::Result, Client};
+use crate::{error::Result, Client};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

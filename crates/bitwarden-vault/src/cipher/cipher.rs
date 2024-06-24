@@ -16,7 +16,6 @@ use super::{
     local_data::{LocalData, LocalDataView},
     secure_note,
 };
-#[cfg(feature = "uniffi")]
 use crate::Fido2CredentialView;
 use crate::{password_history, Fido2CredentialFullView, Login, LoginView, VaultParseError};
 

@@ -1,3 +1,6 @@
+#[cfg(feature = "internal")]
+use bitwarden_crypto::{HashPurpose, Kdf, MasterKey};
+
 mod access_token;
 pub(super) mod api;
 pub mod client_auth;
@@ -8,25 +11,26 @@ pub mod password;
 pub mod renew;
 pub use access_token::AccessToken;
 pub use jwt_token::JWTToken;
-#[cfg(feature = "internal")]
-mod register;
-#[cfg(feature = "internal")]
-pub(crate) use auth_request::{auth_request_decrypt_master_key, auth_request_decrypt_user_key};
-#[cfg(feature = "internal")]
-use bitwarden_crypto::{HashPurpose, MasterKey};
-#[cfg(feature = "internal")]
-pub use register::{RegisterKeyResponse, RegisterRequest};
+
 #[cfg(feature = "internal")]
 mod auth_request;
 #[cfg(feature = "internal")]
 pub use auth_request::AuthRequestResponse;
+#[cfg(feature = "internal")]
+pub(crate) use auth_request::{auth_request_decrypt_master_key, auth_request_decrypt_user_key};
+
+#[cfg(feature = "internal")]
+mod register;
+#[cfg(feature = "internal")]
+pub use register::{RegisterKeyResponse, RegisterRequest};
+
 #[cfg(feature = "internal")]
 mod tde;
 #[cfg(feature = "internal")]
 pub use tde::RegisterTdeKeyResponse;
 
 #[cfg(feature = "internal")]
-use crate::{client::Kdf, error::Result};
+use crate::error::Result;
 
 #[cfg(feature = "internal")]
 fn determine_password_hash(

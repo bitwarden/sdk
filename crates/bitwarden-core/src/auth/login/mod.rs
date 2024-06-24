@@ -1,6 +1,8 @@
 #[cfg(feature = "internal")]
+use bitwarden_crypto::Kdf;
+#[cfg(feature = "internal")]
 use {
-    crate::{client::Kdf, error::Result, Client},
+    crate::{error::Result, Client},
     bitwarden_api_identity::{
         apis::accounts_api::accounts_prelogin_post,
         models::{PreloginRequestModel, PreloginResponseModel},
@@ -9,11 +11,13 @@ use {
 
 pub mod response;
 
+#[cfg(any(feature = "internal", feature = "secrets"))]
 mod password;
 #[cfg(feature = "internal")]
 pub(crate) use password::login_password;
 #[cfg(feature = "internal")]
 pub use password::PasswordLoginRequest;
+#[cfg(any(feature = "internal", feature = "secrets"))]
 pub use password::PasswordLoginResponse;
 #[cfg(feature = "internal")]
 mod two_factor;

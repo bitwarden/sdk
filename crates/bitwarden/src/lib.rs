@@ -88,3 +88,6 @@ pub mod generators {
 }
 
 pub use bitwarden_crypto::ZeroizingAllocator;
+
+#[cfg(target_os = "android")]
+mod android_support;

@@ -370,6 +370,8 @@ dependencies = [
  "bitwarden-vault",
  "chrono",
  "getrandom",
+ "jni",
+ "libloading",
  "log",
  "rand",
  "rand_chacha",
@@ -1982,7 +1984,6 @@ dependencies = [
  "tokio",
  "tokio-rustls",
  "tower-service",
- "webpki-roots",
 ]
 
 [[package]]
@@ -3162,7 +3163,6 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "webpki-roots",
  "winreg",
 ]
 

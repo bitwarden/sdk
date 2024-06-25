@@ -5,6 +5,7 @@ use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey};
 use bitwarden_vault::{
     Attachment, AttachmentEncryptResult, AttachmentFile, AttachmentFileView, AttachmentView, Cipher,
 };
+use uuid::Uuid;
 
 use crate::{
     error::{Error, Result},
@@ -33,6 +34,29 @@ impl<'a> ClientAttachments<'a> {
         }
         .encrypt_with_key(key)?)
     }
+
+    /// Temporary method used for re-encrypting attachments using the attachment share function when
+    /// moving a cipher between organizations
+    pub fn encrypt_buffer_org_id(
+        &self,
+        cipher: Cipher,
+        attachment: AttachmentView,
+        new_org_id: Uuid,
+        buffer: &[u8],
+    ) -> Result<AttachmentEncryptResult> {
+        let enc = self.client.get_encryption_settings()?;
+        let key = cipher
+            .locate_key(&enc, &Some(new_org_id))
+            .ok_or(VaultLocked)?;
+
+        Ok(AttachmentFileView {
+            cipher,
+            attachment,
+            contents: buffer,
+        }
+        .encrypt_with_key(key)?)
+    }
+
     pub fn encrypt_file(
         &self,
         cipher: Cipher,

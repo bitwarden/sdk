@@ -1,10 +1,9 @@
 use bitwarden::{
     auth::RegisterRequest,
-    client::client_settings::ClientSettings,
     generators::{PassphraseGeneratorRequest, PasswordGeneratorRequest},
+    ClientSettings,
 };
 use bitwarden_cli::{install_color_eyre, text_prompt_when_none, Color};
-use bitwarden_crypto::SensitiveString;
 use clap::{command, Args, CommandFactory, Parser, Subcommand};
 use color_eyre::eyre::Result;
 use inquire::Password;
@@ -189,14 +188,14 @@ async fn process_commands() -> Result<()> {
                 identity_url: format!("{}/identity", server),
                 ..Default::default()
             });
-            let mut client = bitwarden::Client::new(settings);
+            let client = bitwarden::Client::new(settings);
 
             let email = text_prompt_when_none("Email", email)?;
-            let password = SensitiveString::new(Box::new(Password::new("Password").prompt()?));
+            let password = Password::new("Password").prompt()?;
 
             client
                 .auth()
-                .register(RegisterRequest {
+                .register(&RegisterRequest {
                     email,
                     name,
                     password,
@@ -218,30 +217,24 @@ async fn process_commands() -> Result<()> {
         Commands::Sync {} => todo!(),
         Commands::Generate { command } => match command {
             GeneratorCommands::Password(args) => {
-                let password = client
-                    .generator()
-                    .password(PasswordGeneratorRequest {
-                        lowercase: args.lowercase,
-                        uppercase: args.uppercase,
-                        numbers: args.numbers,
-                        special: args.special,
-                        length: args.length,
-                        ..Default::default()
-                    })
-                    .await?;
+                let password = client.generator().password(PasswordGeneratorRequest {
+                    lowercase: args.lowercase,
+                    uppercase: args.uppercase,
+                    numbers: args.numbers,
+                    special: args.special,
+                    length: args.length,
+                    ..Default::default()
+                })?;
 
                 println!("{}", password);
             }
             GeneratorCommands::Passphrase(args) => {
-                let passphrase = client
-                    .generator()
-                    .passphrase(PassphraseGeneratorRequest {
-                        num_words: args.words,
-                        word_separator: args.separator.to_string(),
-                        capitalize: args.capitalize,
-                        include_number: args.include_number,
-                    })
-                    .await?;
+                let passphrase = client.generator().passphrase(PassphraseGeneratorRequest {
+                    num_words: args.words,
+                    word_separator: args.separator.to_string(),
+                    capitalize: args.capitalize,
+                    include_number: args.include_number,
+                })?;
 
                 println!("{}", passphrase);
             }

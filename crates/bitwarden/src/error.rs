@@ -13,19 +13,19 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum Error {
+    #[error(transparent)]
+    MissingFieldError(#[from] bitwarden_core::MissingFieldError),
+    #[error(transparent)]
+    VaultLocked(#[from] bitwarden_core::VaultLocked),
+
     #[error("The client is not authenticated or the session has expired")]
     NotAuthenticated,
-
-    #[error("The client vault is locked and needs to be unlocked before use")]
-    VaultLocked,
 
     #[error("Access token is not in a valid format: {0}")]
     AccessTokenInvalid(#[from] AccessTokenInvalidError),
 
     #[error("The response received was invalid and could not be processed")]
     InvalidResponse,
-    #[error("The response received was missing some of the required fields: {0}")]
-    MissingFields(&'static str),
 
     #[error("Cryptography error, {0}")]
     Crypto(#[from] bitwarden_crypto::CryptoError),
@@ -64,9 +64,54 @@ pub enum Error {
     #[error(transparent)]
     PasswordError(#[from] PasswordError),
 
+    // Send
+    #[cfg(feature = "internal")]
+    #[error(transparent)]
+    SendParseError(#[from] bitwarden_send::SendParseError),
+
+    // Vault
+    #[cfg(feature = "internal")]
+    #[error(transparent)]
+    Cipher(#[from] bitwarden_vault::CipherError),
+    #[cfg(feature = "internal")]
+    #[error(transparent)]
+    VaultParse(#[from] bitwarden_vault::VaultParseError),
+    #[cfg(feature = "internal")]
+    #[error(transparent)]
+    Totp(#[from] bitwarden_vault::TotpError),
+
     #[cfg(feature = "internal")]
     #[error(transparent)]
     ExportError(#[from] ExportError),
+
+    // Fido
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
+    #[error(transparent)]
+    MakeCredential(#[from] bitwarden_fido::MakeCredentialError),
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
+    #[error(transparent)]
+    GetAssertion(#[from] bitwarden_fido::GetAssertionError),
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
+    #[error(transparent)]
+    SilentlyDiscoverCredentials(#[from] bitwarden_fido::SilentlyDiscoverCredentialsError),
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
+    #[error(transparent)]
+    CredentialsForAutofillError(#[from] bitwarden_fido::CredentialsForAutofillError),
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
+    #[error(transparent)]
+    DecryptFido2AutofillCredentialsError(
+        #[from] crate::platform::fido2::DecryptFido2AutofillCredentialsError,
+    ),
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
+    #[error(transparent)]
+    Fido2Client(#[from] bitwarden_fido::Fido2ClientError),
+    #[cfg(all(feature = "uniffi", feature = "internal"))]
+    #[error("Fido2 Callback error: {0:?}")]
+    Fido2CallbackError(#[from] bitwarden_fido::Fido2CallbackError),
+
+    #[cfg(feature = "uniffi")]
+    #[error("Uniffi callback error: {0}")]
+    UniffiCallbackError(#[from] uniffi::UnexpectedUniFFICallbackError),
 
     #[error("Internal error: {0}")]
     Internal(Cow<'static, str>),
@@ -132,19 +177,5 @@ macro_rules! impl_bitwarden_error {
 }
 impl_bitwarden_error!(ApiError);
 impl_bitwarden_error!(IdentityError);
-
-/// This macro is used to require that a value is present or return an error otherwise.
-/// It is equivalent to using `val.ok_or(Error::MissingFields)?`, but easier to use and
-/// with a more descriptive error message.
-/// Note that this macro will return early from the function if the value is not present.
-macro_rules! require {
-    ($val:expr) => {
-        match $val {
-            Some(val) => val,
-            None => return Err($crate::error::Error::MissingFields(stringify!($val))),
-        }
-    };
-}
-pub(crate) use require;
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

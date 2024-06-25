@@ -1,7 +1,7 @@
-use base64::engine::general_purpose::STANDARD;
+use base64::{engine::general_purpose::STANDARD, Engine};
 use bitwarden_crypto::{
-    AsymmetricEncString, AsymmetricPublicCryptoKey, DeviceKey, EncString, Kdf, SensitiveString,
-    SymmetricCryptoKey, TrustDeviceResponse, UserKey,
+    AsymmetricEncString, AsymmetricPublicCryptoKey, DeviceKey, EncString, Kdf, SymmetricCryptoKey,
+    TrustDeviceResponse, UserKey,
 };
 
 use crate::{error::Result, Client};
@@ -10,14 +10,12 @@ use crate::{error::Result, Client};
 /// generated user key, and encrypts the user key with the organization public key for admin
 /// password reset. If remember_device is true, it also generates a device key.
 pub(super) fn make_register_tde_keys(
-    client: &mut Client,
+    client: &Client,
     email: String,
     org_public_key: String,
     remember_device: bool,
 ) -> Result<RegisterTdeKeyResponse> {
-    let public_key = AsymmetricPublicCryptoKey::from_der(
-        SensitiveString::new(Box::new(org_public_key)).decode_base64(STANDARD)?,
-    )?;
+    let public_key = AsymmetricPublicCryptoKey::from_der(&STANDARD.decode(org_public_key)?)?;
 
     let mut rng = rand::thread_rng();
 
@@ -25,7 +23,7 @@ pub(super) fn make_register_tde_keys(
     let key_pair = user_key.make_key_pair()?;
 
     let admin_reset =
-        AsymmetricEncString::encrypt_rsa2048_oaep_sha1(user_key.0.to_vec().expose(), &public_key)?;
+        AsymmetricEncString::encrypt_rsa2048_oaep_sha1(&user_key.0.to_vec(), &public_key)?;
 
     let device_key = if remember_device {
         Some(DeviceKey::trust_device(&user_key.0)?)
@@ -51,7 +49,7 @@ pub(super) fn make_register_tde_keys(
     })
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct RegisterTdeKeyResponse {
     pub private_key: EncString,
     pub public_key: String,

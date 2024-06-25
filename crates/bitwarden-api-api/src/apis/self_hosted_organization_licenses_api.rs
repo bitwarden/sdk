@@ -9,9 +9,10 @@
  */
 
 use reqwest;
+use serde::{Deserialize, Serialize};
 
 use super::{configuration, Error};
-use crate::apis::ResponseContent;
+use crate::{apis::ResponseContent, models};
 
 /// struct for typed errors of method [`organizations_licenses_self_hosted_id_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -46,7 +47,7 @@ pub async fn organizations_licenses_self_hosted_id_post(
     let local_var_uri_str = format!(
         "{}/organizations/licenses/self-hosted/{id}",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -93,7 +94,7 @@ pub async fn organizations_licenses_self_hosted_id_sync_post(
     let local_var_uri_str = format!(
         "{}/organizations/licenses/self-hosted/{id}/sync",
         local_var_configuration.base_path,
-        id = crate::apis::urlencode(id.to_string())
+        id = crate::apis::urlencode(id)
     );
     let mut local_var_req_builder =
         local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
@@ -133,8 +134,7 @@ pub async fn organizations_licenses_self_hosted_post(
     keys_period_encrypted_private_key: &str,
     license: std::path::PathBuf,
     collection_name: Option<&str>,
-) -> Result<crate::models::OrganizationResponseModel, Error<OrganizationsLicensesSelfHostedPostError>>
-{
+) -> Result<models::OrganizationResponseModel, Error<OrganizationsLicensesSelfHostedPostError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;

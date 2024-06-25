@@ -2,9 +2,7 @@ use bitwarden_api_identity::{
     apis::accounts_api::accounts_register_post,
     models::{KeysRequestModel, RegisterRequestModel},
 };
-use bitwarden_crypto::{
-    default_pbkdf2_iterations, HashPurpose, MasterKey, RsaKeyPair, SensitiveString,
-};
+use bitwarden_crypto::{default_pbkdf2_iterations, HashPurpose, MasterKey, RsaKeyPair};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -15,27 +13,27 @@ use crate::{client::Kdf, error::Result, Client};
 pub struct RegisterRequest {
     pub email: String,
     pub name: Option<String>,
-    pub password: SensitiveString,
+    pub password: String,
     pub password_hint: Option<String>,
 }
 
 /// Half baked implementation of user registration
-pub(super) async fn register(client: &mut Client, req: RegisterRequest) -> Result<()> {
+pub(super) async fn register(client: &Client, req: &RegisterRequest) -> Result<()> {
     let config = client.get_api_configurations().await;
 
     let kdf = Kdf::default();
 
-    let keys = make_register_keys(req.email.clone(), req.password, kdf)?;
+    let keys = make_register_keys(req.email.to_owned(), req.password.to_owned(), kdf)?;
 
     accounts_register_post(
         &config.identity,
         Some(RegisterRequestModel {
-            name: req.name,
-            email: req.email,
-            master_password_hash: keys.master_password_hash.expose().clone(),
-            master_password_hint: req.password_hint,
+            name: req.name.to_owned(),
+            email: req.email.to_owned(),
+            master_password_hash: keys.master_password_hash,
+            master_password_hint: req.password_hint.to_owned(),
             captcha_response: None, // TODO: Add
-            key: Some(keys.encrypted_user_key),
+            key: Some(keys.encrypted_user_key.to_string()),
             keys: Some(Box::new(KeysRequestModel {
                 public_key: Some(keys.keys.public),
                 encrypted_private_key: keys.keys.private.to_string(),
@@ -56,13 +54,12 @@ pub(super) async fn register(client: &mut Client, req: RegisterRequest) -> Resul
 
 pub(super) fn make_register_keys(
     email: String,
-    password: SensitiveString,
+    password: String,
     kdf: Kdf,
 ) -> Result<RegisterKeyResponse> {
-    let password_vec = password.into();
-    let master_key = MasterKey::derive(&password_vec, email.as_bytes(), &kdf)?;
+    let master_key = MasterKey::derive(password.as_bytes(), email.as_bytes(), &kdf)?;
     let master_password_hash =
-        master_key.derive_master_key_hash(&password_vec, HashPurpose::ServerAuthorization)?;
+        master_key.derive_master_key_hash(password.as_bytes(), HashPurpose::ServerAuthorization)?;
     let (user_key, encrypted_user_key) = master_key.make_user_key()?;
     let keys = user_key.make_key_pair()?;
 
@@ -73,9 +70,9 @@ pub(super) fn make_register_keys(
     })
 }
 
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct RegisterKeyResponse {
-    pub master_password_hash: SensitiveString,
+    pub master_password_hash: String,
     pub encrypted_user_key: String,
     pub keys: RsaKeyPair,
 }

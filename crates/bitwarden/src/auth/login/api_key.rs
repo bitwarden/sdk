@@ -1,4 +1,5 @@
-use bitwarden_crypto::{EncString, MasterKey, SensitiveString};
+use bitwarden_core::require;
+use bitwarden_crypto::{EncString, MasterKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -9,18 +10,18 @@ use crate::{
         JWTToken,
     },
     client::{LoginMethod, UserLoginMethod},
-    error::{require, Result},
+    error::Result,
     Client,
 };
 
 pub(crate) async fn login_api_key(
-    client: &mut Client,
-    input: ApiKeyLoginRequest,
+    client: &Client,
+    input: &ApiKeyLoginRequest,
 ) -> Result<ApiKeyLoginResponse> {
     //info!("api key logging in");
     //debug!("{:#?}, {:#?}", client, input);
 
-    let response = request_api_identity_tokens(client, &input).await?;
+    let response = request_api_identity_tokens(client, input).await?;
 
     if let IdentityTokenResponse::Authenticated(r) = &response {
         let access_token_obj: JWTToken = r.access_token.parse()?;
@@ -38,7 +39,7 @@ pub(crate) async fn login_api_key(
             r.expires_in,
         );
 
-        let master_key = MasterKey::derive(&input.password.into(), email.as_bytes(), &kdf)?;
+        let master_key = MasterKey::derive(input.password.as_bytes(), email.as_bytes(), &kdf)?;
 
         client.set_login_method(LoginMethod::User(UserLoginMethod::ApiKey {
             client_id: input.client_id.to_owned(),
@@ -57,12 +58,12 @@ pub(crate) async fn login_api_key(
 }
 
 async fn request_api_identity_tokens(
-    client: &mut Client,
+    client: &Client,
     input: &ApiKeyLoginRequest,
 ) -> Result<IdentityTokenResponse> {
     let config = client.get_api_configurations().await;
     ApiTokenRequest::new(&input.client_id, &input.client_secret)
-        .send(config)
+        .send(&config)
         .await
 }
 
@@ -76,7 +77,7 @@ pub struct ApiKeyLoginRequest {
     pub client_secret: String,
 
     /// Bitwarden account master password
-    pub password: SensitiveString,
+    pub password: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

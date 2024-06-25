@@ -1,14 +1,15 @@
 use bitwarden_api_api::models::{
     SecretWithProjectsListResponseModel, SecretsWithProjectsInnerSecret,
 };
-use bitwarden_crypto::{Decryptable, DecryptedString, EncString};
+use bitwarden_core::require;
+use bitwarden_crypto::{CryptoError, EncString, KeyDecryptable};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
     client::{encryption_settings::EncryptionSettings, Client},
-    error::{require, Result},
+    error::Result,
 };
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -19,7 +20,7 @@ pub struct SecretIdentifiersRequest {
 }
 
 pub(crate) async fn list_secrets(
-    client: &mut Client,
+    client: &Client,
     input: &SecretIdentifiersRequest,
 ) -> Result<SecretIdentifiersResponse> {
     let config = client.get_api_configurations().await;
@@ -31,7 +32,7 @@ pub(crate) async fn list_secrets(
 
     let enc = client.get_encryption_settings()?;
 
-    SecretIdentifiersResponse::process_response(res, enc)
+    SecretIdentifiersResponse::process_response(res, &enc)
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -42,7 +43,7 @@ pub struct SecretIdentifiersByProjectRequest {
 }
 
 pub(crate) async fn list_secrets_by_project(
-    client: &mut Client,
+    client: &Client,
     input: &SecretIdentifiersByProjectRequest,
 ) -> Result<SecretIdentifiersResponse> {
     let config = client.get_api_configurations().await;
@@ -54,7 +55,7 @@ pub(crate) async fn list_secrets_by_project(
 
     let enc = client.get_encryption_settings()?;
 
-    SecretIdentifiersResponse::process_response(res, enc)
+    SecretIdentifiersResponse::process_response(res, &enc)
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -94,15 +95,18 @@ impl SecretIdentifierResponse {
         enc: &EncryptionSettings,
     ) -> Result<SecretIdentifierResponse> {
         let organization_id = require!(response.organization_id);
+        let enc_key = enc
+            .get_key(&Some(organization_id))
+            .ok_or(CryptoError::MissingKey)?;
 
-        let key: DecryptedString = require!(response.key)
+        let key = require!(response.key)
             .parse::<EncString>()?
-            .decrypt(enc, &Some(organization_id))?;
+            .decrypt_with_key(enc_key)?;
 
         Ok(SecretIdentifierResponse {
             id: require!(response.id),
             organization_id,
-            key: key.expose().to_owned(),
+            key,
         })
     }
 }

@@ -1,14 +1,12 @@
 use bitwarden_api_api::models::SecretUpdateRequestModel;
+use bitwarden_core::VaultLocked;
 use bitwarden_crypto::KeyEncryptable;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::SecretResponse;
-use crate::{
-    client::Client,
-    error::{Error, Result},
-};
+use crate::{client::Client, error::Result};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -25,13 +23,13 @@ pub struct SecretPutRequest {
 }
 
 pub(crate) async fn update_secret(
-    client: &mut Client,
+    client: &Client,
     input: &SecretPutRequest,
 ) -> Result<SecretResponse> {
-    let key = client
-        .get_encryption_settings()?
+    let enc = client.get_encryption_settings()?;
+    let key = enc
         .get_key(&Some(input.organization_id))
-        .ok_or(Error::VaultLocked)?;
+        .ok_or(VaultLocked)?;
 
     let secret = Some(SecretUpdateRequestModel {
         key: input.key.clone().encrypt_with_key(key)?.to_string(),
@@ -44,7 +42,5 @@ pub(crate) async fn update_secret(
     let res =
         bitwarden_api_api::apis::secrets_api::secrets_id_put(&config.api, input.id, secret).await?;
 
-    let enc = client.get_encryption_settings()?;
-
-    SecretResponse::process_response(res, enc)
+    SecretResponse::process_response(res, &enc)
 }

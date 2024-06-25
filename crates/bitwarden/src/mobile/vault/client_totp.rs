@@ -1,10 +1,7 @@
+use bitwarden_vault::{generate_totp, TotpResponse};
 use chrono::{DateTime, Utc};
 
-use super::client_vault::ClientVault;
-use crate::{
-    error::Result,
-    vault::{generate_totp, TotpResponse},
-};
+use crate::{error::Result, vault::ClientVault};
 
 impl<'a> ClientVault<'a> {
     /// Generate a TOTP code from a provided key.
@@ -18,6 +15,6 @@ impl<'a> ClientVault<'a> {
         key: String,
         time: Option<DateTime<Utc>>,
     ) -> Result<TotpResponse> {
-        generate_totp(key, time)
+        Ok(generate_totp(key, time)?)
     }
 }

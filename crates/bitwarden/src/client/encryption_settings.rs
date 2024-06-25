@@ -8,6 +8,7 @@ use uuid::Uuid;
 #[cfg(feature = "internal")]
 use crate::error::Result;
 
+#[derive(Clone)]
 pub struct EncryptionSettings {
     user_key: SymmetricCryptoKey,
     pub(crate) private_key: Option<AsymmetricCryptoKey>,
@@ -42,11 +43,11 @@ impl EncryptionSettings {
         user_key: SymmetricCryptoKey,
         private_key: EncString,
     ) -> Result<Self> {
-        use bitwarden_crypto::{DecryptedVec, KeyDecryptable};
+        use bitwarden_crypto::KeyDecryptable;
 
         let private_key = {
-            let dec: DecryptedVec = private_key.decrypt_with_key(&user_key)?;
-            Some(AsymmetricCryptoKey::from_der(dec)?)
+            let dec: Vec<u8> = private_key.decrypt_with_key(&user_key)?;
+            Some(AsymmetricCryptoKey::from_der(&dec)?)
         };
 
         Ok(EncryptionSettings {
@@ -70,12 +71,11 @@ impl EncryptionSettings {
     pub(crate) fn set_org_keys(
         &mut self,
         org_enc_keys: Vec<(Uuid, AsymmetricEncString)>,
-    ) -> Result<&mut Self> {
-        use bitwarden_crypto::{DecryptedVec, KeyDecryptable};
+    ) -> Result<&Self> {
+        use bitwarden_core::VaultLocked;
+        use bitwarden_crypto::KeyDecryptable;
 
-        use crate::error::Error;
-
-        let private_key = self.private_key.as_ref().ok_or(Error::VaultLocked)?;
+        let private_key = self.private_key.as_ref().ok_or(VaultLocked)?;
 
         // Make sure we only keep the keys given in the arguments and not any of the previous
         // ones, which might be from organizations that the user is no longer a part of anymore
@@ -83,9 +83,9 @@ impl EncryptionSettings {
 
         // Decrypt the org keys with the private key
         for (org_id, org_enc_key) in org_enc_keys {
-            let dec: DecryptedVec = org_enc_key.decrypt_with_key(private_key)?;
+            let mut dec: Vec<u8> = org_enc_key.decrypt_with_key(private_key)?;
 
-            let org_key = SymmetricCryptoKey::try_from(dec)?;
+            let org_key = SymmetricCryptoKey::try_from(dec.as_mut_slice())?;
 
             self.org_keys.insert(org_id, org_key);
         }

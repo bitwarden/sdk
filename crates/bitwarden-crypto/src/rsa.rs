@@ -13,7 +13,7 @@ use crate::{
 /// RSA Key Pair
 ///
 /// Consists of a public key and an encrypted private key.
-#[cfg_attr(feature = "mobile", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct RsaKeyPair {
     /// Base64 encoded DER representation of the public key
     pub public: String,

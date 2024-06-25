@@ -7,6 +7,21 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Support for secrets sync (#678)
+
+### Changed
+
+- `ClientSettings` and `DeviceType` is now exported in the root module (#805)
+
+### Removed
+
+- The deprecated `client.access_token_login()` is now removed. Please use
+  `client.auth().login_access_token()` instead. (#806)
+
+## [0.5.0] - 2024-04-26
+
 ### Changed
 
 - Switched TLS backend to `rustls`, removing the dependency on `OpenSSL`. (#374)

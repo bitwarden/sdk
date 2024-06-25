@@ -1,5 +1,4 @@
-use async_lock::Mutex;
-use bitwarden::client::client_settings::ClientSettings;
+use bitwarden::ClientSettings;
 
 #[cfg(feature = "secrets")]
 use crate::command::{ProjectsCommand, SecretsCommand};
@@ -8,12 +7,12 @@ use crate::{
     response::{Response, ResponseIntoString},
 };
 
-pub struct Client(Mutex<bitwarden::Client>);
+pub struct Client(bitwarden::Client);
 
 impl Client {
     pub fn new(settings_input: Option<String>) -> Self {
         let settings = Self::parse_settings(settings_input);
-        Self(Mutex::new(bitwarden::Client::new(settings)))
+        Self(bitwarden::Client::new(settings))
     }
 
     pub async fn run_command(&self, input_str: &str) -> String {
@@ -45,21 +44,23 @@ impl Client {
             }
         };
 
-        let mut client = self.0.lock().await;
+        let client = &self.0;
 
         match cmd {
             #[cfg(feature = "internal")]
-            Command::PasswordLogin(req) => client.auth().login_password(req).await.into_string(),
+            Command::PasswordLogin(req) => client.auth().login_password(&req).await.into_string(),
             #[cfg(feature = "secrets")]
             Command::AccessTokenLogin(req) => {
                 client.auth().login_access_token(&req).await.into_string()
             }
             #[cfg(feature = "internal")]
-            Command::GetUserApiKey(req) => client.get_user_api_key(req).await.into_string(),
+            Command::GetUserApiKey(req) => {
+                client.platform().get_user_api_key(req).await.into_string()
+            }
             #[cfg(feature = "internal")]
-            Command::ApiKeyLogin(req) => client.auth().login_api_key(req).await.into_string(),
+            Command::ApiKeyLogin(req) => client.auth().login_api_key(&req).await.into_string(),
             #[cfg(feature = "internal")]
-            Command::Sync(req) => client.sync(&req).await.into_string(),
+            Command::Sync(req) => client.vault().sync(&req).await.into_string(),
             #[cfg(feature = "internal")]
             Command::Fingerprint(req) => client.platform().fingerprint(&req).into_string(),
 
@@ -73,6 +74,7 @@ impl Client {
                 SecretsCommand::List(req) => client.secrets().list(&req).await.into_string(),
                 SecretsCommand::Update(req) => client.secrets().update(&req).await.into_string(),
                 SecretsCommand::Delete(req) => client.secrets().delete(req).await.into_string(),
+                SecretsCommand::Sync(req) => client.secrets().sync(&req).await.into_string(),
             },
 
             #[cfg(feature = "secrets")]

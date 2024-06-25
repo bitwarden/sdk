@@ -1,40 +1,40 @@
 use bitwarden::secrets_manager::{projects::ProjectResponse, secrets::SecretResponse};
 use bitwarden_cli::Color;
 use chrono::{DateTime, Utc};
-use clap::ValueEnum;
 use comfy_table::Table;
 use serde::Serialize;
 
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
-#[allow(clippy::upper_case_acronyms)]
-pub(crate) enum Output {
-    JSON,
-    YAML,
-    Env,
-    Table,
-    TSV,
-    None,
-}
+use crate::cli::Output;
 
 const ASCII_HEADER_ONLY: &str = "     --            ";
 
+pub(crate) struct OutputSettings {
+    pub(crate) output: Output,
+    pub(crate) color: Color,
+}
+
+impl OutputSettings {
+    pub(crate) fn new(output: Output, color: Color) -> Self {
+        OutputSettings { output, color }
+    }
+}
+
 pub(crate) fn serialize_response<T: Serialize + TableSerialize<N>, const N: usize>(
     data: T,
-    output: Output,
-    color: Color,
+    output_settings: OutputSettings,
 ) {
-    match output {
+    match output_settings.output {
         Output::JSON => {
             let mut text =
                 serde_json::to_string_pretty(&data).expect("Serialize should be infallible");
             // Yaml/table/tsv serializations add a newline at the end, so we do the same here for
             // consistency
             text.push('\n');
-            pretty_print("json", &text, color);
+            pretty_print("json", &text, output_settings.color);
         }
         Output::YAML => {
             let text = serde_yaml::to_string(&data).expect("Serialize should be infallible");
-            pretty_print("yaml", &text, color);
+            pretty_print("yaml", &text, output_settings.color);
         }
         Output::Env => {
             let valid_key_regex =
@@ -60,7 +60,11 @@ pub(crate) fn serialize_response<T: Serialize + TableSerialize<N>, const N: usiz
                 ));
             }
 
-            pretty_print("sh", &format!("{}\n", text.join("\n")), color);
+            pretty_print(
+                "sh",
+                &format!("{}\n", text.join("\n")),
+                output_settings.color,
+            );
         }
         Output::Table => {
             let mut table = Table::new();

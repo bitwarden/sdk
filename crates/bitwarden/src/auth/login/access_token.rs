@@ -1,9 +1,8 @@
 use std::path::{Path, PathBuf};
 
-use base64::engine::general_purpose::STANDARD;
-use bitwarden_crypto::{
-    DecryptedVec, EncString, KeyDecryptable, SensitiveString, SymmetricCryptoKey,
-};
+use base64::{engine::general_purpose::STANDARD, Engine};
+use bitwarden_core::require;
+use bitwarden_crypto::{EncString, KeyDecryptable, SymmetricCryptoKey};
 use chrono::Utc;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -16,13 +15,13 @@ use crate::{
         AccessToken, JWTToken,
     },
     client::{LoginMethod, ServiceAccountLoginMethod},
-    error::{require, Error, Result},
+    error::{Error, Result},
     secrets_manager::state::{self, ClientState},
     Client,
 };
 
 pub(crate) async fn login_access_token(
-    client: &mut Client,
+    client: &Client,
     input: &AccessTokenLoginRequest,
 ) -> Result<AccessTokenLoginResponse> {
     //info!("api key logging in");
@@ -55,18 +54,17 @@ pub(crate) async fn login_access_token(
         // Extract the encrypted payload and use the access token encryption key to decrypt it
         let payload: EncString = r.encrypted_payload.parse()?;
 
-        let decrypted_payload: DecryptedVec =
-            payload.decrypt_with_key(&access_token.encryption_key)?;
+        let decrypted_payload: Vec<u8> = payload.decrypt_with_key(&access_token.encryption_key)?;
 
         // Once decrypted, we have to JSON decode to extract the organization encryption key
         #[derive(serde::Deserialize)]
         struct Payload {
             #[serde(rename = "encryptionKey")]
-            encryption_key: SensitiveString,
+            encryption_key: String,
         }
 
-        let payload: Payload = serde_json::from_slice(decrypted_payload.expose())?;
-        let encryption_key = payload.encryption_key.clone().decode_base64(STANDARD)?;
+        let payload: Payload = serde_json::from_slice(&decrypted_payload)?;
+        let encryption_key = STANDARD.decode(&payload.encryption_key)?;
         let encryption_key = SymmetricCryptoKey::try_from(encryption_key)?;
 
         let access_token_obj: JWTToken = r.access_token.parse()?;
@@ -101,17 +99,17 @@ pub(crate) async fn login_access_token(
 }
 
 async fn request_access_token(
-    client: &mut Client,
+    client: &Client,
     input: &AccessToken,
 ) -> Result<IdentityTokenResponse> {
     let config = client.get_api_configurations().await;
     AccessTokenRequest::new(input.access_token_id, &input.client_secret)
-        .send(config)
+        .send(&config)
         .await
 }
 
 fn load_tokens_from_state(
-    client: &mut Client,
+    client: &Client,
     state_file: &Path,
     access_token: &AccessToken,
 ) -> Result<Uuid> {

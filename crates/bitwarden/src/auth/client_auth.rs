@@ -1,7 +1,7 @@
 #[cfg(feature = "internal")]
-use bitwarden_crypto::{AsymmetricEncString, DeviceKey, SensitiveString, TrustDeviceResponse};
+use bitwarden_crypto::{AsymmetricEncString, DeviceKey, TrustDeviceResponse};
 
-#[cfg(feature = "mobile")]
+#[cfg(feature = "internal")]
 use crate::auth::login::NewAuthRequestResponse;
 #[cfg(feature = "secrets")]
 use crate::auth::login::{login_access_token, AccessTokenLoginRequest, AccessTokenLoginResponse};
@@ -24,21 +24,20 @@ use crate::{
         AuthRequestResponse, RegisterKeyResponse, RegisterRequest,
     },
     client::Kdf,
-    error::Error,
 };
 
 pub struct ClientAuth<'a> {
-    pub(crate) client: &'a mut crate::Client,
+    pub(crate) client: &'a crate::Client,
 }
 
 impl<'a> ClientAuth<'a> {
-    pub async fn renew_token(&mut self) -> Result<()> {
+    pub async fn renew_token(&self) -> Result<()> {
         renew_token(self.client).await
     }
 
     #[cfg(feature = "secrets")]
     pub async fn login_access_token(
-        &mut self,
+        &self,
         input: &AccessTokenLoginRequest,
     ) -> Result<AccessTokenLoginResponse> {
         login_access_token(self.client, input).await
@@ -47,7 +46,7 @@ impl<'a> ClientAuth<'a> {
 
 #[cfg(feature = "internal")]
 impl<'a> ClientAuth<'a> {
-    pub async fn password_strength(
+    pub fn password_strength(
         &self,
         password: String,
         email: String,
@@ -56,7 +55,7 @@ impl<'a> ClientAuth<'a> {
         password_strength(password, email, additional_inputs)
     }
 
-    pub async fn satisfies_policy(
+    pub fn satisfies_policy(
         &self,
         password: String,
         strength: u8,
@@ -68,14 +67,14 @@ impl<'a> ClientAuth<'a> {
     pub fn make_register_keys(
         &self,
         email: String,
-        password: SensitiveString,
+        password: String,
         kdf: Kdf,
     ) -> Result<RegisterKeyResponse> {
         make_register_keys(email, password, kdf)
     }
 
     pub fn make_register_tde_keys(
-        &mut self,
+        &self,
         email: String,
         org_public_key: String,
         remember_device: bool,
@@ -83,11 +82,11 @@ impl<'a> ClientAuth<'a> {
         make_register_tde_keys(self.client, email, org_public_key, remember_device)
     }
 
-    pub async fn register(&mut self, input: RegisterRequest) -> Result<()> {
+    pub async fn register(&self, input: &RegisterRequest) -> Result<()> {
         register(self.client, input).await
     }
 
-    pub async fn prelogin(&mut self, email: String) -> Result<Kdf> {
+    pub async fn prelogin(&self, email: String) -> Result<Kdf> {
         use crate::auth::login::{parse_prelogin, request_prelogin};
 
         let response = request_prelogin(self.client, email).await?;
@@ -95,36 +94,29 @@ impl<'a> ClientAuth<'a> {
     }
 
     pub async fn login_password(
-        &mut self,
-        input: PasswordLoginRequest,
+        &self,
+        input: &PasswordLoginRequest,
     ) -> Result<PasswordLoginResponse> {
         login_password(self.client, input).await
     }
 
-    pub async fn login_api_key(
-        &mut self,
-        input: ApiKeyLoginRequest,
-    ) -> Result<ApiKeyLoginResponse> {
+    pub async fn login_api_key(&self, input: &ApiKeyLoginRequest) -> Result<ApiKeyLoginResponse> {
         login_api_key(self.client, input).await
     }
 
-    pub async fn send_two_factor_email(&mut self, tf: TwoFactorEmailRequest) -> Result<()> {
+    pub async fn send_two_factor_email(&self, tf: &TwoFactorEmailRequest) -> Result<()> {
         send_two_factor_email(self.client, tf).await
     }
 
-    pub fn validate_password(
-        &self,
-        password: SensitiveString,
-        password_hash: SensitiveString,
-    ) -> Result<bool> {
+    pub fn validate_password(&self, password: String, password_hash: String) -> Result<bool> {
         validate_password(self.client, password, password_hash)
     }
 
     pub fn validate_password_user_key(
         &self,
-        password: SensitiveString,
+        password: String,
         encrypted_user_key: String,
-    ) -> Result<SensitiveString> {
+    ) -> Result<String> {
         validate_password_user_key(self.client, password, encrypted_user_key)
     }
 
@@ -132,7 +124,7 @@ impl<'a> ClientAuth<'a> {
         new_auth_request(email)
     }
 
-    pub fn approve_auth_request(&mut self, public_key: String) -> Result<AsymmetricEncString> {
+    pub fn approve_auth_request(&self, public_key: String) -> Result<AsymmetricEncString> {
         approve_auth_request(self.client, public_key)
     }
 
@@ -141,10 +133,10 @@ impl<'a> ClientAuth<'a> {
     }
 }
 
-#[cfg(feature = "mobile")]
+#[cfg(feature = "internal")]
 impl<'a> ClientAuth<'a> {
     pub async fn login_device(
-        &mut self,
+        &self,
         email: String,
         device_identifier: String,
     ) -> Result<NewAuthRequestResponse> {
@@ -153,7 +145,7 @@ impl<'a> ClientAuth<'a> {
         send_new_auth_request(self.client, email, device_identifier).await
     }
 
-    pub async fn login_device_complete(&mut self, auth_req: NewAuthRequestResponse) -> Result<()> {
+    pub async fn login_device_complete(&self, auth_req: NewAuthRequestResponse) -> Result<()> {
         use crate::auth::login::complete_auth_request;
 
         complete_auth_request(self.client, auth_req).await
@@ -162,15 +154,17 @@ impl<'a> ClientAuth<'a> {
 
 #[cfg(feature = "internal")]
 fn trust_device(client: &Client) -> Result<TrustDeviceResponse> {
+    use bitwarden_core::VaultLocked;
+
     let enc = client.get_encryption_settings()?;
 
-    let user_key = enc.get_key(&None).ok_or(Error::VaultLocked)?;
+    let user_key = enc.get_key(&None).ok_or(VaultLocked)?;
 
     Ok(DeviceKey::trust_device(user_key)?)
 }
 
 impl<'a> Client {
-    pub fn auth(&'a mut self) -> ClientAuth<'a> {
+    pub fn auth(&'a self) -> ClientAuth<'a> {
         ClientAuth { client: self }
     }
 }
@@ -186,7 +180,7 @@ mod tests {
         use crate::{auth::login::AccessTokenLoginRequest, secrets_manager::secrets::*};
 
         // Create the mock server with the necessary routes for this test
-        let (_server, mut client) = crate::util::start_mock(vec![
+        let (_server, client) = crate::util::start_mock(vec![
             Mock::given(matchers::path("/identity/connect/token"))
             .respond_with(ResponseTemplate::new(200).set_body_json(
                 serde_json::json!({

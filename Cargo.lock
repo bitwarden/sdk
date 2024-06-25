@@ -622,6 +622,7 @@ dependencies = [
  "bitwarden",
  "bitwarden-core",
  "bitwarden-crypto",
+ "bitwarden-exporters",
  "bitwarden-fido",
  "bitwarden-generators",
  "bitwarden-send",

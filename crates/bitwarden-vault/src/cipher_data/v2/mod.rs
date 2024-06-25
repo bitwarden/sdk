@@ -1,5 +1,4 @@
 mod cipher;
-mod conversions;
+pub mod conversions;
 
 pub use cipher::CipherDataV2;
-pub use conversions::*;

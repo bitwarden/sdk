@@ -1,3 +1,7 @@
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
 pub struct CipherDataV2 {
     pub notes: Option<String>,
     pub login: Option<CipherLoginDataV2>,
@@ -18,6 +22,7 @@ pub struct CipherDataV2 {
     pub edit: Option<bool>,
     // pub view_password: Option<bool>,
 }
+#[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
 
 pub struct CipherLoginDataV2 {
     pub uri: Option<String>,
@@ -29,6 +34,7 @@ pub struct CipherLoginDataV2 {
     pub autofill_on_page_load: Option<bool>,
     pub fido2_credentials: Option<Vec<CipherFido2CredentialDataV2>>,
 }
+#[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
 
 pub struct CipherLoginUriDataV2 {
     pub uri: Option<String>,
@@ -36,6 +42,7 @@ pub struct CipherLoginUriDataV2 {
     pub r#match: Option<UriMatchTypeDataV2>,
 }
 
+#[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
 pub enum UriMatchTypeDataV2 {
     Domain = 0,
     Host = 1,
@@ -44,6 +51,7 @@ pub enum UriMatchTypeDataV2 {
     RegularExpression = 4,
     Never = 5,
 }
+#[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
 
 pub struct CipherFido2CredentialDataV2 {
     pub credential_id_type: Option<CredentialIdTypeDataV2>,
@@ -62,11 +70,13 @@ pub struct CipherFido2CredentialDataV2 {
     pub creation_date: String,
 }
 
+#[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
 pub enum CredentialIdTypeDataV2 {
     Uuid = 0,
     Base64 = 1,
 }
 
+#[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
 pub struct CipherCardDataV2 {
     pub cardholder_name: Option<String>,
     pub brand: Option<String>,
@@ -76,6 +86,7 @@ pub struct CipherCardDataV2 {
     pub code: Option<String>,
 }
 
+#[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
 pub struct CipherIdentityDataV2 {
     pub title: Option<String>,
     pub first_name: Option<String>,
@@ -97,14 +108,17 @@ pub struct CipherIdentityDataV2 {
     pub license_number: Option<String>,
 }
 
+#[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
 pub struct CipherSecureNodeDataV2 {
     pub r#type: Option<SecureNoteTypeDataV2>,
 }
 
+#[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
 pub enum SecureNoteTypeDataV2 {
     Generic = 0,
 }
 
+#[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
 pub struct CipherFieldDataV2 {
     pub r#type: Option<FieldTypeDataV2>,
     pub name: Option<String>,
@@ -112,6 +126,7 @@ pub struct CipherFieldDataV2 {
     pub linked_id: Option<i32>,
 }
 
+#[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
 pub enum FieldTypeDataV2 {
     Text = 0,
     Hidden = 1,
@@ -119,10 +134,12 @@ pub enum FieldTypeDataV2 {
     Linked = 3,
 }
 
+#[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
 pub struct CipherPasswordHistoryDataV2 {
     pub password: String,
     pub last_used_date: String,
 }
+#[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
 
 pub struct CipherAttachmentDataV2 {
     pub object: Option<String>,
@@ -134,6 +151,7 @@ pub struct CipherAttachmentDataV2 {
     pub size_name: Option<String>,
 }
 
+#[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
 pub enum CipherRepromptTypeDataV2 {
     None = 0,
     Password = 1,

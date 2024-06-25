@@ -16,7 +16,10 @@ use super::{
     local_data::{LocalData, LocalDataView},
     login, secure_note,
 };
-use crate::{password_history, Fido2CredentialFullView, Fido2CredentialView, VaultParseError};
+use crate::{
+    cipher_data::latest::CipherDataLatest, password_history, Fido2CredentialFullView,
+    Fido2CredentialView, VaultParseError,
+};
 
 #[derive(Debug, Error)]
 pub enum CipherError {
@@ -84,6 +87,8 @@ pub struct Cipher {
     pub creation_date: DateTime<Utc>,
     pub deleted_date: Option<DateTime<Utc>>,
     pub revision_date: DateTime<Utc>,
+
+    pub data: CipherDataLatest,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
@@ -576,6 +581,8 @@ impl TryFrom<CipherDetailsResponseModel> for Cipher {
             deleted_date: cipher.deleted_date.map(|d| d.parse()).transpose()?,
             revision_date: require!(cipher.revision_date).parse()?,
             key: EncString::try_from_optional(cipher.key)?,
+
+            data: CipherDataLatest::from(cipher),
         })
     }
 }

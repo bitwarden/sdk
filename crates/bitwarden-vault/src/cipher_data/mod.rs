@@ -1,6 +1,7 @@
 use bitwarden_core::VaultLocked;
 use thiserror::Error;
 
+pub mod latest;
 mod v1;
 mod v2;
 

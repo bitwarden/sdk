@@ -104,6 +104,8 @@ pub mod cipher_create_request_model;
 pub use self::cipher_create_request_model::CipherCreateRequestModel;
 pub mod cipher_details_response_model;
 pub use self::cipher_details_response_model::CipherDetailsResponseModel;
+pub mod cipher_details_response_model_example;
+pub use self::cipher_details_response_model_example::CipherDetailsResponseModelExample;
 pub mod cipher_details_response_model_list_response_model;
 pub use self::cipher_details_response_model_list_response_model::CipherDetailsResponseModelListResponseModel;
 pub mod cipher_fido2_credential_model;

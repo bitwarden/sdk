@@ -5,6 +5,7 @@ mod uniffi_support;
 
 mod cipher;
 pub use cipher::*;
+mod cipher_data;
 mod collection;
 pub use collection::{Collection, CollectionView};
 mod folder;

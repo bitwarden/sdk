@@ -8,7 +8,14 @@ Please see the main [README](./README.md) and [example](./example/example.go) fo
 
 ## Linux
 
-to be added
+1. Make sure you have the following on your system:
+    - [Go](https://go.dev/dl)
+    - A C/C++ toolchain. We recommend the [MUSL toolchain](https://musl.cc). You can install this on most debian based systems with: `sudo apt install musl-tools`
+2. Verify cgo is enabled and the `CC` and `CXX` flags are set with: `go env`.
+    - You can enable cgo by setting the flag: `go env -w CGO_ENABLED=1`
+    - If `CC` and `CXX` are not set, you can set them with: `go env -w CC=clang CXX=clang++`
+3. Make sure you have added the Bitwarden Go SDK with go get: `go get github.com/bitwarden/sdk-go`
+4. You can build your project with the appropriate libraries linked statically with: `go build -ldflags '-linkmode external -extldflags "-static -Wl,-unresolved-symbols=ignore-all"' -o myapp`, where `myapp` is the name of the output binary.
 
 ## Mac
 

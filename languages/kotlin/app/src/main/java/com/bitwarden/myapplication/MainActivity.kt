@@ -24,9 +24,9 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import com.bitwarden.core.DateTime
 import com.bitwarden.vault.Folder
-import com.bitwarden.bitwarden.InitOrgCryptoRequest
-import com.bitwarden.bitwarden.InitUserCryptoMethod
-import com.bitwarden.bitwarden.InitUserCryptoRequest
+import com.bitwarden.core.InitOrgCryptoRequest
+import com.bitwarden.core.InitUserCryptoMethod
+import com.bitwarden.core.InitUserCryptoRequest
 import com.bitwarden.core.Uuid
 import com.bitwarden.crypto.HashPurpose
 import com.bitwarden.crypto.Kdf

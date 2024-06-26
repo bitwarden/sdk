@@ -357,8 +357,6 @@ checksum = "cf4b9d6a944f767f8e5e0db018570623c85f3d925ac718db4e06d0187adb21c1"
 name = "bitwarden"
 version = "0.5.0"
 dependencies = [
- "async-trait",
- "base64 0.22.1",
  "bitwarden-api-api",
  "bitwarden-api-identity",
  "bitwarden-core",
@@ -367,27 +365,10 @@ dependencies = [
  "bitwarden-fido",
  "bitwarden-generators",
  "bitwarden-send",
+ "bitwarden-sm",
  "bitwarden-vault",
- "chrono",
- "getrandom",
- "log",
- "rand",
- "rand_chacha",
- "reqwest",
- "rustls-platform-verifier",
- "schemars",
- "security-framework",
- "serde",
- "serde_json",
- "serde_qs",
- "serde_repr",
  "thiserror",
- "tokio",
- "uniffi",
  "uuid",
- "wiremock",
- "zeroize",
- "zxcvbn",
 ]
 
 [[package]]
@@ -439,10 +420,37 @@ dependencies = [
 name = "bitwarden-core"
 version = "0.5.0"
 dependencies = [
+ "async-trait",
+ "base64 0.22.1",
+ "bitwarden-api-api",
+ "bitwarden-api-identity",
+ "bitwarden-crypto",
  "chrono",
+ "coset",
+ "getrandom",
+ "hmac",
+ "log",
+ "p256",
+ "passkey",
+ "rand",
+ "rand_chacha",
+ "reqwest",
+ "rustls-platform-verifier",
+ "schemars",
+ "security-framework",
+ "serde",
+ "serde_json",
+ "serde_qs",
+ "serde_repr",
+ "sha1",
+ "sha2",
  "thiserror",
+ "tokio",
  "uniffi",
  "uuid",
+ "wiremock",
+ "zeroize",
+ "zxcvbn",
 ]
 
 [[package]]
@@ -486,9 +494,11 @@ dependencies = [
  "bitwarden-vault",
  "chrono",
  "csv",
+ "schemars",
  "serde",
  "serde_json",
  "thiserror",
+ "uniffi",
  "uuid",
 ]
 
@@ -520,6 +530,7 @@ dependencies = [
 name = "bitwarden-generators"
 version = "0.5.0"
 dependencies = [
+ "bitwarden-core",
  "bitwarden-crypto",
  "rand",
  "rand_chacha",
@@ -587,6 +598,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "bitwarden-sm"
+version = "0.5.0"
+dependencies = [
+ "bitwarden-api-api",
+ "bitwarden-core",
+ "bitwarden-crypto",
+ "chrono",
+ "schemars",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "uniffi",
+ "uuid",
+]
+
+[[package]]
 name = "bitwarden-uniffi"
 version = "0.1.0"
 dependencies = [
@@ -595,6 +622,7 @@ dependencies = [
  "bitwarden",
  "bitwarden-core",
  "bitwarden-crypto",
+ "bitwarden-exporters",
  "bitwarden-fido",
  "bitwarden-generators",
  "bitwarden-send",
@@ -627,6 +655,7 @@ dependencies = [
  "sha1",
  "sha2",
  "thiserror",
+ "tokio",
  "uniffi",
  "uuid",
 ]
@@ -637,6 +666,7 @@ version = "0.1.0"
 dependencies = [
  "argon2",
  "bitwarden-json",
+ "chrono",
  "console_error_panic_hook",
  "console_log",
  "js-sys",

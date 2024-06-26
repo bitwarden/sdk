@@ -1,7 +1,10 @@
 use bitwarden::{
-    secrets_manager::secrets::{
-        SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
-        SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest, SecretsGetRequest,
+    secrets_manager::{
+        secrets::{
+            SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
+            SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest, SecretsGetRequest,
+        },
+        ClientSecretsExt,
     },
     Client,
 };

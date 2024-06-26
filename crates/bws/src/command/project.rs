@@ -1,7 +1,10 @@
 use bitwarden::{
-    secrets_manager::projects::{
-        ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
-        ProjectsListRequest,
+    secrets_manager::{
+        projects::{
+            ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
+            ProjectsListRequest,
+        },
+        ClientProjectsExt,
     },
     Client,
 };

@@ -1,6 +1,6 @@
 use bitwarden::{
     auth::RegisterRequest,
-    generators::{PassphraseGeneratorRequest, PasswordGeneratorRequest},
+    generators::{ClientGeneratorExt, PassphraseGeneratorRequest, PasswordGeneratorRequest},
     ClientSettings,
 };
 use bitwarden_cli::{install_color_eyre, text_prompt_when_none, Color};

@@ -631,19 +631,21 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
                     user_verified: verification != UV::Discouraged,
                 })
             }
-            UIHint::RequestExistingCredential(cipher) => {
-                let options = match cipher.cipher.reprompt {
-                    CipherRepromptType::None => options,
-                    CipherRepromptType::Password => CheckUserOptions {
-                        require_verification: Verification::Required,
-                        ..options
-                    },
-                };
-
-                self.authenticator
+            UIHint::RequestExistingCredential(cipher)
+                if matches!(cipher.cipher.reprompt, CipherRepromptType::Password) =>
+            {
+                let result = self
+                    .authenticator
                     .user_interface
                     .check_user(options, map_ui_hint(hint))
                     .await
+                    .map_err(|_| Ctap2Error::OperationDenied)?;
+
+                if !result.user_verified {
+                    return Err(Ctap2Error::UserVerificationInvalid);
+                }
+
+                Ok(result)
             }
             _ => {
                 self.authenticator

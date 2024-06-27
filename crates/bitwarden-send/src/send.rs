@@ -15,7 +15,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 use uuid::Uuid;
 use zeroize::Zeroizing;
 
-use crate::error::SendParseError;
+use crate::SendParseError;
 
 const SEND_ITERATIONS: u32 = 100_000;
 

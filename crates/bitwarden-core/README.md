@@ -1,4 +1,4 @@
-# Bitwarden Crypto
+# Bitwarden Core
 
 This is an internal crate for the Bitwarden SDK do not depend on this directly and use the
 [`bitwarden`](https://crates.io/crates/bitwarden) crate instead.

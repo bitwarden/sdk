@@ -14,11 +14,11 @@ license-file.workspace = true
 keywords.workspace = true
 
 [features]
-uniffi = ["dep:uniffi"]
+uniffi = ["dep:uniffi", "bitwarden-core/uniffi", "bitwarden-vault/uniffi"]
 
 [dependencies]
 async-trait = ">=0.1.80, <0.2"
-base64 = ">=0.21.2, <0.23"
+base64 = ">=0.22.1, <0.23"
 bitwarden-core = { workspace = true }
 bitwarden-crypto = { workspace = true }
 bitwarden-vault = { workspace = true }

@@ -1,14 +1,39 @@
 use bitwarden::{
-    secrets_manager::projects::{
-        ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
-        ProjectsListRequest,
+    secrets_manager::{
+        projects::{
+            ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
+            ProjectsListRequest,
+        },
+        ClientProjectsExt,
     },
     Client,
 };
 use color_eyre::eyre::{bail, Result};
 use uuid::Uuid;
 
-use crate::render::{serialize_response, OutputSettings};
+use crate::{
+    render::{serialize_response, OutputSettings},
+    ProjectCommand,
+};
+
+pub(crate) async fn process_command(
+    command: ProjectCommand,
+    client: Client,
+    organization_id: Uuid,
+    output_settings: OutputSettings,
+) -> Result<()> {
+    match command {
+        ProjectCommand::List => list(client, organization_id, output_settings).await,
+        ProjectCommand::Get { project_id } => get(client, project_id, output_settings).await,
+        ProjectCommand::Create { name } => {
+            create(client, organization_id, name, output_settings).await
+        }
+        ProjectCommand::Edit { project_id, name } => {
+            edit(client, organization_id, project_id, name, output_settings).await
+        }
+        ProjectCommand::Delete { project_ids } => delete(client, project_ids).await,
+    }
+}
 
 pub(crate) async fn list(
     client: Client,

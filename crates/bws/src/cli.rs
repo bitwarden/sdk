@@ -112,31 +112,6 @@ pub(crate) enum Commands {
         )]
         uuids_as_keynames: bool,
     },
-    #[command(long_about = "Create a single item (deprecated)", hide(true))]
-    Create {
-        #[command(subcommand)]
-        cmd: CreateCommand,
-    },
-    #[command(long_about = "Delete one or more items (deprecated)", hide(true))]
-    Delete {
-        #[command(subcommand)]
-        cmd: DeleteCommand,
-    },
-    #[command(long_about = "Edit a single item (deprecated)", hide(true))]
-    Edit {
-        #[command(subcommand)]
-        cmd: EditCommand,
-    },
-    #[command(long_about = "Retrieve a single item (deprecated)", hide(true))]
-    Get {
-        #[command(subcommand)]
-        cmd: GetCommand,
-    },
-    #[command(long_about = "List items (deprecated)", hide(true))]
-    List {
-        #[command(subcommand)]
-        cmd: ListCommand,
-    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -191,63 +166,6 @@ pub(crate) enum ProjectCommand {
         project_id: Uuid,
     },
     List,
-}
-
-#[derive(Subcommand, Debug)]
-pub(crate) enum ListCommand {
-    Projects,
-    Secrets { project_id: Option<Uuid> },
-}
-
-#[derive(Subcommand, Debug)]
-pub(crate) enum GetCommand {
-    Project { project_id: Uuid },
-    Secret { secret_id: Uuid },
-}
-
-#[derive(Subcommand, Debug)]
-pub(crate) enum CreateCommand {
-    Project {
-        name: String,
-    },
-    Secret {
-        key: String,
-        value: String,
-
-        #[arg(long, help = "An optional note to add to the secret")]
-        note: Option<String>,
-
-        #[arg(long, help = "The ID of the project this secret will be added to")]
-        project_id: Uuid,
-    },
-}
-
-#[derive(Subcommand, Debug)]
-pub(crate) enum EditCommand {
-    #[clap(group = ArgGroup::new("edit_field").required(true).multiple(true))]
-    Project {
-        project_id: Uuid,
-        #[arg(long, group = "edit_field")]
-        name: String,
-    },
-    #[clap(group = ArgGroup::new("edit_field").required(true).multiple(true))]
-    Secret {
-        secret_id: Uuid,
-        #[arg(long, group = "edit_field")]
-        key: Option<String>,
-        #[arg(long, group = "edit_field")]
-        value: Option<String>,
-        #[arg(long, group = "edit_field")]
-        note: Option<String>,
-        #[arg(long, group = "edit_field")]
-        project_id: Option<Uuid>,
-    },
-}
-
-#[derive(Subcommand, Debug)]
-pub(crate) enum DeleteCommand {
-    Project { project_ids: Vec<Uuid> },
-    Secret { secret_ids: Vec<Uuid> },
 }
 
 #[derive(Subcommand, Debug)]

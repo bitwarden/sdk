@@ -77,10 +77,6 @@ impl Fido2CredentialAutofillView {
                             .user_name
                             .none_whitespace()
                             .or(c.user_display_name.none_whitespace())
-                            .or(cipher
-                                .login
-                                .as_ref()
-                                .and_then(|l| l.username.none_whitespace()))
                             .or(cipher.name.none_whitespace()),
                     })
                 })

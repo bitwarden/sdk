@@ -34,13 +34,5 @@ wasm-bindgen-futures = "0.4.41"
 [dev-dependencies]
 wasm-bindgen-test = "0.3.41"
 
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-chrono = { version = ">=0.4.26, <0.5", features = [
-    "clock",
-    "serde",
-    "std",
-    "wasmbind",
-], default-features = false }
-
 [lints]
 workspace = true

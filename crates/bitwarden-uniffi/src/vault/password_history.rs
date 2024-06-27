@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use bitwarden::vault::{ClientVaultExt, PasswordHistory, PasswordHistoryView};
+use bitwarden::vault::{PasswordHistory, PasswordHistoryView};
 
 use crate::{Client, Result};
 

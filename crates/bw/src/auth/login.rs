@@ -3,7 +3,7 @@ use bitwarden::{
         ApiKeyLoginRequest, PasswordLoginRequest, TwoFactorEmailRequest, TwoFactorProvider,
         TwoFactorRequest,
     },
-    vault::{ClientVaultExt, SyncRequest},
+    vault::SyncRequest,
     Client,
 };
 use bitwarden_cli::text_prompt_when_none;

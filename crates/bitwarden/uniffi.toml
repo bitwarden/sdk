@@ -1,0 +1,9 @@
+[bindings.kotlin]
+package_name = "com.bitwarden.bitwarden"
+generate_immutable_records = true
+android = true
+
+[bindings.swift]
+ffi_module_name = "BitwardenBitwardenFFI"
+module_name = "BitwardenBitwarden"
+generate_immutable_records = true

@@ -1,12 +1,8 @@
 use std::sync::Arc;
 
 use bitwarden::{
-    error::Error,
-    exporters::{ClientExportersExt, ExportFormat},
-    generators::{
-        ClientGeneratorExt, PassphraseGeneratorRequest, PasswordGeneratorRequest,
-        UsernameGeneratorRequest,
-    },
+    generators::{PassphraseGeneratorRequest, PasswordGeneratorRequest, UsernameGeneratorRequest},
+    tool::ExportFormat,
     vault::{Cipher, Collection, Folder},
 };
 
@@ -22,33 +18,17 @@ pub struct ClientGenerators(pub(crate) Arc<Client>);
 impl ClientGenerators {
     /// **API Draft:** Generate Password
     pub fn password(&self, settings: PasswordGeneratorRequest) -> Result<String> {
-        Ok(self
-            .0
-             .0
-            .generator()
-            .password(settings)
-            .map_err(Error::PasswordError)?)
+        Ok(self.0 .0.generator().password(settings)?)
     }
 
     /// **API Draft:** Generate Passphrase
     pub fn passphrase(&self, settings: PassphraseGeneratorRequest) -> Result<String> {
-        Ok(self
-            .0
-             .0
-            .generator()
-            .passphrase(settings)
-            .map_err(Error::PassphraseError)?)
+        Ok(self.0 .0.generator().passphrase(settings)?)
     }
 
     /// **API Draft:** Generate Username
     pub async fn username(&self, settings: UsernameGeneratorRequest) -> Result<String> {
-        Ok(self
-            .0
-             .0
-            .generator()
-            .username(settings)
-            .await
-            .map_err(Error::UsernameError)?)
+        Ok(self.0 .0.generator().username(settings).await?)
     }
 }
 
@@ -68,8 +48,7 @@ impl ClientExporters {
             .0
              .0
             .exporters()
-            .export_vault(folders, ciphers, format)
-            .map_err(Error::ExportError)?)
+            .export_vault(folders, ciphers, format)?)
     }
 
     /// **API Draft:** Export organization vault
@@ -83,7 +62,6 @@ impl ClientExporters {
             .0
              .0
             .exporters()
-            .export_organization_vault(collections, ciphers, format)
-            .map_err(Error::ExportError)?)
+            .export_organization_vault(collections, ciphers, format)?)
     }
 }

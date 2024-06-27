@@ -1,6 +1,6 @@
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
-use bitwarden_core::{Client, VaultLocked};
+use bitwarden_core::VaultLocked;
 use bitwarden_crypto::{CryptoError, KeyContainer, KeyEncryptable};
 use bitwarden_vault::{CipherError, CipherView};
 use itertools::Itertools;
@@ -94,8 +94,14 @@ pub enum CredentialsForAutofillError {
     FromCipherViewError(#[from] Fido2CredentialAutofillViewError),
 }
 
+/// Temporary trait for solving a circular dependency. When moving `Client` to `bitwarden-core`
+/// remove this trait.
+pub trait FidoEncryptionSettingStore: Send + Sync {
+    fn get_encryption_settings(&self) -> Result<Arc<dyn KeyContainer>, VaultLocked>;
+}
+
 pub struct Fido2Authenticator<'a> {
-    pub client: &'a Client,
+    pub client: &'a dyn FidoEncryptionSettingStore,
     pub user_interface: &'a dyn Fido2UserInterface,
     pub credential_store: &'a dyn Fido2CredentialStore,
 
@@ -105,7 +111,7 @@ pub struct Fido2Authenticator<'a> {
 
 impl<'a> Fido2Authenticator<'a> {
     pub fn new(
-        client: &'a Client,
+        client: &'a dyn FidoEncryptionSettingStore,
         user_interface: &'a dyn Fido2UserInterface,
         credential_store: &'a dyn Fido2CredentialStore,
     ) -> Fido2Authenticator<'a> {
@@ -252,7 +258,7 @@ impl<'a> Fido2Authenticator<'a> {
         &mut self,
         rp_id: String,
     ) -> Result<Vec<Fido2CredentialAutofillView>, SilentlyDiscoverCredentialsError> {
-        let enc = self.client.internal.get_encryption_settings()?;
+        let enc = self.client.get_encryption_settings()?;
         let result = self.credential_store.find_credentials(None, rp_id).await?;
 
         result
@@ -271,7 +277,7 @@ impl<'a> Fido2Authenticator<'a> {
     pub async fn credentials_for_autofill(
         &mut self,
     ) -> Result<Vec<Fido2CredentialAutofillView>, CredentialsForAutofillError> {
-        let enc = self.client.internal.get_encryption_settings()?;
+        let enc = self.client.get_encryption_settings()?;
         let all_credentials = self.credential_store.all_credentials().await?;
 
         all_credentials
@@ -316,7 +322,7 @@ impl<'a> Fido2Authenticator<'a> {
     pub(super) fn get_selected_credential(
         &self,
     ) -> Result<SelectedCredential, GetSelectedCredentialError> {
-        let enc = self.client.internal.get_encryption_settings()?;
+        let enc = self.client.get_encryption_settings()?;
 
         let cipher = self
             .selected_cipher
@@ -379,11 +385,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                 .find_credentials(ids, rp_id.to_string())
                 .await?;
 
-            let enc = this
-                .authenticator
-                .client
-                .internal
-                .get_encryption_settings()?;
+            let enc = this.authenticator.client.get_encryption_settings()?;
 
             // Remove any that don't have Fido2 credentials
             let creds: Vec<_> = ciphers
@@ -459,11 +461,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             user: passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
             rp: passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
         ) -> Result<(), InnerError> {
-            let enc = this
-                .authenticator
-                .client
-                .internal
-                .get_encryption_settings()?;
+            let enc = this.authenticator.client.get_encryption_settings()?;
 
             let cred = try_from_credential_full(cred, user, rp)?;
 
@@ -531,11 +529,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             this: &mut CredentialStoreImpl<'_>,
             cred: Passkey,
         ) -> Result<(), InnerError> {
-            let enc = this
-                .authenticator
-                .client
-                .internal
-                .get_encryption_settings()?;
+            let enc = this.authenticator.client.get_encryption_settings()?;
 
             // Get the previously selected cipher and update the credential
             let selected = this.authenticator.get_selected_credential()?;

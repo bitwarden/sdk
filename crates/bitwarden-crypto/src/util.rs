@@ -4,7 +4,7 @@ use ::aes::cipher::{ArrayLength, Unsigned};
 use generic_array::GenericArray;
 use hmac::digest::OutputSizeUser;
 use rand::{
-    distributions::{Alphanumeric, DistString, Distribution, Standard},
+    distributions::{Distribution, Standard},
     Rng,
 };
 use zeroize::{Zeroize, Zeroizing};
@@ -37,14 +37,6 @@ where
     T: Zeroize,
 {
     Zeroizing::new(rand::thread_rng().gen::<T>())
-}
-
-/// Generate a random alphanumeric string of a given length
-///
-/// Note: Do not use this generating user facing passwords. Use the `bitwarden-generator` crate for
-/// that.
-pub fn generate_random_alphanumeric(len: usize) -> String {
-    Alphanumeric.sample_string(&mut rand::thread_rng(), len)
 }
 
 pub fn pbkdf2(password: &[u8], salt: &[u8], rounds: u32) -> [u8; PBKDF_SHA256_HMAC_OUT_SIZE] {

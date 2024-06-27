@@ -1,9 +1,6 @@
 use std::sync::Arc;
 
-use bitwarden::{
-    error::Error,
-    vault::{Cipher, CipherListView, CipherView, ClientVaultExt},
-};
+use bitwarden::vault::{Cipher, CipherListView, CipherView};
 use bitwarden_vault::Fido2CredentialView;
 use uuid::Uuid;
 
@@ -52,7 +49,6 @@ impl ClientCiphers {
              .0
             .vault()
             .ciphers()
-            .move_to_organization(cipher, organization_id)
-            .map_err(Error::Cipher)?)
+            .move_to_organization(cipher, organization_id)?)
     }
 }

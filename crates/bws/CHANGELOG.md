@@ -7,10 +7,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-### Removed
-
-- The deprecated `action type` commands are now removed. Please use `type action` instead. (#836)
-
 ## [0.5.0] - 2024-04-26
 
 ### Added

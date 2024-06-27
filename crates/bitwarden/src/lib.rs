@@ -16,10 +16,8 @@
 //!
 //! ```rust
 //! use bitwarden::{
-//!     auth::login::AccessTokenLoginRequest,
-//!     error::Result,
-//!     secrets_manager::{secrets::SecretIdentifiersRequest, ClientSecretsExt},
-//!     Client, ClientSettings, DeviceType,
+//!     auth::login::AccessTokenLoginRequest, error::Result,
+//!     secrets_manager::secrets::SecretIdentifiersRequest, Client, ClientSettings, DeviceType,
 //! };
 //! use uuid::Uuid;
 //!
@@ -58,36 +56,35 @@
 #[doc = include_str!("../README.md")]
 mod readme {}
 
-pub use bitwarden_core::*;
+#[cfg(feature = "uniffi")]
+uniffi::setup_scaffolding!();
+
+#[cfg(feature = "internal")]
+pub mod admin_console;
+pub mod auth;
+pub mod client;
 pub mod error;
-
 #[cfg(feature = "internal")]
-pub mod internal {
-    pub mod generators {
-        pub use bitwarden_generators::*;
-    }
-
-    pub mod exporters {
-        pub use bitwarden_exporters::*;
-    }
-
-    pub mod send {
-        pub use bitwarden_send::*;
-    }
-
-    pub mod vault {
-        pub use bitwarden_vault::*;
-    }
-
-    #[cfg(feature = "uniffi")]
-    pub mod fido {
-        pub use bitwarden_fido::*;
-    }
-}
+pub mod mobile;
 #[cfg(feature = "internal")]
-pub use internal::*;
-
+pub mod platform;
 #[cfg(feature = "secrets")]
-pub mod secrets_manager {
-    pub use bitwarden_sm::*;
+pub mod secrets_manager;
+#[cfg(feature = "internal")]
+pub mod tool;
+#[cfg(feature = "uniffi")]
+pub(crate) mod uniffi_support;
+mod util;
+#[cfg(feature = "internal")]
+pub mod vault;
+
+pub use client::{Client, ClientSettings, DeviceType};
+
+#[cfg(feature = "internal")]
+pub mod generators {
+    pub use bitwarden_generators::{
+        PassphraseGeneratorRequest, PasswordGeneratorRequest, UsernameGeneratorRequest,
+    };
 }
+
+pub use bitwarden_crypto::ZeroizingAllocator;

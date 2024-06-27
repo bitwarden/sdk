@@ -2,9 +2,8 @@ use std::{io::Read, process};
 
 use atty::Stream;
 use bitwarden::{
-    secrets_manager::{
-        secrets::{SecretIdentifiersByProjectRequest, SecretIdentifiersRequest, SecretsGetRequest},
-        ClientSecretsExt,
+    secrets_manager::secrets::{
+        SecretIdentifiersByProjectRequest, SecretIdentifiersRequest, SecretsGetRequest,
     },
     Client,
 };

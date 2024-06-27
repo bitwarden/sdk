@@ -21,7 +21,7 @@ uniffi = [
 ] # Uniffi bindings
 
 [dependencies]
-base64 = ">=0.22.1, <0.23"
+base64 = ">=0.21.2, <0.23"
 bitwarden-api-api = { workspace = true }
 bitwarden-core = { workspace = true }
 bitwarden-crypto = { workspace = true }

@@ -1,8 +1,6 @@
 use std::{path::Path, sync::Arc};
 
-use bitwarden::vault::{
-    Attachment, AttachmentEncryptResult, AttachmentView, Cipher, ClientVaultExt,
-};
+use bitwarden::vault::{Attachment, AttachmentEncryptResult, AttachmentView, Cipher};
 
 use crate::{Client, Result};
 

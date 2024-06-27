@@ -4,12 +4,12 @@ cd ../../
 
 if [ "$1" != "-r" ]; then
   # Dev
-  cargo build -p bitwarden-wasm --target wasm32-unknown-unknown
+  cargo build -p bitwarden -p bitwarden-wasm --target wasm32-unknown-unknown --features wasm-bindgen
   wasm-bindgen --target bundler --out-dir languages/js/wasm ./target/wasm32-unknown-unknown/debug/bitwarden_wasm.wasm
   wasm-bindgen --target nodejs --out-dir languages/js/wasm/node ./target/wasm32-unknown-unknown/debug/bitwarden_wasm.wasm
 else
   # Release
-  cargo build -p bitwarden-wasm --target wasm32-unknown-unknown --release
+  cargo build -p bitwarden -p bitwarden-wasm --target wasm32-unknown-unknown --features wasm-bindgen --release
   wasm-bindgen --target bundler --out-dir languages/js/wasm ./target/wasm32-unknown-unknown/release/bitwarden_wasm.wasm
   wasm-bindgen --target nodejs --out-dir languages/js/wasm/node ./target/wasm32-unknown-unknown/release/bitwarden_wasm.wasm
 fi

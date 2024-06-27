@@ -35,7 +35,7 @@ jobs:
         run: npm i -g binaryen
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17 # stable
+        uses: dtolnay/rust-toolchain@d8352f6b1d2e870bc5716e7a6d9b65c4cc244a1a # stable
         with:
           toolchain: stable
           targets: wasm32-unknown-unknown

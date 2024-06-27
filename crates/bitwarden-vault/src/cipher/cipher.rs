@@ -14,12 +14,9 @@ use uuid::Uuid;
 use super::{
     attachment, card, field, identity,
     local_data::{LocalData, LocalDataView},
-    secure_note,
+    login, secure_note,
 };
-use crate::{
-    password_history, Fido2CredentialFullView, Fido2CredentialView, Login, LoginView,
-    VaultParseError,
-};
+use crate::{password_history, Fido2CredentialFullView, Fido2CredentialView, VaultParseError};
 
 #[derive(Debug, Error)]
 pub enum CipherError {
@@ -68,7 +65,7 @@ pub struct Cipher {
     pub notes: Option<EncString>,
 
     pub r#type: CipherType,
-    pub login: Option<Login>,
+    pub login: Option<login::Login>,
     pub identity: Option<identity::Identity>,
     pub card: Option<card::Card>,
     pub secure_note: Option<secure_note::SecureNote>,
@@ -104,7 +101,7 @@ pub struct CipherView {
     pub notes: Option<String>,
 
     pub r#type: CipherType,
-    pub login: Option<LoginView>,
+    pub login: Option<login::LoginView>,
     pub identity: Option<identity::IdentityView>,
     pub card: Option<card::CardView>,
     pub secure_note: Option<secure_note::SecureNoteView>,
@@ -609,14 +606,14 @@ mod tests {
     use std::collections::HashMap;
 
     use attachment::AttachmentView;
+    use login::Fido2Credential;
 
     use super::*;
-    use crate::Fido2Credential;
 
     fn generate_cipher() -> CipherView {
         CipherView {
             r#type: CipherType::Login,
-            login: Some(LoginView {
+            login: Some(login::LoginView {
                 username: Some("test_username".to_string()),
                 password: Some("test_password".to_string()),
                 password_revision_date: None,

@@ -1,20 +1,14 @@
 use bitwarden::{
-    secrets_manager::{
-        secrets::{
-            SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
-            SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest, SecretsGetRequest,
-        },
-        ClientSecretsExt,
+    secrets_manager::secrets::{
+        SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
+        SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest, SecretsGetRequest,
     },
     Client,
 };
 use color_eyre::eyre::{bail, Result};
 use uuid::Uuid;
 
-use crate::{
-    render::{serialize_response, OutputSettings},
-    SecretCommand,
-};
+use crate::render::{serialize_response, OutputSettings};
 
 #[derive(Debug)]
 pub(crate) struct SecretCreateCommandModel {
@@ -31,61 +25,6 @@ pub(crate) struct SecretEditCommandModel {
     pub(crate) value: Option<String>,
     pub(crate) note: Option<String>,
     pub(crate) project_id: Option<Uuid>,
-}
-
-pub(crate) async fn process_command(
-    command: SecretCommand,
-    client: Client,
-    organization_id: Uuid,
-    output_settings: OutputSettings,
-) -> Result<()> {
-    match command {
-        SecretCommand::List { project_id } => {
-            list(client, organization_id, project_id, output_settings).await
-        }
-        SecretCommand::Get { secret_id } => get(client, secret_id, output_settings).await,
-        SecretCommand::Create {
-            key,
-            value,
-            note,
-            project_id,
-        } => {
-            create(
-                client,
-                organization_id,
-                SecretCreateCommandModel {
-                    key,
-                    value,
-                    note,
-                    project_id,
-                },
-                output_settings,
-            )
-            .await
-        }
-        SecretCommand::Edit {
-            secret_id,
-            key,
-            value,
-            note,
-            project_id,
-        } => {
-            edit(
-                client,
-                organization_id,
-                SecretEditCommandModel {
-                    id: secret_id,
-                    key,
-                    value,
-                    note,
-                    project_id,
-                },
-                output_settings,
-            )
-            .await
-        }
-        SecretCommand::Delete { secret_ids } => delete(client, secret_ids).await,
-    }
 }
 
 pub(crate) async fn list(

@@ -2,7 +2,7 @@ use std::sync::Mutex;
 
 use bitwarden_core::{Client, VaultLocked};
 use bitwarden_crypto::{CryptoError, KeyContainer, KeyEncryptable};
-use bitwarden_vault::{CipherError, CipherView};
+use bitwarden_vault::{CipherError, CipherRepromptType, CipherView};
 use itertools::Itertools;
 use log::error;
 use passkey::{
@@ -20,7 +20,7 @@ use super::{
 };
 use crate::{
     fill_with_credential, string_to_guid_bytes, try_from_credential_full, Fido2CallbackError,
-    FillCredentialError, InvalidGuid,
+    FillCredentialError, InvalidGuid, Verification,
 };
 
 #[derive(Debug, Error)]
@@ -631,6 +631,20 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
                     user_verified: verification != UV::Discouraged,
                 })
             }
+            UIHint::RequestExistingCredential(cipher) => {
+                let options = match cipher.cipher.reprompt {
+                    CipherRepromptType::None => options,
+                    CipherRepromptType::Password => CheckUserOptions {
+                        require_verification: Verification::Required,
+                        ..options
+                    },
+                };
+
+                self.authenticator
+                    .user_interface
+                    .check_user(options, map_ui_hint(hint))
+                    .await
+            }
             _ => {
                 self.authenticator
                     .user_interface
@@ -639,7 +653,7 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
             }
         };
 
-        let result = result.map_err(|e| {
+        let result = result.map_err(|e: Fido2CallbackError| {
             error!("Error checking user: {e:?}");
             Ctap2Error::UserVerificationInvalid
         })?;

@@ -10,9 +10,7 @@ managing projects and secrets, as well as a client interface to facilitate opera
 
 ## Installation
 
-You can install the [sdk-go](https://github.com/bitwarden/sdk-go) Go module like any other Go module (for example, with `go get`). You will just need to make sure you can build with [cgo](https://pkg.go.dev/cmd/cgo) on your machine.
-
-You can find instructions [here](./INSTRUCTIONS.md).
+Follow the installation instructions [here](./INSTRUCTIONS.md).
 
 ## Table of Contents
 

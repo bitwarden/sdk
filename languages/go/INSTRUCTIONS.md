@@ -56,7 +56,7 @@ go get github.com/bitwarden/sdk-go
 go build -ldflags '-linkmode external -extldflags "-static -Wl,-unresolved-symbols=ignore-all"'
 ```
 
-## Mac
+## macOS
 
 ### Prerequisites
 
@@ -69,7 +69,7 @@ You can install Clang with:
 
 
 ```shell
-xcode-select -–install
+xcode-select --install
 ```
 
 ### Set Go Environment Info

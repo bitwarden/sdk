@@ -12,39 +12,139 @@ The Bitwarden Go SDK module utilizes FFI calls to the Bitwarden Rust SDK via [cg
 
 ## Linux
 
-1. Make sure you have the following on your system:
-    - [Go](https://go.dev/dl)
-    - A C/C++ toolchain. We recommend the [MUSL toolchain](https://musl.libc.org). You can install this on most debian based systems with: `sudo apt install musl-tools`
-2. Verify cgo is enabled and `CC` is set with: `go env`.
-    - You can enable cgo with: `go env -w CGO_ENABLED=1`
-    - You can set `CC` with: `go env -w CC=musl-gcc`
-3. Make sure you have added the Bitwarden Go SDK with go get: `go get github.com/bitwarden/sdk-go`
-4. You can build your project with the appropriate libraries linked statically with: `go build -ldflags '-linkmode external -extldflags "-static -Wl,-unresolved-symbols=ignore-all"' -o myapp`, where `myapp` is the name of the output binary.
+### Prerequisites
+
+- [Go](https://go.dev/dl)
+- A C toolchain
+
+We recommend the [MUSL toolchain](https://musl.libc.org). You can install this on most debian based systems with:
+
+```shell
+sudo apt install musl-tools
+```
+
+### Set Go Environment Info
+
+#### Enable cgo
+
+```shell
+go env -w CGO_ENABLED=1
+```
+
+#### Set the C compiler
+
+```shell
+go env -w CC=musl-gcc
+```
+
+#### Verify
+```shell
+go env
+```
+
+### Install the Bitwarden Go SDK
+
+#### Adding the Module
+
+```shell
+go get github.com/bitwarden/sdk-go
+```
+
+#### Build
+
+```shell
+go build -ldflags '-linkmode external -extldflags "-static -Wl,-unresolved-symbols=ignore-all"'
+```
 
 ## Mac
 
-1. Make sure you have the following on your system:
-    - [Go](https://go.dev/dl)
-    - A C/C++ toolchain. [Clang](https://clang.llvm.org/get_started.html) is the default Xcode compiler on Mac OS. The easiest way to ensure you have the toolchain is to install the Xcode Command Line tools.
-        - You can install them with: `xcode-select -–install`
-2. Verify cgo is enabled and `CC` and `CXX` are set with: `go env`.
-    - You can enable cgo with: `go env -w CGO_ENABLED=1`
-    - You can set `CC` and `CXX` with: `go env -w CC=clang CXX=clang++`
-3. Make sure you have added the Bitwarden Go SDK with go get: `go get github.com/bitwarden/sdk-go`
-4. Your project should build with: `go build`
+### Prerequisites
+
+- [Go](https://go.dev/dl)
+- A C toolchain
+
+[Clang](https://clang.llvm.org/get_started.html) is the default C and C++ toolchain on Mac OS. The easiest way to ensure you have the toolchain is to install the Xcode Command Line tools.
+
+You can install Clang with:
+
+
+```shell
+xcode-select -–install
+```
+
+### Set Go Environment Info
+
+#### Enable cgo
+
+```shell
+go env -w CGO_ENABLED=1
+```
+
+#### Set the C & C++ compilers
+
+```shell
+go env -w CC=clang CXX=clang++
+```
+
+#### Verify
+```shell
+go env
+```
+
+### Install the Bitwarden Go SDK
+
+#### Adding the Module
+
+```shell
+go get github.com/bitwarden/sdk-go
+```
+
+#### Build
+
+```shell
+go build
+```
 
 ## Windows
 
-1. Make sure you have the following on your system:
-    - [Go](https://go.dev/dl)
-    - GCC via [MSYS2](https://www.msys2.org)
-        - GCC is required on Windows according to [this cgo](https://go.dev/wiki/cgo) page. Microsoft recommends using the MinGW-w64 toolchain via [MSYS2](https://www.msys2.org) for up-to-date native builds of GCC [here](https://code.visualstudio.com/docs/cpp/config-mingw#_installing-the-mingww64-toolchain). MSYS2 installation instructions can be found [here](https://www.msys2.org).
-        - After following the MSYS2 installation instructions, you should be able to run the following to verify everything is installed:
-            - `gcc --version`
-            - `g++ --version`
-            - `gdb --version`
-2. Verify cgo is enabled and `CC` and `CXX` are set with: `go env`.
-    - You can enable cgo by setting the flag: `go env -w CGO_ENABLED=1`
-    - You can set `CC` and `CXX` with: `go env -w CC=gcc CXX=g++`
-3. Make sure you have added the Bitwarden Go SDK with go get: `go get github.com/bitwarden/sdk-go`
-4. Your project should build with: `go build`
+### Prerequisites
+
+- [Go](https://go.dev/dl)
+- [GCC](https://gcc.gnu.org)
+
+Go [documentation](https://go.dev/wiki/cgo) recommends the mingw-w64 gcc compiler.
+
+We recommend following the Visual Studio Code [guide](https://code.visualstudio.com/docs/cpp/config-mingw#_installing-the-mingww64-toolchain) for installing the mingw-w64 toolchain.
+
+### Set Go Environment Info
+
+#### Enable cgo
+
+```shell
+go env -w CGO_ENABLED=1
+```
+
+#### Set the C & C++ compilers
+
+```shell
+go env -w CC=gcc CXX=g++
+```
+
+#### Verify
+```shell
+go env
+```
+
+### Install the Bitwarden Go SDK
+
+#### Adding the Module
+
+```shell
+go get github.com/bitwarden/sdk-go
+```
+
+#### Build
+
+```shell
+go build
+```

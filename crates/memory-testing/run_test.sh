@@ -16,7 +16,7 @@ if [ "$1" = "no-docker" ]; then
     sudo ./target/release/capture-dumps ./target/release/memory-testing $BASE_DIR
 else
     docker build -f crates/memory-testing/Dockerfile -t bitwarden/memory-testing .
-    docker run --rm -it -v $BASE_DIR:/output bitwarden/memory-testing 
+    docker run --rm -it --privileged --cap-add=SYS_PTRACE -v $BASE_DIR/output:/output bitwarden/memory-testing 
 fi
 
 ./target/release/analyze-dumps $BASE_DIR

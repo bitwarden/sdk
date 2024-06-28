@@ -2,9 +2,8 @@ uniffi::setup_scaffolding!();
 
 use std::sync::Arc;
 
-use async_lock::RwLock;
 use auth::ClientAuth;
-use bitwarden::client::client_settings::ClientSettings;
+use bitwarden::ClientSettings;
 
 pub mod auth;
 pub mod crypto;
@@ -20,11 +19,11 @@ pub mod docs;
 use crypto::ClientCrypto;
 use error::Result;
 use platform::ClientPlatform;
-use tool::{ClientExporters, ClientGenerators};
+use tool::{ClientExporters, ClientGenerators, ClientSends};
 use vault::ClientVault;
 
 #[derive(uniffi::Object)]
-pub struct Client(RwLock<bitwarden::Client>);
+pub struct Client(bitwarden::Client);
 
 #[uniffi::export]
 impl Client {
@@ -32,7 +31,7 @@ impl Client {
     #[uniffi::constructor]
     pub fn new(settings: Option<ClientSettings>) -> Arc<Self> {
         init_logger();
-        Arc::new(Self(RwLock::new(bitwarden::Client::new(settings))))
+        Arc::new(Self(bitwarden::Client::new(settings)))
     }
 
     /// Crypto operations
@@ -57,6 +56,11 @@ impl Client {
     /// Exporters
     pub fn exporters(self: Arc<Self>) -> Arc<ClientExporters> {
         Arc::new(ClientExporters(self))
+    }
+
+    /// Sends operations
+    pub fn sends(self: Arc<Self>) -> Arc<ClientSends> {
+        Arc::new(ClientSends(self))
     }
 
     /// Auth operations

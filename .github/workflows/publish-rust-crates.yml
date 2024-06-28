@@ -29,6 +29,11 @@ on:
         required: true
         default: true
         type: boolean
+      publish_bitwarden-core:
+        description: "Publish bitwarden-core crate"
+        required: true
+        default: true
+        type: boolean
       publish_bitwarden-crypto:
         description: "Publish bitwarden-crypto crate"
         required: true
@@ -39,13 +44,28 @@ on:
         required: true
         default: true
         type: boolean
+      publish_bitwarden-exporters:
+        description: "Publish bitwarden-exporters crate"
+        required: true
+        default: true
+        type: boolean
+      publish_bitwarden-fido:
+        description: "Publish bitwarden-fido crate"
+        required: true
+        default: true
+        type: boolean
       publish_bitwarden-generators:
         description: "Publish bitwarden-generators crate"
         required: true
         default: true
         type: boolean
-      publish_bitwarden-exporters:
-        description: "Publish bitwarden-exporters crate"
+      publish_bitwarden-send:
+        description: "Publish bitwarden-send crate"
+        required: true
+        default: true
+        type: boolean
+      publish_bitwarden-vault:
+        description: "Publish bitwarden-valt crate"
         required: true
         default: true
         type: boolean
@@ -81,10 +101,14 @@ jobs:
           PUBLISH_BITWARDEN: ${{ github.event.inputs.publish_bitwarden }}
           PUBLISH_BITWARDEN_API_API: ${{ github.event.inputs.publish_bitwarden-api-api }}
           PUBLISH_BITWARDEN_API_IDENTITY: ${{ github.event.inputs.publish_bitwarden-api-identity }}
+          PUBLISH_BITWARDEN_CORE: ${{ github.event.inputs.publish_bitwarden-core }}
           PUBLISH_BITWARDEN_CRYPTO: ${{ github.event.inputs.publish_bitwarden-crypto }}
           PUBLISH_BITWARDEN_CLI: ${{ github.event.inputs.publish_bitwarden-cli }}
-          PUBLISH_BITWARDEN_GENERATORS: ${{ github.event.inputs.publish_bitwarden-generators }}
           PUBLISH_BITWARDEN_EXPORTERS: ${{ github.event.inputs.publish_bitwarden-exporters }}
+          PUBLISH_BITWARDEN_FIDO: ${{ github.event.inputs.publish_bitwarden-fido }}
+          PUBLISH_BITWARDEN_GENERATORS: ${{ github.event.inputs.publish_bitwarden-generators }}
+          PUBLISH_BITWARDEN_SEND: ${{ github.event.inputs.publish_bitwarden-send }}
+          PUBLISH_BITWARDEN_VAULT: ${{ github.event.inputs.publish_bitwarden-vault }}
         run: |
           if [[ "$PUBLISH_BITWARDEN" == "false" ]] && [[ "$PUBLISH_BITWARDEN_API_API" == "false" ]] && [[ "$PUBLISH_BITWARDEN_API_IDENTITY" == "false" ]]; then
             echo "==================================="
@@ -111,6 +135,11 @@ jobs:
             PACKAGES_LIST="$PACKAGES_LIST bitwarden-api-identity"
           fi
 
+          if [[ "$PUBLISH_BITWARDEN_CORE" == "true" ]]; then
+            PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-core"
+            PACKAGES_LIST="$PACKAGES_LIST bitwarden-core"
+          fi
+
           if [[ "$PUBLISH_BITWARDEN_CRYPTO" == "true" ]]; then
             PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-crypto"
             PACKAGES_LIST="$PACKAGES_LIST bitwarden-crypto"
@@ -121,14 +150,29 @@ jobs:
             PACKAGES_LIST="$PACKAGES_LIST bitwarden-cli"
           fi
 
+          if [[ "$PUBLISH_BITWARDEN_EXPORTERS" == "true" ]]; then
+            PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-exporters"
+            PACKAGES_LIST="$PACKAGES_LIST bitwarden-exporters"
+          fi
+
+          if [[ "$PUBLISH_BITWARDEN_FIDO" == "true" ]]; then
+            PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-fido"
+            PACKAGES_LIST="$PACKAGES_LIST bitwarden-fido"
+          fi
+
           if [[ "$PUBLISH_BITWARDEN_GENERATORS" == "true" ]]; then
             PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-generators"
             PACKAGES_LIST="$PACKAGES_LIST bitwarden-generators"
           fi
 
-          if [[ "$PUBLISH_BITWARDEN_EXPORTERS" == "true" ]]; then
-            PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-exporters"
-            PACKAGES_LIST="$PACKAGES_LIST bitwarden-exporters"
+          if [[ "$PUBLISH_BITWARDEN_SEND" == "true" ]]; then
+            PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-send"
+            PACKAGES_LIST="$PACKAGES_LIST bitwarden-send"
+          fi
+
+          if [[ "$PUBLISH_BITWARDEN_VAULT" == "true" ]]; then
+            PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-vault"
+            PACKAGES_LIST="$PACKAGES_LIST bitwarden-vault"
           fi
 
           echo "Packages command: " $PACKAGES_COMMAND
@@ -159,7 +203,7 @@ jobs:
           secrets: "cratesio-api-token"
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@d8352f6b1d2e870bc5716e7a6d9b65c4cc244a1a # stable
+        uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17 # stable
         with:
           toolchain: stable
 

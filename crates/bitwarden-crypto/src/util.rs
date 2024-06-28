@@ -4,12 +4,12 @@ use ::aes::cipher::{ArrayLength, Unsigned};
 use generic_array::GenericArray;
 use hmac::digest::OutputSizeUser;
 use rand::{
-    distributions::{Distribution, Standard},
+    distributions::{Alphanumeric, DistString, Distribution, Standard},
     Rng,
 };
-use zeroize::Zeroize;
+use zeroize::{Zeroize, Zeroizing};
 
-use crate::{CryptoError, Result, Sensitive};
+use crate::{CryptoError, Result};
 
 pub(crate) type PbkdfSha256Hmac = hmac::Hmac<sha2::Sha256>;
 pub(crate) const PBKDF_SHA256_HMAC_OUT_SIZE: usize =
@@ -31,26 +31,25 @@ pub(crate) fn hkdf_expand<T: ArrayLength<u8>>(
 }
 
 /// Generate random bytes that are cryptographically secure
-pub fn generate_random_bytes<T>() -> Sensitive<T>
+pub fn generate_random_bytes<T>() -> Zeroizing<T>
 where
     Standard: Distribution<T>,
     T: Zeroize,
 {
-    Sensitive::new(Box::new(rand::thread_rng().gen::<T>()))
+    Zeroizing::new(rand::thread_rng().gen::<T>())
 }
 
-#[inline(always)]
-pub fn pbkdf2(
-    password: &[u8],
-    salt: &[u8],
-    rounds: u32,
-) -> Sensitive<[u8; PBKDF_SHA256_HMAC_OUT_SIZE]> {
-    let mut hash = Sensitive::new(Box::new([0u8; PBKDF_SHA256_HMAC_OUT_SIZE]));
+/// Generate a random alphanumeric string of a given length
+///
+/// Note: Do not use this generating user facing passwords. Use the `bitwarden-generator` crate for
+/// that.
+pub fn generate_random_alphanumeric(len: usize) -> String {
+    Alphanumeric.sample_string(&mut rand::thread_rng(), len)
+}
 
-    pbkdf2::pbkdf2::<PbkdfSha256Hmac>(password, salt, rounds, hash.expose_mut())
-        .expect("hash is a valid fixed size");
-
-    hash
+pub fn pbkdf2(password: &[u8], salt: &[u8], rounds: u32) -> [u8; PBKDF_SHA256_HMAC_OUT_SIZE] {
+    pbkdf2::pbkdf2_array::<PbkdfSha256Hmac, PBKDF_SHA256_HMAC_OUT_SIZE>(password, salt, rounds)
+        .expect("hash is a valid fixed size")
 }
 
 #[cfg(test)]

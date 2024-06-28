@@ -9,5 +9,5 @@
 .github/workflows @bitwarden/dept-devops
 
 # Secrets Manager team
-crates/bws @bitwarden/team-secrets-manager-dev
 crates/bitwarden-sm @bitwarden/team-secrets-manager-dev
+crates/bws @bitwarden/team-secrets-manager-dev

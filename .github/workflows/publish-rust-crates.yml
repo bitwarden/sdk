@@ -14,11 +14,6 @@ on:
           - Initial Release
           - Redeploy
           - Dry Run
-      packages:
-        description: "Which packages to publish"
-        required: true
-        default: "bitwarden bitwarden-api-api bitwarden-api-identity bitwarden-cli bitwarden-core bitwarden-crypto bitwarden-exporters bitwarden-fido bitwarden-generators bitwarden-send bitwarden-vault"
-        type: string
 
 defaults:
   run:
@@ -43,7 +38,7 @@ jobs:
           fi
 
   publish:
-    name: Publish ${{ github.event.inputs.packages }}
+    name: Publish
     runs-on: ubuntu-latest
     needs:
       - setup
@@ -81,7 +76,7 @@ jobs:
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
           initial-status: "in_progress"
-          environment: "Bitwarden SDK to crates.io: ${{ github.event.inputs.packages }}"
+          environment: "Bitwarden SDK"
           description: "Deployment from branch ${{ github.ref_name }}"
           task: release
 
@@ -91,9 +86,7 @@ jobs:
           PUBLISH_GRACE_SLEEP: 10
           PACKAGES_PUBLISH: ${{ github.event.inputs.release_type }}
           CARGO_REGISTRY_TOKEN: ${{ steps.retrieve-secrets.outputs.cratesio-api-token }}
-        run: |
-          PACKAGES="-p ${PACKAGES_PUBLISH// / -p }"
-          cargo-release release publish $PACKAGES --execute --no-confirm
+        run: cargo-release release publish --exclude bw --exclude bws --execute --no-confirm
 
       - name: Update deployment status to Success
         if: ${{ github.event.inputs.release_type != 'Dry Run' && success() }}

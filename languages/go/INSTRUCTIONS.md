@@ -1,10 +1,14 @@
 # Instructions
 
-This guide is for developers who want to use the Bitwarden Go SDK module in their own Go projects.
+This guide is for developers who want to use the Bitwarden Go SDK module in their own Go projects. Please see the main [README](./README.md) and [example.go](./example/example.go) file for examples.
 
-The Bitwarden SDK is written in Rust, and we utilize FFI via [cgo](https://pkg.go.dev/cmd/cgo). We currently support static linking the Bitwarden Go module on Linux (x86-64 & arm64), Mac (x86-64 & arm64), and Windows (x86-64).
+## Supported Targets
 
-Please see the main [README](./README.md) and [example](./example/example.go) for examples.
+The Bitwarden Go SDK module utilizes FFI calls to the Bitwarden Rust SDK via [cgo](https://pkg.go.dev/cmd/cgo). The module supports the following statically linked targets:
+
+- Linux `x86-64` & `arm64`
+- macOS `x86-64` & `arm64`
+- Windows `x86-64`
 
 ## Linux
 

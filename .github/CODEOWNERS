@@ -8,6 +8,6 @@
 # DevOps for Actions and other workflow changes.
 .github/workflows @bitwarden/dept-devops
 
-## Secrets Manager team files ##
+# Secrets Manager team
 crates/bws @bitwarden/team-secrets-manager-dev
 crates/bitwarden-sm @bitwarden/team-secrets-manager-dev

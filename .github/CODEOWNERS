@@ -10,4 +10,4 @@
 
 ## Secrets Manager team files ##
 crates/bws @bitwarden/team-secrets-manager-dev
-crates/bitwarden/src/secrets_manager @bitwarden/team-secrets-manager-dev
+crates/bitwarden-sm @bitwarden/team-secrets-manager-dev

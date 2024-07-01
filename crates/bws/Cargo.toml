@@ -52,8 +52,6 @@ clap_complete = "4.5.2"
 clap_mangen = "0.2.20"
 uuid = { version = "1.7.0" }
 
-which = "6.0.0"
-
 [dev-dependencies]
 tempfile = "3.10.0"
 

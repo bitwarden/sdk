@@ -4,9 +4,9 @@ use std::{borrow::Cow, fmt::Debug};
 
 use bitwarden_api_api::apis::Error as ApiError;
 use bitwarden_api_identity::apis::Error as IdentityError;
+use log::debug;
 use reqwest::StatusCode;
 use thiserror::Error;
-use uniffi::deps::log::debug;
 use validator::ValidationErrors;
 
 #[derive(Debug, Error)]

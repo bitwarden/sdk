@@ -10,9 +10,11 @@ pub(crate) fn is_valid_posix_name(input_text: &str) -> bool {
     }
 }
 
+/// Converts a UUID to a POSIX-compliant environment variable name.
+///
+/// POSIX environment variable names must start with a letter or an underscore
+/// and can only contain letters, numbers, and underscores.
 pub(crate) fn uuid_to_posix(uuid: &Uuid) -> String {
-    // POSIX environment variable names must start with a letter or an underscore
-    // and can only contain letters, numbers, and underscores.
     format!("_{}", uuid.to_string().replace('-', "_"))
 }
 

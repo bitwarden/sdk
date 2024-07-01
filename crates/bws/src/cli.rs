@@ -10,7 +10,7 @@ pub(crate) const CONFIG_FILE_KEY_VAR_NAME: &str = "BWS_CONFIG_FILE";
 pub(crate) const PROFILE_KEY_VAR_NAME: &str = "BWS_PROFILE";
 pub(crate) const SERVER_URL_KEY_VAR_NAME: &str = "BWS_SERVER_URL";
 
-pub(crate) const UUIDS_AS_KEYNAMES: &str = "BWS_UUIDS_AS_KEYNAMES";
+pub(crate) const UUIDS_AS_KEYNAMES_VAR_NAME: &str = "BWS_UUIDS_AS_KEYNAMES";
 
 pub(crate) const DEFAULT_CONFIG_FILENAME: &str = "config";
 pub(crate) const DEFAULT_CONFIG_DIRECTORY: &str = ".bws";
@@ -107,7 +107,7 @@ pub(crate) enum Commands {
         #[arg(
             long,
             global = true,
-            env = UUIDS_AS_KEYNAMES,
+            env = UUIDS_AS_KEYNAMES_VAR_NAME,
             help = "Use the secret UUID (in its POSIX form) instead of the key name for the environment variable"
         )]
         uuids_as_keynames: bool,

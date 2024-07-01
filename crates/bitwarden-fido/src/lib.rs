@@ -13,14 +13,16 @@ mod uniffi_support;
 
 mod authenticator;
 mod client;
+mod client_fido;
 mod crypto;
 mod traits;
 mod types;
 pub use authenticator::{
-    CredentialsForAutofillError, Fido2Authenticator, FidoEncryptionSettingStore, GetAssertionError,
-    MakeCredentialError, SilentlyDiscoverCredentialsError,
+    CredentialsForAutofillError, Fido2Authenticator, GetAssertionError, MakeCredentialError,
+    SilentlyDiscoverCredentialsError,
 };
 pub use client::{Fido2Client, Fido2ClientError};
+pub use client_fido::{ClientFido2, ClientFido2Ext, DecryptFido2AutofillCredentialsError};
 pub use passkey::authenticator::UIHint;
 use thiserror::Error;
 pub use traits::{

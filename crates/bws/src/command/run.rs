@@ -1,6 +1,8 @@
-use std::{io::Read, process};
+use std::{
+    io::{IsTerminal, Read},
+    process,
+};
 
-use atty::Stream;
 use bitwarden::{
     secrets_manager::{
         secrets::{SecretIdentifiersByProjectRequest, SecretIdentifiersRequest, SecretsGetRequest},
@@ -38,7 +40,7 @@ pub(crate) async fn run(
     }
 
     let user_command = if command.is_empty() {
-        if atty::is(Stream::Stdin) {
+        if std::io::stdin().is_terminal() {
             eprintln!("{}", Cli::command().render_help().ansi());
             std::process::exit(1);
         }

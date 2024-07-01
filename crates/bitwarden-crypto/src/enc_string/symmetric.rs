@@ -310,6 +310,17 @@ mod tests {
     }
 
     #[test]
+    fn test_enc_string_ref_roundtrip() {
+        let key = derive_symmetric_key("test");
+
+        let test_string = "encrypted_test_string";
+        let cipher = test_string.encrypt_with_key(&key).unwrap();
+
+        let decrypted_str: String = cipher.decrypt_with_key(&key).unwrap();
+        assert_eq!(decrypted_str, test_string);
+    }
+
+    #[test]
     fn test_enc_string_serialization() {
         #[derive(serde::Serialize, serde::Deserialize)]
         struct Test {

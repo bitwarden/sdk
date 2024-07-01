@@ -17,6 +17,7 @@ pub(crate) fn uuid_to_posix(uuid: &Uuid) -> String {
 }
 
 mod tests {
+    #[allow(unused_imports)]
     use super::*;
 
     #[test]

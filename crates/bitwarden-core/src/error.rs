@@ -4,8 +4,10 @@ use std::{borrow::Cow, fmt::Debug};
 
 use bitwarden_api_api::apis::Error as ApiError;
 use bitwarden_api_identity::apis::Error as IdentityError;
+use log::debug;
 use reqwest::StatusCode;
 use thiserror::Error;
+use validator::ValidationErrors;
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -42,6 +44,9 @@ pub enum Error {
 
     #[error("Received error message from server: [{}] {}", .status, .message)]
     ResponseContent { status: StatusCode, message: String },
+
+    #[error(transparent)]
+    ValidationError(#[from] ValidationError),
 
     #[error("The state file version is invalid")]
     InvalidStateFileVersion,
@@ -136,4 +141,66 @@ macro_rules! require {
             None => return Err($crate::MissingFieldError(stringify!($val)).into()),
         }
     };
+}
+
+// Validation
+#[derive(Debug, Error)]
+pub enum ValidationError {
+    #[error("{0} must not be empty")]
+    Required(String),
+    #[error("{0} must not exceed {1} characters in length")]
+    ExceedsCharacterLength(String, u64),
+    #[error("{0} must not contain only whitespaces")]
+    OnlyWhitespaces(String),
+}
+
+const VALIDATION_LENGTH_CODE: &str = "length";
+const VALIDATION_ONLY_WHITESPACES_CODE: &str = "only_whitespaces";
+
+pub fn validate_only_whitespaces(value: &str) -> Result<(), validator::ValidationError> {
+    if !value.is_empty() && value.trim().is_empty() {
+        return Err(validator::ValidationError::new(
+            VALIDATION_ONLY_WHITESPACES_CODE,
+        ));
+    }
+    Ok(())
+}
+
+impl From<ValidationErrors> for Error {
+    fn from(e: ValidationErrors) -> Self {
+        debug!("Validation errors: {:#?}", e);
+        for (field_name, errors) in e.field_errors() {
+            for error in errors {
+                match error.code.as_ref() {
+                    VALIDATION_LENGTH_CODE => {
+                        if error.params.contains_key("min")
+                            && error.params["min"].as_u64().expect("Min provided") == 1
+                            && error.params["value"]
+                                .as_str()
+                                .expect("Value provided")
+                                .is_empty()
+                        {
+                            return Error::ValidationError(ValidationError::Required(
+                                field_name.to_string(),
+                            ));
+                        } else if error.params.contains_key("max") {
+                            return Error::ValidationError(
+                                ValidationError::ExceedsCharacterLength(
+                                    field_name.to_string(),
+                                    error.params["max"].as_u64().expect("Max provided"),
+                                ),
+                            );
+                        }
+                    }
+                    VALIDATION_ONLY_WHITESPACES_CODE => {
+                        return Error::ValidationError(ValidationError::OnlyWhitespaces(
+                            field_name.to_string(),
+                        ));
+                    }
+                    _ => {}
+                }
+            }
+        }
+        format!("Unknown validation error: {:#?}", e).into()
+    }
 }

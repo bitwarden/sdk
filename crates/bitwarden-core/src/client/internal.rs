@@ -1,4 +1,4 @@
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, Mutex, RwLock};
 
 #[cfg(any(feature = "internal", feature = "secrets"))]
 use bitwarden_crypto::SymmetricCryptoKey;
@@ -17,7 +17,7 @@ use crate::error::Error;
 use crate::{
     auth::renew::renew_token,
     error::{Result, VaultLocked},
-    DeviceType,
+    DeviceType, SqliteDatabase,
 };
 
 #[derive(Debug, Clone)]
@@ -57,6 +57,8 @@ pub struct InternalClient {
     pub(crate) external_client: reqwest::Client,
 
     pub(super) encryption_settings: RwLock<Option<Arc<EncryptionSettings>>>,
+
+    pub db: Arc<Mutex<SqliteDatabase>>,
 }
 
 impl InternalClient {

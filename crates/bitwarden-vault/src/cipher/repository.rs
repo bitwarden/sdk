@@ -1,10 +1,10 @@
 use std::sync::{Arc, Mutex};
 
+use bitwarden_core::{require, DatabaseError, Error, SqliteDatabase};
 use rusqlite::params;
 use uuid::Uuid;
 
 use super::Cipher;
-use bitwarden_core::{require, DatabaseError, Error, SqliteDatabase};
 
 pub trait CipherRepository {
     /// Save a cipher to the repository.

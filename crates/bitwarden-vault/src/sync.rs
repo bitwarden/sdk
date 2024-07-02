@@ -54,7 +54,8 @@ pub(crate) async fn sync(client: &Client, input: &SyncRequest) -> Result<SyncRes
         .vault()
         .cipher_repository
         .as_mut()
-        .replace_all(ciphers)?;
+        .replace_all(ciphers)
+        .unwrap();
 
     Ok(res)
 }

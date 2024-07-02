@@ -4,7 +4,6 @@ use log::info;
 use rusqlite::Connection;
 
 use super::{DatabaseError, MigratorError};
-use crate::error::Error;
 
 #[derive(Debug)]
 pub struct SqliteDatabase {

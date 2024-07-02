@@ -4,6 +4,8 @@ use std::borrow::Cow;
 pub use sqlite::SqliteDatabase;
 use thiserror::Error;
 
+use crate::MissingFieldError;
+
 #[derive(Debug, Error)]
 pub enum DatabaseError {
     #[error("Database lock")]
@@ -17,6 +19,10 @@ pub enum DatabaseError {
 
     #[error(transparent)]
     Rusqlite(#[from] rusqlite::Error),
+    #[error(transparent)]
+    SerdeJson(#[from] serde_json::Error),
+    #[error(transparent)]
+    MissingField(#[from] MissingFieldError),
 }
 
 #[derive(Debug, Error)]

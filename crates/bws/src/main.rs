@@ -15,6 +15,7 @@ mod command;
 mod config;
 mod render;
 mod state;
+mod util;
 
 use crate::cli::*;
 
@@ -118,6 +119,25 @@ async fn process_commands() -> Result<()> {
 
         Commands::Secret { cmd } => {
             command::secret::process_command(cmd, client, organization_id, output_settings).await
+        }
+
+        Commands::Run {
+            command,
+            shell,
+            no_inherit_env,
+            project_id,
+            uuids_as_keynames,
+        } => {
+            command::run::run(
+                client,
+                organization_id,
+                project_id,
+                uuids_as_keynames,
+                no_inherit_env,
+                shell,
+                command,
+            )
+            .await
         }
 
         Commands::Config { .. } | Commands::Completions { .. } => {

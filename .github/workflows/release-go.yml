@@ -15,7 +15,7 @@ on:
 
 env:
   GO111MODULE: on
-  GO_VERSION: "^1.18"
+  GO_VERSION: "^1.21"
   _KEY_VAULT: "bitwarden-ci"
 
 jobs:

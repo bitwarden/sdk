@@ -637,6 +637,7 @@ dependencies = [
  "log",
  "schemars",
  "thiserror",
+ "tokio",
  "uniffi",
  "uuid",
 ]

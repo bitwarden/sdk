@@ -44,6 +44,18 @@ impl ClientFido2 {
         )))
     }
 
+    pub fn nonblocking_client(
+        self: Arc<Self>,
+        user_interface: Arc<dyn Fido2NonBlockingUserInterface>,
+        credential_store: Arc<dyn Fido2CredentialStore>,
+    ) -> Arc<ClientFido2NonBlockingClient> {
+        Arc::new(ClientFido2NonBlockingClient(
+            self.0.clone(),
+            user_interface,
+            credential_store,
+        ))
+    }
+
     pub fn decrypt_fido2_autofill_credentials(
         self: Arc<Self>,
         cipher_view: CipherView,
@@ -170,6 +182,52 @@ impl ClientFido2Client {
     }
 }
 
+#[derive(uniffi::Object)]
+pub struct ClientFido2NonBlockingClient(
+    pub(crate) Arc<Client>,
+    pub(crate) Arc<dyn Fido2NonBlockingUserInterface>,
+    pub(crate) Arc<dyn Fido2CredentialStore>,
+);
+
+#[uniffi::export]
+impl ClientFido2NonBlockingClient {
+    pub async fn register(
+        &self,
+        origin: String,
+        request: String,
+        client_data: ClientData,
+    ) -> Result<PublicKeyCredentialAuthenticatorAttestationResponse> {
+        let fido2 = self.0 .0.fido2();
+        let ui = UniffiTraitBridge(self.1.as_ref());
+        let cs = UniffiTraitBridge(self.2.as_ref());
+        let mut client = fido2.create_client(&ui, &cs);
+
+        let result = client
+            .register(origin, request, client_data)
+            .await
+            .map_err(Error::Fido2Client)?;
+        Ok(result)
+    }
+
+    pub async fn authenticate(
+        &self,
+        origin: String,
+        request: String,
+        client_data: ClientData,
+    ) -> Result<PublicKeyCredentialAuthenticatorAssertionResponse> {
+        let fido2 = self.0 .0.fido2();
+        let ui = UniffiTraitBridge(self.1.as_ref());
+        let cs = UniffiTraitBridge(self.2.as_ref());
+        let mut client = fido2.create_client(&ui, &cs);
+
+        let result = client
+            .authenticate(origin, request, client_data)
+            .await
+            .map_err(Error::Fido2Client)?;
+        Ok(result)
+    }
+}
+
 // Note that uniffi doesn't support external traits for now it seems, so we have to duplicate them
 // here.
 
@@ -228,6 +286,62 @@ pub trait Fido2UserInterface: Send + Sync {
         options: CheckUserOptions,
         new_credential: Fido2CredentialNewView,
     ) -> Result<CipherViewWrapper, Fido2CallbackError>;
+    async fn is_verification_enabled(&self) -> bool;
+}
+
+macro_rules! continuation {
+    ($name:ident, $type:ty) => {
+        #[derive(uniffi::Object)]
+        pub struct $name {
+            tx: tokio::sync::mpsc::Sender<Result<$type, Fido2CallbackError>>,
+        }
+
+        impl $name {
+            pub fn new() -> (
+                std::sync::Arc<Self>,
+                tokio::sync::mpsc::Receiver<Result<$type, Fido2CallbackError>>,
+            ) {
+                let (tx, rx) = tokio::sync::mpsc::channel(1);
+                (std::sync::Arc::new(Self { tx }), rx)
+            }
+        }
+
+        #[uniffi::export(async_runtime = "tokio")]
+        impl $name {
+            pub async fn complete(&self, result: $type) {
+                let _ = self.tx.send(Ok(result)).await;
+            }
+
+            pub async fn fail(&self, error: Fido2CallbackError) {
+                let _ = self.tx.send(Err(error)).await;
+            }
+        }
+    };
+}
+
+continuation!(CompletionObjectCheckUserResult, CheckUserResult);
+continuation!(CompletionObjectCipherViewWrapper, CipherViewWrapper);
+
+#[uniffi::export(with_foreign)]
+#[async_trait::async_trait]
+pub trait Fido2NonBlockingUserInterface: Send + Sync {
+    async fn check_user(
+        &self,
+        options: CheckUserOptions,
+        hint: UIHint,
+        completion: Arc<CompletionObjectCheckUserResult>,
+    ) -> Result<(), Fido2CallbackError>;
+    async fn pick_credential_for_authentication(
+        &self,
+        available_credentials: Vec<CipherView>,
+        completion: Arc<CompletionObjectCipherViewWrapper>,
+    ) -> Result<(), Fido2CallbackError>;
+    async fn check_user_and_pick_credential_for_creation(
+        &self,
+        options: CheckUserOptions,
+        new_credential: Fido2CredentialNewView,
+        completion: Arc<CompletionObjectCipherViewWrapper>,
+    ) -> Result<(), Fido2CallbackError>;
     async fn is_verification_enabled(&self) -> bool;
 }
 
@@ -352,6 +466,58 @@ impl bitwarden::fido::Fido2UserInterface for UniffiTraitBridge<&dyn Fido2UserInt
             .await
             .map(|v| v.cipher)
             .map_err(Into::into)
+    }
+    async fn is_verification_enabled(&self) -> bool {
+        self.0.is_verification_enabled().await
+    }
+}
+
+#[async_trait::async_trait]
+impl bitwarden::fido::Fido2UserInterface for UniffiTraitBridge<&dyn Fido2NonBlockingUserInterface> {
+    async fn check_user<'a>(
+        &self,
+        options: CheckUserOptions,
+        hint: bitwarden::fido::UIHint<'a, CipherView>,
+    ) -> Result<bitwarden::fido::CheckUserResult, BitFido2CallbackError> {
+        let (completion, mut rx) = CompletionObjectCheckUserResult::new();
+
+        self.0
+            .check_user(options.clone(), hint.into(), completion)
+            .await?;
+
+        let result = rx.recv().await.expect("Channel should be open")?;
+
+        Ok(bitwarden::fido::CheckUserResult {
+            user_present: result.user_present,
+            user_verified: result.user_verified,
+        })
+    }
+    async fn pick_credential_for_authentication(
+        &self,
+        available_credentials: Vec<CipherView>,
+    ) -> Result<CipherView, BitFido2CallbackError> {
+        let (completion, mut rx) = CompletionObjectCipherViewWrapper::new();
+
+        self.0
+            .pick_credential_for_authentication(available_credentials, completion)
+            .await?;
+
+        let result = rx.recv().await.expect("Channel should be open")?;
+        Ok(result.cipher)
+    }
+    async fn check_user_and_pick_credential_for_creation(
+        &self,
+        options: CheckUserOptions,
+        new_credential: Fido2CredentialNewView,
+    ) -> Result<CipherView, BitFido2CallbackError> {
+        let (completion, mut rx) = CompletionObjectCipherViewWrapper::new();
+
+        self.0
+            .check_user_and_pick_credential_for_creation(options, new_credential, completion)
+            .await?;
+
+        let result = rx.recv().await.expect("Channel should be open")?;
+        Ok(result.cipher)
     }
     async fn is_verification_enabled(&self) -> bool {
         self.0.is_verification_enabled().await

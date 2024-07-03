@@ -1,0 +1,24 @@
+plugins {
+    id 'application'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    implementation rootProject
+}
+
+application {
+    mainClass = 'Example'
+    applicationDefaultJvmArgs += "-Djna.library.path=${rootProject.projectDir}/../../target/debug"
+}
+
+sourceSets {
+    main {
+        java.srcDirs += '.'
+    }
+}
+

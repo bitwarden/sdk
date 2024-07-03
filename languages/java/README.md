@@ -12,6 +12,8 @@ Review the help documentation on [Access Tokens]
 ### Create new Bitwarden client
 
 ```java
+import com.bitwarden.sdk.*;
+
 BitwardenSettings bitwardenSettings = new BitwardenSettings();
 bitwardenSettings.setApiUrl("https://api.bitwarden.com");
 bitwardenSettings.setIdentityUrl("https://identity.bitwarden.com");
@@ -37,7 +39,7 @@ var projectsResponse = bitwardenClient.projects().list(organizationId);
 ```java
 UUID projectId = projectResponse.getID();
 projectResponse = bitwardenClient.projects().get(projectId);
-projectResponse = bitwardenClient.projects.update(projectId, organizationId, "TestProjectUpdated");
+projectResponse = bitwardenClient.projects().update(projectId, organizationId, "TestProjectUpdated");
 ```
 
 ### Add new secret
@@ -59,7 +61,7 @@ bitwardenClient.secrets().update(secretId, key2, value2, note2, organizationId, 
 ### List secrets
 
 ```java
-var secretIdentifiersResponse secretIdentifiersResponse = bitwardenClient.secrets().list(organizationId);
+var secretIdentifiersResponse = bitwardenClient.secrets().list(organizationId);
 ```
 
 # Delete secret or project

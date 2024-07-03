@@ -13,7 +13,6 @@ dependencies {
 
 application {
     mainClass = 'Example'
-    applicationDefaultJvmArgs += "-Djna.library.path=${rootProject.projectDir}/../../target/debug"
 }
 
 sourceSets {

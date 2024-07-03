@@ -15,7 +15,7 @@ use passkey::{
 use thiserror::Error;
 
 use super::{
-    try_from_credential_new_view, types::*, CheckUserOptions, CheckUserResult, CipherViewContainer,
+    try_from_credential_new_view, types::*, CheckUserOptions, CipherViewContainer,
     Fido2CredentialStore, Fido2UserInterface, SelectedCredential, UnknownEnum, AAGUID,
 };
 use crate::{
@@ -613,7 +613,7 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
                 let new_credential = try_from_credential_new_view(user, rp)
                     .map_err(|_| Ctap2Error::InvalidCredential)?;
 
-                let cipher_view = self
+                let (cipher_view, user_check) = self
                     .authenticator
                     .user_interface
                     .check_user_and_pick_credential_for_creation(options, new_credential)
@@ -626,10 +626,7 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
                     .expect("Mutex is not poisoned")
                     .replace(cipher_view);
 
-                Ok(CheckUserResult {
-                    user_present: true,
-                    user_verified: verification != UV::Discouraged,
-                })
+                Ok(user_check)
             }
             _ => {
                 self.authenticator

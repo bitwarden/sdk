@@ -64,7 +64,7 @@ bitwardenClient.secrets().update(secretId, key2, value2, note2, organizationId, 
 var secretIdentifiersResponse = bitwardenClient.secrets().list(organizationId);
 ```
 
-# Delete secret or project
+### Delete secret or project
 
 ```java
 bitwardenClient.secrets().delete(new UUID[]{secretId});

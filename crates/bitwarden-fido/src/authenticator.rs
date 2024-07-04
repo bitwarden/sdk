@@ -170,6 +170,7 @@ impl<'a> Fido2Authenticator<'a> {
             Err(e) => return Err(MakeCredentialError::Other(format!("{e:?}"))),
         };
 
+        let attestation_object = response.as_bytes().to_vec();
         let authenticator_data = response.auth_data.to_vec();
         let attested_credential_data = response
             .auth_data
@@ -179,7 +180,7 @@ impl<'a> Fido2Authenticator<'a> {
 
         Ok(MakeCredentialResult {
             authenticator_data,
-            attested_credential_data: attested_credential_data.into_iter().collect(),
+            attestation_object,
             credential_id,
         })
     }

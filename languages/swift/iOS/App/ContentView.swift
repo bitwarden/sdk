@@ -400,7 +400,7 @@ class Fido2UserInterfaceImpl: Fido2UserInterface {
         abort()
     }
 
-    func checkUserAndPickCredentialForCreation(options: BitwardenSdk.CheckUserOptions, newCredential: BitwardenSdk.Fido2CredentialNewView) async throws -> BitwardenSdk.CipherViewWrapper {
+    func checkUserAndPickCredentialForCreation(options: BitwardenSdk.CheckUserOptions, newCredential: BitwardenSdk.Fido2CredentialNewView) async throws -> BitwardenSdk.CheckUserAndPickCredentialForCreationResult {
         abort()
     }
 

@@ -437,7 +437,7 @@ dependencies = [
  "hmac",
  "log",
  "p256",
- "passkey",
+ "passkey 0.3.1 (git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a)",
  "rand",
  "rand_chacha",
  "reqwest",
@@ -522,7 +522,7 @@ dependencies = [
  "itertools 0.13.0",
  "log",
  "p256",
- "passkey",
+ "passkey 0.3.1 (git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27)",
  "reqwest",
  "schemars",
  "serde",
@@ -2594,12 +2594,36 @@ dependencies = [
 [[package]]
 name = "passkey"
 version = "0.3.1"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27#ae08e2cb7dd3d44d915caed395c0cdc56b50fa27"
+dependencies = [
+ "passkey-authenticator 0.3.0 (git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27)",
+ "passkey-client 0.3.1 (git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27)",
+ "passkey-transports 0.1.0 (git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27)",
+ "passkey-types 0.2.1 (git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27)",
+]
+
+[[package]]
+name = "passkey"
+version = "0.3.1"
 source = "git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a#c48c2ddfd6b884b2d754432576c66cb2b1985a3a"
 dependencies = [
- "passkey-authenticator",
- "passkey-client",
- "passkey-transports",
- "passkey-types",
+ "passkey-authenticator 0.3.0 (git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a)",
+ "passkey-client 0.3.1 (git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a)",
+ "passkey-transports 0.1.0 (git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a)",
+ "passkey-types 0.2.1 (git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a)",
+]
+
+[[package]]
+name = "passkey-authenticator"
+version = "0.3.0"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27#ae08e2cb7dd3d44d915caed395c0cdc56b50fa27"
+dependencies = [
+ "async-trait",
+ "coset",
+ "log",
+ "p256",
+ "passkey-types 0.2.1 (git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27)",
+ "rand",
 ]
 
 [[package]]
@@ -2611,8 +2635,24 @@ dependencies = [
  "coset",
  "log",
  "p256",
- "passkey-types",
+ "passkey-types 0.2.1 (git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a)",
  "rand",
+]
+
+[[package]]
+name = "passkey-client"
+version = "0.3.1"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27#ae08e2cb7dd3d44d915caed395c0cdc56b50fa27"
+dependencies = [
+ "ciborium",
+ "coset",
+ "idna",
+ "passkey-authenticator 0.3.0 (git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27)",
+ "passkey-types 0.2.1 (git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27)",
+ "public-suffix 0.1.1 (git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27)",
+ "serde",
+ "serde_json",
+ "url",
 ]
 
 [[package]]
@@ -2623,9 +2663,9 @@ dependencies = [
  "ciborium",
  "coset",
  "idna",
- "passkey-authenticator",
- "passkey-types",
- "public-suffix",
+ "passkey-authenticator 0.3.0 (git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a)",
+ "passkey-types 0.2.1 (git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a)",
+ "public-suffix 0.1.1 (git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a)",
  "serde",
  "serde_json",
  "typeshare",
@@ -2635,7 +2675,30 @@ dependencies = [
 [[package]]
 name = "passkey-transports"
 version = "0.1.0"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27#ae08e2cb7dd3d44d915caed395c0cdc56b50fa27"
+
+[[package]]
+name = "passkey-transports"
+version = "0.1.0"
 source = "git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a#c48c2ddfd6b884b2d754432576c66cb2b1985a3a"
+
+[[package]]
+name = "passkey-types"
+version = "0.2.1"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27#ae08e2cb7dd3d44d915caed395c0cdc56b50fa27"
+dependencies = [
+ "bitflags 2.6.0",
+ "ciborium",
+ "coset",
+ "data-encoding",
+ "getrandom",
+ "indexmap 2.2.6",
+ "rand",
+ "serde",
+ "serde_json",
+ "sha2",
+ "strum 0.25.0",
+]
 
 [[package]]
 name = "passkey-types"
@@ -2848,6 +2911,11 @@ checksum = "5e719e8df665df0d1c8fbfd238015744736151d4445ec0836b8e628aae103b77"
 dependencies = [
  "unicode-ident",
 ]
+
+[[package]]
+name = "public-suffix"
+version = "0.1.1"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27#ae08e2cb7dd3d44d915caed395c0cdc56b50fa27"
 
 [[package]]
 name = "public-suffix"

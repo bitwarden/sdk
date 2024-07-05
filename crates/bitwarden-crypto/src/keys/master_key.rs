@@ -88,6 +88,9 @@ impl MasterKey {
     /// Decrypt the users user key
     pub fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey> {
         let mut dec: Vec<u8> = match user_key {
+            // Legacy. user_keys were encrypted using `AesCbc256_B64` a long time ago. We've since
+            // moved to using `AesCbc256_HmacSha256_B64`. However, we still need to support
+            // decrypting these old keys.
             EncString::AesCbc256_B64 { iv: _, data: _ } => user_key.decrypt_with_key(&self.0)?,
             _ => {
                 let stretched_key = stretch_kdf_key(&self.0)?;

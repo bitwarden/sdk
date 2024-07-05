@@ -87,12 +87,14 @@ impl MasterKey {
 
     /// Decrypt the users user key
     pub fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey> {
-        let key = match user_key {
-            EncString::AesCbc256_B64 { iv: _, data: _ } => &self.0,
-            _ => &stretch_kdf_key(&self.0)?,
+        let mut dec: Vec<u8> = match user_key {
+            EncString::AesCbc256_B64 { iv: _, data: _ } => user_key.decrypt_with_key(&self.0)?,
+            _ => {
+                let stretched_key = stretch_kdf_key(&self.0)?;
+                user_key.decrypt_with_key(&stretched_key)?
+            }
         };
 
-        let mut dec: Vec<u8> = user_key.decrypt_with_key(key)?;
         SymmetricCryptoKey::try_from(dec.as_mut_slice())
     }
 

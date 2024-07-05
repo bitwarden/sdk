@@ -91,7 +91,7 @@ impl MasterKey {
             // Legacy. user_keys were encrypted using `AesCbc256_B64` a long time ago. We've since
             // moved to using `AesCbc256_HmacSha256_B64`. However, we still need to support
             // decrypting these old keys.
-            EncString::AesCbc256_B64 { iv: _, data: _ } => user_key.decrypt_with_key(&self.0)?,
+            EncString::AesCbc256_B64 { .. } => user_key.decrypt_with_key(&self.0)?,
             _ => {
                 let stretched_key = stretch_kdf_key(&self.0)?;
                 user_key.decrypt_with_key(&stretched_key)?

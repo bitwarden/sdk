@@ -61,6 +61,7 @@ UUID secretId = secretResponse.getID();
 
 ```java
 var secretResponse = bitwardenClient.secrets().get(secretId);
+```
 
 ### Update secret
 

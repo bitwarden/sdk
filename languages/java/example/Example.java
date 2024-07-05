@@ -27,12 +27,23 @@ class Example {
             ProjectResponse project = client.projects().create(organizationId, "Test Project");
             System.out.println("Project id: " + project.getID());
 
-            ProjectsResponse list = client.projects().list(organizationId);
-            System.out.println("Projects count: " + list.getData().length);
+            project = client.projects().get(project.getID());
+
+            ProjectsResponse projects = client.projects().list(organizationId);
+            System.out.println("Projects count: " + projects.getData().length);
+
+            client.projects().update(project.getID(), organizationId, "Updated Test Project");
 
             SecretResponse secret = client.secrets().create("Secret Key", "Secret Value", "Secret Note",
                 organizationId, new UUID[]{project.getID()});
-            System.out.println("Secret: " + secret.getValue());
+            System.out.println("Secret id: " + secret.getID());
+
+            secret = client.secrets().get(secret.getID());
+
+            SecretIdentifiersResponse secrets = client.secrets().list(organizationId);
+            System.out.println("Secrets count: " + secrets.getData().length);
+
+            client.secrets().update(secret.getID(), "Updated Key", "Updated Value", "Updated Noye", organizationId, new UUID[]{project.getID()});
 
             client.secrets().delete(new UUID[]{secret.getID()});
             client.projects().delete(new UUID[]{project.getID()});

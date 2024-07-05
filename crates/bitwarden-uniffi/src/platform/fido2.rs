@@ -2,16 +2,16 @@ use std::sync::Arc;
 
 use bitwarden::{
     error::Error,
-    platform::fido2::{
-        CheckUserOptions, ClientData, Fido2CallbackError as BitFido2CallbackError,
-        Fido2CredentialAutofillView, GetAssertionRequest, GetAssertionResult,
-        MakeCredentialRequest, MakeCredentialResult,
+    fido::{
+        CheckUserOptions, ClientData, ClientFido2Ext, Fido2CallbackError as BitFido2CallbackError,
+        GetAssertionRequest, GetAssertionResult, MakeCredentialRequest, MakeCredentialResult,
         PublicKeyCredentialAuthenticatorAssertionResponse,
         PublicKeyCredentialAuthenticatorAttestationResponse, PublicKeyCredentialRpEntity,
         PublicKeyCredentialUserEntity,
     },
     vault::{Cipher, CipherView, Fido2CredentialNewView},
 };
+use bitwarden_fido::Fido2CredentialAutofillView;
 
 use crate::{error::Result, Client};
 
@@ -51,7 +51,6 @@ impl ClientFido2 {
         let result = self
             .0
              .0
-            .platform()
             .fido2()
             .decrypt_fido2_autofill_credentials(cipher_view)
             .map_err(Error::DecryptFido2AutofillCredentialsError)?;
@@ -73,8 +72,7 @@ impl ClientFido2Authenticator {
         &self,
         request: MakeCredentialRequest,
     ) -> Result<MakeCredentialResult> {
-        let platform = self.0 .0.platform();
-        let fido2 = platform.fido2();
+        let fido2 = self.0 .0.fido2();
         let ui = UniffiTraitBridge(self.1.as_ref());
         let cs = UniffiTraitBridge(self.2.as_ref());
         let mut auth = fido2.create_authenticator(&ui, &cs);
@@ -87,8 +85,7 @@ impl ClientFido2Authenticator {
     }
 
     pub async fn get_assertion(&self, request: GetAssertionRequest) -> Result<GetAssertionResult> {
-        let platform = self.0 .0.platform();
-        let fido2 = platform.fido2();
+        let fido2 = self.0 .0.fido2();
         let ui = UniffiTraitBridge(self.1.as_ref());
         let cs = UniffiTraitBridge(self.2.as_ref());
         let mut auth = fido2.create_authenticator(&ui, &cs);
@@ -104,8 +101,8 @@ impl ClientFido2Authenticator {
         &self,
         rp_id: String,
     ) -> Result<Vec<Fido2CredentialAutofillView>> {
-        let platform = self.0 .0.platform();
-        let fido2 = platform.fido2();
+        let fido2 = self.0 .0.fido2();
+
         let ui = UniffiTraitBridge(self.1.as_ref());
         let cs = UniffiTraitBridge(self.2.as_ref());
         let mut auth = fido2.create_authenticator(&ui, &cs);
@@ -118,8 +115,7 @@ impl ClientFido2Authenticator {
     }
 
     pub async fn credentials_for_autofill(&self) -> Result<Vec<Fido2CredentialAutofillView>> {
-        let platform = self.0 .0.platform();
-        let fido2 = platform.fido2();
+        let fido2 = self.0 .0.fido2();
         let ui = UniffiTraitBridge(self.1.as_ref());
         let cs = UniffiTraitBridge(self.2.as_ref());
         let mut auth = fido2.create_authenticator(&ui, &cs);
@@ -143,8 +139,7 @@ impl ClientFido2Client {
         request: String,
         client_data: ClientData,
     ) -> Result<PublicKeyCredentialAuthenticatorAttestationResponse> {
-        let platform = self.0 .0 .0.platform();
-        let fido2 = platform.fido2();
+        let fido2 = self.0 .0 .0.fido2();
         let ui = UniffiTraitBridge(self.0 .1.as_ref());
         let cs = UniffiTraitBridge(self.0 .2.as_ref());
         let mut client = fido2.create_client(&ui, &cs);
@@ -162,8 +157,7 @@ impl ClientFido2Client {
         request: String,
         client_data: ClientData,
     ) -> Result<PublicKeyCredentialAuthenticatorAssertionResponse> {
-        let platform = self.0 .0 .0.platform();
-        let fido2 = platform.fido2();
+        let fido2 = self.0 .0 .0.fido2();
         let ui = UniffiTraitBridge(self.0 .1.as_ref());
         let cs = UniffiTraitBridge(self.0 .2.as_ref());
         let mut client = fido2.create_client(&ui, &cs);
@@ -184,6 +178,22 @@ impl ClientFido2Client {
 pub struct CheckUserResult {
     user_present: bool,
     user_verified: bool,
+}
+
+impl From<CheckUserResult> for bitwarden::fido::CheckUserResult {
+    fn from(val: CheckUserResult) -> Self {
+        Self {
+            user_present: val.user_present,
+            user_verified: val.user_verified,
+        }
+    }
+}
+
+#[allow(dead_code)]
+#[derive(uniffi::Record)]
+pub struct CheckUserAndPickCredentialForCreationResult {
+    cipher: CipherViewWrapper,
+    check_user_result: CheckUserResult,
 }
 
 #[derive(Debug, thiserror::Error, uniffi::Error)]
@@ -233,7 +243,7 @@ pub trait Fido2UserInterface: Send + Sync {
         &self,
         options: CheckUserOptions,
         new_credential: Fido2CredentialNewView,
-    ) -> Result<CipherViewWrapper, Fido2CallbackError>;
+    ) -> Result<CheckUserAndPickCredentialForCreationResult, Fido2CallbackError>;
     async fn is_verification_enabled(&self) -> bool;
 }
 
@@ -258,9 +268,7 @@ pub trait Fido2CredentialStore: Send + Sync {
 struct UniffiTraitBridge<T>(T);
 
 #[async_trait::async_trait]
-impl bitwarden::platform::fido2::Fido2CredentialStore
-    for UniffiTraitBridge<&dyn Fido2CredentialStore>
-{
+impl bitwarden::fido::Fido2CredentialStore for UniffiTraitBridge<&dyn Fido2CredentialStore> {
     async fn find_credentials(
         &self,
         ids: Option<Vec<Vec<u8>>>,
@@ -298,9 +306,9 @@ pub enum UIHint {
     RequestExistingCredential(CipherView),
 }
 
-impl From<bitwarden::platform::fido2::UIHint<'_, CipherView>> for UIHint {
-    fn from(hint: bitwarden::platform::fido2::UIHint<'_, CipherView>) -> Self {
-        use bitwarden::platform::fido2::UIHint as BWUIHint;
+impl From<bitwarden::fido::UIHint<'_, CipherView>> for UIHint {
+    fn from(hint: bitwarden::fido::UIHint<'_, CipherView>) -> Self {
+        use bitwarden::fido::UIHint as BWUIHint;
         match hint {
             BWUIHint::InformExcludedCredentialFound(cipher) => {
                 UIHint::InformExcludedCredentialFound(cipher.clone())
@@ -325,19 +333,16 @@ impl From<bitwarden::platform::fido2::UIHint<'_, CipherView>> for UIHint {
 }
 
 #[async_trait::async_trait]
-impl bitwarden::platform::fido2::Fido2UserInterface for UniffiTraitBridge<&dyn Fido2UserInterface> {
+impl bitwarden::fido::Fido2UserInterface for UniffiTraitBridge<&dyn Fido2UserInterface> {
     async fn check_user<'a>(
         &self,
         options: CheckUserOptions,
-        hint: bitwarden::platform::fido2::UIHint<'a, CipherView>,
-    ) -> Result<bitwarden::platform::fido2::CheckUserResult, BitFido2CallbackError> {
+        hint: bitwarden::fido::UIHint<'a, CipherView>,
+    ) -> Result<bitwarden::fido::CheckUserResult, BitFido2CallbackError> {
         self.0
             .check_user(options.clone(), hint.into())
             .await
-            .map(|r| bitwarden::platform::fido2::CheckUserResult {
-                user_present: r.user_present,
-                user_verified: r.user_verified,
-            })
+            .map(Into::into)
             .map_err(Into::into)
     }
     async fn pick_credential_for_authentication(
@@ -354,11 +359,11 @@ impl bitwarden::platform::fido2::Fido2UserInterface for UniffiTraitBridge<&dyn F
         &self,
         options: CheckUserOptions,
         new_credential: Fido2CredentialNewView,
-    ) -> Result<CipherView, BitFido2CallbackError> {
+    ) -> Result<(CipherView, bitwarden::fido::CheckUserResult), BitFido2CallbackError> {
         self.0
             .check_user_and_pick_credential_for_creation(options, new_credential)
             .await
-            .map(|v| v.cipher)
+            .map(|v| (v.cipher.cipher, v.check_user_result.into()))
             .map_err(Into::into)
     }
     async fn is_verification_enabled(&self) -> bool {

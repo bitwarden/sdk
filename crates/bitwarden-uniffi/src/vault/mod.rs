@@ -1,6 +1,9 @@
 use std::sync::Arc;
 
-use bitwarden::vault::TotpResponse;
+use bitwarden::{
+    error::Error,
+    vault::{ClientVaultExt, TotpResponse},
+};
 use chrono::{DateTime, Utc};
 
 use crate::{error::Result, Client};
@@ -48,6 +51,11 @@ impl ClientVault {
     /// - OTP Auth URI
     /// - Steam URI
     pub fn generate_totp(&self, key: String, time: Option<DateTime<Utc>>) -> Result<TotpResponse> {
-        Ok(self.0 .0.vault().generate_totp(key, time)?)
+        Ok(self
+            .0
+             .0
+            .vault()
+            .generate_totp(key, time)
+            .map_err(Error::Totp)?)
     }
 }

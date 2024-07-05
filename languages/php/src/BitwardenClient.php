@@ -3,7 +3,7 @@
 namespace Bitwarden\Sdk;
 
 use Bitwarden\Sdk\Schemas\AccessTokenLoginRequest;
-use Bitwarden\Sdk\schemas\ClientSettings;
+use Bitwarden\Sdk\Schemas\ClientSettings;
 use Bitwarden\Sdk\Schemas\Command;
 use FFI;
 use Swaggest\JsonDiff\Exception;

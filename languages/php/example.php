@@ -17,12 +17,15 @@ $bitwarden_client->access_token_login($access_token);
 // create project
 $res = $bitwarden_client->projects->create('php project', $organization_id);
 $project_id = $res->id;
+echo "Project: $project_id\n";
 
 // get project
 $res = $bitwarden_client->projects->get($project_id);
 
 // list projects
 $res = $bitwarden_client->projects->list($organization_id);
+$project_count = count($res->data);
+echo "Projects count: $project_count\n";
 
 // update project
 $res = $bitwarden_client->projects->put($project_id, 'php test awesome', $organization_id);
@@ -30,12 +33,18 @@ $res = $bitwarden_client->projects->put($project_id, 'php test awesome', $organi
 // create secret
 $res = $bitwarden_client->secrets->create("New Key", "hello world", $organization_id, [$project_id], "123");
 $secret_id = $res->id;
+echo "Secret: $secret_id\n";
 
 // get secret
 $res = $bitwarden_client->secrets->get($secret_id);
 
+// get secrets
+$res = $bitwarden_client->secrets->get_by_ids([$secret_id]);
+
 // list secrets
 $res = $bitwarden_client->secrets->list($organization_id);
+$secret_count = count($res->data);
+echo "Secrets count: $secret_count\n";
 
 // update secret
 $res = $bitwarden_client->secrets->update($secret_id, "hello world 2", "hello", $organization_id, [$project_id], "123");

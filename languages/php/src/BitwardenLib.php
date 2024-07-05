@@ -34,9 +34,9 @@ class BitwardenLib
         } elseif (PHP_OS === 'Darwin') {
             $architecture = trim(exec('uname -m'));
             if ($architecture === 'x86_64' || $architecture === 'amd64') {
-                $lib_file = __DIR__.'/lib/macos-x64/libbitwarden_c.dylib';
+                $lib_file = '/lib/macos-x64/libbitwarden_c.dylib';
             } elseif ($architecture === 'arm64') {
-                $lib_file = __DIR__.'/lib/macos-arm64/libbitwarden_c.dylib';
+                $lib_file = '/lib/macos-arm64/libbitwarden_c.dylib';
             }
             if (file_exists($lib_file) == false) {
                 $lib_file = __DIR__.'/../../../target/debug/libbitwarden_c.dylib';

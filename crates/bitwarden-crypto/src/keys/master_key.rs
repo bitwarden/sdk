@@ -87,9 +87,17 @@ impl MasterKey {
 
     /// Decrypt the users user key
     pub fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey> {
-        let stretched_key = stretch_kdf_key(&self.0)?;
+        let mut dec: Vec<u8> = match user_key {
+            // Legacy. user_keys were encrypted using `AesCbc256_B64` a long time ago. We've since
+            // moved to using `AesCbc256_HmacSha256_B64`. However, we still need to support
+            // decrypting these old keys.
+            EncString::AesCbc256_B64 { .. } => user_key.decrypt_with_key(&self.0)?,
+            _ => {
+                let stretched_key = stretch_kdf_key(&self.0)?;
+                user_key.decrypt_with_key(&stretched_key)?
+            }
+        };
 
-        let mut dec: Vec<u8> = user_key.decrypt_with_key(&stretched_key)?;
         SymmetricCryptoKey::try_from(dec.as_mut_slice())
     }
 
@@ -124,7 +132,7 @@ mod tests {
     use rand::SeedableRng;
 
     use super::{make_user_key, HashPurpose, Kdf, MasterKey};
-    use crate::{keys::symmetric_crypto_key::derive_symmetric_key, SymmetricCryptoKey};
+    use crate::{keys::symmetric_crypto_key::derive_symmetric_key, EncString, SymmetricCryptoKey};
 
     #[test]
     fn test_master_key_derive_pbkdf2() {
@@ -269,6 +277,36 @@ mod tests {
         assert_eq!(
             decrypted.mac_key, user_key.mac_key,
             "Decrypted key doesn't match user key"
+        );
+    }
+
+    #[test]
+    fn test_decrypt_user_key_aes_cbc256_b64() {
+        let password = b"asdfasdfasdf";
+        let salt = b"legacy@bitwarden.com";
+        let kdf = Kdf::PBKDF2 {
+            iterations: NonZeroU32::new(600_000).unwrap(),
+        };
+
+        let master_key = MasterKey::derive(password, salt, &kdf).unwrap();
+
+        let user_key: EncString = "0.8UClLa8IPE1iZT7chy5wzQ==|6PVfHnVk5S3XqEtQemnM5yb4JodxmPkkWzmDRdfyHtjORmvxqlLX40tBJZ+CKxQWmS8tpEB5w39rbgHg/gqs0haGdZG4cPbywsgGzxZ7uNI=".parse().unwrap();
+
+        let decrypted = master_key.decrypt_user_key(user_key).unwrap();
+
+        assert_eq!(
+            decrypted.key.as_slice(),
+            [
+                12, 95, 151, 203, 37, 4, 236, 67, 137, 97, 90, 58, 6, 127, 242, 28, 209, 168, 125,
+                29, 118, 24, 213, 44, 117, 202, 2, 115, 132, 165, 125, 148
+            ]
+        );
+        assert_eq!(
+            decrypted.mac_key.as_ref().unwrap().as_slice(),
+            [
+                186, 215, 234, 137, 24, 169, 227, 29, 218, 57, 180, 237, 73, 91, 189, 51, 253, 26,
+                17, 52, 226, 4, 134, 75, 194, 208, 178, 133, 128, 224, 140, 167
+            ]
         );
     }
 }

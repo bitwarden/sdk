@@ -36,7 +36,7 @@ class SecretsClient
         $project_get_by_ids_request->ids = $secret_ids;
         $project_get_by_ids_request->validate();
         $secrets_command = new SecretsCommand();
-        $secrets_command->get_by_ids = $project_get_by_ids_request->jsonSerialize();
+        $secrets_command->getByIds = $project_get_by_ids_request->jsonSerialize();
         return $this->run_secret_command($secrets_command);
     }
 

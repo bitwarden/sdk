@@ -56,7 +56,7 @@ pub(crate) fn validate_password_user_key(
         match login_method {
             UserLoginMethod::Username { email, kdf, .. }
             | UserLoginMethod::ApiKey { email, kdf, .. } => {
-                let master_key = MasterKey::derive(&password, &email, kdf)?;
+                let master_key = MasterKey::derive(&password, email, kdf)?;
                 let user_key = master_key
                     .decrypt_user_key(encrypted_user_key.parse()?)
                     .map_err(|_| "wrong password")?;

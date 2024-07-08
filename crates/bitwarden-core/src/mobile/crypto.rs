@@ -215,7 +215,7 @@ pub fn update_password(client: &Client, new_password: String) -> Result<UpdatePa
         LoginMethod::User(
             UserLoginMethod::Username { email, kdf, .. }
             | UserLoginMethod::ApiKey { email, kdf, .. },
-        ) => MasterKey::derive(&new_password, &email, kdf)?,
+        ) => MasterKey::derive(&new_password, email, kdf)?,
         #[cfg(feature = "secrets")]
         LoginMethod::ServiceAccount(_) => return Err(Error::NotAuthenticated),
     };

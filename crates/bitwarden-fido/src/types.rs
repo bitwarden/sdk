@@ -176,7 +176,7 @@ pub struct MakeCredentialRequest {
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct MakeCredentialResult {
     pub authenticator_data: Vec<u8>,
-    pub attested_credential_data: Vec<u8>,
+    pub attestation_object: Vec<u8>,
     pub credential_id: Vec<u8>,
 }
 

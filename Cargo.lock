@@ -2594,7 +2594,7 @@ dependencies = [
 [[package]]
 name = "passkey"
 version = "0.3.1"
-source = "git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a#c48c2ddfd6b884b2d754432576c66cb2b1985a3a"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27#ae08e2cb7dd3d44d915caed395c0cdc56b50fa27"
 dependencies = [
  "passkey-authenticator",
  "passkey-client",
@@ -2605,7 +2605,7 @@ dependencies = [
 [[package]]
 name = "passkey-authenticator"
 version = "0.3.0"
-source = "git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a#c48c2ddfd6b884b2d754432576c66cb2b1985a3a"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27#ae08e2cb7dd3d44d915caed395c0cdc56b50fa27"
 dependencies = [
  "async-trait",
  "coset",
@@ -2618,7 +2618,7 @@ dependencies = [
 [[package]]
 name = "passkey-client"
 version = "0.3.1"
-source = "git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a#c48c2ddfd6b884b2d754432576c66cb2b1985a3a"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27#ae08e2cb7dd3d44d915caed395c0cdc56b50fa27"
 dependencies = [
  "ciborium",
  "coset",
@@ -2628,19 +2628,18 @@ dependencies = [
  "public-suffix",
  "serde",
  "serde_json",
- "typeshare",
  "url",
 ]
 
 [[package]]
 name = "passkey-transports"
 version = "0.1.0"
-source = "git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a#c48c2ddfd6b884b2d754432576c66cb2b1985a3a"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27#ae08e2cb7dd3d44d915caed395c0cdc56b50fa27"
 
 [[package]]
 name = "passkey-types"
 version = "0.2.1"
-source = "git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a#c48c2ddfd6b884b2d754432576c66cb2b1985a3a"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27#ae08e2cb7dd3d44d915caed395c0cdc56b50fa27"
 dependencies = [
  "bitflags 2.6.0",
  "ciborium",
@@ -2653,7 +2652,6 @@ dependencies = [
  "serde_json",
  "sha2",
  "strum 0.25.0",
- "typeshare",
 ]
 
 [[package]]
@@ -2852,7 +2850,7 @@ dependencies = [
 [[package]]
 name = "public-suffix"
 version = "0.1.1"
-source = "git+https://github.com/bitwarden/passkey-rs?rev=c48c2ddfd6b884b2d754432576c66cb2b1985a3a#c48c2ddfd6b884b2d754432576c66cb2b1985a3a"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27#ae08e2cb7dd3d44d915caed395c0cdc56b50fa27"
 
 [[package]]
 name = "pyo3"
@@ -4127,28 +4125,6 @@ name = "typenum"
 version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42ff0bf0c66b8238c6f3b578df37d0b7848e55df8577b3f74f92a69acceeb825"
-
-[[package]]
-name = "typeshare"
-version = "1.0.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04f17399b76c2e743d58eac0635d7686e9c00f48cd4776f00695d9882a7d3187"
-dependencies = [
- "chrono",
- "serde",
- "serde_json",
- "typeshare-annotation",
-]
-
-[[package]]
-name = "typeshare-annotation"
-version = "1.0.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a615d6c2764852a2e88a4f16e9ce1ea49bb776b5872956309e170d63a042a34f"
-dependencies = [
- "quote",
- "syn",
-]
 
 [[package]]
 name = "unicase"

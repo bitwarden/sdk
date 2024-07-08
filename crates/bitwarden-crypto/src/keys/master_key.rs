@@ -69,8 +69,15 @@ impl MasterKey {
     }
 
     /// Derives a users master key from their password, email and KDF.
-    pub fn derive(password: &[u8], email: &[u8], kdf: &Kdf) -> Result<Self> {
-        derive_kdf_key(password, email, kdf).map(Self)
+    ///
+    /// Note: the email is trimmed and converted to lowercase before being used.
+    pub fn derive(password: &str, email: &str, kdf: &Kdf) -> Result<Self> {
+        derive_kdf_key(
+            password.as_bytes(),
+            email.trim().to_lowercase().as_bytes(),
+            kdf,
+        )
+        .map(Self)
     }
 
     /// Derive the master key hash, used for local and remote password validation.
@@ -137,8 +144,8 @@ mod tests {
     #[test]
     fn test_master_key_derive_pbkdf2() {
         let master_key = MasterKey::derive(
-            b"67t9b5g67$%Dh89n",
-            b"test_key",
+            "67t9b5g67$%Dh89n",
+            "test_key",
             &Kdf::PBKDF2 {
                 iterations: NonZeroU32::new(10000).unwrap(),
             },
@@ -158,8 +165,8 @@ mod tests {
     #[test]
     fn test_master_key_derive_argon2() {
         let master_key = MasterKey::derive(
-            b"67t9b5g67$%Dh89n",
-            b"test_key",
+            "67t9b5g67$%Dh89n",
+            "test_key",
             &Kdf::Argon2id {
                 iterations: NonZeroU32::new(4).unwrap(),
                 memory: NonZeroU32::new(32).unwrap(),
@@ -180,8 +187,8 @@ mod tests {
 
     #[test]
     fn test_password_hash_pbkdf2() {
-        let password = b"asdfasdf";
-        let salt = b"test_salt";
+        let password = "asdfasdf";
+        let salt = "test_salt";
         let kdf = Kdf::PBKDF2 {
             iterations: NonZeroU32::new(100_000).unwrap(),
         };
@@ -191,15 +198,15 @@ mod tests {
         assert_eq!(
             "ZF6HjxUTSyBHsC+HXSOhZoXN+UuMnygV5YkWXCY4VmM=",
             master_key
-                .derive_master_key_hash(password, HashPurpose::ServerAuthorization)
+                .derive_master_key_hash(password.as_bytes(), HashPurpose::ServerAuthorization)
                 .unwrap(),
         );
     }
 
     #[test]
     fn test_password_hash_argon2id() {
-        let password = b"asdfasdf";
-        let salt = b"test_salt";
+        let password = "asdfasdf";
+        let salt = "test_salt";
         let kdf = Kdf::Argon2id {
             iterations: NonZeroU32::new(4).unwrap(),
             memory: NonZeroU32::new(32).unwrap(),
@@ -211,7 +218,7 @@ mod tests {
         assert_eq!(
             "PR6UjYmjmppTYcdyTiNbAhPJuQQOmynKbdEl1oyi/iQ=",
             master_key
-                .derive_master_key_hash(password, HashPurpose::ServerAuthorization)
+                .derive_master_key_hash(password.as_bytes(), HashPurpose::ServerAuthorization)
                 .unwrap(),
         );
     }
@@ -282,8 +289,8 @@ mod tests {
 
     #[test]
     fn test_decrypt_user_key_aes_cbc256_b64() {
-        let password = b"asdfasdfasdf";
-        let salt = b"legacy@bitwarden.com";
+        let password = "asdfasdfasdf";
+        let salt = "legacy@bitwarden.com";
         let kdf = Kdf::PBKDF2 {
             iterations: NonZeroU32::new(600_000).unwrap(),
         };

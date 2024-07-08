@@ -384,8 +384,8 @@ mod tests {
     fn test_get_send_key() {
         // Initialize user encryption with some test data
         let master_key = MasterKey::derive(
-            "asdfasdfasdf".as_bytes(),
-            "test@bitwarden.com".as_bytes(),
+            "asdfasdfasdf",
+            "test@bitwarden.com",
             &Kdf::PBKDF2 {
                 iterations: 345123.try_into().unwrap(),
             },
@@ -410,8 +410,8 @@ mod tests {
 
     fn build_encryption_settings() -> MockKeyContainer {
         let master_key = MasterKey::derive(
-            "asdfasdfasdf".as_bytes(),
-            "test@bitwarden.com".as_bytes(),
+            "asdfasdfasdf",
+            "test@bitwarden.com",
             &Kdf::PBKDF2 {
                 iterations: 600_000.try_into().unwrap(),
             },

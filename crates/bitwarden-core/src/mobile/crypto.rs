@@ -85,7 +85,7 @@ pub enum AuthRequestMethod {
 
 #[cfg(feature = "internal")]
 pub async fn initialize_user_crypto(client: &Client, req: InitUserCryptoRequest) -> Result<()> {
-    use bitwarden_crypto::DeviceKey;
+    use bitwarden_crypto::{DeviceKey, PinKey};
 
     use crate::auth::{auth_request_decrypt_master_key, auth_request_decrypt_user_key};
 
@@ -95,8 +95,7 @@ pub async fn initialize_user_crypto(client: &Client, req: InitUserCryptoRequest)
         InitUserCryptoMethod::Password { password, user_key } => {
             let user_key: EncString = user_key.parse()?;
 
-            let master_key =
-                MasterKey::derive(password.as_bytes(), req.email.as_bytes(), &req.kdf_params)?;
+            let master_key = MasterKey::derive(&password, &req.email, &req.kdf_params)?;
             client
                 .internal
                 .initialize_user_crypto_master_key(master_key, user_key, private_key)?;
@@ -111,7 +110,7 @@ pub async fn initialize_user_crypto(client: &Client, req: InitUserCryptoRequest)
             pin,
             pin_protected_user_key,
         } => {
-            let pin_key = MasterKey::derive(pin.as_bytes(), req.email.as_bytes(), &req.kdf_params)?;
+            let pin_key = PinKey::derive(pin.as_bytes(), req.email.as_bytes(), &req.kdf_params)?;
             client.internal.initialize_user_crypto_pin(
                 pin_key,
                 pin_protected_user_key,
@@ -216,7 +215,7 @@ pub fn update_password(client: &Client, new_password: String) -> Result<UpdatePa
         LoginMethod::User(
             UserLoginMethod::Username { email, kdf, .. }
             | UserLoginMethod::ApiKey { email, kdf, .. },
-        ) => MasterKey::derive(new_password.as_bytes(), email.as_bytes(), kdf)?,
+        ) => MasterKey::derive(&new_password, &email, kdf)?,
         #[cfg(feature = "secrets")]
         LoginMethod::ServiceAccount(_) => return Err(Error::NotAuthenticated),
     };
@@ -283,11 +282,13 @@ fn derive_pin_protected_user_key(
     login_method: &LoginMethod,
     user_key: &SymmetricCryptoKey,
 ) -> Result<EncString> {
+    use bitwarden_crypto::PinKey;
+
     let derived_key = match login_method {
         LoginMethod::User(
             UserLoginMethod::Username { email, kdf, .. }
             | UserLoginMethod::ApiKey { email, kdf, .. },
-        ) => MasterKey::derive(pin.as_bytes(), email.as_bytes(), kdf)?,
+        ) => PinKey::derive(pin.as_bytes(), email.as_bytes(), kdf)?,
         #[cfg(feature = "secrets")]
         LoginMethod::ServiceAccount(_) => return Err(Error::NotAuthenticated),
     };
@@ -504,9 +505,9 @@ mod tests {
 
         let client = Client::new(None);
 
-        let master_key = bitwarden_crypto::MasterKey::derive(
-            "asdfasdfasdf".as_bytes(),
-            "test@bitwarden.com".as_bytes(),
+        let master_key = MasterKey::derive(
+            "asdfasdfasdf",
+            "test@bitwarden.com",
             &Kdf::PBKDF2 {
                 iterations: NonZeroU32::new(600_000).unwrap(),
             },

@@ -39,7 +39,7 @@ fn determine_password_hash(
     password: &str,
     purpose: HashPurpose,
 ) -> Result<String> {
-    let master_key = MasterKey::derive(password.as_bytes(), email.as_bytes(), kdf)?;
+    let master_key = MasterKey::derive(&password, &email, kdf)?;
     Ok(master_key.derive_master_key_hash(password.as_bytes(), purpose)?)
 }
 

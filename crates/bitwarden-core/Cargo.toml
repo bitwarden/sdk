@@ -50,6 +50,7 @@ reqwest = { version = ">=0.12.5, <0.13", features = [
     "http2",
     "json",
 ], default-features = false }
+rusqlite = ">=0.31.0, <0.32"
 schemars = { version = ">=0.8.9, <0.9", features = ["uuid1", "chrono"] }
 serde = { version = ">=1.0, <2.0", features = ["derive"] }
 serde_json = ">=1.0.96, <2.0"

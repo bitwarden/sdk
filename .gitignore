@@ -26,11 +26,9 @@ bld/
 .idea
 xcuserdata/
 
-# Added by cargo
-#
-# already existing elements were commented out
+# Databases
+*.sqlite
 
-#/target
 node_modules/
 clients/python/env/
 

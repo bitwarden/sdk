@@ -12,6 +12,8 @@ pub use error::Error;
 #[cfg(feature = "internal")]
 pub mod mobile;
 pub use error::{MissingFieldError, VaultLocked};
+mod database;
+pub use database::{DatabaseError, SqliteDatabase};
 #[cfg(feature = "internal")]
 pub mod platform;
 #[cfg(feature = "secrets")]

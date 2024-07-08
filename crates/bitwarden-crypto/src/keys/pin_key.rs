@@ -4,7 +4,7 @@ use crate::{
         key_encryptable::CryptoKey,
         utils::{derive_kdf_key, stretch_kdf_key},
     },
-    CryptoError, EncString, Kdf, KeyDecryptable, KeyEncryptable, Result, SymmetricCryptoKey,
+    EncString, Kdf, KeyEncryptable, Result, SymmetricCryptoKey,
 };
 
 /// Pin Key.

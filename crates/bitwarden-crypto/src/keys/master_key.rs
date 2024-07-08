@@ -205,19 +205,25 @@ mod tests {
     #[test]
     fn test_password_hash_pbkdf2() {
         let password = "asdfasdf";
-        let salt = "test_salt";
+        let salts = [
+            "test@bitwarden.com",
+            "TEST@bitwarden.com",
+            " test@bitwarden.com",
+        ];
         let kdf = Kdf::PBKDF2 {
             iterations: NonZeroU32::new(100_000).unwrap(),
         };
 
-        let master_key = MasterKey::derive(password, salt, &kdf).unwrap();
+        for salt in salts.iter() {
+            let master_key = MasterKey::derive(password, salt, &kdf).unwrap();
 
-        assert_eq!(
-            "ZF6HjxUTSyBHsC+HXSOhZoXN+UuMnygV5YkWXCY4VmM=",
-            master_key
-                .derive_master_key_hash(password.as_bytes(), HashPurpose::ServerAuthorization)
-                .unwrap(),
-        );
+            assert_eq!(
+                "wmyadRMyBZOH7P/a/ucTCbSghKgdzDpPqUnu/DAVtSw=",
+                master_key
+                    .derive_master_key_hash(password.as_bytes(), HashPurpose::ServerAuthorization)
+                    .unwrap(),
+            );
+        }
     }
 
     #[test]

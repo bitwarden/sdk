@@ -69,8 +69,15 @@ impl MasterKey {
     }
 
     /// Derives a users master key from their password, email and KDF.
-    pub fn derive(password: &[u8], email: &[u8], kdf: &Kdf) -> Result<Self> {
-        derive_kdf_key(password, email, kdf).map(Self)
+    ///
+    /// Note: the email is trimmed and converted to lowercase before being used.
+    pub fn derive(password: &str, email: &str, kdf: &Kdf) -> Result<Self> {
+        derive_kdf_key(
+            password.as_bytes(),
+            email.trim().to_lowercase().as_bytes(),
+            kdf,
+        )
+        .map(Self)
     }
 
     /// Derive the master key hash, used for local and remote password validation.
@@ -85,34 +92,51 @@ impl MasterKey {
         make_user_key(rand::thread_rng(), self)
     }
 
+    /// Encrypt the users user key
+    pub fn encrypt_user_key(&self, user_key: &SymmetricCryptoKey) -> Result<EncString> {
+        encrypt_user_key(&self.0, user_key)
+    }
+
     /// Decrypt the users user key
     pub fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey> {
-        let mut dec: Vec<u8> = match user_key {
-            // Legacy. user_keys were encrypted using `AesCbc256_B64` a long time ago. We've since
-            // moved to using `AesCbc256_HmacSha256_B64`. However, we still need to support
-            // decrypting these old keys.
-            EncString::AesCbc256_B64 { .. } => user_key.decrypt_with_key(&self.0)?,
-            _ => {
-                let stretched_key = stretch_kdf_key(&self.0)?;
-                user_key.decrypt_with_key(&stretched_key)?
-            }
-        };
-
-        SymmetricCryptoKey::try_from(dec.as_mut_slice())
+        decrypt_user_key(&self.0, user_key)
     }
+}
 
-    pub fn encrypt_user_key(&self, user_key: &SymmetricCryptoKey) -> Result<EncString> {
-        let stretched_key = stretch_kdf_key(&self.0)?;
+/// Helper function to encrypt a user key with a master or pin key.
+pub(super) fn encrypt_user_key(
+    key: &SymmetricCryptoKey,
+    user_key: &SymmetricCryptoKey,
+) -> Result<EncString> {
+    let stretched_key = stretch_kdf_key(key)?;
 
-        EncString::encrypt_aes256_hmac(
-            &user_key.to_vec(),
-            stretched_key
-                .mac_key
-                .as_ref()
-                .ok_or(CryptoError::InvalidMac)?,
-            &stretched_key.key,
-        )
-    }
+    EncString::encrypt_aes256_hmac(
+        &user_key.to_vec(),
+        stretched_key
+            .mac_key
+            .as_ref()
+            .ok_or(CryptoError::InvalidMac)?,
+        &stretched_key.key,
+    )
+}
+
+/// Helper function to decrypt a user key with a master or pin key.
+pub(super) fn decrypt_user_key(
+    key: &SymmetricCryptoKey,
+    user_key: EncString,
+) -> Result<SymmetricCryptoKey> {
+    let mut dec: Vec<u8> = match user_key {
+        // Legacy. user_keys were encrypted using `AesCbc256_B64` a long time ago. We've since
+        // moved to using `AesCbc256_HmacSha256_B64`. However, we still need to support
+        // decrypting these old keys.
+        EncString::AesCbc256_B64 { .. } => user_key.decrypt_with_key(key)?,
+        _ => {
+            let stretched_key = stretch_kdf_key(key)?;
+            user_key.decrypt_with_key(&stretched_key)?
+        }
+    };
+
+    SymmetricCryptoKey::try_from(dec.as_mut_slice())
 }
 
 /// Generate a new random user key and encrypt it with the master key.
@@ -137,8 +161,8 @@ mod tests {
     #[test]
     fn test_master_key_derive_pbkdf2() {
         let master_key = MasterKey::derive(
-            b"67t9b5g67$%Dh89n",
-            b"test_key",
+            "67t9b5g67$%Dh89n",
+            "test_key",
             &Kdf::PBKDF2 {
                 iterations: NonZeroU32::new(10000).unwrap(),
             },
@@ -158,8 +182,8 @@ mod tests {
     #[test]
     fn test_master_key_derive_argon2() {
         let master_key = MasterKey::derive(
-            b"67t9b5g67$%Dh89n",
-            b"test_key",
+            "67t9b5g67$%Dh89n",
+            "test_key",
             &Kdf::Argon2id {
                 iterations: NonZeroU32::new(4).unwrap(),
                 memory: NonZeroU32::new(32).unwrap(),
@@ -180,26 +204,32 @@ mod tests {
 
     #[test]
     fn test_password_hash_pbkdf2() {
-        let password = b"asdfasdf";
-        let salt = b"test_salt";
+        let password = "asdfasdf";
+        let salts = [
+            "test@bitwarden.com",
+            "TEST@bitwarden.com",
+            " test@bitwarden.com",
+        ];
         let kdf = Kdf::PBKDF2 {
             iterations: NonZeroU32::new(100_000).unwrap(),
         };
 
-        let master_key = MasterKey::derive(password, salt, &kdf).unwrap();
+        for salt in salts.iter() {
+            let master_key = MasterKey::derive(password, salt, &kdf).unwrap();
 
-        assert_eq!(
-            "ZF6HjxUTSyBHsC+HXSOhZoXN+UuMnygV5YkWXCY4VmM=",
-            master_key
-                .derive_master_key_hash(password, HashPurpose::ServerAuthorization)
-                .unwrap(),
-        );
+            assert_eq!(
+                "wmyadRMyBZOH7P/a/ucTCbSghKgdzDpPqUnu/DAVtSw=",
+                master_key
+                    .derive_master_key_hash(password.as_bytes(), HashPurpose::ServerAuthorization)
+                    .unwrap(),
+            );
+        }
     }
 
     #[test]
     fn test_password_hash_argon2id() {
-        let password = b"asdfasdf";
-        let salt = b"test_salt";
+        let password = "asdfasdf";
+        let salt = "test_salt";
         let kdf = Kdf::Argon2id {
             iterations: NonZeroU32::new(4).unwrap(),
             memory: NonZeroU32::new(32).unwrap(),
@@ -211,7 +241,7 @@ mod tests {
         assert_eq!(
             "PR6UjYmjmppTYcdyTiNbAhPJuQQOmynKbdEl1oyi/iQ=",
             master_key
-                .derive_master_key_hash(password, HashPurpose::ServerAuthorization)
+                .derive_master_key_hash(password.as_bytes(), HashPurpose::ServerAuthorization)
                 .unwrap(),
         );
     }
@@ -282,8 +312,8 @@ mod tests {
 
     #[test]
     fn test_decrypt_user_key_aes_cbc256_b64() {
-        let password = b"asdfasdfasdf";
-        let salt = b"legacy@bitwarden.com";
+        let password = "asdfasdfasdf";
+        let salt = "legacy@bitwarden.com";
         let kdf = Kdf::PBKDF2 {
             iterations: NonZeroU32::new(600_000).unwrap(),
         };

@@ -92,34 +92,51 @@ impl MasterKey {
         make_user_key(rand::thread_rng(), self)
     }
 
+    /// Encrypt the users user key
+    pub fn encrypt_user_key(&self, user_key: &SymmetricCryptoKey) -> Result<EncString> {
+        encrypt_user_key(&self.0, user_key)
+    }
+
     /// Decrypt the users user key
     pub fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey> {
-        let mut dec: Vec<u8> = match user_key {
-            // Legacy. user_keys were encrypted using `AesCbc256_B64` a long time ago. We've since
-            // moved to using `AesCbc256_HmacSha256_B64`. However, we still need to support
-            // decrypting these old keys.
-            EncString::AesCbc256_B64 { .. } => user_key.decrypt_with_key(&self.0)?,
-            _ => {
-                let stretched_key = stretch_kdf_key(&self.0)?;
-                user_key.decrypt_with_key(&stretched_key)?
-            }
-        };
-
-        SymmetricCryptoKey::try_from(dec.as_mut_slice())
+        decrypt_user_key(&self.0, user_key)
     }
+}
 
-    pub fn encrypt_user_key(&self, user_key: &SymmetricCryptoKey) -> Result<EncString> {
-        let stretched_key = stretch_kdf_key(&self.0)?;
+/// Helper function to encrypt a user key with a master or pin key.
+pub(super) fn encrypt_user_key(
+    key: &SymmetricCryptoKey,
+    user_key: &SymmetricCryptoKey,
+) -> Result<EncString> {
+    let stretched_key = stretch_kdf_key(key)?;
 
-        EncString::encrypt_aes256_hmac(
-            &user_key.to_vec(),
-            stretched_key
-                .mac_key
-                .as_ref()
-                .ok_or(CryptoError::InvalidMac)?,
-            &stretched_key.key,
-        )
-    }
+    EncString::encrypt_aes256_hmac(
+        &user_key.to_vec(),
+        stretched_key
+            .mac_key
+            .as_ref()
+            .ok_or(CryptoError::InvalidMac)?,
+        &stretched_key.key,
+    )
+}
+
+/// Helper function to decrypt a user key with a master or pin key.
+pub(super) fn decrypt_user_key(
+    key: &SymmetricCryptoKey,
+    user_key: EncString,
+) -> Result<SymmetricCryptoKey> {
+    let mut dec: Vec<u8> = match user_key {
+        // Legacy. user_keys were encrypted using `AesCbc256_B64` a long time ago. We've since
+        // moved to using `AesCbc256_HmacSha256_B64`. However, we still need to support
+        // decrypting these old keys.
+        EncString::AesCbc256_B64 { .. } => user_key.decrypt_with_key(key)?,
+        _ => {
+            let stretched_key = stretch_kdf_key(key)?;
+            user_key.decrypt_with_key(&stretched_key)?
+        }
+    };
+
+    SymmetricCryptoKey::try_from(dec.as_mut_slice())
 }
 
 /// Generate a new random user key and encrypt it with the master key.

@@ -1,3 +1,4 @@
+use super::master_key::{decrypt_user_key, encrypt_user_key};
 use crate::{
     keys::{
         key_encryptable::CryptoKey,
@@ -21,33 +22,14 @@ impl PinKey {
         derive_kdf_key(password, email, kdf).map(Self)
     }
 
-    /// Decrypt the users user key
-    pub fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey> {
-        let mut dec: Vec<u8> = match user_key {
-            // Legacy. user_keys were encrypted using `AesCbc256_B64` a long time ago. We've since
-            // moved to using `AesCbc256_HmacSha256_B64`. However, we still need to support
-            // decrypting these old keys.
-            EncString::AesCbc256_B64 { .. } => user_key.decrypt_with_key(&self.0)?,
-            _ => {
-                let stretched_key = stretch_kdf_key(&self.0)?;
-                user_key.decrypt_with_key(&stretched_key)?
-            }
-        };
-
-        SymmetricCryptoKey::try_from(dec.as_mut_slice())
+    /// Encrypt the users user key
+    pub fn encrypt_user_key(&self, user_key: &SymmetricCryptoKey) -> Result<EncString> {
+        encrypt_user_key(&self.0, user_key)
     }
 
-    pub fn encrypt_user_key(&self, user_key: &SymmetricCryptoKey) -> Result<EncString> {
-        let stretched_key = stretch_kdf_key(&self.0)?;
-
-        EncString::encrypt_aes256_hmac(
-            &user_key.to_vec(),
-            stretched_key
-                .mac_key
-                .as_ref()
-                .ok_or(CryptoError::InvalidMac)?,
-            &stretched_key.key,
-        )
+    /// Decrypt the users user key
+    pub fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey> {
+        decrypt_user_key(&self.0, user_key)
     }
 }
 

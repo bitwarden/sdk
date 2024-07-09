@@ -52,14 +52,13 @@ checksum = "5ecc8056bf6ab9892dcd53216c83d1597487d7dacac16c8df6b877d127df9937"
 
 [[package]]
 name = "android_logger"
-version = "0.13.3"
+version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c494134f746c14dc653a35a4ea5aca24ac368529da5370ecf41fe0341c35772f"
+checksum = "05b07e8e73d720a1f2e4b6014766e6039fd2e96a4fa44e2a78d0e1fa2ff49826"
 dependencies = [
  "android_log-sys",
- "env_logger 0.10.2",
+ "env_filter",
  "log",
- "once_cell",
 ]
 
 [[package]]
@@ -408,7 +407,7 @@ name = "bitwarden-c"
 version = "0.1.0"
 dependencies = [
  "bitwarden-json",
- "env_logger 0.11.3",
+ "env_logger",
  "tokio",
 ]
 
@@ -566,7 +565,7 @@ name = "bitwarden-napi"
 version = "0.3.1"
 dependencies = [
  "bitwarden-json",
- "env_logger 0.11.3",
+ "env_logger",
  "log",
  "napi",
  "napi-build",
@@ -633,7 +632,7 @@ dependencies = [
  "bitwarden-send",
  "bitwarden-vault",
  "chrono",
- "env_logger 0.11.3",
+ "env_logger",
  "log",
  "schemars",
  "thiserror",
@@ -734,7 +733,7 @@ dependencies = [
  "bitwarden-crypto",
  "clap",
  "color-eyre",
- "env_logger 0.11.3",
+ "env_logger",
  "inquire",
  "log",
  "tempfile",
@@ -755,7 +754,7 @@ dependencies = [
  "color-eyre",
  "comfy-table",
  "directories",
- "env_logger 0.11.3",
+ "env_logger",
  "log",
  "regex",
  "serde",
@@ -1510,16 +1509,6 @@ name = "env_filter"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a009aa4810eb158359dda09d0c87378e4bbb89b5a801f016885a4707ba24f7ea"
-dependencies = [
- "log",
- "regex",
-]
-
-[[package]]
-name = "env_logger"
-version = "0.10.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4cd405aab171cb85d6735e5c8d9db038c17d3ca007a4d2c25f337935c3d90580"
 dependencies = [
  "log",
  "regex",

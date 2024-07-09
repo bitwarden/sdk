@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     io::{IsTerminal, Read},
     process,
 };
@@ -70,35 +71,34 @@ pub(crate) async fn run(
         .await?
         .data;
 
-    let mut environment = std::collections::HashMap::new();
-
-    secrets.into_iter().for_each(|s| {
-        let key = if uuids_as_keynames {
-            uuid_to_posix(&s.id)
-        } else {
-            s.key
-        };
-
-        if !is_valid_posix_name(&key) {
-            eprintln!(
-                "Warning: secret '{}' does not have a POSIX-compliant name",
-                key
-            );
+    if !uuids_as_keynames {
+        let mut seen = std::collections::HashSet::new();
+        match secrets.iter().find(|s| !seen.insert(&s.key)) {
+            Some(s) => {
+                bail!("Multiple secrets with name: '{}'. Use --uuids-as-keynames or use unique names for secrets", s.key);
+            }
+            _ => {}
         }
+    }
 
-        match environment.contains_key(&key) {
-            true => {
+    let environment: HashMap<String, String> = secrets
+        .into_iter()
+        .map(|s| {
+            if uuids_as_keynames {
+                (uuid_to_posix(&s.id), s.value)
+            } else {
+                (s.key, s.value)
+            }
+        })
+        .inspect(|(k, _)| {
+            if !is_valid_posix_name(k) {
                 eprintln!(
-                    "Error: multiple secrets with name '{}' found. Use --uuids-as-keynames or use unique names for secrets.",
-                    key
+                    "Warning: secret '{}' does not have a POSIX-compliant name",
+                    k
                 );
-                std::process::exit(1);
             }
-            false => {
-                environment.insert(key, s.value);
-            }
-        }
-    });
+        })
+        .collect();
 
     let mut command = process::Command::new(shell);
     command
@@ -115,10 +115,10 @@ pub(crate) async fn run(
 
         command.env_clear();
         command.env("PATH", path); // PATH is always necessary
-        command.envs(&environment);
+        command.envs(environment);
     } else {
         command.env_remove(ACCESS_TOKEN_KEY_VAR_NAME);
-        command.envs(&environment);
+        command.envs(environment);
     }
 
     let mut child = command.spawn().expect("failed to execute process");

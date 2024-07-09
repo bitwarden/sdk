@@ -30,11 +30,7 @@ pub(crate) async fn login_password(
 
     info!("password logging in");
 
-    let master_key = MasterKey::derive(
-        input.password.as_bytes(),
-        input.email.as_bytes(),
-        &input.kdf,
-    )?;
+    let master_key = MasterKey::derive(&input.password, &input.email, &input.kdf)?;
     let password_hash = master_key
         .derive_master_key_hash(input.password.as_bytes(), HashPurpose::ServerAuthorization)?;
 

@@ -10,14 +10,13 @@ use bitwarden::{
     },
     Client,
 };
-use clap::CommandFactory;
-use color_eyre::eyre::Result;
+use color_eyre::eyre::{bail, Result};
 use uuid::Uuid;
 use which::which;
 
 use crate::{
     util::{is_valid_posix_name, uuid_to_posix},
-    Cli, ACCESS_TOKEN_KEY_VAR_NAME,
+    ACCESS_TOKEN_KEY_VAR_NAME,
 };
 
 pub(crate) async fn run(
@@ -35,14 +34,12 @@ pub(crate) async fn run(
     };
 
     if which(&shell).is_err() {
-        eprintln!("Error: shell '{}' not found", shell);
-        std::process::exit(1);
+        bail!("Shell '{}' not found", shell);
     }
 
     let user_command = if command.is_empty() {
         if std::io::stdin().is_terminal() {
-            eprintln!("{}", Cli::command().render_help().ansi());
-            std::process::exit(1);
+            bail!("No command provided");
         }
 
         let mut buffer = String::new();

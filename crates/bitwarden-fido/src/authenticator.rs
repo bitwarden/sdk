@@ -58,8 +58,8 @@ pub enum GetAssertionError {
     Serde(#[from] serde_json::Error),
     #[error(transparent)]
     GetSelectedCredentialError(#[from] GetSelectedCredentialError),
-    #[error("Missing attested_credential_data")]
-    MissingAttestedCredentialData,
+    #[error(transparent)]
+    InvalidGuid(#[from] InvalidGuid),
     #[error("missing user")]
     MissingUser,
     #[error("get_assertion error: {0}")]
@@ -229,12 +229,8 @@ impl<'a> Fido2Authenticator<'a> {
         };
 
         let authenticator_data = response.auth_data.to_vec();
-        let credential_id = response
-            .auth_data
-            .attested_credential_data
-            .ok_or(GetAssertionError::MissingAttestedCredentialData)?
-            .credential_id()
-            .to_vec();
+        let credential_id =
+            string_to_guid_bytes(&self.get_selected_credential()?.credential.credential_id)?;
 
         Ok(GetAssertionResult {
             credential_id,

@@ -52,12 +52,6 @@ pub(crate) async fn run(
         command.join(" ")
     };
 
-    if user_command.is_empty() {
-        let mut cmd = Cli::command();
-        eprintln!("{}", cmd.render_help().ansi());
-        std::process::exit(1);
-    }
-
     let res = if let Some(project_id) = project_id {
         client
             .secrets()

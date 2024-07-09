@@ -28,9 +28,11 @@ pub(crate) async fn run(
     shell: Option<String>,
     command: Vec<String>,
 ) -> Result<()> {
-    let shell = match std::env::consts::OS {
-        "windows" => shell.unwrap_or_else(|| "powershell".to_string()),
-        _ => shell.unwrap_or_else(|| "sh".to_string()),
+    let is_windows = std::env::consts::OS == "windows";
+
+    let shell = match is_windows {
+        true => shell.unwrap_or_else(|| "powershell".to_string()),
+        false => shell.unwrap_or_else(|| "sh".to_string()),
     };
 
     if which(&shell).is_err() {
@@ -106,7 +108,11 @@ pub(crate) async fn run(
         .stderr(process::Stdio::inherit());
 
     if no_inherit_env {
-        let path = std::env::var("PATH").unwrap_or_else(|_| "/bin:/usr/bin".to_string());
+        let path = std::env::var("PATH").unwrap_or_else(|_| match is_windows {
+            true => "C:\\Windows;C:\\Windows\\System32".to_string(),
+            false => "/bin:/usr/bin".to_string(),
+        });
+
         command.env_clear();
         command.env("PATH", path); // PATH is always necessary
         command.envs(&environment);

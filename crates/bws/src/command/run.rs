@@ -73,11 +73,8 @@ pub(crate) async fn run(
 
     if !uuids_as_keynames {
         let mut seen = std::collections::HashSet::new();
-        match secrets.iter().find(|s| !seen.insert(&s.key)) {
-            Some(s) => {
-                bail!("Multiple secrets with name: '{}'. Use --uuids-as-keynames or use unique names for secrets", s.key);
-            }
-            _ => {}
+        if let Some(s) = secrets.iter().find(|s| !seen.insert(&s.key)) {
+            bail!("Multiple secrets with name: '{}'. Use --uuids-as-keynames or use unique names for secrets", s.key);
         }
     }
 

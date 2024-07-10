@@ -42,7 +42,7 @@ async fn test() -> Result<()> {
     // Before we operate, we need to authenticate with a token
     let token = AccessTokenLoginRequest {
         access_token: String::from(""),
-        state_file: None,
+        state_path: None,
     };
     client.auth().login_access_token(&token).await.unwrap();
 

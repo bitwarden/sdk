@@ -139,8 +139,8 @@ pub fn fill_with_credential(
     let cred_id: Vec<u8> = value.credential_id.into();
     let user_handle = value
         .user_handle
-        .map(|u| URL_SAFE_NO_PAD.encode(&u.to_vec()));
-    let key_value = URL_SAFE_NO_PAD.encode(&cose_key_to_pkcs8(&value.key)?);
+        .map(|u| URL_SAFE_NO_PAD.encode(u.to_vec()));
+    let key_value = URL_SAFE_NO_PAD.encode(cose_key_to_pkcs8(&value.key)?);
 
     Ok(Fido2CredentialFullView {
         credential_id: guid_bytes_to_string(&cred_id)?,

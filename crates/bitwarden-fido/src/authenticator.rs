@@ -228,9 +228,9 @@ impl<'a> Fido2Authenticator<'a> {
             Err(e) => return Err(GetAssertionError::Other(format!("{e:?}"))),
         };
 
+        let selected_credential = self.get_selected_credential()?;
         let authenticator_data = response.auth_data.to_vec();
-        let credential_id =
-            string_to_guid_bytes(&self.get_selected_credential()?.credential.credential_id)?;
+        let credential_id = string_to_guid_bytes(&selected_credential.credential.credential_id)?;
 
         Ok(GetAssertionResult {
             credential_id,
@@ -241,7 +241,7 @@ impl<'a> Fido2Authenticator<'a> {
                 .ok_or(GetAssertionError::MissingUser)?
                 .id
                 .into(),
-            selected_credential: self.get_selected_credential()?,
+            selected_credential,
         })
     }
 

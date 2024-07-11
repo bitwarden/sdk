@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     io::{IsTerminal, Read},
     process,
 };
@@ -72,7 +72,7 @@ pub(crate) async fn run(
         .data;
 
     if !uuids_as_keynames {
-        let mut seen = std::collections::HashSet::new();
+        let mut seen = HashSet::new();
         if let Some(s) = secrets.iter().find(|s| !seen.insert(&s.key)) {
             bail!("Multiple secrets with name: '{}'. Use --uuids-as-keynames or use unique names for secrets", s.key);
         }

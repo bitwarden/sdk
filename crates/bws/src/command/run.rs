@@ -28,7 +28,7 @@ pub(crate) async fn run(
     no_inherit_env: bool,
     shell: Option<String>,
     command: Vec<String>,
-) -> Result<()> {
+) -> Result<i32> {
     let is_windows = std::env::consts::OS == "windows";
 
     let shell = match is_windows {
@@ -118,14 +118,16 @@ pub(crate) async fn run(
         command.envs(environment);
     }
 
-    let mut child = command.spawn().expect("failed to execute process");
-
-    let exit_status = child.wait().expect("process failed to execute");
-    let exit_code = exit_status.code().unwrap_or(1);
-
-    if exit_code != 0 {
-        process::exit(exit_code);
+    // propagate the exit status from the child process
+    match command.spawn() {
+        Ok(mut child) => match child.wait() {
+            Ok(exit_status) => Ok(exit_status.code().unwrap_or(1)),
+            Err(e) => {
+                bail!("Failed to wait for process: {}", e)
+            }
+        },
+        Err(e) => {
+            bail!("Failed to execute process: {}", e)
+        }
     }
-
-    Ok(())
 }

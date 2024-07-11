@@ -105,13 +105,11 @@ impl TryFrom<CipherViewContainer> for Passkey {
 fn try_from_credential_full_view(value: Fido2CredentialFullView) -> Result<Passkey, Fido2Error> {
     let counter: u32 = value.counter.parse().expect("Invalid counter");
     let counter = (counter != 0).then_some(counter);
-    log::info!("Converting Credential to Passkey: {:?}", value);
     let key_value = URL_SAFE_NO_PAD.decode(value.key_value)?;
     let user_handle = value
         .user_handle
         .map(|u| URL_SAFE_NO_PAD.decode(u))
         .transpose()?;
-    log::info!("Key value: {:?}", key_value);
 
     let key = pkcs8_to_cose_key(&key_value)?;
 

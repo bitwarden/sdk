@@ -41,7 +41,7 @@ class BitwardenClient
     /**
      * @throws \Exception
      */
-    public function access_token_login(string $access_token)
+    public function login_access_token(string $access_token)
     {
         $access_token_request = new AccessTokenLoginRequest();
         $access_token_request->accessToken = $access_token;

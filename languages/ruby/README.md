@@ -28,7 +28,7 @@ bitwarden_settings = BitwardenSDK::BitwardenSettings.new(
 # By passing these setting you can initialize BitwardenClient
 
 bw_client = BitwardenSDK::BitwardenClient.new(bitwarden_settings)
-response = bw_client.access_token_login(token)
+response = bw_client.login_access_token(token)
 puts response
 ```
 

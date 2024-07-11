@@ -171,7 +171,7 @@ mod tests {
 
     #[cfg(feature = "secrets")]
     #[tokio::test]
-    async fn test_access_token_login() {
+    async fn test_login_access_token() {
         use wiremock::{matchers, Mock, ResponseTemplate};
 
         use crate::{auth::login::AccessTokenLoginRequest, secrets_manager::secrets::*};

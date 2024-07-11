@@ -3,7 +3,7 @@ module BitwardenSDKSecrets
     class SelectiveCommand < Command
       attribute :password_login,     PasswordLoginRequest.optional.default(nil)
       attribute :api_key_login,      APIKeyLoginRequest.optional.default(nil)
-      attribute :access_token_login, AccessTokenLoginRequest.optional.default(nil)
+      attribute :login_access_token, AccessTokenLoginRequest.optional.default(nil)
       attribute :get_user_api_key,   SecretVerificationRequest.optional.default(nil)
       attribute :fingerprint,        FingerprintRequest.optional.default(nil)
       attribute :sync,               SyncRequest.optional.default(nil)
@@ -14,7 +14,7 @@ module BitwardenSDKSecrets
         {
           "passwordLogin"    => password_login&.to_dynamic,
           "apiKeyLogin"      => api_key_login&.to_dynamic,
-          "accessTokenLogin" => access_token_login&.to_dynamic,
+          "accessTokenLogin" => login_access_token&.to_dynamic,
           "getUserApiKey"    => get_user_api_key&.to_dynamic,
           "fingerprint"      => fingerprint&.to_dynamic,
           "sync"             => sync&.to_dynamic,

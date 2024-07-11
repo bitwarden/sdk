@@ -12,7 +12,7 @@ $identity_url = getenv('IDENTITY_URL');
 $client_settings = new \Bitwarden\Sdk\BitwardenSettings($api_url, $identity_url);
 
 $bitwarden_client = new \Bitwarden\Sdk\BitwardenClient($client_settings);
-$bitwarden_client->access_token_login($access_token);
+$bitwarden_client->login_access_token($access_token);
 
 // create project
 $res = $bitwarden_client->projects->create('php project', $organization_id);

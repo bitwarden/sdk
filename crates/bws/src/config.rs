@@ -20,7 +20,7 @@ pub(crate) struct Profile {
     pub server_base: Option<String>,
     pub server_api: Option<String>,
     pub server_identity: Option<String>,
-    pub state_path: Option<String>,
+    pub state_dir: Option<String>,
 }
 
 impl ProfileKey {
@@ -29,7 +29,7 @@ impl ProfileKey {
             ProfileKey::server_base => p.server_base = Some(value),
             ProfileKey::server_api => p.server_api = Some(value),
             ProfileKey::server_identity => p.server_identity = Some(value),
-            ProfileKey::state_path => p.state_path = Some(value),
+            ProfileKey::state_dir => p.state_dir = Some(value),
         }
     }
 }
@@ -117,7 +117,7 @@ impl Profile {
             server_base: Some(url.to_string()),
             server_api: None,
             server_identity: None,
-            state_path: None,
+            state_dir: None,
         })
     }
     pub(crate) fn api_url(&self) -> Result<String> {

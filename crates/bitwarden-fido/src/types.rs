@@ -1,3 +1,4 @@
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use bitwarden_crypto::KeyContainer;
 use bitwarden_vault::{CipherError, CipherView};
 use passkey::types::webauthn::UserVerificationRequirement;
@@ -53,6 +54,9 @@ pub enum Fido2CredentialAutofillViewError {
 
     #[error(transparent)]
     CipherError(#[from] CipherError),
+
+    #[error(transparent)]
+    Base64DecodeError(#[from] base64::DecodeError),
 }
 
 impl Fido2CredentialAutofillView {
@@ -65,25 +69,27 @@ impl Fido2CredentialAutofillView {
         credentials
             .into_iter()
             .filter_map(|c| -> Option<Result<_, Fido2CredentialAutofillViewError>> {
-                c.user_handle.map(|user_handle| {
-                    Ok(Fido2CredentialAutofillView {
-                        credential_id: string_to_guid_bytes(&c.credential_id)?,
-                        cipher_id: cipher
-                            .id
-                            .ok_or(Fido2CredentialAutofillViewError::MissingCipherId)?,
-                        rp_id: c.rp_id.clone(),
-                        user_handle,
-                        user_name_for_ui: c
-                            .user_name
-                            .none_whitespace()
-                            .or(c.user_display_name.none_whitespace())
-                            .or(cipher
-                                .login
-                                .as_ref()
-                                .and_then(|l| l.username.none_whitespace()))
-                            .or(cipher.name.none_whitespace()),
+                c.user_handle
+                    .map(|u| URL_SAFE_NO_PAD.decode(u))
+                    .map(|user_handle| {
+                        Ok(Fido2CredentialAutofillView {
+                            credential_id: string_to_guid_bytes(&c.credential_id)?,
+                            cipher_id: cipher
+                                .id
+                                .ok_or(Fido2CredentialAutofillViewError::MissingCipherId)?,
+                            rp_id: c.rp_id.clone(),
+                            user_handle: user_handle?,
+                            user_name_for_ui: c
+                                .user_name
+                                .none_whitespace()
+                                .or(c.user_display_name.none_whitespace())
+                                .or(cipher
+                                    .login
+                                    .as_ref()
+                                    .and_then(|l| l.username.none_whitespace()))
+                                .or(cipher.name.none_whitespace()),
+                        })
                     })
-                })
             })
             .collect()
     }

@@ -5,7 +5,7 @@ use bitwarden_core::{
     client::{encryption_settings::EncryptionSettings, Client},
     require, Error,
 };
-use bitwarden_crypto::{CryptoError, EncString, KeyDecryptable};
+use bitwarden_crypto::{EncString, KeyDecryptable};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -93,9 +93,7 @@ impl SecretIdentifierResponse {
         enc: &EncryptionSettings,
     ) -> Result<SecretIdentifierResponse, Error> {
         let organization_id = require!(response.organization_id);
-        let enc_key = enc
-            .get_key(&Some(organization_id))
-            .ok_or(CryptoError::MissingKey)?;
+        let enc_key = enc.get_key(&Some(organization_id))?;
 
         let key = require!(response.key)
             .parse::<EncString>()?

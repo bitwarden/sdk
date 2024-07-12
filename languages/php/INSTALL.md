@@ -9,17 +9,14 @@ Composer is used to build PHP Bitwarden client library.
 - PHP >= 8.0
 - FFI extension enabled in PHP configuration
 - Composer
-- Bitwarden SDK native library, which is expected in one of below locations, depending on the OS and architecture.
-  If you prefer to build SDK yourself, see [SDK README.md](../../README.md) for instructions.
-    - Windows:
-      - x86_64: `C:\lib\windows-x64\bitwarden_c.dll`.
-      - The drive letter is determined by the workdir of the PHP process, usually `C:`
-    - Linux:
-      - x86_64: `/lib/linux-x64/libbitwarden_c.so`
-    - macOS:
-      - x86_64: `./src/lib/macos-x64/libbitwarden_c.dylib`
-      - aarch64: `./src/lib/macos-arm64/libbitwarden_c.dylib`
-      - Where the `./src` is relative path to the [src](./src) directory.
+- Bitwarden SDK native library.
+  - Expected in one of below locations, depending on the OS and architecture.
+    The `src` is relative path to the [src](./src) directory.
+    - Windows x86_64: `src\lib\windows-x64\bitwarden_c.dll`
+    - Linux x86_64: `src/lib/linux-x64/libbitwarden_c.so`
+    - macOS x86_64: `src/lib/macos-x64/libbitwarden_c.dylib`
+    - macOS aarch64: `src/lib/macos-arm64/libbitwarden_c.dylib`
+  - If you prefer to build SDK yourself, see [SDK README.md](../../README.md) for instructions.
 
 ## Build Commands
 

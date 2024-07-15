@@ -1,3 +1,3 @@
 module github.com/bitwarden/sdk-go
 
-go 1.18
+go 1.21

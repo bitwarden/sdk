@@ -1,5 +1,5 @@
-use bitwarden_core::{Client, Error, VaultLocked};
-use bitwarden_crypto::{CryptoError, KeyDecryptable, KeyEncryptable, LocateKey};
+use bitwarden_core::{Client, Error};
+use bitwarden_crypto::{KeyDecryptable, KeyEncryptable, LocateKey};
 use uuid::Uuid;
 
 use crate::{Cipher, CipherError, CipherListView, CipherView, ClientVault};
@@ -21,11 +21,11 @@ impl<'a> ClientCiphers<'a> {
                 .get_flags()
                 .enable_cipher_key_encryption
         {
-            let key = cipher_view.locate_key(&enc, &None).ok_or(VaultLocked)?;
+            let key = cipher_view.locate_key(&enc, &None)?;
             cipher_view.generate_cipher_key(key)?;
         }
 
-        let key = cipher_view.locate_key(&enc, &None).ok_or(VaultLocked)?;
+        let key = cipher_view.locate_key(&enc, &None)?;
         let cipher = cipher_view.encrypt_with_key(key)?;
 
         Ok(cipher)
@@ -33,9 +33,7 @@ impl<'a> ClientCiphers<'a> {
 
     pub fn decrypt(&self, cipher: Cipher) -> Result<CipherView, Error> {
         let enc = self.client.internal.get_encryption_settings()?;
-        let key = cipher
-            .locate_key(&enc, &None)
-            .ok_or(CryptoError::MissingKey)?;
+        let key = cipher.locate_key(&enc, &None)?;
 
         let cipher_view = cipher.decrypt_with_key(key)?;
 
@@ -48,7 +46,7 @@ impl<'a> ClientCiphers<'a> {
         let cipher_views: Result<Vec<CipherListView>, _> = ciphers
             .iter()
             .map(|c| -> Result<CipherListView, _> {
-                let key = c.locate_key(&enc, &None).ok_or(CryptoError::MissingKey)?;
+                let key = c.locate_key(&enc, &None)?;
                 Ok(c.decrypt_with_key(key)?)
             })
             .collect();

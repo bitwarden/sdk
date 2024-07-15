@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use bitwarden_core::{Client, Error, VaultLocked};
+use bitwarden_core::{Client, Error};
 use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey};
 
 use crate::{
@@ -20,7 +20,7 @@ impl<'a> ClientAttachments<'a> {
         buffer: &[u8],
     ) -> Result<AttachmentEncryptResult, Error> {
         let enc = self.client.internal.get_encryption_settings()?;
-        let key = cipher.locate_key(&enc, &None).ok_or(VaultLocked)?;
+        let key = cipher.locate_key(&enc, &None)?;
 
         Ok(AttachmentFileView {
             cipher,
@@ -52,7 +52,7 @@ impl<'a> ClientAttachments<'a> {
         encrypted_buffer: &[u8],
     ) -> Result<Vec<u8>, Error> {
         let enc = self.client.internal.get_encryption_settings()?;
-        let key = cipher.locate_key(&enc, &None).ok_or(VaultLocked)?;
+        let key = cipher.locate_key(&enc, &None)?;
 
         AttachmentFile {
             cipher,

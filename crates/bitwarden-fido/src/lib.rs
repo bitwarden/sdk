@@ -8,17 +8,21 @@ use passkey::types::{ctap2::Aaguid, Passkey};
 
 #[cfg(feature = "uniffi")]
 uniffi::setup_scaffolding!();
+#[cfg(feature = "uniffi")]
+mod uniffi_support;
 
 mod authenticator;
 mod client;
+mod client_fido;
 mod crypto;
 mod traits;
 mod types;
 pub use authenticator::{
-    Fido2Authenticator, FidoEncryptionSettingStore, GetAssertionError, MakeCredentialError,
+    CredentialsForAutofillError, Fido2Authenticator, GetAssertionError, MakeCredentialError,
     SilentlyDiscoverCredentialsError,
 };
 pub use client::{Fido2Client, Fido2ClientError};
+pub use client_fido::{ClientFido2, ClientFido2Ext, DecryptFido2AutofillCredentialsError};
 pub use passkey::authenticator::UIHint;
 use thiserror::Error;
 pub use traits::{
@@ -27,7 +31,8 @@ pub use traits::{
 };
 pub use types::{
     AuthenticatorAssertionResponse, AuthenticatorAttestationResponse, ClientData,
-    GetAssertionRequest, GetAssertionResult, MakeCredentialRequest, MakeCredentialResult, Options,
+    Fido2CredentialAutofillView, Fido2CredentialAutofillViewError, GetAssertionRequest,
+    GetAssertionResult, MakeCredentialRequest, MakeCredentialResult, Options,
     PublicKeyCredentialAuthenticatorAssertionResponse,
     PublicKeyCredentialAuthenticatorAttestationResponse, PublicKeyCredentialRpEntity,
     PublicKeyCredentialUserEntity,
@@ -69,6 +74,9 @@ impl CipherViewContainer {
 #[derive(Debug, Error)]
 pub enum Fido2Error {
     #[error(transparent)]
+    DecodeError(#[from] base64::DecodeError),
+
+    #[error(transparent)]
     UnknownEnum(#[from] UnknownEnum),
 
     #[error(transparent)]
@@ -97,14 +105,19 @@ impl TryFrom<CipherViewContainer> for Passkey {
 fn try_from_credential_full_view(value: Fido2CredentialFullView) -> Result<Passkey, Fido2Error> {
     let counter: u32 = value.counter.parse().expect("Invalid counter");
     let counter = (counter != 0).then_some(counter);
+    let key_value = URL_SAFE_NO_PAD.decode(value.key_value)?;
+    let user_handle = value
+        .user_handle
+        .map(|u| URL_SAFE_NO_PAD.decode(u))
+        .transpose()?;
 
-    let key = pkcs8_to_cose_key(&value.key_value)?;
+    let key = pkcs8_to_cose_key(&key_value)?;
 
     Ok(Passkey {
         key,
         credential_id: string_to_guid_bytes(&value.credential_id)?.into(),
         rp_id: value.rp_id.clone(),
-        user_handle: value.user_handle.map(|u| u.into()),
+        user_handle: user_handle.map(|u| u.into()),
         counter,
     })
 }
@@ -122,16 +135,20 @@ pub fn fill_with_credential(
     value: Passkey,
 ) -> Result<Fido2CredentialFullView, FillCredentialError> {
     let cred_id: Vec<u8> = value.credential_id.into();
+    let user_handle = value
+        .user_handle
+        .map(|u| URL_SAFE_NO_PAD.encode(u.to_vec()));
+    let key_value = URL_SAFE_NO_PAD.encode(cose_key_to_pkcs8(&value.key)?);
 
     Ok(Fido2CredentialFullView {
         credential_id: guid_bytes_to_string(&cred_id)?,
         key_type: "public-key".to_owned(),
         key_algorithm: "ECDSA".to_owned(),
         key_curve: "P-256".to_owned(),
-        key_value: cose_key_to_pkcs8(&value.key)?,
+        key_value,
         rp_id: value.rp_id,
         rp_name: view.rp_name.clone(),
-        user_handle: Some(cred_id),
+        user_handle,
 
         counter: value.counter.unwrap_or(0).to_string(),
         user_name: view.user_name.clone(),
@@ -146,15 +163,17 @@ pub(crate) fn try_from_credential_new_view(
     rp: &passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
 ) -> Result<Fido2CredentialNewView, InvalidInputLength> {
     let cred_id: Vec<u8> = vec![0; 16];
+    let user_handle = URL_SAFE_NO_PAD.encode(user.id.to_vec());
 
     Ok(Fido2CredentialNewView {
+        // TODO: Why do we have a credential id here?
         credential_id: guid_bytes_to_string(&cred_id)?,
         key_type: "public-key".to_owned(),
         key_algorithm: "ECDSA".to_owned(),
         key_curve: "P-256".to_owned(),
         rp_id: rp.id.clone(),
         rp_name: rp.name.clone(),
-        user_handle: Some(cred_id),
+        user_handle: Some(user_handle),
 
         counter: 0.to_string(),
         user_name: user.name.clone(),
@@ -170,16 +189,18 @@ pub(crate) fn try_from_credential_full(
     rp: passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
 ) -> Result<Fido2CredentialFullView, FillCredentialError> {
     let cred_id: Vec<u8> = value.credential_id.into();
+    let key_value = URL_SAFE_NO_PAD.encode(cose_key_to_pkcs8(&value.key)?);
+    let user_handle = URL_SAFE_NO_PAD.encode(user.id.to_vec());
 
     Ok(Fido2CredentialFullView {
         credential_id: guid_bytes_to_string(&cred_id)?,
         key_type: "public-key".to_owned(),
         key_algorithm: "ECDSA".to_owned(),
         key_curve: "P-256".to_owned(),
-        key_value: cose_key_to_pkcs8(&value.key)?,
+        key_value,
         rp_id: value.rp_id,
         rp_name: rp.name,
-        user_handle: Some(cred_id),
+        user_handle: Some(user_handle),
 
         counter: value.counter.unwrap_or(0).to_string(),
         user_name: user.name,

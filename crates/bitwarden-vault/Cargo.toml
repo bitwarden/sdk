@@ -21,9 +21,9 @@ uniffi = [
 ] # Uniffi bindings
 
 [dependencies]
-base64 = ">=0.21.2, <0.23"
+base64 = ">=0.22.1, <0.23"
 bitwarden-api-api = { workspace = true }
-bitwarden-core = { workspace = true }
+bitwarden-core = { workspace = true, features = ["internal"] }
 bitwarden-crypto = { workspace = true }
 chrono = { version = ">=0.4.26, <0.5", features = [
     "clock",
@@ -31,7 +31,7 @@ chrono = { version = ">=0.4.26, <0.5", features = [
 ], default-features = false }
 rand = ">=0.8.5, <0.9"
 hmac = ">=0.12.1, <0.13"
-reqwest = { version = ">=0.12, <0.13", default-features = false }
+reqwest = { version = ">=0.12.5, <0.13", default-features = false }
 schemars = { version = ">=0.8.9, <0.9", features = ["uuid1", "chrono"] }
 serde = { version = ">=1.0, <2.0", features = ["derive"] }
 serde_json = ">=1.0.96, <2.0"
@@ -41,6 +41,9 @@ sha2 = ">=0.10.6, <0.11"
 thiserror = ">=1.0.40, <2.0"
 uniffi = { version = "=0.27.2", optional = true }
 uuid = { version = ">=1.3.3, <2.0", features = ["serde"] }
+
+[dev-dependencies]
+tokio = { version = "1.36.0", features = ["rt", "macros"] }
 
 [lints]
 workspace = true

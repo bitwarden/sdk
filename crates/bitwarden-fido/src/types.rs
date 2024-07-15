@@ -1,8 +1,99 @@
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
+use bitwarden_crypto::KeyContainer;
+use bitwarden_vault::{CipherError, CipherView};
 use passkey::types::webauthn::UserVerificationRequirement;
-use serde::Serialize;
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use super::{get_enum_from_string_name, SelectedCredential, UnknownEnum, Verification};
+use super::{
+    get_enum_from_string_name, string_to_guid_bytes, InvalidGuid, SelectedCredential, UnknownEnum,
+    Verification,
+};
+
+#[derive(Serialize, Deserialize, Debug, Clone, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+pub struct Fido2CredentialAutofillView {
+    pub credential_id: Vec<u8>,
+    pub cipher_id: uuid::Uuid,
+    pub rp_id: String,
+    pub user_name_for_ui: Option<String>,
+    pub user_handle: Vec<u8>,
+}
+
+trait NoneWhitespace {
+    /// Convert only whitespace to None
+    fn none_whitespace(&self) -> Option<String>;
+}
+
+impl NoneWhitespace for String {
+    fn none_whitespace(&self) -> Option<String> {
+        match self.trim() {
+            "" => None,
+            s => Some(s.to_owned()),
+        }
+    }
+}
+
+impl NoneWhitespace for Option<String> {
+    fn none_whitespace(&self) -> Option<String> {
+        self.as_ref().and_then(|s| s.none_whitespace())
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum Fido2CredentialAutofillViewError {
+    #[error(
+        "Autofill credentials can only be created from existing ciphers that have a cipher id"
+    )]
+    MissingCipherId,
+
+    #[error(transparent)]
+    InvalidGuid(#[from] InvalidGuid),
+
+    #[error(transparent)]
+    CipherError(#[from] CipherError),
+
+    #[error(transparent)]
+    Base64DecodeError(#[from] base64::DecodeError),
+}
+
+impl Fido2CredentialAutofillView {
+    pub fn from_cipher_view(
+        cipher: &CipherView,
+        enc: &dyn KeyContainer,
+    ) -> Result<Vec<Fido2CredentialAutofillView>, Fido2CredentialAutofillViewError> {
+        let credentials = cipher.decrypt_fido2_credentials(enc)?;
+
+        credentials
+            .into_iter()
+            .filter_map(|c| -> Option<Result<_, Fido2CredentialAutofillViewError>> {
+                c.user_handle
+                    .map(|u| URL_SAFE_NO_PAD.decode(u))
+                    .map(|user_handle| {
+                        Ok(Fido2CredentialAutofillView {
+                            credential_id: string_to_guid_bytes(&c.credential_id)?,
+                            cipher_id: cipher
+                                .id
+                                .ok_or(Fido2CredentialAutofillViewError::MissingCipherId)?,
+                            rp_id: c.rp_id.clone(),
+                            user_handle: user_handle?,
+                            user_name_for_ui: c
+                                .user_name
+                                .none_whitespace()
+                                .or(c.user_display_name.none_whitespace())
+                                .or(cipher
+                                    .login
+                                    .as_ref()
+                                    .and_then(|l| l.username.none_whitespace()))
+                                .or(cipher.name.none_whitespace()),
+                        })
+                    })
+            })
+            .collect()
+    }
+}
 
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct PublicKeyCredentialRpEntity {
@@ -91,7 +182,7 @@ pub struct MakeCredentialRequest {
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct MakeCredentialResult {
     pub authenticator_data: Vec<u8>,
-    pub attested_credential_data: Vec<u8>,
+    pub attestation_object: Vec<u8>,
     pub credential_id: Vec<u8>,
 }
 

@@ -29,7 +29,7 @@ pub trait Fido2UserInterface: Send + Sync {
         &self,
         options: CheckUserOptions,
         new_credential: Fido2CredentialNewView,
-    ) -> Result<CipherView, Fido2CallbackError>;
+    ) -> Result<(CipherView, CheckUserResult), Fido2CallbackError>;
     async fn is_verification_enabled(&self) -> bool;
 }
 
@@ -40,6 +40,8 @@ pub trait Fido2CredentialStore: Send + Sync {
         ids: Option<Vec<Vec<u8>>>,
         rip_id: String,
     ) -> Result<Vec<CipherView>, Fido2CallbackError>;
+
+    async fn all_credentials(&self) -> Result<Vec<CipherView>, Fido2CallbackError>;
 
     async fn save_credential(&self, cred: Cipher) -> Result<(), Fido2CallbackError>;
 }

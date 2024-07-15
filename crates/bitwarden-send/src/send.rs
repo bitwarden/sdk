@@ -15,7 +15,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 use uuid::Uuid;
 use zeroize::Zeroizing;
 
-use crate::error::SendParseError;
+use crate::SendParseError;
 
 const SEND_ITERATIONS: u32 = 100_000;
 
@@ -375,8 +375,13 @@ mod tests {
         }
     }
     impl KeyContainer for MockKeyContainer {
-        fn get_key<'a>(&'a self, org_id: &Option<Uuid>) -> Option<&'a SymmetricCryptoKey> {
-            self.0.get(org_id)
+        fn get_key<'a>(
+            &'a self,
+            org_id: &Option<Uuid>,
+        ) -> Result<&'a SymmetricCryptoKey, CryptoError> {
+            self.0
+                .get(org_id)
+                .ok_or(CryptoError::MissingKey(org_id.unwrap_or_default()))
         }
     }
 
@@ -384,8 +389,8 @@ mod tests {
     fn test_get_send_key() {
         // Initialize user encryption with some test data
         let master_key = MasterKey::derive(
-            "asdfasdfasdf".as_bytes(),
-            "test@bitwarden.com".as_bytes(),
+            "asdfasdfasdf",
+            "test@bitwarden.com",
             &Kdf::PBKDF2 {
                 iterations: 345123.try_into().unwrap(),
             },
@@ -410,8 +415,8 @@ mod tests {
 
     fn build_encryption_settings() -> MockKeyContainer {
         let master_key = MasterKey::derive(
-            "asdfasdfasdf".as_bytes(),
-            "test@bitwarden.com".as_bytes(),
+            "asdfasdfasdf",
+            "test@bitwarden.com",
             &Kdf::PBKDF2 {
                 iterations: 600_000.try_into().unwrap(),
             },

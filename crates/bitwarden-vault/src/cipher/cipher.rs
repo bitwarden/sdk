@@ -14,9 +14,12 @@ use uuid::Uuid;
 use super::{
     attachment, card, field, identity,
     local_data::{LocalData, LocalDataView},
-    login, secure_note,
+    secure_note,
 };
-use crate::{password_history, Fido2CredentialFullView, Fido2CredentialView, VaultParseError};
+use crate::{
+    password_history, Fido2CredentialFullView, Fido2CredentialView, Login, LoginView,
+    VaultParseError,
+};
 
 #[derive(Debug, Error)]
 pub enum CipherError {
@@ -65,7 +68,7 @@ pub struct Cipher {
     pub notes: Option<EncString>,
 
     pub r#type: CipherType,
-    pub login: Option<login::Login>,
+    pub login: Option<Login>,
     pub identity: Option<identity::Identity>,
     pub card: Option<card::Card>,
     pub secure_note: Option<secure_note::SecureNote>,
@@ -101,7 +104,7 @@ pub struct CipherView {
     pub notes: Option<String>,
 
     pub r#type: CipherType,
-    pub login: Option<login::LoginView>,
+    pub login: Option<LoginView>,
     pub identity: Option<identity::IdentityView>,
     pub card: Option<card::CardView>,
     pub secure_note: Option<secure_note::SecureNoteView>,
@@ -398,7 +401,7 @@ impl CipherView {
         &self,
         enc: &dyn KeyContainer,
     ) -> Result<Vec<Fido2CredentialView>, CipherError> {
-        let key = self.locate_key(enc, &None).ok_or(VaultLocked)?;
+        let key = self.locate_key(enc, &None)?;
         let cipher_key = Cipher::get_cipher_key(key, &self.key)?;
 
         let key = cipher_key.as_ref().unwrap_or(key);
@@ -432,9 +435,9 @@ impl CipherView {
         enc: &dyn KeyContainer,
         organization_id: Uuid,
     ) -> Result<(), CipherError> {
-        let old_key = enc.get_key(&self.organization_id).ok_or(VaultLocked)?;
+        let old_key = enc.get_key(&self.organization_id)?;
 
-        let new_key = enc.get_key(&Some(organization_id)).ok_or(VaultLocked)?;
+        let new_key = enc.get_key(&Some(organization_id))?;
 
         // If any attachment is missing a key we can't reencrypt the attachment keys
         if self.attachments.iter().flatten().any(|a| a.key.is_none()) {
@@ -460,7 +463,7 @@ impl CipherView {
         enc: &dyn KeyContainer,
         creds: Vec<Fido2CredentialFullView>,
     ) -> Result<(), CipherError> {
-        let key = enc.get_key(&self.organization_id).ok_or(VaultLocked)?;
+        let key = enc.get_key(&self.organization_id)?;
 
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let ciphers_key = ciphers_key.as_ref().unwrap_or(key);
@@ -475,7 +478,7 @@ impl CipherView {
         &self,
         enc: &dyn KeyContainer,
     ) -> Result<Vec<Fido2CredentialFullView>, CipherError> {
-        let key = enc.get_key(&self.organization_id).ok_or(VaultLocked)?;
+        let key = enc.get_key(&self.organization_id)?;
 
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let ciphers_key = ciphers_key.as_ref().unwrap_or(key);
@@ -521,7 +524,7 @@ impl LocateKey for Cipher {
         &self,
         enc: &'a dyn KeyContainer,
         _: &Option<Uuid>,
-    ) -> Option<&'a SymmetricCryptoKey> {
+    ) -> Result<&'a SymmetricCryptoKey, CryptoError> {
         enc.get_key(&self.organization_id)
     }
 }
@@ -530,7 +533,7 @@ impl LocateKey for CipherView {
         &self,
         enc: &'a dyn KeyContainer,
         _: &Option<Uuid>,
-    ) -> Option<&'a SymmetricCryptoKey> {
+    ) -> Result<&'a SymmetricCryptoKey, CryptoError> {
         enc.get_key(&self.organization_id)
     }
 }
@@ -606,14 +609,14 @@ mod tests {
     use std::collections::HashMap;
 
     use attachment::AttachmentView;
-    use login::Fido2Credential;
 
     use super::*;
+    use crate::Fido2Credential;
 
     fn generate_cipher() -> CipherView {
         CipherView {
             r#type: CipherType::Login,
-            login: Some(login::LoginView {
+            login: Some(LoginView {
                 username: Some("test_username".to_string()),
                 password: Some("test_password".to_string()),
                 password_revision_date: None,
@@ -725,8 +728,13 @@ mod tests {
 
     struct MockKeyContainer(HashMap<Option<Uuid>, SymmetricCryptoKey>);
     impl KeyContainer for MockKeyContainer {
-        fn get_key<'a>(&'a self, org_id: &Option<Uuid>) -> Option<&'a SymmetricCryptoKey> {
-            self.0.get(org_id)
+        fn get_key<'a>(
+            &'a self,
+            org_id: &Option<Uuid>,
+        ) -> Result<&'a SymmetricCryptoKey, CryptoError> {
+            self.0
+                .get(org_id)
+                .ok_or(CryptoError::MissingKey(org_id.unwrap_or_default()))
         }
     }
 

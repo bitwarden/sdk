@@ -10,7 +10,7 @@ managing projects and secrets, as well as a client interface to facilitate opera
 
 ## Installation
 
-In your Go project: `go get github.com/bitwarden/sdk-go`
+Follow the installation instructions [here](./INSTRUCTIONS.md).
 
 ## Table of Contents
 

@@ -1,8 +1,9 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 
-use bitwarden_core::VaultLocked;
+use bitwarden_core::{Client, VaultLocked};
 use bitwarden_crypto::{CryptoError, KeyContainer, KeyEncryptable};
-use bitwarden_vault::{CipherError, CipherView, Fido2CredentialView};
+use bitwarden_vault::{CipherError, CipherView};
+use itertools::Itertools;
 use log::error;
 use passkey::{
     authenticator::{Authenticator, DiscoverabilitySupport, StoreInfo, UIHint, UserCheck},
@@ -14,7 +15,7 @@ use passkey::{
 use thiserror::Error;
 
 use super::{
-    try_from_credential_new_view, types::*, CheckUserOptions, CheckUserResult, CipherViewContainer,
+    try_from_credential_new_view, types::*, CheckUserOptions, CipherViewContainer,
     Fido2CredentialStore, Fido2UserInterface, SelectedCredential, UnknownEnum, AAGUID,
 };
 use crate::{
@@ -57,8 +58,8 @@ pub enum GetAssertionError {
     Serde(#[from] serde_json::Error),
     #[error(transparent)]
     GetSelectedCredentialError(#[from] GetSelectedCredentialError),
-    #[error("Missing attested_credential_data")]
-    MissingAttestedCredentialData,
+    #[error(transparent)]
+    InvalidGuid(#[from] InvalidGuid),
     #[error("missing user")]
     MissingUser,
     #[error("get_assertion error: {0}")]
@@ -68,19 +69,33 @@ pub enum GetAssertionError {
 #[derive(Debug, Error)]
 pub enum SilentlyDiscoverCredentialsError {
     #[error(transparent)]
+    CipherError(#[from] CipherError),
+    #[error(transparent)]
     VaultLocked(#[from] VaultLocked),
     #[error(transparent)]
+    InvalidGuid(#[from] InvalidGuid),
+    #[error(transparent)]
     Fido2CallbackError(#[from] Fido2CallbackError),
+    #[error(transparent)]
+    FromCipherViewError(#[from] Fido2CredentialAutofillViewError),
 }
 
-/// Temporary trait for solving a circular dependency. When moving `Client` to `bitwarden-core`
-/// remove this trait.
-pub trait FidoEncryptionSettingStore: Send + Sync {
-    fn get_encryption_settings(&self) -> Result<Arc<dyn KeyContainer>, VaultLocked>;
+#[derive(Debug, Error)]
+pub enum CredentialsForAutofillError {
+    #[error(transparent)]
+    CipherError(#[from] CipherError),
+    #[error(transparent)]
+    VaultLocked(#[from] VaultLocked),
+    #[error(transparent)]
+    InvalidGuid(#[from] InvalidGuid),
+    #[error(transparent)]
+    Fido2CallbackError(#[from] Fido2CallbackError),
+    #[error(transparent)]
+    FromCipherViewError(#[from] Fido2CredentialAutofillViewError),
 }
 
 pub struct Fido2Authenticator<'a> {
-    pub client: &'a dyn FidoEncryptionSettingStore,
+    pub client: &'a Client,
     pub user_interface: &'a dyn Fido2UserInterface,
     pub credential_store: &'a dyn Fido2CredentialStore,
 
@@ -90,7 +105,7 @@ pub struct Fido2Authenticator<'a> {
 
 impl<'a> Fido2Authenticator<'a> {
     pub fn new(
-        client: &'a dyn FidoEncryptionSettingStore,
+        client: &'a Client,
         user_interface: &'a dyn Fido2UserInterface,
         credential_store: &'a dyn Fido2CredentialStore,
     ) -> Fido2Authenticator<'a> {
@@ -155,6 +170,7 @@ impl<'a> Fido2Authenticator<'a> {
             Err(e) => return Err(MakeCredentialError::Other(format!("{e:?}"))),
         };
 
+        let attestation_object = response.as_bytes().to_vec();
         let authenticator_data = response.auth_data.to_vec();
         let attested_credential_data = response
             .auth_data
@@ -164,7 +180,7 @@ impl<'a> Fido2Authenticator<'a> {
 
         Ok(MakeCredentialResult {
             authenticator_data,
-            attested_credential_data: attested_credential_data.into_iter().collect(),
+            attestation_object,
             credential_id,
         })
     }
@@ -212,13 +228,9 @@ impl<'a> Fido2Authenticator<'a> {
             Err(e) => return Err(GetAssertionError::Other(format!("{e:?}"))),
         };
 
+        let selected_credential = self.get_selected_credential()?;
         let authenticator_data = response.auth_data.to_vec();
-        let credential_id = response
-            .auth_data
-            .attested_credential_data
-            .ok_or(GetAssertionError::MissingAttestedCredentialData)?
-            .credential_id()
-            .to_vec();
+        let credential_id = string_to_guid_bytes(&selected_credential.credential.credential_id)?;
 
         Ok(GetAssertionResult {
             credential_id,
@@ -229,22 +241,47 @@ impl<'a> Fido2Authenticator<'a> {
                 .ok_or(GetAssertionError::MissingUser)?
                 .id
                 .into(),
-            selected_credential: self.get_selected_credential()?,
+            selected_credential,
         })
     }
 
     pub async fn silently_discover_credentials(
         &mut self,
         rp_id: String,
-    ) -> Result<Vec<Fido2CredentialView>, SilentlyDiscoverCredentialsError> {
-        let enc = self.client.get_encryption_settings()?;
+    ) -> Result<Vec<Fido2CredentialAutofillView>, SilentlyDiscoverCredentialsError> {
+        let enc = self.client.internal.get_encryption_settings()?;
         let result = self.credential_store.find_credentials(None, rp_id).await?;
 
-        Ok(result
+        result
             .into_iter()
-            .flat_map(|c| c.decrypt_fido2_credentials(&*enc))
-            .flatten()
-            .collect())
+            .map(
+                |cipher| -> Result<Vec<Fido2CredentialAutofillView>, SilentlyDiscoverCredentialsError> {
+                    Ok(Fido2CredentialAutofillView::from_cipher_view(&cipher, &*enc)?)
+                },
+            )
+            .flatten_ok()
+            .collect()
+    }
+
+    /// Returns all Fido2 credentials that can be used for autofill, in a view
+    /// tailored for integration with OS autofill systems.
+    pub async fn credentials_for_autofill(
+        &mut self,
+    ) -> Result<Vec<Fido2CredentialAutofillView>, CredentialsForAutofillError> {
+        let enc = self.client.internal.get_encryption_settings()?;
+        let all_credentials = self.credential_store.all_credentials().await?;
+
+        all_credentials
+            .into_iter()
+            .map(
+                |cipher| -> Result<Vec<Fido2CredentialAutofillView>, CredentialsForAutofillError> {
+                    Ok(Fido2CredentialAutofillView::from_cipher_view(
+                        &cipher, &*enc,
+                    )?)
+                },
+            )
+            .flatten_ok()
+            .collect()
     }
 
     pub(super) fn get_authenticator(
@@ -276,7 +313,7 @@ impl<'a> Fido2Authenticator<'a> {
     pub(super) fn get_selected_credential(
         &self,
     ) -> Result<SelectedCredential, GetSelectedCredentialError> {
-        let enc = self.client.get_encryption_settings()?;
+        let enc = self.client.internal.get_encryption_settings()?;
 
         let cipher = self
             .selected_cipher
@@ -339,7 +376,11 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                 .find_credentials(ids, rp_id.to_string())
                 .await?;
 
-            let enc = this.authenticator.client.get_encryption_settings()?;
+            let enc = this
+                .authenticator
+                .client
+                .internal
+                .get_encryption_settings()?;
 
             // Remove any that don't have Fido2 credentials
             let creds: Vec<_> = ciphers
@@ -415,7 +456,11 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             user: passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
             rp: passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
         ) -> Result<(), InnerError> {
-            let enc = this.authenticator.client.get_encryption_settings()?;
+            let enc = this
+                .authenticator
+                .client
+                .internal
+                .get_encryption_settings()?;
 
             let cred = try_from_credential_full(cred, user, rp)?;
 
@@ -438,7 +483,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                 .replace(selected.clone());
 
             // Encrypt the updated cipher before sending it to the clients to be stored
-            let key = enc.get_key(&selected.organization_id).ok_or(VaultLocked)?;
+            let key = enc.get_key(&selected.organization_id)?;
             let encrypted = selected.encrypt_with_key(key)?;
 
             this.authenticator
@@ -483,7 +528,11 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             this: &mut CredentialStoreImpl<'_>,
             cred: Passkey,
         ) -> Result<(), InnerError> {
-            let enc = this.authenticator.client.get_encryption_settings()?;
+            let enc = this
+                .authenticator
+                .client
+                .internal
+                .get_encryption_settings()?;
 
             // Get the previously selected cipher and update the credential
             let selected = this.authenticator.get_selected_credential()?;
@@ -508,7 +557,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                 .replace(selected.clone());
 
             // Encrypt the updated cipher before sending it to the clients to be stored
-            let key = enc.get_key(&selected.organization_id).ok_or(VaultLocked)?;
+            let key = enc.get_key(&selected.organization_id)?;
             let encrypted = selected.encrypt_with_key(key)?;
 
             this.authenticator
@@ -561,7 +610,7 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
                 let new_credential = try_from_credential_new_view(user, rp)
                     .map_err(|_| Ctap2Error::InvalidCredential)?;
 
-                let cipher_view = self
+                let (cipher_view, user_check) = self
                     .authenticator
                     .user_interface
                     .check_user_and_pick_credential_for_creation(options, new_credential)
@@ -574,10 +623,7 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
                     .expect("Mutex is not poisoned")
                     .replace(cipher_view);
 
-                Ok(CheckUserResult {
-                    user_present: true,
-                    user_verified: verification != UV::Discouraged,
-                })
+                Ok(user_check)
             }
             _ => {
                 self.authenticator

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use bitwarden_crypto::{AsymmetricCryptoKey, KeyContainer, SymmetricCryptoKey};
+use bitwarden_crypto::{AsymmetricCryptoKey, CryptoError, KeyContainer, SymmetricCryptoKey};
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{AsymmetricEncString, EncString, MasterKey};
 use uuid::Uuid;
@@ -95,22 +95,25 @@ impl EncryptionSettings {
         Ok(self)
     }
 
-    pub fn get_key(&self, org_id: &Option<Uuid>) -> Option<&SymmetricCryptoKey> {
+    pub fn get_key(&self, org_id: &Option<Uuid>) -> Result<&SymmetricCryptoKey, CryptoError> {
         // If we don't have a private key set (to decode multiple org keys), we just use the main
         // user key
         if self.private_key.is_none() {
-            return Some(&self.user_key);
+            return Ok(&self.user_key);
         }
 
         match org_id {
-            Some(org_id) => self.org_keys.get(org_id),
-            None => Some(&self.user_key),
+            Some(org_id) => self
+                .org_keys
+                .get(org_id)
+                .ok_or(CryptoError::MissingKey(*org_id)),
+            None => Ok(&self.user_key),
         }
     }
 }
 
 impl KeyContainer for EncryptionSettings {
-    fn get_key(&self, org_id: &Option<Uuid>) -> Option<&SymmetricCryptoKey> {
+    fn get_key(&self, org_id: &Option<Uuid>) -> Result<&SymmetricCryptoKey, CryptoError> {
         EncryptionSettings::get_key(self, org_id)
     }
 }

@@ -1,6 +1,7 @@
 use std::fmt::Debug;
 
 use thiserror::Error;
+use uuid::Uuid;
 
 use crate::fingerprint::FingerprintError;
 
@@ -16,8 +17,8 @@ pub enum CryptoError {
     InvalidKeyLen,
     #[error("The value is not a valid UTF8 String")]
     InvalidUtf8String,
-    #[error("Missing Key")]
-    MissingKey,
+    #[error("Missing Key for organization with ID {0}")]
+    MissingKey(Uuid),
 
     #[error("EncString error, {0}")]
     EncString(#[from] EncStringParseError),

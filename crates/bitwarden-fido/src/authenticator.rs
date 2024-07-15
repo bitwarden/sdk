@@ -58,8 +58,8 @@ pub enum GetAssertionError {
     Serde(#[from] serde_json::Error),
     #[error(transparent)]
     GetSelectedCredentialError(#[from] GetSelectedCredentialError),
-    #[error("Missing attested_credential_data")]
-    MissingAttestedCredentialData,
+    #[error(transparent)]
+    InvalidGuid(#[from] InvalidGuid),
     #[error("missing user")]
     MissingUser,
     #[error("get_assertion error: {0}")]
@@ -228,13 +228,9 @@ impl<'a> Fido2Authenticator<'a> {
             Err(e) => return Err(GetAssertionError::Other(format!("{e:?}"))),
         };
 
+        let selected_credential = self.get_selected_credential()?;
         let authenticator_data = response.auth_data.to_vec();
-        let credential_id = response
-            .auth_data
-            .attested_credential_data
-            .ok_or(GetAssertionError::MissingAttestedCredentialData)?
-            .credential_id()
-            .to_vec();
+        let credential_id = string_to_guid_bytes(&selected_credential.credential.credential_id)?;
 
         Ok(GetAssertionResult {
             credential_id,
@@ -245,7 +241,7 @@ impl<'a> Fido2Authenticator<'a> {
                 .ok_or(GetAssertionError::MissingUser)?
                 .id
                 .into(),
-            selected_credential: self.get_selected_credential()?,
+            selected_credential,
         })
     }
 
@@ -487,7 +483,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                 .replace(selected.clone());
 
             // Encrypt the updated cipher before sending it to the clients to be stored
-            let key = enc.get_key(&selected.organization_id).ok_or(VaultLocked)?;
+            let key = enc.get_key(&selected.organization_id)?;
             let encrypted = selected.encrypt_with_key(key)?;
 
             this.authenticator
@@ -561,7 +557,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                 .replace(selected.clone());
 
             // Encrypt the updated cipher before sending it to the clients to be stored
-            let key = enc.get_key(&selected.organization_id).ok_or(VaultLocked)?;
+            let key = enc.get_key(&selected.organization_id)?;
             let encrypted = selected.encrypt_with_key(key)?;
 
             this.authenticator

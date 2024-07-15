@@ -1,7 +1,6 @@
 use std::sync::{Arc, Mutex};
 
 use bitwarden_core::{require, DatabaseError, Error, SqliteDatabase};
-use rusqlite::params;
 use uuid::Uuid;
 
 use super::Cipher;
@@ -44,9 +43,9 @@ impl CipherRepository for CipherSqliteRepository {
         let id = require!(cipher.id);
         let serialized = serde_json::to_string(cipher)?;
 
-        let guard = self.db.lock().map_err(|_| DatabaseError::DatabaseLock)?;
+        /*let guard = self.db.lock().map_err(|_| DatabaseError::DatabaseLock)?;
 
-        let mut stmt = guard.conn.prepare(
+        let mut stmt = guard.exec(
             "
                 INSERT INTO ciphers (id, value)
                 VALUES (?1, ?2)
@@ -54,7 +53,8 @@ impl CipherRepository for CipherSqliteRepository {
                 value = ?2
             ",
         )?;
-        stmt.execute((&id, &serialized))?;
+        */
+        //stmt.execute((&id, &serialized))?;
 
         Ok(())
     }
@@ -62,25 +62,28 @@ impl CipherRepository for CipherSqliteRepository {
     fn replace_all(&mut self, ciphers: &[Cipher]) -> Result<(), DatabaseError> {
         let mut guard = self.db.lock().map_err(|_| DatabaseError::DatabaseLock)?;
 
-        let tx = guard.conn.transaction()?;
-        {
-            tx.execute("DELETE FROM ciphers", [])?;
+        //let tx = guard.conn.transaction()?;
+        //{
+        //guard.execute("DELETE FROM ciphers")?;
 
-            let mut stmt = tx.prepare(
-                "
-                INSERT INTO ciphers (id, value)
-                VALUES (?1, ?2)
-            ",
-            )?;
+        /*let mut stmt = tx.prepare(
+            "
+            INSERT INTO ciphers (id, value)
+            VALUES (?1, ?2)
+        ",
+        )?;*/
 
-            for cipher in ciphers {
-                let id = require!(cipher.id);
-                let serialized = serde_json::to_string(&cipher)?;
+        for cipher in ciphers {
+            let id = require!(cipher.id);
+            let serialized = serde_json::to_string(&cipher)?;
 
-                stmt.execute(params![id, serialized])?;
-            }
+            guard.execute(&format!(
+                "INSERT INTO ciphers (id, value) VALUES ('{}', '{}')",
+                id, "abc"
+            ))?;
         }
-        tx.commit()?;
+        //}
+        //tx.commit()?;
 
         Ok(())
     }
@@ -88,15 +91,15 @@ impl CipherRepository for CipherSqliteRepository {
     fn delete_by_id(&self, id: Uuid) -> Result<(), DatabaseError> {
         let guard = self.db.lock().map_err(|_| DatabaseError::DatabaseLock)?;
 
-        let mut stmt = guard.conn.prepare("DELETE FROM ciphers WHERE id = ?1")?;
-        stmt.execute(params![id])?;
+        //let mut stmt = guard.conn.prepare("DELETE FROM ciphers WHERE id = ?1")?;
+        //stmt.execute(params![id])?;
 
         Ok(())
     }
 
     fn get_all(&self) -> Result<Vec<Cipher>, DatabaseError> {
         let guard = self.db.lock().map_err(|_| DatabaseError::DatabaseLock)?;
-
+        /*
         let mut stmt = guard.conn.prepare("SELECT id, value FROM ciphers")?;
         let rows = stmt.query_map([], |row| {
             Ok(CipherRow {
@@ -114,6 +117,8 @@ impl CipherRepository for CipherSqliteRepository {
             .collect();
 
         Ok(ciphers)
+        */
+        Ok(vec![])
     }
 }
 

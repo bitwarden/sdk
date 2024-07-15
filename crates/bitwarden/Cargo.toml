@@ -36,6 +36,7 @@ uniffi = [
     "bitwarden-vault/uniffi",
 ] # Uniffi bindings
 secrets = ["bitwarden-core/secrets", "dep:bitwarden-sm"] # Secrets manager API
+wasm = ["bitwarden-core/wasm"] # WebAssembly support
 
 [dependencies]
 bitwarden-api-api = { workspace = true }

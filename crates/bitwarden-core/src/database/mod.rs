@@ -1,7 +1,14 @@
+#[cfg(not(feature = "wasm"))]
 mod sqlite;
+#[cfg(not(feature = "wasm"))]
+pub use sqlite::SqliteDatabase;
+#[cfg(feature = "wasm")]
+mod wasm;
+#[cfg(feature = "wasm")]
+pub use wasm::SqliteDatabase;
+
 use std::borrow::Cow;
 
-pub use sqlite::SqliteDatabase;
 use thiserror::Error;
 
 use crate::MissingFieldError;
@@ -17,8 +24,8 @@ pub enum DatabaseError {
     #[error(transparent)]
     Migrator(#[from] MigratorError),
 
-    #[error(transparent)]
-    Rusqlite(#[from] rusqlite::Error),
+    //#[error(transparent)]
+    //Rusqlite(#[from] rusqlite::Error),
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
     #[error(transparent)]

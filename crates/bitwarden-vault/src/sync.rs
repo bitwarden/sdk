@@ -50,12 +50,14 @@ pub(crate) async fn sync(client: &Client, input: &SyncRequest) -> Result<SyncRes
 
     let ciphers = res.ciphers.as_slice();
 
-    client
-        .vault()
-        .cipher_repository
-        .as_mut()
-        .replace_all(ciphers)
-        .unwrap();
+    /*
+        client
+            .vault()
+            .cipher_repository
+            .as_mut()
+            .replace_all(ciphers)
+            .unwrap();
+    */
 
     Ok(res)
 }

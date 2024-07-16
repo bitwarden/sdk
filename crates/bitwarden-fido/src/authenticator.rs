@@ -430,7 +430,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
         cred: Passkey,
         user: passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
         rp: passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
-        _options: passkey::types::ctap2::get_assertion::Options,
+        options: passkey::types::ctap2::get_assertion::Options,
     ) -> Result<(), StatusCode> {
         #[derive(Debug, Error)]
         enum InnerError {
@@ -455,6 +455,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             cred: Passkey,
             user: passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
             rp: passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
+            options: passkey::types::ctap2::get_assertion::Options,
         ) -> Result<(), InnerError> {
             let enc = this
                 .authenticator
@@ -462,7 +463,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                 .internal
                 .get_encryption_settings()?;
 
-            let cred = try_from_credential_full(cred, user, rp)?;
+            let cred = try_from_credential_full(cred, user, rp, options)?;
 
             // Get the previously selected cipher and add the new credential to it
             let mut selected: CipherView = this
@@ -494,7 +495,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             Ok(())
         }
 
-        inner(self, cred, user, rp).await.map_err(|e| {
+        inner(self, cred, user, rp, options).await.map_err(|e| {
             error!("Error saving credential: {e:?}");
             VendorError::try_from(0xF1)
                 .expect("Valid vendor error code")

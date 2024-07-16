@@ -31,10 +31,13 @@ pub(crate) async fn run(
 ) -> Result<i32> {
     let is_windows = std::env::consts::OS == "windows";
 
-    let shell = match is_windows {
-        true => shell.unwrap_or_else(|| "powershell".to_string()),
-        false => shell.unwrap_or_else(|| "sh".to_string()),
-    };
+    let shell = shell.unwrap_or_else(|| {
+        if is_windows {
+            "powershell".to_string()
+        } else {
+            "sh".to_string()
+        }
+    });
 
     if which(&shell).is_err() {
         bail!("Shell '{}' not found", shell);

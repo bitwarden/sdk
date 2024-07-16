@@ -95,6 +95,18 @@ secret, err := bitwardenClient.Secrets().Create("key", "value", "note", "organiz
 secrets, err := bitwardenClient.Secrets().List("organization_id")
 ```
 
+#### Get a Secret
+
+```go
+secret, err := bitwardenClient.Secrets().Get("secret_id")
+```
+
+#### Get Multiple Secrets by IDs
+
+```go
+secrets, err := bitwardenClient.Secrets().GetByIDS([]string{"secret_ids"})
+```
+
 #### Update a Secret
 
 ```go

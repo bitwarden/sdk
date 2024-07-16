@@ -1,5 +1,6 @@
 # Bitwarden Secrets Manager CLI
 
+# TEST DO NOT MERGE
 A Rust CLI for interacting with the
 [Bitwarden Secrets Manager](https://bitwarden.com/products/secrets-manager/). This is a beta release
 and might be missing some functionality.

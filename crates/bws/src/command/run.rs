@@ -12,6 +12,7 @@ use bitwarden::{
     Client,
 };
 use color_eyre::eyre::{bail, Result};
+use itertools::Itertools;
 use uuid::Uuid;
 use which::which;
 

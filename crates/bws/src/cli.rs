@@ -167,11 +167,3 @@ pub(crate) enum ProjectCommand {
     List,
 }
 
-#[derive(Subcommand, Debug)]
-pub(crate) enum RunCommand {
-    Command {
-        command: Vec<String>,
-        project_id: Option<Uuid>,
-        shell: Option<String>,
-    },
-}

@@ -759,6 +759,7 @@ dependencies = [
  "comfy-table",
  "directories",
  "env_logger",
+ "itertools 0.13.0",
  "log",
  "regex",
  "serde",

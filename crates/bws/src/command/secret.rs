@@ -175,7 +175,7 @@ pub(crate) async fn edit(
                 Some(id) => Some(vec![id]),
                 None => match old_secret.project_id {
                     Some(id) => Some(vec![id]),
-                    None => bail!("Editing a secret requires a project_id."),
+                    None => None,
                 },
             },
         })

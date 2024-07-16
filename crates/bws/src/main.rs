@@ -128,7 +128,7 @@ async fn process_commands() -> Result<()> {
             project_id,
             uuids_as_keynames,
         } => {
-            match command::run::run(
+            let exit_code = command::run::run(
                 client,
                 organization_id,
                 project_id,
@@ -137,12 +137,10 @@ async fn process_commands() -> Result<()> {
                 shell,
                 command,
             )
-            .await
-            {
-                // exit with the exit code from the child process
-                Ok(exit_code) => std::process::exit(exit_code),
-                Err(e) => Err(e),
-            }
+            .await?;
+
+            // exit with the exit code from the child process
+            std::process::exit(exit_code);
         }
 
         Commands::Config { .. } | Commands::Completions { .. } => {

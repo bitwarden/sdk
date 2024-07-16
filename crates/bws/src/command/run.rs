@@ -31,10 +31,13 @@ pub(crate) async fn run(
 ) -> Result<i32> {
     let is_windows = std::env::consts::OS == "windows";
 
-    let shell = match is_windows {
-        true => shell.unwrap_or_else(|| "powershell".to_string()),
-        false => shell.unwrap_or_else(|| "sh".to_string()),
-    };
+    let shell = shell.unwrap_or_else(|| {
+        if is_windows {
+            "powershell".to_string()
+        } else {
+            "sh".to_string()
+        }
+    });
 
     if which(&shell).is_err() {
         bail!("Shell '{}' not found", shell);
@@ -72,9 +75,8 @@ pub(crate) async fn run(
         .data;
 
     if !uuids_as_keynames {
-        let mut seen = HashSet::new();
-        if let Some(s) = secrets.iter().find(|s| !seen.insert(&s.key)) {
-            bail!("Multiple secrets with name: '{}'. Use --uuids-as-keynames or use unique names for secrets", s.key);
+        if let Some(duplicate) = secrets.iter().map(|s| &s.key).duplicates().next() {
+            bail!("Multiple secrets with name: '{}'. Use --uuids-as-keynames or use unique names for secrets", duplicate);
         }
     }
 

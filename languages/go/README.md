@@ -61,6 +61,12 @@ project, err := bitwardenClient.Projects().Create("organization_id", "project_na
 projects, err := bitwardenClient.Projects().List("organization_id")
 ```
 
+#### Get a Project
+
+```go
+project, err := bitwardenClient.Projects().Get("project_id")
+```
+
 #### Update a Project
 
 ```go

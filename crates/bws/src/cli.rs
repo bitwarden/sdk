@@ -166,4 +166,3 @@ pub(crate) enum ProjectCommand {
     },
     List,
 }
-

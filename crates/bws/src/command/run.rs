@@ -75,9 +75,8 @@ pub(crate) async fn run(
         .data;
 
     if !uuids_as_keynames {
-        let mut seen = HashSet::new();
-        if let Some(s) = secrets.iter().find(|s| !seen.insert(&s.key)) {
-            bail!("Multiple secrets with name: '{}'. Use --uuids-as-keynames or use unique names for secrets", s.key);
+        if let Some(duplicate) = secrets.iter().map(|s| &s.key).duplicates().next() {
+            bail!("Multiple secrets with name: '{}'. Use --uuids-as-keynames or use unique names for secrets", duplicate);
         }
     }
 

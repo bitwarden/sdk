@@ -1,5 +1,5 @@
-use bitwarden_crypto::SymmetricCryptoKey;
-use bitwarden_versioning::{MigrationError, Migrator, Versioned};
+use bitwarden_crypto::{CryptoError, SymmetricCryptoKey};
+use bitwarden_versioning::{Migrator, Versioned};
 
 #[derive(Clone, Debug)]
 struct DataV1(u32);
@@ -18,7 +18,7 @@ enum Data {
 }
 
 impl Migrator<DataV2> for Data {
-    fn migrate(&self, _key: &SymmetricCryptoKey) -> Result<DataV2, MigrationError> {
+    fn migrate(&self, _key: &SymmetricCryptoKey) -> Result<DataV2, CryptoError> {
         match self {
             Data::V1(DataV1(value)) => Ok(DataV2 {
                 value: value.to_string(),
@@ -33,7 +33,7 @@ async fn main() {
     example().await.unwrap();
 }
 
-async fn example() -> Result<(), MigrationError> {
+async fn example() -> Result<(), CryptoError> {
     let input = Data::V1(DataV1(42));
 
     println!("Input: {:?}", input);

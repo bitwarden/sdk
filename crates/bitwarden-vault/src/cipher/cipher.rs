@@ -16,7 +16,10 @@ use super::{
     local_data::{LocalData, LocalDataView},
     login, secure_note,
 };
-use crate::{password_history, Fido2CredentialFullView, Fido2CredentialView, VaultParseError};
+use crate::{
+    cipher_data::VersionedCipherData, password_history, Fido2CredentialFullView,
+    Fido2CredentialView, VaultParseError,
+};
 
 #[derive(Debug, Error)]
 pub enum CipherError {
@@ -63,7 +66,7 @@ pub struct Cipher {
 
     pub password_history: Option<Vec<password_history::PasswordHistory>>,
     pub local_data: Option<LocalData>,
-    pub data: CipherData,
+    pub data: VersionedCipherData,
 
     pub creation_date: DateTime<Utc>,
     pub deleted_date: Option<DateTime<Utc>>,
@@ -246,7 +249,7 @@ impl KeyDecryptable<SymmetricCryptoKey, CipherView> for Cipher {
             key: self.key.clone(),
             local_data: self.local_data.decrypt_with_key(key).ok().flatten(),
             password_history: self.password_history.decrypt_with_key(key).ok().flatten(),
-            data: self.data.decrypt_with_key(key)?,
+            data: self.data.get_data(key)?.decrypt_with_key(key)?,
             creation_date: self.creation_date,
             deleted_date: self.deleted_date,
             revision_date: self.revision_date,

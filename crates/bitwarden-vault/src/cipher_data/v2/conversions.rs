@@ -1,10 +1,18 @@
 use crate::cipher_data::{MigrationError, Migrator};
 
-use super::{cipher::CipherCardDataV2, CipherDataV2};
+use super::cipher::CipherDataV2;
 
-impl From<bitwarden_api_api::models::CipherDetailsResponseModel> for CipherCardDataV2 {
-    fn from(value: bitwarden_api_api::models::CipherDetailsResponseModel) -> Self {
-        todo!()
+struct NoneDataError;
+
+impl TryFrom<bitwarden_api_api::models::CipherDetailsResponseModelExample> for CipherDataV2 {
+    type Error = NoneDataError;
+
+    fn try_from(
+        value: bitwarden_api_api::models::CipherDetailsResponseModelExample,
+    ) -> Result<Self, Self::Error> {
+        Ok(CipherDataV2 {
+            data: value.data.ok_or(NoneDataError)?,
+        })
     }
 }
 
@@ -13,6 +21,7 @@ impl Migrator<crate::cipher_data::v1::CipherDataV1, CipherDataV2> for CipherData
         &self,
         from: crate::cipher_data::v1::CipherDataV1,
     ) -> Result<CipherDataV2, MigrationError> {
-        todo!()
+        // TODO: Implement migration
+        Ok(CipherDataV2 { data: from.data })
     }
 }

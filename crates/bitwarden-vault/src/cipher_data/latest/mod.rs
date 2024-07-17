@@ -1,13 +1,25 @@
 use crate::UniffiCustomTypeConverter;
 
-pub use super::v2::conversions::*;
+// pub use super::v2::conversions::*;
 pub use super::v2::CipherDataV2 as CipherDataLatest;
 
-impl From<bitwarden_api_api::models::CipherDetailsResponseModel> for CipherDataLatest {
-    fn from(value: bitwarden_api_api::models::CipherDetailsResponseModel) -> Self {
-        todo!()
-    }
-}
+// impl TryFrom<bitwarden_api_api::models::CipherDetailsResponseModel> for CipherDataLatest {
+//     fn try_from(value: bitwarden_api_api::models::CipherDetailsResponseModel) -> Self {
+//         CipherDataV2::try_from
+//     }
+// }
+
+// impl TryFrom<bitwarden_api_api::models::CipherDetailsResponseModelExample> for CipherDataLatest {
+//     type Error = super::v2::conversions::NoneDataError;
+
+//     fn try_from(
+//         value: bitwarden_api_api::models::CipherDetailsResponseModelExample,
+//     ) -> Result<Self, Self::Error> {
+//         Ok(CipherDataV2 {
+//             data: value.data.ok_or(NoneDataError)?,
+//         })
+//     }
+// }
 
 uniffi::custom_type!(CipherDataLatest, String);
 

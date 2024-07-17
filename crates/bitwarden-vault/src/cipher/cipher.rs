@@ -16,10 +16,7 @@ use super::{
     local_data::{LocalData, LocalDataView},
     login, secure_note,
 };
-use crate::{
-    cipher_data::{domain::CipherDataLatest, CipherData},
-    password_history, Fido2CredentialFullView, Fido2CredentialView, VaultParseError,
-};
+use crate::{password_history, Fido2CredentialFullView, Fido2CredentialView, VaultParseError};
 
 #[derive(Debug, Error)]
 pub enum CipherError {
@@ -64,6 +61,19 @@ pub struct Cipher {
     /// Cipher.
     pub key: Option<EncString>,
 
+    pub password_history: Option<Vec<password_history::PasswordHistory>>,
+    pub local_data: Option<LocalData>,
+    pub data: CipherData,
+
+    pub creation_date: DateTime<Utc>,
+    pub deleted_date: Option<DateTime<Utc>>,
+    pub revision_date: DateTime<Utc>,
+}
+
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+pub struct CipherData {
     pub name: EncString,
     pub notes: Option<EncString>,
 
@@ -78,29 +88,15 @@ pub struct Cipher {
     pub organization_use_totp: bool,
     pub edit: bool,
     pub view_password: bool,
-    pub local_data: Option<LocalData>,
 
     pub attachments: Option<Vec<attachment::Attachment>>,
     pub fields: Option<Vec<field::Field>>,
-    pub password_history: Option<Vec<password_history::PasswordHistory>>,
-
-    pub creation_date: DateTime<Utc>,
-    pub deleted_date: Option<DateTime<Utc>>,
-    pub revision_date: DateTime<Utc>,
-    pub data: CipherData,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
-pub struct CipherView {
-    pub id: Option<Uuid>,
-    pub organization_id: Option<Uuid>,
-    pub folder_id: Option<Uuid>,
-    pub collection_ids: Vec<Uuid>,
-
-    pub key: Option<EncString>,
-
+pub struct CipherDataView {
     pub name: String,
     pub notes: Option<String>,
 
@@ -115,11 +111,69 @@ pub struct CipherView {
     pub organization_use_totp: bool,
     pub edit: bool,
     pub view_password: bool,
-    pub local_data: Option<LocalDataView>,
 
     pub attachments: Option<Vec<attachment::AttachmentView>>,
     pub fields: Option<Vec<field::FieldView>>,
+}
+
+impl KeyEncryptable<SymmetricCryptoKey, CipherData> for CipherDataView {
+    fn encrypt_with_key(mut self, key: &SymmetricCryptoKey) -> Result<CipherData, CryptoError> {
+        Ok(CipherData {
+            name: self.name.encrypt_with_key(key)?,
+            notes: self.notes.encrypt_with_key(key)?,
+            r#type: self.r#type,
+            login: self.login.encrypt_with_key(key)?,
+            identity: self.identity.encrypt_with_key(key)?,
+            card: self.card.encrypt_with_key(key)?,
+            secure_note: self.secure_note.encrypt_with_key(key)?,
+            favorite: self.favorite,
+            reprompt: self.reprompt,
+            organization_use_totp: self.organization_use_totp,
+            edit: self.edit,
+            view_password: self.view_password,
+            attachments: self.attachments.encrypt_with_key(key)?,
+            fields: self.fields.encrypt_with_key(key)?,
+        })
+    }
+}
+
+impl KeyDecryptable<SymmetricCryptoKey, CipherDataView> for CipherData {
+    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CipherDataView, CryptoError> {
+        let data = CipherDataView {
+            name: self.name.decrypt_with_key(key).ok().unwrap_or_default(),
+            notes: self.notes.decrypt_with_key(key).ok().flatten(),
+            r#type: self.r#type,
+            login: self.login.decrypt_with_key(key).ok().flatten(),
+            identity: self.identity.decrypt_with_key(key).ok().flatten(),
+            card: self.card.decrypt_with_key(key).ok().flatten(),
+            secure_note: self.secure_note.decrypt_with_key(key).ok().flatten(),
+            favorite: self.favorite,
+            reprompt: self.reprompt,
+            organization_use_totp: self.organization_use_totp,
+            edit: self.edit,
+            view_password: self.view_password,
+            attachments: self.attachments.decrypt_with_key(key).ok().flatten(),
+            fields: self.fields.decrypt_with_key(key).ok().flatten(),
+        };
+
+        Ok(data)
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+pub struct CipherView {
+    pub id: Option<Uuid>,
+    pub organization_id: Option<Uuid>,
+    pub folder_id: Option<Uuid>,
+    pub collection_ids: Vec<Uuid>,
+
+    pub key: Option<EncString>,
+    pub local_data: Option<LocalDataView>,
     pub password_history: Option<Vec<password_history::PasswordHistoryView>>,
+
+    pub data: CipherDataView,
 
     pub creation_date: DateTime<Utc>,
     pub deleted_date: Option<DateTime<Utc>>,
@@ -169,6 +223,12 @@ impl KeyEncryptable<SymmetricCryptoKey, Cipher> for CipherView {
             folder_id: self.folder_id,
             collection_ids: self.collection_ids,
             key: self.key,
+            local_data: self.local_data.encrypt_with_key(key)?,
+            password_history: self.password_history.encrypt_with_key(key)?,
+            data: self.data.encrypt_with_key(key)?,
+            creation_date: self.creation_date,
+            deleted_date: self.deleted_date,
+            revision_date: self.revision_date,
         })
     }
 }
@@ -184,22 +244,9 @@ impl KeyDecryptable<SymmetricCryptoKey, CipherView> for Cipher {
             folder_id: self.folder_id,
             collection_ids: self.collection_ids.clone(),
             key: self.key.clone(),
-            name: self.name.decrypt_with_key(key).ok().unwrap_or_default(),
-            notes: self.notes.decrypt_with_key(key).ok().flatten(),
-            r#type: self.r#type,
-            login: self.login.decrypt_with_key(key).ok().flatten(),
-            identity: self.identity.decrypt_with_key(key).ok().flatten(),
-            card: self.card.decrypt_with_key(key).ok().flatten(),
-            secure_note: self.secure_note.decrypt_with_key(key).ok().flatten(),
-            favorite: self.favorite,
-            reprompt: self.reprompt,
-            organization_use_totp: self.organization_use_totp,
-            edit: self.edit,
-            view_password: self.view_password,
             local_data: self.local_data.decrypt_with_key(key).ok().flatten(),
-            attachments: self.attachments.decrypt_with_key(key).ok().flatten(),
-            fields: self.fields.decrypt_with_key(key).ok().flatten(),
             password_history: self.password_history.decrypt_with_key(key).ok().flatten(),
+            data: self.data.decrypt_with_key(key)?,
             creation_date: self.creation_date,
             deleted_date: self.deleted_date,
             revision_date: self.revision_date,
@@ -233,16 +280,16 @@ impl Cipher {
     }
 
     fn get_decrypted_subtitle(&self, key: &SymmetricCryptoKey) -> Result<String, CryptoError> {
-        Ok(match self.r#type {
+        Ok(match self.data.r#type {
             CipherType::Login => {
-                let Some(login) = &self.login else {
+                let Some(login) = &self.data.login else {
                     return Ok(String::new());
                 };
                 login.username.decrypt_with_key(key)?.unwrap_or_default()
             }
             CipherType::SecureNote => String::new(),
             CipherType::Card => {
-                let Some(card) = &self.card else {
+                let Some(card) = &self.data.card else {
                     return Ok(String::new());
                 };
 
@@ -258,7 +305,7 @@ impl Cipher {
                 )
             }
             CipherType::Identity => {
-                let Some(identity) = &self.identity else {
+                let Some(identity) = &self.data.identity else {
                     return Ok(String::new());
                 };
 
@@ -350,7 +397,7 @@ impl CipherView {
     }
 
     pub fn generate_checksums(&mut self) {
-        if let Some(uris) = self.login.as_mut().and_then(|l| l.uris.as_mut()) {
+        if let Some(uris) = self.data.login.as_mut().and_then(|l| l.uris.as_mut()) {
             for uri in uris {
                 uri.generate_checksum();
             }
@@ -358,7 +405,7 @@ impl CipherView {
     }
 
     pub fn remove_invalid_checksums(&mut self) {
-        if let Some(uris) = self.login.as_mut().and_then(|l| l.uris.as_mut()) {
+        if let Some(uris) = self.data.login.as_mut().and_then(|l| l.uris.as_mut()) {
             uris.retain(|u| u.is_checksum_valid());
         }
     }
@@ -368,7 +415,7 @@ impl CipherView {
         old_key: &SymmetricCryptoKey,
         new_key: &SymmetricCryptoKey,
     ) -> Result<(), CryptoError> {
-        if let Some(attachments) = &mut self.attachments {
+        if let Some(attachments) = &mut self.data.attachments {
             for attachment in attachments {
                 if let Some(attachment_key) = &mut attachment.key {
                     let dec_attachment_key: Vec<u8> = attachment_key.decrypt_with_key(old_key)?;
@@ -389,6 +436,7 @@ impl CipherView {
         let key = cipher_key.as_ref().unwrap_or(key);
 
         Ok(self
+            .data
             .login
             .as_ref()
             .and_then(|l| l.fido2_credentials.as_ref())
@@ -402,7 +450,7 @@ impl CipherView {
         old_key: &SymmetricCryptoKey,
         new_key: &SymmetricCryptoKey,
     ) -> Result<(), CryptoError> {
-        if let Some(login) = self.login.as_mut() {
+        if let Some(login) = self.data.login.as_mut() {
             if let Some(fido2_credentials) = &mut login.fido2_credentials {
                 let dec_fido2_credentials: Vec<Fido2CredentialFullView> =
                     fido2_credentials.decrypt_with_key(old_key)?;
@@ -422,7 +470,13 @@ impl CipherView {
         let new_key = enc.get_key(&Some(organization_id)).ok_or(VaultLocked)?;
 
         // If any attachment is missing a key we can't reencrypt the attachment keys
-        if self.attachments.iter().flatten().any(|a| a.key.is_none()) {
+        if self
+            .data
+            .attachments
+            .iter()
+            .flatten()
+            .any(|a| a.key.is_none())
+        {
             return Err(CipherError::AttachmentsWithoutKeys);
         }
 
@@ -450,7 +504,7 @@ impl CipherView {
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let ciphers_key = ciphers_key.as_ref().unwrap_or(key);
 
-        require!(self.login.as_mut()).fido2_credentials =
+        require!(self.data.login.as_mut()).fido2_credentials =
             Some(creds.encrypt_with_key(ciphers_key)?);
 
         Ok(())
@@ -465,7 +519,7 @@ impl CipherView {
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let ciphers_key = ciphers_key.as_ref().unwrap_or(key);
 
-        let login = require!(self.login.as_ref());
+        let login = require!(self.data.login.as_ref());
         let creds = require!(login.fido2_credentials.as_ref());
         let res = creds.decrypt_with_key(ciphers_key)?;
         Ok(res)
@@ -482,14 +536,20 @@ impl KeyDecryptable<SymmetricCryptoKey, CipherListView> for Cipher {
             organization_id: self.organization_id,
             folder_id: self.folder_id,
             collection_ids: self.collection_ids.clone(),
-            name: self.name.decrypt_with_key(key).ok().unwrap_or_default(),
+            name: self
+                .data
+                .name
+                .decrypt_with_key(key)
+                .ok()
+                .unwrap_or_default(),
             sub_title: self.get_decrypted_subtitle(key).ok().unwrap_or_default(),
-            r#type: self.r#type,
-            favorite: self.favorite,
-            reprompt: self.reprompt,
-            edit: self.edit,
-            view_password: self.view_password,
+            r#type: self.data.r#type,
+            favorite: self.data.favorite,
+            reprompt: self.data.reprompt,
+            edit: self.data.edit,
+            view_password: self.data.view_password,
             attachments: self
+                .data
                 .attachments
                 .as_ref()
                 .map(|a| a.len() as u32)
@@ -520,15 +580,11 @@ impl LocateKey for CipherView {
     }
 }
 
-impl TryFrom<CipherDetailsResponseModel> for Cipher {
+impl TryFrom<CipherDetailsResponseModel> for CipherData {
     type Error = VaultParseError;
 
     fn try_from(cipher: CipherDetailsResponseModel) -> Result<Self, Self::Error> {
         Ok(Self {
-            id: cipher.id,
-            organization_id: cipher.organization_id,
-            folder_id: cipher.folder_id,
-            collection_ids: cipher.collection_ids.unwrap_or_default(),
             name: require!(EncString::try_from_optional(cipher.name)?),
             notes: EncString::try_from_optional(cipher.notes)?,
             r#type: require!(cipher.r#type).into(),
@@ -544,7 +600,6 @@ impl TryFrom<CipherDetailsResponseModel> for Cipher {
             organization_use_totp: cipher.organization_use_totp.unwrap_or(true),
             edit: cipher.edit.unwrap_or(true),
             view_password: cipher.view_password.unwrap_or(true),
-            local_data: None, // Not sent from server
             attachments: cipher
                 .attachments
                 .map(|a| a.into_iter().map(|a| a.try_into()).collect())
@@ -553,6 +608,22 @@ impl TryFrom<CipherDetailsResponseModel> for Cipher {
                 .fields
                 .map(|f| f.into_iter().map(|f| f.try_into()).collect())
                 .transpose()?,
+        })
+    }
+}
+
+impl TryFrom<CipherDetailsResponseModel> for Cipher {
+    type Error = VaultParseError;
+
+    fn try_from(cipher: CipherDetailsResponseModel) -> Result<Self, Self::Error> {
+        let data = cipher.clone().try_into()?;
+
+        Ok(Self {
+            id: cipher.id,
+            organization_id: cipher.organization_id,
+            folder_id: cipher.folder_id,
+            collection_ids: cipher.collection_ids.unwrap_or_default(),
+            local_data: None, // Not sent from server
             password_history: cipher
                 .password_history
                 .map(|p| p.into_iter().map(|p| p.try_into()).collect())
@@ -562,7 +633,7 @@ impl TryFrom<CipherDetailsResponseModel> for Cipher {
             revision_date: require!(cipher.revision_date).parse()?,
             key: EncString::try_from_optional(cipher.key)?,
 
-            data: CipherDataLatest::from(cipher),
+            data,
         })
     }
 }
@@ -599,38 +670,42 @@ mod tests {
 
     fn generate_cipher() -> CipherView {
         CipherView {
-            r#type: CipherType::Login,
-            login: Some(login::LoginView {
-                username: Some("test_username".to_string()),
-                password: Some("test_password".to_string()),
-                password_revision_date: None,
-                uris: None,
-                totp: None,
-                autofill_on_page_load: None,
-                fido2_credentials: None,
-            }),
             id: "fd411a1a-fec8-4070-985d-0e6560860e69".parse().ok(),
             organization_id: None,
             folder_id: None,
             collection_ids: vec![],
             key: None,
-            name: "My test login".to_string(),
-            notes: None,
-            identity: None,
-            card: None,
-            secure_note: None,
-            favorite: false,
-            reprompt: CipherRepromptType::None,
-            organization_use_totp: true,
-            edit: true,
-            view_password: true,
+
             local_data: None,
-            attachments: None,
-            fields: None,
             password_history: None,
             creation_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
             deleted_date: None,
             revision_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
+
+            data: CipherDataView {
+                r#type: CipherType::Login,
+                login: Some(login::LoginView {
+                    username: Some("test_username".to_string()),
+                    password: Some("test_password".to_string()),
+                    password_revision_date: None,
+                    uris: None,
+                    totp: None,
+                    autofill_on_page_load: None,
+                    fido2_credentials: None,
+                }),
+                name: "My test login".to_string(),
+                notes: None,
+                identity: None,
+                card: None,
+                secure_note: None,
+                favorite: false,
+                reprompt: CipherRepromptType::None,
+                organization_use_totp: true,
+                edit: true,
+                view_password: true,
+                attachments: None,
+                fields: None,
+            },
         }
     }
 
@@ -663,7 +738,7 @@ mod tests {
         let no_key_cipher_enc = cipher.encrypt_with_key(&key).unwrap();
         let no_key_cipher_dec: CipherView = no_key_cipher_enc.decrypt_with_key(&key).unwrap();
         assert!(no_key_cipher_dec.key.is_none());
-        assert_eq!(no_key_cipher_dec.name, original_cipher.name);
+        assert_eq!(no_key_cipher_dec.data.name, original_cipher.data.name);
 
         let mut cipher = generate_cipher();
         cipher.generate_cipher_key(&key).unwrap();
@@ -672,7 +747,7 @@ mod tests {
         let key_cipher_enc = cipher.encrypt_with_key(&key).unwrap();
         let key_cipher_dec: CipherView = key_cipher_enc.decrypt_with_key(&key).unwrap();
         assert!(key_cipher_dec.key.is_some());
-        assert_eq!(key_cipher_dec.name, original_cipher.name);
+        assert_eq!(key_cipher_dec.data.name, original_cipher.data.name);
     }
 
     #[test]
@@ -704,10 +779,10 @@ mod tests {
             file_name: Some("Attachment test name".into()),
             key: None,
         };
-        cipher.attachments = Some(vec![attachment]);
+        cipher.data.attachments = Some(vec![attachment]);
 
         cipher.generate_cipher_key(&key).unwrap();
-        assert!(cipher.attachments.unwrap()[0].key.is_none());
+        assert!(cipher.data.attachments.unwrap()[0].key.is_none());
     }
 
     struct MockKeyContainer(HashMap<Option<Uuid>, SymmetricCryptoKey>);
@@ -740,7 +815,7 @@ mod tests {
         let cipher_enc = cipher.encrypt_with_key(org_key).unwrap();
         let cipher_dec: CipherView = cipher_enc.decrypt_with_key(org_key).unwrap();
 
-        assert_eq!(cipher_dec.name, "My test login");
+        assert_eq!(cipher_dec.data.name, "My test login");
     }
 
     #[test]
@@ -784,7 +859,7 @@ mod tests {
             file_name: Some("Attachment test name".into()),
             key: None,
         };
-        cipher.attachments = Some(vec![attachment]);
+        cipher.data.attachments = Some(vec![attachment]);
 
         // Neither cipher nor attachment have keys, so the cipher can't be moved
         assert!(cipher.move_to_organization(&enc, org).is_err());
@@ -815,9 +890,9 @@ mod tests {
             file_name: Some("Attachment test name".into()),
             key: Some(attachment_key_enc),
         };
-        cipher.attachments = Some(vec![attachment]);
+        cipher.data.attachments = Some(vec![attachment]);
         let cred = generate_fido2(enc.get_key(&None).unwrap());
-        cipher.login.as_mut().unwrap().fido2_credentials = Some(vec![cred]);
+        cipher.data.login.as_mut().unwrap().fido2_credentials = Some(vec![cred]);
 
         cipher.move_to_organization(&enc, org).unwrap();
 
@@ -825,7 +900,7 @@ mod tests {
 
         // Check that the attachment key has been re-encrypted with the org key,
         // and the value matches with the original attachment key
-        let new_attachment_key = cipher.attachments.unwrap()[0].key.clone().unwrap();
+        let new_attachment_key = cipher.data.attachments.unwrap()[0].key.clone().unwrap();
         let new_attachment_key_dec: Vec<_> = new_attachment_key
             .decrypt_with_key(enc.get_key(&Some(org)).unwrap())
             .unwrap();
@@ -833,6 +908,7 @@ mod tests {
         assert_eq!(new_attachment_key_dec.to_vec(), attachment_key.to_vec());
 
         let cred2: Fido2CredentialFullView = cipher
+            .data
             .login
             .unwrap()
             .fido2_credentials
@@ -878,10 +954,10 @@ mod tests {
             file_name: Some("Attachment test name".into()),
             key: Some(attachment_key_enc.clone()),
         };
-        cipher.attachments = Some(vec![attachment]);
+        cipher.data.attachments = Some(vec![attachment]);
 
         let cred = generate_fido2(&cipher_key);
-        cipher.login.as_mut().unwrap().fido2_credentials = Some(vec![cred.clone()]);
+        cipher.data.login.as_mut().unwrap().fido2_credentials = Some(vec![cred.clone()]);
 
         cipher.move_to_organization(&enc, org).unwrap();
 
@@ -899,7 +975,7 @@ mod tests {
 
         // Check that the attachment key hasn't changed
         assert_eq!(
-            cipher.attachments.unwrap()[0]
+            cipher.data.attachments.unwrap()[0]
                 .key
                 .as_ref()
                 .unwrap()
@@ -908,6 +984,7 @@ mod tests {
         );
 
         let cred2: Fido2Credential = cipher
+            .data
             .login
             .unwrap()
             .fido2_credentials

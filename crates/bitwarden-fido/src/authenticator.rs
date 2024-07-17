@@ -391,7 +391,8 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             let creds: Vec<_> = ciphers
                 .into_iter()
                 .filter(|c| {
-                    c.login
+                    c.data
+                        .login
                         .as_ref()
                         .and_then(|l| l.fido2_credentials.as_ref())
                         .is_some()

@@ -21,13 +21,12 @@ impl<Versions, LatestVersion> Versioned<Versions, LatestVersion> {
             cache: Arc::new(None.into()),
         }
     }
-}
 
-// #[derive(Debug, Error)]
-// pub enum MigrationError {
-//     #[error(transparent)]
-//     CryptoError(#[from] CryptoError),
-// }
+    #[cfg(test)]
+    pub fn get_raw_data(&self) -> &Versions {
+        &self.data
+    }
+}
 
 pub trait Migrator<LatestVersion> {
     fn migrate(&self, key: &SymmetricCryptoKey) -> Result<LatestVersion, CryptoError>;

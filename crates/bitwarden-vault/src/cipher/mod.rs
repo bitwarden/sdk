@@ -12,7 +12,10 @@ pub(crate) mod secure_note;
 pub use attachment::{
     Attachment, AttachmentEncryptResult, AttachmentFile, AttachmentFileView, AttachmentView,
 };
-pub use cipher::{Cipher, CipherError, CipherListView, CipherRepromptType, CipherType, CipherView};
+pub use cipher::{
+    Cipher, CipherData, CipherDataView, CipherError, CipherListView, CipherRepromptType,
+    CipherType, CipherView,
+};
 pub use field::FieldView;
 pub use login::{
     Fido2Credential, Fido2CredentialFullView, Fido2CredentialNewView, Fido2CredentialView, Login,

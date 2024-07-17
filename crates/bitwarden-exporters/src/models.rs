@@ -18,9 +18,9 @@ impl TryFrom<CipherView> for crate::Cipher {
     type Error = MissingFieldError;
 
     fn try_from(value: CipherView) -> Result<Self, Self::Error> {
-        let r = match value.r#type {
+        let r = match value.data.r#type {
             CipherType::Login => {
-                let l = require!(value.login);
+                let l = require!(value.data.login);
                 crate::CipherType::Login(Box::new(crate::Login {
                     username: l.username,
                     password: l.password,
@@ -35,13 +35,14 @@ impl TryFrom<CipherView> for crate::Cipher {
             }
             CipherType::SecureNote => crate::CipherType::SecureNote(Box::new(crate::SecureNote {
                 r#type: value
+                    .data
                     .secure_note
                     .map(|t| t.r#type)
                     .unwrap_or(SecureNoteType::Generic)
                     .into(),
             })),
             CipherType::Card => {
-                let c = require!(value.card);
+                let c = require!(value.data.card);
                 crate::CipherType::Card(Box::new(crate::Card {
                     cardholder_name: c.cardholder_name,
                     exp_month: c.exp_month,
@@ -52,7 +53,7 @@ impl TryFrom<CipherView> for crate::Cipher {
                 }))
             }
             CipherType::Identity => {
-                let i = require!(value.identity);
+                let i = require!(value.data.identity);
                 crate::CipherType::Identity(Box::new(crate::Identity {
                     title: i.title,
                     first_name: i.first_name,
@@ -79,12 +80,13 @@ impl TryFrom<CipherView> for crate::Cipher {
         Ok(Self {
             id: require!(value.id),
             folder_id: value.folder_id,
-            name: value.name,
-            notes: value.notes,
+            name: value.data.name,
+            notes: value.data.notes,
             r#type: r,
-            favorite: value.favorite,
-            reprompt: value.reprompt as u8,
+            favorite: value.data.favorite,
+            reprompt: value.data.reprompt as u8,
             fields: value
+                .data
                 .fields
                 .unwrap_or_default()
                 .into_iter()
@@ -127,7 +129,7 @@ impl From<SecureNoteType> for crate::SecureNoteType {
 
 #[cfg(test)]
 mod tests {
-    use bitwarden_vault::{CipherRepromptType, LoginView};
+    use bitwarden_vault::{CipherDataView, CipherRepromptType, LoginView};
     use chrono::{DateTime, Utc};
 
     use super::*;
@@ -152,34 +154,36 @@ mod tests {
     #[test]
     fn test_try_from_cipher_view_login() {
         let cipher_view = CipherView {
-            r#type: CipherType::Login,
-            login: Some(LoginView {
-                username: Some("test_username".to_string()),
-                password: Some("test_password".to_string()),
-                password_revision_date: None,
-                uris: None,
-                totp: None,
-                autofill_on_page_load: None,
-                fido2_credentials: None,
-            }),
             id: "fd411a1a-fec8-4070-985d-0e6560860e69".parse().ok(),
             organization_id: None,
             folder_id: None,
             collection_ids: vec![],
             key: None,
-            name: "My login".to_string(),
-            notes: None,
-            identity: None,
-            card: None,
-            secure_note: None,
-            favorite: false,
-            reprompt: CipherRepromptType::None,
-            organization_use_totp: true,
-            edit: true,
-            view_password: true,
+            data: CipherDataView {
+                r#type: CipherType::Login,
+                login: Some(LoginView {
+                    username: Some("test_username".to_string()),
+                    password: Some("test_password".to_string()),
+                    password_revision_date: None,
+                    uris: None,
+                    totp: None,
+                    autofill_on_page_load: None,
+                    fido2_credentials: None,
+                }),
+                name: "My login".to_string(),
+                notes: None,
+                identity: None,
+                card: None,
+                secure_note: None,
+                favorite: false,
+                reprompt: CipherRepromptType::None,
+                organization_use_totp: true,
+                edit: true,
+                view_password: true,
+                attachments: None,
+                fields: None,
+            },
             local_data: None,
-            attachments: None,
-            fields: None,
             password_history: None,
             creation_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
             deleted_date: None,

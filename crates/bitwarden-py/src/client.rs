@@ -7,6 +7,7 @@ pub struct BitwardenClient(JsonClient);
 #[pymethods]
 impl BitwardenClient {
     #[new]
+    #[pyo3(signature = (settings_string=None))]
     pub fn new(settings_string: Option<String>) -> Self {
         // This will only fail if another logger was already initialized, so we can ignore the
         // result

@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use crate::client::{LoginMethod, UserLoginMethod};
 use crate::{
     error::{Error, Result},
-    Client, VaultLocked,
+    Client,
 };
 
 #[cfg(feature = "internal")]
@@ -185,7 +185,7 @@ pub async fn initialize_org_crypto(client: &Client, req: InitOrgCryptoRequest) -
 #[cfg(feature = "internal")]
 pub async fn get_user_encryption_key(client: &Client) -> Result<String> {
     let enc = client.internal.get_encryption_settings()?;
-    let user_key = enc.get_key(&None).ok_or(VaultLocked)?;
+    let user_key = enc.get_key(&None)?;
 
     Ok(user_key.to_base64())
 }
@@ -203,7 +203,7 @@ pub struct UpdatePasswordResponse {
 
 pub fn update_password(client: &Client, new_password: String) -> Result<UpdatePasswordResponse> {
     let enc = client.internal.get_encryption_settings()?;
-    let user_key = enc.get_key(&None).ok_or(VaultLocked)?;
+    let user_key = enc.get_key(&None)?;
 
     let login_method = client
         .internal
@@ -247,7 +247,7 @@ pub struct DerivePinKeyResponse {
 #[cfg(feature = "internal")]
 pub fn derive_pin_key(client: &Client, pin: String) -> Result<DerivePinKeyResponse> {
     let enc = client.internal.get_encryption_settings()?;
-    let user_key = enc.get_key(&None).ok_or(VaultLocked)?;
+    let user_key = enc.get_key(&None)?;
 
     let login_method = client
         .internal
@@ -265,7 +265,7 @@ pub fn derive_pin_key(client: &Client, pin: String) -> Result<DerivePinKeyRespon
 #[cfg(feature = "internal")]
 pub fn derive_pin_user_key(client: &Client, encrypted_pin: EncString) -> Result<EncString> {
     let enc = client.internal.get_encryption_settings()?;
-    let user_key = enc.get_key(&None).ok_or(VaultLocked)?;
+    let user_key = enc.get_key(&None)?;
 
     let pin: String = encrypted_pin.decrypt_with_key(user_key)?;
     let login_method = client
@@ -306,7 +306,7 @@ pub(super) fn enroll_admin_password_reset(
 
     let public_key = AsymmetricPublicCryptoKey::from_der(&STANDARD.decode(public_key)?)?;
     let enc = client.internal.get_encryption_settings()?;
-    let key = enc.get_key(&None).ok_or(VaultLocked)?;
+    let key = enc.get_key(&None)?;
 
     Ok(AsymmetricEncString::encrypt_rsa2048_oaep_sha1(
         &key.to_vec(),

@@ -171,13 +171,10 @@ pub(crate) async fn edit(
             key: secret.key.unwrap_or(old_secret.key),
             value: secret.value.unwrap_or(old_secret.value),
             note: secret.note.unwrap_or(old_secret.note),
-            project_ids: match secret.project_id {
-                Some(id) => Some(vec![id]),
-                None => match old_secret.project_id {
-                    Some(id) => Some(vec![id]),
-                    None => None,
-                },
-            },
+            project_ids: secret
+                .project_id
+                .or(old_secret.project_id)
+                .map(|id| vec![id]),
         })
         .await?;
     serialize_response(new_secret, output_settings);

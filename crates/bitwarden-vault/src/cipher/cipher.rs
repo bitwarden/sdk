@@ -17,8 +17,8 @@ use super::{
     login, secure_note,
 };
 use crate::{
-    cipher_data::latest::CipherDataLatest, password_history, Fido2CredentialFullView,
-    Fido2CredentialView, VaultParseError,
+    cipher_data::{latest::CipherDataLatest, CipherData},
+    password_history, Fido2CredentialFullView, Fido2CredentialView, VaultParseError,
 };
 
 #[derive(Debug, Error)]
@@ -87,8 +87,7 @@ pub struct Cipher {
     pub creation_date: DateTime<Utc>,
     pub deleted_date: Option<DateTime<Utc>>,
     pub revision_date: DateTime<Utc>,
-
-    pub data: CipherDataLatest,
+    pub data: CipherData,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
@@ -170,25 +169,6 @@ impl KeyEncryptable<SymmetricCryptoKey, Cipher> for CipherView {
             folder_id: self.folder_id,
             collection_ids: self.collection_ids,
             key: self.key,
-            name: self.name.encrypt_with_key(key)?,
-            notes: self.notes.encrypt_with_key(key)?,
-            r#type: self.r#type,
-            login: self.login.encrypt_with_key(key)?,
-            identity: self.identity.encrypt_with_key(key)?,
-            card: self.card.encrypt_with_key(key)?,
-            secure_note: self.secure_note.encrypt_with_key(key)?,
-            favorite: self.favorite,
-            reprompt: self.reprompt,
-            organization_use_totp: self.organization_use_totp,
-            edit: self.edit,
-            view_password: self.view_password,
-            local_data: self.local_data.encrypt_with_key(key)?,
-            attachments: self.attachments.encrypt_with_key(key)?,
-            fields: self.fields.encrypt_with_key(key)?,
-            password_history: self.password_history.encrypt_with_key(key)?,
-            creation_date: self.creation_date,
-            deleted_date: self.deleted_date,
-            revision_date: self.revision_date,
         })
     }
 }

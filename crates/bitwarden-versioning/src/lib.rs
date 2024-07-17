@@ -38,16 +38,18 @@ where
     LatestVersion: Clone + std::marker::Sync + std::marker::Send,
 {
     fn migrate(&self, key: &SymmetricCryptoKey) -> Result<LatestVersion, CryptoError> {
-        let mut cache = self.cache.lock().expect("Mutex is not poisoned");
+        // TODO: Fix. This hangs the thread during test
+        // let mut cache = self.cache.lock().expect("Mutex is not poisoned");
 
-        let migrated = match cache.as_ref() {
-            Some(value) => value.clone(),
-            None => {
-                let migrated: LatestVersion = self.data.migrate(key)?;
-                *cache = Some(migrated.clone());
-                migrated
-            }
-        };
+        // let migrated = match cache.as_ref() {
+        //     Some(value) => value.clone(),
+        //     None => {
+        //         let migrated: LatestVersion = self.data.migrate(key)?;
+        //         *cache = Some(migrated.clone());
+        //         migrated
+        //     }
+        // };
+        let migrated: LatestVersion = self.data.migrate(key)?;
 
         Ok(migrated)
     }

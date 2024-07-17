@@ -1,4 +1,4 @@
-pub mod conversions;
+pub mod migration;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

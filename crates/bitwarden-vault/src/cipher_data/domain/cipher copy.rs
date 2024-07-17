@@ -219,7 +219,7 @@ impl Cipher {
     /// Note that some ciphers do not have individual encryption keys,
     /// in which case this will return Ok(None) and the key associated
     /// with this cipher's user or organization must be used instead
-    pub(crate) fn get_cipher_key(
+    pub(super) fn get_cipher_key(
         key: &SymmetricCryptoKey,
         ciphers_key: &Option<EncString>,
     ) -> Result<Option<SymmetricCryptoKey>, CryptoError> {

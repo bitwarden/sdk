@@ -10,7 +10,6 @@ use super::v2::CipherDataV2;
 enum Data {
     V1(CipherDataV1),
     V2(CipherDataV2),
-    Latest(CipherDataLatest),
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]

@@ -228,7 +228,7 @@ impl KeyEncryptable<SymmetricCryptoKey, Cipher> for CipherView {
             key: self.key,
             local_data: self.local_data.encrypt_with_key(key)?,
             password_history: self.password_history.encrypt_with_key(key)?,
-            data: self.data.encrypt_with_key(key)?,
+            data: self.data.encrypt_with_key(key)?.into(),
             creation_date: self.creation_date,
             deleted_date: self.deleted_date,
             revision_date: self.revision_date,
@@ -283,16 +283,17 @@ impl Cipher {
     }
 
     fn get_decrypted_subtitle(&self, key: &SymmetricCryptoKey) -> Result<String, CryptoError> {
-        Ok(match self.data.r#type {
+        let data = self.data.get_data(key)?;
+        Ok(match data.r#type {
             CipherType::Login => {
-                let Some(login) = &self.data.login else {
+                let Some(login) = &data.login else {
                     return Ok(String::new());
                 };
                 login.username.decrypt_with_key(key)?.unwrap_or_default()
             }
             CipherType::SecureNote => String::new(),
             CipherType::Card => {
-                let Some(card) = &self.data.card else {
+                let Some(card) = &data.card else {
                     return Ok(String::new());
                 };
 
@@ -308,7 +309,7 @@ impl Cipher {
                 )
             }
             CipherType::Identity => {
-                let Some(identity) = &self.data.identity else {
+                let Some(identity) = &data.identity else {
                     return Ok(String::new());
                 };
 
@@ -533,26 +534,21 @@ impl KeyDecryptable<SymmetricCryptoKey, CipherListView> for Cipher {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CipherListView, CryptoError> {
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let key = ciphers_key.as_ref().unwrap_or(key);
+        let data = self.data.get_data(key)?;
 
         Ok(CipherListView {
             id: self.id,
             organization_id: self.organization_id,
             folder_id: self.folder_id,
             collection_ids: self.collection_ids.clone(),
-            name: self
-                .data
-                .name
-                .decrypt_with_key(key)
-                .ok()
-                .unwrap_or_default(),
+            name: data.name.decrypt_with_key(key).ok().unwrap_or_default(),
             sub_title: self.get_decrypted_subtitle(key).ok().unwrap_or_default(),
-            r#type: self.data.r#type,
-            favorite: self.data.favorite,
-            reprompt: self.data.reprompt,
-            edit: self.data.edit,
-            view_password: self.data.view_password,
-            attachments: self
-                .data
+            r#type: data.r#type,
+            favorite: data.favorite,
+            reprompt: data.reprompt,
+            edit: data.edit,
+            view_password: data.view_password,
+            attachments: data
                 .attachments
                 .as_ref()
                 .map(|a| a.len() as u32)
@@ -619,7 +615,11 @@ impl TryFrom<CipherDetailsResponseModel> for Cipher {
     type Error = VaultParseError;
 
     fn try_from(cipher: CipherDetailsResponseModel) -> Result<Self, Self::Error> {
-        let data = cipher.clone().try_into()?;
+        let data = cipher
+            .clone()
+            .data
+            .ok_or(bitwarden_core::MissingFieldError("data"))?
+            .try_into()?;
 
         Ok(Self {
             id: cipher.id,

@@ -8,4 +8,9 @@ pub enum VaultParseError {
     Crypto(#[from] bitwarden_crypto::CryptoError),
     #[error(transparent)]
     MissingFieldError(#[from] bitwarden_core::MissingFieldError),
+    #[error(transparent)]
+    SerdeError(#[from] serde_json::Error),
+
+    #[error("Invalid version")]
+    InvalidVersion,
 }

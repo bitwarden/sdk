@@ -1,20 +1,21 @@
 use bitwarden_core::VaultLocked;
 use bitwarden_crypto::SymmetricCryptoKey;
 use thiserror::Error;
+use tokio::sync::Mutex;
 
 /// A wrapper for versioned data.
 /// The internal data can be stored as any version, but data cannot
 /// be accessed without migrating it to the latest version.
 pub struct Versioned<Versions, LatestVersion> {
     data: Versions,
-    _output: std::marker::PhantomData<LatestVersion>,
+    cache: Mutex<Option<LatestVersion>>,
 }
 
 impl<Versions, LatestVersion> Versioned<Versions, LatestVersion> {
     pub fn new(data: Versions) -> Self {
         Self {
             data,
-            _output: std::marker::PhantomData,
+            cache: None.into(),
         }
     }
 }
@@ -35,9 +36,20 @@ pub trait Migrator<LatestVersion> {
 impl<Data, LatestVersion> Migrator<LatestVersion> for Versioned<Data, LatestVersion>
 where
     Data: Migrator<LatestVersion> + std::marker::Sync,
-    LatestVersion: std::marker::Sync,
+    LatestVersion: Clone + std::marker::Sync + std::marker::Send,
 {
     async fn migrate(&self, key: &SymmetricCryptoKey) -> Result<LatestVersion, MigrationError> {
-        self.data.migrate(key).await
+        let mut cache = self.cache.lock().await;
+
+        let migrated = match cache.as_ref() {
+            Some(value) => value.clone(),
+            None => {
+                let migrated: LatestVersion = self.data.migrate(key).await?;
+                *cache = Some(migrated.clone());
+                migrated
+            }
+        };
+
+        Ok(migrated)
     }
 }

@@ -40,7 +40,7 @@ To login using an access token. Define some `stateFile` and pass it to use state
 instead to not use state.
 
 ```go
-stateFile := os.Getenv("STATE_DIR")
+stateFile := os.Getenv("STATE_FILE")
 
 err := bitwardenClient.AccessTokenLogin(accessToken, &stateFile)
 ```

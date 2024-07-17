@@ -36,7 +36,8 @@ impl VersionedCipherData {
 
     pub fn get_data(&self, key: &SymmetricCryptoKey) -> Result<CipherData, CryptoError> {
         let migrated = self.data.migrate(key)?;
-        Ok(migrated.into())
+        // TODO: Fix Error
+        Ok(migrated.try_into().map_err(|_| CryptoError::KeyDecrypt)?)
     }
 }
 
@@ -48,15 +49,21 @@ impl Default for VersionedCipherData {
     }
 }
 
-impl From<CipherDataLatest> for CipherData {
-    fn from(value: CipherDataLatest) -> Self {
-        todo!()
+impl TryFrom<CipherDataLatest> for CipherData {
+    type Error = VaultParseError;
+
+    fn try_from(value: CipherDataLatest) -> Result<Self, Self::Error> {
+        Ok(serde_json::from_value(value.data)?)
     }
 }
 
-impl From<CipherData> for CipherDataLatest {
-    fn from(value: CipherData) -> Self {
-        todo!()
+impl TryFrom<CipherData> for CipherDataLatest {
+    type Error = VaultParseError;
+
+    fn try_from(value: CipherData) -> Result<Self, Self::Error> {
+        Ok(CipherDataLatest {
+            data: serde_json::to_value(value)?,
+        })
     }
 }
 

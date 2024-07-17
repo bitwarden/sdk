@@ -632,6 +632,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "bitwarden-versioning"
+version = "0.5.0"
+dependencies = [
+ "async-trait",
+ "base64 0.21.7",
+ "bitwarden-core",
+ "bitwarden-crypto",
+ "chrono",
+ "itertools 0.13.0",
+ "log",
+ "p256",
+ "passkey",
+ "reqwest",
+ "schemars",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "uniffi",
+ "uuid",
+]
+
+[[package]]
 name = "bitwarden-wasm"
 version = "0.1.0"
 dependencies = [

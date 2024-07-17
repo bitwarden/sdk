@@ -18,7 +18,7 @@ enum Data {
 }
 
 impl Migrator<DataV2> for Data {
-    async fn migrate(&self, _key: &SymmetricCryptoKey) -> Result<DataV2, MigrationError> {
+    fn migrate(&self, _key: &SymmetricCryptoKey) -> Result<DataV2, MigrationError> {
         match self {
             Data::V1(DataV1(value)) => Ok(DataV2 {
                 value: value.to_string(),
@@ -44,7 +44,7 @@ async fn example() -> Result<(), MigrationError> {
             .to_owned(),
     )
     .unwrap();
-    let output: DataV2 = versioned.migrate(&key).await?;
+    let output: DataV2 = versioned.migrate(&key)?;
 
     println!("Output: {:?}", output);
 

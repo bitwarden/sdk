@@ -1,11 +1,10 @@
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use bitwarden_core::VaultLocked;
 use bitwarden_crypto::SymmetricCryptoKey;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use tokio::sync::Mutex;
 
 /// A wrapper for versioned data.
 /// The internal data can be stored as any version, but data cannot
@@ -33,10 +32,7 @@ pub enum MigrationError {
 }
 
 pub trait Migrator<LatestVersion> {
-    fn migrate(
-        &self,
-        key: &SymmetricCryptoKey,
-    ) -> impl std::future::Future<Output = Result<LatestVersion, MigrationError>> + Send;
+    fn migrate(&self, key: &SymmetricCryptoKey) -> Result<LatestVersion, MigrationError>;
 }
 
 impl<Data, LatestVersion> Migrator<LatestVersion> for Versioned<Data, LatestVersion>
@@ -44,13 +40,13 @@ where
     Data: Migrator<LatestVersion> + std::marker::Sync,
     LatestVersion: Clone + std::marker::Sync + std::marker::Send,
 {
-    async fn migrate(&self, key: &SymmetricCryptoKey) -> Result<LatestVersion, MigrationError> {
-        let mut cache = self.cache.lock().await;
+    fn migrate(&self, key: &SymmetricCryptoKey) -> Result<LatestVersion, MigrationError> {
+        let mut cache = self.cache.lock().expect("Mutex is not poisoned");
 
         let migrated = match cache.as_ref() {
             Some(value) => value.clone(),
             None => {
-                let migrated: LatestVersion = self.data.migrate(key).await?;
+                let migrated: LatestVersion = self.data.migrate(key)?;
                 *cache = Some(migrated.clone());
                 migrated
             }

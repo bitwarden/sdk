@@ -28,6 +28,7 @@ bitwarden-fido = { path = "crates/bitwarden-fido", version = "=0.5.0" }
 bitwarden-generators = { path = "crates/bitwarden-generators", version = "=0.5.0" }
 bitwarden-send = { path = "crates/bitwarden-send", version = "=0.5.0" }
 bitwarden-vault = { path = "crates/bitwarden-vault", version = "=0.5.0" }
+bitwarden-versioning = { path = "crates/bitwarden-versioning", version = "=0.5.0" }
 
 [workspace.lints.clippy]
 unused_async = "deny"

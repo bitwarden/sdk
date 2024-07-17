@@ -1,21 +1,27 @@
+use std::sync::Arc;
+
 use bitwarden_core::VaultLocked;
 use bitwarden_crypto::SymmetricCryptoKey;
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use tokio::sync::Mutex;
 
 /// A wrapper for versioned data.
 /// The internal data can be stored as any version, but data cannot
 /// be accessed without migrating it to the latest version.
+#[derive(Clone, Serialize, Deserialize, Debug, Default, JsonSchema)]
 pub struct Versioned<Versions, LatestVersion> {
     data: Versions,
-    cache: Mutex<Option<LatestVersion>>,
+    #[serde(skip)]
+    cache: Arc<Mutex<Option<LatestVersion>>>,
 }
 
 impl<Versions, LatestVersion> Versioned<Versions, LatestVersion> {
     pub fn new(data: Versions) -> Self {
         Self {
             data,
-            cache: None.into(),
+            cache: Arc::new(None.into()),
         }
     }
 }

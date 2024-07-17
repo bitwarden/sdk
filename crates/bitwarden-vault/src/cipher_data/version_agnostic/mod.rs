@@ -1,3 +1,4 @@
+use bitwarden_versioning::Versioned;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -13,13 +14,13 @@ enum Data {
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
-pub struct CipherData {
-    data: Data,
+pub struct VersionedCipherData {
+    data: Versioned<Data, CipherDataV2>,
 }
 
-uniffi::custom_type!(CipherData, String);
+uniffi::custom_type!(VersionedCipherData, String);
 
-impl UniffiCustomTypeConverter for CipherData {
+impl UniffiCustomTypeConverter for VersionedCipherData {
     type Builtin = String;
 
     fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {

@@ -5,8 +5,11 @@ use serde::{Deserialize, Serialize};
 
 mod migration;
 
+#[cfg(feature = "uniffi")]
+mod uniffi;
+
 use crate::cipher::cipher::CipherData;
-use crate::{UniffiCustomTypeConverter, VaultParseError};
+use crate::VaultParseError;
 
 use super::v1::CipherDataV1;
 use super::v2::CipherDataV2;
@@ -90,20 +93,5 @@ impl TryFrom<serde_json::Value> for VersionedCipherData {
             }
             _ => Err(VaultParseError::InvalidVersion),
         }
-    }
-}
-
-uniffi::custom_type!(VersionedCipherData, String);
-
-impl UniffiCustomTypeConverter for VersionedCipherData {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(serde_json::from_str(&val)?)
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        // TODO: Fix unwrap?
-        serde_json::to_string(&obj).unwrap()
     }
 }

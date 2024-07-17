@@ -14,7 +14,7 @@ use super::v2::CipherDataV2;
 type CipherDataLatest = CipherDataV2;
 
 #[derive(Clone, Serialize, Deserialize, Debug, JsonSchema)]
-pub(self) enum Data {
+pub(super) enum Data {
     V1(CipherDataV1),
     V2(CipherDataV2),
 }
@@ -34,6 +34,14 @@ impl VersionedCipherData {
     pub fn get_data(&self, key: &SymmetricCryptoKey) -> Result<CipherData, CryptoError> {
         let migrated = self.data.migrate(key)?;
         Ok(migrated.into())
+    }
+}
+
+impl Default for VersionedCipherData {
+    fn default() -> Self {
+        Self {
+            data: Versioned::new(CipherDataLatest::default().into()),
+        }
     }
 }
 
@@ -69,7 +77,7 @@ impl TryFrom<serde_json::Value> for VersionedCipherData {
                     data: value["data"].clone(),
                 };
                 Ok(VersionedCipherData {
-                    data: Versioned::new(Data::V1(data)),
+                    data: Versioned::new(data.into()),
                 })
             }
             "2" => {
@@ -77,7 +85,7 @@ impl TryFrom<serde_json::Value> for VersionedCipherData {
                     data: value["data"].clone(),
                 };
                 Ok(VersionedCipherData {
-                    data: Versioned::new(Data::V2(data)),
+                    data: Versioned::new(data.into()),
                 })
             }
             _ => Err(VaultParseError::InvalidVersion),

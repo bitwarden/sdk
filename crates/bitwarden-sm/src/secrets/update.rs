@@ -1,5 +1,5 @@
 use bitwarden_api_api::models::SecretUpdateRequestModel;
-use bitwarden_core::{validate_only_whitespaces, Client, Error, VaultLocked};
+use bitwarden_core::{validate_only_whitespaces, Client, Error};
 use bitwarden_crypto::KeyEncryptable;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -31,9 +31,7 @@ pub(crate) async fn update_secret(
     input.validate()?;
 
     let enc = client.internal.get_encryption_settings()?;
-    let key = enc
-        .get_key(&Some(input.organization_id))
-        .ok_or(VaultLocked)?;
+    let key = enc.get_key(&Some(input.organization_id))?;
 
     let secret = Some(SecretUpdateRequestModel {
         key: input.key.clone().trim().encrypt_with_key(key)?.to_string(),

@@ -178,7 +178,6 @@ pub(crate) fn try_from_credential_new_view(
         counter: 0.to_string(),
         user_name: user.name.clone(),
         user_display_name: user.display_name.clone(),
-        discoverable: "true".to_owned(),
         creation_date: chrono::offset::Utc::now(),
     })
 }
@@ -187,6 +186,7 @@ pub(crate) fn try_from_credential_full(
     value: Passkey,
     user: passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
     rp: passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
+    options: passkey::types::ctap2::get_assertion::Options,
 ) -> Result<Fido2CredentialFullView, FillCredentialError> {
     let cred_id: Vec<u8> = value.credential_id.into();
     let key_value = URL_SAFE_NO_PAD.encode(cose_key_to_pkcs8(&value.key)?);
@@ -205,7 +205,7 @@ pub(crate) fn try_from_credential_full(
         counter: value.counter.unwrap_or(0).to_string(),
         user_name: user.name,
         user_display_name: user.display_name,
-        discoverable: "true".to_owned(),
+        discoverable: options.rk.to_string(),
         creation_date: chrono::offset::Utc::now(),
     })
 }

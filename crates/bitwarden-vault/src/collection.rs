@@ -42,7 +42,7 @@ impl LocateKey for Collection {
         &self,
         enc: &'a dyn KeyContainer,
         _: &Option<Uuid>,
-    ) -> Option<&'a SymmetricCryptoKey> {
+    ) -> Result<&'a SymmetricCryptoKey, CryptoError> {
         enc.get_key(&Some(self.organization_id))
     }
 }

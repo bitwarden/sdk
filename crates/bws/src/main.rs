@@ -1,7 +1,10 @@
 use std::{path::PathBuf, str::FromStr};
 
 use bitwarden::{
-    auth::{login::AccessTokenLoginRequest, AccessToken},
+    auth::{
+        login::{AccessTokenLoginRequest, AccessTokenLoginState},
+        AccessToken,
+    },
     ClientSettings,
 };
 use bitwarden_cli::install_color_eyre;
@@ -14,7 +17,6 @@ mod cli;
 mod command;
 mod config;
 mod render;
-mod state;
 
 use crate::cli::*;
 
@@ -64,7 +66,6 @@ async fn process_commands() -> Result<()> {
         Some(key) => key,
         None => bail!("Missing access token"),
     };
-    let access_token_obj: AccessToken = access_token.parse()?;
 
     let profile = get_config_profile(
         &cli.server_url,
@@ -84,10 +85,23 @@ async fn process_commands() -> Result<()> {
         })
         .transpose()?;
 
-    let state_file = state::get_state_file(
-        profile.and_then(|p| p.state_dir).map(Into::into),
-        access_token_obj.access_token_id.to_string(),
-    )?;
+    println!("here");
+    let access_token_login_state = match profile {
+        Some(profile) => match profile.state_dir {
+            Some(state_dir) => {
+                println!("hello there");
+                AccessTokenLoginState::CustomDirectory(state_dir.into())
+            }
+            None => {
+                println!("heloooo there");
+                AccessTokenLoginState::Default
+            }
+        },
+        None => {
+            println!("wheeeze");
+            AccessTokenLoginState::Default
+        }
+    };
 
     let client = bitwarden::Client::new(settings);
 
@@ -96,7 +110,7 @@ async fn process_commands() -> Result<()> {
         .auth()
         .login_access_token(&AccessTokenLoginRequest {
             access_token,
-            state_file,
+            state: access_token_login_state,
         })
         .await?;
 

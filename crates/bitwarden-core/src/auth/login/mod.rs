@@ -45,7 +45,7 @@ mod access_token;
 #[cfg(feature = "secrets")]
 pub(super) use access_token::login_access_token;
 #[cfg(feature = "secrets")]
-pub use access_token::{AccessTokenLoginRequest, AccessTokenLoginResponse};
+pub use access_token::{AccessTokenLoginRequest, AccessTokenLoginResponse, AccessTokenLoginState};
 
 #[cfg(feature = "internal")]
 pub(crate) async fn request_prelogin(

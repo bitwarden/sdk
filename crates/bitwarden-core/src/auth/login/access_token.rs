@@ -16,7 +16,7 @@ use crate::{
     client::{LoginMethod, ServiceAccountLoginMethod},
     error::{Error, Result},
     require,
-    secrets_manager::state::{self, ClientState},
+    secrets_manager::state::{self, build_state_file_path, ClientState},
     Client,
 };
 
@@ -28,8 +28,9 @@ pub(crate) async fn login_access_token(
     //debug!("{:#?}, {:#?}", client, input);
 
     let access_token: AccessToken = input.access_token.parse()?;
+    let state_file = build_state_file_path(&access_token, input.state.clone())?;
 
-    if let Some(state_file) = &input.state_file {
+    if let Some(state_file) = &state_file {
         if let Ok(organization_id) = load_tokens_from_state(client, state_file, &access_token) {
             client
                 .internal
@@ -76,7 +77,7 @@ pub(crate) async fn login_access_token(
             .parse()
             .map_err(|_| Error::InvalidResponse)?;
 
-        if let Some(state_file) = &input.state_file {
+        if let Some(state_file) = &state_file {
             let state = ClientState::new(r.access_token.clone(), payload.encryption_key);
             _ = state::set(state_file, &access_token, state);
         }
@@ -92,7 +93,7 @@ pub(crate) async fn login_access_token(
                 ServiceAccountLoginMethod::AccessToken {
                     access_token,
                     organization_id,
-                    state_file: input.state_file.clone(),
+                    state_file: state_file.clone(),
                 },
             ));
 
@@ -148,7 +149,7 @@ fn load_tokens_from_state(
 pub struct AccessTokenLoginRequest {
     /// Bitwarden service API access token
     pub access_token: String,
-    pub state_file: Option<PathBuf>,
+    pub state: AccessTokenLoginState,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -175,4 +176,16 @@ impl AccessTokenLoginResponse {
             two_factor: password_response.two_factor,
         })
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone, Default)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub enum AccessTokenLoginState {
+    /// Uses state and attempts to use a default state directory
+    #[default]
+    Default,
+    /// Uses state and uses a custom state directory
+    CustomDirectory(PathBuf),
+    /// Opt out of using state entirely
+    OptOut,
 }

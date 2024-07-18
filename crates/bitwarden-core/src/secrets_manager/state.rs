@@ -12,7 +12,7 @@ use crate::{
 };
 
 const STATE_VERSION: u32 = 1;
-const DEFAULT_RELATIVE_STATE_DIR: &str = ".config/bitwarden/sdk/state";
+const DEFAULT_RELATIVE_STATE_DIR: &str = "bitwarden/sdk/state";
 
 #[cfg(feature = "secrets")]
 #[derive(Serialize, Deserialize, Debug)]
@@ -64,7 +64,7 @@ pub fn build_state_file_path(
 ) -> Result<Option<PathBuf>> {
     match state {
         AccessTokenLoginState::Default => {
-            if let Some(mut home_dir) = dirs::home_dir() {
+            if let Some(mut home_dir) = dirs::config_dir() {
                 home_dir.push(DEFAULT_RELATIVE_STATE_DIR);
                 home_dir.push(access_token.access_token_id.to_string());
 

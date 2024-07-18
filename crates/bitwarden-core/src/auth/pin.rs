@@ -16,6 +16,7 @@ pub(crate) fn validate_pin(
         .get_login_method()
         .ok_or(Error::NotAuthenticated)?;
 
+    #[allow(irrefutable_let_patterns)]
     let LoginMethod::User(login_method) = login_method.as_ref() else {
         return Err(Error::NotAuthenticated);
     };

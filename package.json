@@ -22,7 +22,7 @@
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "2.13.4",
     "handlebars": "^4.7.8",
-    "prettier": "3.3.2",
+    "prettier": "3.3.3",
     "quicktype-core": "23.0.81",
     "rimraf": "6.0.1",
     "ts-node": "10.9.2",

@@ -6,7 +6,7 @@ use bitwarden_crypto::{
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{EncString, KeyDecryptable, SymmetricCryptoKey};
 
-use crate::{error::Error, Client, VaultLocked};
+use crate::{error::Error, Client};
 
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct AuthRequestResponse {
@@ -82,7 +82,7 @@ pub(crate) fn approve_auth_request(
     let public_key = AsymmetricPublicCryptoKey::from_der(&STANDARD.decode(public_key)?)?;
 
     let enc = client.internal.get_encryption_settings()?;
-    let key = enc.get_key(&None).ok_or(VaultLocked)?;
+    let key = enc.get_key(&None)?;
 
     Ok(AsymmetricEncString::encrypt_rsa2048_oaep_sha1(
         &key.to_vec(),

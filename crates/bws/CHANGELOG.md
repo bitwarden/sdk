@@ -7,6 +7,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- The ability to edit unassigned secrets with direct permissions. (#906)
+
 ### Removed
 
 - The deprecated `action type` commands are now removed. Please use `type action` instead. (#836)

@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use bitwarden_core::{Client, Error, VaultLocked};
+use bitwarden_core::{Client, Error};
 use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable};
 
 use crate::{Send, SendListView, SendView};
@@ -16,7 +16,7 @@ impl<'a> ClientSends<'a> {
 
     pub fn decrypt(&self, send: Send) -> Result<SendView, Error> {
         let enc = self.client.internal.get_encryption_settings()?;
-        let key = enc.get_key(&None).ok_or(VaultLocked)?;
+        let key = enc.get_key(&None)?;
 
         let send_view = send.decrypt_with_key(key)?;
 
@@ -25,7 +25,7 @@ impl<'a> ClientSends<'a> {
 
     pub fn decrypt_list(&self, sends: Vec<Send>) -> Result<Vec<SendListView>, Error> {
         let enc = self.client.internal.get_encryption_settings()?;
-        let key = enc.get_key(&None).ok_or(VaultLocked)?;
+        let key = enc.get_key(&None)?;
 
         let send_views = sends.decrypt_with_key(key)?;
 
@@ -46,7 +46,7 @@ impl<'a> ClientSends<'a> {
 
     pub fn decrypt_buffer(&self, send: Send, encrypted_buffer: &[u8]) -> Result<Vec<u8>, Error> {
         let enc = self.client.internal.get_encryption_settings()?;
-        let key = enc.get_key(&None).ok_or(VaultLocked)?;
+        let key = enc.get_key(&None)?;
         let key = Send::get_key(&send.key, key)?;
 
         let buf = EncString::from_buffer(encrypted_buffer)?;
@@ -55,7 +55,7 @@ impl<'a> ClientSends<'a> {
 
     pub fn encrypt(&self, send_view: SendView) -> Result<Send, Error> {
         let enc = self.client.internal.get_encryption_settings()?;
-        let key = enc.get_key(&None).ok_or(VaultLocked)?;
+        let key = enc.get_key(&None)?;
 
         let send = send_view.encrypt_with_key(key)?;
 
@@ -76,7 +76,7 @@ impl<'a> ClientSends<'a> {
 
     pub fn encrypt_buffer(&self, send: Send, buffer: &[u8]) -> Result<Vec<u8>, Error> {
         let enc = self.client.internal.get_encryption_settings()?;
-        let key = enc.get_key(&None).ok_or(VaultLocked)?;
+        let key = enc.get_key(&None)?;
         let key = Send::get_key(&send.key, key)?;
 
         let encrypted = buffer.encrypt_with_key(&key)?;

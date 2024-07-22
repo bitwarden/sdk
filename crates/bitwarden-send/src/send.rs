@@ -375,8 +375,13 @@ mod tests {
         }
     }
     impl KeyContainer for MockKeyContainer {
-        fn get_key<'a>(&'a self, org_id: &Option<Uuid>) -> Option<&'a SymmetricCryptoKey> {
-            self.0.get(org_id)
+        fn get_key<'a>(
+            &'a self,
+            org_id: &Option<Uuid>,
+        ) -> Result<&'a SymmetricCryptoKey, CryptoError> {
+            self.0
+                .get(org_id)
+                .ok_or(CryptoError::MissingKey(org_id.unwrap_or_default()))
         }
     }
 

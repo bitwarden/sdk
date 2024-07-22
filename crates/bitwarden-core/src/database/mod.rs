@@ -1,13 +1,19 @@
-#[cfg(not(feature = "wasm"))]
+use migrator::MigratorError;
+
+mod migrator;
+
+#[cfg(all(feature = "sqlite", feature = "wasm"))]
+compile_error!("Sqlite and wasm are mutually exclusive and cannot be enabled together");
+
+#[cfg(feature = "sqlite")]
 mod sqlite;
-#[cfg(not(feature = "wasm"))]
-pub use sqlite::SqliteDatabase;
+#[cfg(feature = "sqlite")]
+pub type Database = sqlite::SqliteDatabase;
+
 #[cfg(feature = "wasm")]
 mod wasm;
 #[cfg(feature = "wasm")]
-pub use wasm::SqliteDatabase;
-
-use std::borrow::Cow;
+pub type Database = wasm::WasmDatabase;
 
 use thiserror::Error;
 
@@ -24,16 +30,27 @@ pub enum DatabaseError {
     #[error(transparent)]
     Migrator(#[from] MigratorError),
 
-    //#[error(transparent)]
-    //Rusqlite(#[from] rusqlite::Error),
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
     #[error(transparent)]
     MissingField(#[from] MissingFieldError),
+
+    #[error("Unable to get version")]
+    UnableToGetVersion,
+    #[error("Unable to set version")]
+    UnableToSetVersion,
 }
 
-#[derive(Debug, Error)]
-pub enum MigratorError {
-    #[error("Internal error: {0}")]
-    Internal(Cow<'static, str>),
+/// Persistent storage for the Bitwarden SDK
+///
+/// The database is used to store the user's data, such as ciphers, folders, and settings.
+/// Since we need to support multiple platforms, the database is abstracted to allow for different
+/// implementations.
+///
+/// The default and recommended implementation is SqliteDatabase.
+pub trait DatabaseTrait {
+    async fn get_version(&self) -> Result<usize, DatabaseError>;
+    async fn set_version(&self, version: usize) -> Result<(), DatabaseError>;
+
+    async fn execute_batch(&self, sql: &str) -> Result<(), DatabaseError>;
 }

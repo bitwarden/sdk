@@ -8,11 +8,11 @@ extern "C" {
 }
 
 #[derive(Debug)]
-pub struct SqliteDatabase {}
+pub struct WasmDatabase {}
 
-impl SqliteDatabase {
+impl WasmDatabase {
     pub fn default() -> Result<Self, DatabaseError> {
-        SqliteDatabase::new()
+        WasmDatabase::new()
     }
 
     pub fn new() -> Result<Self, DatabaseError> {
@@ -22,7 +22,7 @@ impl SqliteDatabase {
                 value TEXT NOT NULL
             )",
         );
-        Ok(SqliteDatabase {})
+        Ok(WasmDatabase {})
     }
 
     pub fn execute(&self, sql: &str) -> Result<(), DatabaseError> {

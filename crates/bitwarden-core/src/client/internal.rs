@@ -17,7 +17,7 @@ use crate::error::Error;
 use crate::{
     auth::renew::renew_token,
     error::{Result, VaultLocked},
-    DeviceType, SqliteDatabase,
+    Database, DeviceType,
 };
 
 #[derive(Debug, Clone)]
@@ -58,7 +58,7 @@ pub struct InternalClient {
 
     pub(super) encryption_settings: RwLock<Option<Arc<EncryptionSettings>>>,
 
-    pub db: Arc<Mutex<SqliteDatabase>>,
+    pub db: Arc<Mutex<Database>>,
 }
 
 impl InternalClient {

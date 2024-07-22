@@ -10,7 +10,7 @@ use crate::{
         client_settings::ClientSettings,
         internal::{ApiConfigurations, Tokens},
     },
-    SqliteDatabase,
+    Database,
 };
 
 /// The main struct to interact with the Bitwarden SDK.
@@ -21,7 +21,7 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(settings_input: Option<ClientSettings>) -> Self {
+    pub async fn new(settings_input: Option<ClientSettings>) -> Self {
         let settings = settings_input.unwrap_or_default();
 
         fn new_client_builder() -> reqwest::ClientBuilder {
@@ -82,7 +82,7 @@ impl Client {
                 })),
                 external_client,
                 encryption_settings: RwLock::new(None),
-                db: Arc::new(Mutex::new(SqliteDatabase::default().unwrap())),
+                db: Arc::new(Mutex::new(Database::default().await.unwrap())),
             },
         }
     }

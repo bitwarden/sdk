@@ -615,7 +615,6 @@ dependencies = [
  "serde_json",
  "thiserror",
  "tokio",
- "uniffi",
  "uuid",
  "validator",
 ]

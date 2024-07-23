@@ -2,17 +2,17 @@ use migrator::MigratorError;
 
 mod migrator;
 
-#[cfg(all(feature = "sqlite", feature = "wasm"))]
-compile_error!("Sqlite and wasm are mutually exclusive and cannot be enabled together");
+// #[cfg(all(feature = "sqlite", feature = "wasm"))]
+// compile_error!("Sqlite and wasm are mutually exclusive and cannot be enabled together");
 
 #[cfg(feature = "sqlite")]
 mod sqlite;
 #[cfg(feature = "sqlite")]
 pub type Database = sqlite::SqliteDatabase;
 
-#[cfg(feature = "wasm")]
+#[cfg(all(not(feature = "sqlite"), feature = "wasm"))]
 mod wasm;
-#[cfg(feature = "wasm")]
+#[cfg(all(not(feature = "sqlite"), feature = "wasm"))]
 pub type Database = wasm::WasmDatabase;
 
 use thiserror::Error;
@@ -39,6 +39,10 @@ pub enum DatabaseError {
     UnableToGetVersion,
     #[error("Unable to set version")]
     UnableToSetVersion,
+
+    #[cfg(feature = "sqlite")]
+    #[error(transparent)]
+    Rusqlite(#[from] rusqlite::Error),
 }
 
 /// Persistent storage for the Bitwarden SDK

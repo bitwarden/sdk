@@ -10,7 +10,7 @@ async fn test_register_initialize_crypto() {
     };
     use bitwarden_crypto::Kdf;
 
-    let client = Client::new(None);
+    let client = Client::new(None).await;
 
     let email = "test@bitwarden.com";
     let password = "test123";

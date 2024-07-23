@@ -15,6 +15,14 @@ impl SqliteDatabase {
         Self::new_conn(conn).await
     }
 
+    /// Helper for initializing a in-memory database for testing.
+    pub async fn new_test() -> Self {
+        let conn =
+            Connection::open_in_memory().expect("Failed to open in-memory sqlite connection");
+
+        SqliteDatabase { conn }
+    }
+
     /// Create a new SqliteDatabase with the given connection.
     ///
     /// This will migrate the database to the latest version.
@@ -33,11 +41,7 @@ impl SqliteDatabase {
 
 impl DatabaseTrait for SqliteDatabase {
     /*
-    pub fn new_test() -> Self {
-        let conn = Connection::open_in_memory().expect("Failed to open sqlite connection");
 
-        Self::new_conn(conn).expect("Created test db")
-    }
 
     /// Create a new SqliteDatabase with the given connection.
     ///
@@ -70,6 +74,45 @@ impl DatabaseTrait for SqliteDatabase {
     }
 
     async fn execute_batch(&self, sql: &str) -> Result<(), DatabaseError> {
-        todo!()
+        self.conn.execute_batch(sql)?;
+
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_version() {
+        let db = SqliteDatabase::new_test().await;
+
+        let version = db.get_version().await.unwrap();
+        assert_eq!(version, 0);
+
+        db.set_version(1).await.unwrap();
+        let version = db.get_version().await.unwrap();
+        assert_eq!(version, 1);
+    }
+
+    #[tokio::test]
+    async fn test_execute_batch() {
+        let db = SqliteDatabase::new_test().await;
+
+        db.execute_batch("CREATE TABLE test (id INTEGER PRIMARY KEY, name TEXT)")
+            .await
+            .unwrap();
+
+        db.execute_batch("INSERT INTO test (name) VALUES ('test')")
+            .await
+            .unwrap();
+
+        let count: i64 = db
+            .conn
+            .query_row("SELECT COUNT(*) FROM test", [], |row| row.get(0))
+            .unwrap();
+
+        assert_eq!(count, 1);
     }
 }

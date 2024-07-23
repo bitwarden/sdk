@@ -8,7 +8,6 @@ module.exports = {
   context: __dirname + "/src",
   entry: {
     main: "./main.js",
-    worker: "./worker.js",
   },
   output: {
     filename: "[name].[contenthash].js",

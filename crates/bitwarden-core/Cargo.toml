@@ -14,7 +14,7 @@ repository.workspace = true
 license-file.workspace = true
 
 [features]
-default = ["sqlite"]
+default = []
 
 internal = [] # Internal testing methods
 no-memory-hardening = [

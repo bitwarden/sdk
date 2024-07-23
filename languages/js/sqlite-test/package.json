@@ -7,7 +7,7 @@
   "dependencies": {
     "@bitwarden/sdk-client": "../sdk-client",
     "@bitwarden/sdk-wasm": "../wasm",
-    "@sqlite.org/sqlite-wasm": "^3.46.0-build2"
+    "wa-sqlite": "github:rhashimoto/wa-sqlite"
   },
   "devDependencies": {
     "html-webpack-plugin": "^5.6.0",

@@ -18,9 +18,9 @@ use crate::{
 pub struct Client(bitwarden::Client);
 
 impl Client {
-    pub fn new(settings_input: Option<String>) -> Self {
+    pub async fn new(settings_input: Option<String>) -> Self {
         let settings = Self::parse_settings(settings_input);
-        Self(bitwarden::Client::new(settings))
+        Self(bitwarden::Client::new(settings).await)
     }
 
     pub async fn run_command(&self, input_str: &str) -> String {
@@ -81,7 +81,7 @@ impl Client {
             creation_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
             deleted_date: None,
             revision_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
-        }]);
+        }]).await;
         }
 
         match cmd {

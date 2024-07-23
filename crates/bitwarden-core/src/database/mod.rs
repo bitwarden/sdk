@@ -10,7 +10,7 @@ mod sqlite;
 #[cfg(feature = "sqlite")]
 pub type Database = sqlite::SqliteDatabase;
 
-#[cfg(all(not(feature = "sqlite"), feature = "wasm"))]
+#[cfg(feature = "wasm")]
 mod wasm;
 #[cfg(all(not(feature = "sqlite"), feature = "wasm"))]
 pub type Database = wasm::WasmDatabase;

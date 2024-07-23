@@ -1,25 +1,9 @@
 use std::sync::{Arc, Mutex};
 
-use bitwarden_core::{require, DatabaseError, Error, SqliteDatabase};
+use bitwarden_core::{require, Database, DatabaseError, DatabaseTrait, Error};
 use uuid::Uuid;
 
 use super::Cipher;
-
-pub trait CipherRepository {
-    /// Save a cipher to the repository.
-    fn save(&self, cipher: &Cipher) -> Result<(), DatabaseError>;
-
-    /// Replace all ciphers in the repository with the given ciphers.
-    ///
-    /// Typically used during a sync operation.
-    fn replace_all(&mut self, ciphers: &[Cipher]) -> Result<(), DatabaseError>;
-
-    /// Delete a cipher by its ID.
-    fn delete_by_id(&self, id: Uuid) -> Result<(), DatabaseError>;
-
-    /// Get all ciphers from the repository.
-    fn get_all(&self) -> Result<Vec<Cipher>, DatabaseError>;
-}
 
 /// A row in the ciphers table.
 struct CipherRow {
@@ -28,18 +12,16 @@ struct CipherRow {
     value: String,
 }
 
-pub struct CipherSqliteRepository {
-    db: Arc<Mutex<SqliteDatabase>>,
+pub struct CipherRepository {
+    db: Arc<Mutex<Database>>,
 }
 
-impl CipherSqliteRepository {
-    pub fn new(db: Arc<Mutex<SqliteDatabase>>) -> Self {
+impl CipherRepository {
+    pub fn new(db: Arc<Mutex<Database>>) -> Self {
         Self { db: db.clone() }
     }
-}
 
-impl CipherRepository for CipherSqliteRepository {
-    fn save(&self, cipher: &Cipher) -> Result<(), DatabaseError> {
+    pub fn save(&self, cipher: &Cipher) -> Result<(), DatabaseError> {
         let id = require!(cipher.id);
         let serialized = serde_json::to_string(cipher)?;
 
@@ -59,7 +41,7 @@ impl CipherRepository for CipherSqliteRepository {
         Ok(())
     }
 
-    fn replace_all(&mut self, ciphers: &[Cipher]) -> Result<(), DatabaseError> {
+    pub async fn replace_all(&mut self, ciphers: &[Cipher]) -> Result<(), DatabaseError> {
         let mut guard = self.db.lock().map_err(|_| DatabaseError::DatabaseLock)?;
 
         //let tx = guard.conn.transaction()?;
@@ -77,10 +59,12 @@ impl CipherRepository for CipherSqliteRepository {
             let id = require!(cipher.id);
             let serialized = serde_json::to_string(&cipher)?;
 
-            guard.execute(&format!(
-                "INSERT INTO ciphers (id, value) VALUES ('{}', '{}')",
-                id, "abc"
-            ))?;
+            guard
+                .execute_batch(&format!(
+                    "INSERT INTO ciphers (id, value) VALUES ('{}', '{}')",
+                    id, "abc"
+                ))
+                .await?;
         }
         //}
         //tx.commit()?;
@@ -88,7 +72,7 @@ impl CipherRepository for CipherSqliteRepository {
         Ok(())
     }
 
-    fn delete_by_id(&self, id: Uuid) -> Result<(), DatabaseError> {
+    pub fn delete_by_id(&self, id: Uuid) -> Result<(), DatabaseError> {
         let guard = self.db.lock().map_err(|_| DatabaseError::DatabaseLock)?;
 
         //let mut stmt = guard.conn.prepare("DELETE FROM ciphers WHERE id = ?1")?;
@@ -97,7 +81,7 @@ impl CipherRepository for CipherSqliteRepository {
         Ok(())
     }
 
-    fn get_all(&self) -> Result<Vec<Cipher>, DatabaseError> {
+    pub fn get_all(&self) -> Result<Vec<Cipher>, DatabaseError> {
         let guard = self.db.lock().map_err(|_| DatabaseError::DatabaseLock)?;
         /*
         let mut stmt = guard.conn.prepare("SELECT id, value FROM ciphers")?;
@@ -158,7 +142,7 @@ mod tests {
 
     #[test]
     fn test_save_get_all() {
-        let repo = CipherSqliteRepository::new(Arc::new(Mutex::new(SqliteDatabase::new_test())));
+        let repo = CipherRepository::new(Arc::new(Mutex::new(Database::new_test())));
 
         let cipher = mock_cipher("d55d65d7-c161-40a4-94ca-b0d20184d91a".parse().unwrap());
 
@@ -172,7 +156,7 @@ mod tests {
 
     #[test]
     fn test_delete_by_id() {
-        let repo = CipherSqliteRepository::new(Arc::new(Mutex::new(SqliteDatabase::new_test())));
+        let repo = CipherRepository::new(Arc::new(Mutex::new(Database::new_test())));
 
         let cipher = mock_cipher("d55d65d7-c161-40a4-94ca-b0d20184d91a".parse().unwrap());
         repo.save(&cipher).unwrap();
@@ -185,10 +169,9 @@ mod tests {
         assert_eq!(ciphers.len(), 0);
     }
 
-    #[test]
-    fn test_replace_all() {
-        let mut repo =
-            CipherSqliteRepository::new(Arc::new(Mutex::new(SqliteDatabase::new_test())));
+    #[tokio::test]
+    async fn test_replace_all() {
+        let mut repo = CipherRepository::new(Arc::new(Mutex::new(Database::new_test())));
 
         let old_cipher = mock_cipher("d55d65d7-c161-40a4-94ca-b0d20184d91a".parse().unwrap());
 
@@ -202,7 +185,7 @@ mod tests {
             "d55d65d7-c161-40a4-94ca-b0d20184d91c".parse().unwrap(),
         )];
 
-        repo.replace_all(new_ciphers.as_slice()).unwrap();
+        repo.replace_all(new_ciphers.as_slice()).await.unwrap();
 
         let ciphers = repo.get_all().unwrap();
         assert_eq!(ciphers.len(), 1);

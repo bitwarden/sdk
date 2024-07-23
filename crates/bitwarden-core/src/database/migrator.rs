@@ -3,9 +3,8 @@ use std::{borrow::Cow, cmp::Ordering};
 use log::info;
 use thiserror::Error;
 
-use crate::database::DatabaseTrait;
-
 use super::Database;
+use crate::database::DatabaseTrait;
 
 #[derive(Debug, Error)]
 pub enum MigratorError {

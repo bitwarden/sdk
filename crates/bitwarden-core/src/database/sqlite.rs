@@ -4,7 +4,7 @@ use super::{migrator::Migrator, DatabaseError, DatabaseTrait};
 
 #[derive(Debug)]
 pub struct SqliteDatabase {
-    pub conn: Connection,
+    conn: Connection,
 }
 
 impl SqliteDatabase {
@@ -16,7 +16,7 @@ impl SqliteDatabase {
     }
 
     /// Helper for initializing a in-memory database for testing.
-    pub async fn new_test() -> Self {
+    pub fn new_test() -> Self {
         let conn =
             Connection::open_in_memory().expect("Failed to open in-memory sqlite connection");
 
@@ -86,7 +86,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_version() {
-        let db = SqliteDatabase::new_test().await;
+        let db = SqliteDatabase::new_test();
 
         let version = db.get_version().await.unwrap();
         assert_eq!(version, 0);
@@ -98,7 +98,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_execute_batch() {
-        let db = SqliteDatabase::new_test().await;
+        let db = SqliteDatabase::new_test();
 
         db.execute_batch("CREATE TABLE test (id INTEGER PRIMARY KEY, name TEXT)")
             .await

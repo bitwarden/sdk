@@ -36,13 +36,13 @@ bitwardenClient, _ := sdk.NewBitwardenClient(&apiURL, &identityURL)
 
 ### Login
 
-To login using an access token. Define some `statePath` and pass it to use state, or pass `nil`
+To login using an access token. Define some `stateFile` and pass it to use state, or pass `nil`
 instead to not use state.
 
 ```go
-statePath := os.Getenv("STATE_PATH")
+stateFile := os.Getenv("STATE_FILE")
 
-err := bitwardenClient.AccessTokenLogin(accessToken, &statePath)
+err := bitwardenClient.AccessTokenLogin(accessToken, &stateFile)
 ```
 
 ---

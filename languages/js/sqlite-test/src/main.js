@@ -1,6 +1,7 @@
 import { BitwardenClient, LogLevel } from "@bitwarden/sdk-client";
 import * as SQLite from "wa-sqlite";
 import SQLiteESMFactory from "wa-sqlite/dist/wa-sqlite-async.mjs";
+import { IDBMirrorVFS } from "wa-sqlite/src/examples/IDBMirrorVFS";
 import { IDBBatchAtomicVFS } from "wa-sqlite/src/examples/IDBBatchAtomicVFS";
 
 
@@ -9,6 +10,7 @@ const sqlite3 = SQLite.Factory(sqliteModule);
 
 // Register a custom file system.
 const vfs = await IDBBatchAtomicVFS.create("hello", sqliteModule);
+// const vfs = await IDBMirrorVFS.create("hello", sqliteModule);
 sqlite3.vfs_register(vfs, true);
 
 class SqliteDatabase  {
@@ -22,6 +24,9 @@ class SqliteDatabase  {
 
     console.debug("OPENED DATABASE: ", name);
 
+    window.sqlite = sqlite3;
+    window.test = db;
+
     return new SqliteDatabase(db);
   }
 
@@ -34,7 +39,9 @@ class SqliteDatabase  {
   }
 
   async execute(sql) {
-    await sqlite3.exec(this.db, sql);
+    console.log(sql);
+    // localStorage.setItem("sql", sql);
+    // await sqlite3.exec(this.db, sql);
   }
 }
 
@@ -53,12 +60,15 @@ const module = await import("@bitwarden/sdk-wasm");
     ),
   );
 
-
+  var t0 = performance.now();
   try {
     await client.accessTokenLogin("abc");
   } catch (e) {
     console.error(e);
+
   }
+  var t1 = performance.now();
+  console.log("Call to summBrute took " + (t1 - t0) + " milliseconds.");
 
 
 /*

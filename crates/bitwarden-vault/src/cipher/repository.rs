@@ -1,6 +1,9 @@
 use std::sync::{Arc, Mutex};
 
 use bitwarden_core::{require, Database, DatabaseError, DatabaseTrait, Error};
+use idb::{DatabaseEvent, Factory, KeyPath, ObjectStoreParams, TransactionMode};
+use serde::Serialize;
+use serde_wasm_bindgen::Serializer;
 use uuid::Uuid;
 
 use super::Cipher;
@@ -44,6 +47,71 @@ impl CipherRepository {
     pub async fn replace_all(&mut self, ciphers: &[Cipher]) -> Result<(), DatabaseError> {
         let mut guard = self.db.lock().map_err(|_| DatabaseError::DatabaseLock)?;
 
+        /*
+        let queries: Vec<String> = ciphers
+            .iter()
+            .map(|c| {
+                let id = c.id.unwrap();
+                let serialized = serde_json::to_string(c).unwrap();
+                format!(
+                    "INSERT INTO ciphers (id, value) VALUES ('{}', '{}');",
+                    id, serialized
+                )
+            })
+            .collect();
+
+        guard
+            .execute_batch(&format!("BEGIN TRANSACTION;{}COMMIT;", queries.join("")))
+            .await?;
+          */
+
+        // Get a factory instance from global scope
+        let factory = Factory::new().unwrap();
+
+        // Create an open request for the database
+        let mut open_request = factory.open("test", Some(1)).unwrap();
+
+        // Add an upgrade handler for database
+        open_request.on_upgrade_needed(|event| {
+            // Get database instance from event
+            let database = event.database().unwrap();
+
+            // Prepare object store params
+            let mut store_params = ObjectStoreParams::new();
+            store_params.auto_increment(true);
+            store_params.key_path(Some(KeyPath::new_single("id")));
+
+            // Create object store
+            let store = database
+                .create_object_store("ciphers", store_params)
+                .unwrap();
+        });
+
+        // `await` open request
+        let database = open_request.await.unwrap();
+
+        // Create a read-write transaction
+        let transaction = database
+            .transaction(&["ciphers"], TransactionMode::ReadWrite)
+            .unwrap();
+
+        // Get the object store
+        let store = transaction.object_store("ciphers").unwrap();
+
+        for cipher in ciphers {
+            let id = store
+                .add(
+                    &cipher.serialize(&Serializer::json_compatible()).unwrap(),
+                    None,
+                )
+                .unwrap()
+                .await
+                .unwrap();
+        }
+
+        // Commit the transaction
+        transaction.commit().unwrap().await.unwrap();
+
         //let tx = guard.conn.transaction()?;
         //{
         //guard.execute("DELETE FROM ciphers")?;
@@ -55,6 +123,7 @@ impl CipherRepository {
         ",
         )?;*/
 
+        /*
         for cipher in ciphers {
             let id = require!(cipher.id);
             let serialized = serde_json::to_string(&cipher)?;
@@ -66,6 +135,8 @@ impl CipherRepository {
                 ))
                 .await?;
         }
+        */
+
         //}
         //tx.commit()?;
 

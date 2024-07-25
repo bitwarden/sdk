@@ -54,9 +54,7 @@ impl Client {
 
         let client = &self.0;
 
-        // Loop 1000 times
-        for _ in 0..1000 {
-            client.vault().cipher_repository.replace_all(&vec![Cipher {
+        let ciphers: Vec<Cipher> = (0..70000).map(|_| Cipher {
             id: Some(Uuid::new_v4()),
             organization_id: None,
             folder_id: None,
@@ -81,8 +79,8 @@ impl Client {
             creation_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
             deleted_date: None,
             revision_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
-        }]).await;
-        }
+        }).collect();
+        client.vault().cipher_repository.replace_all(&ciphers).await;
 
         match cmd {
             #[cfg(feature = "internal")]

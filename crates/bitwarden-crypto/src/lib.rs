@@ -81,6 +81,7 @@ mod wordlist;
 pub use wordlist::EFF_LONG_WORD_LIST;
 mod allocator;
 pub use allocator::ZeroizingAllocator;
+pub mod service;
 
 #[cfg(feature = "uniffi")]
 uniffi::setup_scaffolding!();

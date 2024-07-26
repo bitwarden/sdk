@@ -30,6 +30,7 @@ cbc = { version = ">=0.1.2, <0.2", features = ["alloc", "zeroize"] }
 generic-array = { version = ">=0.14.7, <1.0", features = ["zeroize"] }
 hkdf = ">=0.12.3, <0.13"
 hmac = ">=0.12.1, <0.13"
+memsec = { version = "0.7.0", features = ["alloc_ext"] }
 num-bigint = ">=0.4, <0.5"
 num-traits = ">=0.2.15, <0.3"
 pbkdf2 = { version = ">=0.12.1, <0.13", default-features = false }

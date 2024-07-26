@@ -21,6 +21,8 @@ pub enum CryptoError {
     MissingKey(Uuid),
     #[error("The item was missing a required field: {0}")]
     MissingField(&'static str),
+    #[error("Missing Key for Ref. {0}")]
+    MissingKey2(String),
 
     #[error("EncString error, {0}")]
     EncString(#[from] EncStringParseError),

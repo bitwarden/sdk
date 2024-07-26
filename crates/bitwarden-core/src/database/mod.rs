@@ -9,11 +9,16 @@ mod migrator;
 mod sqlite;
 #[cfg(feature = "sqlite")]
 pub type Database = sqlite::SqliteDatabase;
+use serde::Serialize;
+#[cfg(feature = "sqlite")]
+pub use sqlite::Params;
 
 #[cfg(feature = "wasm")]
 mod wasm;
 #[cfg(all(not(feature = "sqlite"), feature = "wasm"))]
 pub type Database = wasm::WasmDatabase;
+#[cfg(all(not(feature = "sqlite"), feature = "wasm"))]
+pub use wasm::{Params, ToSql};
 
 use thiserror::Error;
 
@@ -57,4 +62,9 @@ pub trait DatabaseTrait {
     async fn set_version(&self, version: usize) -> Result<(), DatabaseError>;
 
     async fn execute_batch(&self, sql: &str) -> Result<(), DatabaseError>;
+
+    /// Convenience method to prepare and execute a single SQL statement.
+    ///
+    /// On success, returns the number of rows that were changed or inserted or deleted.
+    async fn execute<P: Params>(&self, sql: &str, params: P) -> Result<usize, DatabaseError>;
 }

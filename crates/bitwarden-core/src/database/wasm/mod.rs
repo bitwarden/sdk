@@ -1,3 +1,7 @@
+mod params;
+pub use params::{Params, ToSql};
+
+use serde::Serialize;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 use super::{DatabaseError, DatabaseTrait};
@@ -18,7 +22,10 @@ extern "C" {
     async fn set_version(this: &SqliteDatabase, version: u32);
 
     #[wasm_bindgen(method)]
-    async fn execute(this: &SqliteDatabase, sql: &str);
+    async fn execute_batch(this: &SqliteDatabase, sql: &str);
+
+    #[wasm_bindgen(method)]
+    async fn execute(this: &SqliteDatabase, sql: &str, params: JsValue);
 }
 
 impl core::fmt::Debug for SqliteDatabase {
@@ -39,7 +46,7 @@ impl WasmDatabase {
 
     pub async fn new() -> Result<Self, DatabaseError> {
         let db: SqliteDatabase = SqliteDatabase::factory("test").await.into();
-        db.execute(
+        db.execute_batch(
             "CREATE TABLE IF NOT EXISTS ciphers (
                 id TEXT PRIMARY KEY,
                 value TEXT NOT NULL
@@ -72,8 +79,14 @@ impl DatabaseTrait for WasmDatabase {
     }
 
     async fn execute_batch(&self, sql: &str) -> Result<(), DatabaseError> {
-        self.db.execute(sql).await;
+        self.db.execute_batch(sql).await;
 
         Ok(())
+    }
+
+    async fn execute<P: Params>(&self, sql: &str, params: P) -> Result<usize, DatabaseError> {
+        self.db.execute(sql, params.to_sql()).await;
+
+        Ok(0)
     }
 }

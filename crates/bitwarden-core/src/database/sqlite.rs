@@ -1,4 +1,5 @@
 use rusqlite::Connection;
+pub use rusqlite::Params;
 
 use super::{migrator::Migrator, DatabaseError, DatabaseTrait};
 
@@ -77,6 +78,12 @@ impl DatabaseTrait for SqliteDatabase {
         self.conn.execute_batch(sql)?;
 
         Ok(())
+    }
+
+    async fn execute<P: Params>(&self, sql: &str, params: P) -> Result<usize, DatabaseError> {
+        self.conn.execute(sql, params)?;
+
+        Ok(0)
     }
 }
 

@@ -38,8 +38,24 @@ class SqliteDatabase  {
     console.log("Version", version);
   }
 
-  async execute(sql) {
+  async execute_batch(sql) {
     console.log(sql);
+    // localStorage.setItem("sql", sql);
+    await sqlite3.exec(this.db, sql);
+  }
+
+
+  async execute(sql, params) {
+    console.log(sql, params);
+    for await (const stmt of sqlite3.statements(this.db, sql)) {
+      let rc = sqlite3.bind_collection(stmt, params);
+
+      while ((rc = await sqlite3.step(stmt)) !== SQLite.SQLITE_DONE) {
+console.log(rc);
+      }
+
+    }
+
     // localStorage.setItem("sql", sql);
     // await sqlite3.exec(this.db, sql);
   }

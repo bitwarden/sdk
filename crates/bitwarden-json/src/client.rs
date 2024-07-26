@@ -54,7 +54,7 @@ impl Client {
 
         let client = &self.0;
 
-        let ciphers: Vec<Cipher> = (0..70000).map(|_| Cipher {
+        let ciphers: Vec<Cipher> = (0..10).map(|_| Cipher {
             id: Some(Uuid::new_v4()),
             organization_id: None,
             folder_id: None,

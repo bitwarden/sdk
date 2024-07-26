@@ -1,6 +1,8 @@
 use std::sync::{Arc, Mutex};
 
-use bitwarden_core::{require, Database, DatabaseError, DatabaseTrait, Error};
+use bitwarden_core::{
+    named_params, params, require, Database, DatabaseError, DatabaseTrait, Error,
+};
 use idb::{DatabaseEvent, Factory, KeyPath, ObjectStoreParams, TransactionMode};
 use serde::Serialize;
 use serde_wasm_bindgen::Serializer;
@@ -65,6 +67,7 @@ impl CipherRepository {
             .await?;
           */
 
+        /*
         // Get a factory instance from global scope
         let factory = Factory::new().unwrap();
 
@@ -111,6 +114,7 @@ impl CipherRepository {
 
         // Commit the transaction
         transaction.commit().unwrap().await.unwrap();
+        */
 
         //let tx = guard.conn.transaction()?;
         //{
@@ -123,19 +127,17 @@ impl CipherRepository {
         ",
         )?;*/
 
-        /*
         for cipher in ciphers {
             let id = require!(cipher.id);
             let serialized = serde_json::to_string(&cipher)?;
 
             guard
-                .execute_batch(&format!(
-                    "INSERT INTO ciphers (id, value) VALUES ('{}', '{}')",
-                    id, "abc"
-                ))
+                .execute(
+                    "INSERT INTO ciphers (id, value) VALUES (:id, :data)",
+                    named_params! {":id": id, ":data": serialized},
+                )
                 .await?;
         }
-        */
 
         //}
         //tx.commit()?;

@@ -13,13 +13,18 @@ impl BitwardenClient {
         // result
         let _ = pyo3_log::try_init();
 
-        Self(JsonClient::new(settings_string))
+        Self(new(settings_string))
     }
 
     #[pyo3(text_signature = "($self, command_input)")]
     fn run_command(&self, command_input: String) -> String {
         run_command(&self.0, &command_input)
     }
+}
+
+#[tokio::main]
+async fn new(settings_string: Option<String>) -> JsonClient {
+    JsonClient::new(settings_string).await
 }
 
 #[tokio::main]

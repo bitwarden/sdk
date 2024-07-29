@@ -82,13 +82,13 @@ mod tests {
 
     use crate::auth::password::{validate::validate_password_user_key, validate_password};
 
-    #[test]
-    fn test_validate_password() {
+    #[tokio::test]
+    async fn test_validate_password() {
         use std::num::NonZeroU32;
 
         use crate::client::{Client, LoginMethod, UserLoginMethod};
 
-        let client = Client::new(None);
+        let client = Client::new(None).await;
         client
             .internal
             .set_login_method(LoginMethod::User(UserLoginMethod::Username {
@@ -108,15 +108,15 @@ mod tests {
     }
 
     #[cfg(feature = "internal")]
-    #[test]
-    fn test_validate_password_user_key() {
+    #[tokio::test]
+    async fn test_validate_password_user_key() {
         use std::num::NonZeroU32;
 
         use bitwarden_crypto::{Kdf, MasterKey};
 
         use crate::client::{Client, LoginMethod, UserLoginMethod};
 
-        let client = Client::new(None);
+        let client = Client::new(None).await;
 
         let password = "asdfasdfasdf";
         let email = "test@bitwarden.com";
@@ -151,15 +151,15 @@ mod tests {
     }
 
     #[cfg(feature = "internal")]
-    #[test]
-    fn test_validate_password_user_key_wrong_password() {
+    #[tokio::test]
+    async fn test_validate_password_user_key_wrong_password() {
         use std::num::NonZeroU32;
 
         use bitwarden_crypto::{Kdf, MasterKey};
 
         use crate::client::{Client, LoginMethod, UserLoginMethod};
 
-        let client = Client::new(None);
+        let client = Client::new(None).await;
 
         let password = "asdfasdfasdf";
         let email = "test@bitwarden.com";

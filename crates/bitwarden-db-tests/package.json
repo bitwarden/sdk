@@ -1,0 +1,17 @@
+{
+  "scripts": {
+    "build": "webpack",
+    "serve": "webpack serve"
+  },
+  "devDependencies": {
+    "@wasm-tool/wasm-pack-plugin": "1.7.0",
+    "html-webpack-plugin": "5.6.0",
+    "text-encoding": "0.7.0",
+    "webpack": "5.93.0",
+    "webpack-cli": "5.1.4",
+    "webpack-dev-server": "5.0.4"
+  },
+  "dependencies": {
+    "wa-sqlite": "github:rhashimoto/wa-sqlite"
+  }
+}

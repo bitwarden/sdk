@@ -51,7 +51,7 @@ mod tests {
             name,
         };
 
-        super::create_project(&Client::new(None), &input).await
+        super::create_project(&Client::new(None).await, &input).await
     }
 
     #[tokio::test]

@@ -4,7 +4,9 @@ use std::sync::{Arc, RwLock};
 use bitwarden_crypto::SymmetricCryptoKey;
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{AsymmetricEncString, EncString, Kdf, MasterKey, PinKey};
+use bitwarden_db::Database;
 use chrono::Utc;
+use tokio::sync::Mutex;
 use uuid::Uuid;
 
 #[cfg(feature = "secrets")]
@@ -57,6 +59,8 @@ pub struct InternalClient {
     pub(crate) external_client: reqwest::Client,
 
     pub(super) encryption_settings: RwLock<Option<Arc<EncryptionSettings>>>,
+
+    pub db: Arc<Mutex<Database>>,
 }
 
 impl InternalClient {

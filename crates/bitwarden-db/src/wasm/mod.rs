@@ -1,10 +1,10 @@
-mod params;
-use params::FromSql;
-pub use params::{Params, ToSql};
-
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 use super::{DatabaseError, DatabaseTrait};
+
+mod params;
+use params::FromSql;
+pub use params::{Params, ToSql};
 
 #[wasm_bindgen]
 extern "C" {

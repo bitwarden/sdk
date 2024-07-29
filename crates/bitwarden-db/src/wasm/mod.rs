@@ -1,7 +1,7 @@
 mod params;
+use params::FromSql;
 pub use params::{Params, ToSql};
 
-use serde::Serialize;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 use super::{DatabaseError, DatabaseTrait};
@@ -26,6 +26,9 @@ extern "C" {
 
     #[wasm_bindgen(method)]
     async fn execute(this: &SqliteDatabase, sql: &str, params: JsValue);
+
+    #[wasm_bindgen(method)]
+    async fn query_map(this: &SqliteDatabase, sql: &str) -> JsValue;
 }
 
 impl core::fmt::Debug for SqliteDatabase {
@@ -88,5 +91,39 @@ impl DatabaseTrait for WasmDatabase {
         self.db.execute(sql, params.to_sql()).await;
 
         Ok(0)
+    }
+
+    async fn query_map<T, F>(&self, sql: &str, row_to_type: F) -> Result<Vec<T>, DatabaseError>
+    where
+        F: Fn(&Row) -> Result<T, DatabaseError>,
+    {
+        let result = self.db.query_map(sql).await;
+
+        let rows = js_sys::Array::from(&result)
+            .iter()
+            .map(|row| {
+                let data = js_sys::Array::from(&row);
+                let row = Row {
+                    data: data.to_vec(),
+                };
+                row_to_type(&row)
+            })
+            .collect::<Result<Vec<T>, DatabaseError>>()?;
+
+        Ok(rows)
+    }
+}
+
+pub struct Row {
+    data: Vec<JsValue>,
+}
+
+impl Row {
+    pub fn get<T: FromSql>(&self, idx: u8) -> Result<T, DatabaseError> {
+        let value = self.data.get(idx as usize).expect("ABLE TO UNWRAP");
+
+        let result = T::from_sql(value.clone());
+
+        Ok(result)
     }
 }

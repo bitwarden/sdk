@@ -437,11 +437,11 @@ dependencies = [
  "bitwarden-api-api",
  "bitwarden-api-identity",
  "bitwarden-crypto",
+ "bitwarden-db",
  "chrono",
  "coset",
  "getrandom",
  "hmac",
- "js-sys",
  "log",
  "p256",
  "passkey",
@@ -499,6 +499,30 @@ dependencies = [
  "uniffi",
  "uuid",
  "zeroize",
+]
+
+[[package]]
+name = "bitwarden-db"
+version = "0.5.0"
+dependencies = [
+ "js-sys",
+ "log",
+ "rusqlite",
+ "thiserror",
+ "tokio",
+ "uuid",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+]
+
+[[package]]
+name = "bitwarden-db-tests"
+version = "0.1.0"
+dependencies = [
+ "bitwarden-db",
+ "tokio",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
 ]
 
 [[package]]
@@ -662,14 +686,13 @@ dependencies = [
  "bitwarden-api-api",
  "bitwarden-core",
  "bitwarden-crypto",
+ "bitwarden-db",
  "chrono",
  "hmac",
- "idb",
  "rand",
  "reqwest",
  "schemars",
  "serde",
- "serde-wasm-bindgen",
  "serde_json",
  "serde_repr",
  "sha1",
@@ -2103,20 +2126,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "idb"
-version = "0.6.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5343e1df07c7c249df4a750a6e8c42dda96d6041e126cea6776151ec648645c2"
-dependencies = [
- "js-sys",
- "num-traits",
- "thiserror",
- "tokio",
- "wasm-bindgen",
- "web-sys",
-]
-
-[[package]]
 name = "ident_case"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3348,6 +3357,7 @@ dependencies = [
  "hashlink",
  "libsqlite3-sys",
  "smallvec",
+ "uuid",
 ]
 
 [[package]]

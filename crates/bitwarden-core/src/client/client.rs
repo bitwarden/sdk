@@ -1,16 +1,14 @@
 use std::sync::{Arc, Mutex, RwLock};
 
+use bitwarden_db::Database;
 use reqwest::header::{self, HeaderValue};
 
 use super::internal::InternalClient;
 #[cfg(feature = "internal")]
 use crate::client::flags::Flags;
-use crate::{
-    client::{
-        client_settings::ClientSettings,
-        internal::{ApiConfigurations, Tokens},
-    },
-    Database,
+use crate::client::{
+    client_settings::ClientSettings,
+    internal::{ApiConfigurations, Tokens},
 };
 
 /// The main struct to interact with the Bitwarden SDK.

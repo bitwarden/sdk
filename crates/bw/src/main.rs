@@ -157,7 +157,7 @@ async fn process_commands() -> Result<()> {
                 identity_url: format!("{}/identity", server),
                 ..Default::default()
             });
-            let client = bitwarden::Client::new(settings);
+            let client = bitwarden::Client::new(settings).await;
 
             match args.command {
                 // FIXME: Rust CLI will not support password login!

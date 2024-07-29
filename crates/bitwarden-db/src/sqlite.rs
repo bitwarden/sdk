@@ -1,5 +1,5 @@
 use rusqlite::Connection;
-pub use rusqlite::Params;
+pub use rusqlite::{named_params, params, Params, Row};
 
 use super::{migrator::Migrator, DatabaseError, DatabaseTrait};
 
@@ -85,6 +85,28 @@ impl DatabaseTrait for SqliteDatabase {
 
         Ok(0)
     }
+
+    async fn query_map<T, F>(&self, query: &str, row_to_type: F) -> Result<Vec<T>, DatabaseError>
+    where
+        F: Fn(&Row) -> Result<T, DatabaseError>,
+    {
+        let mut stmt = self.conn.prepare(query)?;
+        let rows: Result<Vec<T>, rusqlite::Error> = stmt
+            .query_map([], |row| row_to_type(row).map_err(|err| err.into()))?
+            .collect();
+
+        Ok(rows?)
+    }
+}
+
+// From DatabaseError to rusqlite::Error
+impl From<DatabaseError> for rusqlite::Error {
+    fn from(err: DatabaseError) -> Self {
+        match err {
+            DatabaseError::Rusqlite(err) => err,
+            _ => rusqlite::Error::QueryReturnedNoRows,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -121,5 +143,55 @@ mod tests {
             .unwrap();
 
         assert_eq!(count, 1);
+    }
+
+    #[tokio::test]
+    async fn test_execute() {
+        let db = SqliteDatabase::new_test();
+
+        db.execute("CREATE TABLE test (id INTEGER PRIMARY KEY, name TEXT)", [])
+            .await
+            .unwrap();
+
+        db.execute("INSERT INTO test (name) VALUES (?)", ["abc"])
+            .await
+            .unwrap();
+
+        db.execute(
+            "INSERT INTO test (name) VALUES (:name)",
+            &[(":name", "one")],
+        )
+        .await
+        .unwrap();
+
+        #[derive(Debug, PartialEq)]
+        struct Test {
+            id: i64,
+            name: String,
+        }
+
+        let rows: Vec<Test> = db
+            .query_map("SELECT * FROM test", |row| {
+                Ok(Test {
+                    id: row.get(0)?,
+                    name: row.get(1)?,
+                })
+            })
+            .await
+            .unwrap();
+
+        assert_eq!(
+            rows,
+            vec![
+                Test {
+                    id: 1,
+                    name: "abc".to_string()
+                },
+                Test {
+                    id: 2,
+                    name: "one".to_string()
+                }
+            ]
+        );
     }
 }

@@ -1,11 +1,8 @@
 use std::sync::{Arc, Mutex};
 
-use bitwarden_core::{
-    named_params, params, require, Database, DatabaseError, DatabaseTrait, Error,
-};
-use idb::{DatabaseEvent, Factory, KeyPath, ObjectStoreParams, TransactionMode};
+use bitwarden_core::{require, Error};
+use bitwarden_db::{named_params, Database, DatabaseError, DatabaseTrait};
 use serde::Serialize;
-use serde_wasm_bindgen::Serializer;
 use uuid::Uuid;
 
 use super::Cipher;
@@ -27,8 +24,8 @@ impl CipherRepository {
     }
 
     pub fn save(&self, cipher: &Cipher) -> Result<(), DatabaseError> {
-        let id = require!(cipher.id);
-        let serialized = serde_json::to_string(cipher)?;
+        let id = cipher.id.unwrap();
+        let serialized = serde_json::to_string(cipher).unwrap();
 
         /*let guard = self.db.lock().map_err(|_| DatabaseError::DatabaseLock)?;
 
@@ -128,8 +125,8 @@ impl CipherRepository {
         )?;*/
 
         for cipher in ciphers {
-            let id = require!(cipher.id);
-            let serialized = serde_json::to_string(&cipher)?;
+            let id = cipher.id.unwrap();
+            let serialized = serde_json::to_string(&cipher).unwrap();
 
             guard
                 .execute(

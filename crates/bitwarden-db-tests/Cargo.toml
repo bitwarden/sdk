@@ -1,0 +1,25 @@
+[package]
+name = "bitwarden-db-tests"
+version = "0.1.0"
+publish = false
+
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+
+[[bin]]
+name = "bitwarden_db_tests"
+path = "bin/main.rs"
+
+[lib]
+name = "bitwarden_db_tests"
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+bitwarden-db = { workspace = true }
+tokio = { version = "1.36.0", features = ["rt", "macros"] }
+wasm-bindgen = "0.2.92"
+wasm-bindgen-futures = "0.4.41"

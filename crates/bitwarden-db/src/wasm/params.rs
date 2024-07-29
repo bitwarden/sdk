@@ -15,9 +15,38 @@ impl ToSql for String {
         JsValue::from_str(self)
     }
 }
+impl ToSql for &str {
+    fn to_sql(&self) -> JsValue {
+        JsValue::from_str(self)
+    }
+}
 impl ToSql for Uuid {
     fn to_sql(&self) -> JsValue {
         JsValue::from_str(&self.to_string())
+    }
+}
+
+pub trait FromSql {
+    fn from_sql(value: JsValue) -> Self;
+}
+impl FromSql for u8 {
+    fn from_sql(value: JsValue) -> Self {
+        value.as_f64().unwrap() as u8
+    }
+}
+impl FromSql for i64 {
+    fn from_sql(value: JsValue) -> Self {
+        value.as_f64().unwrap() as i64
+    }
+}
+impl FromSql for String {
+    fn from_sql(value: JsValue) -> Self {
+        value.as_string().unwrap()
+    }
+}
+impl FromSql for Uuid {
+    fn from_sql(value: JsValue) -> Self {
+        Uuid::parse_str(&value.as_string().unwrap()).unwrap()
     }
 }
 

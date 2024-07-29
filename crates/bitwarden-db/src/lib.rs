@@ -1,54 +1,24 @@
-use migrator::MigratorError;
-
+#![allow(async_fn_in_trait)]
+mod error;
+pub use error::DatabaseError;
 mod migrator;
 
 // #[cfg(all(feature = "sqlite", feature = "wasm"))]
 // compile_error!("Sqlite and wasm are mutually exclusive and cannot be enabled together");
 
-#[cfg(feature = "sqlite")]
+#[cfg(not(target_arch = "wasm32"))]
 mod sqlite;
-#[cfg(feature = "sqlite")]
+#[cfg(not(target_arch = "wasm32"))]
 pub type Database = sqlite::SqliteDatabase;
-use serde::Serialize;
-#[cfg(feature = "sqlite")]
-pub use sqlite::Params;
+#[cfg(not(target_arch = "wasm32"))]
+pub use sqlite::{named_params, params, Params, Row};
 
-#[cfg(feature = "wasm")]
+#[cfg(target_arch = "wasm32")]
 mod wasm;
-#[cfg(all(not(feature = "sqlite"), feature = "wasm"))]
+#[cfg(target_arch = "wasm32")]
 pub type Database = wasm::WasmDatabase;
-#[cfg(all(not(feature = "sqlite"), feature = "wasm"))]
-pub use wasm::{Params, ToSql};
-
-use thiserror::Error;
-
-use crate::MissingFieldError;
-
-#[derive(Debug, Error)]
-pub enum DatabaseError {
-    #[error("Database lock")]
-    DatabaseLock,
-
-    #[error("Failed to open connection to database")]
-    FailedToOpenConnection,
-
-    #[error(transparent)]
-    Migrator(#[from] MigratorError),
-
-    #[error(transparent)]
-    SerdeJson(#[from] serde_json::Error),
-    #[error(transparent)]
-    MissingField(#[from] MissingFieldError),
-
-    #[error("Unable to get version")]
-    UnableToGetVersion,
-    #[error("Unable to set version")]
-    UnableToSetVersion,
-
-    #[cfg(feature = "sqlite")]
-    #[error(transparent)]
-    Rusqlite(#[from] rusqlite::Error),
-}
+#[cfg(target_arch = "wasm32")]
+pub use wasm::{Params, Row, ToSql};
 
 /// Persistent storage for the Bitwarden SDK
 ///
@@ -67,4 +37,8 @@ pub trait DatabaseTrait {
     ///
     /// On success, returns the number of rows that were changed or inserted or deleted.
     async fn execute<P: Params>(&self, sql: &str, params: P) -> Result<usize, DatabaseError>;
+
+    async fn query_map<T, F>(&self, query: &str, row_to_type: F) -> Result<Vec<T>, DatabaseError>
+    where
+        F: Fn(&Row) -> Result<T, DatabaseError>;
 }

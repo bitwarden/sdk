@@ -4,6 +4,7 @@ use std::sync::{Arc, Mutex, RwLock};
 use bitwarden_crypto::SymmetricCryptoKey;
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{AsymmetricEncString, EncString, Kdf, MasterKey};
+use bitwarden_db::Database;
 use chrono::Utc;
 use uuid::Uuid;
 
@@ -17,7 +18,7 @@ use crate::error::Error;
 use crate::{
     auth::renew::renew_token,
     error::{Result, VaultLocked},
-    Database, DeviceType,
+    DeviceType,
 };
 
 #[derive(Debug, Clone)]

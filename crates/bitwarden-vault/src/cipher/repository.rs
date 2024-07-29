@@ -211,32 +211,32 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_save_get_all() {
+    #[tokio::test]
+    async fn test_save_get_all() {
         let repo = CipherRepository::new(Arc::new(Mutex::new(Database::new_test())));
 
         let cipher = mock_cipher("d55d65d7-c161-40a4-94ca-b0d20184d91a".parse().unwrap());
 
         repo.save(&cipher).unwrap();
 
-        let ciphers = repo.get_all().unwrap();
+        let ciphers = repo.get_all().await.unwrap();
 
         assert_eq!(ciphers.len(), 1);
         assert_eq!(ciphers[0].id, cipher.id);
     }
 
-    #[test]
-    fn test_delete_by_id() {
+    #[tokio::test]
+    async fn test_delete_by_id() {
         let repo = CipherRepository::new(Arc::new(Mutex::new(Database::new_test())));
 
         let cipher = mock_cipher("d55d65d7-c161-40a4-94ca-b0d20184d91a".parse().unwrap());
         repo.save(&cipher).unwrap();
 
-        let ciphers = repo.get_all().unwrap();
+        let ciphers = repo.get_all().await.unwrap();
         assert_eq!(ciphers.len(), 1);
 
-        repo.delete_by_id(cipher.id.unwrap()).unwrap();
-        let ciphers = repo.get_all().unwrap();
+        repo.delete_by_id(cipher.id.unwrap()).await.unwrap();
+        let ciphers = repo.get_all().await.unwrap();
         assert_eq!(ciphers.len(), 0);
     }
 
@@ -248,7 +248,7 @@ mod tests {
 
         repo.save(&old_cipher).unwrap();
 
-        let ciphers = repo.get_all().unwrap();
+        let ciphers = repo.get_all().await.unwrap();
         assert_eq!(ciphers.len(), 1);
         assert_eq!(ciphers[0].id, old_cipher.id);
 
@@ -258,7 +258,7 @@ mod tests {
 
         repo.replace_all(new_ciphers.as_slice()).await.unwrap();
 
-        let ciphers = repo.get_all().unwrap();
+        let ciphers = repo.get_all().await.unwrap();
         assert_eq!(ciphers.len(), 1);
         assert_eq!(ciphers[0].id, new_ciphers[0].id);
     }

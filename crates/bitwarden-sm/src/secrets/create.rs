@@ -69,7 +69,7 @@ mod tests {
             project_ids: Some(vec![Uuid::new_v4()]),
         };
 
-        super::create_secret(&Client::new(None), &input).await
+        super::create_secret(&Client::new(None).await, &input).await
     }
 
     #[tokio::test]

@@ -47,8 +47,8 @@ mod tests {
     use super::*;
     use crate::client::{Client, LoginMethod, UserLoginMethod};
 
-    fn init_client() -> Client {
-        let client = Client::new(None);
+    async fn init_client() -> Client {
+        let client = Client::new(None).await;
 
         let password = "asdfasdfasdf";
         let email = "test@bitwarden.com";
@@ -77,25 +77,25 @@ mod tests {
         client
     }
 
-    #[test]
-    fn test_validate_valid_pin() {
+    #[tokio::test]
+    async fn test_validate_valid_pin() {
         let pin = "1234".to_string();
         let pin_protected_user_key = "2.BXgvdBUeEMyvumqAJkAzPA==|JScDPoqOkVdrC1X755Ubt8tS9pC/thvrvNf5CyNcRg8HZtZ466EcRo7aCqwUzLyTVNRkbCYtFYT+09acGGHur8tGuS7Kmg/pYeaUo4K0UKI=|NpIFg5P9z0SN1MffbixD9OQE0l+NiNmnRQJs/kTsyoQ="
         .parse()
         .unwrap();
 
-        let client = init_client();
+        let client = init_client().await;
         assert!(validate_pin(&client, pin.clone(), pin_protected_user_key).unwrap());
     }
 
-    #[test]
-    fn test_validate_invalid_pin() {
+    #[tokio::test]
+    async fn test_validate_invalid_pin() {
         let pin = "1234".to_string();
         let pin_protected_user_key = "2.BXgvdBUeEMyvumqAJkAyPA==|JScDPoqOkVdrC1X755Ubt8tS9pC/thvrvNf5CyNcRg8HZtZ466EcRo7aCqwUzLyTVNRkbCYtFYT+09acGGHur8tGuS7Kmg/pYeaUo4K0UKI=|NpIFg5P9z0SN1MffbixD9OQE0l+NiNmnRQJs/kTsyoQ="
         .parse()
         .unwrap();
 
-        let client = init_client();
+        let client = init_client().await;
         assert!(!validate_pin(&client, pin.clone(), pin_protected_user_key).unwrap());
     }
 }

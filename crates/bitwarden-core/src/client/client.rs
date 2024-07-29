@@ -1,4 +1,5 @@
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Arc, RwLock};
+use tokio::sync::Mutex;
 
 use bitwarden_db::Database;
 use reqwest::header::{self, HeaderValue};

@@ -1,4 +1,5 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 use bitwarden_core::{require, Error};
 use bitwarden_db::{named_params, Database, DatabaseError, DatabaseTrait};
@@ -44,7 +45,7 @@ impl CipherRepository {
     }
 
     pub async fn replace_all(&mut self, ciphers: &[Cipher]) -> Result<(), DatabaseError> {
-        let mut guard = self.db.lock().map_err(|_| DatabaseError::DatabaseLock)?;
+        let mut guard = self.db.lock().await;
 
         /*
         let queries: Vec<String> = ciphers
@@ -142,8 +143,8 @@ impl CipherRepository {
         Ok(())
     }
 
-    pub fn delete_by_id(&self, id: Uuid) -> Result<(), DatabaseError> {
-        let guard = self.db.lock().map_err(|_| DatabaseError::DatabaseLock)?;
+    pub async fn delete_by_id(&self, id: Uuid) -> Result<(), DatabaseError> {
+        let guard = self.db.lock().await;
 
         //let mut stmt = guard.conn.prepare("DELETE FROM ciphers WHERE id = ?1")?;
         //stmt.execute(params![id])?;
@@ -151,8 +152,8 @@ impl CipherRepository {
         Ok(())
     }
 
-    pub fn get_all(&self) -> Result<Vec<Cipher>, DatabaseError> {
-        let guard = self.db.lock().map_err(|_| DatabaseError::DatabaseLock)?;
+    pub async fn get_all(&self) -> Result<Vec<Cipher>, DatabaseError> {
+        let guard = self.db.lock().await;
         /*
         let mut stmt = guard.conn.prepare("SELECT id, value FROM ciphers")?;
         let rows = stmt.query_map([], |row| {

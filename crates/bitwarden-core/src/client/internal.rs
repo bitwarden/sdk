@@ -1,11 +1,11 @@
-use std::sync::{Arc, Mutex, RwLock};
-
 #[cfg(any(feature = "internal", feature = "secrets"))]
 use bitwarden_crypto::SymmetricCryptoKey;
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{AsymmetricEncString, EncString, Kdf, MasterKey};
 use bitwarden_db::Database;
 use chrono::Utc;
+use std::sync::{Arc, RwLock};
+use tokio::sync::Mutex;
 use uuid::Uuid;
 
 #[cfg(feature = "secrets")]

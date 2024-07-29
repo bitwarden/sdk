@@ -31,11 +31,15 @@ class SqliteDatabase {
   }
 
   async get_version() {
-    console.log("GET");
+    let version = 0;
+    await sqlite3.exec(this.db, "PRAGMA user_version;", (row) => {
+      version = row[0];
+    });
+    return version;
   }
 
   async set_version(version) {
-    console.log("Version", version);
+    await sqlite3.exec(this.db, `PRAGMA user_version = ${version};`);
   }
 
   async execute_batch(sql) {

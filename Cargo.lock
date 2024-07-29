@@ -516,6 +516,7 @@ name = "bitwarden-db-tests"
 version = "0.1.0"
 dependencies = [
  "bitwarden-db",
+ "console_error_panic_hook",
  "tokio",
  "wasm-bindgen",
  "wasm-bindgen-futures",

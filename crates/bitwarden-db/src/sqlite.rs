@@ -30,11 +30,13 @@ impl SqliteDatabase {
     async fn new_conn(conn: Connection) -> Result<Self, DatabaseError> {
         let db = SqliteDatabase { conn };
 
+        /*
         let migrator = Migrator::new();
         migrator
             .migrate(&db, None)
             .await
             .map_err(DatabaseError::Migrator)?;
+        */
 
         Ok(db)
     }

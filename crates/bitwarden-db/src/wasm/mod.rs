@@ -49,6 +49,8 @@ impl WasmDatabase {
 
     pub async fn new() -> Result<Self, DatabaseError> {
         let db: SqliteDatabase = SqliteDatabase::factory("test").await.into();
+
+        /*
         db.execute_batch(
             "CREATE TABLE IF NOT EXISTS ciphers (
                 id TEXT PRIMARY KEY,
@@ -56,6 +58,8 @@ impl WasmDatabase {
             )",
         )
         .await;
+        */
+
         Ok(WasmDatabase { db })
     }
     /*

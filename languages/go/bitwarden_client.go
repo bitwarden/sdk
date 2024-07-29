@@ -7,7 +7,7 @@ import (
 )
 
 type BitwardenClientInterface interface {
-	AccessTokenLogin(accessToken string, statePath *string) error
+	AccessTokenLogin(accessToken string, stateFile *string) error
 	Projects() ProjectsInterface
 	Secrets() SecretsInterface
 	Close()
@@ -52,8 +52,8 @@ func NewBitwardenClient(apiURL *string, identityURL *string) (BitwardenClientInt
 	}, nil
 }
 
-func (c *BitwardenClient) AccessTokenLogin(accessToken string, statePath *string) error {
-	req := AccessTokenLoginRequest{AccessToken: accessToken, StateFile: statePath}
+func (c *BitwardenClient) AccessTokenLogin(accessToken string, stateFile *string) error {
+	req := AccessTokenLoginRequest{AccessToken: accessToken, StateFile: stateFile}
 	command := Command{AccessTokenLogin: &req}
 
 	responseStr, err := c.commandRunner.RunCommand(command)

@@ -3,7 +3,7 @@ require 'bitwarden-sdk-secrets'
 
 token = ENV['ACCESS_TOKEN']
 organization_id = ENV['ORGANIZATION_ID']
-state_path = ENV['STATE_PATH']
+state_file = ENV['STATE_FILE']
 
 # Configuring the URLS is optional, set them to nil to use the default values
 api_url = ENV['API_URL']
@@ -12,7 +12,7 @@ identity_url = ENV['IDENTITY_URL']
 bitwarden_settings = BitwardenSDKSecrets::BitwardenSettings.new(api_url, identity_url)
 
 bw_client = BitwardenSDKSecrets::BitwardenClient.new(bitwarden_settings)
-response = bw_client.access_token_login(token, state_path)
+response = bw_client.access_token_login(token, state_file)
 puts response
 
 # CREATE project

@@ -52,7 +52,7 @@ fn get_secret_verification_request(
             .master_password
             .as_ref()
             .map(|p| {
-                let master_key = MasterKey::derive(p.as_bytes(), email.as_bytes(), kdf)?;
+                let master_key = MasterKey::derive(p, email, kdf)?;
 
                 master_key.derive_master_key_hash(p.as_bytes(), HashPurpose::ServerAuthorization)
             })

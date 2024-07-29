@@ -19,7 +19,7 @@ pub(crate) enum ProfileKey {
     server_base,
     server_api,
     server_identity,
-    state_file_dir,
+    state_dir,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]

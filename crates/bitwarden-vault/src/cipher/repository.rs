@@ -1,9 +1,9 @@
 use std::sync::Arc;
-use tokio::sync::Mutex;
 
 use bitwarden_core::{require, Error};
 use bitwarden_db::{named_params, Database, DatabaseError, DatabaseTrait};
 use serde::Serialize;
+use tokio::sync::Mutex;
 use uuid::Uuid;
 
 use super::Cipher;

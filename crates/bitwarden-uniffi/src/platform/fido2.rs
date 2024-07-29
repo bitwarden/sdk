@@ -180,6 +180,22 @@ pub struct CheckUserResult {
     user_verified: bool,
 }
 
+impl From<CheckUserResult> for bitwarden::fido::CheckUserResult {
+    fn from(val: CheckUserResult) -> Self {
+        Self {
+            user_present: val.user_present,
+            user_verified: val.user_verified,
+        }
+    }
+}
+
+#[allow(dead_code)]
+#[derive(uniffi::Record)]
+pub struct CheckUserAndPickCredentialForCreationResult {
+    cipher: CipherViewWrapper,
+    check_user_result: CheckUserResult,
+}
+
 #[derive(Debug, thiserror::Error, uniffi::Error)]
 pub enum Fido2CallbackError {
     #[error("The operation requires user interaction")]
@@ -227,7 +243,7 @@ pub trait Fido2UserInterface: Send + Sync {
         &self,
         options: CheckUserOptions,
         new_credential: Fido2CredentialNewView,
-    ) -> Result<CipherViewWrapper, Fido2CallbackError>;
+    ) -> Result<CheckUserAndPickCredentialForCreationResult, Fido2CallbackError>;
     async fn is_verification_enabled(&self) -> bool;
 }
 
@@ -326,10 +342,7 @@ impl bitwarden::fido::Fido2UserInterface for UniffiTraitBridge<&dyn Fido2UserInt
         self.0
             .check_user(options.clone(), hint.into())
             .await
-            .map(|r| bitwarden::fido::CheckUserResult {
-                user_present: r.user_present,
-                user_verified: r.user_verified,
-            })
+            .map(Into::into)
             .map_err(Into::into)
     }
     async fn pick_credential_for_authentication(
@@ -346,11 +359,11 @@ impl bitwarden::fido::Fido2UserInterface for UniffiTraitBridge<&dyn Fido2UserInt
         &self,
         options: CheckUserOptions,
         new_credential: Fido2CredentialNewView,
-    ) -> Result<CipherView, BitFido2CallbackError> {
+    ) -> Result<(CipherView, bitwarden::fido::CheckUserResult), BitFido2CallbackError> {
         self.0
             .check_user_and_pick_credential_for_creation(options, new_credential)
             .await
-            .map(|v| v.cipher)
+            .map(|v| (v.cipher.cipher, v.check_user_result.into()))
             .map_err(Into::into)
     }
     async fn is_verification_enabled(&self) -> bool {

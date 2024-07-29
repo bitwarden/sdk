@@ -52,21 +52,14 @@ pub struct TestAccount {
 ///
 /// ```sql
 /// INSERT INTO vault_dev.dbo.[User] (
-///   Id, Name, Email, EmailVerified, MasterPassword,
-///   MasterPasswordHint, Culture, SecurityStamp,
-///   TwoFactorProviders, TwoFactorRecoveryCode,
-///   EquivalentDomains, ExcludedGlobalEquivalentDomains,
-///   AccountRevisionDate, [Key], PublicKey,
-///   PrivateKey, Premium, PremiumExpirationDate,
-///   Storage, MaxStorageGb, Gateway, GatewayCustomerId,
-///   GatewaySubscriptionId, LicenseKey,
-///   CreationDate, RevisionDate, RenewalReminderDate,
-///   Kdf, KdfIterations, ReferenceData,
-///   ApiKey, ForcePasswordReset, UsesKeyConnector,
-///   FailedLoginCount, LastFailedLoginDate,
-///   AvatarColor, KdfMemory, KdfParallelism,
-///   LastPasswordChangeDate, LastKdfChangeDate,
-///   LastKeyRotationDate, LastEmailChangeDate
+///   Id, Name, Email, EmailVerified, MasterPassword, MasterPasswordHint, Culture, SecurityStamp,
+///   TwoFactorProviders, TwoFactorRecoveryCode, EquivalentDomains,
+///   ExcludedGlobalEquivalentDomains, AccountRevisionDate, [Key], PublicKey, PrivateKey, Premium,
+///   PremiumExpirationDate, Storage, MaxStorageGb, Gateway, GatewayCustomerId,
+///   GatewaySubscriptionId, LicenseKey, CreationDate, RevisionDate, RenewalReminderDate, Kdf,
+///   KdfIterations, ReferenceData, ApiKey, ForcePasswordReset, UsesKeyConnector, FailedLoginCount,
+///   LastFailedLoginDate, AvatarColor, KdfMemory, KdfParallelism, LastPasswordChangeDate,
+///   LastKdfChangeDate, LastKeyRotationDate, LastEmailChangeDate
 /// )
 /// VALUES
 /// (
@@ -141,5 +134,56 @@ pub fn test_bitwarden_com_account() -> TestAccount {
                 "4.rY01mZFXHOsBAg5Fq4gyXuklWfm6mQASm42DJpx05a+e2mmp+P5W6r54WU2hlREX0uoTxyP91bKKwickSPdCQQ58J45LXHdr9t2uzOYyjVzpzebFcdMw1eElR9W2DW8wEk9+mvtWvKwu7yTebzND+46y1nRMoFydi5zPVLSlJEf81qZZ4Uh1UUMLwXz+NRWfixnGXgq2wRq1bH0n3mqDhayiG4LJKgGdDjWXC8W8MMXDYx24SIJrJu9KiNEMprJE+XVF9nQVNijNAjlWBqkDpsfaWTUfeVLRLctfAqW1blsmIv4RQ91PupYJZDNc8nO9ZTF3TEVM+2KHoxzDJrLs2Q==".parse().unwrap()
             )])
         }),
+    }
+}
+
+/// ### `legacy@bitwarden.com`
+///
+/// Account which has a user_key of type `AesCbc256_B64` which is deprecated.
+///
+/// - Email: `legacy@bitwarden.com`
+/// - Password: `asdfasdfasdf`
+/// - PBKDF2: `600_000` iterations
+///
+/// ```sql
+/// /// INSERT INTO vault_dev.dbo.[User] (
+///   Id, Name, Email, EmailVerified, MasterPassword, MasterPasswordHint, Culture, SecurityStamp,
+///   TwoFactorProviders, TwoFactorRecoveryCode, EquivalentDomains,
+///   ExcludedGlobalEquivalentDomains, AccountRevisionDate, [Key], PublicKey, PrivateKey, Premium,
+///   PremiumExpirationDate, Storage, MaxStorageGb, Gateway, GatewayCustomerId,
+///   GatewaySubscriptionId, LicenseKey, CreationDate, RevisionDate, RenewalReminderDate, Kdf,
+///   KdfIterations, ReferenceData, ApiKey, ForcePasswordReset, UsesKeyConnector, FailedLoginCount,
+///   LastFailedLoginDate, AvatarColor, KdfMemory, KdfParallelism, LastPasswordChangeDate,
+///   LastKdfChangeDate, LastKeyRotationDate, LastEmailChangeDate
+/// )
+/// VALUES
+/// (
+///   N'764335ba-bb3b-4646-9c19-b1a301229eb2', N'Legacy', N'legacy@bitwarden.com', 1,
+///   N'AQAAAAIAAYagAAAAEBPKHRNzY+8XTZGODQaa4hQUW/7qsW73v5O8WmqsS+xplghgtX/qXS1JTHT6PNWUFw==',
+///   null, N'en-US', N'a1611dff-b383-4d7f-bb37-18c37507c11e', null, null, null, null,
+///   N'2024-07-05 13:27:01.4033333',
+///   N'0.8UClLa8IPE1iZT7chy5wzQ==|6PVfHnVk5S3XqEtQemnM5yb4JodxmPkkWzmDRdfyHtjORmvxqlLX40tBJZ+CKxQWmS8tpEB5w39rbgHg/gqs0haGdZG4cPbywsgGzxZ7uNI=',
+///   N'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvbVTK0cY7j/9GD4UTIZVywT3vWNIiy5LuI1l9MIKbWh+PyVUB5ySR++Z1tDwx5R87AtXwjQS09j6a4X+uGHW4lRQR3Dngb2CpMutLqFjKk7NYWSj3MU5bKlvsCf2Z59ECJEFqo3eAsHYyrL3CixRsZg3LkQcYT+VT/qOOcI6UkMX50lpma2Cvdf3IAgPf6Enkg/WJ3d7D6aU5YtexTY03uKVbOb2UoO2ZJ29VyYEVEJ+0S6pqe9laeHz/oJ9SI3sRqdEYRmyDsbUWJHRJr7eAVesmiUBU/Ls7t4k/oXjfiJ7K5wqL5yCQ0HkqK8zQhi9wB4u7kHwEa8sDJE+cFQ5bQIDAQAB',
+///   N'2.leBIE5u0aQUeXi++JzAnrA==|P8x+hs00RJx7epw+49qVtBhLJxE/JTL5dEHg6kq5pbZLdUY8ZvWK49v0EqgHbv1r298N9+msoO9hmdSIVIAZyycemYDSoc1rX4S1KpS/ZMA/Vd3VLFb+o13Ts62GFQ5ygHKgQZfzjU6jO5P/B/0igzFoxyJDomhW5NBC1P9+e/5qNRZN8loKvAaWc/7XtpRayPQqWx+AgYc2ntb1GF5hRVrW4M47bG5ZKllbJWtQKg2sXIy2lDBbKLRFWF4RFzNVcXQGMoPdWLY0f3uTwUH01dyGmFFMbOvfBEuYqmZyPdd93ve8zuFOEqkj46Ulpq2CVG8NvZARTwsdKl6XB0wGuHFoTsDJT2SJGl67pBBKsVRGxy059QW+9hAIB+emIV0T/7+0rvdeSXZ4AbG+oXGEXFTkHefwJKfeT0MBTAjYKr7ZRLgqvf7n39+nCEJU4l22kp8FmjcWIU7AgNipdGHC+UT2yfOcYlvgBgWDcMXcbVDMyus9105RgcW6PHozUj7yjbohI/A3XWmAFufP6BSnmEFCKoik78X/ry09xwiH2rN4KVXe/k9LpRNB2QBGIVsfgCrkxjeE8r0nA59Rvwrhny1z5BkvMW/N1KrGuafg/IYgegx72gJNuZPZlFu1Vs7HxySHmzYvm3DPV7bzCaAxxNtvZmQquNIEnsDQfjJO76iL1JCtDqNJVzGLHTMTr7S5hkOcydcH3kfKwZdA1ULVd2qu0SwOUEP/ECjU/cS5INy6WPYzNMAe/g2DISpQjNwBb5K17PIiGOR7/Q/A6E8pVnkHiAXuUFr9aLOYN9BWSu5Z+BPHH65na2FDmssix5WV09I2sUBfvdNCjkrUGdYgo8E+vOTn35x9GJHF45uhmgC1yAn/+/RSpORlrSVJ7NNP11dn3htUpSsIy/b7ituAu8Ry5mhicFU8CXJL4NeMlXThUt8P++wxs4wMkBvJ8J9NJAVKbAOA2o+GOdjbh6Ww3IRegkurWh4oL/dFSx0LpaXJuw6HFT/LzticPlSwHtUP11hZ81seMsXmkSZd8IugRFfwpPl7N6PVRWDOKxLf4gPqcnJ11TvfasXy1uolV2vZCPbrbbVzQMPdVwL/OzwfhqsIgQZI8rsDMK5D2EX8MaT8MDfGcsYcVTL9PmuZYLpOUnnHX0A1opAAa9iPw3d+eWB/GAyLvKPnMTUqVNos8HcCktXckCshihA8QuBJOwg3m0j2LPSZ5Jvf8gbXauBmt9I4IlJq0xfpgquYY1WNnO8IcWE4N9W+ASvOr9gnduA6CkDeAlyMUFmdpkeCjGMcsV741bTCPApSQlL3/TOT1cjK3iejWpz0OaVHXyg02hW2fNkOfYfr81GvnLvlHxIg4Prw89gKuWU+kQk82lFQo6QQpqbCbJC2FleurD8tYoSY0srhuioVInffvTxw2NMF7FQEqUcsK9AMKSEiDqzBi35Um/fiE3JL4XZBFw8Xzl7X3ab5nlg8X+xD5uSZY+oxD3sDVXjLaQ5JUoys+MCm0FkUj85l0zT6rvM4QLhU1RDK1U51T9HJhh8hsFJsqL4abRzwEWG7PSi859zN4UsgyuQfmBJv/n7QAFCbrJhVBlGB1TKLZRzvgmKoxTYTG3cJFkjetLcUTwrwC9naxAQRfF4=|ufHf73IzJ707dx44w4fjkuD7tDa50OwmmkxcypAT9uQ=',
+///   0, null, null, null, null, null, null, null, N'2024-07-04 17:38:06.7866667',
+///   N'2024-07-05 13:27:01.4033333', null, 0, 600000,
+///   N'{"id":null,"initiationPath":"Registration form"}', N'Yi9yvlPzvbOuilU0f0pFYuEuxcDy11',
+///   0, 0, 0, null, null, null, null, null, null, null, N'2024-07-05 13:27:01.4033333'
+/// );
+/// ```
+pub fn test_legacy_user_key_account() -> TestAccount {
+    TestAccount {
+        user: InitUserCryptoRequest {
+            kdf_params: Kdf::PBKDF2 {
+                iterations: 600_000.try_into().unwrap(),
+            },
+            email: "legacy@bitwarden.com".to_owned(),
+            private_key: "2.leBIE5u0aQUeXi++JzAnrA==|P8x+hs00RJx7epw+49qVtBhLJxE/JTL5dEHg6kq5pbZLdUY8ZvWK49v0EqgHbv1r298N9+msoO9hmdSIVIAZyycemYDSoc1rX4S1KpS/ZMA/Vd3VLFb+o13Ts62GFQ5ygHKgQZfzjU6jO5P/B/0igzFoxyJDomhW5NBC1P9+e/5qNRZN8loKvAaWc/7XtpRayPQqWx+AgYc2ntb1GF5hRVrW4M47bG5ZKllbJWtQKg2sXIy2lDBbKLRFWF4RFzNVcXQGMoPdWLY0f3uTwUH01dyGmFFMbOvfBEuYqmZyPdd93ve8zuFOEqkj46Ulpq2CVG8NvZARTwsdKl6XB0wGuHFoTsDJT2SJGl67pBBKsVRGxy059QW+9hAIB+emIV0T/7+0rvdeSXZ4AbG+oXGEXFTkHefwJKfeT0MBTAjYKr7ZRLgqvf7n39+nCEJU4l22kp8FmjcWIU7AgNipdGHC+UT2yfOcYlvgBgWDcMXcbVDMyus9105RgcW6PHozUj7yjbohI/A3XWmAFufP6BSnmEFCKoik78X/ry09xwiH2rN4KVXe/k9LpRNB2QBGIVsfgCrkxjeE8r0nA59Rvwrhny1z5BkvMW/N1KrGuafg/IYgegx72gJNuZPZlFu1Vs7HxySHmzYvm3DPV7bzCaAxxNtvZmQquNIEnsDQfjJO76iL1JCtDqNJVzGLHTMTr7S5hkOcydcH3kfKwZdA1ULVd2qu0SwOUEP/ECjU/cS5INy6WPYzNMAe/g2DISpQjNwBb5K17PIiGOR7/Q/A6E8pVnkHiAXuUFr9aLOYN9BWSu5Z+BPHH65na2FDmssix5WV09I2sUBfvdNCjkrUGdYgo8E+vOTn35x9GJHF45uhmgC1yAn/+/RSpORlrSVJ7NNP11dn3htUpSsIy/b7ituAu8Ry5mhicFU8CXJL4NeMlXThUt8P++wxs4wMkBvJ8J9NJAVKbAOA2o+GOdjbh6Ww3IRegkurWh4oL/dFSx0LpaXJuw6HFT/LzticPlSwHtUP11hZ81seMsXmkSZd8IugRFfwpPl7N6PVRWDOKxLf4gPqcnJ11TvfasXy1uolV2vZCPbrbbVzQMPdVwL/OzwfhqsIgQZI8rsDMK5D2EX8MaT8MDfGcsYcVTL9PmuZYLpOUnnHX0A1opAAa9iPw3d+eWB/GAyLvKPnMTUqVNos8HcCktXckCshihA8QuBJOwg3m0j2LPSZ5Jvf8gbXauBmt9I4IlJq0xfpgquYY1WNnO8IcWE4N9W+ASvOr9gnduA6CkDeAlyMUFmdpkeCjGMcsV741bTCPApSQlL3/TOT1cjK3iejWpz0OaVHXyg02hW2fNkOfYfr81GvnLvlHxIg4Prw89gKuWU+kQk82lFQo6QQpqbCbJC2FleurD8tYoSY0srhuioVInffvTxw2NMF7FQEqUcsK9AMKSEiDqzBi35Um/fiE3JL4XZBFw8Xzl7X3ab5nlg8X+xD5uSZY+oxD3sDVXjLaQ5JUoys+MCm0FkUj85l0zT6rvM4QLhU1RDK1U51T9HJhh8hsFJsqL4abRzwEWG7PSi859zN4UsgyuQfmBJv/n7QAFCbrJhVBlGB1TKLZRzvgmKoxTYTG3cJFkjetLcUTwrwC9naxAQRfF4=|ufHf73IzJ707dx44w4fjkuD7tDa50OwmmkxcypAT9uQ=".to_owned(),
+            method: InitUserCryptoMethod::Password {
+                password: "asdfasdfasdf".to_owned(),
+                user_key: "0.8UClLa8IPE1iZT7chy5wzQ==|6PVfHnVk5S3XqEtQemnM5yb4JodxmPkkWzmDRdfyHtjORmvxqlLX40tBJZ+CKxQWmS8tpEB5w39rbgHg/gqs0haGdZG4cPbywsgGzxZ7uNI=".to_owned(),
+            }
+        },
+org: None,
     }
 }

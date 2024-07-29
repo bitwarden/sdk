@@ -1,10 +1,11 @@
+use std::sync::{Arc, RwLock};
+
 #[cfg(any(feature = "internal", feature = "secrets"))]
 use bitwarden_crypto::SymmetricCryptoKey;
 #[cfg(feature = "internal")]
-use bitwarden_crypto::{AsymmetricEncString, EncString, Kdf, MasterKey};
+use bitwarden_crypto::{AsymmetricEncString, EncString, Kdf, MasterKey, PinKey};
 use bitwarden_db::Database;
 use chrono::Utc;
-use std::sync::{Arc, RwLock};
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
@@ -216,7 +217,7 @@ impl InternalClient {
     #[cfg(feature = "internal")]
     pub(crate) fn initialize_user_crypto_pin(
         &self,
-        pin_key: MasterKey,
+        pin_key: PinKey,
         pin_protected_user_key: EncString,
         private_key: EncString,
     ) -> Result<()> {

@@ -1,8 +1,8 @@
 use std::sync::{Arc, RwLock};
-use tokio::sync::Mutex;
 
 use bitwarden_db::Database;
 use reqwest::header::{self, HeaderValue};
+use tokio::sync::Mutex;
 
 use super::internal::InternalClient;
 #[cfg(feature = "internal")]

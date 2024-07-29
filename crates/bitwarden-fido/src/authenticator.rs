@@ -15,7 +15,7 @@ use passkey::{
 use thiserror::Error;
 
 use super::{
-    try_from_credential_new_view, types::*, CheckUserOptions, CheckUserResult, CipherViewContainer,
+    try_from_credential_new_view, types::*, CheckUserOptions, CipherViewContainer,
     Fido2CredentialStore, Fido2UserInterface, SelectedCredential, UnknownEnum, AAGUID,
 };
 use crate::{
@@ -58,8 +58,8 @@ pub enum GetAssertionError {
     Serde(#[from] serde_json::Error),
     #[error(transparent)]
     GetSelectedCredentialError(#[from] GetSelectedCredentialError),
-    #[error("Missing attested_credential_data")]
-    MissingAttestedCredentialData,
+    #[error(transparent)]
+    InvalidGuid(#[from] InvalidGuid),
     #[error("missing user")]
     MissingUser,
     #[error("get_assertion error: {0}")]
@@ -170,6 +170,7 @@ impl<'a> Fido2Authenticator<'a> {
             Err(e) => return Err(MakeCredentialError::Other(format!("{e:?}"))),
         };
 
+        let attestation_object = response.as_bytes().to_vec();
         let authenticator_data = response.auth_data.to_vec();
         let attested_credential_data = response
             .auth_data
@@ -179,7 +180,7 @@ impl<'a> Fido2Authenticator<'a> {
 
         Ok(MakeCredentialResult {
             authenticator_data,
-            attested_credential_data: attested_credential_data.into_iter().collect(),
+            attestation_object,
             credential_id,
         })
     }
@@ -227,13 +228,9 @@ impl<'a> Fido2Authenticator<'a> {
             Err(e) => return Err(GetAssertionError::Other(format!("{e:?}"))),
         };
 
+        let selected_credential = self.get_selected_credential()?;
         let authenticator_data = response.auth_data.to_vec();
-        let credential_id = response
-            .auth_data
-            .attested_credential_data
-            .ok_or(GetAssertionError::MissingAttestedCredentialData)?
-            .credential_id()
-            .to_vec();
+        let credential_id = string_to_guid_bytes(&selected_credential.credential.credential_id)?;
 
         Ok(GetAssertionResult {
             credential_id,
@@ -244,7 +241,7 @@ impl<'a> Fido2Authenticator<'a> {
                 .ok_or(GetAssertionError::MissingUser)?
                 .id
                 .into(),
-            selected_credential: self.get_selected_credential()?,
+            selected_credential,
         })
     }
 
@@ -433,7 +430,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
         cred: Passkey,
         user: passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
         rp: passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
-        _options: passkey::types::ctap2::get_assertion::Options,
+        options: passkey::types::ctap2::get_assertion::Options,
     ) -> Result<(), StatusCode> {
         #[derive(Debug, Error)]
         enum InnerError {
@@ -458,6 +455,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             cred: Passkey,
             user: passkey::types::ctap2::make_credential::PublicKeyCredentialUserEntity,
             rp: passkey::types::ctap2::make_credential::PublicKeyCredentialRpEntity,
+            options: passkey::types::ctap2::get_assertion::Options,
         ) -> Result<(), InnerError> {
             let enc = this
                 .authenticator
@@ -465,7 +463,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                 .internal
                 .get_encryption_settings()?;
 
-            let cred = try_from_credential_full(cred, user, rp)?;
+            let cred = try_from_credential_full(cred, user, rp, options)?;
 
             // Get the previously selected cipher and add the new credential to it
             let mut selected: CipherView = this
@@ -486,7 +484,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                 .replace(selected.clone());
 
             // Encrypt the updated cipher before sending it to the clients to be stored
-            let key = enc.get_key(&selected.organization_id).ok_or(VaultLocked)?;
+            let key = enc.get_key(&selected.organization_id)?;
             let encrypted = selected.encrypt_with_key(key)?;
 
             this.authenticator
@@ -497,7 +495,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
             Ok(())
         }
 
-        inner(self, cred, user, rp).await.map_err(|e| {
+        inner(self, cred, user, rp, options).await.map_err(|e| {
             error!("Error saving credential: {e:?}");
             VendorError::try_from(0xF1)
                 .expect("Valid vendor error code")
@@ -560,7 +558,7 @@ impl passkey::authenticator::CredentialStore for CredentialStoreImpl<'_> {
                 .replace(selected.clone());
 
             // Encrypt the updated cipher before sending it to the clients to be stored
-            let key = enc.get_key(&selected.organization_id).ok_or(VaultLocked)?;
+            let key = enc.get_key(&selected.organization_id)?;
             let encrypted = selected.encrypt_with_key(key)?;
 
             this.authenticator
@@ -613,7 +611,7 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
                 let new_credential = try_from_credential_new_view(user, rp)
                     .map_err(|_| Ctap2Error::InvalidCredential)?;
 
-                let cipher_view = self
+                let (cipher_view, user_check) = self
                     .authenticator
                     .user_interface
                     .check_user_and_pick_credential_for_creation(options, new_credential)
@@ -626,10 +624,7 @@ impl passkey::authenticator::UserValidationMethod for UserValidationMethodImpl<'
                     .expect("Mutex is not poisoned")
                     .replace(cipher_view);
 
-                Ok(CheckUserResult {
-                    user_present: true,
-                    user_verified: verification != UV::Discouraged,
-                })
+                Ok(user_check)
             }
             _ => {
                 self.authenticator

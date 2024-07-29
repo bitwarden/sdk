@@ -188,7 +188,7 @@ async fn process_commands() -> Result<()> {
                 identity_url: format!("{}/identity", server),
                 ..Default::default()
             });
-            let client = bitwarden::Client::new(settings);
+            let client = bitwarden::Client::new(settings).await;
 
             let email = text_prompt_when_none("Email", email)?;
             let password = Password::new("Password").prompt()?;
@@ -207,7 +207,7 @@ async fn process_commands() -> Result<()> {
     }
 
     // Not login, assuming we have a config
-    let client = bitwarden::Client::new(None);
+    let client = bitwarden::Client::new(None).await;
 
     // And finally we process all the commands which require authentication
     match command {

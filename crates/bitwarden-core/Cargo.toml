@@ -14,8 +14,6 @@ repository.workspace = true
 license-file.workspace = true
 
 [features]
-#default = ["sqlite"]
-
 internal = [] # Internal testing methods
 no-memory-hardening = [
     "bitwarden-crypto/no-memory-hardening",
@@ -28,8 +26,6 @@ uniffi = [
     "dep:p256",
 ] # Uniffi bindings
 secrets = [] # Secrets manager API
-wasm = ["dep:wasm-bindgen"] # WASM support
-sqlite = ["dep:rusqlite"] # SQLite support
 
 [dependencies]
 async-trait = ">=0.1.80, <0.2"
@@ -55,13 +51,11 @@ reqwest = { version = ">=0.12.5, <0.13", features = [
     "http2",
     "json",
 ], default-features = false }
-rusqlite = { version = ">=0.31.0, <0.32", optional = true }
 schemars = { version = ">=0.8.9, <0.9", features = ["uuid1", "chrono"] }
 serde = { version = ">=1.0, <2.0", features = ["derive"] }
 serde_json = ">=1.0.96, <2.0"
 serde_qs = ">=0.12.0, <0.14"
 serde_repr = ">=0.1.12, <0.2"
-serde-wasm-bindgen = "0.6.5"
 sha1 = ">=0.10.5, <0.11"
 sha2 = ">=0.10.6, <0.11"
 thiserror = ">=1.0.40, <2.0"
@@ -69,11 +63,6 @@ uniffi = { version = "=0.27.2", optional = true, features = ["tokio"] }
 uuid = { version = ">=1.3.3, <2.0", features = ["serde"] }
 zeroize = { version = ">=1.7.0, <2.0", features = ["derive", "aarch64"] }
 zxcvbn = ">= 2.2.2, <3.0"
-wasm-bindgen = { version = "0.2.91", features = [
-    "serde-serialize",
-], optional = true }
-wasm-bindgen-futures = "0.4.41"
-
 
 [target.'cfg(all(not(target_os = "android"), not(target_arch="wasm32")))'.dependencies]
 # By default, we use rustls as the TLS stack and rust-platform-verifier to support user-installed root certificates

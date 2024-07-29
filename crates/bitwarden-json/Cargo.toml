@@ -18,7 +18,6 @@ license-file.workspace = true
 [features]
 internal = ["bitwarden/internal"] # Internal testing methods
 secrets = ["bitwarden/secrets"]   # Secrets manager API
-wasm = ["bitwarden/wasm"]         # WebAssembly support
 
 [dependencies]
 bitwarden = { workspace = true }

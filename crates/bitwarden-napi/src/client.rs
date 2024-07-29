@@ -34,11 +34,16 @@ impl BitwardenClient {
         let _ = env_logger::Builder::from_default_env()
             .filter_level(convert_level(log_level.unwrap_or(LogLevel::Info)))
             .try_init();
-        Self(bitwarden_json::client::Client::new(settings_input))
+        Self(new(settings_input))
     }
 
     #[napi]
     pub async fn run_command(&self, command_input: String) -> String {
         self.0.run_command(&command_input).await
     }
+}
+
+#[tokio::main]
+async fn new(settings_string: Option<String>) -> JsonClient {
+    JsonClient::new(settings_string).await
 }

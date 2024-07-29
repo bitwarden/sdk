@@ -2,11 +2,7 @@
 use bitwarden::secrets_manager::{ClientProjectsExt, ClientSecretsExt};
 #[cfg(feature = "internal")]
 use bitwarden::vault::ClientVaultExt;
-use bitwarden::{
-    vault::{Cipher, CipherRepromptType, CipherType},
-    ClientSettings,
-};
-use uuid::Uuid;
+use bitwarden::ClientSettings;
 
 #[cfg(feature = "secrets")]
 use crate::command::{ProjectsCommand, SecretsCommand};
@@ -53,34 +49,6 @@ impl Client {
         };
 
         let client = &self.0;
-
-        let ciphers: Vec<Cipher> = (0..10).map(|_| Cipher {
-            id: Some(Uuid::new_v4()),
-            organization_id: None,
-            folder_id: None,
-            collection_ids: vec![],
-            key: None,
-            name: "2.pMS6/icTQABtulw52pq2lg==|XXbxKxDTh+mWiN1HjH2N1w==|Q6PkuT+KX/axrgN9ubD5Ajk2YNwxQkgs3WJM0S0wtG8=".parse().unwrap(),
-            notes: None,
-            r#type: CipherType::Login,
-            login: None,
-            identity: None,
-            card: None,
-            secure_note: None,
-            favorite: false,
-            reprompt: CipherRepromptType::None,
-            organization_use_totp: false,
-            edit: true,
-            view_password: true,
-            local_data: None,
-            attachments: None,
-            fields: None,
-            password_history: None,
-            creation_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
-            deleted_date: None,
-            revision_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
-        }).collect();
-        client.vault().cipher_repository.replace_all(&ciphers).await;
 
         match cmd {
             #[cfg(feature = "internal")]

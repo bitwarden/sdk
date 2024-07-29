@@ -29,9 +29,9 @@ pub struct Client(bitwarden::Client);
 impl Client {
     /// Initialize a new instance of the SDK client
     #[uniffi::constructor]
-    pub fn new(settings: Option<ClientSettings>) -> Arc<Self> {
+    pub async fn new(settings: Option<ClientSettings>) -> Arc<Self> {
         init_logger();
-        Arc::new(Self(bitwarden::Client::new(settings)))
+        Arc::new(Self(bitwarden::Client::new(settings).await))
     }
 
     /// Crypto operations

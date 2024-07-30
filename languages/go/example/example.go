@@ -21,15 +21,15 @@ func main() {
 	organizationIDStr := os.Getenv("ORGANIZATION_ID")
 	projectName := os.Getenv("PROJECT_NAME")
 
-	// Configuring the statePath is optional, pass nil
+	// Configuring the stateFile is optional, pass nil
 	// in AccessTokenLogin() to not use state
-	statePath := os.Getenv("STATE_PATH")
+	stateFile := os.Getenv("STATE_FILE")
 
 	if projectName == "" {
 		projectName = "NewTestProject" // default value
 	}
 
-	err := bitwardenClient.AccessTokenLogin(accessToken, &statePath)
+	err := bitwardenClient.AccessTokenLogin(accessToken, &stateFile)
 	if err != nil {
 		panic(err)
 	}

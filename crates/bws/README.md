@@ -13,7 +13,7 @@ We offer three ways to install bws:
 Download bws via `cargo` from [crates.io](https://crates.io):
 
 ```bash
-cargo install bws
+cargo install bws --locked
 ```
 
 ### Install Script (from GitHub Releases)

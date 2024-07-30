@@ -101,7 +101,7 @@ pub struct Fido2CredentialView {
     // so we keep it encrypted until we need it
     pub key_value: EncString,
     pub rp_id: String,
-    pub user_handle: Option<Vec<u8>>,
+    pub user_handle: Option<String>,
     pub user_name: Option<String>,
     pub counter: String,
     pub rp_name: Option<String>,
@@ -119,9 +119,9 @@ pub struct Fido2CredentialFullView {
     pub key_type: String,
     pub key_algorithm: String,
     pub key_curve: String,
-    pub key_value: Vec<u8>,
+    pub key_value: String,
     pub rp_id: String,
-    pub user_handle: Option<Vec<u8>>,
+    pub user_handle: Option<String>,
     pub user_name: Option<String>,
     pub counter: String,
     pub rp_name: Option<String>,
@@ -142,12 +142,11 @@ pub struct Fido2CredentialNewView {
     pub key_algorithm: String,
     pub key_curve: String,
     pub rp_id: String,
-    pub user_handle: Option<Vec<u8>>,
+    pub user_handle: Option<String>,
     pub user_name: Option<String>,
     pub counter: String,
     pub rp_name: Option<String>,
     pub user_display_name: Option<String>,
-    pub discoverable: String,
     pub creation_date: DateTime<Utc>,
 }
 
@@ -164,7 +163,6 @@ impl From<Fido2CredentialFullView> for Fido2CredentialNewView {
             counter: value.counter,
             rp_name: value.rp_name,
             user_display_name: value.user_display_name,
-            discoverable: value.discoverable,
             creation_date: value.creation_date,
         }
     }

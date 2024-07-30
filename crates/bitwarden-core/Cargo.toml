@@ -70,7 +70,7 @@ zxcvbn = ">=3.0.1, <4.0"
 reqwest = { version = ">=0.12.5, <0.13", features = [
     "rustls-tls-manual-roots",
 ], default-features = false }
-rustls-platform-verifier = "0.3.1"
+rustls-platform-verifier = "0.3.3"
 
 [target.'cfg(target_os = "android")'.dependencies]
 # The use of rustls-platform-verifier requires some extra support to communicate with the Android platform

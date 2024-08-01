@@ -7,6 +7,7 @@ use bitwarden::{
 use bitwarden_cli::install_color_eyre;
 use clap::{CommandFactory, Parser};
 use color_eyre::eyre::{bail, Result};
+use config::Profile;
 use log::error;
 use render::OutputSettings;
 
@@ -84,10 +85,13 @@ async fn process_commands() -> Result<()> {
         })
         .transpose()?;
 
-    let state_file = state::get_state_file(
-        profile.and_then(|p| p.state_dir).map(Into::into),
-        access_token_obj.access_token_id.to_string(),
-    )?;
+    let state_file = match get_state_opt_out(&profile) {
+        true => None,
+        false => Some(state::get_state_file(
+            profile.and_then(|p| p.state_dir).map(Into::into),
+            access_token_obj.access_token_id.to_string(),
+        )?),
+    };
 
     let client = bitwarden::Client::new(settings);
 
@@ -149,4 +153,17 @@ fn get_config_profile(
         config.select_profile(&profile_key, profile_defined)?
     };
     Ok(profile)
+}
+
+fn get_state_opt_out(profile: &Option<Profile>) -> bool {
+    if let Some(profile) = profile {
+        if let Some(state_opt_out) = profile.state_opt_out.as_ref() {
+            match state_opt_out.trim().to_lowercase().as_str() {
+                "true" | "1" => return true,
+                _ => return false,
+            }
+        }
+    }
+
+    false
 }

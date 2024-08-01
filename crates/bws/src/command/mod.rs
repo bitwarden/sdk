@@ -6,7 +6,7 @@ use std::{path::PathBuf, str::FromStr};
 use bitwarden::auth::AccessToken;
 use clap::CommandFactory;
 use clap_complete::Shell;
-use color_eyre::eyre::{bail, Result};
+use color_eyre::eyre::{bail, eyre, Result};
 
 use crate::{config, Cli, ProfileKey};
 
@@ -44,16 +44,33 @@ pub(crate) fn config(
         config::delete_profile(config_file.as_deref(), profile)?;
         println!("Profile deleted successfully!");
     } else {
-        let (name, value) = match (name, value) {
+        let (name, mut value) = match (name, value) {
             (None, None) => bail!("Missing `name` and `value`"),
             (None, Some(_)) => bail!("Missing `value`"),
             (Some(_), None) => bail!("Missing `name`"),
             (Some(name), Some(value)) => (name, value),
         };
 
+        // If state_opt_out is being set,
+        // verify it's a boolean or 1 or 0, otherwise bail
+        if let ProfileKey::state_opt_out = name {
+            value = match string_to_bool_string(value) {
+                Ok(value) => value,
+                Err(_) => bail!("Profile key \"state_opt_out\" must be \"true\" or \"false\""),
+            }
+        }
+
         config::update_profile(config_file.as_deref(), profile, name, value)?;
         println!("Profile updated successfully!");
     };
 
     Ok(())
+}
+
+fn string_to_bool_string(value: String) -> Result<String> {
+    match value.trim().to_lowercase().as_str() {
+        "true" | "1" => Ok(String::from("true")),
+        "false" | "0" => Ok(String::from("false")),
+        _ => Err(eyre!("Failed to convert string to bool")),
+    }
 }

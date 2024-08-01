@@ -129,7 +129,7 @@ pub struct CipherView {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum CipherListViewType {
-    Login { fido2: bool },
+    Login { has_fido2: bool },
     SecureNote,
     Card,
     Identity,
@@ -519,7 +519,7 @@ impl KeyDecryptable<SymmetricCryptoKey, CipherListView> for Cipher {
                         .as_ref()
                         .ok_or(CryptoError::MissingField("login"))?;
                     CipherListViewType::Login {
-                        fido2: login.fido2_credentials.is_some(),
+                        has_fido2: login.fido2_credentials.is_some(),
                     }
                 }
                 CipherType::SecureNote => CipherListViewType::SecureNote,
@@ -741,7 +741,7 @@ mod tests {
                 collection_ids: cipher.collection_ids,
                 name: "My test login".to_string(),
                 sub_title: "test_username".to_string(),
-                r#type: CipherListViewType::Login { fido2: true },
+                r#type: CipherListViewType::Login { has_fido2: true },
                 favorite: cipher.favorite,
                 reprompt: cipher.reprompt,
                 edit: cipher.edit,

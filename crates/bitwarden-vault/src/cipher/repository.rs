@@ -1,15 +1,13 @@
 use std::sync::Arc;
 
-use bitwarden_core::{require, Error};
-use bitwarden_db::{named_params, Database, DatabaseError, DatabaseTrait};
-use serde::Serialize;
+use bitwarden_db::{named_params, params, Database, DatabaseError, DatabaseTrait};
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
 use super::Cipher;
 
 /// A row in the ciphers table.
-struct CipherRow {
+pub struct CipherRow {
     #[allow(dead_code)]
     id: Uuid,
     value: String,
@@ -24,106 +22,30 @@ impl CipherRepository {
         Self { db: db.clone() }
     }
 
-    pub fn save(&self, cipher: &Cipher) -> Result<(), DatabaseError> {
+    pub async fn save(&self, cipher: &Cipher) -> Result<(), DatabaseError> {
         let id = cipher.id.unwrap();
         let serialized = serde_json::to_string(cipher).unwrap();
 
-        /*let guard = self.db.lock().map_err(|_| DatabaseError::DatabaseLock)?;
-
-        let mut stmt = guard.exec(
-            "
-                INSERT INTO ciphers (id, value)
-                VALUES (?1, ?2)
-                ON CONFLICT(id) DO UPDATE SET
-                value = ?2
-            ",
-        )?;
-        */
-        //stmt.execute((&id, &serialized))?;
-
-        Ok(())
-    }
-
-    pub async fn replace_all(&mut self, ciphers: &[Cipher]) -> Result<(), DatabaseError> {
-        let mut guard = self.db.lock().await;
-
-        /*
-        let queries: Vec<String> = ciphers
-            .iter()
-            .map(|c| {
-                let id = c.id.unwrap();
-                let serialized = serde_json::to_string(c).unwrap();
-                format!(
-                    "INSERT INTO ciphers (id, value) VALUES ('{}', '{}');",
-                    id, serialized
-                )
-            })
-            .collect();
+        let guard = self.db.lock().await;
 
         guard
-            .execute_batch(&format!("BEGIN TRANSACTION;{}COMMIT;", queries.join("")))
-            .await?;
-          */
+            .execute(
+                "
+                    INSERT INTO ciphers (id, value)
+                    VALUES (?1, ?2)
+                    ON CONFLICT(id) DO UPDATE SET
+                    value = ?2
+                ",
+                params![&id, &serialized],
+            )
+            .await
+            .map(|_| ())
+    }
 
-        /*
-        // Get a factory instance from global scope
-        let factory = Factory::new().unwrap();
+    pub async fn replace_all(&self, ciphers: &[Cipher]) -> Result<(), DatabaseError> {
+        let guard = self.db.lock().await;
 
-        // Create an open request for the database
-        let mut open_request = factory.open("test", Some(1)).unwrap();
-
-        // Add an upgrade handler for database
-        open_request.on_upgrade_needed(|event| {
-            // Get database instance from event
-            let database = event.database().unwrap();
-
-            // Prepare object store params
-            let mut store_params = ObjectStoreParams::new();
-            store_params.auto_increment(true);
-            store_params.key_path(Some(KeyPath::new_single("id")));
-
-            // Create object store
-            let store = database
-                .create_object_store("ciphers", store_params)
-                .unwrap();
-        });
-
-        // `await` open request
-        let database = open_request.await.unwrap();
-
-        // Create a read-write transaction
-        let transaction = database
-            .transaction(&["ciphers"], TransactionMode::ReadWrite)
-            .unwrap();
-
-        // Get the object store
-        let store = transaction.object_store("ciphers").unwrap();
-
-        for cipher in ciphers {
-            let id = store
-                .add(
-                    &cipher.serialize(&Serializer::json_compatible()).unwrap(),
-                    None,
-                )
-                .unwrap()
-                .await
-                .unwrap();
-        }
-
-        // Commit the transaction
-        transaction.commit().unwrap().await.unwrap();
-        */
-
-        //let tx = guard.conn.transaction()?;
-        //{
-        //guard.execute("DELETE FROM ciphers")?;
-
-        /*let mut stmt = tx.prepare(
-            "
-            INSERT INTO ciphers (id, value)
-            VALUES (?1, ?2)
-        ",
-        )?;*/
+        guard.execute("DELETE FROM ciphers", []).await?;
 
         for cipher in ciphers {
             let id = cipher.id.unwrap();
@@ -137,43 +59,35 @@ impl CipherRepository {
                 .await?;
         }
 
-        //}
-        //tx.commit()?;
-
         Ok(())
     }
 
     pub async fn delete_by_id(&self, id: Uuid) -> Result<(), DatabaseError> {
         let guard = self.db.lock().await;
 
-        //let mut stmt = guard.conn.prepare("DELETE FROM ciphers WHERE id = ?1")?;
-        //stmt.execute(params![id])?;
+        guard
+            .execute("DELETE FROM ciphers WHERE id = ?1", [id])
+            .await?;
 
         Ok(())
     }
 
-    pub async fn get_all(&self) -> Result<Vec<Cipher>, DatabaseError> {
+    pub async fn get_all(&self) -> Result<Vec<CipherRow>, DatabaseError> {
         let guard = self.db.lock().await;
-        /*
-        let mut stmt = guard.conn.prepare("SELECT id, value FROM ciphers")?;
-        let rows = stmt.query_map([], |row| {
-            Ok(CipherRow {
-                id: row.get(0)?,
-                value: row.get(1)?,
-            })
-        })?;
 
-        let ciphers: Vec<Cipher> = rows
-            .flatten()
-            .flat_map(|row| -> Result<Cipher, Error> {
-                let cipher: Cipher = serde_json::from_str(&row.value)?;
-                Ok(cipher)
-            })
-            .collect();
+        let rows = guard
+            .query_map(
+                "SELECT id, value FROM ciphers",
+                |row| -> Result<CipherRow, DatabaseError> {
+                    Ok(CipherRow {
+                        id: row.get(0)?,
+                        value: row.get(1)?,
+                    })
+                },
+            )
+            .await?;
 
-        Ok(ciphers)
-        */
-        Ok(vec![])
+        Ok(rows)
     }
 }
 
@@ -181,6 +95,23 @@ impl CipherRepository {
 mod tests {
     use super::*;
     use crate::{CipherRepromptType, CipherType};
+
+    async fn init_database() -> Arc<Mutex<Database>> {
+        let db = Database::new_test();
+
+        db.execute_batch(
+            "
+                    CREATE TABLE ciphers (
+                        id TEXT PRIMARY KEY,
+                        value TEXT NOT NULL
+                    )
+                    ",
+        )
+        .await
+        .unwrap();
+
+        Arc::new(Mutex::new(db))
+    }
 
     fn mock_cipher(id: Uuid) -> Cipher {
         Cipher {
@@ -213,24 +144,24 @@ mod tests {
 
     #[tokio::test]
     async fn test_save_get_all() {
-        let repo = CipherRepository::new(Arc::new(Mutex::new(Database::new_test())));
+        let repo = CipherRepository::new(init_database().await);
 
         let cipher = mock_cipher("d55d65d7-c161-40a4-94ca-b0d20184d91a".parse().unwrap());
 
-        repo.save(&cipher).unwrap();
+        repo.save(&cipher).await.unwrap();
 
         let ciphers = repo.get_all().await.unwrap();
 
         assert_eq!(ciphers.len(), 1);
-        assert_eq!(ciphers[0].id, cipher.id);
+        assert_eq!(ciphers[0].id, cipher.id.unwrap());
     }
 
     #[tokio::test]
     async fn test_delete_by_id() {
-        let repo = CipherRepository::new(Arc::new(Mutex::new(Database::new_test())));
+        let repo = CipherRepository::new(init_database().await);
 
         let cipher = mock_cipher("d55d65d7-c161-40a4-94ca-b0d20184d91a".parse().unwrap());
-        repo.save(&cipher).unwrap();
+        repo.save(&cipher).await.unwrap();
 
         let ciphers = repo.get_all().await.unwrap();
         assert_eq!(ciphers.len(), 1);
@@ -242,15 +173,15 @@ mod tests {
 
     #[tokio::test]
     async fn test_replace_all() {
-        let mut repo = CipherRepository::new(Arc::new(Mutex::new(Database::new_test())));
+        let repo = CipherRepository::new(init_database().await);
 
         let old_cipher = mock_cipher("d55d65d7-c161-40a4-94ca-b0d20184d91a".parse().unwrap());
 
-        repo.save(&old_cipher).unwrap();
+        repo.save(&old_cipher).await.unwrap();
 
         let ciphers = repo.get_all().await.unwrap();
         assert_eq!(ciphers.len(), 1);
-        assert_eq!(ciphers[0].id, old_cipher.id);
+        assert_eq!(ciphers[0].id, old_cipher.id.unwrap());
 
         let new_ciphers = vec![mock_cipher(
             "d55d65d7-c161-40a4-94ca-b0d20184d91c".parse().unwrap(),
@@ -260,6 +191,6 @@ mod tests {
 
         let ciphers = repo.get_all().await.unwrap();
         assert_eq!(ciphers.len(), 1);
-        assert_eq!(ciphers[0].id, new_ciphers[0].id);
+        assert_eq!(ciphers[0].id, new_ciphers[0].id.unwrap());
     }
 }

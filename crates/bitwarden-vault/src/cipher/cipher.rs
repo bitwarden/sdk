@@ -43,7 +43,7 @@ pub enum CipherType {
     Identity = 4,
 }
 
-#[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
+#[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema, PartialEq)]
 #[repr(u8)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum CipherRepromptType {
@@ -125,7 +125,17 @@ pub struct CipherView {
     pub revision_date: DateTime<Utc>,
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, PartialEq)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
+pub enum CipherListViewType {
+    Login { has_fido2: bool },
+    SecureNote,
+    Card,
+    Identity,
+}
+
+#[derive(Serialize, Deserialize, Debug, JsonSchema, PartialEq)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct CipherListView {
@@ -137,7 +147,7 @@ pub struct CipherListView {
     pub name: String,
     pub sub_title: String,
 
-    pub r#type: CipherType,
+    pub r#type: CipherListViewType,
 
     pub favorite: bool,
     pub reprompt: CipherRepromptType,
@@ -502,7 +512,20 @@ impl KeyDecryptable<SymmetricCryptoKey, CipherListView> for Cipher {
             collection_ids: self.collection_ids.clone(),
             name: self.name.decrypt_with_key(key).ok().unwrap_or_default(),
             sub_title: self.get_decrypted_subtitle(key).ok().unwrap_or_default(),
-            r#type: self.r#type,
+            r#type: match self.r#type {
+                CipherType::Login => {
+                    let login = self
+                        .login
+                        .as_ref()
+                        .ok_or(CryptoError::MissingField("login"))?;
+                    CipherListViewType::Login {
+                        has_fido2: login.fido2_credentials.is_some(),
+                    }
+                }
+                CipherType::SecureNote => CipherListViewType::SecureNote,
+                CipherType::Card => CipherListViewType::Card,
+                CipherType::Identity => CipherListViewType::Identity,
+            },
             favorite: self.favorite,
             reprompt: self.reprompt,
             edit: self.edit,
@@ -666,6 +689,69 @@ mod tests {
             discoverable: "true".to_string().encrypt_with_key(key).unwrap(),
             creation_date: "2024-06-07T14:12:36.150Z".parse().unwrap(),
         }
+    }
+
+    #[test]
+    fn test_decrypt_cipher_list_view() {
+        let key: SymmetricCryptoKey = "w2LO+nwV4oxwswVYCxlOfRUseXfvU03VzvKQHrqeklPgiMZrspUe6sOBToCnDn9Ay0tuCBn8ykVVRb7PWhub2Q==".to_string().try_into().unwrap();
+
+        let cipher = Cipher {
+            id: Some("090c19ea-a61a-4df6-8963-262b97bc6266".parse().unwrap()),
+            organization_id: None,
+            folder_id: None,
+            collection_ids: vec![],
+            key: None,
+            name: "2.d3rzo0P8rxV9Hs1m1BmAjw==|JOwna6i0zs+K7ZghwrZRuw==|SJqKreLag1ID+g6H1OdmQr0T5zTrVWKzD6hGy3fDqB0=".parse().unwrap(),
+            notes: None,
+            r#type: CipherType::Login,
+            login: Some(Login {
+                username: Some("2.EBNGgnaMHeO/kYnI3A0jiA==|9YXlrgABP71ebZ5umurCJQ==|GDk5jxiqTYaU7e2AStCFGX+a1kgCIk8j0NEli7Jn0L4=".parse().unwrap()),
+                password: Some("2.M7ZJ7EuFDXCq66gDTIyRIg==|B1V+jroo6+m/dpHx6g8DxA==|PIXPBCwyJ1ady36a7jbcLg346pm/7N/06W4UZxc1TUo=".parse().unwrap()),
+                password_revision_date: None,
+                uris: None,
+                totp: None,
+                autofill_on_page_load: None,
+                fido2_credentials: Some(vec![generate_fido2(&key)]),
+            }),
+            identity: None,
+            card: None,
+            secure_note: None,
+            favorite: false,
+            reprompt: CipherRepromptType::None,
+            organization_use_totp: false,
+            edit: true,
+            view_password: true,
+            local_data: None,
+            attachments: None,
+            fields: None,
+            password_history: None,
+            creation_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
+            deleted_date: None,
+            revision_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
+        };
+
+        let view: CipherListView = cipher.decrypt_with_key(&key).unwrap();
+
+        assert_eq!(
+            view,
+            CipherListView {
+                id: cipher.id,
+                organization_id: cipher.organization_id,
+                folder_id: cipher.folder_id,
+                collection_ids: cipher.collection_ids,
+                name: "My test login".to_string(),
+                sub_title: "test_username".to_string(),
+                r#type: CipherListViewType::Login { has_fido2: true },
+                favorite: cipher.favorite,
+                reprompt: cipher.reprompt,
+                edit: cipher.edit,
+                view_password: cipher.view_password,
+                attachments: 0,
+                creation_date: cipher.creation_date,
+                deleted_date: cipher.deleted_date,
+                revision_date: cipher.revision_date
+            }
+        )
     }
 
     #[test]

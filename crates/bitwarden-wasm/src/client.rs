@@ -37,11 +37,8 @@ impl BitwardenClient {
     #[wasm_bindgen(constructor)]
     pub fn new(settings_input: Option<String>, log_level: Option<LogLevel>) -> Self {
         console_error_panic_hook::set_once();
-        if let Err(e) =
-            console_log::init_with_level(convert_level(log_level.unwrap_or(LogLevel::Info)))
-        {
-            panic!("failed to initialize logger: {:?}", e);
-        }
+        // This will only fail if another logger was already initialized, so we can ignore the result.
+        let _  = console_log::init_with_level(convert_level(log_level.unwrap_or(LogLevel::Info)));
 
         Self(Rc::new(bitwarden_json::client::Client::new(settings_input)))
     }

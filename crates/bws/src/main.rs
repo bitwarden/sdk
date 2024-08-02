@@ -16,6 +16,7 @@ mod command;
 mod config;
 mod render;
 mod state;
+mod util;
 
 use crate::cli::*;
 
@@ -157,11 +158,8 @@ fn get_config_profile(
 
 fn get_state_opt_out(profile: &Option<Profile>) -> bool {
     if let Some(profile) = profile {
-        if let Some(state_opt_out) = profile.state_opt_out.as_ref() {
-            match state_opt_out.trim().to_lowercase().as_str() {
-                "true" | "1" => return true,
-                _ => return false,
-            }
+        if let Some(state_opt_out) = &profile.state_opt_out {
+            return util::string_to_bool(state_opt_out).unwrap_or(false);
         }
     }
 

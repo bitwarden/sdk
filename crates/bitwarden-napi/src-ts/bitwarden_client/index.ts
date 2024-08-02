@@ -10,6 +10,7 @@ import {
   SecretResponse,
   SecretsDeleteResponse,
   SecretsResponse,
+  SecretsSyncResponse,
 } from "./schemas";
 
 function handleResponse<T>(response: {
@@ -148,6 +149,18 @@ export class SecretsClient {
     );
 
     return handleResponse(Convert.toResponseForSecretsDeleteResponse(response));
+  }
+
+  async sync(organizationId: string, lastSyncedDate?: Date): Promise<SecretsSyncResponse> {
+    const response = await this.client.runCommand(
+      Convert.commandToJson({
+        secrets: {
+          sync: { organizationId, lastSyncedDate },
+        },
+      }),
+    );
+
+    return handleResponse(Convert.toResponseForSecretsSyncResponse(response));
   }
 }
 

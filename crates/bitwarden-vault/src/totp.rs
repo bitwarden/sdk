@@ -1,11 +1,15 @@
 use std::{collections::HashMap, str::FromStr};
 
+use bitwarden_core::VaultLocked;
+use bitwarden_crypto::{CryptoError, KeyContainer};
 use chrono::{DateTime, Utc};
 use hmac::{Hmac, Mac};
 use reqwest::Url;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+
+use crate::CipherListView;
 
 type HmacSha1 = Hmac<sha1::Sha1>;
 type HmacSha256 = Hmac<sha2::Sha256>;
@@ -24,6 +28,11 @@ pub enum TotpError {
     InvalidOtpauth,
     #[error("Missing secret")]
     MissingSecret,
+
+    #[error(transparent)]
+    CryptoError(#[from] CryptoError),
+    #[error(transparent)]
+    VaultLocked(#[from] VaultLocked),
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -61,6 +70,19 @@ pub fn generate_totp(key: String, time: Option<DateTime<Utc>>) -> Result<TotpRes
         code: otp,
         period: params.period,
     })
+}
+
+/// Generate a OATH or RFC 6238 TOTP code from a provided CipherListView.
+///
+/// See [generate_totp] for more information.
+pub fn generate_totp_cipher_view(
+    enc: &dyn KeyContainer,
+    view: CipherListView,
+    time: Option<DateTime<Utc>>,
+) -> Result<TotpResponse, TotpError> {
+    let key = view.get_totp_key(enc)?.ok_or(TotpError::MissingSecret)?;
+
+    generate_totp(key, time)
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -237,9 +259,12 @@ fn decode_b32(s: &str) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
+    use bitwarden_crypto::{CryptoError, SymmetricCryptoKey};
     use chrono::Utc;
+    use uuid::Uuid;
 
     use super::*;
+    use crate::{cipher::cipher::CipherListViewType, CipherRepromptType};
 
     #[test]
     fn test_decode_b32() {
@@ -308,5 +333,49 @@ mod tests {
 
         assert_eq!(response.code, "730364".to_string());
         assert_eq!(response.period, 60);
+    }
+
+    #[test]
+    fn test_generate_totp_cipher_view() {
+        let view = CipherListView {
+            id: Some("090c19ea-a61a-4df6-8963-262b97bc6266".parse().unwrap()),
+            organization_id: None,
+            folder_id: None,
+            collection_ids: vec![],
+            key: None,
+            name: "My test login".to_string(),
+            sub_title: "test_username".to_string(),
+            r#type: CipherListViewType::Login {
+                has_fido2: true,
+                totp: Some("2.hqdioUAc81FsKQmO1XuLQg==|oDRdsJrQjoFu9NrFVy8tcJBAFKBx95gHaXZnWdXbKpsxWnOr2sKipIG43pKKUFuq|3gKZMiboceIB5SLVOULKg2iuyu6xzos22dfJbvx0EHk=".parse().unwrap()),
+            },
+            favorite: false,
+            reprompt: CipherRepromptType::None,
+            edit: true,
+            view_password: true,
+            attachments: 0,
+            creation_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
+            deleted_date: None,
+            revision_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
+        };
+
+        struct MockKeyContainer(SymmetricCryptoKey);
+        impl KeyContainer for MockKeyContainer {
+            fn get_key<'a>(
+                &'a self,
+                _: &Option<Uuid>,
+            ) -> Result<&'a SymmetricCryptoKey, CryptoError> {
+                Ok(&self.0)
+            }
+        }
+
+        let enc = MockKeyContainer("w2LO+nwV4oxwswVYCxlOfRUseXfvU03VzvKQHrqeklPgiMZrspUe6sOBToCnDn9Ay0tuCBn8ykVVRb7PWhub2Q==".to_string().try_into().unwrap());
+        let time = DateTime::parse_from_rfc3339("2023-01-01T00:00:00.000Z")
+            .unwrap()
+            .with_timezone(&Utc);
+
+        let response = generate_totp_cipher_view(&enc, view, Some(time)).unwrap();
+        assert_eq!(response.code, "559388".to_string());
+        assert_eq!(response.period, 30);
     }
 }

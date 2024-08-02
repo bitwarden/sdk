@@ -19,6 +19,8 @@ pub enum CryptoError {
     InvalidUtf8String,
     #[error("Missing Key for organization with ID {0}")]
     MissingKey(Uuid),
+    #[error("The item was missing a required field: {0}")]
+    MissingField(&'static str),
 
     #[error("EncString error, {0}")]
     EncString(#[from] EncStringParseError),

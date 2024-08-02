@@ -1,0 +1,157 @@
+---
+name: Release Swift Package
+
+on:
+  workflow_call:
+    inputs:
+      build-run-id:
+        description: "Workflow Run ID to use for artifact download"
+        type: string
+        required: false
+
+env:
+  _KEY_VAULT: "bitwarden-ci"
+
+jobs:
+  validate:
+    name: Set Version and SHA
+    runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      sha: ${{ steps.set-sha.outputs.sha }}
+      short_sha: ${{ steps.set-sha.outputs.short_sha }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(grep -o '^version = ".*"' crates/bitwarden/Cargo.toml | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Download BitwardenEFI artifact
+        uses: bitwarden/gh-actions/download-artifacts@main
+        id: download-artifact
+        with:
+          workflow: build-swift.yml
+          workflow_conclusion: success
+          skip_unpack: true
+          run_id: ${{ inputs.build-run-id }}
+
+      - name: Set SHA
+        id: set-sha
+        run: |
+          echo "sha=$(${{ steps.download-artifact.outputs.artifact-build-commit }})" >> $GITHUB_OUTPUT
+          echo "short_sha=$(echo ${{ steps.download-artifact.outputs.artifact-build-commit }} | cut -c1-7)" >> $GITHUB_OUTPUT
+
+  repo-sync:
+    name: Push changed files to SDK Swift repo
+    runs-on: ubuntu-22.04
+    needs: validate
+    env:
+      _BOT_EMAIL: 106330231+bitwarden-devops-bot@users.noreply.github.com
+      _BOT_NAME: bitwarden-devops-bot
+      _PKG_VERSION: ${{ needs.validate.outputs.version }}
+    steps:
+      - name: Checkout SDK repo
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+        with:
+          path: sdk
+
+      - name: Checkout SDK-Swift repo
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+        with:
+          repository: bitwarden/sdk-swift
+          path: sdk-swift
+          ref: main
+
+      - name: Login to Azure - Prod Subscription
+        uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
+        with:
+          creds: ${{ secrets.AZURE_CI_SERVICE_PRINCIPAL }}
+
+      - name: Retrieve secrets
+        id: retrieve-secrets
+        uses: bitwarden/gh-actions/get-keyvault-secrets@main
+        with:
+          keyvault: ${{ env._KEY_VAULT }}
+          secrets: "github-pat-bitwarden-devops-bot-repo-scope"
+
+      - name: Setup Git
+        working-directory: sdk-swift
+        run: |
+          git config --local user.email "${{ env._BOT_EMAIL }}"
+          git config --local user.name "${{ env._BOT_NAME }}"
+
+      - name: Update files
+        run: |
+          # Update BitwardenFFI path
+          sed -i '' 's|.binaryTarget(name: "BitwardenFFI", path: "BitwardenFFI.xcframework")|.binaryTarget(\
+            name: "BitwardenFFI",\
+            url: "https://github.com/bitwarden/sdk-swift/releases/download/BitwardenFFI-v${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}/BitwardenFFI-${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}.xcframework.zip",|' sdk/languages/swift/Package.swift
+
+          # Run swiftformat
+          swiftformat sdk/languages/swift/Package.swift
+
+          # Copy files to local sdk-swift repo path
+          cp --verbose -rf sdk/languages/swift/README.md sdk-swift/README.md
+          cp --verbose -rf sdk/languages/swift/Package.swift sdk-swift/Package.swift
+          cp --verbose -rf sdk/languages/swift/Sources sdk-swift/Sources
+          cp --verbose -rf sdk/languages/swift/Tests sdk-swift/Tests
+
+      - name: Push changes
+        working-directory: sdk-swift
+        run: |
+          git add .
+          git commit -m "Update Swift SDK to ${{ needs.validate.outputs.sha }}"
+          git push origin main
+
+      - name: Create release tag on SDK Swift repo
+        working-directory: sdk-swift
+        run: |
+          git tag ${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}
+          git push origin ${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}
+
+  github-release:
+    name: GitHub Release
+    runs-on: ubuntu-22.04
+    needs:
+      - validate
+      - repo-sync
+    env:
+      _PKG_VERSION: ${{ needs.validate.outputs.version }}
+    steps:
+      - name: Login to Azure - Prod Subscription
+        uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
+        with:
+          creds: ${{ secrets.AZURE_CI_SERVICE_PRINCIPAL }}
+
+      - name: Retrieve secrets
+        id: retrieve-secrets
+        uses: bitwarden/gh-actions/get-keyvault-secrets@main
+        with:
+          keyvault: ${{ env._KEY_VAULT }}
+          secrets: "github-pat-bitwarden-devops-bot-repo-scope"
+
+      - name: Download BitwardenEFI artifact
+        uses: bitwarden/gh-actions/download-artifacts@main
+        id: download-artifact
+        with:
+          workflow: build-swift.yml
+          workflow_conclusion: success
+          artifacts: "BitwardenFFI-${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}.xcframework"
+          skip_unpack: true
+          run_id: ${{ inputs.build-run-id }}
+
+      - name: Create release
+        uses: ncipollo/release-action@6c75be85e571768fa31b40abf38de58ba0397db5 # v1.13.0
+        with:
+          tag: v${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}
+          name: v${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}
+          body: ""
+          token: ${{ steps.retrieve-secrets.outputs.github-pat-bitwarden-devops-bot-repo-scope }}
+          draft: false
+          repo: sdk-swift
+          owner: bitwarden
+          artifacts: "BitwardenFFI-${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}.xcframework"

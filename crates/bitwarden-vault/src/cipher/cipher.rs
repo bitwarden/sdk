@@ -98,6 +98,7 @@ pub struct CipherView {
     pub folder_id: Option<Uuid>,
     pub collection_ids: Vec<Uuid>,
 
+    /// Temporary, required to support re-encrypting existing items.
     pub key: Option<EncString>,
 
     pub name: String,
@@ -129,7 +130,10 @@ pub struct CipherView {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum CipherListViewType {
-    Login { has_fido2: bool },
+    Login {
+        has_fido2: bool,
+        totp: Option<EncString>,
+    },
     SecureNote,
     Card,
     Identity,
@@ -143,6 +147,9 @@ pub struct CipherListView {
     pub organization_id: Option<Uuid>,
     pub folder_id: Option<Uuid>,
     pub collection_ids: Vec<Uuid>,
+
+    /// Temporary, required to support calculating TOTP from CipherListView.
+    pub key: Option<EncString>,
 
     pub name: String,
     pub sub_title: String,
@@ -160,6 +167,25 @@ pub struct CipherListView {
     pub creation_date: DateTime<Utc>,
     pub deleted_date: Option<DateTime<Utc>>,
     pub revision_date: DateTime<Utc>,
+}
+
+impl CipherListView {
+    pub(crate) fn get_totp_key(
+        self,
+        enc: &dyn KeyContainer,
+    ) -> Result<Option<String>, CryptoError> {
+        let key = self.locate_key(enc, &None)?;
+        let cipher_key = Cipher::get_cipher_key(key, &self.key)?;
+        let key = cipher_key.as_ref().unwrap_or(key);
+
+        let totp = if let CipherListViewType::Login { totp, .. } = self.r#type {
+            totp.decrypt_with_key(key)?
+        } else {
+            None
+        };
+
+        Ok(totp)
+    }
 }
 
 impl KeyEncryptable<SymmetricCryptoKey, Cipher> for CipherView {
@@ -510,6 +536,7 @@ impl KeyDecryptable<SymmetricCryptoKey, CipherListView> for Cipher {
             organization_id: self.organization_id,
             folder_id: self.folder_id,
             collection_ids: self.collection_ids.clone(),
+            key: self.key.clone(),
             name: self.name.decrypt_with_key(key).ok().unwrap_or_default(),
             sub_title: self.get_decrypted_subtitle(key).ok().unwrap_or_default(),
             r#type: match self.r#type {
@@ -520,6 +547,7 @@ impl KeyDecryptable<SymmetricCryptoKey, CipherListView> for Cipher {
                         .ok_or(CryptoError::MissingField("login"))?;
                     CipherListViewType::Login {
                         has_fido2: login.fido2_credentials.is_some(),
+                        totp: login.totp.clone(),
                     }
                 }
                 CipherType::SecureNote => CipherListViewType::SecureNote,
@@ -552,6 +580,15 @@ impl LocateKey for Cipher {
     }
 }
 impl LocateKey for CipherView {
+    fn locate_key<'a>(
+        &self,
+        enc: &'a dyn KeyContainer,
+        _: &Option<Uuid>,
+    ) -> Result<&'a SymmetricCryptoKey, CryptoError> {
+        enc.get_key(&self.organization_id)
+    }
+}
+impl LocateKey for CipherListView {
     fn locate_key<'a>(
         &self,
         enc: &'a dyn KeyContainer,
@@ -709,7 +746,7 @@ mod tests {
                 password: Some("2.M7ZJ7EuFDXCq66gDTIyRIg==|B1V+jroo6+m/dpHx6g8DxA==|PIXPBCwyJ1ady36a7jbcLg346pm/7N/06W4UZxc1TUo=".parse().unwrap()),
                 password_revision_date: None,
                 uris: None,
-                totp: None,
+                totp: Some("2.hqdioUAc81FsKQmO1XuLQg==|oDRdsJrQjoFu9NrFVy8tcJBAFKBx95gHaXZnWdXbKpsxWnOr2sKipIG43pKKUFuq|3gKZMiboceIB5SLVOULKg2iuyu6xzos22dfJbvx0EHk=".parse().unwrap()),
                 autofill_on_page_load: None,
                 fido2_credentials: Some(vec![generate_fido2(&key)]),
             }),
@@ -739,9 +776,13 @@ mod tests {
                 organization_id: cipher.organization_id,
                 folder_id: cipher.folder_id,
                 collection_ids: cipher.collection_ids,
+                key: cipher.key,
                 name: "My test login".to_string(),
                 sub_title: "test_username".to_string(),
-                r#type: CipherListViewType::Login { has_fido2: true },
+                r#type: CipherListViewType::Login {
+                    has_fido2: true,
+                    totp: cipher.login.as_ref().unwrap().totp.clone()
+                },
                 favorite: cipher.favorite,
                 reprompt: cipher.reprompt,
                 edit: cipher.edit,

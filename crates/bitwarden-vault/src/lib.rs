@@ -14,7 +14,7 @@ pub use password_history::{PasswordHistory, PasswordHistoryView};
 mod domain;
 pub use domain::GlobalDomains;
 mod totp;
-pub use totp::{generate_totp, TotpError, TotpResponse};
+pub use totp::{generate_totp, generate_totp_cipher_view, TotpError, TotpResponse};
 mod error;
 pub use error::VaultParseError;
 mod client_vault;

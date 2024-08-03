@@ -13,7 +13,7 @@ impl<'a> ClientGenerators<'a> {
         Self { client }
     }
 
-    pub async fn generate(
+    pub async fn generate_secret(
         &self,
         input: GenerateSecretRequest,
     ) -> Result<GenerateSecretResponse, GenerateSecretError> {

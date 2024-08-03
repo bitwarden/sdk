@@ -1,4 +1,6 @@
 use bitwarden_generators::{password, PasswordError, PasswordGeneratorRequest};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -9,6 +11,8 @@ pub enum GenerateSecretError {
     InvalidLength,
 }
 
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct GenerateSecretRequest {
     /// Include lowercase characters (a-z).
     pub include_lowercase: bool,
@@ -45,6 +49,8 @@ pub struct GenerateSecretRequest {
     pub min_special: Option<u8>,
 }
 
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct GenerateSecretResponse {
     pub secret: String,
 }

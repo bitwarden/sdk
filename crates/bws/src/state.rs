@@ -3,7 +3,9 @@ use std::path::PathBuf;
 use color_eyre::eyre::{bail, Result};
 use directories::BaseDirs;
 
-pub(crate) const DEFAULT_STATE_DIRECTORY: &str = ".config/bws/state";
+use crate::DEFAULT_CONFIG_DIRECTORY;
+
+pub(crate) const DEFAULT_STATE_DIRECTORY: &str = "state";
 
 pub(crate) fn get_state_file(
     state_dir: Option<PathBuf>,
@@ -13,7 +15,10 @@ pub(crate) fn get_state_file(
         Some(state_dir) => state_dir,
         None => {
             if let Some(base_dirs) = BaseDirs::new() {
-                base_dirs.home_dir().join(DEFAULT_STATE_DIRECTORY)
+                base_dirs
+                    .home_dir()
+                    .join(DEFAULT_CONFIG_DIRECTORY)
+                    .join(DEFAULT_STATE_DIRECTORY)
             } else {
                 bail!("A valid home directory doesn't exist");
             }

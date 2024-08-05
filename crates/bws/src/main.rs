@@ -88,10 +88,16 @@ async fn process_commands() -> Result<()> {
 
     let state_file = match get_state_opt_out(&profile) {
         true => None,
-        false => Some(state::get_state_file(
+        false => match state::get_state_file(
             profile.and_then(|p| p.state_dir).map(Into::into),
             access_token_obj.access_token_id.to_string(),
-        )?),
+        ) {
+            Ok(state_file) => Some(state_file),
+            Err(e) => {
+                eprintln!("Error: {}\nAttempting to continue without using state. Please set \"state_dir\" in your config file to avoid authentication limits.", e);
+                None
+            }
+        },
     };
 
     let client = bitwarden::Client::new(settings);

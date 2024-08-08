@@ -21,6 +21,9 @@ use crate::{
     ACCESS_TOKEN_KEY_VAR_NAME,
 };
 
+// Essential environment variables that should be preserved even when `--no-inherit-env` is used
+const WINDOWS_ESSENTIAL_VARS: &[&str] = &["SystemRoot", "ComSpec", "windir"];
+
 pub(crate) async fn run(
     client: Client,
     organization_id: Uuid,
@@ -114,6 +117,16 @@ pub(crate) async fn run(
         });
 
         command.env_clear();
+
+        // Preserve essential PowerShell environment variables on Windows
+        if is_windows {
+            for &var in WINDOWS_ESSENTIAL_VARS {
+                if let Ok(value) = std::env::var(var) {
+                    command.env(var, value);
+                }
+            }
+        }
+
         command.env("PATH", path); // PATH is always necessary
         command.envs(environment);
     } else {

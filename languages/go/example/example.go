@@ -112,5 +112,26 @@ func main() {
 
 	fmt.Println(string(jsonSecrets))
 
+	// Generate secret value
+	request := sdk.GenerateSecretRequest{
+		AvoidAmbiguous:   false,
+		IncludeLowercase: true,
+		IncludeNumbers:   true,
+		IncludeSpecial:   true,
+		IncludeUppercase: true,
+		Length:           64,
+		MinLowercase:     new(int64),
+		MinNumber:        new(int64),
+		MinSpecial:       new(int64),
+		MinUppercase:     new(int64),
+	}
+	generatedSecretValue, err := bitwardenClient.Generators().GenerateSecret(request)
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(generatedSecretValue.Secret)
+
 	defer bitwardenClient.Close()
 }

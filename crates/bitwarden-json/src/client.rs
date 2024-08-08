@@ -1,11 +1,11 @@
 #[cfg(feature = "secrets")]
-use bitwarden::secrets_manager::{ClientProjectsExt, ClientSecretsExt};
+use bitwarden::secrets_manager::{ClientGeneratorsExt, ClientProjectsExt, ClientSecretsExt};
 #[cfg(feature = "internal")]
 use bitwarden::vault::ClientVaultExt;
 use bitwarden::ClientSettings;
 
 #[cfg(feature = "secrets")]
-use crate::command::{ProjectsCommand, SecretsCommand};
+use crate::command::{GeneratorsCommand, ProjectsCommand, SecretsCommand};
 use crate::{
     command::Command,
     response::{Response, ResponseIntoString},
@@ -88,6 +88,13 @@ impl Client {
                 ProjectsCommand::List(req) => client.projects().list(&req).await.into_string(),
                 ProjectsCommand::Update(req) => client.projects().update(&req).await.into_string(),
                 ProjectsCommand::Delete(req) => client.projects().delete(req).await.into_string(),
+            },
+
+            #[cfg(feature = "secrets")]
+            Command::Generators(cmd) => match cmd {
+                GeneratorsCommand::GenerateSecret(req) => {
+                    client.generators().generate_secret(req).await.into_string()
+                }
             },
         }
     }

@@ -51,23 +51,31 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-          - os: windows-2019
+          - os: windows-2022
             target: x86_64-pc-windows-msvc
 
-          - os: windows-2019
+          - os: windows-2022
             target: aarch64-pc-windows-msvc
     steps:
       - name: Checkout repo
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
 
+      - name: Uninstall llvm
+        run: choco uninstall -y llvm
+
       - name: Clang version
-        run: clang -v
+        run: clang --version
 
-      - name: Cargo version
-        run: cargo --version
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17 # stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.settings.target }}
 
-      - name: Add rust target
-        run: rustup target add ${{ matrix.settings.target }}
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
+        with:
+          key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.os }}
 
       - name: Build
         env:

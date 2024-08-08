@@ -8,6 +8,8 @@ mod jwt_token;
 pub mod login;
 #[cfg(feature = "internal")]
 pub mod password;
+#[cfg(feature = "internal")]
+pub mod pin;
 pub mod renew;
 pub use access_token::AccessToken;
 pub use jwt_token::JWTToken;

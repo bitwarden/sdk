@@ -1,5 +1,5 @@
 #[cfg(feature = "internal")]
-use bitwarden_crypto::{AsymmetricEncString, DeviceKey, Kdf, TrustDeviceResponse};
+use bitwarden_crypto::{AsymmetricEncString, DeviceKey, EncString, Kdf, TrustDeviceResponse};
 
 #[cfg(feature = "internal")]
 use crate::auth::login::NewAuthRequestResponse;
@@ -16,6 +16,7 @@ use crate::auth::{
         password_strength, satisfies_policy, validate_password, validate_password_user_key,
         MasterPasswordPolicyOptions,
     },
+    pin::validate_pin,
     register::{make_register_keys, register},
     tde::{make_register_tde_keys, RegisterTdeKeyResponse},
     AuthRequestResponse, RegisterKeyResponse, RegisterRequest,
@@ -114,6 +115,10 @@ impl<'a> ClientAuth<'a> {
         encrypted_user_key: String,
     ) -> Result<String> {
         validate_password_user_key(self.client, password, encrypted_user_key)
+    }
+
+    pub fn validate_pin(&self, pin: String, pin_protected_user_key: EncString) -> Result<bool> {
+        validate_pin(self.client, pin, pin_protected_user_key)
     }
 
     pub fn new_auth_request(&self, email: &str) -> Result<AuthRequestResponse> {

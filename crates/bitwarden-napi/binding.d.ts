@@ -10,7 +10,7 @@ export const enum LogLevel {
   Warn = 3,
   Error = 4,
 }
-export class BitwardenClient {
+export declare class BitwardenClient {
   constructor(settingsInput?: string | undefined | null, logLevel?: LogLevel | undefined | null);
   runCommand(commandInput: string): Promise<string>;
 }

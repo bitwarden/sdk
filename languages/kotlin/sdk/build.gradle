@@ -85,6 +85,7 @@ publishing {
 
 dependencies {
     implementation 'net.java.dev.jna:jna:5.14.0@aar'
+    implementation 'rustls:rustls-platform-verifier:latest.release'
 
     implementation 'androidx.core:core-ktx:1.13.0'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'

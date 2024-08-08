@@ -10,8 +10,25 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+
+        maven {
+            url = findRustlsPlatformVerifierProject()
+            metadataSources.artifact()
+        }
     }
 }
+
+String findRustlsPlatformVerifierProject() {
+    def dependencyText = providers.exec {
+        it.workingDir = new File("../../")
+        commandLine("cargo", "metadata", "--format-version", "1", "--manifest-path", "crates/bitwarden/Cargo.toml")
+    }.standardOutput.asText.get()
+
+    def dependencyJson = new groovy.json.JsonSlurper().parseText(dependencyText)
+    def manifestPath = file(dependencyJson.packages.find { it.name == "rustls-platform-verifier-android" }.manifest_path)
+    return new File(manifestPath.parentFile, "maven").path
+}
+
 rootProject.name = "My Application"
 include ':app'
 include ':sdk'

@@ -63,6 +63,9 @@ jobs:
       - name: Uninstall llvm
         run: choco uninstall -y llvm
 
+      - name: Add VS clang to path
+        run: $env:Path += ";C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\x64\bin"
+
       - name: Clang version
         run: clang --version
 

@@ -94,7 +94,7 @@ async fn process_commands() -> Result<()> {
         ) {
             Ok(state_file) => Some(state_file),
             Err(e) => {
-                eprintln!("Error: {}\nAttempting to continue without using state. Please set \"state_dir\" in your config file to avoid authentication limits.", e);
+                eprintln!("Warning: {}\nRetrieving the state file failed. Attempting to continue without using state. Please set \"state_dir\" in your config file to avoid authentication limits.", e);
                 None
             }
         },

@@ -64,7 +64,7 @@ jobs:
         run: choco uninstall -y llvm
 
       - name: Add VS clang to path
-        run: $env:Path += ";C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\x64\bin"
+        run: echo "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm\x64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Clang version
         run: clang --version

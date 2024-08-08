@@ -51,10 +51,10 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-          - os: windows-2022
+          - os: windows-2019
             target: x86_64-pc-windows-msvc
 
-          - os: windows-2022
+          - os: windows-2019
             target: aarch64-pc-windows-msvc
     steps:
       - name: Checkout repo
@@ -69,13 +69,10 @@ jobs:
       - name: Add rust target
         run: rustup target add ${{ matrix.settings.target }}
 
-      - name: Install Zig build
-        run: cargo install cargo-zigbuild
-
       - name: Build
         env:
           TARGET: ${{ matrix.settings.target }}
-        run: cargo zigbuild -p bws --release --target=${{ matrix.settings.target }}
+        run: cargo build -p bws --release --target=${{ matrix.settings.target }}
 
       - name: Login to Azure
         if: ${{ needs.setup.outputs.sign == 'true' }}

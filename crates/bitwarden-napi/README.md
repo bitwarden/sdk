@@ -21,10 +21,7 @@ const accessToken = "-- REDACTED --";
 const client = new BitwardenClient(settings, LogLevel.Info);
 
 // Authenticating using a machine account access token
-const result = await client.loginWithAccessToken(accessToken);
-if (!result.success) {
-  throw Error("Authentication failed");
-}
+await client.accessTokenLogin(accessToken);
 
 // List secrets
 const secrets = await client.secrets().list();

@@ -120,11 +120,9 @@ impl InternalClient {
             .write()
             .expect("RwLock is not poisoned");
 
-        let mut inner: ApiConfigurations = guard.as_ref().clone();
+        let inner = Arc::make_mut(&mut guard);
         inner.identity.oauth_access_token = Some(token.clone());
         inner.api.oauth_access_token = Some(token);
-
-        *guard = Arc::new(inner);
     }
 
     #[cfg(feature = "internal")]
@@ -251,12 +249,9 @@ impl InternalClient {
             return Err(VaultLocked.into());
         };
 
-        let mut enc: EncryptionSettings = enc.as_ref().clone();
-        enc.set_org_keys(org_keys)?;
-        let enc = Arc::new(enc);
+        let inner = Arc::make_mut(enc);
+        inner.set_org_keys(org_keys)?;
 
-        *guard = Some(enc.clone());
-
-        Ok(enc)
+        Ok(enc.clone())
     }
 }

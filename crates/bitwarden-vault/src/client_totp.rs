@@ -1,6 +1,8 @@
 use chrono::{DateTime, Utc};
 
-use crate::{generate_totp, ClientVault, TotpError, TotpResponse};
+use crate::{
+    generate_totp, generate_totp_cipher_view, CipherListView, ClientVault, TotpError, TotpResponse,
+};
 
 impl<'a> ClientVault<'a> {
     /// Generate a TOTP code from a provided key.
@@ -15,5 +17,16 @@ impl<'a> ClientVault<'a> {
         time: Option<DateTime<Utc>>,
     ) -> Result<TotpResponse, TotpError> {
         generate_totp(key, time)
+    }
+
+    /// Generate a TOTP code from a provided cipher list view.
+    pub fn generate_totp_cipher_view(
+        &'a self,
+        view: CipherListView,
+        time: Option<DateTime<Utc>>,
+    ) -> Result<TotpResponse, TotpError> {
+        let enc = self.client.internal.get_encryption_settings()?;
+
+        generate_totp_cipher_view(&enc, view, time)
     }
 }

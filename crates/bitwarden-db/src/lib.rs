@@ -2,6 +2,7 @@
 mod error;
 pub use error::DatabaseError;
 mod migrator;
+pub use migrator::*;
 
 // #[cfg(all(feature = "sqlite", feature = "wasm"))]
 // compile_error!("Sqlite and wasm are mutually exclusive and cannot be enabled together");
@@ -38,7 +39,12 @@ pub trait DatabaseTrait {
     /// On success, returns the number of rows that were changed or inserted or deleted.
     async fn execute<P: Params>(&self, sql: &str, params: P) -> Result<usize, DatabaseError>;
 
-    async fn query_map<T, F>(&self, query: &str, row_to_type: F) -> Result<Vec<T>, DatabaseError>
+    async fn query_map<P: Params, T, F>(
+        &self,
+        query: &str,
+        params: P,
+        row_to_type: F,
+    ) -> Result<Vec<T>, DatabaseError>
     where
         F: Fn(&Row) -> Result<T, DatabaseError>;
 }

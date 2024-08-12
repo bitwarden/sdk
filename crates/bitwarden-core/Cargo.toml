@@ -26,6 +26,7 @@ uniffi = [
     "dep:p256",
 ] # Uniffi bindings
 secrets = [] # Secrets manager API
+state = ["dep:bitwarden-db"] # Persistent state
 
 [dependencies]
 async-trait = ">=0.1.80, <0.2"
@@ -33,7 +34,7 @@ base64 = ">=0.22.1, <0.23"
 bitwarden-api-api = { workspace = true }
 bitwarden-api-identity = { workspace = true }
 bitwarden-crypto = { workspace = true }
-bitwarden-db = { workspace = true }
+bitwarden-db = { workspace = true, optional = true }
 chrono = { version = ">=0.4.26, <0.5", features = [
     "clock",
     "serde",

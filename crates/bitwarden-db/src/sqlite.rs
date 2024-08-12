@@ -1,7 +1,7 @@
 use rusqlite::Connection;
 pub use rusqlite::{named_params, params, Params, Row};
 
-use super::{migrator::Migrator, DatabaseError, DatabaseTrait};
+use super::{DatabaseError, DatabaseTrait};
 
 #[derive(Debug)]
 pub struct SqliteDatabase {
@@ -25,40 +25,14 @@ impl SqliteDatabase {
     }
 
     /// Create a new SqliteDatabase with the given connection.
-    ///
-    /// This will migrate the database to the latest version.
     async fn new_conn(conn: Connection) -> Result<Self, DatabaseError> {
         let db = SqliteDatabase { conn };
-
-        /*
-        let migrator = Migrator::new();
-        migrator
-            .migrate(&db, None)
-            .await
-            .map_err(DatabaseError::Migrator)?;
-        */
 
         Ok(db)
     }
 }
 
 impl DatabaseTrait for SqliteDatabase {
-    /*
-
-
-    /// Create a new SqliteDatabase with the given connection.
-    ///
-    /// This will migrate the database to the latest version.
-    fn new_conn(conn: Connection) -> Result<Self, DatabaseError> {
-        let migrator = Migrator::new();
-        migrator
-            .migrate(&conn, None)
-            .map_err(DatabaseError::Migrator)?;
-
-        Ok(SqliteDatabase { conn })
-    }
-    */
-
     async fn get_version(&self) -> Result<usize, DatabaseError> {
         let version: usize = self
             .conn
@@ -88,13 +62,18 @@ impl DatabaseTrait for SqliteDatabase {
         Ok(0)
     }
 
-    async fn query_map<T, F>(&self, query: &str, row_to_type: F) -> Result<Vec<T>, DatabaseError>
+    async fn query_map<P: Params, T, F>(
+        &self,
+        query: &str,
+        params: P,
+        row_to_type: F,
+    ) -> Result<Vec<T>, DatabaseError>
     where
         F: Fn(&Row) -> Result<T, DatabaseError>,
     {
         let mut stmt = self.conn.prepare(query)?;
         let rows: Result<Vec<T>, rusqlite::Error> = stmt
-            .query_map([], |row| row_to_type(row).map_err(|err| err.into()))?
+            .query_map(params, |row| row_to_type(row).map_err(|err| err.into()))?
             .collect();
 
         Ok(rows?)
@@ -173,7 +152,7 @@ mod tests {
         }
 
         let rows: Vec<Test> = db
-            .query_map("SELECT * FROM test", |row| {
+            .query_map("SELECT * FROM test", [], |row| {
                 Ok(Test {
                     id: row.get(0)?,
                     name: row.get(1)?,

@@ -10,8 +10,6 @@ pub use params::{Params, ToSql};
 extern "C" {
     type SqliteDatabase;
 
-    //async fn runSql(sql: &str);
-
     #[wasm_bindgen(static_method_of = SqliteDatabase)]
     async fn factory(name: &str) -> JsValue;
 
@@ -50,23 +48,8 @@ impl WasmDatabase {
     pub async fn new() -> Result<Self, DatabaseError> {
         let db: SqliteDatabase = SqliteDatabase::factory("test").await.into();
 
-        /*
-        db.execute_batch(
-            "CREATE TABLE IF NOT EXISTS ciphers (
-                id TEXT PRIMARY KEY,
-                value TEXT NOT NULL
-            )",
-        )
-        .await;
-        */
-
         Ok(WasmDatabase { db })
     }
-    /*
-    pub fn execute(&self, sql: &str) -> Result<(), DatabaseError> {
-        runSql(sql);
-        Ok(())
-    }*/
 }
 
 impl DatabaseTrait for WasmDatabase {

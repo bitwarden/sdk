@@ -19,6 +19,7 @@ uniffi = [
     "bitwarden-crypto/uniffi",
     "dep:uniffi",
 ] # Uniffi bindings
+state = ["bitwarden-core/state"] # Persistent state
 
 [dependencies]
 base64 = ">=0.22.1, <0.23"

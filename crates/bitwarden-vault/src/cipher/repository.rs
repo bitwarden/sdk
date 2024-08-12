@@ -1,16 +1,25 @@
 use std::sync::Arc;
 
 use bitwarden_db::{named_params, params, Database, DatabaseError, DatabaseTrait};
+use thiserror::Error;
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
 use super::Cipher;
 
 /// A row in the ciphers table.
-pub struct CipherRow {
+struct CipherRow {
     #[allow(dead_code)]
     id: Uuid,
     value: String,
+}
+
+#[derive(Debug, Error)]
+pub enum CipherRepositoryError {
+    #[error(transparent)]
+    DatabaseError(#[from] DatabaseError),
+    #[error(transparent)]
+    SerdeJson(#[from] serde_json::Error),
 }
 
 pub struct CipherRepository {
@@ -22,13 +31,13 @@ impl CipherRepository {
         Self { db: db.clone() }
     }
 
-    pub async fn save(&self, cipher: &Cipher) -> Result<(), DatabaseError> {
+    pub async fn save(&self, cipher: &Cipher) -> Result<(), CipherRepositoryError> {
         let id = cipher.id.unwrap();
         let serialized = serde_json::to_string(cipher).unwrap();
 
         let guard = self.db.lock().await;
 
-        guard
+        Ok(guard
             .execute(
                 "
                     INSERT INTO ciphers (id, value)
@@ -39,10 +48,10 @@ impl CipherRepository {
                 params![&id, &serialized],
             )
             .await
-            .map(|_| ())
+            .map(|_| ())?)
     }
 
-    pub async fn replace_all(&self, ciphers: &[Cipher]) -> Result<(), DatabaseError> {
+    pub async fn replace_all(&self, ciphers: &[Cipher]) -> Result<(), CipherRepositoryError> {
         let guard = self.db.lock().await;
 
         guard.execute("DELETE FROM ciphers", []).await?;
@@ -72,12 +81,13 @@ impl CipherRepository {
         Ok(())
     }
 
-    pub async fn get_all(&self) -> Result<Vec<CipherRow>, DatabaseError> {
+    pub async fn get_all(&self) -> Result<Vec<Cipher>, CipherRepositoryError> {
         let guard = self.db.lock().await;
 
         let rows = guard
             .query_map(
                 "SELECT id, value FROM ciphers",
+                [],
                 |row| -> Result<CipherRow, DatabaseError> {
                     Ok(CipherRow {
                         id: row.get(0)?,
@@ -85,7 +95,10 @@ impl CipherRepository {
                     })
                 },
             )
-            .await?;
+            .await?
+            .iter()
+            .map(|row| serde_json::from_str(&row.value).unwrap())
+            .collect();
 
         Ok(rows)
     }
@@ -153,7 +166,7 @@ mod tests {
         let ciphers = repo.get_all().await.unwrap();
 
         assert_eq!(ciphers.len(), 1);
-        assert_eq!(ciphers[0].id, cipher.id.unwrap());
+        assert_eq!(ciphers[0].id, cipher.id);
     }
 
     #[tokio::test]
@@ -181,7 +194,7 @@ mod tests {
 
         let ciphers = repo.get_all().await.unwrap();
         assert_eq!(ciphers.len(), 1);
-        assert_eq!(ciphers[0].id, old_cipher.id.unwrap());
+        assert_eq!(ciphers[0].id, old_cipher.id);
 
         let new_ciphers = vec![mock_cipher(
             "d55d65d7-c161-40a4-94ca-b0d20184d91c".parse().unwrap(),
@@ -191,6 +204,6 @@ mod tests {
 
         let ciphers = repo.get_all().await.unwrap();
         assert_eq!(ciphers.len(), 1);
-        assert_eq!(ciphers[0].id, new_ciphers[0].id.unwrap());
+        assert_eq!(ciphers[0].id, new_ciphers[0].id);
     }
 }

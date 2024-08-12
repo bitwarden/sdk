@@ -15,14 +15,14 @@ pub enum MigratorError {
 ///
 /// The current database version is stored in the user_version PRAGMA.
 /// It will iterate through all migrations and apply up migrations.
-pub(crate) struct Migrator {
+pub struct Migrator {
     migrations: Vec<Migration>,
 }
 
 impl Migrator {
-    pub fn new() -> Self {
+    pub fn new(migrations: &[Migration]) -> Self {
         Self {
-            migrations: MIGRATIONS.to_vec(),
+            migrations: migrations.to_vec(),
         }
     }
 
@@ -36,7 +36,7 @@ impl Migrator {
             .await
             .map_err(|_| MigratorError::Internal("Failed to get user_version".into()))?;
 
-        let target_version = target_version.unwrap_or(MIGRATIONS.len());
+        let target_version = target_version.unwrap_or(self.migrations.len());
 
         let migrations = filter_migrations(&self.migrations, current_version, target_version);
 
@@ -93,23 +93,14 @@ fn filter_migrations(
 }
 
 #[derive(Clone, PartialEq, Eq, Debug)]
-struct Migration {
+pub struct Migration {
     /// A description of the migration, used for logging
-    description: &'static str,
+    pub description: &'static str,
     /// The SQL to run when migrating up
-    up: &'static str,
+    pub up: &'static str,
     /// The SQL to run when migrating down
-    down: &'static str,
+    pub down: &'static str,
 }
-
-const MIGRATIONS: &[Migration] = &[Migration {
-    description: "Create ciphers table",
-    up: "CREATE TABLE IF NOT EXISTS ciphers (
-            id TEXT PRIMARY KEY,
-            value TEXT NOT NULL
-        )",
-    down: "DROP TABLE ciphers",
-}];
 
 #[cfg(test)]
 mod tests {

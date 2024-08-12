@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use bitwarden_core::{require, MissingFieldError};
 use bitwarden_db::{named_params, params, Database, DatabaseError, DatabaseTrait};
 use thiserror::Error;
 use tokio::sync::Mutex;
@@ -17,6 +18,8 @@ struct CipherRow {
 #[derive(Debug, Error)]
 pub enum CipherRepositoryError {
     #[error(transparent)]
+    MissingFieldError(#[from] MissingFieldError),
+    #[error(transparent)]
     DatabaseError(#[from] DatabaseError),
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
@@ -32,8 +35,8 @@ impl CipherRepository {
     }
 
     pub async fn save(&self, cipher: &Cipher) -> Result<(), CipherRepositoryError> {
-        let id = cipher.id.unwrap();
-        let serialized = serde_json::to_string(cipher).unwrap();
+        let id = require!(cipher.id);
+        let serialized = serde_json::to_string(cipher)?;
 
         let guard = self.db.lock().await;
 
@@ -58,7 +61,7 @@ impl CipherRepository {
 
         for cipher in ciphers {
             let id = cipher.id.unwrap();
-            let serialized = serde_json::to_string(&cipher).unwrap();
+            let serialized = serde_json::to_string(&cipher)?;
 
             guard
                 .execute(
@@ -84,7 +87,7 @@ impl CipherRepository {
     pub async fn get_all(&self) -> Result<Vec<Cipher>, CipherRepositoryError> {
         let guard = self.db.lock().await;
 
-        let rows = guard
+        let rows: Result<Vec<Cipher>, _> = guard
             .query_map(
                 "SELECT id, value FROM ciphers",
                 [],
@@ -97,10 +100,10 @@ impl CipherRepository {
             )
             .await?
             .iter()
-            .map(|row| serde_json::from_str(&row.value).unwrap())
+            .map(|row| serde_json::from_str(&row.value))
             .collect();
 
-        Ok(rows)
+        Ok(rows?)
     }
 }
 

@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use uuid::Uuid;
 
-use crate::{Cipher, ClientVaultExt, Collection, Folder, GlobalDomains, VaultParseError};
+use crate::{Cipher, Collection, Folder, GlobalDomains, VaultParseError};
 
 #[derive(Debug, Error)]
 pub enum SyncError {
@@ -47,15 +47,6 @@ pub(crate) async fn sync(client: &Client, input: &SyncRequest) -> Result<SyncRes
     let enc = client.internal.initialize_org_crypto(org_keys)?;
 
     let res = SyncResponse::process_response(sync, &enc)?;
-
-    let ciphers = res.ciphers.as_slice();
-
-    client
-        .vault()
-        .cipher_repository
-        .replace_all(ciphers)
-        .await
-        .unwrap();
 
     Ok(res)
 }

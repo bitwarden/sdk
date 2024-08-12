@@ -1,22 +1,24 @@
 use bitwarden_core::Client;
 
+#[cfg(feature = "state")]
+use crate::repository::CipherRepository;
 use crate::{
-    repository::CipherRepository,
     sync::{sync, SyncError},
     SyncRequest, SyncResponse,
 };
 
 pub struct ClientVault<'a> {
     pub(crate) client: &'a Client,
+    #[cfg(feature = "state")]
     pub cipher_repository: CipherRepository,
 }
 
 impl<'a> ClientVault<'a> {
     pub fn new(client: &'a Client) -> Self {
-        let t = client.internal.db.clone();
         Self {
             client,
-            cipher_repository: CipherRepository::new(t),
+            #[cfg(feature = "state")]
+            cipher_repository: CipherRepository::new(client.internal.db.clone()),
         }
     }
 

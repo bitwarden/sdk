@@ -7,7 +7,7 @@ use bitwarden_crypto::{AsymmetricEncString, EncString, Kdf, MasterKey, PinKey};
 #[cfg(feature = "state")]
 use bitwarden_db::Database;
 use chrono::Utc;
-#[cfg(feature = "internal")]
+#[cfg(feature = "state")]
 use tokio::sync::Mutex;
 use uuid::Uuid;
 

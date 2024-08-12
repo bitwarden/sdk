@@ -3,7 +3,7 @@ use std::sync::{Arc, RwLock};
 #[cfg(feature = "state")]
 use bitwarden_db::{Database, Migration, Migrator};
 use reqwest::header::{self, HeaderValue};
-#[cfg(feature = "internal")]
+#[cfg(feature = "state")]
 use tokio::sync::Mutex;
 
 use super::internal::InternalClient;

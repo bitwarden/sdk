@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+
 use thiserror::Error;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 

@@ -29,4 +29,4 @@
             uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
             with:
              name: test-rustls-platform-verifier
-             path: ./target/release/test-rustls-platform-verifier.exe
+             path: ./target/x86_64-pc-windows-msvc/release/test-rustls-platform-verifier.exe

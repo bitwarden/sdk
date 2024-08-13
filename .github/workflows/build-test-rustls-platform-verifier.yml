@@ -1,0 +1,34 @@
+---
+name: Build test rustls platform verifier
+
+on:
+  push:
+    branches:
+      - main
+      - rc
+      - hotfix-rc
+  pull_request:
+  workflow_dispatch:
+
+defaults:
+    run:
+      shell: bash
+
+
+
+jobs:
+  build-windows:
+    name: Build Windows
+    runs-on: windows-2022
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Build
+        run: cargo build -p test-rustls-platform-verifier --release --target=x86_64-pc-windows-msvc
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4.3.6
+        with:
+          name: test-rustls-platform-verifier
+          path: ./target/x86_64-pc-windows-msvc/release/test-rustls-platform-verifier.exe

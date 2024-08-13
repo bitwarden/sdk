@@ -3894,6 +3894,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "test-rustls-platform-verifier"
+version = "0.5.0"
+dependencies = [
+ "env_logger",
+ "reqwest",
+ "rustls-platform-verifier",
+ "tokio",
+]
+
+[[package]]
 name = "textwrap"
 version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

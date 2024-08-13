@@ -19,7 +19,7 @@ uuid = { version = ">=1.3.3, <2.0" }
 tokio = { workspace = true }
 
 [target.'cfg(not(target_arch="wasm32"))'.dependencies]
-rusqlite = { version = ">=0.31.0, <0.32", features = ["uuid"] }
+rusqlite = { version = ">=0.31.0, <0.32", features = ["uuid", "bundled"] }
 
 [target.'cfg(target_arch="wasm32")'.dependencies]
 js-sys = "0.3.68"

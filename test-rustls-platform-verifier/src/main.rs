@@ -1,5 +1,7 @@
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    env_logger::init();
+
     let client = reqwest::Client::builder()
         .use_preconfigured_tls(rustls_platform_verifier::tls_config())
         .build()

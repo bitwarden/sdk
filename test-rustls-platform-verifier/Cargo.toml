@@ -15,6 +15,7 @@ reqwest = { version = "0.12.5", features = [
 ], default-features = false }
 rustls-platform-verifier = "0.3.3"
 tokio = { version = "1.36.0", features = ["rt-multi-thread", "macros"] }
+env_logger = "0.11.5"
 
 [lints]
 workspace = true

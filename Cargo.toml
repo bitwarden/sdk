@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/*", "test-rustls-platform-verifier"]
+members = ["crates/*"]
 
 # Global settings for all crates should be defined here
 [workspace.package]

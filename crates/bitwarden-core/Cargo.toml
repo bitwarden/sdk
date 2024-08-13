@@ -70,8 +70,9 @@ zxcvbn = ">=3.0.1, <4.0"
 # - WASM doesn't require a TLS stack, as it just uses the browsers/node fetch
 # - Android uses webpki-roots for the moment
 reqwest = { version = ">=0.12.5, <0.13", features = [
-    "rustls-tls-native-roots",
+    "rustls-tls-manual-roots",
 ], default-features = false }
+rustls-platform-verifier = "0.3.3"
 
 [target.'cfg(target_os = "android")'.dependencies]
 # On android, the use of rustls-platform-verifier is more complicated and going through some changes at the moment, so we fall back to using webpki-roots

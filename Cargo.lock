@@ -440,6 +440,7 @@ dependencies = [
  "rand",
  "rand_chacha",
  "reqwest",
+ "rustls-platform-verifier",
  "schemars",
  "security-framework",
  "serde",
@@ -1983,7 +1984,6 @@ dependencies = [
  "hyper",
  "hyper-util",
  "rustls",
- "rustls-native-certs",
  "rustls-pki-types",
  "tokio",
  "tokio-rustls",
@@ -3155,7 +3155,6 @@ dependencies = [
  "pin-project-lite",
  "quinn",
  "rustls",
- "rustls-native-certs",
  "rustls-pemfile",
  "rustls-pki-types",
  "serde",
@@ -3890,16 +3889,6 @@ dependencies = [
  "fastrand",
  "rustix",
  "windows-sys 0.52.0",
-]
-
-[[package]]
-name = "test-rustls-platform-verifier"
-version = "0.5.0"
-dependencies = [
- "env_logger",
- "reqwest",
- "rustls-platform-verifier",
- "tokio",
 ]
 
 [[package]]

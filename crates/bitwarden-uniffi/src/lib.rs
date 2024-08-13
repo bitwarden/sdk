@@ -28,8 +28,8 @@ pub struct Client(bitwarden::Client);
 #[uniffi::export]
 impl Client {
     /// Initialize a new instance of the SDK client
-    #[uniffi::constructor]
-    pub async fn new(settings: Option<ClientSettings>) -> Arc<Self> {
+    #[uniffi::constructor(async_runtime = "tokio")]
+    pub async fn factory(settings: Option<ClientSettings>) -> Arc<Self> {
         init_logger();
         Arc::new(Self(bitwarden::Client::new(settings).await))
     }

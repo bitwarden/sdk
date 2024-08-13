@@ -37,7 +37,7 @@ async fn test() -> Result<()> {
         user_agent: "Bitwarden Rust-SDK".to_string(),
         device_type: DeviceType::SDK,
     };
-    let mut client = Client::new(Some(settings));
+    let mut client = Client::new(Some(settings)).await;
 
     // Before we operate, we need to authenticate with a token
     let token = AccessTokenLoginRequest {

@@ -43,13 +43,10 @@ class SqliteDatabase {
   }
 
   async execute_batch(sql) {
-    console.log(sql);
-    // localStorage.setItem("sql", sql);
     await sqlite3.exec(this.db, sql);
   }
 
   async execute(sql, params) {
-    console.log(sql, params);
     for await (const stmt of sqlite3.statements(this.db, sql)) {
       let rc = sqlite3.bind_collection(stmt, params);
 
@@ -57,9 +54,6 @@ class SqliteDatabase {
         console.log(rc);
       }
     }
-
-    // localStorage.setItem("sql", sql);
-    // await sqlite3.exec(this.db, sql);
   }
 
   async query_map(sql) {

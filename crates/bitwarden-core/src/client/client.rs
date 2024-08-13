@@ -42,6 +42,7 @@ const MIGRATIONS: &[Migration] = &[
 ];
 
 impl Client {
+    #[allow(clippy::unused_async)]
     pub async fn new(settings_input: Option<ClientSettings>) -> Self {
         let settings = settings_input.unwrap_or_default();
 

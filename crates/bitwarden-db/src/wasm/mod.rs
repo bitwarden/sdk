@@ -26,7 +26,7 @@ extern "C" {
     async fn execute(this: &SqliteDatabase, sql: &str, params: JsValue);
 
     #[wasm_bindgen(method)]
-    async fn query_map(this: &SqliteDatabase, sql: &str) -> JsValue;
+    async fn query_map(this: &SqliteDatabase, sql: &str, params: JsValue) -> JsValue;
 }
 
 impl core::fmt::Debug for SqliteDatabase {
@@ -80,11 +80,17 @@ impl DatabaseTrait for WasmDatabase {
         Ok(0)
     }
 
-    async fn query_map<T, F>(&self, sql: &str, row_to_type: F) -> Result<Vec<T>, DatabaseError>
+    async fn query_map<P, T, F>(
+        &self,
+        sql: &str,
+        params: P,
+        row_to_type: F,
+    ) -> Result<Vec<T>, DatabaseError>
     where
+        P: Params,
         F: Fn(&Row) -> Result<T, DatabaseError>,
     {
-        let result = self.db.query_map(sql).await;
+        let result = self.db.query_map(sql, params.to_sql()).await;
 
         let rows = js_sys::Array::from(&result)
             .iter()

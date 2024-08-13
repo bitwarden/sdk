@@ -60,7 +60,7 @@ impl CipherRepository {
         guard.execute("DELETE FROM ciphers", []).await?;
 
         for cipher in ciphers {
-            let id = cipher.id.unwrap();
+            let id = require!(cipher.id);
             let serialized = serde_json::to_string(&cipher)?;
 
             guard

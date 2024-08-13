@@ -679,6 +679,7 @@ dependencies = [
  "oslog",
  "schemars",
  "thiserror",
+ "tokio",
  "uniffi",
  "uuid",
 ]

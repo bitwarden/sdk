@@ -46,7 +46,7 @@ pub async fn test_create_select(db: &Database) {
     }
 
     let rows = db
-        .query_map("SELECT * FROM test", |row| {
+        .query_map("SELECT * FROM test", [], |row| {
             Ok(Test {
                 id: row.get(0)?,
                 name: row.get(1)?,

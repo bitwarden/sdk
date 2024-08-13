@@ -28,6 +28,7 @@ xcuserdata/
 
 # Databases
 *.sqlite
+crates/bitwarden-db-tests/pkg
 
 node_modules/
 clients/python/env/

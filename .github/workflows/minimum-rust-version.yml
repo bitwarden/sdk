@@ -33,8 +33,8 @@ jobs:
         uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17 # stable
         with:
           # Important: When updating this, make sure to update the Readme file
-          # and also the `rust-version` field in all the `Cargo.toml`.
-          toolchain: 1.71.0
+          # and also the `rust-version` field in the workspace `Cargo.toml`.
+          toolchain: 1.75.0
           targets: ${{ matrix.settings.target }}
 
       - name: Cache cargo registry

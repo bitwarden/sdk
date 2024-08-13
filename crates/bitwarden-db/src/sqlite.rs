@@ -4,6 +4,8 @@ use tokio::sync::Mutex;
 
 use super::{DatabaseError, DatabaseTrait};
 
+pub type RowError = rusqlite::Error;
+
 #[derive(Debug)]
 pub struct SqliteDatabase {
     conn: Mutex<Connection>,
@@ -81,16 +83,15 @@ impl DatabaseTrait for SqliteDatabase {
         row_to_type: F,
     ) -> Result<Vec<T>, DatabaseError>
     where
-        F: Fn(&Row) -> Result<T, DatabaseError>,
+        F: Fn(&Row) -> Result<T, RowError>,
     {
         let guard = self.conn.lock().await;
 
         let mut stmt = guard.prepare(query)?;
-        let rows: Result<Vec<T>, rusqlite::Error> = stmt
-            .query_map(params, |row| row_to_type(row).map_err(|err| err.into()))?
-            .collect();
+        let rows: Result<Vec<T>, rusqlite::Error> =
+            stmt.query_map(params, |row| row_to_type(row))?.collect();
 
-        Ok(rows?)
+        rows.map_err(DatabaseError::RowError)
     }
 }
 
@@ -132,14 +133,12 @@ mod tests {
             .await
             .unwrap();
 
-        /*
-        let count: i64 = db
-            .conn
-            .query_row("SELECT COUNT(*) FROM test", [], |row| row.get(0))
+        let count: Vec<i64> = db
+            .query_map("SELECT COUNT(*) FROM test", [], |row| row.get(0))
+            .await
             .unwrap();
 
-        assert_eq!(count, 1);
-        */
+        assert_eq!(*count.first().unwrap(), 1);
     }
 
     #[tokio::test]

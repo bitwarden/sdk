@@ -3,12 +3,18 @@ use std::{borrow::Cow, cmp::Ordering};
 use log::info;
 use thiserror::Error;
 
-use crate::{Database, DatabaseTrait};
+use crate::{Database, DatabaseError, DatabaseTrait};
 
 #[derive(Debug, Error)]
 pub enum MigratorError {
     #[error("Internal error: {0}")]
     Internal(Cow<'static, str>),
+
+    #[error("Failed to apply migrations")]
+    MigrationFailed,
+
+    #[error(transparent)]
+    Database(#[from] DatabaseError),
 }
 
 /// Database migrator
@@ -26,15 +32,13 @@ impl Migrator {
         }
     }
 
+    /// Migrate the database to the target version, or the last migration if not specified
     pub async fn migrate(
         &self,
         db: &Database,
         target_version: Option<usize>,
     ) -> Result<(), MigratorError> {
-        let current_version = db
-            .get_version()
-            .await
-            .map_err(|_| MigratorError::Internal("Failed to get user_version".into()))?;
+        let current_version = db.get_version().await?;
 
         let target_version = target_version.unwrap_or(self.migrations.len());
 
@@ -52,19 +56,17 @@ impl Migrator {
                 true => {
                     db.execute_batch(migration.up)
                         .await
-                        .map_err(|_| MigratorError::Internal("Failed to apply migration".into()))?;
+                        .map_err(|_| MigratorError::MigrationFailed)?;
                 }
                 false => {
                     db.execute_batch(migration.down)
                         .await
-                        .map_err(|_| MigratorError::Internal("Failed to apply migration".into()))?;
+                        .map_err(|_| MigratorError::MigrationFailed)?;
                 }
             }
         }
 
-        db.set_version(target_version)
-            .await
-            .map_err(|_| MigratorError::Internal("Failed to set user_version".into()))?;
+        db.set_version(target_version).await?;
 
         Ok(())
     }

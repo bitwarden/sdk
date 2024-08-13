@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+use thiserror::Error;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 use super::{DatabaseError, DatabaseTrait};
@@ -5,6 +7,12 @@ use super::{DatabaseError, DatabaseTrait};
 mod params;
 use params::FromSql;
 pub use params::{Params, ToSql};
+
+#[derive(Debug, Error)]
+pub enum RowError {
+    #[error("Internal error: {0}")]
+    Internal(Cow<'static, str>),
+}
 
 #[wasm_bindgen]
 extern "C" {
@@ -88,7 +96,7 @@ impl DatabaseTrait for WasmDatabase {
     ) -> Result<Vec<T>, DatabaseError>
     where
         P: Params,
-        F: Fn(&Row) -> Result<T, DatabaseError>,
+        F: Fn(&Row) -> Result<T, RowError>,
     {
         let result = self.db.query_map(sql, params.to_sql()).await;
 
@@ -99,7 +107,7 @@ impl DatabaseTrait for WasmDatabase {
                 let row = Row {
                     data: data.to_vec(),
                 };
-                row_to_type(&row)
+                row_to_type(&row).map_err(DatabaseError::RowError)
             })
             .collect::<Result<Vec<T>, DatabaseError>>()?;
 
@@ -112,7 +120,7 @@ pub struct Row {
 }
 
 impl Row {
-    pub fn get<T: FromSql>(&self, idx: u8) -> Result<T, DatabaseError> {
+    pub fn get<T: FromSql>(&self, idx: u8) -> Result<T, RowError> {
         let value = self.data.get(idx as usize).expect("ABLE TO UNWRAP");
 
         let result = T::from_sql(value.clone());

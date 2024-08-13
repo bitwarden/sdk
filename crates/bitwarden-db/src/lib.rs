@@ -4,13 +4,12 @@ pub use error::DatabaseError;
 mod migrator;
 pub use migrator::*;
 
-// #[cfg(all(feature = "sqlite", feature = "wasm"))]
-// compile_error!("Sqlite and wasm are mutually exclusive and cannot be enabled together");
-
 #[cfg(not(target_arch = "wasm32"))]
 mod sqlite;
 #[cfg(not(target_arch = "wasm32"))]
 pub type Database = sqlite::SqliteDatabase;
+#[cfg(not(target_arch = "wasm32"))]
+pub type RowError = sqlite::RowError;
 #[cfg(not(target_arch = "wasm32"))]
 pub use sqlite::{named_params, params, Params, Row};
 
@@ -19,6 +18,8 @@ mod wasm;
 #[cfg(target_arch = "wasm32")]
 pub type Database = wasm::WasmDatabase;
 #[cfg(target_arch = "wasm32")]
+pub type RowError = wasm::RowError;
+#[cfg(target_arch = "wasm32")]
 pub use wasm::{Params, Row, ToSql};
 
 /// Persistent storage for the Bitwarden SDK
@@ -26,8 +27,6 @@ pub use wasm::{Params, Row, ToSql};
 /// The database is used to store the user's data, such as ciphers, folders, and settings.
 /// Since we need to support multiple platforms, the database is abstracted to allow for different
 /// implementations.
-///
-/// The default and recommended implementation is SqliteDatabase.
 pub trait DatabaseTrait {
     async fn get_version(&self) -> Result<usize, DatabaseError>;
     async fn set_version(&self, version: usize) -> Result<(), DatabaseError>;
@@ -46,5 +45,5 @@ pub trait DatabaseTrait {
         row_to_type: F,
     ) -> Result<Vec<T>, DatabaseError>
     where
-        F: Fn(&Row) -> Result<T, DatabaseError>;
+        F: Fn(&Row) -> Result<T, RowError>;
 }

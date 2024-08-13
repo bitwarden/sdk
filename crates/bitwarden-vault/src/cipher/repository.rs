@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use bitwarden_core::{require, MissingFieldError};
-use bitwarden_db::{named_params, params, Database, DatabaseError, DatabaseTrait};
+use bitwarden_db::{named_params, params, Database, DatabaseError, DatabaseTrait, RowError};
 use thiserror::Error;
 use tokio::sync::Mutex;
 use uuid::Uuid;
@@ -91,7 +91,7 @@ impl CipherRepository {
             .query_map(
                 "SELECT id, value FROM ciphers",
                 [],
-                |row| -> Result<CipherRow, DatabaseError> {
+                |row| -> Result<CipherRow, RowError> {
                     Ok(CipherRow {
                         id: row.get(0)?,
                         value: row.get(1)?,

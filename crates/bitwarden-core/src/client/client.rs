@@ -1,5 +1,7 @@
 use std::sync::{Arc, RwLock};
+
 use reqwest::header::{self, HeaderValue};
+
 use super::internal::InternalClient;
 #[cfg(feature = "internal")]
 use crate::client::flags::Flags;

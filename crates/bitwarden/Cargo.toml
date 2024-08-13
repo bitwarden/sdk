@@ -36,6 +36,7 @@ uniffi = [
     "bitwarden-vault/uniffi",
 ] # Uniffi bindings
 secrets = ["bitwarden-core/secrets", "dep:bitwarden-sm"] # Secrets manager API
+state = ["bitwarden-core/state", "bitwarden-vault/state"] # Persistent state
 
 [dependencies]
 bitwarden-api-api = { workspace = true }

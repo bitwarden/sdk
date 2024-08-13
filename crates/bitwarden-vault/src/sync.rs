@@ -46,9 +46,7 @@ pub(crate) async fn sync(client: &Client, input: &SyncRequest) -> Result<SyncRes
 
     let enc = client.internal.initialize_org_crypto(org_keys)?;
 
-    let res = SyncResponse::process_response(sync, &enc)?;
-
-    Ok(res)
+    SyncResponse::process_response(sync, &enc)
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

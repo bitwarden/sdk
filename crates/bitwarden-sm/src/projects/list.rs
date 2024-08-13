@@ -25,11 +25,22 @@ pub(crate) async fn list_projects(
         &config.api,
         input.organization_id,
     )
-    .await?;
+    .await;
+
+    let r = match res {
+        Ok(r) => {
+            println!("{:?}", r);
+            r
+        }
+        Err(e) => {
+            println!("{:?}", e);
+            return Err(e.into());
+        }
+    };
 
     let enc = client.internal.get_encryption_settings()?;
 
-    ProjectsResponse::process_response(res, &enc)
+    ProjectsResponse::process_response(r, &enc)
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

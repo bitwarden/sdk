@@ -26,11 +26,22 @@ pub(crate) async fn list_secrets(
         &config.api,
         input.organization_id,
     )
-    .await?;
+    .await;
+
+    let r = match res {
+        Ok(r) => {
+            println!("{:?}", r);
+            r
+        }
+        Err(e) => {
+            println!("{:?}", e);
+            return Err(e.into());
+        }
+    };
 
     let enc = client.internal.get_encryption_settings()?;
 
-    SecretIdentifiersResponse::process_response(res, &enc)
+    SecretIdentifiersResponse::process_response(r, &enc)
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -49,11 +60,22 @@ pub(crate) async fn list_secrets_by_project(
         &config.api,
         input.project_id,
     )
-    .await?;
+    .await;
+
+    let r = match res {
+        Ok(r) => {
+            println!("{:?}", r);
+            r
+        }
+        Err(e) => {
+            println!("{:?}", e);
+            return Err(e.into());
+        }
+    };
 
     let enc = client.internal.get_encryption_settings()?;
 
-    SecretIdentifiersResponse::process_response(res, &enc)
+    SecretIdentifiersResponse::process_response(r, &enc)
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

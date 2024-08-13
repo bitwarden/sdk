@@ -33,6 +33,7 @@ impl<'a> ClientSecrets<'a> {
         &self,
         input: &SecretIdentifiersRequest,
     ) -> Result<SecretIdentifiersResponse, Error> {
+        println!("list the secrets");
         list_secrets(self.client, input).await
     }
 
@@ -40,6 +41,7 @@ impl<'a> ClientSecrets<'a> {
         &self,
         input: &SecretIdentifiersByProjectRequest,
     ) -> Result<SecretIdentifiersResponse, Error> {
+        println!("list the secrets by project");
         list_secrets_by_project(self.client, input).await
     }
 

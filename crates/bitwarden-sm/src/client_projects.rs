@@ -24,6 +24,7 @@ impl<'a> ClientProjects<'a> {
     }
 
     pub async fn list(&self, input: &ProjectsListRequest) -> Result<ProjectsResponse, Error> {
+        println!("list the projects");
         list_projects(self.client, input).await
     }
 

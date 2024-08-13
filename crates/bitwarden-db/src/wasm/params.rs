@@ -1,10 +1,10 @@
-use uuid::Uuid;
-use wasm_bindgen::JsValue;
-
 //! This file is heavily inspired by the rusqlite library. And provides a mostly API compatible
 //! interface for use with WebAssembly
 //!
 //! https://github.com/rusqlite/rusqlite/blob/master/src/lib.rs
+
+use uuid::Uuid;
+use wasm_bindgen::JsValue;
 
 pub trait ToSql {
     fn to_sql(&self) -> JsValue;

@@ -12,11 +12,8 @@ class BitwardenClient:
             settings_json = json.dumps(settings.to_dict())
             self.inner = bitwarden_py.BitwardenClient(settings_json)
 
-    def access_token_login(self, access_token: str,
-                           state_file: str = None):
-        self._run_command(
-            Command(access_token_login=AccessTokenLoginRequest(access_token, state_file))
-        )
+    def auth(self):
+        return AuthClient(self)
 
     def secrets(self):
         return SecretsClient(self)
@@ -30,8 +27,19 @@ class BitwardenClient:
 
         if response["success"] == False:
             raise Exception(response["errorMessage"])
-        
+
         return response
+
+class AuthClient:
+    def __init__(self, client: BitwardenClient):
+        self.client = client
+
+    def login_access_token(self, access_token: str,
+                           state_file: str = None) -> ResponseForAccessTokenLoginResponse:
+        result = self.client._run_command(
+            Command(login_access_token=AccessTokenLoginRequest(access_token, state_file))
+        )
+        return ResponseForAccessTokenLoginResponse.from_dict(result)
 
 class SecretsClient:
     def __init__(self, client: BitwardenClient):

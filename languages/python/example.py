@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.DEBUG)
 organization_id = os.getenv("ORGANIZATION_ID")
 
 # Attempt to authenticate with the Secrets Manager Access Token
-client.access_token_login(os.getenv("ACCESS_TOKEN"))
+client.auth().login_access_token(os.getenv("ACCESS_TOKEN"))
 
 # -- Example Project Commands --
 

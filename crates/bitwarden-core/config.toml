@@ -1,0 +1,3 @@
+[target.'cfg(all(target_os = "windows"))'.profile.release]
+lto = false
+codegen-units = 16

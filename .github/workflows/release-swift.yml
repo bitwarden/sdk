@@ -5,9 +5,22 @@ on:
   workflow_call:
     inputs:
       build-run-id:
-        description: "Workflow Run ID to use for artifact download"
+        description: "Workflow Run ID to use for artifact download. If not provided the latest build from the selected branch will be used."
         type: string
         required: false
+      pre-release:
+        description: "Create a pre-release"
+        type: boolean
+        required: false
+        default: false
+
+  workflow_dispatch:
+    inputs:
+      pre-release:
+        description: "Create a pre-release"
+        type: boolean
+        required: false
+        default: false
 
 env:
   _KEY_VAULT: "bitwarden-ci"
@@ -20,6 +33,8 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       sha: ${{ steps.set-sha.outputs.sha }}
       short_sha: ${{ steps.set-sha.outputs.short_sha }}
+      release_name: ${{ steps.set-release-name.outputs.release_name }}
+      run_id: ${{ steps.get-run-id.outputs.build-run-id }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
@@ -30,6 +45,26 @@ jobs:
           VERSION=$(grep -o '^version = ".*"' crates/bitwarden/Cargo.toml | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+      - name: Get run id
+        id: get-run-id
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
+        run: |
+          if [[ -z ${{ inputs.build-run-id }} ]]; then
+            BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
+            RUN_ID=$(gh api \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              /repos/$OWNER/$REPO/actions/workflows/build-swift.yml/runs \
+              | jq -r ".workflow_runs[] | select(.head_branch == \"$BRANCH\") | .id")
+          else
+            RUN_ID=${{ inputs.build-run-id }}
+          fi
+
+          echo "build-run-id=$RUN_ID" >> $GITHUB_OUTPUT
+
       - name: Download BitwardenEFI artifact
         uses: bitwarden/gh-actions/download-artifacts@main
         id: download-artifact
@@ -37,13 +72,22 @@ jobs:
           workflow: build-swift.yml
           workflow_conclusion: success
           skip_unpack: true
-          run_id: ${{ inputs.build-run-id }}
+          run_id: ${{ steps.get-run-id.outputs.build-run-id }}
 
       - name: Set SHA
         id: set-sha
         run: |
           echo "sha=$(${{ steps.download-artifact.outputs.artifact-build-commit }})" >> $GITHUB_OUTPUT
           echo "short_sha=$(echo ${{ steps.download-artifact.outputs.artifact-build-commit }} | cut -c1-7)" >> $GITHUB_OUTPUT
+
+      - name: Set release name
+        id: set-release-name
+        run: |
+          if [[ ${{ inputs.pre-release }} == true ]]; then
+            echo "release_name=${{ env._PKG_VERSION }}-unstable-${{ needs.validate.outputs.short_sha }}" >> $GITHUB_OUTPUT
+          else
+            echo "release_name=${{ env._PKG_VERSION }}" >> $GITHUB_OUTPUT
+          fi
 
   repo-sync:
     name: Push changed files to SDK Swift repo
@@ -53,18 +97,29 @@ jobs:
       _BOT_EMAIL: 106330231+bitwarden-devops-bot@users.noreply.github.com
       _BOT_NAME: bitwarden-devops-bot
       _PKG_VERSION: ${{ needs.validate.outputs.version }}
+      _PRE_RELEASE: ${{ inputs.pre-release }}
+      _RELEASE_NAME: ${{ needs.validate.outputs.release_name }}
     steps:
       - name: Checkout SDK repo
         uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
           path: sdk
 
+      - name: Get ref from SDK repo
+        id: get-ref
+        run: |
+          if [[ $_PRE_RELEASE == true ]]; then
+            echo "ref=unstable" >> $GITHUB_OUTPUT
+          else
+            echo "ref=main" >> $GITHUB_OUTPUT
+          fi
+
       - name: Checkout SDK-Swift repo
         uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
           repository: bitwarden/sdk-swift
           path: sdk-swift
-          ref: main
+          ref: ${{ steps.get-ref.outputs.ref }}
 
       - name: Login to Azure - Prod Subscription
         uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
@@ -89,7 +144,7 @@ jobs:
           # Update BitwardenFFI path
           sed -i '' 's|.binaryTarget(name: "BitwardenFFI", path: "BitwardenFFI.xcframework")|.binaryTarget(\
             name: "BitwardenFFI",\
-            url: "https://github.com/bitwarden/sdk-swift/releases/download/BitwardenFFI-v${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}/BitwardenFFI-${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}.xcframework.zip",|' sdk/languages/swift/Package.swift
+            url: "https://github.com/bitwarden/sdk-swift/releases/download/v${{ env._RELEASE_NAME }}/BitwardenFFI-${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}.xcframework.zip",|' sdk/languages/swift/Package.swift
 
           # Run swiftformat
           swiftformat sdk/languages/swift/Package.swift
@@ -105,13 +160,13 @@ jobs:
         run: |
           git add .
           git commit -m "Update Swift SDK to ${{ needs.validate.outputs.sha }}"
-          git push origin main
+          git push origin ${{ steps.get-ref.outputs.ref }}
 
       - name: Create release tag on SDK Swift repo
         working-directory: sdk-swift
         run: |
-          git tag ${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}
-          git push origin ${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}
+          git tag v${{ env._RELEASE_NAME }}
+          git push origin v${{ env._RELEASE_NAME }}
 
   github-release:
     name: GitHub Release
@@ -121,6 +176,8 @@ jobs:
       - repo-sync
     env:
       _PKG_VERSION: ${{ needs.validate.outputs.version }}
+      _RELEASE_NAME: ${{ needs.validate.outputs.release_name }}
+      _BUILD_RUN_ID: ${{ needs.validate.outputs.run_id }}
     steps:
       - name: Login to Azure - Prod Subscription
         uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
@@ -142,16 +199,17 @@ jobs:
           workflow_conclusion: success
           artifacts: "BitwardenFFI-${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}.xcframework"
           skip_unpack: true
-          run_id: ${{ inputs.build-run-id }}
+          run_id: ${{ env._BUILD_RUN_ID }}
 
       - name: Create release
         uses: ncipollo/release-action@6c75be85e571768fa31b40abf38de58ba0397db5 # v1.13.0
         with:
-          tag: v${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}
-          name: v${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}
+          tag: v${{ env._RELEASE_NAME }}
+          name: v${{ env._RELEASE_NAME }}
           body: ""
           token: ${{ steps.retrieve-secrets.outputs.github-pat-bitwarden-devops-bot-repo-scope }}
           draft: false
           repo: sdk-swift
           owner: bitwarden
           artifacts: "BitwardenFFI-${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}.xcframework"
+          prerelease: ${{ inputs.pre-release }}

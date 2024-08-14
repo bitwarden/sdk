@@ -96,6 +96,7 @@ jobs:
               workflow_id: 'release-swift.yml',
               ref: 'main',
               inputs: {
-                'build-run-id': '${{ github.run_id }}'
+                'build-run-id': '${{ github.run_id }}',
+                'pre-release': 'true'
               }
             })

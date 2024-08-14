@@ -74,7 +74,7 @@ reqwest = { version = ">=0.12.5, <0.13", features = [
 ], default-features = false }
 rustls-platform-verifier = "0.3.1"
 
-[target.'cfg(all(not(target_os = "windows")))'.profile.release]
+[target.'cfg(all(target_os = "windows"))'.profile.release]
 lto = false
 
 [target.'cfg(target_os = "android")'.dependencies]

@@ -1,6 +1,7 @@
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{AsymmetricEncString, EncString};
 
+use super::crypto::{derive_key_connector, DeriveKeyConnectorRequest};
 use crate::Client;
 #[cfg(feature = "internal")]
 use crate::{
@@ -11,8 +12,6 @@ use crate::{
         InitOrgCryptoRequest, InitUserCryptoRequest, UpdatePasswordResponse,
     },
 };
-
-use super::crypto::{derive_key_connector, DeriveKeyConnectorRequest};
 
 pub struct ClientCrypto<'a> {
     pub(crate) client: &'a crate::Client,

@@ -2,6 +2,7 @@ use bitwarden_crypto::CryptoError;
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{AsymmetricEncString, DeviceKey, EncString, Kdf, TrustDeviceResponse};
 
+use super::key_connector::{make_key_connector_keys, KeyConnectorResponse};
 #[cfg(feature = "internal")]
 use crate::auth::login::NewAuthRequestResponse;
 #[cfg(feature = "secrets")]
@@ -23,8 +24,6 @@ use crate::auth::{
     AuthRequestResponse, RegisterKeyResponse, RegisterRequest,
 };
 use crate::{auth::renew::renew_token, error::Result, Client};
-
-use super::key_connector::{make_key_connector_keys, KeyConnectorResponse};
 
 pub struct ClientAuth<'a> {
     pub(crate) client: &'a crate::Client,

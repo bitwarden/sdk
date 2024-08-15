@@ -23,9 +23,10 @@ pub(super) fn make_key_connector_keys(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use rand::SeedableRng;
     use rand_chacha::ChaCha8Rng;
+
+    use super::*;
 
     #[test]
     fn test_make_key_connector_keys() {

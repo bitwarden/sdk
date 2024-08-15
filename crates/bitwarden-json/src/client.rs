@@ -54,7 +54,7 @@ impl Client {
             #[cfg(feature = "internal")]
             Command::PasswordLogin(req) => client.auth().login_password(&req).await.into_string(),
             #[cfg(feature = "secrets")]
-            Command::AccessTokenLogin(req) => {
+            Command::LoginAccessToken(req) => {
                 client.auth().login_access_token(&req).await.into_string()
             }
             #[cfg(feature = "internal")]

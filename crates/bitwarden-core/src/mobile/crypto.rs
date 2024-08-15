@@ -318,6 +318,26 @@ pub(super) fn enroll_admin_password_reset(
     )?)
 }
 
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+pub struct DeriveKeyConnectorRequest {
+    /// Encrypted user key, used to validate the master key
+    pub user_key_encrypted: EncString,
+
+    pub password: String,
+    pub kdf: Kdf,
+    pub email: String,
+}
+
+/// Derive the master key for migrating to the key connector
+pub(super) fn derive_key_connector(request: DeriveKeyConnectorRequest) -> Result<String> {
+    let master_key = MasterKey::derive(&request.password, &request.email, &request.kdf)?;
+    master_key
+        .decrypt_user_key(request.user_key_encrypted)
+        .map_err(|_| "wrong password")?;
+
+    Ok(master_key.to_base64())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use bitwarden::mobile::crypto::{
-    DerivePinKeyResponse, InitOrgCryptoRequest, InitUserCryptoRequest, UpdatePasswordResponse,
+    DeriveKeyConnectorRequest, DerivePinKeyResponse, InitOrgCryptoRequest, InitUserCryptoRequest,
+    UpdatePasswordResponse,
 };
 use bitwarden_crypto::{AsymmetricEncString, EncString};
 
@@ -51,5 +52,10 @@ impl ClientCrypto {
 
     pub fn enroll_admin_password_reset(&self, public_key: String) -> Result<AsymmetricEncString> {
         Ok(self.0 .0.crypto().enroll_admin_password_reset(public_key)?)
+    }
+
+    /// Derive the master key for migrating to the key connector
+    pub fn derive_key_connector(&self, request: DeriveKeyConnectorRequest) -> Result<String> {
+        Ok(self.0 .0.crypto().derive_key_connector(request)?)
     }
 }

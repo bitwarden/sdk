@@ -4,7 +4,7 @@ use std::rc::Rc;
 use argon2::{Algorithm, Argon2, Params, Version};
 use bitwarden_json::client::Client as JsonClient;
 use js_sys::Promise;
-use log::{warn, Level};
+use log::{set_max_level, Level};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::future_to_promise;
 
@@ -37,10 +37,9 @@ impl BitwardenClient {
     #[wasm_bindgen(constructor)]
     pub fn new(settings_input: Option<String>, log_level: Option<LogLevel>) -> Self {
         console_error_panic_hook::set_once();
-        if let Err(_e) =
-            console_log::init_with_level(convert_level(log_level.unwrap_or(LogLevel::Info)))
-        {
-            warn!("Logger already initialized, log level will not be changed.");
+        let log_level = convert_level(log_level.unwrap_or(LogLevel::Info));
+        if let Err(_e) = console_log::init_with_level(log_level) {
+            set_max_level(log_level.to_level_filter())
         }
 
         Self(Rc::new(bitwarden_json::client::Client::new(settings_input)))

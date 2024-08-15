@@ -111,6 +111,13 @@ pub(crate) async fn login_api_key(
         })
         .await?;
 
+    let res = client
+        .vault()
+        .sync(&SyncRequest {
+            exclude_subdomains: Some(true),
+        })
+        .await?;
+
     debug!("{:?}", result);
 
     Ok(())

@@ -771,14 +771,20 @@ checksum = "79296716171880943b8470b5f8d03aa55eb2e645a4874bdbb28adb49162e012c"
 name = "bw"
 version = "0.0.2"
 dependencies = [
+ "bat",
  "bitwarden",
  "bitwarden-cli",
  "bitwarden-crypto",
+ "chrono",
  "clap",
  "color-eyre",
+ "comfy-table",
  "env_logger",
  "inquire",
  "log",
+ "serde",
+ "serde_json",
+ "serde_yaml",
  "tempfile",
  "tokio",
 ]

@@ -13,6 +13,9 @@ use crate::{
     require, Client,
 };
 
+#[cfg(feature = "state")]
+use super::AuthSettings;
+
 pub(crate) async fn login_api_key(
     client: &Client,
     input: &ApiKeyLoginRequest,
@@ -45,16 +48,37 @@ pub(crate) async fn login_api_key(
             .set_login_method(LoginMethod::User(UserLoginMethod::ApiKey {
                 client_id: input.client_id.to_owned(),
                 client_secret: input.client_secret.to_owned(),
-                email,
-                kdf,
+                email: email.clone(),
+                kdf: kdf.clone(),
             }));
 
         let user_key: EncString = require!(r.key.as_deref()).parse()?;
         let private_key: EncString = require!(r.private_key.as_deref()).parse()?;
 
-        client
-            .internal
-            .initialize_user_crypto_master_key(master_key, user_key, private_key)?;
+        client.internal.initialize_user_crypto_master_key(
+            master_key,
+            user_key.clone(),
+            private_key.clone(),
+        )?;
+
+        #[cfg(feature = "state")]
+        {
+            let setting = AuthSettings {
+                email: email.clone(),
+                token: r.access_token.clone(),
+                refresh_token: r.refresh_token.clone(),
+                kdf: kdf.clone(),
+                user_key: user_key.to_string(),
+                private_key: private_key.to_string(),
+            };
+
+            client
+                .platform()
+                .settings_repository
+                .set("auth", &serde_json::to_string(&setting)?)
+                .await
+                .unwrap();
+        }
     }
 
     ApiKeyLoginResponse::process_response(response)

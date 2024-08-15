@@ -5,8 +5,13 @@ use super::{
 };
 use crate::{error::Result, Client};
 
+#[cfg(feature = "state")]
+use super::settings_repository::SettingsRepository;
+
 pub struct ClientPlatform<'a> {
     pub(crate) client: &'a Client,
+    #[cfg(feature = "state")]
+    pub settings_repository: SettingsRepository,
 }
 
 impl<'a> ClientPlatform<'a> {
@@ -28,6 +33,10 @@ impl<'a> ClientPlatform<'a> {
 
 impl<'a> Client {
     pub fn platform(&'a self) -> ClientPlatform<'a> {
-        ClientPlatform { client: self }
+        ClientPlatform {
+            client: self,
+            #[cfg(feature = "state")]
+            settings_repository: SettingsRepository::new(self.internal.db.clone()),
+        }
     }
 }

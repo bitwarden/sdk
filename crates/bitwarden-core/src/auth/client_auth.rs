@@ -1,3 +1,4 @@
+use bitwarden_crypto::CryptoError;
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{AsymmetricEncString, DeviceKey, EncString, Kdf, TrustDeviceResponse};
 
@@ -22,6 +23,8 @@ use crate::auth::{
     AuthRequestResponse, RegisterKeyResponse, RegisterRequest,
 };
 use crate::{auth::renew::renew_token, error::Result, Client};
+
+use super::key_connector::{make_key_connector_keys, KeyConnectorResponse};
 
 pub struct ClientAuth<'a> {
     pub(crate) client: &'a crate::Client,
@@ -77,6 +80,11 @@ impl<'a> ClientAuth<'a> {
         remember_device: bool,
     ) -> Result<RegisterTdeKeyResponse> {
         make_register_tde_keys(self.client, email, org_public_key, remember_device)
+    }
+
+    pub fn make_key_connector_keys(&self) -> Result<KeyConnectorResponse, CryptoError> {
+        let mut rng = rand::thread_rng();
+        make_key_connector_keys(&mut rng)
     }
 
     pub async fn register(&self, input: &RegisterRequest) -> Result<()> {

@@ -1,19 +1,18 @@
 use std::collections::HashMap;
 
-use bitwarden_crypto::{AsymmetricEncString, EncString};
-#[cfg(feature = "internal")]
-use bitwarden_crypto::{Kdf, KeyDecryptable, KeyEncryptable, MasterKey, SymmetricCryptoKey};
+use bitwarden_crypto::{
+    AsymmetricEncString, EncString, Kdf, KeyDecryptable, KeyEncryptable, MasterKey,
+    SymmetricCryptoKey,
+};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "internal")]
-use crate::client::{LoginMethod, UserLoginMethod};
 use crate::{
+    client::{LoginMethod, UserLoginMethod},
     error::{Error, Result},
     Client,
 };
 
-#[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
@@ -28,7 +27,6 @@ pub struct InitUserCryptoRequest {
     pub method: InitUserCryptoMethod,
 }
 
-#[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
@@ -64,9 +62,14 @@ pub enum InitUserCryptoMethod {
         /// The user's symmetric crypto key, encrypted with the Device Key.
         device_protected_user_key: AsymmetricEncString,
     },
+    KeyConnector {
+        /// Base64 encoded master key, retrieved from the key connector.
+        master_key: String,
+        /// The user's encrypted symmetric crypto key
+        user_key: String,
+    },
 }
 
-#[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
@@ -83,7 +86,6 @@ pub enum AuthRequestMethod {
     },
 }
 
-#[cfg(feature = "internal")]
 pub async fn initialize_user_crypto(client: &Client, req: InitUserCryptoRequest) -> Result<()> {
     use bitwarden_crypto::{DeviceKey, PinKey};
 
@@ -151,6 +153,17 @@ pub async fn initialize_user_crypto(client: &Client, req: InitUserCryptoRequest)
                 .internal
                 .initialize_user_crypto_decrypted_key(user_key, private_key)?;
         }
+        InitUserCryptoMethod::KeyConnector {
+            master_key,
+            user_key,
+        } => {
+            let master_key = MasterKey::new(SymmetricCryptoKey::try_from(master_key)?);
+            let user_key: EncString = user_key.parse()?;
+
+            client
+                .internal
+                .initialize_user_crypto_master_key(master_key, user_key, private_key)?;
+        }
     }
 
     client
@@ -166,7 +179,6 @@ pub async fn initialize_user_crypto(client: &Client, req: InitUserCryptoRequest)
     Ok(())
 }
 
-#[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
@@ -175,14 +187,12 @@ pub struct InitOrgCryptoRequest {
     pub organization_keys: HashMap<uuid::Uuid, AsymmetricEncString>,
 }
 
-#[cfg(feature = "internal")]
 pub async fn initialize_org_crypto(client: &Client, req: InitOrgCryptoRequest) -> Result<()> {
     let organization_keys = req.organization_keys.into_iter().collect();
     client.internal.initialize_org_crypto(organization_keys)?;
     Ok(())
 }
 
-#[cfg(feature = "internal")]
 pub async fn get_user_encryption_key(client: &Client) -> Result<String> {
     let enc = client.internal.get_encryption_settings()?;
     let user_key = enc.get_key(&None)?;
@@ -190,7 +200,6 @@ pub async fn get_user_encryption_key(client: &Client) -> Result<String> {
     Ok(user_key.to_base64())
 }
 
-#[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
@@ -233,7 +242,6 @@ pub fn update_password(client: &Client, new_password: String) -> Result<UpdatePa
     })
 }
 
-#[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
@@ -244,7 +252,6 @@ pub struct DerivePinKeyResponse {
     encrypted_pin: EncString,
 }
 
-#[cfg(feature = "internal")]
 pub fn derive_pin_key(client: &Client, pin: String) -> Result<DerivePinKeyResponse> {
     let enc = client.internal.get_encryption_settings()?;
     let user_key = enc.get_key(&None)?;
@@ -262,7 +269,6 @@ pub fn derive_pin_key(client: &Client, pin: String) -> Result<DerivePinKeyRespon
     })
 }
 
-#[cfg(feature = "internal")]
 pub fn derive_pin_user_key(client: &Client, encrypted_pin: EncString) -> Result<EncString> {
     let enc = client.internal.get_encryption_settings()?;
     let user_key = enc.get_key(&None)?;
@@ -276,7 +282,6 @@ pub fn derive_pin_user_key(client: &Client, encrypted_pin: EncString) -> Result<
     derive_pin_protected_user_key(&pin, &login_method, user_key)
 }
 
-#[cfg(feature = "internal")]
 fn derive_pin_protected_user_key(
     pin: &str,
     login_method: &LoginMethod,
@@ -296,7 +301,6 @@ fn derive_pin_protected_user_key(
     Ok(derived_key.encrypt_user_key(user_key)?)
 }
 
-#[cfg(feature = "internal")]
 pub(super) fn enroll_admin_password_reset(
     client: &Client,
     public_key: String,
@@ -495,7 +499,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "internal")]
     #[test]
     fn test_enroll_admin_password_reset() {
         use std::num::NonZeroU32;

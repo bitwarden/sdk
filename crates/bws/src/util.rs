@@ -2,11 +2,20 @@ use regex::Regex;
 use uuid::Uuid;
 
 const VALID_POSIX_NAME_REGEX: &str = "^[a-zA-Z_][a-zA-Z0-9_]*$";
+const STRING_TO_BOOL_ERROR_MESSAGE: &str = "Could not convert string to bool";
 
 pub(crate) fn is_valid_posix_name(input_text: &str) -> bool {
     Regex::new(VALID_POSIX_NAME_REGEX)
         .expect("VALID_POSIX_NAME_REGEX to be a valid regex")
         .is_match(input_text)
+}
+
+pub(crate) fn string_to_bool(value: &str) -> Result<bool, &str> {
+    match value.trim().to_lowercase().as_str() {
+        "true" | "1" => Ok(true),
+        "false" | "0" => Ok(false),
+        _ => Err(STRING_TO_BOOL_ERROR_MESSAGE),
+    }
 }
 
 /// Converts a UUID to a POSIX-compliant environment variable name.
@@ -50,5 +59,35 @@ mod tests {
             )
         );
         assert!(is_valid_posix_name(&uuid_to_posix(&uuid::Uuid::new_v4())));
+    }
+
+    #[test]
+    fn test_string_to_bool_true_true() {
+        let result = string_to_bool("true");
+        assert_eq!(result, Ok(true));
+    }
+
+    #[test]
+    fn test_string_to_bool_one_true() {
+        let result = string_to_bool("1");
+        assert_eq!(result, Ok(true));
+    }
+
+    #[test]
+    fn test_string_to_bool_false_false() {
+        let result = string_to_bool("false");
+        assert_eq!(result, Ok(false));
+    }
+
+    #[test]
+    fn test_string_to_bool_zero_false() {
+        let result = string_to_bool("0");
+        assert_eq!(result, Ok(false));
+    }
+
+    #[test]
+    fn test_string_to_bool_bad_string_errors() {
+        let result = string_to_bool("hello world");
+        assert_eq!(result, Err(STRING_TO_BOOL_ERROR_MESSAGE));
     }
 }

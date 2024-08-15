@@ -9,7 +9,7 @@ use clap::CommandFactory;
 use clap_complete::Shell;
 use color_eyre::eyre::{bail, Result};
 
-use crate::{config, Cli, ProfileKey};
+use crate::{config, util, Cli, ProfileKey};
 
 pub(crate) fn completions(shell: Option<Shell>) -> Result<()> {
     let Some(shell) = shell.or_else(Shell::from_env) else {
@@ -49,6 +49,13 @@ pub(crate) fn config(
             (None, None) => bail!("Missing `name` and `value`"),
             (None, Some(_)) => bail!("Missing `value`"),
             (Some(_), None) => bail!("Missing `name`"),
+            (Some(ProfileKey::state_opt_out), Some(value)) => {
+                if util::string_to_bool(value.as_str()).is_err() {
+                    bail!("Profile key \"state_opt_out\" must be \"true\" or \"false\"");
+                } else {
+                    (ProfileKey::state_opt_out, value)
+                }
+            }
             (Some(name), Some(value)) => (name, value),
         };
 

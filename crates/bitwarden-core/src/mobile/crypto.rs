@@ -340,6 +340,8 @@ pub(super) fn derive_key_connector(request: DeriveKeyConnectorRequest) -> Result
 
 #[cfg(test)]
 mod tests {
+    use std::num::NonZeroU32;
+
     use super::*;
     use crate::Client;
 
@@ -521,8 +523,6 @@ mod tests {
 
     #[test]
     fn test_enroll_admin_password_reset() {
-        use std::num::NonZeroU32;
-
         use base64::{engine::general_purpose::STANDARD, Engine};
         use bitwarden_crypto::AsymmetricCryptoKey;
 
@@ -556,5 +556,21 @@ mod tests {
         let enc = client.internal.get_encryption_settings().unwrap();
         let expected = enc.get_key(&None).unwrap();
         assert_eq!(&decrypted, &expected.to_vec());
+    }
+
+    #[test]
+    fn test_derive_key_connector() {
+        let request = DeriveKeyConnectorRequest {
+            password: "asdfasdfasdf".to_string(),
+            email: "test@bitwarden.com".to_string(),
+            kdf: Kdf::PBKDF2 {
+                iterations: NonZeroU32::new(600_000).unwrap(),
+            },
+            user_key_encrypted: "2.Q/2PhzcC7GdeiMHhWguYAQ==|GpqzVdr0go0ug5cZh1n+uixeBC3oC90CIe0hd/HWA/pTRDZ8ane4fmsEIcuc8eMKUt55Y2q/fbNzsYu41YTZzzsJUSeqVjT8/iTQtgnNdpo=|dwI+uyvZ1h/iZ03VQ+/wrGEFYVewBUUl/syYgjsNMbE=".parse().unwrap(),
+        };
+
+        let result = derive_key_connector(request).unwrap();
+
+        assert_eq!(result, "ySXq1RVLKEaV1eoQE/ui9aFKIvXTl9PAXwp1MljfF50=");
     }
 }

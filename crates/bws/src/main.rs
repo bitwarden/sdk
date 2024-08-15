@@ -7,6 +7,7 @@ use bitwarden::{
 use bitwarden_cli::install_color_eyre;
 use clap::{CommandFactory, Parser};
 use color_eyre::eyre::{bail, Result};
+use config::Profile;
 use log::error;
 use render::OutputSettings;
 
@@ -15,6 +16,7 @@ mod command;
 mod config;
 mod render;
 mod state;
+mod util;
 
 use crate::cli::*;
 
@@ -84,10 +86,19 @@ async fn process_commands() -> Result<()> {
         })
         .transpose()?;
 
-    let state_file = state::get_state_file(
-        profile.and_then(|p| p.state_dir).map(Into::into),
-        access_token_obj.access_token_id.to_string(),
-    )?;
+    let state_file = match get_state_opt_out(&profile) {
+        true => None,
+        false => match state::get_state_file(
+            profile.and_then(|p| p.state_dir).map(Into::into),
+            access_token_obj.access_token_id.to_string(),
+        ) {
+            Ok(state_file) => Some(state_file),
+            Err(e) => {
+                eprintln!("Warning: {}\nRetrieving the state file failed. Attempting to continue without using state. Please set \"state_dir\" in your config file to avoid authentication limits.", e);
+                None
+            }
+        },
+    };
 
     let client = bitwarden::Client::new(settings);
 
@@ -149,4 +160,14 @@ fn get_config_profile(
         config.select_profile(&profile_key, profile_defined)?
     };
     Ok(profile)
+}
+
+fn get_state_opt_out(profile: &Option<Profile>) -> bool {
+    if let Some(profile) = profile {
+        if let Some(state_opt_out) = &profile.state_opt_out {
+            return util::string_to_bool(state_opt_out).unwrap_or(false);
+        }
+    }
+
+    false
 }

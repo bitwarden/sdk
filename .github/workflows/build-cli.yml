@@ -74,7 +74,7 @@ jobs:
       - name: Build
         env:
           TARGET: ${{ matrix.settings.target }}
-        run: cargo build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }} --profile release-windows
+        run: cargo build ${{ matrix.features }} -p bws --target=${{ matrix.settings.target }} --profile release-windows
 
       - name: Login to Azure
         if: ${{ needs.setup.outputs.sign == 'true' }}

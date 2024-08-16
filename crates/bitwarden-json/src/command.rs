@@ -50,7 +50,7 @@ pub enum Command {
     /// This command is for initiating an authentication handshake with Bitwarden.
     ///
     /// Returns: [ApiKeyLoginResponse](bitwarden::auth::login::ApiKeyLoginResponse)
-    AccessTokenLogin(AccessTokenLoginRequest),
+    LoginAccessToken(AccessTokenLoginRequest),
 
     #[cfg(feature = "internal")]
     /// > Requires Authentication

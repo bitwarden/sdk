@@ -2,7 +2,7 @@ import json
 from typing import Any, List, Optional
 from uuid import UUID
 import bitwarden_py
-from .schemas import ClientSettings, Command, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsDeleteResponse, SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretIdentifiersResponse, SecretPutRequest, SecretResponse, SecretsCommand, SecretsDeleteRequest, SecretsDeleteResponse, AccessTokenLoginRequest, AccessTokenLoginResponse, ResponseForAccessTokenLoginResponse, ResponseForProjectResponse, ProjectsCommand, ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsListRequest, ResponseForProjectsResponse, ResponseForProjectsDeleteResponse, ProjectsDeleteRequest
+from .schemas import ClientSettings, Command, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsDeleteResponse, ResponseForSecretsResponse, SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretIdentifiersResponse, SecretPutRequest, SecretResponse, SecretsCommand, SecretsDeleteRequest, SecretsDeleteResponse, AccessTokenLoginRequest, AccessTokenLoginResponse, ResponseForAccessTokenLoginResponse, ResponseForProjectResponse, ProjectsCommand, ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsListRequest, ResponseForProjectsResponse, ResponseForProjectsDeleteResponse, ProjectsDeleteRequest, SecretsGetRequest
 
 class BitwardenClient:
     def __init__(self, settings: ClientSettings = None):
@@ -50,6 +50,13 @@ class SecretsClient:
             Command(secrets=SecretsCommand(get=SecretGetRequest(id)))
         )
         return ResponseForSecretResponse.from_dict(result)
+
+    def get_by_ids(self, ids: List[UUID]) -> ResponseForSecretsResponse:
+        result = self.client._run_command(
+            Command(secrets=SecretsCommand(
+                get_by_ids=SecretsGetRequest(ids))
+        ))
+        return ResponseForSecretsResponse.from_dict(result)
 
     def create(self, key: str,
                note: str,

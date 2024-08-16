@@ -61,7 +61,7 @@ secret_updated = client.secrets().update(
     "Secret1234!_updated",
     [project2.data.id],
 )
-secret_retrieved = client.secrets().get(secret.data.id)
+secrets_retrieved = client.secrets().get_by_ids([secret.data.id, secret2.data.id])
 
 input("Press Enter to delete the secret...")
 client.secrets().delete([secret.data.id])

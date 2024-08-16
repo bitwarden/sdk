@@ -1,9 +1,8 @@
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{AsymmetricEncString, DeviceKey, EncString, Kdf, TrustDeviceResponse};
 
-use super::UnlockError;
 #[cfg(feature = "state")]
-use super::{unlock, AuthRepository};
+use super::{unlock, AuthRepository, UnlockError};
 #[cfg(feature = "internal")]
 use crate::auth::login::NewAuthRequestResponse;
 #[cfg(feature = "secrets")]

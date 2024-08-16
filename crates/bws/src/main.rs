@@ -131,6 +131,28 @@ async fn process_commands() -> Result<()> {
             command::secret::process_command(cmd, client, organization_id, output_settings).await
         }
 
+        Commands::Run {
+            command,
+            shell,
+            no_inherit_env,
+            project_id,
+            uuids_as_keynames,
+        } => {
+            let exit_code = command::run::run(
+                client,
+                organization_id,
+                project_id,
+                uuids_as_keynames,
+                no_inherit_env,
+                shell,
+                command,
+            )
+            .await?;
+
+            // exit with the exit code from the child process
+            std::process::exit(exit_code);
+        }
+
         Commands::Config { .. } | Commands::Completions { .. } => {
             unreachable!()
         }

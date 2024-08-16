@@ -3,7 +3,6 @@ use bitwarden::{
     Client, Error,
 };
 use bitwarden_cli::Color;
-
 use clap::Subcommand;
 
 use crate::render::{serialize_response, Output, OutputSettings, TableSerialize};

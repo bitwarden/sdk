@@ -1,12 +1,11 @@
+#[cfg(feature = "state")]
+use super::settings_repository::SettingsRepository;
 use super::{
     generate_fingerprint::{generate_fingerprint, generate_user_fingerprint},
     get_user_api_key, FingerprintRequest, FingerprintResponse, SecretVerificationRequest,
     UserApiKeyResponse,
 };
 use crate::{error::Result, Client};
-
-#[cfg(feature = "state")]
-use super::settings_repository::SettingsRepository;
 
 pub struct ClientPlatform<'a> {
     pub(crate) client: &'a Client,

@@ -2,6 +2,8 @@ use bitwarden_crypto::{EncString, MasterKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "state")]
+use crate::auth::AuthSettings;
 use crate::{
     auth::{
         api::{request::ApiTokenRequest, response::IdentityTokenResponse},
@@ -12,9 +14,6 @@ use crate::{
     error::Result,
     require, Client,
 };
-
-#[cfg(feature = "state")]
-use crate::auth::AuthSettings;
 
 pub(crate) async fn login_api_key(
     client: &Client,

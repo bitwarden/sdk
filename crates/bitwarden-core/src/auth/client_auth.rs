@@ -1,6 +1,9 @@
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{AsymmetricEncString, DeviceKey, EncString, Kdf, TrustDeviceResponse};
 
+use super::UnlockError;
+#[cfg(feature = "state")]
+use super::{unlock, AuthRepository};
 #[cfg(feature = "internal")]
 use crate::auth::login::NewAuthRequestResponse;
 #[cfg(feature = "secrets")]
@@ -22,10 +25,6 @@ use crate::auth::{
     AuthRequestResponse, RegisterKeyResponse, RegisterRequest,
 };
 use crate::{auth::renew::renew_token, error::Result, Client};
-
-use super::UnlockError;
-#[cfg(feature = "state")]
-use super::{unlock, AuthRepository};
 
 pub struct ClientAuth<'a> {
     pub(crate) client: &'a crate::Client,

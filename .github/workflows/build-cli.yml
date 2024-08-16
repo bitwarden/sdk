@@ -116,11 +116,11 @@ jobs:
             -fd sha256 \
             -du https://bitwarden.com \
             -tr http://timestamp.digicert.com \
-            ./target/${{ matrix.settings.target }}/release/bws.exe
+            ./target/${{ matrix.settings.target }}/release-windows/bws.exe
 
       - name: Zip
         shell: cmd
-        run: 7z a ./bws-${{ matrix.settings.target }}-%_PACKAGE_VERSION%.zip ./target/${{ matrix.settings.target }}/release/bws.exe
+        run: 7z a ./bws-${{ matrix.settings.target }}-%_PACKAGE_VERSION%.zip ./target/${{ matrix.settings.target }}/release-windows/bws.exe
 
       - name: Upload artifact
         uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4.3.6

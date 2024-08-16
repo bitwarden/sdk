@@ -72,7 +72,8 @@ secret_updated = client.secrets().update(
 )
 secrets_retrieved = client.secrets().get_by_ids([secret.data.id, secret2.data.id])
 
-input("Press Enter to delete the secret...")
-client.secrets().delete([secret.data.id])
+# cleanup
+input("Press Enter to cleanup secrets and projects...")
+client.secrets().delete([secret.id for secret in secrets_retrieved.data.data])
 
-print(client.secrets().list(organization_id))
+client.projects().delete([project2.data.id])

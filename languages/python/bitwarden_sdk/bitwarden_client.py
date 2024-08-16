@@ -2,7 +2,8 @@ import json
 from typing import Any, List, Optional
 from uuid import UUID
 import bitwarden_py
-from .schemas import ClientSettings, Command, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsDeleteResponse, ResponseForSecretsResponse, ResponseForSecretsSyncResponse, SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretIdentifiersResponse, SecretPutRequest, SecretResponse, SecretsCommand, SecretsDeleteRequest, SecretsDeleteResponse, AccessTokenLoginRequest, AccessTokenLoginResponse, ResponseForAccessTokenLoginResponse, ResponseForProjectResponse, ProjectsCommand, ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsListRequest, ResponseForProjectsResponse, ResponseForProjectsDeleteResponse, ProjectsDeleteRequest, SecretsGetRequest, SecretsSyncRequest
+
+from .schemas import ClientSettings, Command, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsResponse, ResponseForSecretsDeleteResponse, SecretCreateRequest, SecretGetRequest, SecretsGetRequest, SecretIdentifiersRequest, SecretIdentifiersResponse, SecretPutRequest, SecretResponse, SecretsCommand, SecretsDeleteRequest, SecretsDeleteResponse, SecretsSyncResponse, SecretsSyncRequest, AccessTokenLoginRequest, ResponseForSecretsSyncResponse, ResponseForAccessTokenLoginResponse, ResponseForProjectResponse, ProjectsCommand, ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsListRequest, ResponseForProjectsResponse, ResponseForProjectsDeleteResponse, ProjectsDeleteRequest, SecretsResponse
 
 class BitwardenClient:
     def __init__(self, settings: ClientSettings = None):
@@ -58,12 +59,17 @@ class SecretsClient:
         ))
         return ResponseForSecretsResponse.from_dict(result)
 
-    def create(self, key: str,
-               note: str,
-               organization_id: str,
-               value: str,
-               project_ids: Optional[List[UUID]] = None
-               ) -> ResponseForSecretResponse:
+    def create(
+        self,
+        organization_id: UUID,
+        key: str,
+        value: str,
+        note: str,
+        project_ids: Optional[List[UUID]] = None,
+    ) -> ResponseForSecretResponse:
+        if note is None:
+            # secrets api does not accept empty notes
+            note = ""
         result = self.client._run_command(
             Command(secrets=SecretsCommand(
                 create=SecretCreateRequest(key, note, organization_id, value, project_ids)))
@@ -77,13 +83,18 @@ class SecretsClient:
         )
         return ResponseForSecretIdentifiersResponse.from_dict(result)
 
-    def update(self, id: str,
-               key: str,
-               note: str,
-               organization_id: str,
-               value: str,
-               project_ids: Optional[List[UUID]] = None
-               ) -> ResponseForSecretResponse:
+    def update(
+        self,
+        organization_id: str,
+        id: str,
+        key: str,
+        value: str,
+        note: str,
+        project_ids: Optional[List[UUID]] = None,
+    ) -> ResponseForSecretResponse:
+        if note is None:
+            # secrets api does not accept empty notes
+            note = ""
         result = self.client._run_command(
             Command(secrets=SecretsCommand(update=SecretPutRequest(
                 id, key, note, organization_id, value, project_ids)))
@@ -113,8 +124,8 @@ class ProjectsClient:
         return ResponseForProjectResponse.from_dict(result)
 
     def create(self,
-               name: str,
                organization_id: str,
+               name: str,
                ) -> ResponseForProjectResponse:
         result = self.client._run_command(
             Command(projects=ProjectsCommand(
@@ -129,10 +140,12 @@ class ProjectsClient:
         )
         return ResponseForProjectsResponse.from_dict(result)
 
-    def update(self, id: str,
-               name: str,
-               organization_id: str,
-               ) -> ResponseForProjectResponse:
+    def update(
+        self,
+        organization_id: str,
+        id: str,
+        name: str,
+    ) -> ResponseForProjectResponse:
         result = self.client._run_command(
             Command(projects=ProjectsCommand(update=ProjectPutRequest(
                 id, name, organization_id)))

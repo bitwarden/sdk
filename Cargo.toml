@@ -52,3 +52,8 @@ codegen-units = 1
 # Stripping the binary reduces the size by ~30%, but the stacktraces won't be usable anymore.
 # This is fine as long as we don't have any unhandled panics, but let's keep it disabled for now
 # strip = true
+
+# Windows platform-verifier-bug
+[profile.release-windows]
+inherits = "release"
+lto = false

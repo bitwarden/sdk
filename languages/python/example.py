@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import logging
 import os
+from datetime import datetime, timezone
 
 from bitwarden_sdk import BitwardenClient, DeviceType, client_settings_from_dict
 
@@ -38,6 +39,14 @@ client.projects().delete([project.data.id])
 print(client.projects().list(organization_id))
 
 # -- Example Secret Commands --
+
+if client.secrets().sync(organization_id, None).data.has_changes is True:
+    print("There are changes to sync")
+else:
+    print("No changes to sync")
+
+last_synced_date = datetime.now(tz=timezone.utc)
+print(client.secrets().sync(organization_id, last_synced_date))
 
 secret = client.secrets().create(
     "TEST_SECRET",

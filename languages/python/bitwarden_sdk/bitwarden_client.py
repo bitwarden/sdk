@@ -2,7 +2,7 @@ import json
 from typing import Any, List, Optional
 from uuid import UUID
 import bitwarden_py
-from .schemas import ClientSettings, Command, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsDeleteResponse, ResponseForSecretsResponse, SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretIdentifiersResponse, SecretPutRequest, SecretResponse, SecretsCommand, SecretsDeleteRequest, SecretsDeleteResponse, AccessTokenLoginRequest, AccessTokenLoginResponse, ResponseForAccessTokenLoginResponse, ResponseForProjectResponse, ProjectsCommand, ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsListRequest, ResponseForProjectsResponse, ResponseForProjectsDeleteResponse, ProjectsDeleteRequest, SecretsGetRequest
+from .schemas import ClientSettings, Command, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, ResponseForSecretsDeleteResponse, ResponseForSecretsResponse, ResponseForSecretsSyncResponse, SecretCreateRequest, SecretGetRequest, SecretIdentifiersRequest, SecretIdentifiersResponse, SecretPutRequest, SecretResponse, SecretsCommand, SecretsDeleteRequest, SecretsDeleteResponse, AccessTokenLoginRequest, AccessTokenLoginResponse, ResponseForAccessTokenLoginResponse, ResponseForProjectResponse, ProjectsCommand, ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsListRequest, ResponseForProjectsResponse, ResponseForProjectsDeleteResponse, ProjectsDeleteRequest, SecretsGetRequest, SecretsSyncRequest
 
 class BitwardenClient:
     def __init__(self, settings: ClientSettings = None):
@@ -95,6 +95,12 @@ class SecretsClient:
             Command(secrets=SecretsCommand(delete=SecretsDeleteRequest(ids)))
         )
         return ResponseForSecretsDeleteResponse.from_dict(result)
+
+    def sync(self, organization_id: str, last_synced_date: Optional[str]) -> ResponseForSecretsSyncResponse:
+        result = self.client._run_command(
+            Command(secrets=SecretsCommand(sync=SecretsSyncRequest(organization_id, last_synced_date)))
+        )
+        return ResponseForSecretsSyncResponse.from_dict(result)
 
 class ProjectsClient:
     def __init__(self, client: BitwardenClient):

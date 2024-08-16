@@ -44,11 +44,3 @@ opt-level = 2
 # if the compiler decides to optimize some code away, if that's the case, it can be set to 0 or commented out
 [profile.dev]
 opt-level = 1
-
-# Turn on LTO on release mode
-[profile.release]
-lto = "thin"
-codegen-units = 1
-# Stripping the binary reduces the size by ~30%, but the stacktraces won't be usable anymore.
-# This is fine as long as we don't have any unhandled panics, but let's keep it disabled for now
-# strip = true

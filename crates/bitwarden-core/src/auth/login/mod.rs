@@ -92,15 +92,3 @@ pub(crate) fn parse_prelogin(response: PreloginResponseModel) -> Result<Kdf> {
         },
     })
 }
-
-#[cfg(feature = "state")]
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
-pub struct AuthSettings {
-    pub email: String,
-    pub token: String,
-    pub refresh_token: Option<String>,
-    pub kdf: Kdf,
-
-    pub user_key: String,
-    pub private_key: String,
-}

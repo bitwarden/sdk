@@ -34,6 +34,20 @@ pub use tde::RegisterTdeKeyResponse;
 #[cfg(feature = "internal")]
 use crate::error::Result;
 
+#[cfg(feature = "state")]
+#[path = ""]
+mod state {
+    mod auth_repository;
+    pub use auth_repository::{AuthRepository, AuthSettings};
+
+    mod unlock;
+    pub(super) use unlock::unlock;
+    pub use unlock::UnlockError;
+}
+
+#[cfg(feature = "state")]
+pub use state::*;
+
 #[cfg(feature = "internal")]
 fn determine_password_hash(
     email: &str,

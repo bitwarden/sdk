@@ -1,6 +1,4 @@
 use bitwarden::{
-    auth::login::AuthSettings,
-    mobile::crypto::{InitUserCryptoMethod, InitUserCryptoRequest},
     vault::{CipherListView, ClientVaultExt},
     Client, Error,
 };
@@ -22,32 +20,9 @@ pub(crate) async fn process_command(
     client: Client,
     password: Option<String>,
 ) -> Result<(), Error> {
-    // TODO: This should be moved into the SDK
-    let setting = client
-        .platform()
-        .settings_repository
-        .get("auth")
-        .await
-        .unwrap()
-        .unwrap();
-    let setting = serde_json::from_str::<AuthSettings>(&setting)?;
-
-    client
-        .crypto()
-        .initialize_user_crypto(InitUserCryptoRequest {
-            kdf_params: setting.kdf,
-            email: setting.email,
-            private_key: setting.private_key,
-            method: InitUserCryptoMethod::Password {
-                password: password.unwrap(),
-                user_key: setting.user_key,
-            },
-        })
-        .await
-        .unwrap();
-
+    client.auth().unlock(password.unwrap()).await.unwrap();
     match command {
-        VaultCommands::Get { id } => todo!(),
+        VaultCommands::Get { id: _ } => todo!(),
         VaultCommands::List {} => {
             let ciphers = client.vault().cipher_repository.get_all().await.unwrap();
 

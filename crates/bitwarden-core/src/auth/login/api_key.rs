@@ -14,7 +14,7 @@ use crate::{
 };
 
 #[cfg(feature = "state")]
-use super::AuthSettings;
+use crate::auth::AuthSettings;
 
 pub(crate) async fn login_api_key(
     client: &Client,
@@ -73,11 +73,11 @@ pub(crate) async fn login_api_key(
             };
 
             client
-                .platform()
-                .settings_repository
-                .set("auth", &serde_json::to_string(&setting)?)
+                .auth()
+                .repository
+                .save(setting)
                 .await
-                .unwrap();
+                .expect("Save settings");
         }
     }
 

@@ -9,4 +9,4 @@ pub(crate) use get_user_api_key::get_user_api_key;
 pub use get_user_api_key::UserApiKeyResponse;
 pub use secret_verification_request::SecretVerificationRequest;
 #[cfg(feature = "state")]
-pub use settings_repository::SettingsRepository;
+pub use settings_repository::{SettingsRepository, SettingsRepositoryError};

@@ -1,16 +1,18 @@
 use bitwarden_crypto::{CryptoError, MasterKey};
 use thiserror::Error;
 
-use super::auth_repository::AuthRepositoryError;
-use crate::Client;
+use crate::{platform::SettingsRepositoryError, Client};
 
 #[derive(Debug, Error)]
 pub enum UnlockError {
     #[error(transparent)]
-    AuthRepository(#[from] AuthRepositoryError),
+    SettingRepository(#[from] SettingsRepositoryError),
 
     #[error(transparent)]
     Crypto(#[from] CryptoError),
+
+    #[error(transparent)]
+    Error(#[from] crate::Error),
 
     #[error("The client is not authenticated or the session has expired")]
     NotAuthenticated,
@@ -34,7 +36,7 @@ pub(crate) async fn unlock(
         master_key,
         settings.user_key.parse()?,
         settings.private_key.parse()?,
-    );
+    )?;
 
     Ok(())
 }

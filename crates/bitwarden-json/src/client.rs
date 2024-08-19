@@ -1,5 +1,8 @@
-use async_lock::Mutex;
-use bitwarden::client::client_settings::ClientSettings;
+#[cfg(feature = "secrets")]
+use bitwarden::secrets_manager::{ClientProjectsExt, ClientSecretsExt};
+#[cfg(feature = "internal")]
+use bitwarden::vault::ClientVaultExt;
+use bitwarden::ClientSettings;
 
 #[cfg(feature = "secrets")]
 use crate::command::{ProjectsCommand, SecretsCommand};
@@ -8,12 +11,12 @@ use crate::{
     response::{Response, ResponseIntoString},
 };
 
-pub struct Client(Mutex<bitwarden::Client>);
+pub struct Client(bitwarden::Client);
 
 impl Client {
     pub fn new(settings_input: Option<String>) -> Self {
         let settings = Self::parse_settings(settings_input);
-        Self(Mutex::new(bitwarden::Client::new(settings)))
+        Self(bitwarden::Client::new(settings))
     }
 
     pub async fn run_command(&self, input_str: &str) -> String {
@@ -45,13 +48,13 @@ impl Client {
             }
         };
 
-        let mut client = self.0.lock().await;
+        let client = &self.0;
 
         match cmd {
             #[cfg(feature = "internal")]
             Command::PasswordLogin(req) => client.auth().login_password(&req).await.into_string(),
             #[cfg(feature = "secrets")]
-            Command::AccessTokenLogin(req) => {
+            Command::LoginAccessToken(req) => {
                 client.auth().login_access_token(&req).await.into_string()
             }
             #[cfg(feature = "internal")]

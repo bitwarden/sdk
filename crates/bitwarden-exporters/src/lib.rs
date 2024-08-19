@@ -1,22 +1,28 @@
 use std::fmt;
 
-use bitwarden_crypto::Kdf;
 use chrono::{DateTime, Utc};
-use thiserror::Error;
+use schemars::JsonSchema;
 use uuid::Uuid;
 
+#[cfg(feature = "uniffi")]
+uniffi::setup_scaffolding!();
+
+mod client_exporter;
 mod csv;
-use crate::csv::export_csv;
-mod json;
-use json::export_json;
 mod encrypted_json;
+mod json;
+mod models;
+pub use client_exporter::{ClientExporters, ClientExportersExt};
+mod error;
+mod export;
+pub use error::ExportError;
 
-use encrypted_json::export_encrypted_json;
-
-pub enum Format {
+#[derive(JsonSchema)]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
+pub enum ExportFormat {
     Csv,
     Json,
-    EncryptedJson { password: String, kdf: Kdf },
+    EncryptedJson { password: String },
 }
 
 /// Export representation of a Bitwarden folder.
@@ -125,28 +131,4 @@ pub struct Identity {
     pub username: Option<String>,
     pub passport_number: Option<String>,
     pub license_number: Option<String>,
-}
-
-#[derive(Error, Debug)]
-pub enum ExportError {
-    #[error("CSV error: {0}")]
-    Csv(#[from] csv::CsvError),
-    #[error("JSON error: {0}")]
-    Json(#[from] json::JsonError),
-    #[error("Encrypted JSON error: {0}")]
-    EncryptedJsonError(#[from] encrypted_json::EncryptedJsonError),
-}
-
-pub fn export(
-    folders: Vec<Folder>,
-    ciphers: Vec<Cipher>,
-    format: Format,
-) -> Result<String, ExportError> {
-    match format {
-        Format::Csv => Ok(export_csv(folders, ciphers)?),
-        Format::Json => Ok(export_json(folders, ciphers)?),
-        Format::EncryptedJson { password, kdf } => {
-            Ok(export_encrypted_json(folders, ciphers, password, kdf)?)
-        }
-    }
 }

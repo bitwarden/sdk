@@ -17,9 +17,10 @@ keywords.workspace = true
 uniffi = ["dep:uniffi"] # Uniffi bindings
 
 [dependencies]
+bitwarden-core = { workspace = true, features = ["internal"] }
 bitwarden-crypto = { workspace = true }
 rand = ">=0.8.5, <0.9"
-reqwest = { version = ">=0.12, <0.13", features = [
+reqwest = { version = ">=0.12.5, <0.13", features = [
     "http2",
     "json",
 ], default-features = false }
@@ -27,7 +28,7 @@ schemars = { version = ">=0.8.9, <0.9", features = ["uuid1", "chrono"] }
 serde = { version = ">=1.0, <2.0", features = ["derive"] }
 serde_json = ">=1.0.96, <2.0"
 thiserror = ">=1.0.40, <2.0"
-uniffi = { version = "=0.27.2", optional = true }
+uniffi = { version = "=0.28.0", optional = true }
 
 [dev-dependencies]
 rand_chacha = "0.3.1"

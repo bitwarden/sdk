@@ -12,6 +12,8 @@ Review the help documentation on [Access Tokens]
 ### Create new Bitwarden client
 
 ```java
+import com.bitwarden.sdk.*;
+
 BitwardenSettings bitwardenSettings = new BitwardenSettings();
 bitwardenSettings.setApiUrl("https://api.bitwarden.com");
 bitwardenSettings.setIdentityUrl("https://identity.bitwarden.com");
@@ -24,6 +26,13 @@ bitwardenClient.accessTokenLogin("<access-token>");
 ```java
 UUID organizationId = UUID.fromString("<organization-id>");
 var projectResponse = bitwardenClient.projects().create(organizationId, "TestProject");
+UUID projectId = projectResponse.getID();
+```
+
+### Get project
+
+```java
+var projectResponse = bitwardenClient.projects().get(projectId);
 ```
 
 ### List all projects
@@ -35,9 +44,7 @@ var projectsResponse = bitwardenClient.projects().list(organizationId);
 ### Update project
 
 ```java
-UUID projectId = projectResponse.getID();
-projectResponse = bitwardenClient.projects().get(projectId);
-projectResponse = bitwardenClient.projects.update(projectId, organizationId, "TestProjectUpdated");
+var projectResponse = bitwardenClient.projects().update(projectId, organizationId, "TestProjectUpdated");
 ```
 
 ### Add new secret
@@ -50,19 +57,25 @@ var secretResponse = bitwardenClient.secrets().create(key, value, note, organiza
 UUID secretId = secretResponse.getID();
 ```
 
+### Get secret
+
+```java
+var secretResponse = bitwardenClient.secrets().get(secretId);
+```
+
 ### Update secret
 
 ```java
-bitwardenClient.secrets().update(secretId, key2, value2, note2, organizationId, new UUID[]{projectId});
+var secretResponse = bitwardenClient.secrets().update(secretId, key2, value2, note2, organizationId, new UUID[]{projectId});
 ```
 
 ### List secrets
 
 ```java
-var secretIdentifiersResponse secretIdentifiersResponse = bitwardenClient.secrets().list(organizationId);
+var secretIdentifiersResponse = bitwardenClient.secrets().list(organizationId);
 ```
 
-# Delete secret or project
+### Delete secret or project
 
 ```java
 bitwardenClient.secrets().delete(new UUID[]{secretId});

@@ -1,20 +1,32 @@
 use std::path::PathBuf;
 
-use color_eyre::eyre::Result;
+use color_eyre::eyre::{bail, Result};
+use directories::BaseDirs;
 
-pub(crate) fn get_state_file_path(
-    state_file_dir: Option<PathBuf>,
+use crate::DEFAULT_CONFIG_DIRECTORY;
+
+pub(crate) const DEFAULT_STATE_DIRECTORY: &str = "state";
+
+pub(crate) fn get_state_file(
+    state_dir: Option<PathBuf>,
     access_token_id: String,
-) -> Result<Option<PathBuf>> {
-    if let Some(mut state_file_path) = state_file_dir {
-        state_file_path.push(access_token_id);
-
-        if let Some(parent_folder) = state_file_path.parent() {
-            std::fs::create_dir_all(parent_folder)?;
+) -> Result<PathBuf> {
+    let mut state_dir = match state_dir {
+        Some(state_dir) => state_dir,
+        None => {
+            if let Some(base_dirs) = BaseDirs::new() {
+                base_dirs
+                    .home_dir()
+                    .join(DEFAULT_CONFIG_DIRECTORY)
+                    .join(DEFAULT_STATE_DIRECTORY)
+            } else {
+                bail!("A valid home directory doesn't exist");
+            }
         }
+    };
 
-        return Ok(Some(state_file_path));
-    }
+    std::fs::create_dir_all(&state_dir)?;
+    state_dir.push(access_token_id);
 
-    Ok(None)
+    Ok(state_dir)
 }

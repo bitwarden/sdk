@@ -4,38 +4,45 @@ use chrono::{DateTime, Utc};
 use comfy_table::Table;
 use serde::Serialize;
 
-use crate::cli::Output;
+use crate::{cli::Output, util::is_valid_posix_name};
 
 const ASCII_HEADER_ONLY: &str = "     --            ";
 
+pub(crate) struct OutputSettings {
+    pub(crate) output: Output,
+    pub(crate) color: Color,
+}
+
+impl OutputSettings {
+    pub(crate) fn new(output: Output, color: Color) -> Self {
+        OutputSettings { output, color }
+    }
+}
+
 pub(crate) fn serialize_response<T: Serialize + TableSerialize<N>, const N: usize>(
     data: T,
-    output: Output,
-    color: Color,
+    output_settings: OutputSettings,
 ) {
-    match output {
+    match output_settings.output {
         Output::JSON => {
             let mut text =
                 serde_json::to_string_pretty(&data).expect("Serialize should be infallible");
             // Yaml/table/tsv serializations add a newline at the end, so we do the same here for
             // consistency
             text.push('\n');
-            pretty_print("json", &text, color);
+            pretty_print("json", &text, output_settings.color);
         }
         Output::YAML => {
             let text = serde_yaml::to_string(&data).expect("Serialize should be infallible");
-            pretty_print("yaml", &text, color);
+            pretty_print("yaml", &text, output_settings.color);
         }
         Output::Env => {
-            let valid_key_regex =
-                regex::Regex::new("^[a-zA-Z_][a-zA-Z0-9_]*$").expect("regex is valid");
-
             let mut commented_out = false;
             let mut text: Vec<String> = data
                 .get_values()
                 .into_iter()
                 .map(|row| {
-                    if valid_key_regex.is_match(&row[1]) {
+                    if is_valid_posix_name(&row[1]) {
                         format!("{}=\"{}\"", row[1], row[2])
                     } else {
                         commented_out = true;
@@ -50,7 +57,11 @@ pub(crate) fn serialize_response<T: Serialize + TableSerialize<N>, const N: usiz
                 ));
             }
 
-            pretty_print("sh", &format!("{}\n", text.join("\n")), color);
+            pretty_print(
+                "sh",
+                &format!("{}\n", text.join("\n")),
+                output_settings.color,
+            );
         }
         Output::Table => {
             let mut table = Table::new();

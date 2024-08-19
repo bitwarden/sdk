@@ -1,3 +1,5 @@
+mod versioning;
+
 pub(crate) mod attachment;
 pub(crate) mod card;
 #[allow(clippy::module_inception)]

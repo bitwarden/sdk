@@ -11,7 +11,7 @@ pub type Database = sqlite::SqliteDatabase;
 #[cfg(not(target_arch = "wasm32"))]
 pub type RowError = sqlite::RowError;
 #[cfg(not(target_arch = "wasm32"))]
-pub use sqlite::{named_params, params, Params, Row};
+pub use sqlite::{Params, Row, ToSql};
 
 #[cfg(target_arch = "wasm32")]
 mod wasm;

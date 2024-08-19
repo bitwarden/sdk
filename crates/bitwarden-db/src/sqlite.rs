@@ -1,5 +1,5 @@
 use rusqlite::Connection;
-pub use rusqlite::{named_params, params, Params, Row};
+pub use rusqlite::{Params, Row, ToSql};
 use tokio::sync::Mutex;
 
 use super::{DatabaseError, DatabaseTrait};
@@ -103,6 +103,28 @@ impl From<DatabaseError> for rusqlite::Error {
             _ => rusqlite::Error::QueryReturnedNoRows,
         }
     }
+}
+
+#[macro_export]
+macro_rules! params {
+    () => {
+        &[]
+    };
+    ($($param:expr),+ $(,)?) => {
+        &[$(&$param as &(dyn $crate::ToSql + Send + Sync)),+]
+    };
+}
+
+#[macro_export]
+macro_rules! named_params {
+    () => {
+        &[] as &[(&str, &(dyn $crate::ToSql + Send + Sync))]
+    };
+    // Note: It's a lot more work to support this as part of the same macro as
+    // `params!`, unfortunately.
+    ($($param_name:literal: $param_val:expr),+ $(,)?) => {
+        &[$(($param_name, &$param_val as &(dyn $crate::ToSql + Send + Sync))),+]
+    };
 }
 
 #[cfg(test)]

@@ -1,6 +1,8 @@
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{AsymmetricEncString, DeviceKey, EncString, Kdf, TrustDeviceResponse};
 
+#[cfg(feature = "state")]
+use super::{unlock, AuthRepository, UnlockError};
 #[cfg(feature = "internal")]
 use crate::auth::login::NewAuthRequestResponse;
 #[cfg(feature = "secrets")]
@@ -25,6 +27,8 @@ use crate::{auth::renew::renew_token, error::Result, Client};
 
 pub struct ClientAuth<'a> {
     pub(crate) client: &'a crate::Client,
+    #[cfg(feature = "state")]
+    pub(super) repository: AuthRepository,
 }
 
 impl<'a> ClientAuth<'a> {
@@ -132,10 +136,7 @@ impl<'a> ClientAuth<'a> {
     pub fn trust_device(&self) -> Result<TrustDeviceResponse> {
         trust_device(self.client)
     }
-}
 
-#[cfg(feature = "internal")]
-impl<'a> ClientAuth<'a> {
     pub async fn login_device(
         &self,
         email: String,
@@ -153,6 +154,13 @@ impl<'a> ClientAuth<'a> {
     }
 }
 
+#[cfg(feature = "state")]
+impl<'a> ClientAuth<'a> {
+    pub async fn unlock(&self, password: String) -> Result<(), UnlockError> {
+        unlock(self.client, password).await
+    }
+}
+
 #[cfg(feature = "internal")]
 fn trust_device(client: &Client) -> Result<TrustDeviceResponse> {
     let enc = client.internal.get_encryption_settings()?;
@@ -164,7 +172,11 @@ fn trust_device(client: &Client) -> Result<TrustDeviceResponse> {
 
 impl<'a> Client {
     pub fn auth(&'a self) -> ClientAuth<'a> {
-        ClientAuth { client: self }
+        ClientAuth {
+            client: self,
+            #[cfg(feature = "state")]
+            repository: AuthRepository::new(self.platform().settings_repository),
+        }
     }
 }
 

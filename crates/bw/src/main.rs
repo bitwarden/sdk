@@ -10,7 +10,10 @@ use inquire::Password;
 use render::Output;
 
 mod auth;
+mod commands;
 mod render;
+
+use commands::vault::{self, VaultCommands};
 
 #[derive(Parser, Clone)]
 #[command(name = "Bitwarden CLI", version, about = "Bitwarden CLI", long_about = None)]
@@ -44,9 +47,11 @@ enum Commands {
     },
 
     #[command(long_about = "Manage vault items")]
-    Item {
+    Vault {
         #[command(subcommand)]
-        command: ItemCommands,
+        command: VaultCommands,
+        #[arg(long, global = true, help = "Master password")]
+        password: Option<String>,
     },
 
     #[command(long_about = "Pull the latest vault data from the server")]
@@ -83,12 +88,6 @@ enum LoginCommands {
         email: Option<String>,
         device_identifier: Option<String>,
     },
-}
-
-#[derive(Subcommand, Clone)]
-enum ItemCommands {
-    Get { id: String },
-    Create {},
 }
 
 #[derive(Subcommand, Clone)]
@@ -213,7 +212,9 @@ async fn process_commands() -> Result<()> {
     match command {
         Commands::Login(_) => unreachable!(),
         Commands::Register { .. } => unreachable!(),
-        Commands::Item { command: _ } => todo!(),
+        Commands::Vault { command, password } => {
+            vault::process_command(command, client, password).await?
+        }
         Commands::Sync {} => todo!(),
         Commands::Generate { command } => match command {
             GeneratorCommands::Password(args) => {

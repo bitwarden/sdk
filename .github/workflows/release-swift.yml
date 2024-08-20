@@ -35,6 +35,7 @@ jobs:
       short_sha: ${{ steps.set-sha.outputs.short_sha }}
       release_name: ${{ steps.set-release-name.outputs.release_name }}
       run_id: ${{ steps.get-run-id.outputs.build-run-id }}
+      swift_checksum: ${{ steps.calculate-swift-checksum.outputs.checksum }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
@@ -71,7 +72,6 @@ jobs:
         with:
           workflow: build-swift.yml
           workflow_conclusion: success
-          skip_unpack: true
           run_id: ${{ steps.get-run-id.outputs.build-run-id }}
 
       - name: Set SHA
@@ -84,10 +84,15 @@ jobs:
         id: set-release-name
         run: |
           if [[ ${{ inputs.pre-release }} == true ]]; then
-            echo "release_name=${{ env._PKG_VERSION }}-unstable-${{ needs.validate.outputs.short_sha }}" >> $GITHUB_OUTPUT
+            echo "release_name=${{ steps.version.outputs.version }}-unstable-${{ steps.set-sha.outputs.short_sha }}" >> $GITHUB_OUTPUT
           else
-            echo "release_name=${{ env._PKG_VERSION }}" >> $GITHUB_OUTPUT
+            echo "release_name=${{ steps.version.outputs.version }}" >> $GITHUB_OUTPUT
           fi
+
+      - name: Calculate swift file checksum
+        run: |
+          CHECKSUM=$(swift package compute-checksum BitwardenFFI-${{ steps.version.outputs.version }}-${{ steps.set-sha.outputs.short_sha }}.xcframework)
+          echo "checksum=$CHECKSUM" >> $GITHUB_OUTPUT
 
   repo-sync:
     name: Push changed files to SDK Swift repo
@@ -99,6 +104,7 @@ jobs:
       _PKG_VERSION: ${{ needs.validate.outputs.version }}
       _PRE_RELEASE: ${{ inputs.pre-release }}
       _RELEASE_NAME: ${{ needs.validate.outputs.release_name }}
+      _SWIFT_CHECKSUM: ${{ needs.validate.outputs.swift_checksum }}
     steps:
       - name: Checkout SDK repo
         uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
@@ -144,7 +150,8 @@ jobs:
           # Update BitwardenFFI path
           sed -i '' 's|.binaryTarget(name: "BitwardenFFI", path: "BitwardenFFI.xcframework")|.binaryTarget(\
             name: "BitwardenFFI",\
-            url: "https://github.com/bitwarden/sdk-swift/releases/download/v${{ env._RELEASE_NAME }}/BitwardenFFI-${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}.xcframework.zip",|' sdk/languages/swift/Package.swift
+            url: "https://github.com/bitwarden/sdk-swift/releases/download/v${{ env._RELEASE_NAME }}/BitwardenFFI-${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}.xcframework.zip",\
+            checksum: "${{ env._SWIFT_CHECKSUM }}"|' sdk/languages/swift/Package.swift
 
           # Run swiftformat
           swiftformat sdk/languages/swift/Package.swift

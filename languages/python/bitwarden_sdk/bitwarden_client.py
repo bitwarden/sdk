@@ -3,14 +3,14 @@ from typing import Any, List, Optional
 from uuid import UUID
 import bitwarden_py
 
-from .schemas import ClientSettings, Command, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse, \
-    ResponseForSecretsResponse, ResponseForSecretsDeleteResponse, SecretCreateRequest, SecretGetRequest, \
-    SecretsGetRequest, SecretIdentifiersRequest, SecretIdentifiersResponse, SecretPutRequest, SecretResponse, \
-    SecretsCommand, SecretsDeleteRequest, SecretsDeleteResponse, SecretsSyncResponse, SecretsSyncRequest, \
-    AccessTokenLoginRequest, ResponseForSecretsSyncResponse, ResponseForAccessTokenLoginResponse, \
-    ResponseForProjectResponse, ProjectsCommand, ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, \
-    ProjectsListRequest, ResponseForProjectsResponse, ResponseForProjectsDeleteResponse, ProjectsDeleteRequest, \
-    SecretsResponse
+from .schemas import (ClientSettings, Command, ResponseForSecretIdentifiersResponse, ResponseForSecretResponse,
+                      ResponseForSecretsResponse, ResponseForSecretsDeleteResponse, SecretCreateRequest,
+                      SecretGetRequest, SecretsGetRequest, SecretIdentifiersRequest, SecretPutRequest,
+                      SecretsCommand, SecretsDeleteRequest, SecretsSyncRequest, AccessTokenLoginRequest,
+                      ResponseForSecretsSyncResponse, ResponseForAccessTokenLoginResponse,
+                      ResponseForProjectResponse, ProjectsCommand, ProjectCreateRequest, ProjectGetRequest,
+                      ProjectPutRequest, ProjectsListRequest, ResponseForProjectsResponse,
+                      ResponseForProjectsDeleteResponse, ProjectsDeleteRequest)
 
 
 class BitwardenClient:
@@ -74,7 +74,7 @@ class SecretsClient:
             organization_id: UUID,
             key: str,
             value: str,
-            note: str,
+            note: Optional[str],
             project_ids: Optional[List[UUID]] = None,
     ) -> ResponseForSecretResponse:
         if note is None:
@@ -99,7 +99,7 @@ class SecretsClient:
             id: str,
             key: str,
             value: str,
-            note: str,
+            note: Optional[str],
             project_ids: Optional[List[UUID]] = None,
     ) -> ResponseForSecretResponse:
         if note is None:

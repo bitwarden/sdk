@@ -1,6 +1,8 @@
 use std::num::NonZeroU32;
 
 use base64::{engine::general_purpose::STANDARD, Engine};
+use generic_array::{typenum::U32, GenericArray};
+use rand::Rng;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -64,8 +66,18 @@ pub enum HashPurpose {
 pub struct MasterKey(SymmetricCryptoKey);
 
 impl MasterKey {
-    pub fn new(key: SymmetricCryptoKey) -> MasterKey {
+    pub fn new(key: SymmetricCryptoKey) -> Self {
         Self(key)
+    }
+
+    /// Generate a new random master key. Primarily used for KeyConnector.
+    pub fn generate(mut rng: impl rand::RngCore) -> Self {
+        let mut key = Box::pin(GenericArray::<u8, U32>::default());
+
+        rng.fill(key.as_mut_slice());
+
+        // Master Keys never contains a mac_key.
+        Self::new(SymmetricCryptoKey { key, mac_key: None })
     }
 
     /// Derives a users master key from their password, email and KDF.
@@ -100,6 +112,10 @@ impl MasterKey {
     /// Decrypt the users user key
     pub fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey> {
         decrypt_user_key(&self.0, user_key)
+    }
+
+    pub fn to_base64(&self) -> String {
+        self.0.to_base64()
     }
 }
 

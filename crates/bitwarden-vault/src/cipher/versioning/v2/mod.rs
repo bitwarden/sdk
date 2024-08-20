@@ -6,7 +6,6 @@ use bitwarden_crypto::{
 
 use super::migration::{Downgrader, Migrator};
 
-/// Migrator for version 0 -> 1 of the cipher details response model.
 pub struct V2Migrator {}
 
 impl Migrator for V2Migrator {

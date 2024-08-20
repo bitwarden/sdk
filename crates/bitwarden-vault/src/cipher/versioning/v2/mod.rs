@@ -4,13 +4,12 @@ use bitwarden_crypto::{
     CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
 };
 
-use super::migration::Migrator;
+use super::migration::{Downgrader, Migrator};
 
 /// Migrator for version 0 -> 1 of the cipher details response model.
 pub struct V2Migrator {}
 
 impl Migrator for V2Migrator {
-    /// Mock implementation of the migration from version 0 to 1.
     fn migrate(
         _metadata: &CipherDetailsMetaDataResponseModel,
         input: &serde_json::Value,
@@ -42,6 +41,7 @@ impl Migrator for V2Migrator {
 
             let enc_credential_id = b64_credential_id.encrypt_with_key(key)?;
 
+            fido2_credential["credentialIdType"] = serde_json::Value::String("b64".to_owned());
             fido2_credential["credentialId"] =
                 serde_json::Value::String(enc_credential_id.to_string());
         }
@@ -56,8 +56,70 @@ impl Migrator for V2Migrator {
     }
 }
 
+impl Downgrader for V2Migrator {
+    fn downgrade(
+        _metadata: &CipherDetailsMetaDataResponseModel,
+        input: &serde_json::Value,
+        key: &SymmetricCryptoKey,
+    ) -> Result<serde_json::Value, CryptoError> {
+        // TODO: Fix clone
+        let mut data = input.clone();
+
+        if (data["version"].as_i64().unwrap_or(0)) != 2 {
+            return Ok(data);
+        }
+
+        let default = vec![];
+        let mut fido2_credentials: Vec<serde_json::Value> = data["login"]["fido2Credentials"]
+            .as_array()
+            .unwrap_or(&default)
+            .clone();
+
+        for fido2_credential in fido2_credentials.iter_mut() {
+            let credential_id = fido2_credential["credentialId"]
+                .as_str()
+                .expect("Fido2Credential missing ID")
+                .to_owned();
+            let enc_string: EncString = credential_id.parse()?;
+            let dec_credential_id: String = enc_string.decrypt_with_key(key)?;
+
+            // TODO: Use proper errors
+            let byte_credential_id = URL_SAFE_NO_PAD
+                .decode(&dec_credential_id)
+                .map_err(|_| CryptoError::MissingField("data"))?;
+            let guid_credential_id = guid_bytes_to_string(&byte_credential_id);
+
+            match guid_credential_id {
+                Ok(guid_credential_id) => {
+                    // This credential can be represented as a UUID
+                    let enc_credential_id = guid_credential_id.encrypt_with_key(key)?;
+                    fido2_credential["credentialId"] =
+                        serde_json::Value::String(enc_credential_id.to_string());
+                }
+                Err(_) => {
+                    // This credential cannot be represented as a UUID and cannot be downgraded,
+                    // abort the downgrade and return the original data.
+                    return Ok(data);
+                }
+            }
+        }
+
+        if !fido2_credentials.is_empty() {
+            data["login"]["fido2Credentials"] = serde_json::Value::Array(fido2_credentials);
+        }
+
+        data["version"] = 1.into();
+
+        Ok(data)
+    }
+}
+
 pub fn string_to_guid_bytes(source: &String) -> Vec<u8> {
     uuid::Uuid::try_parse(source).unwrap().as_bytes().to_vec()
+}
+
+fn guid_bytes_to_string(source: &[u8]) -> Result<String, uuid::Error> {
+    Ok(uuid::Uuid::from_slice(source)?.to_string())
 }
 
 #[cfg(test)]
@@ -97,7 +159,10 @@ mod test {
             "type": "login",
             "login": {
                 "fido2Credentials": [
-                    { "credentialId": enc_b64_credential_id.to_string() }
+                    {
+                        "credentialIdType": "b64",
+                        "credentialId": enc_b64_credential_id.to_string()
+                    }
                 ]
             }
         });

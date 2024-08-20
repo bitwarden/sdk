@@ -75,6 +75,7 @@ impl LoginUriView {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct Fido2Credential {
+    pub credential_id_type: EncString,
     pub credential_id: EncString,
     pub key_type: EncString,
     pub key_algorithm: EncString,
@@ -94,6 +95,7 @@ pub struct Fido2Credential {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct Fido2CredentialView {
+    pub credential_id_type: String,
     pub credential_id: String,
     pub key_type: String,
     pub key_algorithm: String,
@@ -116,6 +118,7 @@ pub struct Fido2CredentialView {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Fido2CredentialFullView {
+    pub credential_id_type: String,
     pub credential_id: String,
     pub key_type: String,
     pub key_algorithm: String,
@@ -172,6 +175,7 @@ impl From<Fido2CredentialFullView> for Fido2CredentialNewView {
 impl KeyEncryptable<SymmetricCryptoKey, Fido2Credential> for Fido2CredentialFullView {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Fido2Credential, CryptoError> {
         Ok(Fido2Credential {
+            credential_id_type: self.credential_id_type.encrypt_with_key(key)?,
             credential_id: self.credential_id.encrypt_with_key(key)?,
             key_type: self.key_type.encrypt_with_key(key)?,
             key_algorithm: self.key_algorithm.encrypt_with_key(key)?,
@@ -198,6 +202,7 @@ impl KeyDecryptable<SymmetricCryptoKey, Fido2CredentialFullView> for Fido2Creden
         key: &SymmetricCryptoKey,
     ) -> Result<Fido2CredentialFullView, CryptoError> {
         Ok(Fido2CredentialFullView {
+            credential_id_type: self.credential_id_type.decrypt_with_key(key)?,
             credential_id: self.credential_id.decrypt_with_key(key)?,
             key_type: self.key_type.decrypt_with_key(key)?,
             key_algorithm: self.key_algorithm.decrypt_with_key(key)?,
@@ -221,6 +226,7 @@ impl KeyDecryptable<SymmetricCryptoKey, Fido2CredentialFullView> for Fido2Creden
         key: &SymmetricCryptoKey,
     ) -> Result<Fido2CredentialFullView, CryptoError> {
         Ok(Fido2CredentialFullView {
+            credential_id_type: self.credential_id_type.clone(),
             credential_id: self.credential_id.clone(),
             key_type: self.key_type.clone(),
             key_algorithm: self.key_algorithm.clone(),
@@ -320,6 +326,7 @@ impl KeyDecryptable<SymmetricCryptoKey, LoginView> for Login {
 impl KeyEncryptable<SymmetricCryptoKey, Fido2Credential> for Fido2CredentialView {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Fido2Credential, CryptoError> {
         Ok(Fido2Credential {
+            credential_id_type: self.credential_id_type.encrypt_with_key(key)?,
             credential_id: self.credential_id.encrypt_with_key(key)?,
             key_type: self.key_type.encrypt_with_key(key)?,
             key_algorithm: self.key_algorithm.encrypt_with_key(key)?,
@@ -349,6 +356,7 @@ impl KeyDecryptable<SymmetricCryptoKey, Fido2CredentialView> for Fido2Credential
         key: &SymmetricCryptoKey,
     ) -> Result<Fido2CredentialView, CryptoError> {
         Ok(Fido2CredentialView {
+            credential_id_type: self.credential_id_type.decrypt_with_key(key)?,
             credential_id: self.credential_id.decrypt_with_key(key)?,
             key_type: self.key_type.decrypt_with_key(key)?,
             key_algorithm: self.key_algorithm.decrypt_with_key(key)?,
@@ -421,6 +429,7 @@ impl TryFrom<migrated::CipherFido2CredentialModel> for Fido2Credential {
 
     fn try_from(value: migrated::CipherFido2CredentialModel) -> Result<Self, Self::Error> {
         Ok(Self {
+            credential_id_type: require!(value.credential_id_type).parse()?,
             credential_id: require!(value.credential_id).parse()?,
             key_type: require!(value.key_type).parse()?,
             key_algorithm: require!(value.key_algorithm).parse()?,

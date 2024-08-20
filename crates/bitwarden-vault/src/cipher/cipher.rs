@@ -720,6 +720,7 @@ mod tests {
 
     fn generate_fido2(key: &SymmetricCryptoKey) -> Fido2Credential {
         Fido2Credential {
+            credential_id_type: "b64".to_owned().encrypt_with_key(key).unwrap(),
             credential_id: "123".to_string().encrypt_with_key(key).unwrap(),
             key_type: "public-key".to_string().encrypt_with_key(key).unwrap(),
             key_algorithm: "ECDSA".to_string().encrypt_with_key(key).unwrap(),

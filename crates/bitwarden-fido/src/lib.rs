@@ -141,6 +141,7 @@ pub fn fill_with_credential(
     let key_value = URL_SAFE_NO_PAD.encode(cose_key_to_pkcs8(&value.key)?);
 
     Ok(Fido2CredentialFullView {
+        credential_id_type: "b64".to_owned(),
         credential_id: guid_bytes_to_string(&cred_id)?,
         key_type: "public-key".to_owned(),
         key_algorithm: "ECDSA".to_owned(),
@@ -193,6 +194,8 @@ pub(crate) fn try_from_credential_full(
     let user_handle = URL_SAFE_NO_PAD.encode(user.id.to_vec());
 
     Ok(Fido2CredentialFullView {
+        credential_id_type: "b64".to_owned(),
+        // This is wrong, we should be reading this as B64
         credential_id: guid_bytes_to_string(&cred_id)?,
         key_type: "public-key".to_owned(),
         key_algorithm: "ECDSA".to_owned(),

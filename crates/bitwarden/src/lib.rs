@@ -90,4 +90,11 @@ pub use internal::*;
 #[cfg(feature = "secrets")]
 pub mod secrets_manager {
     pub use bitwarden_sm::*;
+
+    pub mod generators {
+        pub use bitwarden_generators::{
+            password as generate_secret, PasswordError as GenerateSecretError,
+            PasswordGeneratorRequest as GenerateSecretRequest,
+        };
+    }
 }

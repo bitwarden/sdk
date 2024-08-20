@@ -6,6 +6,8 @@ use crate::{box_ptr, ffi_ref};
 
 #[repr(C)]
 pub struct CClient {
+    /// Associates the tokio runtime to the `Client`, ensuring the runtime has the same lifecycle
+    /// as the `Client`.
     runtime: tokio::runtime::Runtime,
     client: Client,
 }

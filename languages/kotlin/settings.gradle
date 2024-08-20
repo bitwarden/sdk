@@ -21,7 +21,7 @@ dependencyResolutionManagement {
 String findRustlsPlatformVerifierProject() {
     def dependencyText = providers.exec {
         it.workingDir = new File("../../")
-        commandLine("cargo", "metadata", "--format-version", "1", "--manifest-path", "crates/bitwarden/Cargo.toml")
+        commandLine("cargo", "metadata", "--format-version", "1", "--manifest-path", "crates/bitwarden-uniffi/Cargo.toml")
     }.standardOutput.asText.get()
 
     def dependencyJson = new groovy.json.JsonSlurper().parseText(dependencyText)

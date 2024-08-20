@@ -1,9 +1,6 @@
 use std::error::Error;
 
-use jni::{
-    signature::JavaType,
-    sys::{jint, jsize, JavaVM},
-};
+use jni::sys::{jint, jsize, JavaVM};
 
 pub fn init() {
     static ANDROID_INIT: std::sync::Once = std::sync::Once::new();

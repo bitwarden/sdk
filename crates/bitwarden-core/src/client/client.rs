@@ -25,9 +25,6 @@ impl Client {
             #[allow(unused_mut)]
             let mut client_builder = reqwest::Client::builder();
 
-            #[cfg(target_os = "android")]
-            crate::android_support::init();
-
             #[cfg(not(target_arch = "wasm32"))]
             {
                 client_builder =

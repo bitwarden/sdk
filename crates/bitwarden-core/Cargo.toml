@@ -72,11 +72,6 @@ reqwest = { version = ">=0.12.5, <0.13", features = [
 ], default-features = false }
 rustls-platform-verifier = "0.3.3"
 
-[target.'cfg(target_os = "android")'.dependencies]
-# The use of rustls-platform-verifier requires some extra support to communicate with the Android platform
-jni = ">=0.19, <0.20"
-libloading = ">=0.8.1, <0.9"
-
 [dev-dependencies]
 bitwarden-crypto = { workspace = true }
 rand_chacha = "0.3.1"

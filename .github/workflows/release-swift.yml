@@ -205,7 +205,6 @@ jobs:
           workflow: build-swift.yml
           workflow_conclusion: success
           artifacts: "BitwardenFFI-${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}.xcframework"
-          skip_unpack: true
           run_id: ${{ env._BUILD_RUN_ID }}
 
       - name: Create release

@@ -113,6 +113,10 @@ pub enum UriMatchType {
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct CipherFido2CredentialModel {
+    // The type is not needed - it is always "b64", but we add it here to demonstrate
+    // how we can handle downgrading and backwards compatibility
+    #[serde(rename = "credentialIdType", skip_serializing_if = "Option::is_none")]
+    pub credential_id_type: Option<String>,
     #[serde(rename = "credentialId", skip_serializing_if = "Option::is_none")]
     pub credential_id: Option<String>,
     #[serde(rename = "keyType", skip_serializing_if = "Option::is_none")]

@@ -15,7 +15,16 @@ pub fn migrate(
     cipher: super::unmigrated::CipherDetailsResponseModel,
     key: &SymmetricCryptoKey,
 ) -> Result<super::migrated::CipherDetailsResponseModel, CryptoError> {
-    let migrators = vec![super::v1::V1Migrator::migrate];
+    let migrators: Vec<
+        fn(
+            &CipherDetailsMetaDataResponseModel,
+            &serde_json::Value,
+            &SymmetricCryptoKey,
+        ) -> Result<serde_json::Value, CryptoError>,
+    > = vec![
+        super::v1::V1Migrator::migrate,
+        super::v2::V2Migrator::migrate,
+    ];
 
     let mut data = None;
 

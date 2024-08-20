@@ -57,7 +57,7 @@ func NewBitwardenClient(apiURL *string, identityURL *string) (BitwardenClientInt
 
 func (c *BitwardenClient) AccessTokenLogin(accessToken string, stateFile *string) error {
 	req := AccessTokenLoginRequest{AccessToken: accessToken, StateFile: stateFile}
-	command := Command{AccessTokenLogin: &req}
+	command := Command{LoginAccessToken: &req}
 
 	responseStr, err := c.commandRunner.RunCommand(command)
 	if err != nil {

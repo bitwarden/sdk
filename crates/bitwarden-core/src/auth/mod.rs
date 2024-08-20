@@ -30,6 +30,10 @@ pub use register::{RegisterKeyResponse, RegisterRequest};
 mod tde;
 #[cfg(feature = "internal")]
 pub use tde::RegisterTdeKeyResponse;
+#[cfg(feature = "internal")]
+mod key_connector;
+#[cfg(feature = "internal")]
+pub use key_connector::KeyConnectorResponse;
 
 #[cfg(feature = "internal")]
 use crate::error::Result;

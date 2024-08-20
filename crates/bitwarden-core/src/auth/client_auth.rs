@@ -1,16 +1,18 @@
 #[cfg(feature = "internal")]
-use bitwarden_crypto::{AsymmetricEncString, DeviceKey, EncString, Kdf, TrustDeviceResponse};
+use bitwarden_crypto::{
+    AsymmetricEncString, CryptoError, DeviceKey, EncString, Kdf, TrustDeviceResponse,
+};
 
-#[cfg(feature = "internal")]
-use crate::auth::login::NewAuthRequestResponse;
 #[cfg(feature = "secrets")]
 use crate::auth::login::{login_access_token, AccessTokenLoginRequest, AccessTokenLoginResponse};
 #[cfg(feature = "internal")]
 use crate::auth::{
     auth_request::{approve_auth_request, new_auth_request},
+    key_connector::{make_key_connector_keys, KeyConnectorResponse},
     login::{
         login_api_key, login_password, send_two_factor_email, ApiKeyLoginRequest,
-        ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse, TwoFactorEmailRequest,
+        ApiKeyLoginResponse, NewAuthRequestResponse, PasswordLoginRequest, PasswordLoginResponse,
+        TwoFactorEmailRequest,
     },
     password::{
         password_strength, satisfies_policy, validate_password, validate_password_user_key,
@@ -77,6 +79,11 @@ impl<'a> ClientAuth<'a> {
         remember_device: bool,
     ) -> Result<RegisterTdeKeyResponse> {
         make_register_tde_keys(self.client, email, org_public_key, remember_device)
+    }
+
+    pub fn make_key_connector_keys(&self) -> Result<KeyConnectorResponse, CryptoError> {
+        let mut rng = rand::thread_rng();
+        make_key_connector_keys(&mut rng)
     }
 
     pub async fn register(&self, input: &RegisterRequest) -> Result<()> {

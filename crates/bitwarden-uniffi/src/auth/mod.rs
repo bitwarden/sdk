@@ -1,8 +1,11 @@
 use std::sync::Arc;
 
-use bitwarden::auth::{
-    password::MasterPasswordPolicyOptions, AuthRequestResponse, RegisterKeyResponse,
-    RegisterTdeKeyResponse,
+use bitwarden::{
+    auth::{
+        password::MasterPasswordPolicyOptions, AuthRequestResponse, KeyConnectorResponse,
+        RegisterKeyResponse, RegisterTdeKeyResponse,
+    },
+    Error,
 };
 use bitwarden_crypto::{AsymmetricEncString, EncString, HashPurpose, Kdf, TrustDeviceResponse};
 
@@ -77,6 +80,16 @@ impl ClientAuth {
              .0
             .auth()
             .make_register_tde_keys(email, org_public_key, remember_device)?)
+    }
+
+    /// Generate keys needed to onboard a new user without master key to key connector
+    pub fn make_key_connector_keys(&self) -> Result<KeyConnectorResponse> {
+        Ok(self
+            .0
+             .0
+            .auth()
+            .make_key_connector_keys()
+            .map_err(Error::Crypto)?)
     }
 
     /// Validate the user password

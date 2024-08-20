@@ -1,7 +1,12 @@
+mod migration;
 mod model;
 
-pub use bitwarden_api_api::models::CipherDetailsResponseModel as NonMigratedCipherDetailsResponseModel;
+mod v1;
 
-pub mod migrated {
-    pub use super::model::CipherDetailsResponseModel as MigratedCipherDetailsResponseModel;
+pub(self) mod unmigrated {
+    pub use bitwarden_api_api::models::CipherDetailsResponseModel;
+}
+
+pub(self) mod migrated {
+    pub use super::model::*;
 }

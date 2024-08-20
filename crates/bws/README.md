@@ -6,11 +6,29 @@ and might be missing some functionality.
 
 ## Install
 
+We offer three ways to install bws:
+
+### Cargo (crates.io)
+
+Download bws via `cargo` from [crates.io](https://crates.io):
+
 ```bash
-cargo install bws
+cargo install bws --locked
 ```
 
-Or download a pre-built binary from the [Releases](https://github.com/bitwarden/sdk/releases) page.
+### Install Script (from GitHub Releases)
+
+Linux/macOS: `curl https://bws.bitwarden.com/install | sh`
+
+Windows: `iwr https://bws.bitwarden.com/install | iex`
+
+An optional `-u/--uninstall` flag can be passed to the POSIX script to uninstall the CLI. The
+PowerShell version accepts an equivalent `-Uninstall` flag. The uninstallation process will remove
+the `bws` binary and the configuration directory (`~/.bws`).
+
+### GitHub Releases (Manual)
+
+Download a pre-built binary from the [Releases](https://github.com/bitwarden/sdk/releases) page.
 
 ## Usage
 

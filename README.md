@@ -20,9 +20,20 @@ are currently open as well as what it's like to work at Bitwarden.
 
 ## Getting Started
 
+### Linux / Mac / Windows
+
 ```bash
 cargo build
 ```
+
+### Windows on ARM
+
+To build, you will need the following in your PATH:
+
+- [Python](https://www.python.org)
+- [Clang](https://clang.llvm.org)
+  - We recommend installing this via the
+    [Visual Studio Build Tools](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022)
 
 ## Crates
 

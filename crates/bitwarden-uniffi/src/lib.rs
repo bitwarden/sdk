@@ -2,9 +2,8 @@ uniffi::setup_scaffolding!();
 
 use std::sync::Arc;
 
-use async_lock::RwLock;
 use auth::ClientAuth;
-use bitwarden::client::client_settings::ClientSettings;
+use bitwarden::ClientSettings;
 
 pub mod auth;
 pub mod crypto;
@@ -24,7 +23,7 @@ use tool::{ClientExporters, ClientGenerators, ClientSends};
 use vault::ClientVault;
 
 #[derive(uniffi::Object)]
-pub struct Client(RwLock<bitwarden::Client>);
+pub struct Client(bitwarden::Client);
 
 #[uniffi::export]
 impl Client {
@@ -32,7 +31,7 @@ impl Client {
     #[uniffi::constructor]
     pub fn new(settings: Option<ClientSettings>) -> Arc<Self> {
         init_logger();
-        Arc::new(Self(RwLock::new(bitwarden::Client::new(settings))))
+        Arc::new(Self(bitwarden::Client::new(settings)))
     }
 
     /// Crypto operations
@@ -76,9 +75,14 @@ impl Client {
 }
 
 fn init_logger() {
-    #[cfg(not(target_os = "android"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     let _ = env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info"))
         .try_init();
+
+    #[cfg(target_os = "ios")]
+    let _ = oslog::OsLogger::new("com.8bit.bitwarden")
+        .level_filter(log::LevelFilter::Info)
+        .init();
 
     #[cfg(target_os = "android")]
     android_logger::init_once(

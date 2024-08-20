@@ -95,7 +95,7 @@ async function main() {
     lang: "go",
     rendererOptions: {
       package: "sdk",
-      "just-types-and-package": true,
+      "omit-empty": true,
     },
   });
 

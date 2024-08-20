@@ -8,6 +8,12 @@ pub enum BitwardenError {
     E(bitwarden::error::Error),
 }
 
+impl From<bitwarden::Error> for BitwardenError {
+    fn from(e: bitwarden::Error) -> Self {
+        Self::E(e.into())
+    }
+}
+
 impl From<bitwarden::error::Error> for BitwardenError {
     fn from(e: bitwarden::error::Error) -> Self {
         Self::E(e)

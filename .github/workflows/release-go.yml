@@ -15,7 +15,7 @@ on:
 
 env:
   GO111MODULE: on
-  GO_VERSION: "^1.18"
+  GO_VERSION: "^1.21"
   _KEY_VAULT: "bitwarden-ci"
 
 jobs:
@@ -26,7 +26,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Branch check
         if: ${{ inputs.release_type != 'Dry Run' }}
@@ -55,7 +55,7 @@ jobs:
 
     steps:
       - name: Checkout SDK repo
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           path: sdk
 
@@ -72,7 +72,7 @@ jobs:
           secrets: "github-pat-bitwarden-devops-bot-repo-scope"
 
       - name: Checkout SDK-Go repo
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           repository: bitwarden/sdk-go
           path: sdk-go

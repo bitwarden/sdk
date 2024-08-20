@@ -1,12 +1,18 @@
-use std::{collections::HashMap, hash::Hash};
+use std::{collections::HashMap, hash::Hash, sync::Arc};
 
 use rayon::prelude::*;
 use uuid::Uuid;
 
-use crate::{error::Result, SymmetricCryptoKey};
+use crate::{error::Result, CryptoError, SymmetricCryptoKey};
 
 pub trait KeyContainer: Send + Sync {
-    fn get_key(&self, org_id: &Option<Uuid>) -> Option<&SymmetricCryptoKey>;
+    fn get_key(&self, org_id: &Option<Uuid>) -> Result<&SymmetricCryptoKey, CryptoError>;
+}
+
+impl<T: KeyContainer> KeyContainer for Arc<T> {
+    fn get_key(&self, org_id: &Option<Uuid>) -> Result<&SymmetricCryptoKey, CryptoError> {
+        self.as_ref().get_key(org_id)
+    }
 }
 
 pub trait LocateKey {
@@ -14,7 +20,7 @@ pub trait LocateKey {
         &self,
         enc: &'a dyn KeyContainer,
         org_id: &Option<Uuid>,
-    ) -> Option<&'a SymmetricCryptoKey> {
+    ) -> Result<&'a SymmetricCryptoKey, CryptoError> {
         enc.get_key(org_id)
     }
 }

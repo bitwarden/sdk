@@ -93,6 +93,7 @@ impl Downgrader for V2Migrator {
                 Ok(guid_credential_id) => {
                     // This credential can be represented as a UUID
                     let enc_credential_id = guid_credential_id.encrypt_with_key(key)?;
+                    fido2_credential["version"] = 1.into();
                     fido2_credential["credentialId"] =
                         serde_json::Value::String(enc_credential_id.to_string());
                 }

@@ -1,4 +1,3 @@
-use bitwarden_api_api::models::CipherCardModel;
 use bitwarden_crypto::{
     CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
 };
@@ -6,6 +5,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::VaultParseError;
+
+use super::versioning::migrated;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -57,10 +58,10 @@ impl KeyDecryptable<SymmetricCryptoKey, CardView> for Card {
     }
 }
 
-impl TryFrom<CipherCardModel> for Card {
+impl TryFrom<migrated::CipherCardModel> for Card {
     type Error = VaultParseError;
 
-    fn try_from(card: CipherCardModel) -> Result<Self, Self::Error> {
+    fn try_from(card: migrated::CipherCardModel) -> Result<Self, Self::Error> {
         Ok(Self {
             cardholder_name: EncString::try_from_optional(card.cardholder_name)?,
             exp_month: EncString::try_from_optional(card.exp_month)?,

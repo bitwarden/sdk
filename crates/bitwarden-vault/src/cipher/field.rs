@@ -1,4 +1,3 @@
-use bitwarden_api_api::models::CipherFieldModel;
 use bitwarden_core::require;
 use bitwarden_crypto::{
     CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
@@ -7,7 +6,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use super::linked_id::LinkedIdType;
+use super::{linked_id::LinkedIdType, versioning::migrated};
 use crate::VaultParseError;
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
@@ -64,10 +63,10 @@ impl KeyDecryptable<SymmetricCryptoKey, FieldView> for Field {
     }
 }
 
-impl TryFrom<CipherFieldModel> for Field {
+impl TryFrom<migrated::CipherFieldModel> for Field {
     type Error = VaultParseError;
 
-    fn try_from(model: CipherFieldModel) -> Result<Self, Self::Error> {
+    fn try_from(model: migrated::CipherFieldModel) -> Result<Self, Self::Error> {
         Ok(Self {
             name: EncString::try_from_optional(model.name)?,
             value: EncString::try_from_optional(model.value)?,
@@ -80,13 +79,13 @@ impl TryFrom<CipherFieldModel> for Field {
     }
 }
 
-impl From<bitwarden_api_api::models::FieldType> for FieldType {
-    fn from(model: bitwarden_api_api::models::FieldType) -> Self {
+impl From<migrated::FieldType> for FieldType {
+    fn from(model: migrated::FieldType) -> Self {
         match model {
-            bitwarden_api_api::models::FieldType::Text => FieldType::Text,
-            bitwarden_api_api::models::FieldType::Hidden => FieldType::Hidden,
-            bitwarden_api_api::models::FieldType::Boolean => FieldType::Boolean,
-            bitwarden_api_api::models::FieldType::Linked => FieldType::Linked,
+            migrated::FieldType::Text => FieldType::Text,
+            migrated::FieldType::Hidden => FieldType::Hidden,
+            migrated::FieldType::Boolean => FieldType::Boolean,
+            migrated::FieldType::Linked => FieldType::Linked,
         }
     }
 }

@@ -1,4 +1,3 @@
-use bitwarden_api_api::models::CipherIdentityModel;
 use bitwarden_crypto::{
     CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
 };
@@ -6,6 +5,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::VaultParseError;
+
+use super::versioning::migrated;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -105,10 +106,10 @@ impl KeyDecryptable<SymmetricCryptoKey, IdentityView> for Identity {
     }
 }
 
-impl TryFrom<CipherIdentityModel> for Identity {
+impl TryFrom<migrated::CipherIdentityModel> for Identity {
     type Error = VaultParseError;
 
-    fn try_from(identity: CipherIdentityModel) -> Result<Self, Self::Error> {
+    fn try_from(identity: migrated::CipherIdentityModel) -> Result<Self, Self::Error> {
         Ok(Self {
             title: EncString::try_from_optional(identity.title)?,
             first_name: EncString::try_from_optional(identity.first_name)?,

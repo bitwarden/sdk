@@ -1,5 +1,3 @@
-mod versioning;
-
 pub(crate) mod attachment;
 pub(crate) mod card;
 #[allow(clippy::module_inception)]
@@ -10,6 +8,7 @@ pub(crate) mod linked_id;
 pub(crate) mod local_data;
 pub(crate) mod login;
 pub(crate) mod secure_note;
+pub(crate) mod versioning;
 
 pub use attachment::{
     Attachment, AttachmentEncryptResult, AttachmentFile, AttachmentFileView, AttachmentView,

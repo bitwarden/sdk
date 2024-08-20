@@ -1,4 +1,3 @@
-use bitwarden_api_api::models::CipherDetailsResponseModel;
 use bitwarden_core::{require, MissingFieldError, VaultLocked};
 use bitwarden_crypto::{
     CryptoError, EncString, KeyContainer, KeyDecryptable, KeyEncryptable, LocateKey,
@@ -15,6 +14,7 @@ use super::{
     attachment, card, field, identity,
     local_data::{LocalData, LocalDataView},
     secure_note,
+    versioning::migrated,
 };
 use crate::{
     password_history, Fido2CredentialFullView, Fido2CredentialView, Login, LoginView,
@@ -598,67 +598,75 @@ impl LocateKey for CipherListView {
     }
 }
 
-impl TryFrom<CipherDetailsResponseModel> for Cipher {
+impl TryFrom<migrated::CipherDetailsResponseModel> for Cipher {
     type Error = VaultParseError;
 
-    fn try_from(cipher: CipherDetailsResponseModel) -> Result<Self, Self::Error> {
+    fn try_from(cipher: migrated::CipherDetailsResponseModel) -> Result<Self, Self::Error> {
         Ok(Self {
-            id: cipher.id,
-            organization_id: cipher.organization_id,
-            folder_id: cipher.folder_id,
-            collection_ids: cipher.collection_ids.unwrap_or_default(),
-            name: require!(EncString::try_from_optional(cipher.name)?),
-            notes: EncString::try_from_optional(cipher.notes)?,
-            r#type: require!(cipher.r#type).into(),
-            login: cipher.login.map(|l| (*l).try_into()).transpose()?,
-            identity: cipher.identity.map(|i| (*i).try_into()).transpose()?,
-            card: cipher.card.map(|c| (*c).try_into()).transpose()?,
-            secure_note: cipher.secure_note.map(|s| (*s).try_into()).transpose()?,
-            favorite: cipher.favorite.unwrap_or(false),
+            id: cipher.meta_data.id,
+            organization_id: cipher.meta_data.organization_id,
+            folder_id: cipher.meta_data.folder_id,
+            collection_ids: cipher.meta_data.collection_ids.unwrap_or_default(),
+            name: require!(EncString::try_from_optional(cipher.data.name)?),
+            notes: EncString::try_from_optional(cipher.data.notes)?,
+            r#type: require!(cipher.data.r#type).into(),
+            login: cipher.data.login.map(|l| l.try_into()).transpose()?,
+            identity: cipher.data.identity.map(|i| i.try_into()).transpose()?,
+            card: cipher.data.card.map(|c| c.try_into()).transpose()?,
+            secure_note: cipher.data.secure_note.map(|s| s.try_into()).transpose()?,
+            favorite: cipher.data.favorite.unwrap_or(false),
             reprompt: cipher
+                .data
                 .reprompt
                 .map(|r| r.into())
                 .unwrap_or(CipherRepromptType::None),
-            organization_use_totp: cipher.organization_use_totp.unwrap_or(true),
-            edit: cipher.edit.unwrap_or(true),
-            view_password: cipher.view_password.unwrap_or(true),
+            organization_use_totp: cipher.meta_data.organization_use_totp.unwrap_or(true),
+            edit: cipher.data.edit.unwrap_or(true),
+            view_password: cipher.meta_data.view_password.unwrap_or(true),
             local_data: None, // Not sent from server
             attachments: cipher
+                .data
                 .attachments
                 .map(|a| a.into_iter().map(|a| a.try_into()).collect())
                 .transpose()?,
             fields: cipher
+                .data
                 .fields
                 .map(|f| f.into_iter().map(|f| f.try_into()).collect())
                 .transpose()?,
             password_history: cipher
+                .data
                 .password_history
                 .map(|p| p.into_iter().map(|p| p.try_into()).collect())
                 .transpose()?,
-            creation_date: require!(cipher.creation_date).parse()?,
-            deleted_date: cipher.deleted_date.map(|d| d.parse()).transpose()?,
-            revision_date: require!(cipher.revision_date).parse()?,
-            key: EncString::try_from_optional(cipher.key)?,
+            creation_date: require!(cipher.meta_data.creation_date).parse()?,
+            deleted_date: cipher
+                .meta_data
+                .deleted_date
+                .map(|d| d.parse())
+                .transpose()?,
+            revision_date: require!(cipher.meta_data.revision_date).parse()?,
+            key: EncString::try_from_optional(cipher.data.key)?,
         })
     }
 }
 
-impl From<bitwarden_api_api::models::CipherType> for CipherType {
-    fn from(t: bitwarden_api_api::models::CipherType) -> Self {
+impl From<migrated::CipherType> for CipherType {
+    fn from(t: migrated::CipherType) -> Self {
         match t {
-            bitwarden_api_api::models::CipherType::Login => CipherType::Login,
-            bitwarden_api_api::models::CipherType::SecureNote => CipherType::SecureNote,
-            bitwarden_api_api::models::CipherType::Card => CipherType::Card,
-            bitwarden_api_api::models::CipherType::Identity => CipherType::Identity,
+            migrated::CipherType::Login => CipherType::Login,
+            migrated::CipherType::SecureNote => CipherType::SecureNote,
+            migrated::CipherType::Card => CipherType::Card,
+            migrated::CipherType::Identity => CipherType::Identity,
         }
     }
 }
 
-impl From<bitwarden_api_api::models::CipherRepromptType> for CipherRepromptType {
-    fn from(t: bitwarden_api_api::models::CipherRepromptType) -> Self {
+impl From<migrated::CipherRepromptType> for CipherRepromptType {
+    fn from(t: migrated::CipherRepromptType) -> Self {
         match t {
-            bitwarden_api_api::models::CipherRepromptType::None => CipherRepromptType::None,
-            bitwarden_api_api::models::CipherRepromptType::Password => CipherRepromptType::Password,
+            migrated::CipherRepromptType::None => CipherRepromptType::None,
+            migrated::CipherRepromptType::Password => CipherRepromptType::Password,
         }
     }
 }

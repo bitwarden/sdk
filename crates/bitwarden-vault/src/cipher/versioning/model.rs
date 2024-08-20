@@ -37,11 +37,11 @@ pub struct CipherDetailsData {
     #[serde(rename = "login", skip_serializing_if = "Option::is_none")]
     pub login: Option<CipherLoginModel>,
     #[serde(rename = "card", skip_serializing_if = "Option::is_none")]
-    pub card: Option<Box<CipherCardModel>>,
+    pub card: Option<CipherCardModel>,
     #[serde(rename = "identity", skip_serializing_if = "Option::is_none")]
-    pub identity: Option<Box<CipherIdentityModel>>,
+    pub identity: Option<CipherIdentityModel>,
     #[serde(rename = "secureNote", skip_serializing_if = "Option::is_none")]
-    pub secure_note: Option<Box<CipherSecureNoteModel>>,
+    pub secure_note: Option<CipherSecureNoteModel>,
     #[serde(rename = "fields", skip_serializing_if = "Option::is_none")]
     pub fields: Option<Vec<CipherFieldModel>>,
     #[serde(rename = "passwordHistory", skip_serializing_if = "Option::is_none")]

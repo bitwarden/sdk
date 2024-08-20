@@ -4,12 +4,16 @@ use bitwarden_api_api::models::{
 use bitwarden_core::{
     client::encryption_settings::EncryptionSettings, require, Client, Error, MissingFieldError,
 };
+use bitwarden_crypto::CryptoError;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use uuid::Uuid;
 
-use crate::{Cipher, Collection, Folder, GlobalDomains, VaultParseError};
+use crate::{
+    versioning::{self, migrated},
+    Cipher, Collection, Folder, GlobalDomains, VaultParseError,
+};
 
 #[derive(Debug, Error)]
 pub enum SyncError {
@@ -21,6 +25,9 @@ pub enum SyncError {
 
     #[error(transparent)]
     VaultParse(#[from] VaultParseError),
+
+    #[error(transparent)]
+    Crypto(#[from] CryptoError),
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -105,6 +112,16 @@ impl SyncResponse {
         {
             iter.into_iter().map(|i| i.try_into()).collect()
         }
+
+        let ciphers = ciphers
+            .into_iter()
+            .map(
+                |c| -> Result<migrated::CipherDetailsResponseModel, CryptoError> {
+                    let organization_id = c.meta_data.organization_id.clone();
+                    Ok(versioning::migrate(c, enc.get_key(&organization_id)?)?)
+                },
+            )
+            .collect::<Result<Vec<migrated::CipherDetailsResponseModel>, _>>()?;
 
         Ok(SyncResponse {
             profile: ProfileResponse::process_response(*profile, enc)?,

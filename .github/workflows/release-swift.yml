@@ -72,6 +72,7 @@ jobs:
         with:
           workflow: build-swift.yml
           workflow_conclusion: success
+          skip_unpack: true
           run_id: ${{ steps.get-run-id.outputs.build-run-id }}
 
       - name: Set SHA
@@ -91,7 +92,7 @@ jobs:
 
       - name: Calculate swift file checksum
         run: |
-          CHECKSUM=$(swift package compute-checksum BitwardenFFI-${{ steps.version.outputs.version }}-${{ steps.set-sha.outputs.short_sha }}.xcframework)
+          CHECKSUM=$(swift package compute-checksum BitwardenFFI-${{ steps.version.outputs.version }}-${{ steps.set-sha.outputs.short_sha }}.xcframework.zip)
           echo "checksum=$CHECKSUM" >> $GITHUB_OUTPUT
 
   repo-sync:

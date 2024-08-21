@@ -185,6 +185,6 @@ pub enum ProjectsCommand {
 pub enum GeneratorsCommand {
     /// Generate a password
     ///
-    /// Returns: [String](String)
+    /// Returns: [String]
     GeneratePassword(PasswordGeneratorRequest),
 }

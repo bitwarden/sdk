@@ -22,6 +22,11 @@ pub struct SecretCreateRequestModel {
     pub note: String,
     #[serde(rename = "projectIds", skip_serializing_if = "Option::is_none")]
     pub project_ids: Option<Vec<uuid::Uuid>>,
+    #[serde(
+        rename = "accessPoliciesRequests",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub access_policies_requests: Option<Box<models::SecretAccessPoliciesRequestsModel>>,
 }
 
 impl SecretCreateRequestModel {
@@ -31,6 +36,7 @@ impl SecretCreateRequestModel {
             value,
             note,
             project_ids: None,
+            access_policies_requests: None,
         }
     }
 }

@@ -17,12 +17,12 @@ pub struct ServiceAccountPeopleAccessPoliciesResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
     #[serde(rename = "userAccessPolicies", skip_serializing_if = "Option::is_none")]
-    pub user_access_policies: Option<Vec<models::UserServiceAccountAccessPolicyResponseModel>>,
+    pub user_access_policies: Option<Vec<models::UserAccessPolicyResponseModel>>,
     #[serde(
         rename = "groupAccessPolicies",
         skip_serializing_if = "Option::is_none"
     )]
-    pub group_access_policies: Option<Vec<models::GroupServiceAccountAccessPolicyResponseModel>>,
+    pub group_access_policies: Option<Vec<models::GroupAccessPolicyResponseModel>>,
 }
 
 impl ServiceAccountPeopleAccessPoliciesResponseModel {

@@ -16,12 +16,15 @@ use crate::models;
 pub struct OrganizationUserResetPasswordEnrollmentRequestModel {
     #[serde(rename = "resetPasswordKey", skip_serializing_if = "Option::is_none")]
     pub reset_password_key: Option<String>,
+    #[serde(rename = "masterPasswordHash", skip_serializing_if = "Option::is_none")]
+    pub master_password_hash: Option<String>,
 }
 
 impl OrganizationUserResetPasswordEnrollmentRequestModel {
     pub fn new() -> OrganizationUserResetPasswordEnrollmentRequestModel {
         OrganizationUserResetPasswordEnrollmentRequestModel {
             reset_password_key: None,
+            master_password_hash: None,
         }
     }
 }

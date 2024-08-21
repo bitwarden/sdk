@@ -33,6 +33,8 @@ pub struct UpdateKeyRequestModel {
     pub emergency_access_keys: Option<Vec<models::EmergencyAccessWithIdRequestModel>>,
     #[serde(rename = "resetPasswordKeys", skip_serializing_if = "Option::is_none")]
     pub reset_password_keys: Option<Vec<models::ResetPasswordWithOrgIdRequestModel>>,
+    #[serde(rename = "webAuthnKeys", skip_serializing_if = "Option::is_none")]
+    pub web_authn_keys: Option<Vec<models::WebAuthnLoginRotateKeyRequestModel>>,
 }
 
 impl UpdateKeyRequestModel {
@@ -50,6 +52,7 @@ impl UpdateKeyRequestModel {
             sends: None,
             emergency_access_keys: None,
             reset_password_keys: None,
+            web_authn_keys: None,
         }
     }
 }

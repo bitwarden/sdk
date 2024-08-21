@@ -15,9 +15,15 @@ src/models/keys_request_model.rs
 src/models/mod.rs
 src/models/prelogin_request_model.rs
 src/models/prelogin_response_model.rs
+src/models/product_tier_type.rs
+src/models/product_type.rs
 src/models/public_key_credential_descriptor.rs
 src/models/public_key_credential_type.rs
+src/models/register_finish_request_model.rs
 src/models/register_request_model.rs
 src/models/register_response_model.rs
+src/models/register_send_verification_email_request_model.rs
+src/models/register_verification_email_clicked_request_model.rs
+src/models/trial_send_verification_email_request_model.rs
 src/models/user_verification_requirement.rs
 src/models/web_authn_login_assertion_options_response_model.rs

@@ -34,6 +34,10 @@ pub struct ProviderOrganizationResponseModel {
     pub user_count: Option<i32>,
     #[serde(rename = "seats", skip_serializing_if = "Option::is_none")]
     pub seats: Option<i32>,
+    #[serde(rename = "occupiedSeats", skip_serializing_if = "Option::is_none")]
+    pub occupied_seats: Option<i32>,
+    #[serde(rename = "remainingSeats", skip_serializing_if = "Option::is_none")]
+    pub remaining_seats: Option<i32>,
     #[serde(rename = "plan", skip_serializing_if = "Option::is_none")]
     pub plan: Option<String>,
 }
@@ -51,6 +55,8 @@ impl ProviderOrganizationResponseModel {
             revision_date: None,
             user_count: None,
             seats: None,
+            occupied_seats: None,
+            remaining_seats: None,
             plan: None,
         }
     }

@@ -634,8 +634,11 @@ dependencies = [
  "bitwarden-vault",
  "chrono",
  "env_logger",
+ "jni",
+ "libloading",
  "log",
  "oslog",
+ "rustls-platform-verifier",
  "schemars",
  "thiserror",
  "uniffi",
@@ -1998,7 +2001,6 @@ dependencies = [
  "tokio",
  "tokio-rustls",
  "tower-service",
- "webpki-roots",
 ]
 
 [[package]]
@@ -3190,7 +3192,6 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "webpki-roots",
  "winreg",
 ]
 

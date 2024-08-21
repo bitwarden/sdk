@@ -1,8 +1,8 @@
+use bitwarden::generators::PasswordGeneratorRequest;
 #[cfg(feature = "secrets")]
 use bitwarden::{
     auth::login::AccessTokenLoginRequest,
     secrets_manager::{
-        generators::GenerateSecretRequest,
         projects::{
             ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
             ProjectsListRequest,
@@ -183,8 +183,8 @@ pub enum ProjectsCommand {
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum GeneratorsCommand {
-    /// Generate a secret value
+    /// Generate a password
     ///
-    /// Returns: [GenerateSecretResponse](String)
-    GenerateSecret(GenerateSecretRequest),
+    /// Returns: [String](String)
+    GeneratePassword(PasswordGeneratorRequest),
 }

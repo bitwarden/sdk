@@ -25,7 +25,7 @@ impl Client {
             #[allow(unused_mut)]
             let mut client_builder = reqwest::Client::builder();
 
-            #[cfg(any(not(target_arch = "wasm32"), not(windows)))]
+            #[cfg(all(not(target_arch = "wasm32"), not(windows)))]
             {
                 client_builder =
                     client_builder.use_preconfigured_tls(rustls_platform_verifier::tls_config());

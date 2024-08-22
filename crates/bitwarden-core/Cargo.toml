@@ -64,13 +64,19 @@ validator = { version = "0.18.1", features = ["derive"] }
 zeroize = { version = ">=1.7.0, <2.0", features = ["derive", "aarch64"] }
 zxcvbn = ">=3.0.1, <4.0"
 
-[target.'cfg(not(target_arch="wasm32"))'.dependencies]
+[target.'cfg(all(not(target_arch="wasm32"), not(windows)))'.dependencies]
 # By default, we use rustls as the TLS stack and rust-platform-verifier to support user-installed root certificates
 # The only exception is WASM, as it just uses the browsers/node fetch
 reqwest = { version = ">=0.12.5, <0.13", features = [
     "rustls-tls-manual-roots",
 ], default-features = false }
 rustls-platform-verifier = "0.3.3"
+
+[target.'cfg(windows)'.dependencies]
+# We are having issues with rustls-platform-verifier on Windows GitHub runners
+reqwest = { version = ">=0.12.5, <0.13", features = [
+    "rustls-tls-native-roots",
+], default-features = false }
 
 [dev-dependencies]
 bitwarden-crypto = { workspace = true }

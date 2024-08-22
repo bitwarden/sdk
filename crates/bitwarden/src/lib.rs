@@ -92,6 +92,8 @@ pub mod secrets_manager {
     pub use bitwarden_sm::*;
 
     pub mod generators {
-        pub use bitwarden_generators::{password, PasswordError, PasswordGeneratorRequest};
+        pub use bitwarden_generators::{
+            password, ClientGeneratorExt, PasswordError, PasswordGeneratorRequest,
+        };
     }
 }

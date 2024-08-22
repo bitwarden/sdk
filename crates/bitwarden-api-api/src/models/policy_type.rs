@@ -39,6 +39,7 @@ pub enum PolicyType {
     MaximumVaultTimeout = 9,
     DisablePersonalVaultExport = 10,
     ActivateAutofill = 11,
+    AutomaticAppLogIn = 12,
 }
 
 impl std::fmt::Display for PolicyType {
@@ -56,6 +57,7 @@ impl std::fmt::Display for PolicyType {
             Self::MaximumVaultTimeout => write!(f, "9"),
             Self::DisablePersonalVaultExport => write!(f, "10"),
             Self::ActivateAutofill => write!(f, "11"),
+            Self::AutomaticAppLogIn => write!(f, "12"),
         }
     }
 }

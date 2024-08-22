@@ -53,6 +53,6 @@ pub extern "C" fn init(c_str_ptr: *const c_char) -> *mut CClient {
 
 // Free mem
 #[no_mangle]
-pub extern "C" fn free_mem(client_ptr: *mut Client) {
+pub extern "C" fn free_mem(client_ptr: *mut CClient) {
     std::mem::drop(unsafe { Box::from_raw(client_ptr) });
 }

@@ -86,6 +86,7 @@ impl Client {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(all(not(target_arch = "wasm32"), not(windows)))]
     #[test]
     fn test_reqwest_rustls_platform_verifier_are_compatible() {
         // rustls-platform-verifier is generating a rustls::ClientConfig,

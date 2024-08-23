@@ -7,7 +7,7 @@ use super::{
     KeyRef, KeyStore,
 };
 
-pub(crate) fn is_memfd_supported() -> bool {
+fn is_memfd_supported() -> bool {
     static IS_SUPPORTED: OnceLock<bool> = OnceLock::new();
 
     *IS_SUPPORTED.get_or_init(|| unsafe {
@@ -19,10 +19,14 @@ pub(crate) fn is_memfd_supported() -> bool {
     })
 }
 
-pub(crate) struct MemPtr {
+struct MemPtr {
     ptr: std::ptr::NonNull<[u8]>,
     capacity: usize,
 }
+
+// TODO: Is this safe?
+unsafe impl Send for MemPtr {}
+unsafe impl Sync for MemPtr {}
 
 impl Drop for MemPtr {
     fn drop(&mut self) {

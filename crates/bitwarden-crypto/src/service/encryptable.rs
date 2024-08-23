@@ -2,6 +2,67 @@ use super::{
     key_ref::{AsymmetricKeyRef, KeyRef, SymmetricKeyRef},
     CryptoServiceContext,
 };
+use crate::{AsymmetricEncString, CryptoError, EncString};
+
+///////////////////////
+
+// Just like LocateKey but this time we're not locating anything, just returning a ref
+
+pub trait UsesKey<Key: KeyRef> {
+    fn uses_key(&self) -> Key;
+}
+
+// This extension trait allows any type to be wrapped with `KeyProvided`
+// to make it easy to encrypt/decrypt it with the desired key
+pub trait KeyProvidedExt<Key: KeyRef>: Sized {
+    fn using_key(self, key: Key) -> KeyProvided<Key, Self> {
+        KeyProvided { key, value: self }
+    }
+}
+impl<Key: KeyRef, T> KeyProvidedExt<Key> for T {}
+pub struct KeyProvided<Key: KeyRef, T: ?Sized> {
+    key: Key,
+    value: T,
+}
+impl<Key: KeyRef, T> UsesKey<Key> for KeyProvided<Key, T> {
+    fn uses_key(&self) -> Key {
+        self.key
+    }
+}
+impl<
+        SymmKeyRef: SymmetricKeyRef,
+        AsymmKeyRef: AsymmetricKeyRef,
+        Key: KeyRef,
+        T: Encryptable<SymmKeyRef, AsymmKeyRef, Key, Output>,
+        Output,
+    > Encryptable<SymmKeyRef, AsymmKeyRef, Key, Output> for KeyProvided<Key, T>
+{
+    fn encrypt(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmKeyRef, AsymmKeyRef>,
+        _key: Key,
+    ) -> Result<Output, crate::CryptoError> {
+        self.value.encrypt(ctx, self.key)
+    }
+}
+impl<
+        SymmKeyRef: SymmetricKeyRef,
+        AsymmKeyRef: AsymmetricKeyRef,
+        Key: KeyRef,
+        T: Decryptable<SymmKeyRef, AsymmKeyRef, Key, Output>,
+        Output,
+    > Decryptable<SymmKeyRef, AsymmKeyRef, Key, Output> for KeyProvided<Key, T>
+{
+    fn decrypt(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmKeyRef, AsymmKeyRef>,
+        _key: Key,
+    ) -> Result<Output, crate::CryptoError> {
+        self.value.decrypt(ctx, self.key)
+    }
+}
+
+/////////////////////
 
 pub trait Encryptable<
     SymmKeyRef: SymmetricKeyRef,
@@ -56,7 +117,7 @@ impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
 }
 
 impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
-    Encryptable<SymmKeyRef, AsymmKeyRef, SymmKeyRef, EncString> for [u8]
+    Encryptable<SymmKeyRef, AsymmKeyRef, SymmKeyRef, EncString> for &[u8]
 {
     fn encrypt(
         &self,
@@ -68,7 +129,7 @@ impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
 }
 
 impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
-    Encryptable<SymmKeyRef, AsymmKeyRef, AsymmKeyRef, AsymmetricEncString> for [u8]
+    Encryptable<SymmKeyRef, AsymmKeyRef, AsymmKeyRef, AsymmetricEncString> for &[u8]
 {
     fn encrypt(
         &self,
@@ -106,7 +167,7 @@ impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
 }
 
 impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
-    Encryptable<SymmKeyRef, AsymmKeyRef, SymmKeyRef, EncString> for str
+    Encryptable<SymmKeyRef, AsymmKeyRef, SymmKeyRef, EncString> for &str
 {
     fn encrypt(
         &self,
@@ -118,7 +179,7 @@ impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
 }
 
 impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
-    Encryptable<SymmKeyRef, AsymmKeyRef, AsymmKeyRef, AsymmetricEncString> for str
+    Encryptable<SymmKeyRef, AsymmKeyRef, AsymmKeyRef, AsymmetricEncString> for &str
 {
     fn encrypt(
         &self,

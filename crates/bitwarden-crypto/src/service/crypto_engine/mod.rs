@@ -14,7 +14,9 @@ pub(crate) use rust_impl::RustCryptoEngine;
 // For the cases where a secure element capable of doing cryptographic operations is not available,
 // but there is a secure way to store keys, `KeyStore` can be implemented and then used in
 // conjunction with `RustCryptoEngine`.
-pub(crate) trait CryptoEngine<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef> {
+pub(crate) trait CryptoEngine<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>:
+    Send + Sync
+{
     /// Create a new context for this service. This allows the user to perform cryptographic
     // operations with keys that are only relevant to the current context.
     ///

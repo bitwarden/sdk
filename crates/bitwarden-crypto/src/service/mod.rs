@@ -8,7 +8,7 @@ pub mod key_ref;
 mod key_store;
 
 use crypto_engine::{CryptoEngine, CryptoEngineContext, RustCryptoEngine};
-pub use encryptable::{Decryptable, Encryptable};
+pub use encryptable::{Decryptable, Encryptable, KeyProvided, KeyProvidedExt, UsesKey};
 use key_ref::{AsymmetricKeyRef, KeyRef, SymmetricKeyRef};
 
 #[derive(Clone)]
@@ -46,20 +46,65 @@ impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
     }
 
     // These are just convenience methods to avoid having to call `context` every time
-    pub fn decrypt<Key: KeyRef, Data: Decryptable<SymmKeyRef, AsymmKeyRef, Key, Output>, Output>(
+    pub fn decrypt<
+        Key: KeyRef,
+        Data: Decryptable<SymmKeyRef, AsymmKeyRef, Key, Output> + UsesKey<Key>,
+        Output,
+    >(
         &self,
-        key: Key,
         data: &Data,
     ) -> Result<Output, crate::CryptoError> {
+        let key = data.uses_key();
         data.decrypt(&mut self.context(), key)
     }
 
-    pub fn encrypt<Key: KeyRef, Data: Encryptable<SymmKeyRef, AsymmKeyRef, Key, Output>, Output>(
+    pub fn encrypt<
+        Key: KeyRef,
+        Data: Encryptable<SymmKeyRef, AsymmKeyRef, Key, Output> + UsesKey<Key>,
+        Output,
+    >(
         &self,
-        key: Key,
         data: Data,
     ) -> Result<Output, crate::CryptoError> {
+        let key = data.uses_key();
         data.encrypt(&mut self.context(), key)
+    }
+
+    pub fn encrypt_list<
+        Key: KeyRef,
+        Data: Encryptable<SymmKeyRef, AsymmKeyRef, Key, Output> + UsesKey<Key> + Send + Sync,
+        Output: Send + Sync,
+    >(
+        &self,
+        data: &[Data],
+    ) -> Result<Vec<Output>, crate::CryptoError> {
+        use rayon::prelude::*;
+
+        // We want to split all the data between available threads, but at the
+        // same time we don't want to split it too much if the amount of data is small.
+
+        // In this case, the minimum chunk size is 50.
+        let chunk_size = usize::max(1 + data.len() / rayon::current_num_threads(), 50);
+
+        let res: Result<Vec<_>, _> = data
+            .par_chunks(chunk_size)
+            .map(|chunk| {
+                let mut context = self.context();
+
+                let mut result = Vec::with_capacity(chunk.len());
+
+                for item in chunk {
+                    let key = item.uses_key();
+                    result.push(item.encrypt(&mut context, key));
+                    context.clear();
+                }
+
+                result
+            })
+            .flatten()
+            .collect();
+
+        res
     }
 }
 
@@ -81,5 +126,9 @@ impl<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
             .decrypt_and_store_symmetric_key(encryption_key, new_key_ref, encrypted_key)?;
         // This is returned for convenience
         Ok(new_key_ref)
+    }
+
+    pub fn clear(&mut self) {
+        self.engine.clear();
     }
 }

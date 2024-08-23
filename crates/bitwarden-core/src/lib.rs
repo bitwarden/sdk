@@ -62,6 +62,17 @@ mod testcrypto {
         name: String,
     }
 
+    impl UsesKey<MySymmKeyRef> for Cipher {
+        fn uses_key(&self) -> MySymmKeyRef {
+            MySymmKeyRef::User
+        }
+    }
+    impl UsesKey<MySymmKeyRef> for CipherView {
+        fn uses_key(&self) -> MySymmKeyRef {
+            MySymmKeyRef::User
+        }
+    }
+
     const CIPHER_KEY: MySymmKeyRef = MySymmKeyRef::Local("cipher_key");
 
     impl Encryptable<MySymmKeyRef, MyAsymmKeyRef, MySymmKeyRef, Cipher> for CipherView {
@@ -79,7 +90,7 @@ mod testcrypto {
 
             Ok(Cipher {
                 key: self.key.clone(),
-                name: self.name.encrypt(ctx, cipher_key)?,
+                name: self.name.as_str().encrypt(ctx, cipher_key)?,
             })
         }
     }
@@ -126,12 +137,34 @@ mod testcrypto {
             service.insert_symmetric_key(MySymmKeyRef::Organization(org_id), org_key);
         }
 
-        let cipher_enc2 = service
-            .encrypt(MySymmKeyRef::User, cipher_view.clone())
-            .unwrap();
+        let cipher_enc2 = service.encrypt(cipher_view.clone()).unwrap();
 
-        let cipher_view2 = service.decrypt(MySymmKeyRef::User, &cipher_enc2).unwrap();
+        let cipher_view2 = service.decrypt(&cipher_enc2).unwrap();
 
         assert_eq!(cipher_view.name, cipher_view2.name);
+
+        // We can also decrypt a value by tagging it with the key
+        let text = String::from("test!");
+
+        let text_enc = service
+            .encrypt(text.as_str().using_key(MySymmKeyRef::User))
+            .unwrap();
+
+        // And decrypt values in parallel
+        let mut data = Vec::with_capacity(10_000_000);
+        for _ in 0..data.capacity() {
+            data.push("hello world, this is an encryption test!".using_key(MySymmKeyRef::User));
+        }
+        let now = std::time::Instant::now();
+        let _ = service.encrypt_list(&data).unwrap();
+        println!("Batch encrypting took {:?}", now.elapsed());
+
+        let now = std::time::Instant::now();
+        for d in data {
+            let _ = service.encrypt(d).unwrap();
+        }
+        println!("Individual encrypting took {:?}", now.elapsed());
+
+        panic!("DONE")
     }
 }

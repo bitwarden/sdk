@@ -15,7 +15,7 @@ pub(crate) use rust_impl::RustKeyStore;
 /// implementation is a simple in-memory store without any security guarantees. Other
 /// implementations could use secure enclaves or HSMs, or OS provided keychains.
 #[allow(dead_code)]
-pub(crate) trait KeyStore<Key: KeyRef>: ZeroizeOnDrop {
+pub(crate) trait KeyStore<Key: KeyRef>: ZeroizeOnDrop + Send + Sync {
     fn insert(&mut self, key_ref: Key, key: Key::KeyValue);
     fn get(&self, key_ref: Key) -> Option<&Key::KeyValue>;
     fn remove(&mut self, key_ref: Key);

@@ -36,16 +36,16 @@ pub struct PasswordGeneratorRequest {
     pub avoid_ambiguous: bool, // TODO: Should we rename this to include_all_characters?
 
     /// The minimum number of lowercase characters in the generated password.
-    /// When set, the value must be between 1 and 9. This value is ignored is lowercase is false
+    /// When set, the value must be between 1 and 9. This value is ignored if lowercase is false.
     pub min_lowercase: Option<u8>,
     /// The minimum number of uppercase characters in the generated password.
-    /// When set, the value must be between 1 and 9. This value is ignored is uppercase is false
+    /// When set, the value must be between 1 and 9. This value is ignored if uppercase is false.
     pub min_uppercase: Option<u8>,
     /// The minimum number of numbers in the generated password.
-    /// When set, the value must be between 1 and 9. This value is ignored is numbers is false
+    /// When set, the value must be between 1 and 9. This value is ignored if numbers is false.
     pub min_number: Option<u8>,
     /// The minimum number of special characters in the generated password.
-    /// When set, the value must be between 1 and 9. This value is ignored is special is false
+    /// When set, the value must be between 1 and 9. This value is ignored if special is false.
     pub min_special: Option<u8>,
 }
 

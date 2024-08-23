@@ -34,7 +34,7 @@ type OnCompletedCallback = unsafe extern "C" fn(result: *mut c_char) -> ();
 pub extern "C" fn run_command_async(
     c_str_ptr: *const c_char,
     client_ptr: *const CClient,
-    on_completed_callback: OnCompletedCallback
+    on_completed_callback: OnCompletedCallback,
 ) -> () {
     let client = unsafe { ffi_ref!(client_ptr) };
     let input_str = str::from_utf8(unsafe { CStr::from_ptr(c_str_ptr) }.to_bytes())
@@ -44,18 +44,16 @@ pub extern "C" fn run_command_async(
         // so we need to make our own copy.
         .to_owned();
 
-    client
-        .runtime
-        .spawn(async move {
-            let result = client.client.run_command(input_str.as_str()).await;
-            let str_result = match std::ffi::CString::new(result) {
-                Ok(cstr) => cstr.into_raw(),
-                Err(_) => panic!("failed to return comment result: null encountered"),
-            };
+    client.runtime.spawn(async move {
+        let result = client.client.run_command(input_str.as_str()).await;
+        let str_result = match std::ffi::CString::new(result) {
+            Ok(cstr) => cstr.into_raw(),
+            Err(_) => panic!("failed to return comment result: null encountered"),
+        };
 
-            // run completed function
-            unsafe { on_completed_callback(str_result) }
-        });
+        // run completed function
+        unsafe { on_completed_callback(str_result) }
+    });
 }
 
 // Init client, potential leak! You need to call free_mem after this!

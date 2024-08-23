@@ -31,7 +31,11 @@ pub extern "C" fn run_command(c_str_ptr: *const c_char, client_ptr: *const CClie
 type OnCompletedCallback = unsafe extern "C" fn(result: *mut c_char) -> ();
 
 #[no_mangle]
-pub extern "C" fn run_command_async(c_str_ptr: *const c_char, client_ptr: *const CClient, on_completed_callback: OnCompletedCallback) -> () {
+pub extern "C" fn run_command_async(
+    c_str_ptr: *const c_char,
+    client_ptr: *const CClient,
+    on_completed_callback: OnCompletedCallback
+) -> () {
     let client = unsafe { ffi_ref!(client_ptr) };
     let input_str = str::from_utf8(unsafe { CStr::from_ptr(c_str_ptr) }.to_bytes())
         .expect("Input should be a valid string")

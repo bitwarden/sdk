@@ -20,10 +20,10 @@ public sealed class BitwardenClient : IDisposable
         Secrets = new SecretsClient(_commandRunner);
     }
 
-    public void AccessTokenLogin(string accessToken)
+    public async Task AccessTokenLoginAsync(string accessToken)
     {
-        var command = new Command { AccessTokenLogin = new AccessTokenLoginRequest { AccessToken = accessToken } };
-        var response = _commandRunner.RunCommand<ResponseForApiKeyLoginResponse>(command);
+        var command = new Command { LoginAccessToken = new AccessTokenLoginRequest { AccessToken = accessToken } };
+        var response = await _commandRunner.RunCommandAsync<ResponseForApiKeyLoginResponse>(command);
         if (response is not { Success: true })
         {
             throw new BitwardenAuthException(response != null ? response.ErrorMessage : "Login failed");

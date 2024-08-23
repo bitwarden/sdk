@@ -1,4 +1,4 @@
-﻿using Bitwarden.Sdk;
+using Bitwarden.Sdk;
 
 // Configure secrets
 var accessToken = Environment.GetEnvironmentVariable("ACCESS_TOKEN")!;
@@ -9,7 +9,7 @@ var organizationId = Guid.Parse(organizationIdString);
 using var bitwardenClient = new BitwardenClient();
 
 // Authenticate
-bitwardenClient.AccessTokenLogin(accessToken);
+await bitwardenClient.AccessTokenLoginAsync(accessToken);
 
 // Project operations
 var projectResponse = bitwardenClient.Projects.Create(organizationId, "NewTestProject");

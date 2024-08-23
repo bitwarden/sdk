@@ -78,6 +78,8 @@ impl<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
         encrypted_key: &EncString,
     ) -> Result<SymmKeyRef, crate::CryptoError> {
         self.engine
-            .decrypt_and_store_symmetric_key(encryption_key, new_key_ref, encrypted_key)
+            .decrypt_and_store_symmetric_key(encryption_key, new_key_ref, encrypted_key)?;
+        // This is returned for convenience
+        Ok(new_key_ref)
     }
 }

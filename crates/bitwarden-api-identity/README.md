@@ -27,18 +27,22 @@ bitwarden-api-identity = { path = "./bitwarden-api-identity" }
 
 All URIs are relative to _http://localhost_
 
-| Class         | Method                                                                                                     | HTTP request                                 | Description |
-| ------------- | ---------------------------------------------------------------------------------------------------------- | -------------------------------------------- | ----------- |
-| _AccountsApi_ | [**accounts_prelogin_post**](docs/AccountsApi.md#accounts_prelogin_post)                                   | **POST** /accounts/prelogin                  |
-| _AccountsApi_ | [**accounts_register_post**](docs/AccountsApi.md#accounts_register_post)                                   | **POST** /accounts/register                  |
-| _AccountsApi_ | [**accounts_webauthn_assertion_options_get**](docs/AccountsApi.md#accounts_webauthn_assertion_options_get) | **GET** /accounts/webauthn/assertion-options |
-| _InfoApi_     | [**alive_get**](docs/InfoApi.md#alive_get)                                                                 | **GET** /alive                               |
-| _InfoApi_     | [**now_get**](docs/InfoApi.md#now_get)                                                                     | **GET** /now                                 |
-| _InfoApi_     | [**version_get**](docs/InfoApi.md#version_get)                                                             | **GET** /version                             |
-| _SsoApi_      | [**sso_external_callback_get**](docs/SsoApi.md#sso_external_callback_get)                                  | **GET** /sso/ExternalCallback                |
-| _SsoApi_      | [**sso_external_challenge_get**](docs/SsoApi.md#sso_external_challenge_get)                                | **GET** /sso/ExternalChallenge               |
-| _SsoApi_      | [**sso_login_get**](docs/SsoApi.md#sso_login_get)                                                          | **GET** /sso/Login                           |
-| _SsoApi_      | [**sso_pre_validate_get**](docs/SsoApi.md#sso_pre_validate_get)                                            | **GET** /sso/PreValidate                     |
+| Class         | Method                                                                                                                         | HTTP request                                           | Description |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------ | ----------- |
+| _AccountsApi_ | [**accounts_prelogin_post**](docs/AccountsApi.md#accounts_prelogin_post)                                                       | **POST** /accounts/prelogin                            |
+| _AccountsApi_ | [**accounts_register_finish_post**](docs/AccountsApi.md#accounts_register_finish_post)                                         | **POST** /accounts/register/finish                     |
+| _AccountsApi_ | [**accounts_register_post**](docs/AccountsApi.md#accounts_register_post)                                                       | **POST** /accounts/register                            |
+| _AccountsApi_ | [**accounts_register_send_verification_email_post**](docs/AccountsApi.md#accounts_register_send_verification_email_post)       | **POST** /accounts/register/send-verification-email    |
+| _AccountsApi_ | [**accounts_register_verification_email_clicked_post**](docs/AccountsApi.md#accounts_register_verification_email_clicked_post) | **POST** /accounts/register/verification-email-clicked |
+| _AccountsApi_ | [**accounts_trial_send_verification_email_post**](docs/AccountsApi.md#accounts_trial_send_verification_email_post)             | **POST** /accounts/trial/send-verification-email       |
+| _AccountsApi_ | [**accounts_webauthn_assertion_options_get**](docs/AccountsApi.md#accounts_webauthn_assertion_options_get)                     | **GET** /accounts/webauthn/assertion-options           |
+| _InfoApi_     | [**alive_get**](docs/InfoApi.md#alive_get)                                                                                     | **GET** /alive                                         |
+| _InfoApi_     | [**now_get**](docs/InfoApi.md#now_get)                                                                                         | **GET** /now                                           |
+| _InfoApi_     | [**version_get**](docs/InfoApi.md#version_get)                                                                                 | **GET** /version                                       |
+| _SsoApi_      | [**sso_external_callback_get**](docs/SsoApi.md#sso_external_callback_get)                                                      | **GET** /sso/ExternalCallback                          |
+| _SsoApi_      | [**sso_external_challenge_get**](docs/SsoApi.md#sso_external_challenge_get)                                                    | **GET** /sso/ExternalChallenge                         |
+| _SsoApi_      | [**sso_login_get**](docs/SsoApi.md#sso_login_get)                                                                              | **GET** /sso/Login                                     |
+| _SsoApi_      | [**sso_pre_validate_get**](docs/SsoApi.md#sso_pre_validate_get)                                                                | **GET** /sso/PreValidate                               |
 
 ## Documentation For Models
 
@@ -49,10 +53,16 @@ All URIs are relative to _http://localhost_
 - [KeysRequestModel](docs/KeysRequestModel.md)
 - [PreloginRequestModel](docs/PreloginRequestModel.md)
 - [PreloginResponseModel](docs/PreloginResponseModel.md)
+- [ProductTierType](docs/ProductTierType.md)
+- [ProductType](docs/ProductType.md)
 - [PublicKeyCredentialDescriptor](docs/PublicKeyCredentialDescriptor.md)
 - [PublicKeyCredentialType](docs/PublicKeyCredentialType.md)
+- [RegisterFinishRequestModel](docs/RegisterFinishRequestModel.md)
 - [RegisterRequestModel](docs/RegisterRequestModel.md)
 - [RegisterResponseModel](docs/RegisterResponseModel.md)
+- [RegisterSendVerificationEmailRequestModel](docs/RegisterSendVerificationEmailRequestModel.md)
+- [RegisterVerificationEmailClickedRequestModel](docs/RegisterVerificationEmailClickedRequestModel.md)
+- [TrialSendVerificationEmailRequestModel](docs/TrialSendVerificationEmailRequestModel.md)
 - [UserVerificationRequirement](docs/UserVerificationRequirement.md)
 - [WebAuthnLoginAssertionOptionsResponseModel](docs/WebAuthnLoginAssertionOptionsResponseModel.md)
 

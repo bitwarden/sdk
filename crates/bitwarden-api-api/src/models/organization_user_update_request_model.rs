@@ -16,8 +16,6 @@ use crate::models;
 pub struct OrganizationUserUpdateRequestModel {
     #[serde(rename = "type")]
     pub r#type: models::OrganizationUserType,
-    #[serde(rename = "accessAll", skip_serializing_if = "Option::is_none")]
-    pub access_all: Option<bool>,
     #[serde(
         rename = "accessSecretsManager",
         skip_serializing_if = "Option::is_none"
@@ -35,7 +33,6 @@ impl OrganizationUserUpdateRequestModel {
     pub fn new(r#type: models::OrganizationUserType) -> OrganizationUserUpdateRequestModel {
         OrganizationUserUpdateRequestModel {
             r#type,
-            access_all: None,
             access_secrets_manager: None,
             permissions: None,
             collections: None,

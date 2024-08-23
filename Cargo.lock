@@ -635,8 +635,11 @@ dependencies = [
  "bitwarden-vault",
  "chrono",
  "env_logger",
+ "jni",
+ "libloading",
  "log",
  "oslog",
+ "rustls-platform-verifier",
  "schemars",
  "thiserror",
  "uniffi",
@@ -1995,11 +1998,11 @@ dependencies = [
  "hyper",
  "hyper-util",
  "rustls",
+ "rustls-native-certs",
  "rustls-pki-types",
  "tokio",
  "tokio-rustls",
  "tower-service",
- "webpki-roots",
 ]
 
 [[package]]
@@ -3178,6 +3181,7 @@ dependencies = [
  "pin-project-lite",
  "quinn",
  "rustls",
+ "rustls-native-certs",
  "rustls-pemfile",
  "rustls-pki-types",
  "serde",
@@ -3191,7 +3195,6 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "webpki-roots",
  "winreg",
 ]
 

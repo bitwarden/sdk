@@ -13,44 +13,29 @@ use serde::{Deserialize, Serialize};
 use crate::models;
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
-pub struct GroupServiceAccountAccessPolicyResponseModel {
+pub struct GroupAccessPolicyResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
-    #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<uuid::Uuid>,
     #[serde(rename = "read", skip_serializing_if = "Option::is_none")]
     pub read: Option<bool>,
     #[serde(rename = "write", skip_serializing_if = "Option::is_none")]
     pub write: Option<bool>,
-    #[serde(rename = "creationDate", skip_serializing_if = "Option::is_none")]
-    pub creation_date: Option<String>,
-    #[serde(rename = "revisionDate", skip_serializing_if = "Option::is_none")]
-    pub revision_date: Option<String>,
     #[serde(rename = "groupId", skip_serializing_if = "Option::is_none")]
     pub group_id: Option<uuid::Uuid>,
     #[serde(rename = "groupName", skip_serializing_if = "Option::is_none")]
     pub group_name: Option<String>,
-    #[serde(
-        rename = "grantedServiceAccountId",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub granted_service_account_id: Option<uuid::Uuid>,
     #[serde(rename = "currentUserInGroup", skip_serializing_if = "Option::is_none")]
     pub current_user_in_group: Option<bool>,
 }
 
-impl GroupServiceAccountAccessPolicyResponseModel {
-    pub fn new() -> GroupServiceAccountAccessPolicyResponseModel {
-        GroupServiceAccountAccessPolicyResponseModel {
+impl GroupAccessPolicyResponseModel {
+    pub fn new() -> GroupAccessPolicyResponseModel {
+        GroupAccessPolicyResponseModel {
             object: None,
-            id: None,
             read: None,
             write: None,
-            creation_date: None,
-            revision_date: None,
             group_id: None,
             group_name: None,
-            granted_service_account_id: None,
             current_user_in_group: None,
         }
     }

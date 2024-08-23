@@ -38,7 +38,8 @@ impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
         self.engine.insert_symmetric_key(key_ref, key);
     }
 
-    pub fn context(&'_ self) -> CryptoServiceContext<'_, SymmKeyRef, AsymmKeyRef> {
+    // TODO: Do we want this to be public?
+    pub(crate) fn context(&'_ self) -> CryptoServiceContext<'_, SymmKeyRef, AsymmKeyRef> {
         CryptoServiceContext {
             engine: self.engine.context(),
         }

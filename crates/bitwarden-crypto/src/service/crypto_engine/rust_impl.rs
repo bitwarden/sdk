@@ -121,6 +121,10 @@ impl<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
         self.local_asymmetric_keys.clear();
     }
 
+    fn remove_symmetric_key(&mut self, key_ref: SymmKeyRef) {
+        self.local_symmetric_keys.remove(key_ref);
+    }
+
     fn decrypt_data_with_symmetric_key(
         &self,
         key: SymmKeyRef,
@@ -157,13 +161,13 @@ impl<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
         encryption_key: SymmKeyRef,
         new_key_ref: SymmKeyRef,
         encrypted_key: &EncString,
-    ) -> Result<SymmKeyRef, crate::CryptoError> {
+    ) -> Result<(), crate::CryptoError> {
         let mut new_key_material =
             self.decrypt_data_with_symmetric_key(encryption_key, encrypted_key)?;
 
         let new_key = SymmetricCryptoKey::try_from(new_key_material.as_mut_slice())?;
         self.local_symmetric_keys.insert(new_key_ref, new_key);
-        Ok(new_key_ref)
+        Ok(())
     }
 
     fn encrypt_data_with_symmetric_key(
@@ -186,6 +190,10 @@ impl<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
     ) -> Result<EncString, crate::CryptoError> {
         let key_to_encrypt = self.get_symmetric_key(key_to_encrypt)?;
         self.encrypt_data_with_symmetric_key(encryption_key, &key_to_encrypt.to_vec())
+    }
+
+    fn remove_asymmetric_key(&mut self, key_ref: AsymmKeyRef) {
+        self.local_asymmetric_keys.remove(key_ref);
     }
 
     fn decrypt_data_with_asymmetric_key(
@@ -216,13 +224,13 @@ impl<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
         encryption_key: AsymmKeyRef,
         new_key_ref: AsymmKeyRef,
         encrypted_key: &AsymmetricEncString,
-    ) -> Result<AsymmKeyRef, crate::CryptoError> {
+    ) -> Result<(), crate::CryptoError> {
         let new_key_material =
             self.decrypt_data_with_asymmetric_key(encryption_key, encrypted_key)?;
 
         let new_key = AsymmetricCryptoKey::from_der(&new_key_material)?;
         self.local_asymmetric_keys.insert(new_key_ref, new_key);
-        Ok(new_key_ref)
+        Ok(())
     }
 
     fn encrypt_data_with_asymmetric_key(

@@ -39,6 +39,8 @@ pub(crate) trait CryptoEngineContext<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRe
 
     // Symmetric key operations
 
+    fn remove_symmetric_key(&mut self, key_ref: SymmKeyRef);
+
     fn decrypt_data_with_symmetric_key(
         &self,
         key: SymmKeyRef,
@@ -56,7 +58,7 @@ pub(crate) trait CryptoEngineContext<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRe
         encryption_key: SymmKeyRef,
         new_key_ref: SymmKeyRef,
         encrypted_key: &EncString,
-    ) -> Result<SymmKeyRef, crate::CryptoError>;
+    ) -> Result<(), crate::CryptoError>;
 
     fn encrypt_symmetric_key(
         &self,
@@ -65,6 +67,8 @@ pub(crate) trait CryptoEngineContext<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRe
     ) -> Result<EncString, crate::CryptoError>;
 
     // Asymmetric key operations
+
+    fn remove_asymmetric_key(&mut self, key_ref: AsymmKeyRef);
 
     fn decrypt_data_with_asymmetric_key(
         &self,
@@ -83,7 +87,7 @@ pub(crate) trait CryptoEngineContext<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRe
         encryption_key: AsymmKeyRef,
         new_key_ref: AsymmKeyRef,
         encrypted_key: &AsymmetricEncString,
-    ) -> Result<AsymmKeyRef, crate::CryptoError>;
+    ) -> Result<(), crate::CryptoError>;
 
     fn encrypt_asymmetric_key(
         &self,

@@ -13,6 +13,7 @@ struct Mem<Key: KeyRef> {
 
 impl<Key: KeyRef> Drop for Mem<Key> {
     fn drop(&mut self) {
+        #[cfg(not(target_arch = "wasm32"))]
         if ENABLE_MLOCK {
             let entry_size = std::mem::size_of::<Option<(Key, Key::KeyValue)>>();
             unsafe {
@@ -29,6 +30,7 @@ impl<Key: KeyRef> KeyData<Key> for Mem<Key> {
     fn new_with_capacity(capacity: usize) -> Self {
         let mut data: Box<_> = std::iter::repeat_with(|| None).take(capacity).collect();
 
+        #[cfg(not(target_arch = "wasm32"))]
         if ENABLE_MLOCK {
             let entry_size = std::mem::size_of::<Option<(Key, Key::KeyValue)>>();
             unsafe {

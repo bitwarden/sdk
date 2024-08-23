@@ -30,7 +30,6 @@ cbc = { version = ">=0.1.2, <0.2", features = ["alloc", "zeroize"] }
 generic-array = { version = ">=0.14.7, <1.0", features = ["zeroize"] }
 hkdf = ">=0.12.3, <0.13"
 hmac = ">=0.12.1, <0.13"
-memsec = { version = "0.7.0", features = ["alloc_ext"] }
 num-bigint = ">=0.4, <0.5"
 num-traits = ">=0.2.15, <0.3"
 pbkdf2 = { version = ">=0.12.1, <0.13", default-features = false }
@@ -46,6 +45,9 @@ thiserror = ">=1.0.40, <2.0"
 uniffi = { version = "=0.28.1", optional = true }
 uuid = { version = ">=1.3.3, <2.0", features = ["serde"] }
 zeroize = { version = ">=1.7.0, <2.0", features = ["derive", "aarch64"] }
+
+[target.'cfg(not(target_arch="wasm32"))'.dependencies]
+memsec = { version = "0.7.0", features = ["alloc_ext"] }
 
 [dev-dependencies]
 criterion = "0.5.1"

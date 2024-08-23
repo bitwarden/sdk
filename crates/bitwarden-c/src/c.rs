@@ -1,4 +1,4 @@
-use std::{ffi::CStr, os::raw::c_char, str};
+use std::{ffi::{CStr, CString}, os::raw::c_char, str};
 
 use bitwarden_json::client::Client;
 
@@ -52,7 +52,10 @@ pub extern "C" fn run_command_async(
         };
 
         // run completed function
-        unsafe { on_completed_callback(str_result) }
+        unsafe {
+            on_completed_callback(str_result);
+            let _ = CString::from_raw(str_result);
+        }
     });
 }
 

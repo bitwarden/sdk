@@ -32,15 +32,8 @@ internal static partial class BitwardenLibrary
         {
             run_command_async(json, handle, (resultPointer) =>
             {
-                try
-                {
-                    var stringResult = Marshal.PtrToStringUTF8(resultPointer);
-                    tcs.SetResult(stringResult);
-                }
-                finally
-                {
-                    Marshal.FreeCoTaskMem(resultPointer);
-                }
+                var stringResult = Marshal.PtrToStringUTF8(resultPointer);
+                tcs.SetResult(stringResult);
             });
         }
         catch (Exception ex)

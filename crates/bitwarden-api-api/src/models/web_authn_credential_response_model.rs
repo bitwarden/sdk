@@ -22,6 +22,10 @@ pub struct WebAuthnCredentialResponseModel {
     pub name: Option<String>,
     #[serde(rename = "prfStatus", skip_serializing_if = "Option::is_none")]
     pub prf_status: Option<models::WebAuthnPrfStatus>,
+    #[serde(rename = "encryptedUserKey", skip_serializing_if = "Option::is_none")]
+    pub encrypted_user_key: Option<String>,
+    #[serde(rename = "encryptedPublicKey", skip_serializing_if = "Option::is_none")]
+    pub encrypted_public_key: Option<String>,
 }
 
 impl WebAuthnCredentialResponseModel {
@@ -31,6 +35,8 @@ impl WebAuthnCredentialResponseModel {
             id: None,
             name: None,
             prf_status: None,
+            encrypted_user_key: None,
+            encrypted_public_key: None,
         }
     }
 }

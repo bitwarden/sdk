@@ -13,18 +13,18 @@ use serde::{Deserialize, Serialize};
 use crate::models;
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
-pub struct ServiceAccountProjectAccessPolicyPermissionDetailsResponseModel {
+pub struct GrantedProjectAccessPolicyPermissionDetailsResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
     #[serde(rename = "accessPolicy", skip_serializing_if = "Option::is_none")]
-    pub access_policy: Option<Box<models::ServiceAccountProjectAccessPolicyResponseModel>>,
+    pub access_policy: Option<Box<models::GrantedProjectAccessPolicyResponseModel>>,
     #[serde(rename = "hasPermission", skip_serializing_if = "Option::is_none")]
     pub has_permission: Option<bool>,
 }
 
-impl ServiceAccountProjectAccessPolicyPermissionDetailsResponseModel {
-    pub fn new() -> ServiceAccountProjectAccessPolicyPermissionDetailsResponseModel {
-        ServiceAccountProjectAccessPolicyPermissionDetailsResponseModel {
+impl GrantedProjectAccessPolicyPermissionDetailsResponseModel {
+    pub fn new() -> GrantedProjectAccessPolicyPermissionDetailsResponseModel {
+        GrantedProjectAccessPolicyPermissionDetailsResponseModel {
             object: None,
             access_policy: None,
             has_permission: None,

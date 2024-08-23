@@ -50,11 +50,11 @@ BitwardenClient::~BitwardenClient() {
     }
 }
 
-void BitwardenClient::accessTokenLogin(const std::string& accessToken) {
+void BitwardenClient::loginAccessToken(const std::string& accessToken) {
     Command command;
     AccessTokenLoginRequest accessTokenLoginRequest;
     accessTokenLoginRequest.set_access_token(accessToken);
-    command.set_access_token_login(accessTokenLoginRequest);
+    command.set_login_access_token(accessTokenLoginRequest);
 
     auto deserializer = [](const char* response) -> ResponseForApiKeyLoginResponse {
         nlohmann::json jsonResponse = nlohmann::json::parse(response);

@@ -16,6 +16,8 @@ use crate::models;
 pub struct ResetPasswordWithOrgIdRequestModel {
     #[serde(rename = "resetPasswordKey", skip_serializing_if = "Option::is_none")]
     pub reset_password_key: Option<String>,
+    #[serde(rename = "masterPasswordHash", skip_serializing_if = "Option::is_none")]
+    pub master_password_hash: Option<String>,
     #[serde(rename = "organizationId")]
     pub organization_id: uuid::Uuid,
 }
@@ -24,6 +26,7 @@ impl ResetPasswordWithOrgIdRequestModel {
     pub fn new(organization_id: uuid::Uuid) -> ResetPasswordWithOrgIdRequestModel {
         ResetPasswordWithOrgIdRequestModel {
             reset_password_key: None,
+            master_password_hash: None,
             organization_id,
         }
     }

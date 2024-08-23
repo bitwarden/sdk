@@ -108,7 +108,7 @@ struct SchemaTypes {
     project: Response<bitwarden::secrets_manager::projects::ProjectResponse>,
     projects: Response<bitwarden::secrets_manager::projects::ProjectsResponse>,
     projects_delete: Response<bitwarden::secrets_manager::projects::ProjectsDeleteResponse>,
-    generate_secret: Response<String>,
+    password: Response<String>,
 
     #[cfg(feature = "internal")]
     fingerprint: Response<bitwarden::platform::FingerprintResponse>,

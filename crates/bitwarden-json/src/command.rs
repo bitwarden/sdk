@@ -1,8 +1,8 @@
-use bitwarden::generators::PasswordGeneratorRequest;
 #[cfg(feature = "secrets")]
 use bitwarden::{
     auth::login::AccessTokenLoginRequest,
     secrets_manager::{
+        generators::PasswordGeneratorRequest,
         projects::{
             ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
             ProjectsListRequest,

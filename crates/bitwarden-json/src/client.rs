@@ -1,7 +1,7 @@
 #[cfg(feature = "secrets")]
-use bitwarden::generators::ClientGeneratorExt;
-#[cfg(feature = "secrets")]
-use bitwarden::secrets_manager::{ClientProjectsExt, ClientSecretsExt};
+use bitwarden::secrets_manager::{
+    generators::ClientGeneratorExt, ClientProjectsExt, ClientSecretsExt,
+};
 #[cfg(feature = "internal")]
 use bitwarden::vault::ClientVaultExt;
 use bitwarden::ClientSettings;

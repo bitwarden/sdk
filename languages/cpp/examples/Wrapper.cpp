@@ -26,7 +26,7 @@ int main() {
     // Create a Bitwarden client instance
     BitwardenClient bitwardenClient = BitwardenClient(bitwardenSettings);
     // // Access token login
-    bitwardenClient.accessTokenLogin(accessToken);
+    bitwardenClient.loginAccessToken(accessToken);
     // Organization ID
     boost::uuids::uuid organizationUuid = boost::uuids::string_generator()(organizationId);    
     

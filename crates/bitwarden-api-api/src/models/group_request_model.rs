@@ -16,8 +16,6 @@ use crate::models;
 pub struct GroupRequestModel {
     #[serde(rename = "name")]
     pub name: String,
-    #[serde(rename = "accessAll")]
-    pub access_all: bool,
     #[serde(rename = "collections", skip_serializing_if = "Option::is_none")]
     pub collections: Option<Vec<models::SelectionReadOnlyRequestModel>>,
     #[serde(rename = "users", skip_serializing_if = "Option::is_none")]
@@ -25,10 +23,9 @@ pub struct GroupRequestModel {
 }
 
 impl GroupRequestModel {
-    pub fn new(name: String, access_all: bool) -> GroupRequestModel {
+    pub fn new(name: String) -> GroupRequestModel {
         GroupRequestModel {
             name,
-            access_all,
             collections: None,
             users: None,
         }

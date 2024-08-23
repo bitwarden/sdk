@@ -10,6 +10,7 @@ type BitwardenClientInterface interface {
 	AccessTokenLogin(accessToken string, stateFile *string) error
 	Projects() ProjectsInterface
 	Secrets() SecretsInterface
+	Generators() GeneratorsInterface
 	Close()
 }
 
@@ -19,6 +20,7 @@ type BitwardenClient struct {
 	commandRunner CommandRunnerInterface
 	projects      ProjectsInterface
 	secrets       SecretsInterface
+	generators    GeneratorsInterface
 }
 
 func NewBitwardenClient(apiURL *string, identityURL *string) (BitwardenClientInterface, error) {
@@ -49,12 +51,13 @@ func NewBitwardenClient(apiURL *string, identityURL *string) (BitwardenClientInt
 		commandRunner: runner,
 		projects:      NewProjects(runner),
 		secrets:       NewSecrets(runner),
+		generators:    NewGenerators(runner),
 	}, nil
 }
 
 func (c *BitwardenClient) AccessTokenLogin(accessToken string, stateFile *string) error {
 	req := AccessTokenLoginRequest{AccessToken: accessToken, StateFile: stateFile}
-	command := Command{AccessTokenLogin: &req}
+	command := Command{LoginAccessToken: &req}
 
 	responseStr, err := c.commandRunner.RunCommand(command)
 	if err != nil {
@@ -71,6 +74,10 @@ func (c *BitwardenClient) Projects() ProjectsInterface {
 
 func (c *BitwardenClient) Secrets() SecretsInterface {
 	return c.secrets
+}
+
+func (c *BitwardenClient) Generators() GeneratorsInterface {
+	return c.generators
 }
 
 func (c *BitwardenClient) Close() {

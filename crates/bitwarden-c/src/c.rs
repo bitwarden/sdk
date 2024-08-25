@@ -1,4 +1,8 @@
-use std::{ffi::{CStr, CString}, os::raw::c_char, str};
+use std::{
+    ffi::{CStr, CString},
+    os::raw::c_char,
+    str
+};
 
 use bitwarden_json::client::Client;
 

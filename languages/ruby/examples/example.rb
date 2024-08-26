@@ -17,7 +17,7 @@ puts response
 
 # CREATE project
 project_name = 'Test project 1'
-response = bw_client.project_client.create_project(project_name, organization_id)
+response = bw_client.project_client.create_project(organization_id, project_name)
 puts response
 project_id = response['id']
 
@@ -31,14 +31,14 @@ puts response
 
 # UPDATE projects
 name = 'Updated test project 1'
-response = bw_client.project_client.update_project(project_id, name, organization_id)
+response = bw_client.project_client.update_project(organization_id, project_id, name)
 puts response
 
 # CREATE secret
 key = 'AWS-SES'
 note = 'Private account'
 value = '8t27.dfj;'
-response = bw_client.secrets_client.create(key, note, organization_id, [project_id], value)
+response = bw_client.secrets_client.create(organization_id, key, value, note, [project_id])
 puts response
 secret_id = response['id']
 
@@ -65,7 +65,7 @@ puts response
 # UPDATE secret
 note = 'updated password'
 value = '7I.ert10AjK'
-response = bw_client.secrets_client.update(secret_id, key, note,organization_id, [project_id], value)
+response = bw_client.secrets_client.update(organization_id, secret_id, key, value, note, [project_id])
 puts response
 
 # DELETE secret

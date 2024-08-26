@@ -52,7 +52,7 @@ module BitwardenSDKSecrets
       error_response(secrets_response)
     end
 
-    def create(key, note, organization_id, project_ids, value)
+    def create(organization_id, key, value, note, project_ids)
       command = create_command(
         create: SecretCreateRequest.new(
           key: key, note: note, organization_id: organization_id, project_ids: project_ids, value: value
@@ -84,7 +84,7 @@ module BitwardenSDKSecrets
       error_response(secrets_response)
     end
 
-    def update(id, key, note, organization_id, project_ids, value)
+    def update(organization_id, id, key, value, note, project_ids)
       command = create_command(
         update: SecretPutRequest.new(
           id: id, key: key, note: note, organization_id: organization_id, project_ids: project_ids, value: value

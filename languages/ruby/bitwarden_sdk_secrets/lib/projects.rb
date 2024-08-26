@@ -8,7 +8,7 @@ module BitwardenSDKSecrets
       @command_runner = command_runner
     end
 
-    def create_project(project_name, organization_id)
+    def create_project(organization_id, project_name)
       project_create_request = ProjectCreateRequest.new(
         project_create_request_name: project_name,
         organization_id: organization_id
@@ -58,7 +58,7 @@ module BitwardenSDKSecrets
       error_response(projects_response)
     end
 
-    def update_project(id, project_put_request_name, organization_id)
+    def update_project(organization_id, id, project_put_request_name)
       project_put_request = ProjectPutRequest.new(
         id: id,
         project_put_request_name: project_put_request_name,

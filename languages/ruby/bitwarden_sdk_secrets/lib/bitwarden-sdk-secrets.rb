@@ -41,12 +41,23 @@ module BitwardenSDKSecrets
       @command_runner = CommandRunner.new(@bitwarden, @handle)
       @project_client = ProjectsClient.new(@command_runner)
       @secrets_client = SecretsClient.new(@command_runner)
+      @auth_client = AuthClient.new(@command_runner)
     end
 
-    def access_token_login(access_token, state_file = nil)
-      access_token_request = AccessTokenLoginRequest.new(access_token: access_token, state_file: state_file)
-      @command_runner.run(SelectiveCommand.new(access_token_login: access_token_request))
-      nil
+    def auth
+      @auth_client
+    end
+
+    class AuthClient
+      def initialize(command_runner)
+        @command_runner = command_runner
+      end
+
+      def login_access_token(access_token, state_file = nil)
+        access_token_request = AccessTokenLoginRequest.new(access_token: access_token, state_file: state_file)
+        @command_runner.run(SelectiveCommand.new(login_access_token: access_token_request))
+        nil
+      end
     end
 
     def free_mem

@@ -12,7 +12,7 @@ identity_url = ENV['IDENTITY_URL']
 bitwarden_settings = BitwardenSDKSecrets::BitwardenSettings.new(api_url, identity_url)
 
 bw_client = BitwardenSDKSecrets::BitwardenClient.new(bitwarden_settings)
-response = bw_client.access_token_login(token, state_file)
+response = bw_client.auth.login_access_token(token, state_file)
 puts response
 
 # CREATE project

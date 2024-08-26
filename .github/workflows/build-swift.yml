@@ -26,7 +26,7 @@ jobs:
 
   build:
     name: Build
-    runs-on: macos-13
+    runs-on: macos-14
     needs: version
     env:
       _VERSION: ${{ needs.version.outputs.package_version }}

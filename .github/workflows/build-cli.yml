@@ -300,7 +300,7 @@ jobs:
 
   macos-universal-binary:
     name: Generate universal macOS binary
-    runs-on: macos-13
+    runs-on: macos-14
     needs:
       - setup
       - build-macos

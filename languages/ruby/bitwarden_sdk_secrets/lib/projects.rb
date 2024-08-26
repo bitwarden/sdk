@@ -8,7 +8,7 @@ module BitwardenSDKSecrets
       @command_runner = command_runner
     end
 
-    def create_project(organization_id, project_name)
+    def create(organization_id, project_name)
       project_create_request = ProjectCreateRequest.new(
         project_create_request_name: project_name,
         organization_id: organization_id
@@ -43,7 +43,7 @@ module BitwardenSDKSecrets
       error_response(projects_response)
     end
 
-    def list_projects(organization_id)
+    def list(organization_id)
       project_list_request = ProjectsListRequest.new(organization_id: organization_id)
       command = create_command(list: project_list_request)
       response = parse_response(command)
@@ -58,7 +58,7 @@ module BitwardenSDKSecrets
       error_response(projects_response)
     end
 
-    def update_project(organization_id, id, project_put_request_name)
+    def update(organization_id, id, project_put_request_name)
       project_put_request = ProjectPutRequest.new(
         id: id,
         project_put_request_name: project_put_request_name,
@@ -79,7 +79,7 @@ module BitwardenSDKSecrets
       error_response(projects_response)
     end
 
-    def delete_projects(ids)
+    def delete(ids)
       project_delete_request = ProjectsDeleteRequest.new(ids: ids)
       command = create_command(delete: project_delete_request)
       response = parse_response(command)

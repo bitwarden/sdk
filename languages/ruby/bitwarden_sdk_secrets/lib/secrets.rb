@@ -102,7 +102,7 @@ module BitwardenSDKSecrets
       error_response(secrets_response)
     end
 
-    def delete_secret(ids)
+    def delete(ids)
       command = create_command(delete: SecretsDeleteRequest.new(ids: ids))
       response = run_command(command)
 

@@ -26,7 +26,7 @@ module BitwardenSDKSecrets
   end
 
   class BitwardenClient
-    attr_reader :bitwarden, :project_client, :secrets_client
+    attr_reader :bitwarden, :projects, :secrets
 
     def initialize(bitwarden_settings)
       client_settings = ClientSettings.new(
@@ -39,8 +39,8 @@ module BitwardenSDKSecrets
       @bitwarden = BitwardenLib
       @handle = @bitwarden.init(client_settings.to_dynamic.compact.to_json)
       @command_runner = CommandRunner.new(@bitwarden, @handle)
-      @project_client = ProjectsClient.new(@command_runner)
-      @secrets_client = SecretsClient.new(@command_runner)
+      @projects = ProjectsClient.new(@command_runner)
+      @secrets = SecretsClient.new(@command_runner)
       @auth_client = AuthClient.new(@command_runner)
     end
 

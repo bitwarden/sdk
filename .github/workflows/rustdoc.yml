@@ -2,7 +2,7 @@ name: Rustdoc
 
 on:
   push:
-    branches: ["main", "ps/deploy-docs"]
+    branches: ["main"]
 
 permissions:
   contents: read

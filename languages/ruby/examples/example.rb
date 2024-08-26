@@ -54,6 +54,14 @@ puts response
 response = bw_client.secrets_client.list(organization_id)
 puts response
 
+# SYNC secrets
+response = bw_client.secrets_client.sync(organization_id, nil)
+last_synced_date = Time.now.utc.strftime('%Y-%m-%dT%H:%M:%S.%6NZ')
+puts response
+
+response = bw_client.secrets_client.sync(organization_id, last_synced_date)
+puts response
+
 # UPDATE secret
 note = 'updated password'
 value = '7I.ert10AjK'

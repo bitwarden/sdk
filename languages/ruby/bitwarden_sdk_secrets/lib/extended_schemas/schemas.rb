@@ -49,6 +49,7 @@ module BitwardenSDKSecrets
       attribute :list,       SecretIdentifiersRequest.optional.default(nil)
       attribute :update,     SecretPutRequest.optional.default(nil)
       attribute :delete,     SecretsDeleteRequest.optional.default(nil)
+      attribute :sync,       SecretsSyncRequest.optional.default(nil)
 
       def to_dynamic
         {
@@ -58,6 +59,7 @@ module BitwardenSDKSecrets
           "list"     => list&.to_dynamic,
           "update"   => update&.to_dynamic,
           "delete"   => delete&.to_dynamic,
+          "sync"     => sync&.to_dynamic,
         }.compact
       end
     end

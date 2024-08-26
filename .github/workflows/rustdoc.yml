@@ -27,10 +27,12 @@ jobs:
       - name: Install rust
         uses: dtolnay/rust-toolchain@7b1c307e0dcbda6122208f10795a713336a9b35a # stable
         with:
-          toolchain: stable
+          toolchain: nightly
 
       - name: Build documentation
-        run: cargo doc --no-deps --all-features --document-private-items
+        env:
+          RUSTDOCFLAGS: "--enable-index-page -Zunstable-options"
+        run: cargo +nightly doc --no-deps --all-features --document-private-items
 
       - name: Deploy to GitHub Pages
         uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1

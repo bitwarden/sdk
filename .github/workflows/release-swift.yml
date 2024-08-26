@@ -91,6 +91,7 @@ jobs:
           fi
 
       - name: Calculate swift file checksum
+        id: calculate-swift-checksum
         run: |
           CHECKSUM=$(swift package compute-checksum BitwardenFFI-${{ steps.version.outputs.version }}-${{ steps.set-sha.outputs.short_sha }}.xcframework.zip)
           echo "checksum=$CHECKSUM" >> $GITHUB_OUTPUT

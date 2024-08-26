@@ -9,7 +9,7 @@ Requirements: Ruby >= 3.0
 
 Install gem: `gem install bitwarden-sdk-secrets`
 
-Import it: require 'bitwarden-sdk-secrets'
+Import it: `require 'bitwarden-sdk-secrets'`
 
 ## Usage
 

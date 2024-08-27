@@ -16,6 +16,10 @@ on:
 
   workflow_dispatch:
     inputs:
+      build-run-id:
+        description: "Workflow Run ID to use for artifact download. If not provided the latest build from the selected branch will be used."
+        type: string
+        required: false
       pre-release:
         description: "Create a pre-release"
         type: boolean

@@ -166,6 +166,8 @@ jobs:
             url: "https://github.com/bitwarden/sdk-swift/releases/download/v${{ env._RELEASE_NAME }}/BitwardenFFI-${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}.xcframework.zip",\
             checksum: "${{ env._SWIFT_CHECKSUM }}"|' sdk/languages/swift/Package.swift
 
+          cat sdk/languages/swift/Package.swift
+
           # Run swiftformat
           swiftformat sdk/languages/swift/Package.swift
 

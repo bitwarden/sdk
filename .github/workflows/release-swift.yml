@@ -153,9 +153,8 @@ jobs:
 
       - name: Update files
         run: |
-          cat sdk/languages/swift/Package.swift
           # Update BitwardenFFI path
-          sed -i '' 's|.binaryTarget(name: "BitwardenFFI", path: "BitwardenFFI.xcframework")|.binaryTarget(\
+          sed -i 's|.binaryTarget(name: "BitwardenFFI", path: "BitwardenFFI.xcframework")|.binaryTarget(\
             name: "BitwardenFFI",\
             url: "https://github.com/bitwarden/sdk-swift/releases/download/v${{ env._RELEASE_NAME }}/BitwardenFFI-${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}.xcframework.zip",\
             checksum: "${{ env._SWIFT_CHECKSUM }}"|' sdk/languages/swift/Package.swift

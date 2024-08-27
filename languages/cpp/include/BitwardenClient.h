@@ -12,7 +12,7 @@ public:
     BitwardenClient(const BitwardenSettings& bitwardenSettings = BitwardenSettings());
     ~BitwardenClient();
 
-    void loginAccessToken(const std::string& accessToken);
+    void loginAccessToken(const std::string& accessToken, const std::string& stateFile = "");
     ProjectResponse getProject(const boost::uuids::uuid& id);
     ProjectResponse createProject(const boost::uuids::uuid& organizationId, const std::string& name);
     ProjectResponse updateProject(const boost::uuids::uuid& id, const boost::uuids::uuid& organizationId, const std::string& name);

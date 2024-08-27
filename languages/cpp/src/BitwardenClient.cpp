@@ -50,7 +50,7 @@ BitwardenClient::~BitwardenClient() {
     }
 }
 
-void BitwardenClient::loginAccessToken(const std::string& accessToken) {
+void BitwardenClient::loginAccessToken(const std::string& accessToken, const std::string& stateFile) {
     Command command;
     AccessTokenLoginRequest accessTokenLoginRequest;
     accessTokenLoginRequest.set_access_token(accessToken);

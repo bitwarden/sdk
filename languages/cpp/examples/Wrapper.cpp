@@ -7,6 +7,9 @@ int main() {
     const char* accessTokenEnv = std::getenv("ACCESS_TOKEN");
     const char* organizationIdEnv = std::getenv("ORGANIZATION_ID");
 
+    // Use optional state file for authentication
+    const char* stateFile = std::getenv("STATE_PATH");
+
     const char* apiUrl = std::getenv("API_URL");
     const char* identityUrl = std::getenv("IDENTITY_URL");
 
@@ -26,7 +29,7 @@ int main() {
     // Create a Bitwarden client instance
     BitwardenClient bitwardenClient = BitwardenClient(bitwardenSettings);
     // // Access token login
-    bitwardenClient.loginAccessToken(accessToken);
+    bitwardenClient.loginAccessToken(accessToken, stateFile);
     // Organization ID
     boost::uuids::uuid organizationUuid = boost::uuids::string_generator()(organizationId);
 

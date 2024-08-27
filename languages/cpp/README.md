@@ -22,9 +22,10 @@ bitwardenSettings.set_identity_url("<bitwarden-identity>");
 
 ```c++
 std::string accessToken = "<access-token>";
+std::string stateFile = "<state-file>";
 // Optional - argument in BitwardenClient
 BitwardenClient bitwardenClient = BitwardenClient(bitwardenSettings);
-bitwardenClient.loginAccessToken(accessToken);
+bitwardenClient.loginAccessToken(accessToken, stateFile);
 ```
 
 ### Create new project

@@ -154,6 +154,7 @@ jobs:
           passphrase: ${{ steps.retrieve-secrets.outputs.github-gpg-private-key-passphrase }}
           git_user_signingkey: true
           git_commit_gpgsign: true
+          workdir: sdk-swift
 
       - name: Setup Git
         working-directory: sdk-swift

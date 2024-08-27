@@ -57,7 +57,7 @@ jobs:
           OWNER: ${{ github.repository_owner }}
           REPO: ${{ github.event.repository.name }}
         run: |
-          if [[ -z ${{ inputs.build-run-id }} ]]; then
+          if [ -z ${{ inputs.build-run-id }} ]; then
             BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
             RUN_ID=$(gh api \
               -H "Accept: application/vnd.github+json" \

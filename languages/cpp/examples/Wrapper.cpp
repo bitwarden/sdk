@@ -28,12 +28,12 @@ int main() {
     // // Access token login
     bitwardenClient.loginAccessToken(accessToken);
     // Organization ID
-    boost::uuids::uuid organizationUuid = boost::uuids::string_generator()(organizationId);    
-    
+    boost::uuids::uuid organizationUuid = boost::uuids::string_generator()(organizationId);
+
     // // Create a new project
     ProjectResponse projectResponseCreate = bitwardenClient.createProject(organizationUuid, "NewTestProject");
     boost::uuids::uuid projectId = boost::uuids::string_generator()(projectResponseCreate.get_id());
-   
+
     // List projects
     ProjectsResponse projectResponseList = bitwardenClient.listProjects(organizationUuid);
 

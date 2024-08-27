@@ -54,6 +54,7 @@ void BitwardenClient::loginAccessToken(const std::string& accessToken, const std
     Command command;
     AccessTokenLoginRequest accessTokenLoginRequest;
     accessTokenLoginRequest.set_access_token(accessToken);
+    accessTokenLoginRequest.set_state_file(stateFile);
     command.set_login_access_token(accessTokenLoginRequest);
 
     auto deserializer = [](const char* response) -> ResponseForApiKeyLoginResponse {

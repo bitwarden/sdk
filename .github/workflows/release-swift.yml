@@ -153,6 +153,7 @@ jobs:
 
       - name: Update files
         run: |
+          cat sdk/languages/swift/Package.swift
           # Update BitwardenFFI path
           sed -i '' 's|.binaryTarget(name: "BitwardenFFI", path: "BitwardenFFI.xcframework")|.binaryTarget(\
             name: "BitwardenFFI",\

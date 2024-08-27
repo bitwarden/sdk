@@ -11,8 +11,8 @@ class BitwardenClient {
 public:
     BitwardenClient(const BitwardenSettings& bitwardenSettings = BitwardenSettings());
     ~BitwardenClient();
-    
-    void accessTokenLogin(const std::string& accessToken);
+
+    void loginAccessToken(const std::string& accessToken);
     ProjectResponse getProject(const boost::uuids::uuid& id);
     ProjectResponse createProject(const boost::uuids::uuid& organizationId, const std::string& name);
     ProjectResponse updateProject(const boost::uuids::uuid& id, const boost::uuids::uuid& organizationId, const std::string& name);

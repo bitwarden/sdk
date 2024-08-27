@@ -4,14 +4,14 @@
 
 int main() {
     // Retrieve access token and organization ID from environment variables
-    const char* accessTokenEnv = std::getenv("ACCESS_TOKEN");
-    const char* organizationIdEnv = std::getenv("ORGANIZATION_ID");
+    const char *accessTokenEnv = std::getenv("ACCESS_TOKEN");
+    const char *organizationIdEnv = std::getenv("ORGANIZATION_ID");
 
     // Use optional state file for authentication
-    const char* stateFile = std::getenv("STATE_PATH");
+    const char *stateFile = std::getenv("STATE_PATH");
 
-    const char* apiUrl = std::getenv("API_URL");
-    const char* identityUrl = std::getenv("IDENTITY_URL");
+    const char *apiUrl = std::getenv("API_URL");
+    const char *identityUrl = std::getenv("IDENTITY_URL");
 
     if (!accessTokenEnv || !organizationIdEnv) {
         std::cerr << "Error: Environment variables ACCESS_TOKEN or ORGANIZATION_ID not set." << std::endl;
@@ -37,14 +37,26 @@ int main() {
     ProjectResponse projectResponseCreate = bitwardenClient.createProject(organizationUuid, "NewTestProject");
     boost::uuids::uuid projectId = boost::uuids::string_generator()(projectResponseCreate.get_id());
 
+    printf("Created project: '%s'\n", projectResponseCreate.get_name().c_str());
+
     // List projects
     ProjectsResponse projectResponseList = bitwardenClient.listProjects(organizationUuid);
+
+    printf("List of projects:\n");
+    for (const auto &project: projectResponseList.get_data()) {
+        printf("Project ID: %s, Name: %s\n", project.get_id().c_str(), project.get_name().c_str());
+    }
 
     // Get project details
     ProjectResponse projectResponseGet = bitwardenClient.getProject(projectId);
 
+    printf("Project ID: %s, Name: %s\n", projectResponseGet.get_id().c_str(), projectResponseGet.get_name().c_str());
+
     // Update project
-    ProjectResponse ProjectResponseUpdate = bitwardenClient.updateProject(projectId, organizationUuid, "NewTestProject2");
+    ProjectResponse ProjectResponseUpdate = bitwardenClient.updateProject(
+        projectId, organizationUuid, "NewTestProject2");
+
+    printf("Updated project '%s'\n", ProjectResponseUpdate.get_name().c_str());
 
     // Secrets
     std::string key = "key";
@@ -55,23 +67,37 @@ int main() {
     SecretResponse secretResponseCreate = bitwardenClient.createSecret(key, value, note, organizationUuid, {projectId});
     boost::uuids::uuid secretId = boost::uuids::string_generator()(secretResponseCreate.get_id());
 
+    printf("Created secret: '%s'\n", secretResponseCreate.get_key().c_str());
+
     // List secrets
     SecretIdentifiersResponse secretIdentifiersResponse = bitwardenClient.listSecrets(organizationUuid);
 
     // Get secret details
     SecretResponse secretResponseGet = bitwardenClient.getSecret(secretId);
 
+    printf("List of secrets:\n");
+    for (const auto &secret: secretIdentifiersResponse.get_data()) {
+        printf("Secret ID: %s, Key: %s\n", secret.get_id().c_str(), secret.get_key().c_str());
+    }
+
     // Update secret
     key = "key2";
     value = "value2";
     note = "note2";
-    SecretResponse responseForSecretResponseUpdate = bitwardenClient.updateSecret(secretId, key, value, note, organizationUuid, {projectId});
+    SecretResponse responseForSecretResponseUpdate = bitwardenClient.updateSecret(
+        secretId, key, value, note, organizationUuid, {projectId});
+
+    printf("Updated secret: '%s'\n", responseForSecretResponseUpdate.get_key().c_str());
 
     // Delete secrets
     SecretsDeleteResponse secretsDeleteResponse = bitwardenClient.deleteSecrets({secretId});
 
+    printf("Deleted secret: '%s'\n", secretsDeleteResponse.get_data()[0].get_id().c_str());
+
     // Delete projects
     ProjectsDeleteResponse projectsDeleteResponse = bitwardenClient.deleteProjects({projectId});
+
+    printf("Deleted project: '%s'\n", projectsDeleteResponse.get_data()[0].get_id().c_str());
 
     return 0;
 }

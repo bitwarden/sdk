@@ -151,6 +151,13 @@ jobs:
           git config --local user.email "${{ env._BOT_EMAIL }}"
           git config --local user.name "${{ env._BOT_NAME }}"
 
+      - name: Install Swift formatter
+        run: |
+          git clone https://github.com/nicklockwood/SwiftFormat
+          cd SwiftFormat
+          swift build -c release
+          cp -f .build/release/swiftformat /usr/local/bin/swiftformat
+
       - name: Update files
         run: |
           # Update BitwardenFFI path

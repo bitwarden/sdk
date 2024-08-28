@@ -115,6 +115,13 @@ SecretResponse BitwardenClient::getSecret(const boost::uuids::uuid& id){
     return secrets.get(id);
 }
 
+SecretsResponse BitwardenClient::getSecretsByIds(const std::vector<boost::uuids::uuid>& ids){
+    if (!isClientOpen) {
+        throw std::runtime_error("Client is not open.");
+    }
+    return secrets.getByIds(ids);
+}
+
 SecretResponse BitwardenClient::createSecret(const std::string& key, const std::string& value, const std::string& note, const boost::uuids::uuid& organizationId, const std::vector<boost::uuids::uuid>& projectIds){
     if (!isClientOpen) {
         throw std::runtime_error("Client is not open.");

@@ -1,8 +1,6 @@
 #include "Secrets.h"
 #include <nlohmann/json.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include <boost/uuid/string_generator.hpp> 
-#include <boost/uuid/uuid_io.hpp>
 
 Secrets::Secrets(CommandRunner* commandRunner) : commandRunner(commandRunner) {}
 
@@ -11,6 +9,13 @@ auto secretsDeserializer = [](const std::string& response) -> ResponseForSecretR
     ResponseForSecretResponse secretResponse;
     Bitwarden::Sdk::from_json(jsonResponse, secretResponse);
     return secretResponse;
+};
+
+auto secretsByIdsDeserializer = [](const std::string& response) -> ResponseForSecretsResponse {
+    nlohmann::json jsonResponse = nlohmann::json::parse(response);
+    ResponseForSecretsResponse secretsResponse;
+    Bitwarden::Sdk::from_json(jsonResponse, secretsResponse);
+    return secretsResponse;
 };
 
 auto deleteSecretsDeserializer = [](const std::string& response) -> ResponseForSecretsDeleteResponse {
@@ -42,6 +47,28 @@ SecretResponse Secrets::get(const boost::uuids::uuid& id) {
         return commandRunner->runCommand<ResponseForSecretResponse, SecretResponse>(command, secretsDeserializer);
     } catch (const std::exception& ex) {
         std::cerr << "Error in getSecret: " << ex.what() << std::endl;
+        throw ex;
+    }
+}
+
+SecretsResponse Secrets::getByIds(const std::vector<boost::uuids::uuid>& ids) {
+    Command command;
+    SecretsCommand secretsCommand;
+    SecretsGetRequest secretsGetRequest;
+
+    std::vector<std::string> idsStr;
+    for (const auto& id : ids) {
+        idsStr.push_back(boost::uuids::to_string(id));
+    }
+    secretsGetRequest.set_ids(idsStr);
+
+    secretsCommand.set_get_by_ids(secretsGetRequest);
+    command.set_secrets(secretsCommand);
+
+    try {
+        return commandRunner->runCommand<ResponseForSecretsResponse, SecretsResponse>(command, secretsByIdsDeserializer);
+    } catch (const std::exception& ex) {
+        std::cerr << "Error in getSecretsByIds: " << ex.what() << std::endl;
         throw ex;
     }
 }

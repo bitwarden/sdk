@@ -19,6 +19,7 @@ public:
     ProjectsDeleteResponse deleteProjects(const std::vector<boost::uuids::uuid>& ids);
     ProjectsResponse listProjects(const boost::uuids::uuid &organizationId);
     SecretResponse getSecret(const boost::uuids::uuid& id);
+    SecretsResponse getSecretsByIds(const std::vector<boost::uuids::uuid>& ids);
     SecretResponse createSecret(const std::string& key, const std::string& value, const std::string& note, const boost::uuids::uuid& organizationId, const std::vector<boost::uuids::uuid>& projectIds);
     SecretResponse updateSecret(const boost::uuids::uuid& id, const std::string& key, const std::string& value, const std::string& note, const boost::uuids::uuid& organizationId, const std::vector<boost::uuids::uuid>& projectIds);
     SecretsDeleteResponse deleteSecrets(const std::vector<boost::uuids::uuid>& ids);

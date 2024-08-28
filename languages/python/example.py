@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import logging
 import os
+from datetime import datetime, timezone
 
 from bitwarden_sdk import BitwardenClient, DeviceType, client_settings_from_dict
 
@@ -21,14 +22,14 @@ logging.basicConfig(level=logging.DEBUG)
 organization_id = os.getenv("ORGANIZATION_ID")
 
 # Attempt to authenticate with the Secrets Manager Access Token
-client.access_token_login(os.getenv("ACCESS_TOKEN"))
+client.auth().login_access_token(os.getenv("ACCESS_TOKEN"))
 
 # -- Example Project Commands --
 
-project = client.projects().create("ProjectName", organization_id)
-project2 = client.projects().create("Project - Don't Delete Me!", organization_id)
+project = client.projects().create(organization_id, "ProjectName")
+project2 = client.projects().create(organization_id, "AnotherProject")
 updated_project = client.projects().update(
-    project.data.id, "Cool New Project Name", organization_id
+    organization_id, project.data.id, "Cool New Project Name"
 )
 get_that_project = client.projects().get(project.data.id)
 
@@ -39,31 +40,40 @@ print(client.projects().list(organization_id))
 
 # -- Example Secret Commands --
 
+if client.secrets().sync(organization_id, None).data.has_changes is True:
+    print("There are changes to sync")
+else:
+    print("No changes to sync")
+
+last_synced_date = datetime.now(tz=timezone.utc)
+print(client.secrets().sync(organization_id, last_synced_date))
+
 secret = client.secrets().create(
+    organization_id,
     "TEST_SECRET",
     "This is a test secret",
-    organization_id,
     "Secret1234!",
     [project2.data.id],
 )
 secret2 = client.secrets().create(
-    "Secret - Don't Delete Me!",
-    "This is a test secret that will stay",
     organization_id,
+    "ANOTHER_SECRET",
     "Secret1234!",
+    None,
     [project2.data.id],
 )
 secret_updated = client.secrets().update(
+    organization_id,
     secret.data.id,
     "TEST_SECRET_UPDATED",
     "This as an updated test secret",
-    organization_id,
     "Secret1234!_updated",
     [project2.data.id],
 )
-secret_retrieved = client.secrets().get(secret.data.id)
+secrets_retrieved = client.secrets().get_by_ids([secret.data.id, secret2.data.id])
 
-input("Press Enter to delete the secret...")
-client.secrets().delete([secret.data.id])
+# cleanup
+input("Press Enter to cleanup secrets and projects...")
+client.secrets().delete([secret.id for secret in secrets_retrieved.data.data])
 
-print(client.secrets().list(organization_id))
+client.projects().delete([project2.data.id])

@@ -1,0 +1,25 @@
+module BitwardenSDKSecrets
+  class ProjectsClient
+    @command_runner: untyped
+
+    def initialize: (untyped command_runner) -> void
+
+    def create: (untyped organization_id, untyped project_name) -> untyped
+
+    def get: (untyped project_id) -> untyped
+
+    def list: (untyped organization_id) -> untyped
+
+    def update: (untyped organization_id, untyped id, untyped project_put_request_name) -> untyped
+
+    def delete: (untyped ids) -> untyped
+
+    private
+
+    def error_response: (untyped response) -> untyped
+
+    def create_command: (untyped commands) -> untyped
+
+    def parse_response: (untyped command) -> untyped
+  end
+end

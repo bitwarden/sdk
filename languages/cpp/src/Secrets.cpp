@@ -1,6 +1,7 @@
 #include "Secrets.h"
 #include <nlohmann/json.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/optional.hpp>
 
 Secrets::Secrets(CommandRunner* commandRunner) : commandRunner(commandRunner) {}
 
@@ -178,6 +179,51 @@ SecretIdentifiersResponse Secrets::list(const boost::uuids::uuid& organizationId
         return commandRunner->runCommand<ResponseForSecretIdentifiersResponse, SecretIdentifiersResponse>(command, secretListDeserializer);
     } catch (const std::exception& ex) {
         std::cerr << "Error in listSecret: " << ex.what() << std::endl;
+        throw ex;
+    }
+}
+
+SecretsSyncResponse Secrets::sync(const boost::uuids::uuid& organizationId, const boost::optional<std::chrono::system_clock::time_point>& lastSyncedDate) {
+    Command command;
+    SecretsCommand secretsCommand;
+    SecretsSyncRequest secretsSyncRequest;
+
+    std::string orgIdStr = boost::uuids::to_string(organizationId);
+    secretsSyncRequest.set_organization_id(orgIdStr);
+
+    if (lastSyncedDate.has_value()) {
+        auto timePoint = lastSyncedDate.value();
+
+        // Get time as time_t and milliseconds
+        auto timeT = std::chrono::system_clock::to_time_t(timePoint);
+        auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(timePoint.time_since_epoch()) % 1000;
+
+        // Convert to a tm struct
+        std::tm tm = *std::gmtime(&timeT);
+
+        // Create a string stream to format the date and time
+        std::stringstream dateStream;
+        dateStream << std::put_time(&tm, "%Y-%m-%dT%H:%M:%S");
+
+        // Add milliseconds
+        dateStream << '.' << std::setw(3) << std::setfill('0') << milliseconds.count() << 'Z';
+
+        // Convert to string
+        std::string dateStr = dateStream.str();
+
+        // Set the last synced date
+        secretsSyncRequest.set_last_synced_date(dateStr);
+    } else {
+        secretsSyncRequest.set_last_synced_date(boost::none);
+    }
+
+    secretsCommand.set_sync(secretsSyncRequest);
+    command.set_secrets(secretsCommand);
+
+    try {
+        return commandRunner->runCommand<ResponseForSecretsSyncResponse, SecretsSyncResponse>(command, secretsSyncDeserializer);
+    } catch (const std::exception& ex) {
+        std::cerr << "Error in syncSecrets: " << ex.what() << std::endl;
         throw ex;
     }
 }

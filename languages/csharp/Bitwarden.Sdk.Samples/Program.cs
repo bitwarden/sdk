@@ -9,7 +9,7 @@ var organizationId = Guid.Parse(organizationIdString);
 using var bitwardenClient = new BitwardenClient();
 
 // Authenticate
-bitwardenClient.AccessTokenLogin(accessToken);
+bitwardenClient.Auth.LoginAccessToken(accessToken);
 
 // Project operations
 var projectResponse = bitwardenClient.Projects.Create(organizationId, "NewTestProject");
@@ -19,12 +19,13 @@ projectResponse = bitwardenClient.Projects.Get(projectId);
 projectResponse = bitwardenClient.Projects.Update(projectId, organizationId, "NewTestProject2");
 
 // Secret operations
-var secretResponse =
-    bitwardenClient.Secrets.Create("key", "value", "note", organizationId, new[] { projectId });
+var secretResponse = bitwardenClient.Secrets.Create(organizationId, "key", "value", "note", new[] { projectId });
 var secretId = secretResponse.Id;
 var secretIdentifiersResponse = bitwardenClient.Secrets.List(organizationId);
 secretResponse = bitwardenClient.Secrets.Get(secretId);
-secretResponse = bitwardenClient.Secrets
-    .Update(secretId, "key2", "value2", "note2", organizationId, new[] { projectId });
+secretResponse = bitwardenClient.Secrets.Update(organizationId, secretId, "key2", "value2", "note2", new[] { projectId });
+var syncResponse = bitwardenClient.Secrets.Sync(organizationId, null);
+
+// Delete operations
 bitwardenClient.Secrets.Delete(new[] { secretId });
 bitwardenClient.Projects.Delete(new[] { projectId });

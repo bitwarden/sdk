@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vector>
+#include <chrono>
+#include <boost/optional.hpp>
 #include <boost/uuid/uuid.hpp>
 #include "CommandRunner.h"
 
@@ -14,6 +16,7 @@ public:
     SecretResponse update(const boost::uuids::uuid& organizationId, const boost::uuids::uuid& id, const std::string& key, const std::string& value, const std::string& note, const std::vector<boost::uuids::uuid>& projectIds);
     SecretsDeleteResponse deleteSecrets(const std::vector<boost::uuids::uuid>& ids);
     SecretIdentifiersResponse list(const boost::uuids::uuid& organizationId);
+    SecretsSyncResponse sync(const boost::uuids::uuid& organizationId, const boost::optional<std::chrono::system_clock::time_point>& lastSyncedDate);
 
 private:
     CommandRunner* commandRunner;

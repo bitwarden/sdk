@@ -151,3 +151,10 @@ SecretIdentifiersResponse BitwardenClient::listSecrets(const boost::uuids::uuid 
     return secrets.list(organizationId);
 
 }
+
+SecretsSyncResponse BitwardenClient::sync(const boost::uuids::uuid &organizationId, const std::chrono::system_clock::time_point &lastSyncedDate) {
+    if (!isClientOpen) {
+        throw std::runtime_error("Client is not open.");
+    }
+    return secrets.sync(organizationId, lastSyncedDate);
+}

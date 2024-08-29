@@ -24,6 +24,7 @@ public:
     SecretResponse updateSecret(const boost::uuids::uuid& organizationId, const boost::uuids::uuid& id, const std::string& key, const std::string& value, const std::string& note, const std::vector<boost::uuids::uuid>& projectIds);
     SecretsDeleteResponse deleteSecrets(const std::vector<boost::uuids::uuid>& ids);
     SecretIdentifiersResponse listSecrets(const boost::uuids::uuid& organizationId);
+    SecretsSyncResponse sync(const boost::uuids::uuid &organizationId, const std::chrono::system_clock::time_point &lastSyncedDate);
 
 private:
     BitwardenLibrary* library;

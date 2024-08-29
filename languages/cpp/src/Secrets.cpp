@@ -32,6 +32,13 @@ auto secretListDeserializer = [](const std::string& response) -> ResponseForSecr
     return listResponse;
 };
 
+auto secretsSyncDeserializer = [](const std::string& response) -> ResponseForSecretsSyncResponse {
+    nlohmann::json jsonResponse = nlohmann::json::parse(response);
+    ResponseForSecretsSyncResponse syncResponse;
+    Bitwarden::Sdk::from_json(jsonResponse, syncResponse);
+    return syncResponse;
+};
+
 SecretResponse Secrets::get(const boost::uuids::uuid& id) {
     Command command;
     SecretsCommand secretsCommand;

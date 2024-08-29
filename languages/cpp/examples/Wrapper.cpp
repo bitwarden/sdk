@@ -1,6 +1,7 @@
 #include "BitwardenClient.h"
 #include <boost/uuid/string_generator.hpp>
 #include <cstdlib>
+#include <chrono>
 
 int main() {
     // Retrieve access token and organization ID from environment variables
@@ -27,77 +28,91 @@ int main() {
     bitwardenSettings.set_identity_url(identityUrl);
 
     // Create a Bitwarden client instance
-    BitwardenClient bitwardenClient = BitwardenClient(bitwardenSettings);
-    // // Access token login
+    BitwardenClient bitwardenClient(bitwardenSettings);
+
+    // Access token login
     bitwardenClient.loginAccessToken(accessToken, stateFile);
-    // Organization ID
+
+    // Convert organization ID to UUID
     boost::uuids::uuid organizationUuid = boost::uuids::string_generator()(organizationId);
 
-    // // Create a new project
+    // Create a new project
+    std::cout << "Projects:\n";
     ProjectResponse projectResponseCreate = bitwardenClient.createProject(organizationUuid, "NewTestProject");
     boost::uuids::uuid projectId = boost::uuids::string_generator()(projectResponseCreate.get_id());
 
-    printf("Created project: '%s'\n", projectResponseCreate.get_name().c_str());
+    std::cout << "\tcreateProject: '" << projectResponseCreate.get_name() << "'\n\n";
 
     // List projects
     ProjectsResponse projectResponseList = bitwardenClient.listProjects(organizationUuid);
-
-    printf("List of projects:\n");
-    for (const auto &project: projectResponseList.get_data()) {
-        printf("Project ID: %s, Name: %s\n", project.get_id().c_str(), project.get_name().c_str());
+    std::cout << "\tlistProjects:\n";
+    for (const ProjectResponse& project : projectResponseList.get_data()) {
+        std::cout << "\t\tID: '" << project.get_id() << "', Name: '" << project.get_name() << "'\n";
     }
+    std::cout << '\n';
 
     // Get project details
     ProjectResponse projectResponseGet = bitwardenClient.getProject(projectId);
-
-    printf("Project ID: %s, Name: %s\n", projectResponseGet.get_id().c_str(), projectResponseGet.get_name().c_str());
+    std::cout << "\tgetProject:\n\t\tID: '" << projectResponseGet.get_id() << "', Name: '" << projectResponseGet.get_name() << "'\n\n";
 
     // Update project
-    ProjectResponse ProjectResponseUpdate = bitwardenClient.updateProject(
-        projectId, organizationUuid, "NewTestProject2");
-
-    printf("Updated project '%s'\n", ProjectResponseUpdate.get_name().c_str());
+    ProjectResponse projectResponseUpdate = bitwardenClient.updateProject(organizationUuid, projectId, "NewTestProject2");
+    std::cout << "\tupdateProject: '" << projectResponseUpdate.get_name() << "'\n\n";
 
     // Secrets
     std::string key = "key";
     std::string value = "value";
     std::string note = "note";
 
+    // Sync secrets
+    std::cout << "Secrets:\n";
+    std::cout << "\tSyncing secrets...\n";
+    std::chrono::system_clock::time_point lastSyncedDate = std::chrono::system_clock::now();
+    SecretsSyncResponse secretsSyncResponse = bitwardenClient.sync(organizationUuid, lastSyncedDate);
+    std::cout << "\tSync has changes: '" << (secretsSyncResponse.get_has_changes() ? "true" : "false") << "'\n\n";
+
     // Create a new secret
-    SecretResponse secretResponseCreate = bitwardenClient.createSecret(key, value, note, organizationUuid, {projectId});
+    SecretResponse secretResponseCreate = bitwardenClient.createSecret(organizationUuid, key, value, note, {projectId});
     boost::uuids::uuid secretId = boost::uuids::string_generator()(secretResponseCreate.get_id());
 
-    printf("Created secret: '%s'\n", secretResponseCreate.get_key().c_str());
+    std::cout << "\tcreateSecret: '" << secretResponseCreate.get_key() << "'\n\n";
 
     // List secrets
     SecretIdentifiersResponse secretIdentifiersResponse = bitwardenClient.listSecrets(organizationUuid);
 
     // Get secret details
     SecretResponse secretResponseGet = bitwardenClient.getSecret(secretId);
+    std::cout << "\tgetSecret: '" << secretResponseGet.get_key() << "'\n\n";
 
-    printf("List of secrets:\n");
-    for (const auto &secret: secretIdentifiersResponse.get_data()) {
-        printf("Secret ID: %s, Key: %s\n", secret.get_id().c_str(), secret.get_key().c_str());
+    // Get secrets by IDs
+    std::cout << "\tgetSecretsByIds:\n";
+    SecretsResponse secretsResponseGetByIds = bitwardenClient.getSecretsByIds({secretId});
+    for (const SecretResponse& secret : secretsResponseGetByIds.get_data()) {
+        std::cout << "\t\tID: '" << secret.get_id() << "', Key: '" << secret.get_key() << "'\n";
     }
+    std::cout << '\n';
 
     // Update secret
-    key = "key2";
-    value = "value2";
-    note = "note2";
+    key = "updated-key";
+    value = "updated-value";
+    note = "updated-note";
     SecretResponse responseForSecretResponseUpdate = bitwardenClient.updateSecret(
-        secretId, key, value, note, organizationUuid, {projectId});
+        organizationUuid, secretId, key, value, note, {projectId});
 
-    printf("Updated secret: '%s'\n", responseForSecretResponseUpdate.get_key().c_str());
+    std::cout << "\tupdateSecret: '" << responseForSecretResponseUpdate.get_key() << "'\n\n";
+
+    // Sync changes to secrets
+    SecretsSyncResponse secretsSyncResponseAfterChanges = bitwardenClient.sync(organizationUuid, lastSyncedDate);
+    std::cout << "\tSync has changes after update: '" << (secretsSyncResponseAfterChanges.get_has_changes() ? "true" : "false") << "'\n\n";
 
     // Delete secrets
+    std::cout << "Deleting projects and secrets...\n";
     SecretsDeleteResponse secretsDeleteResponse = bitwardenClient.deleteSecrets({secretId});
-
-    printf("Deleted secret: '%s'\n", secretsDeleteResponse.get_data()[0].get_id().c_str());
+    std::cout << "\tdeleteSecrets: '" << secretsDeleteResponse.get_data()[0].get_id() << "'\n\n";
 
     // Delete projects
     ProjectsDeleteResponse projectsDeleteResponse = bitwardenClient.deleteProjects({projectId});
-
-    printf("Deleted project: '%s'\n", projectsDeleteResponse.get_data()[0].get_id().c_str());
+    std::cout << "\tdeleteProjects: '" << projectsDeleteResponse.get_data()[0].get_id() << "'\n\n";
 
     return 0;
 }

@@ -22,9 +22,10 @@ bitwardenSettings.set_identity_url("<bitwarden-identity>");
 
 ```c++
 std::string accessToken = "<access-token>";
+std::string stateFile = "<state-file>";
 // Optional - argument in BitwardenClient
 BitwardenClient bitwardenClient = BitwardenClient(bitwardenSettings);
-bitwardenClient.accessTokenLogin(accessToken);
+bitwardenClient.loginAccessToken(accessToken, stateFile);
 ```
 
 ### Create new project
@@ -51,7 +52,7 @@ ProjectResponse projectResponseGet = bitwardenClient.getProject(projectId);
 
 ```c++
 boost::uuids::uuid projectId = boost::uuids::string_generator()(projectResponseCreate.get_id());
-ProjectResponse projectResponseUpdate = bitwardenClient.updateProject(projectId, organizationUuid, "TestProjectUpdated");
+ProjectResponse projectResponseUpdate = bitwardenClient.updateProject(organizationUuid, projectId, "TestProjectUpdated");
 ```
 
 ### Delete projects
@@ -66,7 +67,7 @@ SecretsDeleteResponse secretsDeleteResponse = bitwardenClient.deleteSecrets({sec
 std::string key = "key";
 std::string value = "value";
 std::string note = "note";
-SecretResponse secretResponseCreate = bitwardenClient.createSecret(key, value, note, organizationUuid, {projectId});
+SecretResponse secretResponseCreate = bitwardenClient.createSecret(organizationUuid, key, value, note, {projectId});
 ```
 
 ### List secrets
@@ -77,14 +78,29 @@ SecretIdentifiersResponse secretIdentifiersResponse = bitwardenClient.listSecret
 
 ### Get secret details
 
-```
+```c++
 boost::uuids::uuid secretId = boost::uuids::string_generator()(secretResponseCreate.get_id());
 SecretResponse secretResponseGet = bitwardenClient.getSecret(secretId);
 ```
 
-### Update secret
+### Get multiple secrets by ids
+
 ```c++
-SecretResponse secretResponseUpdate = bitwardenClient.updateSecret(secretId, "key2", "value2", "note2", organizationUuid, {projectId});
+std::vector<boost::uuids::uuid> secretIds = {secretId, secretId2};
+SecretsResponse secretsResponseGet = bitwardenClient.getSecrets(secretIds);
+```
+
+### Update secret
+
+```c++
+SecretResponse secretResponseUpdate = bitwardenClient.updateSecret(organizationUuid, secretId, "key2", "value2", "note2", {projectId});
+```
+
+### Sync secrets
+
+```c++
+std::chrono::system_clock::time_point lastSyncedDate = std::chrono::system_clock::now();
+SecretsSyncResponse secretsSyncResponse = bitwardenClient.sync(orgnizationUuid, lastSyncedDate);
 ```
 
 # Delete secrets

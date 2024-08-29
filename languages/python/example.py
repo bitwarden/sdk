@@ -21,8 +21,12 @@ client = BitwardenClient(
 logging.basicConfig(level=logging.DEBUG)
 organization_id = os.getenv("ORGANIZATION_ID")
 
+# Set the state file location
+# Note: the path must exist, the file will be created & managed by the sdk
+state_path = os.getenv("STATE_FILE")
+
 # Attempt to authenticate with the Secrets Manager Access Token
-client.auth().login_access_token(os.getenv("ACCESS_TOKEN"))
+client.auth().login_access_token(os.getenv("ACCESS_TOKEN"), state_path)
 
 # -- Example Project Commands --
 

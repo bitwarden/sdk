@@ -73,7 +73,7 @@ SecretsResponse Secrets::getByIds(const std::vector<boost::uuids::uuid>& ids) {
     }
 }
 
-SecretResponse Secrets::create(const std::string& key, const std::string& value, const std::string& note, const boost::uuids::uuid& organizationId, const std::vector<boost::uuids::uuid>& projectIds) {
+SecretResponse Secrets::create(const boost::uuids::uuid& organizationId, const std::string& key, const std::string& value, const std::string& note, const std::vector<boost::uuids::uuid>& projectIds) {
     Command command;
     SecretsCommand secretsCommand;
     SecretCreateRequest secretCreateRequest;
@@ -102,7 +102,7 @@ SecretResponse Secrets::create(const std::string& key, const std::string& value,
     }
 }
 
-SecretResponse Secrets::update(const boost::uuids::uuid& id, const std::string& key, const std::string& value, const std::string& note, const boost::uuids::uuid& organizationId, const std::vector<boost::uuids::uuid>& projectIds) {
+SecretResponse Secrets::update(const boost::uuids::uuid& organizationId, const boost::uuids::uuid& id, const std::string& key, const std::string& value, const std::string& note, const std::vector<boost::uuids::uuid>& projectIds) {
     Command command;
     SecretsCommand secretsCommand;
     SecretPutRequest secretPutRequest;

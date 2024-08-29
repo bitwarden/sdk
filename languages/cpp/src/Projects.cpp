@@ -67,7 +67,7 @@ ProjectResponse Projects::create(const boost::uuids::uuid& organizationId, const
     }
 }
 
-ProjectResponse Projects::update(const boost::uuids::uuid& id, const boost::uuids::uuid& organizationId, const std::string& name) {
+ProjectResponse Projects::update(const boost::uuids::uuid& organizationId, const boost::uuids::uuid& id, const std::string& name) {
     Command command;
     ProjectsCommand projectsCommand;
     ProjectPutRequest projectPutRequest;

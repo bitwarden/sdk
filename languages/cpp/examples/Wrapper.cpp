@@ -22,16 +22,24 @@ int main() {
     std::string accessToken = accessTokenEnv;
     std::string organizationId = organizationIdEnv;
 
-    // Configuring the URLS is optional, remove them to use the default values
+    // Configuring the URLS is optional; if unset, use bitwarden.com
     BitwardenSettings bitwardenSettings;
-    bitwardenSettings.set_api_url(apiUrl);
-    bitwardenSettings.set_identity_url(identityUrl);
+    if (apiUrl != nullptr && identityUrl != nullptr) {
+        bitwardenSettings.set_api_url(apiUrl);
+        bitwardenSettings.set_identity_url(identityUrl);
+    } else {
+        std::cerr << "Info: API_URL and IDENTITY_URL are not set, using default values..." << std::endl;
+    }
 
     // Create a Bitwarden client instance
     BitwardenClient bitwardenClient(bitwardenSettings);
 
     // Access token login
-    bitwardenClient.loginAccessToken(accessToken, stateFile);
+    if (stateFile != nullptr) {
+        bitwardenClient.loginAccessToken(accessToken, stateFile);
+    } else {
+        bitwardenClient.loginAccessToken(accessToken);
+    }
 
     // Convert organization ID to UUID
     boost::uuids::uuid organizationUuid = boost::uuids::string_generator()(organizationId);
@@ -67,9 +75,13 @@ int main() {
     // Sync secrets
     std::cout << "Secrets:\n";
     std::cout << "\tSyncing secrets...\n";
+    SecretsSyncResponse secretsSyncResponse = bitwardenClient.sync(organizationUuid, {});
     std::chrono::system_clock::time_point lastSyncedDate = std::chrono::system_clock::now();
-    SecretsSyncResponse secretsSyncResponse = bitwardenClient.sync(organizationUuid, lastSyncedDate);
-    std::cout << "\tSync has changes: '" << (secretsSyncResponse.get_has_changes() ? "true" : "false") << "'\n\n";
+    std::cout << "\t\tSync has changes: '" << (secretsSyncResponse.get_has_changes() ? "true" : "false") << "'\n\n";
+
+    std::cout << "\tSyncing again to ensure no changes since last sync...\n";
+    secretsSyncResponse = bitwardenClient.sync(organizationUuid, lastSyncedDate);
+    std::cout << "\t\tSync has changes: '" << (secretsSyncResponse.get_has_changes() ? "true" : "false") << "'\n\n";
 
     // Create a new secret
     SecretResponse secretResponseCreate = bitwardenClient.createSecret(organizationUuid, key, value, note, {projectId});
@@ -79,6 +91,11 @@ int main() {
 
     // List secrets
     SecretIdentifiersResponse secretIdentifiersResponse = bitwardenClient.listSecrets(organizationUuid);
+    std::cout << "\tlistSecrets:\n";
+    for (const SecretIdentifierResponse& secretIdentifier : secretIdentifiersResponse.get_data()) {
+        std::cout << "\t\tID: '" << secretIdentifier.get_id() << "'\n";
+    }
+    std::cout << '\n';
 
     // Get secret details
     SecretResponse secretResponseGet = bitwardenClient.getSecret(secretId);
@@ -100,10 +117,6 @@ int main() {
         organizationUuid, secretId, key, value, note, {projectId});
 
     std::cout << "\tupdateSecret: '" << responseForSecretResponseUpdate.get_key() << "'\n\n";
-
-    // Sync changes to secrets
-    SecretsSyncResponse secretsSyncResponseAfterChanges = bitwardenClient.sync(organizationUuid, lastSyncedDate);
-    std::cout << "\tSync has changes after update: '" << (secretsSyncResponseAfterChanges.get_has_changes() ? "true" : "false") << "'\n\n";
 
     // Delete secrets
     std::cout << "Deleting projects and secrets...\n";

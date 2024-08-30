@@ -9,7 +9,7 @@ int main() {
     const char *organizationIdEnv = std::getenv("ORGANIZATION_ID");
 
     // Use optional state file for authentication
-    const char *stateFile = std::getenv("STATE_PATH");
+    const char *stateFile = std::getenv("STATE_FILE");
 
     const char *apiUrl = std::getenv("API_URL");
     const char *identityUrl = std::getenv("IDENTITY_URL");

@@ -31,7 +31,7 @@ Console.ReadLine();
 // Projects Create, Update, & Get
 Console.WriteLine("Creating and updating a project");
 var projectResponse = bitwardenClient.Projects.Create(organizationId, "NewTestProject");
-projectResponse = bitwardenClient.Projects.Update(projectResponse.Id, organizationId, "NewTestProject Renamed");
+projectResponse = bitwardenClient.Projects.Update(organizationId, projectResponse.Id, "NewTestProject Renamed");
 projectResponse = bitwardenClient.Projects.Get(projectResponse.Id);
 Console.WriteLine("Here is the project we created and updated:");
 Console.WriteLine(projectResponse.Name);

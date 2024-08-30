@@ -2,7 +2,7 @@ use bitwarden_json::client::Client as JsonClient;
 use pyo3::prelude::*;
 
 #[pyclass]
-pub struct BitwardenClient(JsonClient);
+pub struct BitwardenClient(tokio::runtime::Runtime, JsonClient);
 
 #[pymethods]
 impl BitwardenClient {
@@ -13,21 +13,17 @@ impl BitwardenClient {
         // result
         let _ = pyo3_log::try_init();
 
-        Self(new(settings_string))
+        let runtime = tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .expect("Failed to build tokio runtime");
+
+        let client = runtime.block_on(JsonClient::new(settings_string));
+        Self(runtime, client)
     }
 
     #[pyo3(text_signature = "($self, command_input)")]
     fn run_command(&self, command_input: String) -> String {
-        run_command(&self.0, &command_input)
+        self.0.block_on(self.1.run_command(&command_input))
     }
-}
-
-#[tokio::main]
-async fn new(settings_string: Option<String>) -> JsonClient {
-    JsonClient::new(settings_string).await
-}
-
-#[tokio::main]
-async fn run_command(client: &JsonClient, input_str: &str) -> String {
-    client.run_command(input_str).await
 }

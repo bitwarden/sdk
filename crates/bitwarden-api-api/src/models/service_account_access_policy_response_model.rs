@@ -13,42 +13,27 @@ use serde::{Deserialize, Serialize};
 use crate::models;
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
-pub struct ServiceAccountProjectAccessPolicyResponseModel {
+pub struct ServiceAccountAccessPolicyResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
-    #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<uuid::Uuid>,
     #[serde(rename = "read", skip_serializing_if = "Option::is_none")]
     pub read: Option<bool>,
     #[serde(rename = "write", skip_serializing_if = "Option::is_none")]
     pub write: Option<bool>,
-    #[serde(rename = "creationDate", skip_serializing_if = "Option::is_none")]
-    pub creation_date: Option<String>,
-    #[serde(rename = "revisionDate", skip_serializing_if = "Option::is_none")]
-    pub revision_date: Option<String>,
     #[serde(rename = "serviceAccountId", skip_serializing_if = "Option::is_none")]
     pub service_account_id: Option<uuid::Uuid>,
     #[serde(rename = "serviceAccountName", skip_serializing_if = "Option::is_none")]
     pub service_account_name: Option<String>,
-    #[serde(rename = "grantedProjectId", skip_serializing_if = "Option::is_none")]
-    pub granted_project_id: Option<uuid::Uuid>,
-    #[serde(rename = "grantedProjectName", skip_serializing_if = "Option::is_none")]
-    pub granted_project_name: Option<String>,
 }
 
-impl ServiceAccountProjectAccessPolicyResponseModel {
-    pub fn new() -> ServiceAccountProjectAccessPolicyResponseModel {
-        ServiceAccountProjectAccessPolicyResponseModel {
+impl ServiceAccountAccessPolicyResponseModel {
+    pub fn new() -> ServiceAccountAccessPolicyResponseModel {
+        ServiceAccountAccessPolicyResponseModel {
             object: None,
-            id: None,
             read: None,
             write: None,
-            creation_date: None,
-            revision_date: None,
             service_account_id: None,
             service_account_name: None,
-            granted_project_id: None,
-            granted_project_name: None,
         }
     }
 }

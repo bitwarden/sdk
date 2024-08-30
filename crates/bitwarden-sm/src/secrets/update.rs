@@ -38,6 +38,7 @@ pub(crate) async fn update_secret(
         value: input.value.clone().encrypt_with_key(key)?.to_string(),
         note: input.note.clone().trim().encrypt_with_key(key)?.to_string(),
         project_ids: input.project_ids.clone(),
+        access_policies_requests: None,
     });
 
     let config = client.internal.get_api_configurations().await;

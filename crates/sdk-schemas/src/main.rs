@@ -99,7 +99,7 @@ struct SchemaTypes {
     // Output types for Client::run_command
     api_key_login: Response<bitwarden::auth::login::ApiKeyLoginResponse>,
     password_login: Response<bitwarden::auth::login::PasswordLoginResponse>,
-    access_token_login: Response<bitwarden::auth::login::AccessTokenLoginResponse>,
+    login_access_token: Response<bitwarden::auth::login::AccessTokenLoginResponse>,
     secret_identifiers: Response<bitwarden::secrets_manager::secrets::SecretIdentifiersResponse>,
     secret: Response<bitwarden::secrets_manager::secrets::SecretResponse>,
     secrets: Response<bitwarden::secrets_manager::secrets::SecretsResponse>,
@@ -108,6 +108,7 @@ struct SchemaTypes {
     project: Response<bitwarden::secrets_manager::projects::ProjectResponse>,
     projects: Response<bitwarden::secrets_manager::projects::ProjectsResponse>,
     projects_delete: Response<bitwarden::secrets_manager::projects::ProjectsDeleteResponse>,
+    password: Response<String>,
 
     #[cfg(feature = "internal")]
     fingerprint: Response<bitwarden::platform::FingerprintResponse>,

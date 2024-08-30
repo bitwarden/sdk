@@ -1,6 +1,6 @@
 """The official Bitwarden client library for Python."""
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 from .bitwarden_client import *
 from .schemas import *

@@ -2,6 +2,7 @@
 use bitwarden::{
     auth::login::AccessTokenLoginRequest,
     secrets_manager::{
+        generators::PasswordGeneratorRequest,
         projects::{
             ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
             ProjectsListRequest,
@@ -50,7 +51,7 @@ pub enum Command {
     /// This command is for initiating an authentication handshake with Bitwarden.
     ///
     /// Returns: [ApiKeyLoginResponse](bitwarden::auth::login::ApiKeyLoginResponse)
-    AccessTokenLogin(AccessTokenLoginRequest),
+    LoginAccessToken(AccessTokenLoginRequest),
 
     #[cfg(feature = "internal")]
     /// > Requires Authentication
@@ -76,6 +77,8 @@ pub enum Command {
     Secrets(SecretsCommand),
     #[cfg(feature = "secrets")]
     Projects(ProjectsCommand),
+    #[cfg(feature = "secrets")]
+    Generators(GeneratorsCommand),
 }
 
 #[cfg(feature = "secrets")]
@@ -174,4 +177,14 @@ pub enum ProjectsCommand {
     ///
     /// Returns: [ProjectsDeleteResponse](bitwarden::secrets_manager::projects::ProjectsDeleteResponse)
     Delete(ProjectsDeleteRequest),
+}
+
+#[cfg(feature = "secrets")]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub enum GeneratorsCommand {
+    /// Generate a password
+    ///
+    /// Returns: [String]
+    GeneratePassword(PasswordGeneratorRequest),
 }

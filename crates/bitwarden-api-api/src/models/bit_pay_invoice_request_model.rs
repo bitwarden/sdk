@@ -18,6 +18,8 @@ pub struct BitPayInvoiceRequestModel {
     pub user_id: Option<uuid::Uuid>,
     #[serde(rename = "organizationId", skip_serializing_if = "Option::is_none")]
     pub organization_id: Option<uuid::Uuid>,
+    #[serde(rename = "providerId", skip_serializing_if = "Option::is_none")]
+    pub provider_id: Option<uuid::Uuid>,
     #[serde(rename = "credit", skip_serializing_if = "Option::is_none")]
     pub credit: Option<bool>,
     #[serde(rename = "amount")]
@@ -35,6 +37,7 @@ impl BitPayInvoiceRequestModel {
         BitPayInvoiceRequestModel {
             user_id: None,
             organization_id: None,
+            provider_id: None,
             credit: None,
             amount,
             return_url: None,

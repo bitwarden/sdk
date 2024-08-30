@@ -112,4 +112,22 @@ public class SecretsClient {
 
         return response.getData();
     }
+
+    public SecretsResponse getByIds(UUID[] ids) {
+        Command command = new Command();
+        SecretsCommand secretsCommand = new SecretsCommand();
+        SecretsGetRequest secretsGetRequest = new SecretsGetRequest();
+        secretsGetRequest.setIDS(ids);
+        secretsCommand.setGetByIDS(secretsGetRequest);
+        command.setSecrets(secretsCommand);
+
+        ResponseForSecretsResponse response = commandRunner.runCommand(command,
+            BitwardenClient.throwingFunctionWrapper(Converter::ResponseForSecretsResponseFromJsonString));
+
+        if (response == null || !response.getSuccess()) {
+            throw new BitwardenClientException(response != null ? response.getErrorMessage() : "Secret not found");
+        }
+
+        return response.getData();
+    }
 }

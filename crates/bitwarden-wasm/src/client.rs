@@ -35,7 +35,7 @@ pub struct BitwardenClient(Rc<JsonClient>);
 #[wasm_bindgen]
 impl BitwardenClient {
     #[wasm_bindgen]
-    pub async fn factory(settings_input: Option<String>, log_level: Option<LogLevel>) -> Self {
+    pub async fn create(settings_input: Option<String>, log_level: Option<LogLevel>) -> Self {
         console_error_panic_hook::set_once();
         if let Err(e) =
             console_log::init_with_level(convert_level(log_level.unwrap_or(LogLevel::Info)))

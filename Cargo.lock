@@ -602,7 +602,6 @@ dependencies = [
  "schemars",
  "serde",
  "serde_json",
- "uuid",
 ]
 
 [[package]]

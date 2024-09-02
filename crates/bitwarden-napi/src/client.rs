@@ -27,23 +27,18 @@ pub struct BitwardenClient(JsonClient);
 
 #[napi]
 impl BitwardenClient {
-    #[napi(constructor)]
-    pub fn new(settings_input: Option<String>, log_level: Option<LogLevel>) -> Self {
+    #[napi(factory)]
+    pub async fn create(settings_input: Option<String>, log_level: Option<LogLevel>) -> Self {
         // This will only fail if another logger was already initialized, so we can ignore the
         // result
         let _ = env_logger::Builder::from_default_env()
             .filter_level(convert_level(log_level.unwrap_or(LogLevel::Info)))
             .try_init();
-        Self(new(settings_input))
+        Self(bitwarden_json::client::Client::new(settings_input).await)
     }
 
     #[napi]
     pub async fn run_command(&self, command_input: String) -> String {
         self.0.run_command(&command_input).await
     }
-}
-
-#[tokio::main]
-async fn new(settings_string: Option<String>) -> JsonClient {
-    JsonClient::new(settings_string).await
 }

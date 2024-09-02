@@ -20,7 +20,7 @@ extern "C" {
     type SqliteDatabase;
 
     #[wasm_bindgen(static_method_of = SqliteDatabase)]
-    async fn factory(name: &str) -> JsValue;
+    async fn create(name: &str) -> JsValue;
 
     #[wasm_bindgen(method)]
     async fn get_version(this: &SqliteDatabase) -> JsValue;

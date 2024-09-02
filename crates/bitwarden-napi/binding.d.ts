@@ -11,6 +11,9 @@ export const enum LogLevel {
   Error = 4,
 }
 export declare class BitwardenClient {
-  constructor(settingsInput?: string | undefined | null, logLevel?: LogLevel | undefined | null);
+  static create(
+    settingsInput?: string | undefined | null,
+    logLevel?: LogLevel | undefined | null,
+  ): Promise<BitwardenClient>;
   runCommand(commandInput: string): Promise<string>;
 }

@@ -22,8 +22,20 @@ public class SecretsClient
         throw new BitwardenException(result != null ? result.ErrorMessage : "Secret not found");
     }
 
-    public SecretResponse Create(string key, string value, string note, Guid organizationId,
-        Guid[] projectIds)
+    public SecretsResponse GetByIds(Guid[] ids)
+    {
+        var command = new Command { Secrets = new SecretsCommand { GetByIds = new SecretsGetRequest { Ids = ids } } };
+        var result = _commandRunner.RunCommand<ResponseForSecretsResponse>(command);
+
+        if (result is { Success: true })
+        {
+            return result.Data;
+        }
+
+        throw new BitwardenException(result != null ? result.ErrorMessage : "Secret not found");
+    }
+
+    public SecretResponse Create(Guid organizationId, string key, string value, string note, Guid[] projectIds)
     {
         var command = new Command
         {
@@ -50,8 +62,7 @@ public class SecretsClient
         throw new BitwardenException(result != null ? result.ErrorMessage : "Secret create failed");
     }
 
-    public SecretResponse Update(Guid id, string key, string value, string note, Guid organizationId,
-        Guid[] projectIds)
+    public SecretResponse Update(Guid organizationId, Guid id, string key, string value, string note, Guid[] projectIds)
     {
         var command = new Command
         {
@@ -106,5 +117,29 @@ public class SecretsClient
         }
 
         throw new BitwardenException(result != null ? result.ErrorMessage : "No secrets for given organization");
+    }
+
+    public SecretsSyncResponse Sync(Guid organizationId, DateTimeOffset? lastSyncedDate)
+    {
+        var command = new Command
+        {
+            Secrets = new SecretsCommand
+            {
+                Sync = new SecretsSyncRequest
+                {
+                    OrganizationId = organizationId,
+                    LastSyncedDate = lastSyncedDate
+                }
+            }
+        };
+
+        var result = _commandRunner.RunCommand<ResponseForSecretsSyncResponse>(command);
+
+        if (result is { Success: true })
+        {
+            return result.Data;
+        }
+
+        throw new BitwardenException(result != null ? result.ErrorMessage : "Secret update failed");
     }
 }

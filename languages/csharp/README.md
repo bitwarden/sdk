@@ -12,8 +12,15 @@ Review the help documentation on [Access Tokens]
 
 ```csharp
 const string accessToken = "<access-token>";
-using var bitwardenClient = new BitwardenClient();
-bitwardenClient.AccessTokenLogin(accessToken);
+const string stateFile = "<state-file>";
+
+using var bitwardenClient = new BitwardenClient(new BitwardenSettings
+{
+    ApiUrl = apiUrl,
+    IdentityUrl = identityUrl
+});
+
+bitwardenClient.LoginAccessToken(accessToken, stateFile);
 ```
 
 ### Create new project
@@ -34,7 +41,7 @@ var response = bitwardenClient.Projects.List(organizationId);
 ```csharp
 var projectId = projectResponse.Id;
 projectResponse = bitwardenClient.Projects.Get(projectId);
-projectResponse = bitwardenClient.Projects.Update(projectId, organizationId, "TestProjectUpdated");
+projectResponse = bitwardenClient.Projects.Update(organizationId, projectId, "TestProjectUpdated");
 ```
 
 ### Add new secret
@@ -43,20 +50,32 @@ projectResponse = bitwardenClient.Projects.Update(projectId, organizationId, "Te
 var key = "key";
 var value = "value";
 var note = "note";
-var secretResponse = bitwardenClient.Secrets.Create(key, value, note, organizationId, new[] { projectId });
-var secretId = secretResponse.Id;
+var secretResponse = bitwardenClient.Secrets.Create(organizationId, key, value, note, new[] { projectId });
 ```
 
 ### Update secret
 ```csharp
-secretResponse = bitwardenClient.Secrets
-    .Update(secretId, "key2", "value2", "note2", organizationId, new[] { projectId });
+var secretId = secretResponse.Id;
+secretResponse = bitwardenClient.Secrets.Get(secretId);
+secretResponse = bitwardenClient.Secrets.Update(organizationId, secretId, "key2", "value2", "note2", new[] { projectId });
+```
+
+### Secret GetByIds
+
+```csharp
+var secretsResponse = bitwardenClient.Secrets.GetByIds(new[] { secretResponse.Id });
 ```
 
 ### List secrets
 
 ```csharp
 var secretIdentifiersResponse = bitwardenClient.Secrets.List(organizationId);
+```
+
+### Sync secrets
+
+```csharp
+var syncResponse = bitwardenClient.Secrets.Sync(organizationId, null);
 ```
 
 # Delete secret or project

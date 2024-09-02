@@ -41,7 +41,7 @@ public class ProjectsClient
         throw new BitwardenException(result != null ? result.ErrorMessage : "Project create failed");
     }
 
-    public ProjectResponse Update(Guid id, Guid organizationId, string name)
+    public ProjectResponse Update(Guid organizationId, Guid id, string name)
     {
         var command = new Command
         {

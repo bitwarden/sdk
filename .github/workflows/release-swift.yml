@@ -231,6 +231,7 @@ jobs:
           workflow_conclusion: success
           artifacts: "BitwardenFFI-${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}.xcframework"
           run_id: ${{ env._BUILD_RUN_ID }}
+          skip_unpack: true
 
       - name: Create release
         uses: ncipollo/release-action@2c591bcc8ecdcd2db72b97d6147f871fcd833ba5 # v1.14.0

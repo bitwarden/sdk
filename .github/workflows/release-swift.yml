@@ -126,13 +126,6 @@ jobs:
             echo "ref=main" >> $GITHUB_OUTPUT
           fi
 
-      - name: Checkout SDK-Swift repo
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-        with:
-          repository: bitwarden/sdk-swift
-          path: sdk-swift
-          ref: ${{ steps.get-ref.outputs.ref }}
-
       - name: Login to Azure - Prod Subscription
         uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
         with:
@@ -146,6 +139,14 @@ jobs:
           secrets: "github-gpg-private-key,
             github-gpg-private-key-passphrase,
             github-pat-bitwarden-devops-bot-repo-scope"
+
+      - name: Checkout SDK-Swift repo
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          repository: bitwarden/sdk-swift
+          path: sdk-swift
+          ref: ${{ steps.get-ref.outputs.ref }}
+          token: ${{ steps.retrieve-secrets.outputs.github-pat-bitwarden-devops-bot-repo-scope }}
 
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@01dd5d3ca463c7f10f7f4f7b4f177225ac661ee4 # v6.1.0

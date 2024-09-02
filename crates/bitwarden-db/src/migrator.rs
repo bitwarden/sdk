@@ -52,17 +52,14 @@ impl Migrator {
         for migration in migrations {
             info!("Applying migration: {}", migration.description);
 
-            match current_version < target_version {
-                true => {
-                    db.execute_batch(migration.up)
-                        .await
-                        .map_err(|_| MigratorError::MigrationFailed)?;
-                }
-                false => {
-                    db.execute_batch(migration.down)
-                        .await
-                        .map_err(|_| MigratorError::MigrationFailed)?;
-                }
+            if current_version < target_version {
+                db.execute_batch(migration.up)
+                    .await
+                    .map_err(|_| MigratorError::MigrationFailed)?;
+            } else {
+                db.execute_batch(migration.down)
+                    .await
+                    .map_err(|_| MigratorError::MigrationFailed)?;
             }
         }
 

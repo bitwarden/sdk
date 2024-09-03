@@ -47,6 +47,7 @@ pub(super) fn derive_kdf_key(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<Sy
     SymmetricCryptoKey::try_from(hash.as_mut_slice())
 }
 
+/// Stretch the given key using HKDF.
 pub(super) fn stretch_kdf_key(k: &SymmetricCryptoKey) -> Result<SymmetricCryptoKey> {
     let key: Pin<Box<GenericArray<u8, U32>>> = hkdf_expand(&k.key, Some("enc"))?;
     let mac_key: Pin<Box<GenericArray<u8, U32>>> = hkdf_expand(&k.key, Some("mac"))?;

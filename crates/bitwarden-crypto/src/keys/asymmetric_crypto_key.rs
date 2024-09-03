@@ -15,7 +15,7 @@ pub trait AsymmetricEncryptable {
 /// [AsymmetricEncString](crate::AsymmetricEncString), usually accompanied by a
 /// [AsymmetricCryptoKey]
 pub struct AsymmetricPublicCryptoKey {
-    pub(crate) key: RsaPublicKey,
+    key: RsaPublicKey,
 }
 
 impl AsymmetricPublicCryptoKey {

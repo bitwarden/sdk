@@ -22,7 +22,7 @@ internal = [
 anyhow = "1.0.82"
 bitwarden = { workspace = true }
 bitwarden-json = { path = "../bitwarden-json" }
-bitwarden-uniffi = { path = "../bitwarden-uniffi" }
+bitwarden-uniffi = { path = "../bitwarden-uniffi", optional = true }
 itertools = "0.13.0"
 schemars = { version = "0.8.16", features = ["preserve_order"] }
 serde_json = "1.0.113"

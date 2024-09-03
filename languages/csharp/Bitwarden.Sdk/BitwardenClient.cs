@@ -18,21 +18,14 @@ public sealed class BitwardenClient : IDisposable
         _commandRunner = new CommandRunner(_handle);
         Projects = new ProjectsClient(_commandRunner);
         Secrets = new SecretsClient(_commandRunner);
-    }
-
-    public async Task AccessTokenLoginAsync(string accessToken)
-    {
-        var command = new Command { LoginAccessToken = new AccessTokenLoginRequest { AccessToken = accessToken } };
-        var response = await _commandRunner.RunCommandAsync<ResponseForApiKeyLoginResponse>(command);
-        if (response is not { Success: true })
-        {
-            throw new BitwardenAuthException(response != null ? response.ErrorMessage : "Login failed");
-        }
+        Auth = new AuthClient(_commandRunner);
     }
 
     public ProjectsClient Projects { get; }
 
     public SecretsClient Secrets { get; }
+
+    public AuthClient Auth { get; set; }
 
     public void Dispose() => _handle.Dispose();
 }

@@ -133,7 +133,7 @@ fn decrypt_aes128(iv: &[u8; 16], data: Vec<u8>, key: &GenericArray<u8, U16>) -> 
 /// Decrypt using AES-128 in CBC mode with MAC.
 ///
 /// Behaves similar to [decrypt_aes128], but also validates the MAC.
-pub fn decrypt_aes128_hmac(
+pub(crate) fn decrypt_aes128_hmac(
     iv: &[u8; 16],
     mac: &[u8; 32],
     data: Vec<u8>,

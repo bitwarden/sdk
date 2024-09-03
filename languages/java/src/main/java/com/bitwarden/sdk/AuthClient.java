@@ -21,22 +21,12 @@ public class AuthClient {
         command.setLoginAccessToken(accessTokenLoginRequest);
 
         ResponseForAPIKeyLoginResponse response = commandRunner.runCommand(command,
-            throwingFunctionWrapper(Converter::ResponseForAPIKeyLoginResponseFromJsonString));
+            BitwardenClient.throwingFunctionWrapper(Converter::ResponseForAPIKeyLoginResponseFromJsonString));
 
         if (response == null || !response.getSuccess()) {
             throw new BitwardenClientException(response != null ? response.getErrorMessage() : "Login failed");
         }
 
         return response.getData();
-    }
-
-    static <T, R> Function<T, R> throwingFunctionWrapper(ThrowingFunction<T, R, Exception> throwingFunction) {
-        return i -> {
-            try {
-                return throwingFunction.accept(i);
-            } catch (Exception ex) {
-                throw new BitwardenClientException("Response deserialization failed");
-            }
-        };
     }
 }

@@ -22,7 +22,7 @@ class Example {
         bitwardenSettings.setIdentityUrl(identityUrl);
 
         try (BitwardenClient client = new BitwardenClient(bitwardenSettings)) {
-            client.accessTokenLogin(accessToken);
+            client.auth().loginAccessToken(accessToken, null);
 
             ProjectResponse project = client.projects().create(organizationId, "Test Project");
             System.out.println("Project id: " + project.getID());

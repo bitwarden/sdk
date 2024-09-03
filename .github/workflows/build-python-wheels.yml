@@ -89,7 +89,7 @@ jobs:
 
       - name: Build wheels
         if: ${{ matrix.settings.target != 'x86_64-unknown-linux-gnu' }}
-        uses: PyO3/maturin-action@52b28abb0c6729beb388babfc348bf6ff5aaff31 # v1.42.2
+        uses: PyO3/maturin-action@2c5c1560848aaa364c3545136054932db5fa27b7 # v1.44.0
         with:
           target: ${{ matrix.settings.target }}
           args: --release --find-interpreter --sdist
@@ -99,7 +99,7 @@ jobs:
 
       - name: Build wheels (Linux - x86_64)
         if: ${{ matrix.settings.target == 'x86_64-unknown-linux-gnu' }}
-        uses: PyO3/maturin-action@52b28abb0c6729beb388babfc348bf6ff5aaff31 # v1.42.2
+        uses: PyO3/maturin-action@2c5c1560848aaa364c3545136054932db5fa27b7 # v1.44.0
         with:
           target: ${{ matrix.settings.target }}
           args: --release --find-interpreter --sdist
@@ -109,14 +109,14 @@ jobs:
           working-directory: ${{ github.workspace }}/languages/python
 
       - name: Upload wheels
-        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4.3.6
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
           name: bitwarden_sdk-${{ env._PACKAGE_VERSION }}-${{ matrix.settings.target }}
           path: ${{ github.workspace }}/target/wheels/bitwarden_sdk*.whl
 
       - name: Upload sdists
         if: ${{ matrix.settings.target == 'x86_64-unknown-linux-gnu' }} # we only need one sdist
-        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4.3.6
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
           name: bitwarden_sdk-${{ env._PACKAGE_VERSION }}-sdist
           path: ${{ github.workspace }}/target/wheels/bitwarden_sdk-*.tar.gz

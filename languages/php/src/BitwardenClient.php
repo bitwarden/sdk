@@ -41,12 +41,13 @@ class BitwardenClient
     /**
      * @throws \Exception
      */
-    public function access_token_login(string $access_token)
+    public function login_access_token(string $access_token, string $state_file): void
     {
         $access_token_request = new AccessTokenLoginRequest();
         $access_token_request->accessToken = $access_token;
+        $access_token_request->stateFile = $state_file;
         $command = new Command();
-        $command->accessTokenLogin = $access_token_request->jsonSerialize();
+        $command->loginAccessToken = $access_token_request->jsonSerialize();
         $result = $this->commandRunner->run($command);
         if (!isset($result->authenticated)) {
             throw new \Exception("Authorization error");

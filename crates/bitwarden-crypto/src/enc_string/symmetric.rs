@@ -203,7 +203,7 @@ impl serde::Serialize for EncString {
 }
 
 impl EncString {
-    pub fn encrypt_aes256_hmac(
+    pub(crate) fn encrypt_aes256_hmac(
         data_dec: &[u8],
         mac_key: &GenericArray<u8, U32>,
         key: &GenericArray<u8, U32>,

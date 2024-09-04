@@ -5,6 +5,7 @@ use std::{
 };
 
 use bitwarden_json::client::Client;
+use tokio::task::JoinHandle;
 
 use crate::{box_ptr, ffi_ref};
 
@@ -39,7 +40,9 @@ pub extern "C" fn run_command_async(
     c_str_ptr: *const c_char,
     client_ptr: *const CClient,
     on_completed_callback: OnCompletedCallback,
-) -> () {
+    is_cancellable: bool
+) -> *mut JoinHandle<()> {
+    println!("Cancellable: {}", is_cancellable);
     let client = unsafe { ffi_ref!(client_ptr) };
     let input_str = str::from_utf8(unsafe { CStr::from_ptr(c_str_ptr) }.to_bytes())
         .expect("Input should be a valid string")
@@ -48,7 +51,7 @@ pub extern "C" fn run_command_async(
         // so we need to make our own copy.
         .to_owned();
 
-    client.runtime.spawn(async move {
+    let join_handle = client.runtime.spawn(async move {
         let result = client.client.run_command(input_str.as_str()).await;
         let str_result = match std::ffi::CString::new(result) {
             Ok(cstr) => cstr.into_raw(),
@@ -61,6 +64,16 @@ pub extern "C" fn run_command_async(
             let _ = CString::from_raw(str_result);
         }
     });
+
+    // We only want to box the join handle the caller
+    // has said that they may want to cancel, essentially
+    // promising to us that they will take care of the
+    // returned pointer.
+    if is_cancellable {
+        box_ptr!(join_handle)
+    } else {
+        std::ptr::null_mut()
+    }
 }
 
 // Init client, potential leak! You need to call free_mem after this!
@@ -90,4 +103,17 @@ pub extern "C" fn init(c_str_ptr: *const c_char) -> *mut CClient {
 #[no_mangle]
 pub extern "C" fn free_mem(client_ptr: *mut CClient) {
     std::mem::drop(unsafe { Box::from_raw(client_ptr) });
+}
+
+#[no_mangle]
+pub extern  "C" fn abort_and_free_handle(join_handle_ptr: *mut tokio::task::JoinHandle<()>) -> () {
+    let join_handle = unsafe { Box::from_raw(join_handle_ptr) };
+    join_handle.abort();
+    println!("Freed handle");
+    std::mem::drop(join_handle);
+}
+
+#[no_mangle]
+pub  extern  "C" fn free_handle(join_handle_ptr: *mut tokio::task::JoinHandle<()>) -> () {
+    std::mem::drop(unsafe { Box::from_raw(join_handle_ptr)});
 }

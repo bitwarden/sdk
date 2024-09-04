@@ -16,7 +16,16 @@ internal static partial class BitwardenLibrary
     internal delegate void OnCompleteCallback(IntPtr json);
 
     [LibraryImport("bitwarden_c", StringMarshalling = StringMarshalling.Utf8)]
-    private static partial void run_command_async(string json, BitwardenSafeHandle handle, OnCompleteCallback on_completed_callback);
+    private static partial IntPtr run_command_async(string json,
+        BitwardenSafeHandle handle,
+        OnCompleteCallback onCompletedCallback,
+        [MarshalAs(UnmanagedType.U1)] bool isCancellable);
+
+    [LibraryImport("bitwarden_c", StringMarshalling = StringMarshalling.Utf8)]
+    private static partial void abort_and_free_handle(IntPtr joinHandle);
+
+    [LibraryImport("bitwarden_c", StringMarshalling = StringMarshalling.Utf8)]
+    private static partial void free_handle(IntPtr joinHandle);
 
     internal static BitwardenSafeHandle Init(string settings) => init(settings);
 
@@ -24,17 +33,26 @@ internal static partial class BitwardenLibrary
 
     internal static string RunCommand(string json, BitwardenSafeHandle handle) => run_command(json, handle);
 
-    internal static Task<string> RunCommandAsync(string json, BitwardenSafeHandle handle, CancellationToken token = default)
+    internal static Task<string> RunCommandAsync(string json, BitwardenSafeHandle handle, CancellationToken token)
     {
+        token.ThrowIfCancellationRequested();
         var tcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        IntPtr abortPointer = IntPtr.Zero;
 
         try
         {
-            run_command_async(json, handle, (resultPointer) =>
+
+            abortPointer = run_command_async(json, handle, (resultPointer) =>
             {
                 var stringResult = Marshal.PtrToStringUTF8(resultPointer);
                 tcs.SetResult(stringResult);
-            });
+
+                if (abortPointer != IntPtr.Zero)
+                {
+                    free_handle(abortPointer);
+                }
+            }, token.CanBeCanceled);
         }
         catch (Exception ex)
         {
@@ -42,6 +60,11 @@ internal static partial class BitwardenLibrary
         }
 
         // TODO: Register cancellation on token
+        token.Register((state) =>
+        {
+            abort_and_free_handle((IntPtr)state);
+            tcs.SetCanceled();
+        }, abortPointer);
 
         return tcs.Task;
     }

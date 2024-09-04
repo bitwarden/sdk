@@ -12,6 +12,8 @@
     <Copyright>Bitwarden Inc.</Copyright>
     <Product>SDK</Product>
 
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+
     <RepositoryUrl>https://github.com/bitwarden/sdk/tree/main/languages/csharp</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
 

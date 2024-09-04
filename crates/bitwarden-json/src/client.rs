@@ -98,6 +98,17 @@ impl Client {
                     client.generator().password(req).into_string()
                 }
             },
+            #[cfg(debug_assertions)]
+            Command::Debug(cmd) => {
+                use crate::command::DebugCommand;
+                match cmd {
+                    DebugCommand::CancellationTest { duration_millis } => {
+                        client.platform().cancellation_test(duration_millis).await.into_string()
+                    },
+                    DebugCommand::ErrorTest { } => {
+                        client.platform().error_test().await.into_string()
+                    },
+            }},
         }
     }
 

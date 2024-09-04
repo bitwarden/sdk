@@ -24,4 +24,10 @@ internal class CommandRunner
         var result = await BitwardenLibrary.RunCommandAsync(req, _handle, cancellationToken);
         return JsonSerializer.Deserialize<T>(result, Converter.Settings);
     }
+
+    internal async Task<T?> RunCommandAsync<T>(string command, CancellationToken cancellationToken)
+    {
+        var result = await BitwardenLibrary.RunCommandAsync(command, _handle, cancellationToken);
+        return JsonSerializer.Deserialize<T>(result, Converter.Settings);
+    }
 }

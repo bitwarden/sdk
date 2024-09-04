@@ -39,7 +39,7 @@ impl<'a> ClientPlatform<'a> {
     }
 
     #[cfg(debug_assertions)]
-    pub async fn error_test(&mut self) -> Result<i32> {
+    pub fn error_test(&mut self) -> Result<i32> {
         use crate::Error;
 
         Err(Error::Internal(std::borrow::Cow::Borrowed(

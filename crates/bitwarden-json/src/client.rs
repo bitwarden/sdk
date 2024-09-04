@@ -108,7 +108,7 @@ impl Client {
                         .await
                         .into_string(),
                     DebugCommand::ErrorTest {} => {
-                        client.platform().error_test().await.into_string()
+                        client.platform().error_test().into_string()
                     }
                 }
             }

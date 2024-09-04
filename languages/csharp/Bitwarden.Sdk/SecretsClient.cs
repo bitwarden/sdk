@@ -9,10 +9,10 @@ public class SecretsClient
         _commandRunner = commandRunner;
     }
 
-    public SecretResponse Get(Guid id)
+    public async Task<SecretResponse> GetAsync(Guid id)
     {
         var command = new Command { Secrets = new SecretsCommand { Get = new SecretGetRequest { Id = id } } };
-        var result = _commandRunner.RunCommand<ResponseForSecretResponse>(command);
+        var result = await _commandRunner.RunCommandAsync<ResponseForSecretResponse>(command);
 
         if (result is { Success: true })
         {
@@ -22,10 +22,10 @@ public class SecretsClient
         throw new BitwardenException(result != null ? result.ErrorMessage : "Secret not found");
     }
 
-    public SecretsResponse GetByIds(Guid[] ids)
+    public async Task<SecretsResponse> GetByIdsAsync(Guid[] ids)
     {
         var command = new Command { Secrets = new SecretsCommand { GetByIds = new SecretsGetRequest { Ids = ids } } };
-        var result = _commandRunner.RunCommand<ResponseForSecretsResponse>(command);
+        var result = await _commandRunner.RunCommandAsync<ResponseForSecretsResponse>(command);
 
         if (result is { Success: true })
         {
@@ -35,7 +35,7 @@ public class SecretsClient
         throw new BitwardenException(result != null ? result.ErrorMessage : "Secret not found");
     }
 
-    public SecretResponse Create(Guid organizationId, string key, string value, string note, Guid[] projectIds)
+    public async Task<SecretResponse> CreateAsync(Guid organizationId, string key, string value, string note, Guid[] projectIds)
     {
         var command = new Command
         {
@@ -52,7 +52,7 @@ public class SecretsClient
             }
         };
 
-        var result = _commandRunner.RunCommand<ResponseForSecretResponse>(command);
+        var result = await _commandRunner.RunCommandAsync<ResponseForSecretResponse>(command);
 
         if (result is { Success: true })
         {
@@ -62,7 +62,7 @@ public class SecretsClient
         throw new BitwardenException(result != null ? result.ErrorMessage : "Secret create failed");
     }
 
-    public SecretResponse Update(Guid organizationId, Guid id, string key, string value, string note, Guid[] projectIds)
+    public async Task<SecretResponse> UpdateAsync(Guid organizationId, Guid id, string key, string value, string note, Guid[] projectIds)
     {
         var command = new Command
         {
@@ -80,7 +80,7 @@ public class SecretsClient
             }
         };
 
-        var result = _commandRunner.RunCommand<ResponseForSecretResponse>(command);
+        var result = await _commandRunner.RunCommandAsync<ResponseForSecretResponse>(command);
 
         if (result is { Success: true })
         {
@@ -90,10 +90,10 @@ public class SecretsClient
         throw new BitwardenException(result != null ? result.ErrorMessage : "Secret update failed");
     }
 
-    public SecretsDeleteResponse Delete(Guid[] ids)
+    public async Task<SecretsDeleteResponse> DeleteAsync(Guid[] ids)
     {
         var command = new Command { Secrets = new SecretsCommand { Delete = new SecretsDeleteRequest { Ids = ids } } };
-        var result = _commandRunner.RunCommand<ResponseForSecretsDeleteResponse>(command);
+        var result = await _commandRunner.RunCommandAsync<ResponseForSecretsDeleteResponse>(command);
 
         if (result is { Success: true })
         {
@@ -103,13 +103,13 @@ public class SecretsClient
         throw new BitwardenException(result != null ? result.ErrorMessage : "Secrets delete failed");
     }
 
-    public SecretIdentifiersResponse List(Guid organizationId)
+    public async Task<SecretIdentifiersResponse> ListAsync(Guid organizationId)
     {
         var command = new Command
         {
             Secrets = new SecretsCommand { List = new SecretIdentifiersRequest { OrganizationId = organizationId } }
         };
-        var result = _commandRunner.RunCommand<ResponseForSecretIdentifiersResponse>(command);
+        var result = await _commandRunner.RunCommandAsync<ResponseForSecretIdentifiersResponse>(command);
 
         if (result is { Success: true })
         {
@@ -119,7 +119,7 @@ public class SecretsClient
         throw new BitwardenException(result != null ? result.ErrorMessage : "No secrets for given organization");
     }
 
-    public SecretsSyncResponse Sync(Guid organizationId, DateTimeOffset? lastSyncedDate)
+    public async Task<SecretsSyncResponse> SyncAsync(Guid organizationId, DateTimeOffset? lastSyncedDate)
     {
         var command = new Command
         {
@@ -133,7 +133,7 @@ public class SecretsClient
             }
         };
 
-        var result = _commandRunner.RunCommand<ResponseForSecretsSyncResponse>(command);
+        var result = await _commandRunner.RunCommandAsync<ResponseForSecretsSyncResponse>(command);
 
         if (result is { Success: true })
         {

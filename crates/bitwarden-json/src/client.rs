@@ -107,9 +107,7 @@ impl Client {
                         .cancellation_test(duration_millis)
                         .await
                         .into_string(),
-                    DebugCommand::ErrorTest {} => {
-                        client.platform().error_test().into_string()
-                    }
+                    DebugCommand::ErrorTest {} => client.platform().error_test().into_string()
                 }
             }
         }

@@ -196,5 +196,5 @@ pub enum GeneratorsCommand {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum DebugCommand {
     CancellationTest { duration_millis: u64 },
-    ErrorTest { },
+    ErrorTest {},
 }

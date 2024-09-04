@@ -42,7 +42,9 @@ impl<'a> ClientPlatform<'a> {
     pub async fn error_test(&mut self) -> Result<i32> {
         use crate::Error;
 
-        Err(Error::Internal(std::borrow::Cow::Borrowed("This is an error.")))
+        Err(Error::Internal(std::borrow::Cow::Borrowed(
+            "This is an error.",
+        )))
     }
 }
 

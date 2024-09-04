@@ -1,7 +1,7 @@
 use std::{
     ffi::{CStr, CString},
     os::raw::c_char,
-    str
+    str,
 };
 
 use bitwarden_json::client::Client;
@@ -40,7 +40,7 @@ pub extern "C" fn run_command_async(
     c_str_ptr: *const c_char,
     client_ptr: *const CClient,
     on_completed_callback: OnCompletedCallback,
-    is_cancellable: bool
+    is_cancellable: bool,
 ) -> *mut JoinHandle<()> {
     let client = unsafe { ffi_ref!(client_ptr) };
     let input_str = str::from_utf8(unsafe { CStr::from_ptr(c_str_ptr) }.to_bytes())
@@ -105,13 +105,13 @@ pub extern "C" fn free_mem(client_ptr: *mut CClient) {
 }
 
 #[no_mangle]
-pub extern  "C" fn abort_and_free_handle(join_handle_ptr: *mut tokio::task::JoinHandle<()>) -> () {
+pub extern "C" fn abort_and_free_handle(join_handle_ptr: *mut tokio::task::JoinHandle<()>) -> () {
     let join_handle = unsafe { Box::from_raw(join_handle_ptr) };
     join_handle.abort();
     std::mem::drop(join_handle);
 }
 
 #[no_mangle]
-pub  extern  "C" fn free_handle(join_handle_ptr: *mut tokio::task::JoinHandle<()>) -> () {
-    std::mem::drop(unsafe { Box::from_raw(join_handle_ptr)});
+pub  extern "C" fn free_handle(join_handle_ptr: *mut tokio::task::JoinHandle<()>) -> () {
+    std::mem::drop(unsafe { Box::from_raw(join_handle_ptr) });
 }

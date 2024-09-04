@@ -40,7 +40,7 @@ public sealed partial class BitwardenClient
                 {
                     ErrorTest = new ErrorTest(),
                 },
-            });
+            }, CancellationToken.None);
 
         return ParseResult(result).GetInt32();
     }

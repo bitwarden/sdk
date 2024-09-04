@@ -33,9 +33,9 @@ internal static partial class BitwardenLibrary
 
     internal static string RunCommand(string json, BitwardenSafeHandle handle) => run_command(json, handle);
 
-    internal static Task<string> RunCommandAsync(string json, BitwardenSafeHandle handle, CancellationToken token)
+    internal static Task<string> RunCommandAsync(string json, BitwardenSafeHandle handle, CancellationToken cancellationToken)
     {
-        token.ThrowIfCancellationRequested();
+        cancellationToken.ThrowIfCancellationRequested();
         var tcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         IntPtr abortPointer = IntPtr.Zero;
@@ -52,15 +52,17 @@ internal static partial class BitwardenLibrary
                 {
                     free_handle(abortPointer);
                 }
-            }, token.CanBeCanceled);
+            }, cancellationToken.CanBeCanceled);
         }
         catch (Exception ex)
         {
             tcs.SetException(ex);
         }
 
-        token.Register((state) =>
+        cancellationToken.Register((state) =>
         {
+            // This register delegate will never be called unless the token is cancelable
+            // therefore we know that the abortPointer is a valid pointer.
             abort_and_free_handle((IntPtr)state);
             tcs.SetCanceled();
         }, abortPointer);

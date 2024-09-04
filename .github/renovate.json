@@ -8,6 +8,11 @@
   },
   "packageRules": [
     {
+      "matchPackageNames": ["PyO3/maturin-action"],
+      "matchPackagePatterns": ["^PyO3/maturin-action$"],
+      "allowedVersions": "1.42.2"
+    },
+    {
       "matchManagers": ["cargo"],
       "matchPackagePatterns": ["pyo3*"],
       "matchUpdateTypes": ["minor", "patch"],

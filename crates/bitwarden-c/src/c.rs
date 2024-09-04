@@ -112,6 +112,6 @@ pub extern "C" fn abort_and_free_handle(join_handle_ptr: *mut tokio::task::JoinH
 }
 
 #[no_mangle]
-pub  extern "C" fn free_handle(join_handle_ptr: *mut tokio::task::JoinHandle<()>) -> () {
+pub extern "C" fn free_handle(join_handle_ptr: *mut tokio::task::JoinHandle<()>) -> () {
     std::mem::drop(unsafe { Box::from_raw(join_handle_ptr) });
 }

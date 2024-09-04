@@ -107,10 +107,11 @@ impl Client {
                         .cancellation_test(duration_millis)
                         .await
                         .into_string(),
-                    DebugCommand::ErrorTest { } => {
+                    DebugCommand::ErrorTest {} => {
                         client.platform().error_test().await.into_string()
-                    },
-            }},
+                    }
+                }
+            }
         }
     }
 

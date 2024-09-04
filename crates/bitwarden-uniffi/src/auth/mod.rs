@@ -1,10 +1,13 @@
 use std::sync::Arc;
 
-use bitwarden::auth::{
-    password::MasterPasswordPolicyOptions, AuthRequestResponse, RegisterKeyResponse,
-    RegisterTdeKeyResponse,
+use bitwarden::{
+    auth::{
+        password::MasterPasswordPolicyOptions, AuthRequestResponse, KeyConnectorResponse,
+        RegisterKeyResponse, RegisterTdeKeyResponse,
+    },
+    Error,
 };
-use bitwarden_crypto::{AsymmetricEncString, HashPurpose, Kdf, TrustDeviceResponse};
+use bitwarden_crypto::{AsymmetricEncString, EncString, HashPurpose, Kdf, TrustDeviceResponse};
 
 use crate::{error::Result, Client};
 
@@ -79,6 +82,16 @@ impl ClientAuth {
             .make_register_tde_keys(email, org_public_key, remember_device)?)
     }
 
+    /// Generate keys needed to onboard a new user without master key to key connector
+    pub fn make_key_connector_keys(&self) -> Result<KeyConnectorResponse> {
+        Ok(self
+            .0
+             .0
+            .auth()
+            .make_key_connector_keys()
+            .map_err(Error::Crypto)?)
+    }
+
     /// Validate the user password
     ///
     /// To retrieve the user's password hash, use [`ClientAuth::hash_password`] with
@@ -108,6 +121,17 @@ impl ClientAuth {
              .0
             .auth()
             .validate_password_user_key(password, encrypted_user_key)?)
+    }
+
+    /// Validate the user PIN
+    ///
+    /// To validate the user PIN, you need to have the user's pin_protected_user_key. This key is
+    /// obtained when enabling PIN unlock on the account with the `derive_pin_key` method.
+    ///
+    /// This works by comparing the decrypted user key with the current user key, so the client must
+    /// be unlocked.
+    pub fn validate_pin(&self, pin: String, pin_protected_user_key: EncString) -> Result<bool> {
+        Ok(self.0 .0.auth().validate_pin(pin, pin_protected_user_key)?)
     }
 
     /// Initialize a new auth request

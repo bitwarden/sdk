@@ -37,6 +37,7 @@ pub enum PolicyType {
     MaximumVaultTimeout = 9,         // Sets the maximum allowed vault timeout
     DisablePersonalVaultExport = 10, // Disable personal vault export
     ActivateAutofill = 11,           // Activates autofill with page load on the browser extension
+    AutomaticAppLogIn = 12,
 }
 
 impl TryFrom<PolicyResponseModel> for Policy {
@@ -78,6 +79,9 @@ impl From<bitwarden_api_api::models::PolicyType> for PolicyType {
                 PolicyType::DisablePersonalVaultExport
             }
             bitwarden_api_api::models::PolicyType::ActivateAutofill => PolicyType::ActivateAutofill,
+            bitwarden_api_api::models::PolicyType::AutomaticAppLogIn => {
+                PolicyType::AutomaticAppLogIn
+            }
         }
     }
 }

@@ -30,7 +30,6 @@ pub enum OrganizationUserType {
     Owner = 0,
     Admin = 1,
     User = 2,
-    Manager = 3,
     Custom = 4,
 }
 
@@ -40,7 +39,6 @@ impl std::fmt::Display for OrganizationUserType {
             Self::Owner => write!(f, "0"),
             Self::Admin => write!(f, "1"),
             Self::User => write!(f, "2"),
-            Self::Manager => write!(f, "3"),
             Self::Custom => write!(f, "4"),
         }
     }

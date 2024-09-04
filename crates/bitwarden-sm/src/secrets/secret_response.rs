@@ -2,7 +2,7 @@ use bitwarden_api_api::models::{
     BaseSecretResponseModel, BaseSecretResponseModelListResponseModel, SecretResponseModel,
 };
 use bitwarden_core::{client::encryption_settings::EncryptionSettings, require, Error};
-use bitwarden_crypto::{CryptoError, EncString, KeyDecryptable};
+use bitwarden_crypto::{EncString, KeyDecryptable};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -46,7 +46,7 @@ impl SecretResponse {
         enc: &EncryptionSettings,
     ) -> Result<SecretResponse, Error> {
         let org_id = response.organization_id;
-        let enc_key = enc.get_key(&org_id).ok_or(CryptoError::MissingKey)?;
+        let enc_key = enc.get_key(&org_id)?;
 
         let key = require!(response.key)
             .parse::<EncString>()?

@@ -21,15 +21,15 @@ func main() {
 	organizationIDStr := os.Getenv("ORGANIZATION_ID")
 	projectName := os.Getenv("PROJECT_NAME")
 
-	// Configuring the statePath is optional, pass nil
+	// Configuring the stateFile is optional, pass nil
 	// in AccessTokenLogin() to not use state
-	statePath := os.Getenv("STATE_PATH")
+	stateFile := os.Getenv("STATE_FILE")
 
 	if projectName == "" {
 		projectName = "NewTestProject" // default value
 	}
 
-	err := bitwardenClient.AccessTokenLogin(accessToken, &statePath)
+	err := bitwardenClient.AccessTokenLogin(accessToken, &stateFile)
 	if err != nil {
 		panic(err)
 	}
@@ -111,6 +111,27 @@ func main() {
 	}
 
 	fmt.Println(string(jsonSecrets))
+
+	// Generate a password which can be used as a secret value
+	request := sdk.PasswordGeneratorRequest{
+		AvoidAmbiguous: true,
+		Length:         64,
+		Lowercase:      true,
+		MinLowercase:   new(int64),
+		MinNumber:      new(int64),
+		MinSpecial:     new(int64),
+		MinUppercase:   new(int64),
+		Numbers:        true,
+		Special:        true,
+		Uppercase:      true,
+	}
+	password, err := bitwardenClient.Generators().GeneratePassword(request)
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(*password)
 
 	defer bitwardenClient.Close()
 }

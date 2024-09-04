@@ -8,6 +8,8 @@ mod jwt_token;
 pub mod login;
 #[cfg(feature = "internal")]
 pub mod password;
+#[cfg(feature = "internal")]
+pub mod pin;
 pub mod renew;
 pub use access_token::AccessToken;
 pub use jwt_token::JWTToken;
@@ -28,6 +30,10 @@ pub use register::{RegisterKeyResponse, RegisterRequest};
 mod tde;
 #[cfg(feature = "internal")]
 pub use tde::RegisterTdeKeyResponse;
+#[cfg(feature = "internal")]
+mod key_connector;
+#[cfg(feature = "internal")]
+pub use key_connector::KeyConnectorResponse;
 
 #[cfg(feature = "internal")]
 use crate::error::Result;
@@ -39,7 +45,7 @@ fn determine_password_hash(
     password: &str,
     purpose: HashPurpose,
 ) -> Result<String> {
-    let master_key = MasterKey::derive(password.as_bytes(), email.as_bytes(), kdf)?;
+    let master_key = MasterKey::derive(password, email, kdf)?;
     Ok(master_key.derive_master_key_hash(password.as_bytes(), purpose)?)
 }
 

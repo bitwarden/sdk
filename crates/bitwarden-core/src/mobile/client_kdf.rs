@@ -3,7 +3,7 @@ use bitwarden_crypto::{HashPurpose, Kdf};
 use crate::{error::Result, mobile::kdf::hash_password, Client};
 
 pub struct ClientKdf<'a> {
-    pub(crate) client: &'a crate::Client,
+    pub(crate) _client: &'a crate::Client,
 }
 
 impl<'a> ClientKdf<'a> {
@@ -14,12 +14,12 @@ impl<'a> ClientKdf<'a> {
         kdf_params: Kdf,
         purpose: HashPurpose,
     ) -> Result<String> {
-        hash_password(self.client, email, password, kdf_params, purpose).await
+        hash_password(email, password, kdf_params, purpose).await
     }
 }
 
 impl<'a> Client {
     pub fn kdf(&'a self) -> ClientKdf<'a> {
-        ClientKdf { client: self }
+        ClientKdf { _client: self }
     }
 }

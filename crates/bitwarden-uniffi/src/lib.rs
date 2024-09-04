@@ -16,6 +16,9 @@ pub mod vault;
 #[cfg(feature = "docs")]
 pub mod docs;
 
+#[cfg(target_os = "android")]
+mod android_support;
+
 use crypto::ClientCrypto;
 use error::Result;
 use platform::ClientPlatform;
@@ -31,6 +34,10 @@ impl Client {
     #[uniffi::constructor]
     pub fn new(settings: Option<ClientSettings>) -> Arc<Self> {
         init_logger();
+
+        #[cfg(target_os = "android")]
+        android_support::init();
+
         Arc::new(Self(bitwarden::Client::new(settings)))
     }
 
@@ -75,9 +82,14 @@ impl Client {
 }
 
 fn init_logger() {
-    #[cfg(not(target_os = "android"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     let _ = env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info"))
         .try_init();
+
+    #[cfg(target_os = "ios")]
+    let _ = oslog::OsLogger::new("com.8bit.bitwarden")
+        .level_filter(log::LevelFilter::Info)
+        .init();
 
     #[cfg(target_os = "android")]
     android_logger::init_once(

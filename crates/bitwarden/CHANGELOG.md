@@ -14,6 +14,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - `ClientSettings` and `DeviceType` is now exported in the root module (#805)
+- Secrets Manager now requires `bitwarden::secrets_manager::ClientSecretsExt` and
+  `bitwarden::secrets_manager::ClientProjectsExt` to be imported in order to access `secrets()` and
+  `projects` on the client (#798)
+- Updated MSRV `1.75.0` (#980)
 
 ### Removed
 

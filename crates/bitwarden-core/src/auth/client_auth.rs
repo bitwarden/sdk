@@ -1,21 +1,24 @@
 #[cfg(feature = "internal")]
-use bitwarden_crypto::{AsymmetricEncString, DeviceKey, Kdf, TrustDeviceResponse};
+use bitwarden_crypto::{
+    AsymmetricEncString, CryptoError, DeviceKey, EncString, Kdf, TrustDeviceResponse,
+};
 
-#[cfg(feature = "internal")]
-use crate::auth::login::NewAuthRequestResponse;
 #[cfg(feature = "secrets")]
 use crate::auth::login::{login_access_token, AccessTokenLoginRequest, AccessTokenLoginResponse};
 #[cfg(feature = "internal")]
 use crate::auth::{
     auth_request::{approve_auth_request, new_auth_request},
+    key_connector::{make_key_connector_keys, KeyConnectorResponse},
     login::{
         login_api_key, login_password, send_two_factor_email, ApiKeyLoginRequest,
-        ApiKeyLoginResponse, PasswordLoginRequest, PasswordLoginResponse, TwoFactorEmailRequest,
+        ApiKeyLoginResponse, NewAuthRequestResponse, PasswordLoginRequest, PasswordLoginResponse,
+        TwoFactorEmailRequest,
     },
     password::{
         password_strength, satisfies_policy, validate_password, validate_password_user_key,
         MasterPasswordPolicyOptions,
     },
+    pin::validate_pin,
     register::{make_register_keys, register},
     tde::{make_register_tde_keys, RegisterTdeKeyResponse},
     AuthRequestResponse, RegisterKeyResponse, RegisterRequest,
@@ -78,6 +81,11 @@ impl<'a> ClientAuth<'a> {
         make_register_tde_keys(self.client, email, org_public_key, remember_device)
     }
 
+    pub fn make_key_connector_keys(&self) -> Result<KeyConnectorResponse, CryptoError> {
+        let mut rng = rand::thread_rng();
+        make_key_connector_keys(&mut rng)
+    }
+
     pub async fn register(&self, input: &RegisterRequest) -> Result<()> {
         register(self.client, input).await
     }
@@ -116,6 +124,10 @@ impl<'a> ClientAuth<'a> {
         validate_password_user_key(self.client, password, encrypted_user_key)
     }
 
+    pub fn validate_pin(&self, pin: String, pin_protected_user_key: EncString) -> Result<bool> {
+        validate_pin(self.client, pin, pin_protected_user_key)
+    }
+
     pub fn new_auth_request(&self, email: &str) -> Result<AuthRequestResponse> {
         new_auth_request(email)
     }
@@ -150,11 +162,9 @@ impl<'a> ClientAuth<'a> {
 
 #[cfg(feature = "internal")]
 fn trust_device(client: &Client) -> Result<TrustDeviceResponse> {
-    use crate::VaultLocked;
-
     let enc = client.internal.get_encryption_settings()?;
 
-    let user_key = enc.get_key(&None).ok_or(VaultLocked)?;
+    let user_key = enc.get_key(&None)?;
 
     Ok(DeviceKey::trust_device(user_key)?)
 }

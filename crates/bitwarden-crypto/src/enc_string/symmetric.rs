@@ -44,7 +44,7 @@ use crate::{
 /// - `[iv]`: (optional) is the initialization vector used for encryption.
 /// - `[data]`: is the encrypted data.
 /// - `[mac]`: (optional) is the MAC used to validate the integrity of the data.
-#[derive(Clone, zeroize::ZeroizeOnDrop)]
+#[derive(Clone, zeroize::ZeroizeOnDrop, PartialEq)]
 #[allow(unused, non_camel_case_types)]
 pub enum EncString {
     /// 0
@@ -203,7 +203,7 @@ impl serde::Serialize for EncString {
 }
 
 impl EncString {
-    pub fn encrypt_aes256_hmac(
+    pub(crate) fn encrypt_aes256_hmac(
         data_dec: &[u8],
         mac_key: &GenericArray<u8, U32>,
         key: &GenericArray<u8, U32>,
@@ -266,6 +266,12 @@ impl KeyEncryptable<SymmetricCryptoKey, EncString> for String {
     }
 }
 
+impl KeyEncryptable<SymmetricCryptoKey, EncString> for &str {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<EncString> {
+        self.as_bytes().encrypt_with_key(key)
+    }
+}
+
 impl KeyDecryptable<SymmetricCryptoKey, String> for EncString {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<String> {
         let dec: Vec<u8> = self.decrypt_with_key(key)?;
@@ -298,6 +304,17 @@ mod tests {
 
         let test_string = "encrypted_test_string";
         let cipher = test_string.to_owned().encrypt_with_key(&key).unwrap();
+
+        let decrypted_str: String = cipher.decrypt_with_key(&key).unwrap();
+        assert_eq!(decrypted_str, test_string);
+    }
+
+    #[test]
+    fn test_enc_string_ref_roundtrip() {
+        let key = derive_symmetric_key("test");
+
+        let test_string = "encrypted_test_string";
+        let cipher = test_string.encrypt_with_key(&key).unwrap();
 
         let decrypted_str: String = cipher.decrypt_with_key(&key).unwrap();
         assert_eq!(decrypted_str, test_string);

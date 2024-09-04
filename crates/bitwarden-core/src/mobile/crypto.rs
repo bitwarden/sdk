@@ -1,19 +1,18 @@
 use std::collections::HashMap;
 
-use bitwarden_crypto::{AsymmetricEncString, EncString};
-#[cfg(feature = "internal")]
-use bitwarden_crypto::{Kdf, KeyDecryptable, KeyEncryptable, MasterKey, SymmetricCryptoKey};
+use bitwarden_crypto::{
+    AsymmetricEncString, EncString, Kdf, KeyDecryptable, KeyEncryptable, MasterKey,
+    SymmetricCryptoKey,
+};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "internal")]
-use crate::client::{LoginMethod, UserLoginMethod};
 use crate::{
+    client::{LoginMethod, UserLoginMethod},
     error::{Error, Result},
-    Client, VaultLocked,
+    Client,
 };
 
-#[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
@@ -28,7 +27,6 @@ pub struct InitUserCryptoRequest {
     pub method: InitUserCryptoMethod,
 }
 
-#[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
@@ -64,9 +62,14 @@ pub enum InitUserCryptoMethod {
         /// The user's symmetric crypto key, encrypted with the Device Key.
         device_protected_user_key: AsymmetricEncString,
     },
+    KeyConnector {
+        /// Base64 encoded master key, retrieved from the key connector.
+        master_key: String,
+        /// The user's encrypted symmetric crypto key
+        user_key: String,
+    },
 }
 
-#[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
@@ -83,9 +86,8 @@ pub enum AuthRequestMethod {
     },
 }
 
-#[cfg(feature = "internal")]
 pub async fn initialize_user_crypto(client: &Client, req: InitUserCryptoRequest) -> Result<()> {
-    use bitwarden_crypto::DeviceKey;
+    use bitwarden_crypto::{DeviceKey, PinKey};
 
     use crate::auth::{auth_request_decrypt_master_key, auth_request_decrypt_user_key};
 
@@ -95,8 +97,7 @@ pub async fn initialize_user_crypto(client: &Client, req: InitUserCryptoRequest)
         InitUserCryptoMethod::Password { password, user_key } => {
             let user_key: EncString = user_key.parse()?;
 
-            let master_key =
-                MasterKey::derive(password.as_bytes(), req.email.as_bytes(), &req.kdf_params)?;
+            let master_key = MasterKey::derive(&password, &req.email, &req.kdf_params)?;
             client
                 .internal
                 .initialize_user_crypto_master_key(master_key, user_key, private_key)?;
@@ -111,7 +112,7 @@ pub async fn initialize_user_crypto(client: &Client, req: InitUserCryptoRequest)
             pin,
             pin_protected_user_key,
         } => {
-            let pin_key = MasterKey::derive(pin.as_bytes(), req.email.as_bytes(), &req.kdf_params)?;
+            let pin_key = PinKey::derive(pin.as_bytes(), req.email.as_bytes(), &req.kdf_params)?;
             client.internal.initialize_user_crypto_pin(
                 pin_key,
                 pin_protected_user_key,
@@ -152,6 +153,17 @@ pub async fn initialize_user_crypto(client: &Client, req: InitUserCryptoRequest)
                 .internal
                 .initialize_user_crypto_decrypted_key(user_key, private_key)?;
         }
+        InitUserCryptoMethod::KeyConnector {
+            master_key,
+            user_key,
+        } => {
+            let master_key = MasterKey::new(SymmetricCryptoKey::try_from(master_key)?);
+            let user_key: EncString = user_key.parse()?;
+
+            client
+                .internal
+                .initialize_user_crypto_master_key(master_key, user_key, private_key)?;
+        }
     }
 
     client
@@ -167,7 +179,6 @@ pub async fn initialize_user_crypto(client: &Client, req: InitUserCryptoRequest)
     Ok(())
 }
 
-#[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
@@ -176,22 +187,19 @@ pub struct InitOrgCryptoRequest {
     pub organization_keys: HashMap<uuid::Uuid, AsymmetricEncString>,
 }
 
-#[cfg(feature = "internal")]
 pub async fn initialize_org_crypto(client: &Client, req: InitOrgCryptoRequest) -> Result<()> {
     let organization_keys = req.organization_keys.into_iter().collect();
     client.internal.initialize_org_crypto(organization_keys)?;
     Ok(())
 }
 
-#[cfg(feature = "internal")]
 pub async fn get_user_encryption_key(client: &Client) -> Result<String> {
     let enc = client.internal.get_encryption_settings()?;
-    let user_key = enc.get_key(&None).ok_or(VaultLocked)?;
+    let user_key = enc.get_key(&None)?;
 
     Ok(user_key.to_base64())
 }
 
-#[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
@@ -204,7 +212,7 @@ pub struct UpdatePasswordResponse {
 
 pub fn update_password(client: &Client, new_password: String) -> Result<UpdatePasswordResponse> {
     let enc = client.internal.get_encryption_settings()?;
-    let user_key = enc.get_key(&None).ok_or(VaultLocked)?;
+    let user_key = enc.get_key(&None)?;
 
     let login_method = client
         .internal
@@ -216,7 +224,7 @@ pub fn update_password(client: &Client, new_password: String) -> Result<UpdatePa
         LoginMethod::User(
             UserLoginMethod::Username { email, kdf, .. }
             | UserLoginMethod::ApiKey { email, kdf, .. },
-        ) => MasterKey::derive(new_password.as_bytes(), email.as_bytes(), kdf)?,
+        ) => MasterKey::derive(&new_password, email, kdf)?,
         #[cfg(feature = "secrets")]
         LoginMethod::ServiceAccount(_) => return Err(Error::NotAuthenticated),
     };
@@ -234,7 +242,6 @@ pub fn update_password(client: &Client, new_password: String) -> Result<UpdatePa
     })
 }
 
-#[cfg(feature = "internal")]
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
@@ -245,10 +252,9 @@ pub struct DerivePinKeyResponse {
     encrypted_pin: EncString,
 }
 
-#[cfg(feature = "internal")]
 pub fn derive_pin_key(client: &Client, pin: String) -> Result<DerivePinKeyResponse> {
     let enc = client.internal.get_encryption_settings()?;
-    let user_key = enc.get_key(&None).ok_or(VaultLocked)?;
+    let user_key = enc.get_key(&None)?;
 
     let login_method = client
         .internal
@@ -263,10 +269,9 @@ pub fn derive_pin_key(client: &Client, pin: String) -> Result<DerivePinKeyRespon
     })
 }
 
-#[cfg(feature = "internal")]
 pub fn derive_pin_user_key(client: &Client, encrypted_pin: EncString) -> Result<EncString> {
     let enc = client.internal.get_encryption_settings()?;
-    let user_key = enc.get_key(&None).ok_or(VaultLocked)?;
+    let user_key = enc.get_key(&None)?;
 
     let pin: String = encrypted_pin.decrypt_with_key(user_key)?;
     let login_method = client
@@ -277,17 +282,18 @@ pub fn derive_pin_user_key(client: &Client, encrypted_pin: EncString) -> Result<
     derive_pin_protected_user_key(&pin, &login_method, user_key)
 }
 
-#[cfg(feature = "internal")]
 fn derive_pin_protected_user_key(
     pin: &str,
     login_method: &LoginMethod,
     user_key: &SymmetricCryptoKey,
 ) -> Result<EncString> {
+    use bitwarden_crypto::PinKey;
+
     let derived_key = match login_method {
         LoginMethod::User(
             UserLoginMethod::Username { email, kdf, .. }
             | UserLoginMethod::ApiKey { email, kdf, .. },
-        ) => MasterKey::derive(pin.as_bytes(), email.as_bytes(), kdf)?,
+        ) => PinKey::derive(pin.as_bytes(), email.as_bytes(), kdf)?,
         #[cfg(feature = "secrets")]
         LoginMethod::ServiceAccount(_) => return Err(Error::NotAuthenticated),
     };
@@ -295,7 +301,6 @@ fn derive_pin_protected_user_key(
     Ok(derived_key.encrypt_user_key(user_key)?)
 }
 
-#[cfg(feature = "internal")]
 pub(super) fn enroll_admin_password_reset(
     client: &Client,
     public_key: String,
@@ -305,7 +310,7 @@ pub(super) fn enroll_admin_password_reset(
 
     let public_key = AsymmetricPublicCryptoKey::from_der(&STANDARD.decode(public_key)?)?;
     let enc = client.internal.get_encryption_settings()?;
-    let key = enc.get_key(&None).ok_or(VaultLocked)?;
+    let key = enc.get_key(&None)?;
 
     Ok(AsymmetricEncString::encrypt_rsa2048_oaep_sha1(
         &key.to_vec(),
@@ -313,8 +318,30 @@ pub(super) fn enroll_admin_password_reset(
     )?)
 }
 
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+pub struct DeriveKeyConnectorRequest {
+    /// Encrypted user key, used to validate the master key
+    pub user_key_encrypted: EncString,
+
+    pub password: String,
+    pub kdf: Kdf,
+    pub email: String,
+}
+
+/// Derive the master key for migrating to the key connector
+pub(super) fn derive_key_connector(request: DeriveKeyConnectorRequest) -> Result<String> {
+    let master_key = MasterKey::derive(&request.password, &request.email, &request.kdf)?;
+    master_key
+        .decrypt_user_key(request.user_key_encrypted)
+        .map_err(|_| "wrong password")?;
+
+    Ok(master_key.to_base64())
+}
+
 #[cfg(test)]
 mod tests {
+    use std::num::NonZeroU32;
+
     use super::*;
     use crate::Client;
 
@@ -494,19 +521,16 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "internal")]
     #[test]
     fn test_enroll_admin_password_reset() {
-        use std::num::NonZeroU32;
-
         use base64::{engine::general_purpose::STANDARD, Engine};
         use bitwarden_crypto::AsymmetricCryptoKey;
 
         let client = Client::new(None);
 
-        let master_key = bitwarden_crypto::MasterKey::derive(
-            "asdfasdfasdf".as_bytes(),
-            "test@bitwarden.com".as_bytes(),
+        let master_key = MasterKey::derive(
+            "asdfasdfasdf",
+            "test@bitwarden.com",
             &Kdf::PBKDF2 {
                 iterations: NonZeroU32::new(600_000).unwrap(),
             },
@@ -532,5 +556,21 @@ mod tests {
         let enc = client.internal.get_encryption_settings().unwrap();
         let expected = enc.get_key(&None).unwrap();
         assert_eq!(&decrypted, &expected.to_vec());
+    }
+
+    #[test]
+    fn test_derive_key_connector() {
+        let request = DeriveKeyConnectorRequest {
+            password: "asdfasdfasdf".to_string(),
+            email: "test@bitwarden.com".to_string(),
+            kdf: Kdf::PBKDF2 {
+                iterations: NonZeroU32::new(600_000).unwrap(),
+            },
+            user_key_encrypted: "2.Q/2PhzcC7GdeiMHhWguYAQ==|GpqzVdr0go0ug5cZh1n+uixeBC3oC90CIe0hd/HWA/pTRDZ8ane4fmsEIcuc8eMKUt55Y2q/fbNzsYu41YTZzzsJUSeqVjT8/iTQtgnNdpo=|dwI+uyvZ1h/iZ03VQ+/wrGEFYVewBUUl/syYgjsNMbE=".parse().unwrap(),
+        };
+
+        let result = derive_key_connector(request).unwrap();
+
+        assert_eq!(result, "ySXq1RVLKEaV1eoQE/ui9aFKIvXTl9PAXwp1MljfF50=");
     }
 }

@@ -43,7 +43,7 @@ pub enum CipherType {
     Identity = 4,
 }
 
-#[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
+#[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema, PartialEq)]
 #[repr(u8)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum CipherRepromptType {
@@ -98,6 +98,7 @@ pub struct CipherView {
     pub folder_id: Option<Uuid>,
     pub collection_ids: Vec<Uuid>,
 
+    /// Temporary, required to support re-encrypting existing items.
     pub key: Option<EncString>,
 
     pub name: String,
@@ -125,7 +126,20 @@ pub struct CipherView {
     pub revision_date: DateTime<Utc>,
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, PartialEq)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
+pub enum CipherListViewType {
+    Login {
+        has_fido2: bool,
+        totp: Option<EncString>,
+    },
+    SecureNote,
+    Card,
+    Identity,
+}
+
+#[derive(Serialize, Deserialize, Debug, JsonSchema, PartialEq)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct CipherListView {
@@ -134,10 +148,13 @@ pub struct CipherListView {
     pub folder_id: Option<Uuid>,
     pub collection_ids: Vec<Uuid>,
 
+    /// Temporary, required to support calculating TOTP from CipherListView.
+    pub key: Option<EncString>,
+
     pub name: String,
     pub sub_title: String,
 
-    pub r#type: CipherType,
+    pub r#type: CipherListViewType,
 
     pub favorite: bool,
     pub reprompt: CipherRepromptType,
@@ -150,6 +167,25 @@ pub struct CipherListView {
     pub creation_date: DateTime<Utc>,
     pub deleted_date: Option<DateTime<Utc>>,
     pub revision_date: DateTime<Utc>,
+}
+
+impl CipherListView {
+    pub(crate) fn get_totp_key(
+        self,
+        enc: &dyn KeyContainer,
+    ) -> Result<Option<String>, CryptoError> {
+        let key = self.locate_key(enc, &None)?;
+        let cipher_key = Cipher::get_cipher_key(key, &self.key)?;
+        let key = cipher_key.as_ref().unwrap_or(key);
+
+        let totp = if let CipherListViewType::Login { totp, .. } = self.r#type {
+            totp.decrypt_with_key(key)?
+        } else {
+            None
+        };
+
+        Ok(totp)
+    }
 }
 
 impl KeyEncryptable<SymmetricCryptoKey, Cipher> for CipherView {
@@ -401,7 +437,7 @@ impl CipherView {
         &self,
         enc: &dyn KeyContainer,
     ) -> Result<Vec<Fido2CredentialView>, CipherError> {
-        let key = self.locate_key(enc, &None).ok_or(VaultLocked)?;
+        let key = self.locate_key(enc, &None)?;
         let cipher_key = Cipher::get_cipher_key(key, &self.key)?;
 
         let key = cipher_key.as_ref().unwrap_or(key);
@@ -435,9 +471,9 @@ impl CipherView {
         enc: &dyn KeyContainer,
         organization_id: Uuid,
     ) -> Result<(), CipherError> {
-        let old_key = enc.get_key(&self.organization_id).ok_or(VaultLocked)?;
+        let old_key = enc.get_key(&self.organization_id)?;
 
-        let new_key = enc.get_key(&Some(organization_id)).ok_or(VaultLocked)?;
+        let new_key = enc.get_key(&Some(organization_id))?;
 
         // If any attachment is missing a key we can't reencrypt the attachment keys
         if self.attachments.iter().flatten().any(|a| a.key.is_none()) {
@@ -463,7 +499,7 @@ impl CipherView {
         enc: &dyn KeyContainer,
         creds: Vec<Fido2CredentialFullView>,
     ) -> Result<(), CipherError> {
-        let key = enc.get_key(&self.organization_id).ok_or(VaultLocked)?;
+        let key = enc.get_key(&self.organization_id)?;
 
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let ciphers_key = ciphers_key.as_ref().unwrap_or(key);
@@ -478,7 +514,7 @@ impl CipherView {
         &self,
         enc: &dyn KeyContainer,
     ) -> Result<Vec<Fido2CredentialFullView>, CipherError> {
-        let key = enc.get_key(&self.organization_id).ok_or(VaultLocked)?;
+        let key = enc.get_key(&self.organization_id)?;
 
         let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
         let ciphers_key = ciphers_key.as_ref().unwrap_or(key);
@@ -500,9 +536,24 @@ impl KeyDecryptable<SymmetricCryptoKey, CipherListView> for Cipher {
             organization_id: self.organization_id,
             folder_id: self.folder_id,
             collection_ids: self.collection_ids.clone(),
+            key: self.key.clone(),
             name: self.name.decrypt_with_key(key).ok().unwrap_or_default(),
             sub_title: self.get_decrypted_subtitle(key).ok().unwrap_or_default(),
-            r#type: self.r#type,
+            r#type: match self.r#type {
+                CipherType::Login => {
+                    let login = self
+                        .login
+                        .as_ref()
+                        .ok_or(CryptoError::MissingField("login"))?;
+                    CipherListViewType::Login {
+                        has_fido2: login.fido2_credentials.is_some(),
+                        totp: login.totp.clone(),
+                    }
+                }
+                CipherType::SecureNote => CipherListViewType::SecureNote,
+                CipherType::Card => CipherListViewType::Card,
+                CipherType::Identity => CipherListViewType::Identity,
+            },
             favorite: self.favorite,
             reprompt: self.reprompt,
             edit: self.edit,
@@ -524,7 +575,7 @@ impl LocateKey for Cipher {
         &self,
         enc: &'a dyn KeyContainer,
         _: &Option<Uuid>,
-    ) -> Option<&'a SymmetricCryptoKey> {
+    ) -> Result<&'a SymmetricCryptoKey, CryptoError> {
         enc.get_key(&self.organization_id)
     }
 }
@@ -533,7 +584,16 @@ impl LocateKey for CipherView {
         &self,
         enc: &'a dyn KeyContainer,
         _: &Option<Uuid>,
-    ) -> Option<&'a SymmetricCryptoKey> {
+    ) -> Result<&'a SymmetricCryptoKey, CryptoError> {
+        enc.get_key(&self.organization_id)
+    }
+}
+impl LocateKey for CipherListView {
+    fn locate_key<'a>(
+        &self,
+        enc: &'a dyn KeyContainer,
+        _: &Option<Uuid>,
+    ) -> Result<&'a SymmetricCryptoKey, CryptoError> {
         enc.get_key(&self.organization_id)
     }
 }
@@ -669,6 +729,73 @@ mod tests {
     }
 
     #[test]
+    fn test_decrypt_cipher_list_view() {
+        let key: SymmetricCryptoKey = "w2LO+nwV4oxwswVYCxlOfRUseXfvU03VzvKQHrqeklPgiMZrspUe6sOBToCnDn9Ay0tuCBn8ykVVRb7PWhub2Q==".to_string().try_into().unwrap();
+
+        let cipher = Cipher {
+            id: Some("090c19ea-a61a-4df6-8963-262b97bc6266".parse().unwrap()),
+            organization_id: None,
+            folder_id: None,
+            collection_ids: vec![],
+            key: None,
+            name: "2.d3rzo0P8rxV9Hs1m1BmAjw==|JOwna6i0zs+K7ZghwrZRuw==|SJqKreLag1ID+g6H1OdmQr0T5zTrVWKzD6hGy3fDqB0=".parse().unwrap(),
+            notes: None,
+            r#type: CipherType::Login,
+            login: Some(Login {
+                username: Some("2.EBNGgnaMHeO/kYnI3A0jiA==|9YXlrgABP71ebZ5umurCJQ==|GDk5jxiqTYaU7e2AStCFGX+a1kgCIk8j0NEli7Jn0L4=".parse().unwrap()),
+                password: Some("2.M7ZJ7EuFDXCq66gDTIyRIg==|B1V+jroo6+m/dpHx6g8DxA==|PIXPBCwyJ1ady36a7jbcLg346pm/7N/06W4UZxc1TUo=".parse().unwrap()),
+                password_revision_date: None,
+                uris: None,
+                totp: Some("2.hqdioUAc81FsKQmO1XuLQg==|oDRdsJrQjoFu9NrFVy8tcJBAFKBx95gHaXZnWdXbKpsxWnOr2sKipIG43pKKUFuq|3gKZMiboceIB5SLVOULKg2iuyu6xzos22dfJbvx0EHk=".parse().unwrap()),
+                autofill_on_page_load: None,
+                fido2_credentials: Some(vec![generate_fido2(&key)]),
+            }),
+            identity: None,
+            card: None,
+            secure_note: None,
+            favorite: false,
+            reprompt: CipherRepromptType::None,
+            organization_use_totp: false,
+            edit: true,
+            view_password: true,
+            local_data: None,
+            attachments: None,
+            fields: None,
+            password_history: None,
+            creation_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
+            deleted_date: None,
+            revision_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
+        };
+
+        let view: CipherListView = cipher.decrypt_with_key(&key).unwrap();
+
+        assert_eq!(
+            view,
+            CipherListView {
+                id: cipher.id,
+                organization_id: cipher.organization_id,
+                folder_id: cipher.folder_id,
+                collection_ids: cipher.collection_ids,
+                key: cipher.key,
+                name: "My test login".to_string(),
+                sub_title: "test_username".to_string(),
+                r#type: CipherListViewType::Login {
+                    has_fido2: true,
+                    totp: cipher.login.as_ref().unwrap().totp.clone()
+                },
+                favorite: cipher.favorite,
+                reprompt: cipher.reprompt,
+                edit: cipher.edit,
+                view_password: cipher.view_password,
+                attachments: 0,
+                creation_date: cipher.creation_date,
+                deleted_date: cipher.deleted_date,
+                revision_date: cipher.revision_date
+            }
+        )
+    }
+
+    #[test]
     fn test_generate_cipher_key() {
         let key = SymmetricCryptoKey::generate(rand::thread_rng());
 
@@ -728,8 +855,13 @@ mod tests {
 
     struct MockKeyContainer(HashMap<Option<Uuid>, SymmetricCryptoKey>);
     impl KeyContainer for MockKeyContainer {
-        fn get_key<'a>(&'a self, org_id: &Option<Uuid>) -> Option<&'a SymmetricCryptoKey> {
-            self.0.get(org_id)
+        fn get_key<'a>(
+            &'a self,
+            org_id: &Option<Uuid>,
+        ) -> Result<&'a SymmetricCryptoKey, CryptoError> {
+            self.0
+                .get(org_id)
+                .ok_or(CryptoError::MissingKey(org_id.unwrap_or_default()))
         }
     }
 

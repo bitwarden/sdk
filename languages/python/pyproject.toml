@@ -17,7 +17,7 @@ description = "A Bitwarden Client for python"
 name = "bitwarden_sdk"
 readme = "README.md"
 requires-python = ">=3.0"
-version = "0.1.0"
+version = "0.1.1"
 
 [tool.maturin]
 bindings = "pyo3"

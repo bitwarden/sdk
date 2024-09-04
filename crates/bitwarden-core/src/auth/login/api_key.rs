@@ -38,7 +38,7 @@ pub(crate) async fn login_api_key(
             r.expires_in,
         );
 
-        let master_key = MasterKey::derive(input.password.as_bytes(), email.as_bytes(), &kdf)?;
+        let master_key = MasterKey::derive(&input.password, &email, &kdf)?;
 
         client
             .internal

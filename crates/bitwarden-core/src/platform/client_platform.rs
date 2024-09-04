@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use super::{
     generate_fingerprint::{generate_fingerprint, generate_user_fingerprint},
     get_user_api_key, FingerprintRequest, FingerprintResponse, SecretVerificationRequest,
@@ -29,6 +27,8 @@ impl<'a> ClientPlatform<'a> {
 
     #[cfg(debug_assertions)]
     pub async fn cancellation_test(&mut self, duration_millis: u64) -> Result<i32> {
+        use std::time::Duration;
+
         tokio::time::sleep(Duration::from_millis(duration_millis)).await;
         println!("After wait #1");
         tokio::time::sleep(Duration::from_millis(duration_millis)).await;

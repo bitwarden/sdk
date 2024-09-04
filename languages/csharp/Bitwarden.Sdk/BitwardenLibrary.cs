@@ -59,7 +59,6 @@ internal static partial class BitwardenLibrary
             tcs.SetException(ex);
         }
 
-        // TODO: Register cancellation on token
         token.Register((state) =>
         {
             abort_and_free_handle((IntPtr)state);

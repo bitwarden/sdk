@@ -9,6 +9,7 @@ module BitwardenSDKSecrets
       attribute :sync,               SyncRequest.optional.default(nil)
       attribute :secrets,            SecretsCommand.optional.default(nil)
       attribute :projects,           ProjectsCommand.optional.default(nil)
+      attribute :generators,         GeneratorsCommand.optional.default(nil)
 
       def to_dynamic
         {
@@ -20,6 +21,7 @@ module BitwardenSDKSecrets
           "sync"             => sync&.to_dynamic,
           "secrets"          => secrets&.to_dynamic,
           "projects"         => projects&.to_dynamic,
+          "generators"       => generators&.to_dynamic,
         }.compact
       end
     end
@@ -63,4 +65,14 @@ module BitwardenSDKSecrets
         }.compact
       end
     end
+
+    class SelectiveGeneratorsCommand < GeneratorsCommand
+        attribute :generate_password,   PasswordGeneratorRequest.optional.default(nil)
+  
+        def to_dynamic
+          {
+            "generate_password"      => generate_password&.to_dynamic,
+          }.compact
+        end
+      end
 end

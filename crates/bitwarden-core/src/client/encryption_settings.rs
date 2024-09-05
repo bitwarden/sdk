@@ -57,13 +57,18 @@ impl EncryptionSettings {
         private_key: EncString,
     ) -> Result<Self, EncryptionSettingsError> {
         use bitwarden_crypto::KeyDecryptable;
+        use log::warn;
 
         let private_key = {
             let dec: Vec<u8> = private_key.decrypt_with_key(&user_key)?;
 
             // FIXME: [PM-11690] - Temporarily ignore invalid private keys until we have a recovery
             // process in place.
-            AsymmetricCryptoKey::from_der(&dec).ok()
+            AsymmetricCryptoKey::from_der(&dec)
+                .map_err(|_| {
+                    warn!("Invalid private key");
+                })
+                .ok()
 
             // Some(
             //     AsymmetricCryptoKey::from_der(&dec)

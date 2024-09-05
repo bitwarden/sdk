@@ -82,7 +82,7 @@ jobs:
       - name: Set SHA
         id: set-sha
         run: |
-          echo "sha=$(${{ steps.download-artifact.outputs.artifact-build-commit }})" >> $GITHUB_OUTPUT
+          echo "sha=${{ steps.download-artifact.outputs.artifact-build-commit }}" >> $GITHUB_OUTPUT
           echo "short_sha=$(echo ${{ steps.download-artifact.outputs.artifact-build-commit }} | cut -c1-7)" >> $GITHUB_OUTPUT
 
       - name: Set release name

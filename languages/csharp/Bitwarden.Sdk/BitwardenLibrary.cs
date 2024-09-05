@@ -64,7 +64,7 @@ internal static partial class BitwardenLibrary
             // This register delegate will never be called unless the token is cancelable
             // therefore we know that the abortPointer is a valid pointer.
             abort_and_free_handle((IntPtr)state);
-            tcs.SetCanceled();
+            tcs.SetCanceled(cancellationToken);
         }, abortPointer);
 
         return tcs.Task;

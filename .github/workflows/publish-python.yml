@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Branch check
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        if: ${{ inputs.release_type != 'Dry Run' }}
         run: |
           if [[ "$GITHUB_REF" != "refs/heads/rc" ]] && [[ "$GITHUB_REF" != "refs/heads/hotfix-rc" ]]; then
             echo "==================================="
@@ -50,12 +50,12 @@ jobs:
         run: pip install twine
 
       - name: Download artifacts
-        uses: bitwarden/gh-actions/download-artifacts@main
+        uses: dawidd6/action-download-artifact@bf251b5aa9c2f7eeb574a96ee720e24f801b7c11 # v6
         with:
           workflow: build-python-wheels.yml
           path: ${{ github.workspace }}/target/wheels/dist
           workflow_conclusion: success
-          branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
           name: bitwarden_sdk(.*)
           name_is_regexp: true
 
@@ -83,7 +83,7 @@ jobs:
         run: twine check dist/*
 
       - name: Publish
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        if: ${{ inputs.release_type != 'Dry Run' }}
         working-directory: ${{ github.workspace }}/target/wheels
         env:
           TWINE_USERNAME: __token__
@@ -91,7 +91,7 @@ jobs:
         run: twine upload --repository pypi dist/*
 
       - name: Dry Run - Publish
-        if: ${{ github.event.inputs.release_type == 'Dry Run' }}
+        if: ${{ inputs.release_type == 'Dry Run' }}
         working-directory: ${{ github.workspace }}/target/wheels
         env:
           TWINE_USERNAME: __token__

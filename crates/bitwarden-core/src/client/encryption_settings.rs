@@ -3,10 +3,23 @@ use std::collections::HashMap;
 use bitwarden_crypto::{AsymmetricCryptoKey, CryptoError, KeyContainer, SymmetricCryptoKey};
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{AsymmetricEncString, EncString, MasterKey};
+use thiserror::Error;
 use uuid::Uuid;
 
 #[cfg(feature = "internal")]
 use crate::error::Result;
+
+#[derive(Debug, Error)]
+pub enum EncryptionSettingsError {
+    #[error("Cryptography error, {0}")]
+    Crypto(#[from] bitwarden_crypto::CryptoError),
+
+    #[error(transparent)]
+    InvalidBase64(#[from] base64::DecodeError),
+
+    #[error("Invalid private key")]
+    InvalidPrivateKey,
+}
 
 #[derive(Clone)]
 pub struct EncryptionSettings {
@@ -28,7 +41,7 @@ impl EncryptionSettings {
         master_key: MasterKey,
         user_key: EncString,
         private_key: EncString,
-    ) -> Result<Self> {
+    ) -> Result<Self, EncryptionSettingsError> {
         // Decrypt the user key
         let user_key = master_key.decrypt_user_key(user_key)?;
         Self::new_decrypted_key(user_key, private_key)
@@ -42,12 +55,15 @@ impl EncryptionSettings {
     pub(crate) fn new_decrypted_key(
         user_key: SymmetricCryptoKey,
         private_key: EncString,
-    ) -> Result<Self> {
+    ) -> Result<Self, EncryptionSettingsError> {
         use bitwarden_crypto::KeyDecryptable;
 
         let private_key = {
             let dec: Vec<u8> = private_key.decrypt_with_key(&user_key)?;
-            Some(AsymmetricCryptoKey::from_der(&dec)?)
+            Some(
+                AsymmetricCryptoKey::from_der(&dec)
+                    .map_err(|_| EncryptionSettingsError::InvalidPrivateKey)?,
+            )
         };
 
         Ok(EncryptionSettings {

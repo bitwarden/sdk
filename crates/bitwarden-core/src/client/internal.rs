@@ -9,15 +9,17 @@ use uuid::Uuid;
 
 #[cfg(feature = "secrets")]
 use super::login_method::ServiceAccountLoginMethod;
-use super::{encryption_settings::EncryptionSettings, login_method::LoginMethod};
-#[cfg(feature = "internal")]
-use super::{flags::Flags, login_method::UserLoginMethod};
-#[cfg(feature = "internal")]
-use crate::error::Error;
 use crate::{
     auth::renew::renew_token,
+    client::{encryption_settings::EncryptionSettings, login_method::LoginMethod},
     error::{Result, VaultLocked},
     DeviceType,
+};
+#[cfg(feature = "internal")]
+use crate::{
+    client::encryption_settings::EncryptionSettingsError,
+    client::{flags::Flags, login_method::UserLoginMethod},
+    error::Error,
 };
 
 #[derive(Debug, Clone)]
@@ -179,7 +181,7 @@ impl InternalClient {
         master_key: MasterKey,
         user_key: EncString,
         private_key: EncString,
-    ) -> Result<()> {
+    ) -> Result<(), EncryptionSettingsError> {
         *self
             .encryption_settings
             .write()
@@ -197,7 +199,7 @@ impl InternalClient {
         &self,
         user_key: SymmetricCryptoKey,
         private_key: EncString,
-    ) -> Result<()> {
+    ) -> Result<(), EncryptionSettingsError> {
         *self
             .encryption_settings
             .write()
@@ -214,7 +216,7 @@ impl InternalClient {
         pin_key: PinKey,
         pin_protected_user_key: EncString,
         private_key: EncString,
-    ) -> Result<()> {
+    ) -> Result<(), EncryptionSettingsError> {
         let decrypted_user_key = pin_key.decrypt_user_key(pin_protected_user_key)?;
         self.initialize_user_crypto_decrypted_key(decrypted_user_key, private_key)
     }

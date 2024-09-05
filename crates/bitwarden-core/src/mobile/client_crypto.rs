@@ -2,7 +2,7 @@
 use bitwarden_crypto::{AsymmetricEncString, EncString};
 
 use super::crypto::{derive_key_connector, DeriveKeyConnectorRequest};
-use crate::Client;
+use crate::{client::encryption_settings::EncryptionSettingsError, Client};
 #[cfg(feature = "internal")]
 use crate::{
     error::Result,
@@ -18,7 +18,10 @@ pub struct ClientCrypto<'a> {
 }
 
 impl<'a> ClientCrypto<'a> {
-    pub async fn initialize_user_crypto(&self, req: InitUserCryptoRequest) -> Result<()> {
+    pub async fn initialize_user_crypto(
+        &self,
+        req: InitUserCryptoRequest,
+    ) -> Result<(), EncryptionSettingsError> {
         initialize_user_crypto(self.client, req).await
     }
 

@@ -64,11 +64,14 @@ impl EncryptionSettings {
 
             // FIXME: [PM-11690] - Temporarily ignore invalid private keys until we have a recovery
             // process in place.
-            AsymmetricCryptoKey::from_der(&dec)
-                .map_err(|_| {
+            let key = AsymmetricCryptoKey::from_der(&dec);
+            match key {
+                Ok(key) => Some(key),
+                Err(_) => {
                     warn!("Invalid private key");
-                })
-                .ok()
+                    None
+                }
+            }
 
             // Some(
             //     AsymmetricCryptoKey::from_der(&dec)

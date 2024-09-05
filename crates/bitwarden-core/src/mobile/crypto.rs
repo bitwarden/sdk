@@ -8,7 +8,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    client::{LoginMethod, UserLoginMethod},
+    client::{encryption_settings::EncryptionSettingsError, LoginMethod, UserLoginMethod},
     error::{Error, Result},
     Client,
 };
@@ -86,7 +86,10 @@ pub enum AuthRequestMethod {
     },
 }
 
-pub async fn initialize_user_crypto(client: &Client, req: InitUserCryptoRequest) -> Result<()> {
+pub async fn initialize_user_crypto(
+    client: &Client,
+    req: InitUserCryptoRequest,
+) -> Result<(), EncryptionSettingsError> {
     use bitwarden_crypto::{DeviceKey, PinKey};
 
     use crate::auth::{auth_request_decrypt_master_key, auth_request_decrypt_user_key};

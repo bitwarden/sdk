@@ -243,5 +243,5 @@ jobs:
           draft: false
           repo: sdk-swift
           owner: bitwarden
-          artifacts: "BitwardenFFI-${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}.xcframework"
+          artifacts: "BitwardenFFI-${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}.xcframework.zip"
           prerelease: ${{ inputs.pre-release }}

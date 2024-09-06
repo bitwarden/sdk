@@ -191,13 +191,13 @@ jobs:
           # Run swiftformat
           swiftformat sdk/languages/swift/Package.swift
 
-          rm -f sdk/languages/swift/Sources/.gitingore
+          find sdk/languages/swift/Sources/ -name ".gitingore" -exec rm -f {} \;
 
           # Copy files to local sdk-swift repo path
           cp --verbose -rf sdk/languages/swift/README.md sdk-swift/README.md
           cp --verbose -rf sdk/languages/swift/Package.swift sdk-swift/Package.swift
-          cp --verbose -rf sdk/languages/swift/Sources sdk-swift
-          cp --verbose -rf sdk/languages/swift/Tests sdk-swift
+          cp --verbose -rf sdk/languages/swift/Sources sdk-swift/Sources
+          cp --verbose -rf sdk/languages/swift/Tests sdk-swift/Tests
 
       - name: Push changes
         working-directory: sdk-swift

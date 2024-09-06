@@ -191,7 +191,7 @@ jobs:
           # Run swiftformat
           swiftformat sdk/languages/swift/Package.swift
 
-          find sdk/languages/swift/Sources/ -name ".gitingore" -exec rm -f {} \;
+          find sdk/languages/swift/Sources/ -name ".gitignore" -exec rm -f {} \;
 
           # Copy files to local sdk-swift repo path
           cp --verbose -rf sdk/languages/swift/README.md sdk-swift/README.md

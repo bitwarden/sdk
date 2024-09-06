@@ -163,28 +163,15 @@ jobs:
           git config --local user.email "${{ env._BOT_EMAIL }}"
           git config --local user.name "${{ env._BOT_NAME }}"
 
-      - name: Build SDK Swift
-        env:
-          IPHONEOS_DEPLOYMENT_TARGET: "13.0"
-          RUSTFLAGS: "-C link-arg=-Wl,-application_extension"
-        working-directory: sdk/languages/swift
-        run: |
-          cargo build --package bitwarden-uniffi --target aarch64-apple-ios-sim --release
-          cargo build --package bitwarden-uniffi --target aarch64-apple-ios --release
-          cargo build --package bitwarden-uniffi --target x86_64-apple-ios --release
-
-          # Create universal libraries
-          lipo -create ../../target/aarch64-apple-ios-sim/release/libbitwarden_uniffi.a \
-            ../../target/x86_64-apple-ios/release/libbitwarden_uniffi.a \
-            -output ./tmp/target/universal-ios-sim/release/libbitwarden_uniffi.a
-
-          # Generate swift bindings
-          cargo run -p uniffi-bindgen generate \
-            ../../target/aarch64-apple-ios-sim/release/libbitwarden_uniffi.dylib \
-            --library \
-            --language swift \
-            --no-format \
-            --out-dir Sources/BitwardenSdk/
+      - name: Download BitwardenSdk sources artifact
+        uses: bitwarden/gh-actions/download-artifacts@main
+        id: download-artifact
+        with:
+          workflow: build-swift.yml
+          workflow_conclusion: success
+          artifacts: "BitwardenFFI-${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}-sources"
+          run_id: ${{ env._BUILD_RUN_ID }}
+          directory: sdk/languages/swift/Sources
 
       - name: Install Swift formatter
         run: |

@@ -67,6 +67,13 @@ jobs:
           path: languages/swift/BitwardenFFI.xcframework
           if-no-files-found: error
 
+      - name: Upload BitwardenSdk sources
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        with:
+          name: BitwardenSdk-${{ env._VERSION }}-${{ steps.build.outputs.short-sha }}-sources
+          path: languages/swift/Sources/BitwardenSdk
+          if-no-files-found: error
+
   trigger-swift-release:
     name: Trigger Swift release
     if: github.ref == 'refs/heads/main'

@@ -36,7 +36,23 @@ module BitwardenSDKSecrets
       error_response(secrets_response)
     end
 
-    def create(key, note, organization_id, project_ids, value)
+    def sync(organization_id, last_synced_date)
+      command = create_command(
+        sync: SecretsSyncRequest.new(organization_id: organization_id, last_synced_date: last_synced_date)
+      )
+      response = run_command(command)
+
+      secrets_response = ResponseForSecretsSyncResponse.from_json!(response).to_dynamic
+
+      if secrets_response.key?('success') && secrets_response['success'] == true &&
+         secrets_response.key?('data')
+        return secrets_response['data']
+      end
+
+      error_response(secrets_response)
+    end
+
+    def create(organization_id, key, value, note, project_ids)
       command = create_command(
         create: SecretCreateRequest.new(
           key: key, note: note, organization_id: organization_id, project_ids: project_ids, value: value
@@ -68,7 +84,7 @@ module BitwardenSDKSecrets
       error_response(secrets_response)
     end
 
-    def update(id, key, note, organization_id, project_ids, value)
+    def update(organization_id, id, key, value, note, project_ids)
       command = create_command(
         update: SecretPutRequest.new(
           id: id, key: key, note: note, organization_id: organization_id, project_ids: project_ids, value: value
@@ -86,7 +102,7 @@ module BitwardenSDKSecrets
       error_response(secrets_response)
     end
 
-    def delete_secret(ids)
+    def delete(ids)
       command = create_command(delete: SecretsDeleteRequest.new(ids: ids))
       response = run_command(command)
 

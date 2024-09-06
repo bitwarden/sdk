@@ -3,6 +3,7 @@ package com.bitwarden.sdk;
 import com.bitwarden.sdk.schema.*;
 
 import java.util.UUID;
+import java.time.OffsetDateTime;
 
 public class SecretsClient {
 
@@ -30,7 +31,7 @@ public class SecretsClient {
         return response.getData();
     }
 
-    public SecretResponse create(String key, String value, String note, UUID organizationId, UUID[] projectIds) {
+    public SecretResponse create(UUID organizationId, String key, String value, String note, UUID[] projectIds) {
         Command command = new Command();
         SecretsCommand secretsCommand = new SecretsCommand();
         SecretCreateRequest secretCreateRequest = new SecretCreateRequest();
@@ -52,8 +53,7 @@ public class SecretsClient {
         return response.getData();
     }
 
-    public SecretResponse update(UUID id, String key, String value, String note, UUID organizationId,
-                                 UUID[] projectIds) {
+    public SecretResponse update(UUID organizationId, UUID id, String key, String value, String note, UUID[] projectIds) {
         Command command = new Command();
         SecretsCommand secretsCommand = new SecretsCommand();
         SecretPutRequest secretPutRequest = new SecretPutRequest();
@@ -125,7 +125,26 @@ public class SecretsClient {
             BitwardenClient.throwingFunctionWrapper(Converter::ResponseForSecretsResponseFromJsonString));
 
         if (response == null || !response.getSuccess()) {
-            throw new BitwardenClientException(response != null ? response.getErrorMessage() : "Secret not found");
+            throw new BitwardenClientException(response != null ? response.getErrorMessage() : "Secret(s) not found");
+        }
+
+        return response.getData();
+    }
+
+    public SecretsSyncResponse sync(UUID organizationId, OffsetDateTime lastSyncedDate) {
+        Command command = new Command();
+        SecretsCommand secretsCommand = new SecretsCommand();
+        SecretsSyncRequest secretsSyncRequest = new SecretsSyncRequest();
+        secretsSyncRequest.setOrganizationID(organizationId);
+        secretsSyncRequest.setLastSyncedDate(lastSyncedDate);
+        secretsCommand.setSync(secretsSyncRequest);
+        command.setSecrets(secretsCommand);
+
+        ResponseForSecretsSyncResponse response = commandRunner.runCommand(command,
+            BitwardenClient.throwingFunctionWrapper(Converter::ResponseForSecretsSyncResponseFromJsonString));
+
+        if (response == null || !response.getSuccess()) {
+            throw new BitwardenClientException(response != null ? response.getErrorMessage() : "Secrets sync failed");
         }
 
         return response.getData();

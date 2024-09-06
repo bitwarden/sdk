@@ -41,8 +41,19 @@ foreach ($res->data as $project) {
 $res = $bitwarden_client->projects->update($project_id, 'php test awesome', $organization_id);
 print("\tupdate: '" . $res->name . "'\n\n");
 
-// create secret
+// sync secrets
 print("Secrets:\n");
+print("\tsyncing secrets...\n");
+$res = $bitwarden_client->secrets->sync($organization_id,null);
+$now = new DateTime();
+$now_string = $now->format('Y-m-d\TH:i:s.u\Z');
+print("\t\tsync has changes: " . ($res->hasChanges ? 'true' : 'false') . "\n");
+
+print("\tsyncing again to ensure no changes since last sync...\n");
+$res = $bitwarden_client->secrets->sync($organization_id, $now_string);
+print("\t\tsync has changes: " . ($res->hasChanges ? 'true' : 'false') . "\n");
+
+// create secret
 $res = $bitwarden_client->secrets->create("New Key", "hello world", $organization_id, [$project_id], "123");
 $secret_id = $res->id;
 print("\tcreate: '" . $secret_id . "'\n");

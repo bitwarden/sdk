@@ -10,6 +10,7 @@ use Bitwarden\Sdk\Schemas\SecretPutRequest;
 use Bitwarden\Sdk\Schemas\SecretsCommand;
 use Bitwarden\Sdk\Schemas\SecretsDeleteRequest;
 use Bitwarden\Sdk\Schemas\SecretsGetRequest;
+use Bitwarden\Sdk\Schemas\SecretsSyncRequest;
 
 class SecretsClient
 {
@@ -86,6 +87,21 @@ class SecretsClient
         $secrets_delete_request->validate();
         $secrets_command = new SecretsCommand();
         $secrets_command->delete = $secrets_delete_request->jsonSerialize();
+        return $this->run_secret_command($secrets_command);
+    }
+
+    public function sync(string $organization_id, ?string $last_synced_date): \stdClass
+    {
+        if (empty($last_synced_date)) {
+            $last_synced_date = "1970-01-01T00:00:00.000Z";
+        }
+
+        $secrets_sync_request = new SecretsSyncRequest();
+        $secrets_sync_request->organizationId = $organization_id;
+        $secrets_sync_request->lastSyncedDate = $last_synced_date;
+        $secrets_sync_request->validate();
+        $secrets_command = new SecretsCommand();
+        $secrets_command->sync = $secrets_sync_request->jsonSerialize();
         return $this->run_secret_command($secrets_command);
     }
 

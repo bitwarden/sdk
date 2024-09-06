@@ -190,7 +190,10 @@ pub struct InitOrgCryptoRequest {
     pub organization_keys: HashMap<uuid::Uuid, AsymmetricEncString>,
 }
 
-pub async fn initialize_org_crypto(client: &Client, req: InitOrgCryptoRequest) -> Result<()> {
+pub async fn initialize_org_crypto(
+    client: &Client,
+    req: InitOrgCryptoRequest,
+) -> Result<(), EncryptionSettingsError> {
     let organization_keys = req.organization_keys.into_iter().collect();
     client.internal.initialize_org_crypto(organization_keys)?;
     Ok(())

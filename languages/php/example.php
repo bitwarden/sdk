@@ -22,7 +22,7 @@ try {
 
 // create project
 print("Projects:\n");
-$res = $bitwarden_client->projects->create('php project', $organization_id);
+$res = $bitwarden_client->projects->create($organization_id, 'php project');
 $project_id = $res->id;
 print("\tcreate: '" . $project_id . "'\n");
 
@@ -38,7 +38,7 @@ foreach ($res->data as $project) {
 }
 
 // update project
-$res = $bitwarden_client->projects->update($project_id, 'php test awesome', $organization_id);
+$res = $bitwarden_client->projects->update($organization_id, $project_id, 'php test awesome');
 print("\tupdate: '" . $res->name . "'\n\n");
 
 // sync secrets
@@ -54,7 +54,7 @@ $res = $bitwarden_client->secrets->sync($organization_id, $now_string);
 print("\t\tsync has changes: " . ($res->hasChanges ? 'true' : 'false') . "\n");
 
 // create secret
-$res = $bitwarden_client->secrets->create("New Key", "hello world", $organization_id, [$project_id], "123");
+$res = $bitwarden_client->secrets->create($organization_id, "New Key", "New value", "New note", [$project_id]);
 $secret_id = $res->id;
 print("\tcreate: '" . $secret_id . "'\n");
 
@@ -77,7 +77,7 @@ foreach ($res->data as $secret) {
 }
 
 // update secret
-$res = $bitwarden_client->secrets->update($secret_id, "hello world 2", "hello", $organization_id, [$project_id], "123");
+$res = $bitwarden_client->secrets->update($organization_id, $secret_id, "Updated key", "Updated value", "Updated note", [$project_id]);
 print("\tupdate: '" . $res->key . "'\n\n");
 
 // delete secret

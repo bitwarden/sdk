@@ -51,7 +51,7 @@ class SecretsClient
         return $this->run_secret_command($secrets_command);
     }
 
-    public function create(string $key, string $note, string $organization_id, array $project_ids, string $value): \stdClass
+    public function create(string $organization_id, string $key, string $value, string $note, array $project_ids): \stdClass
     {
         $secrets_create_request = new SecretCreateRequest();
         $secrets_create_request->organizationId = $organization_id;
@@ -65,7 +65,7 @@ class SecretsClient
         return $this->run_secret_command($secrets_command);
     }
 
-    public function update(string $id, string $key, string $note, string $organization_id, array $project_ids, string $value): \stdClass
+    public function update(string $organization_id, string $id, string $key, string $value, string $note, array $project_ids): \stdClass
     {
         $secrets_put_request = new SecretPutRequest();
         $secrets_put_request->id = $id;

@@ -39,7 +39,7 @@ class ProjectsClient
         return $this->run_project_command($project_command);
     }
 
-    public function create(string $project_name, string $organization_id): \stdClass
+    public function create(string $organization_id, string $project_name): \stdClass
     {
         $project_create_request = new ProjectCreateRequest();
         $project_create_request->name = $project_name;
@@ -50,7 +50,7 @@ class ProjectsClient
         return $this->run_project_command($project_command);
     }
 
-    public function update(string $project_id, string $project_name, string $organization_id): \stdClass
+    public function update(string $organization_id, string $project_id, string $project_name): \stdClass
     {
         $project_put_request = new ProjectPutRequest();
         $project_put_request->organizationId = $organization_id;

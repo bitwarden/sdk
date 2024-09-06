@@ -51,6 +51,13 @@ print("\tcreate: '" . $secret_id . "'\n");
 $res = $bitwarden_client->secrets->get($secret_id);
 print("\tget: '" . $res->key . "'\n");
 
+// get multiple secrets by ids
+$res = $bitwarden_client->secrets->get_by_ids([$secret_id]);
+print("\tget_by_ids:\n");
+foreach ($res->data as $secret) {
+    print("\t\tID: '" . $secret->id . "', Name: '" . $secret->key . "'\n");
+}
+
 // list secrets
 $res = $bitwarden_client->secrets->list($organization_id);
 print("\tlist:\n");

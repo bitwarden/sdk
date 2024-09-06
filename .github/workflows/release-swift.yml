@@ -170,6 +170,29 @@ jobs:
           swift build -c release
           cp -f .build/release/swiftformat /usr/local/bin/swiftformat
 
+      - name: Build SDK Swift
+        env:
+          IPHONEOS_DEPLOYMENT_TARGET: "13.0"
+          RUSTFLAGS: "-C link-arg=-Wl,-application_extension"
+        working-directory: sdk/languages/swift
+        run: |
+          cargo build --package bitwarden-uniffi --target aarch64-apple-ios-sim --release
+          cargo build --package bitwarden-uniffi --target aarch64-apple-ios --release
+          cargo build --package bitwarden-uniffi --target x86_64-apple-ios --release
+
+          # Create universal libraries
+          lipo -create ../../target/aarch64-apple-ios-sim/release/libbitwarden_uniffi.a \
+            ../../target/x86_64-apple-ios/release/libbitwarden_uniffi.a \
+            -output ./tmp/target/universal-ios-sim/release/libbitwarden_uniffi.a
+
+          # Generate swift bindings
+          cargo run -p uniffi-bindgen generate \
+            ../../target/aarch64-apple-ios-sim/release/libbitwarden_uniffi.dylib \
+            --library \
+            --language swift \
+            --no-format \
+            --out-dir Sources/BitwardenSdk/
+
       - name: Update files
         run: |
           # Update BitwardenFFI path
@@ -181,11 +204,13 @@ jobs:
           # Run swiftformat
           swiftformat sdk/languages/swift/Package.swift
 
+          rm -f sdk/languages/swift/Sources/.gitingore
+
           # Copy files to local sdk-swift repo path
           cp --verbose -rf sdk/languages/swift/README.md sdk-swift/README.md
           cp --verbose -rf sdk/languages/swift/Package.swift sdk-swift/Package.swift
-          cp --verbose -rf sdk/languages/swift/Sources sdk-swift/Sources
-          cp --verbose -rf sdk/languages/swift/Tests sdk-swift/Tests
+          cp --verbose -rf sdk/languages/swift/Sources sdk-swift
+          cp --verbose -rf sdk/languages/swift/Tests sdk-swift
 
       - name: Push changes
         working-directory: sdk-swift

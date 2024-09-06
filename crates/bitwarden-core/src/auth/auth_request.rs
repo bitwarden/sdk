@@ -6,6 +6,8 @@ use bitwarden_crypto::{
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{EncString, KeyDecryptable, SymmetricCryptoKey};
 
+#[cfg(feature = "internal")]
+use crate::client::encryption_settings::EncryptionSettingsError;
 use crate::{error::Error, Client};
 
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
@@ -49,7 +51,7 @@ pub(crate) fn new_auth_request(email: &str) -> Result<AuthRequestResponse, Error
 pub(crate) fn auth_request_decrypt_user_key(
     private_key: String,
     user_key: AsymmetricEncString,
-) -> Result<SymmetricCryptoKey, Error> {
+) -> Result<SymmetricCryptoKey, EncryptionSettingsError> {
     let key = AsymmetricCryptoKey::from_der(&STANDARD.decode(private_key)?)?;
     let mut key: Vec<u8> = user_key.decrypt_with_key(&key)?;
 
@@ -62,7 +64,7 @@ pub(crate) fn auth_request_decrypt_master_key(
     private_key: String,
     master_key: AsymmetricEncString,
     user_key: EncString,
-) -> Result<SymmetricCryptoKey, Error> {
+) -> Result<SymmetricCryptoKey, EncryptionSettingsError> {
     use bitwarden_crypto::MasterKey;
 
     let key = AsymmetricCryptoKey::from_der(&STANDARD.decode(private_key)?)?;

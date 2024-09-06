@@ -169,7 +169,7 @@ jobs:
         with:
           workflow: build-swift.yml
           workflow_conclusion: success
-          artifacts: "BitwardenFFI-${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}-sources"
+          artifacts: "BitwardenSdk-${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}-sources"
           run_id: ${{ env._BUILD_RUN_ID }}
           path: sdk/languages/swift/Sources
 

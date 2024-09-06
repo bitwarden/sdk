@@ -19,11 +19,13 @@ import java.lang.System;
 import java.util.UUID;
 import java.time.OffsetDateTime;
 
+String stateFile = System.getenv("STATE_FILE");
+
 BitwardenSettings bitwardenSettings = new BitwardenSettings();
 bitwardenSettings.setApiUrl("https://api.bitwarden.com");
 bitwardenSettings.setIdentityUrl("https://identity.bitwarden.com");
 BitwardenClient bitwardenClient = new BitwardenClient(bitwardenSettings);
-bitwardenClient.auth().loginAccessToken("<access-token>", );
+bitwardenClient.auth().loginAccessToken("<access-token>", stateFile);
 ```
 
 ### Create new project
@@ -71,7 +73,7 @@ var secretResponse = bitwardenClient.secrets().get(secretId);
 ### Get secrets by ids
 
 ```java
-SecretsResponse secretsByIds = bitwardenClient.secrets().getByIds(new UUID[]{secretResponse.getID()});
+SecretsResponse secretsByIds = bitwardenClient.secrets().getByIds(new UUID[]{secretId});
 for (SecretResponse sr : secretsByIds.getData()) {
     System.out.println(sr.getKey());
 }

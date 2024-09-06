@@ -38,6 +38,7 @@ $bitwarden_client->login_access_token($access_token, $state_file);
 ```
 
 After successful authorization you can interact with client to manage your projects and secrets.
+
 ```php
 $organization_id = "<your organization id here>";
 
@@ -57,7 +58,7 @@ $res = $bitwarden_client->projects->list($organization_id);
 
 // update project
 $name = "Updated PHP project"
-$res = $bitwarden_client->projects->put($project_id, $name, $organization_id);
+$res = $bitwarden_client->projects->update($project_id, $name, $organization_id);
 
 // get secret
 $res = $bitwarden_client->secrets->get($secret_id);

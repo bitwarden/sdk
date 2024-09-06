@@ -50,7 +50,7 @@ class ProjectsClient
         return $this->run_project_command($project_command);
     }
 
-    public function put(string $project_id, string $project_name, string $organization_id): \stdClass
+    public function update(string $project_id, string $project_name, string $organization_id): \stdClass
     {
         $project_put_request = new ProjectPutRequest();
         $project_put_request->organizationId = $organization_id;

@@ -38,7 +38,7 @@ foreach ($res->data as $project) {
 }
 
 // update project
-$res = $bitwarden_client->projects->put($project_id, 'php test awesome', $organization_id);
+$res = $bitwarden_client->projects->update($project_id, 'php test awesome', $organization_id);
 print("\tupdate: '" . $res->name . "'\n\n");
 
 // create secret

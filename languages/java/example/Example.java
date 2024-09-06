@@ -49,12 +49,12 @@ class Example {
             SecretIdentifiersResponse secrets = client.secrets().list(organizationId);
             System.out.println("Secrets LIST, count: " + secrets.getData().length);
 
-            client.secrets().update(organizationId, secret.getID(), "Updated Key", "Updated Value", "Updated Noye", new UUID[]{project.getID()});
+            client.secrets().update(organizationId, secret.getID(), "Updated Key", "Updated Value", "Updated Note", new UUID[]{project.getID()});
             secret = client.secrets().get(secret.getID());
-            System.out.println("Secret UPDATE, new name: " + secret.getKey());
+            System.out.println("Secret UPDATE, new key: " + secret.getKey());
 
             SecretsResponse secretsByIds = client.secrets().getByIds(new UUID[]{secret.getID()});
-            System.out.println("Getting secrets by ids, here are the names of the retrieved secrets...");
+            System.out.println("Getting secrets by ids, here are the keys of the retrieved secrets...");
             for (SecretResponse sr : secretsByIds.getData()) {
                 System.out.println("  " + sr.getKey());
             }

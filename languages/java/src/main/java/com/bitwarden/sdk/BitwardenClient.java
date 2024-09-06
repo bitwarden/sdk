@@ -50,7 +50,7 @@ public class BitwardenClient implements AutoCloseable {
             try {
                 return throwingFunction.accept(i);
             } catch (Exception ex) {
-                throw new BitwardenClientException("Response deserialization failed", ex);
+                throw new BitwardenClientException("Response failed", ex);
             }
         };
     }

@@ -194,6 +194,9 @@ jobs:
 
           find sdk/languages/swift/Sources/ -name ".gitignore" -exec rm -f {} \;
 
+          rm -rf sdk-swift/Sources
+          rm -rf sdk-swift/Tests
+
           # Copy files to local sdk-swift repo path
           cp --verbose -rf sdk/languages/swift/README.md sdk-swift/README.md
           cp --verbose -rf sdk/languages/swift/Package.swift sdk-swift/Package.swift

@@ -196,8 +196,8 @@ jobs:
           # Copy files to local sdk-swift repo path
           cp --verbose -rf sdk/languages/swift/README.md sdk-swift/README.md
           cp --verbose -rf sdk/languages/swift/Package.swift sdk-swift/Package.swift
-          cp --verbose -rf sdk/languages/swift/Sources sdk-swift/Sources
-          cp --verbose -rf sdk/languages/swift/Tests sdk-swift/Tests
+          cp --verbose -rf sdk/languages/swift/Sources sdk-swift
+          cp --verbose -rf sdk/languages/swift/Tests sdk-swift
 
       - name: Push changes
         working-directory: sdk-swift

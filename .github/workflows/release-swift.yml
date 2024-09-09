@@ -172,7 +172,7 @@ jobs:
           workflow_conclusion: success
           artifacts: "BitwardenSdk-${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}-sources"
           run_id: ${{ env._BUILD_RUN_ID }}
-          path: sdk/languages/swift/Sources
+          path: sdk/languages/swift/Sources/BitwardenSdk
 
       - name: Install Swift formatter
         run: |

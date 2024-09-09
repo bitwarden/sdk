@@ -18,7 +18,9 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-          # we must use the oldest supported runner when building dynamically-linked libbitwarden_c
+          # caution: updating the runner OS version for dynamically-linked
+          #   targets will likely break libbitwarden_c for older OS versions.
+          #   prefer using oldest supported runner for for these targets
           - os: macos-13
             target: x86_64-apple-darwin
           - os: macos-13
@@ -68,7 +70,7 @@ jobs:
         if: ${{ !contains(matrix.settings.target, 'musl') }}
         env:
           RUSTFLAGS: "-D warnings"
-          MACOSX_DEPLOYMENT_TARGET: "10.6"
+          MACOSX_DEPLOYMENT_TARGET: "10.6" # allows using new macos runner versions while still supporting older systems
         run: cargo build -p bitwarden-c --target ${{ matrix.settings.target }} --release
 
       - name: Upload Artifact

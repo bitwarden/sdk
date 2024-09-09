@@ -219,7 +219,7 @@ impl PasswordGeneratorRequest {
 }
 
 /// Implementation of the random password generator.
-pub fn password(input: PasswordGeneratorRequest) -> Result<String, PasswordError> {
+pub(crate) fn password(input: PasswordGeneratorRequest) -> Result<String, PasswordError> {
     let options = input.validate_options()?;
     Ok(password_with_rng(rand::thread_rng(), options))
 }

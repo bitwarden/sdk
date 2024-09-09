@@ -1,3 +1,0 @@
-module BitwardenSDK
-  VERSION: String
-end

@@ -102,9 +102,11 @@ jobs:
 
       - name: npm ci
         run: npm ci
+        working-directory: languages/js/sdk-client
 
       - name: build
         run: npm run build
+        working-directory: languages/js/sdk-client
 
       - name: Set version
         if: ${{ github.ref == 'refs/heads/main' }}

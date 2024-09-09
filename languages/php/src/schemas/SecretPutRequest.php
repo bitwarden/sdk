@@ -45,8 +45,13 @@ class SecretPutRequest extends ClassStructure
         $properties->organizationId->description = "Organization ID of the secret to modify";
         $properties->organizationId->format = "uuid";
         $properties->key = Schema::string();
+        $properties->key->maxLength = 500;
+        $properties->key->minLength = 1;
         $properties->value = Schema::string();
+        $properties->value->maxLength = 25000;
+        $properties->value->minLength = 1;
         $properties->note = Schema::string();
+        $properties->note->maxLength = 7000;
         $properties->projectIds = (new Schema())->setType([Schema::_ARRAY, Schema::NULL]);
         $properties->projectIds->items = Schema::string();
         $properties->projectIds->items->format = "uuid";

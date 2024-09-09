@@ -32,6 +32,8 @@ class ProjectCreateRequest extends ClassStructure
         $properties->organizationId->description = "Organization where the project will be created";
         $properties->organizationId->format = "uuid";
         $properties->name = Schema::string();
+        $properties->name->maxLength = 500;
+        $properties->name->minLength = 1;
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
         $ownerSchema->required = array(

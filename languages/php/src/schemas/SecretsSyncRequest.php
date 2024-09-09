@@ -13,15 +13,12 @@ use Swaggest\JsonSchema\Structure\ClassStructure;
 
 /**
  * Built from #/definitions/SecretsSyncRequest
+ * @property string|null $lastSyncedDate Optional date time a sync last occurred
  */
-
 class SecretsSyncRequest extends ClassStructure
 {
-
-    /** @var string */
+    /** @var string Organization to sync secrets from */
     public $organizationId;
-    /** @var string */
-    public $lastSyncedDate;
 
     /**
      * @param Properties|static $properties
@@ -30,11 +27,11 @@ class SecretsSyncRequest extends ClassStructure
     public static function setUpProperties($properties, Schema $ownerSchema)
     {
         $properties->organizationId = Schema::string();
+        $properties->organizationId->description = "Organization to sync secrets from";
         $properties->organizationId->format = "uuid";
-        $properties->organizationId->description = "Organization ID";
-        $properties->lastSyncedDate = Schema::string();
+        $properties->lastSyncedDate = (new Schema())->setType([Schema::STRING, Schema::NULL]);
+        $properties->lastSyncedDate->description = "Optional date time a sync last occurred";
         $properties->lastSyncedDate->format = "date-time";
-        $properties->lastSyncedDate->description = "Last synced date";
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
         $ownerSchema->required = array(

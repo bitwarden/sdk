@@ -7,20 +7,21 @@
 namespace Bitwarden\Sdk\Schemas;
 
 use Swaggest\JsonSchema\Constraint\Properties;
-use Swaggest\JsonSchema\JsonSchema;
 use Swaggest\JsonSchema\Schema;
+use Swaggest\JsonSchema\Structure\ClassStructure;
 
 
-class Command extends BitwardenClassStructure
+/**
+ * Login with Secrets Manager Access Token
+ *
+ * This command is for initiating an authentication handshake with Bitwarden.
+ *
+ * Returns: [ApiKeyLoginResponse](bitwarden::auth::login::ApiKeyLoginResponse)
+ */
+class Command extends ClassStructure
 {
-    /** @var ProjectsCommand|null */
-    public $projects;
-
-    /** @var SecretsCommand|null */
-    public $secrets;
-
-    /** @var AccessTokenLoginRequest|null */
-    public $accessTokenLogin;
+    /** @var AccessTokenLoginRequest Login to Bitwarden with access token */
+    public $loginAccessToken;
 
     /**
      * @param Properties|static $properties
@@ -28,17 +29,12 @@ class Command extends BitwardenClassStructure
      */
     public static function setUpProperties($properties, Schema $ownerSchema)
     {
-        $properties->projects = ProjectsCommand::schema();
-        $properties->secrets = SecretsCommand::schema();
-        $properties->accessTokenLogin = AccessTokenLoginRequest::schema();
-
+        $properties->loginAccessToken = AccessTokenLoginRequest::schema();
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
-
-        $ownerSchema->oneOf = array(
-          self::names()->projects,
-          self::names()->secrets,
-          self::names()->accessTokenLogin,
+        $ownerSchema->description = "Login with Secrets Manager Access Token\n\nThis command is for initiating an authentication handshake with Bitwarden.\n\nReturns: [ApiKeyLoginResponse](bitwarden::auth::login::ApiKeyLoginResponse)";
+        $ownerSchema->required = array(
+            self::names()->loginAccessToken,
         );
     }
 }

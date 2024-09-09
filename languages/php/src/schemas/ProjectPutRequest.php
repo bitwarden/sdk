@@ -38,6 +38,8 @@ class ProjectPutRequest extends ClassStructure
         $properties->organizationId->description = "Organization ID of the project to modify";
         $properties->organizationId->format = "uuid";
         $properties->name = Schema::string();
+        $properties->name->maxLength = 500;
+        $properties->name->minLength = 1;
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
         $ownerSchema->required = array(

@@ -12,14 +12,12 @@ use Swaggest\JsonSchema\Structure\ClassStructure;
 
 
 /**
- * ClientSettings
  * Basic client behavior settings. These settings specify the various targets and behavior of the Bitwarden Client. They are optional and uneditable once the client is initialized.
- *
+ * 
  * Defaults to
- *
- * ``` # use bitwarden::client::client_settings::{ClientSettings, DeviceType}; # use assert_matches::assert_matches; let settings = ClientSettings { identity_url: "https://identity.bitwarden.com".to_string(), api_url: "https://api.bitwarden.com".to_string(), user_agent: "Bitwarden Rust-SDK".to_string(), device_type: DeviceType::SDK, }; let default = ClientSettings::default(); assert_matches!(settings, default); ```
- *
- * Targets `localhost:8080` for debug builds.
+ * 
+ * ``` # use bitwarden_core::{ClientSettings, DeviceType}; let settings = ClientSettings { identity_url: "https://identity.bitwarden.com".to_string(), api_url: "https://api.bitwarden.com".to_string(), user_agent: "Bitwarden Rust-SDK".to_string(), device_type: DeviceType::SDK, }; let default = ClientSettings::default(); ```
+ * Built from #/definitions/ClientSettings
  */
 class ClientSettings extends ClassStructure
 {
@@ -126,8 +124,7 @@ class ClientSettings extends ClassStructure
         $properties->deviceType->default = "SDK";
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
-        $ownerSchema->schema = "http://json-schema.org/draft-07/schema#";
-        $ownerSchema->title = "ClientSettings";
-        $ownerSchema->description = "Basic client behavior settings. These settings specify the various targets and behavior of the Bitwarden Client. They are optional and uneditable once the client is initialized.\n\nDefaults to\n\n``` # use bitwarden::client::client_settings::{ClientSettings, DeviceType}; # use assert_matches::assert_matches; let settings = ClientSettings { identity_url: \"https://identity.bitwarden.com\".to_string(), api_url: \"https://api.bitwarden.com\".to_string(), user_agent: \"Bitwarden Rust-SDK\".to_string(), device_type: DeviceType::SDK, }; let default = ClientSettings::default(); assert_matches!(settings, default); ```\n\nTargets `localhost:8080` for debug builds.";
+        $ownerSchema->description = "Basic client behavior settings. These settings specify the various targets and behavior of the Bitwarden Client. They are optional and uneditable once the client is initialized.\n\nDefaults to\n\n``` # use bitwarden_core::{ClientSettings, DeviceType}; let settings = ClientSettings { identity_url: \"https://identity.bitwarden.com\".to_string(), api_url: \"https://api.bitwarden.com\".to_string(), user_agent: \"Bitwarden Rust-SDK\".to_string(), device_type: DeviceType::SDK, }; let default = ClientSettings::default(); ```";
+        $ownerSchema->setFromRef('#/definitions/ClientSettings');
     }
 }

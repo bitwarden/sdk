@@ -7,27 +7,14 @@
 namespace Bitwarden\Sdk\Schemas;
 
 use Swaggest\JsonSchema\Constraint\Properties;
-use Swaggest\JsonSchema\JsonSchema;
 use Swaggest\JsonSchema\Schema;
+use Swaggest\JsonSchema\Structure\ClassStructure;
 
 
-/**
- * > Requires Authentication > Requires using an Access Token for login or calling Sync at least once Deletes all the projects whose IDs match the provided ones
- *
- * Returns: [ProjectsDeleteResponse](bitwarden::secrets_manager::projects::ProjectsDeleteResponse)
- */
-class ProjectsCommand extends BitwardenClassStructure
+class ProjectsCommand extends ClassStructure
 {
-    public ?\stdClass $delete;
-
-    public ?\stdClass $get;
-
-    public ?\stdClass $list;
-
-    public ?\stdClass $create;
-
-    public ?\stdClass $update;
-
+    /** @var ProjectGetRequest|ProjectsListRequest|ProjectsCommandOneOf2|ProjectPutRequest|ProjectCreateRequest */
+    public $projects;
 
     /**
      * @param Properties|static $properties
@@ -35,21 +22,16 @@ class ProjectsCommand extends BitwardenClassStructure
      */
     public static function setUpProperties($properties, Schema $ownerSchema)
     {
-        $properties->delete = ProjectsDeleteRequest::schema() ? ProjectsDeleteRequest::schema() : null;
-        $properties->get = ProjectGetRequest::schema() ? ProjectGetRequest::schema() : null;
-        $properties->list = ProjectsListRequest::schema() ? ProjectsListRequest::schema() : null;
-        $properties->update = ProjectPutRequest::schema() ? ProjectPutRequest::schema() : null;
-        $properties->create = ProjectCreateRequest::schema() ? ProjectCreateRequest::schema() : null;
+        $properties->projects = new Schema();
+        $properties->projects->get = ProjectGetRequest::schema();
+        $properties->projects->list = ProjectsListRequest::schema();
+        $properties->projects->update = ProjectPutRequest::schema();
+        $properties->projects->create = ProjectCreateRequest::schema();
+        $properties->projects->setFromRef('#/definitions/ProjectsCommand');
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
-        $ownerSchema->description = "> Requires Authentication > Requires using an Access Token for login or calling Sync at least once Deletes all the projects whose IDs match the provided ones\n\nReturns: [ProjectsDeleteResponse](bitwarden::secrets_manager::projects::ProjectsDeleteResponse)";
-
-        $ownerSchema->oneOf = array(
-            self::names()->create,
-            self::names()->delete,
-            self::names()->get,
-            self::names()->list,
-            self::names()->update,
+        $ownerSchema->required = array(
+            self::names()->projects,
         );
     }
 }

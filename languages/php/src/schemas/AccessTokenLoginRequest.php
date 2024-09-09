@@ -14,6 +14,7 @@ use Swaggest\JsonSchema\Structure\ClassStructure;
 /**
  * Login to Bitwarden with access token
  * Built from #/definitions/AccessTokenLoginRequest
+ * @property string|null $stateFile
  */
 class AccessTokenLoginRequest extends ClassStructure
 {
@@ -28,6 +29,7 @@ class AccessTokenLoginRequest extends ClassStructure
     {
         $properties->accessToken = Schema::string();
         $properties->accessToken->description = "Bitwarden service API access token";
+        $properties->stateFile = (new Schema())->setType([Schema::STRING, Schema::NULL]);
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
         $ownerSchema->description = "Login to Bitwarden with access token";

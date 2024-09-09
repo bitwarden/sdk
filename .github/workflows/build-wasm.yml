@@ -1,5 +1,5 @@
 ---
-name: Build @bitwarden/sdk-wasm
+name: Build WASM
 
 on:
   pull_request:
@@ -16,8 +16,11 @@ defaults:
     working-directory: crates/bitwarden-wasm
 
 jobs:
-  build:
-    name: Building @bitwarden/sdk-wasm
+  generate_schemas:
+    uses: ./.github/workflows/generate_schemas.yml
+
+  wasm:
+    name: Building @bitwarden/wasm
     runs-on: ubuntu-22.04
 
     steps:
@@ -27,7 +30,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
         with:
-          node-version: 18
+          node-version: 20
           registry-url: "https://npm.pkg.github.com"
           cache: "npm"
 
@@ -74,3 +77,48 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         working-directory: languages/js/wasm
+
+  client:
+    name: Building @bitwarden/sdk-client
+    runs-on: ubuntu-22.04
+    needs: generate_schemas
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Setup Node
+        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
+        with:
+          node-version: 20
+          registry-url: "https://npm.pkg.github.com"
+          cache: "npm"
+
+      - name: Retrieve schemas
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          name: schemas.ts
+          path: ${{ github.workspace }}/languages/js/sdk-client/src/
+
+      - name: npm ci
+        run: npm ci
+
+      - name: build
+        run: npm run build
+
+      - name: Set version
+        if: ${{ github.ref == 'refs/heads/main' }}
+        # Fetches current version from registry and uses prerelease to bump it
+        run: |
+          npm version --no-git-tag-version $(npm view @bitwarden/sdk-client@latest version)
+          npm version --no-git-tag-version prerelease
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: languages/js/sdk-client
+
+      - name: Publish NPM
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: languages/js/sdk-client

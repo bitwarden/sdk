@@ -111,6 +111,7 @@ jobs:
       _PRE_RELEASE: ${{ inputs.pre-release }}
       _RELEASE_NAME: ${{ needs.validate.outputs.release_name }}
       _SWIFT_CHECKSUM: ${{ needs.validate.outputs.swift_checksum }}
+      _BUILD_RUN_ID: ${{ needs.validate.outputs.run_id }}
     steps:
       - name: Checkout SDK repo
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7

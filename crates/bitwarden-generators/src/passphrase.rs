@@ -77,7 +77,7 @@ impl PassphraseGeneratorRequest {
 }
 
 /// Implementation of the random passphrase generator.
-pub fn passphrase(request: PassphraseGeneratorRequest) -> Result<String, PassphraseError> {
+pub(crate) fn passphrase(request: PassphraseGeneratorRequest) -> Result<String, PassphraseError> {
     let options = request.validate_options()?;
     Ok(passphrase_with_rng(rand::thread_rng(), options))
 }

@@ -19,9 +19,9 @@ jobs:
       matrix:
         settings:
           # we must use the oldest supported runner when building dynamically-linked libbitwarden_c
-          - os: macos-12 # use older runner for dynamically-linked libbitwarden_c
+          - os: macos-13
             target: x86_64-apple-darwin
-          - os: macos-12 # use older runner for dynamically-linked libbitwarden_c
+          - os: macos-13
             target: aarch64-apple-darwin
           - os: windows-2022
             target: x86_64-pc-windows-msvc
@@ -68,6 +68,8 @@ jobs:
         if: ${{ !contains(matrix.settings.target, 'musl') }}
         env:
           RUSTFLAGS: "-D warnings"
+          CGO_CFLAGS: "-mmacosx-version-min=10.12"
+          CGO_LDFLAGS: "-mmacosx-version-min=10.12"
         run: cargo build -p bitwarden-c --target ${{ matrix.settings.target }} --release
 
       - name: Upload Artifact

@@ -63,7 +63,9 @@ jobs:
               -H "Accept: application/vnd.github+json" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
               /repos/$OWNER/$REPO/actions/workflows/build-swift.yml/runs \
-              | jq -r ".workflow_runs[] | select(.head_branch == \"$BRANCH\")[0] | .id ")
+              | jq -r ".workflow_runs[] | select(.head_branch == \"$BRANCH\")")
+
+              echo $RUN_ID
           else
             RUN_ID=${{ inputs.build-run-id }}
           fi

@@ -68,8 +68,7 @@ jobs:
         if: ${{ !contains(matrix.settings.target, 'musl') }}
         env:
           RUSTFLAGS: "-D warnings"
-          CGO_CFLAGS: "-mmacosx-version-min=10.12"
-          CGO_LDFLAGS: "-mmacosx-version-min=10.12"
+          MACOSX_DEPLOYMENT_TARGET: "10.6"
         run: cargo build -p bitwarden-c --target ${{ matrix.settings.target }} --release
 
       - name: Upload Artifact

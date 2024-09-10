@@ -104,6 +104,13 @@ $value = "Updated value";
 $res = $bitwarden_client->secrets->update($organization_id, $secret_id, $key, $value, $note, [$project_id]);
 ```
 
+### Sync secrets
+
+```php
+$last_synced_date = "2024-09-01T00:00:00Z";
+$res = $bitwarden_client->secrets->sync($organization_id, $last_synced_date);
+```
+
 ### Delete secret
 
 ```php

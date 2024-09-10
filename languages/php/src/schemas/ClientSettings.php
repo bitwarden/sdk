@@ -13,9 +13,9 @@ use Swaggest\JsonSchema\Structure\ClassStructure;
 
 /**
  * Basic client behavior settings. These settings specify the various targets and behavior of the Bitwarden Client. They are optional and uneditable once the client is initialized.
- * 
+ *
  * Defaults to
- * 
+ *
  * ``` # use bitwarden_core::{ClientSettings, DeviceType}; let settings = ClientSettings { identity_url: "https://identity.bitwarden.com".to_string(), api_url: "https://api.bitwarden.com".to_string(), user_agent: "Bitwarden Rust-SDK".to_string(), device_type: DeviceType::SDK, }; let default = ClientSettings::default(); ```
  * Built from #/definitions/ClientSettings
  */

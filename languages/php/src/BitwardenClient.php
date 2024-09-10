@@ -3,8 +3,9 @@
 namespace Bitwarden\Sdk;
 
 use Bitwarden\Sdk\Schemas\AccessTokenLoginRequest;
-use Bitwarden\Sdk\schemas\ClientSettings;
+use Bitwarden\Sdk\Schemas\ClientSettings;
 use Bitwarden\Sdk\Schemas\Command;
+use Bitwarden\Sdk\Schemas;
 use FFI;
 
 class AuthClient {
@@ -53,7 +54,7 @@ class BitwardenClient
 
     public function __construct(BitwardenSettings $bitwardenSettings)
     {
-        $this->clientSettings = new ClientSettings();
+        $this->clientSettings = new \Bitwarden\Sdk\Schemas\ClientSettings();
         $this->clientSettings->apiUrl = $bitwardenSettings->get_api_url();
         $this->clientSettings->identityUrl = $bitwardenSettings->get_identity_url();
         $this->clientSettings->userAgent = "Bitwarden PHP-SDK";

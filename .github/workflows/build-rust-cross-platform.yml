@@ -70,7 +70,7 @@ jobs:
         if: ${{ !contains(matrix.settings.target, 'musl') }}
         env:
           RUSTFLAGS: "-D warnings"
-          MACOSX_DEPLOYMENT_TARGET: "10.10" # allows using new macos runner versions while still supporting older systems
+          MACOSX_DEPLOYMENT_TARGET: "10.14" # allows using new macos runner versions while still supporting older systems
         run: cargo build -p bitwarden-c --target ${{ matrix.settings.target }} --release
 
       - name: Upload Artifact

@@ -100,8 +100,9 @@ impl Client {
             },
             #[cfg(debug_assertions)]
             Command::Debug(cmd) => {
-                use crate::command::DebugCommand;
                 use bitwarden::Error;
+
+                use crate::command::DebugCommand;
 
                 match cmd {
                     DebugCommand::CancellationTest { duration_millis } => {
@@ -114,14 +115,15 @@ impl Client {
                         sleep(duration).await;
                         println!("After wait #3");
                         Ok::<i32, Error>(42).into_string()
-                    },
+                    }
                     DebugCommand::ErrorTest {} => {
                         use bitwarden::Error;
 
                         Err::<i32, Error>(Error::Internal(std::borrow::Cow::Borrowed(
                             "This is an error.",
-                        ))).into_string()
-                    },
+                        )))
+                        .into_string()
+                    }
                 }
             }
         }

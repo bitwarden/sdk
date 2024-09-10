@@ -47,6 +47,7 @@ composer install
 
 ```shell
 export ACCESS_TOKEN="<access_token>"
+export STATE_FILE="<state_file>"
 export ORGANIZATION_ID="<organization_id>"
 export API_URL="https://api.bitwarden.com"
 export IDENTITY_URL="https://identity.bitwarden.com"

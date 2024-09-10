@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7081b1bfe099982a63ad06d5ab9fa66d",
+    "content-hash": "c4bbd1e56c4c6ddbdb68e0015ccad231",
     "packages": [
         {
             "name": "phplang/scope-exit",

@@ -1,5 +1,6 @@
 import {
   Convert,
+  PasswordGeneratorRequest,
   ProjectResponse,
   ProjectsDeleteResponse,
   ProjectsResponse,
@@ -44,6 +45,10 @@ export class BitwardenClient {
 
   projects(): ProjectsClient {
     return new ProjectsClient(this.client);
+  }
+
+  generators(): GeneratorsClient {
+    return new GeneratorsClient(this.client);
   }
 }
 
@@ -193,5 +198,27 @@ export class ProjectsClient {
     );
 
     return handleResponse(Convert.toResponseForProjectsDeleteResponse(response));
+  }
+}
+
+export class GeneratorsClient {
+  client: BitwardenSDKClient;
+
+  constructor(client: BitwardenSDKClient) {
+    this.client = client;
+  }
+
+  async password(req: PasswordGeneratorRequest): Promise<string> {
+    const response = await this.client.run_command(
+      Convert.commandToJson({
+        generators: {
+          generatePassword: req,
+        },
+      }),
+    );
+
+    console.log("hi");
+
+    return handleResponse(Convert.toResponseForString(response));
   }
 }

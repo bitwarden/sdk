@@ -10,6 +10,7 @@
   "types": "dist/src/lib.d.ts",
   "scripts": {
     "build": "npm run clean && tsc",
+    "build:watch": "npm run clean && tsc --watch",
     "clean": "rimraf dist"
   },
   "devDependencies": {

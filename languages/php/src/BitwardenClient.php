@@ -54,7 +54,7 @@ class BitwardenClient
 
     public function __construct(BitwardenSettings $bitwardenSettings)
     {
-        $this->clientSettings = new \Bitwarden\Sdk\Schemas\ClientSettings();
+        $this->clientSettings = new ClientSettings();
         $this->clientSettings->apiUrl = $bitwardenSettings->get_api_url();
         $this->clientSettings->identityUrl = $bitwardenSettings->get_identity_url();
         $this->clientSettings->userAgent = "Bitwarden PHP-SDK";

@@ -18,9 +18,6 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-          # caution: updating the runner OS version for dynamically-linked
-          #   targets will likely break libbitwarden_c for older OS versions.
-          #   prefer using oldest supported runner for for these targets
           - os: macos-13
             target: x86_64-apple-darwin
           - os: macos-13
@@ -29,6 +26,9 @@ jobs:
             target: x86_64-pc-windows-msvc
           - os: windows-2022
             target: x86_64-pc-windows-gnu
+          # caution: updating the linux runner OS version for GNU
+          #   targets will likely break libbitwarden_c for older OS versions.
+          #   prefer using oldest supported runner for for these targets
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
           - os: ubuntu-22.04
@@ -70,7 +70,7 @@ jobs:
         if: ${{ !contains(matrix.settings.target, 'musl') }}
         env:
           RUSTFLAGS: "-D warnings"
-          MACOSX_DEPLOYMENT_TARGET: "10.6" # allows using new macos runner versions while still supporting older systems
+          MACOSX_DEPLOYMENT_TARGET: "10.10" # allows using new macos runner versions while still supporting older systems
         run: cargo build -p bitwarden-c --target ${{ matrix.settings.target }} --release
 
       - name: Upload Artifact

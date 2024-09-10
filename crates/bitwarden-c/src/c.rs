@@ -64,10 +64,8 @@ pub extern "C" fn run_command_async(
         }
     });
 
-    // We only want to box the join handle the caller
-    // has said that they may want to cancel, essentially
-    // promising to us that they will take care of the
-    // returned pointer.
+    // We only want to box the join handle the caller has said that they may want to cancel,
+    // essentially promising to us that they will take care of the returned pointer.
     if is_cancellable {
         box_ptr!(join_handle)
     } else {

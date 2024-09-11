@@ -38,7 +38,7 @@ The default for `api_url` is `https://api.bitwarden.com` and for `identity_url` 
 
 ```php
 $name = "PHP project";
-$res = $bitwarden_client->projects->create($name, $organization_id);
+$res = $bitwarden_client->projects->create($organization_id, $name);
 $project_id = $res->id;
 ```
 

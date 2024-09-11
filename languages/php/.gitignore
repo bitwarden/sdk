@@ -1,2 +1,4 @@
 .DS_Store
 vendor
+src/lib/
+src/Schemas/

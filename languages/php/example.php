@@ -14,7 +14,7 @@ $client_settings = new \Bitwarden\Sdk\BitwardenSettings($api_url, $identity_url)
 
 $bitwarden_client = new \Bitwarden\Sdk\BitwardenClient($client_settings);
 try {
-    $bitwarden_client->auth()->login_access_token($access_token, $state_file);
+    $bitwarden_client->auth->login_access_token($access_token, $state_file);
 } catch (Exception $e) {
     print("Error: " . $e->getMessage() . "\n");
     exit(1);

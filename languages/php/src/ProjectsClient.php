@@ -9,6 +9,8 @@ use Bitwarden\Sdk\Schemas\ProjectPutRequest;
 use Bitwarden\Sdk\Schemas\ProjectsCommand;
 use Bitwarden\Sdk\Schemas\ProjectsDeleteRequest;
 use Bitwarden\Sdk\Schemas\ProjectsListRequest;
+use Exception;
+use stdClass;
 
 class ProjectsClient
 {
@@ -19,63 +21,74 @@ class ProjectsClient
         $this->commandRunner = $commandRunner;
     }
 
-    public function get(string $project_id): \stdClass
+    /**
+     * @throws Exception
+     */
+    public function get(string $project_id): stdClass
     {
-        $project_get_request = new ProjectGetRequest();
-        $project_get_request->id = $project_id;
+        $project_get_request = new ProjectGetRequest($project_id);
         $project_get_request->validate();
-        $project_command = new ProjectsCommand();
-        $project_command->get = $project_get_request->jsonSerialize();
+        $project_command = new ProjectsCommand(get: $project_get_request, create: null, list: null, update: null,
+            delete: null);
         return $this->run_project_command($project_command);
     }
 
-    public function list(string $organization_id): \stdClass
+    /**
+     * @throws Exception
+     */
+    public function list(string $organization_id): stdClass
     {
-        $project_list_request = new ProjectsListRequest();
-        $project_list_request->organizationId = $organization_id;
+        $project_list_request = new ProjectsListRequest($organization_id);
         $project_list_request->validate();
-        $project_command = new ProjectsCommand();
-        $project_command->list = $project_list_request->jsonSerialize();
+        $project_command = new ProjectsCommand(get: null, create: null, list: $project_list_request, update: null,
+            delete: null);
         return $this->run_project_command($project_command);
     }
 
-    public function create(string $organization_id, string $project_name): \stdClass
+    /**
+     * @throws Exception
+     */
+    public function create(string $organization_id, string $project_name): stdClass
     {
-        $project_create_request = new ProjectCreateRequest();
-        $project_create_request->name = $project_name;
-        $project_create_request->organizationId = $organization_id;
+        $project_create_request = new ProjectCreateRequest(name: $project_name, organizationId: $organization_id);
         $project_create_request->validate();
-        $project_command = new ProjectsCommand();
-        $project_command->create = $project_create_request->jsonSerialize();
+        $project_command = new ProjectsCommand(get: null, create: $project_create_request, list: null, update: null,
+            delete: null);
         return $this->run_project_command($project_command);
     }
 
-    public function update(string $organization_id, string $project_id, string $project_name): \stdClass
+    /**
+     * @throws Exception
+     */
+    public function update(string $organization_id, string $project_id, string $project_name): stdClass
     {
-        $project_put_request = new ProjectPutRequest();
-        $project_put_request->organizationId = $organization_id;
-        $project_put_request->name = $project_name;
-        $project_put_request->id = $project_id;
+        $project_put_request = new ProjectPutRequest(id: $project_id, name: $project_name,
+            organizationId: $organization_id);
         $project_put_request->validate();
-        $project_command = new ProjectsCommand();
-        $project_command->update = $project_put_request->jsonSerialize();
+        $project_command = new ProjectsCommand(get: null, create: null, list: null, update: $project_put_request,
+            delete: null);
         return $this->run_project_command($project_command);
     }
 
-    public function delete(array $ids): \stdClass
+    /**
+     * @throws Exception
+     */
+    public function delete(array $ids): stdClass
     {
-        $projects_delete_request = new ProjectsDeleteRequest();
-        $projects_delete_request->ids = $ids;
+        $projects_delete_request = new ProjectsDeleteRequest($ids);
         $projects_delete_request->validate();
-        $project_command = new ProjectsCommand();
-        $project_command->delete = $projects_delete_request->jsonSerialize();
+        $project_command = new ProjectsCommand(get: null, create: null, list: null, update: null,
+            delete: $projects_delete_request);
         return $this->run_project_command($project_command);
     }
 
-    public function run_project_command($projectCommand): \stdClass
+    /**
+     * @throws Exception
+     */
+    public function run_project_command($projectCommand): stdClass
     {
-        $command = new Command();
-        $command->projects = $projectCommand;
+        $command = new Command(passwordLogin: null, apiKeyLogin: null, loginAccessToken: null, getUserApiKey: null,
+            fingerprint: null, sync: null, secrets: null, projects: $projectCommand, generators: null);
         return $this->commandRunner->run($command);
     }
 }

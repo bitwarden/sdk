@@ -2,39 +2,9 @@
 
 namespace Bitwarden\Sdk;
 
-use Bitwarden\Sdk\Schemas\AccessTokenLoginRequest;
 use Bitwarden\Sdk\Schemas\ClientSettings;
-use Bitwarden\Sdk\Schemas\Command;
-use Bitwarden\Sdk\Schemas;
-use FFI;
-
-class AuthClient {
-    private CommandRunner $commandRunner;
-
-    public function __construct(CommandRunner $commandRunner) {
-        $this->commandRunner = $commandRunner;
-    }
-
-    /**
-     * @throws \Exception
-     */
-    public function login_access_token(string $access_token, string $state_file): void
-    {
-        $access_token_request = new AccessTokenLoginRequest();
-        $access_token_request->accessToken = $access_token;
-        $access_token_request->stateFile = $state_file;
-        $command = new Command();
-        $command->loginAccessToken = $access_token_request->jsonSerialize();
-        $result = $this->commandRunner->run($command);
-        if (!isset($result->authenticated)) {
-            throw new \Exception("Authorization error");
-        }
-
-        if ($result->authenticated == False) {
-            throw new \Exception("Unauthorized");
-        }
-    }
-}
+use Bitwarden\Sdk\Schemas\DeviceType;
+use JsonException;
 
 class BitwardenClient
 {
@@ -46,31 +16,26 @@ class BitwardenClient
 
     public SecretsClient $secrets;
 
+    public AuthClient $auth;
+
     private CommandRunner $commandRunner;
 
-    private ?AuthClient $authClient;
-
-    private FFI\CData $handle;
-
+    /**
+     * @throws JsonException
+     */
     public function __construct(BitwardenSettings $bitwardenSettings)
     {
-        $this->clientSettings = new ClientSettings();
-        $this->clientSettings->apiUrl = $bitwardenSettings->get_api_url();
-        $this->clientSettings->identityUrl = $bitwardenSettings->get_identity_url();
-        $this->clientSettings->userAgent = "Bitwarden PHP-SDK";
+        $this->clientSettings = new ClientSettings(apiUrl: $bitwardenSettings->get_api_url(),
+            deviceType: DeviceType::$SDK, identityUrl: $bitwardenSettings->get_identity_url(),
+            userAgent: "Bitwarden PHP-SDK");
 
         $this->bitwarden_lib = new BitwardenLib();
-        $this->handle = $this->bitwarden_lib->init($this->clientSettings);
+        $this->bitwarden_lib->init($this->clientSettings);
 
-        $this->commandRunner = new CommandRunner($this->bitwarden_lib, $this->handle);
+        $this->commandRunner = new CommandRunner($this->bitwarden_lib);
         $this->projects = new ProjectsClient($this->commandRunner);
         $this->secrets = new SecretsClient($this->commandRunner);
-    }
-
-    public function auth(): AuthClient
-    {
-        $this->authClient = new AuthClient($this->commandRunner);
-        return $this->authClient;
+        $this->auth = new AuthClient($this->commandRunner);
     }
 
     public function __destruct()

@@ -117,9 +117,33 @@ async function main() {
   java.forEach((file, path) => {
     writeToFile(javaDir + path, file.lines);
   });
+
+  const php = await quicktype({
+    inputData,
+    lang: "php",
+    inferUuids: false,
+    inferDateTimes: false,
+    checkProvenance: true,
+    fixedTopLevels: true,
+    rendererOptions: {
+      "acronym-style": "camel",
+      "with-get": false,
+      "fast-get": false,
+    },
+  });
+
+  const phpDir = "./languages/php/src/Schemas/";
+  if (!fs.existsSync(phpDir)) {
+    fs.mkdirSync(phpDir);
+  }
+
+  php.lines.splice(1, 0, "namespace Bitwarden\\Sdk\\Schemas;", "use stdClass;", "use Exception;");
+
+  writeToFile("./languages/php/src/Schemas/Schemas.php", php.lines);
 }
 
 main();
+
 function writeToFile(filename: string, lines: string[]) {
   const output = fs.createWriteStream(filename);
   lines.forEach((line) => {

@@ -4,34 +4,32 @@ namespace Bitwarden\Sdk;
 
 
 use Bitwarden\Sdk\Schemas\Command;
-use FFI;
+use Exception;
+use stdClass;
 
 class CommandRunner
 {
-    private FFI\CData $handle;
-
     private BitwardenLib $bitwardenLib;
 
-    public function __construct(BitwardenLib $bitwardenLib, $handle)
+    public function __construct(BitwardenLib $bitwardenLib)
     {
         $this->bitwardenLib = $bitwardenLib;
-        $this->handle = $handle;
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
-    public function run(Command $command): \stdClass
+    public function run(Command $command): stdClass
     {
         $result = $this->bitwardenLib->run_command($command);
-        if ($result->success == true) {
+        if ($result->success) {
             return $result->data;
         }
 
         if (isset($result->errorMessage))
         {
-            throw new \Exception($result->errorMessage);
+            throw new Exception($result->errorMessage);
         }
-        throw new \Exception("Unknown error occurred");
+        throw new Exception("Unknown error occurred");
     }
 }

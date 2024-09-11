@@ -28,7 +28,7 @@ $identity_url = "https://identity.bitwarden.com";
 $bitwarden_settings = new \Bitwarden\Sdk\BitwardenSettings($api_url, $identity_url);
 
 $bitwarden_client = new \Bitwarden\Sdk\BitwardenClient($bitwarden_settings);
-$bitwarden_client->login_access_token($access_token, $state_file);
+$bitwarden_client->auth->login_access_token($access_token, $state_file);
 ```
 
 Initialize `BitwardenSettings` by passing `$api_url` and `$identity_url` or set to null to use the defaults.

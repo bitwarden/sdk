@@ -30,7 +30,7 @@ class AuthClient {
             throw new \Exception("Authorization error");
         }
 
-        if ($result->authenticated == False) {
+        if ($result->authenticated == false) {
             throw new \Exception("Unauthorized");
         }
     }
@@ -48,7 +48,7 @@ class BitwardenClient
 
     private CommandRunner $commandRunner;
 
-    private ?AuthClient $authClient;
+    public AuthClient $auth;
 
     private FFI\CData $handle;
 
@@ -65,12 +65,7 @@ class BitwardenClient
         $this->commandRunner = new CommandRunner($this->bitwarden_lib, $this->handle);
         $this->projects = new ProjectsClient($this->commandRunner);
         $this->secrets = new SecretsClient($this->commandRunner);
-    }
-
-    public function auth(): AuthClient
-    {
-        $this->authClient = new AuthClient($this->commandRunner);
-        return $this->authClient;
+        $this->auth = new AuthClient($this->commandRunner);
     }
 
     public function __destruct()

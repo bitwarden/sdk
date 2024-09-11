@@ -2,7 +2,6 @@
 
 namespace Bitwarden\Sdk;
 
-
 use Bitwarden\Sdk\Schemas\Command;
 use Exception;
 use stdClass;
@@ -26,8 +25,7 @@ class CommandRunner
             return $result->data;
         }
 
-        if (isset($result->errorMessage))
-        {
+        if (isset($result->errorMessage)) {
             throw new Exception($result->errorMessage);
         }
         throw new Exception("Unknown error occurred");

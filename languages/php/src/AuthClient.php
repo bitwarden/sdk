@@ -23,13 +23,13 @@ class AuthClient
         $access_token_request = new AccessTokenLoginRequest($access_token, $state_file);
         $command = new Command(passwordLogin: null, apiKeyLogin: null, loginAccessToken: $access_token_request,
             getUserApiKey: null, fingerprint: null, sync: null, secrets: null, projects: null, generators: null);
-        $result = $this->commandRunner->run($command);
-        if (!isset($result->authenticated)) {
-            throw new Exception("Authorization error");
-        }
-
-        if (!$result->authenticated) {
-            throw new Exception("Unauthorized");
+        try {
+            $result = $this->commandRunner->run($command);
+            if (!isset($result->authenticated) || !$result->authenticated) {
+                throw new Exception("Unauthorized");
+            }
+        } catch (Exception $exception) {
+            throw new Exception("Authorization error: " . $exception->getMessage());
         }
     }
 }

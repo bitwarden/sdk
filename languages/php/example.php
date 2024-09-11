@@ -42,7 +42,7 @@ try {
     // sync secrets
     print("Secrets:\n");
     print("\tSyncing secrets...\n");
-    $res = $bitwarden_client->secrets->sync($organization_id, null);
+    $res = $bitwarden_client->secrets->sync($organization_id,null);
     $now = new DateTime();
     $now_string = $now->format('Y-m-d\TH:i:s.u\Z');
     print("\t\tSync has changes: " . ($res->hasChanges ? 'true' : 'false') . "\n\n");

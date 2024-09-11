@@ -8,15 +8,15 @@ use JsonException;
 
 class BitwardenClient
 {
-    private BitwardenLib $bitwarden_lib;
-
-    private ClientSettings $clientSettings;
-
     public ProjectsClient $projects;
 
     public SecretsClient $secrets;
 
     public AuthClient $auth;
+
+    private BitwardenLib $bitwarden_lib;
+
+    private ClientSettings $clientSettings;
 
     private CommandRunner $commandRunner;
 

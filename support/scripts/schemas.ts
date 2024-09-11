@@ -3,7 +3,7 @@ import {
   quicktypeMultiFile,
   InputData,
   JSONSchemaInput,
-  FetchingJSONSchemaStore
+  FetchingJSONSchemaStore,
 } from "quicktype-core";
 
 import fs from "fs";
@@ -28,15 +28,15 @@ async function main() {
     "schema",
     {
       name: "SchemaTypes",
-      uris: ["support/schemas/schema_types/SchemaTypes.json#/definitions/"]
+      uris: ["support/schemas/schema_types/SchemaTypes.json#/definitions/"],
     },
-    () => new JSONSchemaInput(new FetchingJSONSchemaStore())
+    () => new JSONSchemaInput(new FetchingJSONSchemaStore()),
   );
 
   const ts = await quicktype({
     inputData,
     lang: "typescript",
-    rendererOptions: {}
+    rendererOptions: {},
   });
 
   writeToFile("./languages/js/sdk-client/src/schemas.ts", ts.lines);
@@ -46,8 +46,8 @@ async function main() {
     inputData,
     lang: "python",
     rendererOptions: {
-      "python-version": "3.7"
-    }
+      "python-version": "3.7",
+    },
   });
 
   writeToFile("./languages/python/bitwarden_sdk/schemas.py", python.lines);
@@ -56,8 +56,8 @@ async function main() {
     inputData,
     lang: "ruby",
     rendererOptions: {
-      "ruby-version": "3.0"
-    }
+      "ruby-version": "3.0",
+    },
   });
 
   writeToFile("./languages/ruby/bitwarden_sdk_secrets/lib/schemas.rb", ruby.lines);
@@ -68,8 +68,8 @@ async function main() {
     rendererOptions: {
       namespace: "Bitwarden.Sdk",
       framework: "SystemTextJson",
-      "csharp-version": "6"
-    }
+      "csharp-version": "6",
+    },
   });
 
   writeToFile("./languages/csharp/Bitwarden.Sdk/schemas.cs", csharp.lines);
@@ -79,8 +79,8 @@ async function main() {
     lang: "cpp",
     rendererOptions: {
       namespace: "Bitwarden::Sdk",
-      "include-location": "global-include"
-    }
+      "include-location": "global-include",
+    },
   });
 
   cpp.lines.forEach((line, idx) => {
@@ -95,8 +95,8 @@ async function main() {
     lang: "go",
     rendererOptions: {
       package: "sdk",
-      "omit-empty": true
-    }
+      "omit-empty": true,
+    },
   });
 
   writeToFile("./languages/go/schema.go", go.lines);
@@ -106,8 +106,8 @@ async function main() {
     lang: "java",
     rendererOptions: {
       package: "com.bitwarden.sdk.schema",
-      "java-version": "8"
-    }
+      "java-version": "8",
+    },
   });
 
   const javaDir = "./languages/java/src/main/java/com/bitwarden/sdk/schema/";
@@ -125,8 +125,8 @@ async function main() {
     inferDateTimes: false,
     rendererOptions: {
       "acronym-style": "camel",
-      "with-get": false
-    }
+      "with-get": false,
+    },
   });
 
   const phpDir = "./languages/php/src/Schemas/";

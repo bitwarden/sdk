@@ -2,7 +2,9 @@ use chrono::{DateTime, Utc};
 use thiserror::Error;
 use uuid::Uuid;
 
-use crate::{Card, Cipher, CipherType, Field, Folder, Identity, Login, LoginUri, SecureNote};
+use crate::{
+    Card, Cipher, CipherType, Field, Folder, Identity, Login, LoginUri, SecureNote, SshKey,
+};
 
 #[derive(Error, Debug)]
 pub enum JsonError {
@@ -69,6 +71,8 @@ struct JsonCipher {
     card: Option<JsonCard>,
     #[serde(skip_serializing_if = "Option::is_none")]
     secure_note: Option<JsonSecureNote>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    ssh_key: Option<JsonSshKey>,
 
     favorite: bool,
     reprompt: u8,
@@ -208,6 +212,24 @@ impl From<Identity> for JsonIdentity {
 
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]
+struct JsonSshKey {
+    private_key: Option<String>,
+    public_key: Option<String>,
+    fingerprint: Option<String>,
+}
+
+impl From<SshKey> for JsonSshKey {
+    fn from(ssh_key: SshKey) -> Self {
+        JsonSshKey {
+            private_key: ssh_key.private_key,
+            public_key: ssh_key.public_key,
+            fingerprint: ssh_key.fingerprint,
+        }
+    }
+}
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 struct JsonField {
     name: Option<String>,
     value: Option<String>,
@@ -233,13 +255,15 @@ impl From<Cipher> for JsonCipher {
             CipherType::SecureNote(_) => 2,
             CipherType::Card(_) => 3,
             CipherType::Identity(_) => 4,
+            CipherType::SshKey(_) => 5,
         };
 
-        let (login, secure_note, card, identity) = match cipher.r#type {
-            CipherType::Login(l) => (Some((*l).into()), None, None, None),
-            CipherType::SecureNote(s) => (None, Some((*s).into()), None, None),
-            CipherType::Card(c) => (None, None, Some((*c).into()), None),
-            CipherType::Identity(i) => (None, None, None, Some((*i).into())),
+        let (login, secure_note, card, identity, ssh_key) = match cipher.r#type {
+            CipherType::Login(l) => (Some((*l).into()), None, None, None, None),
+            CipherType::SecureNote(s) => (None, Some((*s).into()), None, None, None),
+            CipherType::Card(c) => (None, None, Some((*c).into()), None, None),
+            CipherType::Identity(i) => (None, None, None, Some((*i).into()), None),
+            CipherType::SshKey(ssh) => (None, None, None, None, Some((*ssh).into())),
         };
 
         JsonCipher {
@@ -254,6 +278,7 @@ impl From<Cipher> for JsonCipher {
             identity,
             card,
             secure_note,
+            ssh_key,
             favorite: cipher.favorite,
             reprompt: cipher.reprompt,
             fields: cipher.fields.into_iter().map(|f| f.into()).collect(),

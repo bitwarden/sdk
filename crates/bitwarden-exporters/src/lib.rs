@@ -70,6 +70,7 @@ pub enum CipherType {
     SecureNote(Box<SecureNote>),
     Card(Box<Card>),
     Identity(Box<Identity>),
+    SshKey(Box<SshKey>),
 }
 
 impl fmt::Display for CipherType {
@@ -79,6 +80,7 @@ impl fmt::Display for CipherType {
             CipherType::SecureNote(_) => write!(f, "note"),
             CipherType::Card(_) => write!(f, "card"),
             CipherType::Identity(_) => write!(f, "identity"),
+            CipherType::SshKey(_) => write!(f, "ssh_key"),
         }
     }
 }
@@ -131,4 +133,10 @@ pub struct Identity {
     pub username: Option<String>,
     pub passport_number: Option<String>,
     pub license_number: Option<String>,
+}
+
+pub struct SshKey {
+    pub private_key: Option<String>,
+    pub public_key: Option<String>,
+    pub fingerprint: Option<String>,
 }

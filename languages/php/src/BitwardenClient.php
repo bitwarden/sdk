@@ -25,13 +25,13 @@ class AuthClient {
         $access_token_request->stateFile = $state_file;
         $command = new Command();
         $command->loginAccessToken = $access_token_request->jsonSerialize();
-        $result = $this->commandRunner->run($command);
-        if (!isset($result->authenticated)) {
-            throw new \Exception("Authorization error");
-        }
-
-        if ($result->authenticated == false) {
-            throw new \Exception("Unauthorized");
+        try {
+            $result = $this->commandRunner->run($command);
+            if (!isset($result->authenticated) || !$result->authenticated) {
+                throw new Exception("Unauthorized");
+            }
+        } catch (Exception $exception) {
+            throw new Exception("Authorization error: " . $exception->getMessage());
         }
     }
 }

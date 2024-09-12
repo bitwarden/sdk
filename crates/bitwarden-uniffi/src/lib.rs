@@ -28,7 +28,7 @@ use vault::ClientVault;
 #[derive(uniffi::Object)]
 pub struct Client(bitwarden::Client);
 
-#[uniffi::export]
+#[uniffi::export(async_runtime = "tokio")]
 impl Client {
     /// Initialize a new instance of the SDK client
     #[uniffi::constructor]
@@ -78,6 +78,18 @@ impl Client {
     /// Test method, echoes back the input
     pub fn echo(&self, msg: String) -> String {
         msg
+    }
+
+    /// Test method, calls http endpoint
+    pub async fn http_get(&self, url: String) -> Result<String> {
+        let client = self.0.internal.get_http_client();
+        let res = client
+            .get(&url)
+            .send()
+            .await
+            .map_err(bitwarden::Error::Reqwest)?;
+
+        Ok(res.text().await.map_err(bitwarden::Error::Reqwest)?)
     }
 }
 

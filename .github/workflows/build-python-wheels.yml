@@ -88,24 +88,12 @@ jobs:
           path: ${{ github.workspace }}/languages/python/bitwarden_sdk
 
       - name: Build wheels
-        if: ${{ matrix.settings.target != 'x86_64-unknown-linux-gnu' }}
         uses: PyO3/maturin-action@2c5c1560848aaa364c3545136054932db5fa27b7 # v1.44.0
         with:
           target: ${{ matrix.settings.target }}
-          args: --release --find-interpreter --sdist
+          args: --release --find-interpreter --sdist --zig
           sccache: "true"
-          manylinux: "2_28" # https://github.com/pola-rs/polars/pull/12211
-          working-directory: ${{ github.workspace }}/languages/python
-
-      - name: Build wheels (Linux - x86_64)
-        if: ${{ matrix.settings.target == 'x86_64-unknown-linux-gnu' }}
-        uses: PyO3/maturin-action@2c5c1560848aaa364c3545136054932db5fa27b7 # v1.44.0
-        with:
-          target: ${{ matrix.settings.target }}
-          args: --release --find-interpreter --sdist
-          container: quay.io/pypa/manylinux_2_28_x86_64:2023-11-20-745eb52
-          sccache: "true"
-          manylinux: "2_28" # https://github.com/pola-rs/polars/pull/12211
+          manylinux: "2_28"
           working-directory: ${{ github.workspace }}/languages/python
 
       - name: Upload wheels

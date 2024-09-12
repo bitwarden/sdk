@@ -1,7 +1,6 @@
 # Bitwarden Secrets Manager SDK wrapper for PHP
 
-PHP bindings for interacting with the [Bitwarden Secrets Manager]. This is a beta release and might be missing some
-functionality.
+PHP bindings for interacting with the [Bitwarden Secrets Manager]. This is a beta release and might be missing some functionality.
 
 ## Installation
 
@@ -19,8 +18,7 @@ Review the help documentation on [Access Tokens].
 ```php
 require_once 'vendor/autoload.php';
 
-$access_token = '<access-token>';
-$state_file = "<state-file>";
+$access_token = "<access-token>";
 $organization_id = "<organization-id>";
 $api_url = "https://api.bitwarden.com";
 $identity_url = "https://identity.bitwarden.com";

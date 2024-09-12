@@ -45,22 +45,26 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python_version: ["3.9", "3.10", "3.11", "3.12"]
         settings:
           - os: macos-13
             target: x86_64-apple-darwin
+            python_versions: ["3.9", "3.10", "3.11", "3.12"]
 
           - os: macos-13
             target: aarch64-apple-darwin
+            python_versions: ["3.9", "3.10", "3.11", "3.12"]
 
           - os: windows-2022
             target: x86_64-pc-windows-msvc
+            python_versions: ["3.9", "3.10", "3.11", "3.12"]
 
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
+            python_versions: ["3.9", "3.10", "3.11", "3.12"]
 
           - os: ubuntu-22.04
             target: aarch64-unknown-linux-gnu
+            python_versions: ["3.9", "3.10", "3.11", "3.12"]
 
     steps:
       - name: Checkout repo
@@ -69,7 +73,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # v5.2.0
         with:
-          python-version: ${{ matrix.python_version }}
+          python-version: ${{ matrix.settings.python_versions }}
 
       - name: Setup Node
         uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3

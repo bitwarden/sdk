@@ -87,6 +87,11 @@ jobs:
         with:
           key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.os }}
 
+      - name: Setup Zig
+        uses: goto-bus-stop/setup-zig@7ab2955eb728f5440978d5824358023be3a2802d # v2.2.0
+        with:
+          version: 0.13.0
+
       - name: Retrieve schemas
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:

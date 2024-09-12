@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Composer is used to build PHP Bitwarden client library.
+Composer is used to build the PHP Bitwarden client library.
 
 ## Prerequisites
 
@@ -16,7 +16,7 @@ Composer is used to build PHP Bitwarden client library.
     - Linux x86_64: `src/lib/linux-x64/libbitwarden_c.so`
     - macOS x86_64: `src/lib/macos-x64/libbitwarden_c.dylib`
     - macOS aarch64: `src/lib/macos-arm64/libbitwarden_c.dylib`
-  - If you prefer to build SDK yourself, see [SDK README.md](../../README.md) for instructions.
+  - If you prefer to build the SDK yourself, see the [SDK README.md](../../README.md) for instructions.
 
 ## Build Commands
 

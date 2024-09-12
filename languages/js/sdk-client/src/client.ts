@@ -7,6 +7,7 @@ import {
   SecretIdentifiersResponse,
   SecretResponse,
   SecretsDeleteResponse,
+  SecretsSyncResponse,
 } from "./schemas";
 
 interface BitwardenSDKClient {
@@ -27,11 +28,12 @@ export class BitwardenClient {
     this.client = client;
   }
 
-  async loginAccessToken(accessToken: string): Promise<void> {
+  async loginAccessToken(accessToken: string, stateFile: string): Promise<void> {
     const response = await this.client.run_command(
       Convert.commandToJson({
         loginAccessToken: {
           accessToken,
+          stateFile,
         },
       }),
     );
@@ -70,13 +72,12 @@ export class SecretsClient {
 
     return handleResponse(Convert.toResponseForSecretResponse(response));
   }
-
   async create(
+    organizationId: string,
     key: string,
     value: string,
     note: string,
     projectIds: string[],
-    organizationId: string,
   ): Promise<SecretResponse> {
     const response = await this.client.run_command(
       Convert.commandToJson({
@@ -102,12 +103,12 @@ export class SecretsClient {
   }
 
   async update(
+    organizationId: string,
     id: string,
     key: string,
     value: string,
     note: string,
     projectIds: string[],
-    organizationId: string,
   ): Promise<SecretResponse> {
     const response = await this.client.run_command(
       Convert.commandToJson({
@@ -131,6 +132,18 @@ export class SecretsClient {
 
     return handleResponse(Convert.toResponseForSecretsDeleteResponse(response));
   }
+
+  async sync(organizationId: string, lastSyncedDate: Date): Promise<SecretsSyncResponse> {
+    const response = await this.client.run_command(
+      Convert.commandToJson({
+        secrets: {
+          sync: { organizationId, lastSyncedDate },
+        },
+      }),
+    );
+
+    return handleResponse(Convert.toResponseForSecretsSyncResponse(response));
+  }
 }
 
 export class ProjectsClient {
@@ -152,7 +165,7 @@ export class ProjectsClient {
     return handleResponse(Convert.toResponseForProjectResponse(response));
   }
 
-  async create(name: string, organizationId: string): Promise<ProjectResponse> {
+  async create(organizationId: string, name: string): Promise<ProjectResponse> {
     const response = await this.client.run_command(
       Convert.commandToJson({
         projects: {
@@ -176,7 +189,7 @@ export class ProjectsClient {
     return handleResponse(Convert.toResponseForProjectsResponse(response));
   }
 
-  async update(id: string, name: string, organizationId: string): Promise<ProjectResponse> {
+  async update(organizationId: string, id: string, name: string): Promise<ProjectResponse> {
     const response = await this.client.run_command(
       Convert.commandToJson({
         projects: {

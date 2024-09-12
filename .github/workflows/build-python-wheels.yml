@@ -97,7 +97,7 @@ jobs:
         with:
           target: ${{ matrix.settings.target }}
           args: --release --find-interpreter --sdist --zig
-          sccache: "true"
+          sccache: "false"
           manylinux: "2_28"
           working-directory: ${{ github.workspace }}/languages/python
 

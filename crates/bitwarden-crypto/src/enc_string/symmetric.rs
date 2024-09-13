@@ -300,7 +300,7 @@ mod tests {
     use schemars::schema_for;
 
     use super::EncString;
-    use crate::{derive_symmetric_key, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
+    use crate::{derive_symmetric_key, CryptoError, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
 
     #[test]
     fn test_enc_string_roundtrip() {
@@ -411,7 +411,7 @@ mod tests {
 
     #[test]
     fn test_decrypt_cbc256() {
-        let key = "hvBMMb1t79YssFZkpetYsM3deyVuQv4r88Uj9gvYe0+G8EwxvW3v1iywVmSl61iwzd17JW5C/ivzxSP2C9h7Tw==".to_string();
+        let key = "hvBMMb1t79YssFZkpetYsM3deyVuQv4r88Uj9gvYe08=".to_string();
         let key = SymmetricCryptoKey::try_from(key).unwrap();
 
         let enc_str = "0.NQfjHLr6za7VQVAbrpL81w==|wfrjmyJ0bfwkQlySrhw8dA==";
@@ -420,6 +420,20 @@ mod tests {
 
         let dec_str: String = enc_string.decrypt_with_key(&key).unwrap();
         assert_eq!(dec_str, "EncryptMe!");
+    }
+
+    #[test]
+    fn test_decrypt_downgrade_encstring_prevention() {
+        // type 2 encstring & key where the encstring has the enctype replaced with 0, and the mac removed
+        let key = "hvBMMb1t79YssFZkpetYsM3deyVuQv4r88Uj9gvYe0+G8EwxvW3v1iywVmSl61iwzd17JW5C/ivzxSP2C9h7Tw==".to_string();
+        let key = SymmetricCryptoKey::try_from(key).unwrap();
+
+        let enc_str = "0.NQfjHLr6za7VQVAbrpL81w==|wfrjmyJ0bfwkQlySrhw8dA==";
+        let enc_string: EncString = enc_str.parse().unwrap();
+        assert_eq!(enc_string.enc_type(), 0);
+
+        let result: Result<String, CryptoError> = enc_string.decrypt_with_key(&key);
+        assert!(result.is_err());
     }
 
     #[test]

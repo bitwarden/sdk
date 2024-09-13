@@ -29,16 +29,8 @@ export class BitwardenClient {
     this.client = client;
   }
 
-  async loginAccessToken(accessToken: string): Promise<void> {
-    const response = await this.client.run_command(
-      Convert.commandToJson({
-        loginAccessToken: {
-          accessToken,
-        },
-      }),
-    );
-
-    handleResponse(Convert.toResponseForAccessTokenLoginResponse(response));
+  auth(): AuthClient {
+    return new AuthClient(this.client);
   }
 
   secrets(): SecretsClient {
@@ -244,5 +236,25 @@ export class GeneratorsClient {
     );
 
     return handleResponse(Convert.toResponseForString(response));
+  }
+}
+
+export class AuthClient {
+  client: BitwardenSDKClient;
+
+  constructor(client: BitwardenSDKClient) {
+    this.client = client;
+  }
+
+  async loginAccessToken(accessToken: string): Promise<void> {
+    const response = await this.client.run_command(
+      Convert.commandToJson({
+        loginAccessToken: {
+          accessToken,
+        },
+      }),
+    );
+    
+    handleResponse(Convert.toResponseForAccessTokenLoginResponse(response));
   }
 }

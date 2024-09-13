@@ -11,7 +11,7 @@ async function main() {
     new BitwardenClientWasm(JSON.stringify(settings), LogLevel.Debug),
   );
 
-  await client.loginAccessToken(process.env.ACCESS_TOKEN);
+  await client.auth().loginAccessToken(process.env.ACCESS_TOKEN);
   const organization_id = process.env.ORGANIZATION_ID;
 
   const project = await client.projects().create(organization_id, "project-name");

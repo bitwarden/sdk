@@ -22,7 +22,7 @@ const stateFile = "some/path/to/state/file";
 const client = new BitwardenClient(settings, LogLevel.Info);
 
 // Authenticating using a machine account access token
-await client.loginAccessToken(accessToken, stateFile);
+await client.auth().loginAccessToken(accessToken, stateFile);
 
 // List secrets
 const secrets = await client.secrets().list();

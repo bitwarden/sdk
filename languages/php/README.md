@@ -19,6 +19,7 @@ Review the help documentation on [Access Tokens].
 require_once 'vendor/autoload.php';
 
 $access_token = "<access-token>";
+$state_file = "<state-file>";
 $organization_id = "<organization-id>";
 $api_url = "https://api.bitwarden.com";
 $identity_url = "https://identity.bitwarden.com";

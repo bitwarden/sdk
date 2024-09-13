@@ -1,8 +1,6 @@
 use passkey::client::WebauthnError;
 use thiserror::Error;
 
-use crate::types::InvalidOriginError;
-
 use super::{
     authenticator::GetSelectedCredentialError,
     get_string_name_from_enum,
@@ -13,6 +11,7 @@ use super::{
     Fido2Authenticator, PublicKeyCredentialAuthenticatorAssertionResponse,
     PublicKeyCredentialAuthenticatorAttestationResponse,
 };
+use crate::types::InvalidOriginError;
 
 #[derive(Debug, Error)]
 pub enum Fido2ClientError {

@@ -17,11 +17,12 @@ const settings: ClientSettings = {
 };
 
 const accessToken = "-- REDACTED --";
+const stateFile = "some/path/to/state/file";
 
 const client = new BitwardenClient(settings, LogLevel.Info);
 
 // Authenticating using a machine account access token
-await client.accessTokenLogin(accessToken);
+await client.loginAccessToken(accessToken, stateFile);
 
 // List secrets
 const secrets = await client.secrets().list();

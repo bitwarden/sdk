@@ -44,7 +44,10 @@ pub(crate) async fn sync(client: &Client, input: &SyncRequest) -> Result<SyncRes
         .filter_map(|o| o.id.zip(o.key.as_deref().and_then(|k| k.parse().ok())))
         .collect();
 
-    let enc = client.internal.initialize_org_crypto(org_keys)?;
+    let enc = client
+        .internal
+        .initialize_org_crypto(org_keys)
+        .map_err(bitwarden_core::Error::EncryptionSettings)?;
 
     SyncResponse::process_response(sync, &enc)
 }

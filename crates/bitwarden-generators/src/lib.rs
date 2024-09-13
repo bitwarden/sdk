@@ -1,13 +1,13 @@
-mod passphrase;
-pub use passphrase::{passphrase, PassphraseError, PassphraseGeneratorRequest};
-mod password;
-mod util;
-pub use password::{password, PasswordError, PasswordGeneratorRequest};
-mod username;
-pub use username::{username, ForwarderServiceType, UsernameError, UsernameGeneratorRequest};
 mod client_generator;
-pub use client_generator::{ClientGenerator, ClientGeneratorExt};
 mod username_forwarders;
+pub use client_generator::{ClientGenerator, ClientGeneratorExt};
+pub(crate) mod passphrase;
+pub use passphrase::{PassphraseError, PassphraseGeneratorRequest};
+pub(crate) mod password;
+pub use password::{PasswordError, PasswordGeneratorRequest};
+pub(crate) mod username;
+pub use username::{ForwarderServiceType, UsernameError, UsernameGeneratorRequest};
+mod util;
 
 #[cfg(feature = "uniffi")]
 uniffi::setup_scaffolding!();

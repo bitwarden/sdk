@@ -29,12 +29,11 @@ export class BitwardenClient {
     this.client = client;
   }
 
-  async loginAccessToken(accessToken: string, stateFile: string): Promise<void> {
+  async loginAccessToken(accessToken: string): Promise<void> {
     const response = await this.client.run_command(
       Convert.commandToJson({
         loginAccessToken: {
           accessToken,
-          stateFile,
         },
       }),
     );

@@ -126,7 +126,7 @@ export class SecretsClient {
     return handleResponse(Convert.toResponseForSecretsDeleteResponse(response));
   }
 
-  async sync(organizationId: string, lastSyncedDate: Date): Promise<SecretsSyncResponse> {
+  async sync(organizationId: string, lastSyncedDate?: Date): Promise<SecretsSyncResponse> {
     const response = await this.client.run_command(
       Convert.commandToJson({
         secrets: {

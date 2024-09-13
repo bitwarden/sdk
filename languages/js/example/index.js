@@ -41,8 +41,8 @@ async function main() {
   const secrets = await client.secrets().list(organization_id);
   console.log(secrets.data);
 
-  const secretsByIds = await client.secrets().getByIds([secret.id]);
-  console.log(secretsByIds.data);
+  const secrets_by_ids = await client.secrets().getByIds([secret.id]);
+  console.log(secrets_by_ids.data);
 
   const updated_secret = await client.secrets().update(organization_id, secret.id, "secret-key-updated", "secret-value-updated", "secret-note-updated", [project.id]);
   console.log(updated_secret);

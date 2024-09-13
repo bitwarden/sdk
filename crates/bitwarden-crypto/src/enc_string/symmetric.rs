@@ -300,7 +300,9 @@ mod tests {
     use schemars::schema_for;
 
     use super::EncString;
-    use crate::{derive_symmetric_key, CryptoError, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
+    use crate::{
+        derive_symmetric_key, CryptoError, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
+    };
 
     #[test]
     fn test_enc_string_roundtrip() {
@@ -424,7 +426,8 @@ mod tests {
 
     #[test]
     fn test_decrypt_downgrade_encstring_prevention() {
-        // type 2 encstring & key where the encstring has the enctype replaced with 0, and the mac removed
+        // type 2 encstring & key where the encstring has the enctype replaced with 0, and the mac
+        // removed
         let key = "hvBMMb1t79YssFZkpetYsM3deyVuQv4r88Uj9gvYe0+G8EwxvW3v1iywVmSl61iwzd17JW5C/ivzxSP2C9h7Tw==".to_string();
         let key = SymmetricCryptoKey::try_from(key).unwrap();
 

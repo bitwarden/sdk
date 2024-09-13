@@ -620,6 +620,60 @@ mod tests {
     }
 
     #[test]
+    fn test_convert_ssh_key() {
+        let cipher = Cipher {
+            id: "23f0f877-42b1-4820-a850-b10700bc41eb".parse().unwrap(),
+            folder_id: None,
+
+            name: "My ssh key".to_string(),
+            notes: None,
+
+            r#type: CipherType::SshKey(Box::new(SshKey {
+                private_key: Some("private".to_string()),
+                public_key: Some("public".to_string()),
+                fingerprint: Some("fingerprint".to_string()),
+            })),
+
+            favorite: false,
+            reprompt: 0,
+
+            fields: vec![],
+
+            revision_date: "2024-01-30T11:25:25.466Z".parse().unwrap(),
+            creation_date: "2024-01-30T11:25:25.466Z".parse().unwrap(),
+            deleted_date: None,
+        };
+
+        let json = serde_json::to_string(&JsonCipher::from(cipher)).unwrap();
+
+        let expected = r#"{
+            "passwordHistory": null,
+            "revisionDate": "2024-01-30T11:25:25.466Z",
+            "creationDate": "2024-01-30T11:25:25.466Z",
+            "deletedDate": null,
+            "id": "23f0f877-42b1-4820-a850-b10700bc41eb",
+            "organizationId": null,
+            "folderId": null,
+            "type": 5,
+            "reprompt": 0,
+            "name": "My ssh key",
+            "notes": null,
+            "sshKey": {
+              "privateKey": "private",
+              "publicKey": "public",
+              "fingerprint": "fingerprint"
+            },
+            "favorite": false,
+            "collectionIds": null
+        }"#;
+
+        assert_eq!(
+            json.parse::<serde_json::Value>().unwrap(),
+            expected.parse::<serde_json::Value>().unwrap()
+        )
+    }
+
+    #[test]
     pub fn test_export() {
         let mut d = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         d.push("resources");

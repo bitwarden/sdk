@@ -1,7 +1,10 @@
+use std::borrow::Cow;
+
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use bitwarden_crypto::KeyContainer;
 use bitwarden_vault::{CipherError, CipherView};
 use passkey::types::webauthn::UserVerificationRequirement;
+use reqwest::Url;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -357,6 +360,67 @@ pub struct AuthenticatorAssertionResponse {
     pub authenticator_data: Vec<u8>,
     pub signature: Vec<u8>,
     pub user_handle: Vec<u8>,
+}
+
+#[derive(Debug, Error)]
+#[error("Invalid origin: {0}")]
+pub struct InvalidOriginError(String);
+
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+/// An Unverified asset link.
+pub struct UnverifiedAssetLink {
+    /// Application package name.
+    package_name: String,
+    /// Fingerprint to compare.
+    sha256_cert_fingerprint: String,
+    /// Host to lookup the well known asset link.
+    host: String,
+    /// When sourced from the application statement list or parsed from host for passkeys.
+    /// Will be generated from `host` if not provided.
+    asset_link_url: Option<String>,
+}
+
+#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
+/// The origin of a WebAuthn request.
+pub enum Origin {
+    /// A Url, meant for a request in the web browser.
+    Web(String),
+    /// An android digital asset fingerprint.
+    /// Meant for a request coming from an android application.
+    Android(UnverifiedAssetLink),
+}
+
+impl<'a> TryFrom<Origin> for passkey::client::Origin<'a> {
+    type Error = InvalidOriginError;
+
+    fn try_from(value: Origin) -> Result<Self, Self::Error> {
+        Ok(match value {
+            Origin::Web(url) => {
+                let url = Url::parse(&url).map_err(|e| InvalidOriginError(format!("{}", e)))?;
+                passkey::client::Origin::Web(Cow::Owned(url))
+            }
+            Origin::Android(link) => passkey::client::Origin::Android(link.try_into()?),
+        })
+    }
+}
+
+impl<'a> TryFrom<UnverifiedAssetLink> for passkey::client::UnverifiedAssetLink<'a> {
+    type Error = InvalidOriginError;
+
+    fn try_from(value: UnverifiedAssetLink) -> Result<Self, Self::Error> {
+        let asset_link_url = match value.asset_link_url {
+            Some(url) => Some(Url::parse(&url).map_err(|e| InvalidOriginError(format!("{}", e)))?),
+            None => None,
+        };
+
+        passkey::client::UnverifiedAssetLink::new(
+            Cow::from(value.package_name),
+            value.sha256_cert_fingerprint.as_str(),
+            Cow::from(value.host),
+            asset_link_url,
+        )
+        .map_err(|e| InvalidOriginError(format!("{:?}", e)))
+    }
 }
 
 #[cfg(test)]

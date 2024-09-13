@@ -32,10 +32,10 @@ pub use traits::{
 pub use types::{
     AuthenticatorAssertionResponse, AuthenticatorAttestationResponse, ClientData,
     Fido2CredentialAutofillView, Fido2CredentialAutofillViewError, GetAssertionRequest,
-    GetAssertionResult, MakeCredentialRequest, MakeCredentialResult, Options,
+    GetAssertionResult, MakeCredentialRequest, MakeCredentialResult, Options, Origin,
     PublicKeyCredentialAuthenticatorAssertionResponse,
     PublicKeyCredentialAuthenticatorAttestationResponse, PublicKeyCredentialRpEntity,
-    PublicKeyCredentialUserEntity,
+    PublicKeyCredentialUserEntity, UnverifiedAssetLink,
 };
 
 use self::crypto::{cose_key_to_pkcs8, pkcs8_to_cose_key};

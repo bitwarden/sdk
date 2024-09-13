@@ -11,7 +11,7 @@ use bitwarden::{
     },
     vault::{Cipher, CipherView, Fido2CredentialNewView},
 };
-use bitwarden_fido::Fido2CredentialAutofillView;
+use bitwarden_fido::{Fido2CredentialAutofillView, Origin};
 
 use crate::{error::Result, Client};
 
@@ -135,7 +135,7 @@ pub struct ClientFido2Client(pub(crate) ClientFido2Authenticator);
 impl ClientFido2Client {
     pub async fn register(
         &self,
-        origin: String,
+        origin: Origin,
         request: String,
         client_data: ClientData,
     ) -> Result<PublicKeyCredentialAuthenticatorAttestationResponse> {
@@ -153,7 +153,7 @@ impl ClientFido2Client {
 
     pub async fn authenticate(
         &self,
-        origin: String,
+        origin: Origin,
         request: String,
         client_data: ClientData,
     ) -> Result<PublicKeyCredentialAuthenticatorAssertionResponse> {

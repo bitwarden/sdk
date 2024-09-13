@@ -340,13 +340,12 @@ impl Cipher {
                     return Ok(String::new());
                 };
 
-                build_subtitle_ssh_key(
-                    ssh_key
-                        .fingerprint
-                        .as_ref()
-                        .map(|c| c.decrypt_with_key(key))
-                        .transpose()?,
-                )
+                ssh_key
+                    .fingerprint
+                    .as_ref()
+                    .map(|c| c.decrypt_with_key(key))
+                    .transpose()?
+                    .unwrap_or_default()
             }
         })
     }
@@ -406,14 +405,6 @@ fn build_subtitle_identity(first_name: Option<String>, last_name: Option<String>
     }
 
     sub_title
-}
-
-fn build_subtitle_ssh_key(fingerprint: Option<String>) -> String {
-    if let Some(fingerprint) = &fingerprint {
-        return fingerprint.clone();
-    }
-
-    "".to_string()
 }
 
 impl CipherView {
@@ -642,7 +633,7 @@ impl TryFrom<CipherDetailsResponseModel> for Cipher {
             identity: cipher.identity.map(|i| (*i).try_into()).transpose()?,
             card: cipher.card.map(|c| (*c).try_into()).transpose()?,
             secure_note: cipher.secure_note.map(|s| (*s).try_into()).transpose()?,
-            // todo: add ssh_key when api bindings have been updated
+            // TODO: add ssh_key when api bindings have been updated
             ssh_key: None,
             favorite: cipher.favorite.unwrap_or(false),
             reprompt: cipher
@@ -680,7 +671,7 @@ impl From<bitwarden_api_api::models::CipherType> for CipherType {
             bitwarden_api_api::models::CipherType::SecureNote => CipherType::SecureNote,
             bitwarden_api_api::models::CipherType::Card => CipherType::Card,
             bitwarden_api_api::models::CipherType::Identity => CipherType::Identity,
-            // todo: add ssh_key when api bindings have been updated
+            // TODO: add ssh_key when api bindings have been updated
         }
     }
 }

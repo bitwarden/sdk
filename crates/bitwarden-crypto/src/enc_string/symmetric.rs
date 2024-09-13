@@ -237,6 +237,10 @@ impl KeyDecryptable<SymmetricCryptoKey, Vec<u8>> for EncString {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
         match self {
             EncString::AesCbc256_B64 { iv, data } => {
+                if key.mac_key.is_some() {
+                    return Err(CryptoError::InvalidKey.into());
+                }
+
                 let dec = crate::aes::decrypt_aes256(iv, data.clone(), &key.key)?;
                 Ok(dec)
             }
@@ -407,7 +411,7 @@ mod tests {
 
     #[test]
     fn test_decrypt_cbc256() {
-        let key = "hvBMMb1t79YssFZkpetYsM3deyVuQv4r88Uj9gvYe08=".to_string();
+        let key = "hvBMMb1t79YssFZkpetYsM3deyVuQv4r88Uj9gvYe0+G8EwxvW3v1iywVmSl61iwzd17JW5C/ivzxSP2C9h7Tw==".to_string();
         let key = SymmetricCryptoKey::try_from(key).unwrap();
 
         let enc_str = "0.NQfjHLr6za7VQVAbrpL81w==|wfrjmyJ0bfwkQlySrhw8dA==";

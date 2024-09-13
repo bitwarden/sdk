@@ -829,6 +829,28 @@ mod tests {
                     creation_date: "2024-01-30T17:54:50.706Z".parse().unwrap(),
                     deleted_date: None,
                 },
+                Cipher {
+                    id: "646594a9-a9cb-4082-9d57-0024c3fbcaa9".parse().unwrap(),
+                    folder_id: None,
+        
+                    name: "My ssh key".to_string(),
+                    notes: None,
+        
+                    r#type: CipherType::SshKey(Box::new(SshKey {
+                        private_key: Some("-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW\nQyNTUxOQAAACBinNE5chMtCHh3BV0H1+CpPlEQBwR5cD+Xb9i8MaHGiwAAAKAy48fwMuPH\n8AAAAAtzc2gtZWQyNTUxOQAAACBinNE5chMtCHh3BV0H1+CpPlEQBwR5cD+Xb9i8MaHGiw\nAAAEAYUCIdfLI14K3XIy9V0FDZLQoZ9gcjOnvFjb4uA335HmKc0TlyEy0IeHcFXQfX4Kk+\nURAHBHlwP5dv2LwxocaLAAAAHHF1ZXh0ZW5ATWFjQm9vay1Qcm8tMTYubG9jYWwB\n-----END OPENSSH PRIVATE KEY-----".to_string()),
+                        public_key: Some("ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGKc0TlyEy0IeHcFXQfX4Kk+URAHBHlwP5dv2LwxocaL".to_string()),
+                        fingerprint: Some("SHA256:1JjFjvPRkj1Gbf2qRP1dgHiIzEuNAEvp+92x99jw3K0".to_string()),
+                    })),
+        
+                    favorite: false,
+                    reprompt: 0,
+        
+                    fields: vec![],
+        
+                    revision_date: "2024-01-30T11:25:25.466Z".parse().unwrap(),
+                    creation_date: "2024-01-30T11:25:25.466Z".parse().unwrap(),
+                    deleted_date: None,
+                }
             ],
         )
         .unwrap();

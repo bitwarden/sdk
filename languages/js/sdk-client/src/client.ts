@@ -217,8 +217,6 @@ export class GeneratorsClient {
       }),
     );
 
-    console.log("hi");
-
     return handleResponse(Convert.toResponseForString(response));
   }
 }

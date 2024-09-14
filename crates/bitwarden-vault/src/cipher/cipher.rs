@@ -1189,8 +1189,8 @@ mod tests {
     fn test_subtitle_ssh_key() {
         let key = "hvBMMb1t79YssFZkpetYsM3deyVuQv4r88Uj9gvYe0+G8EwxvW3v1iywVmSl61iwzd17JW5C/ivzxSP2C9h7Tw==".to_string();
         let key = SymmetricCryptoKey::try_from(key).unwrap();
-        let test_subtitle = "SHA256:1JjFjvPRkj1Gbf2qRP1dgHiIzEuNAEvp+92x99jw3K0".to_string();
-        let fingerprint_encrypted = test_subtitle.to_owned().encrypt_with_key(&key).unwrap();
+        let original_subtitle = "SHA256:1JjFjvPRkj1Gbf2qRP1dgHiIzEuNAEvp+92x99jw3K0".to_string();
+        let fingerprint_encrypted = original_subtitle.to_owned().encrypt_with_key(&key).unwrap();
         let ssh_key_cipher = Cipher {
             id: Some("090c19ea-a61a-4df6-8963-262b97bc6266".parse().unwrap()),
             organization_id: None,
@@ -1223,6 +1223,6 @@ mod tests {
             revision_date: "2024-01-01T00:00:00.000Z".parse().unwrap(),
         };
         let subtitle = ssh_key_cipher.get_decrypted_subtitle(&key).unwrap();
-        assert_eq!(subtitle, test_subtitle);        
+        assert_eq!(subtitle, original_subtitle);        
     }
 }

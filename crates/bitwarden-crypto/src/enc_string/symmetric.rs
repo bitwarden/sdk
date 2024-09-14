@@ -436,7 +436,7 @@ mod tests {
         assert_eq!(enc_string.enc_type(), 0);
 
         let result: Result<String, CryptoError> = enc_string.decrypt_with_key(&key);
-        assert!(result.is_err());
+        assert!(matches!(result, Err(CryptoError::InvalidKey)));
     }
 
     #[test]

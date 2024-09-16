@@ -33,7 +33,7 @@ impl<'a> ClientGenerator<'a> {
     ///         length: 20,
     ///         ..Default::default()
     ///     };
-    ///     let password = Client::new(None).generator().password(input).unwrap();
+    ///     let password = Client::new(None).await.generator().password(input).unwrap();
     ///     println!("{}", password);
     ///     Ok(())
     /// }
@@ -60,7 +60,7 @@ impl<'a> ClientGenerator<'a> {
     ///         num_words: 4,
     ///         ..Default::default()
     ///     };
-    ///     let passphrase = Client::new(None).generator().passphrase(input).unwrap();
+    ///     let passphrase = Client::new(None).await.generator().passphrase(input).unwrap();
     ///     println!("{}", passphrase);
     ///     Ok(())
     /// }
@@ -85,7 +85,7 @@ impl<'a> ClientGenerator<'a> {
     ///         capitalize: true,
     ///         include_number: true,
     ///     };
-    ///     let username = Client::new(None).generator().username(input).await.unwrap();
+    ///     let username = Client::new(None).await.generator().username(input).await.unwrap();
     ///     println!("{}", username);
     ///     Ok(())
     /// }

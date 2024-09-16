@@ -28,7 +28,7 @@ let PIN = "1234"
 struct ContentView: View {
     private var http: URLSession
 
-    @State private var client: Client
+    @State private var client: Client? = nil
 
     @State private var accessToken: String = ""
 
@@ -37,8 +37,6 @@ struct ContentView: View {
         http = URLSession(
             configuration: URLSessionConfiguration.default, delegate: IgnoreHttpsDelegate(),
             delegateQueue: nil)
-
-        client = Client(settings: nil)
     }
 
     @State var setupBiometrics: Bool = true
@@ -46,72 +44,82 @@ struct ContentView: View {
     @State var outputText: String = ""
 
     var body: some View {
-        VStack {
-            Toggle("Setup biometric unlock after login", isOn: $setupBiometrics).padding(.init(top: 0, leading: 20, bottom: 0, trailing: 20))
-            Toggle("Setup PIN unlock after login", isOn: $setupPin).padding(.init(top: 0, leading: 20, bottom: 0, trailing: 20))
+        switch client {
+        case .some(let client):
+            VStack {
+                Toggle("Setup biometric unlock after login", isOn: $setupBiometrics).padding(.init(top: 0, leading: 20, bottom: 0, trailing: 20))
+                Toggle("Setup PIN unlock after login", isOn: $setupPin).padding(.init(top: 0, leading: 20, bottom: 0, trailing: 20))
 
-            Button(action: {
-                Task {
-                    do {
-                        try await clientExamplePassword(clientAuth: client.auth(), clientCrypto: client.crypto(), setupBiometrics: setupBiometrics, setupPin: setupPin)
-                        try await decryptVault(clientCrypto: client.crypto(), clientVault: client.vault())
-                    } catch {
-                        print("ERROR:", error)
+                Button(action: {
+                    Task {
+                        do {
+                            try await clientExamplePassword(clientAuth: client.auth(), clientCrypto: client.crypto(), setupBiometrics: setupBiometrics, setupPin: setupPin)
+                            try await decryptVault(clientCrypto: client.crypto(), clientVault: client.vault())
+                        } catch {
+                            print("ERROR:", error)
+                        }
                     }
-                }
-            }, label: {
-                Text("Login with username + password")
-            })
+                }, label: {
+                    Text("Login with username + password")
+                })
 
-            Divider().padding(30)
+                Divider().padding(30)
 
-            Button(action: {
-                Task {
-                    do {
-                        try await clientExampleBiometrics(clientCrypto: client.crypto())
-                        try await decryptVault(clientCrypto: client.crypto(), clientVault: client.vault())
-                    } catch {
-                        print("ERROR:", error)
+                Button(action: {
+                    Task {
+                        do {
+                            try await clientExampleBiometrics(clientCrypto: client.crypto())
+                            try await decryptVault(clientCrypto: client.crypto(), clientVault: client.vault())
+                        } catch {
+                            print("ERROR:", error)
+                        }
                     }
-                }
-            }, label: {
-                Text("Unlock with biometrics")
-            })
+                }, label: {
+                    Text("Unlock with biometrics")
+                })
 
-            Button(action: {
-                Task {
-                    do {
-                        try await clientExamplePin(clientCrypto: client.crypto())
-                        try await decryptVault(clientCrypto: client.crypto(), clientVault: client.vault())
-                    } catch {
-                        print("ERROR:", error)
+                Button(action: {
+                    Task {
+                        do {
+                            try await clientExamplePin(clientCrypto: client.crypto())
+                            try await decryptVault(clientCrypto: client.crypto(), clientVault: client.vault())
+                        } catch {
+                            print("ERROR:", error)
+                        }
                     }
-                }
-            }, label: {
-                Text("Unlock with PIN")
-            })
+                }, label: {
+                    Text("Unlock with PIN")
+                })
 
-            Button(action: {
-                Task {
-                    do {
-                        try await authenticatorTest(clientFido: client.platform().fido2())
-                    } catch {
-                        print("ERROR:", error)
+                Button(action: {
+                    Task {
+                        do {
+                            try await authenticatorTest(clientFido: client.platform().fido2())
+                        } catch {
+                            print("ERROR:", error)
+                        }
                     }
-                }
-            }, label: {
-                Text("Passkey")
-            })
+                }, label: {
+                    Text("Passkey")
+                })
 
-            Button(action: {
-                client = Client(settings: nil)
-            }, label: {
-                Text("Lock & reset client")
-            }).padding()
+                Button(action: {
+                    Task {
+                        self.client = await Client.factory(settings: nil)
+                    }
+                }, label: {
+                    Text("Lock & reset client")
+                }).padding()
 
-            Text("Output: " + outputText).padding(.top)
+                Text("Output: " + outputText).padding(.top)
+            }
+            .padding()
+        case nil:
+            VStack {}.task {
+                client = await Client.factory(settings: nil)
+            }
         }
-        .padding()
+        
     }
 
     func clientExamplePassword(clientAuth: ClientAuthProtocol, clientCrypto: ClientCryptoProtocol, setupBiometrics: Bool, setupPin: Bool) async throws {

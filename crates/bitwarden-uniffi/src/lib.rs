@@ -32,13 +32,13 @@ pub struct Client(bitwarden::Client);
 impl Client {
     /// Initialize a new instance of the SDK client
     #[uniffi::constructor]
-    pub fn new(settings: Option<ClientSettings>) -> Arc<Self> {
+    pub async fn create(settings: Option<ClientSettings>) -> Arc<Self> {
         init_logger();
 
         #[cfg(target_os = "android")]
         android_support::init();
 
-        Arc::new(Self(bitwarden::Client::new(settings)))
+        Arc::new(Self(bitwarden::Client::new(settings).await))
     }
 
     /// Crypto operations

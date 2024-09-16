@@ -24,5 +24,5 @@ pub async fn start_mock(mocks: Vec<wiremock::Mock>) -> (wiremock::MockServer, cr
         device_type: crate::DeviceType::SDK,
     };
 
-    (server, crate::Client::new(Some(settings)))
+    (server, crate::Client::new(Some(settings)).await)
 }

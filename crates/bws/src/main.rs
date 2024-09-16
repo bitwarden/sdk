@@ -100,7 +100,7 @@ async fn process_commands() -> Result<()> {
         },
     };
 
-    let client = bitwarden::Client::new(settings);
+    let client = bitwarden::Client::new(settings).await;
 
     // Load session or return if no session exists
     let _ = client

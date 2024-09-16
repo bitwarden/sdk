@@ -19,12 +19,18 @@ uniffi = [
     "bitwarden-crypto/uniffi",
     "dep:uniffi",
 ] # Uniffi bindings
+state = [
+    "bitwarden-core/state",
+    "dep:tokio",
+    "dep:bitwarden-db",
+] # Persistent state
 
 [dependencies]
 base64 = ">=0.22.1, <0.23"
 bitwarden-api-api = { workspace = true }
 bitwarden-core = { workspace = true, features = ["internal"] }
 bitwarden-crypto = { workspace = true }
+bitwarden-db = { workspace = true, optional = true }
 chrono = { version = ">=0.4.26, <0.5", features = [
     "clock",
     "serde",
@@ -39,11 +45,12 @@ serde_repr = ">=0.1.12, <0.2"
 sha1 = ">=0.10.5, <0.11"
 sha2 = ">=0.10.6, <0.11"
 thiserror = ">=1.0.40, <2.0"
+tokio = { workspace = true, optional = true }
 uniffi = { version = "=0.28.1", optional = true }
 uuid = { version = ">=1.3.3, <2.0", features = ["serde"] }
 
 [dev-dependencies]
-tokio = { version = "1.36.0", features = ["rt", "macros"] }
+tokio = { workspace = true }
 
 [lints]
 workspace = true

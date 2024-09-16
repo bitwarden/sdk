@@ -26,11 +26,10 @@ bld/
 .idea
 xcuserdata/
 
-# Added by cargo
-#
-# already existing elements were commented out
+# Databases
+*.sqlite
+crates/bitwarden-db-tests/pkg
 
-#/target
 node_modules/
 clients/python/env/
 

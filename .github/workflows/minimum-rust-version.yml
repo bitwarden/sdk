@@ -33,7 +33,7 @@ jobs:
         uses: dtolnay/rust-toolchain@7b1c307e0dcbda6122208f10795a713336a9b35a # stable
         with:
           # Important: When updating this, make sure to update the Readme file
-          # and also the `rust-version` field in all the `Cargo.toml`.
+          # and also the `rust-version` field in the workspace `Cargo.toml`.
           toolchain: 1.75.0
           targets: ${{ matrix.settings.target }}
 

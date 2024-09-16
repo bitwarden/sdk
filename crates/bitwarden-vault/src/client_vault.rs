@@ -1,5 +1,7 @@
 use bitwarden_core::Client;
 
+#[cfg(feature = "state")]
+use crate::repository::CipherRepository;
 use crate::{
     sync::{sync, SyncError},
     SyncRequest, SyncResponse,
@@ -7,11 +9,17 @@ use crate::{
 
 pub struct ClientVault<'a> {
     pub(crate) client: &'a Client,
+    #[cfg(feature = "state")]
+    pub cipher_repository: CipherRepository,
 }
 
 impl<'a> ClientVault<'a> {
     pub fn new(client: &'a Client) -> Self {
-        Self { client }
+        Self {
+            client,
+            #[cfg(feature = "state")]
+            cipher_repository: CipherRepository::new(client.internal.db.clone()),
+        }
     }
 
     pub async fn sync(&self, input: &SyncRequest) -> Result<SyncResponse, SyncError> {

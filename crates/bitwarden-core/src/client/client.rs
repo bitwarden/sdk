@@ -1,6 +1,10 @@
 use std::sync::{Arc, RwLock};
 
+#[cfg(feature = "state")]
+use bitwarden_db::{Database, Migration, Migrator};
 use reqwest::header::{self, HeaderValue};
+#[cfg(feature = "state")]
+use tokio::sync::Mutex;
 
 use super::internal::InternalClient;
 #[cfg(feature = "internal")]
@@ -17,8 +21,29 @@ pub struct Client {
     pub internal: InternalClient,
 }
 
+#[cfg(feature = "state")]
+const MIGRATIONS: &[Migration] = &[
+    Migration {
+        description: "Create ciphers table",
+        up: "CREATE TABLE IF NOT EXISTS ciphers (
+            id TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        )",
+        down: "DROP TABLE ciphers",
+    },
+    Migration {
+        description: "Create settings table",
+        up: "CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        )",
+        down: "DROP TABLE settings",
+    },
+];
+
 impl Client {
-    pub fn new(settings_input: Option<ClientSettings>) -> Self {
+    #[allow(clippy::unused_async)]
+    pub async fn new(settings_input: Option<ClientSettings>) -> Self {
         let settings = settings_input.unwrap_or_default();
 
         fn new_client_builder() -> reqwest::ClientBuilder {
@@ -66,6 +91,19 @@ impl Client {
             api_key: None,
         };
 
+        #[cfg(feature = "state")]
+        let db = {
+            let db = Database::default()
+                .await
+                .expect("Database should be created");
+            let migrator = Migrator::new(MIGRATIONS);
+            migrator
+                .migrate(&db, None)
+                .await
+                .expect("Migration should succeed");
+            db
+        };
+
         Self {
             internal: InternalClient {
                 tokens: RwLock::new(Tokens::default()),
@@ -79,6 +117,8 @@ impl Client {
                 })),
                 external_client,
                 encryption_settings: RwLock::new(None),
+                #[cfg(feature = "state")]
+                db: Arc::new(Mutex::new(db)),
             },
         }
     }

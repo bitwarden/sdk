@@ -30,11 +30,17 @@ function handleResponse<T>(response: {
 }
 
 export class BitwardenClient {
-  client: rust.BitwardenClient;
+  private client: rust.BitwardenClient;
 
-  constructor(settings?: ClientSettings, loggingLevel?: LogLevel) {
+  static async create(settings?: ClientSettings, loggingLevel?: LogLevel) {
     const settingsJson = settings == null ? null : Convert.clientSettingsToJson(settings);
-    this.client = new rust.BitwardenClient(settingsJson, loggingLevel ?? LogLevel.Info);
+    new BitwardenClient(
+      await rust.BitwardenClient.create(settingsJson, loggingLevel ?? LogLevel.Info),
+    );
+  }
+
+  private constructor(client: rust.BitwardenClient) {
+    this.client = client;
   }
 
   async accessTokenLogin(accessToken: string, stateFile?: string): Promise<void> {

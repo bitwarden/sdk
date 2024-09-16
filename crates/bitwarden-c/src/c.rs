@@ -39,7 +39,7 @@ pub extern "C" fn init(c_str_ptr: *const c_char) -> *mut CClient {
         .build()
         .expect("Failed to build tokio runtime");
 
-    let client = if c_str_ptr.is_null() {
+    let client_future = if c_str_ptr.is_null() {
         Client::new(None)
     } else {
         let input_string = str::from_utf8(unsafe { CStr::from_ptr(c_str_ptr) }.to_bytes())
@@ -47,6 +47,8 @@ pub extern "C" fn init(c_str_ptr: *const c_char) -> *mut CClient {
             .to_owned();
         Client::new(Some(input_string))
     };
+
+    let client = runtime.block_on(client_future);
 
     box_ptr!(CClient { runtime, client })
 }

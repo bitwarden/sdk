@@ -13,7 +13,7 @@ use crate::{
 
 impl Client {
     pub async fn init_test_account(account: TestAccount) -> Self {
-        let client = Client::new(None);
+        let client = Client::new(None).await;
 
         client.internal.load_flags(HashMap::from([(
             "enableCipherKeyEncryption".to_owned(),

@@ -18,7 +18,8 @@ impl BitwardenClient {
             .build()
             .expect("Failed to build tokio runtime");
 
-        Self(runtime, JsonClient::new(settings_string))
+        let client = runtime.block_on(JsonClient::new(settings_string));
+        Self(runtime, client)
     }
 
     #[pyo3(text_signature = "($self, command_input)")]

@@ -74,7 +74,7 @@ jobs:
       - name: Build
         env:
           TARGET: ${{ matrix.settings.target }}
-        run: cargo build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
+        run: cargo build -p bws --release --target=${{ matrix.settings.target }}
 
       - name: Login to Azure
         if: ${{ needs.setup.outputs.sign == 'true' }}
@@ -164,7 +164,7 @@ jobs:
       - name: Build
         env:
           TARGET: ${{ matrix.settings.target }}
-        run: cargo build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
+        run: cargo build -p bws --release --target=${{ matrix.settings.target }}
 
       - name: Login to Azure
         uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
@@ -286,7 +286,7 @@ jobs:
       - name: Build
         env:
           TARGET: ${{ matrix.settings.target }}
-        run: cargo zigbuild ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
+        run: cargo zigbuild -p bws --release --target=${{ matrix.settings.target }}
 
       - name: Zip linux
         run: zip -j ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip ./target/${{ matrix.settings.target }}/release/bws

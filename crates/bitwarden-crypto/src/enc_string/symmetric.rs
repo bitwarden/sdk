@@ -237,6 +237,10 @@ impl KeyDecryptable<SymmetricCryptoKey, Vec<u8>> for EncString {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
         match self {
             EncString::AesCbc256_B64 { iv, data } => {
+                if key.mac_key.is_some() {
+                    return Err(CryptoError::MacNotProvided);
+                }
+
                 let dec = crate::aes::decrypt_aes256(iv, data.clone(), &key.key)?;
                 Ok(dec)
             }
@@ -296,7 +300,9 @@ mod tests {
     use schemars::schema_for;
 
     use super::EncString;
-    use crate::{derive_symmetric_key, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
+    use crate::{
+        derive_symmetric_key, CryptoError, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
+    };
 
     #[test]
     fn test_enc_string_roundtrip() {
@@ -416,6 +422,24 @@ mod tests {
 
         let dec_str: String = enc_string.decrypt_with_key(&key).unwrap();
         assert_eq!(dec_str, "EncryptMe!");
+    }
+
+    #[test]
+    fn test_decrypt_downgrade_encstring_prevention() {
+        // Simulate a potential downgrade attack by removing the mac portion of the `EncString` and
+        // attempt to decrypt it using a `SymmetricCryptoKey` with a mac key.
+        let key = "hvBMMb1t79YssFZkpetYsM3deyVuQv4r88Uj9gvYe0+G8EwxvW3v1iywVmSl61iwzd17JW5C/ivzxSP2C9h7Tw==".to_string();
+        let key = SymmetricCryptoKey::try_from(key).unwrap();
+
+        // A "downgraded" `EncString` from `EncString::AesCbc256_HmacSha256_B64` (2) to
+        // `EncString::AesCbc256_B64` (0), with the mac portion removed.
+        // <enc_string>
+        let enc_str = "0.NQfjHLr6za7VQVAbrpL81w==|wfrjmyJ0bfwkQlySrhw8dA==";
+        let enc_string: EncString = enc_str.parse().unwrap();
+        assert_eq!(enc_string.enc_type(), 0);
+
+        let result: Result<String, CryptoError> = enc_string.decrypt_with_key(&key);
+        assert!(matches!(result, Err(CryptoError::MacNotProvided)));
     }
 
     #[test]

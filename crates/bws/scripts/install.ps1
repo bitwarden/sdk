@@ -4,7 +4,7 @@ param (
 
 $ErrorActionPreference = "Stop"
 
-$defaultBwsVersion = "0.5.0"
+$defaultBwsVersion = "1.0.0"
 $bwsVersion = if ($env:bwsVersion) { $env:bwsVersion } else { $defaultBwsVersion }
 $installDir = [Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData) | Join-Path -ChildPath "Programs" | Join-Path -ChildPath "Bitwarden"
 

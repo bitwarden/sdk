@@ -11,3 +11,8 @@
 # Secrets Manager team
 crates/bitwarden-sm @bitwarden/team-secrets-manager-dev
 crates/bws @bitwarden/team-secrets-manager-dev
+
+# BRE Automation
+crates/bws/Cargo.toml @bitwarden/team-secrets-manager-dev @bitwarden/automation-users
+crates/bws/scripts/install.ps1 @bitwarden/team-secrets-manager-dev @bitwarden/automation-users
+crates/bws/scripts/install.sh @bitwarden/team-secrets-manager-dev @bitwarden/automation-users

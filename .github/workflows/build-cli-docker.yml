@@ -23,7 +23,7 @@ jobs:
 
       - name: Check Branch to Publish
         env:
-          PUBLISH_BRANCHES: "master,rc,hotfix-rc"
+          PUBLISH_BRANCHES: "main,rc,hotfix-rc"
         id: publish-branch-check
         run: |
           REF=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
@@ -77,7 +77,7 @@ jobs:
         run: |
           REF=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
           IMAGE_TAG=$(echo "${REF}" | sed "s#/#-#g")  # slash safe branch name
-          if [[ "${IMAGE_TAG}" == "master" ]]; then
+          if [[ "${IMAGE_TAG}" == "main" ]]; then
             IMAGE_TAG=dev
           elif [[ ("${IMAGE_TAG}" == "rc") || ("${IMAGE_TAG}" == "hotfix-rc") ]]; then
             IMAGE_TAG=rc
@@ -124,7 +124,7 @@ jobs:
     steps:
       - name: Check if any job failed
         if: |
-          github.ref == 'refs/heads/master'
+          github.ref == 'refs/heads/main'
           || github.ref == 'refs/heads/rc'
           || github.ref == 'refs/heads/hotfix-rc'
         env:

@@ -88,3 +88,4 @@ jobs:
           name: libbitwarden_c_files-${{ matrix.settings.target }}
           path: |
             target/${{ matrix.settings.target }}/release/*bitwarden_c*
+            target/${{ matrix.settings.target }}/release-windows/*bitwarden_c*

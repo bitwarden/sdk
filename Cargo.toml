@@ -51,6 +51,7 @@ lto = "thin"
 codegen-units = 1
 
 # Turn off LTO on release mode for windows
+# This is a workaround until this is fixed: https://github.com/rustls/rustls-platform-verifier/issues/141
 [profile.release-windows]
 inherits = "release"
 lto = "off"

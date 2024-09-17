@@ -25,7 +25,7 @@ on:
         required: true
       cut_rc_branch:
         description: "Cut RC branch?"
-        default: true
+        default: false
         type: boolean
 
 jobs:

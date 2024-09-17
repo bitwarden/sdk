@@ -426,11 +426,14 @@ mod tests {
 
     #[test]
     fn test_decrypt_downgrade_encstring_prevention() {
-        // type 2 encstring & key where the encstring has the enctype replaced with 0, and the mac
-        // removed
+        // Simulate a potential downgrade attack by removing the mac portion of the `EncString` and
+        // attempt to decrypt it using a `SymmetricCryptoKey` with a mac key.
         let key = "hvBMMb1t79YssFZkpetYsM3deyVuQv4r88Uj9gvYe0+G8EwxvW3v1iywVmSl61iwzd17JW5C/ivzxSP2C9h7Tw==".to_string();
         let key = SymmetricCryptoKey::try_from(key).unwrap();
 
+        // A "downgraded" `EncString` from `EncString::AesCbc256_HmacSha256_B64` (2) to
+        // `EncString::AesCbc256_B64` (0), with the mac portion removed.
+        // <enc_string>
         let enc_str = "0.NQfjHLr6za7VQVAbrpL81w==|wfrjmyJ0bfwkQlySrhw8dA==";
         let enc_string: EncString = enc_str.parse().unwrap();
         assert_eq!(enc_string.enc_type(), 0);

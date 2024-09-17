@@ -238,7 +238,7 @@ impl KeyDecryptable<SymmetricCryptoKey, Vec<u8>> for EncString {
         match self {
             EncString::AesCbc256_B64 { iv, data } => {
                 if key.mac_key.is_some() {
-                    return Err(CryptoError::InvalidKey);
+                    return Err(CryptoError::MacNotProvided);
                 }
 
                 let dec = crate::aes::decrypt_aes256(iv, data.clone(), &key.key)?;
@@ -439,7 +439,7 @@ mod tests {
         assert_eq!(enc_string.enc_type(), 0);
 
         let result: Result<String, CryptoError> = enc_string.decrypt_with_key(&key);
-        assert!(matches!(result, Err(CryptoError::InvalidKey)));
+        assert!(matches!(result, Err(CryptoError::MacNotProvided)));
     }
 
     #[test]

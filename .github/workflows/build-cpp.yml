@@ -128,6 +128,7 @@ jobs:
             export DNLOHMANN_PATH=/usr/share/doc/nlohmann-json3-dev
             export DBOOST_PATH=/usr/share/doc/libboost-all-dev
             export DTARGET=include/libbitwarden_c.so
+            ls -hal include # debug missing .so files
           fi
 
           mkdir build

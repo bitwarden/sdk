@@ -11,7 +11,7 @@ See the [installation instructions](./INSTALL.md)
 ### Create access token
 
 To interact with the client first you need to obtain the access token from Bitwarden.
-Review the help documentation on [Access Tokens](https://bitwarden.com/help/access-tokens/).
+Review the help documentation on [Access Tokens].
 
 ### Create new Bitwarden client
 

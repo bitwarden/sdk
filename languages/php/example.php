@@ -36,7 +36,7 @@ try {
     print("\n");
 
     // update project
-    $res = $bitwarden_client->projects->update($organization_id, $project_id, 'php test awesome');
+    $res = $bitwarden_client->projects->update($organization_id, $project_id, 'php test project');
     print("\tupdate: '" . $res->name . "'\n\n");
 
     // sync secrets

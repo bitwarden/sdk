@@ -10,7 +10,7 @@ public:
 
     ProjectResponse get(const boost::uuids::uuid& id);
     ProjectResponse create(const boost::uuids::uuid& organizationId, const std::string& name);
-    ProjectResponse update(const boost::uuids::uuid& id, const boost::uuids::uuid& organizationId, const std::string& name);
+    ProjectResponse update(const boost::uuids::uuid& organizationId, const boost::uuids::uuid& id, const std::string& name);
     ProjectsDeleteResponse deleteProjects(const std::vector<boost::uuids::uuid>& ids);
     ProjectsResponse list(const boost::uuids::uuid& organizationId);
 

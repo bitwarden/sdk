@@ -1,8 +1,7 @@
 #include "Secrets.h"
 #include <nlohmann/json.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include <boost/uuid/string_generator.hpp> 
-#include <boost/uuid/uuid_io.hpp>
+#include <boost/optional.hpp>
 
 Secrets::Secrets(CommandRunner* commandRunner) : commandRunner(commandRunner) {}
 
@@ -11,6 +10,13 @@ auto secretsDeserializer = [](const std::string& response) -> ResponseForSecretR
     ResponseForSecretResponse secretResponse;
     Bitwarden::Sdk::from_json(jsonResponse, secretResponse);
     return secretResponse;
+};
+
+auto secretsByIdsDeserializer = [](const std::string& response) -> ResponseForSecretsResponse {
+    nlohmann::json jsonResponse = nlohmann::json::parse(response);
+    ResponseForSecretsResponse secretsResponse;
+    Bitwarden::Sdk::from_json(jsonResponse, secretsResponse);
+    return secretsResponse;
 };
 
 auto deleteSecretsDeserializer = [](const std::string& response) -> ResponseForSecretsDeleteResponse {
@@ -25,6 +31,13 @@ auto secretListDeserializer = [](const std::string& response) -> ResponseForSecr
     ResponseForSecretIdentifiersResponse listResponse;
     Bitwarden::Sdk::from_json(jsonResponse, listResponse);
     return listResponse;
+};
+
+auto secretsSyncDeserializer = [](const std::string& response) -> ResponseForSecretsSyncResponse {
+    nlohmann::json jsonResponse = nlohmann::json::parse(response);
+    ResponseForSecretsSyncResponse syncResponse;
+    Bitwarden::Sdk::from_json(jsonResponse, syncResponse);
+    return syncResponse;
 };
 
 SecretResponse Secrets::get(const boost::uuids::uuid& id) {
@@ -46,7 +59,29 @@ SecretResponse Secrets::get(const boost::uuids::uuid& id) {
     }
 }
 
-SecretResponse Secrets::create(const std::string& key, const std::string& value, const std::string& note, const boost::uuids::uuid& organizationId, const std::vector<boost::uuids::uuid>& projectIds) {
+SecretsResponse Secrets::getByIds(const std::vector<boost::uuids::uuid>& ids) {
+    Command command;
+    SecretsCommand secretsCommand;
+    SecretsGetRequest secretsGetRequest;
+
+    std::vector<std::string> idsStr;
+    for (const auto& id : ids) {
+        idsStr.push_back(boost::uuids::to_string(id));
+    }
+    secretsGetRequest.set_ids(idsStr);
+
+    secretsCommand.set_get_by_ids(secretsGetRequest);
+    command.set_secrets(secretsCommand);
+
+    try {
+        return commandRunner->runCommand<ResponseForSecretsResponse, SecretsResponse>(command, secretsByIdsDeserializer);
+    } catch (const std::exception& ex) {
+        std::cerr << "Error in getSecretsByIds: " << ex.what() << std::endl;
+        throw ex;
+    }
+}
+
+SecretResponse Secrets::create(const boost::uuids::uuid& organizationId, const std::string& key, const std::string& value, const std::string& note, const std::vector<boost::uuids::uuid>& projectIds) {
     Command command;
     SecretsCommand secretsCommand;
     SecretCreateRequest secretCreateRequest;
@@ -75,7 +110,7 @@ SecretResponse Secrets::create(const std::string& key, const std::string& value,
     }
 }
 
-SecretResponse Secrets::update(const boost::uuids::uuid& id, const std::string& key, const std::string& value, const std::string& note, const boost::uuids::uuid& organizationId, const std::vector<boost::uuids::uuid>& projectIds) {
+SecretResponse Secrets::update(const boost::uuids::uuid& organizationId, const boost::uuids::uuid& id, const std::string& key, const std::string& value, const std::string& note, const std::vector<boost::uuids::uuid>& projectIds) {
     Command command;
     SecretsCommand secretsCommand;
     SecretPutRequest secretPutRequest;
@@ -144,6 +179,51 @@ SecretIdentifiersResponse Secrets::list(const boost::uuids::uuid& organizationId
         return commandRunner->runCommand<ResponseForSecretIdentifiersResponse, SecretIdentifiersResponse>(command, secretListDeserializer);
     } catch (const std::exception& ex) {
         std::cerr << "Error in listSecret: " << ex.what() << std::endl;
+        throw ex;
+    }
+}
+
+SecretsSyncResponse Secrets::sync(const boost::uuids::uuid& organizationId, const boost::optional<std::chrono::system_clock::time_point>& lastSyncedDate) {
+    Command command;
+    SecretsCommand secretsCommand;
+    SecretsSyncRequest secretsSyncRequest;
+
+    std::string orgIdStr = boost::uuids::to_string(organizationId);
+    secretsSyncRequest.set_organization_id(orgIdStr);
+
+    if (lastSyncedDate.has_value()) {
+        auto timePoint = lastSyncedDate.value();
+
+        // Get time as time_t and milliseconds
+        auto timeT = std::chrono::system_clock::to_time_t(timePoint);
+        auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(timePoint.time_since_epoch()) % 1000;
+
+        // Convert to a tm struct
+        std::tm tm = *std::gmtime(&timeT);
+
+        // Create a string stream to format the date and time
+        std::stringstream dateStream;
+        dateStream << std::put_time(&tm, "%Y-%m-%dT%H:%M:%S");
+
+        // Add milliseconds
+        dateStream << '.' << std::setw(3) << std::setfill('0') << milliseconds.count() << 'Z';
+
+        // Convert to string
+        std::string dateStr = dateStream.str();
+
+        // Set the last synced date
+        secretsSyncRequest.set_last_synced_date(dateStr);
+    } else {
+        secretsSyncRequest.set_last_synced_date(boost::none);
+    }
+
+    secretsCommand.set_sync(secretsSyncRequest);
+    command.set_secrets(secretsCommand);
+
+    try {
+        return commandRunner->runCommand<ResponseForSecretsSyncResponse, SecretsSyncResponse>(command, secretsSyncDeserializer);
+    } catch (const std::exception& ex) {
+        std::cerr << "Error in syncSecrets: " << ex.what() << std::endl;
         throw ex;
     }
 }

@@ -70,22 +70,6 @@ jobs:
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
-      - name: Install libraries for Windows
-        if: runner.os == 'Windows' && steps.cache.outputs.cache-hit != 'true'
-        env:
-          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-        run: |
-          vcpkg install boost --binarysource="clear;x-gha,readwrite"
-          vcpkg install nlohmann-json --binarysource="clear;x-gha,readwrite"
-        shell: pwsh
-
-      - name: Save cache
-        if: runner.os == 'Windows'
-        uses: actions/cache/save@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
-        with:
-          path: C:/vcpkg/
-          key: vcpkg-${{ runner.os }}-${{ matrix.settings.target }}
-
       - name: Download schemas
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
@@ -126,6 +110,22 @@ jobs:
             ls include/bitwarden_c.dll || echo "Missing bitwarden_c.dll" && exit 1
           fi
           rmdir include/release
+
+      - name: Install libraries for Windows
+        if: runner.os == 'Windows' && steps.cache.outputs.cache-hit != 'true'
+        env:
+          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+        run: |
+          vcpkg install boost --binarysource="clear;x-gha,readwrite"
+          vcpkg install nlohmann-json --binarysource="clear;x-gha,readwrite"
+        shell: pwsh
+
+      - name: Save cache
+        if: runner.os == 'Windows'
+        uses: actions/cache/save@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+        with:
+          path: C:/vcpkg/
+          key: vcpkg-${{ runner.os }}-${{ matrix.settings.target }}
 
       - name: Build unix
         working-directory: languages/cpp

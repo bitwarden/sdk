@@ -59,7 +59,7 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           $env:Path += ";C:\msys64\usr\bin" # msys64 is preinstalled, but not in path by default
-          pacman -S mingw-w64-x86_64-nlohmann-json mingw-w64-x86_64-boost
+          pacman -S mingw-w64-x86_64-nlohmann-json mingw-w64-x86_64-boost --noconfirm
 
       # - name: Cache vcpkg
       #   if: runner.os == 'Windows'

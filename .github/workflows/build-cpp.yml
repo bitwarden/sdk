@@ -160,19 +160,15 @@ jobs:
       - name: Build windows
         if: runner.os == 'Windows'
         working-directory: languages/cpp
-        env:
-          BOOST_INCLUDE_DIR: C:\msys64\mingw64\include\boost
-          NLOHMANN_JSON_INCLUDE_DIR: C:\msys64\mingw64\include\nlohmann
-          TARGET: include/bitwarden_c.dll
         run: |
           mkdir build
           cd build
-          $DNLOHMANN_PATH="C:\msys64\mingw64\include\nlohmann"
-          $DBOOST_PATH="C:\msys64\mingw64\include\boost"
-          $DTARGET="include/bitwarden_c.dll"
+          export DNLOHMANN_PATH="C:\msys64\mingw64\include\nlohmann"
+          export DBOOST_PATH="C:\msys64\mingw64\include\boost"
+          export DTARGET="include/bitwarden_c.dll"
           cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=$DTARGET -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/languages/cpp/ -DBUILD_TESTING=OFF
           cmake --build .
-        shell: pwsh
+        shell: bash
 
       - name: Copy artifacts
         working-directory: languages/cpp/build

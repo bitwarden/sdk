@@ -154,7 +154,7 @@ jobs:
 
           mkdir build
           cd build
-          cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=$DTARGET
+          cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=$DTARGET -DBOOST_INCLUDE_DIR=$DBOOST_PATH -DNLOHMANN_INCLUDE_DIR=$DNLOHMANN_PATH
           cmake --build .
 
       - name: Build windows
@@ -166,7 +166,7 @@ jobs:
           export DNLOHMANN_PATH="C:\msys64\mingw64\include\nlohmann"
           export DBOOST_PATH="C:\msys64\mingw64\include\boost"
           export DTARGET="include/bitwarden_c.dll"
-          cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=$DTARGET -DBUILD_TESTING=OFF
+          cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=$DTARGET
           cmake --build .
         shell: bash
 

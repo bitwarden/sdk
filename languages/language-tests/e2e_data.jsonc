@@ -1,0 +1,24 @@
+{
+  "projects": [
+    {
+      "name": "project1"
+    },
+    {
+      "name": "another project"
+    }
+  ],
+  "secrets": [
+    {
+      "key": "key",
+      "value": "secret_value",
+      "note": "note about the purpose of the secret, possibly some value rotation instructions",
+      "project_name": "project1"
+    },
+    {
+      "key": "some other secret",
+      "value": "secret_value",
+      "note": "note",
+      "project_name": "another project"
+    }
+  ]
+}

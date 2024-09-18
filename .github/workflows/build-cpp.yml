@@ -168,8 +168,6 @@ jobs:
           export DTARGET="include/bitwarden_c.dll"
           ls $DNLOHMANN_PATH/json.hpp || { echo "Missing json.hpp"; exit 1; }
           ls $DBOOST_PATH/optional.hpp || { echo "Missing boost"; exit 1; }
-          cp -r $DNLOHMANN_PATH include/
-          cp -r $DBOOST_PATH include/
           cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=$DTARGET -DBOOST_INCLUDE_DIR=$DBOOST_PATH -DNLOHMANN_JSON_INCLUDE_DIR=$DNLOHMANN_PATH
           cmake --build .
         shell: bash

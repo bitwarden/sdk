@@ -30,6 +30,9 @@ jobs:
           - os: macos-13
             target: x86_64-apple-darwin
 
+          - os: macos-13
+            target: aarch64-apple-darwin
+
           - os: windows-2022
             target: x86_64-pc-windows-msvc
 
@@ -52,15 +55,21 @@ jobs:
           brew install nlohmann-json
           brew install boost
 
-      - name: Cache vcpkg
+      - name: Set up dependencies on Windows
         if: runner.os == 'Windows'
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
-        with:
-          path: C:/vcpkg/
-          key: vcpkg-${{ runner.os }}-${{ matrix.settings.target }}
-          restore-keys: |
-            vcpkg-${{ runner.os }}-
-            vcpkg-
+        run: |
+          $env:Path += ";C:\msys64\usr\bin" # msys64 is preinstalled, but not in path by default
+          pacman -S mingw-w64-x86_64-nlohmann-json mingw-w64-x86_64-boost
+
+      # - name: Cache vcpkg
+      #   if: runner.os == 'Windows'
+      #   uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+      #   with:
+      #     path: C:/vcpkg/
+      #     key: vcpkg-${{ runner.os }}-${{ matrix.settings.target }}
+      #     restore-keys: |
+      #       vcpkg-${{ runner.os }}-
+      #       vcpkg-
 
       - name: Export GitHub Actions cache environment variables
         if: runner.os == 'Windows'
@@ -111,21 +120,21 @@ jobs:
           fi
           rmdir include/release
 
-      - name: Install libraries for Windows
-        if: runner.os == 'Windows' && steps.cache.outputs.cache-hit != 'true'
-        env:
-          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-        run: |
-          vcpkg install boost --binarysource="clear;x-gha,readwrite"
-          vcpkg install nlohmann-json --binarysource="clear;x-gha,readwrite"
-        shell: pwsh
+      # - name: Install libraries for Windows
+      #   if: runner.os == 'Windows' && steps.cache.outputs.cache-hit != 'true'
+      #   env:
+      #     VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+      #   run: |
+      #     vcpkg install boost --binarysource="clear;x-gha,readwrite"
+      #     vcpkg install nlohmann-json --binarysource="clear;x-gha,readwrite"
+      #   shell: pwsh
 
-      - name: Save cache
-        if: runner.os == 'Windows'
-        uses: actions/cache/save@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
-        with:
-          path: C:/vcpkg/
-          key: vcpkg-${{ runner.os }}-${{ matrix.settings.target }}
+      # - name: Save cache
+      #   if: runner.os == 'Windows'
+      #   uses: actions/cache/save@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+      #   with:
+      #     path: C:/vcpkg/
+      #     key: vcpkg-${{ runner.os }}-${{ matrix.settings.target }}
 
       - name: Build unix
         working-directory: languages/cpp
@@ -152,16 +161,16 @@ jobs:
         if: runner.os == 'Windows'
         working-directory: languages/cpp
         env:
-          BOOST_INCLUDE_DIR: C:\vcpkg\installed\x64-windows\include\boost
-          NLOHMANN_JSON_INCLUDE_DIR: C:\vcpkg\installed\x64-windows\include\nlohmann-json
+          BOOST_INCLUDE_DIR: C:\msys64\mingw64\include\boost
+          NLOHMANN_JSON_INCLUDE_DIR: C:\msys64\mingw64\include\nlohmann
           TARGET: include/bitwarden_c.dll
         run: |
           mkdir build
           cd build
-          $DNLOHMANN_PATH="C:\vcpkg\installed\x64-windows\include\nlohmann-json"
-          $DBOOST_PATH="C:\vcpkg\installed\x64-windows\include\boost"
+          $DNLOHMANN_PATH="C:\msys64\mingw64\include\nlohmann"
+          $DBOOST_PATH="C:\msys64\mingw64\include\boost"
           $DTARGET="include/bitwarden_c.dll"
-          cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=$DTARGET -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/languages/cpp/ -DBUILD_TESTING=OFF
+          cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=$DTARGET -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/languages/cpp/ -DBUILD_TESTING=OFF
           cmake --build .
         shell: pwsh
 

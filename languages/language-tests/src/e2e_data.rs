@@ -64,7 +64,7 @@ pub fn load_realized_secrets(run_id: &str, loaded_projects: &[ProjectResponse]) 
 
 fn load_data() -> Result<E2EData> {
     // read e2e data from file
-    let file = File::open("e2e_data.jsonc").context("Failed to open e2e data file")?;
+    let file = File::open("e2e_data.json").context("Failed to open e2e data file")?;
     let reader = BufReader::new(file);
 
     let data: E2EData = serde_json::from_reader(reader).context("Failed to parse e2e data")?;

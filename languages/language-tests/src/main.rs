@@ -1,17 +1,16 @@
 use anyhow::{Context, Result};
 use bitwarden::{
-    auth::login::{AccessTokenLoginRequest, ApiKeyLoginRequest},
+    auth::login::AccessTokenLoginRequest,
     secrets_manager::{
         projects::{
             ProjectCreateRequest, ProjectResponse, ProjectsDeleteRequest, ProjectsListRequest,
         },
         secrets::{
-            self, SecretCreateRequest, SecretIdentifiersRequest, SecretResponse,
+             SecretCreateRequest, SecretIdentifiersRequest, SecretResponse,
             SecretsDeleteRequest,
         },
         ClientProjectsExt, ClientSecretsExt,
     },
-    vault::{ClientVaultExt, SyncRequest},
     Client,
 };
 use e2e_data::{load_projects, load_realized_secrets, load_secrets};
@@ -96,7 +95,7 @@ async fn set_up(run_data: &mut RunData) -> Result<()> {
         .iter()
         .cloned()
         .map(|project| {
-            let org_id = run_data.organization_id.clone();
+            let org_id = run_data.organization_id;
             let client = run_data.client.clone();
             tokio::spawn(async move {
                 client

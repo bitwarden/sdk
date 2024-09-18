@@ -33,14 +33,14 @@ pub struct RealizedTestSecretData {
 }
 
 impl TestSecretData {
-    pub fn project_id(&self, projects: &Vec<ProjectResponse>) -> Result<Uuid> {
+    pub fn project_id(&self, projects: &[ProjectResponse]) -> Result<Uuid> {
         let id = projects
             .iter()
             .find(|p| p.name == self.project_name).context(format!("Project, {}, not found", self.project_name))?.id;
         Ok(id)
     }
 
-    pub fn realize(&self, projects: &Vec<ProjectResponse>) -> Result<RealizedTestSecretData> {
+    pub fn realize(&self, projects: &[ProjectResponse]) -> Result<RealizedTestSecretData> {
         Ok(RealizedTestSecretData {
             key: self.key.clone(),
             value: self.value.clone(),
@@ -58,7 +58,7 @@ pub fn load_secrets(run_id: &str) -> Result<Vec<TestSecretData>> {
     Ok(load_data()?.secrets.iter().map(|secret| secret.with_run_id(run_id)).collect())
 }
 
-pub fn load_realized_secrets(run_id: &str, loaded_projects: &Vec<ProjectResponse>) -> Result<Vec<RealizedTestSecretData>> {
+pub fn load_realized_secrets(run_id: &str, loaded_projects: &[ProjectResponse]) -> Result<Vec<RealizedTestSecretData>> {
     load_secrets(run_id)?.iter().map(|secret| secret.realize(loaded_projects)).collect()
 }
 

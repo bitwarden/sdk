@@ -59,7 +59,10 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           $env:Path += ";C:\msys64\usr\bin" # msys64 is preinstalled, but not in path by default
-          pacman -S mingw-w64-x86_64-nlohmann-json mingw-w64-x86_64-boost --noconfirm
+          pacman -S base-devel \
+            mingw-w64-ucrt-x86_64-toolchain \
+            mingw-w64-x86_64-nlohmann-json \
+            mingw-w64-x86_64-boost --noconfirm
 
       # - name: Cache vcpkg
       #   if: runner.os == 'Windows'
@@ -166,6 +169,8 @@ jobs:
           export DNLOHMANN_PATH="C:\msys64\mingw64\include\nlohmann"
           export DBOOST_PATH="C:\msys64\mingw64\include\boost"
           export DTARGET="include/bitwarden_c.dll"
+          ls $DNLOHMANN_PATH/json.hpp || { echo "Missing json.hpp"; exit 1; }
+          ls $DBOOST_PATH/optional.hpp || { echo "Missing boost"; exit 1; }
           cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=$DTARGET
           cmake --build .
         shell: bash

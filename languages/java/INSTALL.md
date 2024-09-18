@@ -42,7 +42,7 @@ jenv shell 17
 
 ### Windows
 
-Download JDK for windows here: https://www.oracle.com/in/java/technologies/downloads/#java17
+Download JDK17
 
 Go to System Environment Variables and point JAVA_HOME to where the JDK software is located, for example: JAVA_HOME=C:\Program Files\Java\jdk1.6.0_02.
 

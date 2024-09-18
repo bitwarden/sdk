@@ -100,6 +100,7 @@ jobs:
 
       - name: Ensure bitwarden-c is in include folder
         working-directory: languages/cpp
+        shell: bash
         run: |
           mv include/release/* include/
           ls -hal include/ # debug missing files

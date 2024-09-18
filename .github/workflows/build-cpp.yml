@@ -118,6 +118,7 @@ jobs:
         working-directory: languages/cpp
         run: |
           mv include/release/* include/
+          ls -hal include/ # debug missing files
           if [[ '${{ runner.os }}' == 'macOS' || '${{ runner.os }}' == 'Linux' ]]; then
             ls include/libbitwarden_c.* || echo "Missing libbitwarden_c.*" && exit 1
           fi

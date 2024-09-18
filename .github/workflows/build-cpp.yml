@@ -168,7 +168,12 @@ jobs:
         working-directory: languages/cpp/build
         run: |
           mkdir artifacts
-          cp libbitwarden_c.* artifacts
+          if [[ '${{ runner.os }}' == 'macOS' || '${{ runner.os }}' == 'Linux' ]]; then
+            cp libbitwarden_c.* artifacts
+          fi
+          if [[ '${{ runner.os }}' == 'Windows' ]]; then
+            cp bitwarden_c.dll artifacts
+          fi
           cp libBitwardenClient.* artifacts
 
       - name: Upload C++ package for ${{ matrix.settings.target }}

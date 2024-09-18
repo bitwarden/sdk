@@ -166,7 +166,7 @@ jobs:
           export DNLOHMANN_PATH="C:\msys64\mingw64\include\nlohmann"
           export DBOOST_PATH="C:\msys64\mingw64\include\boost"
           export DTARGET="include/bitwarden_c.dll"
-          cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=$DTARGET -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/languages/cpp/ -DBUILD_TESTING=OFF
+          cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=$DTARGET -DBUILD_TESTING=OFF
           cmake --build .
         shell: bash
 

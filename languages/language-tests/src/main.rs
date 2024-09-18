@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
 use bitwarden::{
     auth::login::AccessTokenLoginRequest,
     secrets_manager::{
@@ -6,8 +6,7 @@ use bitwarden::{
             ProjectCreateRequest, ProjectResponse, ProjectsDeleteRequest, ProjectsListRequest,
         },
         secrets::{
-             SecretCreateRequest, SecretIdentifiersRequest, SecretResponse,
-            SecretsDeleteRequest,
+            SecretCreateRequest, SecretIdentifiersRequest, SecretResponse, SecretsDeleteRequest,
         },
         ClientProjectsExt, ClientSecretsExt,
     },
@@ -27,8 +26,10 @@ struct RunData {
     secrets_created: Vec<SecretResponse>,
 }
 
+const STATE_FILE: &str = "state.json";
+
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<()> {
     // Get the pipeline owner credentials from runtime args
     let run_id = env::var("RUN_ID").expect("RUN_ID not set");
 
@@ -51,21 +52,34 @@ async fn main() {
         secrets_created: Vec::new(),
     };
 
-    match action.as_str() {
+    let result = match action.as_str() {
         "setup" => match set_up(&mut run_data).await {
-            Ok(_) => println!("Test data set up successfully"),
+            Ok(_) => {
+                println!("Test data set up successfully");
+                Ok(())
+            }
             Err(e) => {
                 eprintln!("Failed to set up test data: {:?}", e);
-                clean_up(&run_data)
-                    .await
-                    .expect("Failed to clean up test data");
+                clean_up(&run_data).await
             }
         },
-        "teardown" => clean_up(&run_data)
-            .await
-            .expect("Failed to clean up test data"),
-        _ => eprintln!("Invalid action: {}, please specify either 'setup' or 'teardown'", action),
-    }
+        "teardown" => clean_up(&run_data).await,
+        _ => {
+            bail!(
+                "Invalid action: {}, please specify either 'setup' or 'teardown'",
+                action
+            )
+        }
+    };
+
+    if let Err(e) = result {
+        eprintln!("Failed to clean up test data: {:?}", e);
+    };
+
+    // clean up state file
+    std::fs::remove_file(STATE_FILE).context("Failed to delete state file")?;
+
+    Ok(())
 }
 
 async fn build_client() -> Result<Client> {
@@ -79,10 +93,14 @@ async fn build_client() -> Result<Client> {
         ..Default::default()
     }));
 
-    let auth_response = client.auth().login_access_token(&AccessTokenLoginRequest {
-        access_token,
-        state_file: None,
-    }).await.context("Failed to authenticate with access token")?;
+    let auth_response = client
+        .auth()
+        .login_access_token(&AccessTokenLoginRequest {
+            access_token,
+            state_file: Some(STATE_FILE.into()),
+        })
+        .await
+        .context("Failed to authenticate with access token")?;
     assert!(auth_response.authenticated);
 
     Ok(client)
@@ -113,7 +131,14 @@ async fn set_up(run_data: &mut RunData) -> Result<()> {
         let project = result.context("Failed to join create project task")??;
         run_data.projects_created.push(project);
     }
-    println!("Projects created: {:?}", run_data.projects_created.iter().map(|p| p.id).collect::<Vec<_>>());
+    println!(
+        "Projects created: {:?}",
+        run_data
+            .projects_created
+            .iter()
+            .map(|p| p.id)
+            .collect::<Vec<_>>()
+    );
 
     // Set up secrets
     let secrets = load_realized_secrets(&run_data.run_id, &run_data.projects_created)?;
@@ -143,7 +168,14 @@ async fn set_up(run_data: &mut RunData) -> Result<()> {
         let secret = result.context("Failed to join create secret task")??;
         run_data.secrets_created.push(secret);
     }
-    println!("Secrets created: {:?}", run_data.secrets_created.iter().map(|s| s.id).collect::<Vec<_>>());
+    println!(
+        "Secrets created: {:?}",
+        run_data
+            .secrets_created
+            .iter()
+            .map(|s| s.id)
+            .collect::<Vec<_>>()
+    );
 
     Ok(())
 }
@@ -166,11 +198,7 @@ async fn clean_up(run_data: &RunData) -> Result<()> {
             server_secrets
                 .data
                 .iter()
-                .filter(|s| {
-                    test_secrets
-                        .iter()
-                        .any(|ts| ts.key == s.key)
-                })
+                .filter(|s| test_secrets.iter().any(|ts| ts.key == s.key))
                 .map(|s| s.id)
                 .collect()
         }
@@ -202,11 +230,7 @@ async fn clean_up(run_data: &RunData) -> Result<()> {
             server_projects
                 .data
                 .iter()
-                .filter(|p| {
-                    test_projects
-                        .iter()
-                        .any(|tp| tp.name == p.name)
-                })
+                .filter(|p| test_projects.iter().any(|tp| tp.name == p.name))
                 .map(|p| p.id)
                 .collect()
         }

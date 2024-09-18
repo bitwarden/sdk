@@ -518,6 +518,7 @@ dependencies = [
  "log",
  "p256",
  "passkey",
+ "passkey-client",
  "reqwest",
  "schemars",
  "serde",
@@ -2633,8 +2634,8 @@ dependencies = [
 
 [[package]]
 name = "passkey"
-version = "0.3.1"
-source = "git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27#ae08e2cb7dd3d44d915caed395c0cdc56b50fa27"
+version = "0.2.0"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=29bb052eb15a42e369728ded3cfb2aa7c91213df#29bb052eb15a42e369728ded3cfb2aa7c91213df"
 dependencies = [
  "passkey-authenticator",
  "passkey-client",
@@ -2644,8 +2645,8 @@ dependencies = [
 
 [[package]]
 name = "passkey-authenticator"
-version = "0.3.0"
-source = "git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27#ae08e2cb7dd3d44d915caed395c0cdc56b50fa27"
+version = "0.2.0"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=29bb052eb15a42e369728ded3cfb2aa7c91213df#29bb052eb15a42e369728ded3cfb2aa7c91213df"
 dependencies = [
  "async-trait",
  "coset",
@@ -2657,12 +2658,13 @@ dependencies = [
 
 [[package]]
 name = "passkey-client"
-version = "0.3.1"
-source = "git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27#ae08e2cb7dd3d44d915caed395c0cdc56b50fa27"
+version = "0.2.0"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=29bb052eb15a42e369728ded3cfb2aa7c91213df#29bb052eb15a42e369728ded3cfb2aa7c91213df"
 dependencies = [
  "ciborium",
  "coset",
  "idna",
+ "nom",
  "passkey-authenticator",
  "passkey-types",
  "public-suffix",
@@ -2674,12 +2676,12 @@ dependencies = [
 [[package]]
 name = "passkey-transports"
 version = "0.1.0"
-source = "git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27#ae08e2cb7dd3d44d915caed395c0cdc56b50fa27"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=29bb052eb15a42e369728ded3cfb2aa7c91213df#29bb052eb15a42e369728ded3cfb2aa7c91213df"
 
 [[package]]
 name = "passkey-types"
 version = "0.2.1"
-source = "git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27#ae08e2cb7dd3d44d915caed395c0cdc56b50fa27"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=29bb052eb15a42e369728ded3cfb2aa7c91213df#29bb052eb15a42e369728ded3cfb2aa7c91213df"
 dependencies = [
  "bitflags 2.6.0",
  "ciborium",
@@ -2916,7 +2918,7 @@ dependencies = [
 [[package]]
 name = "public-suffix"
 version = "0.1.1"
-source = "git+https://github.com/bitwarden/passkey-rs?rev=ae08e2cb7dd3d44d915caed395c0cdc56b50fa27#ae08e2cb7dd3d44d915caed395c0cdc56b50fa27"
+source = "git+https://github.com/bitwarden/passkey-rs?rev=29bb052eb15a42e369728ded3cfb2aa7c91213df#29bb052eb15a42e369728ded3cfb2aa7c91213df"
 
 [[package]]
 name = "pyo3"

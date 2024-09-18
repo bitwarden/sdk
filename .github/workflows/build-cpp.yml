@@ -103,12 +103,11 @@ jobs:
         shell: bash
         run: |
           mv include/release/* include/
-          ls -hal include/ # debug missing files
           if [[ '${{ runner.os }}' == 'macOS' || '${{ runner.os }}' == 'Linux' ]]; then
-            ls include/libbitwarden_c.* || echo "Missing libbitwarden_c.*" && exit 1
+            ls include/libbitwarden_c.* || { echo "Missing libbitwarden_c.*"; exit 1; }
           fi
           if [[ '${{ runner.os }}' == 'Windows' ]]; then
-            ls include/bitwarden_c.dll || echo "Missing bitwarden_c.dll" && exit 1
+            ls include/bitwarden_c.dll || { echo "Missing bitwarden_c.dll"; exit 1; }
           fi
           rmdir include/release
 

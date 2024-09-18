@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use bitwarden::{
-    auth::login::ApiKeyLoginRequest,
+    auth::login::{AccessTokenLoginRequest, ApiKeyLoginRequest},
     secrets_manager::{
         projects::{
             ProjectCreateRequest, ProjectResponse, ProjectsDeleteRequest, ProjectsListRequest,
@@ -70,10 +70,8 @@ async fn main() {
 }
 
 async fn build_client() -> Result<Client> {
-    // Read necessary env vars
-    let client_id = env::var("OWNER_CLIENT_ID").context("OWNER_CLIENT_ID not set")?;
-    let client_secret = env::var("OWNER_CLIENT_SECRET").context("OWNER_CLIENT_SECRET not set")?;
-    let password = env::var("OWNER_PASSWORD").context("OWNER_PASSWORD not set")?;
+    // Read env vars
+    let access_token = env::var("ACCESS_TOKEN").context("ACCESS_TOKEN not set")?;
 
     // initialize client
     let client = Client::new(Some(bitwarden::ClientSettings {
@@ -82,25 +80,11 @@ async fn build_client() -> Result<Client> {
         ..Default::default()
     }));
 
-    // Authenticate as pipeline owner
-    let auth_response = client
-        .auth()
-        .login_api_key(&ApiKeyLoginRequest {
-            client_id,
-            client_secret,
-            password,
-        })
-        .await
-        .context("Pipeline owner authentication failure")?;
+    let auth_response = client.auth().login_access_token(&AccessTokenLoginRequest {
+        access_token,
+        state_file: None,
+    }).await.context("Failed to authenticate with access token")?;
     assert!(auth_response.authenticated);
-    // Need to sync vault for now to grab organization keys
-    client
-        .vault()
-        .sync(&SyncRequest {
-            exclude_subdomains: Some(true),
-        })
-        .await
-        .context("Failed to sync vault")?;
 
     Ok(client)
 }

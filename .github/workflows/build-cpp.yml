@@ -114,11 +114,22 @@ jobs:
 
           Get-Acl languages/cpp/include/* | Format-List
 
+      - name: Ensure bitwarden-c is in include folder
+        working-directory: languages/cpp
+        run: |
+          mv include/release/* include/
+          if [[ '${{ runner.os }}' == 'macOS' || '${{ runner.os }}' == 'Linux' ]]; then
+            ls include/libbitwarden_c.* || echo "Missing libbitwarden_c.*" && exit 1
+          fi
+          if [[ '${{ runner.os }}' == 'Windows' ]]; then
+            ls include/bitwarden_c.dll || echo "Missing bitwarden_c.dll" && exit 1
+          fi
+          rmdir include/release
+
       - name: Build unix
         working-directory: languages/cpp
         if: runner.os == 'macOS' || runner.os == 'Linux'
         run: |
-          mv include/release/* include/
           if [[ '${{ runner.os }}' == 'macOS' ]]; then
             export DNLOHMANN_PATH=/usr/local/opt/nlohmann-json
             export DBOOST_PATH=/usr/local/opt/boost
@@ -143,13 +154,12 @@ jobs:
           BOOST_INCLUDE_DIR: C:\vcpkg\installed\x64-windows\include\boost
           NLOHMANN_JSON_INCLUDE_DIR: C:\vcpkg\installed\x64-windows\include\nlohmann-json
         run: |
-          mv include/release/* include/
           mkdir build
           cd build
           $DNLOHMANN_PATH="C:\vcpkg\installed\x64-windows\include\nlohmann-json"
           $DBOOST_PATH="C:\vcpkg\installed\x64-windows\include\boost"
-          $DTARGET="include/libbitwarden_c.dll"
-          cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET="include/libbitwarden_c.dll" -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/languages/cpp/ -DBUILD_TESTING=OFF
+          $DTARGET="include/bitwarden_c.dll"
+          cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=$DTARGET -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/languages/cpp/ -DBUILD_TESTING=OFF
           cmake --build .
         shell: pwsh
 

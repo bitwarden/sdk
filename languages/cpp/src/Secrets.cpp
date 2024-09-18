@@ -2,6 +2,7 @@
 #include <nlohmann/json.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/optional.hpp>
+#include <sstream>
 
 Secrets::Secrets(CommandRunner* commandRunner) : commandRunner(commandRunner) {}
 

@@ -118,6 +118,8 @@ jobs:
         working-directory: languages/cpp
         if: runner.os == 'macOS' || runner.os == 'Linux'
         run: |
+          mv include/release/* include/
+          ls -hal include # debug missing bitwarden-c files
           if [[ '${{ runner.os }}' == 'macOS' ]]; then
             export DNLOHMANN_PATH=/usr/local/opt/nlohmann-json
             export DBOOST_PATH=/usr/local/opt/boost
@@ -128,7 +130,6 @@ jobs:
             export DNLOHMANN_PATH=/usr/share/doc/nlohmann-json3-dev
             export DBOOST_PATH=/usr/share/doc/libboost-all-dev
             export DTARGET=include/libbitwarden_c.so
-            ls -hal include # debug missing .so files
           fi
 
           mkdir build
@@ -143,6 +144,8 @@ jobs:
           BOOST_INCLUDE_DIR: C:\vcpkg\installed\x64-windows\include\boost
           NLOHMANN_JSON_INCLUDE_DIR: C:\vcpkg\installed\x64-windows\include\nlohmann-json
         run: |
+          mv include/release/* include/
+          ls -hal include # debug missing bitwarden-c files
           mkdir build
           cd build
           $DNLOHMANN_PATH="C:\vcpkg\installed\x64-windows\include\nlohmann-json"

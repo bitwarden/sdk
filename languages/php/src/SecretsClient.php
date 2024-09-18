@@ -11,6 +11,8 @@ use Bitwarden\Sdk\Schemas\SecretsCommand;
 use Bitwarden\Sdk\Schemas\SecretsDeleteRequest;
 use Bitwarden\Sdk\Schemas\SecretsGetRequest;
 use Bitwarden\Sdk\Schemas\SecretsSyncRequest;
+use Exception;
+use stdClass;
 
 class SecretsClient
 {
@@ -21,94 +23,103 @@ class SecretsClient
         $this->commandRunner = $commandRunner;
     }
 
-    public function get(string $secret_id): \stdClass
+    /**
+     * @throws Exception
+     */
+    public function get(string $secret_id): stdClass
     {
-        $secret_get_request = new SecretGetRequest();
-        $secret_get_request->id = $secret_id;
+        $secret_get_request = new SecretGetRequest($secret_id);
         $secret_get_request->validate();
-        $secret_command = new SecretsCommand();
-        $secret_command->get = $secret_get_request->jsonSerialize();
-        return $this->run_secret_command($secret_command);
+        $secrets_command = new SecretsCommand(get: $secret_get_request, getByIds: null, create: null, list: null,
+            update: null, delete: null, sync: null);
+        return $this->run_secret_command($secrets_command);
     }
 
-    public function get_by_ids(array $secret_ids): \stdClass
+    /**
+     * @throws Exception
+     */
+    public function get_by_ids(array $secret_ids): stdClass
     {
-        $project_get_by_ids_request = new SecretsGetRequest();
-        $project_get_by_ids_request->ids = $secret_ids;
+        $project_get_by_ids_request = new SecretsGetRequest($secret_ids);
         $project_get_by_ids_request->validate();
-        $secrets_command = new SecretsCommand();
-        $secrets_command->getByIds = $project_get_by_ids_request->jsonSerialize();
+        $secrets_command = new SecretsCommand(get: null, getByIds: $project_get_by_ids_request, create: null, list: null,
+            update: null, delete: null, sync: null);
         return $this->run_secret_command($secrets_command);
     }
 
-    public function list(string $organization_id): \stdClass
+    /**
+     * @throws Exception
+     */
+    public function list(string $organization_id): stdClass
     {
-        $secrets_list_request = new SecretIdentifiersRequest();
-        $secrets_list_request->organizationId = $organization_id;
+        $secrets_list_request = new SecretIdentifiersRequest($organization_id);
         $secrets_list_request->validate();
-        $secrets_command = new SecretsCommand();
-        $secrets_command->list = $secrets_list_request->jsonSerialize();
+        $secrets_command = new SecretsCommand(get: null, getByIds: null, create: null, list: $secrets_list_request,
+            update: null, delete: null, sync: null);
         return $this->run_secret_command($secrets_command);
     }
 
-    public function create(string $organization_id, string $key, string $value, string $note, array $project_ids): \stdClass
+    /**
+     * @throws Exception
+     */
+    public function create(string $organization_id, string $key, string $value, string $note, array $project_ids): stdClass
     {
-        $secrets_create_request = new SecretCreateRequest();
-        $secrets_create_request->organizationId = $organization_id;
-        $secrets_create_request->projectIds = $project_ids;
-        $secrets_create_request->key = $key;
-        $secrets_create_request->note = $note;
-        $secrets_create_request->value = $value;
+        $secrets_create_request = new SecretCreateRequest(key: $key, note: $note, organizationId: $organization_id,
+            projectIds: $project_ids, value: $value);
         $secrets_create_request->validate();
-        $secrets_command = new SecretsCommand();
-        $secrets_command->create = $secrets_create_request->jsonSerialize();
+        $secrets_command = new SecretsCommand(get: null, getByIds: null, create: $secrets_create_request, list: null,
+            update: null, delete: null, sync: null);
         return $this->run_secret_command($secrets_command);
     }
 
-    public function update(string $organization_id, string $id, string $key, string $value, string $note, array $project_ids): \stdClass
+    /**
+     * @throws Exception
+     */
+    public function update(string $organization_id, string $id, string $key, string $value, string $note, array $project_ids): stdClass
     {
-        $secrets_put_request = new SecretPutRequest();
-        $secrets_put_request->id = $id;
-        $secrets_put_request->organizationId = $organization_id;
-        $secrets_put_request->projectIds = $project_ids;
-        $secrets_put_request->key = $key;
-        $secrets_put_request->note = $note;
-        $secrets_put_request->value = $value;
+        $secrets_put_request = new SecretPutRequest(id: $id, key: $key, note: $note, organizationId: $organization_id,
+            projectIds: $project_ids, value: $value);
         $secrets_put_request->validate();
-        $secrets_command = new SecretsCommand();
-        $secrets_command->update = $secrets_put_request->jsonSerialize();
+        $secrets_command = new SecretsCommand(get: null, getByIds: null, create: null, list: null,
+            update: $secrets_put_request, delete: null, sync: null);
         return $this->run_secret_command($secrets_command);
     }
 
-    public function delete(array $secrets_ids): \stdClass
+    /**
+     * @throws Exception
+     */
+    public function delete(array $secrets_ids): stdClass
     {
-        $secrets_delete_request = new SecretsDeleteRequest();
-        $secrets_delete_request->ids = $secrets_ids;
+        $secrets_delete_request = new SecretsDeleteRequest($secrets_ids);
         $secrets_delete_request->validate();
-        $secrets_command = new SecretsCommand();
-        $secrets_command->delete = $secrets_delete_request->jsonSerialize();
+        $secrets_command = new SecretsCommand(get: null, getByIds: null, create: null, list: null,
+            update: null, delete: $secrets_delete_request, sync: null);
         return $this->run_secret_command($secrets_command);
     }
 
-    public function sync(string $organization_id, ?string $last_synced_date): \stdClass
+    /**
+     * @throws Exception
+     */
+    public function sync(string $organization_id, ?string $last_synced_date): stdClass
     {
         if (empty($last_synced_date)) {
             $last_synced_date = "1970-01-01T00:00:00.000Z";
         }
 
-        $secrets_sync_request = new SecretsSyncRequest();
-        $secrets_sync_request->organizationId = $organization_id;
-        $secrets_sync_request->lastSyncedDate = $last_synced_date;
+        $secrets_sync_request = new SecretsSyncRequest(lastSyncedDate: $last_synced_date, organizationId: $organization_id);
         $secrets_sync_request->validate();
-        $secrets_command = new SecretsCommand();
-        $secrets_command->sync = $secrets_sync_request->jsonSerialize();
+        $secrets_command = new SecretsCommand(get: null, getByIds: null, create: null, list: null,
+            update: null, delete: null, sync: $secrets_sync_request);
         return $this->run_secret_command($secrets_command);
     }
 
-    public function run_secret_command($secretsCommand): \stdClass
+    /**
+     * @throws Exception
+     */
+    public function run_secret_command($secretsCommand): stdClass
     {
-        $command = new Command();
-        $command->secrets = $secretsCommand;
+        $command = new Command(passwordLogin: null, apiKeyLogin: null, loginAccessToken: null, getUserApiKey: null,
+            fingerprint: null, sync: null, secrets: $secretsCommand, projects: null, generators: null);
         return $this->commandRunner->run($command);
     }
 }

@@ -154,6 +154,7 @@ jobs:
         env:
           BOOST_INCLUDE_DIR: C:\vcpkg\installed\x64-windows\include\boost
           NLOHMANN_JSON_INCLUDE_DIR: C:\vcpkg\installed\x64-windows\include\nlohmann-json
+          TARGET: include/bitwarden_c.dll
         run: |
           mkdir build
           cd build

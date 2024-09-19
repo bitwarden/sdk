@@ -49,6 +49,13 @@ opt-level = 1
 [profile.release]
 lto = "thin"
 codegen-units = 1
+
+# Turn off LTO on release mode for windows
+# This is a workaround until this is fixed: https://github.com/rustls/rustls-platform-verifier/issues/141
+[profile.release-windows]
+inherits = "release"
+lto = "off"
+
 # Stripping the binary reduces the size by ~30%, but the stacktraces won't be usable anymore.
 # This is fine as long as we don't have any unhandled panics, but let's keep it disabled for now
 # strip = true

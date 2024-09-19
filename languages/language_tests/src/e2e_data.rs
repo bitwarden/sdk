@@ -94,13 +94,9 @@ pub fn load_realized_secrets(
 
 fn load_data() -> Result<E2EData> {
     // Get working directory
-    let data_path = var("GITHUB_WORKSPACE")
-        .map(|p| Path::new(&p).join("languages").join("language-tests"))
-        .or_else(|_| var("PWD").map(|p| Path::new(&p).to_path_buf()))
-        .context("Failed to get current directory")?
-        .join("e2e_data.json");
+    let data_path = var("TEST_DATA_FILE").context("TEST_DATA_FILE env var not set")?;
     // read e2e data from file
-    let file = File::open(data_path.clone()).context(format!("Failed to open e2e data file at {}", data_path.to_string_lossy()))?;
+    let file = File::open(data_path.clone()).context(format!("Failed to open e2e data file at {}", data_path))?;
     let reader = BufReader::new(file);
 
     let data: E2EData = serde_json::from_reader(reader).context("Failed to parse e2e data")?;

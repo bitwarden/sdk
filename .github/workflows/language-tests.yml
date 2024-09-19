@@ -12,6 +12,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   SETUP_PROJECT_ID: 218430c0-75da-4220-828b-b1ed011b9938
+  TEST_DATA_FILE: ${{ github.workspace }}/languages/language_tests/e2e_data.json
 
 jobs:
   ci-pass:

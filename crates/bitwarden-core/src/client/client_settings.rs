@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
 /// };
 /// let default = ClientSettings::default();
 /// ```
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(default, rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct ClientSettings {

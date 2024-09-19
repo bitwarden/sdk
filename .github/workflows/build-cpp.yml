@@ -160,6 +160,8 @@ jobs:
       - name: Build windows
         if: runner.os == 'Windows'
         working-directory: languages/cpp
+        env:
+          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
         run: |
           mkdir build
           cd build

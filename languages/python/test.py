@@ -13,7 +13,7 @@ from bitwarden_sdk import (
     client_settings_from_dict,
 )
 
-language_tests_path = os.path.join(os.path.dirname(__file__), "..", "language-tests")
+language_tests_path = os.path.join(os.path.dirname(__file__), "..", "language_tests")
 run_id = os.getenv("RUN_ID")
 if run_id is None:
     raise ValueError("RUN_ID is required")

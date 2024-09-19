@@ -1,0 +1,138 @@
+name: Language binding tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "main"
+      - "rc"
+      - "hotfix-rc"
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  SETUP_PROJECT_ID: 218430c0-75da-4220-828b-b1ed011b9938
+
+jobs:
+  ci-pass:
+    name: CI is green
+    runs-on: ubuntu-22.04
+    needs:
+      - test
+    steps:
+      - run: exit 0
+
+  build-schemas:
+    name: Build schemas
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@7b1c307e0dcbda6122208f10795a713336a9b35a # stable
+        with:
+          toolchain: stable
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
+        with: 
+          cache-on-failure: "true"
+
+      - name: Install node
+        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build schemas
+        run: npm run schemas
+
+      - name: zip languages dir
+        run: zip -r languages.zip languages
+
+      - name: Upload schemas
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        with:
+          name: languages.zip
+          path: ${{ github.workspace }}/languages.zip
+          if-no-files-found: error
+
+  test:
+    name: ${{ matrix.language }}
+
+    runs-on: ubuntu-22.04
+    needs: build-schemas
+
+    strategy:
+      matrix:
+        language:
+          # - cpp
+          # - csharp
+          # - go
+          # - java
+          # - js
+          # - js_webassembly
+          # - kotlin
+          # - nodejs_wasm
+          # - php
+          - python
+          # - ruby
+          # - swift
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@7b1c307e0dcbda6122208f10795a713336a9b35a # stable
+        with:
+          toolchain: stable
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
+        with: 
+          cache-on-failure: "true"
+
+      - name: Create run-id
+        id: run-id
+        run: echo "RUN_ID=$(uuidgen)" >> $GITHUB_ENV
+
+      - name: Get Setup Values
+        uses: bitwarden/sm-action@92d1d6a4f26a89a8191c83ab531a53544578f182 # v2.0.0
+        with:
+          base_url: https://vault.qa.bitwarden.pw
+          access_token: 0.7ccf66a9-1d18-4937-937f-b1ef017bf157.vgLVBw3jyJ0KjQOUIP5xxjLLFHOFlc:XVA3GM3BIVtiHPa0X2cgMA== # Non-secret read-only access token for testing.
+          secrets: |
+            1a27e564-9fa4-4269-aa7c-b1ef012b85dd > ACCESS_TOKEN
+            405d5030-d058-4c06-aa0e-b1ef01487f63 > API_URL
+            8ea14aad-cd68-4a65-9324-b1ef014863ca > IDENTITY_URL
+            7133ceb2-1cb6-4698-ac8c-b1f000ed43a1 > MUTABLE_ACCESS_TOKEN
+            57715c03-e0fb-47f1-86b5-b1ed01584a2e > ORGANIZATION_ID
+
+      - name: Download schemas artifact
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          name: languages.zip
+
+      - name: Unzip languages with schemas
+        run: |
+          rm -rf languages
+          unzip languages.zip
+
+      - name: Set up run data
+        run: |
+          cargo run --release --bin language-tests setup
+
+      - name: Run language tests
+        run: |
+          cd $GITHUB_WORKSPACE/languages/${{ matrix.language }}
+          /bin/sh test.sh
+
+      - name: Tear down run data
+        if: always()
+        run: |
+          cd $GITHUB_WORKSPACE
+          cargo run --release --bin language-tests teardown

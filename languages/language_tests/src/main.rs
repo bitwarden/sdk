@@ -15,8 +15,7 @@ use bitwarden::{
     Client,
 };
 use e2e_data::{
-    load_projects, load_realized_secrets, DataKind, RealizedTestSecretData,
-    TestProjectData,
+    load_projects, load_realized_secrets, DataKind, RealizedTestSecretData, TestProjectData,
 };
 use tokio::task::JoinHandle;
 use uuid::Uuid;
@@ -67,8 +66,7 @@ async fn main() -> Result<()> {
                 Ok(())
             }
             Err(e) => {
-                eprintln!("Failed to set up test data: {:?}", e);
-                clean_up(&run_data).await
+                bail!("Failed to set up test data: {:?}", e);
             }
         },
         "teardown" => clean_up(&run_data).await,

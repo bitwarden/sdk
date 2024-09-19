@@ -3,7 +3,7 @@ use std::pin::Pin;
 use aes::cipher::typenum::U64;
 use generic_array::GenericArray;
 use hmac::Mac;
-use zeroize::{Zeroize, Zeroizing};
+use zeroize::Zeroizing;
 
 use crate::{
     keys::SymmetricCryptoKey,
@@ -20,17 +20,16 @@ pub fn derive_shareable_key(
     info: Option<&str>,
 ) -> SymmetricCryptoKey {
     // Because all inputs are fixed size, we can unwrap all errors here without issue
-    let mut res = PbkdfSha256Hmac::new_from_slice(format!("bitwarden-{}", name).as_bytes())
-        .expect("hmac new_from_slice should not fail")
-        .chain_update(secret)
-        .finalize()
-        .into_bytes();
+    let res = Zeroizing::new(
+        PbkdfSha256Hmac::new_from_slice(format!("bitwarden-{}", name).as_bytes())
+            .expect("hmac new_from_slice should not fail")
+            .chain_update(secret)
+            .finalize()
+            .into_bytes(),
+    );
 
     let mut key: Pin<Box<GenericArray<u8, U64>>> =
         hkdf_expand(&res, info).expect("Input is a valid size");
-
-    // Zeroize the temporary buffer
-    res.zeroize();
 
     SymmetricCryptoKey::try_from(key.as_mut_slice()).expect("Key is a valid size")
 }

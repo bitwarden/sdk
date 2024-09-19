@@ -172,6 +172,7 @@ jobs:
 
       - name: Copy artifacts
         working-directory: languages/cpp/build
+        shell: bash
         run: |
           mkdir artifacts
           if [[ '${{ runner.os }}' == 'macOS' || '${{ runner.os }}' == 'Linux' ]]; then

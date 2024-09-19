@@ -1,10 +1,21 @@
 {
   "projects": [
     {
-      "name": "project1"
+      "name": "project"
     },
     {
-      "name": "another project"
+      "name": "another_project"
+    }
+  ],
+  "mutable_projects": [
+    {
+      "name": "for_write_tests"
+    },
+    {
+      "name": "to_update"
+    },
+    {
+      "name": "to_delete"
     }
   ],
   "secrets": [
@@ -12,13 +23,27 @@
       "key": "key",
       "value": "secret_value",
       "note": "note about the purpose of the secret, possibly some value rotation instructions",
-      "project_name": "project1"
+      "project_name": "project"
     },
     {
-      "key": "some other secret",
+      "key": "some_other_secret",
       "value": "secret_value",
       "note": "note",
-      "project_name": "another project"
+      "project_name": "another_project"
+    }
+  ],
+  "mutable_secrets": [
+    {
+      "key": "to_update",
+      "value": "to_update",
+      "note": "",
+      "project_name": "for_write_tests"
+    },
+    {
+      "key": "to_delete",
+      "value": "to_delete",
+      "note": "",
+      "project_name": "for_write_tests"
     }
   ]
 }

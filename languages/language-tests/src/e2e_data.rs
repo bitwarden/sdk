@@ -5,10 +5,17 @@ use bitwarden::secrets_manager::projects::ProjectResponse;
 use serde::Deserialize;
 use uuid::Uuid;
 
+pub enum DataKind {
+    Mutable,
+    Immutable,
+}
+
 #[derive(Deserialize, Debug, Clone)]
 struct E2EData {
     projects: Vec<TestProjectData>,
     secrets: Vec<TestSecretData>,
+    mutable_projects: Vec<TestProjectData>,
+    mutable_secrets: Vec<TestSecretData>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -50,16 +57,25 @@ impl TestSecretData {
     }
 }
 
-pub fn load_projects(run_id: &str) -> Result<Vec<TestProjectData>> {
-    Ok(load_data()?.projects.iter().map(|project| project.with_run_id(run_id)).collect())
+pub fn load_projects(run_id: &str, data_kind: DataKind) -> Result<Vec<TestProjectData>> {
+    let data = match data_kind {
+        DataKind::Mutable => load_data()?.mutable_projects,
+        DataKind::Immutable => load_data()?.projects,
+        
+    };
+    Ok(data.iter().map(|project| project.with_run_id(run_id)).collect())
 }
 
-pub fn load_secrets(run_id: &str) -> Result<Vec<TestSecretData>> {
-    Ok(load_data()?.secrets.iter().map(|secret| secret.with_run_id(run_id)).collect())
+pub fn load_secrets(run_id: &str, data_kind: DataKind) -> Result<Vec<TestSecretData>> {
+    let data = match data_kind {
+        DataKind::Mutable => load_data()?.mutable_secrets,
+        DataKind::Immutable => load_data()?.secrets,
+    };
+    Ok(data.iter().map(|secret| secret.with_run_id(run_id)).collect())
 }
 
-pub fn load_realized_secrets(run_id: &str, loaded_projects: &[ProjectResponse]) -> Result<Vec<RealizedTestSecretData>> {
-    load_secrets(run_id)?.iter().map(|secret| secret.realize(loaded_projects)).collect()
+pub fn load_realized_secrets(run_id: &str, loaded_projects: &[ProjectResponse], data_kind: DataKind) -> Result<Vec<RealizedTestSecretData>> {
+    load_secrets(run_id, data_kind)?.iter().map(|secret| secret.realize(loaded_projects)).collect()
 }
 
 fn load_data() -> Result<E2EData> {

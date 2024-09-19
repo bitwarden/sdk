@@ -180,7 +180,7 @@ jobs:
             cp libBitwardenClient.* artifacts
           fi
           if [[ '${{ runner.os }}' == 'Windows' ]]; then
-            cp ../include/bitwarden_c.* artifacts || ls -halR ../../ ; { echo "Missing bitwarden_c.*"; exit 1; }
+            ls -halR ../../
             cp */BitwardenClient.* artifacts
           fi
 

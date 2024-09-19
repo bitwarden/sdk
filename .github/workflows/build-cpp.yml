@@ -163,12 +163,10 @@ jobs:
         run: |
           mkdir build
           cd build
-          export DNLOHMANN_PATH="C:\msys64\mingw64\include\nlohmann"
-          export DBOOST_PATH="C:\msys64\mingw64\include\boost"
+          export DNLOHMANN_PATH="C:\msys64\mingw64\include"
+          export DBOOST_PATH="C:\msys64\mingw64\include"
           export DTARGET="include/bitwarden_c.dll"
-          ls $DNLOHMANN_PATH/json.hpp || { echo "Missing json.hpp"; exit 1; }
-          ls $DBOOST_PATH/optional.hpp || { echo "Missing boost"; exit 1; }
-          cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=$DTARGET -DBOOST_INCLUDE_DIR=$DBOOST_PATH -DNLOHMANN_JSON_INCLUDE_DIR=$DNLOHMANN_PATH
+          cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=$DTARGET
           cmake --build .
         shell: bash
 

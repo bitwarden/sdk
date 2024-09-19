@@ -111,14 +111,16 @@ jobs:
         working-directory: languages/cpp
         shell: bash
         run: |
-          mv include/release/* include/
           if [[ '${{ runner.os }}' == 'macOS' || '${{ runner.os }}' == 'Linux' ]]; then
+            mv include/release/* include/
             ls include/libbitwarden_c.* || { echo "Missing libbitwarden_c.*"; exit 1; }
+            rmdir include/release
           fi
           if [[ '${{ runner.os }}' == 'Windows' ]]; then
+            mv include/release-windows/* include/
             ls include/bitwarden_c.dll || { echo "Missing bitwarden_c.dll"; exit 1; }
+            rmdir include/release-windows
           fi
-          rmdir include/release
 
       # - name: Install libraries for Windows
       #   if: runner.os == 'Windows' && steps.cache.outputs.cache-hit != 'true'

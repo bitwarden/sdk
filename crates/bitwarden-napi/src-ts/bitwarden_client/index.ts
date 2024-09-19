@@ -37,25 +37,16 @@ export class BitwardenClient {
     this.client = new rust.BitwardenClient(settingsJson, loggingLevel ?? LogLevel.Info);
   }
 
-  async accessTokenLogin(accessToken: string, stateFile?: string): Promise<void> {
-    const response = await this.client.runCommand(
-      Convert.commandToJson({
-        accessTokenLogin: {
-          accessToken,
-          stateFile,
-        },
-      }),
-    );
-
-    handleResponse(Convert.toResponseForAccessTokenLoginResponse(response));
-  }
-
   secrets(): SecretsClient {
     return new SecretsClient(this.client);
   }
 
   projects(): ProjectsClient {
     return new ProjectsClient(this.client);
+  }
+
+  auth(): AuthClient {
+    return new AuthClient(this.client);
   }
 }
 
@@ -91,11 +82,11 @@ export class SecretsClient {
   }
 
   async create(
+    organizationId: string,
     key: string,
     value: string,
     note: string,
     projectIds: string[],
-    organizationId: string,
   ): Promise<SecretResponse> {
     const response = await this.client.runCommand(
       Convert.commandToJson({
@@ -121,12 +112,12 @@ export class SecretsClient {
   }
 
   async update(
+    organizationId: string,
     id: string,
     key: string,
     value: string,
     note: string,
     projectIds: string[],
-    organizationId: string,
   ): Promise<SecretResponse> {
     const response = await this.client.runCommand(
       Convert.commandToJson({
@@ -183,7 +174,7 @@ export class ProjectsClient {
     return handleResponse(Convert.toResponseForProjectResponse(response));
   }
 
-  async create(name: string, organizationId: string): Promise<ProjectResponse> {
+  async create(organizationId: string, name: string): Promise<ProjectResponse> {
     const response = await this.client.runCommand(
       Convert.commandToJson({
         projects: {
@@ -207,7 +198,7 @@ export class ProjectsClient {
     return handleResponse(Convert.toResponseForProjectsResponse(response));
   }
 
-  async update(id: string, name: string, organizationId: string): Promise<ProjectResponse> {
+  async update(organizationId: string, id: string, name: string): Promise<ProjectResponse> {
     const response = await this.client.runCommand(
       Convert.commandToJson({
         projects: {
@@ -229,5 +220,26 @@ export class ProjectsClient {
     );
 
     return handleResponse(Convert.toResponseForProjectsDeleteResponse(response));
+  }
+}
+
+export class AuthClient {
+  client: rust.BitwardenClient;
+
+  constructor(client: rust.BitwardenClient) {
+    this.client = client;
+  }
+
+  async loginAccessToken(accessToken: string, stateFile?: string): Promise<void> {
+    const response = await this.client.runCommand(
+      Convert.commandToJson({
+        loginAccessToken: {
+          accessToken,
+          stateFile,
+        },
+      }),
+    );
+
+    handleResponse(Convert.toResponseForAccessTokenLoginResponse(response));
   }
 }

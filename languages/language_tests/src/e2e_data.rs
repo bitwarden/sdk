@@ -96,7 +96,8 @@ fn load_data() -> Result<E2EData> {
     // Get working directory
     let data_path = var("TEST_DATA_FILE").context("TEST_DATA_FILE env var not set")?;
     // read e2e data from file
-    let file = File::open(data_path.clone()).context(format!("Failed to open e2e data file at {}", data_path))?;
+    let file = File::open(data_path.clone())
+        .context(format!("Failed to open e2e data file at {}", data_path))?;
     let reader = BufReader::new(file);
 
     let data: E2EData = serde_json::from_reader(reader).context("Failed to parse e2e data")?;

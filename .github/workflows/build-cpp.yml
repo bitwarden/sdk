@@ -55,11 +55,11 @@ jobs:
           brew install nlohmann-json
           brew install boost
 
-      - name: Set up dependencies on Windows
-        if: runner.os == 'Windows'
-        run: |
-          $env:Path += ";C:\msys64\usr\bin" # msys64 is preinstalled, but not in path by default
-          pacman -S base-devel mingw-w64-ucrt-x86_64-toolchain mingw-w64-x86_64-nlohmann-json mingw-w64-x86_64-boost --noconfirm
+      #      - name: Set up dependencies on Windows
+      #        if: runner.os == 'Windows'
+      #        run: |
+      #          $env:Path += ";C:\msys64\usr\bin" # msys64 is preinstalled, but not in path by default
+      #          pacman -S base-devel mingw-w64-ucrt-x86_64-toolchain mingw-w64-x86_64-nlohmann-json mingw-w64-x86_64-boost --noconfirm
 
       # - name: Cache vcpkg
       #   if: runner.os == 'Windows'
@@ -163,10 +163,8 @@ jobs:
         run: |
           mkdir build
           cd build
-          export DNLOHMANN_PATH="C:\msys64\mingw64\include"
-          export DBOOST_PATH="C:\msys64\mingw64\include"
           export DTARGET="include/bitwarden_c.dll"
-          cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET=$DTARGET
+          cmake .. -DTARGET=$DTARGET -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake
           cmake --build .
         shell: bash
 

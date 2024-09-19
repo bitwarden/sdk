@@ -1,6 +1,6 @@
 ---
 name: Version Bump
-run-name: Version Bump - v${{ inputs.version_number }}
+run-name: Version Bump - ${{ inputs.project }} - v${{ inputs.version_number }}
 
 on:
   workflow_dispatch:
@@ -25,7 +25,7 @@ on:
         required: true
       cut_rc_branch:
         description: "Cut RC branch?"
-        default: true
+        default: false
         type: boolean
 
 jobs:
@@ -198,7 +198,7 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.retrieve-secrets.outputs.github-pat-bitwarden-devops-bot-repo-scope }}
           PR_BRANCH: ${{ steps.create-branch.outputs.name }}
-          TITLE: "Bump version to ${{ inputs.version_number }}"
+          TITLE: "Bump ${{ inputs.project }} version to ${{ inputs.version_number }}"
         run: |
           PR_URL=$(gh pr create --title "$TITLE" \
             --base "main" \

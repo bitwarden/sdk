@@ -26,6 +26,9 @@ jobs:
             target: x86_64-pc-windows-msvc
           - os: windows-2022
             target: x86_64-pc-windows-gnu
+          # caution: updating the linux runner OS version for GNU
+          #   targets will likely break libbitwarden_c for older OS versions.
+          #   prefer using oldest supported runner for for these targets
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
           - os: ubuntu-22.04
@@ -57,16 +60,26 @@ jobs:
       - name: Add build architecture
         run: rustup target add ${{ matrix.settings.target }}
 
+      # Build Rust for musl
       - name: Build Rust for - ${{ matrix.settings.target }}
         if: ${{ contains(matrix.settings.target, 'musl') }}
         env:
           RUSTFLAGS: "-D warnings"
         run: cargo zigbuild -p bitwarden-c --target ${{ matrix.settings.target }} --release
 
+      # Build Rust for windows-gnu
       - name: Build Rust for - ${{ matrix.settings.target }}
-        if: ${{ !contains(matrix.settings.target, 'musl') }}
+        if: ${{ matrix.settings.target == 'x86_64-pc-windows-gnu' }}
         env:
           RUSTFLAGS: "-D warnings"
+        run: cargo build -p bitwarden-c --target ${{ matrix.settings.target }} --profile=release-windows
+
+      # Build Rust for !musl && !windows-gnu
+      - name: Build Rust for - ${{ matrix.settings.target }}
+        if: ${{ !contains(matrix.settings.target, 'musl') && matrix.settings.target != 'x86_64-pc-windows-gnu' }}
+        env:
+          RUSTFLAGS: "-D warnings"
+          MACOSX_DEPLOYMENT_TARGET: "10.14" # allows using new macos runner versions while still supporting older systems
         run: cargo build -p bitwarden-c --target ${{ matrix.settings.target }} --release
 
       - name: Upload Artifact
@@ -75,3 +88,4 @@ jobs:
           name: libbitwarden_c_files-${{ matrix.settings.target }}
           path: |
             target/${{ matrix.settings.target }}/release/*bitwarden_c*
+            target/${{ matrix.settings.target }}/release-windows/*bitwarden_c*

@@ -43,7 +43,9 @@ impl TestSecretData {
     pub fn project_id(&self, projects: &[ProjectResponse]) -> Result<Uuid> {
         let id = projects
             .iter()
-            .find(|p| p.name == self.project_name).context(format!("Project, {}, not found", self.project_name))?.id;
+            .find(|p| p.name == self.project_name)
+            .context(format!("Project, {}, not found", self.project_name))?
+            .id;
         Ok(id)
     }
 
@@ -61,9 +63,11 @@ pub fn load_projects(run_id: &str, data_kind: DataKind) -> Result<Vec<TestProjec
     let data = match data_kind {
         DataKind::Mutable => load_data()?.mutable_projects,
         DataKind::Immutable => load_data()?.projects,
-        
     };
-    Ok(data.iter().map(|project| project.with_run_id(run_id)).collect())
+    Ok(data
+        .iter()
+        .map(|project| project.with_run_id(run_id))
+        .collect())
 }
 
 pub fn load_secrets(run_id: &str, data_kind: DataKind) -> Result<Vec<TestSecretData>> {
@@ -71,11 +75,21 @@ pub fn load_secrets(run_id: &str, data_kind: DataKind) -> Result<Vec<TestSecretD
         DataKind::Mutable => load_data()?.mutable_secrets,
         DataKind::Immutable => load_data()?.secrets,
     };
-    Ok(data.iter().map(|secret| secret.with_run_id(run_id)).collect())
+    Ok(data
+        .iter()
+        .map(|secret| secret.with_run_id(run_id))
+        .collect())
 }
 
-pub fn load_realized_secrets(run_id: &str, loaded_projects: &[ProjectResponse], data_kind: DataKind) -> Result<Vec<RealizedTestSecretData>> {
-    load_secrets(run_id, data_kind)?.iter().map(|secret| secret.realize(loaded_projects)).collect()
+pub fn load_realized_secrets(
+    run_id: &str,
+    loaded_projects: &[ProjectResponse],
+    data_kind: DataKind,
+) -> Result<Vec<RealizedTestSecretData>> {
+    load_secrets(run_id, data_kind)?
+        .iter()
+        .map(|secret| secret.realize(loaded_projects))
+        .collect()
 }
 
 fn load_data() -> Result<E2EData> {
@@ -100,7 +114,7 @@ impl RunIdNotation for String {
 impl RunIdNotation for TestProjectData {
     fn with_run_id(&self, run_id: &str) -> Self {
         Self {
-            name: self.name.with_run_id(run_id)
+            name: self.name.with_run_id(run_id),
         }
     }
 }

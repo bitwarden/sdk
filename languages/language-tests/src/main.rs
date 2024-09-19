@@ -254,17 +254,43 @@ async fn clean_up_data(run_data: &RunData, data_kind: DataKind) -> Result<()> {
         DataKind::Mutable => &run_data.mutable_client,
     };
 
-    let secrets: Vec<_> = client.secrets().list(&SecretIdentifiersRequest {
-        organization_id: run_data.organization_id,
-    }).await.context("Failed to list secrets")?.data.iter().filter(|s| s.key.ends_with(&run_data.run_id)).map(|s| s.id).collect();
-    let projects: Vec<_> = client.projects().list(&ProjectsListRequest {
-        organization_id: run_data.organization_id,
-    }).await.context("Failed to list projects")?.data.iter().filter(|p| p.name.ends_with(&run_data.run_id)).map(|p| p.id).collect();
+    let secrets: Vec<_> = client
+        .secrets()
+        .list(&SecretIdentifiersRequest {
+            organization_id: run_data.organization_id,
+        })
+        .await
+        .context("Failed to list secrets")?
+        .data
+        .iter()
+        .filter(|s| s.key.ends_with(&run_data.run_id))
+        .map(|s| s.id)
+        .collect();
+    let projects: Vec<_> = client
+        .projects()
+        .list(&ProjectsListRequest {
+            organization_id: run_data.organization_id,
+        })
+        .await
+        .context("Failed to list projects")?
+        .data
+        .iter()
+        .filter(|p| p.name.ends_with(&run_data.run_id))
+        .map(|p| p.id)
+        .collect();
 
     println!("Deleting secrets: {:?}", secrets);
-    client.secrets().delete(SecretsDeleteRequest { ids: secrets }).await.context("Failed to delete secrets")?;
+    client
+        .secrets()
+        .delete(SecretsDeleteRequest { ids: secrets })
+        .await
+        .context("Failed to delete secrets")?;
     println!("Deleting projects: {:?}", projects);
-    client.projects().delete(ProjectsDeleteRequest { ids: projects }).await.context("Failed to delete projects")?;
+    client
+        .projects()
+        .delete(ProjectsDeleteRequest { ids: projects })
+        .await
+        .context("Failed to delete projects")?;
 
     Ok(())
 }

@@ -33,8 +33,8 @@ jobs:
           - os: macos-13
             target: aarch64-apple-darwin
 
-          # - os: windows-2022
-          #   target: x86_64-pc-windows-msvc
+          - os: windows-2022
+            target: x86_64-pc-windows-msvc
 
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
@@ -116,7 +116,7 @@ jobs:
             ls include/libbitwarden_c.* || { echo "Missing libbitwarden_c.*"; exit 1; }
           fi
           if [[ '${{ runner.os }}' == 'Windows' ]]; then
-            ls include/bitwarden_c.dll || { echo "Missing bitwarden_c.dll"; exit 1; }
+            ls include/bitwarden_c.lib || { echo "Missing bitwarden_c.lib"; exit 1; }
           fi
           rmdir include/release
 
@@ -166,13 +166,12 @@ jobs:
           mkdir build
           cd build
           export DTARGET="include/bitwarden_c.lib"
-          cmake .. -DTARGET=$DTARGET -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
+          cmake --trace-expand .. -DTARGET=$DTARGET -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
           cmake --build .
         shell: bash
 
       - name: Copy artifacts
         working-directory: languages/cpp/build
-        shell: bash
         run: |
           mkdir artifacts
           if [[ '${{ runner.os }}' == 'macOS' || '${{ runner.os }}' == 'Linux' ]]; then

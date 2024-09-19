@@ -116,7 +116,7 @@ jobs:
             ls include/libbitwarden_c.* || { echo "Missing libbitwarden_c.*"; exit 1; }
           fi
           if [[ '${{ runner.os }}' == 'Windows' ]]; then
-            ls include/bitwarden_c.dll || { echo "Missing bitwarden_c.dll"; exit 1; }
+            ls include/bitwarden_c.lib || { echo "Missing bitwarden_c.lib"; exit 1; }
           fi
           rmdir include/release
 
@@ -165,7 +165,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          export DTARGET="include/bitwarden_c.dll"
+          export DTARGET="include/bitwarden_c.lib"
           cmake .. -DTARGET=$DTARGET -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
           cmake --build .
         shell: bash

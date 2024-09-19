@@ -164,7 +164,7 @@ jobs:
           mkdir build
           cd build
           export DTARGET="include/bitwarden_c.dll"
-          cmake .. -DTARGET=$DTARGET -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake
+          cmake .. -DTARGET=$DTARGET -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
           cmake --build .
         shell: bash
 

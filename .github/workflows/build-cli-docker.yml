@@ -5,8 +5,6 @@ on:
   push:
     branches:
       - "main"
-      - "rc"
-      - "hotfix-rc"
   workflow_dispatch:
   pull_request:
 
@@ -22,15 +20,9 @@ jobs:
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Check Branch to Publish
-        env:
-          PUBLISH_BRANCHES: "master,rc,hotfix-rc"
         id: publish-branch-check
         run: |
-          REF=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
-
-          IFS="," read -a publish_branches <<< $PUBLISH_BRANCHES
-
-          if [[ "${publish_branches[*]}" =~ "${REF}" ]]; then
+          if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
             echo "is_publish_branch=true" >> $GITHUB_ENV
           else
             echo "is_publish_branch=false" >> $GITHUB_ENV
@@ -77,10 +69,8 @@ jobs:
         run: |
           REF=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
           IMAGE_TAG=$(echo "${REF}" | sed "s#/#-#g")  # slash safe branch name
-          if [[ "${IMAGE_TAG}" == "master" ]]; then
+          if [[ "${IMAGE_TAG}" == "main" ]]; then
             IMAGE_TAG=dev
-          elif [[ ("${IMAGE_TAG}" == "rc") || ("${IMAGE_TAG}" == "hotfix-rc") ]]; then
-            IMAGE_TAG=rc
           fi
 
           echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
@@ -89,9 +79,8 @@ jobs:
         id: tag-list
         env:
           IMAGE_TAG: ${{ steps.tag.outputs.image_tag }}
-          IS_PUBLISH_BRANCH: ${{ env.is_publish_branch }}
         run: |
-          if [[ ("${IMAGE_TAG}" == "dev" || "${IMAGE_TAG}" == "rc") && "${IS_PUBLISH_BRANCH}" == "true" ]]; then
+          if [[ "${IMAGE_TAG}" == "dev" ]]; then
             echo "tags=$_AZ_REGISTRY/bws:${IMAGE_TAG},bitwarden/bws:${IMAGE_TAG}" >> $GITHUB_OUTPUT
           else
             echo "tags=$_AZ_REGISTRY/bws:${IMAGE_TAG}" >> $GITHUB_OUTPUT
@@ -123,10 +112,7 @@ jobs:
     needs: build-docker
     steps:
       - name: Check if any job failed
-        if: |
-          github.ref == 'refs/heads/master'
-          || github.ref == 'refs/heads/rc'
-          || github.ref == 'refs/heads/hotfix-rc'
+        if: github.ref == 'refs/heads/main'
         env:
           BUILD_DOCKER_STATUS: ${{ needs.build-docker.result }}
         run: |

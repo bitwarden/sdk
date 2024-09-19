@@ -7,8 +7,6 @@ on:
   push:
     branches:
       - "main"
-      - "rc"
-      - "hotfix-rc"
 
 env:
   CARGO_TERM_COLOR: always
@@ -17,7 +15,7 @@ jobs:
   build:
     name: Building ${{matrix.package}} for - ${{ matrix.os }}
 
-    runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}
+    runs-on: ${{ matrix.os || 'ubuntu-latest' }}
 
     strategy:
       fail-fast: false
@@ -42,7 +40,6 @@ jobs:
         uses: dtolnay/rust-toolchain@7b1c307e0dcbda6122208f10795a713336a9b35a # stable
         with:
           toolchain: stable
-          targets: ${{ matrix.settings.target }}
 
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
@@ -61,9 +58,8 @@ jobs:
   release-dry-run:
     name: Release dry-run
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/head/main' || github.ref == 'refs/head/rc' || github.ref == 'refs/head/hotfix-rc' }}
-    needs:
-      - build
+    if: ${{ github.ref == 'refs/head/main' }}
+    needs: build
     steps:
       - name: Checkout
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
@@ -72,7 +68,6 @@ jobs:
         uses: dtolnay/rust-toolchain@7b1c307e0dcbda6122208f10795a713336a9b35a # stable
         with:
           toolchain: stable
-          targets: ${{ matrix.settings.target }}
 
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3

@@ -7,13 +7,13 @@
   "version": "0.1.0",
   "require": {
     "php": "^8.0",
-    "swaggest/json-schema": "^0.12.42",
     "ext-ffi": "*"
   },
   "autoload": {
     "psr-4": {
       "Bitwarden\\Sdk\\": "src/"
-    }
+    },
+    "files": ["src/Schemas/Schemas.php"]
   },
   "authors": [
     {

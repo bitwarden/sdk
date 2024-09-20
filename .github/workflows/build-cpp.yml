@@ -55,22 +55,6 @@ jobs:
           brew install nlohmann-json
           brew install boost
 
-      #      - name: Set up dependencies on Windows
-      #        if: runner.os == 'Windows'
-      #        run: |
-      #          $env:Path += ";C:\msys64\usr\bin" # msys64 is preinstalled, but not in path by default
-      #          pacman -S base-devel mingw-w64-ucrt-x86_64-toolchain mingw-w64-x86_64-nlohmann-json mingw-w64-x86_64-boost --noconfirm
-
-      # - name: Cache vcpkg
-      #   if: runner.os == 'Windows'
-      #   uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
-      #   with:
-      #     path: C:/vcpkg/
-      #     key: vcpkg-${{ runner.os }}-${{ matrix.settings.target }}
-      #     restore-keys: |
-      #       vcpkg-${{ runner.os }}-
-      #       vcpkg-
-
       - name: Export GitHub Actions cache environment variables
         if: runner.os == 'Windows'
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
@@ -120,22 +104,6 @@ jobs:
             ls include/bitwarden_c.dll.lib || { echo "Missing bitwarden_c.dll.lib"; exit 1; }
           fi
           rmdir include/release
-
-      # - name: Install libraries for Windows
-      #   if: runner.os == 'Windows' && steps.cache.outputs.cache-hit != 'true'
-      #   env:
-      #     VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-      #   run: |
-      #     vcpkg install boost --binarysource="clear;x-gha,readwrite"
-      #     vcpkg install nlohmann-json --binarysource="clear;x-gha,readwrite"
-      #   shell: pwsh
-
-      # - name: Save cache
-      #   if: runner.os == 'Windows'
-      #   uses: actions/cache/save@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
-      #   with:
-      #     path: C:/vcpkg/
-      #     key: vcpkg-${{ runner.os }}-${{ matrix.settings.target }}
 
       - name: Build unix
         working-directory: languages/cpp

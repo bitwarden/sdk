@@ -1,0 +1,5 @@
+module BitwardenSDKSecrets
+  class BitwardenError < StandardError
+    def initialize: (?::String message) -> void
+  end
+end

@@ -8,7 +8,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    client::{LoginMethod, UserLoginMethod},
+    client::{encryption_settings::EncryptionSettingsError, LoginMethod, UserLoginMethod},
     error::{Error, Result},
     Client,
 };
@@ -86,7 +86,10 @@ pub enum AuthRequestMethod {
     },
 }
 
-pub async fn initialize_user_crypto(client: &Client, req: InitUserCryptoRequest) -> Result<()> {
+pub async fn initialize_user_crypto(
+    client: &Client,
+    req: InitUserCryptoRequest,
+) -> Result<(), EncryptionSettingsError> {
     use bitwarden_crypto::{DeviceKey, PinKey};
 
     use crate::auth::{auth_request_decrypt_master_key, auth_request_decrypt_user_key};
@@ -187,7 +190,10 @@ pub struct InitOrgCryptoRequest {
     pub organization_keys: HashMap<uuid::Uuid, AsymmetricEncString>,
 }
 
-pub async fn initialize_org_crypto(client: &Client, req: InitOrgCryptoRequest) -> Result<()> {
+pub async fn initialize_org_crypto(
+    client: &Client,
+    req: InitOrgCryptoRequest,
+) -> Result<(), EncryptionSettingsError> {
     let organization_keys = req.organization_keys.into_iter().collect();
     client.internal.initialize_org_crypto(organization_keys)?;
     Ok(())

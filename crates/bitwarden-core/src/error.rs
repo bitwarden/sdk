@@ -9,6 +9,9 @@ use reqwest::StatusCode;
 use thiserror::Error;
 use validator::ValidationErrors;
 
+#[cfg(feature = "internal")]
+use crate::client::encryption_settings::EncryptionSettingsError;
+
 #[derive(Debug, Error)]
 pub enum Error {
     #[error(transparent)]
@@ -56,6 +59,10 @@ pub enum Error {
 
     #[error("Internal error: {0}")]
     Internal(Cow<'static, str>),
+
+    #[cfg(feature = "internal")]
+    #[error(transparent)]
+    EncryptionSettings(#[from] EncryptionSettingsError),
 }
 
 impl From<String> for Error {

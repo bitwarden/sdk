@@ -56,8 +56,9 @@
 //! ## Crate features
 //!
 //! - `no-memory-hardening` - Disables memory hardening which ensures that allocated memory is
-//! zeroed on drop. This feature primarily exists in case you do not want to use the standard
-//! allocator, and we advise to still define a `global_allocator` using the [`ZeroizingAllocator`].
+//!   zeroed on drop. This feature primarily exists in case you do not want to use the standard
+//!   allocator, and we advise to still define a `global_allocator` using the
+//!   [`ZeroizingAllocator`].
 
 #[cfg(not(feature = "no-memory-hardening"))]
 #[global_allocator]

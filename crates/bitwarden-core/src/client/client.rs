@@ -25,7 +25,7 @@ impl Client {
             #[allow(unused_mut)]
             let mut client_builder = reqwest::Client::builder();
 
-            #[cfg(all(not(target_arch = "wasm32"), not(windows)))]
+            #[cfg(not(target_arch = "wasm32"))]
             {
                 client_builder =
                     client_builder.use_preconfigured_tls(rustls_platform_verifier::tls_config());
@@ -86,7 +86,7 @@ impl Client {
 
 #[cfg(test)]
 mod tests {
-    #[cfg(all(not(target_arch = "wasm32"), not(windows)))]
+    #[cfg(not(target_arch = "wasm32"))]
     #[test]
     fn test_reqwest_rustls_platform_verifier_are_compatible() {
         // rustls-platform-verifier is generating a rustls::ClientConfig,

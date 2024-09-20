@@ -165,10 +165,10 @@ jobs:
         run: |
           mkdir build
           cd build
-          export DTARGET="include/bitwarden_c.lib"
-          cmake --trace-expand .. -DTARGET=$DTARGET -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
-          cmake --build .
-        shell: bash
+          $env:DTARGET="include\bitwarden_c.lib"
+          cmake .. -DTARGET="%DTARGET%" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake"
+          cmake --build . --config Release
+        shell: pwsh
 
       - name: Copy artifacts
         working-directory: languages/cpp/build

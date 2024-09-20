@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 project(BitwardenClient)
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 # Set placeholders to be passed from command line
 set(NLOHMANN_JSON_INCLUDE_DIR_PLACEHOLDER ${NLOHMANN})

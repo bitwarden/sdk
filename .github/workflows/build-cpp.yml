@@ -181,6 +181,7 @@ jobs:
             cp libBitwardenClient.* artifacts
           fi
           if [[ '${{ runner.os }}' == 'Windows' ]]; then
+            cp ../include/bitwarden_c.dll artifacts
             cp */bitwarden_c.* artifacts
             cp */BitwardenClient.* artifacts
           fi

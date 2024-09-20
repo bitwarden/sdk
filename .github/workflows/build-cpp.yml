@@ -183,6 +183,8 @@ jobs:
           if [[ '${{ runner.os }}' == 'Windows' ]]; then
             cp */bitwarden_c.* artifacts
             cp */BitwardenClient.* artifacts
+            ls -al artifacts/
+            ls -al Release/
           fi
 
       - name: Upload C++ package for ${{ matrix.settings.target }}

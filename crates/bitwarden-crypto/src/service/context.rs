@@ -5,24 +5,24 @@ use crate::{
     AsymmetricCryptoKey, AsymmetricEncString, CryptoError, EncString, SymmetricCryptoKey,
 };
 
-use super::RustCryptoEngineKeys;
+use super::RustCryptoServiceKeys;
 
-pub(crate) struct RustCryptoEngineContext<
+pub(crate) struct RustCryptoServiceContext<
     'a,
     SymmKeyRef: SymmetricKeyRef,
     AsymmKeyRef: AsymmetricKeyRef,
 > {
     // We hold a RwLock read guard to avoid having any nested
     //calls locking it again and potentially causing a deadlock
-    pub(super) global_keys:
-        std::sync::RwLockReadGuard<'a, RustCryptoEngineKeys<SymmKeyRef, AsymmKeyRef>>,
+    pub(crate) global_keys:
+        std::sync::RwLockReadGuard<'a, RustCryptoServiceKeys<SymmKeyRef, AsymmKeyRef>>,
 
-    pub(super) local_symmetric_keys: Box<dyn KeyStore<SymmKeyRef>>,
-    pub(super) local_asymmetric_keys: Box<dyn KeyStore<AsymmKeyRef>>,
+    pub(crate) local_symmetric_keys: Box<dyn KeyStore<SymmKeyRef>>,
+    pub(crate) local_asymmetric_keys: Box<dyn KeyStore<AsymmKeyRef>>,
 }
 
 impl<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
-    RustCryptoEngineContext<'a, SymmKeyRef, AsymmKeyRef>
+    RustCryptoServiceContext<'a, SymmKeyRef, AsymmKeyRef>
 {
     fn get_symmetric_key(
         &self,

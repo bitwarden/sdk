@@ -1,21 +1,28 @@
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 
 use crate::{EncString, SymmetricCryptoKey};
 
-mod crypto_engine;
+mod context;
 mod encryptable;
 pub mod key_ref;
 mod key_store;
 
-use crypto_engine::{RustCryptoEngine, RustCryptoEngineContext};
+use context::RustCryptoServiceContext;
 pub use encryptable::{Decryptable, Encryptable, KeyProvided, KeyProvidedExt, UsesKey};
 use key_ref::{AsymmetricKeyRef, KeyRef, SymmetricKeyRef};
+use key_store::{create_key_store, KeyStore};
 
 #[derive(Clone)]
 pub struct CryptoService<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef> {
     // We use an Arc<> to make it easier to pass this service around, as we can
     // clone it instead of passing references
-    engine: Arc<RustCryptoEngine<SymmKeyRef, AsymmKeyRef>>,
+    key_stores: Arc<RwLock<RustCryptoServiceKeys<SymmKeyRef, AsymmKeyRef>>>,
+}
+
+// This is just a wrapper around the keys so we only deal with one RwLock
+struct RustCryptoServiceKeys<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef> {
+    symmetric_keys: Box<dyn KeyStore<SymmKeyRef>>,
+    asymmetric_keys: Box<dyn KeyStore<AsymmKeyRef>>,
 }
 
 impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
@@ -24,24 +31,37 @@ impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
-            engine: Arc::new(RustCryptoEngine::new()),
+            key_stores: Arc::new(RwLock::new(RustCryptoServiceKeys {
+                symmetric_keys: create_key_store(),
+                asymmetric_keys: create_key_store(),
+            })),
         }
     }
 
     pub fn clear(&self) {
-        self.engine.clear();
+        let mut keys = self.key_stores.write().expect("RwLock is poisoned");
+        keys.symmetric_keys.clear();
+        keys.asymmetric_keys.clear();
     }
 
     #[deprecated(note = "We should be generating/decrypting the keys into the service directly")]
     pub fn insert_symmetric_key(&self, key_ref: SymmKeyRef, key: SymmetricCryptoKey) {
-        #[allow(deprecated)]
-        self.engine.insert_symmetric_key(key_ref, key);
+        self.key_stores
+            .write()
+            .expect("RwLock is poisoned")
+            .symmetric_keys
+            .insert(key_ref, key);
     }
 
     // TODO: Do we want this to be public?
     pub(crate) fn context(&'_ self) -> CryptoServiceContext<'_, SymmKeyRef, AsymmKeyRef> {
         CryptoServiceContext {
-            engine: self.engine.context(),
+            // TODO: Cache these?, or maybe initialize them lazily? or both?
+            engine: RustCryptoServiceContext {
+                global_keys: self.key_stores.read().expect("RwLock is poisoned"),
+                local_symmetric_keys: create_key_store(),
+                local_asymmetric_keys: create_key_store(),
+            },
         }
     }
 
@@ -109,7 +129,7 @@ impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
 }
 
 pub struct CryptoServiceContext<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef> {
-    engine: RustCryptoEngineContext<'a, SymmKeyRef, AsymmKeyRef>,
+    engine: RustCryptoServiceContext<'a, SymmKeyRef, AsymmKeyRef>,
 }
 
 impl<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>

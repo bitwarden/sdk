@@ -27,6 +27,16 @@ impl<Key: KeyRef> Drop for RustImplKeyData<Key> {
                     self.data.as_mut_ptr() as *mut u8,
                     self.data.len() * entry_size,
                 );
+
+                // Note: munlock is zeroing the memory, which leaves the data in an inconsistent state.
+                // So we need to set it to None again, in case any Drop impl expects the data to be correct.
+                let uninit_slice: &mut [MaybeUninit<_>] = std::slice::from_raw_parts_mut(
+                    self.data.as_mut_ptr() as *mut MaybeUninit<Option<(Key, Key::KeyValue)>>,
+                    self.data.len(),
+                );
+                for elem in uninit_slice {
+                    elem.write(None);
+                }
             }
         }
     }

@@ -1,19 +1,39 @@
+use std::marker::PhantomData;
+
+use zeroize::ZeroizeOnDrop;
+
+use super::KeyStore;
 use crate::service::key_ref::KeyRef;
 
-// This trait represents some data stored sequentially in memory, with a fixed size.
-// We use this to abstract the implementation over Vec/Box<[u8]/NonNull<[u8]>.
+/// This trait represents some data stored sequentially in memory, with a fixed size.
+/// We use this to abstract the implementation over Vec/Box<[u8]/NonNull<[u8]>, which
+/// helps contain any unsafe code to the implementations of this trait.
+/// Implementations of this trait should ensure that the initialized data is protected
+/// as much as possible. The data is already Zeroized on Drop, so implementations should
+/// only need to worry about removing any protections they've added, or releasing any resources.
 #[allow(drop_bounds)]
-pub(crate) trait KeyData<Key: KeyRef>: Drop {
-    fn new_with_capacity(capacity: usize) -> Self;
+pub(crate) trait KeyData<Key: KeyRef>: Send + Sync + Sized + Drop {
+    /// Check if the data store is available on this platform.
+    fn is_available() -> bool;
 
+    /// Initialize a new data store with the given capacity.
+    /// The data MUST be initialized to all None values, and
+    /// it's capacity must be equal or greater than the provided value.
+    fn with_capacity(capacity: usize) -> Self;
+
+    /// Return an immutable slice of the data. It must return the full allocated capacity, with no
+    /// uninitialized values.
     fn get_key_data(&self) -> &[Option<(Key, Key::KeyValue)>];
+
+    /// Return an mutable slice of the data. It must return the full allocated capacity, with no
+    /// uninitialized values.
     fn get_key_data_mut(&mut self) -> &mut [Option<(Key, Key::KeyValue)>];
 }
 
-/// This represents a container over an arbitrary fixed size slice.
+/// This represents a key store over an arbitrary fixed size slice.
 /// This is meant to abstract over the different ways to store keys in memory,
 /// whether we're using a Vec, a Box<[u8]> or a NonNull<u8>.
-pub(crate) struct SliceKeyContainer<Key: KeyRef, Data: KeyData<Key>> {
+pub(crate) struct SliceKeyStore<Key: KeyRef, Data: KeyData<Key>> {
     // This represents the number of elements in the container, it's always less than or equal to
     // the length of `data`.
     length: usize,
@@ -26,41 +46,127 @@ pub(crate) struct SliceKeyContainer<Key: KeyRef, Data: KeyData<Key>> {
     // uninitialized
     data: Option<Data>,
 
-    _key: std::marker::PhantomData<Key>,
+    _key: PhantomData<Key>,
 }
 
-impl<Key: KeyRef, Data: KeyData<Key>> Drop for SliceKeyContainer<Key, Data> {
+impl<Key: KeyRef, Data: KeyData<Key>> ZeroizeOnDrop for SliceKeyStore<Key, Data> {}
+
+impl<Key: KeyRef, Data: KeyData<Key>> Drop for SliceKeyStore<Key, Data> {
     fn drop(&mut self) {
         self.clear();
+    }
+}
 
-        // Ensure the container gets dropped after the data is cleared
-        let _ = self.data.take();
+impl<Key: KeyRef, Data: KeyData<Key>> KeyStore<Key> for SliceKeyStore<Key, Data> {
+    fn insert(&mut self, key_ref: Key, key: Key::KeyValue) {
+        match self.find_by_key_ref(&key_ref) {
+            Ok(idx) => {
+                // Key already exists, we just need to replace the value
+                let slice = self.get_key_data_mut();
+                slice[idx] = Some((key_ref, key));
+            }
+            Err(idx) => {
+                // Make sure that we have enough capacity, and resize if needed
+                self.ensure_capacity(1);
+
+                let len = self.length;
+                let slice = self.get_key_data_mut();
+                if idx < len {
+                    // If we're not right at the end, we have to shift all the following elements
+                    // one position to the right
+                    slice[idx..=len].rotate_right(1);
+                }
+                slice[idx] = Some((key_ref, key));
+                self.length += 1;
+            }
+        }
+    }
+
+    fn get(&self, key_ref: Key) -> Option<&Key::KeyValue> {
+        self.find_by_key_ref(&key_ref)
+            .ok()
+            .and_then(|idx| self.get_key_data().get(idx))
+            .and_then(|f| f.as_ref().map(|f| &f.1))
+    }
+
+    fn remove(&mut self, key_ref: Key) {
+        if let Ok(idx) = self.find_by_key_ref(&key_ref) {
+            let len = self.length;
+            let slice = self.get_key_data_mut();
+            slice[idx] = None;
+            slice[idx..len].rotate_left(1);
+            self.length -= 1;
+        }
+    }
+
+    fn clear(&mut self) {
+        self.get_key_data_mut().fill_with(|| None);
+        self.length = 0;
+    }
+
+    fn retain(&mut self, f: fn(Key) -> bool) {
+        let len = self.length;
+        let slice = self.get_key_data_mut();
+
+        let mut removed_elements = 0;
+
+        for value in slice.iter_mut().take(len) {
+            let key = value
+                .as_ref()
+                .map(|e| e.0)
+                .expect("Values in a slice are always Some");
+
+            if !f(key) {
+                *value = None;
+                removed_elements += 1;
+            }
+        }
+
+        // If we haven't removed any elements, we don't need to compact the slice
+        if removed_elements == 0 {
+            return;
+        }
+
+        // Remove all the None values from the middle of the slice
+
+        for idx in 0..len {
+            if slice[idx].is_none() {
+                slice[idx..len].rotate_left(1);
+            }
+        }
+
+        self.length -= removed_elements;
     }
 }
 
 #[allow(dead_code)]
-impl<Key: KeyRef, Data: KeyData<Key>> SliceKeyContainer<Key, Data> {
-    pub(crate) fn new_with_capacity(capacity: usize) -> Self {
+impl<Key: KeyRef, Data: KeyData<Key>> SliceKeyStore<Key, Data> {
+    pub(crate) fn is_available() -> bool {
+        Data::is_available()
+    }
+
+    pub(crate) fn new() -> Option<Self> {
+        Self::with_capacity(0)
+    }
+
+    pub(crate) fn with_capacity(capacity: usize) -> Option<Self> {
+        // If the capacity is 0, we don't need to allocate any memory.
+        // This allows us to initialize the container lazily.
         if capacity == 0 {
-            return Self {
+            return Some(Self {
                 length: 0,
                 capacity: 0,
                 data: None,
-                _key: std::marker::PhantomData,
-            };
+                _key: PhantomData,
+            });
         }
 
-        let mut container = Self {
+        Some(Self {
             length: 0,
             capacity,
-            data: Some(Data::new_with_capacity(capacity)),
-            _key: std::marker::PhantomData,
-        };
-
-        // Ensure the container is properly initialized
-        container.clear();
-
-        container
+            data: Some(Data::with_capacity(capacity)),
+            _key: PhantomData,
+        })
     }
 
     /// Check if the container has enough capacity to store `new_elements` more elements.
@@ -97,7 +203,8 @@ impl<Key: KeyRef, Data: KeyData<Key>> SliceKeyContainer<Key, Data> {
     fn ensure_capacity(&mut self, new_elements: usize) {
         if let Err(new_capacity) = self.check_capacity(new_elements) {
             // Create a new store with the correct capacity and replace self with it
-            let mut new_self = Self::new_with_capacity(new_capacity);
+            let mut new_self =
+                Self::with_capacity(new_capacity).expect("Could not allocate new store");
             new_self.copy_from(self);
             *self = new_self;
         }
@@ -133,86 +240,6 @@ impl<Key: KeyRef, Data: KeyData<Key>> SliceKeyContainer<Key, Data> {
                 None => std::cmp::Ordering::Greater,
             }
         })
-    }
-
-    pub(crate) fn clear(&mut self) {
-        self.get_key_data_mut().fill_with(|| None);
-        self.length = 0;
-    }
-
-    pub(crate) fn remove(&mut self, key_ref: Key) {
-        if let Ok(idx) = self.find_by_key_ref(&key_ref) {
-            let len = self.length;
-            let slice = self.get_key_data_mut();
-            slice[idx] = None;
-            slice[idx..len].rotate_left(1);
-            self.length -= 1;
-        }
-    }
-
-    pub(crate) fn insert(&mut self, key_ref: Key, key: <Key as KeyRef>::KeyValue) {
-        match self.find_by_key_ref(&key_ref) {
-            Ok(idx) => {
-                // Key already exists, we just need to replace the value
-                let slice = self.get_key_data_mut();
-                slice[idx] = Some((key_ref, key));
-            }
-            Err(idx) => {
-                // Make sure that we have enough capacity, and resize if needed
-                self.ensure_capacity(1);
-
-                let len = self.length;
-                let slice = self.get_key_data_mut();
-                if idx < len {
-                    // If we're not right at the end, we have to shift all the following elements
-                    // one position to the right
-                    slice[idx..=len].rotate_right(1);
-                }
-                slice[idx] = Some((key_ref, key));
-                self.length += 1;
-            }
-        }
-    }
-
-    pub(crate) fn get(&self, key_ref: Key) -> Option<&<Key as KeyRef>::KeyValue> {
-        self.find_by_key_ref(&key_ref)
-            .ok()
-            .and_then(|idx| self.get_key_data().get(idx))
-            .and_then(|f| f.as_ref().map(|f| &f.1))
-    }
-
-    pub(crate) fn retain(&mut self, f: fn(Key) -> bool) {
-        let len = self.length;
-        let slice = self.get_key_data_mut();
-
-        let mut removed_elements = 0;
-
-        for value in slice.iter_mut().take(len) {
-            let key = value
-                .as_ref()
-                .map(|e| e.0)
-                .expect("Values in a slice are always Some");
-
-            if !f(key) {
-                *value = None;
-                removed_elements += 1;
-            }
-        }
-
-        // If we haven't removed any elements, we don't need to compact the slice
-        if removed_elements == 0 {
-            return;
-        }
-
-        // Remove all the None values from the middle of the slice
-
-        for idx in 0..len {
-            if slice[idx].is_none() {
-                slice[idx..len].rotate_left(1);
-            }
-        }
-
-        self.length -= removed_elements;
     }
 
     pub(crate) fn copy_from(&mut self, other: &mut Self) -> bool {
@@ -288,7 +315,11 @@ pub(crate) mod tests {
     }
 
     impl<Key: KeyRef> KeyData<Key> for TestKeyContainer<Key> {
-        fn new_with_capacity(capacity: usize) -> Self {
+        fn is_available() -> bool {
+            true
+        }
+
+        fn with_capacity(capacity: usize) -> Self {
             Self {
                 keys: std::iter::repeat_with(|| None).take(capacity).collect(),
             }
@@ -305,7 +336,8 @@ pub(crate) mod tests {
 
     #[test]
     fn test_slice_container_insertion() {
-        let mut container = SliceKeyContainer::<TestKey, TestKeyContainer<_>>::new_with_capacity(5);
+        let mut container =
+            SliceKeyStore::<TestKey, TestKeyContainer<_>>::with_capacity(5).unwrap();
 
         assert_eq!(container.get_key_data(), [None, None, None, None, None]);
 
@@ -416,7 +448,8 @@ pub(crate) mod tests {
 
     #[test]
     fn test_slice_container_get() {
-        let mut container = SliceKeyContainer::<TestKey, TestKeyContainer<_>>::new_with_capacity(5);
+        let mut container =
+            SliceKeyStore::<TestKey, TestKeyContainer<_>>::with_capacity(5).unwrap();
 
         for (key, value) in [
             (TestKey::A, TestKeyValue::new(1)),
@@ -434,7 +467,8 @@ pub(crate) mod tests {
 
     #[test]
     fn test_slice_container_clear() {
-        let mut container = SliceKeyContainer::<TestKey, TestKeyContainer<_>>::new_with_capacity(5);
+        let mut container =
+            SliceKeyStore::<TestKey, TestKeyContainer<_>>::with_capacity(5).unwrap();
 
         for (key, value) in [
             (TestKey::A, TestKeyValue::new(1)),
@@ -464,7 +498,8 @@ pub(crate) mod tests {
 
     #[test]
     fn test_slice_container_ensure_capacity() {
-        let mut container = SliceKeyContainer::<TestKey, TestKeyContainer<_>>::new_with_capacity(5);
+        let mut container =
+            SliceKeyStore::<TestKey, TestKeyContainer<_>>::with_capacity(5).unwrap();
 
         assert_eq!(container.capacity, 5);
         assert_eq!(container.length, 0);
@@ -494,7 +529,8 @@ pub(crate) mod tests {
 
     #[test]
     fn test_slice_container_removal() {
-        let mut container = SliceKeyContainer::<TestKey, TestKeyContainer<_>>::new_with_capacity(5);
+        let mut container =
+            SliceKeyStore::<TestKey, TestKeyContainer<_>>::with_capacity(5).unwrap();
 
         for (key, value) in [
             (TestKey::A, TestKeyValue::new(1)),
@@ -580,7 +616,8 @@ pub(crate) mod tests {
 
     #[test]
     fn test_slice_container_retain_removes_one() {
-        let mut container = SliceKeyContainer::<TestKey, TestKeyContainer<_>>::new_with_capacity(5);
+        let mut container =
+            SliceKeyStore::<TestKey, TestKeyContainer<_>>::with_capacity(5).unwrap();
 
         for (key, value) in [
             (TestKey::A, TestKeyValue::new(1)),
@@ -666,7 +703,8 @@ pub(crate) mod tests {
 
     #[test]
     fn test_slice_container_retain_removes_none() {
-        let mut container = SliceKeyContainer::<TestKey, TestKeyContainer<_>>::new_with_capacity(5);
+        let mut container =
+            SliceKeyStore::<TestKey, TestKeyContainer<_>>::with_capacity(5).unwrap();
 
         for (key, value) in [
             (TestKey::A, TestKeyValue::new(1)),
@@ -693,7 +731,8 @@ pub(crate) mod tests {
 
     #[test]
     fn test_slice_container_retain_removes_some() {
-        let mut container = SliceKeyContainer::<TestKey, TestKeyContainer<_>>::new_with_capacity(5);
+        let mut container =
+            SliceKeyStore::<TestKey, TestKeyContainer<_>>::with_capacity(5).unwrap();
 
         for (key, value) in [
             (TestKey::A, TestKeyValue::new(1)),
@@ -720,7 +759,8 @@ pub(crate) mod tests {
 
     #[test]
     fn test_slice_container_retain_removes_all() {
-        let mut container = SliceKeyContainer::<TestKey, TestKeyContainer<_>>::new_with_capacity(5);
+        let mut container =
+            SliceKeyStore::<TestKey, TestKeyContainer<_>>::with_capacity(5).unwrap();
 
         for (key, value) in [
             (TestKey::A, TestKeyValue::new(1)),

@@ -1,34 +1,29 @@
-use std::{ptr::NonNull, sync::OnceLock};
-
-use zeroize::ZeroizeOnDrop;
+use std::{mem::MaybeUninit, ptr::NonNull, sync::OnceLock};
 
 use super::{
-    util::{KeyData, SliceKeyContainer},
-    KeyRef, KeyStore,
+    util::{KeyData, SliceKeyStore},
+    KeyRef,
 };
 
-fn is_memfd_supported() -> bool {
-    static IS_SUPPORTED: OnceLock<bool> = OnceLock::new();
+// This is an in-memory key store that is protected by memfd_secret on Linux 5.14+.
+// This should be secure against memory dumps from anything except a malicious kernel driver.
+// Note that not all 5.14+ systems have support for memfd_secret enabled, so
+// LinuxMemfdSecretKeyStore::new returns an Option.
+pub type LinuxMemfdSecretKeyStore<Key> = SliceKeyStore<Key, MemfdSecretImplKeyData>;
 
-    *IS_SUPPORTED.get_or_init(|| unsafe {
-        let Some(ptr) = memsec::memfd_secret_sized(1) else {
-            return false;
-        };
-        memsec::free_memfd_secret(ptr);
-        true
-    })
-}
-
-struct MemPtr {
+struct MemfdSecretImplKeyData {
     ptr: std::ptr::NonNull<[u8]>,
     capacity: usize,
 }
 
-// TODO: Is this safe?
-unsafe impl Send for MemPtr {}
-unsafe impl Sync for MemPtr {}
+// For Send+Sync to be safe, we need to ensure that the memory is only accessed mutably from one
+// thread. To do this, we have to make sure that any funcion in `MemfdSecretImplKeyData` that
+// accesses the pointer mutably is defined as &mut self, and that the pointer is never copied or
+// moved outside the struct.
+unsafe impl Send for MemfdSecretImplKeyData {}
+unsafe impl Sync for MemfdSecretImplKeyData {}
 
-impl Drop for MemPtr {
+impl Drop for MemfdSecretImplKeyData {
     fn drop(&mut self) {
         unsafe {
             memsec::free_memfd_secret(self.ptr);
@@ -36,85 +31,62 @@ impl Drop for MemPtr {
     }
 }
 
-impl<Key: KeyRef> KeyData<Key> for MemPtr {
-    fn new_with_capacity(capacity: usize) -> Self {
+impl<Key: KeyRef> KeyData<Key> for MemfdSecretImplKeyData {
+    fn is_available() -> bool {
+        static IS_SUPPORTED: OnceLock<bool> = OnceLock::new();
+
+        *IS_SUPPORTED.get_or_init(|| unsafe {
+            let Some(ptr) = memsec::memfd_secret_sized(1) else {
+                return false;
+            };
+            memsec::free_memfd_secret(ptr);
+            true
+        })
+    }
+
+    fn with_capacity(capacity: usize) -> Self {
         let entry_size = std::mem::size_of::<Option<(Key, Key::KeyValue)>>();
 
         unsafe {
-            let ptr: NonNull<[u8]> =
-                memsec::memfd_secret_sized(capacity * entry_size).expect("Supported operation");
-            MemPtr { ptr, capacity }
+            let ptr: NonNull<[u8]> = memsec::memfd_secret_sized(capacity * entry_size)
+                .expect("memfd_secret_sized failed");
+
+            // Initialize the array with Nones using MaybeUninit
+            let uninit_slice: &mut [MaybeUninit<_>] = std::slice::from_raw_parts_mut(
+                ptr.as_ptr() as *mut MaybeUninit<Option<(Key, Key::KeyValue)>>,
+                capacity,
+            );
+            for elem in uninit_slice {
+                elem.write(None);
+            }
+
+            MemfdSecretImplKeyData { ptr, capacity }
         }
     }
 
     fn get_key_data(&self) -> &[Option<(Key, Key::KeyValue)>] {
         let ptr = self.ptr.as_ptr() as *const Option<(Key, Key::KeyValue)>;
         // SAFETY: The pointer is valid and points to a valid slice of the correct size.
+        // This function is &self so it only takes a immutable *const pointer.
         unsafe { std::slice::from_raw_parts(ptr, self.capacity) }
     }
 
     fn get_key_data_mut(&mut self) -> &mut [Option<(Key, Key::KeyValue)>] {
         let ptr = self.ptr.as_ptr() as *mut Option<(Key, Key::KeyValue)>;
         // SAFETY: The pointer is valid and points to a valid slice of the correct size.
+        // This function is &mut self so it can take a mutable *mut pointer.
         unsafe { std::slice::from_raw_parts_mut(ptr, self.capacity) }
-    }
-}
-
-// This is an in-memory key store that is protected by memfd_secret on Linux 5.14+.
-// This should be secure against memory dumps from anything except a malicious kernel driver.
-// Note that not all 5.14+ systems have support for memfd_secret enabled, so
-// LinuxMemfdSecretKeyStore::new returns an Option.
-pub(crate) struct LinuxMemfdSecretKeyStore<Key: KeyRef> {
-    container: SliceKeyContainer<Key, MemPtr>,
-
-    _key: std::marker::PhantomData<Key>,
-}
-
-impl<Key: KeyRef> LinuxMemfdSecretKeyStore<Key> {
-    pub(crate) fn new() -> Option<Self> {
-        Self::with_capacity(0)
-    }
-
-    pub(crate) fn with_capacity(capacity: usize) -> Option<Self> {
-        if !is_memfd_supported() {
-            return None;
-        }
-
-        Some(Self {
-            container: SliceKeyContainer::new_with_capacity(capacity),
-            _key: std::marker::PhantomData,
-        })
-    }
-}
-
-// Zeroize is done by the Drop impl of SliceKeyContainer
-impl<Key: KeyRef> ZeroizeOnDrop for LinuxMemfdSecretKeyStore<Key> {}
-
-impl<Key: KeyRef> KeyStore<Key> for LinuxMemfdSecretKeyStore<Key> {
-    fn insert(&mut self, key_ref: Key, key: Key::KeyValue) {
-        self.container.insert(key_ref, key);
-    }
-    fn get(&self, key_ref: Key) -> Option<&Key::KeyValue> {
-        self.container.get(key_ref)
-    }
-    fn remove(&mut self, key_ref: Key) {
-        self.container.remove(key_ref)
-    }
-    fn clear(&mut self) {
-        self.container.clear()
-    }
-    fn retain(&mut self, f: fn(Key) -> bool) {
-        self.container.retain(f);
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{super::util::tests::*, *};
+    use super::*;
+    use crate::service::key_store::{util::tests::*, KeyStore as _};
 
     #[test]
     fn test_resize() {
-        let mut store = super::LinuxMemfdSecretKeyStore::<TestKey>::with_capacity(1).unwrap();
+        let mut store = LinuxMemfdSecretKeyStore::<TestKey>::with_capacity(1).unwrap();
 
         for (idx, key) in [
             TestKey::A,

@@ -17,7 +17,7 @@ pub(crate) fn create_key_store<Key: KeyRef>() -> Box<dyn KeyStore<Key>> {
         return Box::new(key_store);
     }
 
-    Box::new(RustKeyStore::new())
+    Box::new(RustKeyStore::new().expect("RustKeyStore should always be available"))
 }
 
 /// This trait represents a platform that can securely store and return keys. The `RustKeyStore`

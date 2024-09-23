@@ -1,17 +1,23 @@
-use zeroize::ZeroizeOnDrop;
+use std::mem::MaybeUninit;
 
 use super::{
-    util::{KeyData, SliceKeyContainer},
-    KeyRef, KeyStore,
+    util::{KeyData, SliceKeyStore},
+    KeyRef,
 };
+
+// This is a basic in-memory key store for the cases where we don't have a secure key store
+// available. We still make use mlock to protect the memory from being swapped to disk, and we
+// zeroize the values when dropped.
+pub(crate) type RustKeyStore<Key> = SliceKeyStore<Key, RustImplKeyData<Key>>;
+
 const ENABLE_MLOCK: bool = true;
 
-struct Mem<Key: KeyRef> {
+pub(crate) struct RustImplKeyData<Key: KeyRef> {
     #[allow(clippy::type_complexity)]
     data: Box<[Option<(Key, Key::KeyValue)>]>,
 }
 
-impl<Key: KeyRef> Drop for Mem<Key> {
+impl<Key: KeyRef> Drop for RustImplKeyData<Key> {
     fn drop(&mut self) {
         #[cfg(not(target_arch = "wasm32"))]
         if ENABLE_MLOCK {
@@ -26,8 +32,12 @@ impl<Key: KeyRef> Drop for Mem<Key> {
     }
 }
 
-impl<Key: KeyRef> KeyData<Key> for Mem<Key> {
-    fn new_with_capacity(capacity: usize) -> Self {
+impl<Key: KeyRef> KeyData<Key> for RustImplKeyData<Key> {
+    fn is_available() -> bool {
+        true
+    }
+
+    fn with_capacity(capacity: usize) -> Self {
         let mut data: Box<_> = std::iter::repeat_with(|| None).take(capacity).collect();
 
         #[cfg(not(target_arch = "wasm32"))]
@@ -37,7 +47,7 @@ impl<Key: KeyRef> KeyData<Key> for Mem<Key> {
                 memsec::mlock(data.as_mut_ptr() as *mut u8, capacity * entry_size);
             }
         }
-        Mem { data }
+        RustImplKeyData { data }
     }
 
     fn get_key_data(&self) -> &[Option<(Key, Key::KeyValue)>] {
@@ -49,71 +59,14 @@ impl<Key: KeyRef> KeyData<Key> for Mem<Key> {
     }
 }
 
-// This is a basic in-memory key store for the cases where we don't have a secure key store
-// available. We still make use mlock to protect the memory from being swapped to disk, and we
-// zeroize the values when dropped.
-pub(crate) struct RustKeyStore<Key: KeyRef> {
-    #[allow(clippy::type_complexity)]
-    container: SliceKeyContainer<Key, Mem<Key>>,
-}
-
-impl<Key: KeyRef> RustKeyStore<Key> {
-    pub(crate) fn new() -> Self {
-        Self::with_capacity(0)
-    }
-
-    pub(crate) fn with_capacity(capacity: usize) -> Self {
-        Self {
-            container: SliceKeyContainer::new_with_capacity(capacity),
-        }
-    }
-}
-
-// Zeroize is done by the Drop impl of SliceKeyContainer
-impl<Key: KeyRef> ZeroizeOnDrop for RustKeyStore<Key> {}
-
-impl<Key: KeyRef> KeyStore<Key> for RustKeyStore<Key> {
-    fn insert(&mut self, key_ref: Key, key: Key::KeyValue) {
-        /*
-         if let Err(new_capacity) = self.container.ensure_capacity(1) {
-            // Create a new store with the correct capacity and replace self with it
-            let mut new_self = Self::with_capacity(new_capacity);
-            new_self.container.copy_from(&mut self.container);
-            *self = new_self;
-        };
-
-        let ok = self.container.insert(key_ref, key);
-        debug_assert!(ok, "insert failed");
-
-         */
-
-        self.container.insert(key_ref, key)
-    }
-
-    fn get(&self, key_ref: Key) -> Option<&Key::KeyValue> {
-        self.container.get(key_ref)
-    }
-
-    fn remove(&mut self, key_ref: Key) {
-        self.container.remove(key_ref);
-    }
-
-    fn clear(&mut self) {
-        self.container.clear();
-    }
-
-    fn retain(&mut self, f: fn(Key) -> bool) {
-        self.container.retain(f);
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{super::util::tests::*, *};
+    use super::*;
+    use crate::service::key_store::{util::tests::*, KeyStore as _};
 
     #[test]
     fn test_resize() {
-        let mut store = super::RustKeyStore::<TestKey>::with_capacity(1);
+        let mut store = RustKeyStore::<TestKey>::with_capacity(1).unwrap();
 
         for (idx, key) in [
             TestKey::A,

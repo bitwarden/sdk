@@ -1,75 +1,11 @@
-use std::sync::RwLock;
-
 use rsa::Oaep;
 
 use crate::{
-    service::{
-        crypto_engine::{CryptoEngine, CryptoEngineContext},
-        key_ref::KeyRef,
-        key_store::KeyStore,
-        AsymmetricKeyRef, SymmetricKeyRef,
-    },
+    service::{key_store::KeyStore, AsymmetricKeyRef, SymmetricKeyRef},
     AsymmetricCryptoKey, AsymmetricEncString, CryptoError, EncString, SymmetricCryptoKey,
 };
 
-fn create_key_store<Key: KeyRef>() -> Box<dyn KeyStore<Key>> {
-    #[cfg(target_os = "linux")]
-    if let Some(key_store) = crate::service::key_store::LinuxMemfdSecretKeyStore::<Key>::new() {
-        return Box::new(key_store);
-    }
-
-    Box::new(crate::service::key_store::RustKeyStore::new())
-}
-
-pub(crate) struct RustCryptoEngine<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef> {
-    key_stores: RwLock<RustCryptoEngineKeys<SymmKeyRef, AsymmKeyRef>>,
-}
-
-// This is just a wrapper around the keys so we only deal with one RwLock
-struct RustCryptoEngineKeys<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef> {
-    symmetric_keys: Box<dyn KeyStore<SymmKeyRef>>,
-    asymmetric_keys: Box<dyn KeyStore<AsymmKeyRef>>,
-}
-
-impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
-    RustCryptoEngine<SymmKeyRef, AsymmKeyRef>
-{
-    pub(crate) fn new() -> Self {
-        Self {
-            key_stores: RwLock::new(RustCryptoEngineKeys {
-                symmetric_keys: create_key_store(),
-                asymmetric_keys: create_key_store(),
-            }),
-        }
-    }
-}
-
-impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
-    CryptoEngine<SymmKeyRef, AsymmKeyRef> for RustCryptoEngine<SymmKeyRef, AsymmKeyRef>
-{
-    fn context(&'_ self) -> Box<dyn CryptoEngineContext<'_, SymmKeyRef, AsymmKeyRef> + '_> {
-        // TODO: Cache these?, or maybe initialize them lazily? or both?
-        Box::new(RustCryptoEngineContext {
-            global_keys: self.key_stores.read().expect("RwLock is poisoned"),
-            local_symmetric_keys: create_key_store(),
-            local_asymmetric_keys: create_key_store(),
-        })
-    }
-
-    fn insert_symmetric_key(&self, key_ref: SymmKeyRef, key: SymmetricCryptoKey) {
-        self.key_stores
-            .write()
-            .expect("RwLock is poisoned")
-            .symmetric_keys
-            .insert(key_ref, key);
-    }
-
-    fn clear(&self) {
-        let mut keys = self.key_stores.write().expect("RwLock is poisoned");
-        keys.symmetric_keys.clear();
-        keys.asymmetric_keys.clear();
-    }
-}
+use super::RustCryptoEngineKeys;
 
 pub(crate) struct RustCryptoEngineContext<
     'a,
@@ -78,10 +14,11 @@ pub(crate) struct RustCryptoEngineContext<
 > {
     // We hold a RwLock read guard to avoid having any nested
     //calls locking it again and potentially causing a deadlock
-    global_keys: std::sync::RwLockReadGuard<'a, RustCryptoEngineKeys<SymmKeyRef, AsymmKeyRef>>,
+    pub(super) global_keys:
+        std::sync::RwLockReadGuard<'a, RustCryptoEngineKeys<SymmKeyRef, AsymmKeyRef>>,
 
-    local_symmetric_keys: Box<dyn KeyStore<SymmKeyRef>>,
-    local_asymmetric_keys: Box<dyn KeyStore<AsymmKeyRef>>,
+    pub(super) local_symmetric_keys: Box<dyn KeyStore<SymmKeyRef>>,
+    pub(super) local_asymmetric_keys: Box<dyn KeyStore<AsymmKeyRef>>,
 }
 
 impl<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
@@ -110,22 +47,17 @@ impl<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
         }
         .ok_or_else(|| crate::CryptoError::MissingKey2(format!("{key_ref:?}")))
     }
-}
 
-impl<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
-    CryptoEngineContext<'a, SymmKeyRef, AsymmKeyRef>
-    for RustCryptoEngineContext<'a, SymmKeyRef, AsymmKeyRef>
-{
-    fn clear(&mut self) {
+    pub fn clear(&mut self) {
         self.local_symmetric_keys.clear();
         self.local_asymmetric_keys.clear();
     }
 
-    fn remove_symmetric_key(&mut self, key_ref: SymmKeyRef) {
+    pub fn remove_symmetric_key(&mut self, key_ref: SymmKeyRef) {
         self.local_symmetric_keys.remove(key_ref);
     }
 
-    fn decrypt_data_with_symmetric_key(
+    pub fn decrypt_data_with_symmetric_key(
         &self,
         key: SymmKeyRef,
         data: &EncString,
@@ -156,7 +88,7 @@ impl<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
         }
     }
 
-    fn decrypt_and_store_symmetric_key(
+    pub fn decrypt_and_store_symmetric_key(
         &mut self,
         encryption_key: SymmKeyRef,
         new_key_ref: SymmKeyRef,
@@ -170,7 +102,7 @@ impl<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
         Ok(())
     }
 
-    fn encrypt_data_with_symmetric_key(
+    pub fn encrypt_data_with_symmetric_key(
         &self,
         key: SymmKeyRef,
         data: &[u8],
@@ -183,7 +115,7 @@ impl<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
         )
     }
 
-    fn encrypt_symmetric_key(
+    pub fn encrypt_symmetric_key(
         &self,
         encryption_key: SymmKeyRef,
         key_to_encrypt: SymmKeyRef,
@@ -192,11 +124,11 @@ impl<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
         self.encrypt_data_with_symmetric_key(encryption_key, &key_to_encrypt.to_vec())
     }
 
-    fn remove_asymmetric_key(&mut self, key_ref: AsymmKeyRef) {
+    pub fn remove_asymmetric_key(&mut self, key_ref: AsymmKeyRef) {
         self.local_asymmetric_keys.remove(key_ref);
     }
 
-    fn decrypt_data_with_asymmetric_key(
+    pub fn decrypt_data_with_asymmetric_key(
         &self,
         key: AsymmKeyRef,
         data: &AsymmetricEncString,
@@ -219,7 +151,7 @@ impl<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
         .map_err(|_| CryptoError::KeyDecrypt)
     }
 
-    fn decrypt_and_store_asymmetric_key(
+    pub fn decrypt_and_store_asymmetric_key(
         &mut self,
         encryption_key: AsymmKeyRef,
         new_key_ref: AsymmKeyRef,
@@ -232,8 +164,7 @@ impl<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
         self.local_asymmetric_keys.insert(new_key_ref, new_key);
         Ok(())
     }
-
-    fn encrypt_data_with_asymmetric_key(
+    pub fn encrypt_data_with_asymmetric_key(
         &self,
         key: AsymmKeyRef,
         data: &[u8],
@@ -242,7 +173,7 @@ impl<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
         AsymmetricEncString::encrypt_rsa2048_oaep_sha1(data, key)
     }
 
-    fn encrypt_asymmetric_key(
+    pub fn encrypt_asymmetric_key(
         &self,
         encryption_key: AsymmKeyRef,
         key_to_encrypt: AsymmKeyRef,

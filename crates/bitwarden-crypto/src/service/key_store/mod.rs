@@ -11,6 +11,15 @@ mod util;
 pub(crate) use linux_memfd_secret_impl::LinuxMemfdSecretKeyStore;
 pub(crate) use rust_impl::RustKeyStore;
 
+pub(crate) fn create_key_store<Key: KeyRef>() -> Box<dyn KeyStore<Key>> {
+    #[cfg(target_os = "linux")]
+    if let Some(key_store) = LinuxMemfdSecretKeyStore::<Key>::new() {
+        return Box::new(key_store);
+    }
+
+    Box::new(RustKeyStore::new())
+}
+
 /// This trait represents a platform that can securely store and return keys. The `RustKeyStore`
 /// implementation is a simple in-memory store without any security guarantees. Other
 /// implementations could use secure enclaves or HSMs, or OS provided keychains.

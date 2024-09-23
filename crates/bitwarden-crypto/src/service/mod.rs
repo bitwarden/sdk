@@ -7,7 +7,7 @@ mod encryptable;
 pub mod key_ref;
 mod key_store;
 
-use crypto_engine::{CryptoEngine, CryptoEngineContext, RustCryptoEngine};
+use crypto_engine::{RustCryptoEngine, RustCryptoEngineContext};
 pub use encryptable::{Decryptable, Encryptable, KeyProvided, KeyProvidedExt, UsesKey};
 use key_ref::{AsymmetricKeyRef, KeyRef, SymmetricKeyRef};
 
@@ -15,7 +15,7 @@ use key_ref::{AsymmetricKeyRef, KeyRef, SymmetricKeyRef};
 pub struct CryptoService<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef> {
     // We use an Arc<> to make it easier to pass this service around, as we can
     // clone it instead of passing references
-    engine: Arc<dyn CryptoEngine<SymmKeyRef, AsymmKeyRef>>,
+    engine: Arc<RustCryptoEngine<SymmKeyRef, AsymmKeyRef>>,
 }
 
 impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
@@ -109,7 +109,7 @@ impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
 }
 
 pub struct CryptoServiceContext<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef> {
-    engine: Box<dyn CryptoEngineContext<'a, SymmKeyRef, AsymmKeyRef> + 'a>,
+    engine: RustCryptoEngineContext<'a, SymmKeyRef, AsymmKeyRef>,
 }
 
 impl<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>

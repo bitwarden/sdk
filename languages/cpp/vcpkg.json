@@ -1,10 +1,11 @@
 {
-    "name": "bitwarden-sdk-secrets",
-    "version": "0.1.0",
-    "homepage": "https://github.com/bitwarden/sdk/tree/languages/cpp",
-    "description": "Bitwarden Secrets Manager SDK for C++",
-    "dependencies": [
-        "boost",
-        "nlohmann-json"
-    ]
+  "name": "bitwarden-sdk-secrets",
+  "version": "0.1.0",
+  "homepage": "https://github.com/bitwarden/sdk/tree/languages/cpp",
+  "description": "Bitwarden Secrets Manager SDK for C++",
+  "dependencies": [
+    "boost-uuid",
+    "boost-optional",
+    "nlohmann-json"
+  ]
 }

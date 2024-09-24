@@ -17,7 +17,7 @@ keywords.workspace = true
 default = []
 
 uniffi = ["dep:uniffi"]  # Uniffi bindings
-no-memory-hardening = ["memsec"] # Disable memory hardening features
+no-memory-hardening = [] # Disable memory hardening features
 
 [dependencies]
 aes = { version = ">=0.8.2, <0.9", features = ["zeroize"] }
@@ -47,7 +47,7 @@ uuid = { version = ">=1.3.3, <2.0", features = ["serde"] }
 zeroize = { version = ">=1.7.0, <2.0", features = ["derive", "aarch64"] }
 
 [target.'cfg(all(not(target_arch = "wasm32"), not(windows)))'.dependencies]
-memsec = { version = "0.7.0", features = ["alloc_ext"], optional = true }
+memsec = { version = "0.7.0", features = ["alloc_ext"] }
 
 [dev-dependencies]
 criterion = { version = "0.5.1", features = ["html_reports"] }

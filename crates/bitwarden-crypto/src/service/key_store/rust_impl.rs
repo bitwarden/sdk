@@ -10,8 +10,6 @@ use super::{
 // zeroize the values when dropped.
 pub(crate) type RustKeyStore<Key> = SliceKeyStore<Key, RustImplKeyData<Key>>;
 
-const ENABLE_MLOCK: bool = true;
-
 pub(crate) struct RustImplKeyData<Key: KeyRef> {
     #[allow(clippy::type_complexity)]
     data: Box<[Option<(Key, Key::KeyValue)>]>,
@@ -19,8 +17,8 @@ pub(crate) struct RustImplKeyData<Key: KeyRef> {
 
 impl<Key: KeyRef> Drop for RustImplKeyData<Key> {
     fn drop(&mut self) {
-        #[cfg(not(target_arch = "wasm32"))]
-        if ENABLE_MLOCK {
+        #[cfg(any(not(target_arch = "wasm32"), not(feature = "no-memory-hardening")))]
+        {
             let entry_size = std::mem::size_of::<Option<(Key, Key::KeyValue)>>();
             unsafe {
                 memsec::munlock(
@@ -51,8 +49,8 @@ impl<Key: KeyRef> KeyData<Key> for RustImplKeyData<Key> {
     fn with_capacity(capacity: usize) -> Self {
         let mut data: Box<_> = std::iter::repeat_with(|| None).take(capacity).collect();
 
-        #[cfg(not(target_arch = "wasm32"))]
-        if ENABLE_MLOCK {
+        #[cfg(any(not(target_arch = "wasm32"), not(feature = "no-memory-hardening")))]
+        {
             let entry_size = std::mem::size_of::<Option<(Key, Key::KeyValue)>>();
             unsafe {
                 memsec::mlock(data.as_mut_ptr() as *mut u8, capacity * entry_size);

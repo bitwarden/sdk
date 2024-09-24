@@ -2,22 +2,18 @@ use zeroize::ZeroizeOnDrop;
 
 use crate::service::KeyRef;
 
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", not(feature = "no-memory-hardening")))]
 mod linux_memfd_secret_impl;
 mod rust_impl;
 mod util;
 
-#[cfg(target_os = "linux")]
-pub(crate) use linux_memfd_secret_impl::LinuxMemfdSecretKeyStore;
-pub(crate) use rust_impl::RustKeyStore;
-
 pub(crate) fn create_key_store<Key: KeyRef>() -> Box<dyn KeyStore<Key>> {
-    #[cfg(target_os = "linux")]
-    if let Some(key_store) = LinuxMemfdSecretKeyStore::<Key>::new() {
+    #[cfg(all(target_os = "linux", not(feature = "no-memory-hardening")))]
+    if let Some(key_store) = linux_memfd_secret_impl::LinuxMemfdSecretKeyStore::<Key>::new() {
         return Box::new(key_store);
     }
 
-    Box::new(RustKeyStore::new().expect("RustKeyStore should always be available"))
+    Box::new(rust_impl::RustKeyStore::new().expect("RustKeyStore should always be available"))
 }
 
 /// This trait represents a platform that can securely store and return keys. The `RustKeyStore`

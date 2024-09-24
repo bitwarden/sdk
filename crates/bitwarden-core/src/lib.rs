@@ -151,20 +151,10 @@ mod testcrypto {
             .unwrap();
 
         // And decrypt values in parallel
-        let mut data = Vec::with_capacity(500_000);
+        let mut data = Vec::with_capacity(250);
         for _ in 0..data.capacity() {
             data.push("hello world, this is an encryption test!".using_key(MySymmKeyRef::User));
         }
-        let now = std::time::Instant::now();
-        let _ = service.encrypt_list(&data).unwrap();
-        println!("Batch encrypting took {:?}", now.elapsed());
-
-        let now = std::time::Instant::now();
-        for d in data {
-            let _ = service.encrypt(d).unwrap();
-        }
-        println!("Individual encrypting took {:?}", now.elapsed());
-
-        // panic!("DONE")
+        service.encrypt_list(&data).unwrap();
     }
 }

@@ -9,9 +9,9 @@ use super::{
 // This should be secure against memory dumps from anything except a malicious kernel driver.
 // Note that not all 5.14+ systems have support for memfd_secret enabled, so
 // LinuxMemfdSecretKeyStore::new returns an Option.
-pub type LinuxMemfdSecretKeyStore<Key> = SliceKeyStore<Key, MemfdSecretImplKeyData>;
+pub(crate) type LinuxMemfdSecretKeyStore<Key> = SliceKeyStore<Key, MemfdSecretImplKeyData>;
 
-struct MemfdSecretImplKeyData {
+pub(crate) struct MemfdSecretImplKeyData {
     ptr: std::ptr::NonNull<[u8]>,
     capacity: usize,
 }

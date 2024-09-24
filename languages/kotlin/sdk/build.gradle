@@ -47,23 +47,25 @@ publishing {
             groupId = 'com.bitwarden'
             artifactId = 'sdk-android'
 
-            // Determine the version from the git history.
-            //
-            // PRs: use the branch name.
-            // Main: Grab it from `crates/bitwarden/Cargo.toml`
+            if (findProperty('version') == 'unspecified') {
+                // Determine the version from the git history.
+                //
+                // PRs: use the branch name.
+                // Main: Grab it from `crates/bitwarden/Cargo.toml`
 
-            def branchName = 'git branch --show-current'.execute().text.trim()
+                def branchName = 'git branch --show-current'.execute().text.trim()
 
-            if (branchName == 'main') {
-                def content = ['grep', '-o', '^version = ".*"', '../../Cargo.toml'].execute().text.trim()
-                def match = ~/version = "(.*)"/
-                def matcher = match.matcher(content)
-                matcher.find()
+                if (branchName == 'main') {
+                    def content = ['grep', '-o', '^version = ".*"', '../../Cargo.toml'].execute().text.trim()
+                    def match = ~/version = "(.*)"/
+                    def matcher = match.matcher(content)
+                    matcher.find()
 
-                version = "${matcher.group(1)}-SNAPSHOT"
-            } else {
-                // branchName-SNAPSHOT
-                version = "${branchName.replaceAll('/', '-')}-SNAPSHOT"
+                    version = "${matcher.group(1)}-SNAPSHOT"
+                } else {
+                    // branchName-SNAPSHOT
+                    version = "${branchName.replaceAll('/', '-')}-SNAPSHOT"
+                }
             }
 
             afterEvaluate {

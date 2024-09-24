@@ -1,3 +1,8 @@
+#!/usr/bin/env bash
+set -e
+
+cd "$(dirname "$0")"
+
 mkdir -p ./sdk/src/main/jniLibs/{arm64-v8a,armeabi-v7a,x86_64,x86}
 
 # Build arm64 for emulator

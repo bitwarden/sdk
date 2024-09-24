@@ -1198,7 +1198,10 @@ mod tests {
             collection_ids: vec![],
             r#type: CipherType::SshKey,
             key: None,
-            name: "My test ssh key".to_string().encrypt_with_key(&key).unwrap(),
+            name: "My test ssh key"
+                .to_string()
+                .encrypt_with_key(&key)
+                .unwrap(),
             notes: None,
             login: None,
             identity: None,
@@ -1223,6 +1226,6 @@ mod tests {
             revision_date: "2024-01-01T00:00:00.000Z".parse().unwrap(),
         };
         let subtitle = ssh_key_cipher.get_decrypted_subtitle(&key).unwrap();
-        assert_eq!(subtitle, original_subtitle);        
+        assert_eq!(subtitle, original_subtitle);
     }
 }

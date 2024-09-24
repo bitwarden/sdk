@@ -1,5 +1,3 @@
-use std::mem::MaybeUninit;
-
 use super::{
     util::{KeyData, SliceKeyStore},
     KeyRef,
@@ -17,8 +15,10 @@ pub(crate) struct RustImplKeyData<Key: KeyRef> {
 
 impl<Key: KeyRef> Drop for RustImplKeyData<Key> {
     fn drop(&mut self) {
-        #[cfg(any(not(target_arch = "wasm32"), not(feature = "no-memory-hardening")))]
+        #[cfg(all(not(target_arch = "wasm32"), not(feature = "no-memory-hardening")))]
         {
+            use std::mem::MaybeUninit;
+
             let entry_size = std::mem::size_of::<Option<(Key, Key::KeyValue)>>();
             unsafe {
                 memsec::munlock(
@@ -47,9 +47,10 @@ impl<Key: KeyRef> KeyData<Key> for RustImplKeyData<Key> {
     }
 
     fn with_capacity(capacity: usize) -> Self {
+        #[allow(unused_mut)]
         let mut data: Box<_> = std::iter::repeat_with(|| None).take(capacity).collect();
 
-        #[cfg(any(not(target_arch = "wasm32"), not(feature = "no-memory-hardening")))]
+        #[cfg(all(not(target_arch = "wasm32"), not(feature = "no-memory-hardening")))]
         {
             let entry_size = std::mem::size_of::<Option<(Key, Key::KeyValue)>>();
             unsafe {

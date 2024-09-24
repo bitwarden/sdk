@@ -21,6 +21,7 @@ pub(crate) struct RustCryptoServiceContext<
     pub(crate) local_asymmetric_keys: Box<dyn KeyStore<AsymmKeyRef>>,
 }
 
+#[allow(unused)]
 impl<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
     RustCryptoServiceContext<'a, SymmKeyRef, AsymmKeyRef>
 {

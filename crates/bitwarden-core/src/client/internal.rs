@@ -234,7 +234,7 @@ impl InternalClient {
     pub fn initialize_org_crypto(
         &self,
         org_keys: Vec<(Uuid, AsymmetricEncString)>,
-    ) -> Result<Arc<EncryptionSettings>> {
+    ) -> Result<Arc<EncryptionSettings>, EncryptionSettingsError> {
         let mut guard = self
             .encryption_settings
             .write()

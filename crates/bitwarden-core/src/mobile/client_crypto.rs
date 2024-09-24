@@ -25,7 +25,10 @@ impl<'a> ClientCrypto<'a> {
         initialize_user_crypto(self.client, req).await
     }
 
-    pub async fn initialize_org_crypto(&self, req: InitOrgCryptoRequest) -> Result<()> {
+    pub async fn initialize_org_crypto(
+        &self,
+        req: InitOrgCryptoRequest,
+    ) -> Result<(), EncryptionSettingsError> {
         initialize_org_crypto(self.client, req).await
     }
 

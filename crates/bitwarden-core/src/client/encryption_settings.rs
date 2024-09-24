@@ -8,6 +8,7 @@ use uuid::Uuid;
 
 #[cfg(feature = "internal")]
 use crate::error::Result;
+use crate::VaultLocked;
 
 #[derive(Debug, Error)]
 pub enum EncryptionSettingsError {
@@ -17,8 +18,14 @@ pub enum EncryptionSettingsError {
     #[error(transparent)]
     InvalidBase64(#[from] base64::DecodeError),
 
+    #[error(transparent)]
+    VaultLocked(#[from] VaultLocked),
+
     #[error("Invalid private key")]
     InvalidPrivateKey,
+
+    #[error("Missing private key")]
+    MissingPrivateKey,
 }
 
 #[derive(Clone)]
@@ -98,10 +105,8 @@ impl EncryptionSettings {
     pub(crate) fn set_org_keys(
         &mut self,
         org_enc_keys: Vec<(Uuid, AsymmetricEncString)>,
-    ) -> Result<&Self> {
+    ) -> Result<&Self, EncryptionSettingsError> {
         use bitwarden_crypto::KeyDecryptable;
-
-        use crate::VaultLocked;
 
         // Make sure we only keep the keys given in the arguments and not any of the previous
         // ones, which might be from organizations that the user is no longer a part of anymore
@@ -112,7 +117,10 @@ impl EncryptionSettings {
             return Ok(self);
         }
 
-        let private_key = self.private_key.as_ref().ok_or(VaultLocked)?;
+        let private_key = self
+            .private_key
+            .as_ref()
+            .ok_or(EncryptionSettingsError::MissingPrivateKey)?;
 
         // Decrypt the org keys with the private key
         for (org_id, org_enc_key) in org_enc_keys {

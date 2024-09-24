@@ -6,8 +6,6 @@ on:
   push:
     branches:
       - "main"
-      - "rc"
-      - "hotfix-rc"
   workflow_dispatch:
 
 defaults:
@@ -74,7 +72,7 @@ jobs:
       - name: Build
         env:
           TARGET: ${{ matrix.settings.target }}
-        run: cargo build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
+        run: cargo build -p bws --release --target=${{ matrix.settings.target }}
 
       - name: Login to Azure
         if: ${{ needs.setup.outputs.sign == 'true' }}
@@ -132,8 +130,7 @@ jobs:
   build-macos:
     name: Building CLI for - ${{ matrix.settings.os }} - ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}
-    needs:
-      - setup
+    needs: setup
     env:
       _PACKAGE_VERSION: ${{ needs.setup.outputs.package_version }}
     strategy:
@@ -164,7 +161,7 @@ jobs:
       - name: Build
         env:
           TARGET: ${{ matrix.settings.target }}
-        run: cargo build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
+        run: cargo build -p bws --release --target=${{ matrix.settings.target }}
 
       - name: Login to Azure
         uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
@@ -242,8 +239,7 @@ jobs:
   build-linux:
     name: Building CLI for - ${{ matrix.settings.os }} - ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}
-    needs:
-      - setup
+    needs: setup
     env:
       _PACKAGE_VERSION: ${{ needs.setup.outputs.package_version }}
     strategy:
@@ -271,7 +267,8 @@ jobs:
           toolchain: stable
           targets: ${{ matrix.settings.target }}
 
-      - uses: goto-bus-stop/setup-zig@7ab2955eb728f5440978d5824358023be3a2802d # v2.2.0
+      - name: Set up Zig
+        uses: goto-bus-stop/setup-zig@7ab2955eb728f5440978d5824358023be3a2802d # v2.2.0
         with:
           version: 0.12.0
 
@@ -286,7 +283,7 @@ jobs:
       - name: Build
         env:
           TARGET: ${{ matrix.settings.target }}
-        run: cargo zigbuild ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
+        run: cargo zigbuild -p bws --release --target=${{ matrix.settings.target }}
 
       - name: Zip linux
         run: zip -j ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip ./target/${{ matrix.settings.target }}/release/bws
@@ -325,7 +322,7 @@ jobs:
           unzip bws-x86_64-apple-darwin-${{ env._PACKAGE_VERSION }}.zip -d ./bws-x86_64-apple-darwin
           unzip bws-aarch64-apple-darwin-${{ env._PACKAGE_VERSION }}.zip -d ./bws-aarch64-apple-darwin
 
-      - name: lipo create universal package
+      - name: Create universal package with lipo
         run: |
           mkdir ./bws-macos-universal
 
@@ -375,7 +372,7 @@ jobs:
       - name: Sign binary
         env:
           MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-certificate-name }}
-        run: codesign --sign "$MACOS_CERTIFICATE_NAME" --verbose=3 --force --options=runtime --timestamp  ./bws-aarch64-apple-darwin/bws
+        run: codesign --sign "$MACOS_CERTIFICATE_NAME" --verbose=3 --force --options=runtime --timestamp ./bws-macos-universal/bws
 
       - name: Notarize app
         env:
@@ -389,7 +386,7 @@ jobs:
           xcrun notarytool store-credentials "notarytool-profile" --apple-id "$MACOS_NOTARIZATION_APPLE_ID" --team-id "$MACOS_NOTARIZATION_TEAM_ID" --password "$MACOS_NOTARIZATION_PWD"
 
           echo "Creating notarization archive"
-          zip -j ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip ./bws-aarch64-apple-darwin/bws
+          zip -j ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip ./bws-macos-universal/bws
 
           codesign --sign "$MACOS_CERTIFICATE_NAME" --verbose=3 --force --options=runtime --timestamp  ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip
 
@@ -441,8 +438,7 @@ jobs:
   manpages:
     name: Generate manpages
     runs-on: ubuntu-22.04
-    needs:
-      - setup
+    needs: setup
     steps:
       - name: Checkout repo
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7

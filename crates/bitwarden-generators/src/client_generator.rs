@@ -1,8 +1,9 @@
 use bitwarden_core::Client;
 
 use crate::{
-    passphrase, password, username, PassphraseError, PassphraseGeneratorRequest, PasswordError,
-    PasswordGeneratorRequest, UsernameError, UsernameGeneratorRequest,
+    passphrase::passphrase, password::password, username::username, PassphraseError,
+    PassphraseGeneratorRequest, PasswordError, PasswordGeneratorRequest, UsernameError,
+    UsernameGeneratorRequest,
 };
 
 pub struct ClientGenerator<'a> {

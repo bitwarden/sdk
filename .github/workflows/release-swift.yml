@@ -63,7 +63,7 @@ jobs:
               -H "Accept: application/vnd.github+json" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
               /repos/$OWNER/$REPO/actions/workflows/build-swift.yml/runs \
-              | jq -r ".workflow_runs[] | select(.head_branch == \"$BRANCH\") | .id")
+              | jq -r "[.workflow_runs[] | select(.head_branch == \"$BRANCH\").id ] | first")
           else
             RUN_ID=${{ inputs.build-run-id }}
           fi
@@ -111,6 +111,7 @@ jobs:
       _PRE_RELEASE: ${{ inputs.pre-release }}
       _RELEASE_NAME: ${{ needs.validate.outputs.release_name }}
       _SWIFT_CHECKSUM: ${{ needs.validate.outputs.swift_checksum }}
+      _BUILD_RUN_ID: ${{ needs.validate.outputs.run_id }}
     steps:
       - name: Checkout SDK repo
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
@@ -163,6 +164,16 @@ jobs:
           git config --local user.email "${{ env._BOT_EMAIL }}"
           git config --local user.name "${{ env._BOT_NAME }}"
 
+      - name: Download BitwardenSdk sources artifact
+        uses: bitwarden/gh-actions/download-artifacts@main
+        id: download-artifact
+        with:
+          workflow: build-swift.yml
+          workflow_conclusion: success
+          artifacts: "BitwardenSdk-${{ env._PKG_VERSION }}-${{ needs.validate.outputs.short_sha }}-sources"
+          run_id: ${{ env._BUILD_RUN_ID }}
+          path: sdk/languages/swift/Sources/BitwardenSdk
+
       - name: Install Swift formatter
         run: |
           git clone https://github.com/nicklockwood/SwiftFormat
@@ -181,11 +192,16 @@ jobs:
           # Run swiftformat
           swiftformat sdk/languages/swift/Package.swift
 
+          find sdk/languages/swift/Sources/ -name ".gitignore" -exec rm -f {} \;
+
+          rm -rf sdk-swift/Sources
+          rm -rf sdk-swift/Tests
+
           # Copy files to local sdk-swift repo path
           cp --verbose -rf sdk/languages/swift/README.md sdk-swift/README.md
           cp --verbose -rf sdk/languages/swift/Package.swift sdk-swift/Package.swift
-          cp --verbose -rf sdk/languages/swift/Sources sdk-swift/Sources
-          cp --verbose -rf sdk/languages/swift/Tests sdk-swift/Tests
+          cp --verbose -rf sdk/languages/swift/Sources sdk-swift
+          cp --verbose -rf sdk/languages/swift/Tests sdk-swift
 
       - name: Push changes
         working-directory: sdk-swift

@@ -12,6 +12,10 @@ on:
         options:
           - Release
           - Dry Run
+      version:
+        description: "Release Version"
+        required: false
+        default: "latest"
 
 env:
   _KEY_VAULT: "bitwarden-ci"

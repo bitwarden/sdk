@@ -16,13 +16,13 @@ RUN mkdir -p /app/crates/bitwarden-crypto/src \
     && touch /app/crates/bitwarden-crypto/src/lib.rs \
     /app/crates/bitwarden-crypto/benches/default_allocator.rs \
     /app/crates/bitwarden-crypto/benches/zeroizing_allocator.rs \
+    /app/crates/bitwarden-crypto/benches/new_encryptable.rs \
     && echo 'fn main(){}' > /app/crates/memory-testing/src/main.rs \
     && cargo build -p memory-testing --release
 
 # Delete dummy files and copy the actual source code
 RUN rm /app/crates/bitwarden-crypto/src/lib.rs \
-    /app/crates/bitwarden-crypto/benches/default_allocator.rs \
-    /app/crates/bitwarden-crypto/benches/zeroizing_allocator.rs \
+    /app/crates/bitwarden-crypto/benches/*.rs \
     /app/crates/memory-testing/src/main.rs
 
 COPY crates/bitwarden-crypto /app/crates/bitwarden-crypto

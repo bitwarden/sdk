@@ -46,8 +46,10 @@ uniffi = { version = "=0.28.1", optional = true }
 uuid = { version = ">=1.3.3, <2.0", features = ["serde"] }
 zeroize = { version = ">=1.7.0, <2.0", features = ["derive", "aarch64"] }
 
-[target.'cfg(all(not(target_arch = "wasm32"), not(windows)))'.dependencies]
-memsec = { version = "0.7.0", features = ["alloc_ext"] }
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+memsec = { version = "0.7.0", features = [
+    "alloc_ext",
+], git = "https://github.com/dani-garcia/memsec", rev = "3d2e272d284442637bac0a7d94f76883960db7e2" }
 
 [dev-dependencies]
 criterion = { version = "0.5.1", features = ["html_reports"] }

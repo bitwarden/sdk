@@ -15,11 +15,7 @@ pub(crate) struct RustImplKeyData<Key: KeyRef> {
 
 impl<Key: KeyRef> Drop for RustImplKeyData<Key> {
     fn drop(&mut self) {
-        #[cfg(all(
-            not(target_arch = "wasm32"),
-            not(feature = "no-memory-hardening"),
-            not(windows)
-        ))]
+        #[cfg(all(not(target_arch = "wasm32"), not(feature = "no-memory-hardening")))]
         {
             use std::mem::MaybeUninit;
 
@@ -54,11 +50,7 @@ impl<Key: KeyRef> KeyData<Key> for RustImplKeyData<Key> {
         #[allow(unused_mut)]
         let mut data: Box<_> = std::iter::repeat_with(|| None).take(capacity).collect();
 
-        #[cfg(all(
-            not(target_arch = "wasm32"),
-            not(feature = "no-memory-hardening"),
-            not(windows)
-        ))]
+        #[cfg(all(not(target_arch = "wasm32"), not(feature = "no-memory-hardening")))]
         {
             let entry_size = std::mem::size_of::<Option<(Key, Key::KeyValue)>>();
             unsafe {

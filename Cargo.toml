@@ -54,7 +54,7 @@ codegen-units = 1
 # This is a workaround until this is fixed: https://github.com/rustls/rustls-platform-verifier/issues/141
 [profile.release-windows]
 inherits = "release"
-lto = "off"
+lto = "fat"
 
 # Stripping the binary reduces the size by ~30%, but the stacktraces won't be usable anymore.
 # This is fine as long as we don't have any unhandled panics, but let's keep it disabled for now

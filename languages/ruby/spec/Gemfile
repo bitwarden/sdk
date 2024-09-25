@@ -1,0 +1,9 @@
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
+
+gem 'bitwarden-sdk-secrets', path: '../bitwarden_sdk_secrets'
+
+gem 'rspec', '~> 3.0'
+gem 'rubocop', '~> 1.21'
+gem 'pry', '~> 0.14'

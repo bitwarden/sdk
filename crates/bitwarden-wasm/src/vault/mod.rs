@@ -10,6 +10,24 @@ use chrono::prelude::*;
 
 use crate::error::Result;
 
+#[wasm_bindgen(typescript_custom_section)]
+const TOTP_RESPONSE: &'static str = r#"
+export interface TotpResponse {
+  code: string;
+  period_foo: number;
+}
+
+export interface ClientVault {
+  generate_totp(key: string, time?: string): Promise<TotpResponse>;
+}
+"#;
+
+#[wasm_bindgen]
+pub struct JsTotpResult {
+    code: String,
+    period: u64,
+}
+
 // #[derive(uniffi::Object)]
 #[wasm_bindgen]
 pub struct ClientVault(pub(crate) Arc<bitwarden::Client>);
@@ -48,7 +66,7 @@ impl ClientVault {
     /// - A base32 encoded string
     /// - OTP Auth URI
     /// - Steam URI
-    #[wasm_bindgen]
+    #[wasm_bindgen(skip_typescript)]
     pub async fn generate_totp(&self, key: String, time: Option<String>) -> JsValue {
         // TODO: Fix time
         // let time = time.map(|time| {
@@ -61,7 +79,13 @@ impl ClientVault {
             .generate_totp(key, None)
             .map_err(Error::Totp)
             .unwrap();
+
         to_value(&result).unwrap()
+
+        // JsTotpResult {
+        //     code: result.code,
+        //     period: result.period.into(),
+        // }
     }
 
     // Generate a TOTP code from a provided cipher list view.

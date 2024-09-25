@@ -1,5 +1,7 @@
+use serde::{Deserialize, Serialize};
 use serde_wasm_bindgen::to_value;
 use std::sync::Arc;
+use tsify_next::Tsify;
 use wasm_bindgen::prelude::*;
 
 use bitwarden::{
@@ -10,23 +12,24 @@ use chrono::prelude::*;
 
 use crate::error::Result;
 
-#[wasm_bindgen(typescript_custom_section)]
-const TOTP_RESPONSE: &'static str = r#"
-export interface TotpResponse {
-  code: string;
-  period_foo: number;
-}
+// #[wasm_bindgen(typescript_custom_section)]
+// const TOTP_RESPONSE: &'static str = r#"
+// export interface TotpResponse {
+//   code: string;
+//   period_foo: number;
+// }
 
-export interface ClientVault {
-  generate_totp(key: string, time?: string): Promise<TotpResponse>;
-}
-"#;
+// export interface ClientVault {
+//   generate_totp(key: string, time?: string): Promise<TotpResponse>;
+// }
+// "#;
 
-#[wasm_bindgen]
-pub struct JsTotpResult {
-    code: String,
-    period: u64,
-}
+// #[derive(Tsify, Serialize, Deserialize)]
+// #[tsify(into_wasm_abi, from_wasm_abi)]
+// pub struct JsTotpResult {
+//     code: String,
+//     period: u64,
+// }
 
 // #[derive(uniffi::Object)]
 #[wasm_bindgen]
@@ -66,8 +69,8 @@ impl ClientVault {
     /// - A base32 encoded string
     /// - OTP Auth URI
     /// - Steam URI
-    #[wasm_bindgen(skip_typescript)]
-    pub async fn generate_totp(&self, key: String, time: Option<String>) -> JsValue {
+    #[wasm_bindgen]
+    pub async fn generate_totp(&self, key: String, time: Option<String>) -> TotpResponse {
         // TODO: Fix time
         // let time = time.map(|time| {
         //     // TODO: fix error
@@ -80,7 +83,9 @@ impl ClientVault {
             .map_err(Error::Totp)
             .unwrap();
 
-        to_value(&result).unwrap()
+        result
+
+        // to_value(&result).unwrap()
 
         // JsTotpResult {
         //     code: result.code,

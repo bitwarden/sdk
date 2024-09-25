@@ -8,6 +8,10 @@ use reqwest::Url;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+// #[cfg(feature = "wasm")]
+use tsify_next::Tsify;
+// #[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
 
 use crate::CipherListView;
 
@@ -38,6 +42,7 @@ pub enum TotpError {
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "wasm", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 pub struct TotpResponse {
     /// Generated TOTP code
     pub code: String,

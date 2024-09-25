@@ -657,14 +657,17 @@ dependencies = [
  "reqwest",
  "schemars",
  "serde",
+ "serde-wasm-bindgen",
  "serde_json",
  "serde_repr",
  "sha1",
  "sha2",
  "thiserror",
  "tokio",
+ "tsify-next",
  "uniffi",
  "uuid",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -674,6 +677,7 @@ dependencies = [
  "argon2",
  "bitwarden",
  "bitwarden-json",
+ "bitwarden-vault",
  "chrono",
  "console_error_panic_hook",
  "console_log",
@@ -681,6 +685,7 @@ dependencies = [
  "log",
  "serde",
  "serde-wasm-bindgen",
+ "tsify-next",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "wasm-bindgen-test",
@@ -4207,6 +4212,30 @@ name = "try-lock"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
+
+[[package]]
+name = "tsify-next"
+version = "0.5.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2f4a645dca4ee0800f5ab60ce166deba2db6a0315de795a2691e138a3d55d756"
+dependencies = [
+ "serde",
+ "serde-wasm-bindgen",
+ "tsify-next-macros",
+ "wasm-bindgen",
+]
+
+[[package]]
+name = "tsify-next-macros"
+version = "0.5.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0d5c06f8a51d759bb58129e30b2631739e7e1e4579fad1f30ac09a6c88e488a6"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "serde_derive_internals",
+ "syn 2.0.77",
+]
 
 [[package]]
 name = "typenum"

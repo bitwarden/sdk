@@ -20,6 +20,7 @@ argon2 = { version = ">=0.5.0, <0.6", features = [
     "zeroize",
 ], default-features = false }
 bitwarden = { workspace = true }
+bitwarden-vault = { workspace = true, features = ["wasm"] }
 bitwarden-json = { path = "../bitwarden-json", features = [
     "secrets",
     "internal",
@@ -33,6 +34,7 @@ js-sys = "0.3.68"
 log = "0.4.20"
 serde = { version = "1.0.196", features = ["derive"] }
 serde-wasm-bindgen = "0.6.5"
+tsify-next = { version = "0.5.4", features = ["js"], default-features = false }
 wasm-bindgen = { version = "0.2.91", features = ["serde-serialize"] }
 wasm-bindgen-futures = "0.4.41"
 

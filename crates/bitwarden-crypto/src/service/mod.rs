@@ -10,7 +10,8 @@ mod key_store;
 use context::RustCryptoServiceContext;
 pub use encryptable::{Decryptable, Encryptable, KeyProvided, KeyProvidedExt, UsesKey};
 use key_ref::{AsymmetricKeyRef, KeyRef, SymmetricKeyRef};
-use key_store::{create_key_store, KeyStore};
+pub use key_store::create_key_store;
+use key_store::KeyStore;
 
 #[derive(Clone)]
 pub struct CryptoService<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef> {

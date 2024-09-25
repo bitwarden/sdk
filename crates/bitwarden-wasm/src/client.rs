@@ -8,24 +8,7 @@ use log::{set_max_level, Level};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::future_to_promise;
 
-#[wasm_bindgen]
-pub enum LogLevel {
-    Trace,
-    Debug,
-    Info,
-    Warn,
-    Error,
-}
-
-fn convert_level(level: LogLevel) -> Level {
-    match level {
-        LogLevel::Trace => Level::Trace,
-        LogLevel::Debug => Level::Debug,
-        LogLevel::Info => Level::Info,
-        LogLevel::Warn => Level::Warn,
-        LogLevel::Error => Level::Error,
-    }
-}
+use crate::log_level::{convert_level, LogLevel};
 
 // Rc<...> is to avoid needing to take ownership of the Client during our async run_command
 // function https://github.com/rustwasm/wasm-bindgen/issues/2195#issuecomment-799588401

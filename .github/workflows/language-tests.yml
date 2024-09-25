@@ -51,7 +51,7 @@ jobs:
       - name: Build schemas
         run: npm run schemas
 
-      - name: zip languages dir
+      - name: Zip languages dir
         run: zip -r languages.zip languages
 
       - name: Upload schemas
@@ -130,6 +130,12 @@ jobs:
         working-directory: languages/language_tests
         run: cargo run setup
 
+      - name: Install Ruby
+        if: matrix.language == 'ruby'
+        uses: ruby/setup-ruby@c04af2bb7258bb6a03df1d3c1865998ac9390972 # v1.194.0
+        with:
+          ruby-version: '3.2' # Not needed with a .ruby-version file
+      
       - name: Run language tests
         run: |
           cd $GITHUB_WORKSPACE/languages/${{ matrix.language }}

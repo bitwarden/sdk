@@ -1,5 +1,5 @@
 use super::{
-    util::{KeyData, SliceKeyStore},
+    slice::{KeyData, SliceKeyStore},
     KeyRef,
 };
 
@@ -72,7 +72,7 @@ impl<Key: KeyRef> KeyData<Key> for RustImplKeyData<Key> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::service::key_store::{util::tests::*, KeyStore as _};
+    use crate::service::key_store::{slice::tests::*, KeyStore as _};
 
     #[test]
     fn test_resize() {

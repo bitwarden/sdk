@@ -100,7 +100,8 @@ impl<Key: KeyRef, Data: KeyData<Key>> KeyStore<Key> for SliceKeyStore<Key, Data>
     }
 
     fn clear(&mut self) {
-        self.get_key_data_mut().fill_with(|| None);
+        let len = self.length;
+        self.get_key_data_mut()[0..len].fill_with(|| None);
         self.length = 0;
     }
 
@@ -176,8 +177,12 @@ impl<Key: KeyRef, Data: KeyData<Key>> SliceKeyStore<Key, Data> {
     fn check_capacity(&self, new_elements: usize) -> Result<(), usize> {
         let new_size = self.length + new_elements;
 
-        // This is the first allocation
-        if self.capacity == 0 {
+        // We still have enough capacity
+        if new_size <= self.capacity {
+            Ok(())
+
+            // This is the first allocation
+        } else if self.capacity == 0 {
             const PAGE_SIZE: usize = 4096;
             let entry_size = std::mem::size_of::<Option<(Key, Key::KeyValue)>>();
 
@@ -187,16 +192,12 @@ impl<Key: KeyRef, Data: KeyData<Key>> SliceKeyStore<Key, Data> {
             Err(entries_per_page)
 
         // We need to resize the container
-        } else if new_size > self.capacity {
+        } else {
             // We want to increase the capacity by a multiple to be mostly aligned with page size,
             // we also need to make sure that we have enough space for the new elements, so we round
             // up
             let increase_factor = usize::div_ceil(new_size, self.capacity);
             Err(self.capacity * increase_factor)
-
-        // We still have enough capacity
-        } else {
-            Ok(())
         }
     }
 
@@ -271,7 +272,10 @@ pub(crate) mod tests {
     use zeroize::Zeroize;
 
     use super::*;
-    use crate::{service::key_ref::KeyRef, CryptoKey};
+    use crate::{
+        service::{key_ref::KeyRef, key_store::implementation::rust_slice::RustKeyStore},
+        CryptoKey,
+    };
 
     #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     pub enum TestKey {
@@ -307,37 +311,9 @@ pub(crate) mod tests {
         }
     }
 
-    pub struct TestKeyContainer<Key: KeyRef> {
-        keys: Vec<Option<(Key, Key::KeyValue)>>,
-    }
-    impl<Key: KeyRef> Drop for TestKeyContainer<Key> {
-        fn drop(&mut self) {}
-    }
-
-    impl<Key: KeyRef> KeyData<Key> for TestKeyContainer<Key> {
-        fn is_available() -> bool {
-            true
-        }
-
-        fn with_capacity(capacity: usize) -> Self {
-            Self {
-                keys: std::iter::repeat_with(|| None).take(capacity).collect(),
-            }
-        }
-
-        fn get_key_data(&self) -> &[Option<(Key, Key::KeyValue)>] {
-            self.keys.as_slice()
-        }
-
-        fn get_key_data_mut(&mut self) -> &mut [Option<(Key, Key::KeyValue)>] {
-            self.keys.as_mut_slice()
-        }
-    }
-
     #[test]
     fn test_slice_container_insertion() {
-        let mut container =
-            SliceKeyStore::<TestKey, TestKeyContainer<_>>::with_capacity(5).unwrap();
+        let mut container = RustKeyStore::<TestKey>::with_capacity(5).unwrap();
 
         assert_eq!(container.get_key_data(), [None, None, None, None, None]);
 
@@ -448,8 +424,7 @@ pub(crate) mod tests {
 
     #[test]
     fn test_slice_container_get() {
-        let mut container =
-            SliceKeyStore::<TestKey, TestKeyContainer<_>>::with_capacity(5).unwrap();
+        let mut container = RustKeyStore::<TestKey>::with_capacity(5).unwrap();
 
         for (key, value) in [
             (TestKey::A, TestKeyValue::new(1)),
@@ -467,8 +442,7 @@ pub(crate) mod tests {
 
     #[test]
     fn test_slice_container_clear() {
-        let mut container =
-            SliceKeyStore::<TestKey, TestKeyContainer<_>>::with_capacity(5).unwrap();
+        let mut container = RustKeyStore::<TestKey>::with_capacity(5).unwrap();
 
         for (key, value) in [
             (TestKey::A, TestKeyValue::new(1)),
@@ -498,8 +472,7 @@ pub(crate) mod tests {
 
     #[test]
     fn test_slice_container_ensure_capacity() {
-        let mut container =
-            SliceKeyStore::<TestKey, TestKeyContainer<_>>::with_capacity(5).unwrap();
+        let mut container = RustKeyStore::<TestKey>::with_capacity(5).unwrap();
 
         assert_eq!(container.capacity, 5);
         assert_eq!(container.length, 0);
@@ -529,8 +502,7 @@ pub(crate) mod tests {
 
     #[test]
     fn test_slice_container_removal() {
-        let mut container =
-            SliceKeyStore::<TestKey, TestKeyContainer<_>>::with_capacity(5).unwrap();
+        let mut container = RustKeyStore::<TestKey>::with_capacity(5).unwrap();
 
         for (key, value) in [
             (TestKey::A, TestKeyValue::new(1)),
@@ -616,8 +588,7 @@ pub(crate) mod tests {
 
     #[test]
     fn test_slice_container_retain_removes_one() {
-        let mut container =
-            SliceKeyStore::<TestKey, TestKeyContainer<_>>::with_capacity(5).unwrap();
+        let mut container = RustKeyStore::<TestKey>::with_capacity(5).unwrap();
 
         for (key, value) in [
             (TestKey::A, TestKeyValue::new(1)),
@@ -703,8 +674,7 @@ pub(crate) mod tests {
 
     #[test]
     fn test_slice_container_retain_removes_none() {
-        let mut container =
-            SliceKeyStore::<TestKey, TestKeyContainer<_>>::with_capacity(5).unwrap();
+        let mut container = RustKeyStore::<TestKey>::with_capacity(5).unwrap();
 
         for (key, value) in [
             (TestKey::A, TestKeyValue::new(1)),
@@ -731,8 +701,7 @@ pub(crate) mod tests {
 
     #[test]
     fn test_slice_container_retain_removes_some() {
-        let mut container =
-            SliceKeyStore::<TestKey, TestKeyContainer<_>>::with_capacity(5).unwrap();
+        let mut container = RustKeyStore::<TestKey>::with_capacity(5).unwrap();
 
         for (key, value) in [
             (TestKey::A, TestKeyValue::new(1)),
@@ -759,8 +728,7 @@ pub(crate) mod tests {
 
     #[test]
     fn test_slice_container_retain_removes_all() {
-        let mut container =
-            SliceKeyStore::<TestKey, TestKeyContainer<_>>::with_capacity(5).unwrap();
+        let mut container = RustKeyStore::<TestKey>::with_capacity(5).unwrap();
 
         for (key, value) in [
             (TestKey::A, TestKeyValue::new(1)),

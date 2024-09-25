@@ -1,7 +1,7 @@
 use std::{mem::MaybeUninit, ptr::NonNull, sync::OnceLock};
 
 use super::{
-    util::{KeyData, SliceKeyStore},
+    slice::{KeyData, SliceKeyStore},
     KeyRef,
 };
 

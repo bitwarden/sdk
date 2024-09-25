@@ -11,7 +11,7 @@ use crate::{AsymmetricCryptoKey, CryptoKey, SymmetricCryptoKey};
 pub trait KeyRef:
     Debug + Clone + Copy + Hash + Eq + PartialEq + Ord + PartialOrd + Send + Sync + 'static
 {
-    type KeyValue: Debug + CryptoKey + Send + Sync + ZeroizeOnDrop;
+    type KeyValue: CryptoKey + Send + Sync + ZeroizeOnDrop;
 
     /// Returns whether the key is local to the current context or shared globally by the service.
     fn is_local(&self) -> bool;

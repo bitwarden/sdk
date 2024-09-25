@@ -59,7 +59,7 @@ def secret_with_project_id(val: [dict], projects: [ProjectResponse]) -> [dict]:
     ]
 
 
-def secrets_equal(a: dict, b: SecretResponse, projects: [ProjectResponse]) -> bool:
+def secrets_equal(a: dict, b: SecretResponse) -> bool:
     return (
         a["key"] == b.key
         and a["project_id"] == b.project_id
@@ -91,11 +91,11 @@ class PythonLanguageTests(object):
         cls.mutable_client = BitwardenClient(settings)
 
         # authenticate
-        print(cls)
         cls.state_path = os.path.join(language_tests_path, "state.json")
+        cls.mutable_state_path = os.path.join(language_tests_path, "mutable_state.json")
         cls.client.auth().login_access_token(os.getenv("ACCESS_TOKEN"), cls.state_path)
         cls.mutable_client.auth().login_access_token(
-            os.getenv("MUTABLE_ACCESS_TOKEN"), cls.state_path
+            os.getenv("MUTABLE_ACCESS_TOKEN"), cls.mutable_state_path
         )
 
         # Query for projects
@@ -109,6 +109,7 @@ class PythonLanguageTests(object):
     @classmethod
     def tearDownClass(cls):
         os.remove(cls.state_path)
+        os.remove(cls.mutable_state_path)
 
 
 class ReadTests(PythonLanguageTests, unittest.TestCase):
@@ -150,7 +151,7 @@ class ReadTests(PythonLanguageTests, unittest.TestCase):
                 None,
             )
             self.assertIsNotNone(expected_secret)
-            self.assertTrue(secrets_equal(expected_secret, secret, self.projects))
+            self.assertTrue(secrets_equal(expected_secret, secret))
 
     def test_projects_have_correct_data(self):
         expected_names = [p["name"] for p in self.expected_projects]
@@ -173,7 +174,7 @@ class ReadTests(PythonLanguageTests, unittest.TestCase):
                 None,
             )
             self.assertIsNotNone(expected_secret)
-            self.assertTrue(secrets_equal(expected_secret, secret, self.projects))
+            self.assertTrue(secrets_equal(expected_secret, secret))
 
     def test_project_get_equal_to_list(self):
         for project in self.projects:
@@ -222,7 +223,7 @@ class SecretWriteTests(PythonLanguageTests, unittest.TestCase):
             [self.write_project.id],
         )
         self.assertTrue(response.success)
-        self.assertTrue(secrets_equal(secret, response.data, self.projects))
+        self.assertTrue(secrets_equal(secret, response.data))
 
         # delete
         response = self.mutable_client.secrets().delete([response.data.id])
@@ -252,7 +253,7 @@ class SecretWriteTests(PythonLanguageTests, unittest.TestCase):
             [self.write_project.id],
         )
         self.assertTrue(response.success)
-        self.assertTrue(secrets_equal(updated_secret, response.data, self.projects))
+        self.assertTrue(secrets_equal(updated_secret, response.data))
 
 
 class ProjectsWriteTests(PythonLanguageTests, unittest.TestCase):

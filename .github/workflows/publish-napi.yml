@@ -33,8 +33,8 @@ jobs:
     name: Setup
     runs-on: ubuntu-22.04
     outputs:
-      release-version: ${{ steps.version.outputs.version }}
-      tag-name: ${{ steps.version.outputs.tag_name }}
+      release-version: ${{ steps.version-output.outputs.version }}
+      tag-name: ${{ steps.version-output.outputs.tag_name }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7

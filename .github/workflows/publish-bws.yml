@@ -68,7 +68,7 @@ jobs:
           token: "${{ secrets.GITHUB_TOKEN }}"
           initial-status: "in_progress"
           environment: "bws CLI - Production"
-          description: "Deployment ${{ steps.version.outputs.version }} from branch ${{ github.ref_name }}"
+          description: "Deployment ${{ steps.version-output.outputs.version }} from branch ${{ github.ref_name }}"
           task: release
 
 

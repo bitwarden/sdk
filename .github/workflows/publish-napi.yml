@@ -99,7 +99,7 @@ jobs:
 
       - name: Download schemas.ts artifact
         run: |
-          wget https://github.com/bitwarden/sdk/releases/download/napi-v${{ needs.validate.outputs.version }}/schemas.ts
+          wget https://github.com/bitwarden/sdk/releases/download/napi-v${{ env._PKG_VERSION }}/schemas.ts
           mv schemas.ts ${{ github.workspace }}/crates/bitwarden-napi/src-ts/bitwarden_client/schemas.ts
 
       - name: Install dependencies
@@ -122,10 +122,10 @@ jobs:
 
       - name: Download sdk-napi artifacts
         run: |
-          wget https://github.com/bitwarden/sdk/releases/download/napi-v${{ needs.validate.outputs.version }}/sdk-napi.darwin-arm64.node
-          wget https://github.com/bitwarden/sdk/releases/download/napi-v${{ needs.validate.outputs.version }}/sdk-napi.darwin-x64.node
-          wget https://github.com/bitwarden/sdk/releases/download/napi-v${{ needs.validate.outputs.version }}/sdk-napi.win32-x64-msvc.node
-          wget https://github.com/bitwarden/sdk/releases/download/napi-v${{ needs.validate.outputs.version }}/sdk-napi.linux-x64-gnu.node
+          wget https://github.com/bitwarden/sdk/releases/download/napi-v${{ env._PKG_VERSION }}/sdk-napi.darwin-arm64.node
+          wget https://github.com/bitwarden/sdk/releases/download/napi-v${{ env._PKG_VERSION }}/sdk-napi.darwin-x64.node
+          wget https://github.com/bitwarden/sdk/releases/download/napi-v${{ env._PKG_VERSION }}/sdk-napi.win32-x64-msvc.node
+          wget https://github.com/bitwarden/sdk/releases/download/napi-v${{ env._PKG_VERSION }}/sdk-napi.linux-x64-gnu.node
           mv sdk-napi.*.node ${{ github.workspace }}/crates/bitwarden-napi/artifacts
 
       - name: Move artifacts

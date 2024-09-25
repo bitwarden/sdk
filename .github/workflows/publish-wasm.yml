@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-22.04
     outputs:
       release-version: ${{ steps.version-output.outputs.version }}
-      tag-name: ${{ steps.version-output.outputs.tag_name }}
+      tag_name: ${{ steps.version-output.outputs.tag_name }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
@@ -71,7 +71,7 @@ jobs:
     needs: setup
     if: inputs.npm_publish
     env:
-      _PKG_VERSION: ${{ needs.setup.outputs.release-version }}
+      _VERSION: ${{ needs.setup.outputs.release-version }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
@@ -108,7 +108,7 @@ jobs:
       - name: Download artifact
         run: |
           cd ${{ github.workspace }}/languages/js/wasm
-          wget https://github.com/bitwarden/sdk/releases/download/wasm-v${{ needs.validate.outputs.version }}/sdk-bitwarden-wasm.zip
+          wget https://github.com/bitwarden/sdk/releases/download/wasm-v${{ env._VERSION }}/sdk-bitwarden-wasm.zip
           unzip sdk-bitwarden-wasm.zip
           rm sdk-bitwarden-wasm.zip
 
@@ -120,7 +120,7 @@ jobs:
           token: "${{ secrets.GITHUB_TOKEN }}"
           initial-status: "in_progress"
           environment: "Bitwarden SDK WASM - Production"
-          description: "Deployment ${{ steps.version.outputs.version }} from branch ${{ github.ref_name }}"
+          description: "Deployment ${{ env._VERSION }} from branch ${{ github.ref_name }}"
           task: release
 
       - name: Setup NPM

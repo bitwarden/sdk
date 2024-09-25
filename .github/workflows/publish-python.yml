@@ -67,7 +67,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
-          ref: ${{ steps.version-output.outputs.tag_name }}
+          ref: ${{ needs.setup.outputs.tag_name }}
 
       - name: Install Python
         uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # v5.2.0
@@ -80,7 +80,7 @@ jobs:
       - name: Get release assets
         working-directory: ${{ github.workspace }}/target/wheels/dist
         run: |
-          ARTIFACT_URLS=$(curl -sSL https://api.github.com/repos/bitwarden/sdk/releases/tags/${{ steps.version-output.outputs.tag_name }} | jq -r '.assets[].browser_download_url')
+          ARTIFACT_URLS=$(curl -sSL https://api.github.com/repos/bitwarden/sdk/releases/tags/${{ needs.setup.outputs.tag_name }} | jq -r '.assets[].browser_download_url')
           for url in $ARTIFACT_URLS; do
             wget $url
           done

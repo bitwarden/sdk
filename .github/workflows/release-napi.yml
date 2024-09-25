@@ -30,7 +30,7 @@ jobs:
     name: Setup
     runs-on: ubuntu-22.04
     outputs:
-      release-version: ${{ steps.version.outputs.version }}
+      version: ${{ steps.version.outputs.version }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
@@ -79,11 +79,11 @@ jobs:
         if: ${{ inputs.release_type != 'Dry Run' }}
         uses: ncipollo/release-action@2c591bcc8ecdcd2db72b97d6147f871fcd833ba5 # v1.14.0
         env:
-          PKG_VERSION: ${{ needs.setup.outputs.version }}
+          _VERSION: ${{ needs.setup.outputs.version }}
         with:
           commit: ${{ github.sha }}
-          tag: napi-v${{ env.PKG_VERSION }}
-          name: napi v${{ env.PKG_VERSION }}
+          tag: napi-v${{ env._VERSION }}
+          name: napi v${{ env._VERSION }}
           body: "<insert release notes here>"
           token: ${{ secrets.GITHUB_TOKEN }}
           draft: true

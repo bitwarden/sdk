@@ -69,7 +69,7 @@ jobs:
           token: '${{ secrets.GITHUB_TOKEN }}'
           initial-status: 'in_progress'
           environment: 'dotnet - Production'
-          description: 'Deployment ${{ steps.version-output.outputs.version }} from branch ${{ github.ref_name }}'
+          description: 'Deployment ${{ needs.validate.outputs.version }} from branch ${{ github.ref_name }}'
           task: release
 
       - name: Download artifact

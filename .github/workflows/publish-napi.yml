@@ -87,7 +87,7 @@ jobs:
           token: "${{ secrets.GITHUB_TOKEN }}"
           initial-status: "in_progress"
           environment: "Bitwarden SDK NAPI - Production"
-          description: "Deployment ${{ steps.version.outputs.version }} from branch ${{ github.ref_name }}"
+          description: "Deployment ${{ env._PKG_VERSION }} from branch ${{ github.ref_name }}"
           task: release
 
       - name: Setup Node

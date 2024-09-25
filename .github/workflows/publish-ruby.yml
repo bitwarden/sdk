@@ -79,7 +79,7 @@ jobs:
           token: "${{ secrets.GITHUB_TOKEN }}"
           initial-status: "in_progress"
           environment: "Bitwarden Ruby SDK - Production"
-          description: "Deployment ${{ steps.version.outputs.version }} from branch ${{ github.ref_name }}"
+          description: "Deployment ${{ env._VERSION }} from branch ${{ github.ref_name }}"
           task: release
 
       - name: Login to Azure

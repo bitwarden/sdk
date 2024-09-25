@@ -45,9 +45,7 @@ jobs:
   github-release:
     name: GitHub Release
     runs-on: ubuntu-22.04
-    needs:
-      - repo-sync
-      - validate
+    needs: validate
     env:
       _PKG_VERSION: ${{ needs.validate.outputs.version }}
     steps:

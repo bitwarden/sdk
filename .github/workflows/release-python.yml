@@ -1,0 +1,78 @@
+---
+name: Publish Python SDK
+run-name: Publish Python SDK ${{ inputs.release_type }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Release Options"
+        required: true
+        default: "Release"
+        type: choice
+        options:
+          - Release
+          - Dry Run
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Branch check
+        if: ${{ inputs.release_type != 'Dry Run' }}
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "==================================="
+            echo "[!] Can only release from the 'main' branch"
+            echo "==================================="
+            exit 1
+          fi
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(cat languages/python/pyproject.toml | grep -Eo 'version = "[0-9]+\.[0-9]+\.[0-9]+"' | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
+          echo "version=$VERSION" >> $GITHUB_ENV
+
+  release:
+    name: Release
+    runs-on: ubuntu-22.04
+    needs: setup
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Download artifacts
+        uses: dawidd6/action-download-artifact@bf251b5aa9c2f7eeb574a96ee720e24f801b7c11 # v6
+        with:
+          workflow: build-python-wheels.yml
+          path: ${{ github.workspace }}/target/wheels/dist
+          workflow_conclusion: success
+          branch: main
+          name: bitwarden_sdk(.*)
+          name_is_regexp: true
+
+      - name: Create GitHub release
+        if: ${{ inputs.release_type != 'Dry Run' }}
+        uses: ncipollo/release-action@2c591bcc8ecdcd2db72b97d6147f871fcd833ba5 # v1.14.0
+        env:
+          PKG_VERSION: ${{ needs.setup.outputs.version }}
+        with:
+          commit: ${{ github.sha }}
+          tag: python-v${{ env.PKG_VERSION }}
+          name: Python v${{ env.PKG_VERSION }}
+          body: "<insert release notes here>"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          draft: true
+          artifacts: |
+            ${{ github.workspace }}/target/wheels/dist/bitwarden_sdk-*.whl

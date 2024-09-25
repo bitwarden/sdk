@@ -80,7 +80,7 @@ jobs:
           # - nodejs_wasm
           # - php
           - python
-          # - ruby
+          - ruby
           # - swift
 
     steps:

@@ -24,11 +24,15 @@ bitwarden-json = { path = "../bitwarden-json", features = [
     "secrets",
     "internal",
 ] }
+chrono = { version = ">=0.4.26, <0.5", default-features = true, features = [
+    "serde",
+] }
 console_error_panic_hook = "0.1.7"
 console_log = { version = "1.0.0", features = ["color"] }
 js-sys = "0.3.68"
 log = "0.4.20"
 serde = { version = "1.0.196", features = ["derive"] }
+serde-wasm-bindgen = "0.6.5"
 wasm-bindgen = { version = "0.2.91", features = ["serde-serialize"] }
 wasm-bindgen-futures = "0.4.41"
 

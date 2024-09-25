@@ -1,12 +1,15 @@
-use std::rc::Rc;
+use std::sync::Arc;
 use wasm_bindgen::prelude::*;
 
-use crate::log_level::{convert_level, LogLevel};
+use crate::{
+    log_level::{convert_level, LogLevel},
+    vault::ClientVault,
+};
 
 // Rc<...> is to avoid needing to take ownership of the Client during our async run_command
 // function https://github.com/rustwasm/wasm-bindgen/issues/2195#issuecomment-799588401
 #[wasm_bindgen]
-pub struct RawBitwardenClient(Rc<bitwarden::Client>);
+pub struct RawBitwardenClient(Arc<bitwarden::Client>);
 
 #[wasm_bindgen]
 impl RawBitwardenClient {
@@ -19,7 +22,12 @@ impl RawBitwardenClient {
         {
             panic!("failed to initialize logger: {:?}", e);
         }
-        Self(Rc::new(bitwarden::Client::new(None)))
+        Self(Arc::new(bitwarden::Client::new(None)))
+    }
+
+    #[wasm_bindgen]
+    pub fn vault(&self) -> ClientVault {
+        ClientVault(self.0.clone())
     }
 
     #[wasm_bindgen]

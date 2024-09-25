@@ -1,4 +1,5 @@
 use std::sync::{Arc, RwLock};
+use wasm_bindgen::prelude::*;
 
 use reqwest::header::{self, HeaderValue};
 
@@ -12,8 +13,10 @@ use crate::client::{
 
 /// The main struct to interact with the Bitwarden SDK.
 #[derive(Debug)]
+#[wasm_bindgen]
 pub struct Client {
     #[doc(hidden)]
+    #[wasm_bindgen(skip)]
     pub internal: InternalClient,
 }
 

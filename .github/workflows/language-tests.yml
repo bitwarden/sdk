@@ -124,8 +124,8 @@ jobs:
           unzip languages.zip
 
       - name: Set up run data
-        run: |
-          cargo run --release --bin language-tests setup
+        working-directory: languages/language_tests
+        run: cargo run setup
 
       - name: Run language tests
         run: |
@@ -134,6 +134,5 @@ jobs:
 
       - name: Tear down run data
         if: always()
-        run: |
-          cd $GITHUB_WORKSPACE
-          cargo run --release --bin language-tests teardown
+        working-directory: languages/language_tests
+        run: cargo run teardown

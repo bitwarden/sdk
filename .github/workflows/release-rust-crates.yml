@@ -1,5 +1,5 @@
 name: Release Rust crates
-run-name: Publish Rust crates ${{ inputs.release_type }}
+run-name: Release Rust crates ${{ inputs.release_type }}
 
 on:
   workflow_dispatch:

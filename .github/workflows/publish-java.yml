@@ -93,7 +93,7 @@ jobs:
           workflow_conclusion: success
           artifacts: resources
           path: languages/java/src/main/resources
-      
+
       - name: Download Java Resources
         uses: bitwarden/gh-actions/download-artifacts@main
         with:

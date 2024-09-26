@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
-members = ["crates/*", "languages/language_tests"]
+members = ["crates/*"]
+exclude = ["languages/language_tests"]
 
 # Global settings for all crates should be defined here
 [workspace.package]

@@ -15,7 +15,7 @@ use bitwarden::{
     Client,
 };
 use e2e_data::{
-    load_projects, load_realized_secrets, load_secrets, DataKind, RealizedTestSecretData,
+    load_projects, load_realized_secrets, DataKind, RealizedTestSecretData,
     TestProjectData,
 };
 use tokio::task::JoinHandle;

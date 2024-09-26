@@ -2202,19 +2202,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "language-tests"
-version = "0.5.0"
-dependencies = [
- "anyhow",
- "bitwarden",
- "futures",
- "serde",
- "serde_json",
- "tokio",
- "uuid",
-]
-
-[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

@@ -70,7 +70,7 @@ pub fn load_projects(run_id: &str, data_kind: DataKind) -> Result<Vec<TestProjec
         .collect())
 }
 
-pub fn load_secrets(run_id: &str, data_kind: DataKind) -> Result<Vec<TestSecretData>> {
+fn load_secrets(run_id: &str, data_kind: DataKind) -> Result<Vec<TestSecretData>> {
     let data = match data_kind {
         DataKind::Mutable => load_data()?.mutable_secrets,
         DataKind::Immutable => load_data()?.secrets,

@@ -13,15 +13,9 @@ on:
         options:
           - Release
           - Dry Run
-      npm_publish:
-        description: "Publish to NPM registry"
-        required: true
-        default: true
-        type: boolean
 
 defaults:
   run:
-    shell: bash
     working-directory: languages/js/wasm
 
 jobs:
@@ -35,7 +29,7 @@ jobs:
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Branch check
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        if: ${{ inputs.release_type != 'Dry Run' }}
         run: |
           if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
             echo "==================================="

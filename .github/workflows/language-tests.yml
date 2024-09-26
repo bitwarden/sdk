@@ -102,7 +102,10 @@ jobs:
 
       - name: Create run-id
         id: run-id
-        run: echo "RUN_ID=$(uuidgen)" >> $GITHUB_ENV
+        run: |
+          export RUN_ID=$(uuidgen)
+          echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
+          echo "RUN_ID=$RUN_ID"
 
       - name: Get Setup Values
         uses: bitwarden/sm-action@92d1d6a4f26a89a8191c83ab531a53544578f182 # v2.0.0

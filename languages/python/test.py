@@ -31,6 +31,18 @@ def project_with_run_id(val: [dict]) -> [dict]:
     return [dict(val, name=with_run_id(val["name"])) for val in val]
 
 
+def filter_projects_to_this_run(projects: [ProjectResponse]) -> [ProjectResponse]:
+    if projects is None:
+        return None
+    return [project for project in projects if project.name.endswith(run_id)]
+
+
+def filter_secrets_to_this_run(secrets: [SecretResponse]) -> [SecretResponse]:
+    if secrets is None:
+        return None
+    return [secret for secret in secrets if secret.key.endswith(run_id)]
+
+
 def secret_with_run_id(val: [dict]) -> [dict]:
     return [
         dict(
@@ -100,7 +112,8 @@ class PythonLanguageTests(object):
 
         # Query for projects
         cls.projects_response = cls.client.projects().list(organization_id)
-        cls.projects = getattr(cls.projects_response.data, "data", None)
+        cls.all_projects = getattr(cls.projects_response.data, "data", None)
+        cls.projects = filter_projects_to_this_run(cls.all_projects)
         cls.mutable_projects_response = cls.mutable_client.projects().list(
             organization_id
         )
@@ -129,7 +142,8 @@ class ReadTests(PythonLanguageTests, unittest.TestCase):
         cls.secrets_response = cls.client.secrets().get_by_ids(
             [secret.id for secret in cls.list_response.data.data]
         )
-        cls.secrets = getattr(cls.secrets_response.data, "data", None)
+        cls.all_secrets = getattr(cls.secrets_response.data, "data", None)
+        cls.secrets = filter_secrets_to_this_run(cls.all_secrets)
         cls.list = getattr(cls.list_response.data, "data", None)
 
     def test_list_response_is_success(self):

@@ -34,8 +34,10 @@ describe 'Ruby Read E2E' do
   let(:expected_data) { JSON.parse(File.read(expected_data_file)) }
   let(:expected_projects) { expected_data['projects'].map { |p| project_with_run_id p } }
   let(:expected_secrets) { expected_data['secrets'].map { |s| secret_with_project_id(secret_with_run_id(s), projects) } }
-  let(:projects) { @client.projects.list(organization_id) }
-  let(:secrets) { @client.secrets.list(organization_id) }
+  let(:all_projects) { @client.projects.list(organization_id).filter }
+  let(:projects) { filter_projects_to_this_run(all_projects) }
+  let(:all_secrets) { @client.secrets.list(organization_id) }
+  let(:secrets) { filter_secrets_to_this_run(all_secrets) }
 
   before(:all) do
     # Set up client

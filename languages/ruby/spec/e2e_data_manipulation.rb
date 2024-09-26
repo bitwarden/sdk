@@ -7,6 +7,16 @@ def with_run_id(str)
   "#{str}-#{run_id}"
 end
 
+def filter_projects_to_this_run(projects)
+  run_id = env('RUN_ID')
+  projects.filter { |p| p['name'].end_with? run_id }
+end
+
+def filter_secrets_to_this_run(secrets)
+  run_id = env('RUN_ID')
+  secrets.filter { |p| p['key'].end_with? run_id }
+end
+
 def project_with_run_id(project)
   project['name'] = with_run_id project['name']
   project

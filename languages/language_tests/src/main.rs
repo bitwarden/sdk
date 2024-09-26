@@ -1,3 +1,5 @@
+use std::{env, sync::Arc};
+
 use anyhow::{bail, Context, Result};
 use bitwarden::{
     auth::login::AccessTokenLoginRequest,
@@ -16,7 +18,6 @@ use e2e_data::{
     load_projects, load_realized_secrets, load_secrets, DataKind, RealizedTestSecretData,
     TestProjectData,
 };
-use std::{env, sync::Arc};
 use tokio::task::JoinHandle;
 use uuid::Uuid;
 

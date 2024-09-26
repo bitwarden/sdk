@@ -39,7 +39,7 @@ jobs:
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Branch check
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        if: ${{ inputs.release_type != 'Dry Run' }}
         run: |
           if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
             echo "==================================="
@@ -79,7 +79,7 @@ jobs:
           ref: ${{ env._TAG_NAME }}
 
       - name: Create GitHub deployment
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        if: ${{ inputs.release_type != 'Dry Run' }}
         uses: chrnorm/deployment-action@55729fcebec3d284f60f5bcabbd8376437d696b1 # v2.0.7
         id: deployment
         with:
@@ -141,11 +141,11 @@ jobs:
           NPM_TOKEN: ${{ steps.retrieve-secrets.outputs.npm-api-key }}
 
       - name: Publish NPM
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        if: ${{ inputs.release_type != 'Dry Run' }}
         run: npm publish --access public --registry=https://registry.npmjs.org/  --userconfig=./.npmrc
 
       - name: Update deployment status to Success
-        if: ${{ github.event.inputs.release_type != 'Dry Run' && success() }}
+        if: ${{ inputs.release_type != 'Dry Run' && success() }}
         uses: chrnorm/deployment-status@9a72af4586197112e0491ea843682b5dc280d806 # v2.0.3
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"

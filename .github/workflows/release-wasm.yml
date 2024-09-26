@@ -42,7 +42,7 @@ jobs:
         id: version
         uses: bitwarden/gh-actions/release-version-check@main
         with:
-          release-type: ${{ github.event.inputs.release_type }}
+          release-type: ${{ inputs.release_type }}
           project-type: ts
           file: languages/js/wasm/package.json
           monorepo: false

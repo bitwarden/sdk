@@ -37,7 +37,7 @@ To build, you will need the following in your PATH:
 
 ## Documentation
 
-Please refer to our Contributing Docs for
+Please refer to our [Contributing Docs](https://contributing.bitwarden.com/) for
 [getting started](https://contributing.bitwarden.com/getting-started/sdk/) instructions and
 [architectural documentation](https://contributing.bitwarden.com/architecture/sdk/).
 

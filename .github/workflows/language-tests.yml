@@ -37,7 +37,7 @@ jobs:
 
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
-        with: 
+        with:
           cache-on-failure: "true"
 
       - name: Install node
@@ -94,7 +94,7 @@ jobs:
 
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
-        with: 
+        with:
           cache-on-failure: "true"
 
       - name: Create run-id

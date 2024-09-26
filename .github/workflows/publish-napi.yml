@@ -25,7 +25,6 @@ on:
 
 defaults:
   run:
-    shell: bash
     working-directory: crates/bitwarden-napi
 
 jobs:

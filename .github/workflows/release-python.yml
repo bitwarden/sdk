@@ -14,10 +14,6 @@ on:
           - Release
           - Dry Run
 
-defaults:
-  run:
-    shell: bash
-
 jobs:
   setup:
     name: Setup

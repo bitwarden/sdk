@@ -96,15 +96,6 @@ jobs:
           keyvault: "bitwarden-ci"
           secrets: "npm-api-key"
 
-      - name: Download artifacts
-        uses: bitwarden/gh-actions/download-artifacts@main
-        with:
-          workflow: build-wasm.yml
-          path: ${{ github.workspace }}/languages/js/wasm
-          workflow_conclusion: success
-          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
-
-
       - name: Download artifact
         run: |
           cd ${{ github.workspace }}/languages/js/wasm

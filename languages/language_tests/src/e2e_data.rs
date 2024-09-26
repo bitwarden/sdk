@@ -1,4 +1,4 @@
-use std::{env::var, fs::File, io::BufReader, path::Path};
+use std::{env::var, fs::File, io::BufReader};
 
 use anyhow::{Context, Result};
 use bitwarden::secrets_manager::projects::ProjectResponse;

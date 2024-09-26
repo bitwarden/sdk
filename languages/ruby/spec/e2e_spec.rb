@@ -82,6 +82,24 @@ describe 'Ruby Read E2E' do
     expect(response).to equal_secret(expected_secret)
   end
 
+  it 'should sync secrets' do
+    response = @client.secrets.sync(organization_id, nil)
+    expect(response).to be_an_instance_of(Hash)
+    expect(response['hasChanges']).to be_truthy
+    secrets = filter_secrets_to_this_run(response['secrets'])
+    secrets.each do |secret|
+      expected_secret = expected_secrets.find { |s| s['key'] == secret['key'] }
+      expect(secret).to equal_secret(expected_secret)
+    end
+  end
+
+  it 'should not have new sync changes' do
+    response = @client.secrets.sync(organization_id, Time.now.utc.strftime('%Y-%m-%dT%H:%M:%S.%6NZ'))
+    expect(response).to be_an_instance_of(Hash)
+    expect(response['hasChanges']).to be_falsey
+    expect(response['secrets']).to be_nil
+  end
+
   after(:all) do
     File.delete(@state_file) if File.exist?(@state_file)
   end

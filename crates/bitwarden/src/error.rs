@@ -37,8 +37,6 @@ pub enum Error {
     ExportError(#[from] ExportError),
 
     // Fido
-    /*
-    # PR #1072
     #[cfg(all(feature = "uniffi", feature = "internal"))]
     #[error(transparent)]
     MakeCredential(#[from] bitwarden_fido::MakeCredentialError),
@@ -59,7 +57,7 @@ pub enum Error {
     #[cfg(all(feature = "uniffi", feature = "internal"))]
     #[error(transparent)]
     Fido2Client(#[from] bitwarden_fido::Fido2ClientError),
-    */
+
     #[error("Internal error: {0}")]
     Internal(Cow<'static, str>),
 }

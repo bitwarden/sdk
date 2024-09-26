@@ -81,6 +81,7 @@ pub mod internal {
 
     /*
       PM-12431
+      # PR #1072
 
       Temporarily un-export bitwarden_fido, as bitwarden_fido
       is not ready for release yet. This will unblock the

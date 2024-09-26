@@ -30,7 +30,8 @@ uniffi = [
     "bitwarden-core/uniffi",
     "bitwarden-crypto/uniffi",
     "bitwarden-exporters/uniffi",
-    "bitwarden-fido/uniffi",
+    # PR #1072
+    # "bitwarden-fido/uniffi",
     "bitwarden-generators/uniffi",
     "bitwarden-send/uniffi",
     "bitwarden-vault/uniffi",
@@ -43,7 +44,8 @@ bitwarden-api-identity = { workspace = true }
 bitwarden-core = { workspace = true }
 bitwarden-crypto = { workspace = true }
 bitwarden-exporters = { workspace = true, optional = true }
-bitwarden-fido = { workspace = true, optional = true }
+# PR #1072
+# bitwarden-fido = { workspace = true, optional = true }
 bitwarden-generators = { workspace = true, optional = true }
 bitwarden-send = { workspace = true, optional = true }
 bitwarden-sm = { workspace = true, optional = true }

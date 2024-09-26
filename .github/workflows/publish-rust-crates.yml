@@ -15,36 +15,23 @@ on:
           - Redeploy
           - Dry Run
 
-defaults:
-  run:
-    shell: bash
-
 jobs:
-  setup:
-    name: Setup
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-
-      - name: Branch check
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
-        run: |
-          if [[ "$GITHUB_REF" != "refs/heads/rc" ]] && [[ "$GITHUB_REF" != "refs/heads/hotfix-rc" ]]; then
-            echo "==================================="
-            echo "[!] Can only release from the 'rc' or 'hotfix-rc' branches"
-            echo "==================================="
-            exit 1
-          fi
-
   publish:
     name: Publish
-    runs-on: ubuntu-latest
-    needs:
-      - setup
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Branch check
+        if: ${{ inputs.release_type != 'Dry Run' }}
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "==================================="
+            echo "[!] Can only release from the 'main' branch"
+            echo "==================================="
+            exit 1
+          fi
 
       - name: Login to Azure
         uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
@@ -70,7 +57,7 @@ jobs:
         run: cargo install cargo-release
 
       - name: Create GitHub deployment
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        if: ${{ inputs.release_type != 'Dry Run' }}
         uses: chrnorm/deployment-action@55729fcebec3d284f60f5bcabbd8376437d696b1 # v2.0.7
         id: deployment
         with:
@@ -81,14 +68,14 @@ jobs:
           task: release
 
       - name: Cargo release
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        if: ${{ inputs.release_type != 'Dry Run' }}
         env:
           PUBLISH_GRACE_SLEEP: 10
           CARGO_REGISTRY_TOKEN: ${{ steps.retrieve-secrets.outputs.cratesio-api-token }}
-        run: cargo-release release publish --exclude bw --exclude bws --execute --no-confirm
+        run: cargo-release release publish --exclude bw --exclude bws --exclude bitwarden-fido --execute --no-confirm
 
       - name: Update deployment status to Success
-        if: ${{ github.event.inputs.release_type != 'Dry Run' && success() }}
+        if: ${{ inputs.release_type != 'Dry Run' && success() }}
         uses: chrnorm/deployment-status@9a72af4586197112e0491ea843682b5dc280d806 # v2.0.3
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
@@ -96,7 +83,7 @@ jobs:
           deployment-id: ${{ steps.deployment.outputs.deployment_id }}
 
       - name: Update deployment status to Failure
-        if: ${{ github.event.inputs.release_type != 'Dry Run' && failure() }}
+        if: ${{ inputs.release_type != 'Dry Run' && failure() }}
         uses: chrnorm/deployment-status@9a72af4586197112e0491ea843682b5dc280d806 # v2.0.3
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"

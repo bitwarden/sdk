@@ -49,7 +49,7 @@ public class ProjectsClient {
         return response.getData();
     }
 
-    public ProjectResponse update(UUID id, UUID organizationId, String name) {
+    public ProjectResponse update(UUID organizationId, UUID id, String name) {
         Command command = new Command();
         ProjectsCommand projectsCommand = new ProjectsCommand();
         ProjectPutRequest projectPutRequest = new ProjectPutRequest();

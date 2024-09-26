@@ -182,7 +182,7 @@ class ReadTests(PythonLanguageTests, unittest.TestCase):
     def test_sync(self):
         response = self.client.secrets().sync(organization_id, None)
         self.assertTrue(response.success)
-        for secret in response.data.secrets:
+        for secret in filter_secrets_to_this_run(response.data.secrets):
             expected_secret = next(
                 (s for s in self.expected_secrets if s["key"] == secret.key),
                 None,

@@ -1,6 +1,6 @@
 ---
-name: Publish Python SDK
-run-name: Publish Python SDK ${{ inputs.release_type }}
+name: Release Python SDK
+run-name: Release Python SDK ${{ inputs.release_type }}
 
 on:
   workflow_dispatch:

@@ -79,10 +79,18 @@ pub mod internal {
         pub use bitwarden_vault::*;
     }
 
-    #[cfg(feature = "uniffi")]
-    pub mod fido {
-        pub use bitwarden_fido::*;
-    }
+    /*
+      PM-12431
+      # PR #1072
+
+      Temporarily un-export bitwarden_fido, as bitwarden_fido
+      is not ready for release yet. This will unblock the
+      1.0 releases.
+    */
+    // #[cfg(feature = "uniffi")]
+    // pub mod fido {
+    //     pub use bitwarden_fido::*;
+    // }
 }
 #[cfg(feature = "internal")]
 pub use internal::*;

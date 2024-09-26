@@ -43,7 +43,7 @@ Please refer to our [Contributing Docs](https://contributing.bitwarden.com/) for
 
 You can also browse the latest published documentation:
 
-- [docs.rs](https://docs.rs/bitwarden/0.5.0/bitwarden/) for the public SDK.
+- [docs.rs](https://docs.rs/bitwarden/latest/bitwarden/) for the public SDK.
 - Or for developers of the SDK, view the internal
   [API documentation](https://sdk-api-docs.bitwarden.com/bitwarden/index.html) which includes
   private items.

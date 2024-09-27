@@ -684,6 +684,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "bitwarden-wasm-internal"
+version = "0.1.0"
+dependencies = [
+ "bitwarden",
+ "console_error_panic_hook",
+ "console_log",
+ "js-sys",
+ "log",
+ "serde_json",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+]
+
+[[package]]
 name = "blake2"
 version = "0.10.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"

@@ -26,7 +26,7 @@ uuid = { workspace = true }
 validator = { version = "0.18.1", features = ["derive"] }
 
 [dev-dependencies]
-tokio = { version = "1.36.0", features = ["rt", "macros"] }
+tokio = { workspace = true, features = ["rt"] }
 
 [lints]
 workspace = true

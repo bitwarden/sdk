@@ -43,7 +43,7 @@ sha2 = ">=0.10.6, <0.11"
 thiserror = { workspace = true }
 uniffi = { workspace = true, optional = true, features = ["tokio"] }
 uuid = { workspace = true }
-validator = { version = "0.18.1", features = ["derive"] }
+validator = { workspace = true }
 zeroize = { version = ">=1.7.0, <2.0", features = ["derive", "aarch64"] }
 zxcvbn = { version = ">=3.0.1, <4.0", optional = true }
 

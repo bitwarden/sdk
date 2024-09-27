@@ -23,7 +23,7 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 uuid = { workspace = true }
-validator = { version = "0.18.1", features = ["derive"] }
+validator = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["rt"] }

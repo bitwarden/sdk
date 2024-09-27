@@ -63,7 +63,6 @@ jobs:
     name: Publish NPM
     runs-on: ubuntu-22.04
     needs: setup
-    if: inputs.npm_publish
     env:
       _VERSION: ${{ needs.setup.outputs.release-version }}
     steps:

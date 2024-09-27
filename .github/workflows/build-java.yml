@@ -1,11 +1,10 @@
+---
 name: Build Java SDK
 
 on:
   push:
     branches:
       - main
-      - rc
-      - hotfix-rc
   pull_request:
   workflow_dispatch:
 
@@ -66,3 +65,24 @@ jobs:
       - name: Build Maven
         run: ./gradlew build
         working-directory: languages/java
+
+      - name: Upload Java SDK Build
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        with:
+          name: build
+          path: ${{ github.workspace }}/languages/java/build
+          if-no-files-found: error
+
+      - name: Upload Java SDK Build
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        with:
+          name: resources
+          path: ${{ github.workspace }}/languages/java/src/main/resources
+          if-no-files-found: error
+
+      - name: Upload Java SDK Build
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        with:
+          name: schemas
+          path: languages/java/src/main/java/bit/sdk/schema
+          if-no-files-found: error

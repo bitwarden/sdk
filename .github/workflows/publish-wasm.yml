@@ -13,11 +13,6 @@ on:
         options:
           - Release
           - Dry Run
-      npm_publish:
-        description: "Publish to NPM registry"
-        required: true
-        default: true
-        type: boolean
       version:
         description: "Release Version"
         required: false

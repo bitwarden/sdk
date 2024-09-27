@@ -32,14 +32,14 @@ pub struct BitwardenClient(Rc<Client>);
 #[wasm_bindgen]
 impl BitwardenClient {
     #[wasm_bindgen(constructor)]
-    pub fn new(settings_input: Option<String>, log_level: Option<LogLevel>) -> Self {
+    pub fn new(settings: Option<ClientSettings>, log_level: Option<LogLevel>) -> Self {
         console_error_panic_hook::set_once();
         let log_level = convert_level(log_level.unwrap_or(LogLevel::Info));
         if let Err(_e) = console_log::init_with_level(log_level) {
             set_max_level(log_level.to_level_filter())
         }
 
-        Self(Rc::new(Client::new(Self::parse_settings(settings_input))))
+        Self(Rc::new(Client::new(settings)))
     }
 
     /// Test method, echoes back the input
@@ -53,17 +53,5 @@ impl BitwardenClient {
         let res = client.get(&url).send().await.map_err(|e| e.to_string())?;
 
         res.text().await.map_err(|e| e.to_string())
-    }
-
-    fn parse_settings(settings_input: Option<String>) -> Option<ClientSettings> {
-        if let Some(input) = settings_input.as_ref() {
-            match serde_json::from_str(input) {
-                Ok(settings) => return Some(settings),
-                Err(e) => {
-                    log::error!("Failed to parse settings: {}", e);
-                }
-            }
-        }
-        None
     }
 }

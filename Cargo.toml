@@ -30,6 +30,11 @@ bitwarden-send = { path = "crates/bitwarden-send", version = "=1.0.0" }
 bitwarden-sm = { path = "crates/bitwarden-sm", version = "=1.0.0" }
 bitwarden-vault = { path = "crates/bitwarden-vault", version = "=1.0.0" }
 
+wasm-bindgen = { version = ">=0.2.91, <0.3", features = ["serde-serialize"] }
+tsify-next = { version = ">=0.5.4, <0.6", features = [
+    "js",
+], default-features = false }
+
 [workspace.lints.clippy]
 unused_async = "deny"
 unwrap_used = "deny"

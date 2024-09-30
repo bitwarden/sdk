@@ -58,6 +58,9 @@ jobs:
           name: bitwarden_sdk(.*)
           name_is_regexp: true
 
+      - name: TEST
+        run: ls -alh ${{ github.workspace }}/target/wheels/dist
+
       - name: Create GitHub release
         if: ${{ inputs.release_type != 'Dry Run' }}
         uses: ncipollo/release-action@2c591bcc8ecdcd2db72b97d6147f871fcd833ba5 # v1.14.0

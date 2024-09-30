@@ -1,3 +1,4 @@
+---
 name: Publish Java SDK
 run-name: Publish Java SDK ${{ inputs.release_type }}
 
@@ -12,6 +13,11 @@ on:
         options:
           - Release
           - Dry Run
+
+defaults:
+  run:
+    shell: bash
+    working-directory: languages/java
 
 env:
   _KEY_VAULT: "bitwarden-ci"
@@ -29,9 +35,9 @@ jobs:
       - name: Branch check
         if: ${{ inputs.release_type != 'Dry Run' }}
         run: |
-          if [[ "$GITHUB_REF" != "refs/heads/rc" ]] && [[ "$GITHUB_REF" != "refs/heads/hotfix-rc" ]]; then
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
             echo "==================================="
-            echo "[!] Can only release from the 'rc' or 'hotfix-rc' branches"
+            echo "[!] Can only release from the 'main' branch"
             echo "==================================="
             exit 1
           fi
@@ -39,7 +45,7 @@ jobs:
       - name: Get version
         id: version
         run: |
-          VERSION=$(cat languages/java/build.gradle | grep -Eo 'version = "[0-9]+\.[0-9]+\.[0-9]+"' | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
+          VERSION=$(cat build.gradle | grep -Eo 'version = "[0-9]+\.[0-9]+\.[0-9]+"' | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
   publish:
@@ -71,6 +77,30 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@d156388eb19639ec20ade50009f3d199ce1e2808 # v4.1.0
+
+      - name: Download Java SDK Build
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-java.yml
+          workflow_conclusion: success
+          artifacts: build
+          path: languages/java/build
+
+      - name: Download Java Resources
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-java.yml
+          workflow_conclusion: success
+          artifacts: resources
+          path: languages/java/src/main/resources
+
+      - name: Download Java Resources
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-java.yml
+          workflow_conclusion: success
+          artifacts: schemas
+          path: languages/java/src/main/java/bit/sdk/schema
 
       - name: Publish package to GitHub Packages
         if: ${{ inputs.release_type != 'Dry Run' }}

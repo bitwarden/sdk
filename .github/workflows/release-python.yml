@@ -38,7 +38,7 @@ jobs:
         id: version
         run: |
           VERSION=$(cat languages/python/pyproject.toml | grep -Eo 'version = "[0-9]+\.[0-9]+\.[0-9]+"' | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
-          echo "version=$VERSION" >> $GITHUB_ENV
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
   release:
     name: Release

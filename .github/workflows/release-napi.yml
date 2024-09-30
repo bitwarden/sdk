@@ -85,6 +85,8 @@ jobs:
           ls -alhR
           shopt -s globstar
           mv **/*.node .
+          mv schemas.ts/ schemas/
+          mv schemas/schemas.ts .
         working-directory: dist
 
       - name: Create release

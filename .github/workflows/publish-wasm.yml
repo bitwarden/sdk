@@ -13,11 +13,6 @@ on:
         options:
           - Release
           - Dry Run
-      npm_publish:
-        description: "Publish to NPM registry"
-        required: true
-        default: true
-        type: boolean
       version:
         description: "Release Version"
         required: false
@@ -68,7 +63,6 @@ jobs:
     name: Publish NPM
     runs-on: ubuntu-22.04
     needs: setup
-    if: inputs.npm_publish
     env:
       _VERSION: ${{ needs.setup.outputs.release-version }}
     steps:

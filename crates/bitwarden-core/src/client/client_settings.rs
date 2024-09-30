@@ -76,6 +76,9 @@ pub enum DeviceType {
     VivaldiBrowser = 18,
     VivaldiExtension = 19,
     SafariExtension = 20,
-
     SDK = 21,
+    Server = 22,
+    WindowsCLI = 23,
+    MacOsCLI = 24,
+    LinuxCLI = 25,
 }

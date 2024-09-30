@@ -82,9 +82,9 @@ jobs:
 
       - name: Move artifact files to single directory
         run: |
+          ls -alhR
           shopt -s globstar
           mv **/*.node .
-          mv **/schemas.ts .
         working-directory: dist
 
       - name: Create release

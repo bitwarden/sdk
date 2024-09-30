@@ -76,12 +76,15 @@ jobs:
           workflow: build-napi.yml
           workflow_conclusion: success
           branch: main
-          name: sdk-bitwarden-napi-(.*)|schema.ts
+          name: (sdk-bitwarden-napi-(.*)|schema.ts)
           name_is_regexp: true
           path: dist
 
-      - name: TEST
-        run: ls -alhR
+      - name: Move artifact files to single directory
+        run: |
+          shopt -s globstar
+          mv **/*.node .
+          mv **/schema.ts .
         working-directory: dist
 
       - name: Create release
@@ -97,8 +100,8 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           draft: true
           artifacts: |
-            sdk-napi.darwin-arm64.node
-            sdk-napi.darwin-x64.node
-            sdk-napi.win32-x64-msvc.node
-            sdk-napi.linux-x64-gnu.node
-            schemas.ts
+            dist/sdk-napi.darwin-arm64.node
+            dist/sdk-napi.darwin-x64.node
+            dist/sdk-napi.win32-x64-msvc.node
+            dist/sdk-napi.linux-x64-gnu.node
+            dist/schemas.ts

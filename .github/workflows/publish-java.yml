@@ -1,3 +1,4 @@
+---
 name: Publish Java SDK
 run-name: Publish Java SDK ${{ inputs.release_type }}
 
@@ -17,6 +18,11 @@ on:
         required: false
         default: "latest"
 
+defaults:
+  run:
+    shell: bash
+    working-directory: languages/java
+
 env:
   _KEY_VAULT: "bitwarden-ci"
 
@@ -29,7 +35,7 @@ jobs:
       tag_name: ${{ steps.version-output.outputs.tag_name }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
 
       - name: Branch check
         if: ${{ inputs.release_type != 'Dry Run' }}
@@ -63,7 +69,7 @@ jobs:
     needs: validate
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
         with:
           ref: ${{ needs.validate.outputs.tag_name }}
 
@@ -88,6 +94,30 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@d156388eb19639ec20ade50009f3d199ce1e2808 # v4.1.0
+
+      - name: Download Java SDK Build
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-java.yml
+          workflow_conclusion: success
+          artifacts: build
+          path: languages/java/build
+
+      - name: Download Java Resources
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-java.yml
+          workflow_conclusion: success
+          artifacts: resources
+          path: languages/java/src/main/resources
+
+      - name: Download Java Resources
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-java.yml
+          workflow_conclusion: success
+          artifacts: schemas
+          path: languages/java/src/main/java/bit/sdk/schema
 
       - name: Publish package to GitHub Packages
         if: ${{ inputs.release_type != 'Dry Run' }}

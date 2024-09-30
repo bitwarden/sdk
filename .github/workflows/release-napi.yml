@@ -14,11 +14,6 @@ on:
           - Initial Release
           - Redeploy
           - Dry Run
-      npm_publish:
-        description: "Publish to NPM registry"
-        required: true
-        default: true
-        type: boolean
 
 defaults:
   run:

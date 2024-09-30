@@ -78,9 +78,11 @@ jobs:
           branch: main
           name: sdk-bitwarden-napi-(.*)|schema.ts
           name_is_regexp: true
+          path: dist
 
       - name: TEST
         run: ls -alhR
+        working-directory: dist
 
       - name: Create release
         if: ${{ inputs.release_type != 'Dry Run' }}

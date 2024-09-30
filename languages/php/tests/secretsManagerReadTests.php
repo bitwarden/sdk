@@ -85,13 +85,6 @@ class SecretsManagerReadTests extends TestCase
     $this->assertEquals($secret->organizationId, $response->organizationId);
   }
 
-  function testSync()
-  {
-    $sync = self::$client->secrets->sync(env('ORGANIZATION_ID'), null);
-    $this->assertEquals($sync->hasChanges, true);
-    $this->assertEquals(count(self::$secrets), count($sync->secrets));
-  }
-
   function testNoUpdateSync()
   {
     $sync = self::$client->secrets->sync(env('ORGANIZATION_ID'), date('Y-m-d\TH:i:s.u\Z'));

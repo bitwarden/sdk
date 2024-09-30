@@ -44,8 +44,6 @@ class SecretsManagerSecretWriteTests extends TestCase
     $toCreate->project_id = self::$writeProject->id;
 
     $res = self::$client->secrets->create(env('ORGANIZATION_ID'), $toCreate->key, $toCreate->value, $toCreate->note, [$toCreate->project_id]);
-    var_dump($res);
-    var_dump($toCreate);
     $this->assertEquals($res->key, $toCreate->key);
     $this->assertEquals($res->value, $toCreate->value);
     $this->assertEquals($res->note, $toCreate->note);

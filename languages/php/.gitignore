@@ -2,3 +2,4 @@
 vendor
 src/lib/
 src/Schemas/
+.phpunit.result.cache

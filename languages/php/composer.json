@@ -19,5 +19,8 @@
     {
       "name": "Bitwarden Inc."
     }
-  ]
+  ],
+  "require-dev": {
+    "phpunit/phpunit": "^11.3"
+  }
 }

@@ -84,7 +84,7 @@ jobs:
         run: |
           shopt -s globstar
           mv **/*.node .
-          mv **/schema.ts .
+          mv **/schemas.ts .
         working-directory: dist
 
       - name: Create release

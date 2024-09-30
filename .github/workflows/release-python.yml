@@ -59,7 +59,11 @@ jobs:
           name_is_regexp: true
 
       - name: TEST
-        run: ls -alh ${{ github.workspace }}/target/wheels/dist
+        run: |
+          shopt -s globstar
+          mv **/*.whl .
+          ls -alh .
+        working-directory: ${{ github.workspace }}/target/wheels/dist
 
       - name: Create GitHub release
         if: ${{ inputs.release_type != 'Dry Run' }}

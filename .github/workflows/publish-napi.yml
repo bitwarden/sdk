@@ -1,5 +1,6 @@
-name: Publish Ruby SDK
-run-name: Publish Ruby SDK ${{ inputs.release_type }}
+---
+name: Publish @bitwarden/sdk-napi
+run-name: Publish @bitwarden/sdk-napi ${{ inputs.release_type }}
 
 on:
   workflow_dispatch:
@@ -17,9 +18,9 @@ on:
         required: false
         default: "latest"
 
-permissions:
-  contents: read
-  id-token: write
+defaults:
+  run:
+    working-directory: crates/bitwarden-napi
 
 jobs:
   setup:
@@ -29,8 +30,8 @@ jobs:
       release-version: ${{ steps.version-output.outputs.version }}
       tag-name: ${{ steps.version-output.outputs.tag_name }}
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
+      - name: Checkout repo
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Branch check
         if: ${{ inputs.release_type != 'Dry Run' }}
@@ -46,7 +47,7 @@ jobs:
         id: version-output
         run: |
           if [[ "${{ inputs.version }}" == "latest" || "${{ inputs.version }}" == "" ]]; then
-            TAG_NAME=$(curl  "https://api.github.com/repos/bitwarden/sdk/releases" | jq -c '.[] | select(.tag_name | contains("ruby")) | .tag_name' | head -1)
+            TAG_NAME=$(curl  "https://api.github.com/repos/bitwarden/sdk/releases" | jq -c '.[] | select(.tag_name | contains("napi")) | .tag_name' | head -1)
             VERSION=$(echo $TAG_NAME | grep -ohE '20[0-9]{2}\.([1-9]|1[0-2])\.[0-9]+')
             echo "Latest Released Version: $VERSION"
             echo "version=$VERSION" >> $GITHUB_OUTPUT
@@ -58,15 +59,15 @@ jobs:
             echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
           fi
 
-  publish:
-    name: Publish
+  npm:
+    name: Publish NPM
     runs-on: ubuntu-22.04
     needs: setup
     env:
-      _VERSION: ${{ needs.setup.outputs.release-version }}
+      _PKG_VERSION: ${{ needs.setup.outputs.release-version }}
       _TAG_NAME: ${{ needs.setup.outputs.tag-name }}
     steps:
-      - name: Checkout Repository
+      - name: Checkout repo
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           ref: ${{ env._TAG_NAME }}
@@ -78,9 +79,27 @@ jobs:
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
           initial-status: "in_progress"
-          environment: "Bitwarden Ruby SDK - Production"
-          description: "Deployment ${{ env._VERSION }} from branch ${{ github.ref_name }}"
+          environment: "Bitwarden SDK NAPI - Production"
+          description: "Deployment ${{ env._PKG_VERSION }} from branch ${{ github.ref_name }}"
           task: release
+
+      - name: Setup Node
+        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
+        with:
+          node-version: 18
+          cache: "npm"
+          cache-dependency-path: crates/bitwarden-napi/package-lock.json
+
+      - name: Download schemas.ts artifact
+        run: |
+          wget https://github.com/bitwarden/sdk/releases/download/napi-v${{ env._PKG_VERSION }}/schemas.ts
+          mv schemas.ts ${{ github.workspace }}/crates/bitwarden-napi/src-ts/bitwarden_client/schemas.ts
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tsc
+        run: npm run tsc
 
       - name: Login to Azure
         uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
@@ -92,22 +111,32 @@ jobs:
         uses: bitwarden/gh-actions/get-keyvault-secrets@main
         with:
           keyvault: "bitwarden-ci"
-          secrets: "rubygem-api-key"
+          secrets: "npm-api-key"
 
-      - name: Download ruby artifact
-        run: wget https://github.com/bitwarden/sdk/releases/download/ruby-v${{ env._VERSION }}/bitwarden-sdk-secrets-${{ env._VERSION }}.gem
-
-      - name: Push gem to Rubygems
-        if: ${{ inputs.release_type != 'Dry Run' }}
+      - name: Download sdk-napi artifacts
         run: |
-          mkdir -p $HOME/.gem
-          touch $HOME/.gem/credentials
-          chmod 0600 $HOME/.gem/credentials
-          printf -- "---\n:rubygems_api_key: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
-          gem push *.gem
+          wget https://github.com/bitwarden/sdk/releases/download/napi-v${{ env._PKG_VERSION }}/sdk-napi.darwin-arm64.node
+          wget https://github.com/bitwarden/sdk/releases/download/napi-v${{ env._PKG_VERSION }}/sdk-napi.darwin-x64.node
+          wget https://github.com/bitwarden/sdk/releases/download/napi-v${{ env._PKG_VERSION }}/sdk-napi.win32-x64-msvc.node
+          wget https://github.com/bitwarden/sdk/releases/download/napi-v${{ env._PKG_VERSION }}/sdk-napi.linux-x64-gnu.node
+          mv sdk-napi.*.node ${{ github.workspace }}/crates/bitwarden-napi/artifacts
+
+      - name: Move artifacts
+        run: npm run artifacts
+
+      - name: Setup NPM
+        run: |
+          echo 'registry="https://registry.npmjs.org/"' > ./.npmrc
+          echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ./.npmrc
+
+          echo 'registry="https://registry.npmjs.org/"' > ~/.npmrc
+          echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
         env:
-          GEM_HOST_API_KEY: ${{ steps.retrieve-secrets.outputs.rubygem-api-key }}
-        working-directory: languages/ruby/bitwarden_sdk_secrets
+          NPM_TOKEN: ${{ steps.retrieve-secrets.outputs.npm-api-key }}
+
+      - name: Publish NPM
+        if: ${{ inputs.release_type != 'Dry Run' }}
+        run: npm publish --access public --registry=https://registry.npmjs.org/  --userconfig=./.npmrc
 
       - name: Update deployment status to Success
         if: ${{ inputs.release_type != 'Dry Run' && success() }}

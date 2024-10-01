@@ -4,7 +4,7 @@ use bitwarden_crypto::{
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::Cipher;
+use super::{versioning::migrated, Cipher};
 use crate::VaultParseError;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
@@ -140,12 +140,10 @@ impl KeyDecryptable<SymmetricCryptoKey, AttachmentView> for Attachment {
     }
 }
 
-impl TryFrom<bitwarden_api_api::models::AttachmentResponseModel> for Attachment {
+impl TryFrom<migrated::AttachmentResponseModel> for Attachment {
     type Error = VaultParseError;
 
-    fn try_from(
-        attachment: bitwarden_api_api::models::AttachmentResponseModel,
-    ) -> Result<Self, Self::Error> {
+    fn try_from(attachment: migrated::AttachmentResponseModel) -> Result<Self, Self::Error> {
         Ok(Self {
             id: attachment.id,
             url: attachment.url,

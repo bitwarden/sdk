@@ -1,5 +1,4 @@
 use base64::{engine::general_purpose::STANDARD, Engine};
-use bitwarden_api_api::models::{CipherLoginModel, CipherLoginUriModel};
 use bitwarden_core::require;
 use bitwarden_crypto::{
     CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
@@ -10,6 +9,8 @@ use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::VaultParseError;
+
+use super::versioning::migrated;
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema)]
 #[repr(u8)]
@@ -365,10 +366,10 @@ impl KeyDecryptable<SymmetricCryptoKey, Fido2CredentialView> for Fido2Credential
     }
 }
 
-impl TryFrom<CipherLoginModel> for Login {
+impl TryFrom<migrated::CipherLoginModel> for Login {
     type Error = VaultParseError;
 
-    fn try_from(login: CipherLoginModel) -> Result<Self, Self::Error> {
+    fn try_from(login: migrated::CipherLoginModel) -> Result<Self, Self::Error> {
         Ok(Self {
             username: EncString::try_from_optional(login.username)?,
             password: EncString::try_from_optional(login.password)?,
@@ -390,10 +391,10 @@ impl TryFrom<CipherLoginModel> for Login {
     }
 }
 
-impl TryFrom<CipherLoginUriModel> for LoginUri {
+impl TryFrom<migrated::CipherLoginUriModel> for LoginUri {
     type Error = VaultParseError;
 
-    fn try_from(uri: CipherLoginUriModel) -> Result<Self, Self::Error> {
+    fn try_from(uri: migrated::CipherLoginUriModel) -> Result<Self, Self::Error> {
         Ok(Self {
             uri: EncString::try_from_optional(uri.uri)?,
             r#match: uri.r#match.map(|m| m.into()),
@@ -402,25 +403,23 @@ impl TryFrom<CipherLoginUriModel> for LoginUri {
     }
 }
 
-impl From<bitwarden_api_api::models::UriMatchType> for UriMatchType {
-    fn from(value: bitwarden_api_api::models::UriMatchType) -> Self {
+impl From<migrated::UriMatchType> for UriMatchType {
+    fn from(value: migrated::UriMatchType) -> Self {
         match value {
-            bitwarden_api_api::models::UriMatchType::Domain => Self::Domain,
-            bitwarden_api_api::models::UriMatchType::Host => Self::Host,
-            bitwarden_api_api::models::UriMatchType::StartsWith => Self::StartsWith,
-            bitwarden_api_api::models::UriMatchType::Exact => Self::Exact,
-            bitwarden_api_api::models::UriMatchType::RegularExpression => Self::RegularExpression,
-            bitwarden_api_api::models::UriMatchType::Never => Self::Never,
+            migrated::UriMatchType::Domain => Self::Domain,
+            migrated::UriMatchType::Host => Self::Host,
+            migrated::UriMatchType::StartsWith => Self::StartsWith,
+            migrated::UriMatchType::Exact => Self::Exact,
+            migrated::UriMatchType::RegularExpression => Self::RegularExpression,
+            migrated::UriMatchType::Never => Self::Never,
         }
     }
 }
 
-impl TryFrom<bitwarden_api_api::models::CipherFido2CredentialModel> for Fido2Credential {
+impl TryFrom<migrated::CipherFido2CredentialModel> for Fido2Credential {
     type Error = VaultParseError;
 
-    fn try_from(
-        value: bitwarden_api_api::models::CipherFido2CredentialModel,
-    ) -> Result<Self, Self::Error> {
+    fn try_from(value: migrated::CipherFido2CredentialModel) -> Result<Self, Self::Error> {
         Ok(Self {
             credential_id: require!(value.credential_id).parse()?,
             key_type: require!(value.key_type).parse()?,

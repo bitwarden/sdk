@@ -24,7 +24,7 @@ pyo3-log = "0.11.0"
 pyo3-build-config = { version = "0.22.1" }
 
 [target.'cfg(not(target_arch="wasm32"))'.dependencies]
-tokio = { version = "1.36.0", features = ["rt-multi-thread", "macros"] }
+tokio = { workspace = true, features = ["rt-multi-thread"] }
 
 [lints]
 workspace = true

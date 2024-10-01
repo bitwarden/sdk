@@ -73,7 +73,7 @@ jobs:
         language:
           # - cpp
           # - csharp
-          # - go
+          - go
           # - java
           # - js
           # - js_webassembly
@@ -147,6 +147,12 @@ jobs:
         with:
           php-version: '8.3'
           tools: composer, phpunit
+
+      - name: Install Go
+        if: matrix.language == 'go'
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+        with:
+          go-version: 'stable'
 
       - name: Run language tests
         run: |

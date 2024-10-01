@@ -37,6 +37,11 @@ fn wait_dump_and_continue(
     loop {
         let mut buf = [0u8; 1024];
         let read = stdout.read(&mut buf).unwrap();
+
+        if read == 0 {
+            panic!("Process exited unexpectedly");
+        }
+
         let buf_str = std::str::from_utf8(&buf[..read]).unwrap();
         if buf_str.contains("Waiting for dump...") {
             break;

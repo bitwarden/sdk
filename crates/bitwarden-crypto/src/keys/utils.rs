@@ -3,30 +3,45 @@ use std::pin::Pin;
 use generic_array::{typenum::U32, GenericArray};
 use sha2::Digest;
 
-use crate::{util::hkdf_expand, Kdf, Result, SymmetricCryptoKey};
+use crate::{util::hkdf_expand, CryptoError, Kdf, Result, SymmetricCryptoKey};
+
+const PBKDF2_MIN_ITERATIONS: u32 = 5000;
+
+const ARGON2ID_MIN_MEMORY: u32 = 16 * 1024;
+const ARGON2ID_MIN_ITERATIONS: u32 = 2;
+const ARGON2ID_MIN_PARALLELISM: u32 = 1;
 
 /// Derive a generic key from a secret and salt using the provided KDF.
 pub(super) fn derive_kdf_key(secret: &[u8], salt: &[u8], kdf: &Kdf) -> Result<SymmetricCryptoKey> {
     let mut hash = match kdf {
-        Kdf::PBKDF2 { iterations } => crate::util::pbkdf2(secret, salt, iterations.get()),
+        Kdf::PBKDF2 { iterations } => {
+            let iterations = iterations.get();
+            if iterations < PBKDF2_MIN_ITERATIONS {
+                return Err(CryptoError::InsufficientKdfParameters);
+            }
 
+            crate::util::pbkdf2(secret, salt, iterations)
+        }
         Kdf::Argon2id {
             iterations,
             memory,
             parallelism,
         } => {
+            let memory = memory.get() * 1024; // Convert MiB to KiB;
+            let iterations = iterations.get();
+            let parallelism = parallelism.get();
+
+            if memory < ARGON2ID_MIN_MEMORY
+                || iterations < ARGON2ID_MIN_ITERATIONS
+                || parallelism < ARGON2ID_MIN_PARALLELISM
+            {
+                return Err(CryptoError::InsufficientKdfParameters);
+            }
+
             use argon2::*;
 
-            let argon = Argon2::new(
-                Algorithm::Argon2id,
-                Version::V0x13,
-                Params::new(
-                    memory.get() * 1024, // Convert MiB to KiB
-                    iterations.get(),
-                    parallelism.get(),
-                    Some(32),
-                )?,
-            );
+            let params = Params::new(memory, iterations, parallelism, Some(32))?;
+            let argon = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
 
             let salt_sha = sha2::Sha256::new().chain_update(salt).finalize();
 
@@ -57,6 +72,8 @@ pub(super) fn stretch_kdf_key(k: &SymmetricCryptoKey) -> Result<SymmetricCryptoK
 
 #[cfg(test)]
 mod tests {
+    use std::num::NonZero;
+
     use super::*;
 
     #[test]
@@ -88,5 +105,43 @@ mod tests {
             ],
             stretched.mac_key.as_ref().unwrap().as_slice()
         );
+    }
+
+    #[test]
+    fn test_derive_kdf_minimums() {
+        fn nz(n: u32) -> NonZero<u32> {
+            NonZero::new(n).unwrap()
+        }
+
+        let secret = [0u8; 32];
+        let salt = [0u8; 32];
+
+        for kdf in [
+            Kdf::PBKDF2 {
+                iterations: nz(4999),
+            },
+            Kdf::Argon2id {
+                iterations: nz(1),
+                memory: nz(16),
+                parallelism: nz(1),
+            },
+            Kdf::Argon2id {
+                iterations: nz(2),
+                memory: nz(15),
+                parallelism: nz(1),
+            },
+            Kdf::Argon2id {
+                iterations: nz(1),
+                memory: nz(15),
+                parallelism: nz(1),
+            },
+        ] {
+            assert_eq!(
+                derive_kdf_key(&secret, &salt, &kdf)
+                    .unwrap_err()
+                    .to_string(),
+                "Insufficient KDF parameters"
+            );
+        }
     }
 }

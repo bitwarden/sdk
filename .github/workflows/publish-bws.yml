@@ -1,6 +1,6 @@
 ---
-name: Release CLI
-run-name: Release CLI ${{ inputs.release_type }}
+name: Publish bws CLI
+run-name: Publish bws CLI ${{ inputs.release_type }}
 
 on:
   workflow_dispatch:
@@ -13,6 +13,11 @@ on:
         options:
           - Release
           - Dry Run
+      version:
+        description: 'Version to publish (default: latest bws cli release)'
+        required: true
+        type: string
+        default: latest
 
 env:
   _AZ_REGISTRY: bitwardenprod.azurecr.io
@@ -22,10 +27,12 @@ jobs:
     name: Setup
     runs-on: ubuntu-22.04
     outputs:
-      release-version: ${{ steps.version.outputs.version }}
+      release-version: ${{ steps.version-output.outputs.version }}
+      release-tag: ${{ steps.version-output.outputs.tag_name }}
+      deployment-id: ${{ steps.deployment.outputs.deployment_id }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
 
       - name: Branch check
         if: ${{ inputs.release_type != 'Dry Run' }}
@@ -37,11 +44,21 @@ jobs:
             exit 1
           fi
 
-      - name: Check Release Version
-        id: version
+      - name: Version output
+        id: version-output
         run: |
-          VERSION=$(grep -o '^version = ".*"' crates/bws/Cargo.toml | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          if [[ "${{ inputs.version }}" == "latest" || "${{ inputs.version }}" == "" ]]; then
+            TAG_NAME=$(curl  "https://api.github.com/repos/bitwarden/sdk/releases" | jq -c '.[] | select(.tag_name | contains("bws")) | .tag_name' | head -1)
+            VERSION=$(echo $TAG_NAME | grep -ohE '20[0-9]{2}\.([1-9]|1[0-2])\.[0-9]+')
+            echo "Latest Released Version: $VERSION"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+            echo "Latest Released Tag name: $TAG_NAME"
+            echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          else
+            echo "Release Version: ${{ inputs.version }}"
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Create GitHub deployment
         if: ${{ inputs.release_type != 'Dry Run' }}
@@ -50,74 +67,27 @@ jobs:
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
           initial-status: "in_progress"
-          environment: "CLI - Production"
-          description: "Deployment ${{ steps.version.outputs.version }} from branch ${{ github.ref_name }}"
+          environment: "bws CLI - Production"
+          description: "Deployment ${{ steps.version-output.outputs.version }} from branch ${{ github.ref_name }}"
           task: release
 
-      - name: Download all Release artifacts
-        uses: bitwarden/gh-actions/download-artifacts@main
-        with:
-          workflow: build-cli.yml
-          path: packages
-          workflow_conclusion: success
-          branch: ${{ github.ref_name }}
-
-      - name: Get checksum files
-        uses: bitwarden/gh-actions/get-checksum@main
-        with:
-          packages_dir: "packages"
-          file_path: "packages/bws-sha256-checksums-${{ steps.version.outputs.version }}.txt"
-
-      - name: Create release
-        if: ${{ inputs.release_type != 'Dry Run' }}
-        uses: ncipollo/release-action@2c591bcc8ecdcd2db72b97d6147f871fcd833ba5 # v1.14.0
-        env:
-          PKG_VERSION: ${{ steps.version.outputs.version }}
-        with:
-          artifacts: "packages/bws-x86_64-apple-darwin-${{ env.PKG_VERSION }}.zip,
-            packages/bws-aarch64-apple-darwin-${{ env.PKG_VERSION }}.zip,
-            packages/bws-macos-universal-${{ env.PKG_VERSION }}.zip,
-            packages/bws-x86_64-pc-windows-msvc-${{ env.PKG_VERSION }}.zip,
-            packages/bws-aarch64-pc-windows-msvc-${{ env.PKG_VERSION }}.zip,
-            packages/bws-x86_64-unknown-linux-gnu-${{ env.PKG_VERSION }}.zip,
-            packages/bws-aarch64-unknown-linux-gnu-${{ env.PKG_VERSION }}.zip,
-            packages/THIRDPARTY.html,
-            packages/bws-sha256-checksums-${{ env.PKG_VERSION }}.txt"
-          commit: ${{ github.sha }}
-          tag: bws-v${{ env.PKG_VERSION }}
-          name: bws CLI v${{ env.PKG_VERSION }}
-          body: "<insert release notes here>"
-          token: ${{ secrets.GITHUB_TOKEN }}
-          draft: true
-
-      - name: Update deployment status to Success
-        if: ${{ inputs.release_type != 'Dry Run' && success() }}
-        uses: chrnorm/deployment-status@9a72af4586197112e0491ea843682b5dc280d806 # v2.0.3
-        with:
-          token: "${{ secrets.GITHUB_TOKEN }}"
-          state: "success"
-          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
-
-      - name: Update deployment status to Failure
-        if: ${{ inputs.release_type != 'Dry Run' && failure() }}
-        uses: chrnorm/deployment-status@9a72af4586197112e0491ea843682b5dc280d806 # v2.0.3
-        with:
-          token: "${{ secrets.GITHUB_TOKEN }}"
-          state: "failure"
-          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
 
   publish:
     name: Publish bws to crates.io
     runs-on: ubuntu-22.04
     needs: setup
+    env:
+      _VERSION: ${{ needs.setup.outputs.release-version }}
+      _TAG_NAME: ${{ needs.setup.outputs.release-tag }}
     steps:
       - name: Checkout
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
 
       - name: Login to Azure
         uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
         with:
           creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
+          ref: ${{ env._TAG_NAME }}
 
       - name: Retrieve secrets
         id: retrieve-secrets
@@ -150,7 +120,9 @@ jobs:
     needs: setup
     steps:
       - name: Checkout
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
+        with:
+          ref: ${{ env._TAG_NAME }}
 
       - name: Generate tag list
         id: tag-list
@@ -201,7 +173,7 @@ jobs:
           azure-keyvault-name: "bitwarden-ci"
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@5cd11c3a4ced054e52742c5fd54dca954e0edd85 # v6.7.0
+        uses: docker/build-push-action@32945a339266b759abcbdc89316275140b0fc960 # v6.8.0
         with:
           context: .
           file: crates/bws/Dockerfile
@@ -218,3 +190,27 @@ jobs:
         run: |
           docker logout
           echo "DOCKER_CONTENT_TRUST=0" >> $GITHUB_ENV
+
+  update_release_status:
+    name: Update GitHub deployment status
+    runs-on: ubuntu-22.04
+    needs: setup
+    if: ${{ inputs.release_type != 'Dry Run' }}
+    env:
+      _DEPLOYMENT_ID: ${{ needs.setup.outputs.deployment-id }}
+    steps:
+      - name: Update deployment status to Success
+        if: ${{ inputs.release_type != 'Dry Run' && success() }}
+        uses: chrnorm/deployment-status@9a72af4586197112e0491ea843682b5dc280d806 # v2.0.3
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          state: "success"
+          deployment-id: ${{ env._DEPLOYMENT_ID }}
+
+      - name: Update deployment status to Failure
+        if: ${{ inputs.release_type != 'Dry Run' && failure() }}
+        uses: chrnorm/deployment-status@9a72af4586197112e0491ea843682b5dc280d806 # v2.0.3
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          state: "failure"
+          deployment-id: ${{ env._DEPLOYMENT_ID }}

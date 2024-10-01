@@ -54,23 +54,6 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
-          name: sdk-bitwarden-wasm-internal
+          name: sdk-internal
           path: ${{ github.workspace }}/languages/js/sdk-internal/*
           if-no-files-found: error
-
-      - name: Set version
-        if: ${{ github.ref == 'refs/heads/main' }}
-        # Fetches current version from registry and uses prerelease to bump it
-        run: |
-          npm version --no-git-tag-version $(npm view @bitwarden/sdk-internal@latest version)
-          npm version --no-git-tag-version prerelease
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        working-directory: languages/js/sdk-internal
-
-      - name: Publish NPM
-        if: ${{ github.ref == 'refs/heads/main' }}
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        working-directory: languages/js/sdk-internal

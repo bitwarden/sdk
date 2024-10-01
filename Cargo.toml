@@ -58,7 +58,6 @@ validator = { version = "0.18.1", features = ["derive"] }
 wasm-bindgen = { version = ">=0.2.91, <0.3", features = ["serde-serialize"] }
 wasm-bindgen-futures = "0.4.41"
 
-
 [workspace.lints.clippy]
 unused_async = "deny"
 unwrap_used = "deny"

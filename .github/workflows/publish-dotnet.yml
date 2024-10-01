@@ -12,6 +12,10 @@ on:
         options:
           - Release
           - Dry Run
+      version:
+        description: "Release Version"
+        required: false
+        default: "latest"
 
 env:
   _KEY_VAULT: "bitwarden-ci"
@@ -21,43 +25,58 @@ jobs:
     name: Setup
     runs-on: ubuntu-22.04
     outputs:
-      version: ${{ steps.version.outputs.version }}
+      version: ${{ steps.version-output.outputs.version }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
 
       - name: Branch check
         if: ${{ inputs.release_type != 'Dry Run' }}
         run: |
-          if [[ "$GITHUB_REF" != "refs/heads/rc" ]] && [[ "$GITHUB_REF" != "refs/heads/hotfix-rc" ]]; then
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
             echo "==================================="
-            echo "[!] Can only release from the 'rc' or 'hotfix-rc' branches"
+            echo "[!] Can only release from the 'main' branch"
             echo "==================================="
             exit 1
           fi
 
-      - name: Install xmllint
-        run: sudo apt-get install -y libxml2-utils
-
-      - name: Get version
-        id: version
+      - name: Version output
+        id: version-output
         run: |
-          VERSION=$(xmllint --xpath 'string(/Project/PropertyGroup/Version)' languages/csharp/Bitwarden.Sdk/Bitwarden.Sdk.csproj)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          if [[ "${{ inputs.version }}" == "latest" || "${{ inputs.version }}" == "" ]]; then
+            TAG_NAME=$(curl  "https://api.github.com/repos/bitwarden/sdk/releases" | jq -c '.[] | select(.tag_name | contains("dotnet")) | .tag_name' | head -1)
+            VERSION=$(echo $TAG_NAME | grep -ohE '20[0-9]{2}\.([1-9]|1[0-2])\.[0-9]+')
+            echo "Latest Released Version: $VERSION"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+            echo "Latest Released Tag name: $TAG_NAME"
+            echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          else
+            echo "Release Version: ${{ inputs.version }}"
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          fi
 
   deploy:
     name: Deploy
     runs-on: ubuntu-22.04
     needs: validate
     steps:
-      - name: Download NuGet package
-        uses: bitwarden/gh-actions/download-artifacts@main
+      - name: Create GitHub deployment
+        if: ${{ inputs.release_type != 'Dry Run' }}
+        uses: chrnorm/deployment-action@55729fcebec3d284f60f5bcabbd8376437d696b1 # v2.0.7
+        id: deployment
         with:
-          workflow: build-dotnet.yml
-          workflow_conclusion: success
-          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
-          artifacts: Bitwarden.Sdk.${{ needs.validate.outputs.version }}.nupkg
-          path: ./nuget-output
+          token: '${{ secrets.GITHUB_TOKEN }}'
+          initial-status: 'in_progress'
+          environment: 'dotnet - Production'
+          description: 'Deployment ${{ needs.validate.outputs.version }} from branch ${{ github.ref_name }}'
+          task: release
+
+      - name: Download artifact
+        run: |
+          mkdir -p nuget-output
+          cd nuget-output
+          wget https://github.com/bitwarden/sdk/releases/download/dotnet-v${{ needs.validate.outputs.version }}/Bitwarden.Sdk.${{ needs.validate.outputs.version }}.nupkg
 
       - name: Login to Azure - Prod Subscription
         uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
@@ -76,3 +95,19 @@ jobs:
         env:
           NUGET_API_KEY: ${{ steps.retrieve-secrets.outputs.nuget-api-key }}
         run: dotnet nuget push ./nuget-output/*.nupkg -k ${{ env.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
+
+      - name: Update deployment status to Success
+        if: ${{ inputs.release_type != 'Dry Run' && success() }}
+        uses: chrnorm/deployment-status@9a72af4586197112e0491ea843682b5dc280d806 # v2.0.3
+        with:
+          token: '${{ secrets.GITHUB_TOKEN }}'
+          state: 'success'
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+
+      - name: Update deployment status to Failure
+        if: ${{ inputs.release_type != 'Dry Run' && failure() }}
+        uses: chrnorm/deployment-status@9a72af4586197112e0491ea843682b5dc280d806 # v2.0.3
+        with:
+          token: '${{ secrets.GITHUB_TOKEN }}'
+          state: 'failure'
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}

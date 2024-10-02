@@ -82,9 +82,7 @@ mod testcrypto {
             key: MySymmKeyRef,
         ) -> Result<Cipher, bitwarden_crypto::CryptoError> {
             let cipher_key = match &self.key {
-                Some(cipher_key) => {
-                    ctx.decrypt_and_store_symmetric_key(key, CIPHER_KEY, cipher_key)?
-                }
+                Some(cipher_key) => ctx.decrypt_symmetric_key(key, CIPHER_KEY, cipher_key)?,
                 None => key,
             };
 
@@ -102,9 +100,7 @@ mod testcrypto {
             key: MySymmKeyRef,
         ) -> Result<CipherView, CryptoError> {
             let cipher_key = match &self.key {
-                Some(cipher_key) => {
-                    ctx.decrypt_and_store_symmetric_key(key, CIPHER_KEY, cipher_key)?
-                }
+                Some(cipher_key) => ctx.decrypt_symmetric_key(key, CIPHER_KEY, cipher_key)?,
                 None => key,
             };
 

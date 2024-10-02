@@ -140,17 +140,16 @@ impl<Key: KeyRef, Data: KeyData<Key>> KeyStore<Key> for SliceKeyStore<Key, Data>
     }
 }
 
-#[allow(dead_code)]
 impl<Key: KeyRef, Data: KeyData<Key>> SliceKeyStore<Key, Data> {
-    pub(crate) fn is_available() -> bool {
-        Data::is_available()
-    }
-
     pub(crate) fn new() -> Option<Self> {
         Self::with_capacity(0)
     }
 
     pub(crate) fn with_capacity(capacity: usize) -> Option<Self> {
+        if !Data::is_available() {
+            return None;
+        }
+
         // If the capacity is 0, we don't need to allocate any memory.
         // This allows us to initialize the container lazily.
         if capacity == 0 {

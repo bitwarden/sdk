@@ -1,14 +1,14 @@
 use std::sync::{Arc, RwLock};
 
-use crate::{EncString, SymmetricCryptoKey};
+use crate::{AsymmetricCryptoKey, SymmetricCryptoKey};
 
 mod context;
 mod encryptable;
 pub mod key_ref;
 mod key_store;
 
-use context::RustCryptoServiceContext;
-pub use encryptable::{Decryptable, Encryptable, KeyProvided, KeyProvidedExt, UsesKey};
+pub use context::CryptoServiceContext;
+pub use encryptable::{Decryptable, Encryptable, UsingKey, UsingKeyExt, UsesKey};
 use key_ref::{AsymmetricKeyRef, KeyRef, SymmetricKeyRef};
 pub use key_store::create_key_store;
 use key_store::KeyStore;
@@ -21,7 +21,8 @@ pub struct CryptoService<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKey
 }
 
 // This is just a wrapper around the keys so we only deal with one RwLock
-struct RustCryptoServiceKeys<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef> {
+pub(crate) struct RustCryptoServiceKeys<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
+{
     symmetric_keys: Box<dyn KeyStore<SymmKeyRef>>,
     asymmetric_keys: Box<dyn KeyStore<AsymmKeyRef>>,
 }
@@ -54,15 +55,21 @@ impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
             .insert(key_ref, key);
     }
 
+    #[deprecated(note = "We should be generating/decrypting the keys into the service directly")]
+    pub fn insert_asymmetric_key(&self, key_ref: AsymmKeyRef, key: AsymmetricCryptoKey) {
+        self.key_stores
+            .write()
+            .expect("RwLock is poisoned")
+            .asymmetric_keys
+            .insert(key_ref, key);
+    }
+
     // TODO: Do we want this to be public?
     pub(crate) fn context(&'_ self) -> CryptoServiceContext<'_, SymmKeyRef, AsymmKeyRef> {
         CryptoServiceContext {
-            // TODO: Cache these?, or maybe initialize them lazily? or both?
-            engine: RustCryptoServiceContext {
-                global_keys: self.key_stores.read().expect("RwLock is poisoned"),
-                local_symmetric_keys: create_key_store(),
-                local_asymmetric_keys: create_key_store(),
-            },
+            global_keys: self.key_stores.read().expect("RwLock is poisoned"),
+            local_symmetric_keys: create_key_store(),
+            local_asymmetric_keys: create_key_store(),
         }
     }
 
@@ -126,30 +133,5 @@ impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
             .collect();
 
         res
-    }
-}
-
-pub struct CryptoServiceContext<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef> {
-    engine: RustCryptoServiceContext<'a, SymmKeyRef, AsymmKeyRef>,
-}
-
-impl<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
-    CryptoServiceContext<'a, SymmKeyRef, AsymmKeyRef>
-{
-    /// Decrypt a key and store it in the local key store
-    pub fn decrypt_and_store_symmetric_key(
-        &mut self,
-        encryption_key: SymmKeyRef,
-        new_key_ref: SymmKeyRef,
-        encrypted_key: &EncString,
-    ) -> Result<SymmKeyRef, crate::CryptoError> {
-        self.engine
-            .decrypt_and_store_symmetric_key(encryption_key, new_key_ref, encrypted_key)?;
-        // This is returned for convenience
-        Ok(new_key_ref)
-    }
-
-    pub fn clear(&mut self) {
-        self.engine.clear();
     }
 }

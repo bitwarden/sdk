@@ -12,19 +12,20 @@ pub trait UsesKey<Key: KeyRef> {
     fn uses_key(&self) -> Key;
 }
 
-// This extension trait allows any type to be wrapped with `KeyProvided`
-// to make it easy to encrypt/decrypt it with the desired key
-pub trait KeyProvidedExt<Key: KeyRef>: Sized {
-    fn using_key(self, key: Key) -> KeyProvided<Key, Self> {
-        KeyProvided { key, value: self }
+// This extension trait allows any type to be wrapped with `UsingKey`
+// to make it easy to encrypt/decrypt it with the desired key,
+// this way we don't need to have a separate `encrypt_with_key` function
+pub trait UsingKeyExt<Key: KeyRef>: Sized {
+    fn using_key(self, key: Key) -> UsingKey<Key, Self> {
+        UsingKey { key, value: self }
     }
 }
-impl<Key: KeyRef, T> KeyProvidedExt<Key> for T {}
-pub struct KeyProvided<Key: KeyRef, T: ?Sized> {
+impl<Key: KeyRef, T> UsingKeyExt<Key> for T {}
+pub struct UsingKey<Key: KeyRef, T: ?Sized> {
     key: Key,
     value: T,
 }
-impl<Key: KeyRef, T> UsesKey<Key> for KeyProvided<Key, T> {
+impl<Key: KeyRef, T> UsesKey<Key> for UsingKey<Key, T> {
     fn uses_key(&self) -> Key {
         self.key
     }
@@ -35,7 +36,7 @@ impl<
         Key: KeyRef,
         T: Encryptable<SymmKeyRef, AsymmKeyRef, Key, Output>,
         Output,
-    > Encryptable<SymmKeyRef, AsymmKeyRef, Key, Output> for KeyProvided<Key, T>
+    > Encryptable<SymmKeyRef, AsymmKeyRef, Key, Output> for UsingKey<Key, T>
 {
     fn encrypt(
         &self,
@@ -51,7 +52,7 @@ impl<
         Key: KeyRef,
         T: Decryptable<SymmKeyRef, AsymmKeyRef, Key, Output>,
         Output,
-    > Decryptable<SymmKeyRef, AsymmKeyRef, Key, Output> for KeyProvided<Key, T>
+    > Decryptable<SymmKeyRef, AsymmKeyRef, Key, Output> for UsingKey<Key, T>
 {
     fn decrypt(
         &self,
@@ -100,7 +101,7 @@ impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
         ctx: &mut CryptoServiceContext<SymmKeyRef, AsymmKeyRef>,
         key: SymmKeyRef,
     ) -> Result<Vec<u8>, crate::CryptoError> {
-        ctx.engine.decrypt_data_with_symmetric_key(key, self)
+        ctx.decrypt_data_with_symmetric_key(key, self)
     }
 }
 
@@ -112,7 +113,7 @@ impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
         ctx: &mut CryptoServiceContext<SymmKeyRef, AsymmKeyRef>,
         key: AsymmKeyRef,
     ) -> Result<Vec<u8>, crate::CryptoError> {
-        ctx.engine.decrypt_data_with_asymmetric_key(key, self)
+        ctx.decrypt_data_with_asymmetric_key(key, self)
     }
 }
 
@@ -124,7 +125,7 @@ impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
         ctx: &mut CryptoServiceContext<SymmKeyRef, AsymmKeyRef>,
         key: SymmKeyRef,
     ) -> Result<EncString, crate::CryptoError> {
-        ctx.engine.encrypt_data_with_symmetric_key(key, self)
+        ctx.encrypt_data_with_symmetric_key(key, self)
     }
 }
 
@@ -136,7 +137,7 @@ impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
         ctx: &mut CryptoServiceContext<SymmKeyRef, AsymmKeyRef>,
         key: AsymmKeyRef,
     ) -> Result<AsymmetricEncString, crate::CryptoError> {
-        ctx.engine.encrypt_data_with_asymmetric_key(key, self)
+        ctx.encrypt_data_with_asymmetric_key(key, self)
     }
 }
 

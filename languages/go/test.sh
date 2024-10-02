@@ -5,5 +5,5 @@ cargo build --package bitwarden-c
 export PREV_GOPATH=$(go env GOPATH)
 cp ../../target/debug/libbitwarden_c.* internal/cinterface/lib/$ARCH/
 go env -w GOPATH="$PWD:$(go env GOPATH)"
-go test -v ./e2e_test
+go test -v ./test/e2e_test
 go env -w GOPATH=$PREV_GOPATH

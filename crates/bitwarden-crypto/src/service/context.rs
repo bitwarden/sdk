@@ -80,6 +80,22 @@ impl<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
         )
     }
 
+    #[deprecated(note = "This function should never be used outside this crate")]
+    pub fn dangerous_get_symmetric_key(
+        &self,
+        key_ref: SymmKeyRef,
+    ) -> Result<&SymmetricCryptoKey, crate::CryptoError> {
+        self.get_symmetric_key(key_ref)
+    }
+
+    #[deprecated(note = "This function should never be used outside this crate")]
+    pub fn dangerous_get_asymmetric_key(
+        &self,
+        key_ref: AsymmKeyRef,
+    ) -> Result<&AsymmetricCryptoKey, crate::CryptoError> {
+        self.get_asymmetric_key(key_ref)
+    }
+
     fn get_symmetric_key(
         &self,
         key_ref: SymmKeyRef,

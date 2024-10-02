@@ -26,6 +26,9 @@ pub enum CryptoError {
     #[error("Missing Key for Ref. {0}")]
     MissingKey2(String),
 
+    #[error("Insufficient KDF parameters")]
+    InsufficientKdfParameters,
+
     #[error("EncString error, {0}")]
     EncString(#[from] EncStringParseError),
 

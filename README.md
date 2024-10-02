@@ -35,6 +35,19 @@ To build, you will need the following in your PATH:
   - We recommend installing this via the
     [Visual Studio Build Tools](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022)
 
+## Documentation
+
+Please refer to our [Contributing Docs](https://contributing.bitwarden.com/) for
+[getting started](https://contributing.bitwarden.com/getting-started/sdk/) instructions and
+[architectural documentation](https://contributing.bitwarden.com/architecture/sdk/).
+
+You can also browse the latest published documentation:
+
+- [docs.rs](https://docs.rs/bitwarden/latest/bitwarden/) for the public SDK.
+- Or for developers of the SDK, view the internal
+  [API documentation](https://sdk-api-docs.bitwarden.com/bitwarden/index.html) which includes
+  private items.
+
 ## Crates
 
 The project is structured as a monorepo using cargo workspaces. Some of the more noteworthy crates

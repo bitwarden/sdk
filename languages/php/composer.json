@@ -4,7 +4,7 @@
   "type": "library",
   "keywords": ["bitwarden","sdk","password-manager"],
   "homepage": "https://github.com/bitwarden/sdk",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "require": {
     "php": "^8.0",
     "ext-ffi": "*"

@@ -1,6 +1,6 @@
 [package]
 name = "bitwarden-napi"
-version = "0.3.1"
+version = "1.0.0"
 description = """
 N-API bindings for the Bitwarden Secrets Manager SDK
 """
@@ -22,7 +22,7 @@ bitwarden-json = { path = "../bitwarden-json", version = "0.3.0", features = [
     "secrets",
 ] }
 env_logger = "0.11.1"
-log = "0.4.20"
+log = { workspace = true }
 napi = { version = "2", features = ["async"] }
 napi-derive = "2"
 

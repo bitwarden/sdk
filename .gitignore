@@ -19,6 +19,7 @@ bld/
 # Binary files
 *.dylib
 *.a
+*.d
 *.so
 *.dll
 *.class

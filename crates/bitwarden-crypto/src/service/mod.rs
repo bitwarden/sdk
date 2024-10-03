@@ -7,7 +7,8 @@ mod encryptable;
 pub mod key_ref;
 mod key_store;
 
-pub use context::CryptoServiceContext;
+use context::ReadWriteGlobal;
+pub use context::{CryptoServiceContext, ReadOnlyGlobal};
 pub use encryptable::{Decryptable, Encryptable, UsesKey, UsingKey, UsingKeyExt};
 use key_ref::{AsymmetricKeyRef, KeyRef, SymmetricKeyRef};
 pub use key_store::create_key_store;
@@ -28,9 +29,7 @@ impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef> std::fmt::Debug
     }
 }
 
-// This is just a wrapper around the keys so we only deal with one RwLock
-pub(crate) struct Keys<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
-{
+pub struct Keys<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef> {
     symmetric_keys: Box<dyn KeyStore<SymmKeyRef>>,
     asymmetric_keys: Box<dyn KeyStore<AsymmKeyRef>>,
 }
@@ -88,13 +87,49 @@ impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
             .insert(key_ref, key);
     }
 
-    /// Initiate an encryption/decryption context. This is an advanced API, use with care.
-    /// Prefer to instead use `encrypt`/`decrypt`/`encrypt_list`/`decrypt_list` methods.
+    /// Initiate an encryption/decryption context. This context will have read only access to the
+    /// global keys, and will have its own local key stores with read/write access. This
+    /// context-local store will be cleared up when the context is dropped.
+    ///
+    /// This is an advanced API, use with care. Prefer to instead use
+    /// `encrypt`/`decrypt`/`encrypt_list`/`decrypt_list` methods.
+    ///
+    /// One of the pitfalls of the current implementations is that keys stored in the context-local
+    /// store only get cleared automatically when dropped, and not between operations. This
+    /// means that if you are using the same context for multiple operations, you may want to
+    /// clear it manually between them.
     pub fn context(&'_ self) -> CryptoServiceContext<'_, SymmKeyRef, AsymmKeyRef> {
         CryptoServiceContext {
-            global_keys: self.key_stores.read().expect("RwLock is poisoned"),
+            global: ReadOnlyGlobal(self.key_stores.read().expect("RwLock is poisoned")),
             local_symmetric_keys: create_key_store(),
             local_asymmetric_keys: create_key_store(),
+            _phantom: std::marker::PhantomData,
+        }
+    }
+
+    /// Initiate an encryption/decryption context. This context will have MUTABLE access to the
+    /// global keys, and will have its own local key stores with read/write access. This
+    /// context-local store will be cleared up when the context is dropped.
+    ///
+    /// This is an advanced API, use with care and ONLY when needing to modify the global keys.
+    ///
+    /// The same pitfalls as `context` apply here, but with the added risk of accidentally
+    /// modifying the global keys and leaving the service in an inconsistent state.
+    ///
+    /// TODO: We should work towards making this pub(crate)
+    pub fn context_mut(
+        &'_ self,
+    ) -> CryptoServiceContext<
+        '_,
+        SymmKeyRef,
+        AsymmKeyRef,
+        ReadWriteGlobal<'_, SymmKeyRef, AsymmKeyRef>,
+    > {
+        CryptoServiceContext {
+            global: ReadWriteGlobal(self.key_stores.write().expect("RwLock is poisoned")),
+            local_symmetric_keys: create_key_store(),
+            local_asymmetric_keys: create_key_store(),
+            _phantom: std::marker::PhantomData,
         }
     }
 

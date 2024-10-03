@@ -2,7 +2,7 @@ use std::sync::RwLockReadGuard;
 
 use rsa::Oaep;
 
-use super::RustCryptoServiceKeys;
+use super::Keys;
 use crate::{
     service::{key_store::KeyStore, AsymmetricKeyRef, SymmetricKeyRef},
     AsymmetricCryptoKey, AsymmetricEncString, CryptoError, EncString, SymmetricCryptoKey,
@@ -11,7 +11,7 @@ use crate::{
 pub struct CryptoServiceContext<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef> {
     // We hold a RwLock read guard to avoid having any nested
     //calls locking it again and potentially causing a deadlock
-    pub(super) global_keys: RwLockReadGuard<'a, RustCryptoServiceKeys<SymmKeyRef, AsymmKeyRef>>,
+    pub(super) global_keys: RwLockReadGuard<'a, Keys<SymmKeyRef, AsymmKeyRef>>,
 
     pub(super) local_symmetric_keys: Box<dyn KeyStore<SymmKeyRef>>,
     pub(super) local_asymmetric_keys: Box<dyn KeyStore<AsymmKeyRef>>,

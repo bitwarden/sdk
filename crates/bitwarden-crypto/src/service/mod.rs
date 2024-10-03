@@ -17,7 +17,7 @@ use key_store::KeyStore;
 pub struct CryptoService<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef> {
     // We use an Arc<> to make it easier to pass this service around, as we can
     // clone it instead of passing references
-    key_stores: Arc<RwLock<RustCryptoServiceKeys<SymmKeyRef, AsymmKeyRef>>>,
+    key_stores: Arc<RwLock<Keys<SymmKeyRef, AsymmKeyRef>>>,
 }
 
 impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef> std::fmt::Debug
@@ -29,7 +29,7 @@ impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef> std::fmt::Debug
 }
 
 // This is just a wrapper around the keys so we only deal with one RwLock
-pub(crate) struct RustCryptoServiceKeys<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
+pub(crate) struct Keys<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
 {
     symmetric_keys: Box<dyn KeyStore<SymmKeyRef>>,
     asymmetric_keys: Box<dyn KeyStore<AsymmKeyRef>>,
@@ -41,7 +41,7 @@ impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
-            key_stores: Arc::new(RwLock::new(RustCryptoServiceKeys {
+            key_stores: Arc::new(RwLock::new(Keys {
                 symmetric_keys: create_key_store(),
                 asymmetric_keys: create_key_store(),
             })),

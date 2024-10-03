@@ -13,7 +13,6 @@ on:
           - Release
           - Dry Run
 
-
 jobs:
   setup:
     name: Setup

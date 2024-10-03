@@ -15,7 +15,7 @@ on:
           - Redeploy
           - Dry Run
       version:
-        description: 'Version to publish (default: latest rust crates release)'
+        description: "Version to publish (default: latest rust crates release)"
         required: true
         type: string
         default: latest

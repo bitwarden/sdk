@@ -73,5 +73,6 @@ jobs:
           artifacts: sdk-internal
 
       - name: Debug
+        working-directory: sdk-internal
         run: |
           ls -la

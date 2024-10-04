@@ -56,7 +56,7 @@ jobs:
       - name: Download artifact
         uses: bitwarden/gh-actions/download-artifacts@main
         with:
-          workflow: build-internal.yml
+          workflow: build-wasm-internal.yml
           workflow_conclusion: success
           branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
           artifacts: sdk-internal

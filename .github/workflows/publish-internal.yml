@@ -1,0 +1,136 @@
+---
+name: Publish @bitwarden/sdk-internal
+run-name: Publish @bitwarden/sdk-internal ${{ inputs.release_type }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Release Options"
+        required: true
+        default: "Release"
+        type: choice
+        options:
+          - Release
+          - Dry Run
+      version:
+        description: "Release Version"
+        required: false
+        default: "latest"
+
+defaults:
+  run:
+    working-directory: languages/js/sdk-internal
+
+jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-22.04
+    outputs:
+      release-version: ${{ steps.version-output.outputs.version }}
+      tag_name: ${{ steps.version-output.outputs.tag_name }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Branch check
+        if: ${{ inputs.release_type != 'Dry Run' }}
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "==================================="
+            echo "[!] Can only release from the 'main' branch"
+            echo "==================================="
+            exit 1
+          fi
+
+      - name: Version output
+        id: version-output
+        run: |
+          if [[ "${{ inputs.version }}" == "latest" || "${{ inputs.version }}" == "" ]]; then
+            TAG_NAME=$(curl  "https://api.github.com/repos/bitwarden/sdk/releases" | jq -c '.[] | select(.tag_name | contains("sdk-internal")) | .tag_name' | head -1)
+            VERSION=$(echo $TAG_NAME | grep -ohE '20[0-9]{2}\.([1-9]|1[0-2])\.[0-9]+')
+            echo "Latest Released Version: $VERSION"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+            echo "Latest Released Tag name: $TAG_NAME"
+            echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          else
+            echo "Release Version: ${{ inputs.version }}"
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+  npm:
+    name: Publish NPM
+    runs-on: ubuntu-22.04
+    needs: setup
+    env:
+      _VERSION: ${{ needs.setup.outputs.release-version }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          ref: ${{ needs.setup.outputs.tag_name }}
+
+      - name: Setup Node
+        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
+        with:
+          node-version: 20
+
+      - name: Login to Azure
+        uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
+        with:
+          creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
+
+      - name: Retrieve secrets
+        id: retrieve-secrets
+        uses: bitwarden/gh-actions/get-keyvault-secrets@main
+        with:
+          keyvault: "bitwarden-ci"
+          secrets: "npm-api-key"
+
+      - name: Download artifact
+        run: |
+          wget https://github.com/bitwarden/sdk/releases/download/sdk-internal-v${{ env._VERSION }}/sdk-internal.zip
+          unzip sdk-internal.zip
+          rm sdk-internal.zip
+
+      - name: Create GitHub deployment
+        if: ${{ inputs.release_type != 'Dry Run' }}
+        uses: chrnorm/deployment-action@55729fcebec3d284f60f5bcabbd8376437d696b1 # v2.0.7
+        id: deployment
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          initial-status: "in_progress"
+          environment: "Bitwarden SDK Internal - Production"
+          description: "Deployment ${{ env._VERSION }} from branch ${{ github.ref_name }}"
+          task: release
+
+      - name: Setup NPM
+        run: |
+          echo 'registry="https://registry.npmjs.org/"' > ./.npmrc
+          echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ./.npmrc
+
+          echo 'registry="https://registry.npmjs.org/"' > ~/.npmrc
+          echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+        env:
+          NPM_TOKEN: ${{ steps.retrieve-secrets.outputs.npm-api-key }}
+
+      - name: Publish NPM
+        if: ${{ inputs.release_type != 'Dry Run' }}
+        run: npm publish --access public --registry=https://registry.npmjs.org/  --userconfig=./.npmrc
+
+      - name: Update deployment status to Success
+        if: ${{ inputs.release_type != 'Dry Run' && success() }}
+        uses: chrnorm/deployment-status@9a72af4586197112e0491ea843682b5dc280d806 # v2.0.3
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          state: "success"
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+
+      - name: Update deployment status to Failure
+        if: ${{ inputs.release_type != 'Dry Run' && failure() }}
+        uses: chrnorm/deployment-status@9a72af4586197112e0491ea843682b5dc280d806 # v2.0.3
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          state: "failure"
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}

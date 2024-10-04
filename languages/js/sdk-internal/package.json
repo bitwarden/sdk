@@ -9,8 +9,13 @@
     "bitwarden_wasm_internal_bg.wasm.js",
     "bitwarden_wasm_internal.d.ts",
     "bitwarden_wasm_internal.js",
-    "index.js"
+    "index.js",
+    "node/bitwarden_wasm_internal_bg.wasm",
+    "node/bitwarden_wasm_internal_bg.wasm.d.ts",
+    "node/bitwarden_wasm_internal.d.ts",
+    "node/bitwarden_wasm_internal.js"
   ],
+  "main": "node/bitwarden_wasm_internal.js",
   "module": "index.js",
   "types": "bitwarden_wasm_internal.d.ts",
   "scripts": {},

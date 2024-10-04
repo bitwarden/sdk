@@ -230,7 +230,7 @@ impl<
         Ok(())
     }
 
-    pub(super) fn decrypt_data_with_symmetric_key(
+    pub(crate) fn decrypt_data_with_symmetric_key(
         &self,
         key: SymmKeyRef,
         data: &EncString,
@@ -261,7 +261,7 @@ impl<
         }
     }
 
-    pub(super) fn encrypt_data_with_symmetric_key(
+    pub(crate) fn encrypt_data_with_symmetric_key(
         &self,
         key: SymmKeyRef,
         data: &[u8],
@@ -274,7 +274,7 @@ impl<
         )
     }
 
-    pub(super) fn decrypt_data_with_asymmetric_key(
+    pub(crate) fn decrypt_data_with_asymmetric_key(
         &self,
         key: AsymmKeyRef,
         data: &AsymmetricEncString,
@@ -297,7 +297,7 @@ impl<
         .map_err(|_| CryptoError::KeyDecrypt)
     }
 
-    pub(super) fn encrypt_data_with_asymmetric_key(
+    pub(crate) fn encrypt_data_with_asymmetric_key(
         &self,
         key: AsymmKeyRef,
         data: &[u8],

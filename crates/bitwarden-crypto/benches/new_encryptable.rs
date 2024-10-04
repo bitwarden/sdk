@@ -1,5 +1,10 @@
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 
+use bitwarden_crypto::{
+    key_refs, service::*, CryptoError, EncString, Encryptable, KeyDecryptable, KeyEncryptable,
+    SymmetricCryptoKey, UsesKey,
+};
+
 pub fn criterion_benchmark(c: &mut Criterion) {
     let user_key = SymmetricCryptoKey::generate(rand::thread_rng());
 
@@ -89,11 +94,6 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
 criterion_group!(benches, criterion_benchmark);
 criterion_main!(benches);
-
-use bitwarden_crypto::{
-    key_refs, service::*, CryptoError, EncString, KeyDecryptable, KeyEncryptable,
-    SymmetricCryptoKey,
-};
 
 key_refs! {
     #[symmetric]

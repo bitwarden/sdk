@@ -1,5 +1,10 @@
 mod key_encryptable;
 pub use key_encryptable::{CryptoKey, KeyContainer, KeyDecryptable, KeyEncryptable, LocateKey};
+mod encryptable;
+pub use encryptable::{Decryptable, Encryptable, UsesKey, UsingKey, UsingKeyExt};
+pub mod key_ref;
+pub(crate) use key_ref::KeyRef;
+pub use key_ref::{AsymmetricKeyRef, SymmetricKeyRef};
 mod master_key;
 pub use master_key::{
     default_argon2_iterations, default_argon2_memory, default_argon2_parallelism,

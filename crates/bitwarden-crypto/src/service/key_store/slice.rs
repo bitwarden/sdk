@@ -2,8 +2,9 @@ use std::marker::PhantomData;
 
 use zeroize::ZeroizeOnDrop;
 
+use crate::KeyRef;
+
 use super::KeyStore;
-use crate::service::key_ref::KeyRef;
 
 /// This trait represents some data stored sequentially in memory, with a fixed size.
 /// We use this to abstract the implementation over Vec/Box<[u8]/NonNull<[u8]>, which
@@ -271,10 +272,7 @@ pub(crate) mod tests {
     use zeroize::Zeroize;
 
     use super::*;
-    use crate::{
-        service::{key_ref::KeyRef, key_store::implementation::rust_slice::RustKeyStore},
-        CryptoKey,
-    };
+    use crate::{service::key_store::implementation::rust_slice::RustKeyStore, CryptoKey, KeyRef};
 
     #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     pub enum TestKey {

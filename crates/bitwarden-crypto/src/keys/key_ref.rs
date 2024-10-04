@@ -60,7 +60,7 @@ macro_rules! key_refs {
                 $variant  $( ($inner) )?
         ,)+ }
 
-        impl $crate::service::key_ref::__internal::KeyRef for $name {
+        impl $crate::key_ref::__internal::KeyRef for $name {
             type KeyValue = key_refs!(@key_type $meta_type);
 
             fn is_local(&self) -> bool {
@@ -78,8 +78,8 @@ macro_rules! key_refs {
     ( @key_type symmetric ) => { $crate::SymmetricCryptoKey };
     ( @key_type asymmetric ) => { $crate::AsymmetricCryptoKey };
 
-    ( @key_trait symmetric $name:ident ) => { impl $crate::service::key_ref::SymmetricKeyRef for $name {} };
-    ( @key_trait asymmetric $name:ident ) => { impl $crate::service::key_ref::AsymmetricKeyRef for $name {} };
+    ( @key_trait symmetric $name:ident ) => { impl $crate::key_ref::SymmetricKeyRef for $name {} };
+    ( @key_trait asymmetric $name:ident ) => { impl $crate::key_ref::AsymmetricKeyRef for $name {} };
 
     ( @variant_match $variant:ident ( $inner:ty ) ) => { $variant (_) };
     ( @variant_match $variant:ident ) => { $variant };

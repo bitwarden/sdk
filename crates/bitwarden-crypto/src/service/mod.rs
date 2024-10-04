@@ -1,16 +1,17 @@
 use std::sync::{Arc, RwLock};
 
-use crate::{AsymmetricCryptoKey, SymmetricCryptoKey};
+use crate::{
+    AsymmetricCryptoKey, AsymmetricKeyRef, Decryptable, Encryptable, KeyRef, SymmetricCryptoKey,
+    SymmetricKeyRef, UsesKey,
+};
 
 mod context;
-mod encryptable;
-pub mod key_ref;
+
 mod key_store;
 
 use context::ReadWriteGlobal;
 pub use context::{CryptoServiceContext, ReadOnlyGlobal};
-pub use encryptable::{Decryptable, Encryptable, UsesKey, UsingKey, UsingKeyExt};
-use key_ref::{AsymmetricKeyRef, KeyRef, SymmetricKeyRef};
+
 pub use key_store::create_key_store;
 use key_store::KeyStore;
 

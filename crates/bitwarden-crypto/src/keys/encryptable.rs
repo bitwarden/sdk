@@ -1,10 +1,5 @@
-use super::{
-    key_ref::{AsymmetricKeyRef, KeyRef, SymmetricKeyRef},
-    CryptoServiceContext,
-};
-use crate::{AsymmetricEncString, CryptoError, EncString};
-
-///////////////////////
+use super::key_ref::{AsymmetricKeyRef, KeyRef, SymmetricKeyRef};
+use crate::{service::CryptoServiceContext, AsymmetricEncString, CryptoError, EncString};
 
 // Just like LocateKey but this time we're not locating anything, just returning a ref
 
@@ -62,8 +57,6 @@ impl<
         self.value.decrypt(ctx, self.key)
     }
 }
-
-/////////////////////
 
 pub trait Encryptable<
     SymmKeyRef: SymmetricKeyRef,

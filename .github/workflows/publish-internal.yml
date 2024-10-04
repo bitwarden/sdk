@@ -71,8 +71,8 @@ jobs:
           workflow_conclusion: success
           branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
           artifacts: sdk-internal
+          path: languages/js/sdk-internal
 
       - name: Debug
-        working-directory: sdk-internal
         run: |
           ls -la

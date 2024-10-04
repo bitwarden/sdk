@@ -23,7 +23,7 @@ env:
 jobs:
   validate:
     name: Setup
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.version-output.outputs.version }}
     steps:
@@ -58,7 +58,7 @@ jobs:
 
   deploy:
     name: Deploy
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: validate
     steps:
       - name: Create GitHub deployment

@@ -18,7 +18,7 @@ defaults:
 jobs:
   build:
     name: Building @bitwarden/sdk-wasm-internal
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repo

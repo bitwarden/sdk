@@ -25,7 +25,7 @@ env:
 jobs:
   setup:
     name: Setup
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       release-version: ${{ steps.version-output.outputs.version }}
       release-tag: ${{ steps.version-output.outputs.tag_name }}
@@ -73,7 +73,7 @@ jobs:
 
   publish:
     name: Publish bws to crates.io
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: setup
     env:
       _VERSION: ${{ needs.setup.outputs.release-version }}
@@ -115,7 +115,7 @@ jobs:
 
   publish-docker:
     name: Publish docker versioned and latest image
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: setup
     steps:
       - name: Checkout
@@ -192,7 +192,7 @@ jobs:
 
   update_release_status:
     name: Update GitHub deployment status
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: setup
     if: ${{ inputs.release_type != 'Dry Run' }}
     env:

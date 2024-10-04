@@ -19,7 +19,7 @@ env:
 jobs:
   validate:
     name: Setup
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -44,7 +44,7 @@ jobs:
 
   github-release:
     name: GitHub Release
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: validate
     env:
       _PKG_VERSION: ${{ needs.validate.outputs.version }}

@@ -13,7 +13,7 @@ env:
 jobs:
   ci-pass:
     name: CI is green
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - test
       - wasm
@@ -50,7 +50,7 @@ jobs:
 
   coverage:
     name: Coverage
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout
@@ -79,7 +79,7 @@ jobs:
   wasm:
     name: WASM
 
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout

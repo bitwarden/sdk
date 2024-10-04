@@ -25,7 +25,7 @@ defaults:
 jobs:
   setup:
     name: Setup
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       release-version: ${{ steps.version-output.outputs.version }}
       tag-name: ${{ steps.version-output.outputs.tag_name }}
@@ -61,7 +61,7 @@ jobs:
 
   npm:
     name: Publish NPM
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: setup
     env:
       _PKG_VERSION: ${{ needs.setup.outputs.release-version }}

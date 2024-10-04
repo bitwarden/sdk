@@ -23,7 +23,7 @@ on:
 jobs:
   setup:
     name: setup
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       release-version: ${{ steps.version-output.outputs.version }}
       release-tag: ${{ steps.version-output.outputs.tag_name }}
@@ -59,7 +59,7 @@ jobs:
 
   publish:
     name: Publish
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: setup
     steps:
       - name: Checkout

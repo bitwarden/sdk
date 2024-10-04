@@ -1,6 +1,7 @@
 {
   "name": "@bitwarden/sdk-internal",
   "version": "0.1.0",
+  "license": "SEE LICENSE IN LICENSE",
   "files": [
     "bitwarden_wasm_internal_bg.js",
     "bitwarden_wasm_internal_bg.wasm",

@@ -66,10 +66,10 @@ jobs:
         uses: chrnorm/deployment-action@55729fcebec3d284f60f5bcabbd8376437d696b1 # v2.0.7
         id: deployment
         with:
-          token: '${{ secrets.GITHUB_TOKEN }}'
-          initial-status: 'in_progress'
-          environment: 'dotnet - Production'
-          description: 'Deployment ${{ needs.validate.outputs.version }} from branch ${{ github.ref_name }}'
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          initial-status: "in_progress"
+          environment: "dotnet - Production"
+          description: "Deployment ${{ needs.validate.outputs.version }} from branch ${{ github.ref_name }}"
           task: release
 
       - name: Download artifact
@@ -100,14 +100,14 @@ jobs:
         if: ${{ inputs.release_type != 'Dry Run' && success() }}
         uses: chrnorm/deployment-status@9a72af4586197112e0491ea843682b5dc280d806 # v2.0.3
         with:
-          token: '${{ secrets.GITHUB_TOKEN }}'
-          state: 'success'
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          state: "success"
           deployment-id: ${{ steps.deployment.outputs.deployment_id }}
 
       - name: Update deployment status to Failure
         if: ${{ inputs.release_type != 'Dry Run' && failure() }}
         uses: chrnorm/deployment-status@9a72af4586197112e0491ea843682b5dc280d806 # v2.0.3
         with:
-          token: '${{ secrets.GITHUB_TOKEN }}'
-          state: 'failure'
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          state: "failure"
           deployment-id: ${{ steps.deployment.outputs.deployment_id }}

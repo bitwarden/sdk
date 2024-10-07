@@ -196,6 +196,7 @@ pub async fn initialize_user_crypto(
 #[cfg_attr(feature = "wasm", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 pub struct InitOrgCryptoRequest {
     /// The encryption keys for all the organizations the user is a part of
+    #[cfg_attr(feature = "wasm", tsify(type = "Map<string, AsymmetricEncString>"))]
     pub organization_keys: HashMap<uuid::Uuid, AsymmetricEncString>,
 }
 

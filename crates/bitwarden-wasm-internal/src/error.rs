@@ -10,13 +10,19 @@ extern "C" {
     fn new(message: String) -> WasmError;
 }
 
-pub type Result<T> = std::result::Result<T, Error>;
+pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 pub struct Error(bitwarden::error::Error);
 
 impl From<bitwarden::error::Error> for Error {
     fn from(error: bitwarden::error::Error) -> Self {
         Self(error)
+    }
+}
+
+impl From<bitwarden::Error> for Error {
+    fn from(error: bitwarden::Error) -> Self {
+        Self(error.into())
     }
 }
 

@@ -15,16 +15,6 @@ impl<T: KeyContainer> KeyContainer for Arc<T> {
     }
 }
 
-pub trait LocateKey {
-    fn locate_key<'a>(
-        &self,
-        enc: &'a dyn KeyContainer,
-        org_id: &Option<Uuid>,
-    ) -> Result<&'a SymmetricCryptoKey, CryptoError> {
-        enc.get_key(org_id)
-    }
-}
-
 pub trait CryptoKey {}
 
 pub trait KeyEncryptable<Key: CryptoKey, Output> {

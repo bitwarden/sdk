@@ -162,9 +162,11 @@ impl<'a> ClientAuth<'a> {
 
 #[cfg(feature = "internal")]
 fn trust_device(client: &Client) -> Result<TrustDeviceResponse> {
-    let enc = client.internal.get_encryption_settings()?;
+    use crate::key_management::SymmetricKeyRef;
 
-    let user_key = enc.get_key(&None)?;
+    let ctx = client.internal.get_crypto_service().context();
+    #[allow(deprecated)]
+    let user_key = ctx.dangerous_get_symmetric_key(SymmetricKeyRef::User)?;
 
     Ok(DeviceKey::trust_device(user_key)?)
 }

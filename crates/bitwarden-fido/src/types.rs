@@ -1,7 +1,8 @@
 use std::borrow::Cow;
 
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
-use bitwarden_crypto::KeyContainer;
+use bitwarden_core::key_management::{AsymmetricKeyRef, SymmetricKeyRef};
+use bitwarden_crypto::service::CryptoServiceContext;
 use bitwarden_vault::{CipherError, CipherView};
 use passkey::types::webauthn::UserVerificationRequirement;
 use reqwest::Url;
@@ -65,9 +66,9 @@ pub enum Fido2CredentialAutofillViewError {
 impl Fido2CredentialAutofillView {
     pub fn from_cipher_view(
         cipher: &CipherView,
-        enc: &dyn KeyContainer,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
     ) -> Result<Vec<Fido2CredentialAutofillView>, Fido2CredentialAutofillViewError> {
-        let credentials = cipher.decrypt_fido2_credentials(enc)?;
+        let credentials = cipher.decrypt_fido2_credentials(ctx)?;
 
         credentials
             .into_iter()

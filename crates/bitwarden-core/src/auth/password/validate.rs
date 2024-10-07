@@ -44,6 +44,8 @@ pub(crate) fn validate_password_user_key(
     password: String,
     encrypted_user_key: String,
 ) -> Result<String> {
+    use crate::key_management::SymmetricKeyRef;
+
     let login_method = client
         .internal
         .get_login_method()
@@ -59,9 +61,10 @@ pub(crate) fn validate_password_user_key(
                     .decrypt_user_key(encrypted_user_key.parse()?)
                     .map_err(|_| "wrong password")?;
 
-                let enc = client.internal.get_encryption_settings()?;
-
-                let existing_key = enc.get_key(&None)?;
+                let crypto_service = client.internal.get_crypto_service();
+                let ctx = crypto_service.context();
+                #[allow(deprecated)]
+                let existing_key = ctx.dangerous_get_symmetric_key(SymmetricKeyRef::User)?;
 
                 if user_key.to_vec() != existing_key.to_vec() {
                     return Err("wrong user key".into());

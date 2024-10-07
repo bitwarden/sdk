@@ -1,7 +1,10 @@
 use std::{collections::HashMap, str::FromStr};
 
-use bitwarden_core::VaultLocked;
-use bitwarden_crypto::{CryptoError, KeyContainer};
+use bitwarden_core::{
+    key_management::{AsymmetricKeyRef, SymmetricKeyRef},
+    VaultLocked,
+};
+use bitwarden_crypto::{service::CryptoServiceContext, CryptoError};
 use chrono::{DateTime, Utc};
 use hmac::{Hmac, Mac};
 use reqwest::Url;
@@ -76,11 +79,11 @@ pub fn generate_totp(key: String, time: Option<DateTime<Utc>>) -> Result<TotpRes
 ///
 /// See [generate_totp] for more information.
 pub fn generate_totp_cipher_view(
-    enc: &dyn KeyContainer,
+    ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
     view: CipherListView,
     time: Option<DateTime<Utc>>,
 ) -> Result<TotpResponse, TotpError> {
-    let key = view.get_totp_key(enc)?.ok_or(TotpError::MissingSecret)?;
+    let key = view.get_totp_key(ctx)?.ok_or(TotpError::MissingSecret)?;
 
     generate_totp(key, time)
 }
@@ -259,9 +262,8 @@ fn decode_b32(s: &str) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
-    use bitwarden_crypto::{CryptoError, SymmetricCryptoKey};
+    use bitwarden_core::key_management::create_test_crypto_with_user_key;
     use chrono::Utc;
-    use uuid::Uuid;
 
     use super::*;
     use crate::{cipher::cipher::CipherListViewType, CipherRepromptType};
@@ -359,22 +361,14 @@ mod tests {
             revision_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
         };
 
-        struct MockKeyContainer(SymmetricCryptoKey);
-        impl KeyContainer for MockKeyContainer {
-            fn get_key<'a>(
-                &'a self,
-                _: &Option<Uuid>,
-            ) -> Result<&'a SymmetricCryptoKey, CryptoError> {
-                Ok(&self.0)
-            }
-        }
+        let key= "w2LO+nwV4oxwswVYCxlOfRUseXfvU03VzvKQHrqeklPgiMZrspUe6sOBToCnDn9Ay0tuCBn8ykVVRb7PWhub2Q==".to_string().try_into().unwrap();
+        let crypto = create_test_crypto_with_user_key(key);
 
-        let enc = MockKeyContainer("w2LO+nwV4oxwswVYCxlOfRUseXfvU03VzvKQHrqeklPgiMZrspUe6sOBToCnDn9Ay0tuCBn8ykVVRb7PWhub2Q==".to_string().try_into().unwrap());
         let time = DateTime::parse_from_rfc3339("2023-01-01T00:00:00.000Z")
             .unwrap()
             .with_timezone(&Utc);
 
-        let response = generate_totp_cipher_view(&enc, view, Some(time)).unwrap();
+        let response = generate_totp_cipher_view(&mut crypto.context(), view, Some(time)).unwrap();
         assert_eq!(response.code, "559388".to_string());
         assert_eq!(response.period, 30);
     }

@@ -1,8 +1,7 @@
 use std::collections::HashMap;
 
 use bitwarden_crypto::{
-    AsymmetricEncString, EncString, Kdf, KeyDecryptable, KeyEncryptable, MasterKey,
-    SymmetricCryptoKey,
+    AsymmetricEncString, Decryptable, EncString, Encryptable, Kdf, MasterKey, SymmetricCryptoKey,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -10,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     client::{encryption_settings::EncryptionSettingsError, LoginMethod, UserLoginMethod},
     error::{Error, Result},
+    key_management::SymmetricKeyRef,
     Client,
 };
 
@@ -200,8 +200,9 @@ pub async fn initialize_org_crypto(
 }
 
 pub async fn get_user_encryption_key(client: &Client) -> Result<String> {
-    let enc = client.internal.get_encryption_settings()?;
-    let user_key = enc.get_key(&None)?;
+    let ctx = client.internal.get_crypto_service().context();
+    #[allow(deprecated)]
+    let user_key = ctx.dangerous_get_symmetric_key(SymmetricKeyRef::User)?;
 
     Ok(user_key.to_base64())
 }
@@ -217,8 +218,9 @@ pub struct UpdatePasswordResponse {
 }
 
 pub fn update_password(client: &Client, new_password: String) -> Result<UpdatePasswordResponse> {
-    let enc = client.internal.get_encryption_settings()?;
-    let user_key = enc.get_key(&None)?;
+    let ctx = client.internal.get_crypto_service().context();
+    #[allow(deprecated)]
+    let user_key = ctx.dangerous_get_symmetric_key(SymmetricKeyRef::User)?;
 
     let login_method = client
         .internal
@@ -259,8 +261,9 @@ pub struct DerivePinKeyResponse {
 }
 
 pub fn derive_pin_key(client: &Client, pin: String) -> Result<DerivePinKeyResponse> {
-    let enc = client.internal.get_encryption_settings()?;
-    let user_key = enc.get_key(&None)?;
+    let mut ctx = client.internal.get_crypto_service().context();
+    #[allow(deprecated)]
+    let user_key = ctx.dangerous_get_symmetric_key(SymmetricKeyRef::User)?;
 
     let login_method = client
         .internal
@@ -271,20 +274,21 @@ pub fn derive_pin_key(client: &Client, pin: String) -> Result<DerivePinKeyRespon
 
     Ok(DerivePinKeyResponse {
         pin_protected_user_key,
-        encrypted_pin: pin.encrypt_with_key(user_key)?,
+        encrypted_pin: pin.encrypt(&mut ctx, SymmetricKeyRef::User)?,
     })
 }
 
 pub fn derive_pin_user_key(client: &Client, encrypted_pin: EncString) -> Result<EncString> {
-    let enc = client.internal.get_encryption_settings()?;
-    let user_key = enc.get_key(&None)?;
+    let mut ctx = client.internal.get_crypto_service().context();
 
-    let pin: String = encrypted_pin.decrypt_with_key(user_key)?;
+    let pin: String = encrypted_pin.decrypt(&mut ctx, SymmetricKeyRef::User)?;
     let login_method = client
         .internal
         .get_login_method()
         .ok_or(Error::NotAuthenticated)?;
 
+    #[allow(deprecated)]
+    let user_key = ctx.dangerous_get_symmetric_key(SymmetricKeyRef::User)?;
     derive_pin_protected_user_key(&pin, &login_method, user_key)
 }
 
@@ -315,8 +319,10 @@ pub(super) fn enroll_admin_password_reset(
     use bitwarden_crypto::AsymmetricPublicCryptoKey;
 
     let public_key = AsymmetricPublicCryptoKey::from_der(&STANDARD.decode(public_key)?)?;
-    let enc = client.internal.get_encryption_settings()?;
-    let key = enc.get_key(&None)?;
+
+    let ctx = client.internal.get_crypto_service().context();
+    #[allow(deprecated)]
+    let key = ctx.dangerous_get_symmetric_key(SymmetricKeyRef::User)?;
 
     Ok(AsymmetricEncString::encrypt_rsa2048_oaep_sha1(
         &key.to_vec(),
@@ -408,22 +414,23 @@ mod tests {
 
         assert_eq!(new_hash, new_password_response.password_hash);
 
-        assert_eq!(
-            client
-                .internal
-                .get_encryption_settings()
-                .unwrap()
-                .get_key(&None)
-                .unwrap()
-                .to_base64(),
-            client2
-                .internal
-                .get_encryption_settings()
-                .unwrap()
-                .get_key(&None)
-                .unwrap()
-                .to_base64()
-        );
+        #[allow(deprecated)]
+        let key1 = client
+            .internal
+            .get_crypto_service()
+            .context()
+            .dangerous_get_symmetric_key(SymmetricKeyRef::User)
+            .unwrap()
+            .to_base64();
+        #[allow(deprecated)]
+        let key2 = client2
+            .internal
+            .get_crypto_service()
+            .context()
+            .dangerous_get_symmetric_key(SymmetricKeyRef::User)
+            .unwrap()
+            .to_base64();
+        assert_eq!(key1, key2);
     }
 
     #[tokio::test]
@@ -470,22 +477,23 @@ mod tests {
         .await
         .unwrap();
 
-        assert_eq!(
-            client
-                .internal
-                .get_encryption_settings()
-                .unwrap()
-                .get_key(&None)
-                .unwrap()
-                .to_base64(),
-            client2
-                .internal
-                .get_encryption_settings()
-                .unwrap()
-                .get_key(&None)
-                .unwrap()
-                .to_base64()
-        );
+        #[allow(deprecated)]
+        let key1 = client
+            .internal
+            .get_crypto_service()
+            .context()
+            .dangerous_get_symmetric_key(SymmetricKeyRef::User)
+            .unwrap()
+            .to_base64();
+        #[allow(deprecated)]
+        let key2 = client2
+            .internal
+            .get_crypto_service()
+            .context()
+            .dangerous_get_symmetric_key(SymmetricKeyRef::User)
+            .unwrap()
+            .to_base64();
+        assert_eq!(key1, key2);
 
         // Verify we can derive the pin protected user key from the encrypted pin
         let pin_protected_user_key = derive_pin_user_key(&client, pin_key.encrypted_pin).unwrap();
@@ -509,22 +517,15 @@ mod tests {
         .await
         .unwrap();
 
-        assert_eq!(
-            client
-                .internal
-                .get_encryption_settings()
-                .unwrap()
-                .get_key(&None)
-                .unwrap()
-                .to_base64(),
-            client3
-                .internal
-                .get_encryption_settings()
-                .unwrap()
-                .get_key(&None)
-                .unwrap()
-                .to_base64()
-        );
+        #[allow(deprecated)]
+        let key3 = client3
+            .internal
+            .get_crypto_service()
+            .context()
+            .dangerous_get_symmetric_key(SymmetricKeyRef::User)
+            .unwrap()
+            .to_base64();
+        assert_eq!(key1, key3);
     }
 
     #[test]
@@ -557,11 +558,22 @@ mod tests {
         let private_key = "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCzLtEUdxfcLxDj84yaGFsVF5hZ8Hjlb08NMQDy1RnBma06I3ZESshLYzVz4r/gegMn9OOltfV/Yxlyvida8oW6qdlfJ7AVz6Oa8pV7BiL40C7b76+oqraQpyYw2HChANB1AhXL9SqWngKmLZwjA7qiCrmcc0kZHeOb4KnKtp9iVvPVs+8veFvKgYO4ba2AAOHKFdR0W55/agXfAy+fWUAkC8mc9ikyJdQWaPV6OZvC2XFkOseBQm9Rynudh3BQpoWiL6w620efe7t5k+02/EyOFJL9f/XEEjM/+Yo0t3LAfkuhHGeKiRST59Xc9hTEmyJTeVXROtz+0fjqOp3xkaObAgMBAAECggEACs4xhnO0HaZhh1/iH7zORMIRXKeyxP2LQiTR8xwN5JJ9wRWmGAR9VasS7EZFTDidIGVME2u/h4s5EqXnhxfO+0gGksVvgNXJ/qw87E8K2216g6ZNo6vSGA7H1GH2voWwejJ4/k/cJug6dz2S402rRAKh2Wong1arYHSkVlQp3diiMa5FHAOSE+Cy09O2ZsaF9IXQYUtlW6AVXFrBEPYH2kvkaPXchh8VETMijo6tbvoKLnUHe+wTaDMls7hy8exjtVyI59r3DNzjy1lNGaGb5QSnFMXR+eHhPZc844Wv02MxC15zKABADrl58gpJyjTl6XpDdHCYGsmGpVGH3X9TQQKBgQDz/9beFjzq59ve6rGwn+EtnQfSsyYT+jr7GN8lNEXb3YOFXBgPhfFIcHRh2R00Vm9w2ApfAx2cd8xm2I6HuvQ1Os7g26LWazvuWY0Qzb+KaCLQTEGH1RnTq6CCG+BTRq/a3J8M4t38GV5TWlzv8wr9U4dl6FR4efjb65HXs1GQ4QKBgQC7/uHfrOTEHrLeIeqEuSl0vWNqEotFKdKLV6xpOvNuxDGbgW4/r/zaxDqt0YBOXmRbQYSEhmO3oy9J6XfE1SUln0gbavZeW0HESCAmUIC88bDnspUwS9RxauqT5aF8ODKN/bNCWCnBM1xyonPOs1oT1nyparJVdQoG//Y7vkB3+wKBgBqLqPq8fKAp3XfhHLfUjREDVoiLyQa/YI9U42IOz9LdxKNLo6p8rgVthpvmnRDGnpUuS+KOWjhdqDVANjF6G3t3DG7WNl8Rh5Gk2H4NhFswfSkgQrjebFLlBy9gjQVCWXt8KSmjvPbiY6q52Aaa8IUjA0YJAregvXxfopxO+/7BAoGARicvEtDp7WWnSc1OPoj6N14VIxgYcI7SyrzE0d/1x3ffKzB5e7qomNpxKzvqrVP8DzG7ydh8jaKPmv1MfF8tpYRy3AhmN3/GYwCnPqT75YYrhcrWcVdax5gmQVqHkFtIQkRSCIftzPLlpMGKha/YBV8c1fvC4LD0NPh/Ynv0gtECgYEAyOZg95/kte0jpgUEgwuMrzkhY/AaUJULFuR5MkyvReEbtSBQwV5tx60+T95PHNiFooWWVXiLMsAgyI2IbkxVR1Pzdri3gWK5CTfqb7kLuaj/B7SGvBa2Sxo478KS5K8tBBBWkITqo+wLC0mn3uZi1dyMWO1zopTA+KtEGF2dtGQ=";
         let private_key =
             AsymmetricCryptoKey::from_der(&STANDARD.decode(private_key).unwrap()).unwrap();
-        let decrypted: Vec<u8> = encrypted.decrypt_with_key(&private_key).unwrap();
 
-        let enc = client.internal.get_encryption_settings().unwrap();
-        let expected = enc.get_key(&None).unwrap();
-        assert_eq!(&decrypted, &expected.to_vec());
+        let key = crate::key_management::AsymmetricKeyRef::Local("test");
+        let mut ctx = client.internal.get_crypto_service().context();
+        #[allow(deprecated)]
+        ctx.set_asymmetric_key(key, private_key).unwrap();
+        let decrypted: Vec<u8> = encrypted.decrypt(&mut ctx, key).unwrap();
+
+        #[allow(deprecated)]
+        let expected = client
+            .internal
+            .get_crypto_service()
+            .context()
+            .dangerous_get_symmetric_key(SymmetricKeyRef::User)
+            .unwrap()
+            .to_vec();
+        assert_eq!(&decrypted, &expected);
     }
 
     #[test]

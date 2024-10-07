@@ -4,6 +4,7 @@ use chrono::Utc;
 use crate::{
     auth::api::request::AccessTokenRequest,
     client::ServiceAccountLoginMethod,
+    key_management::SymmetricKeyRef,
     secrets_manager::state::{self, ClientState},
 };
 use crate::{
@@ -70,10 +71,14 @@ pub(crate) async fn renew_token(client: &InternalClient) -> Result<()> {
                     .send(&config)
                     .await?;
 
-                    if let (IdentityTokenResponse::Payload(r), Some(state_file), Ok(enc_settings)) =
-                        (&result, state_file, client.get_encryption_settings())
+                    if let (IdentityTokenResponse::Payload(r), Some(state_file)) =
+                        (&result, state_file)
                     {
-                        if let Ok(enc_key) = enc_settings.get_key(&None) {
+                        let ctx = client.get_crypto_service().context();
+
+                        #[allow(deprecated)]
+                        if let Ok(enc_key) = ctx.dangerous_get_symmetric_key(SymmetricKeyRef::User)
+                        {
                             let state =
                                 ClientState::new(r.access_token.clone(), enc_key.to_base64());
                             _ = state::set(state_file, access_token, state);

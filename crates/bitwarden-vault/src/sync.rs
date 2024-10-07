@@ -2,8 +2,10 @@ use bitwarden_api_api::models::{
     DomainsResponseModel, ProfileOrganizationResponseModel, ProfileResponseModel, SyncResponseModel,
 };
 use bitwarden_core::{
-    client::encryption_settings::EncryptionSettings, require, Client, Error, MissingFieldError,
+    key_management::{AsymmetricKeyRef, SymmetricKeyRef},
+    require, Client, Error, MissingFieldError,
 };
+use bitwarden_crypto::service::CryptoServiceContext;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -44,12 +46,14 @@ pub(crate) async fn sync(client: &Client, input: &SyncRequest) -> Result<SyncRes
         .filter_map(|o| o.id.zip(o.key.as_deref().and_then(|k| k.parse().ok())))
         .collect();
 
-    let enc = client
+    client
         .internal
         .initialize_org_crypto(org_keys)
         .map_err(bitwarden_core::Error::EncryptionSettings)?;
 
-    SyncResponse::process_response(sync, &enc)
+    let crypto = client.internal.get_crypto_service();
+
+    SyncResponse::process_response(sync, &mut crypto.context())
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -95,7 +99,7 @@ pub struct SyncResponse {
 impl SyncResponse {
     pub(crate) fn process_response(
         response: SyncResponseModel,
-        enc: &EncryptionSettings,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
     ) -> Result<SyncResponse, SyncError> {
         let profile = require!(response.profile);
         let ciphers = require!(response.ciphers);
@@ -110,7 +114,7 @@ impl SyncResponse {
         }
 
         Ok(SyncResponse {
-            profile: ProfileResponse::process_response(*profile, enc)?,
+            profile: ProfileResponse::process_response(*profile, ctx)?,
             folders: try_into_iter(require!(response.folders))?,
             collections: try_into_iter(require!(response.collections))?,
             ciphers: try_into_iter(ciphers)?,
@@ -134,7 +138,7 @@ impl ProfileOrganizationResponse {
 impl ProfileResponse {
     fn process_response(
         response: ProfileResponseModel,
-        _enc: &EncryptionSettings,
+        _ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
     ) -> Result<ProfileResponse, Error> {
         Ok(ProfileResponse {
             id: require!(response.id),

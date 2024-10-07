@@ -4,7 +4,7 @@ use log::info;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::error::Result;
+use crate::{error::Result, key_management::AsymmetricKeyRef};
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -38,11 +38,9 @@ pub(crate) fn generate_user_fingerprint(
 ) -> Result<String> {
     info!("Generating fingerprint");
 
-    let enc_settings = client.internal.get_encryption_settings()?;
-    let private_key = enc_settings
-        .private_key
-        .as_ref()
-        .ok_or("Missing private key")?;
+    let ctx = client.internal.get_crypto_service().context();
+    #[allow(deprecated)]
+    let private_key = ctx.dangerous_get_asymmetric_key(AsymmetricKeyRef::UserPrivateKey)?;
 
     let public_key = private_key.to_public_der()?;
     let fingerprint = fingerprint(&fingerprint_material, &public_key)?;

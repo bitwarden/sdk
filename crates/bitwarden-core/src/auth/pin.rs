@@ -3,6 +3,7 @@ use bitwarden_crypto::{EncString, PinKey};
 use crate::{
     client::{LoginMethod, UserLoginMethod},
     error::{Error, Result},
+    key_management::SymmetricKeyRef,
     Client,
 };
 
@@ -24,8 +25,9 @@ pub(crate) fn validate_pin(
     match login_method {
         UserLoginMethod::Username { email, kdf, .. }
         | UserLoginMethod::ApiKey { email, kdf, .. } => {
-            let enc = client.internal.get_encryption_settings()?;
-            let user_key = enc.get_key(&None)?;
+            let ctx = client.internal.get_crypto_service().context();
+            #[allow(deprecated)]
+            let user_key = ctx.dangerous_get_symmetric_key(SymmetricKeyRef::User)?;
 
             let pin_key = PinKey::derive(pin.as_bytes(), email.as_bytes(), kdf)?;
 

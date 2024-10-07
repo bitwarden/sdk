@@ -1,6 +1,7 @@
 use bitwarden_api_api::models::CipherIdentityModel;
+use bitwarden_core::key_management::{AsymmetricKeyRef, SymmetricKeyRef};
 use bitwarden_crypto::{
-    CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
+    service::CryptoServiceContext, CryptoError, Decryptable, EncString, Encryptable,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -55,52 +56,60 @@ pub struct IdentityView {
     pub license_number: Option<String>,
 }
 
-impl KeyEncryptable<SymmetricCryptoKey, Identity> for IdentityView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Identity, CryptoError> {
+impl Encryptable<SymmetricKeyRef, AsymmetricKeyRef, SymmetricKeyRef, Identity> for IdentityView {
+    fn encrypt(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        key: SymmetricKeyRef,
+    ) -> Result<Identity, CryptoError> {
         Ok(Identity {
-            title: self.title.encrypt_with_key(key)?,
-            first_name: self.first_name.encrypt_with_key(key)?,
-            middle_name: self.middle_name.encrypt_with_key(key)?,
-            last_name: self.last_name.encrypt_with_key(key)?,
-            address1: self.address1.encrypt_with_key(key)?,
-            address2: self.address2.encrypt_with_key(key)?,
-            address3: self.address3.encrypt_with_key(key)?,
-            city: self.city.encrypt_with_key(key)?,
-            state: self.state.encrypt_with_key(key)?,
-            postal_code: self.postal_code.encrypt_with_key(key)?,
-            country: self.country.encrypt_with_key(key)?,
-            company: self.company.encrypt_with_key(key)?,
-            email: self.email.encrypt_with_key(key)?,
-            phone: self.phone.encrypt_with_key(key)?,
-            ssn: self.ssn.encrypt_with_key(key)?,
-            username: self.username.encrypt_with_key(key)?,
-            passport_number: self.passport_number.encrypt_with_key(key)?,
-            license_number: self.license_number.encrypt_with_key(key)?,
+            title: self.title.encrypt(ctx, key)?,
+            first_name: self.first_name.encrypt(ctx, key)?,
+            middle_name: self.middle_name.encrypt(ctx, key)?,
+            last_name: self.last_name.encrypt(ctx, key)?,
+            address1: self.address1.encrypt(ctx, key)?,
+            address2: self.address2.encrypt(ctx, key)?,
+            address3: self.address3.encrypt(ctx, key)?,
+            city: self.city.encrypt(ctx, key)?,
+            state: self.state.encrypt(ctx, key)?,
+            postal_code: self.postal_code.encrypt(ctx, key)?,
+            country: self.country.encrypt(ctx, key)?,
+            company: self.company.encrypt(ctx, key)?,
+            email: self.email.encrypt(ctx, key)?,
+            phone: self.phone.encrypt(ctx, key)?,
+            ssn: self.ssn.encrypt(ctx, key)?,
+            username: self.username.encrypt(ctx, key)?,
+            passport_number: self.passport_number.encrypt(ctx, key)?,
+            license_number: self.license_number.encrypt(ctx, key)?,
         })
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, IdentityView> for Identity {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<IdentityView, CryptoError> {
+impl Decryptable<SymmetricKeyRef, AsymmetricKeyRef, SymmetricKeyRef, IdentityView> for Identity {
+    fn decrypt(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        key: SymmetricKeyRef,
+    ) -> Result<IdentityView, CryptoError> {
         Ok(IdentityView {
-            title: self.title.decrypt_with_key(key).ok().flatten(),
-            first_name: self.first_name.decrypt_with_key(key).ok().flatten(),
-            middle_name: self.middle_name.decrypt_with_key(key).ok().flatten(),
-            last_name: self.last_name.decrypt_with_key(key).ok().flatten(),
-            address1: self.address1.decrypt_with_key(key).ok().flatten(),
-            address2: self.address2.decrypt_with_key(key).ok().flatten(),
-            address3: self.address3.decrypt_with_key(key).ok().flatten(),
-            city: self.city.decrypt_with_key(key).ok().flatten(),
-            state: self.state.decrypt_with_key(key).ok().flatten(),
-            postal_code: self.postal_code.decrypt_with_key(key).ok().flatten(),
-            country: self.country.decrypt_with_key(key).ok().flatten(),
-            company: self.company.decrypt_with_key(key).ok().flatten(),
-            email: self.email.decrypt_with_key(key).ok().flatten(),
-            phone: self.phone.decrypt_with_key(key).ok().flatten(),
-            ssn: self.ssn.decrypt_with_key(key).ok().flatten(),
-            username: self.username.decrypt_with_key(key).ok().flatten(),
-            passport_number: self.passport_number.decrypt_with_key(key).ok().flatten(),
-            license_number: self.license_number.decrypt_with_key(key).ok().flatten(),
+            title: self.title.decrypt(ctx, key).ok().flatten(),
+            first_name: self.first_name.decrypt(ctx, key).ok().flatten(),
+            middle_name: self.middle_name.decrypt(ctx, key).ok().flatten(),
+            last_name: self.last_name.decrypt(ctx, key).ok().flatten(),
+            address1: self.address1.decrypt(ctx, key).ok().flatten(),
+            address2: self.address2.decrypt(ctx, key).ok().flatten(),
+            address3: self.address3.decrypt(ctx, key).ok().flatten(),
+            city: self.city.decrypt(ctx, key).ok().flatten(),
+            state: self.state.decrypt(ctx, key).ok().flatten(),
+            postal_code: self.postal_code.decrypt(ctx, key).ok().flatten(),
+            country: self.country.decrypt(ctx, key).ok().flatten(),
+            company: self.company.decrypt(ctx, key).ok().flatten(),
+            email: self.email.decrypt(ctx, key).ok().flatten(),
+            phone: self.phone.decrypt(ctx, key).ok().flatten(),
+            ssn: self.ssn.decrypt(ctx, key).ok().flatten(),
+            username: self.username.decrypt(ctx, key).ok().flatten(),
+            passport_number: self.passport_number.decrypt(ctx, key).ok().flatten(),
+            license_number: self.license_number.decrypt(ctx, key).ok().flatten(),
         })
     }
 }

@@ -8,7 +8,7 @@ use serde::Deserialize;
 use super::{check_length, from_b64, from_b64_vec, split_enc_string};
 use crate::{
     error::{CryptoError, EncStringParseError, Result},
-    KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey,
+    KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
 };
 
 /// # Encrypted string primitive
@@ -222,7 +222,6 @@ impl EncString {
     }
 }
 
-impl LocateKey for EncString {}
 impl KeyEncryptable<SymmetricCryptoKey, EncString> for &[u8] {
     fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<EncString> {
         EncString::encrypt_aes256_hmac(

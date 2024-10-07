@@ -1,5 +1,6 @@
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
-use bitwarden_crypto::KeyContainer;
+use bitwarden_core::key_management::{AsymmetricKeyRef, SymmetricKeyRef};
+use bitwarden_crypto::service::CryptoServiceContext;
 use bitwarden_vault::{
     CipherError, CipherView, Fido2CredentialFullView, Fido2CredentialNewView, Fido2CredentialView,
 };
@@ -62,8 +63,11 @@ pub(crate) struct CipherViewContainer {
 }
 
 impl CipherViewContainer {
-    fn new(cipher: CipherView, enc: &dyn KeyContainer) -> Result<Self, CipherError> {
-        let fido2_credentials = cipher.get_fido2_credentials(enc)?;
+    fn new(
+        cipher: CipherView,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+    ) -> Result<Self, CipherError> {
+        let fido2_credentials = cipher.get_fido2_credentials(ctx)?;
         Ok(Self {
             cipher,
             fido2_credentials,

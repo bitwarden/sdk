@@ -1,6 +1,9 @@
 use bitwarden_api_api::models::CipherSecureNoteModel;
-use bitwarden_core::require;
-use bitwarden_crypto::{CryptoError, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
+use bitwarden_core::{
+    key_management::{AsymmetricKeyRef, SymmetricKeyRef},
+    require,
+};
+use bitwarden_crypto::{service::CryptoServiceContext, CryptoError, Decryptable, Encryptable};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
@@ -28,16 +31,28 @@ pub struct SecureNoteView {
     pub r#type: SecureNoteType,
 }
 
-impl KeyEncryptable<SymmetricCryptoKey, SecureNote> for SecureNoteView {
-    fn encrypt_with_key(self, _key: &SymmetricCryptoKey) -> Result<SecureNote, CryptoError> {
+impl Encryptable<SymmetricKeyRef, AsymmetricKeyRef, SymmetricKeyRef, SecureNote>
+    for SecureNoteView
+{
+    fn encrypt(
+        &self,
+        _ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        _key: SymmetricKeyRef,
+    ) -> Result<SecureNote, CryptoError> {
         Ok(SecureNote {
             r#type: self.r#type,
         })
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, SecureNoteView> for SecureNote {
-    fn decrypt_with_key(&self, _key: &SymmetricCryptoKey) -> Result<SecureNoteView, CryptoError> {
+impl Decryptable<SymmetricKeyRef, AsymmetricKeyRef, SymmetricKeyRef, SecureNoteView>
+    for SecureNote
+{
+    fn decrypt(
+        &self,
+        _ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        _key: SymmetricKeyRef,
+    ) -> Result<SecureNoteView, CryptoError> {
         Ok(SecureNoteView {
             r#type: self.r#type,
         })

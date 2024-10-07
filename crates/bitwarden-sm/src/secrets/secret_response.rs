@@ -1,8 +1,11 @@
 use bitwarden_api_api::models::{
     BaseSecretResponseModel, BaseSecretResponseModelListResponseModel, SecretResponseModel,
 };
-use bitwarden_core::{client::encryption_settings::EncryptionSettings, require, Error};
-use bitwarden_crypto::{EncString, KeyDecryptable};
+use bitwarden_core::{
+    key_management::{AsymmetricKeyRef, SymmetricKeyRef},
+    require, Error,
+};
+use bitwarden_crypto::{service::CryptoServiceContext, Decryptable, EncString};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -26,7 +29,7 @@ pub struct SecretResponse {
 impl SecretResponse {
     pub(crate) fn process_response(
         response: SecretResponseModel,
-        enc: &EncryptionSettings,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
     ) -> Result<SecretResponse, Error> {
         let base = BaseSecretResponseModel {
             object: response.object,
@@ -39,24 +42,24 @@ impl SecretResponse {
             revision_date: response.revision_date,
             projects: response.projects,
         };
-        Self::process_base_response(base, enc)
+        Self::process_base_response(base, ctx)
     }
     pub(crate) fn process_base_response(
         response: BaseSecretResponseModel,
-        enc: &EncryptionSettings,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
     ) -> Result<SecretResponse, Error> {
-        let org_id = response.organization_id;
-        let enc_key = enc.get_key(&org_id)?;
+        let organization_id = require!(response.organization_id);
+        let enc_key = SymmetricKeyRef::Organization(organization_id);
 
         let key = require!(response.key)
             .parse::<EncString>()?
-            .decrypt_with_key(enc_key)?;
+            .decrypt(ctx, enc_key)?;
         let value = require!(response.value)
             .parse::<EncString>()?
-            .decrypt_with_key(enc_key)?;
+            .decrypt(ctx, enc_key)?;
         let note = require!(response.note)
             .parse::<EncString>()?
-            .decrypt_with_key(enc_key)?;
+            .decrypt(ctx, enc_key)?;
 
         let project = response
             .projects
@@ -65,7 +68,7 @@ impl SecretResponse {
 
         Ok(SecretResponse {
             id: require!(response.id),
-            organization_id: require!(org_id),
+            organization_id,
             project_id: project,
             key,
             value,
@@ -86,14 +89,14 @@ pub struct SecretsResponse {
 impl SecretsResponse {
     pub(crate) fn process_response(
         response: BaseSecretResponseModelListResponseModel,
-        enc: &EncryptionSettings,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
     ) -> Result<SecretsResponse, Error> {
         Ok(SecretsResponse {
             data: response
                 .data
                 .unwrap_or_default()
                 .into_iter()
-                .map(|r| SecretResponse::process_base_response(r, enc))
+                .map(|r| SecretResponse::process_base_response(r, ctx))
                 .collect::<Result<_, _>>()?,
         })
     }

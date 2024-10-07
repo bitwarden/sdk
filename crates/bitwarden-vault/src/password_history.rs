@@ -1,6 +1,7 @@
 use bitwarden_api_api::models::CipherPasswordHistoryModel;
+use bitwarden_core::key_management::{AsymmetricKeyRef, SymmetricKeyRef};
 use bitwarden_crypto::{
-    CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
+    service::CryptoServiceContext, CryptoError, Decryptable, EncString, Encryptable, UsesKey,
 };
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
@@ -24,22 +25,43 @@ pub struct PasswordHistoryView {
     last_used_date: DateTime<Utc>,
 }
 
-impl KeyEncryptable<SymmetricCryptoKey, PasswordHistory> for PasswordHistoryView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<PasswordHistory, CryptoError> {
+impl UsesKey<SymmetricKeyRef> for PasswordHistory {
+    fn uses_key(&self) -> SymmetricKeyRef {
+        SymmetricKeyRef::User
+    }
+}
+
+impl UsesKey<SymmetricKeyRef> for PasswordHistoryView {
+    fn uses_key(&self) -> SymmetricKeyRef {
+        SymmetricKeyRef::User
+    }
+}
+
+impl Encryptable<SymmetricKeyRef, AsymmetricKeyRef, SymmetricKeyRef, PasswordHistory>
+    for PasswordHistoryView
+{
+    fn encrypt(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        key: SymmetricKeyRef,
+    ) -> Result<PasswordHistory, CryptoError> {
         Ok(PasswordHistory {
-            password: self.password.encrypt_with_key(key)?,
+            password: self.password.encrypt(ctx, key)?,
             last_used_date: self.last_used_date,
         })
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, PasswordHistoryView> for PasswordHistory {
-    fn decrypt_with_key(
+impl Decryptable<SymmetricKeyRef, AsymmetricKeyRef, SymmetricKeyRef, PasswordHistoryView>
+    for PasswordHistory
+{
+    fn decrypt(
         &self,
-        key: &SymmetricCryptoKey,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        key: SymmetricKeyRef,
     ) -> Result<PasswordHistoryView, CryptoError> {
         Ok(PasswordHistoryView {
-            password: self.password.decrypt_with_key(key).ok().unwrap_or_default(),
+            password: self.password.decrypt(ctx, key).ok().unwrap_or_default(),
             last_used_date: self.last_used_date,
         })
     }

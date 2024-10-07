@@ -1,7 +1,10 @@
 use bitwarden_api_api::models::FolderResponseModel;
-use bitwarden_core::require;
+use bitwarden_core::{
+    key_management::{AsymmetricKeyRef, SymmetricKeyRef},
+    require,
+};
 use bitwarden_crypto::{
-    CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
+    service::CryptoServiceContext, CryptoError, Decryptable, EncString, Encryptable, UsesKey,
 };
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
@@ -28,23 +31,43 @@ pub struct FolderView {
     pub revision_date: DateTime<Utc>,
 }
 
-impl KeyEncryptable<SymmetricCryptoKey, Folder> for FolderView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Folder, CryptoError> {
+impl Encryptable<SymmetricKeyRef, AsymmetricKeyRef, SymmetricKeyRef, Folder> for FolderView {
+    fn encrypt(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        key: SymmetricKeyRef,
+    ) -> Result<Folder, CryptoError> {
         Ok(Folder {
             id: self.id,
-            name: self.name.encrypt_with_key(key)?,
+            name: self.name.encrypt(ctx, key)?,
             revision_date: self.revision_date,
         })
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, FolderView> for Folder {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<FolderView, CryptoError> {
+impl Decryptable<SymmetricKeyRef, AsymmetricKeyRef, SymmetricKeyRef, FolderView> for Folder {
+    fn decrypt(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        key: SymmetricKeyRef,
+    ) -> Result<FolderView, CryptoError> {
         Ok(FolderView {
             id: self.id,
-            name: self.name.decrypt_with_key(key).ok().unwrap_or_default(),
+            name: self.name.decrypt(ctx, key).ok().unwrap_or_default(),
             revision_date: self.revision_date,
         })
+    }
+}
+
+impl UsesKey<SymmetricKeyRef> for Folder {
+    fn uses_key(&self) -> SymmetricKeyRef {
+        SymmetricKeyRef::User
+    }
+}
+
+impl UsesKey<SymmetricKeyRef> for FolderView {
+    fn uses_key(&self) -> SymmetricKeyRef {
+        SymmetricKeyRef::User
     }
 }
 

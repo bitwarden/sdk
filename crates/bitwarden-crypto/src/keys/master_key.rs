@@ -9,6 +9,16 @@ use serde::{Deserialize, Serialize};
 use super::utils::{derive_kdf_key, stretch_kdf_key};
 use crate::{util, CryptoError, EncString, KeyDecryptable, Result, SymmetricCryptoKey, UserKey};
 
+#[cfg(feature = "wasm")]
+use {tsify_next::Tsify, wasm_bindgen::prelude::*};
+
+#[cfg(feature = "wasm")]
+#[wasm_bindgen::prelude::wasm_bindgen(typescript_custom_section)]
+const TS_CUSTOM_TYPES: &'static str = r#"
+/** An integer that is known not to equal zero. */
+export type NonZeroU32 = number;
+"#;
+
 /// Key Derivation Function for Bitwarden Account
 ///
 /// In Bitwarden accounts can use multiple KDFs to derive their master key from their password. This
@@ -16,6 +26,7 @@ use crate::{util, CryptoError, EncString, KeyDecryptable, Result, SymmetricCrypt
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
+#[cfg_attr(feature = "wasm", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 pub enum Kdf {
     PBKDF2 {
         iterations: NonZeroU32,

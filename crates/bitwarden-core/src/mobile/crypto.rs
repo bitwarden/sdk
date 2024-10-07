@@ -34,6 +34,7 @@ pub struct InitUserCryptoRequest {
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
+#[cfg_attr(feature = "wasm", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 pub enum InitUserCryptoMethod {
     Password {
         /// The user's master password
@@ -50,6 +51,7 @@ pub enum InitUserCryptoMethod {
         pin: String,
         /// The user's symmetric crypto key, encrypted with the PIN. Use `derive_pin_key` to obtain
         /// this.
+        // #[tsify(type = "string")]
         pin_protected_user_key: EncString,
     },
     AuthRequest {
@@ -62,8 +64,10 @@ pub enum InitUserCryptoMethod {
         /// The device's DeviceKey
         device_key: String,
         /// The Device Private Key
+        // #[tsify(type = "string")]
         protected_device_private_key: EncString,
         /// The user's symmetric crypto key, encrypted with the Device Key.
+        // #[tsify(type = "string")]
         device_protected_user_key: AsymmetricEncString,
     },
     KeyConnector {

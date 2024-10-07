@@ -482,8 +482,10 @@ dependencies = [
  "sha2",
  "subtle",
  "thiserror",
+ "tsify-next",
  "uniffi",
  "uuid",
+ "wasm-bindgen",
  "zeroize",
 ]
 

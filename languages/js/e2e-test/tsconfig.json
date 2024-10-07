@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist/",
+    "module": "commonjs",
+    "target": "es5",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "composite": true,
+    "declarationMap": true,
+    "strict": true,
+  },
+  "include": [
+    "./src/**/*",
+    "./matchers/**/*",
+    "./custom-matchers.d.ts"
+  ],
+}

@@ -1,9 +1,6 @@
 use std::sync::{Arc, RwLock};
 
-use crate::{
-    AsymmetricCryptoKey, AsymmetricKeyRef, Decryptable, Encryptable, KeyRef, SymmetricCryptoKey,
-    SymmetricKeyRef, UsesKey,
-};
+use crate::{AsymmetricKeyRef, Decryptable, Encryptable, KeyRef, SymmetricKeyRef, UsesKey};
 
 mod context;
 
@@ -11,7 +8,6 @@ mod key_store;
 
 use context::ReadWriteGlobal;
 pub use context::{CryptoServiceContext, ReadOnlyGlobal};
-
 pub use key_store::create_key_store;
 use key_store::KeyStore;
 
@@ -52,40 +48,6 @@ impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
         let mut keys = self.key_stores.write().expect("RwLock is poisoned");
         keys.symmetric_keys.clear();
         keys.asymmetric_keys.clear();
-    }
-
-    pub fn retain_symmetric_keys(&self, f: fn(SymmKeyRef) -> bool) {
-        self.key_stores
-            .write()
-            .expect("RwLock is poisoned")
-            .symmetric_keys
-            .retain(f);
-    }
-
-    pub fn retain_asymmetric_keys(&self, f: fn(AsymmKeyRef) -> bool) {
-        self.key_stores
-            .write()
-            .expect("RwLock is poisoned")
-            .asymmetric_keys
-            .retain(f);
-    }
-
-    #[deprecated(note = "We should be generating/decrypting the keys into the service directly")]
-    pub fn insert_symmetric_key(&self, key_ref: SymmKeyRef, key: SymmetricCryptoKey) {
-        self.key_stores
-            .write()
-            .expect("RwLock is poisoned")
-            .symmetric_keys
-            .insert(key_ref, key);
-    }
-
-    #[deprecated(note = "We should be generating/decrypting the keys into the service directly")]
-    pub fn insert_asymmetric_key(&self, key_ref: AsymmKeyRef, key: AsymmetricCryptoKey) {
-        self.key_stores
-            .write()
-            .expect("RwLock is poisoned")
-            .asymmetric_keys
-            .insert(key_ref, key);
     }
 
     /// Initiate an encryption/decryption context. This context will have read only access to the
@@ -178,14 +140,14 @@ impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
         let res: Result<Vec<_>, _> = data
             .par_chunks(chunk_size)
             .map(|chunk| {
-                let mut context = self.context();
+                let mut ctx = self.context();
 
                 let mut result = Vec::with_capacity(chunk.len());
 
                 for item in chunk {
                     let key = item.uses_key();
-                    result.push(item.decrypt(&mut context, key));
-                    context.clear();
+                    result.push(item.decrypt(&mut ctx, key));
+                    ctx.clear();
                 }
 
                 result
@@ -215,14 +177,14 @@ impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
         let res: Result<Vec<_>, _> = data
             .par_chunks(chunk_size)
             .map(|chunk| {
-                let mut context = self.context();
+                let mut ctx = self.context();
 
                 let mut result = Vec::with_capacity(chunk.len());
 
                 for item in chunk {
                     let key = item.uses_key();
-                    result.push(item.encrypt(&mut context, key));
-                    context.clear();
+                    result.push(item.encrypt(&mut ctx, key));
+                    ctx.clear();
                 }
 
                 result

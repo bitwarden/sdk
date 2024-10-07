@@ -1,9 +1,8 @@
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
-
 use bitwarden_crypto::{
     key_refs, service::*, CryptoError, EncString, Encryptable, KeyDecryptable, KeyEncryptable,
     SymmetricCryptoKey, UsesKey,
 };
+use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     let user_key = SymmetricCryptoKey::generate(rand::thread_rng());
@@ -21,8 +20,14 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     let service: CryptoService<MySymmKeyRef, MyAsymmKeyRef> = CryptoService::new();
     #[allow(deprecated)]
     {
-        service.insert_symmetric_key(MySymmKeyRef::User, user_key.clone());
-        service.insert_symmetric_key(MySymmKeyRef::Organization(org_id), org_key.clone());
+        service
+            .context_mut()
+            .set_symmetric_key(MySymmKeyRef::User, user_key.clone())
+            .expect("");
+        service
+            .context_mut()
+            .set_symmetric_key(MySymmKeyRef::Organization(org_id), org_key.clone())
+            .expect("");
     }
 
     let cipher_views = vec![cipher_view.clone(); 10_000];

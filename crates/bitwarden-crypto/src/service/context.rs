@@ -1,9 +1,11 @@
 use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 
 use rsa::Oaep;
+use zeroize::Zeroizing;
 
 use super::Keys;
 use crate::{
+    derive_shareable_key,
     service::{key_store::KeyStore, AsymmetricKeyRef, SymmetricKeyRef},
     AsymmetricCryptoKey, AsymmetricEncString, CryptoError, EncString, Result, SymmetricCryptoKey,
 };
@@ -84,6 +86,20 @@ impl<
         self.local_asymmetric_keys.clear();
     }
 
+    pub fn retain_symmetric_keys(&mut self, f: fn(SymmKeyRef) -> bool) {
+        if let Ok(keys) = self.global.get_mut() {
+            keys.symmetric_keys.retain(f);
+        }
+        self.local_symmetric_keys.retain(f);
+    }
+
+    pub fn retain_asymmetric_keys(&mut self, f: fn(AsymmKeyRef) -> bool) {
+        if let Ok(keys) = self.global.get_mut() {
+            keys.asymmetric_keys.retain(f);
+        }
+        self.local_asymmetric_keys.retain(f);
+    }
+
     /// TODO: All these encrypt x key with x key look like they need to be made generic,
     /// but I haven't found the best way to do that yet.
 
@@ -96,6 +112,7 @@ impl<
         let mut new_key_material =
             self.decrypt_data_with_symmetric_key(encryption_key, encrypted_key)?;
 
+        #[allow(deprecated)]
         self.set_symmetric_key(
             new_key_ref,
             SymmetricCryptoKey::try_from(new_key_material.as_mut_slice())?,
@@ -123,6 +140,7 @@ impl<
         let mut new_key_material =
             self.decrypt_data_with_asymmetric_key(encryption_key, encrypted_key)?;
 
+        #[allow(deprecated)]
         self.set_symmetric_key(
             new_key_ref,
             SymmetricCryptoKey::try_from(new_key_material.as_mut_slice())?,
@@ -150,6 +168,7 @@ impl<
         let new_key_material =
             self.decrypt_data_with_asymmetric_key(encryption_key, encrypted_key)?;
 
+        #[allow(deprecated)]
         self.set_asymmetric_key(
             new_key_ref,
             AsymmetricCryptoKey::from_der(&new_key_material)?,
@@ -181,12 +200,31 @@ impl<
         self.get_asymmetric_key(key_ref).is_ok()
     }
 
-    #[deprecated(note = "This function should never be used outside this crate")]
+    pub fn generate_symmetric_key(&mut self, key_ref: SymmKeyRef) -> Result<SymmKeyRef> {
+        let key = SymmetricCryptoKey::generate(rand::thread_rng());
+        #[allow(deprecated)]
+        self.set_symmetric_key(key_ref, key)?;
+        Ok(key_ref)
+    }
+
+    pub fn derive_shareable_key(
+        &mut self,
+        key_ref: SymmKeyRef,
+        secret: Zeroizing<[u8; 16]>,
+        name: &str,
+        info: Option<&str>,
+    ) -> Result<SymmKeyRef> {
+        #[allow(deprecated)]
+        self.set_symmetric_key(key_ref, derive_shareable_key(secret, name, info))?;
+        Ok(key_ref)
+    }
+
+    #[deprecated(note = "This function should ideally never be used outside this crate")]
     pub fn dangerous_get_symmetric_key(&self, key_ref: SymmKeyRef) -> Result<&SymmetricCryptoKey> {
         self.get_symmetric_key(key_ref)
     }
 
-    #[deprecated(note = "This function should never be used outside this crate")]
+    #[deprecated(note = "This function should ideally never be used outside this crate")]
     pub fn dangerous_get_asymmetric_key(
         &self,
         key_ref: AsymmKeyRef,
@@ -212,7 +250,12 @@ impl<
         .ok_or_else(|| crate::CryptoError::MissingKey2(format!("{key_ref:?}")))
     }
 
-    fn set_symmetric_key(&mut self, key_ref: SymmKeyRef, key: SymmetricCryptoKey) -> Result<()> {
+    #[deprecated(note = "This function should ideally never be used outside this crate")]
+    pub fn set_symmetric_key(
+        &mut self,
+        key_ref: SymmKeyRef,
+        key: SymmetricCryptoKey,
+    ) -> Result<()> {
         if key_ref.is_local() {
             self.local_symmetric_keys.insert(key_ref, key);
         } else {
@@ -221,7 +264,12 @@ impl<
         Ok(())
     }
 
-    fn set_asymmetric_key(&mut self, key_ref: AsymmKeyRef, key: AsymmetricCryptoKey) -> Result<()> {
+    #[deprecated(note = "This function should ideally never be used outside this crate")]
+    pub fn set_asymmetric_key(
+        &mut self,
+        key_ref: AsymmKeyRef,
+        key: AsymmetricCryptoKey,
+    ) -> Result<()> {
         if key_ref.is_local() {
             self.local_asymmetric_keys.insert(key_ref, key);
         } else {

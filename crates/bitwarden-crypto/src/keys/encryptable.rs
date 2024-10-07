@@ -86,6 +86,8 @@ pub trait Decryptable<
     ) -> Result<Output, crate::CryptoError>;
 }
 
+// Basic Encryptable/Decryptable implementations to and from bytes
+
 impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
     Decryptable<SymmKeyRef, AsymmKeyRef, SymmKeyRef, Vec<u8>> for EncString
 {
@@ -134,6 +136,8 @@ impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
     }
 }
 
+// Encryptable/Decryptable implementations to and from strings
+
 impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
     Decryptable<SymmKeyRef, AsymmKeyRef, SymmKeyRef, String> for EncString
 {
@@ -181,5 +185,105 @@ impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
         key: AsymmKeyRef,
     ) -> Result<AsymmetricEncString, crate::CryptoError> {
         self.as_bytes().encrypt(ctx, key)
+    }
+}
+
+impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
+    Encryptable<SymmKeyRef, AsymmKeyRef, SymmKeyRef, EncString> for String
+{
+    fn encrypt(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmKeyRef, AsymmKeyRef>,
+        key: SymmKeyRef,
+    ) -> Result<EncString, crate::CryptoError> {
+        self.as_bytes().encrypt(ctx, key)
+    }
+}
+
+impl<SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
+    Encryptable<SymmKeyRef, AsymmKeyRef, AsymmKeyRef, AsymmetricEncString> for String
+{
+    fn encrypt(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmKeyRef, AsymmKeyRef>,
+        key: AsymmKeyRef,
+    ) -> Result<AsymmetricEncString, crate::CryptoError> {
+        self.as_bytes().encrypt(ctx, key)
+    }
+}
+
+// Generic implementations for Optional values
+
+impl<
+        SymmKeyRef: SymmetricKeyRef,
+        AsymmKeyRef: AsymmetricKeyRef,
+        Key: KeyRef,
+        T: Encryptable<SymmKeyRef, AsymmKeyRef, Key, Output>,
+        Output,
+    > Encryptable<SymmKeyRef, AsymmKeyRef, Key, Option<Output>> for Option<T>
+{
+    fn encrypt(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmKeyRef, AsymmKeyRef>,
+        key: Key,
+    ) -> Result<Option<Output>, crate::CryptoError> {
+        self.as_ref()
+            .map(|value| value.encrypt(ctx, key))
+            .transpose()
+    }
+}
+
+impl<
+        SymmKeyRef: SymmetricKeyRef,
+        AsymmKeyRef: AsymmetricKeyRef,
+        Key: KeyRef,
+        T: Decryptable<SymmKeyRef, AsymmKeyRef, Key, Output>,
+        Output,
+    > Decryptable<SymmKeyRef, AsymmKeyRef, Key, Option<Output>> for Option<T>
+{
+    fn decrypt(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmKeyRef, AsymmKeyRef>,
+        key: Key,
+    ) -> Result<Option<Output>, crate::CryptoError> {
+        self.as_ref()
+            .map(|value| value.decrypt(ctx, key))
+            .transpose()
+    }
+}
+
+// Generic implementations for Vec values
+
+impl<
+        SymmKeyRef: SymmetricKeyRef,
+        AsymmKeyRef: AsymmetricKeyRef,
+        Key: KeyRef,
+        T: Encryptable<SymmKeyRef, AsymmKeyRef, Key, Output>,
+        Output,
+    > Encryptable<SymmKeyRef, AsymmKeyRef, Key, Vec<Output>> for Vec<T>
+{
+    fn encrypt(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmKeyRef, AsymmKeyRef>,
+        key: Key,
+    ) -> Result<Vec<Output>, crate::CryptoError> {
+        self.iter().map(|value| value.encrypt(ctx, key)).collect()
+    }
+}
+
+impl<
+        SymmKeyRef: SymmetricKeyRef,
+        AsymmKeyRef: AsymmetricKeyRef,
+        Key: KeyRef,
+        T: Decryptable<SymmKeyRef, AsymmKeyRef, Key, Output>,
+        Output,
+    > Decryptable<SymmKeyRef, AsymmKeyRef, Key, Vec<Output>> for Vec<T>
+{
+    fn decrypt(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmKeyRef, AsymmKeyRef>,
+        key: Key,
+    ) -> Result<Vec<Output>, crate::CryptoError> {
+        self.iter().map(|value| value.decrypt(ctx, key)).collect()
     }
 }

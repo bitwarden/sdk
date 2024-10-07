@@ -2,9 +2,8 @@ use std::marker::PhantomData;
 
 use zeroize::ZeroizeOnDrop;
 
-use crate::KeyRef;
-
 use super::KeyStore;
+use crate::KeyRef;
 
 /// This trait represents some data stored sequentially in memory, with a fixed size.
 /// We use this to abstract the implementation over Vec/Box<[u8]/NonNull<[u8]>, which

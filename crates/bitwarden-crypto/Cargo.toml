@@ -52,7 +52,7 @@ memsec = { version = "0.7.0", features = [
 ], git = "https://github.com/dani-garcia/memsec", rev = "3d2e272d284442637bac0a7d94f76883960db7e2" }
 
 [dev-dependencies]
-criterion = { version = "0.5.1", features = ["html_reports"] }
+criterion = "0.5.1"
 rand_chacha = "0.3.1"
 serde_json = { workspace = true }
 
@@ -65,10 +65,6 @@ required-features = ["no-memory-hardening"]
 name = "zeroizing_allocator"
 harness = false
 required-features = ["no-memory-hardening"]
-
-[[bench]]
-name = "new_encryptable"
-harness = false
 
 [lints]
 workspace = true

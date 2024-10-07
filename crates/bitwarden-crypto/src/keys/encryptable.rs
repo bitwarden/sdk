@@ -1,61 +1,10 @@
 use super::key_ref::{AsymmetricKeyRef, KeyRef, SymmetricKeyRef};
 use crate::{service::CryptoServiceContext, AsymmetricEncString, CryptoError, EncString};
 
-// Just like LocateKey but this time we're not locating anything, just returning a ref
-
+/// This trait should be implemented by any struct capable of knowing which key it needs
+/// to encrypt or decrypt itself.
 pub trait UsesKey<Key: KeyRef> {
     fn uses_key(&self) -> Key;
-}
-
-// This extension trait allows any type to be wrapped with `UsingKey`
-// to make it easy to encrypt/decrypt it with the desired key,
-// this way we don't need to have a separate `encrypt_with_key` function
-pub trait UsingKeyExt<Key: KeyRef>: Sized {
-    fn using_key(self, key: Key) -> UsingKey<Key, Self> {
-        UsingKey { key, value: self }
-    }
-}
-impl<Key: KeyRef, T> UsingKeyExt<Key> for T {}
-pub struct UsingKey<Key: KeyRef, T: ?Sized> {
-    key: Key,
-    value: T,
-}
-impl<Key: KeyRef, T> UsesKey<Key> for UsingKey<Key, T> {
-    fn uses_key(&self) -> Key {
-        self.key
-    }
-}
-impl<
-        SymmKeyRef: SymmetricKeyRef,
-        AsymmKeyRef: AsymmetricKeyRef,
-        Key: KeyRef,
-        T: Encryptable<SymmKeyRef, AsymmKeyRef, Key, Output>,
-        Output,
-    > Encryptable<SymmKeyRef, AsymmKeyRef, Key, Output> for UsingKey<Key, T>
-{
-    fn encrypt(
-        &self,
-        ctx: &mut CryptoServiceContext<SymmKeyRef, AsymmKeyRef>,
-        _key: Key,
-    ) -> Result<Output, crate::CryptoError> {
-        self.value.encrypt(ctx, self.key)
-    }
-}
-impl<
-        SymmKeyRef: SymmetricKeyRef,
-        AsymmKeyRef: AsymmetricKeyRef,
-        Key: KeyRef,
-        T: Decryptable<SymmKeyRef, AsymmKeyRef, Key, Output>,
-        Output,
-    > Decryptable<SymmKeyRef, AsymmKeyRef, Key, Output> for UsingKey<Key, T>
-{
-    fn decrypt(
-        &self,
-        ctx: &mut CryptoServiceContext<SymmKeyRef, AsymmKeyRef>,
-        _key: Key,
-    ) -> Result<Output, crate::CryptoError> {
-        self.value.decrypt(ctx, self.key)
-    }
 }
 
 pub trait Encryptable<

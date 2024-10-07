@@ -13,9 +13,13 @@ use crate::{
     Client,
 };
 
+#[cfg(feature = "wasm")]
+use {tsify_next::Tsify, wasm_bindgen::prelude::*};
+
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "wasm", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 pub struct InitUserCryptoRequest {
     /// The user's KDF parameters, as received from the prelogin request
     pub kdf_params: Kdf,
@@ -185,6 +189,7 @@ pub async fn initialize_user_crypto(
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "wasm", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 pub struct InitOrgCryptoRequest {
     /// The encryption keys for all the organizations the user is a part of
     pub organization_keys: HashMap<uuid::Uuid, AsymmetricEncString>,

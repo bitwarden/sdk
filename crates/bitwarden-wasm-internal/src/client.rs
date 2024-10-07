@@ -5,6 +5,8 @@ use bitwarden::{Client, ClientSettings};
 use log::{set_max_level, Level};
 use wasm_bindgen::prelude::*;
 
+use crate::ClientCrypto;
+
 #[wasm_bindgen]
 pub enum LogLevel {
     Trace,
@@ -27,7 +29,7 @@ fn convert_level(level: LogLevel) -> Level {
 // Rc<...> is to avoid needing to take ownership of the Client during our async run_command
 // function https://github.com/rustwasm/wasm-bindgen/issues/2195#issuecomment-799588401
 #[wasm_bindgen]
-pub struct BitwardenClient(Rc<Client>);
+pub struct BitwardenClient(pub(crate) Rc<Client>);
 
 #[wasm_bindgen]
 impl BitwardenClient {
@@ -53,5 +55,9 @@ impl BitwardenClient {
         let res = client.get(&url).send().await.map_err(|e| e.to_string())?;
 
         res.text().await.map_err(|e| e.to_string())
+    }
+
+    pub fn crypto(&self) -> ClientCrypto {
+        ClientCrypto(self.0.clone())
     }
 }

@@ -15,6 +15,7 @@ keywords.workspace = true
 
 [features]
 default = []
+wasm = []
 
 uniffi = ["dep:uniffi"]  # Uniffi bindings
 no-memory-hardening = [] # Disable memory hardening features

@@ -81,6 +81,7 @@ pub enum InitUserCryptoMethod {
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
+#[cfg_attr(feature = "wasm", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 pub enum AuthRequestMethod {
     UserKey {
         /// User Key protected by the private key provided in `AuthRequestResponse`.

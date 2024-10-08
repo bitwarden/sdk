@@ -1,5 +1,4 @@
 use bitwarden_core::{Client, Error};
-use bitwarden_crypto::{KeyDecryptable, KeyEncryptable};
 
 use crate::{ClientVault, Folder, FolderView};
 
@@ -9,28 +8,25 @@ pub struct ClientFolders<'a> {
 
 impl<'a> ClientFolders<'a> {
     pub fn encrypt(&self, folder_view: FolderView) -> Result<Folder, Error> {
-        let enc = self.client.internal.get_encryption_settings()?;
-        let key = enc.get_key(&None)?;
+        let crypto = self.client.internal.get_crypto_service();
 
-        let folder = folder_view.encrypt_with_key(key)?;
+        let folder = crypto.encrypt(folder_view)?;
 
         Ok(folder)
     }
 
     pub fn decrypt(&self, folder: Folder) -> Result<FolderView, Error> {
-        let enc = self.client.internal.get_encryption_settings()?;
-        let key = enc.get_key(&None)?;
+        let crypto = self.client.internal.get_crypto_service();
 
-        let folder_view = folder.decrypt_with_key(key)?;
+        let folder_view = crypto.decrypt(&folder)?;
 
         Ok(folder_view)
     }
 
     pub fn decrypt_list(&self, folders: Vec<Folder>) -> Result<Vec<FolderView>, Error> {
-        let enc = self.client.internal.get_encryption_settings()?;
-        let key = enc.get_key(&None)?;
+        let crypto = self.client.internal.get_crypto_service();
 
-        let views = folders.decrypt_with_key(key)?;
+        let views = crypto.decrypt_list(&folders)?;
 
         Ok(views)
     }

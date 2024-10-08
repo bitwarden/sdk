@@ -1,5 +1,4 @@
 use bitwarden_core::{Client, Error};
-use bitwarden_crypto::{KeyDecryptable, LocateKey};
 
 use crate::{ClientVault, Collection, CollectionView};
 
@@ -9,26 +8,23 @@ pub struct ClientCollections<'a> {
 
 impl<'a> ClientCollections<'a> {
     pub fn decrypt(&self, collection: Collection) -> Result<CollectionView, Error> {
-        let enc = self.client.internal.get_encryption_settings()?;
-        let key = collection.locate_key(&enc, &None)?;
-
-        let view = collection.decrypt_with_key(key)?;
+        let view = self
+            .client
+            .internal
+            .get_crypto_service()
+            .decrypt(&collection)?;
 
         Ok(view)
     }
 
     pub fn decrypt_list(&self, collections: Vec<Collection>) -> Result<Vec<CollectionView>, Error> {
-        let enc = self.client.internal.get_encryption_settings()?;
+        let views = self
+            .client
+            .internal
+            .get_crypto_service()
+            .decrypt_list(&collections)?;
 
-        let views: Result<Vec<CollectionView>, _> = collections
-            .iter()
-            .map(|c| -> Result<CollectionView, _> {
-                let key = c.locate_key(&enc, &None)?;
-                Ok(c.decrypt_with_key(key)?)
-            })
-            .collect();
-
-        views
+        Ok(views)
     }
 }
 

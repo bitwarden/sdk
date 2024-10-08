@@ -1,6 +1,6 @@
 use bitwarden_api_api::models::SecretUpdateRequestModel;
-use bitwarden_core::{validate_only_whitespaces, Client, Error};
-use bitwarden_crypto::KeyEncryptable;
+use bitwarden_core::{key_management::SymmetricKeyRef, validate_only_whitespaces, Client, Error};
+use bitwarden_crypto::Encryptable;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -30,22 +30,31 @@ pub(crate) async fn update_secret(
 ) -> Result<SecretResponse, Error> {
     input.validate()?;
 
-    let enc = client.internal.get_encryption_settings()?;
-    let key = enc.get_key(&Some(input.organization_id))?;
+    let secret = {
+        // Context is not Send, so we can't use it across an await point
+        let mut ctx = client.internal.get_crypto_service().context();
+        let key = SymmetricKeyRef::Organization(input.organization_id);
 
-    let secret = Some(SecretUpdateRequestModel {
-        key: input.key.clone().trim().encrypt_with_key(key)?.to_string(),
-        value: input.value.clone().encrypt_with_key(key)?.to_string(),
-        note: input.note.clone().trim().encrypt_with_key(key)?.to_string(),
-        project_ids: input.project_ids.clone(),
-        access_policies_requests: None,
-    });
+        Some(SecretUpdateRequestModel {
+            key: input.key.clone().trim().encrypt(&mut ctx, key)?.to_string(),
+            value: input.value.clone().encrypt(&mut ctx, key)?.to_string(),
+            note: input
+                .note
+                .clone()
+                .trim()
+                .encrypt(&mut ctx, key)?
+                .to_string(),
+            project_ids: input.project_ids.clone(),
+            access_policies_requests: None,
+        })
+    };
 
     let config = client.internal.get_api_configurations().await;
     let res =
         bitwarden_api_api::apis::secrets_api::secrets_id_put(&config.api, input.id, secret).await?;
 
-    SecretResponse::process_response(res, &enc)
+    let mut ctx = client.internal.get_crypto_service().context();
+    SecretResponse::process_response(res, &mut ctx)
 }
 
 #[cfg(test)]

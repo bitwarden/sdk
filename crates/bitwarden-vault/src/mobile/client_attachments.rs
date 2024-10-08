@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use bitwarden_core::{Client, Error};
-use bitwarden_crypto::{EncString, KeyDecryptable, KeyEncryptable, LocateKey};
+use bitwarden_crypto::EncString;
 
 use crate::{
     Attachment, AttachmentEncryptResult, AttachmentFile, AttachmentFileView, AttachmentView,
@@ -19,15 +19,13 @@ impl<'a> ClientAttachments<'a> {
         attachment: AttachmentView,
         buffer: &[u8],
     ) -> Result<AttachmentEncryptResult, Error> {
-        let enc = self.client.internal.get_encryption_settings()?;
-        let key = cipher.locate_key(&enc, &None)?;
+        let crypto = self.client.internal.get_crypto_service();
 
-        Ok(AttachmentFileView {
+        Ok(crypto.encrypt(AttachmentFileView {
             cipher,
             attachment,
             contents: buffer,
-        }
-        .encrypt_with_key(key)?)
+        })?)
     }
     pub fn encrypt_file(
         &self,
@@ -51,16 +49,13 @@ impl<'a> ClientAttachments<'a> {
         attachment: Attachment,
         encrypted_buffer: &[u8],
     ) -> Result<Vec<u8>, Error> {
-        let enc = self.client.internal.get_encryption_settings()?;
-        let key = cipher.locate_key(&enc, &None)?;
+        let crypto = self.client.internal.get_crypto_service();
 
-        AttachmentFile {
+        Ok(crypto.decrypt(&AttachmentFile {
             cipher,
             attachment,
             contents: EncString::from_buffer(encrypted_buffer)?,
-        }
-        .decrypt_with_key(key)
-        .map_err(Error::Crypto)
+        })?)
     }
     pub fn decrypt_file(
         &self,

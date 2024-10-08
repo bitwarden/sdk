@@ -1,5 +1,5 @@
 mod key_encryptable;
-pub use key_encryptable::{CryptoKey, KeyContainer, KeyDecryptable, KeyEncryptable, LocateKey};
+pub use key_encryptable::{CryptoKey, KeyContainer, KeyDecryptable, KeyEncryptable};
 mod encryptable;
 pub use encryptable::{Decryptable, Encryptable, UsesKey};
 pub mod key_ref;

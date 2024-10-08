@@ -2,10 +2,11 @@ use bitwarden_api_api::models::{
     SecretWithProjectsListResponseModel, SecretsWithProjectsInnerSecret,
 };
 use bitwarden_core::{
-    client::{encryption_settings::EncryptionSettings, Client},
+    client::Client,
+    key_management::{AsymmetricKeyRef, SymmetricKeyRef},
     require, Error,
 };
-use bitwarden_crypto::{EncString, KeyDecryptable};
+use bitwarden_crypto::{service::CryptoServiceContext, Decryptable, EncString};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -28,9 +29,9 @@ pub(crate) async fn list_secrets(
     )
     .await?;
 
-    let enc = client.internal.get_encryption_settings()?;
+    let mut ctx = client.internal.get_crypto_service().context();
 
-    SecretIdentifiersResponse::process_response(res, &enc)
+    SecretIdentifiersResponse::process_response(res, &mut ctx)
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -51,9 +52,9 @@ pub(crate) async fn list_secrets_by_project(
     )
     .await?;
 
-    let enc = client.internal.get_encryption_settings()?;
+    let mut ctx = client.internal.get_crypto_service().context();
 
-    SecretIdentifiersResponse::process_response(res, &enc)
+    SecretIdentifiersResponse::process_response(res, &mut ctx)
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -65,14 +66,14 @@ pub struct SecretIdentifiersResponse {
 impl SecretIdentifiersResponse {
     pub(crate) fn process_response(
         response: SecretWithProjectsListResponseModel,
-        enc: &EncryptionSettings,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
     ) -> Result<SecretIdentifiersResponse, Error> {
         Ok(SecretIdentifiersResponse {
             data: response
                 .secrets
                 .unwrap_or_default()
                 .into_iter()
-                .map(|r| SecretIdentifierResponse::process_response(r, enc))
+                .map(|r| SecretIdentifierResponse::process_response(r, ctx))
                 .collect::<Result<_, _>>()?,
         })
     }
@@ -90,14 +91,14 @@ pub struct SecretIdentifierResponse {
 impl SecretIdentifierResponse {
     pub(crate) fn process_response(
         response: SecretsWithProjectsInnerSecret,
-        enc: &EncryptionSettings,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
     ) -> Result<SecretIdentifierResponse, Error> {
         let organization_id = require!(response.organization_id);
-        let enc_key = enc.get_key(&Some(organization_id))?;
+        let enc_key = SymmetricKeyRef::Organization(organization_id);
 
         let key = require!(response.key)
             .parse::<EncString>()?
-            .decrypt_with_key(enc_key)?;
+            .decrypt(ctx, enc_key)?;
 
         Ok(SecretIdentifierResponse {
             id: require!(response.id),

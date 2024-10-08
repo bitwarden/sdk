@@ -3,10 +3,13 @@ use base64::{
     Engine,
 };
 use bitwarden_api_api::models::{SendFileModel, SendResponseModel, SendTextModel};
-use bitwarden_core::require;
+use bitwarden_core::{
+    key_management::{AsymmetricKeyRef, SymmetricKeyRef},
+    require,
+};
 use bitwarden_crypto::{
-    derive_shareable_key, generate_random_bytes, CryptoError, EncString, KeyDecryptable,
-    KeyEncryptable, SymmetricCryptoKey,
+    generate_random_bytes, service::CryptoServiceContext, CryptoError, Decryptable, EncString,
+    Encryptable, UsesKey,
 };
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
@@ -141,82 +144,121 @@ pub struct SendListView {
     pub expiration_date: Option<DateTime<Utc>>,
 }
 
+const SEND_KEY: SymmetricKeyRef = SymmetricKeyRef::Local("send_key");
+
 impl Send {
-    pub fn get_key(
+    pub fn decrypt_key(
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
         send_key: &EncString,
-        enc_key: &SymmetricCryptoKey,
-    ) -> Result<SymmetricCryptoKey, CryptoError> {
-        let key: Vec<u8> = send_key.decrypt_with_key(enc_key)?;
-        Self::derive_shareable_key(&key)
+        enc_key: SymmetricKeyRef,
+    ) -> Result<SymmetricKeyRef, CryptoError> {
+        let key: Vec<u8> = send_key.decrypt(ctx, enc_key)?;
+        Self::derive_shareable_key(ctx, &key)
     }
 
-    fn derive_shareable_key(key: &[u8]) -> Result<SymmetricCryptoKey, CryptoError> {
+    fn derive_shareable_key(
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        key: &[u8],
+    ) -> Result<SymmetricKeyRef, CryptoError> {
         let key = Zeroizing::new(key.try_into().map_err(|_| CryptoError::InvalidKeyLen)?);
-        Ok(derive_shareable_key(key, "send", Some("send")))
+        ctx.derive_shareable_key(SEND_KEY, key, "send", Some("send"))
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, SendTextView> for SendText {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendTextView, CryptoError> {
+impl UsesKey<SymmetricKeyRef> for Send {
+    fn uses_key(&self) -> SymmetricKeyRef {
+        SymmetricKeyRef::User
+    }
+}
+
+impl UsesKey<SymmetricKeyRef> for SendView {
+    fn uses_key(&self) -> SymmetricKeyRef {
+        SymmetricKeyRef::User
+    }
+}
+
+impl Decryptable<SymmetricKeyRef, AsymmetricKeyRef, SymmetricKeyRef, SendTextView> for SendText {
+    fn decrypt(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        key: SymmetricKeyRef,
+    ) -> Result<SendTextView, CryptoError> {
         Ok(SendTextView {
-            text: self.text.decrypt_with_key(key)?,
+            text: self.text.decrypt(ctx, key)?,
             hidden: self.hidden,
         })
     }
 }
 
-impl KeyEncryptable<SymmetricCryptoKey, SendText> for SendTextView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<SendText, CryptoError> {
+impl Encryptable<SymmetricKeyRef, AsymmetricKeyRef, SymmetricKeyRef, SendText> for SendTextView {
+    fn encrypt(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        key: SymmetricKeyRef,
+    ) -> Result<SendText, CryptoError> {
         Ok(SendText {
-            text: self.text.encrypt_with_key(key)?,
+            text: self.text.encrypt(ctx, key)?,
             hidden: self.hidden,
         })
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, SendFileView> for SendFile {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendFileView, CryptoError> {
+impl Decryptable<SymmetricKeyRef, AsymmetricKeyRef, SymmetricKeyRef, SendFileView> for SendFile {
+    fn decrypt(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        key: SymmetricKeyRef,
+    ) -> Result<SendFileView, CryptoError> {
         Ok(SendFileView {
             id: self.id.clone(),
-            file_name: self.file_name.decrypt_with_key(key)?,
+            file_name: self.file_name.decrypt(ctx, key)?,
             size: self.size.clone(),
             size_name: self.size_name.clone(),
         })
     }
 }
 
-impl KeyEncryptable<SymmetricCryptoKey, SendFile> for SendFileView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<SendFile, CryptoError> {
+impl Encryptable<SymmetricKeyRef, AsymmetricKeyRef, SymmetricKeyRef, SendFile> for SendFileView {
+    fn encrypt(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        key: SymmetricKeyRef,
+    ) -> Result<SendFile, CryptoError> {
         Ok(SendFile {
             id: self.id.clone(),
-            file_name: self.file_name.encrypt_with_key(key)?,
+            file_name: self.file_name.encrypt(ctx, key)?,
             size: self.size.clone(),
             size_name: self.size_name.clone(),
         })
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, SendView> for Send {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendView, CryptoError> {
+impl Decryptable<SymmetricKeyRef, AsymmetricKeyRef, SymmetricKeyRef, SendView> for Send {
+    fn decrypt(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        key: SymmetricKeyRef,
+    ) -> Result<SendView, CryptoError> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full
         // size For the rest of the fields, we ignore the provided SymmetricCryptoKey and
         // the stretched key
-        let k: Vec<u8> = self.key.decrypt_with_key(key)?;
-        let key = Send::derive_shareable_key(&k)?;
+
+        let k: Vec<u8> = self.key.decrypt(ctx, key)?;
+        let key = Send::derive_shareable_key(ctx, &k)?;
 
         Ok(SendView {
             id: self.id,
             access_id: self.access_id.clone(),
 
-            name: self.name.decrypt_with_key(&key).ok().unwrap_or_default(),
-            notes: self.notes.decrypt_with_key(&key).ok().flatten(),
+            name: self.name.decrypt(ctx, key).ok().unwrap_or_default(),
+            notes: self.notes.decrypt(ctx, key).ok().flatten(),
             key: Some(URL_SAFE_NO_PAD.encode(k)),
             new_password: None,
             has_password: self.password.is_some(),
 
             r#type: self.r#type,
-            file: self.file.decrypt_with_key(&key).ok().flatten(),
-            text: self.text.decrypt_with_key(&key).ok().flatten(),
+            file: self.file.decrypt(ctx, key).ok().flatten(),
+            text: self.text.decrypt(ctx, key).ok().flatten(),
 
             max_access_count: self.max_access_count,
             access_count: self.access_count,
@@ -230,18 +272,24 @@ impl KeyDecryptable<SymmetricCryptoKey, SendView> for Send {
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, SendListView> for Send {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<SendListView, CryptoError> {
+impl Decryptable<SymmetricKeyRef, AsymmetricKeyRef, SymmetricKeyRef, SendListView> for Send {
+    fn decrypt(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        key: SymmetricKeyRef,
+    ) -> Result<SendListView, CryptoError> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full
         // size For the rest of the fields, we ignore the provided SymmetricCryptoKey and
         // the stretched key
-        let key = Send::get_key(&self.key, key)?;
+
+        let k: Vec<u8> = self.key.decrypt(ctx, key)?;
+        let key = Send::derive_shareable_key(ctx, &k)?;
 
         Ok(SendListView {
             id: self.id,
             access_id: self.access_id.clone(),
 
-            name: self.name.decrypt_with_key(&key)?,
+            name: self.name.decrypt(ctx, key).ok().unwrap_or_default(),
             r#type: self.r#type,
 
             disabled: self.disabled,
@@ -253,12 +301,16 @@ impl KeyDecryptable<SymmetricCryptoKey, SendListView> for Send {
     }
 }
 
-impl KeyEncryptable<SymmetricCryptoKey, Send> for SendView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Send, CryptoError> {
+impl Encryptable<SymmetricKeyRef, AsymmetricKeyRef, SymmetricKeyRef, Send> for SendView {
+    fn encrypt(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        key: SymmetricKeyRef,
+    ) -> Result<Send, CryptoError> {
         // For sends, we first decrypt the send key with the user key, and stretch it to it's full
         // size For the rest of the fields, we ignore the provided SymmetricCryptoKey and
         // the stretched key
-        let k = match (self.key, self.id) {
+        let k = match (&self.key, &self.id) {
             // Existing send, decrypt key
             (Some(k), _) => URL_SAFE_NO_PAD
                 .decode(k)
@@ -271,23 +323,23 @@ impl KeyEncryptable<SymmetricCryptoKey, Send> for SendView {
             // Existing send without key
             _ => return Err(CryptoError::InvalidKey),
         };
-        let send_key = Send::derive_shareable_key(&k)?;
+        let send_key = Send::derive_shareable_key(ctx, &k)?;
 
         Ok(Send {
             id: self.id,
-            access_id: self.access_id,
+            access_id: self.access_id.clone(),
 
-            name: self.name.encrypt_with_key(&send_key)?,
-            notes: self.notes.encrypt_with_key(&send_key)?,
-            key: k.encrypt_with_key(key)?,
-            password: self.new_password.map(|password| {
+            name: self.name.encrypt(ctx, send_key)?,
+            notes: self.notes.encrypt(ctx, send_key)?,
+            key: k.as_slice().encrypt(ctx, key)?,
+            password: self.new_password.as_ref().map(|password| {
                 let password = bitwarden_crypto::pbkdf2(password.as_bytes(), &k, SEND_ITERATIONS);
                 STANDARD.encode(password)
             }),
 
             r#type: self.r#type,
-            file: self.file.encrypt_with_key(&send_key)?,
-            text: self.text.encrypt_with_key(&send_key)?,
+            file: self.file.encrypt(ctx, send_key)?,
+            text: self.text.encrypt(ctx, send_key)?,
 
             max_access_count: self.max_access_count,
             access_count: self.access_count,
@@ -361,78 +413,36 @@ impl TryFrom<SendTextModel> for SendText {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-
-    use bitwarden_crypto::{Kdf, KeyContainer, KeyDecryptable, KeyEncryptable, MasterKey};
+    use bitwarden_core::key_management::create_test_crypto_with_user_key;
+    use bitwarden_crypto::SymmetricCryptoKey;
 
     use super::*;
-
-    struct MockKeyContainer(HashMap<Option<Uuid>, SymmetricCryptoKey>);
-    impl MockKeyContainer {
-        fn new(master_key: MasterKey, user_key: EncString) -> Result<Self, CryptoError> {
-            let user_key = master_key.decrypt_user_key(user_key)?;
-            Ok(Self(HashMap::from([(None, user_key)])))
-        }
-    }
-    impl KeyContainer for MockKeyContainer {
-        fn get_key<'a>(
-            &'a self,
-            org_id: &Option<Uuid>,
-        ) -> Result<&'a SymmetricCryptoKey, CryptoError> {
-            self.0
-                .get(org_id)
-                .ok_or(CryptoError::MissingKey(org_id.unwrap_or_default()))
-        }
-    }
 
     #[test]
     fn test_get_send_key() {
         // Initialize user encryption with some test data
-        let master_key = MasterKey::derive(
-            "asdfasdfasdf",
-            "test@bitwarden.com",
-            &Kdf::PBKDF2 {
-                iterations: 345123.try_into().unwrap(),
-            },
-        )
-        .unwrap();
-        let enc = MockKeyContainer::new(
-            master_key,
-            "2.majkL1/hNz9yptLqNAUSnw==|RiOzMTTJMG948qu8O3Zm1EQUO2E8BuTwFKnO9LWQjMzxMWJM5GbyOq2/A+tumPbTERt4JWur/FKfgHb+gXuYiEYlXPMuVBvT7nv4LPytJuM=|IVqMxHJeR1ZXY0sGngTC0x+WqbG8p6V+BTrdgBbQXjM=".parse().unwrap(),
-        ).unwrap();
-
-        let k = enc.get_key(&None).unwrap();
+        let user_key: SymmetricCryptoKey = "w2LO+nwV4oxwswVYCxlOfRUseXfvU03VzvKQHrqeklPgiMZrspUe6sOBToCnDn9Ay0tuCBn8ykVVRb7PWhub2Q==".to_string().try_into().unwrap();
+        let crypto = create_test_crypto_with_user_key(user_key);
+        let mut ctx = crypto.context();
 
         let send_key = "2.+1KUfOX8A83Xkwk1bumo/w==|Nczvv+DTkeP466cP/wMDnGK6W9zEIg5iHLhcuQG6s+M=|SZGsfuIAIaGZ7/kzygaVUau3LeOvJUlolENBOU+LX7g="
             .parse()
             .unwrap();
 
         // Get the send key
-        let send_key = Send::get_key(&send_key, k).unwrap();
+        let send_key = Send::decrypt_key(&mut ctx, &send_key, SymmetricKeyRef::User).unwrap();
+
+        #[allow(deprecated)]
+        let send_key = ctx.dangerous_get_symmetric_key(send_key).unwrap();
+
         let send_key_b64 = send_key.to_base64();
         assert_eq!(send_key_b64, "IR9ImHGm6rRuIjiN7csj94bcZR5WYTJj5GtNfx33zm6tJCHUl+QZlpNPba8g2yn70KnOHsAODLcR0um6E3MAlg==");
     }
 
-    fn build_encryption_settings() -> MockKeyContainer {
-        let master_key = MasterKey::derive(
-            "asdfasdfasdf",
-            "test@bitwarden.com",
-            &Kdf::PBKDF2 {
-                iterations: 600_000.try_into().unwrap(),
-            },
-        )
-        .unwrap();
-
-        MockKeyContainer::new(
-            master_key,
-            "2.Q/2PhzcC7GdeiMHhWguYAQ==|GpqzVdr0go0ug5cZh1n+uixeBC3oC90CIe0hd/HWA/pTRDZ8ane4fmsEIcuc8eMKUt55Y2q/fbNzsYu41YTZzzsJUSeqVjT8/iTQtgnNdpo=|dwI+uyvZ1h/iZ03VQ+/wrGEFYVewBUUl/syYgjsNMbE=".parse().unwrap(),
-        ).unwrap()
-    }
-
     #[test]
     pub fn test_decrypt() {
-        let enc = build_encryption_settings();
-        let key = enc.get_key(&None).unwrap();
+        let user_key: SymmetricCryptoKey = "bYCsk857hl8QJJtxyRK65tjUrbxKC4aDifJpsml+NIv4W9cVgFvi3qVD+yJTUU2T4UwNKWYtt9pqWf7Q+2WCCg==".to_string().try_into().unwrap();
+        let crypto = create_test_crypto_with_user_key(user_key);
 
         let send = Send {
             id: "3d80dd72-2d14-4f26-812c-b0f0018aa144".parse().ok(),
@@ -457,7 +467,7 @@ mod tests {
             hide_email: false,
         };
 
-        let view: SendView = send.decrypt_with_key(key).unwrap();
+        let view: SendView = crypto.decrypt(&send).unwrap();
 
         let expected = SendView {
             id: "3d80dd72-2d14-4f26-812c-b0f0018aa144".parse().ok(),
@@ -487,8 +497,8 @@ mod tests {
 
     #[test]
     pub fn test_encrypt() {
-        let enc = build_encryption_settings();
-        let key = enc.get_key(&None).unwrap();
+        let user_key: SymmetricCryptoKey = "bYCsk857hl8QJJtxyRK65tjUrbxKC4aDifJpsml+NIv4W9cVgFvi3qVD+yJTUU2T4UwNKWYtt9pqWf7Q+2WCCg==".to_string().try_into().unwrap();
+        let crypto = create_test_crypto_with_user_key(user_key);
 
         let view = SendView {
             id: "3d80dd72-2d14-4f26-812c-b0f0018aa144".parse().ok(),
@@ -514,19 +524,16 @@ mod tests {
         };
 
         // Re-encrypt and decrypt again to ensure encrypt works
-        let v: SendView = view
-            .clone()
-            .encrypt_with_key(key)
-            .unwrap()
-            .decrypt_with_key(key)
+        let v: SendView = crypto
+            .decrypt(&crypto.encrypt(view.clone()).unwrap())
             .unwrap();
         assert_eq!(v, view);
     }
 
     #[test]
     pub fn test_create() {
-        let enc = build_encryption_settings();
-        let key = enc.get_key(&None).unwrap();
+        let user_key: SymmetricCryptoKey = "bYCsk857hl8QJJtxyRK65tjUrbxKC4aDifJpsml+NIv4W9cVgFvi3qVD+yJTUU2T4UwNKWYtt9pqWf7Q+2WCCg==".to_string().try_into().unwrap();
+        let crypto = create_test_crypto_with_user_key(user_key);
 
         let view = SendView {
             id: None,
@@ -552,11 +559,8 @@ mod tests {
         };
 
         // Re-encrypt and decrypt again to ensure encrypt works
-        let v: SendView = view
-            .clone()
-            .encrypt_with_key(key)
-            .unwrap()
-            .decrypt_with_key(key)
+        let v: SendView = crypto
+            .decrypt(&crypto.encrypt(view.clone()).unwrap())
             .unwrap();
 
         // Ignore key when comparing
@@ -566,8 +570,8 @@ mod tests {
 
     #[test]
     pub fn test_create_password() {
-        let enc = build_encryption_settings();
-        let key = enc.get_key(&None).unwrap();
+        let user_key: SymmetricCryptoKey = "bYCsk857hl8QJJtxyRK65tjUrbxKC4aDifJpsml+NIv4W9cVgFvi3qVD+yJTUU2T4UwNKWYtt9pqWf7Q+2WCCg==".to_string().try_into().unwrap();
+        let crypto = create_test_crypto_with_user_key(user_key);
 
         let view = SendView {
             id: None,
@@ -592,14 +596,14 @@ mod tests {
             expiration_date: None,
         };
 
-        let send: Send = view.encrypt_with_key(key).unwrap();
+        let send: Send = crypto.encrypt(view).unwrap();
 
         assert_eq!(
             send.password,
             Some("vTIDfdj3FTDbejmMf+mJWpYdMXsxfeSd1Sma3sjCtiQ=".to_owned())
         );
 
-        let v: SendView = send.decrypt_with_key(key).unwrap();
+        let v: SendView = crypto.decrypt(&send).unwrap();
         assert_eq!(v.new_password, None);
         assert!(v.has_password);
     }

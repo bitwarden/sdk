@@ -1,6 +1,9 @@
 use bitwarden_api_api::models::ProjectResponseModel;
-use bitwarden_core::{client::encryption_settings::EncryptionSettings, require, Error};
-use bitwarden_crypto::{EncString, KeyDecryptable};
+use bitwarden_core::{
+    key_management::{AsymmetricKeyRef, SymmetricKeyRef},
+    require, Error,
+};
+use bitwarden_crypto::{service::CryptoServiceContext, Decryptable, EncString};
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -19,14 +22,14 @@ pub struct ProjectResponse {
 impl ProjectResponse {
     pub(crate) fn process_response(
         response: ProjectResponseModel,
-        enc: &EncryptionSettings,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
     ) -> Result<Self, Error> {
         let organization_id = require!(response.organization_id);
-        let enc_key = enc.get_key(&Some(organization_id))?;
+        let enc_key = SymmetricKeyRef::Organization(organization_id);
 
         let name = require!(response.name)
             .parse::<EncString>()?
-            .decrypt_with_key(enc_key)?;
+            .decrypt(ctx, enc_key)?;
 
         Ok(ProjectResponse {
             id: require!(response.id),

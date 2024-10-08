@@ -1,7 +1,10 @@
 use bitwarden_api_api::models::CipherFieldModel;
-use bitwarden_core::require;
+use bitwarden_core::{
+    key_management::{AsymmetricKeyRef, SymmetricKeyRef},
+    require,
+};
 use bitwarden_crypto::{
-    CryptoError, EncString, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
+    service::CryptoServiceContext, CryptoError, Decryptable, EncString, Encryptable,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -42,22 +45,30 @@ pub struct FieldView {
     pub linked_id: Option<LinkedIdType>,
 }
 
-impl KeyEncryptable<SymmetricCryptoKey, Field> for FieldView {
-    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<Field, CryptoError> {
+impl Encryptable<SymmetricKeyRef, AsymmetricKeyRef, SymmetricKeyRef, Field> for FieldView {
+    fn encrypt(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        key: SymmetricKeyRef,
+    ) -> Result<Field, CryptoError> {
         Ok(Field {
-            name: self.name.encrypt_with_key(key)?,
-            value: self.value.encrypt_with_key(key)?,
+            name: self.name.encrypt(ctx, key)?,
+            value: self.value.encrypt(ctx, key)?,
             r#type: self.r#type,
             linked_id: self.linked_id,
         })
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, FieldView> for Field {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<FieldView, CryptoError> {
+impl Decryptable<SymmetricKeyRef, AsymmetricKeyRef, SymmetricKeyRef, FieldView> for Field {
+    fn decrypt(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        key: SymmetricKeyRef,
+    ) -> Result<FieldView, CryptoError> {
         Ok(FieldView {
-            name: self.name.decrypt_with_key(key).ok().flatten(),
-            value: self.value.decrypt_with_key(key).ok().flatten(),
+            name: self.name.decrypt(ctx, key).ok().flatten(),
+            value: self.value.decrypt(ctx, key).ok().flatten(),
             r#type: self.r#type,
             linked_id: self.linked_id,
         })

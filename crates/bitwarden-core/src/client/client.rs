@@ -1,5 +1,6 @@
 use std::sync::{Arc, RwLock};
 
+use bitwarden_crypto::service::CryptoService;
 use reqwest::header::{self, HeaderValue};
 
 use super::internal::InternalClient;
@@ -78,7 +79,7 @@ impl Client {
                     device_type: settings.device_type,
                 })),
                 external_client,
-                encryption_settings: RwLock::new(None),
+                crypto_service: CryptoService::new(),
             },
         }
     }

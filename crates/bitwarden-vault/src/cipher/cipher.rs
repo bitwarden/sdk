@@ -1,8 +1,10 @@
 use bitwarden_api_api::models::CipherDetailsResponseModel;
-use bitwarden_core::{require, MissingFieldError, VaultLocked};
+use bitwarden_core::{
+    key_management::{AsymmetricKeyRef, SymmetricKeyRef},
+    require, MissingFieldError, VaultLocked,
+};
 use bitwarden_crypto::{
-    CryptoError, EncString, KeyContainer, KeyDecryptable, KeyEncryptable, LocateKey,
-    SymmetricCryptoKey,
+    service::CryptoServiceContext, CryptoError, Decryptable, EncString, Encryptable, UsesKey,
 };
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
@@ -12,7 +14,8 @@ use thiserror::Error;
 use uuid::Uuid;
 
 use super::{
-    attachment, card, field, identity,
+    attachment::{self, ATTACHMENT_KEY},
+    card, field, identity,
     local_data::{LocalData, LocalDataView},
     secure_note,
 };
@@ -169,17 +172,20 @@ pub struct CipherListView {
     pub revision_date: DateTime<Utc>,
 }
 
+const CIPHER_KEY: SymmetricKeyRef = SymmetricKeyRef::Local("cipher_key");
+const NEW_CIPHER_KEY: SymmetricKeyRef = SymmetricKeyRef::Local("new_cipher_key");
+
 impl CipherListView {
+    // TODO: Don't return the TOTP key directly, store it in the context
     pub(crate) fn get_totp_key(
         self,
-        enc: &dyn KeyContainer,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
     ) -> Result<Option<String>, CryptoError> {
-        let key = self.locate_key(enc, &None)?;
-        let cipher_key = Cipher::get_cipher_key(key, &self.key)?;
-        let key = cipher_key.as_ref().unwrap_or(key);
+        let key = self.uses_key();
+        let cipher_key = Cipher::get_cipher_key(ctx, key, &self.key)?;
 
         let totp = if let CipherListViewType::Login { totp, .. } = self.r#type {
-            totp.decrypt_with_key(key)?
+            totp.decrypt(ctx, cipher_key)?
         } else {
             None
         };
@@ -188,49 +194,57 @@ impl CipherListView {
     }
 }
 
-impl KeyEncryptable<SymmetricCryptoKey, Cipher> for CipherView {
-    fn encrypt_with_key(mut self, key: &SymmetricCryptoKey) -> Result<Cipher, CryptoError> {
-        let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
-        let key = ciphers_key.as_ref().unwrap_or(key);
+impl Encryptable<SymmetricKeyRef, AsymmetricKeyRef, SymmetricKeyRef, Cipher> for CipherView {
+    fn encrypt(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        key: SymmetricKeyRef,
+    ) -> Result<Cipher, CryptoError> {
+        let key: SymmetricKeyRef = Cipher::get_cipher_key(ctx, key, &self.key)?;
+
+        let mut cipher_view = self.clone();
 
         // For compatibility reasons, we only create checksums for ciphers that have a key
-        if ciphers_key.is_some() {
-            self.generate_checksums();
+        if cipher_view.key.is_some() {
+            cipher_view.generate_checksums();
         }
 
         Ok(Cipher {
-            id: self.id,
-            organization_id: self.organization_id,
-            folder_id: self.folder_id,
-            collection_ids: self.collection_ids,
-            key: self.key,
-            name: self.name.encrypt_with_key(key)?,
-            notes: self.notes.encrypt_with_key(key)?,
-            r#type: self.r#type,
-            login: self.login.encrypt_with_key(key)?,
-            identity: self.identity.encrypt_with_key(key)?,
-            card: self.card.encrypt_with_key(key)?,
-            secure_note: self.secure_note.encrypt_with_key(key)?,
-            favorite: self.favorite,
-            reprompt: self.reprompt,
-            organization_use_totp: self.organization_use_totp,
-            edit: self.edit,
-            view_password: self.view_password,
-            local_data: self.local_data.encrypt_with_key(key)?,
-            attachments: self.attachments.encrypt_with_key(key)?,
-            fields: self.fields.encrypt_with_key(key)?,
-            password_history: self.password_history.encrypt_with_key(key)?,
-            creation_date: self.creation_date,
-            deleted_date: self.deleted_date,
-            revision_date: self.revision_date,
+            id: cipher_view.id,
+            organization_id: cipher_view.organization_id,
+            folder_id: cipher_view.folder_id,
+            collection_ids: cipher_view.collection_ids.clone(),
+            key: cipher_view.key.clone(),
+            name: cipher_view.name.encrypt(ctx, key)?,
+            notes: cipher_view.notes.encrypt(ctx, key)?,
+            r#type: cipher_view.r#type,
+            login: cipher_view.login.encrypt(ctx, key)?,
+            identity: cipher_view.identity.encrypt(ctx, key)?,
+            card: cipher_view.card.encrypt(ctx, key)?,
+            secure_note: cipher_view.secure_note.encrypt(ctx, key)?,
+            favorite: cipher_view.favorite,
+            reprompt: cipher_view.reprompt,
+            organization_use_totp: cipher_view.organization_use_totp,
+            edit: cipher_view.edit,
+            view_password: cipher_view.view_password,
+            local_data: cipher_view.local_data.encrypt(ctx, key)?,
+            attachments: cipher_view.attachments.encrypt(ctx, key)?,
+            fields: cipher_view.fields.encrypt(ctx, key)?,
+            password_history: cipher_view.password_history.encrypt(ctx, key)?,
+            creation_date: cipher_view.creation_date,
+            deleted_date: cipher_view.deleted_date,
+            revision_date: cipher_view.revision_date,
         })
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, CipherView> for Cipher {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CipherView, CryptoError> {
-        let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
-        let key = ciphers_key.as_ref().unwrap_or(key);
+impl Decryptable<SymmetricKeyRef, AsymmetricKeyRef, SymmetricKeyRef, CipherView> for Cipher {
+    fn decrypt(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        key: SymmetricKeyRef,
+    ) -> Result<CipherView, CryptoError> {
+        let key: SymmetricKeyRef = Cipher::get_cipher_key(ctx, key, &self.key)?;
 
         let mut cipher = CipherView {
             id: self.id,
@@ -238,29 +252,29 @@ impl KeyDecryptable<SymmetricCryptoKey, CipherView> for Cipher {
             folder_id: self.folder_id,
             collection_ids: self.collection_ids.clone(),
             key: self.key.clone(),
-            name: self.name.decrypt_with_key(key).ok().unwrap_or_default(),
-            notes: self.notes.decrypt_with_key(key).ok().flatten(),
+            name: self.name.decrypt(ctx, key).ok().unwrap_or_default(),
+            notes: self.notes.decrypt(ctx, key).ok().flatten(),
             r#type: self.r#type,
-            login: self.login.decrypt_with_key(key).ok().flatten(),
-            identity: self.identity.decrypt_with_key(key).ok().flatten(),
-            card: self.card.decrypt_with_key(key).ok().flatten(),
-            secure_note: self.secure_note.decrypt_with_key(key).ok().flatten(),
+            login: self.login.decrypt(ctx, key).ok().flatten(),
+            identity: self.identity.decrypt(ctx, key).ok().flatten(),
+            card: self.card.decrypt(ctx, key).ok().flatten(),
+            secure_note: self.secure_note.decrypt(ctx, key).ok().flatten(),
             favorite: self.favorite,
             reprompt: self.reprompt,
             organization_use_totp: self.organization_use_totp,
             edit: self.edit,
             view_password: self.view_password,
-            local_data: self.local_data.decrypt_with_key(key).ok().flatten(),
-            attachments: self.attachments.decrypt_with_key(key).ok().flatten(),
-            fields: self.fields.decrypt_with_key(key).ok().flatten(),
-            password_history: self.password_history.decrypt_with_key(key).ok().flatten(),
+            local_data: self.local_data.decrypt(ctx, key).ok().flatten(),
+            attachments: self.attachments.decrypt(ctx, key).ok().flatten(),
+            fields: self.fields.decrypt(ctx, key).ok().flatten(),
+            password_history: self.password_history.decrypt(ctx, key).ok().flatten(),
             creation_date: self.creation_date,
             deleted_date: self.deleted_date,
             revision_date: self.revision_date,
         };
 
         // For compatibility we only remove URLs with invalid checksums if the cipher has a key
-        if ciphers_key.is_some() {
+        if self.key.is_some() {
             cipher.remove_invalid_checksums();
         }
 
@@ -274,25 +288,30 @@ impl Cipher {
     /// in which case this will return Ok(None) and the key associated
     /// with this cipher's user or organization must be used instead
     pub(super) fn get_cipher_key(
-        key: &SymmetricCryptoKey,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        key: SymmetricKeyRef,
         ciphers_key: &Option<EncString>,
-    ) -> Result<Option<SymmetricCryptoKey>, CryptoError> {
-        ciphers_key
-            .as_ref()
-            .map(|k| {
-                let mut key: Vec<u8> = k.decrypt_with_key(key)?;
-                SymmetricCryptoKey::try_from(key.as_mut_slice())
-            })
-            .transpose()
+    ) -> Result<SymmetricKeyRef, CryptoError> {
+        match ciphers_key {
+            Some(ciphers_key) => {
+                ctx.decrypt_symmetric_key_with_symmetric_key(key, CIPHER_KEY, ciphers_key)?;
+                Ok(CIPHER_KEY)
+            }
+            None => Ok(key),
+        }
     }
 
-    fn get_decrypted_subtitle(&self, key: &SymmetricCryptoKey) -> Result<String, CryptoError> {
+    fn get_decrypted_subtitle(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        key: SymmetricKeyRef,
+    ) -> Result<String, CryptoError> {
         Ok(match self.r#type {
             CipherType::Login => {
                 let Some(login) = &self.login else {
                     return Ok(String::new());
                 };
-                login.username.decrypt_with_key(key)?.unwrap_or_default()
+                login.username.decrypt(ctx, key)?.unwrap_or_default()
             }
             CipherType::SecureNote => String::new(),
             CipherType::Card => {
@@ -303,11 +322,11 @@ impl Cipher {
                 build_subtitle_card(
                     card.brand
                         .as_ref()
-                        .map(|b| b.decrypt_with_key(key))
+                        .map(|b| b.decrypt(ctx, key))
                         .transpose()?,
                     card.number
                         .as_ref()
-                        .map(|n| n.decrypt_with_key(key))
+                        .map(|n| n.decrypt(ctx, key))
                         .transpose()?,
                 )
             }
@@ -320,12 +339,12 @@ impl Cipher {
                     identity
                         .first_name
                         .as_ref()
-                        .map(|f| f.decrypt_with_key(key))
+                        .map(|f| f.decrypt(ctx, key))
                         .transpose()?,
                     identity
                         .last_name
                         .as_ref()
-                        .map(|l| l.decrypt_with_key(key))
+                        .map(|l| l.decrypt(ctx, key))
                         .transpose()?,
                 )
             }
@@ -390,16 +409,18 @@ fn build_subtitle_identity(first_name: Option<String>, last_name: Option<String>
 }
 
 impl CipherView {
-    pub fn generate_cipher_key(&mut self, key: &SymmetricCryptoKey) -> Result<(), CryptoError> {
-        let old_ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
-        let old_key = old_ciphers_key.as_ref().unwrap_or(key);
+    pub fn generate_cipher_key(
+        &mut self,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        key: SymmetricKeyRef,
+    ) -> Result<(), CryptoError> {
+        let old_key = Cipher::get_cipher_key(ctx, key, &self.key)?;
+        let new_key = ctx.generate_symmetric_key(NEW_CIPHER_KEY)?;
 
-        let new_key = SymmetricCryptoKey::generate(rand::thread_rng());
+        self.reencrypt_attachment_keys(ctx, old_key, new_key)?;
+        self.reencrypt_fido2_credentials(ctx, old_key, new_key)?;
 
-        self.reencrypt_attachment_keys(old_key, &new_key)?;
-        self.reencrypt_fido2_credentials(old_key, &new_key)?;
-
-        self.key = Some(new_key.to_vec().encrypt_with_key(key)?);
+        self.key = Some(ctx.encrypt_symmetric_key_with_symmetric_key(key, NEW_CIPHER_KEY)?);
         Ok(())
     }
 
@@ -419,14 +440,20 @@ impl CipherView {
 
     fn reencrypt_attachment_keys(
         &mut self,
-        old_key: &SymmetricCryptoKey,
-        new_key: &SymmetricCryptoKey,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        old_key: SymmetricKeyRef,
+        new_key: SymmetricKeyRef,
     ) -> Result<(), CryptoError> {
         if let Some(attachments) = &mut self.attachments {
             for attachment in attachments {
                 if let Some(attachment_key) = &mut attachment.key {
-                    let dec_attachment_key: Vec<u8> = attachment_key.decrypt_with_key(old_key)?;
-                    *attachment_key = dec_attachment_key.encrypt_with_key(new_key)?;
+                    ctx.decrypt_symmetric_key_with_symmetric_key(
+                        old_key,
+                        ATTACHMENT_KEY,
+                        attachment_key,
+                    )?;
+                    *attachment_key =
+                        ctx.encrypt_symmetric_key_with_symmetric_key(new_key, ATTACHMENT_KEY)?;
                 }
             }
         }
@@ -435,32 +462,31 @@ impl CipherView {
 
     pub fn decrypt_fido2_credentials(
         &self,
-        enc: &dyn KeyContainer,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
     ) -> Result<Vec<Fido2CredentialView>, CipherError> {
-        let key = self.locate_key(enc, &None)?;
-        let cipher_key = Cipher::get_cipher_key(key, &self.key)?;
-
-        let key = cipher_key.as_ref().unwrap_or(key);
+        let key = self.uses_key();
+        let cipher_key = Cipher::get_cipher_key(ctx, key, &self.key)?;
 
         Ok(self
             .login
             .as_ref()
             .and_then(|l| l.fido2_credentials.as_ref())
-            .map(|f| f.decrypt_with_key(key))
+            .map(|f| f.decrypt(ctx, cipher_key))
             .transpose()?
             .unwrap_or_default())
     }
 
     fn reencrypt_fido2_credentials(
         &mut self,
-        old_key: &SymmetricCryptoKey,
-        new_key: &SymmetricCryptoKey,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        old_key: SymmetricKeyRef,
+        new_key: SymmetricKeyRef,
     ) -> Result<(), CryptoError> {
         if let Some(login) = self.login.as_mut() {
             if let Some(fido2_credentials) = &mut login.fido2_credentials {
                 let dec_fido2_credentials: Vec<Fido2CredentialFullView> =
-                    fido2_credentials.decrypt_with_key(old_key)?;
-                *fido2_credentials = dec_fido2_credentials.encrypt_with_key(new_key)?;
+                    fido2_credentials.decrypt(ctx, old_key)?;
+                *fido2_credentials = dec_fido2_credentials.encrypt(ctx, new_key)?;
             }
         }
         Ok(())
@@ -468,12 +494,12 @@ impl CipherView {
 
     pub fn move_to_organization(
         &mut self,
-        enc: &dyn KeyContainer,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
         organization_id: Uuid,
     ) -> Result<(), CipherError> {
-        let old_key = enc.get_key(&self.organization_id)?;
+        let old_key = self.uses_key();
 
-        let new_key = enc.get_key(&Some(organization_id))?;
+        let new_key = SymmetricKeyRef::Organization(organization_id);
 
         // If any attachment is missing a key we can't reencrypt the attachment keys
         if self.attachments.iter().flatten().any(|a| a.key.is_none()) {
@@ -482,12 +508,12 @@ impl CipherView {
 
         // If the cipher has a key, we need to re-encrypt it with the new organization key
         if let Some(cipher_key) = &mut self.key {
-            let dec_cipher_key: Vec<u8> = cipher_key.decrypt_with_key(old_key)?;
-            *cipher_key = dec_cipher_key.encrypt_with_key(new_key)?;
+            ctx.decrypt_symmetric_key_with_symmetric_key(old_key, CIPHER_KEY, cipher_key)?;
+            *cipher_key = ctx.encrypt_symmetric_key_with_symmetric_key(new_key, CIPHER_KEY)?;
         } else {
             // If the cipher does not have a key, we need to reencrypt all attachment keys
-            self.reencrypt_attachment_keys(old_key, new_key)?;
-            self.reencrypt_fido2_credentials(old_key, new_key)?;
+            self.reencrypt_attachment_keys(ctx, old_key, new_key)?;
+            self.reencrypt_fido2_credentials(ctx, old_key, new_key)?;
         }
 
         self.organization_id = Some(organization_id);
@@ -496,40 +522,38 @@ impl CipherView {
 
     pub fn set_new_fido2_credentials(
         &mut self,
-        enc: &dyn KeyContainer,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
         creds: Vec<Fido2CredentialFullView>,
     ) -> Result<(), CipherError> {
-        let key = enc.get_key(&self.organization_id)?;
+        let key = self.uses_key();
+        let ciphers_key = Cipher::get_cipher_key(ctx, key, &self.key)?;
 
-        let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
-        let ciphers_key = ciphers_key.as_ref().unwrap_or(key);
-
-        require!(self.login.as_mut()).fido2_credentials =
-            Some(creds.encrypt_with_key(ciphers_key)?);
+        require!(self.login.as_mut()).fido2_credentials = Some(creds.encrypt(ctx, ciphers_key)?);
 
         Ok(())
     }
 
     pub fn get_fido2_credentials(
         &self,
-        enc: &dyn KeyContainer,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
     ) -> Result<Vec<Fido2CredentialFullView>, CipherError> {
-        let key = enc.get_key(&self.organization_id)?;
-
-        let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
-        let ciphers_key = ciphers_key.as_ref().unwrap_or(key);
+        let key = self.uses_key();
+        let ciphers_key = Cipher::get_cipher_key(ctx, key, &self.key)?;
 
         let login = require!(self.login.as_ref());
         let creds = require!(login.fido2_credentials.as_ref());
-        let res = creds.decrypt_with_key(ciphers_key)?;
+        let res = creds.decrypt(ctx, ciphers_key)?;
         Ok(res)
     }
 }
 
-impl KeyDecryptable<SymmetricCryptoKey, CipherListView> for Cipher {
-    fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<CipherListView, CryptoError> {
-        let ciphers_key = Cipher::get_cipher_key(key, &self.key)?;
-        let key = ciphers_key.as_ref().unwrap_or(key);
+impl Decryptable<SymmetricKeyRef, AsymmetricKeyRef, SymmetricKeyRef, CipherListView> for Cipher {
+    fn decrypt(
+        &self,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        key: SymmetricKeyRef,
+    ) -> Result<CipherListView, CryptoError> {
+        let key = Cipher::get_cipher_key(ctx, key, &self.key)?;
 
         Ok(CipherListView {
             id: self.id,
@@ -537,8 +561,11 @@ impl KeyDecryptable<SymmetricCryptoKey, CipherListView> for Cipher {
             folder_id: self.folder_id,
             collection_ids: self.collection_ids.clone(),
             key: self.key.clone(),
-            name: self.name.decrypt_with_key(key).ok().unwrap_or_default(),
-            sub_title: self.get_decrypted_subtitle(key).ok().unwrap_or_default(),
+            name: self.name.decrypt(ctx, key).ok().unwrap_or_default(),
+            sub_title: self
+                .get_decrypted_subtitle(ctx, key)
+                .ok()
+                .unwrap_or_default(),
             r#type: match self.r#type {
                 CipherType::Login => {
                     let login = self
@@ -570,31 +597,30 @@ impl KeyDecryptable<SymmetricCryptoKey, CipherListView> for Cipher {
     }
 }
 
-impl LocateKey for Cipher {
-    fn locate_key<'a>(
-        &self,
-        enc: &'a dyn KeyContainer,
-        _: &Option<Uuid>,
-    ) -> Result<&'a SymmetricCryptoKey, CryptoError> {
-        enc.get_key(&self.organization_id)
+impl UsesKey<SymmetricKeyRef> for Cipher {
+    fn uses_key(&self) -> SymmetricKeyRef {
+        match self.organization_id {
+            Some(organization_id) => SymmetricKeyRef::Organization(organization_id),
+            None => SymmetricKeyRef::User,
+        }
     }
 }
-impl LocateKey for CipherView {
-    fn locate_key<'a>(
-        &self,
-        enc: &'a dyn KeyContainer,
-        _: &Option<Uuid>,
-    ) -> Result<&'a SymmetricCryptoKey, CryptoError> {
-        enc.get_key(&self.organization_id)
+
+impl UsesKey<SymmetricKeyRef> for CipherView {
+    fn uses_key(&self) -> SymmetricKeyRef {
+        match self.organization_id {
+            Some(organization_id) => SymmetricKeyRef::Organization(organization_id),
+            None => SymmetricKeyRef::User,
+        }
     }
 }
-impl LocateKey for CipherListView {
-    fn locate_key<'a>(
-        &self,
-        enc: &'a dyn KeyContainer,
-        _: &Option<Uuid>,
-    ) -> Result<&'a SymmetricCryptoKey, CryptoError> {
-        enc.get_key(&self.organization_id)
+
+impl UsesKey<SymmetricKeyRef> for CipherListView {
+    fn uses_key(&self) -> SymmetricKeyRef {
+        match self.organization_id {
+            Some(organization_id) => SymmetricKeyRef::Organization(organization_id),
+            None => SymmetricKeyRef::User,
+        }
     }
 }
 
@@ -665,10 +691,11 @@ impl From<bitwarden_api_api::models::CipherRepromptType> for CipherRepromptType 
 
 #[cfg(test)]
 mod tests {
-
-    use std::collections::HashMap;
-
     use attachment::AttachmentView;
+    use bitwarden_core::key_management::{
+        create_test_crypto_with_user_and_org_key, create_test_crypto_with_user_key,
+    };
+    use bitwarden_crypto::SymmetricCryptoKey;
 
     use super::*;
     use crate::Fido2Credential;
@@ -710,20 +737,23 @@ mod tests {
         }
     }
 
-    fn generate_fido2(key: &SymmetricCryptoKey) -> Fido2Credential {
+    fn generate_fido2(
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
+        key: SymmetricKeyRef,
+    ) -> Fido2Credential {
         Fido2Credential {
-            credential_id: "123".to_string().encrypt_with_key(key).unwrap(),
-            key_type: "public-key".to_string().encrypt_with_key(key).unwrap(),
-            key_algorithm: "ECDSA".to_string().encrypt_with_key(key).unwrap(),
-            key_curve: "P-256".to_string().encrypt_with_key(key).unwrap(),
-            key_value: "123".to_string().encrypt_with_key(key).unwrap(),
-            rp_id: "123".to_string().encrypt_with_key(key).unwrap(),
+            credential_id: "123".to_string().encrypt(ctx, key).unwrap(),
+            key_type: "public-key".to_string().encrypt(ctx, key).unwrap(),
+            key_algorithm: "ECDSA".to_string().encrypt(ctx, key).unwrap(),
+            key_curve: "P-256".to_string().encrypt(ctx, key).unwrap(),
+            key_value: "123".to_string().encrypt(ctx, key).unwrap(),
+            rp_id: "123".to_string().encrypt(ctx, key).unwrap(),
             user_handle: None,
             user_name: None,
-            counter: "123".to_string().encrypt_with_key(key).unwrap(),
+            counter: "123".to_string().encrypt(ctx, key).unwrap(),
             rp_name: None,
             user_display_name: None,
-            discoverable: "true".to_string().encrypt_with_key(key).unwrap(),
+            discoverable: "true".to_string().encrypt(ctx, key).unwrap(),
             creation_date: "2024-06-07T14:12:36.150Z".parse().unwrap(),
         }
     }
@@ -731,6 +761,8 @@ mod tests {
     #[test]
     fn test_decrypt_cipher_list_view() {
         let key: SymmetricCryptoKey = "w2LO+nwV4oxwswVYCxlOfRUseXfvU03VzvKQHrqeklPgiMZrspUe6sOBToCnDn9Ay0tuCBn8ykVVRb7PWhub2Q==".to_string().try_into().unwrap();
+        let crypto = create_test_crypto_with_user_key(key.clone());
+        let mut ctx = crypto.context();
 
         let cipher = Cipher {
             id: Some("090c19ea-a61a-4df6-8963-262b97bc6266".parse().unwrap()),
@@ -748,7 +780,7 @@ mod tests {
                 uris: None,
                 totp: Some("2.hqdioUAc81FsKQmO1XuLQg==|oDRdsJrQjoFu9NrFVy8tcJBAFKBx95gHaXZnWdXbKpsxWnOr2sKipIG43pKKUFuq|3gKZMiboceIB5SLVOULKg2iuyu6xzos22dfJbvx0EHk=".parse().unwrap()),
                 autofill_on_page_load: None,
-                fido2_credentials: Some(vec![generate_fido2(&key)]),
+                fido2_credentials: Some(vec![generate_fido2(&mut ctx, SymmetricKeyRef::User)]),
             }),
             identity: None,
             card: None,
@@ -767,7 +799,7 @@ mod tests {
             revision_date: "2024-01-30T17:55:36.150Z".parse().unwrap(),
         };
 
-        let view: CipherListView = cipher.decrypt_with_key(&key).unwrap();
+        let view: CipherListView = cipher.decrypt(&mut ctx, SymmetricKeyRef::User).unwrap();
 
         assert_eq!(
             view,
@@ -798,22 +830,30 @@ mod tests {
     #[test]
     fn test_generate_cipher_key() {
         let key = SymmetricCryptoKey::generate(rand::thread_rng());
+        let crypto = create_test_crypto_with_user_key(key.clone());
+        let mut ctx = crypto.context();
 
         let original_cipher = generate_cipher();
 
         // Check that the cipher gets encrypted correctly without it's own key
         let cipher = generate_cipher();
-        let no_key_cipher_enc = cipher.encrypt_with_key(&key).unwrap();
-        let no_key_cipher_dec: CipherView = no_key_cipher_enc.decrypt_with_key(&key).unwrap();
+        let no_key_cipher_enc = cipher.encrypt(&mut ctx, SymmetricKeyRef::User).unwrap();
+        let no_key_cipher_dec: CipherView = no_key_cipher_enc
+            .decrypt(&mut ctx, SymmetricKeyRef::User)
+            .unwrap();
         assert!(no_key_cipher_dec.key.is_none());
         assert_eq!(no_key_cipher_dec.name, original_cipher.name);
 
         let mut cipher = generate_cipher();
-        cipher.generate_cipher_key(&key).unwrap();
+        cipher
+            .generate_cipher_key(&mut ctx, SymmetricKeyRef::User)
+            .unwrap();
 
         // Check that the cipher gets encrypted correctly when it's assigned it's own key
-        let key_cipher_enc = cipher.encrypt_with_key(&key).unwrap();
-        let key_cipher_dec: CipherView = key_cipher_enc.decrypt_with_key(&key).unwrap();
+        let key_cipher_enc = cipher.encrypt(&mut ctx, SymmetricKeyRef::User).unwrap();
+        let key_cipher_dec: CipherView = key_cipher_enc
+            .decrypt(&mut ctx, SymmetricKeyRef::User)
+            .unwrap();
         assert!(key_cipher_dec.key.is_some());
         assert_eq!(key_cipher_dec.name, original_cipher.name);
     }
@@ -821,22 +861,36 @@ mod tests {
     #[test]
     fn test_generate_cipher_key_when_a_cipher_key_already_exists() {
         let key = SymmetricCryptoKey::generate(rand::thread_rng());
+        let crypto = create_test_crypto_with_user_key(key.clone());
+        let mut ctx = crypto.context();
 
         let cipher_key = SymmetricCryptoKey::generate(rand::thread_rng());
-        let cipher_key = cipher_key.to_vec().encrypt_with_key(&key).unwrap();
+        let cipher_key = cipher_key
+            .to_vec()
+            .as_slice()
+            .encrypt(&mut ctx, SymmetricKeyRef::User)
+            .unwrap();
 
         let mut original_cipher = generate_cipher();
         original_cipher.key = Some(cipher_key.clone());
 
-        original_cipher.generate_cipher_key(&key).unwrap();
+        original_cipher
+            .generate_cipher_key(&mut ctx, SymmetricKeyRef::User)
+            .unwrap();
 
         // Make sure that the cipher key is decryptable
-        let _: Vec<u8> = original_cipher.key.unwrap().decrypt_with_key(&key).unwrap();
+        let _: Vec<u8> = original_cipher
+            .key
+            .unwrap()
+            .decrypt(&mut ctx, SymmetricKeyRef::User)
+            .unwrap();
     }
 
     #[test]
     fn test_generate_cipher_key_ignores_attachments_without_key() {
         let key = SymmetricCryptoKey::generate(rand::thread_rng());
+        let crypto = create_test_crypto_with_user_key(key.clone());
+        let mut ctx = crypto.context();
 
         let mut cipher = generate_cipher();
         let attachment = AttachmentView {
@@ -849,44 +903,39 @@ mod tests {
         };
         cipher.attachments = Some(vec![attachment]);
 
-        cipher.generate_cipher_key(&key).unwrap();
+        cipher
+            .generate_cipher_key(&mut ctx, SymmetricKeyRef::User)
+            .unwrap();
         assert!(cipher.attachments.unwrap()[0].key.is_none());
-    }
-
-    struct MockKeyContainer(HashMap<Option<Uuid>, SymmetricCryptoKey>);
-    impl KeyContainer for MockKeyContainer {
-        fn get_key<'a>(
-            &'a self,
-            org_id: &Option<Uuid>,
-        ) -> Result<&'a SymmetricCryptoKey, CryptoError> {
-            self.0
-                .get(org_id)
-                .ok_or(CryptoError::MissingKey(org_id.unwrap_or_default()))
-        }
     }
 
     #[test]
     fn test_move_user_cipher_to_org() {
         let org = uuid::Uuid::new_v4();
 
-        let enc = MockKeyContainer(HashMap::from([
-            (None, SymmetricCryptoKey::generate(rand::thread_rng())),
-            (Some(org), SymmetricCryptoKey::generate(rand::thread_rng())),
-        ]));
+        let crypto = create_test_crypto_with_user_and_org_key(
+            SymmetricCryptoKey::generate(rand::thread_rng()),
+            org,
+            SymmetricCryptoKey::generate(rand::thread_rng()),
+        );
+        let mut ctx = crypto.context();
 
         // Create a cipher with a user key
         let mut cipher = generate_cipher();
         cipher
-            .generate_cipher_key(enc.get_key(&None).unwrap())
+            .generate_cipher_key(&mut ctx, SymmetricKeyRef::User)
             .unwrap();
 
-        cipher.move_to_organization(&enc, org).unwrap();
+        cipher.move_to_organization(&mut ctx, org).unwrap();
         assert_eq!(cipher.organization_id, Some(org));
 
         // Check that the cipher can be encrypted/decrypted with the new org key
-        let org_key = enc.get_key(&Some(org)).unwrap();
-        let cipher_enc = cipher.encrypt_with_key(org_key).unwrap();
-        let cipher_dec: CipherView = cipher_enc.decrypt_with_key(org_key).unwrap();
+        let cipher_enc = cipher
+            .encrypt(&mut ctx, SymmetricKeyRef::Organization(org))
+            .unwrap();
+        let cipher_dec: CipherView = cipher_enc
+            .decrypt(&mut ctx, SymmetricKeyRef::Organization(org))
+            .unwrap();
 
         assert_eq!(cipher_dec.name, "My test login");
     }
@@ -895,33 +944,38 @@ mod tests {
     fn test_move_user_cipher_to_org_manually() {
         let org = uuid::Uuid::new_v4();
 
-        let enc = MockKeyContainer(HashMap::from([
-            (None, SymmetricCryptoKey::generate(rand::thread_rng())),
-            (Some(org), SymmetricCryptoKey::generate(rand::thread_rng())),
-        ]));
+        let crypto = create_test_crypto_with_user_and_org_key(
+            SymmetricCryptoKey::generate(rand::thread_rng()),
+            org,
+            SymmetricCryptoKey::generate(rand::thread_rng()),
+        );
+        let mut ctx = crypto.context();
 
         // Create a cipher with a user key
         let mut cipher = generate_cipher();
         cipher
-            .generate_cipher_key(enc.get_key(&None).unwrap())
+            .generate_cipher_key(&mut ctx, SymmetricKeyRef::User)
             .unwrap();
 
         cipher.organization_id = Some(org);
 
         // Check that the cipher can not be encrypted, as the
         // cipher key is tied to the user key and not the org key
-        let org_key = enc.get_key(&Some(org)).unwrap();
-        assert!(cipher.encrypt_with_key(org_key).is_err());
+        assert!(cipher
+            .encrypt(&mut ctx, SymmetricKeyRef::Organization(org))
+            .is_err());
     }
 
     #[test]
     fn test_move_user_cipher_with_attachment_without_key_to_org() {
         let org = uuid::Uuid::new_v4();
 
-        let enc = MockKeyContainer(HashMap::from([
-            (None, SymmetricCryptoKey::generate(rand::thread_rng())),
-            (Some(org), SymmetricCryptoKey::generate(rand::thread_rng())),
-        ]));
+        let crypto = create_test_crypto_with_user_and_org_key(
+            SymmetricCryptoKey::generate(rand::thread_rng()),
+            org,
+            SymmetricCryptoKey::generate(rand::thread_rng()),
+        );
+        let mut ctx = crypto.context();
 
         let mut cipher = generate_cipher();
         let attachment = AttachmentView {
@@ -935,23 +989,26 @@ mod tests {
         cipher.attachments = Some(vec![attachment]);
 
         // Neither cipher nor attachment have keys, so the cipher can't be moved
-        assert!(cipher.move_to_organization(&enc, org).is_err());
+        assert!(cipher.move_to_organization(&mut ctx, org).is_err());
     }
 
     #[test]
     fn test_move_user_cipher_with_attachment_with_key_to_org() {
         let org = uuid::Uuid::new_v4();
 
-        let enc = MockKeyContainer(HashMap::from([
-            (None, SymmetricCryptoKey::generate(rand::thread_rng())),
-            (Some(org), SymmetricCryptoKey::generate(rand::thread_rng())),
-        ]));
+        let crypto = create_test_crypto_with_user_and_org_key(
+            SymmetricCryptoKey::generate(rand::thread_rng()),
+            org,
+            SymmetricCryptoKey::generate(rand::thread_rng()),
+        );
+        let mut ctx = crypto.context();
 
         // Attachment has a key that is encrypted with the user key, as the cipher has no key itself
         let attachment_key = SymmetricCryptoKey::generate(rand::thread_rng());
         let attachment_key_enc = attachment_key
             .to_vec()
-            .encrypt_with_key(enc.get_key(&None).unwrap())
+            .as_slice()
+            .encrypt(&mut ctx, SymmetricKeyRef::User)
             .unwrap();
 
         let mut cipher = generate_cipher();
@@ -964,10 +1021,10 @@ mod tests {
             key: Some(attachment_key_enc),
         };
         cipher.attachments = Some(vec![attachment]);
-        let cred = generate_fido2(enc.get_key(&None).unwrap());
+        let cred = generate_fido2(&mut ctx, SymmetricKeyRef::User);
         cipher.login.as_mut().unwrap().fido2_credentials = Some(vec![cred]);
 
-        cipher.move_to_organization(&enc, org).unwrap();
+        cipher.move_to_organization(&mut ctx, org).unwrap();
 
         assert!(cipher.key.is_none());
 
@@ -975,7 +1032,7 @@ mod tests {
         // and the value matches with the original attachment key
         let new_attachment_key = cipher.attachments.unwrap()[0].key.clone().unwrap();
         let new_attachment_key_dec: Vec<_> = new_attachment_key
-            .decrypt_with_key(enc.get_key(&Some(org)).unwrap())
+            .decrypt(&mut ctx, SymmetricKeyRef::Organization(org))
             .unwrap();
         let new_attachment_key_dec: SymmetricCryptoKey = new_attachment_key_dec.try_into().unwrap();
         assert_eq!(new_attachment_key_dec.to_vec(), attachment_key.to_vec());
@@ -987,7 +1044,7 @@ mod tests {
             .unwrap()
             .first()
             .unwrap()
-            .decrypt_with_key(enc.get_key(&Some(org)).unwrap())
+            .decrypt(&mut ctx, SymmetricKeyRef::Organization(org))
             .unwrap();
 
         assert_eq!(cred2.credential_id, "123");
@@ -997,22 +1054,25 @@ mod tests {
     fn test_move_user_cipher_with_key_with_attachment_with_key_to_org() {
         let org = uuid::Uuid::new_v4();
 
-        let enc = MockKeyContainer(HashMap::from([
-            (None, SymmetricCryptoKey::generate(rand::thread_rng())),
-            (Some(org), SymmetricCryptoKey::generate(rand::thread_rng())),
-        ]));
+        let crypto = create_test_crypto_with_user_and_org_key(
+            SymmetricCryptoKey::generate(rand::thread_rng()),
+            org,
+            SymmetricCryptoKey::generate(rand::thread_rng()),
+        );
+        let mut ctx = crypto.context();
 
-        let cipher_key = SymmetricCryptoKey::generate(rand::thread_rng());
-        let cipher_key_enc = cipher_key
-            .to_vec()
-            .encrypt_with_key(enc.get_key(&None).unwrap())
+        let cipher_key = SymmetricKeyRef::Local("test_cipher_key");
+        ctx.generate_symmetric_key(cipher_key).unwrap();
+
+        let cipher_key_enc = ctx
+            .encrypt_symmetric_key_with_symmetric_key(SymmetricKeyRef::User, cipher_key)
             .unwrap();
 
-        // Attachment has a key that is encrypted with the cipher key
-        let attachment_key = SymmetricCryptoKey::generate(rand::thread_rng());
-        let attachment_key_enc = attachment_key
-            .to_vec()
-            .encrypt_with_key(&cipher_key)
+        let attachment_key = SymmetricKeyRef::Local("test_attachment_key");
+        ctx.generate_symmetric_key(attachment_key).unwrap();
+
+        let attachment_key_enc = ctx
+            .encrypt_symmetric_key_with_symmetric_key(cipher_key, attachment_key)
             .unwrap();
 
         let mut cipher = generate_cipher();
@@ -1028,21 +1088,23 @@ mod tests {
         };
         cipher.attachments = Some(vec![attachment]);
 
-        let cred = generate_fido2(&cipher_key);
+        let cred = generate_fido2(&mut ctx, cipher_key);
         cipher.login.as_mut().unwrap().fido2_credentials = Some(vec![cred.clone()]);
 
-        cipher.move_to_organization(&enc, org).unwrap();
+        cipher.move_to_organization(&mut ctx, org).unwrap();
 
         // Check that the cipher key has been re-encrypted with the org key,
         let new_cipher_key_dec: Vec<_> = cipher
             .key
             .clone()
             .unwrap()
-            .decrypt_with_key(enc.get_key(&Some(org)).unwrap())
+            .decrypt(&mut ctx, SymmetricKeyRef::Organization(org))
             .unwrap();
 
         let new_cipher_key_dec: SymmetricCryptoKey = new_cipher_key_dec.try_into().unwrap();
 
+        #[allow(deprecated)]
+        let cipher_key = ctx.dangerous_get_symmetric_key(cipher_key).unwrap();
         assert_eq!(new_cipher_key_dec.to_vec(), cipher_key.to_vec());
 
         // Check that the attachment key hasn't changed

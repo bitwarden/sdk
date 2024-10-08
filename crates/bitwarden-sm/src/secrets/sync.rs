@@ -1,5 +1,9 @@
 use bitwarden_api_api::models::SecretsSyncResponseModel;
-use bitwarden_core::{client::encryption_settings::EncryptionSettings, require, Client, Error};
+use bitwarden_core::{
+    key_management::{AsymmetricKeyRef, SymmetricKeyRef},
+    require, Client, Error,
+};
+use bitwarden_crypto::service::CryptoServiceContext;
 use chrono::{DateTime, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -30,9 +34,9 @@ pub(crate) async fn sync_secrets(
     )
     .await?;
 
-    let enc = client.internal.get_encryption_settings()?;
+    let mut ctx = client.internal.get_crypto_service().context();
 
-    SecretsSyncResponse::process_response(res, &enc)
+    SecretsSyncResponse::process_response(res, &mut ctx)
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -45,7 +49,7 @@ pub struct SecretsSyncResponse {
 impl SecretsSyncResponse {
     pub(crate) fn process_response(
         response: SecretsSyncResponseModel,
-        enc: &EncryptionSettings,
+        ctx: &mut CryptoServiceContext<SymmetricKeyRef, AsymmetricKeyRef>,
     ) -> Result<SecretsSyncResponse, Error> {
         let has_changes = require!(response.has_changes);
 
@@ -54,7 +58,7 @@ impl SecretsSyncResponse {
                 .data
                 .unwrap_or_default()
                 .into_iter()
-                .map(|r| SecretResponse::process_base_response(r, enc))
+                .map(|r| SecretResponse::process_base_response(r, ctx))
                 .collect::<Result<_, _>>()?;
             return Ok(SecretsSyncResponse {
                 has_changes,

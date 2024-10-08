@@ -8,7 +8,7 @@ use bitwarden_crypto::{EncString, KeyDecryptable, SymmetricCryptoKey};
 
 #[cfg(feature = "internal")]
 use crate::client::encryption_settings::EncryptionSettingsError;
-use crate::{error::Error, Client};
+use crate::{error::Error, key_management::SymmetricKeyRef, Client};
 
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct AuthRequestResponse {
@@ -83,8 +83,11 @@ pub(crate) fn approve_auth_request(
 ) -> Result<AsymmetricEncString, Error> {
     let public_key = AsymmetricPublicCryptoKey::from_der(&STANDARD.decode(public_key)?)?;
 
-    let enc = client.internal.get_encryption_settings()?;
-    let key = enc.get_key(&None)?;
+    let crypto_service = client.internal.get_crypto_service();
+    let ctx = crypto_service.context();
+
+    #[allow(deprecated)]
+    let key = ctx.dangerous_get_symmetric_key(SymmetricKeyRef::User)?;
 
     Ok(AsymmetricEncString::encrypt_rsa2048_oaep_sha1(
         &key.to_vec(),
@@ -235,21 +238,22 @@ mod tests {
 
         // We can validate that the vault is unlocked correctly by confirming the user key is the
         // same
-        assert_eq!(
-            existing_device
-                .internal
-                .get_encryption_settings()
-                .unwrap()
-                .get_key(&None)
-                .unwrap()
-                .to_base64(),
-            new_device
-                .internal
-                .get_encryption_settings()
-                .unwrap()
-                .get_key(&None)
+        let existing_key_b64 = {
+            let ctx = existing_device.internal.get_crypto_service().context();
+            #[allow(deprecated)]
+            ctx.dangerous_get_symmetric_key(SymmetricKeyRef::User)
                 .unwrap()
                 .to_base64()
-        );
+        };
+
+        let new_key_b64 = {
+            let ctx = new_device.internal.get_crypto_service().context();
+            #[allow(deprecated)]
+            ctx.dangerous_get_symmetric_key(SymmetricKeyRef::User)
+                .unwrap()
+                .to_base64()
+        };
+
+        assert_eq!(existing_key_b64, new_key_b64,);
     }
 }

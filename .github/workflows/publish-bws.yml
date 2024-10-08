@@ -14,7 +14,7 @@ on:
           - Release
           - Dry Run
       version:
-        description: 'Version to publish (default: latest bws cli release)'
+        description: "Version to publish (default: latest bws cli release)"
         required: true
         type: string
         default: latest
@@ -70,7 +70,6 @@ jobs:
           environment: "bws CLI - Production"
           description: "Deployment ${{ steps.version-output.outputs.version }} from branch ${{ github.ref_name }}"
           task: release
-
 
   publish:
     name: Publish bws to crates.io

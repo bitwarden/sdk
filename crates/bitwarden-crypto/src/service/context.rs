@@ -27,10 +27,7 @@ impl<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef>
     }
 
     fn get_mut(&mut self) -> Result<&mut Keys<SymmKeyRef, AsymmKeyRef>> {
-        // TODO: This should be a custom error
-        Err(crate::CryptoError::MissingKey2(
-            "Cannot modify in read-only mode".to_string(),
-        ))
+        Err(crate::CryptoError::ReadOnlyCryptoStore)
     }
 }
 

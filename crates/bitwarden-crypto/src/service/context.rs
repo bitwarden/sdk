@@ -10,6 +10,10 @@ use crate::{
     AsymmetricCryptoKey, AsymmetricEncString, CryptoError, EncString, Result, SymmetricCryptoKey,
 };
 
+// This is to abstract over the read-only and read-write access to the global keys
+// inside the CryptoServiceContext. The read-write access should only be used internally 
+// in this crate to avoid users leaving the crypto store in an inconsistent state,
+// but for the moment we have some operations that require access to it.
 pub trait GlobalAccessMode<'a, SymmKeyRef: SymmetricKeyRef, AsymmKeyRef: AsymmetricKeyRef> {
     fn get(&self) -> &Keys<SymmKeyRef, AsymmKeyRef>;
     fn get_mut(&mut self) -> Result<&mut Keys<SymmKeyRef, AsymmKeyRef>>;

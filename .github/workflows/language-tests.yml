@@ -75,14 +75,10 @@ jobs:
           # - csharp
           - go
           # - java
-          # - js
-          # - js_webassembly
-          # - kotlin
-          # - nodejs_wasm
+          - js
           - php
           - python
           - ruby
-          # - swift
 
     steps:
       - name: Checkout
@@ -153,6 +149,13 @@ jobs:
         uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
         with:
           go-version: "stable"
+
+      - name: Install wasm target
+        if: matrix.language == 'js'
+        uses: dtolnay/rust-toolchain@7b1c307e0dcbda6122208f10795a713336a9b35a # stable
+        with:
+          toolchain: stable
+          targets: wasm32-unknown-unknown
 
       - name: Run language tests
         run: |

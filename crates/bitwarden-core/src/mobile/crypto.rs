@@ -51,7 +51,6 @@ pub enum InitUserCryptoMethod {
         pin: String,
         /// The user's symmetric crypto key, encrypted with the PIN. Use `derive_pin_key` to obtain
         /// this.
-        // #[tsify(type = "string")]
         pin_protected_user_key: EncString,
     },
     AuthRequest {
@@ -64,10 +63,8 @@ pub enum InitUserCryptoMethod {
         /// The device's DeviceKey
         device_key: String,
         /// The Device Private Key
-        // #[tsify(type = "string")]
         protected_device_private_key: EncString,
         /// The user's symmetric crypto key, encrypted with the Device Key.
-        // #[tsify(type = "string")]
         device_protected_user_key: AsymmetricEncString,
     },
     KeyConnector {
@@ -197,7 +194,6 @@ pub async fn initialize_user_crypto(
 #[cfg_attr(feature = "wasm", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 pub struct InitOrgCryptoRequest {
     /// The encryption keys for all the organizations the user is a part of
-    #[cfg_attr(feature = "wasm", tsify(type = "Map<string, AsymmetricEncString>"))]
     pub organization_keys: HashMap<uuid::Uuid, AsymmetricEncString>,
 }
 

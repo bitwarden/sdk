@@ -52,7 +52,6 @@ export type EncString = string;
 /// - `[mac]`: (optional) is the MAC used to validate the integrity of the data.
 #[derive(Clone, zeroize::ZeroizeOnDrop, PartialEq)]
 #[allow(unused, non_camel_case_types)]
-// #[cfg_attr(feature = "wasm", derive(Tsify), tsify(type = "string"))]
 pub enum EncString {
     /// 0
     AesCbc256_B64 { iv: [u8; 16], data: Vec<u8> },

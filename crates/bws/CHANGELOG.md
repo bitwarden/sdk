@@ -12,7 +12,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 - The ability to edit unassigned secrets with direct permissions. (#906)
-- Add a way to opt out of state by default with the new state_opt_out key (#930)
+- A way to opt out of state by default with the new state_opt_out key (#930)
+- The `run` command, to run commands with secrets (#621)
 
 ### Changed
 

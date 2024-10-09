@@ -666,8 +666,10 @@ dependencies = [
  "sha2",
  "thiserror",
  "tokio",
+ "tsify-next",
  "uniffi",
  "uuid",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -694,6 +696,7 @@ dependencies = [
  "bitwarden",
  "bitwarden-core",
  "bitwarden-crypto",
+ "bitwarden-vault",
  "console_error_panic_hook",
  "console_log",
  "js-sys",

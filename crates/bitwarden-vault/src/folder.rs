@@ -10,9 +10,13 @@ use uuid::Uuid;
 
 use crate::VaultParseError;
 
+#[cfg(feature = "wasm")]
+use {tsify_next::Tsify, wasm_bindgen::prelude::*};
+
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "wasm", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 pub struct Folder {
     id: Option<Uuid>,
     name: EncString,
@@ -22,6 +26,7 @@ pub struct Folder {
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "wasm", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 pub struct FolderView {
     pub id: Option<Uuid>,
     pub name: String,

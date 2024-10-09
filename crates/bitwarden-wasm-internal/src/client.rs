@@ -5,7 +5,7 @@ use bitwarden::{Client, ClientSettings};
 use log::{set_max_level, Level};
 use wasm_bindgen::prelude::*;
 
-use crate::ClientCrypto;
+use crate::{vault::ClientVault, ClientCrypto};
 
 #[wasm_bindgen]
 pub enum LogLevel {
@@ -59,5 +59,9 @@ impl BitwardenClient {
 
     pub fn crypto(&self) -> ClientCrypto {
         ClientCrypto(self.0.clone())
+    }
+
+    pub fn vault(&self) -> ClientVault {
+        ClientVault(self.0.clone())
     }
 }

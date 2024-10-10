@@ -2,36 +2,36 @@
 //
 // Do note that this script follows no best practices and will not handle anything many edge cases.
 
-import fs from 'fs';
-import path from 'path';
-import Handlebars from 'handlebars';
+import fs from "fs";
+import path from "path";
+import Handlebars from "handlebars";
 
-import { Input, InputType } from './rustdoc';
+import { Input, InputType } from "./rustdoc";
 
-const doc = JSON.parse(fs.readFileSync('./target/doc/bitwarden_uniffi.json', 'utf8'));
+const doc = JSON.parse(fs.readFileSync("./target/doc/bitwarden_uniffi.json", "utf8"));
 const command = JSON.parse(
-  fs.readFileSync('./support/schemas/bitwarden_uniffi/DocRef.json', 'utf8'),
+  fs.readFileSync("./support/schemas/bitwarden_uniffi/DocRef.json", "utf8"),
 );
 
 const template = Handlebars.compile(
-  fs.readFileSync(path.resolve(__dirname, 'template.hbs'), 'utf8'),
+  fs.readFileSync(path.resolve(__dirname, "template.hbs"), "utf8"),
 );
 
 // Modify this to include more root elements
 const rootElements = [
-  'Client',
-  'ClientAuth',
-  'ClientAttachments',
-  'ClientCiphers',
-  'ClientCollections',
-  'ClientCrypto',
-  'ClientExporters',
-  'ClientFolders',
-  'ClientGenerators',
-  'ClientPasswordHistory',
-  'ClientPlatform',
-  'ClientSends',
-  'ClientVault',
+  "Client",
+  "ClientAuth",
+  "ClientAttachments",
+  "ClientCiphers",
+  "ClientCollections",
+  "ClientCrypto",
+  "ClientExporters",
+  "ClientFolders",
+  "ClientGenerators",
+  "ClientPasswordHistory",
+  "ClientPlatform",
+  "ClientSends",
+  "ClientVault",
 ];
 
 const localIndexArray = Object.values(doc.index).filter((entry: any) => entry.crate_id == 0);
@@ -66,10 +66,10 @@ const out = rootElements.map((rootElement) => {
 });
 
 function stripDef(str: string) {
-  return str.replace(/#\/definitions\//g, '');
+  return str.replace(/#\/definitions\//g, "");
 }
 
-Handlebars.registerHelper('stripDef', (str: string) => {
+Handlebars.registerHelper("stripDef", (str: string) => {
   return stripDef(str);
 });
 
@@ -83,7 +83,7 @@ for (let i = 0; i < usedDefinitions.length; i++) {
 
   Object.entries(cmd.properties ?? {}).forEach((prop: any) => {
     prop[1].allOf?.forEach((e: any) => {
-      usedDefinitions.push(stripDef(e['$ref'] as string));
+      usedDefinitions.push(stripDef(e["$ref"] as string));
     });
   });
 }
@@ -112,7 +112,7 @@ function map_type(t: InputType) {
   const args = t.resolved_path?.args;
   const name = t.resolved_path?.name;
 
-  let out = '';
+  let out = "";
 
   if (name) {
     usedDefinitions.push(name);
@@ -125,7 +125,7 @@ function map_type(t: InputType) {
   }
 
   if (args != null && args.angle_bracketed.args.length > 0) {
-    out += '<';
+    out += "<";
     out += args.angle_bracketed.args.map((t: any) => {
       if (t.type.generic) {
         return t.type.generic;
@@ -133,7 +133,7 @@ function map_type(t: InputType) {
         return t.type.resolved_path.name;
       }
     });
-    out += '>';
+    out += ">";
   }
   return out;
 }

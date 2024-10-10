@@ -12,10 +12,10 @@ insert_final_newline = true
 indent_style = space
 indent_size = 2
 
-[*.ts]
+[*.{ts}]
 quote_type = single
 
-[*.rs]
+[*.{rs}]
 indent_style = space
 indent_size = 4
 
@@ -23,6 +23,6 @@ indent_size = 4
 indent_style = space
 indent_size = 4
 
-[*.xml]
+[*.{xml}]
 # VS Code XML extension removes the final newline
 insert_final_newline = false

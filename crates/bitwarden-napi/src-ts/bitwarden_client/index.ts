@@ -1,5 +1,5 @@
-import * as rust from '../../binding';
-import { LogLevel } from '../../binding';
+import * as rust from "../../binding";
+import { LogLevel } from "../../binding";
 import {
   Convert,
   ClientSettings,
@@ -11,7 +11,7 @@ import {
   SecretsDeleteResponse,
   SecretsResponse,
   SecretsSyncResponse,
-} from './schemas';
+} from "./schemas";
 
 function handleResponse<T>(response: {
   success: boolean;
@@ -19,11 +19,11 @@ function handleResponse<T>(response: {
   data?: T | null;
 }): T {
   if (!response.success) {
-    throw new Error(response.errorMessage || '');
+    throw new Error(response.errorMessage || "");
   }
 
   if (response.data === null) {
-    throw new Error(response.errorMessage || 'SDK response data is null');
+    throw new Error(response.errorMessage || "SDK response data is null");
   }
 
   return response.data as T;

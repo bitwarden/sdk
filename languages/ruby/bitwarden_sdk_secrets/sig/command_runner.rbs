@@ -1,4 +1,12 @@
-class CommandRunner
-  @bitwarden_sdk: Module
-  def run: -> String
+module BitwardenSDKSecrets
+  class CommandRunner
+    @bitwarden_sdk: untyped
+
+    @handle: untyped
+
+    def initialize: (untyped bitwarden_sdk, untyped handle) -> void
+
+    # @param [Dry-Struct] cmd
+    def run: (untyped cmd) -> untyped
+  end
 end

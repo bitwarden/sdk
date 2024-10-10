@@ -1,0 +1,9 @@
+module BitwardenSDKSecrets
+  class AuthClient
+    @command_runner: untyped
+
+    def initialize: (untyped command_runner) -> void
+
+    def login_access_token: (untyped access_token, ?untyped? state_file) -> nil
+  end
+end

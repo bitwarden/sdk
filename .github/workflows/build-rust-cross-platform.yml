@@ -26,6 +26,9 @@ jobs:
             target: x86_64-pc-windows-msvc
           - os: windows-2022
             target: x86_64-pc-windows-gnu
+          # caution: updating the linux runner OS version for GNU
+          #   targets will likely break libbitwarden_c for older OS versions.
+          #   prefer using oldest supported runner for for these targets
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
           - os: ubuntu-22.04
@@ -35,7 +38,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
 
       - name: Install rust
         uses: dtolnay/rust-toolchain@7b1c307e0dcbda6122208f10795a713336a9b35a # stable
@@ -45,7 +48,7 @@ jobs:
       - name: Cache cargo registry
         uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
 
-      - uses: goto-bus-stop/setup-zig@7ab2955eb728f5440978d5824358023be3a2802d # v2.2.0
+      - uses: goto-bus-stop/setup-zig@abea47f85e598557f500fa1fd2ab7464fcb39406 # v2.2.1
         if: ${{ contains(matrix.settings.target, 'musl') }}
         with:
           version: 0.12.0
@@ -57,21 +60,36 @@ jobs:
       - name: Add build architecture
         run: rustup target add ${{ matrix.settings.target }}
 
+      # Build Rust for musl
       - name: Build Rust for - ${{ matrix.settings.target }}
         if: ${{ contains(matrix.settings.target, 'musl') }}
         env:
           RUSTFLAGS: "-D warnings"
         run: cargo zigbuild -p bitwarden-c --target ${{ matrix.settings.target }} --release
 
+      # Build Rust for windows-gnu
       - name: Build Rust for - ${{ matrix.settings.target }}
-        if: ${{ !contains(matrix.settings.target, 'musl') }}
+        if: ${{ matrix.settings.target == 'x86_64-pc-windows-gnu' }}
         env:
           RUSTFLAGS: "-D warnings"
+        run: cargo build -p bitwarden-c --target ${{ matrix.settings.target }} --profile=release-windows
+
+      # Build Rust for !musl && !windows-gnu
+      - name: Build Rust for - ${{ matrix.settings.target }}
+        if: ${{ !contains(matrix.settings.target, 'musl') && matrix.settings.target != 'x86_64-pc-windows-gnu' }}
+        env:
+          RUSTFLAGS: "-D warnings"
+          MACOSX_DEPLOYMENT_TARGET: "10.14" # allows using new macos runner versions while still supporting older systems
         run: cargo build -p bitwarden-c --target ${{ matrix.settings.target }} --release
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4.3.6
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
           name: libbitwarden_c_files-${{ matrix.settings.target }}
-          path: |
-            target/${{ matrix.settings.target }}/release/*bitwarden_c*
+          path: target/${{ matrix.settings.target }}/release/*bitwarden_c*
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        with:
+          name: libbitwarden_c_files-${{ matrix.settings.target }}
+          path: target/${{ matrix.settings.target }}/release-windows/*bitwarden_c*

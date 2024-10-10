@@ -30,15 +30,18 @@ jobs:
           - os: macos-13
             target: x86_64-apple-darwin
 
-          # - os: windows-2022
-          #   target: x86_64-pc-windows-msvc
+          - os: macos-13
+            target: aarch64-apple-darwin
+
+          - os: windows-2022
+            target: x86_64-pc-windows-msvc
 
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
 
       - name: install dependencies linux
         if: runner.os == 'Linux'
@@ -52,16 +55,6 @@ jobs:
           brew install nlohmann-json
           brew install boost
 
-      - name: Cache vcpkg
-        if: runner.os == 'Windows'
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
-        with:
-          path: C:/vcpkg/
-          key: vcpkg-${{ runner.os }}-${{ matrix.settings.target }}
-          restore-keys: |
-            vcpkg-${{ runner.os }}-
-            vcpkg-
-
       - name: Export GitHub Actions cache environment variables
         if: runner.os == 'Windows'
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
@@ -69,22 +62,6 @@ jobs:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
-
-      - name: Install libraries for Windows
-        if: runner.os == 'Windows' && steps.cache.outputs.cache-hit != 'true'
-        env:
-          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-        run: |
-          vcpkg install boost --binarysource="clear;x-gha,readwrite"
-          vcpkg install nlohmann-json --binarysource="clear;x-gha,readwrite"
-        shell: pwsh
-
-      - name: Save cache
-        if: runner.os == 'Windows'
-        uses: actions/cache/save@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
-        with:
-          path: C:/vcpkg/
-          key: vcpkg-${{ runner.os }}-${{ matrix.settings.target }}
 
       - name: Download schemas
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
@@ -114,6 +91,18 @@ jobs:
 
           Get-Acl languages/cpp/include/* | Format-List
 
+      - name: Ensure bitwarden-c is in include folder
+        working-directory: languages/cpp
+        shell: bash
+        run: |
+          if [[ '${{ runner.os }}' == 'macOS' || '${{ runner.os }}' == 'Linux' ]]; then
+            ls include/libbitwarden_c.* || { echo "Missing libbitwarden_c.*"; exit 1; }
+          fi
+          if [[ '${{ runner.os }}' == 'Windows' ]]; then
+            ls include/bitwarden_c.dll || { echo "Missing bitwarden_c.dll"; exit 1; }
+            ls include/bitwarden_c.dll.lib || { echo "Missing bitwarden_c.dll.lib"; exit 1; }
+          fi
+
       - name: Build unix
         working-directory: languages/cpp
         if: runner.os == 'macOS' || runner.os == 'Linux'
@@ -139,27 +128,31 @@ jobs:
         if: runner.os == 'Windows'
         working-directory: languages/cpp
         env:
-          BOOST_INCLUDE_DIR: C:\vcpkg\installed\x64-windows\include\boost
-          NLOHMANN_JSON_INCLUDE_DIR: C:\vcpkg\installed\x64-windows\include\nlohmann-json
+          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
         run: |
           mkdir build
           cd build
-          $DNLOHMANN_PATH="C:\vcpkg\installed\x64-windows\include\nlohmann-json"
-          $DBOOST_PATH="C:\vcpkg\installed\x64-windows\include\boost"
-          $DTARGET="include/libbitwarden_c.dll"
-          cmake .. -DNLOHMANN=$DNLOHMANN_PATH -DBOOST=$DBOOST_PATH -DTARGET="include/libbitwarden_c.dll" -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/languages/cpp/ -DBUILD_TESTING=OFF
-          cmake --build .
+          $env:DTARGET="include\bitwarden_c.dll.lib"
+          cmake .. -DTARGET="$env:DTARGET" -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake"
+          cmake --build . --config Release
         shell: pwsh
 
       - name: Copy artifacts
         working-directory: languages/cpp/build
+        shell: bash
         run: |
           mkdir artifacts
-          cp libbitwarden_c.* artifacts
-          cp libBitwardenClient.* artifacts
+          if [[ '${{ runner.os }}' == 'macOS' || '${{ runner.os }}' == 'Linux' ]]; then
+            cp libbitwarden_c.* artifacts
+            cp libBitwardenClient.* artifacts
+          fi
+          if [[ '${{ runner.os }}' == 'Windows' ]]; then
+            cp */BitwardenClient.* artifacts
+            cp ../include/bitwarden_c.{lib,dll.lib,dll} artifacts
+          fi
 
       - name: Upload C++ package for ${{ matrix.settings.target }}
-        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4.3.6
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
           name: libbitwarden_cpp-${{ matrix.settings.target }}
           path: languages/cpp/build/artifacts

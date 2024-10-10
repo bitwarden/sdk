@@ -1,3 +1,4 @@
+---
 name: Publish Java SDK
 run-name: Publish Java SDK ${{ inputs.release_type }}
 
@@ -12,6 +13,15 @@ on:
         options:
           - Release
           - Dry Run
+      version:
+        description: "Release Version"
+        required: false
+        default: "latest"
+
+defaults:
+  run:
+    shell: bash
+    working-directory: languages/java
 
 env:
   _KEY_VAULT: "bitwarden-ci"
@@ -21,26 +31,37 @@ jobs:
     name: Setup
     runs-on: ubuntu-22.04
     outputs:
-      version: ${{ steps.version.outputs.version }}
+      version: ${{ steps.version-output.outputs.version }}
+      tag_name: ${{ steps.version-output.outputs.tag_name }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
 
       - name: Branch check
         if: ${{ inputs.release_type != 'Dry Run' }}
         run: |
-          if [[ "$GITHUB_REF" != "refs/heads/rc" ]] && [[ "$GITHUB_REF" != "refs/heads/hotfix-rc" ]]; then
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
             echo "==================================="
-            echo "[!] Can only release from the 'rc' or 'hotfix-rc' branches"
+            echo "[!] Can only release from the 'main' branch"
             echo "==================================="
             exit 1
           fi
 
-      - name: Get version
-        id: version
+      - name: Version output
+        id: version-output
         run: |
-          VERSION=$(cat languages/java/build.gradle | grep -Eo 'version = "[0-9]+\.[0-9]+\.[0-9]+"' | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          if [[ "${{ inputs.version }}" == "latest" || "${{ inputs.version }}" == "" ]]; then
+            TAG_NAME=$(curl  "https://api.github.com/repos/bitwarden/sdk/releases" | jq -c '.[] | select(.tag_name | contains("java")) | .tag_name' | head -1)
+            VERSION=$(echo $TAG_NAME | grep -ohE '20[0-9]{2}\.([1-9]|1[0-2])\.[0-9]+')
+            echo "Latest Released Version: $VERSION"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+            echo "Latest Released Tag name: $TAG_NAME"
+            echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          else
+            echo "Release Version: ${{ inputs.version }}"
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          fi
 
   publish:
     name: Publish
@@ -48,7 +69,9 @@ jobs:
     needs: validate
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
+        with:
+          ref: ${{ needs.validate.outputs.tag_name }}
 
       - name: Azure login
         uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
@@ -64,13 +87,37 @@ jobs:
             maven-sonartype-ossrh-password"
 
       - name: Setup java
-        uses: actions/setup-java@6a0805fcefea3d4657a47ac4c165951e33482018 # v4.2.2
+        uses: actions/setup-java@b36c23c0d998641eff861008f374ee103c25ac73 # v4.4.0
         with:
           distribution: temurin
           java-version: 17
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+        uses: gradle/actions/setup-gradle@d156388eb19639ec20ade50009f3d199ce1e2808 # v4.1.0
+
+      - name: Download Java SDK Build
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-java.yml
+          workflow_conclusion: success
+          artifacts: build
+          path: languages/java/build
+
+      - name: Download Java Resources
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-java.yml
+          workflow_conclusion: success
+          artifacts: resources
+          path: languages/java/src/main/resources
+
+      - name: Download Java Resources
+        uses: bitwarden/gh-actions/download-artifacts@main
+        with:
+          workflow: build-java.yml
+          workflow_conclusion: success
+          artifacts: schemas
+          path: languages/java/src/main/java/bit/sdk/schema
 
       - name: Publish package to GitHub Packages
         if: ${{ inputs.release_type != 'Dry Run' }}

@@ -87,13 +87,13 @@ pub mod internal {
 #[cfg(feature = "internal")]
 pub use internal::*;
 
+// Re-export generators used for secrets-manager, internal flag already exports all generators
+#[cfg(all(feature = "secrets", not(feature = "internal")))]
+pub mod generators {
+    pub use bitwarden_generators::{ClientGeneratorExt, PasswordError, PasswordGeneratorRequest};
+}
+
 #[cfg(feature = "secrets")]
 pub mod secrets_manager {
     pub use bitwarden_sm::*;
-
-    pub mod generators {
-        pub use bitwarden_generators::{
-            password, ClientGeneratorExt, PasswordError, PasswordGeneratorRequest,
-        };
-    }
 }

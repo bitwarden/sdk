@@ -1,8 +1,11 @@
 use std::sync::Arc;
 
-use bitwarden::mobile::crypto::{
-    DeriveKeyConnectorRequest, DerivePinKeyResponse, InitOrgCryptoRequest, InitUserCryptoRequest,
-    UpdatePasswordResponse,
+use bitwarden::{
+    mobile::crypto::{
+        DeriveKeyConnectorRequest, DerivePinKeyResponse, InitOrgCryptoRequest,
+        InitUserCryptoRequest, UpdatePasswordResponse,
+    },
+    Error,
 };
 use bitwarden_crypto::{AsymmetricEncString, EncString};
 
@@ -16,13 +19,25 @@ impl ClientCrypto {
     /// Initialization method for the user crypto. Needs to be called before any other crypto
     /// operations.
     pub async fn initialize_user_crypto(&self, req: InitUserCryptoRequest) -> Result<()> {
-        Ok(self.0 .0.crypto().initialize_user_crypto(req).await?)
+        Ok(self
+            .0
+             .0
+            .crypto()
+            .initialize_user_crypto(req)
+            .await
+            .map_err(Error::EncryptionSettings)?)
     }
 
     /// Initialization method for the organization crypto. Needs to be called after
     /// `initialize_user_crypto` but before any other crypto operations.
     pub async fn initialize_org_crypto(&self, req: InitOrgCryptoRequest) -> Result<()> {
-        Ok(self.0 .0.crypto().initialize_org_crypto(req).await?)
+        Ok(self
+            .0
+             .0
+            .crypto()
+            .initialize_org_crypto(req)
+            .await
+            .map_err(Error::EncryptionSettings)?)
     }
 
     /// Get the uses's decrypted encryption key. Note: It's very important

@@ -14,4 +14,9 @@ export type DateTime<T = unknown> = string;
  * UTC date-time string. Not used in JavaScript.
  */
 export type Utc = unknown;
+
+/**
+ * An integer that is known not to equal zero.
+ */
+export type NonZeroU32 = number;
 "#;

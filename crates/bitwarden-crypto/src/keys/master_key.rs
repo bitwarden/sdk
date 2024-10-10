@@ -11,13 +11,6 @@ use {tsify_next::Tsify, wasm_bindgen::prelude::*};
 use super::utils::{derive_kdf_key, stretch_kdf_key};
 use crate::{util, CryptoError, EncString, KeyDecryptable, Result, SymmetricCryptoKey, UserKey};
 
-#[cfg(feature = "wasm")]
-#[wasm_bindgen::prelude::wasm_bindgen(typescript_custom_section)]
-const TS_CUSTOM_TYPES: &'static str = r#"
-/** An integer that is known not to equal zero. */
-export type NonZeroU32 = number;
-"#;
-
 /// Key Derivation Function for Bitwarden Account
 ///
 /// In Bitwarden accounts can use multiple KDFs to derive their master key from their password. This

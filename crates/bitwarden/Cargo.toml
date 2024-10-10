@@ -16,25 +16,9 @@ license-file.workspace = true
 [features]
 default = ["secrets"]
 
-internal = [
-    "bitwarden-core/internal",
-    "dep:bitwarden-exporters",
-    "dep:bitwarden-generators",
-    "dep:bitwarden-send",
-    "dep:bitwarden-vault",
-] # Internal testing methods
 no-memory-hardening = [
     "bitwarden-core/no-memory-hardening",
 ] # Disable memory hardening features
-uniffi = [
-    "bitwarden-core/uniffi",
-    "bitwarden-crypto/uniffi",
-    "bitwarden-exporters/uniffi",
-    "bitwarden-fido/uniffi",
-    "bitwarden-generators/uniffi",
-    "bitwarden-send/uniffi",
-    "bitwarden-vault/uniffi",
-] # Uniffi bindings
 secrets = [
     "bitwarden-core/secrets",
     "dep:bitwarden-sm",
@@ -47,12 +31,8 @@ bitwarden-api-api = { workspace = true }
 bitwarden-api-identity = { workspace = true }
 bitwarden-core = { workspace = true }
 bitwarden-crypto = { workspace = true }
-bitwarden-exporters = { workspace = true, optional = true }
-bitwarden-fido = { workspace = true, optional = true }
 bitwarden-generators = { workspace = true, optional = true }
-bitwarden-send = { workspace = true, optional = true }
 bitwarden-sm = { workspace = true, optional = true }
-bitwarden-vault = { workspace = true, optional = true }
 thiserror = { workspace = true }
 
 [dev-dependencies]

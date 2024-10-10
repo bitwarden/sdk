@@ -19,6 +19,7 @@ uniffi = [
     "bitwarden-crypto/uniffi",
     "dep:uniffi",
 ] # Uniffi bindings
+wasm = ["dep:tsify-next", "dep:wasm-bindgen"] # WASM support
 
 [dependencies]
 base64 = ">=0.22.1, <0.23"
@@ -38,6 +39,8 @@ sha2 = ">=0.10.6, <0.11"
 thiserror = { workspace = true }
 uniffi = { version = "=0.28.1", optional = true }
 uuid = { workspace = true }
+tsify-next = { workspace = true, optional = true }
+wasm-bindgen = { workspace = true, optional = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["rt"] }

@@ -15,6 +15,7 @@ keywords.workspace = true
 
 [features]
 default = []
+wasm = ["dep:tsify-next", "dep:wasm-bindgen"] # WASM support
 
 uniffi = ["dep:uniffi"]  # Uniffi bindings
 no-memory-hardening = [] # Disable memory hardening features
@@ -42,8 +43,10 @@ sha1 = ">=0.10.5, <0.11"
 sha2 = ">=0.10.6, <0.11"
 subtle = ">=2.5.0, <3.0"
 thiserror = { workspace = true }
+tsify-next = { workspace = true, optional = true }
 uniffi = { workspace = true, optional = true }
 uuid = { workspace = true }
+wasm-bindgen = { workspace = true, optional = true }
 zeroize = { version = ">=1.7.0, <2.0", features = ["derive", "aarch64"] }
 
 [dev-dependencies]

@@ -482,8 +482,10 @@ dependencies = [
  "sha2",
  "subtle",
  "thiserror",
+ "tsify-next",
  "uniffi",
  "uuid",
+ "wasm-bindgen",
  "zeroize",
 ]
 
@@ -664,8 +666,10 @@ dependencies = [
  "sha2",
  "thiserror",
  "tokio",
+ "tsify-next",
  "uniffi",
  "uuid",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -690,6 +694,9 @@ name = "bitwarden-wasm-internal"
 version = "0.1.0"
 dependencies = [
  "bitwarden",
+ "bitwarden-core",
+ "bitwarden-crypto",
+ "bitwarden-vault",
  "console_error_panic_hook",
  "console_log",
  "js-sys",

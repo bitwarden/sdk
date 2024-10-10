@@ -1,3 +1,4 @@
+**/snippets/**/*.js
 bitwarden_wasm_internal_bg.js
 bitwarden_wasm_internal_bg.wasm
 bitwarden_wasm_internal_bg.wasm.d.ts

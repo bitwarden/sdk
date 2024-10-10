@@ -11,6 +11,12 @@ use crate::{
     KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey,
 };
 
+#[cfg(feature = "wasm")]
+#[wasm_bindgen::prelude::wasm_bindgen(typescript_custom_section)]
+const TS_CUSTOM_TYPES: &'static str = r#"
+export type EncString = string;
+"#;
+
 /// # Encrypted string primitive
 ///
 /// [EncString] is a Bitwarden specific primitive that represents a symmetrically encrypted string.

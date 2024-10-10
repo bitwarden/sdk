@@ -24,6 +24,9 @@ pub enum CryptoError {
     #[error("The item was missing a required field: {0}")]
     MissingField(&'static str),
 
+    #[error("Insufficient KDF parameters")]
+    InsufficientKdfParameters,
+
     #[error("EncString error, {0}")]
     EncString(#[from] EncStringParseError),
 

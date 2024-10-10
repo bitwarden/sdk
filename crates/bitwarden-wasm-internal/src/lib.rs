@@ -6,5 +6,4 @@ mod vault;
 
 pub use client::BitwardenClient;
 pub use crypto::ClientCrypto;
-pub use vault::folders::ClientFolders;
-pub use vault::ClientVault;
+pub use vault::{folders::ClientFolders, ClientVault};

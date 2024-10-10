@@ -6,6 +6,6 @@
 export class WasmError extends Error {
   constructor(message) {
     super(message);
-    this.name = 'WasmError';
+    this.name = "WasmError";
   }
 }

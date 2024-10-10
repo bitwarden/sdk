@@ -1,6 +1,6 @@
 //! Errors that can occur when using this SDK
 
-use std::{borrow::Cow, fmt::Debug};
+use std::fmt::Debug;
 
 use thiserror::Error;
 
@@ -8,21 +8,6 @@ use thiserror::Error;
 pub enum Error {
     #[error(transparent)]
     Core(#[from] bitwarden_core::Error),
-
-    #[error("Internal error: {0}")]
-    Internal(Cow<'static, str>),
-}
-
-impl From<String> for Error {
-    fn from(s: String) -> Self {
-        Self::Internal(s.into())
-    }
-}
-
-impl From<&'static str> for Error {
-    fn from(s: &'static str) -> Self {
-        Self::Internal(s.into())
-    }
 }
 
 // Ensure that the error messages implement Send and Sync

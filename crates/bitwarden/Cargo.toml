@@ -27,10 +27,7 @@ secrets = [
 wasm = ["bitwarden-core/wasm"] # WASM support
 
 [dependencies]
-bitwarden-api-api = { workspace = true }
-bitwarden-api-identity = { workspace = true }
 bitwarden-core = { workspace = true }
-bitwarden-crypto = { workspace = true }
 bitwarden-generators = { workspace = true, optional = true }
 bitwarden-sm = { workspace = true, optional = true }
 thiserror = { workspace = true }

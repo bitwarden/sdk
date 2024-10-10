@@ -11,7 +11,6 @@ repository.workspace = true
 license-file.workspace = true
 
 [features]
-docs = ["dep:schemars"] # Docs
 
 [lib]
 crate-type = ["lib", "staticlib", "cdylib"]
@@ -19,7 +18,6 @@ bench = false
 
 [dependencies]
 async-trait = "0.1.80"
-bitwarden = { workspace = true, features = ["internal", "uniffi"] }
 bitwarden-core = { workspace = true, features = ["uniffi"] }
 bitwarden-crypto = { workspace = true, features = ["uniffi"] }
 bitwarden-exporters = { workspace = true, features = ["uniffi"] }
@@ -28,8 +26,8 @@ bitwarden-generators = { workspace = true, features = ["uniffi"] }
 bitwarden-send = { workspace = true, features = ["uniffi"] }
 bitwarden-vault = { workspace = true, features = ["uniffi"] }
 chrono = { workspace = true, features = ["std"] }
-log = { workspace = true }
 env_logger = "0.11.1"
+log = { workspace = true }
 schemars = { workspace = true, optional = true }
 thiserror = { workspace = true }
 uniffi = { workspace = true }

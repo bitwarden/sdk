@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use bitwarden::platform::FingerprintRequest;
+use bitwarden_core::platform::FingerprintRequest;
 
 use crate::{error::Result, Client};
 

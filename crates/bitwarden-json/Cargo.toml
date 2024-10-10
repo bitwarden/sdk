@@ -16,8 +16,7 @@ repository.workspace = true
 license-file.workspace = true
 
 [features]
-internal = ["bitwarden/internal"] # Internal testing methods
-secrets = ["bitwarden/secrets"]   # Secrets manager API
+secrets = ["bitwarden/secrets"] # Secrets manager API
 
 [dependencies]
 bitwarden = { workspace = true }

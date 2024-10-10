@@ -1,10 +1,6 @@
 use std::sync::Arc;
 
-use bitwarden::{
-    error::Error,
-    vault::{ClientVaultExt, TotpResponse},
-};
-use bitwarden_vault::CipherListView;
+use bitwarden_vault::{CipherListView, ClientVaultExt, TotpResponse};
 use chrono::{DateTime, Utc};
 
 use crate::{error::Result, Client};
@@ -52,12 +48,7 @@ impl ClientVault {
     /// - OTP Auth URI
     /// - Steam URI
     pub fn generate_totp(&self, key: String, time: Option<DateTime<Utc>>) -> Result<TotpResponse> {
-        Ok(self
-            .0
-             .0
-            .vault()
-            .generate_totp(key, time)
-            .map_err(Error::Totp)?)
+        Ok(self.0 .0.vault().generate_totp(key, time)?)
     }
 
     /// Generate a TOTP code from a provided cipher list view.
@@ -66,11 +57,6 @@ impl ClientVault {
         view: CipherListView,
         time: Option<DateTime<Utc>>,
     ) -> Result<TotpResponse> {
-        Ok(self
-            .0
-             .0
-            .vault()
-            .generate_totp_cipher_view(view, time)
-            .map_err(Error::Totp)?)
+        Ok(self.0 .0.vault().generate_totp_cipher_view(view, time)?)
     }
 }

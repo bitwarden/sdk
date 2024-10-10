@@ -1,12 +1,12 @@
-use bitwarden::{
+use bitwarden_cli::text_prompt_when_none;
+use bitwarden_core::{
     auth::login::{
         ApiKeyLoginRequest, PasswordLoginRequest, TwoFactorEmailRequest, TwoFactorProvider,
         TwoFactorRequest,
     },
-    vault::{ClientVaultExt, SyncRequest},
     Client,
 };
-use bitwarden_cli::text_prompt_when_none;
+use bitwarden_vault::{ClientVaultExt, SyncRequest};
 use color_eyre::eyre::{bail, Result};
 use inquire::{Password, Text};
 use log::{debug, error, info};

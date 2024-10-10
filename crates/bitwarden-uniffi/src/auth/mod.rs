@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use bitwarden::{
+use bitwarden_core::{
     auth::{
         password::MasterPasswordPolicyOptions, AuthRequestResponse, KeyConnectorResponse,
         RegisterKeyResponse, RegisterTdeKeyResponse,

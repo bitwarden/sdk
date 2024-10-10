@@ -121,8 +121,5 @@ struct SchemaTypes {
 fn main() -> Result<()> {
     write_schema_for!("schema_types", SchemaTypes);
 
-    #[cfg(feature = "internal")]
-    write_schema_for!(bitwarden_uniffi::docs::DocRef);
-
     Ok(())
 }

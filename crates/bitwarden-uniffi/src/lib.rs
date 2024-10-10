@@ -13,9 +13,6 @@ pub mod tool;
 mod uniffi_support;
 pub mod vault;
 
-#[cfg(feature = "docs")]
-pub mod docs;
-
 #[cfg(target_os = "android")]
 mod android_support;
 

@@ -15,7 +15,7 @@ defaults:
 jobs:
   setup:
     name: Setup
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       package_version: ${{ steps.retrieve-version.outputs.package_version }}
       sign: ${{ steps.sign.outputs.sign }}
@@ -402,7 +402,7 @@ jobs:
 
   third_party:
     name: Generate THIRDPARTY.html
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - setup
     steps:
@@ -437,7 +437,7 @@ jobs:
 
   manpages:
     name: Generate manpages
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: setup
     steps:
       - name: Checkout repo

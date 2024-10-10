@@ -12,7 +12,7 @@ on:
 jobs:
   version:
     name: Get Version
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       package_version: ${{ steps.retrieve-version.outputs.package_version }}
     steps:
@@ -83,7 +83,7 @@ jobs:
   trigger-swift-release:
     name: Trigger Swift release
     if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: build
     steps:
       - name: Login to Azure - CI Subscription

@@ -20,7 +20,7 @@ env:
 jobs:
   validate:
     name: Setup
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -45,7 +45,7 @@ jobs:
 
   setup-php:
     name: Setup PHP
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout Repository
         uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
@@ -66,7 +66,7 @@ jobs:
 
   repo-sync:
     name: Push changed files to SDK PHP repo
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - validate
       - setup-php
@@ -153,7 +153,7 @@ jobs:
 
   github-release:
     name: GitHub Release
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - setup-php
       - repo-sync
@@ -234,7 +234,7 @@ jobs:
 
   packagist-publish:
     name: Publish to Packagist
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - validate
       - setup-php

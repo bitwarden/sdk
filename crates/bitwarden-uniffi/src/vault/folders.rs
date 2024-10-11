@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use bitwarden::vault::{ClientVaultExt, Folder, FolderView};
+use bitwarden_vault::{ClientVaultExt, Folder, FolderView};
 
 use crate::{Client, Result};
 

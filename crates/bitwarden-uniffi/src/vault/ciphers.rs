@@ -1,13 +1,9 @@
 use std::sync::Arc;
 
-use bitwarden::{
-    error::Error,
-    vault::{Cipher, CipherListView, CipherView, ClientVaultExt},
-};
-use bitwarden_vault::Fido2CredentialView;
+use bitwarden_vault::{Cipher, CipherListView, CipherView, ClientVaultExt, Fido2CredentialView};
 use uuid::Uuid;
 
-use crate::{Client, Result};
+use crate::{error::Error, Client, Result};
 
 #[derive(uniffi::Object)]
 pub struct ClientCiphers(pub Arc<Client>);

@@ -1,13 +1,12 @@
 use std::sync::Arc;
 
-use bitwarden::{
-    error::Error,
-    vault::{ClientVaultExt, TotpResponse},
-};
-use bitwarden_vault::CipherListView;
+use bitwarden_vault::{CipherListView, ClientVaultExt, TotpResponse};
 use chrono::{DateTime, Utc};
 
-use crate::{error::Result, Client};
+use crate::{
+    error::{Error, Result},
+    Client,
+};
 
 pub mod attachments;
 pub mod ciphers;

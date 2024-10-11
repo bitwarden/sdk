@@ -362,16 +362,9 @@ checksum = "b048fb63fd8b5923fc5aa7b340d8e156aec7ec02f0c78fa8a6ddc2613f6f71de"
 name = "bitwarden"
 version = "1.0.0"
 dependencies = [
- "bitwarden-api-api",
- "bitwarden-api-identity",
  "bitwarden-core",
- "bitwarden-crypto",
- "bitwarden-exporters",
- "bitwarden-fido",
  "bitwarden-generators",
- "bitwarden-send",
  "bitwarden-sm",
- "bitwarden-vault",
  "thiserror",
  "uuid",
 ]
@@ -623,7 +616,6 @@ version = "0.1.0"
 dependencies = [
  "android_logger",
  "async-trait",
- "bitwarden",
  "bitwarden-core",
  "bitwarden-crypto",
  "bitwarden-exporters",
@@ -746,9 +738,11 @@ checksum = "79296716171880943b8470b5f8d03aa55eb2e645a4874bdbb28adb49162e012c"
 name = "bw"
 version = "0.0.2"
 dependencies = [
- "bitwarden",
  "bitwarden-cli",
+ "bitwarden-core",
  "bitwarden-crypto",
+ "bitwarden-generators",
+ "bitwarden-vault",
  "clap",
  "color-eyre",
  "env_logger",

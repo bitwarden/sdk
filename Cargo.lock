@@ -681,7 +681,7 @@ dependencies = [
 name = "bitwarden-wasm-internal"
 version = "0.1.0"
 dependencies = [
- "bitwarden",
+ "bitwarden-core",
  "console_error_panic_hook",
  "console_log",
  "js-sys",

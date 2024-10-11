@@ -12,13 +12,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 - The ability to edit unassigned secrets with direct permissions. (#906)
-- A way to opt out of state by default with the new state_opt_out key (#930)
 - The `run` command, to run commands with secrets (#621)
 
 ### Changed
 
 - Updated MSRV `1.75.0` (#980)
-- Use state files by default (#930)
+- Use state files by default. You can opt out of this behavior with the new `state_opt_out` key. (#930)
 
 ### Removed
 

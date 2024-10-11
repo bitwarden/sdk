@@ -483,6 +483,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "bitwarden-error"
+version = "1.0.0"
+dependencies = [
+ "bitwarden-error-macro",
+]
+
+[[package]]
+name = "bitwarden-error-macro"
+version = "1.0.0"
+dependencies = [
+ "bitwarden-error",
+ "quote",
+ "syn 2.0.79",
+]
+
+[[package]]
 name = "bitwarden-exporters"
 version = "1.0.0"
 dependencies = [

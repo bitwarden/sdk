@@ -9,7 +9,10 @@ use bitwarden_fido::{
 };
 use bitwarden_vault::{Cipher, CipherView, Fido2CredentialNewView};
 
-use crate::{error::Result, Client};
+use crate::{
+    error::{Error, Result},
+    Client,
+};
 
 #[derive(uniffi::Object)]
 pub struct ClientFido2(pub(crate) Arc<Client>);
@@ -48,7 +51,8 @@ impl ClientFido2 {
             .0
              .0
             .fido2()
-            .decrypt_fido2_autofill_credentials(cipher_view)?;
+            .decrypt_fido2_autofill_credentials(cipher_view)
+            .map_err(Error::DecryptFido2AutofillCredentialsError)?;
 
         Ok(result)
     }
@@ -72,7 +76,10 @@ impl ClientFido2Authenticator {
         let cs = UniffiTraitBridge(self.2.as_ref());
         let mut auth = fido2.create_authenticator(&ui, &cs);
 
-        let result = auth.make_credential(request).await?;
+        let result = auth
+            .make_credential(request)
+            .await
+            .map_err(Error::MakeCredential)?;
         Ok(result)
     }
 
@@ -82,7 +89,10 @@ impl ClientFido2Authenticator {
         let cs = UniffiTraitBridge(self.2.as_ref());
         let mut auth = fido2.create_authenticator(&ui, &cs);
 
-        let result = auth.get_assertion(request).await?;
+        let result = auth
+            .get_assertion(request)
+            .await
+            .map_err(Error::GetAssertion)?;
         Ok(result)
     }
 
@@ -96,7 +106,10 @@ impl ClientFido2Authenticator {
         let cs = UniffiTraitBridge(self.2.as_ref());
         let mut auth = fido2.create_authenticator(&ui, &cs);
 
-        let result = auth.silently_discover_credentials(rp_id).await?;
+        let result = auth
+            .silently_discover_credentials(rp_id)
+            .await
+            .map_err(Error::SilentlyDiscoverCredentials)?;
         Ok(result)
     }
 
@@ -106,7 +119,10 @@ impl ClientFido2Authenticator {
         let cs = UniffiTraitBridge(self.2.as_ref());
         let mut auth = fido2.create_authenticator(&ui, &cs);
 
-        let result = auth.credentials_for_autofill().await?;
+        let result = auth
+            .credentials_for_autofill()
+            .await
+            .map_err(Error::CredentialsForAutofillError)?;
         Ok(result)
     }
 }
@@ -127,7 +143,10 @@ impl ClientFido2Client {
         let cs = UniffiTraitBridge(self.0 .2.as_ref());
         let mut client = fido2.create_client(&ui, &cs);
 
-        let result = client.register(origin, request, client_data).await?;
+        let result = client
+            .register(origin, request, client_data)
+            .await
+            .map_err(Error::Fido2Client)?;
         Ok(result)
     }
 
@@ -142,7 +161,10 @@ impl ClientFido2Client {
         let cs = UniffiTraitBridge(self.0 .2.as_ref());
         let mut client = fido2.create_client(&ui, &cs);
 
-        let result = client.authenticate(origin, request, client_data).await?;
+        let result = client
+            .authenticate(origin, request, client_data)
+            .await
+            .map_err(Error::Fido2Client)?;
         Ok(result)
     }
 }

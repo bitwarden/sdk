@@ -10,24 +10,18 @@ extern "C" {
     fn new(message: String) -> WasmError;
 }
 
-pub type Result<T, E = Error> = std::result::Result<T, E>;
+pub type Result<T, E = GenericError> = std::result::Result<T, E>;
 
-pub struct Error(bitwarden::error::Error);
+pub struct GenericError(pub String);
 
-impl From<bitwarden::error::Error> for Error {
-    fn from(error: bitwarden::error::Error) -> Self {
-        Self(error)
+impl<T: ToString> From<T> for GenericError {
+    fn from(error: T) -> Self {
+        GenericError(error.to_string())
     }
 }
 
-impl From<bitwarden::Error> for Error {
-    fn from(error: bitwarden::Error) -> Self {
-        Self(error.into())
-    }
-}
-
-impl From<Error> for JsValue {
-    fn from(error: Error) -> Self {
-        WasmError::new(error.0.to_string()).into()
+impl From<GenericError> for JsValue {
+    fn from(error: GenericError) -> Self {
+        WasmError::new(error.0).into()
     }
 }

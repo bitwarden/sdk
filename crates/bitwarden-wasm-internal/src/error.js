@@ -3,9 +3,11 @@
  * @param {string} message - Error message.
  * @extends Error
  */
-export class WasmError extends Error {
+class WasmError extends Error {
   constructor(message) {
     super(message);
     this.name = "WasmError";
   }
 }
+
+exports.WasmError = WasmError;

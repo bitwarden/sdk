@@ -422,6 +422,7 @@ dependencies = [
  "bitwarden-api-api",
  "bitwarden-api-identity",
  "bitwarden-crypto",
+ "bitwarden-error",
  "chrono",
  "getrandom",
  "hmac",
@@ -703,6 +704,7 @@ version = "0.1.0"
 dependencies = [
  "bitwarden-core",
  "bitwarden-crypto",
+ "bitwarden-error",
  "bitwarden-vault",
  "console_error_panic_hook",
  "console_log",

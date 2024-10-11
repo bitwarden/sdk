@@ -17,6 +17,7 @@ crate-type = ["cdylib"]
 [dependencies]
 bitwarden-core = { workspace = true, features = ["wasm", "internal"] }
 bitwarden-crypto = { workspace = true, features = ["wasm"] }
+bitwarden-error = { version = "1.0.0", path = "../bitwarden-error" }
 bitwarden-vault = { workspace = true, features = ["wasm"] }
 console_error_panic_hook = "0.1.7"
 console_log = { version = "1.0.0", features = ["color"] }

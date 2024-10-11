@@ -344,7 +344,7 @@ pub fn verify_asymmetric_keys(
     let enc = client.internal.get_encryption_settings()?;
     let user_key = enc.get_key(&None)?;
 
-    Ok(match verify_inner(&user_key, &request) {
+    Ok(match verify_inner(user_key, &request) {
         Ok(_) => VerifyAsymmetricKeysResponse {
             private_key_decryptable: true,
             valid_private_key: true,
@@ -716,7 +716,7 @@ mod tests {
                 key_pair.private.clone(),
             )
             .unwrap();
-        return (client, user_key, key_pair);
+        (client, user_key, key_pair)
     }
 
     #[test]

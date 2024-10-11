@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 
+use base64::{engine::general_purpose::STANDARD, Engine};
 use bitwarden_crypto::{
-    AsymmetricEncString, EncString, Kdf, KeyDecryptable, KeyEncryptable, MasterKey,
-    SymmetricCryptoKey,
+    AsymmetricCryptoKey, AsymmetricEncString, EncString, Kdf, KeyDecryptable, KeyEncryptable,
+    MasterKey, SymmetricCryptoKey, UserKey,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -257,6 +258,111 @@ pub fn update_password(client: &Client, new_password: String) -> Result<UpdatePa
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "wasm", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
+pub struct MakeKeyPairResponse {
+    /// The user's public key
+    user_public_key: String,
+    /// User's private key, encrypted with the user key
+    user_key_encrypted_private_key: EncString,
+}
+
+pub fn make_key_pair(client: &Client) -> Result<MakeKeyPairResponse> {
+    let enc = client.internal.get_encryption_settings()?;
+    let user_key = UserKey::new(enc.get_key(&None)?.clone());
+
+    let key_pair = user_key.make_key_pair()?;
+
+    Ok(MakeKeyPairResponse {
+        user_public_key: key_pair.public,
+        user_key_encrypted_private_key: key_pair.private,
+    })
+}
+
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "wasm", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
+pub struct VerifyAsymmetricKeysRequest {
+    /// The user's public key
+    user_public_key: String,
+
+    /// User's private key, encrypted with the user key
+    user_key_encrypted_private_key: EncString,
+}
+
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+#[cfg_attr(feature = "wasm", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
+pub struct VerifyAsymmetricKeysResponse {
+    /// Whether the user's private key was decryptable by the user key.
+    private_key_decryptable: bool,
+    /// Whether the user's private key was a valid RSA key and matched the public key provided.
+    valid_private_key: bool,
+}
+
+pub fn verify_asymmetric_keys(
+    client: &Client,
+    request: VerifyAsymmetricKeysRequest,
+) -> Result<VerifyAsymmetricKeysResponse> {
+    #[derive(Debug, thiserror::Error)]
+    enum VerifyError {
+        #[error("Failed to decrypt private key: {0:?}")]
+        DecryptFailed(bitwarden_crypto::CryptoError),
+        #[error("Failed to parse decrypted private key: {0:?}")]
+        ParseFailed(bitwarden_crypto::CryptoError),
+        #[error("Failed to derive a public key: {0:?}")]
+        PublicFailed(bitwarden_crypto::CryptoError),
+        #[error("Derived public key doesn't match")]
+        KeyMismatch,
+    }
+
+    fn verify_inner(
+        user_key: &SymmetricCryptoKey,
+        request: &VerifyAsymmetricKeysRequest,
+    ) -> Result<(), VerifyError> {
+        let decrypted_private_key: Vec<u8> = request
+            .user_key_encrypted_private_key
+            .decrypt_with_key(user_key)
+            .map_err(VerifyError::DecryptFailed)?;
+
+        let private_key = AsymmetricCryptoKey::from_der(&decrypted_private_key)
+            .map_err(VerifyError::ParseFailed)?;
+
+        let derived_public_key_vec = private_key
+            .to_public_der()
+            .map_err(VerifyError::PublicFailed)?;
+
+        let derived_public_key = STANDARD.encode(&derived_public_key_vec);
+
+        if derived_public_key != request.user_public_key {
+            return Err(VerifyError::KeyMismatch);
+        }
+        Ok(())
+    }
+
+    let enc = client.internal.get_encryption_settings()?;
+    let user_key = enc.get_key(&None)?;
+
+    Ok(match verify_inner(&user_key, &request) {
+        Ok(_) => VerifyAsymmetricKeysResponse {
+            private_key_decryptable: true,
+            valid_private_key: true,
+        },
+        Err(e) => {
+            log::debug!("User asymmetric keys verification: {}", e);
+
+            VerifyAsymmetricKeysResponse {
+                private_key_decryptable: !matches!(e, VerifyError::DecryptFailed(_)),
+                valid_private_key: false,
+            }
+        }
+    })
+}
+
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct DerivePinKeyResponse {
     /// [UserKey](bitwarden_crypto::UserKey) protected by PIN
     pin_protected_user_key: EncString,
@@ -353,6 +459,8 @@ pub(super) fn derive_key_connector(request: DeriveKeyConnectorRequest) -> Result
 #[cfg(test)]
 mod tests {
     use std::num::NonZeroU32;
+
+    use bitwarden_crypto::RsaKeyPair;
 
     use super::*;
     use crate::Client;
@@ -584,5 +692,106 @@ mod tests {
         let result = derive_key_connector(request).unwrap();
 
         assert_eq!(result, "ySXq1RVLKEaV1eoQE/ui9aFKIvXTl9PAXwp1MljfF50=");
+    }
+
+    fn setup_asymmetric_keys_test() -> (Client, UserKey, RsaKeyPair) {
+        let client = Client::new(None);
+
+        let master_key = MasterKey::derive(
+            "asdfasdfasdf",
+            "test@bitwarden.com",
+            &Kdf::PBKDF2 {
+                iterations: NonZeroU32::new(600_000).unwrap(),
+            },
+        )
+        .unwrap();
+        let (user_key, encrypted_user_key) = master_key.make_user_key().unwrap();
+        let key_pair = user_key.make_key_pair().unwrap();
+
+        client
+            .internal
+            .initialize_user_crypto_master_key(
+                master_key,
+                encrypted_user_key,
+                key_pair.private.clone(),
+            )
+            .unwrap();
+        return (client, user_key, key_pair);
+    }
+
+    #[test]
+    fn test_make_key_pair() {
+        let (client, user_key, _) = setup_asymmetric_keys_test();
+
+        let response = make_key_pair(&client).unwrap();
+
+        assert!(!response.user_public_key.is_empty());
+        let encrypted_private_key = response.user_key_encrypted_private_key;
+        let private_key: Vec<u8> = encrypted_private_key.decrypt_with_key(&user_key.0).unwrap();
+        assert!(!private_key.is_empty());
+    }
+
+    #[test]
+    fn test_verify_asymmetric_keys_success() {
+        let (client, _, key_pair) = setup_asymmetric_keys_test();
+
+        let request = VerifyAsymmetricKeysRequest {
+            user_public_key: key_pair.public,
+            user_key_encrypted_private_key: key_pair.private,
+        };
+        let response = client.crypto().verify_asymmetric_keys(request).unwrap();
+
+        assert!(response.private_key_decryptable);
+        assert!(response.valid_private_key);
+    }
+
+    #[test]
+    fn test_verify_asymmetric_keys_decrypt_failed() {
+        let (client, _, key_pair) = setup_asymmetric_keys_test();
+        let undecryptable_private_key = "2.cqD39M4erPZ3tWaz2Fng9w==|+Bsp/xvM30oo+HThKN12qirK0A63EjMadcwethCX7kEgfL5nEXgAFsSgRBMpByc1djgpGDMXzUTLOE+FejXRsrEHH/ICZ7jPMgSR+lV64Mlvw3fgvDPQdJ6w3MCmjPueGQtrlPj1K78BkRomN3vQwwRBFUIJhLAnLshTOIFrSghoyG78na7McqVMMD0gmC0zmRaSs2YWu/46ES+2Rp8V5OC4qdeeoJM9MQfaOtmaqv7NRVDeDM3DwoyTJAOcon8eovMKE4jbFPUboiXjNQBkBgjvLhco3lVJnFcQuYgmjqrwuUQRsfAtZjxFXg/RQSH2D+SI5uRaTNQwkL4iJqIw7BIKtI0gxDz6eCVdq/+DLhpImgCV/aaIhF/jkpGqLCceFsYMbuqdULMM1VYKgV+IAuyC65R+wxOaKS+1IevvPnNp7tgKAvT5+shFg8piusj+rQ49daX2SmV2OImwdWMmmX93bcVV0xJ/WYB1yrqmyRUcTwyvX3RQF25P5okIIzFasRp8jXFZe8C6f93yzkn1TPQbp95zF4OsWjfPFVH4hzca07ACt2HjbAB75JakWbFA5MbCF8aOIwIfeLVhVlquQXCldOHCsl22U/f3HTGLB9OS8F83CDAy7qZqpKha9Im8RUhHoyf+lXrky0gyd6un7Ky8NSkVOGd8CEG7bvZfutxv/qtAjEM9/lV78fh8TQIy9GNgioMzplpuzPIJOgMaY/ZFZj6a8H9OMPneN5Je0H/DwHEglSyWy7CMgwcbQgXYGXc8rXTTxL71GUAFHzDr4bAJvf40YnjndoL9tf+oBw8vVNUccoD4cjyOT5w8h7M3Liaxk9/0O8JR98PKxxpv1Xw6XjFCSEHeG2y9FgDUASFR4ZwG1qQBiiLMnJ7e9kvxsdnmasBux9H0tOdhDhAM16Afk3NPPKA8eztJVHJBAfQiaNiUA4LIJ48d8EpUAe2Tvz0WW/gQThplUINDTpvPf+FojLwc5lFwNIPb4CVN1Ui8jOJI5nsOw4BSWJvLzJLxawHxX/sBuK96iXza+4aMH+FqYKt/twpTJtiVXo26sPtHe6xXtp7uO4b+bL9yYUcaAci69L0W8aNdu8iF0lVX6kFn2lOL8dBLRleGvixX9gYEVEsiI7BQBjxEBHW/YMr5F4M4smqCpleZIAxkse1r2fQ33BSOJVQKInt4zzgdKwrxDzuVR7RyiIUuNXHsprKtRHNJrSc4x5kWFUeivahed2hON+Ir/ZvrxYN6nJJPeYYH4uEm1Nn4osUzzfWILlqpmDPK1yYy365T38W8wT0cbdcJrI87ycS37HeB8bzpFJZSY/Dzv48Yy19mDZJHLJLCRqyxNeIlBPsVC8fvxQhzr+ZyS3Wi8Dsa2Sgjt/wd0xPULLCJlb37s+1aWgYYylr9QR1uhXheYfkXFED+saGWwY1jlYL5e2Oo9n3sviBYwJxIZ+RTKFgwlXV5S+Jx/MbDpgnVHP1KaoU6vvzdWYwMChdHV/6PhZVbeT2txq7Qt+zQN59IGrOWf6vlMkHxfUzMTD58CE+xAaz/D05ljHMesLj9hb3MSrymw0PcwoFGWUMIzIQE73pUVYNE7fVHa8HqUOdoxZ5dRZqXRVox1xd9siIPE3e6CuVQIMabTp1YLno=|Y38qtTuCwNLDqFnzJ3Cgbjm1SE15OnhDm9iAMABaQBA=".parse().unwrap();
+
+        let request = VerifyAsymmetricKeysRequest {
+            user_public_key: key_pair.public,
+            user_key_encrypted_private_key: undecryptable_private_key,
+        };
+        let response = client.crypto().verify_asymmetric_keys(request).unwrap();
+
+        assert!(!response.private_key_decryptable);
+        assert!(!response.valid_private_key);
+    }
+
+    #[test]
+    fn test_verify_asymmetric_keys_parse_failed() {
+        let (client, user_key, key_pair) = setup_asymmetric_keys_test();
+
+        let invalid_private_key = "bad_key"
+            .to_string()
+            .into_bytes()
+            .encrypt_with_key(&user_key.0)
+            .unwrap();
+
+        let request = VerifyAsymmetricKeysRequest {
+            user_public_key: key_pair.public,
+            user_key_encrypted_private_key: invalid_private_key,
+        };
+        let response = client.crypto().verify_asymmetric_keys(request).unwrap();
+
+        assert!(response.private_key_decryptable);
+        assert!(!response.valid_private_key);
+    }
+
+    #[test]
+    fn test_verify_asymmetric_keys_key_mismatch() {
+        let (client, user_key, key_pair) = setup_asymmetric_keys_test();
+        let new_key_pair = user_key.make_key_pair().unwrap();
+
+        let request = VerifyAsymmetricKeysRequest {
+            user_public_key: key_pair.public,
+            user_key_encrypted_private_key: new_key_pair.private,
+        };
+        let response = client.crypto().verify_asymmetric_keys(request).unwrap();
+
+        assert!(response.private_key_decryptable);
+        assert!(!response.valid_private_key);
     }
 }

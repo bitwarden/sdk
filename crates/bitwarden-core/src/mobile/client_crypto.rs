@@ -1,7 +1,10 @@
 #[cfg(feature = "internal")]
 use bitwarden_crypto::{AsymmetricEncString, EncString};
 
-use super::crypto::{derive_key_connector, DeriveKeyConnectorRequest};
+use super::crypto::{
+    derive_key_connector, make_key_pair, verify_asymmetric_keys, DeriveKeyConnectorRequest,
+    MakeKeyPairResponse, VerifyAsymmetricKeysRequest, VerifyAsymmetricKeysResponse,
+};
 use crate::{client::encryption_settings::EncryptionSettingsError, Client};
 #[cfg(feature = "internal")]
 use crate::{
@@ -55,6 +58,17 @@ impl<'a> ClientCrypto<'a> {
     /// Derive the master key for migrating to the key connector
     pub fn derive_key_connector(&self, request: DeriveKeyConnectorRequest) -> Result<String> {
         derive_key_connector(request)
+    }
+
+    pub fn make_key_pair(&self) -> Result<MakeKeyPairResponse> {
+        make_key_pair(self.client)
+    }
+
+    pub fn verify_asymmetric_keys(
+        &self,
+        request: VerifyAsymmetricKeysRequest,
+    ) -> Result<VerifyAsymmetricKeysResponse> {
+        verify_asymmetric_keys(self.client, request)
     }
 }
 

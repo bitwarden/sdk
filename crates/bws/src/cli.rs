@@ -9,9 +9,10 @@ pub(crate) const ACCESS_TOKEN_KEY_VAR_NAME: &str = "BWS_ACCESS_TOKEN";
 pub(crate) const CONFIG_FILE_KEY_VAR_NAME: &str = "BWS_CONFIG_FILE";
 pub(crate) const PROFILE_KEY_VAR_NAME: &str = "BWS_PROFILE";
 pub(crate) const SERVER_URL_KEY_VAR_NAME: &str = "BWS_SERVER_URL";
+pub(crate) const UUIDS_AS_KEYNAMES_VAR_NAME: &str = "BWS_UUIDS_AS_KEYNAMES";
 
 pub(crate) const DEFAULT_CONFIG_FILENAME: &str = "config";
-pub(crate) const DEFAULT_CONFIG_DIRECTORY: &str = ".bws";
+pub(crate) const DEFAULT_CONFIG_DIRECTORY: &str = ".config/bws";
 
 #[allow(non_camel_case_types)]
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
@@ -19,7 +20,8 @@ pub(crate) enum ProfileKey {
     server_base,
     server_api,
     server_identity,
-    state_file_dir,
+    state_dir,
+    state_opt_out,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
@@ -89,30 +91,26 @@ pub(crate) enum Commands {
         #[command(subcommand)]
         cmd: SecretCommand,
     },
-    #[command(long_about = "Create a single item (deprecated)", hide(true))]
-    Create {
-        #[command(subcommand)]
-        cmd: CreateCommand,
-    },
-    #[command(long_about = "Delete one or more items (deprecated)", hide(true))]
-    Delete {
-        #[command(subcommand)]
-        cmd: DeleteCommand,
-    },
-    #[command(long_about = "Edit a single item (deprecated)", hide(true))]
-    Edit {
-        #[command(subcommand)]
-        cmd: EditCommand,
-    },
-    #[command(long_about = "Retrieve a single item (deprecated)", hide(true))]
-    Get {
-        #[command(subcommand)]
-        cmd: GetCommand,
-    },
-    #[command(long_about = "List items (deprecated)", hide(true))]
-    List {
-        #[command(subcommand)]
-        cmd: ListCommand,
+    #[command(long_about = "Run a command with secrets injected")]
+    Run {
+        #[arg(help = "The command to run")]
+        command: Vec<String>,
+        #[arg(long, help = "The shell to use")]
+        shell: Option<String>,
+        #[arg(
+            long,
+            help = "Don't inherit environment variables from the current shell"
+        )]
+        no_inherit_env: bool,
+        #[arg(long, help = "The ID of the project to use")]
+        project_id: Option<Uuid>,
+        #[arg(
+            long,
+            global = true,
+            env = UUIDS_AS_KEYNAMES_VAR_NAME,
+            help = "Use the secret UUID (in its POSIX form) instead of the key name for the environment variable"
+        )]
+        uuids_as_keynames: bool,
     },
 }
 
@@ -168,61 +166,4 @@ pub(crate) enum ProjectCommand {
         project_id: Uuid,
     },
     List,
-}
-
-#[derive(Subcommand, Debug)]
-pub(crate) enum ListCommand {
-    Projects,
-    Secrets { project_id: Option<Uuid> },
-}
-
-#[derive(Subcommand, Debug)]
-pub(crate) enum GetCommand {
-    Project { project_id: Uuid },
-    Secret { secret_id: Uuid },
-}
-
-#[derive(Subcommand, Debug)]
-pub(crate) enum CreateCommand {
-    Project {
-        name: String,
-    },
-    Secret {
-        key: String,
-        value: String,
-
-        #[arg(long, help = "An optional note to add to the secret")]
-        note: Option<String>,
-
-        #[arg(long, help = "The ID of the project this secret will be added to")]
-        project_id: Uuid,
-    },
-}
-
-#[derive(Subcommand, Debug)]
-pub(crate) enum EditCommand {
-    #[clap(group = ArgGroup::new("edit_field").required(true).multiple(true))]
-    Project {
-        project_id: Uuid,
-        #[arg(long, group = "edit_field")]
-        name: String,
-    },
-    #[clap(group = ArgGroup::new("edit_field").required(true).multiple(true))]
-    Secret {
-        secret_id: Uuid,
-        #[arg(long, group = "edit_field")]
-        key: Option<String>,
-        #[arg(long, group = "edit_field")]
-        value: Option<String>,
-        #[arg(long, group = "edit_field")]
-        note: Option<String>,
-        #[arg(long, group = "edit_field")]
-        project_id: Option<Uuid>,
-    },
-}
-
-#[derive(Subcommand, Debug)]
-pub(crate) enum DeleteCommand {
-    Project { project_ids: Vec<Uuid> },
-    Secret { secret_ids: Vec<Uuid> },
 }

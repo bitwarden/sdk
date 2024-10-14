@@ -12,6 +12,10 @@ on:
         options:
           - Release
           - Dry Run
+      version:
+        description: "Release Version"
+        required: false
+        default: "latest"
 
 permissions:
   contents: read
@@ -21,91 +25,62 @@ jobs:
   setup:
     name: Setup
     runs-on: ubuntu-22.04
+    outputs:
+      release-version: ${{ steps.version-output.outputs.version }}
+      tag-name: ${{ steps.version-output.outputs.tag_name }}
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - name: Checkout Repository
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
 
       - name: Branch check
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        if: ${{ inputs.release_type != 'Dry Run' }}
         run: |
-          if [[ "$GITHUB_REF" != "refs/heads/rc" ]] && [[ "$GITHUB_REF" != "refs/heads/hotfix-rc" ]]; then
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
             echo "==================================="
-            echo "[!] Can only release from the 'rc' or 'hotfix-rc' branches"
+            echo "[!] Can only release from the 'main' branch"
             echo "==================================="
             exit 1
           fi
 
-  publish_ruby:
-    name: Publish Ruby
+      - name: Version output
+        id: version-output
+        run: |
+          if [[ "${{ inputs.version }}" == "latest" || "${{ inputs.version }}" == "" ]]; then
+            TAG_NAME=$(curl  "https://api.github.com/repos/bitwarden/sdk/releases" | jq -c '.[] | select(.tag_name | contains("ruby")) | .tag_name' | head -1)
+            VERSION=$(echo $TAG_NAME | grep -ohE '20[0-9]{2}\.([1-9]|1[0-2])\.[0-9]+')
+            echo "Latest Released Version: $VERSION"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+            echo "Latest Released Tag name: $TAG_NAME"
+            echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          else
+            echo "Release Version: ${{ inputs.version }}"
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+  publish:
+    name: Publish
     runs-on: ubuntu-22.04
     needs: setup
+    env:
+      _VERSION: ${{ needs.setup.outputs.release-version }}
+      _TAG_NAME: ${{ needs.setup.outputs.tag-name }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@cacc9f1c0b3f4eb8a16a6bb0ed10897b43b9de49 # v1.176.0
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
-          ruby-version: 3.2
+          ref: ${{ env._TAG_NAME }}
 
-      - name: Download artifacts
-        uses: bitwarden/gh-actions/download-artifacts@main
+      - name: Create GitHub deployment
+        if: ${{ inputs.release_type != 'Dry Run' }}
+        uses: chrnorm/deployment-action@55729fcebec3d284f60f5bcabbd8376437d696b1 # v2.0.7
+        id: deployment
         with:
-          workflow: generate_schemas.yml
-          path: languages/ruby/bitwarden_sdk_secrets/lib
-          workflow_conclusion: success
-          branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
-          artifacts: schemas.rb
-
-      - name: Download x86_64-apple-darwin artifact
-        uses: bitwarden/gh-actions/download-artifacts@main
-        with:
-          workflow: build-rust-cross-platform.yml
-          path: temp/macos-x64
-          workflow_conclusion: success
-          branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
-          artifacts: libbitwarden_c_files-x86_64-apple-darwin
-
-      - name: Download aarch64-apple-darwin artifact
-        uses: bitwarden/gh-actions/download-artifacts@main
-        with:
-          workflow: build-rust-cross-platform.yml
-          workflow_conclusion: success
-          branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
-          artifacts: libbitwarden_c_files-aarch64-apple-darwin
-          path: temp/macos-arm64
-
-      - name: Download x86_64-unknown-linux-gnu artifact
-        uses: bitwarden/gh-actions/download-artifacts@main
-        with:
-          workflow: build-rust-cross-platform.yml
-          workflow_conclusion: success
-          branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
-          artifacts: libbitwarden_c_files-x86_64-unknown-linux-gnu
-          path: temp/linux-x64
-
-      - name: Download x86_64-pc-windows-msvc artifact
-        uses: bitwarden/gh-actions/download-artifacts@main
-        with:
-          workflow: build-rust-cross-platform.yml
-          workflow_conclusion: success
-          branch: ${{ github.event.inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
-          artifacts: libbitwarden_c_files-x86_64-pc-windows-msvc
-          path: temp/windows-x64
-
-      - name: Copy lib files
-        run: |
-          mkdir -p languages/ruby/bitwarden_sdk_secrets/lib/macos-arm64
-          mkdir -p languages/ruby/bitwarden_sdk_secrets/lib/linux-x64
-          mkdir -p languages/ruby/bitwarden_sdk_secrets/lib/macos-x64
-          mkdir -p languages/ruby/bitwarden_sdk_secrets/lib/windows-x64
-
-          platforms=("macos-arm64" "linux-x64" "macos-x64" "windows-x64")
-          files=("libbitwarden_c.dylib" "libbitwarden_c.so" "libbitwarden_c.dylib" "bitwarden_c.dll")
-
-          for ((i=0; i<${#platforms[@]}; i++)); do
-            cp "temp/${platforms[$i]}/${files[$i]}" "languages/ruby/bitwarden_sdk_secrets/lib/${platforms[$i]}/${files[$i]}"
-          done
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          initial-status: "in_progress"
+          environment: "Bitwarden Ruby SDK - Production"
+          description: "Deployment ${{ env._VERSION }} from branch ${{ github.ref_name }}"
+          task: release
 
       - name: Login to Azure
         uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
@@ -119,15 +94,11 @@ jobs:
           keyvault: "bitwarden-ci"
           secrets: "rubygem-api-key"
 
-      - name: bundle install
-        run: bundle install
-        working-directory: languages/ruby/bitwarden_sdk_secrets
-
-      - name: Build gem
-        run: gem build bitwarden-sdk-secrets.gemspec
-        working-directory: languages/ruby/bitwarden_sdk_secrets
+      - name: Download ruby artifact
+        run: wget https://github.com/bitwarden/sdk/releases/download/ruby-v${{ env._VERSION }}/bitwarden-sdk-secrets-${{ env._VERSION }}.gem
 
       - name: Push gem to Rubygems
+        if: ${{ inputs.release_type != 'Dry Run' }}
         run: |
           mkdir -p $HOME/.gem
           touch $HOME/.gem/credentials
@@ -137,3 +108,19 @@ jobs:
         env:
           GEM_HOST_API_KEY: ${{ steps.retrieve-secrets.outputs.rubygem-api-key }}
         working-directory: languages/ruby/bitwarden_sdk_secrets
+
+      - name: Update deployment status to Success
+        if: ${{ inputs.release_type != 'Dry Run' && success() }}
+        uses: chrnorm/deployment-status@9a72af4586197112e0491ea843682b5dc280d806 # v2.0.3
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          state: "success"
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+
+      - name: Update deployment status to Failure
+        if: ${{ inputs.release_type != 'Dry Run' && failure() }}
+        uses: chrnorm/deployment-status@9a72af4586197112e0491ea843682b5dc280d806 # v2.0.3
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          state: "failure"
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}

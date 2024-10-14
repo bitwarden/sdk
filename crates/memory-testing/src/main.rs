@@ -39,7 +39,7 @@ fn main() {
                 email,
                 kdf,
             } => {
-                let key = MasterKey::derive(password.as_bytes(), email.as_bytes(), &kdf).unwrap();
+                let key = MasterKey::derive(&password, &email, &kdf).unwrap();
                 let hash = key
                     .derive_master_key_hash(
                         password.as_bytes(),

@@ -5,6 +5,7 @@
     "Cdecl",
     "chrono",
     "cloc",
+    "dealloc",
     "decryptable",
     "dylib",
     "encryptable",
@@ -22,6 +23,7 @@
     "uniffi",
     "wordlist",
     "Zeroize",
+    "Zeroizing",
     "zxcvbn"
   ],
   "rust-analyzer.cargo.targetDir": true

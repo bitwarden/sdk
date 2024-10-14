@@ -25,27 +25,29 @@ pub struct UpdateTwoFactorDuoRequestModel {
     pub auth_request_access_code: Option<String>,
     #[serde(rename = "secret", skip_serializing_if = "Option::is_none")]
     pub secret: Option<String>,
-    #[serde(rename = "integrationKey")]
-    pub integration_key: String,
-    #[serde(rename = "secretKey")]
-    pub secret_key: String,
+    #[serde(rename = "clientId", skip_serializing_if = "Option::is_none")]
+    pub client_id: Option<String>,
+    #[serde(rename = "clientSecret", skip_serializing_if = "Option::is_none")]
+    pub client_secret: Option<String>,
+    #[serde(rename = "integrationKey", skip_serializing_if = "Option::is_none")]
+    pub integration_key: Option<String>,
+    #[serde(rename = "secretKey", skip_serializing_if = "Option::is_none")]
+    pub secret_key: Option<String>,
     #[serde(rename = "host")]
     pub host: String,
 }
 
 impl UpdateTwoFactorDuoRequestModel {
-    pub fn new(
-        integration_key: String,
-        secret_key: String,
-        host: String,
-    ) -> UpdateTwoFactorDuoRequestModel {
+    pub fn new(host: String) -> UpdateTwoFactorDuoRequestModel {
         UpdateTwoFactorDuoRequestModel {
             master_password_hash: None,
             otp: None,
             auth_request_access_code: None,
             secret: None,
-            integration_key,
-            secret_key,
+            client_id: None,
+            client_secret: None,
+            integration_key: None,
+            secret_key: None,
             host,
         }
     }

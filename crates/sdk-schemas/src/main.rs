@@ -91,7 +91,7 @@ use bitwarden_json::response::Response;
 #[derive(JsonSchema)]
 struct SchemaTypes {
     // Input types for new Client
-    client_settings: bitwarden::client::client_settings::ClientSettings,
+    client_settings: bitwarden::ClientSettings,
 
     // Input types for Client::run_command
     input_command: bitwarden_json::command::Command,
@@ -99,7 +99,7 @@ struct SchemaTypes {
     // Output types for Client::run_command
     api_key_login: Response<bitwarden::auth::login::ApiKeyLoginResponse>,
     password_login: Response<bitwarden::auth::login::PasswordLoginResponse>,
-    access_token_login: Response<bitwarden::auth::login::AccessTokenLoginResponse>,
+    login_access_token: Response<bitwarden::auth::login::AccessTokenLoginResponse>,
     secret_identifiers: Response<bitwarden::secrets_manager::secrets::SecretIdentifiersResponse>,
     secret: Response<bitwarden::secrets_manager::secrets::SecretResponse>,
     secrets: Response<bitwarden::secrets_manager::secrets::SecretsResponse>,
@@ -108,20 +108,11 @@ struct SchemaTypes {
     project: Response<bitwarden::secrets_manager::projects::ProjectResponse>,
     projects: Response<bitwarden::secrets_manager::projects::ProjectsResponse>,
     projects_delete: Response<bitwarden::secrets_manager::projects::ProjectsDeleteResponse>,
-
-    #[cfg(feature = "internal")]
-    fingerprint: Response<bitwarden::platform::FingerprintResponse>,
-    #[cfg(feature = "internal")]
-    sync: Response<bitwarden::vault::SyncResponse>,
-    #[cfg(feature = "internal")]
-    user_api_key: Response<bitwarden::platform::UserApiKeyResponse>,
+    password: Response<String>,
 }
 
 fn main() -> Result<()> {
     write_schema_for!("schema_types", SchemaTypes);
-
-    #[cfg(feature = "internal")]
-    write_schema_for!(bitwarden_uniffi::docs::DocRef);
 
     Ok(())
 }

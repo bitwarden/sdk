@@ -21,6 +21,8 @@ public class BitwardenClient implements AutoCloseable {
 
     private final SecretsClient secrets;
 
+    private final AuthClient auth;
+
     public BitwardenClient(BitwardenSettings bitwardenSettings) {
         ClientSettings clientSettings = new ClientSettings();
         clientSettings.setAPIURL(bitwardenSettings.getApiUrl());
@@ -39,34 +41,18 @@ public class BitwardenClient implements AutoCloseable {
         commandRunner = new CommandRunner(library, client);
         projects = new ProjectsClient(commandRunner);
         secrets = new SecretsClient(commandRunner);
+        auth = new AuthClient(commandRunner);
         isClientOpen = true;
     }
 
     static <T, R> Function<T, R> throwingFunctionWrapper(ThrowingFunction<T, R, Exception> throwingFunction) {
-
         return i -> {
             try {
                 return throwingFunction.accept(i);
             } catch (Exception ex) {
-                throw new BitwardenClientException("Response deserialization failed");
+                throw new BitwardenClientException("Response failed", ex);
             }
         };
-    }
-
-    public APIKeyLoginResponse accessTokenLogin(String accessToken) {
-        Command command = new Command();
-        AccessTokenLoginRequest accessTokenLoginRequest = new AccessTokenLoginRequest();
-        accessTokenLoginRequest.setAccessToken(accessToken);
-        command.setAccessTokenLogin(accessTokenLoginRequest);
-
-        ResponseForAPIKeyLoginResponse response = commandRunner.runCommand(command,
-            throwingFunctionWrapper(Converter::ResponseForAPIKeyLoginResponseFromJsonString));
-
-        if (response == null || !response.getSuccess()) {
-            throw new BitwardenClientException(response != null ? response.getErrorMessage() : "Login failed");
-        }
-
-        return response.getData();
     }
 
     public ProjectsClient projects() {
@@ -75,6 +61,10 @@ public class BitwardenClient implements AutoCloseable {
 
     public SecretsClient secrets() {
         return secrets;
+    }
+
+    public AuthClient auth() {
+        return auth;
     }
 
     @Override

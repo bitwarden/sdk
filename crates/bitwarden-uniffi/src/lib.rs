@@ -2,9 +2,8 @@ uniffi::setup_scaffolding!();
 
 use std::sync::Arc;
 
-use async_lock::RwLock;
 use auth::ClientAuth;
-use bitwarden::client::client_settings::ClientSettings;
+use bitwarden_core::ClientSettings;
 
 pub mod auth;
 pub mod crypto;
@@ -14,8 +13,8 @@ pub mod tool;
 mod uniffi_support;
 pub mod vault;
 
-#[cfg(feature = "docs")]
-pub mod docs;
+#[cfg(target_os = "android")]
+mod android_support;
 
 use crypto::ClientCrypto;
 use error::Result;
@@ -24,15 +23,19 @@ use tool::{ClientExporters, ClientGenerators, ClientSends};
 use vault::ClientVault;
 
 #[derive(uniffi::Object)]
-pub struct Client(RwLock<bitwarden::Client>);
+pub struct Client(bitwarden_core::Client);
 
-#[uniffi::export]
+#[uniffi::export(async_runtime = "tokio")]
 impl Client {
     /// Initialize a new instance of the SDK client
     #[uniffi::constructor]
     pub fn new(settings: Option<ClientSettings>) -> Arc<Self> {
         init_logger();
-        Arc::new(Self(RwLock::new(bitwarden::Client::new(settings))))
+
+        #[cfg(target_os = "android")]
+        android_support::init();
+
+        Arc::new(Self(bitwarden_core::Client::new(settings)))
     }
 
     /// Crypto operations
@@ -73,12 +76,29 @@ impl Client {
     pub fn echo(&self, msg: String) -> String {
         msg
     }
+
+    /// Test method, calls http endpoint
+    pub async fn http_get(&self, url: String) -> Result<String> {
+        let client = self.0.internal.get_http_client();
+        let res = client
+            .get(&url)
+            .send()
+            .await
+            .map_err(bitwarden_core::Error::Reqwest)?;
+
+        Ok(res.text().await.map_err(bitwarden_core::Error::Reqwest)?)
+    }
 }
 
 fn init_logger() {
-    #[cfg(not(target_os = "android"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     let _ = env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info"))
         .try_init();
+
+    #[cfg(target_os = "ios")]
+    let _ = oslog::OsLogger::new("com.8bit.bitwarden")
+        .level_filter(log::LevelFilter::Info)
+        .init();
 
     #[cfg(target_os = "android")]
     android_logger::init_once(

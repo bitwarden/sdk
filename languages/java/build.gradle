@@ -36,7 +36,7 @@ repositories {
                 def branchName = "git branch --show-current".execute().text.trim()
 
                 if (branchName == "main" || branchName == "rc" || branchName == "hotfix-rc") {
-                    version = "0.1.0"
+                    version = "1.0.0"
                 } else {
                     // branchName-SNAPSHOT
                     version = "${branchName.replaceAll('/', '-')}-SNAPSHOT"
@@ -74,6 +74,7 @@ tasks.withType(JavaCompile) {
 
 tasks.withType(Javadoc) {
     options.encoding = 'UTF-8'
+    failOnError = false
 }
 
 java {
@@ -81,18 +82,25 @@ java {
     withSourcesJar()
 }
 
-//  Gradle build requires GitHub workflow to copy native library to resources
-//  Uncomment copyNativeLib and jar tasks to use the local build (modify architecture if needed)
-//tasks.register('copyNativeLib', Copy) {
-//    delete 'src/main/resources/darwin-aarch64'
-//    from '../../target/debug'
-//    include '*libbitwarden_c*.dylib'
-//    include '*libbitwarden_c*.so'
-//    include '*bitwarden_c*.dll'
-//    into 'src/main/resources/darwin-aarch64'
-//}
-//
-//jar {
-//    dependsOn tasks.named("copyNativeLib").get()
-//    from 'src/main/resources'
-//}
+jar {
+    // Copy native library to jar resources for local gradle build
+    if (System.getenv("GITHUB_TOKEN") == null) {
+        from('../../target/debug') {
+            include '*libbitwarden_c*.dylib'
+            into "darwin-x86-64"
+        }
+        from('../../target/debug') {
+            include '*libbitwarden_c*.dylib'
+            into "darwin-aarch64"
+        }
+        from('../../target/debug') {
+            include '*libbitwarden_c*.so'
+            into "linux-x86-64"
+        }
+        from('../../target/debug') {
+            include '*bitwarden_c*.dll'
+            into "win32-x86-64"
+        }
+    }
+}
+

@@ -1,9 +1,12 @@
 use std::sync::Arc;
 
-use bitwarden::vault::TotpResponse;
+use bitwarden_vault::{CipherListView, ClientVaultExt, TotpResponse};
 use chrono::{DateTime, Utc};
 
-use crate::{error::Result, Client};
+use crate::{
+    error::{Error, Result},
+    Client,
+};
 
 pub mod attachments;
 pub mod ciphers;
@@ -14,7 +17,7 @@ pub mod password_history;
 #[derive(uniffi::Object)]
 pub struct ClientVault(pub(crate) Arc<Client>);
 
-#[uniffi::export(async_runtime = "tokio")]
+#[uniffi::export]
 impl ClientVault {
     /// Folder operations
     pub fn folders(self: Arc<Self>) -> Arc<folders::ClientFolders> {
@@ -47,11 +50,26 @@ impl ClientVault {
     /// - A base32 encoded string
     /// - OTP Auth URI
     /// - Steam URI
-    pub async fn generate_totp(
+    pub fn generate_totp(&self, key: String, time: Option<DateTime<Utc>>) -> Result<TotpResponse> {
+        Ok(self
+            .0
+             .0
+            .vault()
+            .generate_totp(key, time)
+            .map_err(Error::Totp)?)
+    }
+
+    /// Generate a TOTP code from a provided cipher list view.
+    pub fn generate_totp_cipher_view(
         &self,
-        key: String,
+        view: CipherListView,
         time: Option<DateTime<Utc>>,
     ) -> Result<TotpResponse> {
-        Ok(self.0 .0.write().await.vault().generate_totp(key, time)?)
+        Ok(self
+            .0
+             .0
+            .vault()
+            .generate_totp_cipher_view(view, time)
+            .map_err(Error::Totp)?)
     }
 }

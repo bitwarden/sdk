@@ -14,17 +14,16 @@ use crate::models;
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ProjectServiceAccountsAccessPoliciesRequestModel {
-    #[serde(
-        rename = "serviceAccountAccessPolicyRequests",
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(rename = "serviceAccountAccessPolicyRequests")]
     pub service_account_access_policy_requests: Option<Vec<models::AccessPolicyRequest>>,
 }
 
 impl ProjectServiceAccountsAccessPoliciesRequestModel {
-    pub fn new() -> ProjectServiceAccountsAccessPoliciesRequestModel {
+    pub fn new(
+        service_account_access_policy_requests: Option<Vec<models::AccessPolicyRequest>>,
+    ) -> ProjectServiceAccountsAccessPoliciesRequestModel {
         ProjectServiceAccountsAccessPoliciesRequestModel {
-            service_account_access_policy_requests: None,
+            service_account_access_policy_requests,
         }
     }
 }

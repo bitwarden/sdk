@@ -11,6 +11,12 @@ use crate::{
     KeyDecryptable, KeyEncryptable, LocateKey, SymmetricCryptoKey,
 };
 
+#[cfg(feature = "wasm")]
+#[wasm_bindgen::prelude::wasm_bindgen(typescript_custom_section)]
+const TS_CUSTOM_TYPES: &'static str = r#"
+export type EncString = string;
+"#;
+
 /// # Encrypted string primitive
 ///
 /// [EncString] is a Bitwarden specific primitive that represents a symmetrically encrypted string.
@@ -44,7 +50,7 @@ use crate::{
 /// - `[iv]`: (optional) is the initialization vector used for encryption.
 /// - `[data]`: is the encrypted data.
 /// - `[mac]`: (optional) is the MAC used to validate the integrity of the data.
-#[derive(Clone, zeroize::ZeroizeOnDrop)]
+#[derive(Clone, zeroize::ZeroizeOnDrop, PartialEq)]
 #[allow(unused, non_camel_case_types)]
 pub enum EncString {
     /// 0
@@ -203,7 +209,7 @@ impl serde::Serialize for EncString {
 }
 
 impl EncString {
-    pub fn encrypt_aes256_hmac(
+    pub(crate) fn encrypt_aes256_hmac(
         data_dec: &[u8],
         mac_key: &GenericArray<u8, U32>,
         key: &GenericArray<u8, U32>,
@@ -237,6 +243,10 @@ impl KeyDecryptable<SymmetricCryptoKey, Vec<u8>> for EncString {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<Vec<u8>> {
         match self {
             EncString::AesCbc256_B64 { iv, data } => {
+                if key.mac_key.is_some() {
+                    return Err(CryptoError::MacNotProvided);
+                }
+
                 let dec = crate::aes::decrypt_aes256(iv, data.clone(), &key.key)?;
                 Ok(dec)
             }
@@ -266,6 +276,12 @@ impl KeyEncryptable<SymmetricCryptoKey, EncString> for String {
     }
 }
 
+impl KeyEncryptable<SymmetricCryptoKey, EncString> for &str {
+    fn encrypt_with_key(self, key: &SymmetricCryptoKey) -> Result<EncString> {
+        self.as_bytes().encrypt_with_key(key)
+    }
+}
+
 impl KeyDecryptable<SymmetricCryptoKey, String> for EncString {
     fn decrypt_with_key(&self, key: &SymmetricCryptoKey) -> Result<String> {
         let dec: Vec<u8> = self.decrypt_with_key(key)?;
@@ -290,7 +306,9 @@ mod tests {
     use schemars::schema_for;
 
     use super::EncString;
-    use crate::{derive_symmetric_key, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey};
+    use crate::{
+        derive_symmetric_key, CryptoError, KeyDecryptable, KeyEncryptable, SymmetricCryptoKey,
+    };
 
     #[test]
     fn test_enc_string_roundtrip() {
@@ -298,6 +316,17 @@ mod tests {
 
         let test_string = "encrypted_test_string";
         let cipher = test_string.to_owned().encrypt_with_key(&key).unwrap();
+
+        let decrypted_str: String = cipher.decrypt_with_key(&key).unwrap();
+        assert_eq!(decrypted_str, test_string);
+    }
+
+    #[test]
+    fn test_enc_string_ref_roundtrip() {
+        let key = derive_symmetric_key("test");
+
+        let test_string = "encrypted_test_string";
+        let cipher = test_string.encrypt_with_key(&key).unwrap();
 
         let decrypted_str: String = cipher.decrypt_with_key(&key).unwrap();
         assert_eq!(decrypted_str, test_string);
@@ -399,6 +428,24 @@ mod tests {
 
         let dec_str: String = enc_string.decrypt_with_key(&key).unwrap();
         assert_eq!(dec_str, "EncryptMe!");
+    }
+
+    #[test]
+    fn test_decrypt_downgrade_encstring_prevention() {
+        // Simulate a potential downgrade attack by removing the mac portion of the `EncString` and
+        // attempt to decrypt it using a `SymmetricCryptoKey` with a mac key.
+        let key = "hvBMMb1t79YssFZkpetYsM3deyVuQv4r88Uj9gvYe0+G8EwxvW3v1iywVmSl61iwzd17JW5C/ivzxSP2C9h7Tw==".to_string();
+        let key = SymmetricCryptoKey::try_from(key).unwrap();
+
+        // A "downgraded" `EncString` from `EncString::AesCbc256_HmacSha256_B64` (2) to
+        // `EncString::AesCbc256_B64` (0), with the mac portion removed.
+        // <enc_string>
+        let enc_str = "0.NQfjHLr6za7VQVAbrpL81w==|wfrjmyJ0bfwkQlySrhw8dA==";
+        let enc_string: EncString = enc_str.parse().unwrap();
+        assert_eq!(enc_string.enc_type(), 0);
+
+        let result: Result<String, CryptoError> = enc_string.decrypt_with_key(&key);
+        assert!(matches!(result, Err(CryptoError::MacNotProvided)));
     }
 
     #[test]

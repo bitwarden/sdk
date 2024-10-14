@@ -13,17 +13,16 @@ bitwarden = { "*", features = ["secrets"] }
 
 ## Minimum Supported Rust Version
 
-Rust **1.71** or higher.
+Rust **1.75** or higher.
 
 ## Example
 
 ```rust
 use bitwarden::{
     auth::login::AccessTokenLoginRequest,
-    client::client_settings::{ClientSettings, DeviceType},
     error::Result,
-    secrets_manager::secrets::SecretIdentifiersRequest,
-    Client,
+    secrets_manager::{secrets::SecretIdentifiersRequest, ClientSecretsExt},
+    Client, ClientSettings, DeviceType,
 };
 use uuid::Uuid;
 

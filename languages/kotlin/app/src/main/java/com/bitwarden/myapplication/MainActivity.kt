@@ -23,7 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import com.bitwarden.core.DateTime
-import com.bitwarden.core.Folder
+import com.bitwarden.vault.Folder
 import com.bitwarden.core.InitOrgCryptoRequest
 import com.bitwarden.core.InitUserCryptoMethod
 import com.bitwarden.core.InitUserCryptoRequest
@@ -63,6 +63,11 @@ import javax.net.ssl.X509TrustManager
  *   handle a lot of errors and edge cases that a production application would need to deal with.
  *   Developers are encouraged to review and improve the code as needed to meet their security requirements.
  *   Additionally, we recommend to consult with security experts and conduct thorough testing before using the code in production.
+ *
+ *   Note that this SDK uses the system trust store to perform TLS certificate validation. If you want to use this SDK with
+ *   self hosted servers using self-signed certificates, make sure to configure the Android Network Security Config correctly.
+ *   We provide an example configuration in `languages/kotlin/app/src/main/res/xml/network_security_config.xml`
+ *   https://developer.android.com/privacy-and-security/security-config
  */
 
 const val SERVER_URL = "https://10.0.2.2:8080/"

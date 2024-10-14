@@ -20,7 +20,8 @@ pub(crate) struct Profile {
     pub server_base: Option<String>,
     pub server_api: Option<String>,
     pub server_identity: Option<String>,
-    pub state_file_dir: Option<String>,
+    pub state_dir: Option<String>,
+    pub state_opt_out: Option<String>,
 }
 
 impl ProfileKey {
@@ -29,7 +30,8 @@ impl ProfileKey {
             ProfileKey::server_base => p.server_base = Some(value),
             ProfileKey::server_api => p.server_api = Some(value),
             ProfileKey::server_identity => p.server_identity = Some(value),
-            ProfileKey::state_file_dir => p.state_file_dir = Some(value),
+            ProfileKey::state_dir => p.state_dir = Some(value),
+            ProfileKey::state_opt_out => p.state_opt_out = Some(value),
         }
     }
 }
@@ -117,7 +119,8 @@ impl Profile {
             server_base: Some(url.to_string()),
             server_api: None,
             server_identity: None,
-            state_file_dir: None,
+            state_dir: None,
+            state_opt_out: None,
         })
     }
     pub(crate) fn api_url(&self) -> Result<String> {
@@ -129,7 +132,7 @@ impl Profile {
             return Ok(format!("{base}/api"));
         }
 
-        bail!("Profile has no `server_base` or `server_api`")
+        bail!("Profile has no `server_base` or `server_api`");
     }
 
     pub(crate) fn identity_url(&self) -> Result<String> {
@@ -141,7 +144,7 @@ impl Profile {
             return Ok(format!("{base}/identity"));
         }
 
-        bail!("Profile has no `server_base` or `server_identity`")
+        bail!("Profile has no `server_base` or `server_identity`");
     }
 }
 

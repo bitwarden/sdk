@@ -13,8 +13,8 @@
     "clean": "rimraf dist"
   },
   "devDependencies": {
-    "@types/node": "^18.15.11",
-    "rimraf": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "rimraf": "^6.0.0",
     "typescript": "^5.0.3"
   }
 }

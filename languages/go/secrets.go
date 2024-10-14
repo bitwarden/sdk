@@ -134,17 +134,11 @@ func (s *Secrets) Delete(ids []string) (*SecretsDeleteResponse, error) {
 }
 
 func (s *Secrets) Sync(organizationID string, lastSyncedDate *time.Time) (*SecretsSyncResponse, error) {
-	var lastSyncedDateString *string
-	if lastSyncedDate != nil {
-		tempRfc3339 := lastSyncedDate.UTC().Format(time.RFC3339)
-		lastSyncedDateString = &tempRfc3339
-	}
-
 	command := Command{
 		Secrets: &SecretsCommand{
 			Sync: &SecretsSyncRequest{
 				OrganizationID: organizationID,
-				LastSyncedDate: lastSyncedDateString,
+				LastSyncedDate: lastSyncedDate,
 			},
 		},
 	}

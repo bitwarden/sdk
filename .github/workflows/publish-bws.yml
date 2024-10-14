@@ -1,0 +1,215 @@
+---
+name: Publish bws CLI
+run-name: Publish bws CLI ${{ inputs.release_type }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Release Options"
+        required: true
+        default: "Release"
+        type: choice
+        options:
+          - Release
+          - Dry Run
+      version:
+        description: "Version to publish (default: latest bws cli release)"
+        required: true
+        type: string
+        default: latest
+
+env:
+  _AZ_REGISTRY: bitwardenprod.azurecr.io
+
+jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-22.04
+    outputs:
+      release-version: ${{ steps.version-output.outputs.version }}
+      release-tag: ${{ steps.version-output.outputs.tag_name }}
+      deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
+
+      - name: Branch check
+        if: ${{ inputs.release_type != 'Dry Run' }}
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "==================================="
+            echo "[!] Can only release from the 'main' branch"
+            echo "==================================="
+            exit 1
+          fi
+
+      - name: Version output
+        id: version-output
+        run: |
+          if [[ "${{ inputs.version }}" == "latest" || "${{ inputs.version }}" == "" ]]; then
+            TAG_NAME=$(curl  "https://api.github.com/repos/bitwarden/sdk/releases" | jq -c '.[] | select(.tag_name | contains("bws")) | .tag_name' | head -1)
+            VERSION=$(echo $TAG_NAME | grep -ohE '20[0-9]{2}\.([1-9]|1[0-2])\.[0-9]+')
+            echo "Latest Released Version: $VERSION"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+            echo "Latest Released Tag name: $TAG_NAME"
+            echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          else
+            echo "Release Version: ${{ inputs.version }}"
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create GitHub deployment
+        if: ${{ inputs.release_type != 'Dry Run' }}
+        uses: chrnorm/deployment-action@55729fcebec3d284f60f5bcabbd8376437d696b1 # v2.0.7
+        id: deployment
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          initial-status: "in_progress"
+          environment: "bws CLI - Production"
+          description: "Deployment ${{ steps.version-output.outputs.version }} from branch ${{ github.ref_name }}"
+          task: release
+
+  publish:
+    name: Publish bws to crates.io
+    runs-on: ubuntu-22.04
+    needs: setup
+    env:
+      _VERSION: ${{ needs.setup.outputs.release-version }}
+      _TAG_NAME: ${{ needs.setup.outputs.release-tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
+
+      - name: Login to Azure
+        uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
+        with:
+          creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
+          ref: ${{ env._TAG_NAME }}
+
+      - name: Retrieve secrets
+        id: retrieve-secrets
+        uses: bitwarden/gh-actions/get-keyvault-secrets@main
+        with:
+          keyvault: "bitwarden-ci"
+          secrets: "cratesio-api-token"
+
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@7b1c307e0dcbda6122208f10795a713336a9b35a # stable
+        with:
+          toolchain: stable
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
+
+      - name: Install cargo-release
+        run: cargo install cargo-release
+
+      - name: Cargo release
+        if: ${{ inputs.release_type != 'Dry Run' }}
+        env:
+          PUBLISH_GRACE_SLEEP: 10
+          CARGO_REGISTRY_TOKEN: ${{ steps.retrieve-secrets.outputs.cratesio-api-token }}
+        run: cargo-release release publish -p bws --execute --no-confirm
+
+  publish-docker:
+    name: Publish docker versioned and latest image
+    runs-on: ubuntu-22.04
+    needs: setup
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
+        with:
+          ref: ${{ env._TAG_NAME }}
+
+      - name: Generate tag list
+        id: tag-list
+        env:
+          VERSION: ${{ needs.setup.outputs.release-version }}
+          DRY_RUN: ${{ inputs.release_type == 'Dry Run' }}
+        run: |
+          if [[ "${DRY_RUN}" == "true" ]]; then
+            REF=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
+            IMAGE_TAG=$(echo "${REF}" | sed "s#/#-#g")  # slash safe branch name
+            echo "tags=$_AZ_REGISTRY/bws:${IMAGE_TAG},bitwarden/bws:${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          else
+            echo "tags=$_AZ_REGISTRY/bws:${VERSION},bitwarden/bws:${VERSION},$_AZ_REGISTRY/bws:latest,bitwarden/bws:latest" >> $GITHUB_OUTPUT
+          fi
+
+      ########## Set up Docker ##########
+      - name: Set up QEMU emulators
+        uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # v3.2.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db # v3.6.1
+
+      ########## Login to Docker registries ##########
+      - name: Login to Azure - Prod Subscription
+        uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
+        with:
+          creds: ${{ secrets.AZURE_PROD_KV_CREDENTIALS }}
+
+      - name: Login to Azure ACR
+        run: az acr login -n ${_AZ_REGISTRY%.azurecr.io}
+
+      - name: Login to Azure - CI Subscription
+        uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
+        with:
+          creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
+
+      - name: Retrieve github PAT secrets
+        id: retrieve-secret-pat
+        uses: bitwarden/gh-actions/get-keyvault-secrets@main
+        with:
+          keyvault: "bitwarden-ci"
+          secrets: "github-pat-bitwarden-devops-bot-repo-scope"
+
+      - name: Setup Docker Trust
+        uses: bitwarden/gh-actions/setup-docker-trust@main
+        with:
+          azure-creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
+          azure-keyvault-name: "bitwarden-ci"
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@32945a339266b759abcbdc89316275140b0fc960 # v6.8.0
+        with:
+          context: .
+          file: crates/bws/Dockerfile
+          platforms: |
+            linux/amd64,
+            linux/arm64/v8
+          push: ${{ inputs.release_type != 'Dry Run' }}
+          tags: ${{ steps.tag-list.outputs.tags }}
+          secrets: |
+            "GH_PAT=${{ steps.retrieve-secret-pat.outputs.github-pat-bitwarden-devops-bot-repo-scope }}"
+
+      - name: Log out of Docker and disable Docker Notary
+        if: ${{ inputs.release_type != 'Dry Run' }}
+        run: |
+          docker logout
+          echo "DOCKER_CONTENT_TRUST=0" >> $GITHUB_ENV
+
+  update_release_status:
+    name: Update GitHub deployment status
+    runs-on: ubuntu-22.04
+    needs: setup
+    if: ${{ inputs.release_type != 'Dry Run' }}
+    env:
+      _DEPLOYMENT_ID: ${{ needs.setup.outputs.deployment-id }}
+    steps:
+      - name: Update deployment status to Success
+        if: ${{ inputs.release_type != 'Dry Run' && success() }}
+        uses: chrnorm/deployment-status@9a72af4586197112e0491ea843682b5dc280d806 # v2.0.3
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          state: "success"
+          deployment-id: ${{ env._DEPLOYMENT_ID }}
+
+      - name: Update deployment status to Failure
+        if: ${{ inputs.release_type != 'Dry Run' && failure() }}
+        uses: chrnorm/deployment-status@9a72af4586197112e0491ea843682b5dc280d806 # v2.0.3
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          state: "failure"
+          deployment-id: ${{ env._DEPLOYMENT_ID }}

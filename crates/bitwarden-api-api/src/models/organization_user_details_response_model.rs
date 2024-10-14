@@ -24,8 +24,6 @@ pub struct OrganizationUserDetailsResponseModel {
     pub r#type: Option<models::OrganizationUserType>,
     #[serde(rename = "status", skip_serializing_if = "Option::is_none")]
     pub status: Option<models::OrganizationUserStatusType>,
-    #[serde(rename = "accessAll", skip_serializing_if = "Option::is_none")]
-    pub access_all: Option<bool>,
     #[serde(rename = "externalId", skip_serializing_if = "Option::is_none")]
     pub external_id: Option<String>,
     #[serde(
@@ -58,7 +56,6 @@ impl OrganizationUserDetailsResponseModel {
             user_id: None,
             r#type: None,
             status: None,
-            access_all: None,
             external_id: None,
             access_secrets_manager: None,
             permissions: None,

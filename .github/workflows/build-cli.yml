@@ -6,8 +6,6 @@ on:
   push:
     branches:
       - "main"
-      - "rc"
-      - "hotfix-rc"
   workflow_dispatch:
 
 defaults:
@@ -23,7 +21,7 @@ jobs:
       sign: ${{ steps.sign.outputs.sign }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
 
       - name: Get Package Version
         id: retrieve-version
@@ -58,10 +56,10 @@ jobs:
             target: aarch64-pc-windows-msvc
     steps:
       - name: Checkout repo
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@d8352f6b1d2e870bc5716e7a6d9b65c4cc244a1a # stable
+        uses: dtolnay/rust-toolchain@7b1c307e0dcbda6122208f10795a713336a9b35a # stable
         with:
           toolchain: stable
           targets: ${{ matrix.settings.target }}
@@ -74,7 +72,7 @@ jobs:
       - name: Build
         env:
           TARGET: ${{ matrix.settings.target }}
-        run: cargo build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
+        run: cargo build -p bws --release --target=${{ matrix.settings.target }}
 
       - name: Login to Azure
         if: ${{ needs.setup.outputs.sign == 'true' }}
@@ -123,7 +121,7 @@ jobs:
         run: 7z a ./bws-${{ matrix.settings.target }}-%_PACKAGE_VERSION%.zip ./target/${{ matrix.settings.target }}/release/bws.exe
 
       - name: Upload artifact
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
           name: bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip
           path: ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip
@@ -132,8 +130,7 @@ jobs:
   build-macos:
     name: Building CLI for - ${{ matrix.settings.os }} - ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}
-    needs:
-      - setup
+    needs: setup
     env:
       _PACKAGE_VERSION: ${{ needs.setup.outputs.package_version }}
     strategy:
@@ -148,10 +145,10 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@d8352f6b1d2e870bc5716e7a6d9b65c4cc244a1a # stable
+        uses: dtolnay/rust-toolchain@7b1c307e0dcbda6122208f10795a713336a9b35a # stable
         with:
           toolchain: stable
           targets: ${{ matrix.settings.target }}
@@ -164,7 +161,7 @@ jobs:
       - name: Build
         env:
           TARGET: ${{ matrix.settings.target }}
-        run: cargo build ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
+        run: cargo build -p bws --release --target=${{ matrix.settings.target }}
 
       - name: Login to Azure
         uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
@@ -233,7 +230,7 @@ jobs:
           xcrun notarytool submit ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip --keychain-profile "notarytool-profile" --wait
 
       - name: Upload artifact
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
           name: bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip
           path: ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip
@@ -242,8 +239,7 @@ jobs:
   build-linux:
     name: Building CLI for - ${{ matrix.settings.os }} - ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}
-    needs:
-      - setup
+    needs: setup
     env:
       _PACKAGE_VERSION: ${{ needs.setup.outputs.package_version }}
     strategy:
@@ -263,15 +259,16 @@ jobs:
             target: aarch64-unknown-linux-gnu
     steps:
       - name: Checkout repo
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@d8352f6b1d2e870bc5716e7a6d9b65c4cc244a1a # stable
+        uses: dtolnay/rust-toolchain@7b1c307e0dcbda6122208f10795a713336a9b35a # stable
         with:
           toolchain: stable
           targets: ${{ matrix.settings.target }}
 
-      - uses: goto-bus-stop/setup-zig@7ab2955eb728f5440978d5824358023be3a2802d # v2.2.0
+      - name: Set up Zig
+        uses: goto-bus-stop/setup-zig@abea47f85e598557f500fa1fd2ab7464fcb39406 # v2.2.1
         with:
           version: 0.12.0
 
@@ -286,13 +283,13 @@ jobs:
       - name: Build
         env:
           TARGET: ${{ matrix.settings.target }}
-        run: cargo zigbuild ${{ matrix.features }} -p bws --release --target=${{ matrix.settings.target }}
+        run: cargo zigbuild -p bws --release --target=${{ matrix.settings.target }}
 
       - name: Zip linux
         run: zip -j ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip ./target/${{ matrix.settings.target }}/release/bws
 
       - name: Upload artifact
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
           name: bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip
           path: ./bws-${{ matrix.settings.target }}-${{ env._PACKAGE_VERSION }}.zip
@@ -308,15 +305,15 @@ jobs:
       _PACKAGE_VERSION: ${{ needs.setup.outputs.package_version }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
 
       - name: Download x86_64-apple-darwin artifact
-        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
           name: bws-x86_64-apple-darwin-${{ env._PACKAGE_VERSION }}.zip
 
       - name: Download aarch64-apple-darwin artifact
-        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
           name: bws-aarch64-apple-darwin-${{ env._PACKAGE_VERSION }}.zip
 
@@ -325,7 +322,7 @@ jobs:
           unzip bws-x86_64-apple-darwin-${{ env._PACKAGE_VERSION }}.zip -d ./bws-x86_64-apple-darwin
           unzip bws-aarch64-apple-darwin-${{ env._PACKAGE_VERSION }}.zip -d ./bws-aarch64-apple-darwin
 
-      - name: lipo create universal package
+      - name: Create universal package with lipo
         run: |
           mkdir ./bws-macos-universal
 
@@ -375,7 +372,7 @@ jobs:
       - name: Sign binary
         env:
           MACOS_CERTIFICATE_NAME: ${{ steps.retrieve-secrets-macos.outputs.macos-bws-certificate-name }}
-        run: codesign --sign "$MACOS_CERTIFICATE_NAME" --verbose=3 --force --options=runtime --timestamp  ./bws-aarch64-apple-darwin/bws
+        run: codesign --sign "$MACOS_CERTIFICATE_NAME" --verbose=3 --force --options=runtime --timestamp ./bws-macos-universal/bws
 
       - name: Notarize app
         env:
@@ -389,7 +386,7 @@ jobs:
           xcrun notarytool store-credentials "notarytool-profile" --apple-id "$MACOS_NOTARIZATION_APPLE_ID" --team-id "$MACOS_NOTARIZATION_TEAM_ID" --password "$MACOS_NOTARIZATION_PWD"
 
           echo "Creating notarization archive"
-          zip -j ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip ./bws-aarch64-apple-darwin/bws
+          zip -j ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip ./bws-macos-universal/bws
 
           codesign --sign "$MACOS_CERTIFICATE_NAME" --verbose=3 --force --options=runtime --timestamp  ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip
 
@@ -397,7 +394,7 @@ jobs:
           xcrun notarytool submit ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip --keychain-profile "notarytool-profile" --wait
 
       - name: Upload artifact
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
           name: bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip
           path: ./bws-macos-universal-${{ env._PACKAGE_VERSION }}.zip
@@ -410,10 +407,10 @@ jobs:
       - setup
     steps:
       - name: Checkout repo
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@d8352f6b1d2e870bc5716e7a6d9b65c4cc244a1a # stable
+        uses: dtolnay/rust-toolchain@7b1c307e0dcbda6122208f10795a713336a9b35a # stable
         with:
           toolchain: stable
 
@@ -432,7 +429,7 @@ jobs:
           sed -i.bak 's/\$NAME\$/Bitwarden Secrets Manager CLI/g' THIRDPARTY.html
 
       - name: Upload artifact
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
           name: THIRDPARTY.html
           path: ./crates/bws/THIRDPARTY.html
@@ -441,14 +438,13 @@ jobs:
   manpages:
     name: Generate manpages
     runs-on: ubuntu-22.04
-    needs:
-      - setup
+    needs: setup
     steps:
       - name: Checkout repo
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@d8352f6b1d2e870bc5716e7a6d9b65c4cc244a1a # stable
+        uses: dtolnay/rust-toolchain@7b1c307e0dcbda6122208f10795a713336a9b35a # stable
         with:
           toolchain: stable
 
@@ -464,7 +460,7 @@ jobs:
           mv $OUT_DIR/manpages .
 
       - name: Upload artifact
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
           name: manpages
           path: ./manpages/*

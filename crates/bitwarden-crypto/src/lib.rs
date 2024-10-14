@@ -56,8 +56,9 @@
 //! ## Crate features
 //!
 //! - `no-memory-hardening` - Disables memory hardening which ensures that allocated memory is
-//! zeroed on drop. This feature primarily exists in case you do not want to use the standard
-//! allocator, and we advise to still define a `global_allocator` using the [`ZeroizingAllocator`].
+//!   zeroed on drop. This feature primarily exists in case you do not want to use the standard
+//!   allocator, and we advise to still define a `global_allocator` using the
+//!   [`ZeroizingAllocator`].
 
 #[cfg(not(feature = "no-memory-hardening"))]
 #[global_allocator]
@@ -76,9 +77,8 @@ pub use keys::*;
 mod rsa;
 pub use crate::rsa::RsaKeyPair;
 mod util;
-pub use util::generate_random_bytes;
+pub use util::{generate_random_alphanumeric, generate_random_bytes, pbkdf2};
 mod wordlist;
-pub use util::pbkdf2;
 pub use wordlist::EFF_LONG_WORD_LIST;
 mod allocator;
 pub use allocator::ZeroizingAllocator;

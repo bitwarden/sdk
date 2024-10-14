@@ -1,19 +1,23 @@
-use async_lock::Mutex;
-use bitwarden::client::client_settings::ClientSettings;
+use bitwarden::ClientSettings;
+#[cfg(feature = "secrets")]
+use bitwarden::{
+    generators::ClientGeneratorExt,
+    secrets_manager::{ClientProjectsExt, ClientSecretsExt},
+};
 
 #[cfg(feature = "secrets")]
-use crate::command::{ProjectsCommand, SecretsCommand};
+use crate::command::{GeneratorsCommand, ProjectsCommand, SecretsCommand};
 use crate::{
     command::Command,
     response::{Response, ResponseIntoString},
 };
 
-pub struct Client(Mutex<bitwarden::Client>);
+pub struct Client(bitwarden::Client);
 
 impl Client {
     pub fn new(settings_input: Option<String>) -> Self {
         let settings = Self::parse_settings(settings_input);
-        Self(Mutex::new(bitwarden::Client::new(settings)))
+        Self(bitwarden::Client::new(settings))
     }
 
     pub async fn run_command(&self, input_str: &str) -> String {
@@ -45,25 +49,13 @@ impl Client {
             }
         };
 
-        let mut client = self.0.lock().await;
+        let client = &self.0;
 
         match cmd {
-            #[cfg(feature = "internal")]
-            Command::PasswordLogin(req) => client.auth().login_password(&req).await.into_string(),
             #[cfg(feature = "secrets")]
-            Command::AccessTokenLogin(req) => {
+            Command::LoginAccessToken(req) => {
                 client.auth().login_access_token(&req).await.into_string()
             }
-            #[cfg(feature = "internal")]
-            Command::GetUserApiKey(req) => {
-                client.platform().get_user_api_key(req).await.into_string()
-            }
-            #[cfg(feature = "internal")]
-            Command::ApiKeyLogin(req) => client.auth().login_api_key(&req).await.into_string(),
-            #[cfg(feature = "internal")]
-            Command::Sync(req) => client.vault().sync(&req).await.into_string(),
-            #[cfg(feature = "internal")]
-            Command::Fingerprint(req) => client.platform().fingerprint(&req).into_string(),
 
             #[cfg(feature = "secrets")]
             Command::Secrets(cmd) => match cmd {
@@ -85,6 +77,13 @@ impl Client {
                 ProjectsCommand::List(req) => client.projects().list(&req).await.into_string(),
                 ProjectsCommand::Update(req) => client.projects().update(&req).await.into_string(),
                 ProjectsCommand::Delete(req) => client.projects().delete(req).await.into_string(),
+            },
+
+            #[cfg(feature = "secrets")]
+            Command::Generators(cmd) => match cmd {
+                GeneratorsCommand::GeneratePassword(req) => {
+                    client.generator().password(req).into_string()
+                }
             },
         }
     }

@@ -1,3 +1,4 @@
+use super::master_key::{decrypt_user_key, encrypt_user_key};
 use crate::{
     keys::{
         key_encryptable::CryptoKey,
@@ -17,8 +18,18 @@ impl PinKey {
     }
 
     /// Derives a users pin key from their password, email and KDF.
-    pub fn derive(password: &[u8], salt: &[u8], kdf: &Kdf) -> Result<Self> {
-        derive_kdf_key(password, salt, kdf).map(Self)
+    pub fn derive(password: &[u8], email: &[u8], kdf: &Kdf) -> Result<Self> {
+        derive_kdf_key(password, email, kdf).map(Self)
+    }
+
+    /// Encrypt the users user key
+    pub fn encrypt_user_key(&self, user_key: &SymmetricCryptoKey) -> Result<EncString> {
+        encrypt_user_key(&self.0, user_key)
+    }
+
+    /// Decrypt the users user key
+    pub fn decrypt_user_key(&self, user_key: EncString) -> Result<SymmetricCryptoKey> {
+        decrypt_user_key(&self.0, user_key)
     }
 }
 

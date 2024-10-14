@@ -1,8 +1,0 @@
-require_relative '../lib/schemas'
-
-class BitwardenSettings
-  attr_accessor api_url: String
-  attr_accessor identity_url: String
-
-  def initialize: (String, String) -> void
-end

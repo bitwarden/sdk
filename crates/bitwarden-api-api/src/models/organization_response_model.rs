@@ -112,11 +112,6 @@ pub struct OrganizationResponseModel {
         skip_serializing_if = "Option::is_none"
     )]
     pub allow_admin_access_to_all_collection_items: Option<bool>,
-    #[serde(
-        rename = "flexibleCollections",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub flexible_collections: Option<bool>,
 }
 
 impl OrganizationResponseModel {
@@ -162,7 +157,6 @@ impl OrganizationResponseModel {
             max_autoscale_sm_service_accounts: None,
             limit_collection_creation_deletion: None,
             allow_admin_access_to_all_collection_items: None,
-            flexible_collections: None,
         }
     }
 }

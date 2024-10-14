@@ -50,11 +50,12 @@ BitwardenClient::~BitwardenClient() {
     }
 }
 
-void BitwardenClient::accessTokenLogin(const std::string& accessToken) {
+void BitwardenClient::loginAccessToken(const std::string& accessToken, const std::string& stateFile) {
     Command command;
     AccessTokenLoginRequest accessTokenLoginRequest;
     accessTokenLoginRequest.set_access_token(accessToken);
-    command.set_access_token_login(accessTokenLoginRequest);
+    accessTokenLoginRequest.set_state_file(stateFile);
+    command.set_login_access_token(accessTokenLoginRequest);
 
     auto deserializer = [](const char* response) -> ResponseForApiKeyLoginResponse {
         nlohmann::json jsonResponse = nlohmann::json::parse(response);
@@ -84,11 +85,11 @@ ProjectResponse BitwardenClient::createProject(const boost::uuids::uuid& organiz
     return projects.create(organizationId, name);
 }
 
-ProjectResponse BitwardenClient::updateProject(const boost::uuids::uuid& id, const boost::uuids::uuid& organizationId, const std::string& name){
+ProjectResponse BitwardenClient::updateProject(const boost::uuids::uuid& organizationId, const boost::uuids::uuid& id, const std::string& name){
     if (!isClientOpen) {
         throw std::runtime_error("Client is not open.");
     }
-    return projects.update(id, organizationId, name);
+    return projects.update(organizationId, id, name);
 }
 
 ProjectsDeleteResponse BitwardenClient::deleteProjects(const std::vector<boost::uuids::uuid>& ids) {
@@ -114,18 +115,25 @@ SecretResponse BitwardenClient::getSecret(const boost::uuids::uuid& id){
     return secrets.get(id);
 }
 
-SecretResponse BitwardenClient::createSecret(const std::string& key, const std::string& value, const std::string& note, const boost::uuids::uuid& organizationId, const std::vector<boost::uuids::uuid>& projectIds){
+SecretsResponse BitwardenClient::getSecretsByIds(const std::vector<boost::uuids::uuid>& ids){
     if (!isClientOpen) {
         throw std::runtime_error("Client is not open.");
     }
-    return secrets.create(key, value, note, organizationId, projectIds);
+    return secrets.getByIds(ids);
 }
 
-SecretResponse BitwardenClient::updateSecret(const boost::uuids::uuid& id, const std::string& key, const std::string& value, const std::string& note, const boost::uuids::uuid& organizationId, const std::vector<boost::uuids::uuid>& projectIds){
+SecretResponse BitwardenClient::createSecret(const boost::uuids::uuid& organizationId, const std::string& key, const std::string& value, const std::string& note, const std::vector<boost::uuids::uuid>& projectIds){
     if (!isClientOpen) {
         throw std::runtime_error("Client is not open.");
     }
-    return secrets.update(id, key, value, note, organizationId, projectIds);
+    return secrets.create(organizationId, key, value, note, projectIds);
+}
+
+SecretResponse BitwardenClient::updateSecret(const boost::uuids::uuid& organizationId, const boost::uuids::uuid& id, const std::string& key, const std::string& value, const std::string& note, const std::vector<boost::uuids::uuid>& projectIds){
+    if (!isClientOpen) {
+        throw std::runtime_error("Client is not open.");
+    }
+    return secrets.update(organizationId, id, key, value, note, projectIds);
 }
 
 SecretsDeleteResponse BitwardenClient::deleteSecrets(const std::vector<boost::uuids::uuid>& ids) {
@@ -142,4 +150,11 @@ SecretIdentifiersResponse BitwardenClient::listSecrets(const boost::uuids::uuid 
     }
     return secrets.list(organizationId);
 
+}
+
+SecretsSyncResponse BitwardenClient::sync(const boost::uuids::uuid &organizationId, const std::chrono::system_clock::time_point &lastSyncedDate) {
+    if (!isClientOpen) {
+        throw std::runtime_error("Client is not open.");
+    }
+    return secrets.sync(organizationId, lastSyncedDate);
 }

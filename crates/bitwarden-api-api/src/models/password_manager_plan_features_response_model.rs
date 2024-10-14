@@ -18,10 +18,20 @@ pub struct PasswordManagerPlanFeaturesResponseModel {
     pub stripe_plan_id: Option<String>,
     #[serde(rename = "stripeSeatPlanId", skip_serializing_if = "Option::is_none")]
     pub stripe_seat_plan_id: Option<String>,
+    #[serde(
+        rename = "stripeProviderPortalSeatPlanId",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub stripe_provider_portal_seat_plan_id: Option<String>,
     #[serde(rename = "basePrice", skip_serializing_if = "Option::is_none")]
     pub base_price: Option<f64>,
     #[serde(rename = "seatPrice", skip_serializing_if = "Option::is_none")]
     pub seat_price: Option<f64>,
+    #[serde(
+        rename = "providerPortalSeatPrice",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub provider_portal_seat_price: Option<f64>,
     #[serde(rename = "allowSeatAutoscale", skip_serializing_if = "Option::is_none")]
     pub allow_seat_autoscale: Option<bool>,
     #[serde(
@@ -81,8 +91,10 @@ impl PasswordManagerPlanFeaturesResponseModel {
         PasswordManagerPlanFeaturesResponseModel {
             stripe_plan_id: None,
             stripe_seat_plan_id: None,
+            stripe_provider_portal_seat_plan_id: None,
             base_price: None,
             seat_price: None,
+            provider_portal_seat_price: None,
             allow_seat_autoscale: None,
             has_additional_seats_option: None,
             max_additional_seats: None,

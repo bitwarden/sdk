@@ -400,7 +400,7 @@ class Fido2UserInterfaceImpl: Fido2UserInterface {
         abort()
     }
 
-    func checkUserAndPickCredentialForCreation(options: BitwardenSdk.CheckUserOptions, newCredential: BitwardenSdk.Fido2CredentialNewView) async throws -> BitwardenSdk.CipherViewWrapper {
+    func checkUserAndPickCredentialForCreation(options: BitwardenSdk.CheckUserOptions, newCredential: BitwardenSdk.Fido2CredentialNewView) async throws -> BitwardenSdk.CheckUserAndPickCredentialForCreationResult {
         abort()
     }
 
@@ -414,6 +414,10 @@ class Fido2UserInterfaceImpl: Fido2UserInterface {
 }
 
 class Fido2CredentialStoreImpl: Fido2CredentialStore {
+    func allCredentials() async throws -> [BitwardenSdk.CipherView] {
+        abort()
+    }
+    
     func findCredentials(ids: [Data]?, ripId: String) async throws -> [BitwardenSdk.CipherView] {
         abort()
     }

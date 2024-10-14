@@ -7,18 +7,6 @@ import {
 } from "quicktype-core";
 
 import fs from "fs";
-import path from "path";
-
-async function* walk(dir: string): AsyncIterable<string> {
-  for await (const d of await fs.promises.opendir(dir)) {
-    const entry = path.join(dir, d.name);
-    if (d.isDirectory()) {
-      yield* walk(entry);
-    } else if (d.isFile()) {
-      yield entry;
-    }
-  }
-}
 
 async function main() {
   const schemaInput = new JSONSchemaInput(new FetchingJSONSchemaStore());
@@ -95,7 +83,7 @@ async function main() {
     lang: "go",
     rendererOptions: {
       package: "sdk",
-      "just-types-and-package": true,
+      "omit-empty": true,
     },
   });
 
@@ -117,9 +105,30 @@ async function main() {
   java.forEach((file, path) => {
     writeToFile(javaDir + path, file.lines);
   });
+
+  const php = await quicktype({
+    inputData,
+    lang: "php",
+    inferUuids: false,
+    inferDateTimes: false,
+    rendererOptions: {
+      "acronym-style": "camel",
+      "with-get": false,
+    },
+  });
+
+  const phpDir = "./languages/php/src/Schemas/";
+  if (!fs.existsSync(phpDir)) {
+    fs.mkdirSync(phpDir);
+  }
+
+  php.lines.splice(1, 0, "namespace Bitwarden\\Sdk\\Schemas;", "use stdClass;", "use Exception;");
+
+  writeToFile("./languages/php/src/Schemas/Schemas.php", php.lines);
 }
 
 main();
+
 function writeToFile(filename: string, lines: string[]) {
   const output = fs.createWriteStream(filename);
   lines.forEach((line) => {

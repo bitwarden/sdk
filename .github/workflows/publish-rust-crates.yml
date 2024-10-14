@@ -14,137 +14,58 @@ on:
           - Initial Release
           - Redeploy
           - Dry Run
-      publish_bitwarden:
-        description: "Publish bitwarden crate"
+      version:
+        description: "Version to publish (default: latest rust crates release)"
         required: true
-        default: true
-        type: boolean
-      publish_bitwarden-api-api:
-        description: "Publish bitwarden-api-api crate"
-        required: true
-        default: true
-        type: boolean
-      publish_bitwarden-api-identity:
-        description: "Publish bitwarden-api-identity crate"
-        required: true
-        default: true
-        type: boolean
-      publish_bitwarden-crypto:
-        description: "Publish bitwarden-crypto crate"
-        required: true
-        default: true
-        type: boolean
-      publish_bitwarden-cli:
-        description: "Publish bitwarden-cli crate"
-        required: true
-        default: true
-        type: boolean
-      publish_bitwarden-generators:
-        description: "Publish bitwarden-generators crate"
-        required: true
-        default: true
-        type: boolean
-      publish_bitwarden-exporters:
-        description: "Publish bitwarden-exporters crate"
-        required: true
-        default: true
-        type: boolean
-
-defaults:
-  run:
-    shell: bash
+        type: string
+        default: latest
 
 jobs:
   setup:
-    name: Setup
+    name: setup
     runs-on: ubuntu-22.04
     outputs:
-      packages_list: ${{ steps.packages-list.outputs.packages_list }}
-      packages_command: ${{ steps.packages-list.outputs.packages_command }}
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
-
-      - name: Branch check
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
-        run: |
-          if [[ "$GITHUB_REF" != "refs/heads/rc" ]] && [[ "$GITHUB_REF" != "refs/heads/hotfix-rc" ]]; then
-            echo "==================================="
-            echo "[!] Can only release from the 'rc' or 'hotfix-rc' branches"
-            echo "==================================="
-            exit 1
-          fi
-
-      - name: Prepare packages list
-        id: packages-list
-        env:
-          PUBLISH_BITWARDEN: ${{ github.event.inputs.publish_bitwarden }}
-          PUBLISH_BITWARDEN_API_API: ${{ github.event.inputs.publish_bitwarden-api-api }}
-          PUBLISH_BITWARDEN_API_IDENTITY: ${{ github.event.inputs.publish_bitwarden-api-identity }}
-          PUBLISH_BITWARDEN_CRYPTO: ${{ github.event.inputs.publish_bitwarden-crypto }}
-          PUBLISH_BITWARDEN_CLI: ${{ github.event.inputs.publish_bitwarden-cli }}
-          PUBLISH_BITWARDEN_GENERATORS: ${{ github.event.inputs.publish_bitwarden-generators }}
-          PUBLISH_BITWARDEN_EXPORTERS: ${{ github.event.inputs.publish_bitwarden-exporters }}
-        run: |
-          if [[ "$PUBLISH_BITWARDEN" == "false" ]] && [[ "$PUBLISH_BITWARDEN_API_API" == "false" ]] && [[ "$PUBLISH_BITWARDEN_API_IDENTITY" == "false" ]]; then
-            echo "==================================="
-            echo "[!] You need to specify at least one crate for release!"
-            echo "==================================="
-            exit 1
-          fi
-
-          PACKAGES_COMMAND=""
-          PACKAGES_LIST=""
-
-          if [[ "$PUBLISH_BITWARDEN" == "true" ]] ; then
-            PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden"
-            PACKAGES_LIST="$PACKAGES_LIST bitwarden"
-          fi
-
-          if [[ "$PUBLISH_BITWARDEN_API_API" == "true" ]]; then
-            PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-api-api"
-            PACKAGES_LIST="$PACKAGES_LIST bitwarden-api-api"
-          fi
-
-          if [[ "$PUBLISH_BITWARDEN_API_IDENTITY" == "true" ]]; then
-            PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-api-identity"
-            PACKAGES_LIST="$PACKAGES_LIST bitwarden-api-identity"
-          fi
-
-          if [[ "$PUBLISH_BITWARDEN_CRYPTO" == "true" ]]; then
-            PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-crypto"
-            PACKAGES_LIST="$PACKAGES_LIST bitwarden-crypto"
-          fi
-
-          if [[ "$PUBLISH_BITWARDEN_CLI" == "true" ]]; then
-            PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-cli"
-            PACKAGES_LIST="$PACKAGES_LIST bitwarden-cli"
-          fi
-
-          if [[ "$PUBLISH_BITWARDEN_GENERATORS" == "true" ]]; then
-            PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-generators"
-            PACKAGES_LIST="$PACKAGES_LIST bitwarden-generators"
-          fi
-
-          if [[ "$PUBLISH_BITWARDEN_EXPORTERS" == "true" ]]; then
-            PACKAGES_COMMAND="$PACKAGES_COMMAND -p bitwarden-exporters"
-            PACKAGES_LIST="$PACKAGES_LIST bitwarden-exporters"
-          fi
-
-          echo "Packages command: " $PACKAGES_COMMAND
-          echo "Packages list: " $PACKAGES_LIST
-
-          echo "packages_list=$PACKAGES_LIST" >> $GITHUB_OUTPUT
-          echo "packages_command=$PACKAGES_COMMAND" >> $GITHUB_OUTPUT
-
-  publish:
-    name: Publish ${{ needs.setup.outputs.packages_list }}
-    runs-on: ubuntu-latest
-    needs:
-      - setup
+      release-version: ${{ steps.version-output.outputs.version }}
+      release-tag: ${{ steps.version-output.outputs.tag_name }}
     steps:
       - name: Checkout
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
+
+      - name: Branch check
+        if: ${{ inputs.release_type != 'Dry Run' }}
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "==================================="
+            echo "[!] Can only release from the 'main' branch"
+            echo "==================================="
+            exit 1
+          fi
+
+      - name: Version output
+        id: version-output
+        run: |
+          if [[ "${{ inputs.version }}" == "latest" || "${{ inputs.version }}" == "" ]]; then
+            TAG_NAME=$(curl  "https://api.github.com/repos/bitwarden/sdk/releases" | jq -c '.[] | select(.tag_name | contains("rust")) | .tag_name' | head -1)
+            VERSION=$(echo $TAG_NAME | grep -ohE '20[0-9]{2}\.([1-9]|1[0-2])\.[0-9]+')
+            echo "Latest Released Version: $VERSION"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+            echo "Latest Released Tag name: $TAG_NAME"
+            echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          else
+            echo "Release Version: ${{ inputs.version }}"
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+  publish:
+    name: Publish
+    runs-on: ubuntu-22.04
+    needs: setup
+    steps:
+      - name: Checkout
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          ref: ${{ needs.setup.outputs.release-tag }}
 
       - name: Login to Azure
         uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
@@ -159,7 +80,7 @@ jobs:
           secrets: "cratesio-api-token"
 
       - name: Install rust
-        uses: dtolnay/rust-toolchain@d8352f6b1d2e870bc5716e7a6d9b65c4cc244a1a # stable
+        uses: dtolnay/rust-toolchain@7b1c307e0dcbda6122208f10795a713336a9b35a # stable
         with:
           toolchain: stable
 
@@ -170,26 +91,25 @@ jobs:
         run: cargo install cargo-release
 
       - name: Create GitHub deployment
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        if: ${{ inputs.release_type != 'Dry Run' }}
         uses: chrnorm/deployment-action@55729fcebec3d284f60f5bcabbd8376437d696b1 # v2.0.7
         id: deployment
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
           initial-status: "in_progress"
-          environment: "Bitwarden SDK to crates.io: ${{ needs.setup.outputs.packages_list }}"
+          environment: "Bitwarden SDK"
           description: "Deployment from branch ${{ github.ref_name }}"
           task: release
 
       - name: Cargo release
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        if: ${{ inputs.release_type != 'Dry Run' }}
         env:
           PUBLISH_GRACE_SLEEP: 10
-          PACKAGES_PUBLISH: ${{ needs.setup.outputs.packages_command }}
           CARGO_REGISTRY_TOKEN: ${{ steps.retrieve-secrets.outputs.cratesio-api-token }}
-        run: cargo-release release publish $PACKAGES_PUBLISH --execute --no-confirm
+        run: cargo-release release publish --exclude bw --exclude bws --execute --no-confirm
 
       - name: Update deployment status to Success
-        if: ${{ github.event.inputs.release_type != 'Dry Run' && success() }}
+        if: ${{ inputs.release_type != 'Dry Run' && success() }}
         uses: chrnorm/deployment-status@9a72af4586197112e0491ea843682b5dc280d806 # v2.0.3
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
@@ -197,7 +117,7 @@ jobs:
           deployment-id: ${{ steps.deployment.outputs.deployment_id }}
 
       - name: Update deployment status to Failure
-        if: ${{ github.event.inputs.release_type != 'Dry Run' && failure() }}
+        if: ${{ inputs.release_type != 'Dry Run' && failure() }}
         uses: chrnorm/deployment-status@9a72af4586197112e0491ea843682b5dc280d806 # v2.0.3
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"

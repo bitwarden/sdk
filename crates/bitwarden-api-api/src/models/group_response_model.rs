@@ -22,8 +22,6 @@ pub struct GroupResponseModel {
     pub organization_id: Option<uuid::Uuid>,
     #[serde(rename = "name", skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
-    #[serde(rename = "accessAll", skip_serializing_if = "Option::is_none")]
-    pub access_all: Option<bool>,
     #[serde(rename = "externalId", skip_serializing_if = "Option::is_none")]
     pub external_id: Option<String>,
 }
@@ -35,7 +33,6 @@ impl GroupResponseModel {
             id: None,
             organization_id: None,
             name: None,
-            access_all: None,
             external_id: None,
         }
     }

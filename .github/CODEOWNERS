@@ -16,3 +16,12 @@
 .github/workflows/publish-rust-crates.yml @bitwarden/dept-bre
 .github/workflows/release-cpp.yml @bitwarden/dept-bre
 .github/workflows/publish-dotnet.yml @bitwarden/dept-bre
+
+# Secrets Manager team
+crates/bitwarden-sm @bitwarden/team-secrets-manager-dev
+crates/bws @bitwarden/team-secrets-manager-dev
+
+# BRE Automations
+crates/bws/Cargo.toml
+crates/bws/scripts/install.ps1
+crates/bws/scripts/install.sh

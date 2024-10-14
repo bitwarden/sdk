@@ -154,13 +154,6 @@ pub enum AccountsPaymentPostError {
     UnknownValue(serde_json::Value),
 }
 
-/// struct for typed errors of method [`accounts_prelogin_post`]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum AccountsPreloginPostError {
-    UnknownValue(serde_json::Value),
-}
-
 /// struct for typed errors of method [`accounts_premium_post`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -186,13 +179,6 @@ pub enum AccountsProfilePostError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum AccountsProfilePutError {
-    UnknownValue(serde_json::Value),
-}
-
-/// struct for typed errors of method [`accounts_register_post`]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum AccountsRegisterPostError {
     UnknownValue(serde_json::Value),
 }
 
@@ -284,6 +270,13 @@ pub enum AccountsTaxGetError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum AccountsTaxPutError {
+    UnknownValue(serde_json::Value),
+}
+
+/// struct for typed errors of method [`accounts_update_tde_offboarding_password_put`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum AccountsUpdateTdeOffboardingPasswordPutError {
     UnknownValue(serde_json::Value),
 }
 
@@ -1156,47 +1149,6 @@ pub async fn accounts_payment_post(
     }
 }
 
-pub async fn accounts_prelogin_post(
-    configuration: &configuration::Configuration,
-    prelogin_request_model: Option<models::PreloginRequestModel>,
-) -> Result<models::PreloginResponseModel, Error<AccountsPreloginPostError>> {
-    let local_var_configuration = configuration;
-
-    let local_var_client = &local_var_configuration.client;
-
-    let local_var_uri_str = format!("{}/accounts/prelogin", local_var_configuration.base_path);
-    let mut local_var_req_builder =
-        local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
-
-    if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
-        local_var_req_builder =
-            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
-    }
-    if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
-        local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
-    };
-    local_var_req_builder = local_var_req_builder.json(&prelogin_request_model);
-
-    let local_var_req = local_var_req_builder.build()?;
-    let local_var_resp = local_var_client.execute(local_var_req).await?;
-
-    let local_var_status = local_var_resp.status();
-    let local_var_content = local_var_resp.text().await?;
-
-    if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
-        serde_json::from_str(&local_var_content).map_err(Error::from)
-    } else {
-        let local_var_entity: Option<AccountsPreloginPostError> =
-            serde_json::from_str(&local_var_content).ok();
-        let local_var_error = ResponseContent {
-            status: local_var_status,
-            content: local_var_content,
-            entity: local_var_entity,
-        };
-        Err(Error::ResponseError(local_var_error))
-    }
-}
-
 pub async fn accounts_premium_post(
     configuration: &configuration::Configuration,
     payment_method_type: models::PaymentMethodType,
@@ -1374,47 +1326,6 @@ pub async fn accounts_profile_put(
         serde_json::from_str(&local_var_content).map_err(Error::from)
     } else {
         let local_var_entity: Option<AccountsProfilePutError> =
-            serde_json::from_str(&local_var_content).ok();
-        let local_var_error = ResponseContent {
-            status: local_var_status,
-            content: local_var_content,
-            entity: local_var_entity,
-        };
-        Err(Error::ResponseError(local_var_error))
-    }
-}
-
-pub async fn accounts_register_post(
-    configuration: &configuration::Configuration,
-    register_request_model: Option<models::RegisterRequestModel>,
-) -> Result<models::RegisterResponseModel, Error<AccountsRegisterPostError>> {
-    let local_var_configuration = configuration;
-
-    let local_var_client = &local_var_configuration.client;
-
-    let local_var_uri_str = format!("{}/accounts/register", local_var_configuration.base_path);
-    let mut local_var_req_builder =
-        local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
-
-    if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
-        local_var_req_builder =
-            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
-    }
-    if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
-        local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
-    };
-    local_var_req_builder = local_var_req_builder.json(&register_request_model);
-
-    let local_var_req = local_var_req_builder.build()?;
-    let local_var_resp = local_var_client.execute(local_var_req).await?;
-
-    let local_var_status = local_var_resp.status();
-    let local_var_content = local_var_resp.text().await?;
-
-    if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
-        serde_json::from_str(&local_var_content).map_err(Error::from)
-    } else {
-        let local_var_entity: Option<AccountsRegisterPostError> =
             serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,
@@ -1963,6 +1874,53 @@ pub async fn accounts_tax_put(
         Ok(())
     } else {
         let local_var_entity: Option<AccountsTaxPutError> =
+            serde_json::from_str(&local_var_content).ok();
+        let local_var_error = ResponseContent {
+            status: local_var_status,
+            content: local_var_content,
+            entity: local_var_entity,
+        };
+        Err(Error::ResponseError(local_var_error))
+    }
+}
+
+pub async fn accounts_update_tde_offboarding_password_put(
+    configuration: &configuration::Configuration,
+    update_tde_offboarding_password_request_model: Option<
+        models::UpdateTdeOffboardingPasswordRequestModel,
+    >,
+) -> Result<(), Error<AccountsUpdateTdeOffboardingPasswordPutError>> {
+    let local_var_configuration = configuration;
+
+    let local_var_client = &local_var_configuration.client;
+
+    let local_var_uri_str = format!(
+        "{}/accounts/update-tde-offboarding-password",
+        local_var_configuration.base_path
+    );
+    let mut local_var_req_builder =
+        local_var_client.request(reqwest::Method::PUT, local_var_uri_str.as_str());
+
+    if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
+        local_var_req_builder =
+            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
+    }
+    if let Some(ref local_var_token) = local_var_configuration.oauth_access_token {
+        local_var_req_builder = local_var_req_builder.bearer_auth(local_var_token.to_owned());
+    };
+    local_var_req_builder =
+        local_var_req_builder.json(&update_tde_offboarding_password_request_model);
+
+    let local_var_req = local_var_req_builder.build()?;
+    let local_var_resp = local_var_client.execute(local_var_req).await?;
+
+    let local_var_status = local_var_resp.status();
+    let local_var_content = local_var_resp.text().await?;
+
+    if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
+        Ok(())
+    } else {
+        let local_var_entity: Option<AccountsUpdateTdeOffboardingPasswordPutError> =
             serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,

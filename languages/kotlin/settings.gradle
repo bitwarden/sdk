@@ -12,6 +12,7 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "My Application"
+
+rootProject.name = 'My Application'
 include ':app'
 include ':sdk'

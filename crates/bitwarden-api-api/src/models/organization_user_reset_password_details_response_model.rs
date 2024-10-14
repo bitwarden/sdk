@@ -16,6 +16,8 @@ use crate::models;
 pub struct OrganizationUserResetPasswordDetailsResponseModel {
     #[serde(rename = "object", skip_serializing_if = "Option::is_none")]
     pub object: Option<String>,
+    #[serde(rename = "organizationUserId", skip_serializing_if = "Option::is_none")]
+    pub organization_user_id: Option<uuid::Uuid>,
     #[serde(rename = "kdf", skip_serializing_if = "Option::is_none")]
     pub kdf: Option<models::KdfType>,
     #[serde(rename = "kdfIterations", skip_serializing_if = "Option::is_none")]
@@ -37,6 +39,7 @@ impl OrganizationUserResetPasswordDetailsResponseModel {
     pub fn new() -> OrganizationUserResetPasswordDetailsResponseModel {
         OrganizationUserResetPasswordDetailsResponseModel {
             object: None,
+            organization_user_id: None,
             kdf: None,
             kdf_iterations: None,
             kdf_memory: None,

@@ -131,7 +131,7 @@ impl ForwarderServiceType {
 ///
 /// Note: The HTTP client is passed in as a required parameter for convenience,
 /// as some username generators require making API calls.
-pub async fn username(
+pub(crate) async fn username(
     input: UsernameGeneratorRequest,
     http: &reqwest::Client,
 ) -> Result<String, UsernameError> {

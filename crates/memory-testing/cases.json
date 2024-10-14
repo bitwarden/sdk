@@ -72,7 +72,7 @@
         "kdf": {
           "argon2id": {
             "iterations": 3,
-            "memory": 4,
+            "memory": 16,
             "parallelism": 1
           }
         }
@@ -80,16 +80,15 @@
       "memory_lookups": [
         {
           "name": "Key",
-          "hex": "3bc0520a0abff0097d521ce0ee5e5b1cee301939a84742623c0c1697d7a4bd46",
-          "allowed_count": 3
+          "hex": "59079cd7134409c6882c2701de8357a3d8aabb2dad2da19eea5f1b8081dfb51c"
         },
         {
           "name": "Hash B64",
-          "string": "lHkprdORlICVJ4Umwi94Uz/nATK6Y7If7e+iFoabzh0="
+          "string": "P1ZT6T80zOfEqXj/kPbtON3yszf7xLNGCxWjdO2xfjU="
         },
         {
           "name": "Hash bytes",
-          "hex": "947929add391948095278526c22f78533fe70132ba63b21fedefa216869bce1d"
+          "hex": "3f5653e93f34cce7c4a978ff90f6ed38ddf2b337fbc4b3460b15a374edb17e35"
         }
       ]
     },

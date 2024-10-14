@@ -87,6 +87,8 @@ pub struct ProfileOrganizationResponseModel {
     pub reset_password_enrolled: Option<bool>,
     #[serde(rename = "userId", skip_serializing_if = "Option::is_none")]
     pub user_id: Option<uuid::Uuid>,
+    #[serde(rename = "organizationUserId", skip_serializing_if = "Option::is_none")]
+    pub organization_user_id: Option<uuid::Uuid>,
     #[serde(
         rename = "hasPublicAndPrivateKeys",
         skip_serializing_if = "Option::is_none"
@@ -108,8 +110,8 @@ pub struct ProfileOrganizationResponseModel {
         skip_serializing_if = "Option::is_none"
     )]
     pub family_sponsorship_available: Option<bool>,
-    #[serde(rename = "planProductType", skip_serializing_if = "Option::is_none")]
-    pub plan_product_type: Option<models::ProductType>,
+    #[serde(rename = "productTierType", skip_serializing_if = "Option::is_none")]
+    pub product_tier_type: Option<models::ProductTierType>,
     #[serde(
         rename = "keyConnectorEnabled",
         skip_serializing_if = "Option::is_none"
@@ -147,11 +149,6 @@ pub struct ProfileOrganizationResponseModel {
         skip_serializing_if = "Option::is_none"
     )]
     pub allow_admin_access_to_all_collection_items: Option<bool>,
-    #[serde(
-        rename = "flexibleCollections",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub flexible_collections: Option<bool>,
 }
 
 impl ProfileOrganizationResponseModel {
@@ -189,13 +186,14 @@ impl ProfileOrganizationResponseModel {
             permissions: None,
             reset_password_enrolled: None,
             user_id: None,
+            organization_user_id: None,
             has_public_and_private_keys: None,
             provider_id: None,
             provider_name: None,
             provider_type: None,
             family_sponsorship_friendly_name: None,
             family_sponsorship_available: None,
-            plan_product_type: None,
+            product_tier_type: None,
             key_connector_enabled: None,
             key_connector_url: None,
             family_sponsorship_last_sync_date: None,
@@ -204,7 +202,6 @@ impl ProfileOrganizationResponseModel {
             access_secrets_manager: None,
             limit_collection_creation_deletion: None,
             allow_admin_access_to_all_collection_items: None,
-            flexible_collections: None,
         }
     }
 }

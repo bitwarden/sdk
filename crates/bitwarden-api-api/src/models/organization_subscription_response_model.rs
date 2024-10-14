@@ -112,11 +112,6 @@ pub struct OrganizationSubscriptionResponseModel {
         skip_serializing_if = "Option::is_none"
     )]
     pub allow_admin_access_to_all_collection_items: Option<bool>,
-    #[serde(
-        rename = "flexibleCollections",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub flexible_collections: Option<bool>,
     #[serde(rename = "storageName", skip_serializing_if = "Option::is_none")]
     pub storage_name: Option<String>,
     #[serde(rename = "storageGb", skip_serializing_if = "Option::is_none")]
@@ -181,7 +176,6 @@ impl OrganizationSubscriptionResponseModel {
             max_autoscale_sm_service_accounts: None,
             limit_collection_creation_deletion: None,
             allow_admin_access_to_all_collection_items: None,
-            flexible_collections: None,
             storage_name: None,
             storage_gb: None,
             customer_discount: None,

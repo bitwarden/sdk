@@ -1,3 +1,4 @@
+---
 name: Publish PHP SDK
 run-name: Publish PHP SDK ${{ inputs.release_type }}
 
@@ -24,14 +25,14 @@ jobs:
       version: ${{ steps.version.outputs.version }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
 
       - name: Branch check
         if: ${{ inputs.release_type != 'Dry Run' }}
         run: |
-          if [[ "$GITHUB_REF" != "refs/heads/rc" ]] && [[ "$GITHUB_REF" != "refs/heads/hotfix-rc" ]]; then
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
             echo "==================================="
-            echo "[!] Can only release from the 'rc' or 'hotfix-rc' branches"
+            echo "[!] Can only release from the 'main' branch"
             echo "==================================="
             exit 1
           fi
@@ -47,10 +48,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
 
       - name: Setup PHP with PECL extension
-        uses: shivammathur/setup-php@c665c7a15b5295c2488ac8a87af9cb806cd72198 # 2.30.4
+        uses: shivammathur/setup-php@c541c155eee45413f5b09a52248675b1a2575231 # 2.31.1
         with:
           php-version: "8.0"
           tools: composer
@@ -75,7 +76,7 @@ jobs:
       _PKG_VERSION: ${{ needs.validate.outputs.version }}
     steps:
       - name: Checkout SDK repo
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
         with:
           path: sdk
 
@@ -92,7 +93,7 @@ jobs:
           secrets: "github-pat-bitwarden-devops-bot-repo-scope"
 
       - name: Checkout SDK-PHP repo
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
         with:
           repository: bitwarden/sm-sdk-php
           path: sm-sdk-php
@@ -123,7 +124,7 @@ jobs:
         working-directory: sm-sdk-php
         run: |
           git add .
-          git commit -m "Update Go SDK to ${{ github.sha }}"
+          git commit -m "Update PHP SDK to ${{ github.sha }}"
 
           if [[ "${{ inputs.release_type }}" == "Dry Run" ]]; then
             echo "==================================="
@@ -135,7 +136,7 @@ jobs:
             git push origin main
           fi
 
-      - name: Create release tag on SDK Go repo
+      - name: Create release tag on PHP SDK repo
         if: ${{ inputs.release_type != 'Dry Run' }}
         working-directory: sm-sdk-php
         run: |
@@ -177,7 +178,7 @@ jobs:
         with:
           workflow: build-rust-cross-platform.yml
           workflow_conclusion: success
-          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          branch: main
           artifacts: libbitwarden_c_files-x86_64-apple-darwin
           skip_unpack: true
 
@@ -186,7 +187,7 @@ jobs:
         with:
           workflow: build-rust-cross-platform.yml
           workflow_conclusion: success
-          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          branch: main
           artifacts: libbitwarden_c_files-aarch64-apple-darwin
           skip_unpack: true
 
@@ -195,7 +196,7 @@ jobs:
         with:
           workflow: build-rust-cross-platform.yml
           workflow_conclusion: success
-          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          branch: main
           artifacts: libbitwarden_c_files-x86_64-unknown-linux-gnu
           skip_unpack: true
 
@@ -204,7 +205,7 @@ jobs:
         with:
           workflow: build-rust-cross-platform.yml
           workflow_conclusion: success
-          branch: ${{ inputs.release_type == 'Dry Run' && 'main' ||  github.ref_name }}
+          branch: main
           artifacts: libbitwarden_c_files-x86_64-pc-windows-msvc
           skip_unpack: true
 
@@ -254,7 +255,7 @@ jobs:
             packagist-key"
 
       - name: Checkout SDK-PHP repo
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
         with:
           repository: bitwarden/sm-sdk-php
           path: sm-sdk-php

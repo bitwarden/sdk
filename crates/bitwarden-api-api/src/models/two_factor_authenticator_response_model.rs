@@ -20,6 +20,11 @@ pub struct TwoFactorAuthenticatorResponseModel {
     pub enabled: Option<bool>,
     #[serde(rename = "key", skip_serializing_if = "Option::is_none")]
     pub key: Option<String>,
+    #[serde(
+        rename = "userVerificationToken",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub user_verification_token: Option<String>,
 }
 
 impl TwoFactorAuthenticatorResponseModel {
@@ -28,6 +33,7 @@ impl TwoFactorAuthenticatorResponseModel {
             object: None,
             enabled: None,
             key: None,
+            user_verification_token: None,
         }
     }
 }

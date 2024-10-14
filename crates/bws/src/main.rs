@@ -1,32 +1,24 @@
-use std::{path::PathBuf, process, str::FromStr};
+use std::{path::PathBuf, str::FromStr};
 
 use bitwarden::{
     auth::{login::AccessTokenLoginRequest, AccessToken},
-    client::client_settings::ClientSettings,
-    secrets_manager::{
-        projects::{
-            ProjectCreateRequest, ProjectGetRequest, ProjectPutRequest, ProjectsDeleteRequest,
-            ProjectsListRequest,
-        },
-        secrets::{
-            SecretCreateRequest, SecretGetRequest, SecretIdentifiersByProjectRequest,
-            SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest, SecretsGetRequest,
-        },
-    },
+    ClientSettings,
 };
 use bitwarden_cli::install_color_eyre;
 use clap::{CommandFactory, Parser};
-use clap_complete::Shell;
 use color_eyre::eyre::{bail, Result};
+use config::Profile;
 use log::error;
-use uuid::Uuid;
+use render::OutputSettings;
 
 mod cli;
+mod command;
 mod config;
 mod render;
 mod state;
+mod util;
 
-use crate::{cli::*, render::serialize_response};
+use crate::cli::*;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
@@ -51,47 +43,21 @@ async fn process_commands() -> Result<()> {
     // These commands don't require authentication, so we process them first
     match command {
         Commands::Completions { shell } => {
-            let Some(shell) = shell.or_else(Shell::from_env) else {
-                eprintln!("Couldn't autodetect a valid shell. Run `bws completions --help` for more info.");
-                std::process::exit(1);
-            };
-
-            let mut cmd = Cli::command();
-            let name = cmd.get_name().to_string();
-            clap_complete::generate(shell, &mut cmd, name, &mut std::io::stdout());
-            return Ok(());
+            return command::completions(shell);
         }
         Commands::Config {
             name,
             value,
             delete,
         } => {
-            let profile = if let Some(profile) = cli.profile {
-                profile
-            } else if let Some(access_token) = cli.access_token {
-                AccessToken::from_str(&access_token)?
-                    .access_token_id
-                    .to_string()
-            } else {
-                String::from("default")
-            };
-
-            if delete {
-                config::delete_profile(cli.config_file.as_deref(), profile)?;
-                println!("Profile deleted successfully!");
-            } else {
-                let (name, value) = match (name, value) {
-                    (None, None) => bail!("Missing `name` and `value`"),
-                    (None, Some(_)) => bail!("Missing `value`"),
-                    (Some(_), None) => bail!("Missing `name`"),
-                    (Some(name), Some(value)) => (name, value),
-                };
-
-                config::update_profile(cli.config_file.as_deref(), profile, name, value)?;
-                println!("Profile updated successfully!");
-            };
-
-            return Ok(());
+            return command::config(
+                name,
+                value,
+                delete,
+                cli.profile,
+                cli.access_token,
+                cli.config_file,
+            );
         }
         _ => (),
     }
@@ -120,23 +86,32 @@ async fn process_commands() -> Result<()> {
         })
         .transpose()?;
 
-    let state_file_path = state::get_state_file_path(
-        profile.and_then(|p| p.state_file_dir).map(Into::into),
-        access_token_obj.access_token_id.to_string(),
-    )?;
+    let state_file = match get_state_opt_out(&profile) {
+        true => None,
+        false => match state::get_state_file(
+            profile.and_then(|p| p.state_dir).map(Into::into),
+            access_token_obj.access_token_id.to_string(),
+        ) {
+            Ok(state_file) => Some(state_file),
+            Err(e) => {
+                eprintln!("Warning: {}\nRetrieving the state file failed. Attempting to continue without using state. Please set \"state_dir\" in your config file to avoid authentication limits.", e);
+                None
+            }
+        },
+    };
 
-    let mut client = bitwarden::Client::new(settings);
+    let client = bitwarden::Client::new(settings);
 
     // Load session or return if no session exists
     let _ = client
         .auth()
         .login_access_token(&AccessTokenLoginRequest {
             access_token,
-            state_file: state_file_path,
+            state_file,
         })
         .await?;
 
-    let organization_id = match client.get_access_token_organization() {
+    let organization_id = match client.internal.get_access_token_organization() {
         Some(id) => id,
         None => {
             error!("Access token isn't associated to an organization.");
@@ -144,272 +119,44 @@ async fn process_commands() -> Result<()> {
         }
     };
 
+    let output_settings = OutputSettings::new(cli.output, color);
+
     // And finally we process all the commands which require authentication
     match command {
-        Commands::Project {
-            cmd: ProjectCommand::List,
+        Commands::Project { cmd } => {
+            command::project::process_command(cmd, client, organization_id, output_settings).await
         }
-        | Commands::List {
-            cmd: ListCommand::Projects,
+
+        Commands::Secret { cmd } => {
+            command::secret::process_command(cmd, client, organization_id, output_settings).await
+        }
+
+        Commands::Run {
+            command,
+            shell,
+            no_inherit_env,
+            project_id,
+            uuids_as_keynames,
         } => {
-            let projects = client
-                .projects()
-                .list(&ProjectsListRequest { organization_id })
-                .await?
-                .data;
-            serialize_response(projects, cli.output, color);
-        }
+            let exit_code = command::run::run(
+                client,
+                organization_id,
+                project_id,
+                uuids_as_keynames,
+                no_inherit_env,
+                shell,
+                command,
+            )
+            .await?;
 
-        Commands::Project {
-            cmd: ProjectCommand::Get { project_id },
-        }
-        | Commands::Get {
-            cmd: GetCommand::Project { project_id },
-        } => {
-            let project = client
-                .projects()
-                .get(&ProjectGetRequest { id: project_id })
-                .await?;
-            serialize_response(project, cli.output, color);
-        }
-
-        Commands::Project {
-            cmd: ProjectCommand::Create { name },
-        }
-        | Commands::Create {
-            cmd: CreateCommand::Project { name },
-        } => {
-            let project = client
-                .projects()
-                .create(&ProjectCreateRequest {
-                    organization_id,
-                    name,
-                })
-                .await?;
-            serialize_response(project, cli.output, color);
-        }
-
-        Commands::Project {
-            cmd: ProjectCommand::Edit { project_id, name },
-        }
-        | Commands::Edit {
-            cmd: EditCommand::Project { project_id, name },
-        } => {
-            let project = client
-                .projects()
-                .update(&ProjectPutRequest {
-                    id: project_id,
-                    organization_id,
-                    name,
-                })
-                .await?;
-            serialize_response(project, cli.output, color);
-        }
-
-        Commands::Project {
-            cmd: ProjectCommand::Delete { project_ids },
-        }
-        | Commands::Delete {
-            cmd: DeleteCommand::Project { project_ids },
-        } => {
-            let count = project_ids.len();
-
-            let result = client
-                .projects()
-                .delete(ProjectsDeleteRequest { ids: project_ids })
-                .await?;
-
-            let projects_failed: Vec<(Uuid, String)> = result
-                .data
-                .into_iter()
-                .filter_map(|r| r.error.map(|e| (r.id, e)))
-                .collect();
-            let deleted_projects = count - projects_failed.len();
-
-            if deleted_projects > 1 {
-                println!("{} projects deleted successfully.", deleted_projects);
-            } else if deleted_projects == 1 {
-                println!("{} project deleted successfully.", deleted_projects);
-            }
-
-            if projects_failed.len() > 1 {
-                eprintln!("{} projects had errors:", projects_failed.len());
-            } else if projects_failed.len() == 1 {
-                eprintln!("{} project had an error:", projects_failed.len());
-            }
-
-            for project in &projects_failed {
-                eprintln!("{}: {}", project.0, project.1);
-            }
-
-            if !projects_failed.is_empty() {
-                process::exit(1);
-            }
-        }
-
-        Commands::Secret {
-            cmd: SecretCommand::List { project_id },
-        }
-        | Commands::List {
-            cmd: ListCommand::Secrets { project_id },
-        } => {
-            let res = if let Some(project_id) = project_id {
-                client
-                    .secrets()
-                    .list_by_project(&SecretIdentifiersByProjectRequest { project_id })
-                    .await?
-            } else {
-                client
-                    .secrets()
-                    .list(&SecretIdentifiersRequest { organization_id })
-                    .await?
-            };
-
-            let secret_ids = res.data.into_iter().map(|e| e.id).collect();
-            let secrets = client
-                .secrets()
-                .get_by_ids(SecretsGetRequest { ids: secret_ids })
-                .await?
-                .data;
-            serialize_response(secrets, cli.output, color);
-        }
-
-        Commands::Secret {
-            cmd: SecretCommand::Get { secret_id },
-        }
-        | Commands::Get {
-            cmd: GetCommand::Secret { secret_id },
-        } => {
-            let secret = client
-                .secrets()
-                .get(&SecretGetRequest { id: secret_id })
-                .await?;
-            serialize_response(secret, cli.output, color);
-        }
-
-        Commands::Secret {
-            cmd:
-                SecretCommand::Create {
-                    key,
-                    value,
-                    note,
-                    project_id,
-                },
-        }
-        | Commands::Create {
-            cmd:
-                CreateCommand::Secret {
-                    key,
-                    value,
-                    note,
-                    project_id,
-                },
-        } => {
-            let secret = client
-                .secrets()
-                .create(&SecretCreateRequest {
-                    organization_id,
-                    key,
-                    value,
-                    note: note.unwrap_or_default(),
-                    project_ids: Some(vec![project_id]),
-                })
-                .await?;
-            serialize_response(secret, cli.output, color);
-        }
-
-        Commands::Secret {
-            cmd:
-                SecretCommand::Edit {
-                    secret_id,
-                    key,
-                    value,
-                    note,
-                    project_id,
-                },
-        }
-        | Commands::Edit {
-            cmd:
-                EditCommand::Secret {
-                    secret_id,
-                    key,
-                    value,
-                    note,
-                    project_id,
-                },
-        } => {
-            let old_secret = client
-                .secrets()
-                .get(&SecretGetRequest { id: secret_id })
-                .await?;
-
-            let secret = client
-                .secrets()
-                .update(&SecretPutRequest {
-                    id: secret_id,
-                    organization_id,
-                    key: key.unwrap_or(old_secret.key),
-                    value: value.unwrap_or(old_secret.value),
-                    note: note.unwrap_or(old_secret.note),
-                    project_ids: match project_id {
-                        Some(id) => Some(vec![id]),
-                        None => match old_secret.project_id {
-                            Some(id) => Some(vec![id]),
-                            None => bail!("Editing a secret requires a project_id."),
-                        },
-                    },
-                })
-                .await?;
-            serialize_response(secret, cli.output, color);
-        }
-
-        Commands::Secret {
-            cmd: SecretCommand::Delete { secret_ids },
-        }
-        | Commands::Delete {
-            cmd: DeleteCommand::Secret { secret_ids },
-        } => {
-            let count = secret_ids.len();
-
-            let result = client
-                .secrets()
-                .delete(SecretsDeleteRequest { ids: secret_ids })
-                .await?;
-
-            let secrets_failed: Vec<(Uuid, String)> = result
-                .data
-                .into_iter()
-                .filter_map(|r| r.error.map(|e| (r.id, e)))
-                .collect();
-            let deleted_secrets = count - secrets_failed.len();
-
-            if deleted_secrets > 1 {
-                println!("{} secrets deleted successfully.", deleted_secrets);
-            } else if deleted_secrets == 1 {
-                println!("{} secret deleted successfully.", deleted_secrets);
-            }
-
-            if secrets_failed.len() > 1 {
-                eprintln!("{} secrets had errors:", secrets_failed.len());
-            } else if secrets_failed.len() == 1 {
-                eprintln!("{} secret had an error:", secrets_failed.len());
-            }
-
-            for secret in &secrets_failed {
-                eprintln!("{}: {}", secret.0, secret.1);
-            }
-
-            if !secrets_failed.is_empty() {
-                process::exit(1);
-            }
+            // exit with the exit code from the child process
+            std::process::exit(exit_code);
         }
 
         Commands::Config { .. } | Commands::Completions { .. } => {
             unreachable!()
         }
     }
-
-    Ok(())
 }
 
 fn get_config_profile(
@@ -435,4 +182,14 @@ fn get_config_profile(
         config.select_profile(&profile_key, profile_defined)?
     };
     Ok(profile)
+}
+
+fn get_state_opt_out(profile: &Option<Profile>) -> bool {
+    if let Some(profile) = profile {
+        if let Some(state_opt_out) = &profile.state_opt_out {
+            return util::string_to_bool(state_opt_out).unwrap_or(false);
+        }
+    }
+
+    false
 }

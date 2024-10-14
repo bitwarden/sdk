@@ -2,17 +2,41 @@
 ## Requirements
 
 - Python 3
+- Rust
 - `maturin` (install with `pip install maturin`)
 - `npm`
 
 ## Build
 
-From the root of the repository:
 ```bash
+npm install
 npm run schemas # generate schemas.py
 
 cd languages/python/
+```
+
+You will need to build and run the script using a virtual environment.
+This will be slightly different depending on the OS you are using:
+
+```bash
+# --- Linux/macOS ---
+python3 -m venv .venv
+source .venv/bin/activate
+
+# --- Windows ---
+python -m venv venv
+
+venv\Scripts\activate.bat # cmd.exe
+venv\Scripts\Activate.ps1 # Powershell
+```
+
+## Run
+
+```bash
 maturin develop
+python3 ./example.py
+
+deactivate # run this to close the virtual session
 ```
 
 You can now import `BitwardenClient` in your Python code with:
@@ -32,27 +56,4 @@ Set the `ORGANIZATION_ID` and `ACCESS_TOKEN` environment variables to your organ
 
 ```bash
 python3 ./example.py
-```
-
-# Using Virtual Environments
-
-If you would like to build & run the script within a virtual environment you can do the following.
-
-## Build
-
-```bash
-npm run schemas # generate schemas.py
-
-cd languages/python/
-python3 -m venv .venv
-maturin develop
-```
-
-## Run
-
-```bash
-source .venv/bin/activate
-python3 ./example.py
-
-deactivate # run this to close the virtual session
 ```

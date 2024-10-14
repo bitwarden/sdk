@@ -29,6 +29,11 @@ pub struct UpdateTwoFactorAuthenticatorRequestModel {
     pub token: String,
     #[serde(rename = "key")]
     pub key: String,
+    #[serde(
+        rename = "userVerificationToken",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub user_verification_token: Option<String>,
 }
 
 impl UpdateTwoFactorAuthenticatorRequestModel {
@@ -40,6 +45,7 @@ impl UpdateTwoFactorAuthenticatorRequestModel {
             secret: None,
             token,
             key,
+            user_verification_token: None,
         }
     }
 }

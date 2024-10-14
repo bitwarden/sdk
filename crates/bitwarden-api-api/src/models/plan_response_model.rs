@@ -18,8 +18,8 @@ pub struct PlanResponseModel {
     pub object: Option<String>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     pub r#type: Option<models::PlanType>,
-    #[serde(rename = "product", skip_serializing_if = "Option::is_none")]
-    pub product: Option<models::ProductType>,
+    #[serde(rename = "productTier", skip_serializing_if = "Option::is_none")]
+    pub product_tier: Option<models::ProductTierType>,
     #[serde(rename = "name", skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(rename = "isAnnual", skip_serializing_if = "Option::is_none")]
@@ -82,7 +82,7 @@ impl PlanResponseModel {
         PlanResponseModel {
             object: None,
             r#type: None,
-            product: None,
+            product_tier: None,
             name: None,
             is_annual: None,
             name_localization_key: None,

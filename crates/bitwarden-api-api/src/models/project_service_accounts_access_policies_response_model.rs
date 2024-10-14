@@ -21,7 +21,7 @@ pub struct ProjectServiceAccountsAccessPoliciesResponseModel {
         skip_serializing_if = "Option::is_none"
     )]
     pub service_account_access_policies:
-        Option<Vec<models::ServiceAccountProjectAccessPolicyResponseModel>>,
+        Option<Vec<models::ServiceAccountAccessPolicyResponseModel>>,
 }
 
 impl ProjectServiceAccountsAccessPoliciesResponseModel {

@@ -1,0 +1,9 @@
+[bindings.kotlin]
+package_name = "com.bitwarden.fido"
+generate_immutable_records = true
+android = true
+
+[bindings.swift]
+ffi_module_name = "BitwardenFidoFFI"
+module_name = "BitwardenFido"
+generate_immutable_records = true

@@ -12,11 +12,20 @@ Review the help documentation on [Access Tokens]
 ### Create new Bitwarden client
 
 ```java
+import com.bitwarden.sdk.*;
+import com.bitwarden.sdk.schema.*;
+
+import java.lang.System;
+import java.util.UUID;
+import java.time.OffsetDateTime;
+
+String stateFile = System.getenv("STATE_FILE");
+
 BitwardenSettings bitwardenSettings = new BitwardenSettings();
 bitwardenSettings.setApiUrl("https://api.bitwarden.com");
 bitwardenSettings.setIdentityUrl("https://identity.bitwarden.com");
 BitwardenClient bitwardenClient = new BitwardenClient(bitwardenSettings);
-bitwardenClient.accessTokenLogin("<access-token>");
+bitwardenClient.auth().loginAccessToken("<access-token>", stateFile);
 ```
 
 ### Create new project
@@ -24,6 +33,13 @@ bitwardenClient.accessTokenLogin("<access-token>");
 ```java
 UUID organizationId = UUID.fromString("<organization-id>");
 var projectResponse = bitwardenClient.projects().create(organizationId, "TestProject");
+UUID projectId = projectResponse.getID();
+```
+
+### Get project
+
+```java
+var projectResponse = bitwardenClient.projects().get(projectId);
 ```
 
 ### List all projects
@@ -35,9 +51,7 @@ var projectsResponse = bitwardenClient.projects().list(organizationId);
 ### Update project
 
 ```java
-UUID projectId = projectResponse.getID();
-projectResponse = bitwardenClient.projects().get(projectId);
-projectResponse = bitwardenClient.projects.update(projectId, organizationId, "TestProjectUpdated");
+var projectResponse = bitwardenClient.projects().update(organizationId, projectId, "TestProjectUpdated");
 ```
 
 ### Add new secret
@@ -46,23 +60,44 @@ projectResponse = bitwardenClient.projects.update(projectId, organizationId, "Te
 String key = "key";
 String value = "value";
 String note = "note";
-var secretResponse = bitwardenClient.secrets().create(key, value, note, organizationId, new UUID[]{projectId});
+var secretResponse = bitwardenClient.secrets().create(organizationId, key, value, note, new UUID[]{projectId});
 UUID secretId = secretResponse.getID();
+```
+
+### Get secret
+
+```java
+var secretResponse = bitwardenClient.secrets().get(secretId);
+```
+
+### Get secrets by ids
+
+```java
+SecretsResponse secretsByIds = bitwardenClient.secrets().getByIds(new UUID[]{secretId});
+for (SecretResponse sr : secretsByIds.getData()) {
+    System.out.println(sr.getKey());
+}
 ```
 
 ### Update secret
 
 ```java
-bitwardenClient.secrets().update(secretId, key2, value2, note2, organizationId, new UUID[]{projectId});
+var secretResponse = bitwardenClient.secrets().update(organizationId, secretId, key2, value2, note2, new UUID[]{projectId});
 ```
 
 ### List secrets
 
 ```java
-var secretIdentifiersResponse secretIdentifiersResponse = bitwardenClient.secrets().list(organizationId);
+var secretIdentifiersResponse = bitwardenClient.secrets().list(organizationId);
 ```
 
-# Delete secret or project
+### Secrets sync
+```java
+SecretsSyncResponse syncResponse = bitwardenClient.secrets().sync(organizationId, OffsetDateTime.now());
+System.out.println("Has changes: " + syncResponse.getHasChanges());
+```
+
+### Delete secret or project
 
 ```java
 bitwardenClient.secrets().delete(new UUID[]{secretId});

@@ -21,7 +21,7 @@ pub struct ServiceAccountGrantedPoliciesPermissionDetailsResponseModel {
         skip_serializing_if = "Option::is_none"
     )]
     pub granted_project_policies:
-        Option<Vec<models::ServiceAccountProjectAccessPolicyPermissionDetailsResponseModel>>,
+        Option<Vec<models::GrantedProjectAccessPolicyPermissionDetailsResponseModel>>,
 }
 
 impl ServiceAccountGrantedPoliciesPermissionDetailsResponseModel {

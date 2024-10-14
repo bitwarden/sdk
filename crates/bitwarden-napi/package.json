@@ -1,6 +1,6 @@
 {
   "name": "@bitwarden/sdk-napi",
-  "version": "0.3.1",
+  "version": "1.0.0",
   "homepage": "https://github.com/bitwarden/sdk#readme",
   "bugs": {
     "url": "https://github.com/bitwarden/sdk/issues"
@@ -29,9 +29,8 @@
     "version": "napi version"
   },
   "devDependencies": {
-    "@napi-rs/cli": "^2.13.2",
-    "ts-node": "10.9.2",
-    "typescript": "^5.0.0"
+    "@napi-rs/cli": "2.18.4",
+    "typescript": "5.5.4"
   },
   "engines": {
     "node": ">= 10"

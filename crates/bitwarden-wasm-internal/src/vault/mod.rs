@@ -8,11 +8,17 @@ use wasm_bindgen::prelude::*;
 use crate::ClientFolders;
 
 #[wasm_bindgen]
-pub struct ClientVault(pub(crate) Rc<Client>);
+pub struct ClientVault(Rc<Client>);
+
+impl ClientVault {
+    pub fn new(client: Rc<Client>) -> Self {
+        Self(client)
+    }
+}
 
 #[wasm_bindgen]
 impl ClientVault {
     pub fn folders(&self) -> ClientFolders {
-        ClientFolders(self.0.clone())
+        ClientFolders::new(self.0.clone())
     }
 }

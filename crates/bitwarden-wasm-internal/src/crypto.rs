@@ -9,7 +9,13 @@ use wasm_bindgen::prelude::*;
 use crate::error::Result;
 
 #[wasm_bindgen]
-pub struct ClientCrypto(pub(crate) Rc<Client>);
+pub struct ClientCrypto(Rc<Client>);
+
+impl ClientCrypto {
+    pub fn new(client: Rc<Client>) -> Self {
+        Self(client)
+    }
+}
 
 #[wasm_bindgen]
 impl ClientCrypto {

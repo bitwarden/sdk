@@ -58,10 +58,10 @@ impl BitwardenClient {
     }
 
     pub fn crypto(&self) -> ClientCrypto {
-        ClientCrypto(self.0.clone())
+        ClientCrypto::new(self.0.clone())
     }
 
     pub fn vault(&self) -> ClientVault {
-        ClientVault(self.0.clone())
+        ClientVault::new(self.0.clone())
     }
 }

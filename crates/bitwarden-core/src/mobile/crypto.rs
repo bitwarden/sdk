@@ -258,6 +258,102 @@ pub fn update_password(client: &Client, new_password: String) -> Result<UpdatePa
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+pub struct DerivePinKeyResponse {
+    /// [UserKey](bitwarden_crypto::UserKey) protected by PIN
+    pin_protected_user_key: EncString,
+    /// PIN protected by [UserKey](bitwarden_crypto::UserKey)
+    encrypted_pin: EncString,
+}
+
+pub fn derive_pin_key(client: &Client, pin: String) -> Result<DerivePinKeyResponse> {
+    let enc = client.internal.get_encryption_settings()?;
+    let user_key = enc.get_key(&None)?;
+
+    let login_method = client
+        .internal
+        .get_login_method()
+        .ok_or(Error::NotAuthenticated)?;
+
+    let pin_protected_user_key = derive_pin_protected_user_key(&pin, &login_method, user_key)?;
+
+    Ok(DerivePinKeyResponse {
+        pin_protected_user_key,
+        encrypted_pin: pin.encrypt_with_key(user_key)?,
+    })
+}
+
+pub fn derive_pin_user_key(client: &Client, encrypted_pin: EncString) -> Result<EncString> {
+    let enc = client.internal.get_encryption_settings()?;
+    let user_key = enc.get_key(&None)?;
+
+    let pin: String = encrypted_pin.decrypt_with_key(user_key)?;
+    let login_method = client
+        .internal
+        .get_login_method()
+        .ok_or(Error::NotAuthenticated)?;
+
+    derive_pin_protected_user_key(&pin, &login_method, user_key)
+}
+
+fn derive_pin_protected_user_key(
+    pin: &str,
+    login_method: &LoginMethod,
+    user_key: &SymmetricCryptoKey,
+) -> Result<EncString> {
+    use bitwarden_crypto::PinKey;
+
+    let derived_key = match login_method {
+        LoginMethod::User(
+            UserLoginMethod::Username { email, kdf, .. }
+            | UserLoginMethod::ApiKey { email, kdf, .. },
+        ) => PinKey::derive(pin.as_bytes(), email.as_bytes(), kdf)?,
+        #[cfg(feature = "secrets")]
+        LoginMethod::ServiceAccount(_) => return Err(Error::NotAuthenticated),
+    };
+
+    Ok(derived_key.encrypt_user_key(user_key)?)
+}
+
+pub(super) fn enroll_admin_password_reset(
+    client: &Client,
+    public_key: String,
+) -> Result<AsymmetricEncString> {
+    use base64::{engine::general_purpose::STANDARD, Engine};
+    use bitwarden_crypto::AsymmetricPublicCryptoKey;
+
+    let public_key = AsymmetricPublicCryptoKey::from_der(&STANDARD.decode(public_key)?)?;
+    let enc = client.internal.get_encryption_settings()?;
+    let key = enc.get_key(&None)?;
+
+    Ok(AsymmetricEncString::encrypt_rsa2048_oaep_sha1(
+        &key.to_vec(),
+        &public_key,
+    )?)
+}
+
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
+pub struct DeriveKeyConnectorRequest {
+    /// Encrypted user key, used to validate the master key
+    pub user_key_encrypted: EncString,
+
+    pub password: String,
+    pub kdf: Kdf,
+    pub email: String,
+}
+
+/// Derive the master key for migrating to the key connector
+pub(super) fn derive_key_connector(request: DeriveKeyConnectorRequest) -> Result<String> {
+    let master_key = MasterKey::derive(&request.password, &request.email, &request.kdf)?;
+    master_key
+        .decrypt_user_key(request.user_key_encrypted)
+        .map_err(|_| "wrong password")?;
+
+    Ok(master_key.to_base64())
+}
+
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 #[cfg_attr(feature = "wasm", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 pub struct MakeKeyPairResponse {
     /// The user's public key
@@ -358,102 +454,6 @@ pub fn verify_asymmetric_keys(
             }
         }
     })
-}
-
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
-pub struct DerivePinKeyResponse {
-    /// [UserKey](bitwarden_crypto::UserKey) protected by PIN
-    pin_protected_user_key: EncString,
-    /// PIN protected by [UserKey](bitwarden_crypto::UserKey)
-    encrypted_pin: EncString,
-}
-
-pub fn derive_pin_key(client: &Client, pin: String) -> Result<DerivePinKeyResponse> {
-    let enc = client.internal.get_encryption_settings()?;
-    let user_key = enc.get_key(&None)?;
-
-    let login_method = client
-        .internal
-        .get_login_method()
-        .ok_or(Error::NotAuthenticated)?;
-
-    let pin_protected_user_key = derive_pin_protected_user_key(&pin, &login_method, user_key)?;
-
-    Ok(DerivePinKeyResponse {
-        pin_protected_user_key,
-        encrypted_pin: pin.encrypt_with_key(user_key)?,
-    })
-}
-
-pub fn derive_pin_user_key(client: &Client, encrypted_pin: EncString) -> Result<EncString> {
-    let enc = client.internal.get_encryption_settings()?;
-    let user_key = enc.get_key(&None)?;
-
-    let pin: String = encrypted_pin.decrypt_with_key(user_key)?;
-    let login_method = client
-        .internal
-        .get_login_method()
-        .ok_or(Error::NotAuthenticated)?;
-
-    derive_pin_protected_user_key(&pin, &login_method, user_key)
-}
-
-fn derive_pin_protected_user_key(
-    pin: &str,
-    login_method: &LoginMethod,
-    user_key: &SymmetricCryptoKey,
-) -> Result<EncString> {
-    use bitwarden_crypto::PinKey;
-
-    let derived_key = match login_method {
-        LoginMethod::User(
-            UserLoginMethod::Username { email, kdf, .. }
-            | UserLoginMethod::ApiKey { email, kdf, .. },
-        ) => PinKey::derive(pin.as_bytes(), email.as_bytes(), kdf)?,
-        #[cfg(feature = "secrets")]
-        LoginMethod::ServiceAccount(_) => return Err(Error::NotAuthenticated),
-    };
-
-    Ok(derived_key.encrypt_user_key(user_key)?)
-}
-
-pub(super) fn enroll_admin_password_reset(
-    client: &Client,
-    public_key: String,
-) -> Result<AsymmetricEncString> {
-    use base64::{engine::general_purpose::STANDARD, Engine};
-    use bitwarden_crypto::AsymmetricPublicCryptoKey;
-
-    let public_key = AsymmetricPublicCryptoKey::from_der(&STANDARD.decode(public_key)?)?;
-    let enc = client.internal.get_encryption_settings()?;
-    let key = enc.get_key(&None)?;
-
-    Ok(AsymmetricEncString::encrypt_rsa2048_oaep_sha1(
-        &key.to_vec(),
-        &public_key,
-    )?)
-}
-
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
-pub struct DeriveKeyConnectorRequest {
-    /// Encrypted user key, used to validate the master key
-    pub user_key_encrypted: EncString,
-
-    pub password: String,
-    pub kdf: Kdf,
-    pub email: String,
-}
-
-/// Derive the master key for migrating to the key connector
-pub(super) fn derive_key_connector(request: DeriveKeyConnectorRequest) -> Result<String> {
-    let master_key = MasterKey::derive(&request.password, &request.email, &request.kdf)?;
-    master_key
-        .decrypt_user_key(request.user_key_encrypted)
-        .map_err(|_| "wrong password")?;
-
-    Ok(master_key.to_base64())
 }
 
 #[cfg(test)]

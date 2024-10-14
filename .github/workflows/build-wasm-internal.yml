@@ -46,7 +46,7 @@ jobs:
           key: wasm-cargo-cache
 
       - name: Install wasm-bindgen-cli
-        run: cargo install wasm-bindgen-cli
+        run: cargo install wasm-bindgen-cli --version 0.2.95
 
       - name: Build
         run: ./build.sh -r

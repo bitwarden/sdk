@@ -1,7 +1,7 @@
 extern crate console_error_panic_hook;
 use std::rc::Rc;
 
-use bitwarden::{Client, ClientSettings};
+use bitwarden_core::{Client, ClientSettings};
 use log::{set_max_level, Level};
 use wasm_bindgen::prelude::*;
 
@@ -49,6 +49,10 @@ impl BitwardenClient {
         msg
     }
 
+    pub fn throw(&self, msg: String) -> Result<(), crate::error::GenericError> {
+        Err(crate::error::GenericError(msg))
+    }
+
     /// Test method, calls http endpoint
     pub async fn http_get(&self, url: String) -> Result<String, String> {
         let client = self.0.internal.get_http_client();
@@ -58,10 +62,10 @@ impl BitwardenClient {
     }
 
     pub fn crypto(&self) -> ClientCrypto {
-        ClientCrypto(self.0.clone())
+        ClientCrypto::new(self.0.clone())
     }
 
     pub fn vault(&self) -> ClientVault {
-        ClientVault(self.0.clone())
+        ClientVault::new(self.0.clone())
     }
 }

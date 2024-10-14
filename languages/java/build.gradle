@@ -36,7 +36,7 @@ repositories {
                 def branchName = "git branch --show-current".execute().text.trim()
 
                 if (branchName == "main" || branchName == "rc" || branchName == "hotfix-rc") {
-                    version = "1.0.0"
+                    version = "1.0.1"
                 } else {
                     // branchName-SNAPSHOT
                     version = "${branchName.replaceAll('/', '-')}-SNAPSHOT"

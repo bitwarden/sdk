@@ -2,7 +2,7 @@ pub mod folders;
 
 use std::rc::Rc;
 
-use bitwarden::Client;
+use bitwarden_core::Client;
 use wasm_bindgen::prelude::*;
 
 use crate::ClientFolders;

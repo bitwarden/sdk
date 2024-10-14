@@ -49,12 +49,6 @@ jobs:
         env:
           RUSTFLAGS: "-D warnings"
 
-      - name: Build Internal
-        if: ${{ matrix.package == 'bitwarden' }}
-        run: cargo build -p ${{ matrix.package }} --features internal --release
-        env:
-          RUSTFLAGS: "-D warnings"
-
   release-dry-run:
     name: Release dry-run
     runs-on: ubuntu-latest

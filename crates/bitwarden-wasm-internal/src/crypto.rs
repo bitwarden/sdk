@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use bitwarden::{
+use bitwarden_core::{
     mobile::crypto::{InitOrgCryptoRequest, InitUserCryptoRequest},
     Client,
 };

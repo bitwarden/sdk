@@ -1,16 +1,16 @@
 use std::sync::Arc;
 
-use bitwarden::{
-    error::Error,
-    exporters::{ClientExportersExt, ExportFormat},
-    generators::{
-        ClientGeneratorExt, PassphraseGeneratorRequest, PasswordGeneratorRequest,
-        UsernameGeneratorRequest,
-    },
-    vault::{Cipher, Collection, Folder},
+use bitwarden_exporters::{ClientExportersExt, ExportFormat};
+use bitwarden_generators::{
+    ClientGeneratorExt, PassphraseGeneratorRequest, PasswordGeneratorRequest,
+    UsernameGeneratorRequest,
 };
+use bitwarden_vault::{Cipher, Collection, Folder};
 
-use crate::{error::Result, Client};
+use crate::{
+    error::{Error, Result},
+    Client,
+};
 
 mod sends;
 pub use sends::ClientSends;

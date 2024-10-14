@@ -49,6 +49,10 @@ impl BitwardenClient {
         msg
     }
 
+    pub fn throw(&self, msg: String) -> Result<(), crate::error::GenericError> {
+        Err(crate::error::GenericError(msg))
+    }
+
     /// Test method, calls http endpoint
     pub async fn http_get(&self, url: String) -> Result<String, String> {
         let client = self.0.internal.get_http_client();

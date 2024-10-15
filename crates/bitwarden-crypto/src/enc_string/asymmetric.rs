@@ -11,11 +11,16 @@ use crate::{
     rsa::encrypt_rsa2048_oaep_sha1,
     AsymmetricCryptoKey, AsymmetricEncryptable, KeyDecryptable,
 };
-
 // This module is a workaround to avoid deprecated warnings that come from the ZeroizeOnDrop
 // macro expansion
 #[allow(deprecated)]
 mod internal {
+    #[cfg(feature = "wasm")]
+    #[wasm_bindgen::prelude::wasm_bindgen(typescript_custom_section)]
+    const TS_CUSTOM_TYPES: &'static str = r#"
+    export type AsymmetricEncString = string;
+    "#;
+
     /// # Encrypted string primitive
     ///
     /// [AsymmetricEncString] is a Bitwarden specific primitive that represents an asymmetrically

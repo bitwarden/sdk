@@ -5,6 +5,8 @@ use generic_array::{typenum::U32, GenericArray};
 use rand::Rng;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "wasm")]
+use {tsify_next::Tsify, wasm_bindgen::prelude::*};
 
 use super::utils::{derive_kdf_key, stretch_kdf_key};
 use crate::{util, CryptoError, EncString, KeyDecryptable, Result, SymmetricCryptoKey, UserKey};
@@ -16,6 +18,7 @@ use crate::{util, CryptoError, EncString, KeyDecryptable, Result, SymmetricCrypt
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
+#[cfg_attr(feature = "wasm", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 pub enum Kdf {
     PBKDF2 {
         iterations: NonZeroU32,

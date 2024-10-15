@@ -10,7 +10,7 @@
 # Shared workflows ownership
 
 ## BRE & SM teams shared ownership
-.github/workflows/build-cli-docker.yml @bitwarden/dept-bre
+.github/workflows/build-cli-docker.yml @bitwarden/dept-bre @bitwarden/team-secrets-manager-dev
 .github/workflows/build-cli.yml @bitwarden/dept-bre
 .github/workflows/build-cpp.yml @bitwarden/dept-bre
 .github/workflows/build-dotnet.yml @bitwarden/dept-bre

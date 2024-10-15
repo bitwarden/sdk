@@ -4,18 +4,64 @@
 #
 # https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
-# BRE for release workflow changes
-.github/workflows/publish-java.yml @bitwarden/dept-bre
-.github/workflows/publish-python.yml @bitwarden/dept-bre
-.github/workflows/release-go.yml @bitwarden/dept-bre
-.github/workflows/publish-php.yml @bitwarden/dept-bre
-.github/workflows/publish-ruby.yml @bitwarden/dept-bre
-.github/workflows/release-cli.yml @bitwarden/dept-bre
-.github/workflows/release-napi.yml @bitwarden/dept-bre
-.github/workflows/release-wasm.yml @bitwarden/dept-bre
-.github/workflows/publish-rust-crates.yml @bitwarden/dept-bre
+# BRE for publish workflow changes
+.github/workflows/publish-*.yml @bitwarden/dept-bre
+
+# Shared workflows ownership
+
+## BRE & SM teams shared ownership
+.github/workflows/build-cli-docker.yml @bitwarden/dept-bre
+.github/workflows/build-cli.yml @bitwarden/dept-bre
+.github/workflows/build-cpp.yml @bitwarden/dept-bre
+.github/workflows/build-dotnet.yml @bitwarden/dept-bre
+.github/workflows/build-go.yml @bitwarden/dept-bre
+.github/workflows/build-java.yml @bitwarden/dept-bre
+.github/workflows/build-napi.yml @bitwarden/dept-bre
+.github/workflows/build-python-wheels.yml @bitwarden/dept-bre
+.github/workflows/build-ruby.yml @bitwarden/dept-bre
+.github/workflows/build-rust-crates.yml @bitwarden/dept-bre
+.github/workflows/release-bws.yml @bitwarden/dept-bre
 .github/workflows/release-cpp.yml @bitwarden/dept-bre
-.github/workflows/publish-dotnet.yml @bitwarden/dept-bre
+.github/workflows/release-dotnet.yml @bitwarden/dept-bre
+.github/workflows/release-go.yml @bitwarden/dept-bre
+.github/workflows/release-java.yml @bitwarden/dept-bre
+.github/workflows/release-napi.yml @bitwarden/dept-bre
+.github/workflows/release-python.yml @bitwarden/dept-bre
+.github/workflows/release-ruby.yml @bitwarden/dept-bre
+
+.github/workflows/build-cli-docker.yml @bitwarden/team-secrets-manager-dev
+.github/workflows/build-cli.yml @bitwarden/team-secrets-manager-dev
+.github/workflows/build-cpp.yml @bitwarden/team-secrets-manager-dev
+.github/workflows/build-dotnet.yml @bitwarden/team-secrets-manager-dev
+.github/workflows/build-go.yml @bitwarden/team-secrets-manager-dev
+.github/workflows/build-java.yml @bitwarden/team-secrets-manager-dev
+.github/workflows/build-napi.yml @bitwarden/team-secrets-manager-dev
+.github/workflows/build-python-wheels.yml @bitwarden/team-secrets-manager-dev
+.github/workflows/build-ruby.yml @bitwarden/team-secrets-manager-dev
+.github/workflows/build-rust-crates.yml @bitwarden/team-secrets-manager-dev
+.github/workflows/release-bws.yml @bitwarden/team-secrets-manager-dev
+.github/workflows/release-cpp.yml @bitwarden/team-secrets-manager-dev
+.github/workflows/release-dotnet.yml @bitwarden/team-secrets-manager-dev
+.github/workflows/release-go.yml @bitwarden/team-secrets-manager-dev
+.github/workflows/release-java.yml @bitwarden/team-secrets-manager-dev
+.github/workflows/release-napi.yml @bitwarden/team-secrets-manager-dev
+.github/workflows/release-python.yml @bitwarden/team-secrets-manager-dev
+.github/workflows/release-ruby.yml @bitwarden/team-secrets-manager-dev
+
+## Multiple owners
+.github/workflows/build-android.yml
+.github/workflows/build-rust-crates.yml
+.github/workflows/build-rust-cross-platform.yml
+.github/workflows/build-swift.yml
+.github/workflows/build-wasm-internal.yml
+.github/workflows/build-wasm.yml
+.github/workflows/release-rust-crates.yml
+.github/workflows/release-swift.yml
+.github/workflows/release-wasm.yml
+
+.github/workflows/version-bump.yml
+
+
 
 # Secrets Manager team
 crates/bitwarden-sm @bitwarden/team-secrets-manager-dev
@@ -25,3 +71,9 @@ crates/bws @bitwarden/team-secrets-manager-dev
 crates/bws/Cargo.toml
 crates/bws/scripts/install.ps1
 crates/bws/scripts/install.sh
+
+## Docker files have shared ownership ##
+**/Dockerfile
+**/*.Dockerfile
+**/.dockerignore
+**/entrypoint.sh

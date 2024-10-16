@@ -34,10 +34,15 @@ impl ClientCrypto {
         Ok(self.0.crypto().initialize_org_crypto(req).await?)
     }
 
+    /// Generates a new key pair and encrypts the private key with the initialized user key.
+    /// Needs to be called after `initialize_user_crypto`.
     pub fn make_key_pair(&self) -> Result<MakeKeyPairResponse> {
         Ok(self.0.crypto().make_key_pair()?)
     }
 
+    /// Verifies a user's asymmetric keys by decrypting the private key with the initialized user
+    /// key. Returns if the private key is decryptable and if it is a valid matching key.
+    /// Needs to be called after `initialize_user_crypto`.
     pub fn verify_asymmetric_keys(
         &self,
         request: VerifyAsymmetricKeysRequest,

@@ -1,0 +1,23 @@
+[package]
+name = "bitwarden-error-macro"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+keywords.workspace = true
+
+[dependencies]
+quote = "1.0.37"
+syn = "2.0.79"
+
+[dev-dependencies]
+bitwarden-error = { path = "../bitwarden-error" }
+
+[lib]
+proc-macro = true
+
+[lints]
+workspace = true

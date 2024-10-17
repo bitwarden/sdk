@@ -157,17 +157,19 @@ impl FromStr for Totp {
     /// - OTP Auth URI
     /// - Steam URI
     fn from_str(key: &str) -> Result<Self, Self::Err> {
+        let key = key.to_lowercase();
+
         let params = if key.starts_with("otpauth://") {
-            let url = Url::parse(key).map_err(|_| TotpError::InvalidOtpauth)?;
+            let url = Url::parse(&key).map_err(|_| TotpError::InvalidOtpauth)?;
             let parts: HashMap<_, _> = url.query_pairs().collect();
 
             Totp {
                 algorithm: parts
                     .get("algorithm")
-                    .and_then(|v| match v.to_uppercase().as_ref() {
-                        "SHA1" => Some(Algorithm::Sha1),
-                        "SHA256" => Some(Algorithm::Sha256),
-                        "SHA512" => Some(Algorithm::Sha512),
+                    .and_then(|v| match v.as_ref() {
+                        "sha1" => Some(Algorithm::Sha1),
+                        "sha256" => Some(Algorithm::Sha256),
+                        "sha512" => Some(Algorithm::Sha512),
                         _ => None,
                     })
                     .unwrap_or(DEFAULT_ALGORITHM),
@@ -200,7 +202,7 @@ impl FromStr for Totp {
                 algorithm: DEFAULT_ALGORITHM,
                 digits: DEFAULT_DIGITS,
                 period: DEFAULT_PERIOD,
-                secret: decode_b32(key),
+                secret: decode_b32(&key),
             }
         };
 
@@ -285,6 +287,7 @@ mod tests {
             ("PIUD1IS!EQYA=", "829846"),    // sanitized
             // Steam
             ("steam://HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ", "7W6CJ"),
+            ("StEam://HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ", "7W6CJ"),
             ("steam://ABCD123", "N26DF"),
             // Various weird lengths
             ("ddfdf", "932653"),
@@ -322,6 +325,20 @@ mod tests {
     }
 
     #[test]
+    fn test_generate_otpauth_uppercase() {
+        let key = "OTPauth://totp/test-account?secret=WQIQ25BRKZYCJVYP".to_string();
+        let time = Some(
+            DateTime::parse_from_rfc3339("2023-01-01T00:00:00.000Z")
+                .unwrap()
+                .with_timezone(&Utc),
+        );
+        let response = generate_totp(key, time).unwrap();
+
+        assert_eq!(response.code, "194506".to_string());
+        assert_eq!(response.period, 30);
+    }
+
+    #[test]
     fn test_generate_otpauth_period() {
         let key = "otpauth://totp/test-account?secret=WQIQ25BRKZYCJVYP&period=60".to_string();
         let time = Some(
@@ -333,6 +350,21 @@ mod tests {
 
         assert_eq!(response.code, "730364".to_string());
         assert_eq!(response.period, 60);
+    }
+
+    #[test]
+    fn test_generate_otpauth_algorithm_sha256() {
+        let key =
+            "otpauth://totp/test-account?secret=WQIQ25BRKZYCJVYP&algorithm=SHA256".to_string();
+        let time = Some(
+            DateTime::parse_from_rfc3339("2023-01-01T00:00:00.000Z")
+                .unwrap()
+                .with_timezone(&Utc),
+        );
+        let response = generate_totp(key, time).unwrap();
+
+        assert_eq!(response.code, "842615".to_string());
+        assert_eq!(response.period, 30);
     }
 
     #[test]

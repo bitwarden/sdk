@@ -19,7 +19,6 @@
 .github/workflows/build-napi.yml @bitwarden/dept-bre @bitwarden/team-secrets-manager-dev
 .github/workflows/build-python-wheels.yml @bitwarden/dept-bre @bitwarden/team-secrets-manager-dev
 .github/workflows/build-ruby.yml @bitwarden/dept-bre @bitwarden/team-secrets-manager-dev
-.github/workflows/build-rust-crates.yml @bitwarden/dept-bre @bitwarden/team-secrets-manager-dev
 .github/workflows/release-bws.yml @bitwarden/dept-bre @bitwarden/team-secrets-manager-dev
 .github/workflows/release-cpp.yml @bitwarden/dept-bre @bitwarden/team-secrets-manager-dev
 .github/workflows/release-dotnet.yml @bitwarden/dept-bre @bitwarden/team-secrets-manager-dev

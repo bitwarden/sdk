@@ -39,7 +39,6 @@
 .github/workflows/release-rust-crates.yml
 .github/workflows/release-swift.yml
 .github/workflows/release-wasm.yml
-
 .github/workflows/version-bump.yml
 
 

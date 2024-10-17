@@ -14,7 +14,7 @@ use uuid::Uuid;
 use super::{
     attachment, card, field, identity,
     local_data::{LocalData, LocalDataView},
-    secure_note,
+    secure_note, ssh_key,
 };
 use crate::{
     password_history, Fido2CredentialFullView, Fido2CredentialView, Login, LoginView,
@@ -41,6 +41,7 @@ pub enum CipherType {
     SecureNote = 2,
     Card = 3,
     Identity = 4,
+    SshKey = 5,
 }
 
 #[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, JsonSchema, PartialEq)]
@@ -72,6 +73,7 @@ pub struct Cipher {
     pub identity: Option<identity::Identity>,
     pub card: Option<card::Card>,
     pub secure_note: Option<secure_note::SecureNote>,
+    pub ssh_key: Option<ssh_key::SshKey>,
 
     pub favorite: bool,
     pub reprompt: CipherRepromptType,
@@ -109,6 +111,7 @@ pub struct CipherView {
     pub identity: Option<identity::IdentityView>,
     pub card: Option<card::CardView>,
     pub secure_note: Option<secure_note::SecureNoteView>,
+    pub ssh_key: Option<ssh_key::SshKeyView>,
 
     pub favorite: bool,
     pub reprompt: CipherRepromptType,
@@ -137,6 +140,7 @@ pub enum CipherListViewType {
     SecureNote,
     Card,
     Identity,
+    SshKey,
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema, PartialEq)]
@@ -211,6 +215,7 @@ impl KeyEncryptable<SymmetricCryptoKey, Cipher> for CipherView {
             identity: self.identity.encrypt_with_key(key)?,
             card: self.card.encrypt_with_key(key)?,
             secure_note: self.secure_note.encrypt_with_key(key)?,
+            ssh_key: self.ssh_key.encrypt_with_key(key)?,
             favorite: self.favorite,
             reprompt: self.reprompt,
             organization_use_totp: self.organization_use_totp,
@@ -245,6 +250,7 @@ impl KeyDecryptable<SymmetricCryptoKey, CipherView> for Cipher {
             identity: self.identity.decrypt_with_key(key).ok().flatten(),
             card: self.card.decrypt_with_key(key).ok().flatten(),
             secure_note: self.secure_note.decrypt_with_key(key).ok().flatten(),
+            ssh_key: self.ssh_key.decrypt_with_key(key).ok().flatten(),
             favorite: self.favorite,
             reprompt: self.reprompt,
             organization_use_totp: self.organization_use_totp,
@@ -328,6 +334,18 @@ impl Cipher {
                         .map(|l| l.decrypt_with_key(key))
                         .transpose()?,
                 )
+            }
+            CipherType::SshKey => {
+                let Some(ssh_key) = &self.ssh_key else {
+                    return Ok(String::new());
+                };
+
+                ssh_key
+                    .fingerprint
+                    .as_ref()
+                    .map(|c| c.decrypt_with_key(key))
+                    .transpose()?
+                    .unwrap_or_default()
             }
         })
     }
@@ -553,6 +571,7 @@ impl KeyDecryptable<SymmetricCryptoKey, CipherListView> for Cipher {
                 CipherType::SecureNote => CipherListViewType::SecureNote,
                 CipherType::Card => CipherListViewType::Card,
                 CipherType::Identity => CipherListViewType::Identity,
+                CipherType::SshKey => CipherListViewType::SshKey,
             },
             favorite: self.favorite,
             reprompt: self.reprompt,
@@ -614,6 +633,8 @@ impl TryFrom<CipherDetailsResponseModel> for Cipher {
             identity: cipher.identity.map(|i| (*i).try_into()).transpose()?,
             card: cipher.card.map(|c| (*c).try_into()).transpose()?,
             secure_note: cipher.secure_note.map(|s| (*s).try_into()).transpose()?,
+            // TODO: add ssh_key when api bindings have been updated
+            ssh_key: None,
             favorite: cipher.favorite.unwrap_or(false),
             reprompt: cipher
                 .reprompt
@@ -650,6 +671,7 @@ impl From<bitwarden_api_api::models::CipherType> for CipherType {
             bitwarden_api_api::models::CipherType::SecureNote => CipherType::SecureNote,
             bitwarden_api_api::models::CipherType::Card => CipherType::Card,
             bitwarden_api_api::models::CipherType::Identity => CipherType::Identity,
+            // TODO: add ssh_key when api bindings have been updated
         }
     }
 }
@@ -669,6 +691,7 @@ mod tests {
     use std::collections::HashMap;
 
     use attachment::AttachmentView;
+    use ssh_key::SshKey;
 
     use super::*;
     use crate::Fido2Credential;
@@ -695,6 +718,7 @@ mod tests {
             identity: None,
             card: None,
             secure_note: None,
+            ssh_key: None,
             favorite: false,
             reprompt: CipherRepromptType::None,
             organization_use_totp: true,
@@ -753,6 +777,7 @@ mod tests {
             identity: None,
             card: None,
             secure_note: None,
+            ssh_key: None,
             favorite: false,
             reprompt: CipherRepromptType::None,
             organization_use_totp: false,
@@ -1158,5 +1183,49 @@ mod tests {
 
         let subtitle = build_subtitle_identity(first_name, last_name);
         assert_eq!(subtitle, "");
+    }
+
+    #[test]
+    fn test_subtitle_ssh_key() {
+        let key = "hvBMMb1t79YssFZkpetYsM3deyVuQv4r88Uj9gvYe0+G8EwxvW3v1iywVmSl61iwzd17JW5C/ivzxSP2C9h7Tw==".to_string();
+        let key = SymmetricCryptoKey::try_from(key).unwrap();
+        let original_subtitle = "SHA256:1JjFjvPRkj1Gbf2qRP1dgHiIzEuNAEvp+92x99jw3K0".to_string();
+        let fingerprint_encrypted = original_subtitle.to_owned().encrypt_with_key(&key).unwrap();
+        let ssh_key_cipher = Cipher {
+            id: Some("090c19ea-a61a-4df6-8963-262b97bc6266".parse().unwrap()),
+            organization_id: None,
+            folder_id: None,
+            collection_ids: vec![],
+            r#type: CipherType::SshKey,
+            key: None,
+            name: "My test ssh key"
+                .to_string()
+                .encrypt_with_key(&key)
+                .unwrap(),
+            notes: None,
+            login: None,
+            identity: None,
+            card: None,
+            secure_note: None,
+            ssh_key: Some(SshKey {
+                private_key: None,
+                public_key: None,
+                fingerprint: Some(fingerprint_encrypted),
+            }),
+            favorite: false,
+            reprompt: CipherRepromptType::None,
+            organization_use_totp: false,
+            edit: true,
+            view_password: true,
+            local_data: None,
+            attachments: None,
+            fields: None,
+            password_history: None,
+            creation_date: "2024-01-01T00:00:00.000Z".parse().unwrap(),
+            deleted_date: None,
+            revision_date: "2024-01-01T00:00:00.000Z".parse().unwrap(),
+        };
+        let subtitle = ssh_key_cipher.get_decrypted_subtitle(&key).unwrap();
+        assert_eq!(subtitle, original_subtitle);
     }
 }

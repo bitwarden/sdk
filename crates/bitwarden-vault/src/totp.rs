@@ -354,7 +354,8 @@ mod tests {
 
     #[test]
     fn test_generate_otpauth_algorithm_sha256() {
-        let key = "otpauth://totp/test-account?secret=WQIQ25BRKZYCJVYP&algorithm=SHA256".to_string();
+        let key =
+            "otpauth://totp/test-account?secret=WQIQ25BRKZYCJVYP&algorithm=SHA256".to_string();
         let time = Some(
             DateTime::parse_from_rfc3339("2023-01-01T00:00:00.000Z")
                 .unwrap()

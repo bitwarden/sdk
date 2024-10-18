@@ -1,4 +1,3 @@
----
 name: Publish bws CLI
 run-name: Publish bws CLI ${{ inputs.release_type }}
 

@@ -1,4 +1,3 @@
----
 name: Publish Java SDK
 run-name: Publish Java SDK ${{ inputs.release_type }}
 

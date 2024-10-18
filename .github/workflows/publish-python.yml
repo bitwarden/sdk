@@ -1,4 +1,3 @@
----
 name: Publish Python SDK
 run-name: Publish Python SDK ${{ inputs.release_type }}
 

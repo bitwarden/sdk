@@ -1,4 +1,3 @@
----
 name: Publish PHP SDK
 run-name: Publish PHP SDK ${{ inputs.release_type }}
 

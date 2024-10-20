@@ -12,11 +12,6 @@ license-file.workspace = true
 keywords.workspace = true
 
 [features]
-internal = [
-    "bitwarden/internal",
-    "bitwarden-json/internal",
-    "bitwarden-uniffi/docs",
-]
 
 [dependencies]
 anyhow = "1.0.82"

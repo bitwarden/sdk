@@ -3,7 +3,7 @@ uniffi::setup_scaffolding!();
 use std::sync::Arc;
 
 use auth::ClientAuth;
-use bitwarden::ClientSettings;
+use bitwarden_core::ClientSettings;
 
 pub mod auth;
 pub mod crypto;
@@ -12,9 +12,6 @@ pub mod platform;
 pub mod tool;
 mod uniffi_support;
 pub mod vault;
-
-#[cfg(feature = "docs")]
-pub mod docs;
 
 #[cfg(target_os = "android")]
 mod android_support;
@@ -26,7 +23,7 @@ use tool::{ClientExporters, ClientGenerators, ClientSends};
 use vault::ClientVault;
 
 #[derive(uniffi::Object)]
-pub struct Client(bitwarden::Client);
+pub struct Client(bitwarden_core::Client);
 
 #[uniffi::export(async_runtime = "tokio")]
 impl Client {
@@ -38,7 +35,7 @@ impl Client {
         #[cfg(target_os = "android")]
         android_support::init();
 
-        Arc::new(Self(bitwarden::Client::new(settings)))
+        Arc::new(Self(bitwarden_core::Client::new(settings)))
     }
 
     /// Crypto operations
@@ -87,9 +84,9 @@ impl Client {
             .get(&url)
             .send()
             .await
-            .map_err(bitwarden::Error::Reqwest)?;
+            .map_err(bitwarden_core::Error::Reqwest)?;
 
-        Ok(res.text().await.map_err(bitwarden::Error::Reqwest)?)
+        Ok(res.text().await.map_err(bitwarden_core::Error::Reqwest)?)
     }
 }
 

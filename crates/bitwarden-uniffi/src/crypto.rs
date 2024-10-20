@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use bitwarden::{
+use bitwarden_core::{
     mobile::crypto::{
         DeriveKeyConnectorRequest, DerivePinKeyResponse, InitOrgCryptoRequest,
         InitUserCryptoRequest, UpdatePasswordResponse,

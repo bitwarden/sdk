@@ -140,6 +140,6 @@ pub struct SshKey {
     pub private_key: Option<String>,
     /// Ssh public key (ed25519/rsa) according to RFC4253 https://datatracker.ietf.org/doc/html/rfc4253#section-6.6
     pub public_key: Option<String>,
-    /// Ssh fingerprint using SHA256 in the format: SHA256:BASE64_ENCODED_FINGERPRINT
+    /// SSH fingerprint using SHA256 in the format: `SHA256:BASE64_ENCODED_FINGERPRINT`
     pub fingerprint: Option<String>,
 }

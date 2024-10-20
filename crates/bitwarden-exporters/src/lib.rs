@@ -136,7 +136,7 @@ pub struct Identity {
 }
 
 pub struct SshKey {
-    /// Ssh private key (ed25519/rsa) in unencrypted openssh private key format https://github.com/openssh/openssh-portable/blob/master/PROTOCOL.key
+    /// [OpenSSH private key](https://github.com/openssh/openssh-portable/blob/master/PROTOCOL.key), in PEM encoding.
     pub private_key: Option<String>,
     /// Ssh public key (ed25519/rsa) according to RFC4253 https://datatracker.ietf.org/doc/html/rfc4253#section-6.6
     pub public_key: Option<String>,

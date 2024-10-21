@@ -63,6 +63,6 @@ jobs:
         run: npm run lint
 
       - name: Verify rust documentation links
-        run: cargo doc --no-deps --features internal
+        run: cargo doc --no-deps
         env:
           RUSTDOCFLAGS: "-D warnings"

@@ -31,7 +31,6 @@
 ## Multiple owners
 .github/workflows/build-rust-crates.yml
 .github/workflows/build-rust-cross-platform.yml
-.github/workflows/build-wasm-internal.yml
 .github/workflows/build-wasm.yml
 .github/workflows/release-rust-crates.yml
 .github/workflows/release-wasm.yml

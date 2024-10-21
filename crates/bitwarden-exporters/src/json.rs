@@ -2,7 +2,9 @@ use chrono::{DateTime, Utc};
 use thiserror::Error;
 use uuid::Uuid;
 
-use crate::{Card, Cipher, CipherType, Field, Folder, Identity, Login, LoginUri, SecureNote};
+use crate::{
+    Card, Cipher, CipherType, Field, Folder, Identity, Login, LoginUri, SecureNote, SshKey,
+};
 
 #[derive(Error, Debug)]
 pub enum JsonError {
@@ -69,6 +71,8 @@ struct JsonCipher {
     card: Option<JsonCard>,
     #[serde(skip_serializing_if = "Option::is_none")]
     secure_note: Option<JsonSecureNote>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    ssh_key: Option<JsonSshKey>,
 
     favorite: bool,
     reprompt: u8,
@@ -208,6 +212,24 @@ impl From<Identity> for JsonIdentity {
 
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]
+struct JsonSshKey {
+    private_key: Option<String>,
+    public_key: Option<String>,
+    fingerprint: Option<String>,
+}
+
+impl From<SshKey> for JsonSshKey {
+    fn from(ssh_key: SshKey) -> Self {
+        JsonSshKey {
+            private_key: ssh_key.private_key,
+            public_key: ssh_key.public_key,
+            fingerprint: ssh_key.fingerprint,
+        }
+    }
+}
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 struct JsonField {
     name: Option<String>,
     value: Option<String>,
@@ -233,13 +255,15 @@ impl From<Cipher> for JsonCipher {
             CipherType::SecureNote(_) => 2,
             CipherType::Card(_) => 3,
             CipherType::Identity(_) => 4,
+            CipherType::SshKey(_) => 5,
         };
 
-        let (login, secure_note, card, identity) = match cipher.r#type {
-            CipherType::Login(l) => (Some((*l).into()), None, None, None),
-            CipherType::SecureNote(s) => (None, Some((*s).into()), None, None),
-            CipherType::Card(c) => (None, None, Some((*c).into()), None),
-            CipherType::Identity(i) => (None, None, None, Some((*i).into())),
+        let (login, secure_note, card, identity, ssh_key) = match cipher.r#type {
+            CipherType::Login(l) => (Some((*l).into()), None, None, None, None),
+            CipherType::SecureNote(s) => (None, Some((*s).into()), None, None, None),
+            CipherType::Card(c) => (None, None, Some((*c).into()), None, None),
+            CipherType::Identity(i) => (None, None, None, Some((*i).into()), None),
+            CipherType::SshKey(ssh) => (None, None, None, None, Some((*ssh).into())),
         };
 
         JsonCipher {
@@ -254,6 +278,7 @@ impl From<Cipher> for JsonCipher {
             identity,
             card,
             secure_note,
+            ssh_key,
             favorite: cipher.favorite,
             reprompt: cipher.reprompt,
             fields: cipher.fields.into_iter().map(|f| f.into()).collect(),
@@ -595,6 +620,60 @@ mod tests {
     }
 
     #[test]
+    fn test_convert_ssh_key() {
+        let cipher = Cipher {
+            id: "23f0f877-42b1-4820-a850-b10700bc41eb".parse().unwrap(),
+            folder_id: None,
+
+            name: "My ssh key".to_string(),
+            notes: None,
+
+            r#type: CipherType::SshKey(Box::new(SshKey {
+                private_key: Some("private".to_string()),
+                public_key: Some("public".to_string()),
+                fingerprint: Some("fingerprint".to_string()),
+            })),
+
+            favorite: false,
+            reprompt: 0,
+
+            fields: vec![],
+
+            revision_date: "2024-01-30T11:25:25.466Z".parse().unwrap(),
+            creation_date: "2024-01-30T11:25:25.466Z".parse().unwrap(),
+            deleted_date: None,
+        };
+
+        let json = serde_json::to_string(&JsonCipher::from(cipher)).unwrap();
+
+        let expected = r#"{
+            "passwordHistory": null,
+            "revisionDate": "2024-01-30T11:25:25.466Z",
+            "creationDate": "2024-01-30T11:25:25.466Z",
+            "deletedDate": null,
+            "id": "23f0f877-42b1-4820-a850-b10700bc41eb",
+            "organizationId": null,
+            "folderId": null,
+            "type": 5,
+            "reprompt": 0,
+            "name": "My ssh key",
+            "notes": null,
+            "sshKey": {
+              "privateKey": "private",
+              "publicKey": "public",
+              "fingerprint": "fingerprint"
+            },
+            "favorite": false,
+            "collectionIds": null
+        }"#;
+
+        assert_eq!(
+            json.parse::<serde_json::Value>().unwrap(),
+            expected.parse::<serde_json::Value>().unwrap()
+        )
+    }
+
+    #[test]
     pub fn test_export() {
         let mut d = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         d.push("resources");
@@ -750,6 +829,28 @@ mod tests {
                     creation_date: "2024-01-30T17:54:50.706Z".parse().unwrap(),
                     deleted_date: None,
                 },
+                Cipher {
+                    id: "646594a9-a9cb-4082-9d57-0024c3fbcaa9".parse().unwrap(),
+                    folder_id: None,
+
+                    name: "My ssh key".to_string(),
+                    notes: None,
+
+                    r#type: CipherType::SshKey(Box::new(SshKey {
+                        private_key: Some("-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW\nQyNTUxOQAAACBinNE5chMtCHh3BV0H1+CpPlEQBwR5cD+Xb9i8MaHGiwAAAKAy48fwMuPH\n8AAAAAtzc2gtZWQyNTUxOQAAACBinNE5chMtCHh3BV0H1+CpPlEQBwR5cD+Xb9i8MaHGiw\nAAAEAYUCIdfLI14K3XIy9V0FDZLQoZ9gcjOnvFjb4uA335HmKc0TlyEy0IeHcFXQfX4Kk+\nURAHBHlwP5dv2LwxocaLAAAAHHF1ZXh0ZW5ATWFjQm9vay1Qcm8tMTYubG9jYWwB\n-----END OPENSSH PRIVATE KEY-----".to_string()),
+                        public_key: Some("ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGKc0TlyEy0IeHcFXQfX4Kk+URAHBHlwP5dv2LwxocaL".to_string()),
+                        fingerprint: Some("SHA256:1JjFjvPRkj1Gbf2qRP1dgHiIzEuNAEvp+92x99jw3K0".to_string()),
+                    })),
+
+                    favorite: false,
+                    reprompt: 0,
+
+                    fields: vec![],
+
+                    revision_date: "2024-01-30T11:25:25.466Z".parse().unwrap(),
+                    creation_date: "2024-01-30T11:25:25.466Z".parse().unwrap(),
+                    deleted_date: None,
+                }
             ],
         )
         .unwrap();

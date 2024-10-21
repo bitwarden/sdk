@@ -74,6 +74,14 @@ impl TryFrom<CipherView> for crate::Cipher {
                     license_number: i.license_number,
                 }))
             }
+            CipherType::SshKey => {
+                let s = require!(value.ssh_key);
+                crate::CipherType::SshKey(Box::new(crate::SshKey {
+                    private_key: s.private_key,
+                    public_key: s.public_key,
+                    fingerprint: s.fingerprint,
+                }))
+            }
         };
 
         Ok(Self {
@@ -172,6 +180,7 @@ mod tests {
             identity: None,
             card: None,
             secure_note: None,
+            ssh_key: None,
             favorite: false,
             reprompt: CipherRepromptType::None,
             organization_use_totp: true,

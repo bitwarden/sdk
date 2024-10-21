@@ -70,6 +70,7 @@ pub enum CipherType {
     SecureNote(Box<SecureNote>),
     Card(Box<Card>),
     Identity(Box<Identity>),
+    SshKey(Box<SshKey>),
 }
 
 impl fmt::Display for CipherType {
@@ -79,6 +80,7 @@ impl fmt::Display for CipherType {
             CipherType::SecureNote(_) => write!(f, "note"),
             CipherType::Card(_) => write!(f, "card"),
             CipherType::Identity(_) => write!(f, "identity"),
+            CipherType::SshKey(_) => write!(f, "ssh_key"),
         }
     }
 }
@@ -131,4 +133,13 @@ pub struct Identity {
     pub username: Option<String>,
     pub passport_number: Option<String>,
     pub license_number: Option<String>,
+}
+
+pub struct SshKey {
+    /// [OpenSSH private key](https://github.com/openssh/openssh-portable/blob/master/PROTOCOL.key), in PEM encoding.
+    pub private_key: Option<String>,
+    /// Ssh public key (ed25519/rsa) according to [RFC4253](https://datatracker.ietf.org/doc/html/rfc4253#section-6.6)
+    pub public_key: Option<String>,
+    /// SSH fingerprint using SHA256 in the format: `SHA256:BASE64_ENCODED_FINGERPRINT`
+    pub fingerprint: Option<String>,
 }

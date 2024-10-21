@@ -49,6 +49,10 @@ impl BitwardenClient {
         msg
     }
 
+    pub fn version(&self) -> String {
+        env!("SDK_VERSION").to_owned()
+    }
+
     pub fn throw(&self, msg: String) -> Result<(), crate::error::GenericError> {
         Err(crate::error::GenericError(msg))
     }

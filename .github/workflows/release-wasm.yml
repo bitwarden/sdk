@@ -1,4 +1,3 @@
----
 name: Release @bitwarden/sdk-wasm
 run-name: Release @bitwarden/sdk-wasm ${{ inputs.release_type }}
 

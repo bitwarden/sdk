@@ -50,7 +50,7 @@ impl BitwardenClient {
     }
 
     pub fn version(&self) -> String {
-        "PM-12989-create-process-for-qa-to-build-client-with-particular-sdk-version".to_owned()
+        env!("SDK_VERSION").to_owned()
     }
 
     pub fn throw(&self, msg: String) -> Result<(), crate::error::GenericError> {

@@ -2,6 +2,7 @@
 .DS_Store
 .pytest_cache
 .vscode/c_cpp_properties.json
+languages/language_tests/target
 
 # Build results
 [Dd]ebug/

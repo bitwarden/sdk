@@ -49,6 +49,11 @@ uuid = { workspace = true }
 wasm-bindgen = { workspace = true, optional = true }
 zeroize = { version = ">=1.7.0, <2.0", features = ["derive", "aarch64"] }
 
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+memsec = { version = "0.7.0", features = [
+    "alloc_ext",
+], git = "https://github.com/dani-garcia/memsec", rev = "3d2e272d284442637bac0a7d94f76883960db7e2" }
+
 [dev-dependencies]
 criterion = "0.5.1"
 rand_chacha = "0.3.1"

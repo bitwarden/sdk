@@ -461,6 +461,7 @@ dependencies = [
  "generic-array",
  "hkdf",
  "hmac",
+ "memsec",
  "num-bigint",
  "num-traits",
  "pbkdf2",
@@ -2311,6 +2312,16 @@ dependencies = [
  "serde",
  "serde_json",
  "zeroize",
+]
+
+[[package]]
+name = "memsec"
+version = "0.7.0"
+source = "git+https://github.com/dani-garcia/memsec?rev=3d2e272d284442637bac0a7d94f76883960db7e2#3d2e272d284442637bac0a7d94f76883960db7e2"
+dependencies = [
+ "getrandom",
+ "libc",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]

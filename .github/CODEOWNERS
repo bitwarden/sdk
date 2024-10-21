@@ -29,18 +29,12 @@
 .github/workflows/release-ruby.yml @bitwarden/dept-bre @bitwarden/team-secrets-manager-dev
 
 ## Multiple owners
-.github/workflows/build-android.yml
 .github/workflows/build-rust-crates.yml
 .github/workflows/build-rust-cross-platform.yml
-.github/workflows/build-swift.yml
-.github/workflows/build-wasm-internal.yml
 .github/workflows/build-wasm.yml
 .github/workflows/release-rust-crates.yml
-.github/workflows/release-swift.yml
 .github/workflows/release-wasm.yml
 .github/workflows/version-bump.yml
-
-
 
 # Secrets Manager team
 crates/bitwarden-sm @bitwarden/team-secrets-manager-dev

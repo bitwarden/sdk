@@ -74,4 +74,4 @@ jobs:
           args: >
             -Dsonar.organization=${{ github.repository_owner }}
             -Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }}
-            -Dsonar.exclusions=languages/**
+            -Dsonar.exclusions=languages/**,crates/bitwarden-exporters/resources/json_export.json

@@ -97,6 +97,10 @@ pub(crate) enum Commands {
         command: Vec<String>,
         #[arg(long, help = "The shell to use")]
         shell: Option<String>,
+        #[arg(long, help = "Prefix to place before var names")]
+        prefix: Option<String>,
+        #[arg(long, help = "Suffix to place at the end of var names")]
+        suffix: Option<String>,
         #[arg(
             long,
             help = "Don't inherit environment variables from the current shell"

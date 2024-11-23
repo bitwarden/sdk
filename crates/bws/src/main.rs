@@ -133,6 +133,8 @@ async fn process_commands() -> Result<()> {
 
         Commands::Run {
             command,
+            prefix,
+            suffix,
             shell,
             no_inherit_env,
             project_id,
@@ -144,6 +146,8 @@ async fn process_commands() -> Result<()> {
                 project_id,
                 uuids_as_keynames,
                 no_inherit_env,
+                prefix,
+                suffix,
                 shell,
                 command,
             )

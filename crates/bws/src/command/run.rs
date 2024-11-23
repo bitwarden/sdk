@@ -24,12 +24,15 @@ use crate::{
 // Essential environment variables that should be preserved even when `--no-inherit-env` is used
 const WINDOWS_ESSENTIAL_VARS: &[&str] = &["SystemRoot", "ComSpec", "windir"];
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) async fn run(
     client: Client,
     organization_id: Uuid,
     project_id: Option<Uuid>,
     uuids_as_keynames: bool,
     no_inherit_env: bool,
+    prefix: Option<String>,
+    suffix: Option<String>,
     shell: Option<String>,
     command: Vec<String>,
 ) -> Result<i32> {
@@ -86,7 +89,9 @@ pub(crate) async fn run(
 
     let environment: HashMap<String, String> = secrets
         .into_iter()
-        .map(|s| {
+        .map(|mut s| {
+            s.key.insert_str(0, &prefix.clone().unwrap_or_default());
+            s.key.push_str(&suffix.clone().unwrap_or_default());
             if uuids_as_keynames {
                 (uuid_to_posix(&s.id), s.value)
             } else {

@@ -83,13 +83,13 @@ jobs:
         run: cargo build -p bitwarden-c --target ${{ matrix.settings.target }} --release
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
         with:
           name: libbitwarden_c_files-${{ matrix.settings.target }}
           path: target/${{ matrix.settings.target }}/release/*bitwarden_c*
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
         with:
           name: libbitwarden_c_files-${{ matrix.settings.target }}
           path: target/${{ matrix.settings.target }}/release-windows/*bitwarden_c*

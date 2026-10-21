@@ -81,6 +81,42 @@ fn server_error_hides_html_body() {
 }
 
 #[test]
+fn api_server_error_hides_html_body() {
+    // The API server answers with an error of its own, which the SDK reports differently from the
+    // identity server.
+    let server = MockServer::start(vec![
+        Route {
+            method: "POST",
+            path_prefix: "/identity/connect/token",
+            status: 200,
+            content_type: "application/json",
+            body: IDENTITY_OK_BODY,
+        },
+        Route {
+            method: "GET",
+            path_prefix: "/api/organizations",
+            status: 500,
+            content_type: "text/html",
+            body: "<html>oops</html>",
+        },
+    ]);
+
+    let (code, _, stderr) = bws(
+        &["secret", "list", "-u", &server.url()],
+        &[("BWS_ACCESS_TOKEN", TEST_TOKEN)],
+    );
+
+    assert_eq!(code, 1);
+    assert_error(
+        &stderr,
+        &[
+            "Error: The server returned an error (500 Internal Server Error).",
+            "Hint: Try again later.",
+        ],
+    );
+}
+
+#[test]
 fn server_message_cannot_inject_escape_sequences() {
     let server = MockServer::start(vec![Route {
         method: "POST",

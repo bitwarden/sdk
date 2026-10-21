@@ -27,7 +27,10 @@ static USERINFO_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"([A-Za-z][A-Za-z0-9+.-]*://)[^/?#@ ]+@").expect("USERINFO_RE to be valid")
 });
 static HTTP_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(?s)^Received error message from server: \[(([0-9]{3})[^\]]*)\] ?(.*)$")
+    // The SDK reports a failed request as "error in response: status code 404 Not Found: <body>".
+    // The integration tests fail if this format changes, rather than the response body leaking
+    // into the message.
+    Regex::new(r"(?s)^error in response: status code ([0-9]{3})([^:\n]*): ?(.*)$")
         .expect("HTTP_RE to be valid")
 });
 
@@ -220,12 +223,23 @@ pub(crate) enum UserError {
 
 impl UserError {
     /// The `Hint:` line shown under the message, if any.
+    ///
+    /// Every variant is listed, so that a new one has to decide on a hint instead of silently
+    /// losing it.
     pub(crate) fn hint(&self) -> Option<String> {
         let hint = match self {
+            // ---- Configuration ----
             UserError::NoHomeDirectory => "Set --config-file or BWS_CONFIG_FILE.",
+            // The message names the file that is missing; a hint cannot add much to it.
+            UserError::ConfigFileMissing { .. } => return None,
+            UserError::NothingToDelete { .. } => return None,
             UserError::ConfigFileIsDir { .. } => {
                 "In a container, create the host file first (e.g. `touch`) so it mounts as a file."
             }
+            // The message already carries the file, the position and the parser's reason.
+            UserError::InvalidConfig { .. } => return None,
+            UserError::ProfileNotFound { .. } => return None,
+            UserError::InvalidConfigValue { .. } => CONFIG_USAGE_HINT,
             UserError::MissingConfigName | UserError::MissingConfigValue { .. } => {
                 CONFIG_USAGE_HINT
             }
@@ -235,32 +249,30 @@ impl UserError {
                     "Run: bws config --profile {name} server-base <url>"
                 ));
             }
+
+            // ---- Auth and state ----
             UserError::NoAccessToken => "Pass --access-token or set BWS_ACCESS_TOKEN.",
             UserError::MalformedToken { .. } => HINT_COPY_TOKEN,
-            UserError::InvalidDecryptionKey => HINT_COPY_TOKEN,
             UserError::InvalidAccessToken => "Create a new access token in the Bitwarden web app.",
             UserError::TooManyAuthAttempts => {
                 "Wait a few minutes and retry; keep state enabled to reuse sessions."
             }
-            UserError::UnexpectedAuthEndpoint { .. } => SERVER_URL_HINT,
-            UserError::NoStateDir | UserError::StateDirUnusable { .. } => STATE_HINT,
-            UserError::ConnectionRefused { .. } => SERVER_URL_HINT,
-            UserError::Dns { .. } => NETWORK_HINT,
-            UserError::Tls { .. } => TLS_HINT,
-            UserError::Timeout { .. } => "Check your network connection.",
-            UserError::ServerUrlHttps | UserError::ServerUrlInvalid => SERVER_URL_HINT,
-            UserError::ServerUnreachable { .. } => NETWORK_HINT,
-            UserError::UnexpectedResponse => SERVER_URL_HINT,
-            UserError::Unauthorized { .. } => {
-                "The token may be expired or revoked; create a new one in the Bitwarden web app."
+            UserError::InvalidDecryptionKey => HINT_COPY_TOKEN,
+            UserError::UnexpectedAuthEndpoint { .. } | UserError::UnexpectedAuthResponse { .. } => {
+                SERVER_URL_HINT
             }
-            UserError::Forbidden { .. } => "Check the machine account's permissions.",
-            UserError::NotFound { check_url: true } => SERVER_URL_HINT,
-            UserError::TooManyRequests { .. } => "Wait a moment and try again.",
-            UserError::ServerError { .. } => "Try again later.",
-            UserError::UnexpectedHttpStatus {
-                check_url: true, ..
-            } => SERVER_URL_HINT,
+            UserError::AuthFailed => {
+                "Check the access token and the machine account's permissions."
+            }
+            // The message already carries the reason the server gave.
+            UserError::AuthFailedReason { .. } => return None,
+            // The message is the SDK's own text.
+            UserError::UnclassifiedAuth { .. } => return None,
+            UserError::NoStateDir | UserError::StateDirUnusable { .. } => STATE_HINT,
+            // The message names the path and the reason.
+            UserError::Io { .. } => return None,
+
+            // ---- Run ----
             UserError::ShellNotFound { .. } => {
                 "Install the shell, or set the full path with --shell <shell>."
             }
@@ -268,10 +280,37 @@ impl UserError {
             UserError::DuplicateSecretName { .. } => {
                 "Use unique secret names, or pass --uuids-as-keynames."
             }
+
+            // ---- Delete ----
             UserError::FailedToDeleteSecrets { .. } | UserError::FailedToDeleteProjects { .. } => {
                 "See the errors listed above."
             }
-            _ => return None,
+
+            // ---- Network and HTTP ----
+            UserError::ConnectionRefused { .. } => SERVER_URL_HINT,
+            UserError::Dns { .. } => NETWORK_HINT,
+            UserError::Tls { .. } => TLS_HINT,
+            UserError::Timeout { .. } => "Check your network connection.",
+            UserError::ServerUrlHttps | UserError::ServerUrlInvalid => SERVER_URL_HINT,
+            UserError::ServerUnreachable { .. } => NETWORK_HINT,
+            UserError::UnexpectedResponse => SERVER_URL_HINT,
+            // The message is the server's own reason, already sanitized.
+            UserError::ServerMessage { .. } => return None,
+            UserError::BadRequest { .. } => return None,
+            UserError::Unauthorized { .. } => {
+                "The token may be expired or revoked; create a new one in the Bitwarden web app."
+            }
+            UserError::Forbidden { .. } => "Check the machine account's permissions.",
+            UserError::NotFound { check_url: true } => SERVER_URL_HINT,
+            UserError::NotFound { check_url: false } => return None,
+            UserError::TooManyRequests { .. } => "Wait a moment and try again.",
+            UserError::ServerError { .. } => "Try again later.",
+            UserError::UnexpectedHttpStatus {
+                check_url: true, ..
+            } => SERVER_URL_HINT,
+            UserError::UnexpectedHttpStatus {
+                check_url: false, ..
+            } => return None,
         };
         Some(hint.to_string())
     }
@@ -367,11 +406,8 @@ fn generic(err: &(dyn Error + 'static)) -> Option<UserError> {
     let host = || host_from_chain(&texts);
 
     // The response body is part of the message, so match HTTP errors before the text heuristics.
-    if let Some(c) = HTTP_RE.captures(top) {
-        let reason = c.get(1).map_or("", |m| m.as_str());
-        let status: u16 = c.get(2).and_then(|m| m.as_str().parse().ok()).unwrap_or(0);
-        let body = c.get(3).map_or("", |m| m.as_str());
-        return Some(http_error(status, reason, body));
+    if let Some((status, reason, body)) = http_response(top) {
+        return Some(http_error(status, &reason, body));
     }
 
     if io_kind(io::ErrorKind::ConnectionRefused)
@@ -393,7 +429,9 @@ fn generic(err: &(dyn Error + 'static)) -> Option<UserError> {
     if io_kind(io::ErrorKind::TimedOut) || texts.iter().any(|t| t.contains("timed out")) {
         return Some(UserError::Timeout { host: host() });
     }
-    if top.starts_with("builder error") {
+    // The SDK prefixes its own error types, so the wording of the inner error is not always at
+    // the start of the message.
+    if texts.iter().any(|t| t.starts_with("builder error")) {
         // Release builds of the SDK only allow https, and reqwest reports a plain http URL as a
         // builder error.
         if texts.iter().any(|t| t == "URL scheme is not allowed")
@@ -403,13 +441,29 @@ fn generic(err: &(dyn Error + 'static)) -> Option<UserError> {
         }
         return Some(UserError::ServerUrlInvalid);
     }
-    if top.starts_with("error sending request") || top.starts_with("error decoding response body") {
+    if texts.iter().any(|t| {
+        t.starts_with("error sending request") || t.starts_with("error decoding response body")
+    }) {
         return Some(UserError::ServerUnreachable { host: host() });
     }
-    if top.contains("content type response when JSON was expected") {
+    if texts
+        .iter()
+        .any(|t| t.contains("content type response when JSON was expected"))
+    {
         return Some(UserError::UnexpectedResponse);
     }
     None
+}
+
+/// The status, reason phrase and body of an API error response, if the message describes one.
+fn http_response(text: &str) -> Option<(u16, String, &str)> {
+    let captures = HTTP_RE.captures(text)?;
+    let code = captures.get(1)?.as_str();
+    let status = code.parse().ok()?;
+    // The SDK prints "<code> <reason phrase>"; the message keeps the code.
+    let reason = format!("{code}{}", captures.get(2).map_or("", |m| m.as_str()));
+    let body = captures.get(3).map_or("", |m| m.as_str());
+    Some((status, reason, body))
 }
 
 fn http_error(status: u16, reason: &str, body: &str) -> UserError {
@@ -502,20 +556,47 @@ pub(crate) fn malformed_token<E: Error + Send + Sync + 'static>(source: E) -> Us
 pub(crate) fn auth_error(e: LoginError, identity_url: &str) -> UserError {
     let host = url_host(identity_url).unwrap_or_else(|| "the server".to_string());
 
+    // Every variant of `LoginError` is listed, so that a new one has to be classified instead of
+    // falling through to a catch-all.
     let classified = match &e {
-        LoginError::Api(ApiError::Response(rc)) => {
-            auth_response_error(rc.status.as_u16(), &rc.message, &host)
-        }
+        LoginError::Api(ApiError::Response(rc)) => Some(auth_response_error(
+            rc.status.as_u16(),
+            &rc.status.to_string(),
+            &rc.message,
+            &host,
+        )),
+        // The endpoint answered, but not with the JSON the SDK expects.
+        LoginError::Api(ApiError::Serde(_)) => Some(unexpected_auth_endpoint(&host)),
+        // Transport errors carry no status; `generic` recognizes them by their text.
+        LoginError::Api(ApiError::Reqwest(_))
+        | LoginError::Api(ApiError::ReqwestMiddleware(_))
+        | LoginError::Api(ApiError::Io(_)) => None,
         LoginError::IdentityFail(r) => invalid_access_token(&r.error)
             .or_else(|| auth_failed(&[&r.error_model.message, &r.error_description, &r.error])),
         LoginError::Crypto(CryptoError::Decrypt) => Some(UserError::InvalidDecryptionKey),
-        LoginError::Crypto(_)
-        | LoginError::Serde(_)
+        LoginError::Crypto(_) => Some(UserError::UnexpectedAuthResponse { host: host.clone() }),
+        // The response could not be decoded into the expected shape.
+        LoginError::Serde(_)
         | LoginError::MissingField(_)
         | LoginError::JwtTokenParse(_)
+        | LoginError::JwtTokenMissingEmail
+        | LoginError::EncryptionSettings(_)
         | LoginError::InvalidResponse
-        | LoginError::InvalidOrganizationId => Some(UserError::UnexpectedAuthResponse { host }),
-        _ => None,
+        | LoginError::InvalidOrganizationId => {
+            Some(UserError::UnexpectedAuthResponse { host: host.clone() })
+        }
+        // The token itself could not be parsed; the guard below turns this into a malformed token.
+        LoginError::AccessTokenInvalid(_) => None,
+        // The saved session is unusable; the SDK logs in again without it.
+        LoginError::StateFile(_) | LoginError::InvalidStateFile => None,
+        // The client has no session, so the token was not accepted.
+        LoginError::NotAuthenticated(_) => Some(UserError::InvalidAccessToken),
+        // bws logs in with an access token, so the password-based flows never happen. The SDK's
+        // message says more than a generic failure would.
+        LoginError::AuthRequestNotApproved
+        | LoginError::AuthenticationFailed
+        | LoginError::Prelogin(_)
+        | LoginError::MasterPassword(_) => None,
     };
 
     match classified {
@@ -529,24 +610,38 @@ pub(crate) fn auth_error(e: LoginError, identity_url: &str) -> UserError {
 }
 
 /// Classifies an identity server response that could not be parsed as an auth result.
-/// Returns `None` for statuses that [`generic`] handles.
-fn auth_response_error(status: u16, body: &str, host: &str) -> Option<UserError> {
+fn auth_response_error(status: u16, reason: &str, body: &str, host: &str) -> UserError {
     match status {
-        400 => invalid_access_token(
-            serde_json::from_str::<serde_json::Value>(body)
-                .ok()?
-                .get("error")?
-                .as_str()?,
-        ),
-        429 => Some(UserError::TooManyAuthAttempts),
-        // Identity answers 400, 401, 403 and 429 itself; any other 4xx comes from a wrong URL or
-        // a non-Bitwarden server, as does a 200 that is not JSON.
-        402 | 404..=499 => Some(unexpected_auth_endpoint(host)),
-        200 if serde_json::from_str::<serde::de::IgnoredAny>(body).is_err() => {
-            Some(unexpected_auth_endpoint(host))
-        }
-        _ => None,
+        400 => auth_error_code(body)
+            .as_deref()
+            .and_then(invalid_access_token)
+            .or_else(|| server_message(body).map(|message| UserError::ServerMessage { message }))
+            .unwrap_or(UserError::BadRequest {
+                reason: reason.to_string(),
+            }),
+        401 => UserError::Unauthorized {
+            reason: reason.to_string(),
+        },
+        403 => UserError::Forbidden {
+            reason: reason.to_string(),
+        },
+        429 => UserError::TooManyAuthAttempts,
+        500..=599 => UserError::ServerError {
+            reason: reason.to_string(),
+        },
+        // Identity answers 400, 401, 403 and 429 itself; any other status comes from a wrong URL
+        // or a non-Bitwarden server, as does a 200 that is not JSON.
+        _ => unexpected_auth_endpoint(host),
     }
+}
+
+/// The OAuth `error` code of a rejected access token.
+fn auth_error_code(body: &str) -> Option<String> {
+    serde_json::from_str::<serde_json::Value>(body)
+        .ok()?
+        .get("error")?
+        .as_str()
+        .map(str::to_string)
 }
 
 /// Classifies the OAuth `error` code of a rejected access token.
@@ -887,9 +982,7 @@ mod tests {
     #[test]
     fn generic_http() {
         let http = |status: &str, body: &str| {
-            classify_text(&format!(
-                "Received error message from server: [{status}] {body}"
-            ))
+            classify_text(&format!("error in response: status code {status}: {body}"))
         };
 
         let e = http(
@@ -977,14 +1070,14 @@ mod tests {
     #[test]
     fn generic_http_body_does_not_trigger_network_heuristics() {
         let e = classify_text(
-            "Received error message from server: [504 Gateway Timeout] <html>upstream timed out</html>",
+            "error in response: status code 504 Gateway Timeout: <html>upstream timed out</html>",
         );
         assert_eq!(
             e.to_string(),
             "The server returned an error (504 Gateway Timeout)."
         );
 
-        let e = classify_text("Received error message from server: [404 Not Found] <html></html>");
+        let e = classify_text("error in response: status code 404 Not Found: <html></html>");
         assert_eq!(e.hint().as_deref(), Some(SERVER_URL_HINT));
     }
 
@@ -1057,7 +1150,7 @@ mod tests {
             r#"{"error":"invalid_client"}"#,
             r#"{"error":"invalid_grant"}"#,
         ] {
-            let e = auth_response_error(400, body, host).expect("classified");
+            let e = auth_response_error(400, "400 Bad Request", body, host);
             assert_eq!(
                 lines(&e),
                 (
@@ -1066,11 +1159,28 @@ mod tests {
                 )
             );
         }
-        assert!(auth_response_error(400, r#"{"error":"invalid_scope"}"#, host).is_none());
-        assert!(auth_response_error(400, "<html>", host).is_none());
+        // A rejection that is not about the token keeps the status, but not the body.
+        for body in [r#"{"error":"invalid_scope"}"#, "<html>"] {
+            let e = auth_response_error(400, "400 Bad Request", body, host);
+            assert_eq!(
+                lines(&e),
+                (
+                    "The server rejected the request (400 Bad Request).".to_string(),
+                    None
+                )
+            );
+        }
+        // The server's own message is kept, without the rest of the body.
+        let e = auth_response_error(
+            400,
+            "400 Bad Request",
+            r#"{"message":"Bad request","object":"error"}"#,
+            host,
+        );
+        assert_eq!(lines(&e), ("Bad request.".to_string(), None));
 
         assert_eq!(
-            lines(&auth_response_error(429, "", host).expect("classified")),
+            lines(&auth_response_error(429, "429 Too Many Requests", "", host)),
             (
                 "Too many auth attempts.".to_string(),
                 Some(
@@ -1086,20 +1196,54 @@ mod tests {
         );
         for status in [404, 405, 415] {
             assert_eq!(
-                lines(&auth_response_error(status, "<html></html>", host).expect("classified")),
+                lines(&auth_response_error(
+                    status,
+                    "404 Not Found",
+                    "<html></html>",
+                    host
+                )),
                 unexpected
             );
         }
-        for status in [401, 403] {
-            assert!(auth_response_error(status, "{}", host).is_none());
-        }
+        assert_eq!(
+            lines(&auth_response_error(401, "401 Unauthorized", "", host)),
+            (
+                "The server rejected the access token (401 Unauthorized).".to_string(),
+                Some(
+                    "The token may be expired or revoked; create a new one in the Bitwarden web app."
+                        .to_string()
+                )
+            )
+        );
+        assert_eq!(
+            lines(&auth_response_error(403, "403 Forbidden", "", host)),
+            (
+                "Access denied (403 Forbidden).".to_string(),
+                Some("Check the machine account's permissions.".to_string())
+            )
+        );
         assert!(invalid_access_token("invalid_scope").is_none());
         assert_eq!(
-            lines(&auth_response_error(200, "<html>auth</html>", host).expect("classified")),
+            lines(&auth_response_error(
+                200,
+                "200 OK",
+                "<html>auth</html>",
+                host
+            )),
             unexpected
         );
-        assert!(auth_response_error(200, "{}", host).is_none());
-        assert!(auth_response_error(500, "<html>oops</html>", host).is_none());
+        assert_eq!(
+            lines(&auth_response_error(
+                500,
+                "500 Internal Server Error",
+                "<html>oops</html>",
+                host
+            )),
+            (
+                "The server returned an error (500 Internal Server Error).".to_string(),
+                Some("Try again later.".to_string())
+            )
+        );
     }
 
     #[test]
@@ -1123,7 +1267,7 @@ mod tests {
             lines(&e),
             (
                 "Unexpected auth response from the server at identity.example.com.".to_string(),
-                None
+                Some(SERVER_URL_HINT.to_string())
             )
         );
 
